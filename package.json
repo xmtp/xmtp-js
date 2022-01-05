@@ -1,0 +1,51 @@
+{
+  "name": "xmtp-sdk",
+  "version": "0.1.0",
+  "description": "The XMTP SDK bundles the core code libraries, tools, and documentation that developers require in order to build client experiences on top of the XMTP protocol.",
+  "main": "index.ts",
+  "engines": {
+    "node": ">=16",
+    "pnpm": ">=6"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "format": "prettier packages/**",
+    "lint": "eslint packages/**"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmtp-org/xmtp-sdk.git"
+  },
+  "keywords": [
+    "xmtp",
+    "messaging",
+    "web3",
+    "web3",
+    "messaging",
+    "sdk",
+    "js",
+    "javascript",
+    "node",
+    "nodejs"
+  ],
+  "author": "XMTP Labs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xmtp-org/xmtp-sdk/issues"
+  },
+  "homepage": "https://github.com/xmtp-org/xmtp-sdk#readme",
+  "devDependencies": {
+    "@changesets/cli": "^2.19.0",
+    "@types/node": "^17.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.9.0",
+    "@typescript-eslint/parser": "^5.9.0",
+    "eslint": "^8.6.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.4"
+  }
+}

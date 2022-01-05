@@ -1,0 +1,22 @@
+
+   
+# Shared editor configurations that track the way prettier formats source.
+#
+# To use this in vscode:
+#   ext install EditorConfig
+
+root = true
+
+# Source files
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+# JS, TS, JSON
+[*.{js,json,ts}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# For vim, etc users
+max_line_length = 80
