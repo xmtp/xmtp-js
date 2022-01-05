@@ -5,6 +5,8 @@ dist
 **/dist/**
 lib
 **/lib/**
+types
+**/types/**
 .pnpm
 .cache
 
@@ -48,9 +50,6 @@ coverage
 
 # Output of 'npm pack'
 *.tgz
-
-# Yarn Integrity file
-.yarn-integrity
 
 # dotenv environment variables file
 .env
