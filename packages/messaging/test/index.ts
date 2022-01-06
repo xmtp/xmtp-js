@@ -11,7 +11,7 @@ describe('Testing', function() {
 describe('Crypto', function() {
   it('sign keys and verify signatures', function() {
     var [iPri, iPub] = crypto.generateKeys()
-    var [pPri, pPub] = crypto.generateKeys()
+    var [_, pPub] = crypto.generateKeys()
     iPri.signKey(pPub)
     .then(key => iPub.verifyKey(key))
     .then(valid => assert.equal(valid, true, "signature valid"))

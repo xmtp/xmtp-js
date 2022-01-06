@@ -37,6 +37,7 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
+    "@noble/secp256k1": "^1.4.0",
     "js-waku": "^0.14.2",
     "node-fetch": "^3.1.0"
   }
