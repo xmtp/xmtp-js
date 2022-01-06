@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+var assert = require('assert');
 import * as crypto from '../src/crypto';
 
 describe('Testing', function() {

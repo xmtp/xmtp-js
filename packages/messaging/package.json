@@ -12,7 +12,7 @@
     "build": "pnpm clean && pnpm build:types && pnpm build:js",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir lib --extensions \".ts,.js\" --source-maps inline",
-    "test": "mocha",
+    "test": "ts-mocha",
     "coverage": "nyc npm run test"
   },
   "keywords": [
