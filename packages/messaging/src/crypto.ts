@@ -6,8 +6,8 @@ export const KDFSaltSize = 32;
 export const AESGCMNonceSize = 12;
 
 export class Signature {
-    bytes: Uint8Array;
-    recovery: number;
+    bytes: Uint8Array; // uncompressed signature [ R || S ]
+    recovery: number; // recovery bit
     constructor(bytes:Uint8Array, recovery: number) {
         this.bytes = bytes;
         this.recovery = recovery;
@@ -48,7 +48,7 @@ export class PrivateKey {
 }
 
 export class PublicKey {
-    bytes: Uint8Array;
+    bytes: Uint8Array; // uncompressed point 
     signature?: Signature;
     constructor(bytes: Uint8Array, signature?: Signature) {
         this.bytes = bytes;
