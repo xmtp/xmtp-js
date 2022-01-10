@@ -9,12 +9,10 @@ describe('Testing', function() {
 
 
 describe('Crypto', function() {
-  it('sign keys and verify signatures', function() {
+  it('sign keys and verify signatures', async function() {
     var [iPri, iPub] = crypto.generateKeys()
     var [_, pPub] = crypto.generateKeys()
-    iPri.signKey(pPub)
-    .then(key => iPub.verifyKey(key))
-    .then(valid => assert.equal(valid, true, "signature valid"))
-    .catch(reason => assert.fail(reason));
+    await iPri.signKey(pPub)
+    assert.ok(await iPub.verifyKey(pPub))
   });
 });
