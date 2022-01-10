@@ -1,5 +1,5 @@
 import * as secp from "@noble/secp256k1";
-import * as crypto from "crypto";
+import { webcrypto as crypto } from "crypto";
 
 export const AESKeySize = 32;
 export const KDFSaltSize = 32;
@@ -76,12 +76,14 @@ export function generateKeys(): [PrivateKey, PublicKey] {
     return [pri, pub]
 }
 
+const emptyBuffer = new ArrayBuffer(0)
+
 // Derive AES-256-GCM key from a shared secret and salt.
 // Returns crypto.CryptoKey suitable for the encrypt/decrypt API
-function hkdf(secret: Uint8Array, salt: Uint8Array):Promise<crypto.CryptoKey> {
+function hkdf(secret: Uint8Array, salt: Uint8Array):Promise<crypto.subtle.CryptoKey> {
     return crypto.subtle.importKey("raw", secret, "HKDF", false, ["deriveKey"])
     .then(key => crypto.subtle.deriveKey(
-            {name: "HKDF", hash: "SHA256", salt: salt},
+            {name: "HKDF", hash: "SHA-256", salt: salt, info: emptyBuffer},
             key,
             {name: "AES-GCM", length: 256},
             false,
@@ -93,16 +95,16 @@ function encrypt(plain: Uint8Array, secret: Uint8Array, additionalData?: Uint8Ar
     crypto.getRandomValues(salt);
     var nonce = new Uint8Array(AESGCMNonceSize);
     crypto.getRandomValues(nonce);
-    hkdf(secret, salt)
-    .then(key => {
-        var spec = {
-            name: "AES-GCM",
-            iv: nonce };
-        if (additionalData) {
-            spec.additionalData = additionalData
-        }
-        return crypto.subtle.encrypt(spec, key, plain)})
-    .then( encrypted => [ encrypted, salt, nonce ])
+    return hkdf(secret, salt)
+        .then(key => {
+            var spec = {
+                name: "AES-GCM",
+                iv: nonce };
+            if (additionalData) {
+                spec.additionalData = additionalData
+            }
+            return crypto.subtle.encrypt(spec, key, plain)})
+        .then( encrypted => [ encrypted, salt, nonce ])
 }
 
 function decrypt(encrypted: Uint8Array, secret: Uint8Array, salt: Uint8Array, nonce: Uint8Array, additionalData?: Uint8Array): Promise<Uint8Array> {

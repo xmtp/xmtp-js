@@ -139,9 +139,11 @@ importers:
       '@babel/preset-env': ^7.16.7
       '@babel/preset-typescript': ^7.16.7
       '@noble/secp256k1': ^1.4.0
+      '@types/node': ^17.0.8
       chai: ^4.3.4
       js-waku: ^0.14.2
       mocha: ^9.1.3
+      node-crypto: ^1.0.0
       node-fetch: ^3.1.0
       nyc: ^15.1.0
       rimraf: ^3.0.2
@@ -149,6 +151,7 @@ importers:
     dependencies:
       '@noble/secp256k1': 1.4.0
       js-waku: 0.14.2_node-fetch@3.1.0
+      node-crypto: 1.0.0
       node-fetch: 3.1.0
     devDependencies:
       '@babel/cli': 7.16.7_@babel+core@7.16.7
@@ -156,6 +159,7 @@ importers:
       '@babel/plugin-proposal-class-properties': 7.16.7_@babel+core@7.16.7
       '@babel/preset-env': 7.16.7_@babel+core@7.16.7
       '@babel/preset-typescript': 7.16.7_@babel+core@7.16.7
+      '@types/node': 17.0.8
       chai: 4.3.4
       mocha: 9.1.3
       nyc: 15.1.0
@@ -2241,10 +2245,6 @@ packages:
 
   /@types/node/12.20.40:
     resolution: {integrity: sha512-RX6hFa0hxkFuktu5629zJEkWK5e0HreW4vpNSLn4nWkOui7CTGCjtKiKpvtZ4QwCZ2Am5uhrb5ULHKNyunYYqg==}
-
-  /@types/node/17.0.7:
-    resolution: {integrity: sha512-1QUk+WAUD4t8iR+Oj+UgI8oJa6yyxaB8a8pHaC8uqM6RrS1qbL7bf3Pwl5rHv0psm2CuDErgho6v5N+G+5fwtQ==}
-    dev: false
 
   /@types/node/17.0.8:
     resolution: {integrity: sha512-YofkM6fGv4gDJq78g4j0mMuGMkZVxZDgtU0JRdx6FgiJDG+0fY0GKVolOV8WqVmEhLCXkQRjwDdKyPxJp/uucg==}
@@ -5784,6 +5784,10 @@ packages:
     resolution: {integrity: sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==}
     dev: false
 
+  /node-crypto/1.0.0:
+    resolution: {integrity: sha1-imYcC6IBizlPlY0yGDBQIsiTcHg=}
+    dev: false
+
   /node-fetch/2.6.6:
     resolution: {integrity: sha512-Z8/6vRlTUChSdIgMa51jxQ4lrw/Jy5SOW10ObaA47/RElsAN2c5Pn8bTgFGWn/ibwzXTE8qwr1Yzx28vsecXEA==}
     engines: {node: 4.x || >=6.0.0}
@@ -6313,7 +6317,7 @@ packages:
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
       '@types/long': 4.0.1
-      '@types/node': 17.0.7
+      '@types/node': 17.0.8
       long: 4.0.0
     dev: false
 
