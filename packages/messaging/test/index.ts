@@ -10,7 +10,7 @@ describe('Testing', function() {
 
 
 describe('Crypto', function() {
-  it('sign keys and verify signatures', async function() {
+  it('signs keys and verifies signatures', async function() {
     // Identity Key
     var [iPri, iPub] = crypto.generateKeys();
     // Pre-Key
@@ -28,8 +28,8 @@ describe('Crypto', function() {
     // Alice encrypts msg for Bob.
     var [encrypted, salt, nonce] = await aPri.encrypt(decrypted,bPub);
     // Bob decrypts msg from Alice.
-    decrypted = await bPri.decrypt(encrypted, aPub, salt, nonce);
-    var msg2 = new TextDecoder().decode(decrypted);
+    var decrypted2 = await bPri.decrypt(encrypted, aPub, salt, nonce);
+    var msg2 = new TextDecoder().decode(decrypted2);
     assert.equal(msg2, msg1);
   })
 });

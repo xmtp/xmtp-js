@@ -40,7 +40,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.4.0",
     "js-waku": "^0.14.2",
-    "node-crypto": "^1.0.0",
+    "node": "^17.3.0",
     "node-fetch": "^3.1.0"
   }
 }
