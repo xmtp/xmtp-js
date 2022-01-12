@@ -74,7 +74,7 @@ export class PrivateKey {
         return new PrivateKey(bytes);
     };
     async sign(digest: Uint8Array):Promise<Signature> {
-        const [signature, recovery] = await secp.sign(digest, this.bytes, {recovered: true});
+        const [signature, recovery] = await secp.sign(digest, this.bytes, {recovered: true, der: false});
         return new Signature(signature, recovery);
     };
     async signKey(pub: PublicKey):Promise<PublicKey>{
@@ -99,12 +99,15 @@ export class PrivateKey {
 };
 
 export class PublicKey {
-    bytes: Uint8Array; // uncompressed point [ X || Y ], 64 bytes
+    bytes: Uint8Array; // uncompressed point [ P || X || Y ], 65 bytes
     signature?: Signature;
     constructor(bytes: Uint8Array, signature?: Signature) {
-        if (bytes.length != 64) {
+        if (bytes.length != 65) {
             throw new Error(`Invalid public key length: ${bytes.length}`);
         };
+        if (bytes[0] != 4) {
+            throw new Error(`Unrecognized public key prefix: ${bytes[0]}`);
+        }
         this.bytes = bytes;
         this.signature = signature;
     };
@@ -123,7 +126,9 @@ export class PublicKey {
         return pub.signature ? this.verify(pub.signature, digest) : false;
     };
     getEthereumAddress(): string {
-        const bytes = keccak_256(this.bytes).subarray(-20);
+        // drop the uncompressed format prefix byte
+        const key = this.bytes.slice(1)
+        const bytes = keccak_256(key).subarray(-20);
         return "0x"+secp.utils.bytesToHex(bytes);
     };
 };
