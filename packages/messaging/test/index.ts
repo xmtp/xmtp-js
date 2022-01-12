@@ -19,13 +19,13 @@ describe('Crypto', function() {
     let msg1 = "Yo!";
     let decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
-    let [encrypted, salt, nonce] = await aPri.encrypt(decrypted,bPub);
+    let encrypted = await aPri.encrypt(decrypted,bPub);
     // Bob decrypts msg from Alice.
-    let decrypted2 = await bPri.decrypt(encrypted, aPub, salt, nonce);
+    let decrypted2 = await bPri.decrypt(encrypted, aPub);
     let msg2 = new TextDecoder().decode(decrypted2);
     assert.equal(msg2, msg1);
   });
-  it('dervies public key from signature', async function() {
+  it('derives public key from signature', async function() {
     let [pri, pub] = crypto.generateKeys();
     let digest = crypto.getRandomValues(new Uint8Array(16));
     let sig = await pri.sign(digest);
@@ -34,6 +34,7 @@ describe('Crypto', function() {
     assert.equal(crypto.bytesToHex(pub2.bytes), crypto.bytesToHex(pub.bytes))
   });
   it('derives address from public key', function() {
+    // using the sample from https://kobl.one/blog/create-full-ethereum-keypair-and-address/
     const bytes = crypto.hexToBytes('836b35a026743e823a90a0ee3b91bf615c6a757e2b60b9e1dc1826fd0dd16106f7bc1e8179f665015f43c6c81f39062fc2086ed849625c06e04697698b21855e');
     let pub = new crypto.PublicKey(bytes);
     let address = pub.getEthereumAddress();
