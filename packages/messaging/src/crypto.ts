@@ -10,13 +10,21 @@ const crypto: Crypto =
 
 export const AESKeySize = 32;
 export const KDFSaltSize = 32;
-export const AESGCMNonceSize = 12;
+// AES-GCM defaults from https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
+export const AESGCMNonceSize = 12; // property iv
+export const AESGCMTagLength = 16; // property tagLength
 
 export class Signature {
-    bytes: Uint8Array; // uncompressed signature [ R || S ]
+    bytes: Uint8Array; // uncompressed signature [ R || S ], 64 bytes
     recovery: number; // recovery bit
     constructor(bytes:Uint8Array, recovery: number) {
+        if (bytes.length != 64) {
+            throw new Error(`Invalid signature length: ${bytes.length}`);
+        };
         this.bytes = bytes;
+        if (recovery !== 0 && recovery !== 1) {
+            throw new Error(`Invalid recovery bit: ${recovery}`);
+        };
         this.recovery = recovery;
     };
     getPublicKey(digest: Uint8Array): PublicKey | undefined {
@@ -33,10 +41,19 @@ export class Signature {
 // Ciphertext packages the encrypted payload with the salt and nonce used to produce it.
 // salt and nonce are secret.
 export class Ciphertext {
-    payload: Uint8Array; 
+    payload: Uint8Array; // at least AESGCMTagLength bytes
     salt: Uint8Array; // hkdf salt 
     nonce: Uint8Array; // aes-256-gcm IV
     constructor(payload: Uint8Array, salt: Uint8Array, nonce: Uint8Array) {
+        if (payload.length < AESGCMTagLength) {
+            throw new Error(`Invalid ciphertext payload length: ${payload.length}`);
+        };
+        if (salt.length != KDFSaltSize) {
+            throw new Error(`Invalid ciphertext salt length: ${salt.length}`);
+        };
+        if (nonce.length != AESGCMNonceSize) {
+            throw new Error(`Invalid ciphertext nonce length: ${nonce.length}`);
+        };
         this.payload = payload;
         this.salt = salt;
         this.nonce = nonce;
@@ -44,8 +61,12 @@ export class Ciphertext {
 };
 
 export class PrivateKey {
-    bytes: Uint8Array;
-    constructor (bytes: Uint8Array) { this.bytes = bytes };
+    bytes: Uint8Array; // 32 bytes
+    constructor (bytes: Uint8Array) {
+        if (bytes.length != 32) {
+            throw new Error(`Invalid private key length: ${bytes.length}`);
+        };
+        this.bytes = bytes };
     static generate(): PrivateKey {
         return new PrivateKey(secp.utils.randomPrivateKey());
     };
@@ -78,9 +99,12 @@ export class PrivateKey {
 };
 
 export class PublicKey {
-    bytes: Uint8Array; // uncompressed point 
+    bytes: Uint8Array; // uncompressed point [ X || Y ], 64 bytes
     signature?: Signature;
     constructor(bytes: Uint8Array, signature?: Signature) {
+        if (bytes.length != 64) {
+            throw new Error(`Invalid public key length: ${bytes.length}`);
+        };
         this.bytes = bytes;
         this.signature = signature;
     };
@@ -125,38 +149,42 @@ async function hkdf(secret: Uint8Array, salt: Uint8Array):Promise<CryptoKey> {
 };
 
 async function encrypt(plain: Uint8Array, secret: Uint8Array, additionalData?: Uint8Array):Promise<Ciphertext> {
-    var salt = new Uint8Array(KDFSaltSize);
-    crypto.getRandomValues(salt);
-    var nonce = new Uint8Array(AESGCMNonceSize);
-    crypto.getRandomValues(nonce);
+    var salt = crypto.getRandomValues(new Uint8Array(KDFSaltSize));
+    var nonce = crypto.getRandomValues(new Uint8Array(AESGCMNonceSize));
     const key = await hkdf(secret, salt);
-    const encrypted = await crypto.subtle.encrypt(aesGcmParams(nonce, additionalData), key, plain);
+    const encrypted = await crypto.subtle.encrypt(
+        aesGcmParams(nonce, additionalData),
+        key,
+        plain);
     return new Ciphertext(encrypted, salt, nonce);
 };
 
 async function decrypt(encrypted: Ciphertext, secret: Uint8Array, additionalData?: Uint8Array): Promise<Uint8Array> {
     const key = await hkdf(secret, encrypted.salt);
-    return crypto.subtle.decrypt(aesGcmParams(encrypted.nonce, additionalData), key, encrypted.payload);
+    return crypto.subtle.decrypt(
+        aesGcmParams(encrypted.nonce, additionalData),
+        key,
+        encrypted.payload);
 };
 
 function aesGcmParams(nonce: Uint8Array, additionalData?: Uint8Array): AesGcmParams {
     var spec: AesGcmParams = {
         name: "AES-GCM",
-        iv: nonce
-    };
+        iv: nonce };
     if (additionalData) {
         spec.additionalData = additionalData
     };
     return spec;
 };
 
+// utility functions
 export const getRandomValues = crypto.getRandomValues;
 export const bytesToHex = secp.utils.bytesToHex;
 export function hexToBytes(s: string): Uint8Array {
     let bytes = new Uint8Array(s.length/2);
-    for(let i=0; i<bytes.length; i++) {
+    for (let i=0; i<bytes.length; i++) {
       let j = i*2;
-      bytes[i]=Number.parseInt(s.slice(j, j+2), 16);
+      bytes[i] = Number.parseInt(s.slice(j, j+2), 16);
     };
     return bytes;
 };
