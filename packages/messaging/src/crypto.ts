@@ -1,5 +1,7 @@
 import * as secp from "@noble/secp256k1";
-import { webcrypto as crypto } from "crypto";
+// import { webcrypto as nodeCrypto } from "crypto";
+
+const crypto: Crypto = typeof window !== "undefined" ? window.crypto : require("crypto").webcrypto as unknown as Crypto
 
 export const AESKeySize = 32;
 export const KDFSaltSize = 32;
@@ -78,7 +80,7 @@ const emptyBuffer = new ArrayBuffer(0)
 
 // Derive AES-256-GCM key from a shared secret and salt.
 // Returns crypto.CryptoKey suitable for the encrypt/decrypt API
-async function hkdf(secret: Uint8Array, salt: Uint8Array):Promise<crypto.CryptoKey> {
+async function hkdf(secret: Uint8Array, salt: Uint8Array):Promise<CryptoKey> {
     const key = await crypto.subtle.importKey("raw", secret, "HKDF", false, ["deriveKey"]);
     return crypto.subtle.deriveKey(
         {name: "HKDF", hash: "SHA-256", salt: salt, info: emptyBuffer},
@@ -103,8 +105,8 @@ async function decrypt(encrypted: Uint8Array, secret: Uint8Array, salt: Uint8Arr
     return crypto.subtle.decrypt(aesGcmParams(nonce, additionalData), key, encrypted)
 }
 
-function aesGcmParams(nonce: Uint8Array, additionalData?: Uint8Array): any {
-    var spec = {
+function aesGcmParams(nonce: Uint8Array, additionalData?: Uint8Array): AesGcmParams {
+    var spec: AesGcmParams = {
         name: "AES-GCM",
         iv: nonce
     };
