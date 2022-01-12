@@ -1,5 +1,5 @@
 import * as secp from "@noble/secp256k1";
-// import { webcrypto as nodeCrypto } from "crypto";
+import { keccak_256 } from "@noble/hashes/sha3";
 
 const crypto: Crypto = typeof window !== "undefined" ? window.crypto : require("crypto").webcrypto as unknown as Crypto
 
@@ -13,7 +13,16 @@ export class Signature {
     constructor(bytes:Uint8Array, recovery: number) {
         this.bytes = bytes;
         this.recovery = recovery;
-    }
+    };
+    getPublicKey(digest: Uint8Array): PublicKey | undefined {
+        const bytes = secp.recoverPublicKey(digest, this.bytes, this.recovery)
+        return bytes ? PublicKey.fromBytes(bytes) : undefined
+    };
+    getEthereumAddress(digest: Uint8Array): string | undefined {
+        const pub = this.getPublicKey(digest);
+        if (!pub) { return undefined };
+        return pub.getEthereumAddress();
+     };
 }
 
 export class PrivateKey {
@@ -28,19 +37,22 @@ export class PrivateKey {
     async sign(digest: Uint8Array):Promise<Signature> {
         const [signature, recovery] = await secp.sign(digest, this.bytes, {recovered: true});
         return new Signature(signature, recovery)
-    }
+    };
     async signKey(pub: PublicKey):Promise<PublicKey>{
         const digest = await secp.utils.sha256(pub.bytes);
         pub.signature = await this.sign(digest);
         return pub
-    }
+    };
+    getPublicKey(): PublicKey {
+        return PublicKey.fromPrivateKey(this)
+    };
     sharedSecret(peer: PublicKey): Uint8Array {
         return secp.getSharedSecret(this.bytes, peer.bytes, false)
-    }
+    };
     encrypt(plain: Uint8Array, peer: PublicKey, additionalData?: Uint8Array):Promise<[Uint8Array,Uint8Array,Uint8Array]> {
         const secret = this.sharedSecret(peer)
         return encrypt(plain, secret, additionalData)
-    }
+    };
     decrypt(encrypted: Uint8Array, peer: PublicKey, salt: Uint8Array, nonce: Uint8Array, additionalData?: Uint8Array): Promise<Uint8Array> {
         const secret = this.sharedSecret(peer)
         return decrypt(encrypted, secret, salt, nonce, additionalData)
@@ -67,6 +79,10 @@ export class PublicKey {
         if (typeof pub.signature === undefined) { return false };
         var digest = await secp.utils.sha256(pub.bytes);
         return pub.signature ? this.verify(pub.signature, digest) : false
+    };
+    getEthereumAddress(): string {
+        const bytes = keccak_256(this.bytes).subarray(-20);
+        return "0x"+secp.utils.bytesToHex(bytes)
     }
 }
 
@@ -114,4 +130,15 @@ function aesGcmParams(nonce: Uint8Array, additionalData?: Uint8Array): AesGcmPar
         spec.additionalData = additionalData
     };
     return spec
+}
+
+export const getRandomValues = crypto.getRandomValues
+export const bytesToHex = secp.utils.bytesToHex
+export function hexToBytes(s: string): Uint8Array {
+    let bytes = new Uint8Array(s.length/2);
+    for(let i=0; i<bytes.length; i++) {
+      let j = i*2;
+      bytes[i]=Number.parseInt(s.slice(j, j+2), 16)
+    }
+    return bytes
 }

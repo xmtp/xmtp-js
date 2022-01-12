@@ -138,6 +138,7 @@ importers:
       '@babel/plugin-proposal-class-properties': ^7.16.7
       '@babel/preset-env': ^7.16.7
       '@babel/preset-typescript': ^7.16.7
+      '@noble/hashes': ^0.5.9
       '@noble/secp256k1': ^1.4.0
       '@types/node': ^17.0.8
       chai: ^4.3.4
@@ -147,12 +148,15 @@ importers:
       node-fetch: ^3.1.0
       nyc: ^15.1.0
       rimraf: ^3.0.2
+      sha3: link:@noble/hashes/sha3
       typescript: ^4.5.4
     dependencies:
+      '@noble/hashes': 0.5.9
       '@noble/secp256k1': 1.4.0
       js-waku: 0.14.2_node-fetch@3.1.0
       node: 17.3.0
       node-fetch: 3.1.0
+      sha3: link:@noble/hashes/sha3
     devDependencies:
       '@babel/cli': 7.16.7_@babel+core@7.16.7
       '@babel/core': 7.16.7
@@ -1954,6 +1958,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@noble/hashes/0.5.9:
+    resolution: {integrity: sha512-7lN1Qh6d8DUGmfN36XRsbN/WcGIPNtTGhkw26vWId/DlCIGsYJJootTtPGghTLcn/AaXPx2Q0b3cacrwXa7OVw==}
+    dev: false
 
   /@noble/secp256k1/1.4.0:
     resolution: {integrity: sha512-cYpUbQ2uitPgf5QuQnpi8Nu+ZmQjSDunFKw6vvxaOSkbMUhCf4K723WLUuuK1K/sf6H/dvqKbmEAeop5i3qTJg==}
