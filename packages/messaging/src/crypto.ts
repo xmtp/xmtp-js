@@ -157,19 +157,20 @@ async function encrypt(plain: Uint8Array, secret: Uint8Array, additionalData?: U
     var salt = crypto.getRandomValues(new Uint8Array(KDFSaltSize));
     var nonce = crypto.getRandomValues(new Uint8Array(AESGCMNonceSize));
     const key = await hkdf(secret, salt);
-    const encrypted = await crypto.subtle.encrypt(
+    const encrypted: ArrayBuffer = await crypto.subtle.encrypt(
         aesGcmParams(nonce, additionalData),
         key,
         plain);
-    return new Ciphertext(encrypted, salt, nonce);
+    return new Ciphertext(new Uint8Array(encrypted), salt, nonce);
 };
 
 async function decrypt(encrypted: Ciphertext, secret: Uint8Array, additionalData?: Uint8Array): Promise<Uint8Array> {
     const key = await hkdf(secret, encrypted.salt);
-    return crypto.subtle.decrypt(
+    const decrypted: ArrayBuffer = await crypto.subtle.decrypt(
         aesGcmParams(encrypted.nonce, additionalData),
         key,
         encrypted.payload);
+    return new Uint8Array(decrypted)
 };
 
 function aesGcmParams(nonce: Uint8Array, additionalData?: Uint8Array): AesGcmParams {
