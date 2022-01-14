@@ -61,4 +61,19 @@ describe('Crypto', function() {
     let address = pub.getEthereumAddress();
     assert.equal(address, "0x0bed7abd61247635c1973eb38474a2516ed1d884");
   });
+  it('encrypts and decrypts messages with key bundles', async function() {
+    // Alice
+    let [aPri, aPub] = await crypto.generateBundles();
+    // Bob
+    let [bPri, bPub] = await crypto.generateBundles();
+    let msg1 = "Yo!";
+    let decrypted = new TextEncoder().encode(msg1);
+    // Alice encrypts msg for Bob.
+    let encrypted = await aPri.encrypt(decrypted,bPub);
+    // Bob decrypts msg from Alice.
+    let decrypted2 = await bPri.decrypt(encrypted, aPub);
+    let msg2 = new TextDecoder().decode(decrypted2);
+    assert.equal(msg2, msg1);
+  });
+
 });
