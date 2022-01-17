@@ -75,5 +75,12 @@ describe('Crypto', function() {
     let msg2 = new TextDecoder().decode(decrypted2);
     assert.equal(msg2, msg1);
   });
+  it('serializes and desirializes keys and signatures', async function() {
+    let [_, pub] = await crypto.generateBundles();
+    let bytes = pub.encode();
+    assert.ok(bytes.length >= 213);
+    let pub2 = crypto.KeyBundle.decode(bytes);
+    assert.ok(pub2.identityKey.verifyKey(pub2.preKey));
+  })
 
 });

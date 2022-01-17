@@ -1,6 +1,6 @@
 import * as secp from "@noble/secp256k1";
 import { keccak_256 } from "@noble/hashes/sha3";
-import { Key } from "readline";
+import * as proto from "./proto/message";
 
 // crypto should provide access to standard Web Crypto API
 // in both the browser environment and node. 
@@ -29,6 +29,14 @@ export class Signature {
         };
         this.recovery = recovery;
     };
+    static decode(bytes: Uint8Array): Signature {
+        let sig = proto.Signature.decode(bytes);
+        return Signature.fromDecoded(sig);
+    };
+    static fromDecoded(sig: proto.Signature): Signature {
+        if (sig.ecdsaCompact) { return new Signature(sig.ecdsaCompact.bytes, sig.ecdsaCompact.recovery) };
+        throw new Error("unrecognized signature");
+    }
     // If the signature is valid for the provided digest
     // then return the public key that validates it.
     // Otherwise return undefined.
@@ -43,6 +51,17 @@ export class Signature {
         const pub = this.getPublicKey(digest);
         if (!pub) { return undefined };
         return pub.getEthereumAddress();
+     };
+     encode(): Uint8Array {
+         return proto.Signature.encode(this.toBeEncoded()).finish()
+     }
+     toBeEncoded(): proto.Signature {
+        return {
+            ecdsaCompact: {
+                bytes: this.bytes,
+                recovery: this.recovery
+            }
+        };
      };
 };
 
@@ -128,6 +147,20 @@ export class PublicKey {
     static fromBytes(bytes: Uint8Array): PublicKey {
         return new PublicKey(bytes);
     }
+    static decode(bytes: Uint8Array): PublicKey {
+        return PublicKey.fromDecoded(proto.PublicKey.decode(bytes));
+    };
+    static fromDecoded(key: proto.PublicKey): PublicKey {
+        if (key.secp256k1Uncompressed) {
+            if (key.signature) {
+                let sig = Signature.fromDecoded(key.signature);
+                return new PublicKey(key.secp256k1Uncompressed.bytes, sig);
+            } else {
+                return new PublicKey(key.secp256k1Uncompressed.bytes);
+            };
+        };
+        throw new Error("unrecognized signature");        
+    };
     verify(signature: Signature, digest: Uint8Array):boolean {
         return secp.verify(signature.bytes, digest, this.bytes);
     }
@@ -141,6 +174,16 @@ export class PublicKey {
         const key = this.bytes.slice(1)
         const bytes = keccak_256(key).subarray(-20);
         return "0x"+secp.utils.bytesToHex(bytes);
+    };
+    encode(): Uint8Array {
+        return proto.PublicKey.encode(this.toBeEncoded()).finish()
+    }
+    toBeEncoded(): proto.PublicKey {
+        let key: proto.PublicKey = { secp256k1Uncompressed: { bytes: this.bytes } };
+        if (this.signature) {
+            key.signature = this.signature.toBeEncoded()
+        }
+        return key
     };
 };
 
@@ -160,6 +203,29 @@ export class KeyBundle {
     constructor(identityKey: PublicKey, preKey: PublicKey) {
         this.identityKey = identityKey;
         this.preKey = preKey;
+    };
+    static decode(bytes: Uint8Array): KeyBundle {
+        return KeyBundle.fromDecoded(proto.Message_Participant.decode(bytes));
+    };
+    static fromDecoded(mp: proto.Message_Participant): KeyBundle {
+        if(!mp.identityKey) {
+            throw new Error("missing identityKey");
+        };
+        let identityKey = PublicKey.fromDecoded(mp.identityKey);
+        if (!mp.preKey) {
+            throw new Error("missing preKey");
+        };
+        let preKey = PublicKey.fromDecoded(mp.preKey)
+        return new KeyBundle(identityKey, preKey);
+    }
+    encode(): Uint8Array {
+        return proto.Message_Participant.encode(this.toBeEncoded()).finish()
+    }
+    toBeEncoded(): proto.Message_Participant {
+        return { 
+            identityKey: this.identityKey.toBeEncoded(),
+            preKey: this.preKey.toBeEncoded(),
+        };
     };
 };
 

@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+message Signature {
+    message ECDSACompact {
+        bytes bytes = 1; // compact representation [ R || S ], 64 bytes
+        uint32 recovery = 2; // recovery bit
+    }
+    oneof union {
+        ECDSACompact ecdsaCompact = 1;
+    }
+}
+
+message PublicKey {
+    message Secp256k1Uncompresed {
+        bytes bytes = 1; // uncompressed with prefix [ P || X || Y ], 65 bytes
+    }
+    oneof union {
+        Secp256k1Uncompresed secp256k1Uncompressed = 1;
+    }
+    optional Signature signature = 2;
+}
+
+message PrivateKey {
+    message Secp256k1 {
+        bytes bytes = 1; // D big-endian, 32 bytes
+    }
+    oneof union {
+        Secp256k1 secp256k1 = 1;
+    }
+}
+
+message Message {
+    message Participant {
+        PublicKey identityKey = 1;
+        PublicKey preKey = 2;
+    }
+    message AES256GCM_HKDFSHA256 {
+        bytes hkdfSalt = 1;
+        bytes gcmNonce = 2;
+        bytes payload = 3;
+    }
+
+    Participant sender = 1;
+    Participant recipient = 2;
+    oneof payload {
+        AES256GCM_HKDFSHA256 aes256GcmHkdfSha256 = 3;
+    }
+}

@@ -1,0 +1,10 @@
+version: v1beta1
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+build:
+  roots:
+    - ./packages/messaging/src/proto
