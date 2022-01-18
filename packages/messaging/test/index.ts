@@ -81,6 +81,16 @@ describe('Crypto', function() {
     assert.ok(bytes.length >= 213);
     let pub2 = crypto.KeyBundle.decode(bytes);
     assert.ok(pub2.identityKey.verifyKey(pub2.preKey));
-  })
-
+  });
+  it('fully encodes/decodes messages', async function() {
+    // Alice
+    let [aPri, _] = await crypto.generateBundles();
+    // Bob
+    let [bPri, bPub] = await crypto.generateBundles();
+    let msg1 = "Yo!";
+    const bytes = await aPri.encodeMessage(bPub, msg1);
+    assert.ok(bytes.length >= 432);
+    const msg2 = await bPri.decodeMessage(bytes);
+    assert.equal(msg1, msg2);
+  });
 });

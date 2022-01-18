@@ -1,6 +1,7 @@
 import * as secp from "@noble/secp256k1";
 import { keccak_256 } from "@noble/hashes/sha3";
 import * as proto from "./proto/message";
+import { TextEncoder, TextDecoder } from 'util';
 
 // crypto should provide access to standard Web Crypto API
 // in both the browser environment and node. 
@@ -85,11 +86,30 @@ export class Ciphertext {
         this.salt = salt;
         this.nonce = nonce;
     };
+    static fromDecoded(message: proto.Message): Ciphertext {
+        if (!message.aes256GcmHkdfSha256) {
+            throw new Error("unrecognized message payload");
+        };
+        const payload = message.aes256GcmHkdfSha256;
+        return new Ciphertext(payload.payload, payload.hkdfSalt, payload.gcmNonce);
+    }
+    toBeEncoded(sender: KeyBundle, recipient: KeyBundle): proto.Message {
+        return {
+            sender: sender.toBeEncoded(),
+            recipient: recipient.toBeEncoded(),
+            aes256GcmHkdfSha256: {
+                payload: this.payload,
+                hkdfSalt: this.salt,
+                gcmNonce: this.nonce
+            }
+        };
+    };
 };
 
 // PrivateKey represents a secp256k1 private key.
 export class PrivateKey {
     bytes: Uint8Array; // 32 bytes
+    publicKey?: PublicKey;
     constructor (bytes: Uint8Array) {
         if (bytes.length != 32) {
             throw new Error(`Invalid private key length: ${bytes.length}`);
@@ -111,7 +131,10 @@ export class PrivateKey {
         return pub;
     };
     getPublicKey(): PublicKey {
-        return PublicKey.fromPrivateKey(this);
+        if (!this.publicKey) {
+            this.publicKey = PublicKey.fromPrivateKey(this);
+        };
+        return this.publicKey;
     };
     sharedSecret(peer: PublicKey): Uint8Array {
         return secp.getSharedSecret(this.bytes, peer.bytes, false);
@@ -124,6 +147,9 @@ export class PrivateKey {
         const secret = this.sharedSecret(peer);
         return decrypt(encrypted, secret, additionalData);
     };
+    matches(key: PublicKey): boolean {
+        return this.getPublicKey().equals(key);
+    }
 };
 
 // PublicKey respresents uncompressed secp256k1 public key,
@@ -185,13 +211,20 @@ export class PublicKey {
         }
         return key
     };
+    equals(other: PublicKey): boolean {
+        for (let i = 0; i < this.bytes.length; i++) {
+            if(this.bytes[i] !== other.bytes[i]) {
+                return false;
+            }
+        }
+        return true;
+    };
 };
 
 // Generates a new secp256k1 key pair.
-export function generateKeys(): [PrivateKey, PublicKey] {
+export function generateKeys(): [ PrivateKey, PublicKey ] {
     const pri = PrivateKey.generate();
-    const pub = PublicKey.fromPrivateKey(pri);
-    return [pri, pub];
+    return [pri, pri.getPublicKey()]
 };
 
 // KeyBundle packages all the keys that a participant should advertise.
@@ -269,6 +302,31 @@ export class PrivateKeyBundle {
     async decrypt(encrypted: Ciphertext, sender: KeyBundle): Promise<Uint8Array> {
         let secret = await this.sharedSecret(sender, true);
         return decrypt(encrypted, secret);
+    };
+    getKeyBundle(): KeyBundle {
+        return new KeyBundle(
+            this.identityKey.getPublicKey(),
+            this.preKey.getPublicKey()
+        );
+    };
+    async encodeMessage(recipient: KeyBundle, message: string): Promise<Uint8Array> {
+        let bytes = new TextEncoder().encode(message);
+        let ciphertext = await this.encrypt(bytes, recipient);
+        let toBeEncoded = ciphertext.toBeEncoded(this.getKeyBundle(), recipient);
+        return proto.Message.encode(toBeEncoded).finish()
+    };
+    async decodeMessage(bytes: Uint8Array): Promise<string> {
+        let message = proto.Message.decode(bytes);
+        if(!message.sender) { throw new Error("missing message sender")};
+        if(!message.recipient) { throw new Error("missing message recipient")};
+        const ciphertext = Ciphertext.fromDecoded(message);
+        const sender = KeyBundle.fromDecoded(message.sender);
+        const recipient = KeyBundle.fromDecoded(message.recipient);
+        if (!this.preKey.matches(recipient.preKey)) {
+            throw new Error("recipient pre-key mismatch");
+        }
+        bytes = await this.decrypt(ciphertext,sender);
+        return new TextDecoder().decode(bytes);
     };
 };
 
