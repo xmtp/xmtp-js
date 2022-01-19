@@ -52,7 +52,8 @@ coverage
 *.tgz
 
 # dotenv environment variables file
-.env
+**/*.env
+!**/template.env
 
 # rollup-plugin-typescript2 cache
 .rpt2_cache/
