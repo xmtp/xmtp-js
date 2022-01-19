@@ -9,7 +9,7 @@
     "clean": "rimraf lib && rimraf types",
     "type-check": "tsc --noEmit",
     "type-check:watch": "pnpm type-check -- --watch",
-    "build": "pnpm clean && pnpm build:types && pnpm build:js && pnpm build:proto",
+    "build": "pnpm clean && pnpm build:proto && pnpm build:types && pnpm build:js",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir lib --extensions \".ts,.js\" --source-maps inline",
     "build:proto": "buf generate",
