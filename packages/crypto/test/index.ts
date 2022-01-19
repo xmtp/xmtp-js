@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { TextEncoder, TextDecoder } from 'util';
-import * as crypto from '../src/crypto';
+import * as crypto from '../src';
 
 describe('Crypto', function() {
   it('signs keys and verifies signatures', async function() {
