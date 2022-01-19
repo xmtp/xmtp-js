@@ -7,4 +7,4 @@ lint:
     - DEFAULT
 build:
   roots:
-    - ./packages/crypto/src/proto
+    - ./src/proto
