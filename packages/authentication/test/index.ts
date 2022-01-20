@@ -1,4 +1,4 @@
-const assert = await require('assert');
+import assert from 'assert';
 
 describe('Testing', function () {
   it('should run a test in xmtp-client-auth', function () {

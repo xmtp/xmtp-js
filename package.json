@@ -9,6 +9,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "test": "ts-mocha packages/*/test/*.ts",
     "lint": "prettier --check packages/** && eslint packages/**",
     "autolint": "prettier --write packages/** && eslint --fix packages/**"
   },
@@ -45,6 +46,9 @@
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
+    "mocha": "^9.1.3",
+    "ts-mocha": "^9.0.2",
+    "@types/mocha": "^9.0.0",
     "prettier": "^2.5.1",
     "typescript": "^4.5.4"
   }
