@@ -12,7 +12,7 @@ message Signature {
 
 message PublicKey {
     message Secp256k1Uncompresed {
-        bytes bytes = 1; // uncompressed with prefix [ P || X || Y ], 65 bytes
+        bytes bytes = 1; // uncompressed point with prefix (0x04) [ P || X || Y ], 65 bytes
     }
     oneof union {
         Secp256k1Uncompresed secp256k1Uncompressed = 1;
@@ -43,8 +43,12 @@ message Message {
         Participant sender = 1;
         Participant recipient = 2;
     }
-    Header header = 1;
-    oneof payload {
-        AES256GCM_HKDFSHA256 aes256GcmHkdfSha256 = 2;
+    message Payload {
+        oneof union {
+            AES256GCM_HKDFSHA256 aes256GcmHkdfSha256 = 2;
+        }
     }
+
+    Header header = 1;
+    Payload payload = 2;
 }

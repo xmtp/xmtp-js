@@ -42,6 +42,7 @@ Test and view coverage information: `pnpm coverage`
 
 ## TODO
 
+* split index.ts into smaller files
 * decoded keys/messages have Buffers instead of Uint8Arrays; problem?
 * private key/bundle serialization
 * add message timestamp

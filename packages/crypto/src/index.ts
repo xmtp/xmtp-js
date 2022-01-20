@@ -22,11 +22,11 @@ export class Signature {
     recovery: number; // recovery bit 0 | 1
     constructor(bytes:Uint8Array, recovery: number) {
         if (bytes.length != 64) {
-            throw new Error(`Invalid signature length: ${bytes.length}`);
+            throw new Error(`invalid signature length: ${bytes.length}`);
         };
         this.bytes = bytes;
         if (recovery !== 0 && recovery !== 1) {
-            throw new Error(`Invalid recovery bit: ${recovery}`);
+            throw new Error(`invalid recovery bit: ${recovery}`);
         };
         this.recovery = recovery;
     };
@@ -78,13 +78,13 @@ export class Ciphertext {
     nonce: Uint8Array; // aes-256-gcm IV
     constructor(payload: Uint8Array, salt: Uint8Array, nonce: Uint8Array) {
         if (payload.length < AESGCMTagLength) {
-            throw new Error(`Invalid ciphertext payload length: ${payload.length}`);
+            throw new Error(`invalid ciphertext payload length: ${payload.length}`);
         };
         if (salt.length != KDFSaltSize) {
-            throw new Error(`Invalid ciphertext salt length: ${salt.length}`);
+            throw new Error(`invalid ciphertext salt length: ${salt.length}`);
         };
         if (nonce.length != AESGCMNonceSize) {
-            throw new Error(`Invalid ciphertext nonce length: ${nonce.length}`);
+            throw new Error(`invalid ciphertext nonce length: ${nonce.length}`);
         };
         this.payload = payload;
         this.salt = salt;
@@ -92,10 +92,13 @@ export class Ciphertext {
     };
     // build Ciphertext from proto.Message
     static fromDecoded(message: proto.Message): Ciphertext {
-        if (!message.aes256GcmHkdfSha256) {
+        if (!message.payload) {
+            throw new Error("missing message payload");
+        }
+        if (!message.payload.aes256GcmHkdfSha256) {
             throw new Error("unrecognized message payload");
         };
-        const payload = message.aes256GcmHkdfSha256;
+        const payload = message.payload.aes256GcmHkdfSha256;
         return new Ciphertext(payload.payload, payload.hkdfSalt, payload.gcmNonce);
     }
     // build proto.Message from Ciphertext and the parties' KeyBundles.
@@ -105,10 +108,12 @@ export class Ciphertext {
                 sender: sender.toBeEncoded(),
                 recipient: recipient.toBeEncoded(),
             },
-            aes256GcmHkdfSha256: {
-                payload: this.payload,
-                hkdfSalt: this.salt,
-                gcmNonce: this.nonce
+            payload: {
+                aes256GcmHkdfSha256: {
+                    payload: this.payload,
+                    hkdfSalt: this.salt,
+                    gcmNonce: this.nonce
+                }
             }
         };
     };
@@ -120,7 +125,7 @@ export class PrivateKey {
     publicKey?: PublicKey; // caches corresponding PublicKey
     constructor (bytes: Uint8Array) {
         if (bytes.length != 32) {
-            throw new Error(`Invalid private key length: ${bytes.length}`);
+            throw new Error(`invalid private key length: ${bytes.length}`);
         };
         this.bytes = bytes };
     // create a random PrivateKey.
@@ -180,10 +185,10 @@ export class PublicKey {
     signature?: Signature;
     constructor(bytes: Uint8Array, signature?: Signature) {
         if (bytes.length != 65) {
-            throw new Error(`Invalid public key length: ${bytes.length}`);
+            throw new Error(`invalid public key length: ${bytes.length}`);
         };
         if (bytes[0] != 4) {
-            throw new Error(`Unrecognized public key prefix: ${bytes[0]}`);
+            throw new Error(`unrecognized public key prefix: ${bytes[0]}`);
         }
         this.bytes = bytes;
         this.signature = signature;
@@ -306,13 +311,13 @@ export class PrivateKeyBundle {
     };
     // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
     // where the sender's ephemeral key pair is replaced by the sender's prekey.
-    // @receiver indicates whether this is the sending (encrypting) or receiving (decrypting) side.
-    async sharedSecret(peer: KeyBundle, receiver: boolean): Promise<Uint8Array> {
+    // @recipient indicates whether this is the sending (encrypting) or receiving (decrypting) side.
+    async sharedSecret(peer: KeyBundle, recipient: boolean): Promise<Uint8Array> {
         if(! await peer.identityKey.verifyKey(peer.preKey)) {
             throw new Error("peer preKey signature invalid");
         };
         let dh1: Uint8Array, dh2: Uint8Array;
-        if (receiver) {
+        if (recipient) {
             dh1 = this.preKey.sharedSecret(peer.identityKey);
             dh2 = this.identityKey.sharedSecret(peer.preKey);
         } else {
@@ -327,9 +332,9 @@ export class PrivateKeyBundle {
         return secret;
     };
     // encrypt the plaintext with a symmetric key derived from the peers' key bundles.
-    async encrypt(plain: Uint8Array, receiver: KeyBundle): Promise<Ciphertext> {
-        let secret = await this.sharedSecret(receiver, false);
-        let ad = associatedData({sender: this.getKeyBundle(), recipient: receiver})
+    async encrypt(plain: Uint8Array, recipient: KeyBundle): Promise<Ciphertext> {
+        let secret = await this.sharedSecret(recipient, false);
+        let ad = associatedData({sender: this.getKeyBundle(), recipient: recipient})
         return encrypt(plain, secret, ad);
     };
     // decrypt the encrypted content using a symmetric key derived from the peers' key bundles.

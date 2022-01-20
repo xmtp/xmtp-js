@@ -21,7 +21,7 @@ export interface PublicKey {
 }
 
 export interface PublicKey_Secp256k1Uncompresed {
-  /** uncompressed with prefix [ P || X || Y ], 65 bytes */
+  /** uncompressed point with prefix (0x04) [ P || X || Y ], 65 bytes */
   bytes: Uint8Array;
 }
 
@@ -36,7 +36,7 @@ export interface PrivateKey_Secp256k1 {
 
 export interface Message {
   header: Message_Header | undefined;
-  aes256GcmHkdfSha256: Message_Aes256gcmHkdfsha256 | undefined;
+  payload: Message_Payload | undefined;
 }
 
 export interface Message_Participant {
@@ -53,6 +53,10 @@ export interface Message_Aes256gcmHkdfsha256 {
 export interface Message_Header {
   sender: Message_Participant | undefined;
   recipient: Message_Participant | undefined;
+}
+
+export interface Message_Payload {
+  aes256GcmHkdfSha256: Message_Aes256gcmHkdfsha256 | undefined;
 }
 
 function createBaseSignature(): Signature {
@@ -476,7 +480,7 @@ export const PrivateKey_Secp256k1 = {
 };
 
 function createBaseMessage(): Message {
-  return { header: undefined, aes256GcmHkdfSha256: undefined };
+  return { header: undefined, payload: undefined };
 }
 
 export const Message = {
@@ -487,9 +491,9 @@ export const Message = {
     if (message.header !== undefined) {
       Message_Header.encode(message.header, writer.uint32(10).fork()).ldelim();
     }
-    if (message.aes256GcmHkdfSha256 !== undefined) {
-      Message_Aes256gcmHkdfsha256.encode(
-        message.aes256GcmHkdfSha256,
+    if (message.payload !== undefined) {
+      Message_Payload.encode(
+        message.payload,
         writer.uint32(18).fork()
       ).ldelim();
     }
@@ -507,10 +511,7 @@ export const Message = {
           message.header = Message_Header.decode(reader, reader.uint32());
           break;
         case 2:
-          message.aes256GcmHkdfSha256 = Message_Aes256gcmHkdfsha256.decode(
-            reader,
-            reader.uint32()
-          );
+          message.payload = Message_Payload.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -525,8 +526,8 @@ export const Message = {
       header: isSet(object.header)
         ? Message_Header.fromJSON(object.header)
         : undefined,
-      aes256GcmHkdfSha256: isSet(object.aes256GcmHkdfSha256)
-        ? Message_Aes256gcmHkdfsha256.fromJSON(object.aes256GcmHkdfSha256)
+      payload: isSet(object.payload)
+        ? Message_Payload.fromJSON(object.payload)
         : undefined
     };
   },
@@ -537,9 +538,9 @@ export const Message = {
       (obj.header = message.header
         ? Message_Header.toJSON(message.header)
         : undefined);
-    message.aes256GcmHkdfSha256 !== undefined &&
-      (obj.aes256GcmHkdfSha256 = message.aes256GcmHkdfSha256
-        ? Message_Aes256gcmHkdfsha256.toJSON(message.aes256GcmHkdfSha256)
+    message.payload !== undefined &&
+      (obj.payload = message.payload
+        ? Message_Payload.toJSON(message.payload)
         : undefined);
     return obj;
   },
@@ -550,10 +551,9 @@ export const Message = {
       object.header !== undefined && object.header !== null
         ? Message_Header.fromPartial(object.header)
         : undefined;
-    message.aes256GcmHkdfSha256 =
-      object.aes256GcmHkdfSha256 !== undefined &&
-      object.aes256GcmHkdfSha256 !== null
-        ? Message_Aes256gcmHkdfsha256.fromPartial(object.aes256GcmHkdfSha256)
+    message.payload =
+      object.payload !== undefined && object.payload !== null
+        ? Message_Payload.fromPartial(object.payload)
         : undefined;
     return message;
   }
@@ -815,6 +815,75 @@ export const Message_Header = {
     message.recipient =
       object.recipient !== undefined && object.recipient !== null
         ? Message_Participant.fromPartial(object.recipient)
+        : undefined;
+    return message;
+  }
+};
+
+function createBaseMessage_Payload(): Message_Payload {
+  return { aes256GcmHkdfSha256: undefined };
+}
+
+export const Message_Payload = {
+  encode(
+    message: Message_Payload,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.aes256GcmHkdfSha256 !== undefined) {
+      Message_Aes256gcmHkdfsha256.encode(
+        message.aes256GcmHkdfSha256,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Message_Payload {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMessage_Payload();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          message.aes256GcmHkdfSha256 = Message_Aes256gcmHkdfsha256.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Message_Payload {
+    return {
+      aes256GcmHkdfSha256: isSet(object.aes256GcmHkdfSha256)
+        ? Message_Aes256gcmHkdfsha256.fromJSON(object.aes256GcmHkdfSha256)
+        : undefined
+    };
+  },
+
+  toJSON(message: Message_Payload): unknown {
+    const obj: any = {};
+    message.aes256GcmHkdfSha256 !== undefined &&
+      (obj.aes256GcmHkdfSha256 = message.aes256GcmHkdfSha256
+        ? Message_Aes256gcmHkdfsha256.toJSON(message.aes256GcmHkdfSha256)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Message_Payload>, I>>(
+    object: I
+  ): Message_Payload {
+    const message = createBaseMessage_Payload();
+    message.aes256GcmHkdfSha256 =
+      object.aes256GcmHkdfSha256 !== undefined &&
+      object.aes256GcmHkdfSha256 !== null
+        ? Message_Aes256gcmHkdfsha256.fromPartial(object.aes256GcmHkdfSha256)
         : undefined;
     return message;
   }
