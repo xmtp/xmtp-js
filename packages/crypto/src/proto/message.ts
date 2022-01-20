@@ -35,8 +35,7 @@ export interface PrivateKey_Secp256k1 {
 }
 
 export interface Message {
-  sender: Message_Participant | undefined;
-  recipient: Message_Participant | undefined;
+  header: Message_Header | undefined;
   aes256GcmHkdfSha256: Message_Aes256gcmHkdfsha256 | undefined;
 }
 
@@ -49,6 +48,11 @@ export interface Message_Aes256gcmHkdfsha256 {
   hkdfSalt: Uint8Array;
   gcmNonce: Uint8Array;
   payload: Uint8Array;
+}
+
+export interface Message_Header {
+  sender: Message_Participant | undefined;
+  recipient: Message_Participant | undefined;
 }
 
 function createBaseSignature(): Signature {
@@ -472,11 +476,7 @@ export const PrivateKey_Secp256k1 = {
 };
 
 function createBaseMessage(): Message {
-  return {
-    sender: undefined,
-    recipient: undefined,
-    aes256GcmHkdfSha256: undefined
-  };
+  return { header: undefined, aes256GcmHkdfSha256: undefined };
 }
 
 export const Message = {
@@ -484,22 +484,13 @@ export const Message = {
     message: Message,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.sender !== undefined) {
-      Message_Participant.encode(
-        message.sender,
-        writer.uint32(10).fork()
-      ).ldelim();
-    }
-    if (message.recipient !== undefined) {
-      Message_Participant.encode(
-        message.recipient,
-        writer.uint32(18).fork()
-      ).ldelim();
+    if (message.header !== undefined) {
+      Message_Header.encode(message.header, writer.uint32(10).fork()).ldelim();
     }
     if (message.aes256GcmHkdfSha256 !== undefined) {
       Message_Aes256gcmHkdfsha256.encode(
         message.aes256GcmHkdfSha256,
-        writer.uint32(26).fork()
+        writer.uint32(18).fork()
       ).ldelim();
     }
     return writer;
@@ -513,15 +504,9 @@ export const Message = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.sender = Message_Participant.decode(reader, reader.uint32());
+          message.header = Message_Header.decode(reader, reader.uint32());
           break;
         case 2:
-          message.recipient = Message_Participant.decode(
-            reader,
-            reader.uint32()
-          );
-          break;
-        case 3:
           message.aes256GcmHkdfSha256 = Message_Aes256gcmHkdfsha256.decode(
             reader,
             reader.uint32()
@@ -537,11 +522,8 @@ export const Message = {
 
   fromJSON(object: any): Message {
     return {
-      sender: isSet(object.sender)
-        ? Message_Participant.fromJSON(object.sender)
-        : undefined,
-      recipient: isSet(object.recipient)
-        ? Message_Participant.fromJSON(object.recipient)
+      header: isSet(object.header)
+        ? Message_Header.fromJSON(object.header)
         : undefined,
       aes256GcmHkdfSha256: isSet(object.aes256GcmHkdfSha256)
         ? Message_Aes256gcmHkdfsha256.fromJSON(object.aes256GcmHkdfSha256)
@@ -551,13 +533,9 @@ export const Message = {
 
   toJSON(message: Message): unknown {
     const obj: any = {};
-    message.sender !== undefined &&
-      (obj.sender = message.sender
-        ? Message_Participant.toJSON(message.sender)
-        : undefined);
-    message.recipient !== undefined &&
-      (obj.recipient = message.recipient
-        ? Message_Participant.toJSON(message.recipient)
+    message.header !== undefined &&
+      (obj.header = message.header
+        ? Message_Header.toJSON(message.header)
         : undefined);
     message.aes256GcmHkdfSha256 !== undefined &&
       (obj.aes256GcmHkdfSha256 = message.aes256GcmHkdfSha256
@@ -568,13 +546,9 @@ export const Message = {
 
   fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
     const message = createBaseMessage();
-    message.sender =
-      object.sender !== undefined && object.sender !== null
-        ? Message_Participant.fromPartial(object.sender)
-        : undefined;
-    message.recipient =
-      object.recipient !== undefined && object.recipient !== null
-        ? Message_Participant.fromPartial(object.recipient)
+    message.header =
+      object.header !== undefined && object.header !== null
+        ? Message_Header.fromPartial(object.header)
         : undefined;
     message.aes256GcmHkdfSha256 =
       object.aes256GcmHkdfSha256 !== undefined &&
@@ -754,6 +728,94 @@ export const Message_Aes256gcmHkdfsha256 = {
     message.hkdfSalt = object.hkdfSalt ?? new Uint8Array();
     message.gcmNonce = object.gcmNonce ?? new Uint8Array();
     message.payload = object.payload ?? new Uint8Array();
+    return message;
+  }
+};
+
+function createBaseMessage_Header(): Message_Header {
+  return { sender: undefined, recipient: undefined };
+}
+
+export const Message_Header = {
+  encode(
+    message: Message_Header,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.sender !== undefined) {
+      Message_Participant.encode(
+        message.sender,
+        writer.uint32(10).fork()
+      ).ldelim();
+    }
+    if (message.recipient !== undefined) {
+      Message_Participant.encode(
+        message.recipient,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Message_Header {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMessage_Header();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sender = Message_Participant.decode(reader, reader.uint32());
+          break;
+        case 2:
+          message.recipient = Message_Participant.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Message_Header {
+    return {
+      sender: isSet(object.sender)
+        ? Message_Participant.fromJSON(object.sender)
+        : undefined,
+      recipient: isSet(object.recipient)
+        ? Message_Participant.fromJSON(object.recipient)
+        : undefined
+    };
+  },
+
+  toJSON(message: Message_Header): unknown {
+    const obj: any = {};
+    message.sender !== undefined &&
+      (obj.sender = message.sender
+        ? Message_Participant.toJSON(message.sender)
+        : undefined);
+    message.recipient !== undefined &&
+      (obj.recipient = message.recipient
+        ? Message_Participant.toJSON(message.recipient)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Message_Header>, I>>(
+    object: I
+  ): Message_Header {
+    const message = createBaseMessage_Header();
+    message.sender =
+      object.sender !== undefined && object.sender !== null
+        ? Message_Participant.fromPartial(object.sender)
+        : undefined;
+    message.recipient =
+      object.recipient !== undefined && object.recipient !== null
+        ? Message_Participant.fromPartial(object.recipient)
+        : undefined;
     return message;
   }
 };

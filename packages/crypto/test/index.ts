@@ -89,7 +89,8 @@ describe('Crypto', function() {
     let [bPri, bPub] = await crypto.generateBundles();
     let msg1 = "Yo!";
     const bytes = await aPri.encodeMessage(bPub, msg1);
-    assert.ok(bytes.length >= 432);
+    // assert.equal(bytes.length, 508);
+    assert.ok(bytes.length >= 506);
     const msg2 = await bPri.decodeMessage(bytes);
     assert.equal(msg1, msg2);
   });

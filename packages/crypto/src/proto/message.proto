@@ -39,10 +39,12 @@ message Message {
         bytes gcmNonce = 2;
         bytes payload = 3;
     }
-
-    Participant sender = 1;
-    Participant recipient = 2;
+    message Header {
+        Participant sender = 1;
+        Participant recipient = 2;
+    }
+    Header header = 1;
     oneof payload {
-        AES256GCM_HKDFSHA256 aes256GcmHkdfSha256 = 3;
+        AES256GCM_HKDFSHA256 aes256GcmHkdfSha256 = 2;
     }
 }
