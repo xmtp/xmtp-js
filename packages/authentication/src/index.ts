@@ -1,3 +1,3 @@
 export function xmtpAuthentication() {
-  console.log("XMTP Auth FTW!")
+  console.log('XMTP Auth FTW!');
 }

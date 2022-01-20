@@ -8,7 +8,7 @@ import typescript from 'rollup-plugin-typescript2';
 const packageJson = require('./package.json');
 
 const devDeps = {
-  ...packageJson.devDependencies,
+  ...packageJson.devDependencies
 };
 
 export default {
@@ -17,13 +17,13 @@ export default {
     {
       file: packageJson.main,
       format: 'cjs',
-      sourcemap: true,
+      sourcemap: true
     },
     {
       file: packageJson.module,
       format: 'esm',
-      sourcemap: true,
-    },
+      sourcemap: true
+    }
   ],
   plugins: [
     peerDepsExternal(),
@@ -32,8 +32,8 @@ export default {
     typescript(),
     commonjs({
       exclude: 'node_modules',
-      ignoreGlobal: true,
-    }),
+      ignoreGlobal: true
+    })
   ],
   external: Object.keys(devDeps)
 };

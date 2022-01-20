@@ -28,7 +28,7 @@ For Yarn or PNPM users:
 ## API methods
 
 | Method name | Description | Params | Returns | Errors |
-|-------------|-------------|--------|---------|--------|
+| ----------- | ----------- | ------ | ------- | ------ |
 |             |             |        |         |        |
 |             |             |        |         |        |
 |             |             |        |         |        |
