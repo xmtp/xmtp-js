@@ -9,7 +9,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "format": "prettier packages/**",
+    "format": "prettier --write packages/**",
     "lint": "eslint packages/**"
   },
   "repository": {
