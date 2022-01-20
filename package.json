@@ -9,8 +9,8 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "format": "prettier --write packages/**",
-    "lint": "eslint packages/**"
+    "lint": "prettier --check packages/** && eslint packages/**",
+    "autolint": "prettier --write packages/** && eslint --fix packages/**"
   },
   "repository": {
     "type": "git",
