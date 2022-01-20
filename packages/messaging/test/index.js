@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = await require('assert');
 
 describe('Testing', function () {
   it('should run a test in xmtp-client-messaging', function () {
