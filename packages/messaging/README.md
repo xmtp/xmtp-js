@@ -11,12 +11,13 @@ For Yarn or PNPM users:
 `<yarn/pnpm> add @xmtp-org/xmtp-client-messaging`
 
 ## Usage
+
 @TODO
 
 ## API methods
 
 | Method name | Description | Params | Returns | Errors |
-|-------------|-------------|--------|---------|--------|
+| ----------- | ----------- | ------ | ------- | ------ |
 |             |             |        |         |        |
 |             |             |        |         |        |
 |             |             |        |         |        |

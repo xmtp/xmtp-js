@@ -3,15 +3,17 @@
 The XMTP Client Authentication library provides an API for doing wallet-based authentication, key management and signing, and message encryption/decryption operations.
 
 ## Installation
+
 @TODO
 
 ## Usage
+
 @TODO
 
 ## API methods
 
 | Method name | Description | Params | Returns | Errors |
-|-------------|-------------|--------|---------|--------|
+| ----------- | ----------- | ------ | ------- | ------ |
 |             |             |        |         |        |
 |             |             |        |         |        |
 |             |             |        |         |        |
@@ -22,4 +24,3 @@ Before committing your time to code, please read the [CONTRIBUTING.md document](
 
 To build the project, run: `pnpm build`. This compiles the TypeScript source to JS via Babel.
 Test and view coverage information: `pnpm coverage`
-

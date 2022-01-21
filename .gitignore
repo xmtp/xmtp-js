@@ -15,7 +15,6 @@ types
 
 # Editor Configs
 .idea
-.vscode
 *.iml
 
 # Logs

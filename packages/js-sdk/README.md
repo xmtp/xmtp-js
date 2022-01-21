@@ -2,13 +2,15 @@
 
 The XMTP JavaScript SDK package bundles the core code libraries required for building client experiences on top of the XMTP protocol and network.
 
-* [xmtp-client-auth](https://github.com/xmtp-org/xmtp-js-sdk/tree/main/packages/authentication)
-* [xmtp-client-messaging](https://github.com/xmtp-org/xmtp-js-sdk/tree/main/packages/messaging)
+- [xmtp-client-auth](https://github.com/xmtp-org/xmtp-js-sdk/tree/main/packages/authentication)
+- [xmtp-client-messaging](https://github.com/xmtp-org/xmtp-js-sdk/tree/main/packages/messaging)
 
 ## Installation
+
 @TODO
 
 ## Usage
+
 @TODO
 
 ## Developing

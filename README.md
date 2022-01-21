@@ -1,10 +1,13 @@
 # XMTP CLIENT SDK
 
+![Test](https://github.com/xmtp-org/xmtp-js-sdk/actions/workflows/test.yml/badge.svg)
+![Lint](https://github.com/xmtp-org/xmtp-js-sdk/actions/workflows/lint.yml/badge.svg)
+
 The XMTP SDK bundles the core code libraries, components, tools, documentation, and guides that developers require in order to build client experiences on top of the XMTP protocol and network.
 
 ## Developing
 
-Before committing your time to code, please read the [CONTRIBUTING.md document]Before committing your time to code, please read the [CONTRIBUTING.md document](https://github.com/xmtp-org/xmtp-js-sdk/blob/main/CONTRIBUTING.md).
+Before committing your time to code, please read the [CONTRIBUTING.md document](https://github.com/xmtp-org/xmtp-js-sdk/blob/main/CONTRIBUTING.md).
 
 ### Prerequisites
 
@@ -26,9 +29,10 @@ We're using the [changesets package](https://github.com/changesets/changesets) f
 To generate a new changeset, run `pnpm changeset` in the repository root.
 
 To release changes, run `pnpm changeset version` (bumps the versions of the packages specified with `pnpm changeset` and any of their local dependencies, and updates the changelog files).
-Next, run `pnpm install` to update the lockfile and rebuild packages, and commit the changes. 
+Next, run `pnpm install` to update the lockfile and rebuild packages, and commit the changes.
 
 To publish all packages that have bumped versions, run `pnpm publish -r`.
 
 ## License
+
 @TODO
