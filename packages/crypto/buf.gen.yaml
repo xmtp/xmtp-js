@@ -1,0 +1,7 @@
+version: v1beta1
+
+plugins:
+  - name: ts-proto
+    out: ./src/proto
+    opt: grpc_js,esModuleInterop=true
+    path: ./node_modules/ts-proto/protoc-gen-ts_proto
