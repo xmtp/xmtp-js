@@ -9,7 +9,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "test": "ts-mocha packages/*/test/*.ts",
+    "test": "mocha -r ts-node/register packages/*/test/*.ts",
     "lint": "prettier --check packages/** && eslint packages/**",
     "autolint": "prettier --write packages/** && eslint --fix packages/**"
   },

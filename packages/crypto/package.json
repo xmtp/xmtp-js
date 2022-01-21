@@ -13,7 +13,7 @@
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir lib --extensions \".ts,.js\" --source-maps inline",
     "build:proto": "buf generate",
-    "test": "ts-mocha test/*.ts",
+    "test": "mocha -r ts-node/register test/*.ts",
     "coverage": "nyc npm run test"
   },
   "keywords": [

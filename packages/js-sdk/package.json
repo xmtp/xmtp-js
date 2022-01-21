@@ -10,7 +10,7 @@
     "build:types": "tsc --emitDeclarationOnly",
     "build:bundle": "rimraf dist && rollup -c rollup.config.js",
     "build": "pnpm build:types && pnpm build:bundle",
-    "test": "ts-mocha test/*.ts"
+    "test": "mocha -r ts-node/register test/*.ts"
   },
   "keywords": [
     "xmtp",
