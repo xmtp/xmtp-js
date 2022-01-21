@@ -1,11 +1,36 @@
 {
-  "presets": [
-    "@babel/preset-env",
-    [
-      "@babel/preset-typescript",
-      {
-        "allowDeclareFields": true
-      }
-    ]
-  ]
+  "env": {
+    "cjs": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "modules": "cjs"
+          }
+        ],
+        [
+          "@babel/preset-typescript",
+          {
+            "allowDeclareFields": true
+          }
+        ]
+      ]
+    },
+    "esm": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "modules": false
+          }
+        ],
+        [
+          "@babel/preset-typescript",
+          {
+            "allowDeclareFields": true
+          }
+        ]
+      ]
+    }
+  }
 }
