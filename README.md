@@ -7,7 +7,7 @@ The XMTP SDK bundles the core code libraries, components, tools, documentation, 
 
 ## Developing
 
-Before committing your time to code, please read the [CONTRIBUTING.md document]Before committing your time to code, please read the [CONTRIBUTING.md document](https://github.com/xmtp-org/xmtp-js-sdk/blob/main/CONTRIBUTING.md).
+Before committing your time to code, please read the [CONTRIBUTING.md document](https://github.com/xmtp-org/xmtp-js-sdk/blob/main/CONTRIBUTING.md).
 
 ### Prerequisites
 
