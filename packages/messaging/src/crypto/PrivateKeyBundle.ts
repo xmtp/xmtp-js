@@ -3,8 +3,7 @@ import PrivateKey from './PrivateKey';
 import KeyBundle from './KeyBundle';
 import Ciphertext from './Ciphertext';
 import * as ethers from 'ethers';
-import { decrypt, encrypt, getRandomValues } from './utils';
-import { hexToBytes } from '@noble/hashes/utils';
+import { decrypt, encrypt, getRandomValues, hexToBytes } from './utils';
 
 // PrivateKeyBundle bundles the private keys corresponding to a KeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
