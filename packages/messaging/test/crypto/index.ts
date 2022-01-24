@@ -1,22 +1,27 @@
 import * as assert from 'assert';
 import { TextEncoder, TextDecoder } from 'util';
-import * as crypto from '../../src/crypto';
+import {
+  KeyBundle,
+  PrivateKeyBundle,
+  PublicKey,
+  utils
+} from '../../src/crypto';
 import * as ethers from 'ethers';
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
     // Identity Key
-    const [iPri, iPub] = crypto.generateKeys();
+    const [iPri, iPub] = utils.generateKeys();
     // Pre-Key
-    const [, pPub] = crypto.generateKeys();
+    const [, pPub] = utils.generateKeys();
     await iPri.signKey(pPub);
     assert.ok(await iPub.verifyKey(pPub));
   });
   it('encrypts and decrypts messages', async function () {
     // Alice
-    const [aPri, aPub] = crypto.generateKeys();
+    const [aPri, aPub] = utils.generateKeys();
     // Bob
-    const [bPri, bPub] = crypto.generateKeys();
+    const [bPri, bPub] = utils.generateKeys();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
@@ -28,9 +33,9 @@ describe('Crypto', function () {
   });
   it('detects tampering with encrypted message', async function () {
     // Alice
-    const [aPri, aPub] = crypto.generateKeys();
+    const [aPri, aPub] = utils.generateKeys();
     // Bob
-    const [bPri, bPub] = crypto.generateKeys();
+    const [bPri, bPub] = utils.generateKeys();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
@@ -48,27 +53,27 @@ describe('Crypto', function () {
     }
   });
   it('derives public key from signature', async function () {
-    const [pri, pub] = crypto.generateKeys();
-    const digest = crypto.getRandomValues(new Uint8Array(16));
+    const [pri, pub] = utils.generateKeys();
+    const digest = utils.getRandomValues(new Uint8Array(16));
     const sig = await pri.sign(digest);
     const pub2 = sig.getPublicKey(digest);
     assert.ok(pub2);
-    assert.equal(crypto.bytesToHex(pub2.bytes), crypto.bytesToHex(pub.bytes));
+    assert.equal(utils.bytesToHex(pub2.bytes), utils.bytesToHex(pub.bytes));
   });
   it('derives address from public key', function () {
     // using the sample from https://kobl.one/blog/create-full-ethereum-keypair-and-address/
-    const bytes = crypto.hexToBytes(
+    const bytes = utils.hexToBytes(
       '04836b35a026743e823a90a0ee3b91bf615c6a757e2b60b9e1dc1826fd0dd16106f7bc1e8179f665015f43c6c81f39062fc2086ed849625c06e04697698b21855e'
     );
-    const pub = new crypto.PublicKey(bytes);
+    const pub = new PublicKey(bytes);
     const address = pub.getEthereumAddress();
     assert.equal(address, '0x0bed7abd61247635c1973eb38474a2516ed1d884');
   });
   it('encrypts and decrypts messages with key bundles', async function () {
     // Alice
-    const [aPri, aPub] = await crypto.generateBundles();
+    const [aPri, aPub] = await utils.generateBundles();
     // Bob
-    const [bPri, bPub] = await crypto.generateBundles();
+    const [bPri, bPub] = await utils.generateBundles();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
@@ -79,17 +84,17 @@ describe('Crypto', function () {
     assert.equal(msg2, msg1);
   });
   it('serializes and desirializes keys and signatures', async function () {
-    const [, pub] = await crypto.generateBundles();
+    const [, pub] = await utils.generateBundles();
     const bytes = pub.encode();
     assert.ok(bytes.length >= 213);
-    const pub2 = crypto.KeyBundle.decode(bytes);
+    const pub2 = KeyBundle.decode(bytes);
     assert.ok(pub2.identityKey.verifyKey(pub2.preKey));
   });
   it('fully encodes/decodes messages', async function () {
     // Alice
-    const [aPri] = await crypto.generateBundles();
+    const [aPri] = await utils.generateBundles();
     // Bob
-    const [bPri, bPub] = await crypto.generateBundles();
+    const [bPri, bPub] = await utils.generateBundles();
     const msg1 = 'Yo!';
     const bytes = await aPri.encodeMessage(bPub, msg1);
     // assert.equal(bytes.length, 508);
@@ -99,7 +104,7 @@ describe('Crypto', function () {
   });
   it('signs keys using a wallet', async function () {
     // create a wallet using a generated key
-    const [wPri, wPub] = crypto.generateKeys();
+    const [wPri, wPub] = utils.generateKeys();
     const wallet = new ethers.Wallet(wPri.bytes);
     // sanity check that we agree with the wallet about the address
     assert.ok(wallet.address, wPub.getEthereumAddress());
@@ -111,15 +116,15 @@ describe('Crypto', function () {
   });
   it('encrypts private key bundle for storage using a wallet', async function () {
     // create a wallet using a generated key
-    const [wPri] = crypto.generateKeys();
+    const [wPri] = utils.generateKeys();
     const wallet = new ethers.Wallet(wPri.bytes);
     // generate key bundle
-    const [pri] = await crypto.generateBundles();
+    const [pri] = await utils.generateBundles();
     // encrypt and serialize the bundle for storage
     const bytes = await pri.encode(wallet);
     // decrypt and decode the bundle from storage
-    const pri2 = await crypto.PrivateKeyBundle.decode(wallet, bytes);
-    assert.ok(crypto.equalBytes(pri.identityKey.bytes, pri2.identityKey.bytes));
-    assert.ok(crypto.equalBytes(pri.preKey.bytes, pri2.preKey.bytes));
+    const pri2 = await PrivateKeyBundle.decode(wallet, bytes);
+    assert.ok(utils.equalBytes(pri.identityKey.bytes, pri2.identityKey.bytes));
+    assert.ok(utils.equalBytes(pri.preKey.bytes, pri2.preKey.bytes));
   });
 });
