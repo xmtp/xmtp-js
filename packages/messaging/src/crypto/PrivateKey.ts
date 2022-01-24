@@ -3,7 +3,7 @@ import * as secp from '@noble/secp256k1';
 import Signature from './Signature';
 import PublicKey from './PublicKey';
 import Ciphertext from './Ciphertext';
-import { decrypt, encrypt } from './utils';
+import { decrypt, encrypt } from './encryption';
 
 // PrivateKey represents a secp256k1 private key.
 export default class PrivateKey {
