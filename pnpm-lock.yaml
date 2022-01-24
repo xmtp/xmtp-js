@@ -74,6 +74,7 @@ importers:
       '@babel/preset-typescript': ^7.16.7
       '@noble/hashes': ^1.0.0
       '@noble/secp256k1': ^1.4.0
+      ethers: ^5.5.2
       nyc: ^15.1.0
       protobufjs: ^6.11.2
       rimraf: ^3.0.2
@@ -83,6 +84,7 @@ importers:
     dependencies:
       '@noble/hashes': 1.0.0
       '@noble/secp256k1': 1.4.0
+      ethers: 5.5.2
       protobufjs: 6.11.2
     devDependencies:
       '@babel/cli': 7.16.7_@babel+core@7.16.7

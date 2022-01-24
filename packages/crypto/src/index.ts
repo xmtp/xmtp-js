@@ -2,6 +2,7 @@ import * as secp from '@noble/secp256k1';
 import { keccak_256 as keccak256 } from '@noble/hashes/sha3';
 import * as proto from '../../crypto/src/proto/message';
 import { TextEncoder, TextDecoder } from 'util';
+import * as ethers from 'ethers';
 
 // crypto should provide access to standard Web Crypto API
 // in both the browser environment and node.
@@ -188,6 +189,32 @@ export class PublicKey {
     }
     const digest = await secp.utils.sha256(pub.bytes);
     return pub.signature ? this.verify(pub.signature, digest) : false;
+  }
+
+  // sign the key using a wallet
+  async signWithWallet(wallet: ethers.Signer) {
+    const sigString = await wallet.signMessage(this.bytes);
+    const eSig = ethers.utils.splitSignature(sigString);
+    const r = hexToBytes(eSig.r);
+    const s = hexToBytes(eSig.s);
+    const sigBytes = new Uint8Array(64);
+    sigBytes.set(r);
+    sigBytes.set(s, r.length);
+    this.signature = new Signature(sigBytes, eSig.recoveryParam);
+  }
+
+  // if the key was signed by a wallet, and the signature is valid,
+  // then return the wallet address, otherwise throw
+  walletSignatureAddress(): string {
+    if (!this.signature) {
+      throw new Error('key is not signed');
+    }
+    const digest = hexToBytes(ethers.utils.hashMessage(this.bytes));
+    const pk = this.signature.getPublicKey(digest);
+    if (!pk) {
+      throw new Error('key was not signed by a wallet');
+    }
+    return ethers.utils.computeAddress(pk.bytes);
   }
 
   // derive Ethereum address from this PublicKey
@@ -540,6 +567,9 @@ function aesGcmParams(
 export const getRandomValues = crypto.getRandomValues;
 export const bytesToHex = secp.utils.bytesToHex;
 export function hexToBytes(s: string): Uint8Array {
+  if (s.startsWith('0x')) {
+    s = s.slice(2);
+  }
   const bytes = new Uint8Array(s.length / 2);
   for (let i = 0; i < bytes.length; i++) {
     const j = i * 2;

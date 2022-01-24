@@ -1,6 +1,7 @@
-import assert from 'assert';
+import * as assert from 'assert';
 import { TextEncoder, TextDecoder } from 'util';
 import * as crypto from '../src';
+import * as ethers from 'ethers';
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
@@ -95,5 +96,17 @@ describe('Crypto', function () {
     assert.ok(bytes.length >= 506);
     const msg2 = await bPri.decodeMessage(bytes);
     assert.equal(msg1, msg2);
+  });
+  it('signs keys using a wallet', async function () {
+    // create a wallet using a generated key
+    const [wPri, wPub] = crypto.generateKeys();
+    const wallet = new ethers.Wallet(wPri.bytes);
+    // sanity check that we agree with the wallet about the address
+    assert.ok(wallet.address, wPub.getEthereumAddress());
+    // sign the public key using the wallet
+    await wPub.signWithWallet(wallet);
+    // validate the key signature and return wallet address
+    const address = wPub.walletSignatureAddress();
+    assert.equal(address, wallet.address);
   });
 });
