@@ -1,4 +1,4 @@
-import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext';
+import Payload, { AESGCMNonceSize, KDFSaltSize } from './Payload';
 import { crypto } from './utils';
 
 const hkdfNoInfo = new ArrayBuffer(0);
@@ -7,7 +7,7 @@ export async function encrypt(
   plain: Uint8Array,
   secret: Uint8Array,
   additionalData?: Uint8Array
-): Promise<Ciphertext> {
+): Promise<Payload> {
   const salt = crypto.getRandomValues(new Uint8Array(KDFSaltSize));
   const nonce = crypto.getRandomValues(new Uint8Array(AESGCMNonceSize));
   const key = await hkdf(secret, salt);
@@ -16,23 +16,28 @@ export async function encrypt(
     key,
     plain
   );
-  return new Ciphertext({
-    payload: new Uint8Array(encrypted),
-    hkdfSalt: salt,
-    gcmNonce: nonce
+  return new Payload({
+    aes256GcmHkdfSha256: {
+      payload: new Uint8Array(encrypted),
+      hkdfSalt: salt,
+      gcmNonce: nonce
+    }
   });
 }
 
 export async function decrypt(
-  encrypted: Ciphertext,
+  encrypted: Payload,
   secret: Uint8Array,
   additionalData?: Uint8Array
 ): Promise<Uint8Array> {
-  const key = await hkdf(secret, encrypted.hkdfSalt);
+  if (!encrypted.aes256GcmHkdfSha256) {
+    throw new Error('invalid payload ciphertext');
+  }
+  const key = await hkdf(secret, encrypted.aes256GcmHkdfSha256.hkdfSalt);
   const decrypted: ArrayBuffer = await crypto.subtle.decrypt(
-    aesGcmParams(encrypted.gcmNonce, additionalData),
+    aesGcmParams(encrypted.aes256GcmHkdfSha256.gcmNonce, additionalData),
     key,
-    encrypted.payload
+    encrypted.aes256GcmHkdfSha256.payload
   );
   return new Uint8Array(decrypted);
 }

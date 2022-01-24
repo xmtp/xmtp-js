@@ -42,7 +42,8 @@ describe('Crypto', function () {
     // Alice encrypts msg for Bob.
     const encrypted = await aPri.encrypt(decrypted, bPub);
     // Malory tampers with the message
-    encrypted.payload[2] ^= 4; // flip one bit
+    assert.ok(encrypted.aes256GcmHkdfSha256);
+    encrypted.aes256GcmHkdfSha256.payload[2] ^= 4; // flip one bit
     // Bob attempts to decrypt msg from Alice.
     try {
       await bPri.decrypt(encrypted, aPub);
