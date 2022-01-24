@@ -14,7 +14,9 @@
     "preserveConstEnums": true,
     "incremental": false,
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
+    "skipLibCheck": true,
     "importHelpers": true,
     "strict": true,
     "pretty": true,
@@ -25,7 +27,8 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "isolatedModules": true
   },
   "typeRoots": [
     "./node_modules/@types",

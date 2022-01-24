@@ -13,13 +13,11 @@ importers:
       react: 17.0.2
       react-dom: 17.0.2
       typescript: 4.5.5
-      xmtp-js-sdk: link:../../../packages/js-sdk
     dependencies:
       '@babel/core': 7.16.12
       next: 12.0.8_11ff11544d2bce3b43fc9d53812dafa4
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
-      xmtp-js-sdk: link:../../../packages/js-sdk
     devDependencies:
       '@types/node': 17.0.10
       '@types/react': 17.0.38
