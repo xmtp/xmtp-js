@@ -97,16 +97,16 @@ describe('Crypto', function () {
     const msg2 = await bPri.decodeMessage(bytes);
     assert.equal(msg1, msg2);
   });
-  it('signs keys using a wallet', async function(){
+  it('signs keys using a wallet', async function () {
     // create a wallet using a generated key
     const [wPri, wPub] = crypto.generateKeys();
-    const wallet = new ethers.Wallet(wPri.bytes); 
+    const wallet = new ethers.Wallet(wPri.bytes);
     // sanity check that we agree with the wallet about the address
-    assert.ok(wallet.address, wPub.getEthereumAddress()); 
+    assert.ok(wallet.address, wPub.getEthereumAddress());
     // sign the public key using the wallet
     await wPub.signWithWallet(wallet);
     // validate the key signature and return wallet address
-    const address = wPub.walletSignatureAddress(); 
-    assert.equal(address , wallet.address)
-  })
+    const address = wPub.walletSignatureAddress();
+    assert.equal(address, wallet.address);
+  });
 });

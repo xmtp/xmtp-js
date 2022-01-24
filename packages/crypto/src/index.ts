@@ -9,8 +9,8 @@ import * as ethers from 'ethers';
 const crypto: Crypto =
   typeof window !== 'undefined'
     ? window.crypto
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    : (require('crypto').webcrypto as unknown as Crypto);
+    : // eslint-disable-next-line @typescript-eslint/no-var-requires
+      (require('crypto').webcrypto as unknown as Crypto);
 
 export const AESKeySize = 32; // bytes
 export const KDFSaltSize = 32; // bytes
@@ -206,10 +206,14 @@ export class PublicKey {
   // if the key was signed by a wallet, and the signature is valid,
   // then return the wallet address, otherwise throw
   walletSignatureAddress(): string {
-    if (!this.signature) { throw new Error('key is not signed') };
+    if (!this.signature) {
+      throw new Error('key is not signed');
+    }
     const digest = hexToBytes(ethers.utils.hashMessage(this.bytes));
     const pk = this.signature.getPublicKey(digest);
-    if (!pk) { throw new Error("key was not signed by a wallet") };
+    if (!pk) {
+      throw new Error('key was not signed by a wallet');
+    }
     return ethers.utils.computeAddress(pk.bytes);
   }
 
@@ -565,11 +569,11 @@ export const bytesToHex = secp.utils.bytesToHex;
 export function hexToBytes(s: string): Uint8Array {
   if (s.startsWith('0x')) {
     s = s.slice(2);
-  };
-  let bytes = new Uint8Array(s.length / 2);
+  }
+  const bytes = new Uint8Array(s.length / 2);
   for (let i = 0; i < bytes.length; i++) {
-    let j = i * 2;
+    const j = i * 2;
     bytes[i] = Number.parseInt(s.slice(j, j + 2), 16);
-  };
+  }
   return bytes;
-};
+}
