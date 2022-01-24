@@ -22,20 +22,6 @@ export default class Signature implements proto.Signature {
     this.ecdsaCompact.recovery = obj.ecdsaCompact.recovery;
   }
 
-  // decode serialized Signature
-  static decode(bytes: Uint8Array): Signature {
-    const sig = proto.Signature.decode(bytes);
-    return Signature.fromDecoded(sig);
-  }
-
-  // build Signature from proto.Signature structure
-  static fromDecoded(sig: proto.Signature): Signature {
-    if (sig.ecdsaCompact) {
-      return new Signature(sig);
-    }
-    throw new Error('unrecognized signature');
-  }
-
   // If the signature is valid for the provided digest
   // then return the public key that validates it.
   // Otherwise return undefined.
@@ -48,7 +34,11 @@ export default class Signature implements proto.Signature {
       this.ecdsaCompact.bytes,
       this.ecdsaCompact.recovery
     );
-    return bytes ? PublicKey.fromBytes(bytes) : undefined;
+    return bytes
+      ? new PublicKey({
+          secp256k1Uncompressed: { bytes }
+        })
+      : undefined;
   }
 
   // If the signature is valid for the provided digest
@@ -62,21 +52,11 @@ export default class Signature implements proto.Signature {
     return pub.getEthereumAddress();
   }
 
-  // serialize Signature into bytes
-  encode(): Uint8Array {
-    return proto.Signature.encode(this.toBeEncoded()).finish();
+  toBytes(): Uint8Array {
+    return proto.Signature.encode(this).finish();
   }
 
-  // build proto.Signature from Signature
-  toBeEncoded(): proto.Signature {
-    if (!this.ecdsaCompact) {
-      throw new Error('invalid signature');
-    }
-    return {
-      ecdsaCompact: {
-        bytes: this.ecdsaCompact.bytes,
-        recovery: this.ecdsaCompact.recovery
-      }
-    };
+  static fromBytes(bytes: Uint8Array): Signature {
+    return new Signature(proto.Signature.decode(bytes));
   }
 }

@@ -19,40 +19,11 @@ export default class KeyBundle implements proto.Message_Participant {
     this.preKey = new PublicKey(obj.preKey);
   }
 
-  // protobuf serialization methods
-  static decode(bytes: Uint8Array): KeyBundle {
-    return KeyBundle.fromDecoded(proto.Message_Participant.decode(bytes));
+  toBytes(): Uint8Array {
+    return proto.Message_Participant.encode(this).finish();
   }
 
-  static fromDecoded(mp: proto.Message_Participant): KeyBundle {
-    if (!mp.identityKey) {
-      throw new Error('missing identityKey');
-    }
-    const identityKey = PublicKey.fromDecoded(mp.identityKey);
-    if (!mp.preKey) {
-      throw new Error('missing preKey');
-    }
-    const preKey = PublicKey.fromDecoded(mp.preKey);
-    return new KeyBundle({
-      identityKey,
-      preKey
-    });
-  }
-
-  encode(): Uint8Array {
-    return proto.Message_Participant.encode(this.toBeEncoded()).finish();
-  }
-
-  toBeEncoded(): proto.Message_Participant {
-    if (!this.identityKey) {
-      throw new Error('missing identity key');
-    }
-    if (!this.preKey) {
-      throw new Error('missing pre key');
-    }
-    return {
-      identityKey: this.identityKey.toBeEncoded(),
-      preKey: this.preKey.toBeEncoded()
-    };
+  static fromBytes(bytes: Uint8Array): KeyBundle {
+    return new KeyBundle(proto.Message_Participant.decode(bytes));
   }
 }

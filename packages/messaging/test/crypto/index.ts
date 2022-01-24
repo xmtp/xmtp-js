@@ -93,9 +93,9 @@ describe('Crypto', function () {
   });
   it('serializes and desirializes keys and signatures', async function () {
     const [, pub] = await PrivateKeyBundle.generateBundles();
-    const bytes = pub.encode();
+    const bytes = pub.toBytes();
     assert.ok(bytes.length >= 213);
-    const pub2 = KeyBundle.decode(bytes);
+    const pub2 = KeyBundle.fromBytes(bytes);
     assert.ok(pub2.identityKey);
     assert.ok(pub2.preKey);
     assert.ok(pub2.identityKey.verifyKey(pub2.preKey));

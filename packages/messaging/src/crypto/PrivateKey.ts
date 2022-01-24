@@ -37,13 +37,6 @@ export default class PrivateKey implements proto.PrivateKey {
     });
   }
 
-  // create PrivateKey from 32 bytes of D
-  static fromBytes(bytes: Uint8Array): PrivateKey {
-    return new PrivateKey({
-      secp256k1: { bytes }
-    });
-  }
-
   // sign provided digest
   async sign(digest: Uint8Array): Promise<Signature> {
     if (!this.secp256k1) {
@@ -124,13 +117,11 @@ export default class PrivateKey implements proto.PrivateKey {
     return this.getPublicKey().equals(key);
   }
 
-  toBeEncoded(): proto.PrivateKey {
-    return {
-      secp256k1: this.secp256k1
-    };
+  toBytes(): Uint8Array {
+    return proto.PrivateKey.encode(this).finish();
   }
 
-  static fromDecoded(key: proto.PrivateKey): PrivateKey {
-    return new PrivateKey(key);
+  static fromBytes(bytes: Uint8Array): PrivateKey {
+    return new PrivateKey(proto.PrivateKey.decode(bytes));
   }
 }

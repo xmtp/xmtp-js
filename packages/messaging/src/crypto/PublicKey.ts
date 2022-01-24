@@ -44,36 +44,6 @@ export default class PublicKey implements proto.PublicKey {
     });
   }
 
-  // create PublicKey from the raw uncompressed point bytes [ P || X || Y ], 65 bytes
-  static fromBytes(bytes: Uint8Array): PublicKey {
-    return new PublicKey({
-      secp256k1Uncompressed: { bytes }
-    });
-  }
-
-  // decode serialized PublicKey
-  static decode(bytes: Uint8Array): PublicKey {
-    return PublicKey.fromDecoded(proto.PublicKey.decode(bytes));
-  }
-
-  // build PublicKey from proto.PublicKey
-  static fromDecoded(key: proto.PublicKey): PublicKey {
-    if (key.secp256k1Uncompressed) {
-      if (key.signature) {
-        const sig = Signature.fromDecoded(key.signature);
-        return new PublicKey({
-          secp256k1Uncompressed: key.secp256k1Uncompressed,
-          signature: sig
-        });
-      } else {
-        return new PublicKey({
-          secp256k1Uncompressed: key.secp256k1Uncompressed
-        });
-      }
-    }
-    throw new Error('unrecognized signature');
-  }
-
   // verify that Signature was created from provided digest using the corresponding PrivateKey
   verify(signature: Signature, digest: Uint8Array): boolean {
     if (!this.secp256k1Uncompressed) {
@@ -156,27 +126,6 @@ export default class PublicKey implements proto.PublicKey {
     return '0x' + secp.utils.bytesToHex(bytes);
   }
 
-  // serialize this PublicKey
-  encode(): Uint8Array {
-    return proto.PublicKey.encode(this.toBeEncoded()).finish();
-  }
-
-  // build proto.PublicKey from this PublicKey
-  toBeEncoded(): proto.PublicKey {
-    if (!this.secp256k1Uncompressed) {
-      throw new Error('missing public key');
-    }
-    const key: proto.PublicKey = {
-      secp256k1Uncompressed: {
-        bytes: this?.secp256k1Uncompressed?.bytes || new Uint8Array()
-      }
-    };
-    if (this.signature) {
-      key.signature = this.signature.toBeEncoded();
-    }
-    return key;
-  }
-
   // is other the same/equivalent PublicKey?
   equals(other: PublicKey): boolean {
     if (!this.secp256k1Uncompressed || !other.secp256k1Uncompressed) {
@@ -191,5 +140,13 @@ export default class PublicKey implements proto.PublicKey {
       }
     }
     return true;
+  }
+
+  toBytes(): Uint8Array {
+    return proto.PublicKey.encode(this).finish();
+  }
+
+  static fromBytes(bytes: Uint8Array): PublicKey {
+    return new PublicKey(proto.PublicKey.decode(bytes));
   }
 }

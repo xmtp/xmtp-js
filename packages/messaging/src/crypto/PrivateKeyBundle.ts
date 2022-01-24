@@ -103,10 +103,12 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     const ciphertext = await this.encrypt(bytes, recipient);
     return proto.Message.encode({
       header: {
-        sender: this.getKeyBundle().toBeEncoded(),
-        recipient: recipient.toBeEncoded()
+        sender: this.getKeyBundle(),
+        recipient
       },
-      payload: ciphertext.toBeEncoded()
+      payload: {
+        aes256GcmHkdfSha256: ciphertext
+      }
     }).finish();
   }
 
@@ -126,8 +128,8 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     if (!message.header.recipient?.preKey) {
       throw new Error('missing message recipient pre key');
     }
-    const sender = KeyBundle.fromDecoded(message.header.sender);
-    const recipient = KeyBundle.fromDecoded(message.header.recipient);
+    const sender = new KeyBundle(message.header.sender);
+    const recipient = new KeyBundle(message.header.recipient);
     if (!recipient.preKey) {
       throw new Error('missing message recipient pre key');
     }
@@ -140,9 +142,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     if (!message.payload?.aes256GcmHkdfSha256) {
       throw new Error('missing message payload');
     }
-    const ciphertext = Ciphertext.fromDecoded(
-      message.payload.aes256GcmHkdfSha256
-    );
+    const ciphertext = new Ciphertext(message.payload.aes256GcmHkdfSha256);
     bytes = await this.decrypt(ciphertext, sender);
     return new TextDecoder().decode(bytes);
   }
@@ -156,15 +156,17 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       throw new Error('missing identity key');
     }
     const bytes = proto.PrivateKeyBundle.encode({
-      identityKey: this.identityKey.toBeEncoded(),
-      preKeys: [this.preKey.toBeEncoded()]
+      identityKey: this.identityKey,
+      preKeys: [this.preKey]
     }).finish();
     const wPreKey = getRandomValues(new Uint8Array(32));
     const secret = hexToBytes(await wallet.signMessage(wPreKey));
     const encrypted = await encrypt(bytes, secret);
     return proto.EncryptedPrivateKeyBundle.encode({
       walletPreKey: wPreKey,
-      payload: encrypted.toBeEncoded()
+      payload: {
+        aes256GcmHkdfSha256: encrypted
+      }
     }).finish();
   }
 
@@ -180,9 +182,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     if (!encrypted.payload?.aes256GcmHkdfSha256) {
       throw new Error('missing bundle payload');
     }
-    const ciphertext = Ciphertext.fromDecoded(
-      encrypted.payload.aes256GcmHkdfSha256
-    );
+    const ciphertext = new Ciphertext(encrypted.payload.aes256GcmHkdfSha256);
     const decrypted = await decrypt(ciphertext, secret);
     const bundle = proto.PrivateKeyBundle.decode(decrypted);
     if (!bundle.identityKey) {
@@ -192,8 +192,8 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       throw new Error('missing pre-keys');
     }
     return new PrivateKeyBundle(
-      PrivateKey.fromDecoded(bundle.identityKey),
-      PrivateKey.fromDecoded(bundle.preKeys[0])
+      new PrivateKey(bundle.identityKey),
+      new PrivateKey(bundle.preKeys[0])
     );
   }
 }
@@ -207,7 +207,7 @@ interface Header {
 // serializes message header into bytes so that it can be included for encryption as associated data
 function associatedData(header: Header): Uint8Array {
   return proto.Message_Header.encode({
-    sender: header.sender.toBeEncoded(),
-    recipient: header.recipient.toBeEncoded()
+    sender: header.sender,
+    recipient: header.recipient
   }).finish();
 }

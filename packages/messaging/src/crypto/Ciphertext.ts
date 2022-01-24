@@ -32,21 +32,11 @@ export default class Ciphertext implements proto.Payload_Aes256gcmHkdfsha256 {
     this.gcmNonce = obj.gcmNonce;
   }
 
-  // build Ciphertext from proto.Message
-  static fromDecoded(
-    ciphertext: proto.Payload_Aes256gcmHkdfsha256
-  ): Ciphertext {
-    return new Ciphertext(ciphertext);
+  toBytes(): Uint8Array {
+    return proto.Payload_Aes256gcmHkdfsha256.encode(this).finish();
   }
 
-  // build proto.Message from Ciphertext and the parties' KeyBundles.
-  toBeEncoded(): proto.Payload {
-    return {
-      aes256GcmHkdfSha256: {
-        payload: this.payload,
-        hkdfSalt: this.hkdfSalt,
-        gcmNonce: this.gcmNonce
-      }
-    };
+  static fromBytes(bytes: Uint8Array): Ciphertext {
+    return new Ciphertext(proto.Payload_Aes256gcmHkdfsha256.decode(bytes));
   }
 }
