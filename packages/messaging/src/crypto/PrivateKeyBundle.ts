@@ -9,12 +9,15 @@ import { decrypt, encrypt } from './encryption';
 // PrivateKeyBundle bundles the private keys corresponding to a KeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
 // somehow so that older messages can be decrypted again.
-export default class PrivateKeyBundle {
-  identityKey: PrivateKey;
+export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
+  identityKey: PrivateKey | undefined;
+  preKeys: PrivateKey[];
   preKey: PrivateKey;
+
   constructor(identityKey: PrivateKey, preKey: PrivateKey) {
-    this.identityKey = identityKey;
+    this.identityKey = new PrivateKey(identityKey);
     this.preKey = preKey;
+    this.preKeys = [preKey];
   }
 
   // Generate a new key bundle pair with the preKey signed byt the identityKey.
@@ -24,7 +27,10 @@ export default class PrivateKeyBundle {
     await priIdentityKey.signKey(pubPreKey);
     return [
       new PrivateKeyBundle(priIdentityKey, priPreKey),
-      new KeyBundle(pubIdentityKey, pubPreKey)
+      new KeyBundle({
+        identityKey: pubIdentityKey,
+        preKey: pubPreKey
+      })
     ];
   }
 
@@ -32,8 +38,14 @@ export default class PrivateKeyBundle {
   // where the sender's ephemeral key pair is replaced by the sender's prekey.
   // @recipient indicates whether this is the sending (encrypting) or receiving (decrypting) side.
   async sharedSecret(peer: KeyBundle, recipient: boolean): Promise<Uint8Array> {
+    if (!peer.identityKey || !peer.preKey) {
+      throw new Error('invalid peer key bundle');
+    }
     if (!(await peer.identityKey.verifyKey(peer.preKey))) {
       throw new Error('peer preKey signature invalid');
+    }
+    if (!this.identityKey) {
+      throw new Error('missing identity key');
     }
     let dh1: Uint8Array, dh2: Uint8Array;
     if (recipient) {
@@ -73,10 +85,13 @@ export default class PrivateKeyBundle {
 
   // return the corresponding public KeyBundle
   getKeyBundle(): KeyBundle {
-    return new KeyBundle(
-      this.identityKey.getPublicKey(),
-      this.preKey.getPublicKey()
-    );
+    if (!this.identityKey) {
+      throw new Error('missing identity key');
+    }
+    return new KeyBundle({
+      identityKey: this.identityKey.getPublicKey(),
+      preKey: this.preKey.getPublicKey()
+    });
   }
 
   // encrypt and serialize the message
@@ -108,21 +123,38 @@ export default class PrivateKeyBundle {
     if (!message.header.recipient) {
       throw new Error('missing message recipient');
     }
+    if (!message.header.recipient?.preKey) {
+      throw new Error('missing message recipient pre key');
+    }
     const sender = KeyBundle.fromDecoded(message.header.sender);
     const recipient = KeyBundle.fromDecoded(message.header.recipient);
+    if (!recipient.preKey) {
+      throw new Error('missing message recipient pre key');
+    }
+    if (this.preKeys.length === 0) {
+      throw new Error('missing pre key');
+    }
     if (!this.preKey.matches(recipient.preKey)) {
       throw new Error('recipient pre-key mismatch');
     }
-    if (!message.payload) {
+    if (!message.payload?.aes256GcmHkdfSha256) {
       throw new Error('missing message payload');
     }
-    const ciphertext = Ciphertext.fromDecoded(message.payload);
+    const ciphertext = Ciphertext.fromDecoded(
+      message.payload.aes256GcmHkdfSha256
+    );
     bytes = await this.decrypt(ciphertext, sender);
     return new TextDecoder().decode(bytes);
   }
 
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {
     // serialize the contents
+    if (this.preKeys.length === 0) {
+      throw new Error('missing pre key');
+    }
+    if (!this.identityKey) {
+      throw new Error('missing identity key');
+    }
     const bytes = proto.PrivateKeyBundle.encode({
       identityKey: this.identityKey.toBeEncoded(),
       preKeys: [this.preKey.toBeEncoded()]
@@ -145,10 +177,12 @@ export default class PrivateKeyBundle {
       throw new Error('missing wallet pre-key');
     }
     const secret = hexToBytes(await wallet.signMessage(encrypted.walletPreKey));
-    if (!encrypted.payload) {
+    if (!encrypted.payload?.aes256GcmHkdfSha256) {
       throw new Error('missing bundle payload');
     }
-    const ciphertext = Ciphertext.fromDecoded(encrypted.payload);
+    const ciphertext = Ciphertext.fromDecoded(
+      encrypted.payload.aes256GcmHkdfSha256
+    );
     const decrypted = await decrypt(ciphertext, secret);
     const bundle = proto.PrivateKeyBundle.decode(decrypted);
     if (!bundle.identityKey) {

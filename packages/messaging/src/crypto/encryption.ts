@@ -16,7 +16,11 @@ export async function encrypt(
     key,
     plain
   );
-  return new Ciphertext(new Uint8Array(encrypted), salt, nonce);
+  return new Ciphertext({
+    payload: new Uint8Array(encrypted),
+    hkdfSalt: salt,
+    gcmNonce: nonce
+  });
 }
 
 export async function decrypt(
@@ -24,9 +28,9 @@ export async function decrypt(
   secret: Uint8Array,
   additionalData?: Uint8Array
 ): Promise<Uint8Array> {
-  const key = await hkdf(secret, encrypted.salt);
+  const key = await hkdf(secret, encrypted.hkdfSalt);
   const decrypted: ArrayBuffer = await crypto.subtle.decrypt(
-    aesGcmParams(encrypted.nonce, additionalData),
+    aesGcmParams(encrypted.gcmNonce, additionalData),
     key,
     encrypted.payload
   );

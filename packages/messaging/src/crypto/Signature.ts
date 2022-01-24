@@ -3,18 +3,23 @@ import * as secp from '@noble/secp256k1';
 import PublicKey from './PublicKey';
 
 // Signature represents an ECDSA signature with recovery bit.
-export default class Signature {
-  bytes: Uint8Array; // compact format [ R || S ], 64 bytes
-  recovery: number; // recovery bit 0 | 1
-  constructor(bytes: Uint8Array, recovery: number) {
-    if (bytes.length !== 64) {
-      throw new Error(`invalid signature length: ${bytes.length}`);
+export default class Signature implements proto.Signature {
+  ecdsaCompact: proto.Signature_ECDSACompact | undefined;
+
+  constructor(obj: proto.Signature) {
+    if (!obj.ecdsaCompact) {
+      throw new Error('invalid signature');
     }
-    this.bytes = bytes;
-    if (recovery !== 0 && recovery !== 1) {
-      throw new Error(`invalid recovery bit: ${recovery}`);
+    if (obj.ecdsaCompact.bytes.length !== 64) {
+      throw new Error(
+        `invalid signature length: ${obj.ecdsaCompact.bytes.length}`
+      );
     }
-    this.recovery = recovery;
+    this.ecdsaCompact = obj.ecdsaCompact;
+    if (obj.ecdsaCompact.recovery !== 0 && obj.ecdsaCompact.recovery !== 1) {
+      throw new Error(`invalid recovery bit: ${obj.ecdsaCompact.recovery}`);
+    }
+    this.ecdsaCompact.recovery = obj.ecdsaCompact.recovery;
   }
 
   // decode serialized Signature
@@ -26,7 +31,7 @@ export default class Signature {
   // build Signature from proto.Signature structure
   static fromDecoded(sig: proto.Signature): Signature {
     if (sig.ecdsaCompact) {
-      return new Signature(sig.ecdsaCompact.bytes, sig.ecdsaCompact.recovery);
+      return new Signature(sig);
     }
     throw new Error('unrecognized signature');
   }
@@ -35,7 +40,14 @@ export default class Signature {
   // then return the public key that validates it.
   // Otherwise return undefined.
   getPublicKey(digest: Uint8Array): PublicKey | undefined {
-    const bytes = secp.recoverPublicKey(digest, this.bytes, this.recovery);
+    if (!this.ecdsaCompact) {
+      throw new Error('invalid signature');
+    }
+    const bytes = secp.recoverPublicKey(
+      digest,
+      this.ecdsaCompact.bytes,
+      this.ecdsaCompact.recovery
+    );
     return bytes ? PublicKey.fromBytes(bytes) : undefined;
   }
 
@@ -57,10 +69,13 @@ export default class Signature {
 
   // build proto.Signature from Signature
   toBeEncoded(): proto.Signature {
+    if (!this.ecdsaCompact) {
+      throw new Error('invalid signature');
+    }
     return {
       ecdsaCompact: {
-        bytes: this.bytes,
-        recovery: this.recovery
+        bytes: this.ecdsaCompact.bytes,
+        recovery: this.ecdsaCompact.recovery
       }
     };
   }

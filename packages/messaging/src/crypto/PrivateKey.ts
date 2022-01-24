@@ -6,14 +6,20 @@ import Ciphertext from './Ciphertext';
 import { decrypt, encrypt } from './encryption';
 
 // PrivateKey represents a secp256k1 private key.
-export default class PrivateKey {
-  bytes: Uint8Array; // 32 bytes of D
+export default class PrivateKey implements proto.PrivateKey {
+  secp256k1: proto.PrivateKey_Secp256k1 | undefined;
   publicKey?: PublicKey; // caches corresponding PublicKey
-  constructor(bytes: Uint8Array) {
-    if (bytes.length !== 32) {
-      throw new Error(`invalid private key length: ${bytes.length}`);
+
+  constructor(obj: proto.PrivateKey) {
+    if (!obj.secp256k1) {
+      throw new Error('invalid private key');
     }
-    this.bytes = bytes;
+    if (obj.secp256k1.bytes.length !== 32) {
+      throw new Error(
+        `invalid private key length: ${obj.secp256k1.bytes.length}`
+      );
+    }
+    this.secp256k1 = obj.secp256k1;
   }
 
   // Generates a new secp256k1 key pair.
@@ -24,26 +30,44 @@ export default class PrivateKey {
 
   // create a random PrivateKey.
   static generate(): PrivateKey {
-    return new PrivateKey(secp.utils.randomPrivateKey());
+    return new PrivateKey({
+      secp256k1: {
+        bytes: secp.utils.randomPrivateKey()
+      }
+    });
   }
 
   // create PrivateKey from 32 bytes of D
   static fromBytes(bytes: Uint8Array): PrivateKey {
-    return new PrivateKey(bytes);
+    return new PrivateKey({
+      secp256k1: { bytes }
+    });
   }
 
   // sign provided digest
   async sign(digest: Uint8Array): Promise<Signature> {
-    const [signature, recovery] = await secp.sign(digest, this.bytes, {
-      recovered: true,
-      der: false
+    if (!this.secp256k1) {
+      throw new Error('invalid private key');
+    }
+    const [signature, recovery] = await secp.sign(
+      digest,
+      this.secp256k1.bytes,
+      {
+        recovered: true,
+        der: false
+      }
+    );
+    return new Signature({
+      ecdsaCompact: { bytes: signature, recovery }
     });
-    return new Signature(signature, recovery);
   }
 
   // sign provided public key
   async signKey(pub: PublicKey): Promise<PublicKey> {
-    const digest = await secp.utils.sha256(pub.bytes);
+    if (!pub.secp256k1Uncompressed) {
+      throw new Error('invalid public key');
+    }
+    const digest = await secp.utils.sha256(pub.secp256k1Uncompressed.bytes);
     pub.signature = await this.sign(digest);
     return pub;
   }
@@ -59,7 +83,17 @@ export default class PrivateKey {
   // derive shared secret from peer's PublicKey;
   // the peer can derive the same secret using their PrivateKey and our PublicKey
   sharedSecret(peer: PublicKey): Uint8Array {
-    return secp.getSharedSecret(this.bytes, peer.bytes, false);
+    if (!peer.secp256k1Uncompressed) {
+      throw new Error('invalid public key');
+    }
+    if (!this.secp256k1) {
+      throw new Error('invalid private key');
+    }
+    return secp.getSharedSecret(
+      this.secp256k1.bytes,
+      peer.secp256k1Uncompressed.bytes,
+      false
+    );
   }
 
   // encrypt plain bytes using a shared secret derived from peer's PublicKey;
@@ -92,16 +126,11 @@ export default class PrivateKey {
 
   toBeEncoded(): proto.PrivateKey {
     return {
-      secp256k1: {
-        bytes: this.bytes
-      }
+      secp256k1: this.secp256k1
     };
   }
 
   static fromDecoded(key: proto.PrivateKey): PrivateKey {
-    if (!key.secp256k1) {
-      throw new Error('unrecognized private key');
-    }
-    return new PrivateKey(key.secp256k1.bytes);
+    return new PrivateKey(key);
   }
 }

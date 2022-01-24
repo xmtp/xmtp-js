@@ -8,28 +8,47 @@ import * as ethers from 'ethers';
 
 // PublicKey respresents uncompressed secp256k1 public key,
 // that can optionally be signed with another trusted key pair.
-export default class PublicKey {
-  bytes: Uint8Array; // uncompressed point [ P || X || Y ], 65 bytes
-  signature?: Signature;
-  constructor(bytes: Uint8Array, signature?: Signature) {
-    if (bytes.length !== 65) {
-      throw new Error(`invalid public key length: ${bytes.length}`);
+export default class PublicKey implements proto.PublicKey {
+  secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompresed | undefined;
+  signature?: Signature | undefined;
+
+  constructor(obj: proto.PublicKey) {
+    if (!obj?.secp256k1Uncompressed?.bytes) {
+      throw new Error('invalid public key');
     }
-    if (bytes[0] !== 4) {
-      throw new Error(`unrecognized public key prefix: ${bytes[0]}`);
+    if (obj.secp256k1Uncompressed.bytes.length !== 65) {
+      throw new Error(
+        `invalid public key length: ${obj.secp256k1Uncompressed.bytes.length}`
+      );
     }
-    this.bytes = bytes;
-    this.signature = signature;
+    if (obj.secp256k1Uncompressed.bytes[0] !== 4) {
+      throw new Error(
+        `unrecognized public key prefix: ${obj.secp256k1Uncompressed.bytes[0]}`
+      );
+    }
+    this.secp256k1Uncompressed = obj.secp256k1Uncompressed;
+    if (obj.signature) {
+      this.signature = new Signature(obj.signature);
+    }
   }
 
   // create PublicKey that corresponds to the provided PublicKey
   static fromPrivateKey(pri: PrivateKey): PublicKey {
-    return new PublicKey(secp.getPublicKey(pri.bytes));
+    if (!pri.secp256k1) {
+      throw new Error('invalid private key');
+    }
+    return new PublicKey({
+      secp256k1Uncompressed: {
+        bytes: secp.getPublicKey(pri.secp256k1.bytes)
+      }
+    });
   }
 
   // create PublicKey from the raw uncompressed point bytes [ P || X || Y ], 65 bytes
   static fromBytes(bytes: Uint8Array): PublicKey {
-    return new PublicKey(bytes);
+    return new PublicKey({
+      secp256k1Uncompressed: { bytes }
+    });
   }
 
   // decode serialized PublicKey
@@ -42,9 +61,14 @@ export default class PublicKey {
     if (key.secp256k1Uncompressed) {
       if (key.signature) {
         const sig = Signature.fromDecoded(key.signature);
-        return new PublicKey(key.secp256k1Uncompressed.bytes, sig);
+        return new PublicKey({
+          secp256k1Uncompressed: key.secp256k1Uncompressed,
+          signature: sig
+        });
       } else {
-        return new PublicKey(key.secp256k1Uncompressed.bytes);
+        return new PublicKey({
+          secp256k1Uncompressed: key.secp256k1Uncompressed
+        });
       }
     }
     throw new Error('unrecognized signature');
@@ -52,7 +76,17 @@ export default class PublicKey {
 
   // verify that Signature was created from provided digest using the corresponding PrivateKey
   verify(signature: Signature, digest: Uint8Array): boolean {
-    return secp.verify(signature.bytes, digest, this.bytes);
+    if (!this.secp256k1Uncompressed) {
+      return false;
+    }
+    if (!signature.ecdsaCompact) {
+      return false;
+    }
+    return secp.verify(
+      signature.ecdsaCompact.bytes,
+      digest,
+      this.secp256k1Uncompressed.bytes
+    );
   }
 
   // verify that the provided PublicKey was signed by the corresponding PrivateKey
@@ -60,20 +94,33 @@ export default class PublicKey {
     if (typeof pub.signature === undefined) {
       return false;
     }
-    const digest = await secp.utils.sha256(pub.bytes);
+    if (!pub.secp256k1Uncompressed) {
+      return false;
+    }
+    const digest = await secp.utils.sha256(pub.secp256k1Uncompressed.bytes);
     return pub.signature ? this.verify(pub.signature, digest) : false;
   }
 
   // sign the key using a wallet
   async signWithWallet(wallet: ethers.Signer) {
-    const sigString = await wallet.signMessage(this.bytes);
+    if (!this.secp256k1Uncompressed) {
+      throw new Error('missing public key');
+    }
+    const sigString = await wallet.signMessage(
+      this.secp256k1Uncompressed.bytes
+    );
     const eSig = ethers.utils.splitSignature(sigString);
     const r = hexToBytes(eSig.r);
     const s = hexToBytes(eSig.s);
     const sigBytes = new Uint8Array(64);
     sigBytes.set(r);
     sigBytes.set(s, r.length);
-    this.signature = new Signature(sigBytes, eSig.recoveryParam);
+    this.signature = new Signature({
+      ecdsaCompact: {
+        bytes: sigBytes,
+        recovery: eSig.recoveryParam
+      }
+    });
   }
 
   // if the key was signed by a wallet, and the signature is valid,
@@ -82,18 +129,29 @@ export default class PublicKey {
     if (!this.signature) {
       throw new Error('key is not signed');
     }
-    const digest = hexToBytes(ethers.utils.hashMessage(this.bytes));
+    if (!this.secp256k1Uncompressed) {
+      throw new Error('missing public key');
+    }
+    const digest = hexToBytes(
+      ethers.utils.hashMessage(this.secp256k1Uncompressed.bytes)
+    );
     const pk = this.signature.getPublicKey(digest);
     if (!pk) {
       throw new Error('key was not signed by a wallet');
     }
-    return ethers.utils.computeAddress(pk.bytes);
+    if (!pk.secp256k1Uncompressed) {
+      throw new Error('missing public key');
+    }
+    return ethers.utils.computeAddress(pk.secp256k1Uncompressed.bytes);
   }
 
   // derive Ethereum address from this PublicKey
   getEthereumAddress(): string {
+    if (!this.secp256k1Uncompressed) {
+      throw new Error('missing public key');
+    }
     // drop the uncompressed format prefix byte
-    const key = this.bytes.slice(1);
+    const key = this.secp256k1Uncompressed.bytes.slice(1);
     const bytes = keccak256(key).subarray(-20);
     return '0x' + secp.utils.bytesToHex(bytes);
   }
@@ -105,8 +163,13 @@ export default class PublicKey {
 
   // build proto.PublicKey from this PublicKey
   toBeEncoded(): proto.PublicKey {
+    if (!this.secp256k1Uncompressed) {
+      throw new Error('missing public key');
+    }
     const key: proto.PublicKey = {
-      secp256k1Uncompressed: { bytes: this.bytes }
+      secp256k1Uncompressed: {
+        bytes: this?.secp256k1Uncompressed?.bytes || new Uint8Array()
+      }
     };
     if (this.signature) {
       key.signature = this.signature.toBeEncoded();
@@ -116,8 +179,14 @@ export default class PublicKey {
 
   // is other the same/equivalent PublicKey?
   equals(other: PublicKey): boolean {
-    for (let i = 0; i < this.bytes.length; i++) {
-      if (this.bytes[i] !== other.bytes[i]) {
+    if (!this.secp256k1Uncompressed || !other.secp256k1Uncompressed) {
+      return !this.secp256k1Uncompressed && !other.secp256k1Uncompressed;
+    }
+    for (let i = 0; i < this.secp256k1Uncompressed.bytes.length; i++) {
+      if (
+        this.secp256k1Uncompressed.bytes[i] !==
+        other.secp256k1Uncompressed.bytes[i]
+      ) {
         return false;
       }
     }

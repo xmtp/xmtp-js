@@ -59,14 +59,21 @@ describe('Crypto', function () {
     const sig = await pri.sign(digest);
     const pub2 = sig.getPublicKey(digest);
     assert.ok(pub2);
-    assert.equal(utils.bytesToHex(pub2.bytes), utils.bytesToHex(pub.bytes));
+    assert.ok(pub2.secp256k1Uncompressed);
+    assert.ok(pub.secp256k1Uncompressed);
+    assert.equal(
+      utils.bytesToHex(pub2.secp256k1Uncompressed.bytes),
+      utils.bytesToHex(pub.secp256k1Uncompressed.bytes)
+    );
   });
   it('derives address from public key', function () {
     // using the sample from https://kobl.one/blog/create-full-ethereum-keypair-and-address/
     const bytes = utils.hexToBytes(
       '04836b35a026743e823a90a0ee3b91bf615c6a757e2b60b9e1dc1826fd0dd16106f7bc1e8179f665015f43c6c81f39062fc2086ed849625c06e04697698b21855e'
     );
-    const pub = new PublicKey(bytes);
+    const pub = new PublicKey({
+      secp256k1Uncompressed: { bytes }
+    });
     const address = pub.getEthereumAddress();
     assert.equal(address, '0x0bed7abd61247635c1973eb38474a2516ed1d884');
   });
@@ -89,6 +96,8 @@ describe('Crypto', function () {
     const bytes = pub.encode();
     assert.ok(bytes.length >= 213);
     const pub2 = KeyBundle.decode(bytes);
+    assert.ok(pub2.identityKey);
+    assert.ok(pub2.preKey);
     assert.ok(pub2.identityKey.verifyKey(pub2.preKey));
   });
   it('fully encodes/decodes messages', async function () {
@@ -98,15 +107,14 @@ describe('Crypto', function () {
     const [bPri, bPub] = await PrivateKeyBundle.generateBundles();
     const msg1 = 'Yo!';
     const bytes = await aPri.encodeMessage(bPub, msg1);
-    // assert.equal(bytes.length, 508);
-    assert.ok(bytes.length >= 506);
     const msg2 = await bPri.decodeMessage(bytes);
     assert.equal(msg1, msg2);
   });
   it('signs keys using a wallet', async function () {
     // create a wallet using a generated key
     const [wPri, wPub] = PrivateKey.generateKeys();
-    const wallet = new ethers.Wallet(wPri.bytes);
+    assert.ok(wPri.secp256k1);
+    const wallet = new ethers.Wallet(wPri.secp256k1.bytes);
     // sanity check that we agree with the wallet about the address
     assert.ok(wallet.address, wPub.getEthereumAddress());
     // sign the public key using the wallet
@@ -118,14 +126,28 @@ describe('Crypto', function () {
   it('encrypts private key bundle for storage using a wallet', async function () {
     // create a wallet using a generated key
     const [wPri] = PrivateKey.generateKeys();
-    const wallet = new ethers.Wallet(wPri.bytes);
+    assert.ok(wPri.secp256k1);
+    const wallet = new ethers.Wallet(wPri.secp256k1.bytes);
     // generate key bundle
     const [pri] = await PrivateKeyBundle.generateBundles();
     // encrypt and serialize the bundle for storage
     const bytes = await pri.encode(wallet);
     // decrypt and decode the bundle from storage
     const pri2 = await PrivateKeyBundle.decode(wallet, bytes);
-    assert.ok(utils.equalBytes(pri.identityKey.bytes, pri2.identityKey.bytes));
-    assert.ok(utils.equalBytes(pri.preKey.bytes, pri2.preKey.bytes));
+    assert.ok(pri.identityKey);
+    assert.ok(pri2.identityKey);
+    assert.ok(pri.identityKey.secp256k1);
+    assert.ok(pri2.identityKey.secp256k1);
+    assert.ok(
+      utils.equalBytes(
+        pri.identityKey.secp256k1.bytes,
+        pri2.identityKey.secp256k1.bytes
+      )
+    );
+    assert.ok(pri.preKey.secp256k1);
+    assert.ok(pri2.preKey.secp256k1);
+    assert.ok(
+      utils.equalBytes(pri.preKey.secp256k1.bytes, pri2.preKey.secp256k1.bytes)
+    );
   });
 });
