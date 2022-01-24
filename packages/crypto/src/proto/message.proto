@@ -29,26 +29,39 @@ message PrivateKey {
     }
 }
 
-message Message {
-    message Participant {
-        PublicKey identityKey = 1;
-        PublicKey preKey = 2;
-    }
+message Payload {
     message AES256GCM_HKDFSHA256 {
         bytes hkdfSalt = 1;
         bytes gcmNonce = 2;
         bytes payload = 3;
     }
+    oneof union {
+        AES256GCM_HKDFSHA256 aes256GcmHkdfSha256 = 1;
+    }
+}
+
+message Message {
+    message Participant {
+        PublicKey identityKey = 1;
+        PublicKey preKey = 2;
+    }
     message Header {
         Participant sender = 1;
         Participant recipient = 2;
     }
-    message Payload {
-        oneof union {
-            AES256GCM_HKDFSHA256 aes256GcmHkdfSha256 = 2;
-        }
-    }
 
     Header header = 1;
+    Payload payload = 2;
+}
+
+// Private Key Storage
+
+message PrivateKeyBundle {
+    PrivateKey identityKey = 1;
+    repeated PrivateKey preKeys = 2;
+}
+
+message EncryptedPrivateKeyBundle {
+    bytes walletPreKey = 1;
     Payload payload = 2;
 }
