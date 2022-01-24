@@ -1,6 +1,6 @@
 import * as secp from '@noble/secp256k1';
 import { keccak_256 as keccak256 } from '@noble/hashes/sha3';
-import * as proto from '../../crypto/src/proto/message';
+import * as proto from '../proto/message';
 import { TextEncoder, TextDecoder } from 'util';
 import * as ethers from 'ethers';
 
