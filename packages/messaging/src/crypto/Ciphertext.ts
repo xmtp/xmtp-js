@@ -8,10 +8,10 @@ export const AESGCMTagLength = 16; // property tagLength
 
 // Ciphertext packages the encrypted payload with the salt and nonce used to produce it.
 // salt and nonce are not secret, and should be transmitted/stored along with the encrypted payload.
-export default class Ciphertext implements proto.Payload {
-  aes256GcmHkdfSha256: proto.Payload_Aes256gcmHkdfsha256 | undefined;
+export default class Ciphertext implements proto.Ciphertext {
+  aes256GcmHkdfSha256: proto.Ciphertext_Aes256gcmHkdfsha256 | undefined;
 
-  constructor(obj: proto.Payload) {
+  constructor(obj: proto.Ciphertext) {
     if (!obj.aes256GcmHkdfSha256) {
       throw new Error('invalid payload');
     }
@@ -34,10 +34,10 @@ export default class Ciphertext implements proto.Payload {
   }
 
   toBytes(): Uint8Array {
-    return proto.Payload.encode(this).finish();
+    return proto.Ciphertext.encode(this).finish();
   }
 
   static fromBytes(bytes: Uint8Array): Ciphertext {
-    return new Ciphertext(proto.Payload.decode(bytes));
+    return new Ciphertext(proto.Ciphertext.decode(bytes));
   }
 }
