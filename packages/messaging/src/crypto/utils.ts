@@ -1,9 +1,5 @@
 import * as secp from '@noble/secp256k1';
-import KeyBundle from './KeyBundle';
-import PrivateKeyBundle from './PrivateKeyBundle';
 import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext';
-import PrivateKey from './PrivateKey';
-import PublicKey from './PublicKey';
 
 // crypto should provide access to standard Web Crypto API
 // in both the browser environment and node.
@@ -12,25 +8,6 @@ const crypto: Crypto =
     ? window.crypto
     : // eslint-disable-next-line @typescript-eslint/no-var-requires
       (require('crypto').webcrypto as unknown as Crypto);
-
-// Generate a new key bundle pair with the preKey signed byt the identityKey.
-export async function generateBundles(): Promise<
-  [PrivateKeyBundle, KeyBundle]
-> {
-  const [priIdentityKey, pubIdentityKey] = generateKeys();
-  const [priPreKey, pubPreKey] = generateKeys();
-  await priIdentityKey.signKey(pubPreKey);
-  return [
-    new PrivateKeyBundle(priIdentityKey, priPreKey),
-    new KeyBundle(pubIdentityKey, pubPreKey)
-  ];
-}
-
-// Generates a new secp256k1 key pair.
-export function generateKeys(): [PrivateKey, PublicKey] {
-  const pri = PrivateKey.generate();
-  return [pri, pri.getPublicKey()];
-}
 
 export async function encrypt(
   plain: Uint8Array,

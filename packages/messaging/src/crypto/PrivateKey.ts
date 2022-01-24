@@ -16,6 +16,12 @@ export default class PrivateKey {
     this.bytes = bytes;
   }
 
+  // Generates a new secp256k1 key pair.
+  static generateKeys(): [PrivateKey, PublicKey] {
+    const pri = PrivateKey.generate();
+    return [pri, pri.getPublicKey()];
+  }
+
   // create a random PrivateKey.
   static generate(): PrivateKey {
     return new PrivateKey(secp.utils.randomPrivateKey());

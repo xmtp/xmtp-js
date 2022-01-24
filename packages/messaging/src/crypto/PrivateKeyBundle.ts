@@ -17,6 +17,17 @@ export default class PrivateKeyBundle {
     this.preKey = preKey;
   }
 
+  // Generate a new key bundle pair with the preKey signed byt the identityKey.
+  static async generateBundles(): Promise<[PrivateKeyBundle, KeyBundle]> {
+    const [priIdentityKey, pubIdentityKey] = PrivateKey.generateKeys();
+    const [priPreKey, pubPreKey] = PrivateKey.generateKeys();
+    await priIdentityKey.signKey(pubPreKey);
+    return [
+      new PrivateKeyBundle(priIdentityKey, priPreKey),
+      new KeyBundle(pubIdentityKey, pubPreKey)
+    ];
+  }
+
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
   // where the sender's ephemeral key pair is replaced by the sender's prekey.
   // @recipient indicates whether this is the sending (encrypting) or receiving (decrypting) side.

@@ -3,6 +3,7 @@ import { TextEncoder, TextDecoder } from 'util';
 import {
   KeyBundle,
   PrivateKeyBundle,
+  PrivateKey,
   PublicKey,
   utils
 } from '../../src/crypto';
@@ -11,17 +12,17 @@ import * as ethers from 'ethers';
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
     // Identity Key
-    const [iPri, iPub] = utils.generateKeys();
+    const [iPri, iPub] = PrivateKey.generateKeys();
     // Pre-Key
-    const [, pPub] = utils.generateKeys();
+    const [, pPub] = PrivateKey.generateKeys();
     await iPri.signKey(pPub);
     assert.ok(await iPub.verifyKey(pPub));
   });
   it('encrypts and decrypts messages', async function () {
     // Alice
-    const [aPri, aPub] = utils.generateKeys();
+    const [aPri, aPub] = PrivateKey.generateKeys();
     // Bob
-    const [bPri, bPub] = utils.generateKeys();
+    const [bPri, bPub] = PrivateKey.generateKeys();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
@@ -33,9 +34,9 @@ describe('Crypto', function () {
   });
   it('detects tampering with encrypted message', async function () {
     // Alice
-    const [aPri, aPub] = utils.generateKeys();
+    const [aPri, aPub] = PrivateKey.generateKeys();
     // Bob
-    const [bPri, bPub] = utils.generateKeys();
+    const [bPri, bPub] = PrivateKey.generateKeys();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
@@ -53,7 +54,7 @@ describe('Crypto', function () {
     }
   });
   it('derives public key from signature', async function () {
-    const [pri, pub] = utils.generateKeys();
+    const [pri, pub] = PrivateKey.generateKeys();
     const digest = utils.getRandomValues(new Uint8Array(16));
     const sig = await pri.sign(digest);
     const pub2 = sig.getPublicKey(digest);
@@ -71,9 +72,9 @@ describe('Crypto', function () {
   });
   it('encrypts and decrypts messages with key bundles', async function () {
     // Alice
-    const [aPri, aPub] = await utils.generateBundles();
+    const [aPri, aPub] = await PrivateKeyBundle.generateBundles();
     // Bob
-    const [bPri, bPub] = await utils.generateBundles();
+    const [bPri, bPub] = await PrivateKeyBundle.generateBundles();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
@@ -84,7 +85,7 @@ describe('Crypto', function () {
     assert.equal(msg2, msg1);
   });
   it('serializes and desirializes keys and signatures', async function () {
-    const [, pub] = await utils.generateBundles();
+    const [, pub] = await PrivateKeyBundle.generateBundles();
     const bytes = pub.encode();
     assert.ok(bytes.length >= 213);
     const pub2 = KeyBundle.decode(bytes);
@@ -92,9 +93,9 @@ describe('Crypto', function () {
   });
   it('fully encodes/decodes messages', async function () {
     // Alice
-    const [aPri] = await utils.generateBundles();
+    const [aPri] = await PrivateKeyBundle.generateBundles();
     // Bob
-    const [bPri, bPub] = await utils.generateBundles();
+    const [bPri, bPub] = await PrivateKeyBundle.generateBundles();
     const msg1 = 'Yo!';
     const bytes = await aPri.encodeMessage(bPub, msg1);
     // assert.equal(bytes.length, 508);
@@ -104,7 +105,7 @@ describe('Crypto', function () {
   });
   it('signs keys using a wallet', async function () {
     // create a wallet using a generated key
-    const [wPri, wPub] = utils.generateKeys();
+    const [wPri, wPub] = PrivateKey.generateKeys();
     const wallet = new ethers.Wallet(wPri.bytes);
     // sanity check that we agree with the wallet about the address
     assert.ok(wallet.address, wPub.getEthereumAddress());
@@ -116,10 +117,10 @@ describe('Crypto', function () {
   });
   it('encrypts private key bundle for storage using a wallet', async function () {
     // create a wallet using a generated key
-    const [wPri] = utils.generateKeys();
+    const [wPri] = PrivateKey.generateKeys();
     const wallet = new ethers.Wallet(wPri.bytes);
     // generate key bundle
-    const [pri] = await utils.generateBundles();
+    const [pri] = await PrivateKeyBundle.generateBundles();
     // encrypt and serialize the bundle for storage
     const bytes = await pri.encode(wallet);
     // decrypt and decode the bundle from storage
