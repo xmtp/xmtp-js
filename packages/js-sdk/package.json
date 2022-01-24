@@ -4,6 +4,7 @@
   "description": "The XMTP JavaScript SDK package bundles the core code libraries required for building client experiences on top of the XMTP protocol and network.",
   "main": "dist/xmtp-js-sdk.js",
   "module": "dist/xmtp-js-sdk.esm.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "clean": "rimraf dist",
     "type-check": "tsc --noEmit",
