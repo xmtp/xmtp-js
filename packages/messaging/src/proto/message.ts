@@ -49,14 +49,14 @@ export interface Message {
   payload: Payload | undefined;
 }
 
-export interface Message_Participant {
+export interface Message_KeyBundle {
   identityKey: PublicKey | undefined;
   preKey: PublicKey | undefined;
 }
 
 export interface Message_Header {
-  sender: Message_Participant | undefined;
-  recipient: Message_Participant | undefined;
+  sender: Message_KeyBundle | undefined;
+  recipient: Message_KeyBundle | undefined;
 }
 
 export interface PrivateKeyBundle {
@@ -727,13 +727,13 @@ export const Message = {
   }
 };
 
-function createBaseMessage_Participant(): Message_Participant {
+function createBaseMessage_KeyBundle(): Message_KeyBundle {
   return { identityKey: undefined, preKey: undefined };
 }
 
-export const Message_Participant = {
+export const Message_KeyBundle = {
   encode(
-    message: Message_Participant,
+    message: Message_KeyBundle,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.identityKey !== undefined) {
@@ -745,10 +745,10 @@ export const Message_Participant = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Message_Participant {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Message_KeyBundle {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMessage_Participant();
+    const message = createBaseMessage_KeyBundle();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -766,7 +766,7 @@ export const Message_Participant = {
     return message;
   },
 
-  fromJSON(object: any): Message_Participant {
+  fromJSON(object: any): Message_KeyBundle {
     return {
       identityKey: isSet(object.identityKey)
         ? PublicKey.fromJSON(object.identityKey)
@@ -777,7 +777,7 @@ export const Message_Participant = {
     };
   },
 
-  toJSON(message: Message_Participant): unknown {
+  toJSON(message: Message_KeyBundle): unknown {
     const obj: any = {};
     message.identityKey !== undefined &&
       (obj.identityKey = message.identityKey
@@ -790,10 +790,10 @@ export const Message_Participant = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Message_Participant>, I>>(
+  fromPartial<I extends Exact<DeepPartial<Message_KeyBundle>, I>>(
     object: I
-  ): Message_Participant {
-    const message = createBaseMessage_Participant();
+  ): Message_KeyBundle {
+    const message = createBaseMessage_KeyBundle();
     message.identityKey =
       object.identityKey !== undefined && object.identityKey !== null
         ? PublicKey.fromPartial(object.identityKey)
@@ -816,13 +816,13 @@ export const Message_Header = {
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.sender !== undefined) {
-      Message_Participant.encode(
+      Message_KeyBundle.encode(
         message.sender,
         writer.uint32(10).fork()
       ).ldelim();
     }
     if (message.recipient !== undefined) {
-      Message_Participant.encode(
+      Message_KeyBundle.encode(
         message.recipient,
         writer.uint32(18).fork()
       ).ldelim();
@@ -838,13 +838,10 @@ export const Message_Header = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.sender = Message_Participant.decode(reader, reader.uint32());
+          message.sender = Message_KeyBundle.decode(reader, reader.uint32());
           break;
         case 2:
-          message.recipient = Message_Participant.decode(
-            reader,
-            reader.uint32()
-          );
+          message.recipient = Message_KeyBundle.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -857,10 +854,10 @@ export const Message_Header = {
   fromJSON(object: any): Message_Header {
     return {
       sender: isSet(object.sender)
-        ? Message_Participant.fromJSON(object.sender)
+        ? Message_KeyBundle.fromJSON(object.sender)
         : undefined,
       recipient: isSet(object.recipient)
-        ? Message_Participant.fromJSON(object.recipient)
+        ? Message_KeyBundle.fromJSON(object.recipient)
         : undefined
     };
   },
@@ -869,11 +866,11 @@ export const Message_Header = {
     const obj: any = {};
     message.sender !== undefined &&
       (obj.sender = message.sender
-        ? Message_Participant.toJSON(message.sender)
+        ? Message_KeyBundle.toJSON(message.sender)
         : undefined);
     message.recipient !== undefined &&
       (obj.recipient = message.recipient
-        ? Message_Participant.toJSON(message.recipient)
+        ? Message_KeyBundle.toJSON(message.recipient)
         : undefined);
     return obj;
   },
@@ -884,11 +881,11 @@ export const Message_Header = {
     const message = createBaseMessage_Header();
     message.sender =
       object.sender !== undefined && object.sender !== null
-        ? Message_Participant.fromPartial(object.sender)
+        ? Message_KeyBundle.fromPartial(object.sender)
         : undefined;
     message.recipient =
       object.recipient !== undefined && object.recipient !== null
-        ? Message_Participant.fromPartial(object.recipient)
+        ? Message_KeyBundle.fromPartial(object.recipient)
         : undefined;
     return message;
   }

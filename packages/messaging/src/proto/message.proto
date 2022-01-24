@@ -41,13 +41,13 @@ message Payload {
 }
 
 message Message {
-    message Participant {
+    message KeyBundle {
         PublicKey identityKey = 1;
         PublicKey preKey = 2;
     }
     message Header {
-        Participant sender = 1;
-        Participant recipient = 2;
+        KeyBundle sender = 1;
+        KeyBundle recipient = 2;
     }
 
     Header header = 1;
