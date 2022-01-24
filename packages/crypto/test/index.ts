@@ -109,4 +109,17 @@ describe('Crypto', function () {
     const address = wPub.walletSignatureAddress();
     assert.equal(address, wallet.address);
   });
+  it('encrypts private key bundle for storage using a wallet', async function () {
+    // create a wallet using a generated key
+    const [wPri] = crypto.generateKeys();
+    const wallet = new ethers.Wallet(wPri.bytes);
+    // generate key bundle
+    const [pri] = await crypto.generateBundles();
+    // encrypt and serialize the bundle for storage
+    const bytes = await pri.encode(wallet);
+    // decrypt and decode the bundle from storage
+    const pri2 = await crypto.PrivateKeyBundle.decode(wallet, bytes);
+    assert.ok(crypto.equalBytes(pri.identityKey.bytes, pri2.identityKey.bytes));
+    assert.ok(crypto.equalBytes(pri.preKey.bytes, pri2.preKey.bytes));
+  });
 });
