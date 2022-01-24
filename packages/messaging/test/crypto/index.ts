@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { TextEncoder, TextDecoder } from 'util';
-import * as crypto from '../src';
+import * as crypto from '../../src/crypto';
 import * as ethers from 'ethers';
 
 describe('Crypto', function () {
