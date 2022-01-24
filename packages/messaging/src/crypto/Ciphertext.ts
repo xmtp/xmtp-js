@@ -6,9 +6,9 @@ export const KDFSaltSize = 32; // bytes
 export const AESGCMNonceSize = 12; // property iv
 export const AESGCMTagLength = 16; // property tagLength
 
-// Payload packages the encrypted ciphertext with the salt and nonce used to produce it.
+// Ciphertext packages the encrypted payload with the salt and nonce used to produce it.
 // salt and nonce are not secret, and should be transmitted/stored along with the encrypted payload.
-export default class Payload implements proto.Payload {
+export default class Ciphertext implements proto.Payload {
   aes256GcmHkdfSha256: proto.Payload_Aes256gcmHkdfsha256 | undefined;
 
   constructor(obj: proto.Payload) {
@@ -37,7 +37,7 @@ export default class Payload implements proto.Payload {
     return proto.Payload.encode(this).finish();
   }
 
-  static fromBytes(bytes: Uint8Array): Payload {
-    return new Payload(proto.Payload.decode(bytes));
+  static fromBytes(bytes: Uint8Array): Ciphertext {
+    return new Ciphertext(proto.Payload.decode(bytes));
   }
 }

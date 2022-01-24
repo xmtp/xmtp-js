@@ -1,4 +1,4 @@
-import Payload, { AESGCMNonceSize, KDFSaltSize } from './Payload';
+import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext';
 import { crypto } from './utils';
 
 const hkdfNoInfo = new ArrayBuffer(0);
@@ -7,7 +7,7 @@ export async function encrypt(
   plain: Uint8Array,
   secret: Uint8Array,
   additionalData?: Uint8Array
-): Promise<Payload> {
+): Promise<Ciphertext> {
   const salt = crypto.getRandomValues(new Uint8Array(KDFSaltSize));
   const nonce = crypto.getRandomValues(new Uint8Array(AESGCMNonceSize));
   const key = await hkdf(secret, salt);
@@ -16,7 +16,7 @@ export async function encrypt(
     key,
     plain
   );
-  return new Payload({
+  return new Ciphertext({
     aes256GcmHkdfSha256: {
       payload: new Uint8Array(encrypted),
       hkdfSalt: salt,
@@ -26,7 +26,7 @@ export async function encrypt(
 }
 
 export async function decrypt(
-  encrypted: Payload,
+  encrypted: Ciphertext,
   secret: Uint8Array,
   additionalData?: Uint8Array
 ): Promise<Uint8Array> {

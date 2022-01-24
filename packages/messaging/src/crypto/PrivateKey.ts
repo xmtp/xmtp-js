@@ -2,7 +2,7 @@ import * as proto from '../../src/proto/message';
 import * as secp from '@noble/secp256k1';
 import Signature from './Signature';
 import PublicKey from './PublicKey';
-import Payload from './Payload';
+import Ciphertext from './Ciphertext';
 import { decrypt, encrypt } from './encryption';
 
 // PrivateKey represents a secp256k1 private key.
@@ -96,15 +96,15 @@ export default class PrivateKey implements proto.PrivateKey {
     plain: Uint8Array,
     peer: PublicKey,
     additionalData?: Uint8Array
-  ): Promise<Payload> {
+  ): Promise<Ciphertext> {
     const secret = this.sharedSecret(peer);
     return encrypt(plain, secret, additionalData);
   }
 
-  // decrypt Payload using a shared secret derived from peer's PublicKey;
-  // throws if any part of Payload or additionalData was tampered with
+  // decrypt Ciphertext using a shared secret derived from peer's PublicKey;
+  // throws if any part of Ciphertext or additionalData was tampered with
   decrypt(
-    encrypted: Payload,
+    encrypted: Ciphertext,
     peer: PublicKey,
     additionalData?: Uint8Array
   ): Promise<Uint8Array> {
