@@ -1,4 +1,4 @@
-import * as proto from './proto/message';
+import * as proto from './proto/messaging';
 import Ciphertext from './crypto/Ciphertext';
 import {
   PublicKeyBundle,

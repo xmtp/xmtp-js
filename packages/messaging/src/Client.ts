@@ -5,7 +5,7 @@ import {
   WakuMessage,
   PageDirection
 } from 'js-waku';
-import Message from './message/Message';
+import Message from './Message';
 import { buildContentTopic, promiseWithTimeout } from './utils';
 import { sleep } from '../test/helpers';
 import Stream from './Stream';
