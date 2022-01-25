@@ -1,3 +1,5 @@
+export const buildContentTopic = (name: string) => `/xmtp/0/${name}/proto`;
+
 export const sleep = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms));
 

@@ -3,6 +3,7 @@ import { Client } from '../src';
 import assert from 'assert';
 import { waitFor } from './helpers';
 import { localDockerWakuNodeBootstrapAddr } from './config';
+import { promiseWithTimeout } from '../src/utils';
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create({
@@ -45,18 +46,32 @@ describe('Client', () => {
 
       it('streamMessages', async () => {
         const [recipient] = await PrivateKeyBundle.generateBundles();
-        const [stream, closeStream] = client.streamMessages(recipient);
+        const stream = client.streamMessages(recipient);
 
+        const [sender] = await PrivateKeyBundle.generateBundles();
+        await client.sendMessage(sender, recipient.getKeyBundle(), 'hi');
+        await client.sendMessage(sender, recipient.getKeyBundle(), 'hello');
+
+        let msg = await stream.next();
+        assert.equal(msg.decrypted, 'hi');
+
+        msg = await stream.next();
+        assert.equal(msg.decrypted, 'hello');
+
+        let timeout = false;
         try {
-          const [sender] = await PrivateKeyBundle.generateBundles();
-          await client.sendMessage(sender, recipient.getKeyBundle(), 'hi');
-
-          const messages = Array.from(await stream);
-          assert.ok(messages.length === 1);
-          assert.equal(messages[0].decrypted, 'hi');
-        } finally {
-          closeStream();
+          await promiseWithTimeout<void>(
+            5,
+            async () => {
+              await stream.next();
+            },
+            'timeout'
+          );
+        } catch (err) {
+          timeout =
+            err instanceof Error && (err as Error).message === 'timeout';
         }
+        assert.ok(timeout);
       });
 
       (testCase.name === 'status network' ? it.skip : it)(

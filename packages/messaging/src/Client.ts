@@ -6,8 +6,9 @@ import {
   PageDirection
 } from 'js-waku';
 import Message from './message/Message';
-import { promiseWithTimeout } from './utils';
+import { buildContentTopic, promiseWithTimeout } from './utils';
 import { sleep } from '../test/helpers';
+import Stream from './Stream';
 
 type ListMessagesOptions = {
   pageSize?: number;
@@ -19,8 +20,6 @@ type CreateOptions = {
   bootstrapAddrs?: string[];
   waitForPeersTimeoutMs?: number;
 };
-
-const buildContentTopic = (name: string) => `/xmtp/0/${name}/proto`;
 
 export class Client {
   waku: Waku;
@@ -112,44 +111,8 @@ export class Client {
     return this.waku.relay.send(wakuMsg);
   }
 
-  streamMessages(
-    recipient: PrivateKeyBundle
-  ): [Promise<Message[]>, () => void] {
-    if (!recipient.identityKey) {
-      throw new Error('missing recipient');
-    }
-
-    // TODO(snormore): The identity key Ethereum address is not the right
-    // topic. It needs to be deterministic from the recipients actual
-    // address.
-    // TODO:(snormore): The user can stream their requests/introduction topic,
-    // or a conversation topic, so that needs to be supported here.
-    const contentTopic = buildContentTopic(
-      recipient.identityKey.getPublicKey().getEthereumAddress()
-    );
-
-    const waku = this.waku;
-    const stream = new Promise<Message[]>(function (resolve) {
-      waku.relay.addObserver(
-        async (wakuMsg: WakuMessage) => {
-          if (wakuMsg.payload) {
-            const msg = Message.fromBytes(wakuMsg.payload);
-            if (msg.ciphertext && msg.header?.sender) {
-              const bytes = await recipient.decrypt(
-                msg.ciphertext,
-                msg.header.sender
-              );
-              msg.decrypted = new TextDecoder().decode(bytes);
-            }
-            resolve([msg]);
-          }
-        },
-        [contentTopic]
-      );
-    });
-    const close = () =>
-      this.waku.relay.deleteObserver(() => ({}), [contentTopic]);
-    return [stream, close];
+  streamMessages(recipient: PrivateKeyBundle): Stream {
+    return new Stream(this.waku, recipient);
   }
 
   async listMessages(
