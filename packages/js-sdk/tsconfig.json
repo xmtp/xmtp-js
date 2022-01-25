@@ -2,7 +2,7 @@
   "extends": "../../tsconfig",
   "compilerOptions": {
     "module": "esnext",
-    "declarationDir": "./types",
+    "declarationDir": "./dist/types",
     "declarationMap": true
   }
 }

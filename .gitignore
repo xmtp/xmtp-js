@@ -3,10 +3,6 @@ node_modules
 **/node_modules
 dist
 **/dist/**
-lib
-**/lib/**
-types
-**/types/**
 .pnpm
 .cache
 
