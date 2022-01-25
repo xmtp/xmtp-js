@@ -1,4 +1,4 @@
-import * as proto from '../../src/proto/message';
+import * as proto from '../proto/message';
 
 export const AESKeySize = 32; // bytes
 export const KDFSaltSize = 32; // bytes
@@ -6,50 +6,38 @@ export const KDFSaltSize = 32; // bytes
 export const AESGCMNonceSize = 12; // property iv
 export const AESGCMTagLength = 16; // property tagLength
 
-// Ciphertext packages the encrypted payload with the salt and nonce used to produce it.
-// salt and nonce are not secret, and should be transmitted/stored along with the encrypted payload.
-export default class Ciphertext {
-  payload: Uint8Array; // at least AESGCMTagLength bytes
-  salt: Uint8Array; // hkdf salt
-  nonce: Uint8Array; // aes-256-gcm IV
-  constructor(payload: Uint8Array, salt: Uint8Array, nonce: Uint8Array) {
-    if (payload.length < AESGCMTagLength) {
-      throw new Error(`invalid ciphertext payload length: ${payload.length}`);
+// Ciphertext packages the encrypted ciphertext with the salt and nonce used to produce it.
+// salt and nonce are not secret, and should be transmitted/stored along with the encrypted ciphertext.
+export default class Ciphertext implements proto.Ciphertext {
+  aes256GcmHkdfSha256: proto.Ciphertext_Aes256gcmHkdfsha256 | undefined;
+
+  constructor(obj: proto.Ciphertext) {
+    if (!obj.aes256GcmHkdfSha256) {
+      throw new Error('invalid ciphertext');
     }
-    if (salt.length !== KDFSaltSize) {
-      throw new Error(`invalid ciphertext salt length: ${salt.length}`);
+    if (obj.aes256GcmHkdfSha256.payload.length < AESGCMTagLength) {
+      throw new Error(
+        `invalid ciphertext ciphertext length: ${obj.aes256GcmHkdfSha256.payload.length}`
+      );
     }
-    if (nonce.length !== AESGCMNonceSize) {
-      throw new Error(`invalid ciphertext nonce length: ${nonce.length}`);
+    if (obj.aes256GcmHkdfSha256.hkdfSalt.length !== KDFSaltSize) {
+      throw new Error(
+        `invalid ciphertext salt length: ${obj.aes256GcmHkdfSha256.hkdfSalt.length}`
+      );
     }
-    this.payload = payload;
-    this.salt = salt;
-    this.nonce = nonce;
+    if (obj.aes256GcmHkdfSha256.gcmNonce.length !== AESGCMNonceSize) {
+      throw new Error(
+        `invalid ciphertext nonce length: ${obj.aes256GcmHkdfSha256.gcmNonce.length}`
+      );
+    }
+    this.aes256GcmHkdfSha256 = obj.aes256GcmHkdfSha256;
   }
 
-  // build Ciphertext from proto.Message
-  static fromDecoded(payload: proto.Payload): Ciphertext {
-    if (!payload) {
-      throw new Error('missing message payload');
-    }
-    if (!payload.aes256GcmHkdfSha256) {
-      throw new Error('unrecognized message payload');
-    }
-    return new Ciphertext(
-      payload.aes256GcmHkdfSha256.payload,
-      payload.aes256GcmHkdfSha256.hkdfSalt,
-      payload.aes256GcmHkdfSha256.gcmNonce
-    );
+  toBytes(): Uint8Array {
+    return proto.Ciphertext.encode(this).finish();
   }
 
-  // build proto.Message from Ciphertext and the parties' KeyBundles.
-  toBeEncoded(): proto.Payload {
-    return {
-      aes256GcmHkdfSha256: {
-        payload: this.payload,
-        hkdfSalt: this.salt,
-        gcmNonce: this.nonce
-      }
-    };
+  static fromBytes(bytes: Uint8Array): Ciphertext {
+    return new Ciphertext(proto.Ciphertext.decode(bytes));
   }
 }

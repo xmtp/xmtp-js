@@ -4,39 +4,26 @@ import PublicKey from './PublicKey';
 // KeyBundle packages all the keys that a participant should advertise.
 // The PreKey must be signed by the IdentityKey.
 // The IdentityKey can be signed by the wallet to authenticate it.
-export default class KeyBundle {
-  identityKey: PublicKey;
-  preKey: PublicKey;
-  constructor(identityKey: PublicKey, preKey: PublicKey) {
-    this.identityKey = identityKey;
-    this.preKey = preKey;
-  }
+export default class KeyBundle implements proto.Message_KeyBundle {
+  identityKey: PublicKey | undefined;
+  preKey: PublicKey | undefined;
 
-  // protobuf serialization methods
-  static decode(bytes: Uint8Array): KeyBundle {
-    return KeyBundle.fromDecoded(proto.Message_Participant.decode(bytes));
-  }
-
-  static fromDecoded(mp: proto.Message_Participant): KeyBundle {
-    if (!mp.identityKey) {
-      throw new Error('missing identityKey');
+  constructor(obj: proto.Message_KeyBundle) {
+    if (!obj.identityKey) {
+      throw new Error('missing identity key');
     }
-    const identityKey = PublicKey.fromDecoded(mp.identityKey);
-    if (!mp.preKey) {
-      throw new Error('missing preKey');
+    if (!obj.preKey) {
+      throw new Error('missing pre key');
     }
-    const preKey = PublicKey.fromDecoded(mp.preKey);
-    return new KeyBundle(identityKey, preKey);
+    this.identityKey = new PublicKey(obj.identityKey);
+    this.preKey = new PublicKey(obj.preKey);
   }
 
-  encode(): Uint8Array {
-    return proto.Message_Participant.encode(this.toBeEncoded()).finish();
+  toBytes(): Uint8Array {
+    return proto.Message_KeyBundle.encode(this).finish();
   }
 
-  toBeEncoded(): proto.Message_Participant {
-    return {
-      identityKey: this.identityKey.toBeEncoded(),
-      preKey: this.preKey.toBeEncoded()
-    };
+  static fromBytes(bytes: Uint8Array): KeyBundle {
+    return new KeyBundle(proto.Message_KeyBundle.decode(bytes));
   }
 }

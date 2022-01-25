@@ -9,11 +9,12 @@
     "clean": "rimraf lib && rimraf types",
     "type-check": "tsc --noEmit",
     "type-check:watch": "pnpm type-check -- --watch",
-    "build": "pnpm clean && pnpm build:types && pnpm build:cjs && pnpm build:esm",
+    "build": "pnpm clean && pnpm build:proto && pnpm build:types && pnpm build:cjs && pnpm build:esm",
     "build:types": "tsc --emitDeclarationOnly",
     "build:cjs": "BABEL_ENV=cjs babel src --out-dir lib --out-file-extension .cjs.js --extensions \".ts,.js\" --source-maps inline",
     "build:esm": "BABEL_ENV=esm babel src --out-dir lib --out-file-extension .esm.js --extensions \".ts,.js\" --source-maps inline",
-    "test": "mocha -r ts-node/register test/*.ts",
+    "build:proto": "buf generate",
+    "test": "mocha -r ts-node/register test/*.ts test/**/*.ts",
     "coverage": "nyc npm run test"
   },
   "keywords": [

@@ -29,7 +29,7 @@ message PrivateKey {
     }
 }
 
-message Payload {
+message Ciphertext {
     message AES256GCM_HKDFSHA256 {
         bytes hkdfSalt = 1;
         bytes gcmNonce = 2;
@@ -41,17 +41,17 @@ message Payload {
 }
 
 message Message {
-    message Participant {
+    message KeyBundle {
         PublicKey identityKey = 1;
         PublicKey preKey = 2;
     }
     message Header {
-        Participant sender = 1;
-        Participant recipient = 2;
+        KeyBundle sender = 1;
+        KeyBundle recipient = 2;
     }
 
     Header header = 1;
-    Payload payload = 2;
+    Ciphertext ciphertext = 2;
 }
 
 // Private Key Storage
@@ -63,5 +63,5 @@ message PrivateKeyBundle {
 
 message EncryptedPrivateKeyBundle {
     bytes walletPreKey = 1;
-    Payload payload = 2;
+    Ciphertext ciphertext = 2;
 }

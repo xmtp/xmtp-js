@@ -9,12 +9,15 @@ import { decrypt, encrypt } from './encryption';
 // PrivateKeyBundle bundles the private keys corresponding to a KeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
 // somehow so that older messages can be decrypted again.
-export default class PrivateKeyBundle {
-  identityKey: PrivateKey;
+export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
+  identityKey: PrivateKey | undefined;
+  preKeys: PrivateKey[];
   preKey: PrivateKey;
+
   constructor(identityKey: PrivateKey, preKey: PrivateKey) {
-    this.identityKey = identityKey;
+    this.identityKey = new PrivateKey(identityKey);
     this.preKey = preKey;
+    this.preKeys = [preKey];
   }
 
   // Generate a new key bundle pair with the preKey signed byt the identityKey.
@@ -24,7 +27,10 @@ export default class PrivateKeyBundle {
     await priIdentityKey.signKey(pubPreKey);
     return [
       new PrivateKeyBundle(priIdentityKey, priPreKey),
-      new KeyBundle(pubIdentityKey, pubPreKey)
+      new KeyBundle({
+        identityKey: pubIdentityKey,
+        preKey: pubPreKey
+      })
     ];
   }
 
@@ -32,8 +38,14 @@ export default class PrivateKeyBundle {
   // where the sender's ephemeral key pair is replaced by the sender's prekey.
   // @recipient indicates whether this is the sending (encrypting) or receiving (decrypting) side.
   async sharedSecret(peer: KeyBundle, recipient: boolean): Promise<Uint8Array> {
+    if (!peer.identityKey || !peer.preKey) {
+      throw new Error('invalid peer key bundle');
+    }
     if (!(await peer.identityKey.verifyKey(peer.preKey))) {
       throw new Error('peer preKey signature invalid');
+    }
+    if (!this.identityKey) {
+      throw new Error('missing identity key');
     }
     let dh1: Uint8Array, dh2: Uint8Array;
     if (recipient) {
@@ -73,10 +85,13 @@ export default class PrivateKeyBundle {
 
   // return the corresponding public KeyBundle
   getKeyBundle(): KeyBundle {
-    return new KeyBundle(
-      this.identityKey.getPublicKey(),
-      this.preKey.getPublicKey()
-    );
+    if (!this.identityKey) {
+      throw new Error('missing identity key');
+    }
+    return new KeyBundle({
+      identityKey: this.identityKey.getPublicKey(),
+      preKey: this.preKey.getPublicKey()
+    });
   }
 
   // encrypt and serialize the message
@@ -88,10 +103,10 @@ export default class PrivateKeyBundle {
     const ciphertext = await this.encrypt(bytes, recipient);
     return proto.Message.encode({
       header: {
-        sender: this.getKeyBundle().toBeEncoded(),
-        recipient: recipient.toBeEncoded()
+        sender: this.getKeyBundle(),
+        recipient
       },
-      payload: ciphertext.toBeEncoded()
+      ciphertext
     }).finish();
   }
 
@@ -108,31 +123,46 @@ export default class PrivateKeyBundle {
     if (!message.header.recipient) {
       throw new Error('missing message recipient');
     }
-    const sender = KeyBundle.fromDecoded(message.header.sender);
-    const recipient = KeyBundle.fromDecoded(message.header.recipient);
+    if (!message.header.recipient?.preKey) {
+      throw new Error('missing message recipient pre key');
+    }
+    const sender = new KeyBundle(message.header.sender);
+    const recipient = new KeyBundle(message.header.recipient);
+    if (!recipient.preKey) {
+      throw new Error('missing message recipient pre key');
+    }
+    if (this.preKeys.length === 0) {
+      throw new Error('missing pre key');
+    }
     if (!this.preKey.matches(recipient.preKey)) {
       throw new Error('recipient pre-key mismatch');
     }
-    if (!message.payload) {
-      throw new Error('missing message payload');
+    if (!message.ciphertext?.aes256GcmHkdfSha256) {
+      throw new Error('missing message ciphertext');
     }
-    const ciphertext = Ciphertext.fromDecoded(message.payload);
+    const ciphertext = new Ciphertext(message.ciphertext);
     bytes = await this.decrypt(ciphertext, sender);
     return new TextDecoder().decode(bytes);
   }
 
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {
     // serialize the contents
+    if (this.preKeys.length === 0) {
+      throw new Error('missing pre key');
+    }
+    if (!this.identityKey) {
+      throw new Error('missing identity key');
+    }
     const bytes = proto.PrivateKeyBundle.encode({
-      identityKey: this.identityKey.toBeEncoded(),
-      preKeys: [this.preKey.toBeEncoded()]
+      identityKey: this.identityKey,
+      preKeys: [this.preKey]
     }).finish();
     const wPreKey = getRandomValues(new Uint8Array(32));
     const secret = hexToBytes(await wallet.signMessage(wPreKey));
-    const encrypted = await encrypt(bytes, secret);
+    const ciphertext = await encrypt(bytes, secret);
     return proto.EncryptedPrivateKeyBundle.encode({
       walletPreKey: wPreKey,
-      payload: encrypted.toBeEncoded()
+      ciphertext
     }).finish();
   }
 
@@ -145,10 +175,10 @@ export default class PrivateKeyBundle {
       throw new Error('missing wallet pre-key');
     }
     const secret = hexToBytes(await wallet.signMessage(encrypted.walletPreKey));
-    if (!encrypted.payload) {
-      throw new Error('missing bundle payload');
+    if (!encrypted.ciphertext?.aes256GcmHkdfSha256) {
+      throw new Error('missing bundle ciphertext');
     }
-    const ciphertext = Ciphertext.fromDecoded(encrypted.payload);
+    const ciphertext = new Ciphertext(encrypted.ciphertext);
     const decrypted = await decrypt(ciphertext, secret);
     const bundle = proto.PrivateKeyBundle.decode(decrypted);
     if (!bundle.identityKey) {
@@ -158,8 +188,8 @@ export default class PrivateKeyBundle {
       throw new Error('missing pre-keys');
     }
     return new PrivateKeyBundle(
-      PrivateKey.fromDecoded(bundle.identityKey),
-      PrivateKey.fromDecoded(bundle.preKeys[0])
+      new PrivateKey(bundle.identityKey),
+      new PrivateKey(bundle.preKeys[0])
     );
   }
 }
@@ -173,7 +203,7 @@ interface Header {
 // serializes message header into bytes so that it can be included for encryption as associated data
 function associatedData(header: Header): Uint8Array {
   return proto.Message_Header.encode({
-    sender: header.sender.toBeEncoded(),
-    recipient: header.recipient.toBeEncoded()
+    sender: header.sender,
+    recipient: header.recipient
   }).finish();
 }
