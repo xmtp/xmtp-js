@@ -27,6 +27,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
+  "typeRoots": [
+    "./node_modules/@types",
+    "./packages/messaging/node_modules/@types",
+    "./packages/messaging/src/types"
+  ],
   "exclude": [
     "node_modules",
     "**/node_modules/**",

@@ -1,0 +1,85 @@
+import { PrivateKeyBundle } from '../src/crypto';
+import { Client } from '../src';
+import assert from 'assert';
+import { waitFor } from './helpers';
+import { localDockerWakuNodeBootstrapAddr } from './config';
+
+const newLocalDockerClient = (): Promise<Client> =>
+  Client.create({
+    bootstrapAddrs: [localDockerWakuNodeBootstrapAddr]
+  });
+
+const newStatusClient = (): Promise<Client> => Client.create();
+
+describe('Client', () => {
+  const tests = [
+    {
+      name: 'status network',
+      newClient: newStatusClient
+    },
+    {
+      name: 'local docker node',
+      newClient: newLocalDockerClient
+    }
+  ];
+  tests.forEach(testCase => {
+    describe(testCase.name, () => {
+      let client: Client;
+      before(async () => {
+        client = await testCase.newClient();
+      });
+      after(async () => {
+        if (client) await client.close();
+      });
+
+      it('create', async () => {
+        assert.ok(client.waku);
+        assert(Array.from(client.waku.relay.getPeers()).length === 1);
+      });
+
+      it('sendMessage', async () => {
+        const [, recipient] = await PrivateKeyBundle.generateBundles();
+        const [sender] = await PrivateKeyBundle.generateBundles();
+        await client.sendMessage(sender, recipient, 'hi');
+      });
+
+      it('streamMessages', async () => {
+        const [recipient] = await PrivateKeyBundle.generateBundles();
+        const [stream, closeStream] = client.streamMessages(recipient);
+
+        try {
+          const [sender] = await PrivateKeyBundle.generateBundles();
+          await client.sendMessage(sender, recipient.getKeyBundle(), 'hi');
+
+          const messages = Array.from(await stream);
+          assert.ok(messages.length === 1);
+          assert.equal(messages[0].decrypted, 'hi');
+        } finally {
+          closeStream();
+        }
+      });
+
+      (testCase.name === 'status network' ? it.skip : it)(
+        'listMessages',
+        async () => {
+          const [recipient] = await PrivateKeyBundle.generateBundles();
+
+          const [sender] = await PrivateKeyBundle.generateBundles();
+          await client.sendMessage(sender, recipient.getKeyBundle(), 'hi');
+
+          const messages = await waitFor(
+            async () => {
+              const messages = await client.listMessages(recipient);
+              if (!messages.length) throw new Error('no messages');
+              return messages;
+            },
+            1000,
+            100
+          );
+          assert.ok(messages.length === 1);
+          assert.equal(messages[0].decrypted, 'hi');
+        }
+      );
+    });
+  });
+});

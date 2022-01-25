@@ -15,7 +15,7 @@
     "build:cjs": "rimraf dist/cjs && BABEL_ENV=cjs babel src --out-dir dist/cjs --extensions \".ts,.js\" --source-maps inline",
     "build:esm": "rimraf dist/esm && BABEL_ENV=esm babel src --out-dir dist/esm --extensions \".ts,.js\" --source-maps inline",
     "build:proto": "pnpm run clean:proto && buf generate",
-    "test": "mocha -r ts-node/register test/*.ts test/**/*.ts",
+    "test": "mocha -r ts-node/register --timeout 10000 test/*.ts test/**/*.ts",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
     "coverage": "nyc npm run test"
@@ -44,7 +44,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.4.0",
     "ethers": "^5.5.2",
-    "js-waku": "^0.14.2",
+    "js-waku": "^0.15.0",
     "node-fetch": "^3.1.0",
     "protobufjs": "^6.11.2"
   }
