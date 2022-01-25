@@ -5,10 +5,11 @@
   "main": "dist/xmtp-js-sdk.js",
   "module": "dist/xmtp-js-sdk.esm.js",
   "scripts": {
+    "clean": "rimraf dist",
     "type-check": "tsc --noEmit",
     "type-check:watch": "pnpm type-check -- --watch",
-    "build:types": "tsc --emitDeclarationOnly",
-    "build:bundle": "rimraf dist && rollup -c rollup.config.js",
+    "build:types": "rimraf dist/types && tsc --emitDeclarationOnly",
+    "build:bundle": "pnpm run clean && rollup -c rollup.config.js",
     "build": "pnpm build:types && pnpm build:bundle",
     "test": "mocha -r ts-node/register test/*.ts"
   },

@@ -16,5 +16,5 @@
     "node": true,
     "mocha": true
   },
-  "ignorePatterns": ["dist", "node_modules", "examples", "scripts", "lib", "types"]
+  "ignorePatterns": ["dist", "node_modules", "examples", "scripts"]
 }
