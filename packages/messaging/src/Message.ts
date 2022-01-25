@@ -12,12 +12,14 @@ export default class Message implements proto.Message {
   header: proto.Message_Header | undefined;
   ciphertext: Ciphertext | undefined;
   decrypted: string | undefined;
+  timestamp: number;
 
   constructor(obj: proto.Message) {
     this.header = obj.header;
     if (obj.ciphertext) {
       this.ciphertext = new Ciphertext(obj.ciphertext);
     }
+    this.timestamp = obj.timestamp;
   }
 
   toBytes(): Uint8Array {

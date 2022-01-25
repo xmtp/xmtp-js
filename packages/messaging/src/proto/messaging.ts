@@ -52,6 +52,7 @@ export interface PublicKeyBundle {
 export interface Message {
   header: Message_Header | undefined;
   ciphertext: Ciphertext | undefined;
+  timestamp: number;
 }
 
 export interface Message_Header {
@@ -732,7 +733,7 @@ export const PublicKeyBundle = {
 };
 
 function createBaseMessage(): Message {
-  return { header: undefined, ciphertext: undefined };
+  return { header: undefined, ciphertext: undefined, timestamp: 0 };
 }
 
 export const Message = {
@@ -745,6 +746,9 @@ export const Message = {
     }
     if (message.ciphertext !== undefined) {
       Ciphertext.encode(message.ciphertext, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.timestamp !== 0) {
+      writer.uint32(24).uint64(message.timestamp);
     }
     return writer;
   },
@@ -762,6 +766,9 @@ export const Message = {
         case 2:
           message.ciphertext = Ciphertext.decode(reader, reader.uint32());
           break;
+        case 3:
+          message.timestamp = longToNumber(reader.uint64() as Long);
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -777,7 +784,8 @@ export const Message = {
         : undefined,
       ciphertext: isSet(object.ciphertext)
         ? Ciphertext.fromJSON(object.ciphertext)
-        : undefined
+        : undefined,
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0
     };
   },
 
@@ -791,6 +799,8 @@ export const Message = {
       (obj.ciphertext = message.ciphertext
         ? Ciphertext.toJSON(message.ciphertext)
         : undefined);
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp));
     return obj;
   },
 
@@ -804,6 +814,7 @@ export const Message = {
       object.ciphertext !== undefined && object.ciphertext !== null
         ? Ciphertext.fromPartial(object.ciphertext)
         : undefined;
+    message.timestamp = object.timestamp ?? 0;
     return message;
   }
 };
@@ -1110,6 +1121,13 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error('Value is larger than Number.MAX_SAFE_INTEGER');
+  }
+  return long.toNumber();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

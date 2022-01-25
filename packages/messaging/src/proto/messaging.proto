@@ -53,6 +53,7 @@ message Message {
 
     Header header = 1;
     Ciphertext ciphertext = 2;
+    uint64 timestamp = 3;
 }
 
 // Private Key Storage

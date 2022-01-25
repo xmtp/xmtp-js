@@ -96,15 +96,16 @@ export class Client {
 
     const msgBytes = new TextEncoder().encode(msgString);
     const ciphertext = await sender.encrypt(msgBytes, recipient);
+    const timestamp = new Date();
     const msg = new Message({
       header: {
         sender: sender.getKeyBundle(),
         recipient
       },
-      ciphertext
+      ciphertext,
+      timestamp: timestamp.getTime()
     });
     msg.decrypted = msgString;
-    const timestamp = new Date();
     const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), contentTopic, {
       timestamp
     });
