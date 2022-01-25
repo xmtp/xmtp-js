@@ -46,7 +46,7 @@ export interface Ciphertext_Aes256gcmHkdfsha256 {
 
 export interface Message {
   header: Message_Header | undefined;
-  payload: Ciphertext | undefined;
+  ciphertext: Ciphertext | undefined;
 }
 
 export interface Message_KeyBundle {
@@ -66,7 +66,7 @@ export interface PrivateKeyBundle {
 
 export interface EncryptedPrivateKeyBundle {
   walletPreKey: Uint8Array;
-  payload: Ciphertext | undefined;
+  ciphertext: Ciphertext | undefined;
 }
 
 function createBaseSignature(): Signature {
@@ -653,7 +653,7 @@ export const Ciphertext_Aes256gcmHkdfsha256 = {
 };
 
 function createBaseMessage(): Message {
-  return { header: undefined, payload: undefined };
+  return { header: undefined, ciphertext: undefined };
 }
 
 export const Message = {
@@ -664,8 +664,8 @@ export const Message = {
     if (message.header !== undefined) {
       Message_Header.encode(message.header, writer.uint32(10).fork()).ldelim();
     }
-    if (message.payload !== undefined) {
-      Ciphertext.encode(message.payload, writer.uint32(18).fork()).ldelim();
+    if (message.ciphertext !== undefined) {
+      Ciphertext.encode(message.ciphertext, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -681,7 +681,7 @@ export const Message = {
           message.header = Message_Header.decode(reader, reader.uint32());
           break;
         case 2:
-          message.payload = Ciphertext.decode(reader, reader.uint32());
+          message.ciphertext = Ciphertext.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -696,8 +696,8 @@ export const Message = {
       header: isSet(object.header)
         ? Message_Header.fromJSON(object.header)
         : undefined,
-      payload: isSet(object.payload)
-        ? Ciphertext.fromJSON(object.payload)
+      ciphertext: isSet(object.ciphertext)
+        ? Ciphertext.fromJSON(object.ciphertext)
         : undefined
     };
   },
@@ -708,9 +708,9 @@ export const Message = {
       (obj.header = message.header
         ? Message_Header.toJSON(message.header)
         : undefined);
-    message.payload !== undefined &&
-      (obj.payload = message.payload
-        ? Ciphertext.toJSON(message.payload)
+    message.ciphertext !== undefined &&
+      (obj.ciphertext = message.ciphertext
+        ? Ciphertext.toJSON(message.ciphertext)
         : undefined);
     return obj;
   },
@@ -721,9 +721,9 @@ export const Message = {
       object.header !== undefined && object.header !== null
         ? Message_Header.fromPartial(object.header)
         : undefined;
-    message.payload =
-      object.payload !== undefined && object.payload !== null
-        ? Ciphertext.fromPartial(object.payload)
+    message.ciphertext =
+      object.ciphertext !== undefined && object.ciphertext !== null
+        ? Ciphertext.fromPartial(object.ciphertext)
         : undefined;
     return message;
   }
@@ -973,7 +973,7 @@ export const PrivateKeyBundle = {
 };
 
 function createBaseEncryptedPrivateKeyBundle(): EncryptedPrivateKeyBundle {
-  return { walletPreKey: new Uint8Array(), payload: undefined };
+  return { walletPreKey: new Uint8Array(), ciphertext: undefined };
 }
 
 export const EncryptedPrivateKeyBundle = {
@@ -984,8 +984,8 @@ export const EncryptedPrivateKeyBundle = {
     if (message.walletPreKey.length !== 0) {
       writer.uint32(10).bytes(message.walletPreKey);
     }
-    if (message.payload !== undefined) {
-      Ciphertext.encode(message.payload, writer.uint32(18).fork()).ldelim();
+    if (message.ciphertext !== undefined) {
+      Ciphertext.encode(message.ciphertext, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1004,7 +1004,7 @@ export const EncryptedPrivateKeyBundle = {
           message.walletPreKey = reader.bytes();
           break;
         case 2:
-          message.payload = Ciphertext.decode(reader, reader.uint32());
+          message.ciphertext = Ciphertext.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -1019,8 +1019,8 @@ export const EncryptedPrivateKeyBundle = {
       walletPreKey: isSet(object.walletPreKey)
         ? bytesFromBase64(object.walletPreKey)
         : new Uint8Array(),
-      payload: isSet(object.payload)
-        ? Ciphertext.fromJSON(object.payload)
+      ciphertext: isSet(object.ciphertext)
+        ? Ciphertext.fromJSON(object.ciphertext)
         : undefined
     };
   },
@@ -1033,9 +1033,9 @@ export const EncryptedPrivateKeyBundle = {
           ? message.walletPreKey
           : new Uint8Array()
       ));
-    message.payload !== undefined &&
-      (obj.payload = message.payload
-        ? Ciphertext.toJSON(message.payload)
+    message.ciphertext !== undefined &&
+      (obj.ciphertext = message.ciphertext
+        ? Ciphertext.toJSON(message.ciphertext)
         : undefined);
     return obj;
   },
@@ -1045,9 +1045,9 @@ export const EncryptedPrivateKeyBundle = {
   ): EncryptedPrivateKeyBundle {
     const message = createBaseEncryptedPrivateKeyBundle();
     message.walletPreKey = object.walletPreKey ?? new Uint8Array();
-    message.payload =
-      object.payload !== undefined && object.payload !== null
-        ? Ciphertext.fromPartial(object.payload)
+    message.ciphertext =
+      object.ciphertext !== undefined && object.ciphertext !== null
+        ? Ciphertext.fromPartial(object.ciphertext)
         : undefined;
     return message;
   }

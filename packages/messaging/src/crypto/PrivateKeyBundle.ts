@@ -100,13 +100,13 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     message: string
   ): Promise<Uint8Array> {
     const bytes = new TextEncoder().encode(message);
-    const payload = await this.encrypt(bytes, recipient);
+    const ciphertext = await this.encrypt(bytes, recipient);
     return proto.Message.encode({
       header: {
         sender: this.getKeyBundle(),
         recipient
       },
-      payload
+      ciphertext
     }).finish();
   }
 
@@ -137,10 +137,10 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     if (!this.preKey.matches(recipient.preKey)) {
       throw new Error('recipient pre-key mismatch');
     }
-    if (!message.payload?.aes256GcmHkdfSha256) {
-      throw new Error('missing message payload');
+    if (!message.ciphertext?.aes256GcmHkdfSha256) {
+      throw new Error('missing message ciphertext');
     }
-    const ciphertext = new Ciphertext(message.payload);
+    const ciphertext = new Ciphertext(message.ciphertext);
     bytes = await this.decrypt(ciphertext, sender);
     return new TextDecoder().decode(bytes);
   }
@@ -159,10 +159,10 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     }).finish();
     const wPreKey = getRandomValues(new Uint8Array(32));
     const secret = hexToBytes(await wallet.signMessage(wPreKey));
-    const payload = await encrypt(bytes, secret);
+    const ciphertext = await encrypt(bytes, secret);
     return proto.EncryptedPrivateKeyBundle.encode({
       walletPreKey: wPreKey,
-      payload
+      ciphertext
     }).finish();
   }
 
@@ -175,10 +175,10 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       throw new Error('missing wallet pre-key');
     }
     const secret = hexToBytes(await wallet.signMessage(encrypted.walletPreKey));
-    if (!encrypted.payload?.aes256GcmHkdfSha256) {
-      throw new Error('missing bundle payload');
+    if (!encrypted.ciphertext?.aes256GcmHkdfSha256) {
+      throw new Error('missing bundle ciphertext');
     }
-    const ciphertext = new Ciphertext(encrypted.payload);
+    const ciphertext = new Ciphertext(encrypted.ciphertext);
     const decrypted = await decrypt(ciphertext, secret);
     const bundle = proto.PrivateKeyBundle.decode(decrypted);
     if (!bundle.identityKey) {

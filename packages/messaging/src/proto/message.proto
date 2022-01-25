@@ -51,7 +51,7 @@ message Message {
     }
 
     Header header = 1;
-    Ciphertext payload = 2;
+    Ciphertext ciphertext = 2;
 }
 
 // Private Key Storage
@@ -63,5 +63,5 @@ message PrivateKeyBundle {
 
 message EncryptedPrivateKeyBundle {
     bytes walletPreKey = 1;
-    Ciphertext payload = 2;
+    Ciphertext ciphertext = 2;
 }
