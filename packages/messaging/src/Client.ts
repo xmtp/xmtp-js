@@ -1,4 +1,4 @@
-import { PublicKeyBundle, PrivateKeyBundle, PublicKey } from './crypto';
+import { PublicKeyBundle, PrivateKeyBundle } from './crypto';
 import {
   Waku,
   getNodesFromHostedJson,
@@ -152,27 +152,9 @@ export class Client {
     return Promise.all(
       wakuMsgs
         .filter(wakuMsg => wakuMsg?.payload)
-        .map(async wakuMsg => {
-          const msg = Message.fromBytes(wakuMsg.payload as Uint8Array);
-          if (msg.ciphertext && msg.header?.sender) {
-            if (!msg.header.sender.identityKey) {
-              throw new Error('missing message sender identity key');
-            }
-            if (!msg.header.sender.preKey) {
-              throw new Error('missing message sender pre key');
-            }
-            const bytes = await Message.decrypt(
-              msg.ciphertext,
-              new PublicKeyBundle(
-                new PublicKey(msg.header.sender.identityKey),
-                new PublicKey(msg.header.sender.preKey)
-              ),
-              recipient
-            );
-            msg.decrypted = new TextDecoder().decode(bytes);
-          }
-          return msg;
-        })
+        .map(async wakuMsg =>
+          Message.decode(recipient, wakuMsg.payload as Uint8Array)
+        )
     );
   }
 }

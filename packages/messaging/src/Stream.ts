@@ -1,7 +1,7 @@
 import { Waku, WakuMessage } from 'js-waku';
 import { Message } from '.';
 import asyncify from 'callback-to-async-iterator';
-import { PrivateKeyBundle, PublicKey, PublicKeyBundle } from './crypto';
+import { PrivateKeyBundle } from './crypto';
 import { buildContentTopic } from './utils';
 
 export default class Stream {
@@ -26,24 +26,7 @@ export default class Stream {
         waku.relay.addObserver(
           async (wakuMsg: WakuMessage) => {
             if (wakuMsg.payload) {
-              const msg = Message.fromBytes(wakuMsg.payload);
-              if (msg.ciphertext && msg.header?.sender) {
-                if (
-                  !msg.header.sender.identityKey ||
-                  !msg.header.sender.preKey
-                ) {
-                  throw new Error('invalid message sender in header');
-                }
-                const bytes = await Message.decrypt(
-                  msg.ciphertext,
-                  new PublicKeyBundle(
-                    new PublicKey(msg.header.sender.identityKey),
-                    new PublicKey(msg.header.sender.preKey)
-                  ),
-                  recipient
-                );
-                msg.decrypted = new TextDecoder().decode(bytes);
-              }
+              const msg = await Message.decode(recipient, wakuMsg.payload);
               callback(msg);
             }
           },

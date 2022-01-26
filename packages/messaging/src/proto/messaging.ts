@@ -52,12 +52,12 @@ export interface PublicKeyBundle {
 export interface Message {
   header: Message_Header | undefined;
   ciphertext: Ciphertext | undefined;
-  timestamp: number;
 }
 
 export interface Message_Header {
   sender: PublicKeyBundle | undefined;
   recipient: PublicKeyBundle | undefined;
+  timestamp: number;
 }
 
 export interface PrivateKeyBundle {
@@ -733,7 +733,7 @@ export const PublicKeyBundle = {
 };
 
 function createBaseMessage(): Message {
-  return { header: undefined, ciphertext: undefined, timestamp: 0 };
+  return { header: undefined, ciphertext: undefined };
 }
 
 export const Message = {
@@ -746,9 +746,6 @@ export const Message = {
     }
     if (message.ciphertext !== undefined) {
       Ciphertext.encode(message.ciphertext, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.timestamp !== 0) {
-      writer.uint32(24).uint64(message.timestamp);
     }
     return writer;
   },
@@ -766,9 +763,6 @@ export const Message = {
         case 2:
           message.ciphertext = Ciphertext.decode(reader, reader.uint32());
           break;
-        case 3:
-          message.timestamp = longToNumber(reader.uint64() as Long);
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -784,8 +778,7 @@ export const Message = {
         : undefined,
       ciphertext: isSet(object.ciphertext)
         ? Ciphertext.fromJSON(object.ciphertext)
-        : undefined,
-      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0
+        : undefined
     };
   },
 
@@ -799,8 +792,6 @@ export const Message = {
       (obj.ciphertext = message.ciphertext
         ? Ciphertext.toJSON(message.ciphertext)
         : undefined);
-    message.timestamp !== undefined &&
-      (obj.timestamp = Math.round(message.timestamp));
     return obj;
   },
 
@@ -814,13 +805,12 @@ export const Message = {
       object.ciphertext !== undefined && object.ciphertext !== null
         ? Ciphertext.fromPartial(object.ciphertext)
         : undefined;
-    message.timestamp = object.timestamp ?? 0;
     return message;
   }
 };
 
 function createBaseMessage_Header(): Message_Header {
-  return { sender: undefined, recipient: undefined };
+  return { sender: undefined, recipient: undefined, timestamp: 0 };
 }
 
 export const Message_Header = {
@@ -836,6 +826,9 @@ export const Message_Header = {
         message.recipient,
         writer.uint32(18).fork()
       ).ldelim();
+    }
+    if (message.timestamp !== 0) {
+      writer.uint32(24).uint64(message.timestamp);
     }
     return writer;
   },
@@ -853,6 +846,9 @@ export const Message_Header = {
         case 2:
           message.recipient = PublicKeyBundle.decode(reader, reader.uint32());
           break;
+        case 3:
+          message.timestamp = longToNumber(reader.uint64() as Long);
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -868,7 +864,8 @@ export const Message_Header = {
         : undefined,
       recipient: isSet(object.recipient)
         ? PublicKeyBundle.fromJSON(object.recipient)
-        : undefined
+        : undefined,
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0
     };
   },
 
@@ -882,6 +879,8 @@ export const Message_Header = {
       (obj.recipient = message.recipient
         ? PublicKeyBundle.toJSON(message.recipient)
         : undefined);
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp));
     return obj;
   },
 
@@ -897,6 +896,7 @@ export const Message_Header = {
       object.recipient !== undefined && object.recipient !== null
         ? PublicKeyBundle.fromPartial(object.recipient)
         : undefined;
+    message.timestamp = object.timestamp ?? 0;
     return message;
   }
 };
