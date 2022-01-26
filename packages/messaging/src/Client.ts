@@ -94,18 +94,8 @@ export class Client {
       recipient.identityKey.getEthereumAddress()
     );
 
-    const msgBytes = new TextEncoder().encode(msgString);
-    const ciphertext = await Message.encrypt(msgBytes, sender, recipient);
     const timestamp = new Date();
-    const msg = new Message({
-      header: {
-        sender: sender.publicKeyBundle,
-        recipient
-      },
-      ciphertext,
-      timestamp: timestamp.getTime()
-    });
-    msg.decrypted = msgString;
+    const msg = await Message.encode(sender, recipient, msgString, timestamp);
     const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), contentTopic, {
       timestamp
     });
