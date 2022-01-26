@@ -21,7 +21,7 @@ type CreateOptions = {
   waitForPeersTimeoutMs?: number;
 };
 
-export class Client {
+export default class Client {
   waku: Waku;
 
   constructor(waku: Waku) {

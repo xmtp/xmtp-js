@@ -1,9 +1,9 @@
 import { PrivateKeyBundle } from '../src/crypto';
-import { Client } from '../src';
 import assert from 'assert';
 import { waitFor } from './helpers';
 import { localDockerWakuNodeBootstrapAddr } from './config';
 import { promiseWithTimeout } from '../src/utils';
+import Client from '../src/Client';
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create({

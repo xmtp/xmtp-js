@@ -5,5 +5,13 @@ import {
   PrivateKey,
   PrivateKeyBundle
 } from '../src/crypto';
+import Client from './Client';
 
-export { Message, PublicKey, PublicKeyBundle, PrivateKey, PrivateKeyBundle };
+export {
+  Client,
+  Message,
+  PublicKey,
+  PublicKeyBundle,
+  PrivateKey,
+  PrivateKeyBundle
+};
