@@ -119,7 +119,20 @@ describe('Crypto', function () {
     const msg2 = await Message.decode(bPri, msg1.toBytes());
     assert.equal(msg1.decrypted, 'Yo!');
     assert.equal(msg1.decrypted, msg2.decrypted);
-    const address = aPub.identityKey.walletSignatureAddress();
+
+    let address = aPub.identityKey.walletSignatureAddress();
+    assert.equal(address, wallet.address);
+
+    assert.ok(msg1.header?.sender?.identityKey);
+    address = new PublicKey(
+      msg1.header.sender.identityKey
+    ).walletSignatureAddress();
+    assert.equal(address, wallet.address);
+
+    assert.ok(msg2.header?.sender?.identityKey);
+    address = new PublicKey(
+      msg2.header.sender.identityKey
+    ).walletSignatureAddress();
     assert.equal(address, wallet.address);
   });
   it('signs keys using a wallet', async function () {
