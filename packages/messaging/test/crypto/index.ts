@@ -108,13 +108,13 @@ describe('Crypto', function () {
     assert.ok(pri.secp256k1);
     const wallet = new ethers.Wallet(pri.secp256k1.bytes);
     // Alice's key bundle
-    const [aPri, aPub] = await PrivateKeyBundle.generate();
-    assert.deepEqual(aPri.identityKey?.publicKey, aPub.identityKey);
+    const [aPri, aPub] = await PrivateKeyBundle.generateBundles();
+    assert.deepEqual(aPri.identityKey?.getPublicKey(), aPub.identityKey);
     // sign Alice's identityKey with her wallet
     assert.ok(aPub.identityKey);
     await aPub.identityKey.signWithWallet(wallet);
     // Bob
-    const [bPri, bPub] = await PrivateKeyBundle.generate();
+    const [bPri, bPub] = await PrivateKeyBundle.generateBundles();
     const msg1 = await Message.encode(aPri, bPub, 'Yo!');
     const msg2 = await Message.decode(bPri, msg1.toBytes());
     assert.equal(msg1.decrypted, 'Yo!');
