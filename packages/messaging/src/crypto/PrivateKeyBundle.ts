@@ -21,17 +21,11 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   }
 
   // Generate a new key bundle pair with the preKey signed byt the identityKey.
-  static async generateBundles(): Promise<[PrivateKeyBundle, KeyBundle]> {
-    const [priIdentityKey, pubIdentityKey] = PrivateKey.generateKeys();
-    const [priPreKey, pubPreKey] = PrivateKey.generateKeys();
-    await priIdentityKey.signKey(pubPreKey);
-    return [
-      new PrivateKeyBundle(priIdentityKey, priPreKey),
-      new KeyBundle({
-        identityKey: pubIdentityKey,
-        preKey: pubPreKey
-      })
-    ];
+  static async generate(): Promise<PrivateKeyBundle> {
+    const identityKey = PrivateKey.generate();
+    const preKey = PrivateKey.generate();
+    await identityKey.signKey(preKey.publicKey);
+    return new PrivateKeyBundle(identityKey, preKey);
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
@@ -69,8 +63,8 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       throw new Error('missing identity key');
     }
     return new KeyBundle({
-      identityKey: this.identityKey.getPublicKey(),
-      preKey: this.preKey.getPublicKey()
+      identityKey: this.identityKey.publicKey,
+      preKey: this.preKey.publicKey
     });
   }
 
