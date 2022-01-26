@@ -5,6 +5,7 @@ import Ciphertext from './Ciphertext';
 import * as ethers from 'ethers';
 import { getRandomValues, hexToBytes } from './utils';
 import { decrypt, encrypt } from './encryption';
+import Message from '../Message';
 
 // PrivateKeyBundle bundles the private keys corresponding to a KeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
@@ -95,24 +96,23 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   }
 
   // encrypt and serialize the message
-  async encodeMessage(
-    recipient: KeyBundle,
-    message: string
-  ): Promise<Uint8Array> {
+  async encodeMessage(recipient: KeyBundle, message: string): Promise<Message> {
     const bytes = new TextEncoder().encode(message);
     const ciphertext = await this.encrypt(bytes, recipient);
-    return proto.Message.encode({
+    const msg = new Message({
       header: {
         sender: this.getKeyBundle(),
         recipient
       },
       ciphertext
-    }).finish();
+    });
+    msg.decrypted = message;
+    return msg;
   }
 
   // deserialize and decrypt the message;
   // throws if any part of the messages (including the header) was tampered with
-  async decodeMessage(bytes: Uint8Array): Promise<string> {
+  async decodeMessage(bytes: Uint8Array): Promise<Message> {
     const message = proto.Message.decode(bytes);
     if (!message.header) {
       throw new Error('missing message header');
@@ -142,7 +142,9 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     }
     const ciphertext = new Ciphertext(message.ciphertext);
     bytes = await this.decrypt(ciphertext, sender);
-    return new TextDecoder().decode(bytes);
+    const msg = new Message(message);
+    msg.decrypted = new TextDecoder().decode(bytes);
+    return msg;
   }
 
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {
