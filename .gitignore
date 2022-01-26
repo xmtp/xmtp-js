@@ -5,6 +5,7 @@ dist
 **/dist/**
 .pnpm
 .cache
+**/=* # pnpm artifacts
 
 # OS Specific Files
 .DS_Store

@@ -2,8 +2,8 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-import { xmtpSDK } from 'xmtp-js-sdk';
-console.log(xmtpSDK);
+import { XMTPAuth } from 'xmtp-client-auth';
+console.log(XMTPAuth);
 
 function App() {
   return (

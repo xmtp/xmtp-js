@@ -13,14 +13,14 @@ importers:
       react-dom: ^17.0.2
       remix: ^1.1.3
       typescript: ^4.1.2
-      xmtp-js-sdk: link:../../../packages/js-sdk
+      xmtp-client-auth: link:../../../packages/authentication
     dependencies:
       '@remix-run/react': 1.1.3_react-dom@17.0.2+react@17.0.2
       '@remix-run/serve': 1.1.3_react-dom@17.0.2+react@17.0.2
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
       remix: 1.1.3
-      xmtp-js-sdk: link:../../../packages/js-sdk
+      xmtp-client-auth: link:../../../packages/authentication
     devDependencies:
       '@remix-run/dev': 1.1.3
       '@types/react': 17.0.38

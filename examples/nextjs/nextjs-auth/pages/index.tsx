@@ -3,9 +3,9 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
-import { xmtpSDK } from 'xmtp-js-sdk'
+import { XMTPAuth} from 'xmtp-client-auth'
 
-console.log(xmtpSDK.xmtpAuthentication)
+console.log(XMTPAuth)
 
 const Home: NextPage = () => {
   return (

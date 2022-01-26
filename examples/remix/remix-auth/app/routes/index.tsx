@@ -1,6 +1,6 @@
-import { xmtpSDK } from 'xmtp-js-sdk';
+import { XMTPAuth} from 'xmtp-client-auth';
 
-console.log(xmtpSDK.xmtpAuthentication);
+console.log(XMTPAuth);
 
 export default function Index() {
   return (

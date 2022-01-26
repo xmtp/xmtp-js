@@ -1,6 +1,8 @@
-import peerDepsExternal from 'rollup-plugin-peer-deps-external';
+import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import builtins from 'rollup-plugin-node-builtins';
+import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import typescript from 'rollup-plugin-typescript2';
 
 // this override is needed because Module format cjs does not support top-level await
@@ -27,13 +29,13 @@ export default {
   ],
   plugins: [
     peerDepsExternal(),
-    resolve(),
+    builtins(),
+    resolve({
+      browser: true
+    }),
     commonjs(),
     typescript(),
-    commonjs({
-      exclude: 'node_modules',
-      ignoreGlobal: true
-    })
+    json()
   ],
   external: Object.keys(devDeps)
 };
