@@ -40,14 +40,15 @@ message Ciphertext {
     }
 }
 
+message PublicKeyBundle {
+  PublicKey identityKey = 1;
+  PublicKey preKey = 2;
+}
+
 message Message {
-    message KeyBundle {
-        PublicKey identityKey = 1;
-        PublicKey preKey = 2;
-    }
     message Header {
-        KeyBundle sender = 1;
-        KeyBundle recipient = 2;
+        PublicKeyBundle sender = 1;
+        PublicKeyBundle recipient = 2;
     }
 
     Header header = 1;

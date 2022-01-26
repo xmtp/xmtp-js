@@ -44,19 +44,19 @@ export interface Ciphertext_Aes256gcmHkdfsha256 {
   payload: Uint8Array;
 }
 
+export interface PublicKeyBundle {
+  identityKey: PublicKey | undefined;
+  preKey: PublicKey | undefined;
+}
+
 export interface Message {
   header: Message_Header | undefined;
   ciphertext: Ciphertext | undefined;
 }
 
-export interface Message_KeyBundle {
-  identityKey: PublicKey | undefined;
-  preKey: PublicKey | undefined;
-}
-
 export interface Message_Header {
-  sender: Message_KeyBundle | undefined;
-  recipient: Message_KeyBundle | undefined;
+  sender: PublicKeyBundle | undefined;
+  recipient: PublicKeyBundle | undefined;
 }
 
 export interface PrivateKeyBundle {
@@ -652,6 +652,85 @@ export const Ciphertext_Aes256gcmHkdfsha256 = {
   }
 };
 
+function createBasePublicKeyBundle(): PublicKeyBundle {
+  return { identityKey: undefined, preKey: undefined };
+}
+
+export const PublicKeyBundle = {
+  encode(
+    message: PublicKeyBundle,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.identityKey !== undefined) {
+      PublicKey.encode(message.identityKey, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.preKey !== undefined) {
+      PublicKey.encode(message.preKey, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PublicKeyBundle {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePublicKeyBundle();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.identityKey = PublicKey.decode(reader, reader.uint32());
+          break;
+        case 2:
+          message.preKey = PublicKey.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PublicKeyBundle {
+    return {
+      identityKey: isSet(object.identityKey)
+        ? PublicKey.fromJSON(object.identityKey)
+        : undefined,
+      preKey: isSet(object.preKey)
+        ? PublicKey.fromJSON(object.preKey)
+        : undefined
+    };
+  },
+
+  toJSON(message: PublicKeyBundle): unknown {
+    const obj: any = {};
+    message.identityKey !== undefined &&
+      (obj.identityKey = message.identityKey
+        ? PublicKey.toJSON(message.identityKey)
+        : undefined);
+    message.preKey !== undefined &&
+      (obj.preKey = message.preKey
+        ? PublicKey.toJSON(message.preKey)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PublicKeyBundle>, I>>(
+    object: I
+  ): PublicKeyBundle {
+    const message = createBasePublicKeyBundle();
+    message.identityKey =
+      object.identityKey !== undefined && object.identityKey !== null
+        ? PublicKey.fromPartial(object.identityKey)
+        : undefined;
+    message.preKey =
+      object.preKey !== undefined && object.preKey !== null
+        ? PublicKey.fromPartial(object.preKey)
+        : undefined;
+    return message;
+  }
+};
+
 function createBaseMessage(): Message {
   return { header: undefined, ciphertext: undefined };
 }
@@ -729,85 +808,6 @@ export const Message = {
   }
 };
 
-function createBaseMessage_KeyBundle(): Message_KeyBundle {
-  return { identityKey: undefined, preKey: undefined };
-}
-
-export const Message_KeyBundle = {
-  encode(
-    message: Message_KeyBundle,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.identityKey !== undefined) {
-      PublicKey.encode(message.identityKey, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.preKey !== undefined) {
-      PublicKey.encode(message.preKey, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Message_KeyBundle {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMessage_KeyBundle();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.identityKey = PublicKey.decode(reader, reader.uint32());
-          break;
-        case 2:
-          message.preKey = PublicKey.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Message_KeyBundle {
-    return {
-      identityKey: isSet(object.identityKey)
-        ? PublicKey.fromJSON(object.identityKey)
-        : undefined,
-      preKey: isSet(object.preKey)
-        ? PublicKey.fromJSON(object.preKey)
-        : undefined
-    };
-  },
-
-  toJSON(message: Message_KeyBundle): unknown {
-    const obj: any = {};
-    message.identityKey !== undefined &&
-      (obj.identityKey = message.identityKey
-        ? PublicKey.toJSON(message.identityKey)
-        : undefined);
-    message.preKey !== undefined &&
-      (obj.preKey = message.preKey
-        ? PublicKey.toJSON(message.preKey)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Message_KeyBundle>, I>>(
-    object: I
-  ): Message_KeyBundle {
-    const message = createBaseMessage_KeyBundle();
-    message.identityKey =
-      object.identityKey !== undefined && object.identityKey !== null
-        ? PublicKey.fromPartial(object.identityKey)
-        : undefined;
-    message.preKey =
-      object.preKey !== undefined && object.preKey !== null
-        ? PublicKey.fromPartial(object.preKey)
-        : undefined;
-    return message;
-  }
-};
-
 function createBaseMessage_Header(): Message_Header {
   return { sender: undefined, recipient: undefined };
 }
@@ -818,13 +818,10 @@ export const Message_Header = {
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.sender !== undefined) {
-      Message_KeyBundle.encode(
-        message.sender,
-        writer.uint32(10).fork()
-      ).ldelim();
+      PublicKeyBundle.encode(message.sender, writer.uint32(10).fork()).ldelim();
     }
     if (message.recipient !== undefined) {
-      Message_KeyBundle.encode(
+      PublicKeyBundle.encode(
         message.recipient,
         writer.uint32(18).fork()
       ).ldelim();
@@ -840,10 +837,10 @@ export const Message_Header = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.sender = Message_KeyBundle.decode(reader, reader.uint32());
+          message.sender = PublicKeyBundle.decode(reader, reader.uint32());
           break;
         case 2:
-          message.recipient = Message_KeyBundle.decode(reader, reader.uint32());
+          message.recipient = PublicKeyBundle.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -856,10 +853,10 @@ export const Message_Header = {
   fromJSON(object: any): Message_Header {
     return {
       sender: isSet(object.sender)
-        ? Message_KeyBundle.fromJSON(object.sender)
+        ? PublicKeyBundle.fromJSON(object.sender)
         : undefined,
       recipient: isSet(object.recipient)
-        ? Message_KeyBundle.fromJSON(object.recipient)
+        ? PublicKeyBundle.fromJSON(object.recipient)
         : undefined
     };
   },
@@ -868,11 +865,11 @@ export const Message_Header = {
     const obj: any = {};
     message.sender !== undefined &&
       (obj.sender = message.sender
-        ? Message_KeyBundle.toJSON(message.sender)
+        ? PublicKeyBundle.toJSON(message.sender)
         : undefined);
     message.recipient !== undefined &&
       (obj.recipient = message.recipient
-        ? Message_KeyBundle.toJSON(message.recipient)
+        ? PublicKeyBundle.toJSON(message.recipient)
         : undefined);
     return obj;
   },
@@ -883,11 +880,11 @@ export const Message_Header = {
     const message = createBaseMessage_Header();
     message.sender =
       object.sender !== undefined && object.sender !== null
-        ? Message_KeyBundle.fromPartial(object.sender)
+        ? PublicKeyBundle.fromPartial(object.sender)
         : undefined;
     message.recipient =
       object.recipient !== undefined && object.recipient !== null
-        ? Message_KeyBundle.fromPartial(object.recipient)
+        ? PublicKeyBundle.fromPartial(object.recipient)
         : undefined;
     return message;
   }

@@ -1,52 +1,47 @@
 import * as assert from 'assert';
 import { TextEncoder, TextDecoder } from 'util';
 import {
-  KeyBundle,
+  PublicKeyBundle,
   PrivateKeyBundle,
   PrivateKey,
   PublicKey,
   utils
 } from '../../src/crypto';
 import * as ethers from 'ethers';
+import Message from '../../src/Message';
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
-    // Identity Key
-    const [iPri, iPub] = PrivateKey.generateKeys();
-    // Pre-Key
-    const [, pPub] = PrivateKey.generateKeys();
-    await iPri.signKey(pPub);
-    assert.ok(await iPub.verifyKey(pPub));
+    const identityKey = PrivateKey.generate();
+    const preKey = PrivateKey.generate();
+    await identityKey.signKey(preKey.publicKey);
+    assert.ok(await identityKey.publicKey.verifyKey(preKey.publicKey));
   });
   it('encrypts and decrypts messages', async function () {
-    // Alice
-    const [aPri, aPub] = PrivateKey.generateKeys();
-    // Bob
-    const [bPri, bPub] = PrivateKey.generateKeys();
+    const alice = PrivateKey.generate();
+    const bob = PrivateKey.generate();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
-    const encrypted = await aPri.encrypt(decrypted, bPub);
+    const encrypted = await alice.encrypt(decrypted, bob.publicKey);
     // Bob decrypts msg from Alice.
-    const decrypted2 = await bPri.decrypt(encrypted, aPub);
+    const decrypted2 = await bob.decrypt(encrypted, alice.publicKey);
     const msg2 = new TextDecoder().decode(decrypted2);
     assert.equal(msg2, msg1);
   });
   it('detects tampering with encrypted message', async function () {
-    // Alice
-    const [aPri, aPub] = PrivateKey.generateKeys();
-    // Bob
-    const [bPri, bPub] = PrivateKey.generateKeys();
+    const alice = PrivateKey.generate();
+    const bob = PrivateKey.generate();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
-    const encrypted = await aPri.encrypt(decrypted, bPub);
+    const encrypted = await alice.encrypt(decrypted, bob.publicKey);
     // Malory tampers with the message
     assert.ok(encrypted.aes256GcmHkdfSha256);
     encrypted.aes256GcmHkdfSha256.payload[2] ^= 4; // flip one bit
     // Bob attempts to decrypt msg from Alice.
     try {
-      await bPri.decrypt(encrypted, aPub);
+      await bob.decrypt(encrypted, alice.publicKey);
       assert.fail('should have thrown');
     } catch (e) {
       assert.ok(e instanceof Error);
@@ -55,16 +50,16 @@ describe('Crypto', function () {
     }
   });
   it('derives public key from signature', async function () {
-    const [pri, pub] = PrivateKey.generateKeys();
+    const pri = PrivateKey.generate();
     const digest = utils.getRandomValues(new Uint8Array(16));
     const sig = await pri.sign(digest);
-    const pub2 = sig.getPublicKey(digest);
-    assert.ok(pub2);
-    assert.ok(pub2.secp256k1Uncompressed);
-    assert.ok(pub.secp256k1Uncompressed);
-    assert.equal(
-      utils.bytesToHex(pub2.secp256k1Uncompressed.bytes),
-      utils.bytesToHex(pub.secp256k1Uncompressed.bytes)
+    const sigPub = sig.getPublicKey(digest);
+    assert.ok(sigPub);
+    assert.ok(sigPub.secp256k1Uncompressed);
+    assert.ok(pri.publicKey.secp256k1Uncompressed);
+    assert.deepEqual(
+      sigPub.secp256k1Uncompressed.bytes,
+      pri.publicKey.secp256k1Uncompressed.bytes
     );
   });
   it('derives address from public key', function () {
@@ -79,76 +74,105 @@ describe('Crypto', function () {
     assert.equal(address, '0x0bed7abd61247635c1973eb38474a2516ed1d884');
   });
   it('encrypts and decrypts messages with key bundles', async function () {
-    // Alice
-    const [aPri, aPub] = await PrivateKeyBundle.generateBundles();
-    // Bob
-    const [bPri, bPub] = await PrivateKeyBundle.generateBundles();
+    const alice = await PrivateKeyBundle.generate();
+    const bob = await PrivateKeyBundle.generate();
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
-    const encrypted = await aPri.encrypt(decrypted, bPub);
+    const encrypted = await Message.encrypt(
+      decrypted,
+      alice,
+      bob.publicKeyBundle
+    );
     // Bob decrypts msg from Alice.
-    const decrypted2 = await bPri.decrypt(encrypted, aPub);
+    const decrypted2 = await Message.decrypt(
+      encrypted,
+      alice.publicKeyBundle,
+      bob
+    );
     const msg2 = new TextDecoder().decode(decrypted2);
     assert.equal(msg2, msg1);
   });
   it('serializes and desirializes keys and signatures', async function () {
-    const [, pub] = await PrivateKeyBundle.generateBundles();
-    const bytes = pub.toBytes();
+    const alice = await PrivateKeyBundle.generate();
+    const bytes = alice.publicKeyBundle.toBytes();
     assert.ok(bytes.length >= 213);
-    const pub2 = KeyBundle.fromBytes(bytes);
+    const pub2 = PublicKeyBundle.fromBytes(bytes);
     assert.ok(pub2.identityKey);
     assert.ok(pub2.preKey);
     assert.ok(pub2.identityKey.verifyKey(pub2.preKey));
   });
   it('fully encodes/decodes messages', async function () {
-    // Alice
-    const [aPri] = await PrivateKeyBundle.generateBundles();
+    const aliceWalletKey = PrivateKey.generate();
+    assert.ok(aliceWalletKey.secp256k1);
+    const aliceWallet = new ethers.Wallet(aliceWalletKey.secp256k1.bytes);
+    // Alice's key bundle
+    const alice = await PrivateKeyBundle.generate();
+    const alicePub = alice.publicKeyBundle;
+    assert.ok(alice.identityKey);
+    assert.deepEqual(alice.identityKey.publicKey, alicePub.identityKey);
+    // sign Alice's identityKey with her wallet
+    assert.ok(alicePub.identityKey);
+    await alicePub.identityKey.signWithWallet(aliceWallet);
     // Bob
-    const [bPri, bPub] = await PrivateKeyBundle.generateBundles();
-    const msg1 = 'Yo!';
-    const bytes = await aPri.encodeMessage(bPub, msg1);
-    const msg2 = await bPri.decodeMessage(bytes);
-    assert.equal(msg1, msg2);
+    const bob = await PrivateKeyBundle.generate();
+    const msg1 = await Message.encode(alice, bob.publicKeyBundle, 'Yo!');
+    const msg2 = await Message.decode(bob, msg1.toBytes());
+    assert.equal(msg1.decrypted, 'Yo!');
+    assert.equal(msg1.decrypted, msg2.decrypted);
+
+    let address = alicePub.identityKey.walletSignatureAddress();
+    assert.equal(address, aliceWallet.address);
+
+    assert.ok(msg1.header?.sender?.identityKey);
+    address = new PublicKey(
+      msg1.header.sender.identityKey
+    ).walletSignatureAddress();
+    assert.equal(address, aliceWallet.address);
+
+    assert.ok(msg2.header?.sender?.identityKey);
+    address = new PublicKey(
+      msg2.header.sender.identityKey
+    ).walletSignatureAddress();
+    assert.equal(address, aliceWallet.address);
   });
   it('signs keys using a wallet', async function () {
     // create a wallet using a generated key
-    const [wPri, wPub] = PrivateKey.generateKeys();
-    assert.ok(wPri.secp256k1);
-    const wallet = new ethers.Wallet(wPri.secp256k1.bytes);
+    const alice = PrivateKey.generate();
+    assert.ok(alice.secp256k1);
+    const wallet = new ethers.Wallet(alice.secp256k1.bytes);
     // sanity check that we agree with the wallet about the address
-    assert.ok(wallet.address, wPub.getEthereumAddress());
+    assert.ok(wallet.address, alice.publicKey.getEthereumAddress());
     // sign the public key using the wallet
-    await wPub.signWithWallet(wallet);
+    await alice.publicKey.signWithWallet(wallet);
     // validate the key signature and return wallet address
-    const address = wPub.walletSignatureAddress();
+    const address = alice.publicKey.walletSignatureAddress();
     assert.equal(address, wallet.address);
   });
   it('encrypts private key bundle for storage using a wallet', async function () {
     // create a wallet using a generated key
-    const [wPri] = PrivateKey.generateKeys();
-    assert.ok(wPri.secp256k1);
-    const wallet = new ethers.Wallet(wPri.secp256k1.bytes);
+    const alice = PrivateKey.generate();
+    assert.ok(alice.secp256k1);
+    const wallet = new ethers.Wallet(alice.secp256k1.bytes);
     // generate key bundle
-    const [pri] = await PrivateKeyBundle.generateBundles();
+    const bob = await PrivateKeyBundle.generate();
     // encrypt and serialize the bundle for storage
-    const bytes = await pri.encode(wallet);
+    const bytes = await bob.encode(wallet);
     // decrypt and decode the bundle from storage
-    const pri2 = await PrivateKeyBundle.decode(wallet, bytes);
-    assert.ok(pri.identityKey);
-    assert.ok(pri2.identityKey);
-    assert.ok(pri.identityKey.secp256k1);
-    assert.ok(pri2.identityKey.secp256k1);
-    assert.ok(
-      utils.equalBytes(
-        pri.identityKey.secp256k1.bytes,
-        pri2.identityKey.secp256k1.bytes
-      )
+    const bobDecoded = await PrivateKeyBundle.decode(wallet, bytes);
+    assert.ok(bob.identityKey);
+    assert.ok(bobDecoded.identityKey);
+    assert.ok(bob.identityKey.secp256k1);
+    assert.ok(bobDecoded.identityKey.secp256k1);
+    assert.deepEqual(
+      bob.identityKey.secp256k1.bytes,
+      bobDecoded.identityKey.secp256k1.bytes
     );
-    assert.ok(pri.preKey.secp256k1);
-    assert.ok(pri2.preKey.secp256k1);
-    assert.ok(
-      utils.equalBytes(pri.preKey.secp256k1.bytes, pri2.preKey.secp256k1.bytes)
+    assert.ok(bob.preKey.secp256k1);
+    assert.ok(bobDecoded.preKey.secp256k1);
+    assert.deepEqual(
+      bob.preKey.secp256k1.bytes,
+      bobDecoded.preKey.secp256k1.bytes
     );
   });
 });

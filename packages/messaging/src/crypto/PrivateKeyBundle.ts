@@ -1,43 +1,45 @@
 import * as proto from '../../src/proto/message';
 import PrivateKey from './PrivateKey';
-import KeyBundle from './KeyBundle';
+import PublicKeyBundle from './PublicKeyBundle';
 import Ciphertext from './Ciphertext';
 import * as ethers from 'ethers';
 import { getRandomValues, hexToBytes } from './utils';
 import { decrypt, encrypt } from './encryption';
 
-// PrivateKeyBundle bundles the private keys corresponding to a KeyBundle for convenience.
+// PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
 // somehow so that older messages can be decrypted again.
 export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   identityKey: PrivateKey | undefined;
   preKeys: PrivateKey[];
   preKey: PrivateKey;
+  publicKeyBundle: PublicKeyBundle;
 
   constructor(identityKey: PrivateKey, preKey: PrivateKey) {
     this.identityKey = new PrivateKey(identityKey);
     this.preKey = preKey;
     this.preKeys = [preKey];
+    this.publicKeyBundle = new PublicKeyBundle(
+      this.identityKey.publicKey,
+      this.preKey.publicKey
+    );
   }
 
   // Generate a new key bundle pair with the preKey signed byt the identityKey.
-  static async generateBundles(): Promise<[PrivateKeyBundle, KeyBundle]> {
-    const [priIdentityKey, pubIdentityKey] = PrivateKey.generateKeys();
-    const [priPreKey, pubPreKey] = PrivateKey.generateKeys();
-    await priIdentityKey.signKey(pubPreKey);
-    return [
-      new PrivateKeyBundle(priIdentityKey, priPreKey),
-      new KeyBundle({
-        identityKey: pubIdentityKey,
-        preKey: pubPreKey
-      })
-    ];
+  static async generate(): Promise<PrivateKeyBundle> {
+    const identityKey = PrivateKey.generate();
+    const preKey = PrivateKey.generate();
+    await identityKey.signKey(preKey.publicKey);
+    return new PrivateKeyBundle(identityKey, preKey);
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
   // where the sender's ephemeral key pair is replaced by the sender's prekey.
   // @recipient indicates whether this is the sending (encrypting) or receiving (decrypting) side.
-  async sharedSecret(peer: KeyBundle, recipient: boolean): Promise<Uint8Array> {
+  async sharedSecret(
+    peer: PublicKeyBundle,
+    recipient: boolean
+  ): Promise<Uint8Array> {
     if (!peer.identityKey || !peer.preKey) {
       throw new Error('invalid peer key bundle');
     }
@@ -61,88 +63,6 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     secret.set(dh2, dh1.length);
     secret.set(dh3, dh1.length + dh2.length);
     return secret;
-  }
-
-  // encrypt the plaintext with a symmetric key derived from the peers' key bundles.
-  async encrypt(plain: Uint8Array, recipient: KeyBundle): Promise<Ciphertext> {
-    const secret = await this.sharedSecret(recipient, false);
-    const ad = associatedData({
-      sender: this.getKeyBundle(),
-      recipient: recipient
-    });
-    return encrypt(plain, secret, ad);
-  }
-
-  // decrypt the encrypted content using a symmetric key derived from the peers' key bundles.
-  async decrypt(encrypted: Ciphertext, sender: KeyBundle): Promise<Uint8Array> {
-    const secret = await this.sharedSecret(sender, true);
-    const ad = associatedData({
-      sender: sender,
-      recipient: this.getKeyBundle()
-    });
-    return decrypt(encrypted, secret, ad);
-  }
-
-  // return the corresponding public KeyBundle
-  getKeyBundle(): KeyBundle {
-    if (!this.identityKey) {
-      throw new Error('missing identity key');
-    }
-    return new KeyBundle({
-      identityKey: this.identityKey.getPublicKey(),
-      preKey: this.preKey.getPublicKey()
-    });
-  }
-
-  // encrypt and serialize the message
-  async encodeMessage(
-    recipient: KeyBundle,
-    message: string
-  ): Promise<Uint8Array> {
-    const bytes = new TextEncoder().encode(message);
-    const ciphertext = await this.encrypt(bytes, recipient);
-    return proto.Message.encode({
-      header: {
-        sender: this.getKeyBundle(),
-        recipient
-      },
-      ciphertext
-    }).finish();
-  }
-
-  // deserialize and decrypt the message;
-  // throws if any part of the messages (including the header) was tampered with
-  async decodeMessage(bytes: Uint8Array): Promise<string> {
-    const message = proto.Message.decode(bytes);
-    if (!message.header) {
-      throw new Error('missing message header');
-    }
-    if (!message.header.sender) {
-      throw new Error('missing message sender');
-    }
-    if (!message.header.recipient) {
-      throw new Error('missing message recipient');
-    }
-    if (!message.header.recipient?.preKey) {
-      throw new Error('missing message recipient pre key');
-    }
-    const sender = new KeyBundle(message.header.sender);
-    const recipient = new KeyBundle(message.header.recipient);
-    if (!recipient.preKey) {
-      throw new Error('missing message recipient pre key');
-    }
-    if (this.preKeys.length === 0) {
-      throw new Error('missing pre key');
-    }
-    if (!this.preKey.matches(recipient.preKey)) {
-      throw new Error('recipient pre-key mismatch');
-    }
-    if (!message.ciphertext?.aes256GcmHkdfSha256) {
-      throw new Error('missing message ciphertext');
-    }
-    const ciphertext = new Ciphertext(message.ciphertext);
-    bytes = await this.decrypt(ciphertext, sender);
-    return new TextDecoder().decode(bytes);
   }
 
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {
@@ -192,18 +112,4 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       new PrivateKey(bundle.preKeys[0])
     );
   }
-}
-
-// argument type for associatedData()
-interface Header {
-  sender: KeyBundle;
-  recipient: KeyBundle;
-}
-
-// serializes message header into bytes so that it can be included for encryption as associated data
-function associatedData(header: Header): Uint8Array {
-  return proto.Message_Header.encode({
-    sender: header.sender,
-    recipient: header.recipient
-  }).finish();
 }

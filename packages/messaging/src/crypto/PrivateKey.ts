@@ -8,7 +8,7 @@ import { decrypt, encrypt } from './encryption';
 // PrivateKey represents a secp256k1 private key.
 export default class PrivateKey implements proto.PrivateKey {
   secp256k1: proto.PrivateKey_Secp256k1 | undefined;
-  publicKey?: PublicKey; // caches corresponding PublicKey
+  publicKey: PublicKey; // caches corresponding PublicKey
 
   constructor(obj: proto.PrivateKey) {
     if (!obj.secp256k1) {
@@ -20,12 +20,7 @@ export default class PrivateKey implements proto.PrivateKey {
       );
     }
     this.secp256k1 = obj.secp256k1;
-  }
-
-  // Generates a new secp256k1 key pair.
-  static generateKeys(): [PrivateKey, PublicKey] {
-    const pri = PrivateKey.generate();
-    return [pri, pri.getPublicKey()];
+    this.publicKey = PublicKey.fromPrivateKey(this);
   }
 
   // create a random PrivateKey.
@@ -63,14 +58,6 @@ export default class PrivateKey implements proto.PrivateKey {
     const digest = await secp.utils.sha256(pub.secp256k1Uncompressed.bytes);
     pub.signature = await this.sign(digest);
     return pub;
-  }
-
-  // return corresponding PublicKey
-  getPublicKey(): PublicKey {
-    if (!this.publicKey) {
-      this.publicKey = PublicKey.fromPrivateKey(this);
-    }
-    return this.publicKey;
   }
 
   // derive shared secret from peer's PublicKey;
@@ -114,7 +101,7 @@ export default class PrivateKey implements proto.PrivateKey {
 
   // Does the provided PublicKey correspnd to this PrivateKey?
   matches(key: PublicKey): boolean {
-    return this.getPublicKey().equals(key);
+    return this.publicKey.equals(key);
   }
 
   toBytes(): Uint8Array {
