@@ -13,11 +13,16 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   identityKey: PrivateKey | undefined;
   preKeys: PrivateKey[];
   preKey: PrivateKey;
+  publicKeyBundle: KeyBundle;
 
   constructor(identityKey: PrivateKey, preKey: PrivateKey) {
     this.identityKey = new PrivateKey(identityKey);
     this.preKey = preKey;
     this.preKeys = [preKey];
+    this.publicKeyBundle = new KeyBundle(
+      this.identityKey.publicKey,
+      this.preKey.publicKey
+    );
   }
 
   // Generate a new key bundle pair with the preKey signed byt the identityKey.
@@ -55,17 +60,6 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     secret.set(dh2, dh1.length);
     secret.set(dh3, dh1.length + dh2.length);
     return secret;
-  }
-
-  // return the corresponding public KeyBundle
-  getKeyBundle(): KeyBundle {
-    if (!this.identityKey) {
-      throw new Error('missing identity key');
-    }
-    return new KeyBundle({
-      identityKey: this.identityKey.publicKey,
-      preKey: this.preKey.publicKey
-    });
   }
 
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {

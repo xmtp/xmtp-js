@@ -33,7 +33,7 @@ export default class Message implements proto.Message {
     const ciphertext = await this.encrypt(bytes, sender, recipient);
     const msg = new Message({
       header: {
-        sender: sender.getKeyBundle(),
+        sender: sender.publicKeyBundle,
         recipient
       },
       ciphertext
@@ -55,13 +55,22 @@ export default class Message implements proto.Message {
     if (!message.header.sender) {
       throw new Error('missing message sender');
     }
+    if (!message.header.sender.identityKey) {
+      throw new Error('missing message sender identity key');
+    }
+    if (!message.header.sender.preKey) {
+      throw new Error('missing message sender pre key');
+    }
     if (!message.header.recipient) {
       throw new Error('missing message recipient');
     }
     if (!message.header.recipient?.preKey) {
       throw new Error('missing message recipient pre key');
     }
-    const sender = new KeyBundle(message.header.sender);
+    const sender = new KeyBundle(
+      new PublicKey(message.header.sender.identityKey),
+      new PublicKey(message.header.sender.preKey)
+    );
     if (!recipient.preKey) {
       throw new Error('missing message recipient pre key');
     }
@@ -91,7 +100,7 @@ export default class Message implements proto.Message {
   ): Promise<Ciphertext> {
     const secret = await sender.sharedSecret(recipient, false);
     const ad = proto.Message_Header.encode({
-      sender: sender.getKeyBundle(),
+      sender: sender.publicKeyBundle,
       recipient: recipient
     }).finish();
     return encrypt(plain, secret, ad);
@@ -106,7 +115,7 @@ export default class Message implements proto.Message {
     const secret = await recipient.sharedSecret(sender, true);
     const ad = proto.Message_Header.encode({
       sender: sender,
-      recipient: recipient.getKeyBundle()
+      recipient: recipient.publicKeyBundle
     }).finish();
     return decrypt(encrypted, secret, ad);
   }

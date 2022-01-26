@@ -8,15 +8,18 @@ export default class KeyBundle implements proto.Message_KeyBundle {
   identityKey: PublicKey | undefined;
   preKey: PublicKey | undefined;
 
-  constructor(obj: proto.Message_KeyBundle) {
-    if (!obj.identityKey) {
+  constructor(
+    identityKey: PublicKey | undefined,
+    preKey: PublicKey | undefined
+  ) {
+    if (!identityKey) {
       throw new Error('missing identity key');
     }
-    if (!obj.preKey) {
+    if (!preKey) {
       throw new Error('missing pre key');
     }
-    this.identityKey = new PublicKey(obj.identityKey);
-    this.preKey = new PublicKey(obj.preKey);
+    this.identityKey = identityKey;
+    this.preKey = preKey;
   }
 
   toBytes(): Uint8Array {
@@ -24,6 +27,16 @@ export default class KeyBundle implements proto.Message_KeyBundle {
   }
 
   static fromBytes(bytes: Uint8Array): KeyBundle {
-    return new KeyBundle(proto.Message_KeyBundle.decode(bytes));
+    const decoded = proto.Message_KeyBundle.decode(bytes);
+    if (!decoded.identityKey) {
+      throw new Error('missing identity key');
+    }
+    if (!decoded.preKey) {
+      throw new Error('missing pre key');
+    }
+    return new KeyBundle(
+      new PublicKey(decoded.identityKey),
+      new PublicKey(decoded.preKey)
+    );
   }
 }

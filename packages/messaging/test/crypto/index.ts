@@ -82,12 +82,12 @@ describe('Crypto', function () {
     const encrypted = await Message.encrypt(
       decrypted,
       alice,
-      bob.getKeyBundle()
+      bob.publicKeyBundle
     );
     // Bob decrypts msg from Alice.
     const decrypted2 = await Message.decrypt(
       encrypted,
-      alice.getKeyBundle(),
+      alice.publicKeyBundle,
       bob
     );
     const msg2 = new TextDecoder().decode(decrypted2);
@@ -95,7 +95,7 @@ describe('Crypto', function () {
   });
   it('serializes and desirializes keys and signatures', async function () {
     const alice = await PrivateKeyBundle.generate();
-    const bytes = alice.getKeyBundle().toBytes();
+    const bytes = alice.publicKeyBundle.toBytes();
     assert.ok(bytes.length >= 213);
     const pub2 = KeyBundle.fromBytes(bytes);
     assert.ok(pub2.identityKey);
@@ -108,7 +108,7 @@ describe('Crypto', function () {
     const aliceWallet = new ethers.Wallet(aliceWalletKey.secp256k1.bytes);
     // Alice's key bundle
     const alice = await PrivateKeyBundle.generate();
-    const alicePub = alice.getKeyBundle();
+    const alicePub = alice.publicKeyBundle;
     assert.ok(alice.identityKey);
     assert.deepEqual(alice.identityKey.publicKey, alicePub.identityKey);
     // sign Alice's identityKey with her wallet
@@ -116,7 +116,7 @@ describe('Crypto', function () {
     await alicePub.identityKey.signWithWallet(aliceWallet);
     // Bob
     const bob = await PrivateKeyBundle.generate();
-    const msg1 = await Message.encode(alice, bob.getKeyBundle(), 'Yo!');
+    const msg1 = await Message.encode(alice, bob.publicKeyBundle, 'Yo!');
     const msg2 = await Message.decode(bob, msg1.toBytes());
     assert.equal(msg1.decrypted, 'Yo!');
     assert.equal(msg1.decrypted, msg2.decrypted);
