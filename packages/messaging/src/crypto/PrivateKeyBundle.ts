@@ -30,7 +30,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     const identityKey = PrivateKey.generate();
     const preKey = PrivateKey.generate();
     await identityKey.signKey(preKey.publicKey);
-    if(wallet) {
+    if (wallet) {
       identityKey.publicKey.signWithWallet(wallet);
     }
     return new PrivateKeyBundle(identityKey, preKey);

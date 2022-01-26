@@ -116,7 +116,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!this.secp256k1Uncompressed) {
       throw new Error('missing public key');
     }
-    return ethers.utils.computeAddress(this.secp256k1Uncompressed.bytes); 
+    return ethers.utils.computeAddress(this.secp256k1Uncompressed.bytes);
   }
 
   // is other the same/equivalent PublicKey?

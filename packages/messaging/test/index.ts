@@ -1,10 +1,6 @@
 import assert from 'assert';
 import { Wallet } from 'ethers';
-import {
-  Message,
-  PrivateKey,
-  PrivateKeyBundle,
-} from '../src';
+import { Message, PrivateKey, PrivateKeyBundle } from '../src';
 
 describe('Messaging', function () {
   it('fully encodes/decodes messages', async function () {
@@ -29,5 +25,4 @@ describe('Messaging', function () {
     assert.equal(msg1.decrypted, msg2.decrypted);
     assert.equal(msg2.senderAddress(), aliceWallet.address);
   });
-
 });

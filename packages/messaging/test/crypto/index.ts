@@ -81,10 +81,10 @@ describe('Crypto', function () {
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
     let secret = await alice.sharedSecret(bob.publicKeyBundle, false);
-    const encrypted = await encrypt(decrypted,secret);
+    const encrypted = await encrypt(decrypted, secret);
     // Bob decrypts msg from Alice.
     secret = await bob.sharedSecret(alice.publicKeyBundle, true);
-    const decrypted2 = await decrypt(encrypted,secret);
+    const decrypted2 = await decrypt(encrypted, secret);
     const msg2 = new TextDecoder().decode(decrypted2);
     assert.equal(msg2, msg1);
   });

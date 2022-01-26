@@ -1,6 +1,12 @@
 import * as proto from './proto/message';
 import Ciphertext from './crypto/Ciphertext';
-import { PublicKeyBundle, PrivateKeyBundle, PublicKey, decrypt, encrypt } from './crypto';
+import {
+  PublicKeyBundle,
+  PrivateKeyBundle,
+  PublicKey,
+  decrypt,
+  encrypt
+} from './crypto';
 
 export default class Message implements proto.Message {
   header: proto.Message_Header | undefined;
@@ -23,8 +29,12 @@ export default class Message implements proto.Message {
   }
 
   senderAddress(): string | undefined {
-    if (!this.header?.sender?.identityKey) { return undefined };
-    return new PublicKey(this.header.sender.identityKey).walletSignatureAddress();
+    if (!this.header?.sender?.identityKey) {
+      return undefined;
+    }
+    return new PublicKey(
+      this.header.sender.identityKey
+    ).walletSignatureAddress();
   }
 
   // encrypt and serialize the message

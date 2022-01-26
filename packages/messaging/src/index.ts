@@ -1,15 +1,9 @@
-import  Message from './Message';
+import Message from './Message';
 import {
   PublicKey,
   PublicKeyBundle,
   PrivateKey,
-  PrivateKeyBundle,
+  PrivateKeyBundle
 } from '../src/crypto';
 
-export {
-  Message,
-  PublicKey,
-  PublicKeyBundle,
-  PrivateKey,
-  PrivateKeyBundle,
-};
+export { Message, PublicKey, PublicKeyBundle, PrivateKey, PrivateKeyBundle };
