@@ -3,7 +3,6 @@ import * as secp from '@noble/secp256k1';
 import Signature from './Signature';
 import PrivateKey from './PrivateKey';
 import { hexToBytes } from './utils';
-import { keccak_256 as keccak256 } from '@noble/hashes/sha3';
 import * as ethers from 'ethers';
 
 // PublicKey respresents uncompressed secp256k1 public key,
@@ -109,10 +108,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!pk) {
       throw new Error('key was not signed by a wallet');
     }
-    if (!pk.secp256k1Uncompressed) {
-      throw new Error('missing public key');
-    }
-    return ethers.utils.computeAddress(pk.secp256k1Uncompressed.bytes);
+    return pk.getEthereumAddress();
   }
 
   // derive Ethereum address from this PublicKey
@@ -120,10 +116,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!this.secp256k1Uncompressed) {
       throw new Error('missing public key');
     }
-    // drop the uncompressed format prefix byte
-    const key = this.secp256k1Uncompressed.bytes.slice(1);
-    const bytes = keccak256(key).subarray(-20);
-    return '0x' + secp.utils.bytesToHex(bytes);
+    return ethers.utils.computeAddress(this.secp256k1Uncompressed.bytes);
   }
 
   // is other the same/equivalent PublicKey?

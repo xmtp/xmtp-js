@@ -16,7 +16,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   publicKeyBundle: PublicKeyBundle;
 
   constructor(identityKey: PrivateKey, preKey: PrivateKey) {
-    this.identityKey = new PrivateKey(identityKey);
+    this.identityKey = identityKey;
     this.preKey = preKey;
     this.preKeys = [preKey];
     this.publicKeyBundle = new PublicKeyBundle(
@@ -26,10 +26,13 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   }
 
   // Generate a new key bundle pair with the preKey signed byt the identityKey.
-  static async generate(): Promise<PrivateKeyBundle> {
+  static async generate(wallet?: ethers.Signer): Promise<PrivateKeyBundle> {
     const identityKey = PrivateKey.generate();
     const preKey = PrivateKey.generate();
     await identityKey.signKey(preKey.publicKey);
+    if (wallet) {
+      identityKey.publicKey.signWithWallet(wallet);
+    }
     return new PrivateKeyBundle(identityKey, preKey);
   }
 
