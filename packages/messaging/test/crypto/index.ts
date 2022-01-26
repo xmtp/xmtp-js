@@ -8,6 +8,7 @@ import {
   utils
 } from '../../src/crypto';
 import * as ethers from 'ethers';
+import Message from '../../src/Message';
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
@@ -86,9 +87,9 @@ describe('Crypto', function () {
     const msg1 = 'Yo!';
     const decrypted = new TextEncoder().encode(msg1);
     // Alice encrypts msg for Bob.
-    const encrypted = await aPri.encrypt(decrypted, bPub);
+    const encrypted = await Message.encrypt(decrypted, aPri, bPub);
     // Bob decrypts msg from Alice.
-    const decrypted2 = await bPri.decrypt(encrypted, aPub);
+    const decrypted2 = await Message.decrypt(encrypted, aPub, bPri);
     const msg2 = new TextDecoder().decode(decrypted2);
     assert.equal(msg2, msg1);
   });
@@ -114,8 +115,8 @@ describe('Crypto', function () {
     await aPub.identityKey.signWithWallet(wallet);
     // Bob
     const [bPri, bPub] = await PrivateKeyBundle.generate();
-    const msg1 = await aPri.encodeMessage(bPub, 'Yo!');
-    const msg2 = await bPri.decodeMessage(msg1.toBytes());
+    const msg1 = await Message.encode(aPri, bPub, 'Yo!');
+    const msg2 = await Message.decode(bPri, msg1.toBytes());
     assert.equal(msg1.decrypted, 'Yo!');
     assert.equal(msg1.decrypted, msg2.decrypted);
     const address = aPub.identityKey.walletSignatureAddress();
