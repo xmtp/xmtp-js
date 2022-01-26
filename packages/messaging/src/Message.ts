@@ -3,38 +3,13 @@ import Ciphertext from './crypto/Ciphertext';
 import { KeyBundle, PrivateKeyBundle, PublicKey } from './crypto';
 import { decrypt, encrypt } from './crypto/encryption';
 
-export class Header implements proto.Message_Header {
-  sender: KeyBundle | undefined;
-  recipient: KeyBundle | undefined;
-  decrypted: string | undefined;
-
-  constructor(obj: proto.Message_Header) {
-    if (obj.sender) {
-      this.sender = new KeyBundle(obj.sender);
-    }
-    if (obj.recipient) {
-      this.recipient = new KeyBundle(obj.recipient);
-    }
-  }
-
-  toBytes(): Uint8Array {
-    return proto.Message_Header.encode(this).finish();
-  }
-
-  static fromBytes(bytes: Uint8Array): Header {
-    return new Header(proto.Message_Header.decode(bytes));
-  }
-}
-
 export default class Message implements proto.Message {
-  header: Header | undefined;
+  header: proto.Message_Header | undefined;
   ciphertext: Ciphertext | undefined;
   decrypted: string | undefined;
 
   constructor(obj: proto.Message) {
-    if (obj.header) {
-      this.header = new Header(obj.header);
-    }
+    this.header = obj.header;
     if (obj.ciphertext) {
       this.ciphertext = new Ciphertext(obj.ciphertext);
     }
@@ -115,10 +90,10 @@ export default class Message implements proto.Message {
     recipient: KeyBundle
   ): Promise<Ciphertext> {
     const secret = await sender.sharedSecret(recipient, false);
-    const ad = associatedData({
+    const ad = proto.Message_Header.encode({
       sender: sender.getKeyBundle(),
       recipient: recipient
-    });
+    }).finish();
     return encrypt(plain, secret, ad);
   }
 
@@ -129,24 +104,10 @@ export default class Message implements proto.Message {
     recipient: PrivateKeyBundle
   ): Promise<Uint8Array> {
     const secret = await recipient.sharedSecret(sender, true);
-    const ad = associatedData({
+    const ad = proto.Message_Header.encode({
       sender: sender,
       recipient: recipient.getKeyBundle()
-    });
+    }).finish();
     return decrypt(encrypted, secret, ad);
   }
-}
-
-// argument type for associatedData()
-interface AssociatedData {
-  sender: KeyBundle;
-  recipient: KeyBundle;
-}
-
-// serializes message header into bytes so that it can be included for encryption as associated data
-function associatedData(header: AssociatedData): Uint8Array {
-  return proto.Message_Header.encode({
-    sender: header.sender,
-    recipient: header.recipient
-  }).finish();
 }
