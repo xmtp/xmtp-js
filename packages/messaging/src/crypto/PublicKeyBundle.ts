@@ -1,10 +1,10 @@
 import * as proto from '../../src/proto/message';
 import PublicKey from './PublicKey';
 
-// KeyBundle packages all the keys that a participant should advertise.
+// PublicKeyBundle packages all the keys that a participant should advertise.
 // The PreKey must be signed by the IdentityKey.
 // The IdentityKey can be signed by the wallet to authenticate it.
-export default class KeyBundle implements proto.Message_KeyBundle {
+export default class PublicKeyBundle implements proto.PublicKeyBundle {
   identityKey: PublicKey | undefined;
   preKey: PublicKey | undefined;
 
@@ -23,18 +23,18 @@ export default class KeyBundle implements proto.Message_KeyBundle {
   }
 
   toBytes(): Uint8Array {
-    return proto.Message_KeyBundle.encode(this).finish();
+    return proto.PublicKeyBundle.encode(this).finish();
   }
 
-  static fromBytes(bytes: Uint8Array): KeyBundle {
-    const decoded = proto.Message_KeyBundle.decode(bytes);
+  static fromBytes(bytes: Uint8Array): PublicKeyBundle {
+    const decoded = proto.PublicKeyBundle.decode(bytes);
     if (!decoded.identityKey) {
       throw new Error('missing identity key');
     }
     if (!decoded.preKey) {
       throw new Error('missing pre key');
     }
-    return new KeyBundle(
+    return new PublicKeyBundle(
       new PublicKey(decoded.identityKey),
       new PublicKey(decoded.preKey)
     );

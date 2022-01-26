@@ -1,6 +1,6 @@
 import * as proto from './proto/message';
 import Ciphertext from './crypto/Ciphertext';
-import { KeyBundle, PrivateKeyBundle, PublicKey } from './crypto';
+import { PublicKeyBundle, PrivateKeyBundle, PublicKey } from './crypto';
 import { decrypt, encrypt } from './crypto/encryption';
 
 export default class Message implements proto.Message {
@@ -26,7 +26,7 @@ export default class Message implements proto.Message {
   // encrypt and serialize the message
   static async encode(
     sender: PrivateKeyBundle,
-    recipient: KeyBundle,
+    recipient: PublicKeyBundle,
     message: string
   ): Promise<Message> {
     const bytes = new TextEncoder().encode(message);
@@ -67,7 +67,7 @@ export default class Message implements proto.Message {
     if (!message.header.recipient?.preKey) {
       throw new Error('missing message recipient pre key');
     }
-    const sender = new KeyBundle(
+    const sender = new PublicKeyBundle(
       new PublicKey(message.header.sender.identityKey),
       new PublicKey(message.header.sender.preKey)
     );
@@ -96,7 +96,7 @@ export default class Message implements proto.Message {
   static async encrypt(
     plain: Uint8Array,
     sender: PrivateKeyBundle,
-    recipient: KeyBundle
+    recipient: PublicKeyBundle
   ): Promise<Ciphertext> {
     const secret = await sender.sharedSecret(recipient, false);
     const ad = proto.Message_Header.encode({
@@ -109,7 +109,7 @@ export default class Message implements proto.Message {
   // decrypt the encrypted content using a symmetric key derived from the peers' key bundles.
   static async decrypt(
     encrypted: Ciphertext,
-    sender: KeyBundle,
+    sender: PublicKeyBundle,
     recipient: PrivateKeyBundle
   ): Promise<Uint8Array> {
     const secret = await recipient.sharedSecret(sender, true);

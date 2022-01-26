@@ -1,25 +1,25 @@
 import * as proto from '../../src/proto/message';
 import PrivateKey from './PrivateKey';
-import KeyBundle from './KeyBundle';
+import PublicKeyBundle from './PublicKeyBundle';
 import Ciphertext from './Ciphertext';
 import * as ethers from 'ethers';
 import { getRandomValues, hexToBytes } from './utils';
 import { decrypt, encrypt } from './encryption';
 
-// PrivateKeyBundle bundles the private keys corresponding to a KeyBundle for convenience.
+// PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
 // somehow so that older messages can be decrypted again.
 export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   identityKey: PrivateKey | undefined;
   preKeys: PrivateKey[];
   preKey: PrivateKey;
-  publicKeyBundle: KeyBundle;
+  publicKeyBundle: PublicKeyBundle;
 
   constructor(identityKey: PrivateKey, preKey: PrivateKey) {
     this.identityKey = new PrivateKey(identityKey);
     this.preKey = preKey;
     this.preKeys = [preKey];
-    this.publicKeyBundle = new KeyBundle(
+    this.publicKeyBundle = new PublicKeyBundle(
       this.identityKey.publicKey,
       this.preKey.publicKey
     );
@@ -36,7 +36,10 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
   // where the sender's ephemeral key pair is replaced by the sender's prekey.
   // @recipient indicates whether this is the sending (encrypting) or receiving (decrypting) side.
-  async sharedSecret(peer: KeyBundle, recipient: boolean): Promise<Uint8Array> {
+  async sharedSecret(
+    peer: PublicKeyBundle,
+    recipient: boolean
+  ): Promise<Uint8Array> {
     if (!peer.identityKey || !peer.preKey) {
       throw new Error('invalid peer key bundle');
     }

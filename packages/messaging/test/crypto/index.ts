@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { TextEncoder, TextDecoder } from 'util';
 import {
-  KeyBundle,
+  PublicKeyBundle,
   PrivateKeyBundle,
   PrivateKey,
   PublicKey,
@@ -97,7 +97,7 @@ describe('Crypto', function () {
     const alice = await PrivateKeyBundle.generate();
     const bytes = alice.publicKeyBundle.toBytes();
     assert.ok(bytes.length >= 213);
-    const pub2 = KeyBundle.fromBytes(bytes);
+    const pub2 = PublicKeyBundle.fromBytes(bytes);
     assert.ok(pub2.identityKey);
     assert.ok(pub2.preKey);
     assert.ok(pub2.identityKey.verifyKey(pub2.preKey));
