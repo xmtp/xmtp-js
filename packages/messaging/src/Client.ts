@@ -1,4 +1,4 @@
-import { KeyBundle, PrivateKeyBundle } from './crypto';
+import { PublicKeyBundle, PrivateKeyBundle, PublicKey } from './crypto';
 import {
   Waku,
   getNodesFromHostedJson,
@@ -77,7 +77,7 @@ export class Client {
 
   async sendMessage(
     sender: PrivateKeyBundle,
-    recipient: KeyBundle,
+    recipient: PublicKeyBundle,
     msgString: string
   ): Promise<void> {
     if (!recipient?.identityKey) {
@@ -95,11 +95,11 @@ export class Client {
     );
 
     const msgBytes = new TextEncoder().encode(msgString);
-    const ciphertext = await sender.encrypt(msgBytes, recipient);
+    const ciphertext = await Message.encrypt(msgBytes, sender, recipient);
     const timestamp = new Date();
     const msg = new Message({
       header: {
-        sender: sender.getKeyBundle(),
+        sender: sender.publicKeyBundle,
         recipient
       },
       ciphertext,
@@ -147,7 +147,7 @@ export class Client {
     // requests/introduction topic, or a conversation topic, so that needs to
     // be supported here.
     const contentTopic = buildContentTopic(
-      recipient.identityKey.getPublicKey().getEthereumAddress()
+      recipient.identityKey.publicKey.getEthereumAddress()
     );
 
     const wakuMsgs = await this.waku.store.queryHistory([contentTopic], {
@@ -165,9 +165,19 @@ export class Client {
         .map(async wakuMsg => {
           const msg = Message.fromBytes(wakuMsg.payload as Uint8Array);
           if (msg.ciphertext && msg.header?.sender) {
-            const bytes = await recipient.decrypt(
+            if (!msg.header.sender.identityKey) {
+              throw new Error('missing message sender identity key');
+            }
+            if (!msg.header.sender.preKey) {
+              throw new Error('missing message sender pre key');
+            }
+            const bytes = await Message.decrypt(
               msg.ciphertext,
-              msg.header?.sender
+              new PublicKeyBundle(
+                new PublicKey(msg.header.sender.identityKey),
+                new PublicKey(msg.header.sender.preKey)
+              ),
+              recipient
             );
             msg.decrypted = new TextDecoder().decode(bytes);
           }

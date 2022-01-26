@@ -1,7 +1,7 @@
 import { Waku, WakuMessage } from 'js-waku';
 import { Message } from '.';
 import asyncify from 'callback-to-async-iterator';
-import { PrivateKeyBundle } from './crypto';
+import { PrivateKeyBundle, PublicKey, PublicKeyBundle } from './crypto';
 import { buildContentTopic } from './utils';
 
 export default class Stream {
@@ -18,7 +18,7 @@ export default class Stream {
     // TODO:(snormore): The user can stream their requests/introduction topic,
     // or a conversation topic, so that needs to be supported here.
     const contentTopic = buildContentTopic(
-      recipient.identityKey.getPublicKey().getEthereumAddress()
+      recipient.identityKey.publicKey.getEthereumAddress()
     );
 
     this.iterator = asyncify<Message>(
@@ -28,9 +28,19 @@ export default class Stream {
             if (wakuMsg.payload) {
               const msg = Message.fromBytes(wakuMsg.payload);
               if (msg.ciphertext && msg.header?.sender) {
-                const bytes = await recipient.decrypt(
+                if (
+                  !msg.header.sender.identityKey ||
+                  !msg.header.sender.preKey
+                ) {
+                  throw new Error('invalid message sender in header');
+                }
+                const bytes = await Message.decrypt(
                   msg.ciphertext,
-                  msg.header.sender
+                  new PublicKeyBundle(
+                    new PublicKey(msg.header.sender.identityKey),
+                    new PublicKey(msg.header.sender.preKey)
+                  ),
+                  recipient
                 );
                 msg.decrypted = new TextDecoder().decode(bytes);
               }

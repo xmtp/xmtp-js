@@ -43,7 +43,8 @@ export default class Message implements proto.Message {
   static async encode(
     sender: PrivateKeyBundle,
     recipient: PublicKeyBundle,
-    message: string
+    message: string,
+    timestamp: Date
   ): Promise<Message> {
     const bytes = new TextEncoder().encode(message);
     const ciphertext = await this.encrypt(bytes, sender, recipient);
@@ -52,7 +53,8 @@ export default class Message implements proto.Message {
         sender: sender.publicKeyBundle,
         recipient
       },
-      ciphertext
+      ciphertext,
+      timestamp: timestamp.getTime()
     });
     msg.decrypted = message;
     return msg;

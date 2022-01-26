@@ -39,18 +39,18 @@ describe('Client', () => {
       });
 
       it('sendMessage', async () => {
-        const [, recipient] = await PrivateKeyBundle.generateBundles();
-        const [sender] = await PrivateKeyBundle.generateBundles();
-        await client.sendMessage(sender, recipient, 'hi');
+        const recipient = await PrivateKeyBundle.generate();
+        const sender = await PrivateKeyBundle.generate();
+        await client.sendMessage(sender, recipient.publicKeyBundle, 'hi');
       });
 
       it('streamMessages', async () => {
-        const [recipient] = await PrivateKeyBundle.generateBundles();
+        const recipient = await PrivateKeyBundle.generate();
         const stream = client.streamMessages(recipient);
 
-        const [sender] = await PrivateKeyBundle.generateBundles();
-        await client.sendMessage(sender, recipient.getKeyBundle(), 'hi');
-        await client.sendMessage(sender, recipient.getKeyBundle(), 'hello');
+        const sender = await PrivateKeyBundle.generate();
+        await client.sendMessage(sender, recipient.publicKeyBundle, 'hi');
+        await client.sendMessage(sender, recipient.publicKeyBundle, 'hello');
 
         let msg = await stream.next();
         assert.equal(msg.decrypted, 'hi');
@@ -77,10 +77,10 @@ describe('Client', () => {
       (testCase.name === 'status network' ? it.skip : it)(
         'listMessages',
         async () => {
-          const [recipient] = await PrivateKeyBundle.generateBundles();
+          const recipient = await PrivateKeyBundle.generate();
 
-          const [sender] = await PrivateKeyBundle.generateBundles();
-          await client.sendMessage(sender, recipient.getKeyBundle(), 'hi');
+          const sender = await PrivateKeyBundle.generate();
+          await client.sendMessage(sender, recipient.publicKeyBundle, 'hi');
 
           const messages = await waitFor(
             async () => {
