@@ -57,6 +57,7 @@ export interface Message {
 export interface Message_Header {
   sender: PublicKeyBundle | undefined;
   recipient: PublicKeyBundle | undefined;
+  timestamp: number;
 }
 
 export interface PrivateKeyBundle {
@@ -809,7 +810,7 @@ export const Message = {
 };
 
 function createBaseMessage_Header(): Message_Header {
-  return { sender: undefined, recipient: undefined };
+  return { sender: undefined, recipient: undefined, timestamp: 0 };
 }
 
 export const Message_Header = {
@@ -825,6 +826,9 @@ export const Message_Header = {
         message.recipient,
         writer.uint32(18).fork()
       ).ldelim();
+    }
+    if (message.timestamp !== 0) {
+      writer.uint32(24).uint64(message.timestamp);
     }
     return writer;
   },
@@ -842,6 +846,9 @@ export const Message_Header = {
         case 2:
           message.recipient = PublicKeyBundle.decode(reader, reader.uint32());
           break;
+        case 3:
+          message.timestamp = longToNumber(reader.uint64() as Long);
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -857,7 +864,8 @@ export const Message_Header = {
         : undefined,
       recipient: isSet(object.recipient)
         ? PublicKeyBundle.fromJSON(object.recipient)
-        : undefined
+        : undefined,
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0
     };
   },
 
@@ -871,6 +879,8 @@ export const Message_Header = {
       (obj.recipient = message.recipient
         ? PublicKeyBundle.toJSON(message.recipient)
         : undefined);
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp));
     return obj;
   },
 
@@ -886,6 +896,7 @@ export const Message_Header = {
       object.recipient !== undefined && object.recipient !== null
         ? PublicKeyBundle.fromPartial(object.recipient)
         : undefined;
+    message.timestamp = object.timestamp ?? 0;
     return message;
   }
 };
@@ -1110,6 +1121,13 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error('Value is larger than Number.MAX_SAFE_INTEGER');
+  }
+  return long.toNumber();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

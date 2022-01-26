@@ -1,4 +1,4 @@
-import * as proto from './proto/message';
+import * as proto from './proto/messaging';
 import Ciphertext from './crypto/Ciphertext';
 import {
   PublicKeyBundle,
@@ -41,15 +41,22 @@ export default class Message implements proto.Message {
   static async encode(
     sender: PrivateKeyBundle,
     recipient: PublicKeyBundle,
-    message: string
+    message: string,
+    timestamp: Date
   ): Promise<Message> {
     const bytes = new TextEncoder().encode(message);
-    const ciphertext = await this.encrypt(bytes, sender, recipient);
+
+    const secret = await sender.sharedSecret(recipient, false);
+    const header: proto.Message_Header = {
+      sender: sender.publicKeyBundle,
+      recipient,
+      timestamp: timestamp.getTime()
+    };
+    const headerBytes = proto.Message_Header.encode(header).finish();
+    const ciphertext = await encrypt(bytes, secret, headerBytes);
+
     const msg = new Message({
-      header: {
-        sender: sender.publicKeyBundle,
-        recipient
-      },
+      header,
       ciphertext
     });
     msg.decrypted = message;
@@ -100,37 +107,15 @@ export default class Message implements proto.Message {
       throw new Error('missing message ciphertext');
     }
     const ciphertext = new Ciphertext(message.ciphertext);
-    bytes = await this.decrypt(ciphertext, sender, recipient);
+    const secret = await recipient.sharedSecret(sender, true);
+    const headerBytes = proto.Message_Header.encode({
+      sender: sender,
+      recipient: recipient.publicKeyBundle,
+      timestamp: message.header.timestamp
+    }).finish();
+    bytes = await decrypt(ciphertext, secret, headerBytes);
     const msg = new Message(message);
     msg.decrypted = new TextDecoder().decode(bytes);
     return msg;
-  }
-
-  // encrypt the plaintext with a symmetric key derived from the peers' key bundles.
-  static async encrypt(
-    plain: Uint8Array,
-    sender: PrivateKeyBundle,
-    recipient: PublicKeyBundle
-  ): Promise<Ciphertext> {
-    const secret = await sender.sharedSecret(recipient, false);
-    const ad = proto.Message_Header.encode({
-      sender: sender.publicKeyBundle,
-      recipient: recipient
-    }).finish();
-    return encrypt(plain, secret, ad);
-  }
-
-  // decrypt the encrypted content using a symmetric key derived from the peers' key bundles.
-  static async decrypt(
-    encrypted: Ciphertext,
-    sender: PublicKeyBundle,
-    recipient: PrivateKeyBundle
-  ): Promise<Uint8Array> {
-    const secret = await recipient.sharedSecret(sender, true);
-    const ad = proto.Message_Header.encode({
-      sender: sender,
-      recipient: recipient.publicKeyBundle
-    }).finish();
-    return decrypt(encrypted, secret, ad);
   }
 }

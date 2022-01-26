@@ -1,7 +1,12 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
-    "declarationDir": "./types",
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types",
+      "../../node_modules/@types"
+    ],
+    "declarationDir": "./dist/types",
     "declarationMap": true
   }
 }

@@ -1,4 +1,4 @@
-import * as proto from '../proto/message';
+import * as proto from '../proto/messaging';
 
 export const AESKeySize = 32; // bytes
 export const KDFSaltSize = 32; // bytes
