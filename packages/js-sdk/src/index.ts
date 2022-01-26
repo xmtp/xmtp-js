@@ -1,7 +1,7 @@
-import { xmtpAuthentication } from 'xmtp-client-auth';
-import { xmtpMessaging } from 'xmtp-client-messaging';
+import { xmtpAuthentication as XMTPAuth } from 'xmtp-client-auth';
+import * as XMTPMessaging from 'xmtp-client-messaging';
 
 export const xmtpSDK = {
-  xmtpAuthentication,
-  xmtpMessaging
+  XMTPAuth,
+  XMTPMessaging
 };

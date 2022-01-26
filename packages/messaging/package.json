@@ -4,7 +4,7 @@
   "description": "Client API supporting asynchronous messaging operations across the XMTP network",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/types/src",
   "scripts": {
     "clean": "rimraf dist && pnpm run clean:proto",
     "clean:proto": "rimraf src/protos/*.ts",
