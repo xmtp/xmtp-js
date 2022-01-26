@@ -13,19 +13,19 @@ Following snippet shows the API for managing key bundles (assuming a connected w
 ```js
 // generate new wallet keys
 let pri = await PrivateKeyBundle.generate();
-let pub = pri.publicKeyBudle;
+let pub = pri.publicKeyBundle;
 
 // sign the identity key using the wallet
-await pub.identityKey.signWithWallet(aWallet);
+await pub.identityKey.signWithWallet(wallet);
 
 // serialize the public bundle for advertisement on the network
 let bytes = pub.toBytes();
 
 // serialize/encrypt the private bundle for secure storage
-let bytes = await pri.encode(aWallet);
+bytes = await pri.encode(wallet);
 
 // deserialize/decrypt private key bundle from storage
-let pri2 = await PrivateKeyBundle.decode(aWallet, bytes);
+let pri2 = await PrivateKeyBundle.decode(wallet, bytes);
 ```
 
 ## Encrypting/decrypting payload
@@ -61,7 +61,7 @@ let address = sender.walletSignatureAddress();
 
 ## Implementation Notes
 
-The cryptographic primitives are built around the standard Web Crypto API and the @noble libraries.
+The cryptographic primitives are built around the standard Web Crypto API and the [@noble libraries](https://paulmillr.com/noble/).
 The funcionality includes:
 
 - EC Public/Private Keys (secp256k1)
