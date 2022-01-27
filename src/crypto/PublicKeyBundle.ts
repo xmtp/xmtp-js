@@ -16,7 +16,7 @@ export default class PublicKeyBundle implements proto.PublicKeyBundle {
       throw new Error('missing identity key')
     }
     if (!preKey) {
-      throw new Error('missing pre key')
+      throw new Error('missing pre-key')
     }
     this.identityKey = identityKey
     this.preKey = preKey
@@ -32,7 +32,7 @@ export default class PublicKeyBundle implements proto.PublicKeyBundle {
       throw new Error('missing identity key')
     }
     if (!decoded.preKey) {
-      throw new Error('missing pre key')
+      throw new Error('missing pre-key')
     }
     return new PublicKeyBundle(
       new PublicKey(decoded.identityKey),

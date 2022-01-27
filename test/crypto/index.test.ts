@@ -79,17 +79,21 @@ describe('Crypto', function () {
     const msg1 = 'Yo!'
     const decrypted = new TextEncoder().encode(msg1)
     // Alice encrypts msg for Bob.
-    let secret = await alice.sharedSecret(bob.publicKeyBundle, false)
+    const bobPublic = bob.getPublicKeyBundle()
+    let secret = await alice.sharedSecret(bobPublic)
     const encrypted = await encrypt(decrypted, secret)
     // Bob decrypts msg from Alice.
-    secret = await bob.sharedSecret(alice.publicKeyBundle, true)
+    secret = await bob.sharedSecret(
+      alice.getPublicKeyBundle(),
+      bobPublic.preKey
+    )
     const decrypted2 = await decrypt(encrypted, secret)
     const msg2 = new TextDecoder().decode(decrypted2)
     assert.equal(msg2, msg1)
   })
   it('serializes and deserializes keys and signatures', async function () {
     const alice = await PrivateKeyBundle.generate()
-    const bytes = alice.publicKeyBundle.toBytes()
+    const bytes = alice.getPublicKeyBundle().toBytes()
     assert.ok(bytes.length >= 213)
     const pub2 = PublicKeyBundle.fromBytes(bytes)
     assert.ok(pub2.identityKey)
@@ -128,11 +132,11 @@ describe('Crypto', function () {
       bob.identityKey.secp256k1.bytes,
       bobDecoded.identityKey.secp256k1.bytes
     )
-    assert.ok(bob.preKey.secp256k1)
-    assert.ok(bobDecoded.preKey.secp256k1)
+    assert.ok(bob.preKeys[0].secp256k1)
+    assert.ok(bobDecoded.preKeys[0].secp256k1)
     assert.deepEqual(
-      bob.preKey.secp256k1.bytes,
-      bobDecoded.preKey.secp256k1.bytes
+      bob.preKeys[0].secp256k1.bytes,
+      bobDecoded.preKeys[0].secp256k1.bytes
     )
   })
 })

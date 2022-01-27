@@ -41,7 +41,7 @@ describe('Client', () => {
       it('sendMessage', async () => {
         const recipient = await PrivateKeyBundle.generate(newWallet())
         const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.sendMessage(sender, recipient.publicKeyBundle, 'hi')
+        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
       })
 
       it('streamMessages', async () => {
@@ -49,8 +49,12 @@ describe('Client', () => {
         const stream = client.streamMessages(recipient)
 
         const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.sendMessage(sender, recipient.publicKeyBundle, 'hi')
-        await client.sendMessage(sender, recipient.publicKeyBundle, 'hello')
+        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
+        await client.sendMessage(
+          sender,
+          recipient.getPublicKeyBundle(),
+          'hello'
+        )
 
         let msg = await stream.next()
         assert.equal(msg.decrypted, 'hi')
@@ -78,7 +82,7 @@ describe('Client', () => {
           const recipient = await PrivateKeyBundle.generate(newWallet())
 
           const sender = await PrivateKeyBundle.generate(newWallet())
-          await client.sendMessage(sender, recipient.publicKeyBundle, 'hi')
+          await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
 
           const messages = await waitFor(
             async () => {

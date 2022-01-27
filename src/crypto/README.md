@@ -13,7 +13,7 @@ Following snippet shows the API for managing key bundles (assuming a connected w
 ```js
 // generate new wallet keys
 let pri = await PrivateKeyBundle.generate(wallet)
-let pub = pri.publicKeyBundle
+let pub = pri.getPublicKeyBundle()
 
 // serialize the public bundle for advertisement on the network
 let bytes = pub.toBytes()
@@ -31,11 +31,11 @@ The sender must obtain the advertized public key bundle of the recipient and use
 
 ```js
 // deserializing recipient's public key bundle (bytes obtained from the network)
-recipient = PublicKeyBundle.fromBytes(bytes)
+recipientPublic = PublicKeyBundle.fromBytes(bytes)
 
 // encrypting binary `payload` for submission to the network
-// `sender` is sender's PrivateKeyBundle
-let secret = await sender.sharedSecret(recipient, false)
+// @sender is sender's PrivateKeyBundle
+let secret = await sender.sharedSecret(recipientPublic)
 let bytes = await encrypt(payload, secret)
 ```
 
@@ -47,10 +47,12 @@ If the message was tampered with or the key signatures don't check out, the deco
 
 ```js
 // decrypt the encrypted payload received from the network
-// `recipient` is the recipient's PrivateKeyBundle
-// `sender` is the sender's PublicKeyBundle (normally attached to the message)
-let secret = await recipient.sharedSecret(sender, true)
-let decrypted = await decrypt(encrypted, secret)
+// @recipientPublic is the key bundle used to encrypt the message (normally attached to the message)
+// @bytes is the encrypted message
+// @recipient is the recipient's PrivateKeyBundle
+// @sender is the sender's PublicKeyBundle (normally attached to the message)
+let secret = await recipient.sharedSecret(sender, recipientPublic.preKey)
+let payload = await decrypt(bytes, secret)
 
 // senders address can be derived from the key bundle
 let address = sender.walletSignatureAddress()
@@ -59,7 +61,7 @@ let address = sender.walletSignatureAddress()
 ## Implementation Notes
 
 The cryptographic primitives are built around the standard Web Crypto API and the [@noble libraries](https://paulmillr.com/noble/).
-The funcionality includes:
+The functionality includes:
 
 - EC Public/Private Keys (secp256k1)
 - ECDSA signatures and signing of public keys (ECDSA & EIP-191)
