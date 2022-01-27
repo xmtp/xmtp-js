@@ -12,13 +12,10 @@ export default class Stream {
       throw new Error('invalid recipient key')
     }
 
-    // TODO(snormore): The identity key Ethereum address is not the right
-    // topic. It needs to be deterministic from the recipients actual
-    // address.
     // TODO:(snormore): The user can stream their requests/introduction topic,
     // or a conversation topic, so that needs to be supported here.
     const contentTopic = buildContentTopic(
-      recipient.identityKey.publicKey.getEthereumAddress()
+      recipient.identityKey.publicKey.walletSignatureAddress()
     )
 
     this.iterator = asyncify<Message>(

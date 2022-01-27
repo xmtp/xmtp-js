@@ -4,7 +4,7 @@ The API is designed around the needs of the messaging framework.
 
 ## Managing keys associated with a wallet
 
-Each participating wallet is associated with a one key bundle comprised of an identity key and periodically rotated pre-keys. The public key bundle is advertised on the network and used by future senders to protect messages addressed to the wallet.
+Each participating wallet is associated with a key bundle comprised of an identity key and periodically rotated pre-keys. The public key bundle is advertised on the network and used by future senders to protect messages addressed to the wallet.
 The public key bundles of both the sender and the recipient that were used to protect a message are also attached to the message for transport/storage.
 The private key bundle must be stored and kept secret. It is required to decrypt the incoming messages.
 
@@ -12,11 +12,8 @@ Following snippet shows the API for managing key bundles (assuming a connected w
 
 ```js
 // generate new wallet keys
-let pri = await PrivateKeyBundle.generate()
+let pri = await PrivateKeyBundle.generate(wallet)
 let pub = pri.publicKeyBundle
-
-// sign the identity key using the wallet
-await pub.identityKey.signWithWallet(wallet)
 
 // serialize the public bundle for advertisement on the network
 let bytes = pub.toBytes()
@@ -28,7 +25,7 @@ bytes = await pri.encode(wallet)
 let pri2 = await PrivateKeyBundle.decode(wallet, bytes)
 ```
 
-## Encrypting/decrypting payload
+## Sending a message
 
 The sender must obtain the advertized public key bundle of the recipient and use it and his/her private key bundle to derive a shared secret that is then used as input into the symmetric encryption of the payload.
 
@@ -45,7 +42,7 @@ let bytes = await encrypt(payload, secret)
 ## Receiving a message
 
 The recipient must use his/her private key bundle to decrypt the incoming message.
-The sender's public key bundle is bundled with the message, the sender's address is derived from the key bundle and can be trusted as authentic.
+The sender's public key bundle should be bundled with the message, the sender's address is derived from the key bundle and can be trusted as authentic.
 If the message was tampered with or the key signatures don't check out, the decoding process will throw.
 
 ```js
@@ -65,11 +62,11 @@ The cryptographic primitives are built around the standard Web Crypto API and th
 The funcionality includes:
 
 - EC Public/Private Keys (secp256k1)
-- ECDSA signatures and signing of public keys
+- ECDSA signatures and signing of public keys (ECDSA & EIP-191)
 - shared secret derivation (ECDH)
 - authenticated symmetric encryption (AEAD: AES-256-GCM)
 - symmetric key derivation (HKDF-SHA-256)
-- X3DH style key bundles
+- X3DH style key bundles (https://signal.org/docs/specifications/x3dh/)
 
 Protobuf is used for serialization throughout. The protobuf message structure is set up for algorithm agility, i.e. ability to replace algorithms or expand the set of supported algorithms in backward compatible manner. Protobuf should help with interoperability between Javascript clients and Golang based nodes.
 
@@ -81,3 +78,6 @@ Protobuf is used for serialization throughout. The protobuf message structure is
 - sanity checking to avoid common mistakes
 - wiping of sensitive material
 - decoded keys/messages have Buffers instead of Uint8Arrays; problem?
+- the private key bundles are encrypted using a wallet signature; needs cryptographic review
+- the X3DH handshake substitutes sender's pre-key for sender's ephemeral key; needs cryptographic review
+- the X3DH handshake drops the one-time keys; needs cryptographic review

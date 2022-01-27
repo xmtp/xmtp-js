@@ -10,6 +10,9 @@ export const crypto: Crypto =
 
 const hkdfNoInfo = new ArrayBuffer(0)
 
+// symmetric authenticated encryption of plaintext using the secret;
+// additionalData is used to protect un-encrypted parts of the message (header)
+// in the authentication scope of the encryption.
 export async function encrypt(
   plain: Uint8Array,
   secret: Uint8Array,
@@ -32,6 +35,7 @@ export async function encrypt(
   })
 }
 
+// symmetric authenticated decryption of the encrypted ciphertext using the secret and additionalData
 export async function decrypt(
   encrypted: Ciphertext,
   secret: Uint8Array,
@@ -49,6 +53,7 @@ export async function decrypt(
   return new Uint8Array(decrypted)
 }
 
+// helper for building Web Crypto API encryption parameter structure
 function aesGcmParams(
   nonce: Uint8Array,
   additionalData?: Uint8Array

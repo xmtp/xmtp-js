@@ -1,12 +1,10 @@
 import assert from 'assert'
-import { Wallet } from 'ethers'
-import { Message, PrivateKey, PrivateKeyBundle } from '../src'
+import { newWallet } from './helpers'
+import { Message, PrivateKeyBundle } from '../src'
 
 describe('Messaging', function () {
   it('fully encodes/decodes messages', async function () {
-    const aliceWalletKey = PrivateKey.generate()
-    assert.ok(aliceWalletKey.secp256k1)
-    const aliceWallet = new Wallet(aliceWalletKey.secp256k1.bytes)
+    const aliceWallet = newWallet();
     // Alice's key bundle
     const alice = await PrivateKeyBundle.generate(aliceWallet)
     const alicePub = alice.publicKeyBundle
