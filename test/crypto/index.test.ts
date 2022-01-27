@@ -45,9 +45,8 @@ describe('Crypto', function () {
       await bob.decrypt(encrypted, alice.publicKey)
       assert.fail('should have thrown')
     } catch (e) {
-      assert.ok(e instanceof Error)
       // Note: This is Node behavior, not sure what browsers will do.
-      assert.equal(e.toString(), 'Error: Cipher job failed')
+      assert.equal(e, 'Error: Cipher job failed')
     }
   })
   it('derives public key from signature', async function () {

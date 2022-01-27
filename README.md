@@ -2,6 +2,7 @@
 
 ![Test](https://github.com/xmtp-org/xmtp-js-sdk/actions/workflows/test.yml/badge.svg)
 ![Lint](https://github.com/xmtp-org/xmtp-js-sdk/actions/workflows/lint.yml/badge.svg)
+![Build](https://github.com/xmtp-org/xmtp-js-sdk/actions/workflows/build.yml/badge.svg)
 
 The XMTP SDK bundles the core code libraries, components, tools, documentation, and guides that developers require in order to build client experiences on top of the XMTP protocol and network.
 
