@@ -1,0 +1,42 @@
+import * as proto from '../../src/proto/messaging'
+import PublicKey from './PublicKey'
+
+// PublicKeyBundle packages all the keys that a participant should advertise.
+// The PreKey must be signed by the IdentityKey.
+// The IdentityKey can be signed by the wallet to authenticate it.
+export default class PublicKeyBundle implements proto.PublicKeyBundle {
+  identityKey: PublicKey | undefined
+  preKey: PublicKey | undefined
+
+  constructor(
+    identityKey: PublicKey | undefined,
+    preKey: PublicKey | undefined
+  ) {
+    if (!identityKey) {
+      throw new Error('missing identity key')
+    }
+    if (!preKey) {
+      throw new Error('missing pre key')
+    }
+    this.identityKey = identityKey
+    this.preKey = preKey
+  }
+
+  toBytes(): Uint8Array {
+    return proto.PublicKeyBundle.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): PublicKeyBundle {
+    const decoded = proto.PublicKeyBundle.decode(bytes)
+    if (!decoded.identityKey) {
+      throw new Error('missing identity key')
+    }
+    if (!decoded.preKey) {
+      throw new Error('missing pre key')
+    }
+    return new PublicKeyBundle(
+      new PublicKey(decoded.identityKey),
+      new PublicKey(decoded.preKey)
+    )
+  }
+}

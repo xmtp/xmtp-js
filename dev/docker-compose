@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+docker-compose -p xmtp-js -f dev/docker-compose.yml "$@"
