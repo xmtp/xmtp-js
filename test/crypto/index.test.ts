@@ -87,7 +87,7 @@ describe('Crypto', function () {
     const msg2 = new TextDecoder().decode(decrypted2)
     assert.equal(msg2, msg1)
   })
-  it('serializes and desirializes keys and signatures', async function () {
+  it('serializes and deserializes keys and signatures', async function () {
     const alice = await PrivateKeyBundle.generate()
     const bytes = alice.publicKeyBundle.toBytes()
     assert.ok(bytes.length >= 213)

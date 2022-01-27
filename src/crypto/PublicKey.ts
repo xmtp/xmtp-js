@@ -31,7 +31,7 @@ export default class PublicKey implements proto.PublicKey {
     }
   }
 
-  // create PublicKey that corresponds to the provided PublicKey
+  // create PublicKey that corresponds to the provided PrivateKey
   static fromPrivateKey(pri: PrivateKey): PublicKey {
     if (!pri.secp256k1) {
       throw new Error('invalid private key')

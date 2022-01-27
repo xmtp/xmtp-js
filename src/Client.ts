@@ -84,14 +84,11 @@ export default class Client {
       throw new Error('missing recipient')
     }
 
-    // TODO(snormore): The identity key Ethereum address is not the right
-    // topic. It needs to be deterministic from the recipients actual
-    // address.
     // TODO:(snormore): The topic depends on whether the sender has notified
     // the recipients requests/introductions topic yet; if not then it should
     // send to that topic.
     const contentTopic = buildContentTopic(
-      recipient.identityKey.getEthereumAddress()
+      recipient.identityKey.walletSignatureAddress()
     )
 
     const timestamp = new Date()
@@ -130,14 +127,11 @@ export default class Client {
       throw new Error('missing recipient')
     }
 
-    // TODO(snormore): The identity key Ethereum address is not the right
-    // topic. It needs to be deterministic from the recipients actual
-    // address.
     // TODO:(snormore): The user can retrieve messages for their
     // requests/introduction topic, or a conversation topic, so that needs to
     // be supported here.
     const contentTopic = buildContentTopic(
-      recipient.identityKey.publicKey.getEthereumAddress()
+      recipient.identityKey.publicKey.walletSignatureAddress()
     )
 
     const wakuMsgs = await this.waku.store.queryHistory([contentTopic], {

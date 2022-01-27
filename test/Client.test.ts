@@ -1,6 +1,6 @@
 import { PrivateKeyBundle } from '../src/crypto'
 import assert from 'assert'
-import { waitFor } from './helpers'
+import { waitFor, newWallet } from './helpers'
 import { localDockerWakuNodeBootstrapAddr } from './config'
 import { promiseWithTimeout } from '../src/utils'
 import Client from '../src/Client'
@@ -39,16 +39,16 @@ describe('Client', () => {
       })
 
       it('sendMessage', async () => {
-        const recipient = await PrivateKeyBundle.generate()
-        const sender = await PrivateKeyBundle.generate()
+        const recipient = await PrivateKeyBundle.generate(newWallet())
+        const sender = await PrivateKeyBundle.generate(newWallet())
         await client.sendMessage(sender, recipient.publicKeyBundle, 'hi')
       })
 
       it('streamMessages', async () => {
-        const recipient = await PrivateKeyBundle.generate()
+        const recipient = await PrivateKeyBundle.generate(newWallet())
         const stream = client.streamMessages(recipient)
 
-        const sender = await PrivateKeyBundle.generate()
+        const sender = await PrivateKeyBundle.generate(newWallet())
         await client.sendMessage(sender, recipient.publicKeyBundle, 'hi')
         await client.sendMessage(sender, recipient.publicKeyBundle, 'hello')
 
@@ -75,9 +75,9 @@ describe('Client', () => {
       ;(testCase.name === 'status network' ? it.skip : it)(
         'listMessages',
         async () => {
-          const recipient = await PrivateKeyBundle.generate()
+          const recipient = await PrivateKeyBundle.generate(newWallet())
 
-          const sender = await PrivateKeyBundle.generate()
+          const sender = await PrivateKeyBundle.generate(newWallet())
           await client.sendMessage(sender, recipient.publicKeyBundle, 'hi')
 
           const messages = await waitFor(

@@ -26,6 +26,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   }
 
   // Generate a new key bundle pair with the preKey signed byt the identityKey.
+  // Optionally signs the identityKey with the wallet as well.
   static async generate(wallet?: ethers.Signer): Promise<PrivateKeyBundle> {
     const identityKey = PrivateKey.generate()
     const preKey = PrivateKey.generate()
@@ -37,7 +38,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
-  // where the sender's ephemeral key pair is replaced by the sender's prekey.
+  // where the sender's ephemeral key pair is replaced by the sender's pre-key.
   // @recipient indicates whether this is the sending (encrypting) or receiving (decrypting) side.
   async sharedSecret(
     peer: PublicKeyBundle,
@@ -68,6 +69,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     return secret
   }
 
+  // encrypts/serializes the bundle for storage
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {
     // serialize the contents
     if (this.preKeys.length === 0) {
@@ -89,6 +91,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     }).finish()
   }
 
+  // decrypts/deserializes the bundle from storage bytes
   static async decode(
     wallet: ethers.Signer,
     bytes: Uint8Array
