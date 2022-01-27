@@ -4,7 +4,7 @@ import { Message, PrivateKeyBundle } from '../src'
 
 describe('Messaging', function () {
   it('fully encodes/decodes messages', async function () {
-    const aliceWallet = newWallet();
+    const aliceWallet = newWallet()
     // Alice's key bundle
     const alice = await PrivateKeyBundle.generate(aliceWallet)
     const alicePub = alice.publicKeyBundle

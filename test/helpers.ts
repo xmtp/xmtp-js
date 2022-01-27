@@ -1,5 +1,5 @@
-import { Wallet } from 'ethers';
-import { PrivateKey } from '../src';
+import { Wallet } from 'ethers'
+import { PrivateKey } from '../src'
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
@@ -26,7 +26,9 @@ export async function waitFor<T>(
 }
 
 export function newWallet(): Wallet {
-  const key = PrivateKey.generate();
-  if(!key.secp256k1) { throw new Error('invalid key')};
-  return new Wallet(key.secp256k1.bytes);
+  const key = PrivateKey.generate()
+  if (!key.secp256k1) {
+    throw new Error('invalid key')
+  }
+  return new Wallet(key.secp256k1.bytes)
 }
