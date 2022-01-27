@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   build:
-    name: xmtp-js
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

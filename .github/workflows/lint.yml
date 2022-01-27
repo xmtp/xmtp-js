@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   lint:
-    name: xmtp-js
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
