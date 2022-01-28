@@ -74,7 +74,6 @@ Protobuf is used for serialization throughout. The protobuf message structure is
 
 # TODO
 
-- PrivateKeyBundle should have a collection of preKeys
 - distinguish wallet signatures from direct signatures
 - add key timestamp
 - sanity checking to avoid common mistakes

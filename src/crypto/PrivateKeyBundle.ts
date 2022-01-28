@@ -97,7 +97,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   // encrypts/serializes the bundle for storage
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {
     // serialize the contents
-    if (!this.preKeys) {
+    if (this.preKeys.length === 0) {
       throw new Error('missing pre-keys')
     }
     if (!this.identityKey) {
