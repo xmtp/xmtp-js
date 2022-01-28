@@ -8,8 +8,9 @@ import * as ethers from 'ethers'
 // PublicKey respresents uncompressed secp256k1 public key,
 // that can optionally be signed with another trusted key pair.
 export default class PublicKey implements proto.PublicKey {
-  secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompresed | undefined // eslint-disable-line camelcase
-  signature?: Signature | undefined
+  timestamp: number
+  secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompresed // eslint-disable-line camelcase
+  signature?: Signature
 
   constructor(obj: proto.PublicKey) {
     if (!obj?.secp256k1Uncompressed?.bytes) {
@@ -25,6 +26,7 @@ export default class PublicKey implements proto.PublicKey {
         `unrecognized public key prefix: ${obj.secp256k1Uncompressed.bytes[0]}`
       )
     }
+    this.timestamp = obj.timestamp
     this.secp256k1Uncompressed = obj.secp256k1Uncompressed
     if (obj.signature) {
       this.signature = new Signature(obj.signature)
@@ -40,7 +42,15 @@ export default class PublicKey implements proto.PublicKey {
       secp256k1Uncompressed: {
         bytes: secp.getPublicKey(pri.secp256k1.bytes),
       },
+      timestamp: pri.timestamp,
     })
+  }
+
+  generated(): Date | undefined {
+    if (!this.timestamp) {
+      return undefined
+    }
+    return new Date(this.timestamp)
   }
 
   // verify that Signature was created from provided digest using the corresponding PrivateKey
@@ -58,6 +68,13 @@ export default class PublicKey implements proto.PublicKey {
     )
   }
 
+  bytesToSign(): Uint8Array {
+    return proto.PublicKey.encode({
+      timestamp: this.timestamp,
+      secp256k1Uncompressed: this.secp256k1Uncompressed,
+    }).finish()
+  }
+
   // verify that the provided PublicKey was signed by the corresponding PrivateKey
   async verifyKey(pub: PublicKey): Promise<boolean> {
     if (typeof pub.signature === undefined) {
@@ -66,7 +83,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!pub.secp256k1Uncompressed) {
       return false
     }
-    const digest = await secp.utils.sha256(pub.secp256k1Uncompressed.bytes)
+    const digest = await secp.utils.sha256(pub.bytesToSign())
     return pub.signature ? this.verify(pub.signature, digest) : false
   }
 
@@ -75,7 +92,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!this.secp256k1Uncompressed) {
       throw new Error('missing public key')
     }
-    const sigString = await wallet.signMessage(this.secp256k1Uncompressed.bytes)
+    const sigString = await wallet.signMessage(this.bytesToSign())
     const eSig = ethers.utils.splitSignature(sigString)
     const r = hexToBytes(eSig.r)
     const s = hexToBytes(eSig.s)
@@ -99,9 +116,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!this.secp256k1Uncompressed) {
       throw new Error('missing public key')
     }
-    const digest = hexToBytes(
-      ethers.utils.hashMessage(this.secp256k1Uncompressed.bytes)
-    )
+    const digest = hexToBytes(ethers.utils.hashMessage(this.bytesToSign()))
     const pk = this.signature.getPublicKey(digest)
     if (!pk) {
       throw new Error('key was not signed by a wallet')
