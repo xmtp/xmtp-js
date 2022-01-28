@@ -67,6 +67,7 @@
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.2.0",
+    "localstorage-polyfill": "^1.0.1",
     "prettier": "^2.4.0",
     "stream-browserify": "^3.0.0",
     "ts-jest": "^27.0.5",
