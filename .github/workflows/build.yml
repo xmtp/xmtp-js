@@ -13,5 +13,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version-file: '.nvmrc'
+      - uses: bufbuild/buf-setup-action@v0.6.0
       - run: npm install
       - run: npm run build

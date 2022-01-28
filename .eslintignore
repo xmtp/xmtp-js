@@ -3,3 +3,4 @@
 *.test.js
 *.test.ts
 dist
+coverage
