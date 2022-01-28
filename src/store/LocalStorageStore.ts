@@ -1,4 +1,5 @@
 // This will create a global localStorage object on Node.js for use in tests
+// If we want to save some bytes from the bundle, we can have Webpack replace this with an empty module for the browser
 import 'localstorage-polyfill'
 import { Store } from './Store'
 
