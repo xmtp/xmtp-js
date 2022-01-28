@@ -35,10 +35,10 @@ export interface PrivateKey_Secp256k1 {
 }
 
 export interface Ciphertext {
-  aes256GcmHkdfSha256: Ciphertext_Aes256gcmHkdfsha256 | undefined
+  aes256GcmHkdfSha256: Ciphertext_aes256gcmHkdfsha256 | undefined
 }
 
-export interface Ciphertext_Aes256gcmHkdfsha256 {
+export interface Ciphertext_aes256gcmHkdfsha256 {
   hkdfSalt: Uint8Array
   gcmNonce: Uint8Array
   payload: Uint8Array
@@ -500,7 +500,7 @@ export const Ciphertext = {
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.aes256GcmHkdfSha256 !== undefined) {
-      Ciphertext_Aes256gcmHkdfsha256.encode(
+      Ciphertext_aes256gcmHkdfsha256.encode(
         message.aes256GcmHkdfSha256,
         writer.uint32(10).fork()
       ).ldelim()
@@ -516,7 +516,7 @@ export const Ciphertext = {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
-          message.aes256GcmHkdfSha256 = Ciphertext_Aes256gcmHkdfsha256.decode(
+          message.aes256GcmHkdfSha256 = Ciphertext_aes256gcmHkdfsha256.decode(
             reader,
             reader.uint32()
           )
@@ -532,7 +532,7 @@ export const Ciphertext = {
   fromJSON(object: any): Ciphertext {
     return {
       aes256GcmHkdfSha256: isSet(object.aes256GcmHkdfSha256)
-        ? Ciphertext_Aes256gcmHkdfsha256.fromJSON(object.aes256GcmHkdfSha256)
+        ? Ciphertext_aes256gcmHkdfsha256.fromJSON(object.aes256GcmHkdfSha256)
         : undefined,
     }
   },
@@ -541,7 +541,7 @@ export const Ciphertext = {
     const obj: any = {}
     message.aes256GcmHkdfSha256 !== undefined &&
       (obj.aes256GcmHkdfSha256 = message.aes256GcmHkdfSha256
-        ? Ciphertext_Aes256gcmHkdfsha256.toJSON(message.aes256GcmHkdfSha256)
+        ? Ciphertext_aes256gcmHkdfsha256.toJSON(message.aes256GcmHkdfSha256)
         : undefined)
     return obj
   },
@@ -553,13 +553,13 @@ export const Ciphertext = {
     message.aes256GcmHkdfSha256 =
       object.aes256GcmHkdfSha256 !== undefined &&
       object.aes256GcmHkdfSha256 !== null
-        ? Ciphertext_Aes256gcmHkdfsha256.fromPartial(object.aes256GcmHkdfSha256)
+        ? Ciphertext_aes256gcmHkdfsha256.fromPartial(object.aes256GcmHkdfSha256)
         : undefined
     return message
   },
 }
 
-function createBaseCiphertext_Aes256gcmHkdfsha256(): Ciphertext_Aes256gcmHkdfsha256 {
+function createBaseCiphertext_aes256gcmHkdfsha256(): Ciphertext_aes256gcmHkdfsha256 {
   return {
     hkdfSalt: new Uint8Array(),
     gcmNonce: new Uint8Array(),
@@ -567,9 +567,9 @@ function createBaseCiphertext_Aes256gcmHkdfsha256(): Ciphertext_Aes256gcmHkdfsha
   }
 }
 
-export const Ciphertext_Aes256gcmHkdfsha256 = {
+export const Ciphertext_aes256gcmHkdfsha256 = {
   encode(
-    message: Ciphertext_Aes256gcmHkdfsha256,
+    message: Ciphertext_aes256gcmHkdfsha256,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.hkdfSalt.length !== 0) {
@@ -587,10 +587,10 @@ export const Ciphertext_Aes256gcmHkdfsha256 = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number
-  ): Ciphertext_Aes256gcmHkdfsha256 {
+  ): Ciphertext_aes256gcmHkdfsha256 {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseCiphertext_Aes256gcmHkdfsha256()
+    const message = createBaseCiphertext_aes256gcmHkdfsha256()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -611,7 +611,7 @@ export const Ciphertext_Aes256gcmHkdfsha256 = {
     return message
   },
 
-  fromJSON(object: any): Ciphertext_Aes256gcmHkdfsha256 {
+  fromJSON(object: any): Ciphertext_aes256gcmHkdfsha256 {
     return {
       hkdfSalt: isSet(object.hkdfSalt)
         ? bytesFromBase64(object.hkdfSalt)
@@ -625,7 +625,7 @@ export const Ciphertext_Aes256gcmHkdfsha256 = {
     }
   },
 
-  toJSON(message: Ciphertext_Aes256gcmHkdfsha256): unknown {
+  toJSON(message: Ciphertext_aes256gcmHkdfsha256): unknown {
     const obj: any = {}
     message.hkdfSalt !== undefined &&
       (obj.hkdfSalt = base64FromBytes(
@@ -642,10 +642,10 @@ export const Ciphertext_Aes256gcmHkdfsha256 = {
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<Ciphertext_Aes256gcmHkdfsha256>, I>>(
+  fromPartial<I extends Exact<DeepPartial<Ciphertext_aes256gcmHkdfsha256>, I>>(
     object: I
-  ): Ciphertext_Aes256gcmHkdfsha256 {
-    const message = createBaseCiphertext_Aes256gcmHkdfsha256()
+  ): Ciphertext_aes256gcmHkdfsha256 {
+    const message = createBaseCiphertext_aes256gcmHkdfsha256()
     message.hkdfSalt = object.hkdfSalt ?? new Uint8Array()
     message.gcmNonce = object.gcmNonce ?? new Uint8Array()
     message.payload = object.payload ?? new Uint8Array()
