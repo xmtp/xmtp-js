@@ -62,7 +62,7 @@ describe('EncryptedStore', () => {
 
     await secureStore.storePrivateKeyBundle(originalBundle)
     const returnedBundle =
-      (await secureStore.retrievePrivateKeyBundle()) as PrivateKeyBundle
+      (await secureStore.loadPrivateKeyBundle()) as PrivateKeyBundle
 
     assert.ok(returnedBundle)
     assert.deepEqual(
@@ -78,6 +78,6 @@ describe('EncryptedStore', () => {
 
   it('returns null when no bundle found', async () => {
     const secureStore = new EncryptedStore(wallet, store)
-    assert.equal(null, await secureStore.retrievePrivateKeyBundle())
+    assert.equal(null, await secureStore.loadPrivateKeyBundle())
   })
 })

@@ -3,7 +3,13 @@ import { Signer } from 'ethers'
 import { PrivateKeyBundle } from '../crypto'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
+/*
+  EncryptedStore is an abstraction on top of the generic Store which enables the decryption and decoding
+  of specific data types.
 
+  Currently supports:
+  - PrivateKeyBundle
+*/
 export default class EncryptedStore {
   private store: Store
   private signer: Signer
@@ -20,7 +26,8 @@ export default class EncryptedStore {
     return `${walletAddress}/${name}`
   }
 
-  async retrievePrivateKeyBundle(): Promise<PrivateKeyBundle | null> {
+  // Retrieve a private key bundle for the active wallet address in the signer
+  async loadPrivateKeyBundle(): Promise<PrivateKeyBundle | null> {
     const storageBuffer = await this.store.get(
       await this.getStorageAddress(KEY_BUNDLE_NAME)
     )
@@ -30,6 +37,7 @@ export default class EncryptedStore {
     return PrivateKeyBundle.decode(this.signer, Uint8Array.from(storageBuffer))
   }
 
+  // Store the private key bundle at an address generated based on the active wallet in the signer
   async storePrivateKeyBundle(bundle: PrivateKeyBundle): Promise<void> {
     const keyAddress = await this.getStorageAddress(KEY_BUNDLE_NAME)
     const encodedBundle = await bundle.encode(this.signer)
