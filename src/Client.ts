@@ -34,12 +34,12 @@ export default class Client {
           peers: opts?.bootstrapAddrs,
         }
       : {
-          getPeers: getNodesFromHostedJson.bind({}, [
-            'fleets',
-            'wakuv2.test',
-            'waku-websocket',
-          ]),
-          // default: true,
+          // getPeers: getNodesFromHostedJson.bind({}, [
+          //   'fleets',
+          //   'wakuv2.test',
+          //   'waku-websocket',
+          // ]),
+          default: true,
         }
     const waku = await Waku.create({
       libp2p: {

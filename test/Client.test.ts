@@ -26,10 +26,10 @@ describe('Client', () => {
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
       let client: Client
-      beforeAll(async () => {
+      before(async () => {
         client = await testCase.newClient()
       })
-      afterAll(async () => {
+      after(async () => {
         if (client) await client.close()
       })
 
