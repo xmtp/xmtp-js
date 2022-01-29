@@ -3,7 +3,7 @@
 import 'localstorage-polyfill'
 import { Store } from './Store'
 
-const KEY_PREFIX = 'xmtp_'
+const KEY_PREFIX = '/xmtp/'
 const ENCODING = 'binary'
 
 export default class LocalStorageStore implements Store {
