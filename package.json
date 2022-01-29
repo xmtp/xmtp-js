@@ -16,7 +16,7 @@
     "clean": "node tools/cleanup && npm run clean:proto",
     "clean:proto": "rm -rf src/proto/*.ts",
     "package": "npm run build && npm pack",
-    "test": "ts-mocha --timeout=10000 test/*.ts test/**/*.ts",
+    "test": "ts-mocha --timeout=30000 test/*.ts test/**/*.ts",
     "addscope": "node tools/packagejson name @xmtp-org/xmtp-js",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix ."

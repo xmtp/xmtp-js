@@ -1,19 +1,31 @@
 import { PrivateKeyBundle } from '../src/crypto'
 import assert from 'assert'
 import { waitFor, newWallet } from './helpers'
-import { localDockerWakuNodeBootstrapAddr } from './config'
 import { promiseWithTimeout } from '../src/utils'
 import Client from '../src/Client'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create({
-    bootstrapAddrs: [localDockerWakuNodeBootstrapAddr],
+    bootstrapAddrs: [
+      '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
+    ],
+  })
+
+const newTestnetClient = (): Promise<Client> =>
+  Client.create({
+    bootstrapAddrs: [
+      '/dns4/bootstrap-node-0.testnet.xmtp.network/tcp/8443/wss/p2p/16Uiu2HAm888gVYpr4cZQ4qhEendQW6oYEhG8n6fnqw1jVW3Prdc6',
+    ],
   })
 
 const newStatusClient = (): Promise<Client> => Client.create()
 
 describe('Client', () => {
   const tests = [
+    {
+      name: 'testnet',
+      newClient: newTestnetClient,
+    },
     {
       name: 'status network',
       newClient: newStatusClient,
@@ -88,7 +100,7 @@ describe('Client', () => {
             if (!messages.length) throw new Error('no messages')
             return messages
           },
-          1000,
+          20000,
           100
         )
         assert.ok(messages.length === 1)
