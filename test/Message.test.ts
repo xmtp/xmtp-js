@@ -1,6 +1,8 @@
 import assert from 'assert'
 import { newWallet } from './helpers'
-import { Message, PrivateKeyBundle } from '../src'
+import { Message, PrivateKeyBundle, PublicKey, PublicKeyBundle } from '../src'
+import { hexToBytes } from '../src/crypto/utils'
+import * as secp from '@noble/secp256k1'
 
 describe('Messaging', function () {
   it('fully encodes/decodes messages', async function () {

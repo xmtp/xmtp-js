@@ -76,27 +76,24 @@ describe('Client', () => {
         }
         assert.ok(timeout)
       })
-      ;(testCase.name === 'status network' ? it.skip : it)(
-        'listMessages',
-        async () => {
-          const recipient = await PrivateKeyBundle.generate(newWallet())
+      it('listMessages', async () => {
+        const recipient = await PrivateKeyBundle.generate(newWallet())
 
-          const sender = await PrivateKeyBundle.generate(newWallet())
-          await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
+        const sender = await PrivateKeyBundle.generate(newWallet())
+        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
 
-          const messages = await waitFor(
-            async () => {
-              const messages = await client.listMessages(recipient)
-              if (!messages.length) throw new Error('no messages')
-              return messages
-            },
-            1000,
-            100
-          )
-          assert.ok(messages.length === 1)
-          assert.equal(messages[0].decrypted, 'hi')
-        }
-      )
+        const messages = await waitFor(
+          async () => {
+            const messages = await client.listMessages(recipient)
+            if (!messages.length) throw new Error('no messages')
+            return messages
+          },
+          1000,
+          100
+        )
+        assert.ok(messages.length === 1)
+        assert.equal(messages[0].decrypted, 'hi')
+      })
     })
   })
 })
