@@ -1,6 +1,15 @@
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
 
+export const buildDirectMessageTopic = (
+  sender: string,
+  recipient: string
+): string => {
+  const members = [sender, recipient]
+  members.sort()
+  return buildContentTopic(`dm-${members.join('-')}`)
+}
+
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 

@@ -32,10 +32,10 @@ describe('Client', () => {
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
       let client: Client
-      beforeAll(async () => {
+      before(async () => {
         client = await testCase.newClient()
       })
-      afterAll(async () => {
+      after(async () => {
         if (client) await client.close()
       })
 
@@ -51,10 +51,13 @@ describe('Client', () => {
       })
 
       it('streamMessages', async () => {
-        const recipient = await PrivateKeyBundle.generate(newWallet())
-        const stream = client.streamMessages(recipient)
-
         const sender = await PrivateKeyBundle.generate(newWallet())
+        const recipient = await PrivateKeyBundle.generate(newWallet())
+        const stream = client.streamMessages(
+          sender.getPublicKeyBundle(),
+          recipient
+        )
+
         await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
         await client.sendMessage(
           sender,
@@ -90,7 +93,10 @@ describe('Client', () => {
 
         const messages = await waitFor(
           async () => {
-            const messages = await client.listMessages(recipient)
+            const messages = await client.listMessages(
+              sender.getPublicKeyBundle(),
+              recipient
+            )
             if (!messages.length) throw new Error('no messages')
             return messages
           },
