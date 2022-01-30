@@ -1,7 +1,7 @@
 import { PrivateKeyBundle } from '../src/crypto'
 import assert from 'assert'
 import { waitFor, newWallet } from './helpers'
-import { promiseWithTimeout } from '../src/utils'
+import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
 
 const newLocalDockerClient = (): Promise<Client> =>
@@ -44,24 +44,44 @@ describe('Client', () => {
         assert(Array.from(client.waku.relay.getPeers()).length === 1)
       })
 
+      it('register and get public key bundle', async () => {
+        const registered = await PrivateKeyBundle.generate(newWallet())
+        await client.registerPublicKeyBundle(registered.getPublicKeyBundle())
+        await sleep(10)
+        const received = await client.getPublicKeyBundle(
+          registered.identityKey.publicKey.walletSignatureAddress()
+        )
+        assert.deepEqual(registered.getPublicKeyBundle(), received)
+      })
+
       it('sendMessage', async () => {
         const recipient = await PrivateKeyBundle.generate(newWallet())
         const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
+        await client.registerPublicKeyBundle(recipient.getPublicKeyBundle())
+        await client.sendMessage(
+          sender,
+          recipient.identityKey.publicKey.walletSignatureAddress(),
+          'hi'
+        )
       })
 
       it('streamMessages', async () => {
         const sender = await PrivateKeyBundle.generate(newWallet())
         const recipient = await PrivateKeyBundle.generate(newWallet())
+        await client.registerPublicKeyBundle(recipient.getPublicKeyBundle())
         const stream = client.streamMessages(
           sender.getPublicKeyBundle(),
           recipient
         )
 
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
         await client.sendMessage(
           sender,
-          recipient.getPublicKeyBundle(),
+          recipient.identityKey.publicKey.walletSignatureAddress(),
+          'hi'
+        )
+        await client.sendMessage(
+          sender,
+          recipient.identityKey.publicKey.walletSignatureAddress(),
           'hello'
         )
 
@@ -89,12 +109,16 @@ describe('Client', () => {
         const recipient = await PrivateKeyBundle.generate(newWallet())
 
         const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
+        await client.sendMessage(
+          sender,
+          recipient.identityKey.publicKey.walletSignatureAddress(),
+          'hi'
+        )
 
         const messages = await waitFor(
           async () => {
             const messages = await client.listMessages(
-              sender.getPublicKeyBundle(),
+              sender.identityKey.publicKey.walletSignatureAddress(),
               recipient
             )
             if (!messages.length) throw new Error('no messages')

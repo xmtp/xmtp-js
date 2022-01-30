@@ -1,7 +1,12 @@
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import Message from './Message'
-import { buildDirectMessageTopic, promiseWithTimeout } from './utils'
+import {
+  buildContentTopic,
+  buildDirectMessageTopic,
+  buildPublicKeyBundleTopic,
+  promiseWithTimeout,
+} from './utils'
 import { sleep } from '../test/helpers'
 import Stream from './Stream'
 
@@ -63,21 +68,56 @@ export default class Client {
     return this.waku.stop()
   }
 
+  async registerPublicKeyBundle(recipient: PublicKeyBundle): Promise<void> {
+    if (!recipient.identityKey) {
+      throw new Error('missing recipient')
+    }
+    await this.waku.relay.send(
+      await WakuMessage.fromBytes(
+        recipient.toBytes(),
+        buildContentTopic(
+          `keys-${recipient.identityKey.walletSignatureAddress()}`
+        )
+      )
+    )
+  }
+
+  async getPublicKeyBundle(
+    recipientWalletAddr: string
+  ): Promise<PublicKeyBundle | undefined> {
+    const recipientKeys = (
+      await this.waku.store.queryHistory(
+        [buildPublicKeyBundleTopic(recipientWalletAddr)],
+        {
+          pageSize: 1,
+          pageDirection: PageDirection.BACKWARD,
+        }
+      )
+    )
+      .filter((msg: WakuMessage) => msg.payload)
+      .map((msg: WakuMessage) =>
+        PublicKeyBundle.fromBytes(msg.payload as Uint8Array)
+      )
+    return recipientKeys.length > 0 ? recipientKeys[0] : undefined
+  }
+
   async sendMessage(
     sender: PrivateKeyBundle,
-    recipient: PublicKeyBundle,
+    recipientWalletAddr: string,
     msgString: string
   ): Promise<void> {
     if (!sender?.identityKey) {
       throw new Error('missing recipient')
     }
-    if (!recipient?.identityKey) {
-      throw new Error('missing recipient')
+
+    const recipient = await this.getPublicKeyBundle(recipientWalletAddr)
+    if (!recipient) {
+      throw new Error('recipient not found')
     }
 
     const contentTopic = buildDirectMessageTopic(
       sender.identityKey.publicKey.walletSignatureAddress(),
-      recipient.identityKey.walletSignatureAddress()
+      recipientWalletAddr
     )
     const timestamp = new Date()
     const msg = await Message.encode(sender, recipient, msgString, timestamp)
@@ -92,7 +132,7 @@ export default class Client {
   }
 
   async listMessages(
-    sender: PublicKeyBundle,
+    senderWalletAddr: string,
     recipient: PrivateKeyBundle,
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
@@ -110,15 +150,12 @@ export default class Client {
       opts.pageSize = 10
     }
 
-    if (!sender.identityKey) {
-      throw new Error('missing sender')
-    }
     if (!recipient.identityKey) {
       throw new Error('missing recipient')
     }
 
     const contentTopic = buildDirectMessageTopic(
-      sender.identityKey.walletSignatureAddress(),
+      senderWalletAddr,
       recipient.identityKey.publicKey.walletSignatureAddress()
     )
     const wakuMsgs = await this.waku.store.queryHistory([contentTopic], {
