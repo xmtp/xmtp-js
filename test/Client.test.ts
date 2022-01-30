@@ -54,34 +54,19 @@ describe('Client', () => {
         assert.deepEqual(registered.getPublicKeyBundle(), received)
       })
 
-      it('sendMessage', async () => {
-        const recipient = await PrivateKeyBundle.generate(newWallet())
-        const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.registerPublicKeyBundle(recipient.getPublicKeyBundle())
-        await client.sendMessage(
-          sender,
-          recipient.identityKey.publicKey.walletSignatureAddress(),
-          'hi'
-        )
-      })
-
-      it('streamMessages', async () => {
+      it('stream and send messages', async () => {
         const sender = await PrivateKeyBundle.generate(newWallet())
         const recipient = await PrivateKeyBundle.generate(newWallet())
         await client.registerPublicKeyBundle(recipient.getPublicKeyBundle())
         const stream = client.streamMessages(
-          sender.getPublicKeyBundle(),
+          sender.identityKey.publicKey.walletSignatureAddress(),
           recipient
         )
 
+        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
         await client.sendMessage(
           sender,
-          recipient.identityKey.publicKey.walletSignatureAddress(),
-          'hi'
-        )
-        await client.sendMessage(
-          sender,
-          recipient.identityKey.publicKey.walletSignatureAddress(),
+          recipient.getPublicKeyBundle(),
           'hello'
         )
 
@@ -109,11 +94,7 @@ describe('Client', () => {
         const recipient = await PrivateKeyBundle.generate(newWallet())
 
         const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.sendMessage(
-          sender,
-          recipient.identityKey.publicKey.walletSignatureAddress(),
-          'hi'
-        )
+        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
 
         const messages = await waitFor(
           async () => {

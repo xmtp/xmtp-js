@@ -1,7 +1,7 @@
 import { Waku, WakuMessage } from 'js-waku'
 import { Message } from '.'
 import asyncify from 'callback-to-async-iterator'
-import { PrivateKeyBundle, PublicKeyBundle } from './crypto'
+import { PrivateKeyBundle } from './crypto'
 import { buildDirectMessageTopic } from './utils'
 
 export default class Stream {
@@ -9,18 +9,15 @@ export default class Stream {
 
   constructor(
     waku: Waku,
-    sender: PublicKeyBundle,
+    senderWalletAddr: string,
     recipient: PrivateKeyBundle
   ) {
-    if (!sender.identityKey) {
-      throw new Error('invalid sender key')
-    }
     if (!recipient.identityKey) {
       throw new Error('invalid recipient key')
     }
 
     const contentTopic = buildDirectMessageTopic(
-      sender.identityKey.walletSignatureAddress(),
+      senderWalletAddr,
       recipient.identityKey.publicKey.walletSignatureAddress()
     )
 

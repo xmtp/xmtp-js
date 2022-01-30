@@ -103,21 +103,18 @@ export default class Client {
 
   async sendMessage(
     sender: PrivateKeyBundle,
-    recipientWalletAddr: string,
+    recipient: PublicKeyBundle,
     msgString: string
   ): Promise<void> {
     if (!sender?.identityKey) {
+      throw new Error('missing sender')
+    }
+    if (!recipient?.identityKey) {
       throw new Error('missing recipient')
     }
-
-    const recipient = await this.getPublicKeyBundle(recipientWalletAddr)
-    if (!recipient) {
-      throw new Error('recipient not found')
-    }
-
     const contentTopic = buildDirectMessageTopic(
       sender.identityKey.publicKey.walletSignatureAddress(),
-      recipientWalletAddr
+      recipient.identityKey.walletSignatureAddress()
     )
     const timestamp = new Date()
     const msg = await Message.encode(sender, recipient, msgString, timestamp)
@@ -127,8 +124,11 @@ export default class Client {
     return this.waku.relay.send(wakuMsg)
   }
 
-  streamMessages(sender: PublicKeyBundle, recipient: PrivateKeyBundle): Stream {
-    return new Stream(this.waku, sender, recipient)
+  streamMessages(
+    senderWalletAddr: string,
+    recipient: PrivateKeyBundle
+  ): Stream {
+    return new Stream(this.waku, senderWalletAddr, recipient)
   }
 
   async listMessages(
