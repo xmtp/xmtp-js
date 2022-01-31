@@ -75,8 +75,8 @@ export default class Client {
     await this.waku.relay.send(
       await WakuMessage.fromBytes(
         recipient.toBytes(),
-        buildContentTopic(
-          `keys-${recipient.identityKey.walletSignatureAddress()}`
+        buildPublicKeyBundleTopic(
+          recipient.identityKey.walletSignatureAddress()
         )
       )
     )
