@@ -44,31 +44,27 @@ describe('Client', () => {
         assert(Array.from(client.waku.relay.getPeers()).length === 1)
       })
 
-      it('register and get public key bundle', async () => {
+      it('publish and get user contact', async () => {
         const registered = await PrivateKeyBundle.generate(newWallet())
-        await client.registerPublicKeyBundle(registered.getPublicKeyBundle())
+        await client.publicUserContact(registered.getUserContact())
         await sleep(10)
-        const received = await client.getPublicKeyBundle(
+        const received = await client.getUserContact(
           registered.identityKey.publicKey.walletSignatureAddress()
         )
-        assert.deepEqual(registered.getPublicKeyBundle(), received)
+        assert.deepEqual(registered.getUserContact(), received)
       })
 
       it('stream and send messages', async () => {
         const sender = await PrivateKeyBundle.generate(newWallet())
         const recipient = await PrivateKeyBundle.generate(newWallet())
-        await client.registerPublicKeyBundle(recipient.getPublicKeyBundle())
+        await client.publicUserContact(recipient.getUserContact())
         const stream = client.streamMessages(
           sender.identityKey.publicKey.walletSignatureAddress(),
           recipient
         )
 
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
-        await client.sendMessage(
-          sender,
-          recipient.getPublicKeyBundle(),
-          'hello'
-        )
+        await client.sendMessage(sender, recipient.getUserContact(), 'hi')
+        await client.sendMessage(sender, recipient.getUserContact(), 'hello')
 
         let msg = await stream.next()
         assert.equal(msg.decrypted, 'hi')
@@ -94,7 +90,7 @@ describe('Client', () => {
         const recipient = await PrivateKeyBundle.generate(newWallet())
 
         const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
+        await client.sendMessage(sender, recipient.getUserContact(), 'hi')
 
         const messages = await waitFor(
           async () => {

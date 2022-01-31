@@ -10,7 +10,7 @@ export const buildDirectMessageTopic = (
   return buildContentTopic(`dm-${members.join('-')}`)
 }
 
-export const buildPublicKeyBundleTopic = (walletAddr: string): string => {
+export const buildUserContactTopic = (walletAddr: string): string => {
   return buildContentTopic(`keys-${walletAddr}`)
 }
 

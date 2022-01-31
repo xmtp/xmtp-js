@@ -4,7 +4,7 @@ import Message from './Message'
 import {
   buildContentTopic,
   buildDirectMessageTopic,
-  buildPublicKeyBundleTopic,
+  buildUserContactTopic,
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
@@ -68,26 +68,24 @@ export default class Client {
     return this.waku.stop()
   }
 
-  async registerPublicKeyBundle(recipient: PublicKeyBundle): Promise<void> {
+  async publicUserContact(recipient: PublicKeyBundle): Promise<void> {
     if (!recipient.identityKey) {
       throw new Error('missing recipient')
     }
     await this.waku.relay.send(
       await WakuMessage.fromBytes(
         recipient.toBytes(),
-        buildPublicKeyBundleTopic(
-          recipient.identityKey.walletSignatureAddress()
-        )
+        buildUserContactTopic(recipient.identityKey.walletSignatureAddress())
       )
     )
   }
 
-  async getPublicKeyBundle(
+  async getUserContact(
     recipientWalletAddr: string
   ): Promise<PublicKeyBundle | undefined> {
     const recipientKeys = (
       await this.waku.store.queryHistory(
-        [buildPublicKeyBundleTopic(recipientWalletAddr)],
+        [buildUserContactTopic(recipientWalletAddr)],
         {
           pageSize: 1,
           pageDirection: PageDirection.BACKWARD,

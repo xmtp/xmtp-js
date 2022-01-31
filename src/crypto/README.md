@@ -13,7 +13,7 @@ Following snippet shows the API for managing key bundles (assuming a connected w
 ```js
 // generate new wallet keys
 let pri = await PrivateKeyBundle.generate(wallet)
-let pub = pri.getPublicKeyBundle()
+let pub = pri.getUserContact()
 
 // serialize the public bundle for advertisement on the network
 let bytes = pub.toBytes()

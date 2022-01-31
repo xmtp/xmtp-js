@@ -80,21 +80,18 @@ describe('Crypto', function () {
     const msg1 = 'Yo!'
     const decrypted = new TextEncoder().encode(msg1)
     // Alice encrypts msg for Bob.
-    const bobPublic = bob.getPublicKeyBundle()
+    const bobPublic = bob.getUserContact()
     let secret = await alice.sharedSecret(bobPublic)
     const encrypted = await encrypt(decrypted, secret)
     // Bob decrypts msg from Alice.
-    secret = await bob.sharedSecret(
-      alice.getPublicKeyBundle(),
-      bobPublic.preKey
-    )
+    secret = await bob.sharedSecret(alice.getUserContact(), bobPublic.preKey)
     const decrypted2 = await decrypt(encrypted, secret)
     const msg2 = new TextDecoder().decode(decrypted2)
     assert.equal(msg2, msg1)
   })
   it('serializes and deserializes keys and signatures', async function () {
     const alice = await PrivateKeyBundle.generate()
-    const bytes = alice.getPublicKeyBundle().toBytes()
+    const bytes = alice.getUserContact().toBytes()
     assert.ok(bytes.length >= 213)
     const pub2 = PublicKeyBundle.fromBytes(bytes)
     assert.ok(pub2.identityKey)

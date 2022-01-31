@@ -53,7 +53,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   }
 
   // Return a key bundle with the current pre-key.
-  getPublicKeyBundle(): PublicKeyBundle {
+  getUserContact(): PublicKeyBundle {
     return new PublicKeyBundle(
       this.identityKey.publicKey,
       this.getCurrentPreKey().publicKey

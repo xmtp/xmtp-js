@@ -49,7 +49,7 @@ export default class Message implements proto.Message {
     const secret = await sender.sharedSecret(recipient)
     // eslint-disable-next-line camelcase
     const header: proto.Message_Header = {
-      sender: sender.getPublicKeyBundle(),
+      sender: sender.getUserContact(),
       recipient,
       timestamp: timestamp.getTime(),
     }
@@ -102,7 +102,7 @@ export default class Message implements proto.Message {
     const secret = await recipient.sharedSecret(sender, preKey)
     const headerBytes = proto.Message_Header.encode({
       sender: sender,
-      recipient: recipient.getPublicKeyBundle(),
+      recipient: recipient.getUserContact(),
       timestamp: message.header.timestamp,
     }).finish()
     bytes = await decrypt(ciphertext, secret, headerBytes)
