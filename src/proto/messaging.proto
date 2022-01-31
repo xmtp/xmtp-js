@@ -12,20 +12,22 @@ message Signature {
 
 message PublicKey {
     message Secp256k1Uncompresed {
-        bytes bytes = 1; // uncompressed point with prefix (0x04) [ P || X || Y ], 65 bytes
+      bytes bytes = 1; // uncompressed point with prefix (0x04) [ P || X || Y ], 65 bytes
     }
-    oneof union {
-        Secp256k1Uncompresed secp256k1Uncompressed = 1;
-    }
+    uint64 timestamp = 1;
     optional Signature signature = 2;
+    oneof union {
+        Secp256k1Uncompresed secp256k1Uncompressed = 3;
+    }
 }
 
 message PrivateKey {
     message Secp256k1 {
         bytes bytes = 1; // D big-endian, 32 bytes
     }
+    uint64 timestamp = 1;
     oneof union {
-        Secp256k1 secp256k1 = 1;
+        Secp256k1 secp256k1 = 2;
     }
 }
 

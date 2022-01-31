@@ -7,6 +7,7 @@ import { decrypt, encrypt } from './encryption'
 
 // PrivateKey represents a secp256k1 private key.
 export default class PrivateKey implements proto.PrivateKey {
+  timestamp: number
   secp256k1: proto.PrivateKey_Secp256k1 | undefined // eslint-disable-line camelcase
   publicKey: PublicKey // caches corresponding PublicKey
 
@@ -19,6 +20,7 @@ export default class PrivateKey implements proto.PrivateKey {
         `invalid private key length: ${obj.secp256k1.bytes.length}`
       )
     }
+    this.timestamp = obj.timestamp
     this.secp256k1 = obj.secp256k1
     this.publicKey = PublicKey.fromPrivateKey(this)
   }
@@ -29,7 +31,15 @@ export default class PrivateKey implements proto.PrivateKey {
       secp256k1: {
         bytes: secp.utils.randomPrivateKey(),
       },
+      timestamp: new Date().getTime(),
     })
+  }
+
+  generated(): Date | undefined {
+    if (!this.timestamp) {
+      return undefined
+    }
+    return new Date(this.timestamp)
   }
 
   // sign provided digest
@@ -55,7 +65,7 @@ export default class PrivateKey implements proto.PrivateKey {
     if (!pub.secp256k1Uncompressed) {
       throw new Error('invalid public key')
     }
-    const digest = await secp.utils.sha256(pub.secp256k1Uncompressed.bytes)
+    const digest = await secp.utils.sha256(pub.bytesToSign())
     pub.signature = await this.sign(digest)
     return pub
   }

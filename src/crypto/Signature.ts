@@ -37,6 +37,7 @@ export default class Signature implements proto.Signature {
     return bytes
       ? new PublicKey({
           secp256k1Uncompressed: { bytes },
+          timestamp: 0,
         })
       : undefined
   }

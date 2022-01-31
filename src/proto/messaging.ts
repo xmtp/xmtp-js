@@ -16,8 +16,9 @@ export interface Signature_ECDSACompact {
 }
 
 export interface PublicKey {
-  secp256k1Uncompressed: PublicKey_Secp256k1Uncompresed | undefined
+  timestamp: number
   signature?: Signature | undefined
+  secp256k1Uncompressed: PublicKey_Secp256k1Uncompresed | undefined
 }
 
 export interface PublicKey_Secp256k1Uncompresed {
@@ -26,6 +27,7 @@ export interface PublicKey_Secp256k1Uncompresed {
 }
 
 export interface PrivateKey {
+  timestamp: number
   secp256k1: PrivateKey_Secp256k1 | undefined
 }
 
@@ -211,7 +213,11 @@ export const Signature_ECDSACompact = {
 }
 
 function createBasePublicKey(): PublicKey {
-  return { secp256k1Uncompressed: undefined, signature: undefined }
+  return {
+    timestamp: 0,
+    signature: undefined,
+    secp256k1Uncompressed: undefined,
+  }
 }
 
 export const PublicKey = {
@@ -219,14 +225,17 @@ export const PublicKey = {
     message: PublicKey,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.secp256k1Uncompressed !== undefined) {
-      PublicKey_Secp256k1Uncompresed.encode(
-        message.secp256k1Uncompressed,
-        writer.uint32(10).fork()
-      ).ldelim()
+    if (message.timestamp !== 0) {
+      writer.uint32(8).uint64(message.timestamp)
     }
     if (message.signature !== undefined) {
       Signature.encode(message.signature, writer.uint32(18).fork()).ldelim()
+    }
+    if (message.secp256k1Uncompressed !== undefined) {
+      PublicKey_Secp256k1Uncompresed.encode(
+        message.secp256k1Uncompressed,
+        writer.uint32(26).fork()
+      ).ldelim()
     }
     return writer
   },
@@ -239,13 +248,16 @@ export const PublicKey = {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
+          message.timestamp = longToNumber(reader.uint64() as Long)
+          break
+        case 2:
+          message.signature = Signature.decode(reader, reader.uint32())
+          break
+        case 3:
           message.secp256k1Uncompressed = PublicKey_Secp256k1Uncompresed.decode(
             reader,
             reader.uint32()
           )
-          break
-        case 2:
-          message.signature = Signature.decode(reader, reader.uint32())
           break
         default:
           reader.skipType(tag & 7)
@@ -257,24 +269,27 @@ export const PublicKey = {
 
   fromJSON(object: any): PublicKey {
     return {
-      secp256k1Uncompressed: isSet(object.secp256k1Uncompressed)
-        ? PublicKey_Secp256k1Uncompresed.fromJSON(object.secp256k1Uncompressed)
-        : undefined,
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0,
       signature: isSet(object.signature)
         ? Signature.fromJSON(object.signature)
+        : undefined,
+      secp256k1Uncompressed: isSet(object.secp256k1Uncompressed)
+        ? PublicKey_Secp256k1Uncompresed.fromJSON(object.secp256k1Uncompressed)
         : undefined,
     }
   },
 
   toJSON(message: PublicKey): unknown {
     const obj: any = {}
-    message.secp256k1Uncompressed !== undefined &&
-      (obj.secp256k1Uncompressed = message.secp256k1Uncompressed
-        ? PublicKey_Secp256k1Uncompresed.toJSON(message.secp256k1Uncompressed)
-        : undefined)
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp))
     message.signature !== undefined &&
       (obj.signature = message.signature
         ? Signature.toJSON(message.signature)
+        : undefined)
+    message.secp256k1Uncompressed !== undefined &&
+      (obj.secp256k1Uncompressed = message.secp256k1Uncompressed
+        ? PublicKey_Secp256k1Uncompresed.toJSON(message.secp256k1Uncompressed)
         : undefined)
     return obj
   },
@@ -283,16 +298,17 @@ export const PublicKey = {
     object: I
   ): PublicKey {
     const message = createBasePublicKey()
+    message.timestamp = object.timestamp ?? 0
+    message.signature =
+      object.signature !== undefined && object.signature !== null
+        ? Signature.fromPartial(object.signature)
+        : undefined
     message.secp256k1Uncompressed =
       object.secp256k1Uncompressed !== undefined &&
       object.secp256k1Uncompressed !== null
         ? PublicKey_Secp256k1Uncompresed.fromPartial(
             object.secp256k1Uncompressed
           )
-        : undefined
-    message.signature =
-      object.signature !== undefined && object.signature !== null
-        ? Signature.fromPartial(object.signature)
         : undefined
     return message
   },
@@ -361,7 +377,7 @@ export const PublicKey_Secp256k1Uncompresed = {
 }
 
 function createBasePrivateKey(): PrivateKey {
-  return { secp256k1: undefined }
+  return { timestamp: 0, secp256k1: undefined }
 }
 
 export const PrivateKey = {
@@ -369,10 +385,13 @@ export const PrivateKey = {
     message: PrivateKey,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
+    if (message.timestamp !== 0) {
+      writer.uint32(8).uint64(message.timestamp)
+    }
     if (message.secp256k1 !== undefined) {
       PrivateKey_Secp256k1.encode(
         message.secp256k1,
-        writer.uint32(10).fork()
+        writer.uint32(18).fork()
       ).ldelim()
     }
     return writer
@@ -386,6 +405,9 @@ export const PrivateKey = {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
+          message.timestamp = longToNumber(reader.uint64() as Long)
+          break
+        case 2:
           message.secp256k1 = PrivateKey_Secp256k1.decode(
             reader,
             reader.uint32()
@@ -401,6 +423,7 @@ export const PrivateKey = {
 
   fromJSON(object: any): PrivateKey {
     return {
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0,
       secp256k1: isSet(object.secp256k1)
         ? PrivateKey_Secp256k1.fromJSON(object.secp256k1)
         : undefined,
@@ -409,6 +432,8 @@ export const PrivateKey = {
 
   toJSON(message: PrivateKey): unknown {
     const obj: any = {}
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp))
     message.secp256k1 !== undefined &&
       (obj.secp256k1 = message.secp256k1
         ? PrivateKey_Secp256k1.toJSON(message.secp256k1)
@@ -420,6 +445,7 @@ export const PrivateKey = {
     object: I
   ): PrivateKey {
     const message = createBasePrivateKey()
+    message.timestamp = object.timestamp ?? 0
     message.secp256k1 =
       object.secp256k1 !== undefined && object.secp256k1 !== null
         ? PrivateKey_Secp256k1.fromPartial(object.secp256k1)
