@@ -7,7 +7,7 @@ describe('Messaging', function () {
     const aliceWallet = newWallet()
     // Alice's key bundle
     const alice = await PrivateKeyBundle.generate(aliceWallet)
-    const alicePub = alice.getUserContact()
+    const alicePub = alice.getPublicKeyBundle()
     assert.ok(alice.identityKey)
     assert.deepEqual(alice.identityKey.publicKey, alicePub.identityKey)
     // Bob's key bundle
@@ -16,7 +16,7 @@ describe('Messaging', function () {
     // Alice encodes message for Bob
     const msg1 = await Message.encode(
       alice,
-      bob.getUserContact(),
+      bob.getPublicKeyBundle(),
       'Yo!',
       new Date()
     )
