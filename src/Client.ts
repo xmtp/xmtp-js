@@ -1,10 +1,5 @@
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
-import {
-  Waku,
-  getNodesFromHostedJson,
-  WakuMessage,
-  PageDirection,
-} from 'js-waku'
+import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import Message from './Message'
 import { buildContentTopic, promiseWithTimeout } from './utils'
 import { sleep } from '../test/helpers'
@@ -29,18 +24,9 @@ export default class Client {
   }
 
   static async create(opts?: CreateOptions): Promise<Client> {
-    const bootstrap = opts?.bootstrapAddrs
-      ? {
-          peers: opts?.bootstrapAddrs,
-        }
-      : {
-          getPeers: getNodesFromHostedJson.bind({}, [
-            'fleets',
-            'wakuv2.test',
-            'waku-websocket',
-          ]),
-          // default: true,
-        }
+    if (!opts?.bootstrapAddrs) {
+      throw new Error('missing bootstrap node addresses')
+    }
     const waku = await Waku.create({
       libp2p: {
         config: {
@@ -50,13 +36,15 @@ export default class Client {
           },
         },
       },
-      bootstrap,
+      bootstrap: {
+        peers: opts?.bootstrapAddrs,
+      },
     })
 
     // Wait for peer connection.
     try {
       await promiseWithTimeout(
-        opts?.waitForPeersTimeoutMs || 5000,
+        opts?.waitForPeersTimeoutMs || 10000,
         () => waku.waitForConnectedPeer(),
         'timeout connecting to peers'
       )
@@ -66,7 +54,7 @@ export default class Client {
     }
     // There's a race happening here even with waitForConnectedPeer; waiting
     // a few ms seems to be enough, but it would be great to fix this upstream.
-    await sleep(5)
+    await sleep(200)
 
     return new Client(waku)
   }

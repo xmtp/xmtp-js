@@ -4,6 +4,7 @@ import Signature from './Signature'
 import PrivateKey from './PrivateKey'
 import { hexToBytes } from './utils'
 import * as ethers from 'ethers'
+import { sha256 } from './encryption'
 
 // PublicKey respresents uncompressed secp256k1 public key,
 // that can optionally be signed with another trusted key pair.
@@ -83,7 +84,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!pub.secp256k1Uncompressed) {
       return false
     }
-    const digest = await secp.utils.sha256(pub.bytesToSign())
+    const digest = await sha256(pub.bytesToSign())
     return pub.signature ? this.verify(pub.signature, digest) : false
   }
 

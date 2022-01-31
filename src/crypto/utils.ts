@@ -16,6 +16,7 @@ export function hexToBytes(s: string): Uint8Array {
   }
   return bytes
 }
+
 export function equalBytes(b1: Uint8Array, b2: Uint8Array): boolean {
   if (b1.length !== b2.length) {
     return false

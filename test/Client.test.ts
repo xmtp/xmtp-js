@@ -1,22 +1,28 @@
 import { PrivateKeyBundle } from '../src/crypto'
 import assert from 'assert'
 import { waitFor, newWallet } from './helpers'
-import { localDockerWakuNodeBootstrapAddr } from './config'
 import { promiseWithTimeout } from '../src/utils'
 import Client from '../src/Client'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create({
-    bootstrapAddrs: [localDockerWakuNodeBootstrapAddr],
+    bootstrapAddrs: [
+      '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
+    ],
   })
 
-const newStatusClient = (): Promise<Client> => Client.create()
+const newTestnetClient = (): Promise<Client> =>
+  Client.create({
+    bootstrapAddrs: [
+      '/dns4/bootstrap-node-0.testnet.xmtp.network/tcp/8443/wss/p2p/16Uiu2HAm888gVYpr4cZQ4qhEendQW6oYEhG8n6fnqw1jVW3Prdc6',
+    ],
+  })
 
 describe('Client', () => {
   const tests = [
     {
-      name: 'status network',
-      newClient: newStatusClient,
+      name: 'testnet',
+      newClient: newTestnetClient,
     },
     {
       name: 'local docker node',
@@ -76,27 +82,24 @@ describe('Client', () => {
         }
         assert.ok(timeout)
       })
-      ;(testCase.name === 'status network' ? it.skip : it)(
-        'listMessages',
-        async () => {
-          const recipient = await PrivateKeyBundle.generate(newWallet())
+      it('listMessages', async () => {
+        const recipient = await PrivateKeyBundle.generate(newWallet())
 
-          const sender = await PrivateKeyBundle.generate(newWallet())
-          await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
+        const sender = await PrivateKeyBundle.generate(newWallet())
+        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
 
-          const messages = await waitFor(
-            async () => {
-              const messages = await client.listMessages(recipient)
-              if (!messages.length) throw new Error('no messages')
-              return messages
-            },
-            1000,
-            100
-          )
-          assert.ok(messages.length === 1)
-          assert.equal(messages[0].decrypted, 'hi')
-        }
-      )
+        const messages = await waitFor(
+          async () => {
+            const messages = await client.listMessages(recipient)
+            if (!messages.length) throw new Error('no messages')
+            return messages
+          },
+          5000,
+          100
+        )
+        assert.ok(messages.length === 1)
+        assert.equal(messages[0].decrypted, 'hi')
+      })
     })
   })
 })
