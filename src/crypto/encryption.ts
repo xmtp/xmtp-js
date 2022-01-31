@@ -1,5 +1,4 @@
 import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext'
-import * as secp from '@noble/secp256k1'
 
 // crypto should provide access to standard Web Crypto API
 // in both the browser environment and node.
@@ -15,11 +14,7 @@ const hkdfNoInfo = new ArrayBuffer(0)
 // that uses `digest('SHA-256', bytes)` instead of `digest('SHA-256', bytes.buffer)`
 // which seems to produce different results.
 export async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
-  if (typeof window !== 'undefined') {
-    return new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))
-  } else {
-    return secp.utils.sha256(bytes)
-  }
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))
 }
 
 // symmetric authenticated encryption of plaintext using the secret;
