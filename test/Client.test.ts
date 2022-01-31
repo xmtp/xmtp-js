@@ -94,7 +94,7 @@ describe('Client', () => {
             if (!messages.length) throw new Error('no messages')
             return messages
           },
-          20000,
+          5000,
           100
         )
         assert.ok(messages.length === 1)
