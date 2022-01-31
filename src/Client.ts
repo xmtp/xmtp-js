@@ -1,10 +1,5 @@
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
-import {
-  Waku,
-  getNodesFromHostedJson,
-  WakuMessage,
-  PageDirection,
-} from 'js-waku'
+import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import Message from './Message'
 import { buildContentTopic, promiseWithTimeout } from './utils'
 import { sleep } from '../test/helpers'
@@ -29,17 +24,9 @@ export default class Client {
   }
 
   static async create(opts?: CreateOptions): Promise<Client> {
-    const bootstrap = opts?.bootstrapAddrs
-      ? {
-          peers: opts?.bootstrapAddrs,
-        }
-      : {
-          getPeers: getNodesFromHostedJson.bind({}, [
-            'fleets',
-            'wakuv2.test',
-            'waku-websocket',
-          ]),
-        }
+    if (!opts?.bootstrapAddrs) {
+      throw new Error('missing bootstrap node addresses')
+    }
     const waku = await Waku.create({
       libp2p: {
         config: {
@@ -49,7 +36,9 @@ export default class Client {
           },
         },
       },
-      bootstrap,
+      bootstrap: {
+        peers: opts?.bootstrapAddrs,
+      },
     })
 
     // Wait for peer connection.

@@ -18,17 +18,11 @@ const newTestnetClient = (): Promise<Client> =>
     ],
   })
 
-const newStatusClient = (): Promise<Client> => Client.create()
-
 describe('Client', () => {
   const tests = [
     {
       name: 'testnet',
       newClient: newTestnetClient,
-    },
-    {
-      name: 'status network',
-      newClient: newStatusClient,
     },
     {
       name: 'local docker node',
