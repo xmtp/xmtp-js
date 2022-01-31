@@ -1,7 +1,11 @@
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import Message from './Message'
-import { buildContentTopic, promiseWithTimeout } from './utils'
+import {
+  buildDirectMessageTopic,
+  buildUserContactTopic,
+  promiseWithTimeout,
+} from './utils'
 import { sleep } from '../test/helpers'
 import Stream from './Stream'
 
@@ -63,22 +67,52 @@ export default class Client {
     return this.waku.stop()
   }
 
+  async publicUserContact(recipient: PublicKeyBundle): Promise<void> {
+    if (!recipient.identityKey) {
+      throw new Error('missing recipient')
+    }
+    await this.waku.relay.send(
+      await WakuMessage.fromBytes(
+        recipient.toBytes(),
+        buildUserContactTopic(recipient.identityKey.walletSignatureAddress())
+      )
+    )
+  }
+
+  async getUserContact(
+    recipientWalletAddr: string
+  ): Promise<PublicKeyBundle | undefined> {
+    const recipientKeys = (
+      await this.waku.store.queryHistory(
+        [buildUserContactTopic(recipientWalletAddr)],
+        {
+          pageSize: 1,
+          pageDirection: PageDirection.BACKWARD,
+        }
+      )
+    )
+      .filter((msg: WakuMessage) => msg.payload)
+      .map((msg: WakuMessage) =>
+        PublicKeyBundle.fromBytes(msg.payload as Uint8Array)
+      )
+    return recipientKeys.length > 0 ? recipientKeys[0] : undefined
+  }
+
   async sendMessage(
     sender: PrivateKeyBundle,
     recipient: PublicKeyBundle,
     msgString: string
   ): Promise<void> {
+    if (!sender?.identityKey) {
+      throw new Error('missing sender')
+    }
     if (!recipient?.identityKey) {
       throw new Error('missing recipient')
     }
-
-    // TODO:(snormore): The topic depends on whether the sender has notified
-    // the recipients requests/introductions topic yet; if not then it should
-    // send to that topic.
-    const contentTopic = buildContentTopic(
+    const contentTopic = buildDirectMessageTopic(
+      sender.identityKey.publicKey.walletSignatureAddress(),
       recipient.identityKey.walletSignatureAddress()
     )
-
     const timestamp = new Date()
     const msg = await Message.encode(sender, recipient, msgString, timestamp)
     const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), contentTopic, {
@@ -87,11 +121,15 @@ export default class Client {
     return this.waku.relay.send(wakuMsg)
   }
 
-  streamMessages(recipient: PrivateKeyBundle): Stream {
-    return new Stream(this.waku, recipient)
+  streamMessages(
+    senderWalletAddr: string,
+    recipient: PrivateKeyBundle
+  ): Stream {
+    return new Stream(this.waku, senderWalletAddr, recipient)
   }
 
   async listMessages(
+    senderWalletAddr: string,
     recipient: PrivateKeyBundle,
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
@@ -102,11 +140,9 @@ export default class Client {
       opts.startTime = new Date()
       opts.startTime.setTime(Date.now() - 1000 * 60 * 60 * 24 * 7)
     }
-
     if (!opts.endTime) {
       opts.endTime = new Date(new Date().toUTCString())
     }
-
     if (!opts.pageSize) {
       opts.pageSize = 10
     }
@@ -115,13 +151,10 @@ export default class Client {
       throw new Error('missing recipient')
     }
 
-    // TODO:(snormore): The user can retrieve messages for their
-    // requests/introduction topic, or a conversation topic, so that needs to
-    // be supported here.
-    const contentTopic = buildContentTopic(
+    const contentTopic = buildDirectMessageTopic(
+      senderWalletAddr,
       recipient.identityKey.publicKey.walletSignatureAddress()
     )
-
     const wakuMsgs = await this.waku.store.queryHistory([contentTopic], {
       pageSize: opts.pageSize,
       pageDirection: PageDirection.FORWARD,

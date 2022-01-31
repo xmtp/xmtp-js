@@ -2,19 +2,22 @@ import { Waku, WakuMessage } from 'js-waku'
 import { Message } from '.'
 import asyncify from 'callback-to-async-iterator'
 import { PrivateKeyBundle } from './crypto'
-import { buildContentTopic } from './utils'
+import { buildDirectMessageTopic } from './utils'
 
 export default class Stream {
   iterator: AsyncIterableIterator<Message>
 
-  constructor(waku: Waku, recipient: PrivateKeyBundle) {
+  constructor(
+    waku: Waku,
+    senderWalletAddr: string,
+    recipient: PrivateKeyBundle
+  ) {
     if (!recipient.identityKey) {
       throw new Error('invalid recipient key')
     }
 
-    // TODO:(snormore): The user can stream their requests/introduction topic,
-    // or a conversation topic, so that needs to be supported here.
-    const contentTopic = buildContentTopic(
+    const contentTopic = buildDirectMessageTopic(
+      senderWalletAddr,
       recipient.identityKey.publicKey.walletSignatureAddress()
     )
 

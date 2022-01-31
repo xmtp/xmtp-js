@@ -3,7 +3,7 @@ import * as secp from '@noble/secp256k1'
 import Signature from './Signature'
 import PublicKey from './PublicKey'
 import Ciphertext from './Ciphertext'
-import { decrypt, encrypt } from './encryption'
+import { decrypt, encrypt, sha256 } from './encryption'
 
 // PrivateKey represents a secp256k1 private key.
 export default class PrivateKey implements proto.PrivateKey {
@@ -65,7 +65,7 @@ export default class PrivateKey implements proto.PrivateKey {
     if (!pub.secp256k1Uncompressed) {
       throw new Error('invalid public key')
     }
-    const digest = await secp.utils.sha256(pub.bytesToSign())
+    const digest = await sha256(pub.bytesToSign())
     pub.signature = await this.sign(digest)
     return pub
   }
