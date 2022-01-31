@@ -55,7 +55,7 @@ export default class Client {
     // Wait for peer connection.
     try {
       await promiseWithTimeout(
-        opts?.waitForPeersTimeoutMs || 5000,
+        opts?.waitForPeersTimeoutMs || 10000,
         () => waku.waitForConnectedPeer(),
         'timeout connecting to peers'
       )
@@ -65,7 +65,7 @@ export default class Client {
     }
     // There's a race happening here even with waitForConnectedPeer; waiting
     // a few ms seems to be enough, but it would be great to fix this upstream.
-    await sleep(5)
+    await sleep(200)
 
     return new Client(waku)
   }
