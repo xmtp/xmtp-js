@@ -67,7 +67,7 @@ export default class Client {
     return this.waku.stop()
   }
 
-  async publicUserContact(recipient: PublicKeyBundle): Promise<void> {
+  async publishUserContact(recipient: PublicKeyBundle): Promise<void> {
     if (!recipient.identityKey) {
       throw new Error('missing recipient')
     }
