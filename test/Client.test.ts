@@ -46,7 +46,7 @@ describe('Client', () => {
 
       it('publish and get user contact', async () => {
         const registered = await PrivateKeyBundle.generate(newWallet())
-        await client.publicUserContact(registered.getPublicKeyBundle())
+        await client.publishUserContact(registered.getPublicKeyBundle())
         await sleep(10)
         const received = await client.getUserContact(
           registered.identityKey.publicKey.walletSignatureAddress()
@@ -57,7 +57,7 @@ describe('Client', () => {
       it('stream and send messages', async () => {
         const sender = await PrivateKeyBundle.generate(newWallet())
         const recipient = await PrivateKeyBundle.generate(newWallet())
-        await client.publicUserContact(recipient.getPublicKeyBundle())
+        await client.publishUserContact(recipient.getPublicKeyBundle())
         const stream = client.streamMessages(
           sender.identityKey.publicKey.walletSignatureAddress(),
           recipient
