@@ -11,7 +11,7 @@ export const buildDirectMessageTopic = (
 }
 
 export const buildUserContactTopic = (walletAddr: string): string => {
-  return buildContentTopic(`keys-${walletAddr}`)
+  return buildContentTopic(`contact-${walletAddr}`)
 }
 
 export const sleep = (ms: number): Promise<void> =>
