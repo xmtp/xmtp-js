@@ -2,7 +2,6 @@ import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import Message from './Message'
 import {
-  buildContentTopic,
   buildDirectMessageTopic,
   buildUserContactTopic,
   promiseWithTimeout,
