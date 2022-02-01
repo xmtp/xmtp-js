@@ -5,14 +5,14 @@ import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
 
 const newLocalDockerClient = (): Promise<Client> =>
-  Client.create({
+  Client.create(newWallet(), {
     bootstrapAddrs: [
       '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
     ],
   })
 
 const newTestnetClient = (): Promise<Client> =>
-  Client.create({
+  Client.create(newWallet(), {
     bootstrapAddrs: [
       '/dns4/bootstrap-node-0.testnet.xmtp.network/tcp/8443/wss/p2p/16Uiu2HAm888gVYpr4cZQ4qhEendQW6oYEhG8n6fnqw1jVW3Prdc6',
     ],
@@ -31,53 +31,42 @@ describe('Client', () => {
   ]
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
-      let client: Client
+      let alice: Client, bob: Client
       beforeAll(async () => {
-        client = await testCase.newClient()
+        alice = await testCase.newClient()
+        bob = await testCase.newClient()
       })
       afterAll(async () => {
-        if (client) await client.close()
+        if (alice) await alice.close()
+        if (bob) await bob.close()
       })
 
-      it('create', async () => {
-        assert.ok(client.waku)
-        assert(Array.from(client.waku.relay.getPeers()).length === 1)
+      it('waku setup', async () => {
+        assert.ok(alice.waku)
+        assert(Array.from(alice.waku.relay.getPeers()).length === 1)
+        assert.ok(bob.waku)
+        assert(Array.from(bob.waku.relay.getPeers()).length === 1)
       })
 
-      it('publish and get user contact', async () => {
-        const registered = await PrivateKeyBundle.generate(newWallet())
-        await client.publishUserContact(registered.getPublicKeyBundle())
+      it('user contacts published', async () => {
         await sleep(10)
-        const received = await client.getUserContact(
-          registered.identityKey.publicKey.walletSignatureAddress()
-        )
-        assert.deepEqual(registered.getPublicKeyBundle(), received)
+        const alicePublic = await alice.getUserContact(alice.address)
+        assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
+        const bobPublic = await bob.getUserContact(bob.address)
+        assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
       })
 
-      it('stream and send messages', async () => {
-        const sender = await PrivateKeyBundle.generate(newWallet())
-        const recipient = await PrivateKeyBundle.generate(newWallet())
-        await client.publishUserContact(recipient.getPublicKeyBundle())
-        const recipientStream = client.streamMessages(
-          sender.identityKey.publicKey.walletSignatureAddress(),
-          recipient
-        )
-        const senderStream = client.streamMessages(
-          recipient.identityKey.publicKey.walletSignatureAddress(),
-          sender
-        )
+      it('send, stream and list messages', async () => {
+        const bobStream = bob.streamMessages(alice.address)
+        const aliceStream = alice.streamMessages(bob.address)
+        await alice.sendMessage(bob.address, 'hi')
+        await alice.sendMessage(bob.address, 'hello')
 
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
-        await client.sendMessage(
-          sender,
-          recipient.getPublicKeyBundle(),
-          'hello'
-        )
-
-        let msg = await recipientStream.next()
+        // bob streaming
+        let msg = await bobStream.next()
         assert.equal(msg.decrypted, 'hi')
 
-        msg = await recipientStream.next()
+        msg = await bobStream.next()
         assert.equal(msg.decrypted, 'hello')
 
         let timeout = false
@@ -85,7 +74,7 @@ describe('Client', () => {
           await promiseWithTimeout<void>(
             5,
             async () => {
-              await recipientStream.next()
+              await bobStream.next()
             },
             'timeout'
           )
@@ -94,10 +83,11 @@ describe('Client', () => {
         }
         assert.ok(timeout)
 
-        msg = await senderStream.next()
+        // alice streaming
+        msg = await aliceStream.next()
         assert.equal(msg.decrypted, 'hi')
 
-        msg = await senderStream.next()
+        msg = await aliceStream.next()
         assert.equal(msg.decrypted, 'hello')
 
         timeout = false
@@ -105,7 +95,7 @@ describe('Client', () => {
           await promiseWithTimeout<void>(
             5,
             async () => {
-              await senderStream.next()
+              await aliceStream.next()
             },
             'timeout'
           )
@@ -113,27 +103,26 @@ describe('Client', () => {
           timeout = err instanceof Error && (err as Error).message === 'timeout'
         }
         assert.ok(timeout)
-      })
-      it('listMessages', async () => {
-        const recipient = await PrivateKeyBundle.generate(newWallet())
 
-        const sender = await PrivateKeyBundle.generate(newWallet())
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
-
+        // list messages sent previously
         const messages = await waitFor(
           async () => {
-            const messages = await client.listMessages(
-              sender.identityKey.publicKey.walletSignatureAddress(),
-              recipient
-            )
+            const messages = await bob.listMessages(alice.address)
             if (!messages.length) throw new Error('no messages')
             return messages
           },
           5000,
           100
         )
-        assert.ok(messages.length === 1)
+        assert.equal(messages.length, 2)
         assert.equal(messages[0].decrypted, 'hi')
+        assert.equal(messages[1].decrypted, 'hello')
+      })
+
+      it('send to unregistered address throws', async () => {
+        return expect(
+          alice.sendMessage('unregistered address', 'hello as well')
+        ).rejects.toThrow('recipient unregistered address is not registered')
       })
     })
   })
