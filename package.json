@@ -1,6 +1,6 @@
 {
   "name": "xmtp-js",
-  "version": "0.2.2",
+  "version": "0.0.1-alpha.1",
   "description": "XMTP client SDK for interacting with XMTP networks.",
   "main": "dist/cjs/src/index.js",
   "module": "dist/esm/src/index.js",
@@ -23,7 +23,7 @@
     "autolint": "prettier --write . && eslint --fix ."
   },
   "publishConfig": {
-    "access": "public"
+    "access": "restricted"
   },
   "files": [
     "dist"
