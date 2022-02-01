@@ -80,14 +80,12 @@ describe('Crypto', function () {
     const msg1 = 'Yo!'
     const decrypted = new TextEncoder().encode(msg1)
     // Alice encrypts msg for Bob.
+    const alicePublic = alice.getPublicKeyBundle()
     const bobPublic = bob.getPublicKeyBundle()
-    let secret = await alice.sharedSecret(bobPublic)
+    let secret = await alice.sharedSecret(bobPublic, alicePublic.preKey, false)
     const encrypted = await encrypt(decrypted, secret)
     // Bob decrypts msg from Alice.
-    secret = await bob.sharedSecret(
-      alice.getPublicKeyBundle(),
-      bobPublic.preKey
-    )
+    secret = await bob.sharedSecret(alicePublic, bobPublic.preKey, true)
     const decrypted2 = await decrypt(encrypted, secret)
     const msg2 = new TextDecoder().decode(decrypted2)
     assert.equal(msg2, msg1)
