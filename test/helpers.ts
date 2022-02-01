@@ -1,8 +1,23 @@
+import assert from 'assert'
 import { Wallet } from 'ethers'
 import { PrivateKey } from '../src'
+import { promiseWithTimeout } from '../src/utils'
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
+
+export const assertTimeout = async (
+  callback: () => Promise<void>,
+  timeoutMs: number
+): Promise<void> => {
+  let timeout = false
+  try {
+    await promiseWithTimeout<void>(timeoutMs, callback, 'timeout')
+  } catch (err) {
+    timeout = err instanceof Error && (err as Error).message === 'timeout'
+  }
+  assert.ok(timeout)
+}
 
 export async function waitFor<T>(
   callback: () => Promise<T>,

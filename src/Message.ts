@@ -37,22 +37,26 @@ export default class Message implements proto.Message {
     ).walletSignatureAddress()
   }
 
+  recipientAddress(): string | undefined {
+    if (!this.header?.recipient?.identityKey) {
+      return undefined
+    }
+    return new PublicKey(
+      this.header.recipient.identityKey
+    ).walletSignatureAddress()
+  }
+
   // encrypt and serialize the message
   static async encode(
-    sender: PrivateKeyBundle,
-    recipient: PublicKeyBundle,
-    message: string,
-    timestamp: Date
+    encoder: PrivateKeyBundle,
+    decoder: PublicKeyBundle,
+    // eslint-disable-next-line camelcase
+    header: proto.Message_Header,
+    message: string
   ): Promise<Message> {
     const bytes = new TextEncoder().encode(message)
 
-    const secret = await sender.sharedSecret(recipient)
-    // eslint-disable-next-line camelcase
-    const header: proto.Message_Header = {
-      sender: sender.getPublicKeyBundle(),
-      recipient,
-      timestamp: timestamp.getTime(),
-    }
+    const secret = await encoder.sharedSecret(decoder)
     const headerBytes = proto.Message_Header.encode(header).finish()
     const ciphertext = await encrypt(bytes, secret, headerBytes)
 
@@ -68,7 +72,7 @@ export default class Message implements proto.Message {
   // throws if any part of the messages (including the header) was tampered with
   // or the recipient preKey used to encrypt the message is not recognized
   static async decode(
-    recipient: PrivateKeyBundle,
+    decoder: PrivateKeyBundle,
     bytes: Uint8Array
   ): Promise<Message> {
     const message = proto.Message.decode(bytes)
@@ -90,7 +94,6 @@ export default class Message implements proto.Message {
     if (!message.header.recipient?.preKey) {
       throw new Error('missing message recipient pre-key')
     }
-    const preKey = new PublicKey(message.header.recipient.preKey)
     const sender = new PublicKeyBundle(
       new PublicKey(message.header.sender.identityKey),
       new PublicKey(message.header.sender.preKey)
@@ -99,12 +102,11 @@ export default class Message implements proto.Message {
       throw new Error('missing message ciphertext')
     }
     const ciphertext = new Ciphertext(message.ciphertext)
-    const secret = await recipient.sharedSecret(sender, preKey)
-    const headerBytes = proto.Message_Header.encode({
-      sender: sender,
-      recipient: recipient.getPublicKeyBundle(),
-      timestamp: message.header.timestamp,
-    }).finish()
+    const secret = await decoder.sharedSecret(
+      sender,
+      decoder.getPublicKeyBundle().preKey
+    )
+    const headerBytes = proto.Message_Header.encode(message.header).finish()
     bytes = await decrypt(ciphertext, secret, headerBytes)
     const msg = new Message(message)
     msg.decrypted = new TextDecoder().decode(bytes)

@@ -1,7 +1,7 @@
 import { PrivateKeyBundle } from '../src/crypto'
 import assert from 'assert'
-import { waitFor, newWallet } from './helpers'
-import { promiseWithTimeout, sleep } from '../src/utils'
+import { waitFor, newWallet, assertTimeout } from './helpers'
+import { sleep } from '../src/utils'
 import Client from '../src/Client'
 
 const newLocalDockerClient = (): Promise<Client> =>
@@ -58,37 +58,47 @@ describe('Client', () => {
         const sender = await PrivateKeyBundle.generate(newWallet())
         const recipient = await PrivateKeyBundle.generate(newWallet())
         await client.publishUserContact(recipient.getPublicKeyBundle())
-        const stream = client.streamMessages(
+
+        const recipientStream = client.streamMessages(
           sender.identityKey.publicKey.walletSignatureAddress(),
+          recipient.identityKey.publicKey.walletSignatureAddress(),
           recipient
         )
 
-        await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
+        const senderStream = client.streamMessages(
+          sender.identityKey.publicKey.walletSignatureAddress(),
+          recipient.identityKey.publicKey.walletSignatureAddress(),
+          sender
+        )
+
         await client.sendMessage(
           sender,
           recipient.getPublicKeyBundle(),
-          'hello'
+          'first'
+        )
+        await client.sendMessage(
+          sender,
+          recipient.getPublicKeyBundle(),
+          'second'
         )
 
-        let msg = await stream.next()
-        assert.equal(msg.decrypted, 'hi')
+        // Expect recipients receives exactly 2 messages on their DM topic.
+        let msg = await recipientStream.next()
+        assert.equal(msg.decrypted, 'first')
+        msg = await recipientStream.next()
+        assert.equal(msg.decrypted, 'second')
+        assertTimeout(async () => {
+          await recipientStream.next()
+        }, 5)
 
-        msg = await stream.next()
-        assert.equal(msg.decrypted, 'hello')
-
-        let timeout = false
-        try {
-          await promiseWithTimeout<void>(
-            5,
-            async () => {
-              await stream.next()
-            },
-            'timeout'
-          )
-        } catch (err) {
-          timeout = err instanceof Error && (err as Error).message === 'timeout'
-        }
-        assert.ok(timeout)
+        // Expect sender receives exactly 2 messages on their DM topic.
+        msg = await senderStream.next()
+        assert.equal(msg.decrypted, 'first')
+        msg = await senderStream.next()
+        assert.equal(msg.decrypted, 'second')
+        assertTimeout(async () => {
+          await senderStream.next()
+        }, 5)
       })
       it('listMessages', async () => {
         const recipient = await PrivateKeyBundle.generate(newWallet())
@@ -96,10 +106,12 @@ describe('Client', () => {
         const sender = await PrivateKeyBundle.generate(newWallet())
         await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
 
-        const messages = await waitFor(
+        // Expect message on the recipient DM topic.
+        const recipientMsgs = await waitFor(
           async () => {
             const messages = await client.listMessages(
               sender.identityKey.publicKey.walletSignatureAddress(),
+              recipient.identityKey.publicKey.walletSignatureAddress(),
               recipient
             )
             if (!messages.length) throw new Error('no messages')
@@ -108,8 +120,25 @@ describe('Client', () => {
           5000,
           100
         )
-        assert.ok(messages.length === 1)
-        assert.equal(messages[0].decrypted, 'hi')
+        assert.ok(recipientMsgs.length === 1)
+        assert.equal(recipientMsgs[0].decrypted, 'hi')
+
+        // Expect message on the sender DM topic.
+        const senderMsgs = await waitFor(
+          async () => {
+            const messages = await client.listMessages(
+              sender.identityKey.publicKey.walletSignatureAddress(),
+              recipient.identityKey.publicKey.walletSignatureAddress(),
+              recipient
+            )
+            if (!messages.length) throw new Error('no messages')
+            return messages
+          },
+          5000,
+          100
+        )
+        assert.ok(senderMsgs.length === 1)
+        assert.equal(senderMsgs[0].decrypted, 'hi')
       })
     })
   })

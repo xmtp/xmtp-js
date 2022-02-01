@@ -10,23 +10,26 @@ export default class Stream {
   constructor(
     waku: Waku,
     senderWalletAddr: string,
-    recipient: PrivateKeyBundle
+    recipientWalletAddr: string,
+    decoder: PrivateKeyBundle
   ) {
-    if (!recipient.identityKey) {
+    if (!decoder.identityKey) {
       throw new Error('invalid recipient key')
     }
+    const decoderWalletAddr =
+      decoder.identityKey.publicKey.walletSignatureAddress()
 
-    const contentTopic = buildDirectMessageTopic(
-      senderWalletAddr,
-      recipient.identityKey.publicKey.walletSignatureAddress()
-    )
+    const contentTopic =
+      decoderWalletAddr === recipientWalletAddr
+        ? buildDirectMessageTopic(recipientWalletAddr, senderWalletAddr)
+        : buildDirectMessageTopic(senderWalletAddr, recipientWalletAddr)
 
     this.iterator = asyncify<Message>(
       async (callback) => {
         waku.relay.addObserver(
           async (wakuMsg: WakuMessage) => {
             if (wakuMsg.payload) {
-              const msg = await Message.decode(recipient, wakuMsg.payload)
+              const msg = await Message.decode(decoder, wakuMsg.payload)
               callback(msg)
             }
           },

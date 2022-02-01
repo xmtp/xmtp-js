@@ -17,8 +17,12 @@ describe('Messaging', function () {
     const msg1 = await Message.encode(
       alice,
       bob.getPublicKeyBundle(),
-      'Yo!',
-      new Date()
+      {
+        sender: alice.getPublicKeyBundle(),
+        recipient: bob.getPublicKeyBundle(),
+        timestamp: new Date().getTime(),
+      },
+      'Yo!'
     )
     assert.equal(msg1.senderAddress(), aliceWallet.address)
     assert.equal(msg1.decrypted, 'Yo!')

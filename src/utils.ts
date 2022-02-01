@@ -2,13 +2,9 @@ export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
 
 export const buildDirectMessageTopic = (
-  sender: string,
-  recipient: string
-): string => {
-  const members = [sender, recipient]
-  members.sort()
-  return buildContentTopic(`dm-${members.join('-')}`)
-}
+  decoderWalletAddr: string,
+  encoderWalletAddr: string
+): string => buildContentTopic(`dm-${decoderWalletAddr}-${encoderWalletAddr}`)
 
 export const buildUserContactTopic = (walletAddr: string): string => {
   return buildContentTopic(`contact-${walletAddr}`)
