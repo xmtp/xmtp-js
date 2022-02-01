@@ -14,6 +14,10 @@ export const buildUserContactTopic = (walletAddr: string): string => {
   return buildContentTopic(`contact-${walletAddr}`)
 }
 
+export const buildUserIntroTopic = (walletAddr: string): string => {
+  return buildContentTopic(`intro-${walletAddr}`)
+}
+
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 

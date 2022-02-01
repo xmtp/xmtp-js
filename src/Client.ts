@@ -8,6 +8,8 @@ import {
 } from './utils'
 import { sleep } from '../test/helpers'
 import Stream from './Stream'
+import { Signer } from 'ethers'
+import { EncryptedStore, LocalStorageStore } from './store'
 
 type ListMessagesOptions = {
   pageSize?: number
@@ -22,74 +24,47 @@ type CreateOptions = {
 
 export default class Client {
   waku: Waku
+  keys: PrivateKeyBundle
+  address: string
+  contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
 
-  constructor(waku: Waku) {
+  constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
+    this.contacts = new Map<string, PublicKeyBundle>()
+    this.keys = keys
+    this.address = keys.identityKey.publicKey.walletSignatureAddress()
   }
 
-  static async create(opts?: CreateOptions): Promise<Client> {
-    if (!opts?.bootstrapAddrs) {
-      throw new Error('missing bootstrap node addresses')
-    }
-    const waku = await Waku.create({
-      libp2p: {
-        config: {
-          pubsub: {
-            enabled: true,
-            emitSelf: true,
-          },
-        },
-      },
-      bootstrap: {
-        peers: opts?.bootstrapAddrs,
-      },
-    })
-
-    // Wait for peer connection.
-    try {
-      await promiseWithTimeout(
-        opts?.waitForPeersTimeoutMs || 10000,
-        () => waku.waitForConnectedPeer(),
-        'timeout connecting to peers'
-      )
-    } catch (err) {
-      await waku.stop()
-      throw err
-    }
-    // There's a race happening here even with waitForConnectedPeer; waiting
-    // a few ms seems to be enough, but it would be great to fix this upstream.
-    await sleep(200)
-
-    return new Client(waku)
+  static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
+    const waku = await createWaku(opts)
+    const keys = await loadOrCreateKeys(wallet)
+    const client = new Client(waku, keys)
+    await client.publishUserContact()
+    return client
   }
 
   async close(): Promise<void> {
     return this.waku.stop()
   }
 
-  async publishUserContact(recipient: PublicKeyBundle): Promise<void> {
-    if (!recipient.identityKey) {
-      throw new Error('missing recipient')
-    }
+  async publishUserContact(): Promise<void> {
+    const pub = this.keys.getPublicKeyBundle()
     await this.waku.relay.send(
       await WakuMessage.fromBytes(
-        recipient.toBytes(),
-        buildUserContactTopic(recipient.identityKey.walletSignatureAddress())
+        pub.toBytes(),
+        buildUserContactTopic(this.address)
       )
     )
   }
 
   async getUserContact(
-    recipientWalletAddr: string
+    peerAddress: string
   ): Promise<PublicKeyBundle | undefined> {
     const recipientKeys = (
-      await this.waku.store.queryHistory(
-        [buildUserContactTopic(recipientWalletAddr)],
-        {
-          pageSize: 1,
-          pageDirection: PageDirection.BACKWARD,
-        }
-      )
+      await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
+        pageSize: 1,
+        pageDirection: PageDirection.BACKWARD,
+      })
     )
       .filter((msg: WakuMessage) => msg.payload)
       .map((msg: WakuMessage) =>
@@ -98,39 +73,30 @@ export default class Client {
     return recipientKeys.length > 0 ? recipientKeys[0] : undefined
   }
 
-  async sendMessage(
-    sender: PrivateKeyBundle,
-    recipient: PublicKeyBundle,
-    msgString: string
-  ): Promise<void> {
-    if (!sender?.identityKey) {
-      throw new Error('missing sender')
+  async sendMessage(peerAddress: string, msgString: string): Promise<void> {
+    let recipient = this.contacts.get(peerAddress)
+    if (!recipient) {
+      recipient = await this.getUserContact(peerAddress)
+      if (!recipient) {
+        throw new Error(`recipient ${peerAddress} is not registered`)
+      }
+      this.contacts.set(peerAddress, recipient)
     }
-    if (!recipient?.identityKey) {
-      throw new Error('missing recipient')
-    }
-    const contentTopic = buildDirectMessageTopic(
-      sender.identityKey.publicKey.walletSignatureAddress(),
-      recipient.identityKey.walletSignatureAddress()
-    )
+    const contentTopic = buildDirectMessageTopic(this.address, peerAddress)
     const timestamp = new Date()
-    const msg = await Message.encode(sender, recipient, msgString, timestamp)
+    const msg = await Message.encode(this.keys, recipient, msgString, timestamp)
     const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), contentTopic, {
       timestamp,
     })
     return this.waku.relay.send(wakuMsg)
   }
 
-  streamMessages(
-    senderWalletAddr: string,
-    recipient: PrivateKeyBundle
-  ): Stream {
-    return new Stream(this.waku, senderWalletAddr, recipient)
+  streamMessages(peerAddress: string): Stream {
+    return new Stream(this.waku, peerAddress, this.keys)
   }
 
   async listMessages(
-    senderWalletAddr: string,
-    recipient: PrivateKeyBundle,
+    peerAddress: string,
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
     if (!opts) {
@@ -147,14 +113,7 @@ export default class Client {
       opts.pageSize = 10
     }
 
-    if (!recipient.identityKey) {
-      throw new Error('missing recipient')
-    }
-
-    const contentTopic = buildDirectMessageTopic(
-      senderWalletAddr,
-      recipient.identityKey.publicKey.walletSignatureAddress()
-    )
+    const contentTopic = buildDirectMessageTopic(peerAddress, this.address)
     const wakuMsgs = await this.waku.store.queryHistory([contentTopic], {
       pageSize: opts.pageSize,
       pageDirection: PageDirection.FORWARD,
@@ -168,8 +127,54 @@ export default class Client {
       wakuMsgs
         .filter((wakuMsg) => wakuMsg?.payload)
         .map(async (wakuMsg) =>
-          Message.decode(recipient, wakuMsg.payload as Uint8Array)
+          Message.decode(this.keys, wakuMsg.payload as Uint8Array)
         )
     )
   }
+}
+
+async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
+  const store = new EncryptedStore(wallet, new LocalStorageStore())
+  let keys = await store.loadPrivateKeyBundle()
+  if (keys) {
+    return keys
+  }
+  keys = await PrivateKeyBundle.generate(wallet)
+  await store.storePrivateKeyBundle(keys)
+  return keys
+}
+
+async function createWaku(opts?: CreateOptions): Promise<Waku> {
+  if (!opts?.bootstrapAddrs) {
+    throw new Error('missing bootstrap node addresses')
+  }
+  const waku = await Waku.create({
+    libp2p: {
+      config: {
+        pubsub: {
+          enabled: true,
+          emitSelf: true,
+        },
+      },
+    },
+    bootstrap: {
+      peers: opts?.bootstrapAddrs,
+    },
+  })
+
+  // Wait for peer connection.
+  try {
+    await promiseWithTimeout(
+      opts?.waitForPeersTimeoutMs || 10000,
+      () => waku.waitForConnectedPeer(),
+      'timeout connecting to peers'
+    )
+  } catch (err) {
+    await waku.stop()
+    throw err
+  }
+  // There's a race happening here even with waitForConnectedPeer; waiting
+  // a few ms seems to be enough, but it would be great to fix this upstream.
+  await sleep(200)
+  return waku
 }
