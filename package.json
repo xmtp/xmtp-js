@@ -18,7 +18,7 @@
     "package": "npm run build && npm pack",
     "test": "jest --no-cache --runInBand",
     "test:cov": "jest --coverage --no-cache --runInBand",
-    "addscope": "node tools/packagejson name @xmtp-org/xmtp-js",
+    "addscope": "node tools/packagejson name @xmtp/xmtp-js",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix ."
   },
@@ -40,13 +40,13 @@
   ],
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
-  "homepage": "https://github.com/xmtp-org/xmtp-js",
+  "homepage": "https://github.com/xmtp/xmtp-js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:xmtp-org/xmtp-js.git"
+    "url": "git@github.com:xmtp/xmtp-js.git"
   },
   "bugs": {
-    "url": "https://github.com/xmtp-org/xmtp-js/issues"
+    "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
