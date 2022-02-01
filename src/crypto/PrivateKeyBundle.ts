@@ -62,10 +62,13 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
   // where the sender's ephemeral key pair is replaced by the sender's pre-key.
-  // @recipientPreKey is the preKey used to encrypt the message if this is the receiving (decrypting) side.
+  // @peer is the peer's public key bundle
+  // @myPreKey indicates which of my preKeys should be used to derive the secret
+  // @recipient indicates if this is the sending or receiving side.
   async sharedSecret(
     peer: PublicKeyBundle,
-    recipientPreKey?: PublicKey
+    myPreKey: PublicKey,
+    isRecipient: boolean
   ): Promise<Uint8Array> {
     if (!peer.identityKey || !peer.preKey) {
       throw new Error('invalid peer key bundle')
@@ -77,12 +80,12 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       throw new Error('missing identity key')
     }
     let dh1: Uint8Array, dh2: Uint8Array, preKey: PrivateKey
-    if (recipientPreKey) {
-      preKey = this.findPreKey(recipientPreKey)
+    if (isRecipient) {
+      preKey = this.findPreKey(myPreKey)
       dh1 = preKey.sharedSecret(peer.identityKey)
       dh2 = this.identityKey.sharedSecret(peer.preKey)
     } else {
-      preKey = this.getCurrentPreKey()
+      preKey = this.findPreKey(myPreKey)
       dh1 = this.identityKey.sharedSecret(peer.preKey)
       dh2 = preKey.sharedSecret(peer.identityKey)
     }

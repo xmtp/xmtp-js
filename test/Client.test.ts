@@ -58,9 +58,13 @@ describe('Client', () => {
         const sender = await PrivateKeyBundle.generate(newWallet())
         const recipient = await PrivateKeyBundle.generate(newWallet())
         await client.publishUserContact(recipient.getPublicKeyBundle())
-        const stream = client.streamMessages(
+        const recipientStream = client.streamMessages(
           sender.identityKey.publicKey.walletSignatureAddress(),
           recipient
+        )
+        const senderStream = client.streamMessages(
+          recipient.identityKey.publicKey.walletSignatureAddress(),
+          sender
         )
 
         await client.sendMessage(sender, recipient.getPublicKeyBundle(), 'hi')
@@ -70,10 +74,10 @@ describe('Client', () => {
           'hello'
         )
 
-        let msg = await stream.next()
+        let msg = await recipientStream.next()
         assert.equal(msg.decrypted, 'hi')
 
-        msg = await stream.next()
+        msg = await recipientStream.next()
         assert.equal(msg.decrypted, 'hello')
 
         let timeout = false
@@ -81,7 +85,27 @@ describe('Client', () => {
           await promiseWithTimeout<void>(
             5,
             async () => {
-              await stream.next()
+              await recipientStream.next()
+            },
+            'timeout'
+          )
+        } catch (err) {
+          timeout = err instanceof Error && (err as Error).message === 'timeout'
+        }
+        assert.ok(timeout)
+
+        msg = await senderStream.next()
+        assert.equal(msg.decrypted, 'hi')
+
+        msg = await senderStream.next()
+        assert.equal(msg.decrypted, 'hello')
+
+        timeout = false
+        try {
+          await promiseWithTimeout<void>(
+            5,
+            async () => {
+              await senderStream.next()
             },
             'timeout'
           )

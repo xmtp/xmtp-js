@@ -5,13 +5,10 @@ import PublicKey from './PublicKey'
 // The PreKey must be signed by the IdentityKey.
 // The IdentityKey can be signed by the wallet to authenticate it.
 export default class PublicKeyBundle implements proto.PublicKeyBundle {
-  identityKey: PublicKey | undefined
-  preKey: PublicKey | undefined
+  identityKey: PublicKey
+  preKey: PublicKey
 
-  constructor(
-    identityKey: PublicKey | undefined,
-    preKey: PublicKey | undefined
-  ) {
+  constructor(identityKey: PublicKey, preKey: PublicKey) {
     if (!identityKey) {
       throw new Error('missing identity key')
     }

@@ -35,7 +35,12 @@ recipientPublic = PublicKeyBundle.fromBytes(bytes)
 
 // encrypting binary `payload` for submission to the network
 // @sender is sender's PrivateKeyBundle
-let secret = await sender.sharedSecret(recipientPublic)
+// @senderPublic is sender's PublicKeyBundle
+let secret = await sender.sharedSecret(
+  recipientPublic,
+  senderPublic.preKey,
+  false
+)
 let bytes = await encrypt(payload, secret)
 ```
 
@@ -50,12 +55,24 @@ If the message was tampered with or the key signatures don't check out, the deco
 // @recipientPublic is the key bundle used to encrypt the message (normally attached to the message)
 // @bytes is the encrypted message
 // @recipient is the recipient's PrivateKeyBundle
-// @sender is the sender's PublicKeyBundle (normally attached to the message)
-let secret = await recipient.sharedSecret(sender, recipientPublic.preKey)
+// @senderPublic is the sender's PublicKeyBundle (normally attached to the message)
+let secret = await recipient.sharedSecret(
+  senderPublic,
+  recipientPublic.preKey,
+  true
+)
 let payload = await decrypt(bytes, secret)
 
-// senders address can be derived from the key bundle
-let address = sender.walletSignatureAddress()
+// sender's address can be derived from the key bundle
+let address = senderPublic.walletSignatureAddress()
+
+// the sender can also decrypt the payload deriving the secret the same way as for encryption.
+let secret = await sender.sharedSecret(
+  recipientPublic,
+  senderPublic.preKey,
+  false
+)
+let payload = await decrypt(bytes, secret)
 ```
 
 ## Implementation Notes
@@ -74,8 +91,6 @@ Protobuf is used for serialization throughout. The protobuf message structure is
 
 # TODO
 
-- distinguish wallet signatures from direct signatures
-- add key timestamp
 - sanity checking to avoid common mistakes
 - wiping of sensitive material
 - decoded keys/messages have Buffers instead of Uint8Arrays; problem?

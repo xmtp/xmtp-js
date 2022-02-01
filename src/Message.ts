@@ -46,7 +46,11 @@ export default class Message implements proto.Message {
   ): Promise<Message> {
     const bytes = new TextEncoder().encode(message)
 
-    const secret = await sender.sharedSecret(recipient)
+    const secret = await sender.sharedSecret(
+      recipient,
+      sender.getCurrentPreKey().publicKey,
+      false
+    )
     // eslint-disable-next-line camelcase
     const header: proto.Message_Header = {
       sender: sender.getPublicKeyBundle(),
@@ -68,7 +72,7 @@ export default class Message implements proto.Message {
   // throws if any part of the messages (including the header) was tampered with
   // or the recipient preKey used to encrypt the message is not recognized
   static async decode(
-    recipient: PrivateKeyBundle,
+    viewer: PrivateKeyBundle,
     bytes: Uint8Array
   ): Promise<Message> {
     const message = proto.Message.decode(bytes)
@@ -87,22 +91,35 @@ export default class Message implements proto.Message {
     if (!message.header.recipient) {
       throw new Error('missing message recipient')
     }
-    if (!message.header.recipient?.preKey) {
+    if (!message.header.recipient.identityKey) {
+      throw new Error('missing message recipient identity-key')
+    }
+    if (!message.header.recipient.preKey) {
       throw new Error('missing message recipient pre-key')
     }
-    const preKey = new PublicKey(message.header.recipient.preKey)
+    const recipient = new PublicKeyBundle(
+      new PublicKey(message.header.recipient.identityKey),
+      new PublicKey(message.header.recipient.preKey)
+    )
     const sender = new PublicKeyBundle(
       new PublicKey(message.header.sender.identityKey),
       new PublicKey(message.header.sender.preKey)
     )
+    let secret: Uint8Array
+    if (viewer.identityKey.matches(sender.identityKey)) {
+      // viewer is the sender
+      secret = await viewer.sharedSecret(recipient, sender.preKey, false)
+    } else {
+      // viewer is the recipient
+      secret = await viewer.sharedSecret(sender, recipient.preKey, true)
+    }
     if (!message.ciphertext?.aes256GcmHkdfSha256) {
       throw new Error('missing message ciphertext')
     }
     const ciphertext = new Ciphertext(message.ciphertext)
-    const secret = await recipient.sharedSecret(sender, preKey)
     const headerBytes = proto.Message_Header.encode({
       sender: sender,
-      recipient: recipient.getPublicKeyBundle(),
+      recipient: recipient,
       timestamp: message.header.timestamp,
     }).finish()
     bytes = await decrypt(ciphertext, secret, headerBytes)
