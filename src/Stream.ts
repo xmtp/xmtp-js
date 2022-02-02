@@ -1,40 +1,26 @@
-import { Waku, WakuMessage } from 'js-waku'
+import { WakuMessage } from 'js-waku'
 import { Message } from '.'
 import asyncify from 'callback-to-async-iterator'
-import { PrivateKeyBundle } from './crypto'
-import { buildDirectMessageTopic } from './utils'
+import Client from './Client'
 
 export default class Stream {
   iterator: AsyncIterableIterator<Message>
 
-  constructor(
-    waku: Waku,
-    senderWalletAddr: string,
-    recipient: PrivateKeyBundle
-  ) {
-    if (!recipient.identityKey) {
-      throw new Error('invalid recipient key')
-    }
-
-    const contentTopic = buildDirectMessageTopic(
-      senderWalletAddr,
-      recipient.identityKey.publicKey.walletSignatureAddress()
-    )
-
+  constructor(client: Client, topic: string) {
     this.iterator = asyncify<Message>(
       async (callback) => {
-        waku.relay.addObserver(
+        client.waku.relay.addObserver(
           async (wakuMsg: WakuMessage) => {
             if (wakuMsg.payload) {
-              const msg = await Message.decode(recipient, wakuMsg.payload)
+              const msg = await Message.decode(client.keys, wakuMsg.payload)
               callback(msg)
             }
           },
-          [contentTopic]
+          [topic]
         )
       },
       {
-        onClose: () => waku.relay.deleteObserver(() => ({}), [contentTopic]),
+        onClose: () => client.waku.relay.deleteObserver(() => ({}), [topic]),
       }
     )
   }

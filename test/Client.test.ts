@@ -57,45 +57,48 @@ describe('Client', () => {
       })
 
       it('send, stream and list messages', async () => {
-        const bobStream = bob.streamMessages(alice.address)
-        const aliceStream = alice.streamMessages(bob.address)
-        await alice.sendMessage(bob.address, 'hi')
-        await alice.sendMessage(bob.address, 'hello')
+        const bobIntros = bob.streamMessages(bob.address)
+        const bobAlice = bob.streamMessages(alice.address)
+        const aliceIntros = alice.streamMessages(alice.address)
+        const aliceBob = alice.streamMessages(bob.address)
 
-        // bob streaming
-        let msg = await bobStream.next()
-        assert.equal(msg.decrypted, 'hi')
+        // alice sends intro
+        await alice.sendMessage(bob.address, 'hi bob!')
+        let msg = await aliceIntros.next()
+        assert.equal(msg.decrypted, 'hi bob!')
 
-        msg = await bobStream.next()
-        assert.equal(msg.decrypted, 'hello')
+        // bob sends intro in response
+        msg = await bobIntros.next()
+        assert.equal(msg.decrypted, 'hi bob!')
+        await bob.sendMessage(alice.address, 'hi alice!')
+        msg = await bobIntros.next()
+        assert.equal(msg.decrypted, 'hi alice!')
 
+        // alice sends follow up
+        msg = await aliceIntros.next()
+        assert.equal(msg.decrypted, 'hi alice!')
+        await alice.sendMessage(bob.address, 'how are you?')
+        msg = await aliceBob.next()
+        assert.equal(msg.decrypted, 'how are you?')
+
+        // bob send follow up
+        msg = await bobAlice.next()
+        assert.equal(msg.decrypted, 'how are you?')
+        await bob.sendMessage(alice.address, 'fantastic!')
+        msg = await bobAlice.next()
+        assert.equal(msg.decrypted, 'fantastic!')
+
+        // alice receives follow up
+        msg = await aliceBob.next()
+        assert.equal(msg.decrypted, 'fantastic!')
+
+        // check next() times out at the end of a topic
         let timeout = false
         try {
           await promiseWithTimeout<void>(
             5,
             async () => {
-              await bobStream.next()
-            },
-            'timeout'
-          )
-        } catch (err) {
-          timeout = err instanceof Error && (err as Error).message === 'timeout'
-        }
-        assert.ok(timeout)
-
-        // alice streaming
-        msg = await aliceStream.next()
-        assert.equal(msg.decrypted, 'hi')
-
-        msg = await aliceStream.next()
-        assert.equal(msg.decrypted, 'hello')
-
-        timeout = false
-        try {
-          await promiseWithTimeout<void>(
-            5,
-            async () => {
-              await aliceStream.next()
+              await bobIntros.next()
             },
             'timeout'
           )
@@ -115,8 +118,8 @@ describe('Client', () => {
           100
         )
         assert.equal(messages.length, 2)
-        assert.equal(messages[0].decrypted, 'hi')
-        assert.equal(messages[1].decrypted, 'hello')
+        assert.equal(messages[0].decrypted, 'how are you?')
+        assert.equal(messages[1].decrypted, 'fantastic!')
       })
 
       it('send to unregistered address throws', async () => {
