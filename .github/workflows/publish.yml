@@ -32,8 +32,6 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
-      - name: Add package scope
-        run: npm run addscope
       - name: Publish to npm
         run: npm publish
         env:

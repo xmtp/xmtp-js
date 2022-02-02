@@ -1,5 +1,5 @@
 {
-  "name": "xmtp-js",
+  "name": "@xmtp/xmtp-js",
   "version": "0.0.1-alpha.1",
   "description": "XMTP client SDK for interacting with XMTP networks.",
   "main": "dist/cjs/src/index.js",
@@ -18,7 +18,6 @@
     "package": "npm run build && npm pack",
     "test": "jest --no-cache --runInBand",
     "test:cov": "jest --coverage --no-cache --runInBand",
-    "addscope": "node tools/packagejson name @xmtp/xmtp-js",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix ."
   },
