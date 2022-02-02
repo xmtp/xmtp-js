@@ -74,7 +74,7 @@ export default class Client {
     return recipientKeys.length > 0 ? recipientKeys[0] : undefined
   }
 
-  async sendMessage(peerAddress: string, msgString: string): Promise<void[]> {
+  async sendMessage(peerAddress: string, msgString: string): Promise<void> {
     let topics: string[]
     let recipient = this.contacts.get(peerAddress)
     if (!recipient) {
@@ -92,14 +92,12 @@ export default class Client {
     }
     const timestamp = new Date()
     const msg = await Message.encode(this.keys, recipient, msgString, timestamp)
-    return Promise.all(
-      topics.map(async (topic) => {
-        const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
-          timestamp,
-        })
-        return this.waku.relay.send(wakuMsg)
+    topics.forEach(async (topic) => {
+      const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
+        timestamp,
       })
-    )
+      return this.waku.relay.send(wakuMsg)
+    })
   }
 
   streamMessages(peerAddress: string): Stream {
