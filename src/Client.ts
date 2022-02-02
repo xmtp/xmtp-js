@@ -113,7 +113,7 @@ export default class Client {
     )
   }
 
-  streamMessages(topic: string): Stream {
+  private streamMessages(topic: string): Stream {
     return new Stream(this, topic)
   }
 
@@ -131,7 +131,7 @@ export default class Client {
     )
   }
 
-  async listMessages(
+  private async listMessages(
     topic: string,
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
