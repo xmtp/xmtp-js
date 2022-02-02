@@ -57,10 +57,10 @@ describe('Client', () => {
       })
 
       it('send, stream and list messages', async () => {
-        const bobIntros = bob.streamMessages(bob.address)
-        const bobAlice = bob.streamMessages(alice.address)
-        const aliceIntros = alice.streamMessages(alice.address)
-        const aliceBob = alice.streamMessages(bob.address)
+        const bobIntros = bob.streamIntroductionMessages()
+        const bobAlice = bob.streamConversationMessages(alice.address)
+        const aliceIntros = alice.streamIntroductionMessages()
+        const aliceBob = alice.streamConversationMessages(bob.address)
 
         // alice sends intro
         await alice.sendMessage(bob.address, 'hi bob!')
@@ -79,9 +79,17 @@ describe('Client', () => {
         assert.equal(msg.decrypted, 'hi alice!')
         await alice.sendMessage(bob.address, 'how are you?')
         msg = await aliceBob.next()
+        assert.equal(msg.decrypted, 'hi bob!')
+        msg = await aliceBob.next()
+        assert.equal(msg.decrypted, 'hi alice!')
+        msg = await aliceBob.next()
         assert.equal(msg.decrypted, 'how are you?')
 
-        // bob send follow up
+        // bob responds to follow up
+        msg = await bobAlice.next()
+        assert.equal(msg.decrypted, 'hi bob!')
+        msg = await bobAlice.next()
+        assert.equal(msg.decrypted, 'hi alice!')
         msg = await bobAlice.next()
         assert.equal(msg.decrypted, 'how are you?')
         await bob.sendMessage(alice.address, 'fantastic!')
@@ -108,18 +116,39 @@ describe('Client', () => {
         assert.ok(timeout)
 
         // list messages sent previously
-        const messages = await waitFor(
-          async () => {
-            const messages = await bob.listMessages(alice.address)
-            if (!messages.length) throw new Error('no messages')
-            return messages
-          },
-          5000,
-          100
+        const fixtures: [Client, string | null, string[]][] = [
+          [alice, null, ['hi bob!', 'hi alice!']],
+          [bob, null, ['hi bob!', 'hi alice!']],
+          [
+            alice,
+            bob.address,
+            ['hi bob!', 'hi alice!', 'how are you?', 'fantastic!'],
+          ],
+          [
+            bob,
+            alice.address,
+            ['hi bob!', 'hi alice!', 'how are you?', 'fantastic!'],
+          ],
+        ]
+        await Promise.all(
+          fixtures.map(async ([client, address, expected]) => {
+            const messages = await waitFor(
+              async () => {
+                const messages = address
+                  ? await client.listConversationMessages(address)
+                  : await client.listIntroductionMessages()
+                if (!messages.length) throw new Error('no messages')
+                return messages
+              },
+              5000,
+              100
+            )
+            assert.equal(messages.length, expected.length)
+            for (let i = 0; i < expected.length; i++) {
+              assert.equal(messages[i].decrypted, expected[i])
+            }
+          })
         )
-        assert.equal(messages.length, 2)
-        assert.equal(messages[0].decrypted, 'how are you?')
-        assert.equal(messages[1].decrypted, 'fantastic!')
       })
 
       it('send to unregistered address throws', async () => {

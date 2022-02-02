@@ -86,6 +86,7 @@ export default class Client {
       topics = [
         buildUserIntroTopic(peerAddress),
         buildUserIntroTopic(this.address),
+        buildDirectMessageTopic(this.address, peerAddress),
       ]
     } else {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
@@ -102,16 +103,36 @@ export default class Client {
     )
   }
 
-  streamMessages(peerAddress: string): Stream {
-    const topic =
-      peerAddress === this.address
-        ? buildUserIntroTopic(peerAddress)
-        : buildDirectMessageTopic(peerAddress, this.address)
+  streamIntroductionMessages(): Stream {
+    return this.streamMessages(buildUserIntroTopic(this.address))
+  }
+
+  streamConversationMessages(peerAddress: string): Stream {
+    return this.streamMessages(
+      buildDirectMessageTopic(peerAddress, this.address)
+    )
+  }
+
+  streamMessages(topic: string): Stream {
     return new Stream(this, topic)
   }
 
-  async listMessages(
+  listIntroductionMessages(opts?: ListMessagesOptions): Promise<Message[]> {
+    return this.listMessages(buildUserIntroTopic(this.address), opts)
+  }
+
+  listConversationMessages(
     peerAddress: string,
+    opts?: ListMessagesOptions
+  ): Promise<Message[]> {
+    return this.listMessages(
+      buildDirectMessageTopic(peerAddress, this.address),
+      opts
+    )
+  }
+
+  async listMessages(
+    topic: string,
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
     if (!opts) {
@@ -128,10 +149,6 @@ export default class Client {
       opts.pageSize = 10
     }
 
-    const topic =
-      peerAddress === this.address
-        ? buildUserIntroTopic(peerAddress)
-        : buildDirectMessageTopic(peerAddress, this.address)
     const wakuMsgs = await this.waku.store.queryHistory([topic], {
       pageSize: opts.pageSize,
       pageDirection: PageDirection.FORWARD,
