@@ -4,6 +4,7 @@ import Message from './Message'
 import {
   buildDirectMessageTopic,
   buildUserContactTopic,
+  buildUserIntroTopic,
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
@@ -74,6 +75,7 @@ export default class Client {
   }
 
   async sendMessage(peerAddress: string, msgString: string): Promise<void> {
+    let topics: string[]
     let recipient = this.contacts.get(peerAddress)
     if (!recipient) {
       recipient = await this.getUserContact(peerAddress)
@@ -81,22 +83,56 @@ export default class Client {
         throw new Error(`recipient ${peerAddress} is not registered`)
       }
       this.contacts.set(peerAddress, recipient)
+      topics = [
+        buildUserIntroTopic(peerAddress),
+        buildUserIntroTopic(this.address),
+        buildDirectMessageTopic(this.address, peerAddress),
+      ]
+    } else {
+      topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
-    const contentTopic = buildDirectMessageTopic(this.address, peerAddress)
     const timestamp = new Date()
     const msg = await Message.encode(this.keys, recipient, msgString, timestamp)
-    const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), contentTopic, {
-      timestamp,
-    })
-    return this.waku.relay.send(wakuMsg)
+    await Promise.all(
+      topics.map(async (topic) => {
+        const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
+          timestamp,
+        })
+        return this.waku.relay.send(wakuMsg)
+      })
+    )
   }
 
-  streamMessages(peerAddress: string): Stream {
-    return new Stream(this.waku, peerAddress, this.keys)
+  streamIntroductionMessages(): Stream {
+    return this.streamMessages(buildUserIntroTopic(this.address))
   }
 
-  async listMessages(
+  streamConversationMessages(peerAddress: string): Stream {
+    return this.streamMessages(
+      buildDirectMessageTopic(peerAddress, this.address)
+    )
+  }
+
+  private streamMessages(topic: string): Stream {
+    return new Stream(this, topic)
+  }
+
+  listIntroductionMessages(opts?: ListMessagesOptions): Promise<Message[]> {
+    return this.listMessages(buildUserIntroTopic(this.address), opts)
+  }
+
+  listConversationMessages(
     peerAddress: string,
+    opts?: ListMessagesOptions
+  ): Promise<Message[]> {
+    return this.listMessages(
+      buildDirectMessageTopic(peerAddress, this.address),
+      opts
+    )
+  }
+
+  private async listMessages(
+    topic: string,
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
     if (!opts) {
@@ -113,8 +149,7 @@ export default class Client {
       opts.pageSize = 10
     }
 
-    const contentTopic = buildDirectMessageTopic(peerAddress, this.address)
-    const wakuMsgs = await this.waku.store.queryHistory([contentTopic], {
+    const wakuMsgs = await this.waku.store.queryHistory([topic], {
       pageSize: opts.pageSize,
       pageDirection: PageDirection.FORWARD,
       timeFilter: {
