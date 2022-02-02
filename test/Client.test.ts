@@ -143,7 +143,7 @@ describe('Client', () => {
                 return messages
               },
               5000,
-              100
+              500
             )
             assert.equal(messages.length, expected.length, name)
             for (let i = 0; i < expected.length; i++) {
