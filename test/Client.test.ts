@@ -116,22 +116,24 @@ describe('Client', () => {
         assert.ok(timeout)
 
         // list messages sent previously
-        const fixtures: [Client, string | null, string[]][] = [
-          [alice, null, ['hi bob!', 'hi alice!']],
-          [bob, null, ['hi bob!', 'hi alice!']],
+        const fixtures: [string, Client, string | null, string[]][] = [
+          ['alice-intro', alice, null, ['hi bob!', 'hi alice!']],
+          ['bob-intro', bob, null, ['hi bob!', 'hi alice!']],
           [
+            'alice-convo',
             alice,
             bob.address,
             ['hi bob!', 'hi alice!', 'how are you?', 'fantastic!'],
           ],
           [
+            'bob-convo',
             bob,
             alice.address,
             ['hi bob!', 'hi alice!', 'how are you?', 'fantastic!'],
           ],
         ]
         await Promise.all(
-          fixtures.map(async ([client, address, expected]) => {
+          fixtures.map(async ([name, client, address, expected]) => {
             const messages = await waitFor(
               async () => {
                 const messages = address
@@ -143,9 +145,13 @@ describe('Client', () => {
               5000,
               100
             )
-            assert.equal(messages.length, expected.length)
+            assert.equal(messages.length, expected.length, name)
             for (let i = 0; i < expected.length; i++) {
-              assert.equal(messages[i].decrypted, expected[i])
+              assert.equal(
+                messages[i].decrypted,
+                expected[i],
+                `${name} message[${i}]`
+              )
             }
           })
         )
