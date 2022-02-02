@@ -19,7 +19,8 @@
     "test": "jest --no-cache --runInBand",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
-    "autolint": "prettier --write . && eslint --fix ."
+    "autolint": "prettier --write . && eslint --fix .",
+    "version:bump": "npm version prerelease --preid=alpha"
   },
   "publishConfig": {
     "access": "restricted"
