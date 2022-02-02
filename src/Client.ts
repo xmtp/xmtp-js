@@ -92,12 +92,14 @@ export default class Client {
     }
     const timestamp = new Date()
     const msg = await Message.encode(this.keys, recipient, msgString, timestamp)
-    topics.forEach(async (topic) => {
-      const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
-        timestamp,
+    await Promise.all(
+      topics.map(async (topic) => {
+        const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
+          timestamp,
+        })
+        return this.waku.relay.send(wakuMsg)
       })
-      return this.waku.relay.send(wakuMsg)
-    })
+    )
   }
 
   streamMessages(peerAddress: string): Stream {
