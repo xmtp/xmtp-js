@@ -154,6 +154,7 @@ describe('Client', () => {
           }
           await alice.sendMessage(bob.address, 'msg ' + count)
         }
+        // check that the stream was closed
         let result = await convo.next()
         assert.ok(result.done)
       })
