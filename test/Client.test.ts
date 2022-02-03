@@ -21,14 +21,16 @@ const newTestnetClient = (): Promise<Client> =>
 describe('Client', () => {
   const tests = [
     {
-      name: 'testnet',
-      newClient: newTestnetClient,
-    },
-    {
       name: 'local docker node',
       newClient: newLocalDockerClient,
     },
   ]
+  if (process.env.CI || process.env.TESTNET) {
+    tests.push({
+      name: 'testnet',
+      newClient: newTestnetClient,
+    })
+  }
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
       let alice: Client, bob: Client
