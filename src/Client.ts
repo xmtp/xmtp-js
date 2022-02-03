@@ -85,9 +85,11 @@ export default class Client {
       this.contacts.set(peerAddress, recipient)
       topics = [
         buildUserIntroTopic(peerAddress),
-        buildUserIntroTopic(this.address),
         buildDirectMessageTopic(this.address, peerAddress),
       ]
+      if (peerAddress !== this.address) {
+        topics.push(buildUserIntroTopic(this.address))
+      }
     } else {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
