@@ -1,4 +1,7 @@
 import * as secp from '@noble/secp256k1'
+import { crypto } from './encryption'
+
+export const getRandomValues = crypto.getRandomValues
 
 export const bytesToHex = secp.utils.bytesToHex
 
