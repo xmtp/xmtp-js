@@ -1,6 +1,5 @@
-import { PrivateKeyBundle } from '../src/crypto'
 import assert from 'assert'
-import { waitFor, newWallet } from './helpers'
+import { pollFor, newWallet } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
 
@@ -67,55 +66,40 @@ describe('Client', () => {
         // alice sends intro
         await alice.sendMessage(bob.address, 'hi bob!')
         let msg = await aliceIntros.next()
-        assert.equal(msg.decrypted, 'hi bob!')
+        assert.equal(msg.value.decrypted, 'hi bob!')
 
         // bob sends intro in response
         msg = await bobIntros.next()
-        assert.equal(msg.decrypted, 'hi bob!')
+        assert.equal(msg.value.decrypted, 'hi bob!')
         await bob.sendMessage(alice.address, 'hi alice!')
         msg = await bobIntros.next()
-        assert.equal(msg.decrypted, 'hi alice!')
+        assert.equal(msg.value.decrypted, 'hi alice!')
 
         // alice sends follow up
         msg = await aliceIntros.next()
-        assert.equal(msg.decrypted, 'hi alice!')
+        assert.equal(msg.value.decrypted, 'hi alice!')
         await alice.sendMessage(bob.address, 'how are you?')
         msg = await aliceBob.next()
-        assert.equal(msg.decrypted, 'hi bob!')
+        assert.equal(msg.value.decrypted, 'hi bob!')
         msg = await aliceBob.next()
-        assert.equal(msg.decrypted, 'hi alice!')
+        assert.equal(msg.value.decrypted, 'hi alice!')
         msg = await aliceBob.next()
-        assert.equal(msg.decrypted, 'how are you?')
+        assert.equal(msg.value.decrypted, 'how are you?')
 
         // bob responds to follow up
         msg = await bobAlice.next()
-        assert.equal(msg.decrypted, 'hi bob!')
+        assert.equal(msg.value.decrypted, 'hi bob!')
         msg = await bobAlice.next()
-        assert.equal(msg.decrypted, 'hi alice!')
+        assert.equal(msg.value.decrypted, 'hi alice!')
         msg = await bobAlice.next()
-        assert.equal(msg.decrypted, 'how are you?')
+        assert.equal(msg.value.decrypted, 'how are you?')
         await bob.sendMessage(alice.address, 'fantastic!')
         msg = await bobAlice.next()
-        assert.equal(msg.decrypted, 'fantastic!')
+        assert.equal(msg.value.decrypted, 'fantastic!')
 
         // alice receives follow up
         msg = await aliceBob.next()
-        assert.equal(msg.decrypted, 'fantastic!')
-
-        // check next() times out at the end of a topic
-        let timeout = false
-        try {
-          await promiseWithTimeout<void>(
-            5,
-            async () => {
-              await bobIntros.next()
-            },
-            'timeout'
-          )
-        } catch (err) {
-          timeout = err instanceof Error && (err as Error).message === 'timeout'
-        }
-        assert.ok(timeout)
+        assert.equal(msg.value.decrypted, 'fantastic!')
 
         // list messages sent previously
         const fixtures: [string, Client, string | null, string[]][] = [
@@ -136,7 +120,7 @@ describe('Client', () => {
         ]
         await Promise.all(
           fixtures.map(async ([name, client, address, expected]) => {
-            const messages = await waitFor(
+            const messages = await pollFor(
               async () => {
                 const messages = address
                   ? await client.listConversationMessages(address)
@@ -156,6 +140,23 @@ describe('Client', () => {
             }
           })
         )
+      })
+
+      it('for-await-of with stream', async () => {
+        const convo = alice.streamConversationMessages(bob.address)
+        let count = 5
+        await alice.sendMessage(bob.address, 'msg ' + count)
+        for await (const msg of convo) {
+          assert.equal(msg.decrypted, 'msg ' + count)
+          count--
+          if (!count) {
+            break
+          }
+          await alice.sendMessage(bob.address, 'msg ' + count)
+        }
+        // check that the stream was closed
+        let result = await convo.next()
+        assert.ok(result.done)
       })
 
       it('send to unregistered address throws', async () => {
