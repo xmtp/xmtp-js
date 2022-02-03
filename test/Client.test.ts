@@ -145,7 +145,9 @@ describe('Client', () => {
         const convo = alice.streamConversationMessages(alice.address)
         const intro = alice.streamIntroductionMessages()
         const messages = ['Hey me!', 'Yo!', 'Over and out']
-        messages.forEach(async (m) => await alice.sendMessage(alice.address, m))
+        for (let message of messages) {
+          await alice.sendMessage(alice.address, message)
+        }
 
         const intros = await dumpStream(intro)
         assert.equal(intros.length, 1)
