@@ -4,8 +4,8 @@ import PublicKey from './PublicKey'
 import PublicKeyBundle from './PublicKeyBundle'
 import Ciphertext from './Ciphertext'
 import * as ethers from 'ethers'
-import { getRandomValues, hexToBytes } from './utils'
-import { decrypt, encrypt } from './encryption'
+import { hexToBytes } from './utils'
+import { crypto, decrypt, encrypt } from './encryption'
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
@@ -110,7 +110,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       identityKey: this.identityKey,
       preKeys: this.preKeys,
     }).finish()
-    const wPreKey = getRandomValues(new Uint8Array(32))
+    const wPreKey = crypto.getRandomValues(new Uint8Array(32))
     const secret = hexToBytes(await wallet.signMessage(wPreKey))
     const ciphertext = await encrypt(bytes, secret)
     return proto.EncryptedPrivateKeyBundle.encode({

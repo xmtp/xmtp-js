@@ -10,6 +10,7 @@ import {
   decrypt,
 } from '../../src/crypto'
 import * as ethers from 'ethers'
+import { crypto } from '../../src/crypto/encryption'
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
@@ -51,7 +52,7 @@ describe('Crypto', function () {
   })
   it('derives public key from signature', async function () {
     const pri = PrivateKey.generate()
-    const digest = utils.getRandomValues(new Uint8Array(16))
+    const digest = crypto.getRandomValues(new Uint8Array(16))
     const sig = await pri.sign(digest)
     const sigPub = sig.getPublicKey(digest)
     assert.ok(sigPub)
