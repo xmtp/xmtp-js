@@ -4,7 +4,7 @@ import { PrivateKey } from '../src'
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
-export async function waitFor<T>(
+export async function pollFor<T>(
   callback: () => Promise<T>,
   timeoutMs: number,
   delayMs: number
@@ -21,7 +21,7 @@ export async function waitFor<T>(
     if (remainingTimeoutMs <= 0) {
       throw new Error('timeout exceeded')
     }
-    return await waitFor(callback, remainingTimeoutMs, delayMs)
+    return await pollFor(callback, remainingTimeoutMs, delayMs)
   }
 }
 
