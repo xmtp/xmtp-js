@@ -14,4 +14,5 @@ module.exports = {
       tsconfig: 'tsconfig.json',
     },
   },
+  setupFiles: ['./test/polyfill.ts'],
 }
