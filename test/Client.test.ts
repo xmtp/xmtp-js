@@ -18,30 +18,18 @@ const newTestnetClient = (): Promise<Client> =>
   })
 
 describe('Client', () => {
-<<<<<<< HEAD
   const tests = [
-=======
-  let tests = [
->>>>>>> 931ef69 (Make Stream proper iterable)
     {
       name: 'local docker node',
       newClient: newLocalDockerClient,
     },
   ]
-<<<<<<< HEAD
   if (process.env.CI || process.env.TESTNET) {
-=======
-  if (process.env.CI) {
->>>>>>> 931ef69 (Make Stream proper iterable)
     tests.push({
       name: 'testnet',
       newClient: newTestnetClient,
     })
   }
-<<<<<<< HEAD
-=======
-
->>>>>>> 931ef69 (Make Stream proper iterable)
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
       let alice: Client, bob: Client
@@ -137,12 +125,7 @@ describe('Client', () => {
                 const messages = address
                   ? await client.listConversationMessages(address)
                   : await client.listIntroductionMessages()
-<<<<<<< HEAD
                 assert.equal(messages.length, expected.length, name)
-=======
-                // TODO: this is very weak
-                if (!messages.length) throw new Error('no messages')
->>>>>>> 931ef69 (Make Stream proper iterable)
                 return messages
               },
               5000,

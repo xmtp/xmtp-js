@@ -22,5 +22,3 @@ jobs:
           node-version-file: '.nvmrc'
       - run: npm install
       - run: npm test
-        env:
-          CI: yes
