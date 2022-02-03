@@ -141,13 +141,12 @@ describe('Client', () => {
                 const messages = address
                   ? await client.listConversationMessages(address)
                   : await client.listIntroductionMessages()
-                if (!messages.length) throw new Error('no messages')
+                assert.equal(messages.length, expected.length, name)
                 return messages
               },
               5000,
               500
             )
-            assert.equal(messages.length, expected.length, name)
             for (let i = 0; i < expected.length; i++) {
               assert.equal(
                 messages[i].decrypted,
