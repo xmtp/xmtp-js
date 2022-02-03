@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { pollFor, newWallet } from './helpers'
+import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
 
@@ -140,6 +140,20 @@ describe('Client', () => {
             }
           })
         )
+      })
+      it('messaging yourself', async () => {
+        const convo = alice.streamConversationMessages(alice.address)
+        const intro = alice.streamIntroductionMessages()
+        const messages = ['Hey me!', 'Yo!', 'Over and out']
+        messages.forEach(async (m) => await alice.sendMessage(alice.address, m))
+
+        const intros = await dumpStream(intro)
+        assert.equal(intros.length, 1)
+        assert.equal(intros[0].decrypted, messages[0])
+
+        const convos = await dumpStream(convo)
+        assert.equal(convos.length, messages.length)
+        convos.forEach((m, i) => assert.equal(m.decrypted, messages[i]))
       })
 
       it('for-await-of with stream', async () => {

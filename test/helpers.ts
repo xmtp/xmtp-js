@@ -1,5 +1,7 @@
 import { Wallet } from 'ethers'
-import { PrivateKey } from '../src'
+import { PrivateKey, Message } from '../src'
+import Stream from '../src/Stream'
+import { promiseWithTimeout } from '../src/utils'
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
@@ -23,6 +25,30 @@ export async function pollFor<T>(
     }
     return await pollFor(callback, remainingTimeoutMs, delayMs)
   }
+}
+
+export async function dumpStream(
+  stream: Stream,
+  timeoutMs = 1000
+): Promise<Message[]> {
+  const messages: Message[] = []
+  try {
+    while (true) {
+      const result = await promiseWithTimeout(
+        timeoutMs,
+        () => stream.next(),
+        'timeout'
+      )
+      if (result.done) {
+        break
+      }
+      messages.push(result.value)
+    }
+  } catch {
+  } finally {
+    stream.return()
+  }
+  return messages
 }
 
 export function newWallet(): Wallet {
