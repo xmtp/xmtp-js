@@ -37,6 +37,15 @@ export default class Message implements proto.Message {
     ).walletSignatureAddress()
   }
 
+  recipientAddress(): string | undefined {
+    if (!this.header?.recipient?.identityKey) {
+      return undefined
+    }
+    return new PublicKey(
+      this.header.recipient.identityKey
+    ).walletSignatureAddress()
+  }
+
   // encrypt and serialize the message
   static async encode(
     sender: PrivateKeyBundle,
