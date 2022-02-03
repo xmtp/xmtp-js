@@ -32,6 +32,9 @@ module.exports = {
       buffer: require.resolve('buffer/'),
       crypto: require.resolve('crypto-browserify'),
       stream: require.resolve('stream-browserify'),
+      constants: false,
+      fs: false,
+      path: false,
     },
   },
   plugins: [
