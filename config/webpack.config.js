@@ -7,7 +7,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, '../dist/umd'),
     filename: 'index.js',
-    library: 'exampleTypescriptPackage',
+    library: 'xmtp',
     libraryTarget: 'umd',
     globalObject: 'this',
   },
@@ -28,19 +28,13 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
     fallback: {
-      process: require.resolve('process/browser'),
-      buffer: require.resolve('buffer/'),
-      crypto: require.resolve('crypto-browserify'),
-      stream: require.resolve('stream-browserify'),
+      assert: false,
+      crypto: false,
+      stream: false,
       constants: false,
       fs: false,
       path: false,
+      util: false,
     },
   },
-  plugins: [
-    new webpack.ProvidePlugin({
-      process: 'process/browser',
-      Buffer: ['buffer', 'Buffer'],
-    }),
-  ],
 }
