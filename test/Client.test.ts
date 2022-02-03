@@ -142,6 +142,22 @@ describe('Client', () => {
         )
       })
 
+      it('for-await-of with stream', async () => {
+        const convo = alice.streamConversationMessages(bob.address)
+        let count = 5
+        await alice.sendMessage(bob.address, 'msg ' + count)
+        for await (const msg of convo) {
+          assert.equal(msg.decrypted, 'msg ' + count)
+          count--
+          if (!count) {
+            break
+          }
+          await alice.sendMessage(bob.address, 'msg ' + count)
+        }
+        let result = await convo.next()
+        assert.ok(result.done)
+      })
+
       it('send to unregistered address throws', async () => {
         return expect(
           alice.sendMessage('unregistered address', 'hello as well')
