@@ -37,7 +37,12 @@ export default class PrivateKey implements proto.PrivateKey {
     return new PrivateKey({
       secp256k1,
       timestamp,
-      publicKey: PublicKey.fromPrivateKey(secp256k1, timestamp),
+      publicKey: new PublicKey({
+        secp256k1Uncompressed: {
+          bytes: secp.getPublicKey(secp256k1.bytes),
+        },
+        timestamp: timestamp,
+      }),
     })
   }
 
