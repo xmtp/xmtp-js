@@ -33,6 +33,22 @@ export default class PublicKey implements proto.PublicKey {
     }
   }
 
+  // create PublicKey that corresponds to the provided PrivateKey
+  static fromPrivateKey(
+    secp256k1: proto.PrivateKey_Secp256k1, // eslint-disable-line camelcase
+    timestamp: number
+  ): PublicKey {
+    if (!secp256k1) {
+      throw new Error('invalid private key')
+    }
+    return new PublicKey({
+      secp256k1Uncompressed: {
+        bytes: secp.getPublicKey(secp256k1.bytes),
+      },
+      timestamp: timestamp,
+    })
+  }
+
   generated(): Date | undefined {
     if (!this.timestamp) {
       return undefined
