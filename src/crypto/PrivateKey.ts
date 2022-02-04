@@ -22,16 +22,22 @@ export default class PrivateKey implements proto.PrivateKey {
     }
     this.timestamp = obj.timestamp
     this.secp256k1 = obj.secp256k1
-    this.publicKey = PublicKey.fromPrivateKey(this)
+    if (!obj.publicKey) {
+      throw new Error('missing public key')
+    }
+    this.publicKey = new PublicKey(obj.publicKey)
   }
 
   // create a random PrivateKey.
   static generate(): PrivateKey {
+    const secp256k1 = {
+      bytes: secp.utils.randomPrivateKey(),
+    }
+    const timestamp = new Date().getTime()
     return new PrivateKey({
-      secp256k1: {
-        bytes: secp.utils.randomPrivateKey(),
-      },
-      timestamp: new Date().getTime(),
+      secp256k1,
+      timestamp,
+      publicKey: PublicKey.fromPrivateKey(secp256k1, timestamp),
     })
   }
 

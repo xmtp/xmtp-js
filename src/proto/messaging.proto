@@ -29,6 +29,7 @@ message PrivateKey {
     oneof union {
         Secp256k1 secp256k1 = 2;
     }
+    PublicKey publicKey = 3;
 }
 
 message Ciphertext {
