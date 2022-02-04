@@ -29,6 +29,7 @@ export interface PublicKey_Secp256k1Uncompresed {
 export interface PrivateKey {
   timestamp: number
   secp256k1: PrivateKey_Secp256k1 | undefined
+  publicKey: PublicKey | undefined
 }
 
 export interface PrivateKey_Secp256k1 {
@@ -377,7 +378,7 @@ export const PublicKey_Secp256k1Uncompresed = {
 }
 
 function createBasePrivateKey(): PrivateKey {
-  return { timestamp: 0, secp256k1: undefined }
+  return { timestamp: 0, secp256k1: undefined, publicKey: undefined }
 }
 
 export const PrivateKey = {
@@ -393,6 +394,9 @@ export const PrivateKey = {
         message.secp256k1,
         writer.uint32(18).fork()
       ).ldelim()
+    }
+    if (message.publicKey !== undefined) {
+      PublicKey.encode(message.publicKey, writer.uint32(26).fork()).ldelim()
     }
     return writer
   },
@@ -413,6 +417,9 @@ export const PrivateKey = {
             reader.uint32()
           )
           break
+        case 3:
+          message.publicKey = PublicKey.decode(reader, reader.uint32())
+          break
         default:
           reader.skipType(tag & 7)
           break
@@ -427,6 +434,9 @@ export const PrivateKey = {
       secp256k1: isSet(object.secp256k1)
         ? PrivateKey_Secp256k1.fromJSON(object.secp256k1)
         : undefined,
+      publicKey: isSet(object.publicKey)
+        ? PublicKey.fromJSON(object.publicKey)
+        : undefined,
     }
   },
 
@@ -437,6 +447,10 @@ export const PrivateKey = {
     message.secp256k1 !== undefined &&
       (obj.secp256k1 = message.secp256k1
         ? PrivateKey_Secp256k1.toJSON(message.secp256k1)
+        : undefined)
+    message.publicKey !== undefined &&
+      (obj.publicKey = message.publicKey
+        ? PublicKey.toJSON(message.publicKey)
         : undefined)
     return obj
   },
@@ -449,6 +463,10 @@ export const PrivateKey = {
     message.secp256k1 =
       object.secp256k1 !== undefined && object.secp256k1 !== null
         ? PrivateKey_Secp256k1.fromPartial(object.secp256k1)
+        : undefined
+    message.publicKey =
+      object.publicKey !== undefined && object.publicKey !== null
+        ? PublicKey.fromPartial(object.publicKey)
         : undefined
     return message
   },

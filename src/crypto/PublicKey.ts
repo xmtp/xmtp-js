@@ -1,7 +1,6 @@
 import * as proto from '../../src/proto/messaging'
 import * as secp from '@noble/secp256k1'
 import Signature from './Signature'
-import PrivateKey from './PrivateKey'
 import { hexToBytes } from './utils'
 import * as ethers from 'ethers'
 import { sha256 } from './encryption'
@@ -32,19 +31,6 @@ export default class PublicKey implements proto.PublicKey {
     if (obj.signature) {
       this.signature = new Signature(obj.signature)
     }
-  }
-
-  // create PublicKey that corresponds to the provided PrivateKey
-  static fromPrivateKey(pri: PrivateKey): PublicKey {
-    if (!pri.secp256k1) {
-      throw new Error('invalid private key')
-    }
-    return new PublicKey({
-      secp256k1Uncompressed: {
-        bytes: secp.getPublicKey(pri.secp256k1.bytes),
-      },
-      timestamp: pri.timestamp,
-    })
   }
 
   generated(): Date | undefined {
