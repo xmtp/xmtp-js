@@ -5,8 +5,9 @@ import { hexToBytes } from './utils'
 import * as ethers from 'ethers'
 import { sha256 } from './encryption'
 
-// PublicKey respresents uncompressed secp256k1 public key,
+// PublicKey represents uncompressed secp256k1 public key,
 // that can optionally be signed with another trusted key pair.
+// PublicKeys can be generated through PrivateKey.generate()
 export default class PublicKey implements proto.PublicKey {
   timestamp: number
   secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompresed // eslint-disable-line camelcase
@@ -31,22 +32,6 @@ export default class PublicKey implements proto.PublicKey {
     if (obj.signature) {
       this.signature = new Signature(obj.signature)
     }
-  }
-
-  // create PublicKey that corresponds to the provided PrivateKey
-  static fromPrivateKey(
-    secp256k1: proto.PrivateKey_Secp256k1, // eslint-disable-line camelcase
-    timestamp: number
-  ): PublicKey {
-    if (!secp256k1) {
-      throw new Error('invalid private key')
-    }
-    return new PublicKey({
-      secp256k1Uncompressed: {
-        bytes: secp.getPublicKey(secp256k1.bytes),
-      },
-      timestamp: timestamp,
-    })
   }
 
   generated(): Date | undefined {
