@@ -118,13 +118,19 @@ describe('Crypto', function () {
     assert.ok(alice.secp256k1)
     const wallet = new ethers.Wallet(alice.secp256k1.bytes)
     // generate key bundle
-    const bob = await PrivateKeyBundle.generate()
+    const bob = await PrivateKeyBundle.generate(wallet)
     // encrypt and serialize the bundle for storage
     const bytes = await bob.encode(wallet)
     // decrypt and decode the bundle from storage
     const bobDecoded = await PrivateKeyBundle.decode(wallet, bytes)
     assert.ok(bob.identityKey)
     assert.ok(bobDecoded.identityKey)
+    assert.ok(bob.identityKey.publicKey.signature)
+    assert.ok(bobDecoded.identityKey.publicKey.signature)
+    assert.deepEqual(
+      bob.identityKey.publicKey.signature?.ecdsaCompact?.bytes,
+      bobDecoded.identityKey.publicKey.signature?.ecdsaCompact?.bytes
+    )
     assert.ok(bob.identityKey.secp256k1)
     assert.ok(bobDecoded.identityKey.secp256k1)
     assert.deepEqual(
