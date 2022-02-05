@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/xmtp-js",
-  "version": "0.0.1-alpha.6",
+  "version": "0.0.0-development",
   "description": "XMTP client SDK for interacting with XMTP networks.",
   "main": "dist/cjs/src/index.js",
   "module": "dist/esm/src/index.js",
@@ -20,7 +20,7 @@
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
-    "version:bump": "npm version prerelease --preid=alpha"
+    "semantic-release": "semantic-release"
   },
   "publishConfig": {
     "access": "restricted"
@@ -43,10 +43,13 @@
   "homepage": "https://github.com/xmtp/xmtp-js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:xmtp/xmtp-js.git"
+    "url": "https:git@github.com:xmtp/xmtp-js.git"
   },
   "bugs": {
     "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
+  "release": {
+    "branches": ["main", "next"]
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
@@ -73,6 +76,7 @@
     "ts-proto": "^1.104.0",
     "typescript": "^4.4.3",
     "webpack": "^5.52.1",
-    "webpack-cli": "^4.8.0"
+    "webpack-cli": "^4.8.0",
+    "semantic-release": "^19.0.2"
   }
 }
