@@ -236,7 +236,7 @@ async function createWaku({
 
 async function getNodeList(env: keyof NodesList): Promise<string[]> {
   const res = await fetch(NODES_LIST_URL)
-  const nodesList = (await res.json()) as NodesList
+  const nodesList: NodesList = await res.json()
 
   return Object.values(nodesList[env])
 }
