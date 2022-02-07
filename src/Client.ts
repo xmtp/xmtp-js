@@ -195,7 +195,7 @@ async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
 
 async function createWaku({
   bootstrapAddrs,
-  env,
+  env = 'testnet',
   waitForPeersTimeoutMs,
 }: CreateOptions): Promise<Waku> {
   const bootstrap: BootstrapOptions = bootstrapAddrs?.length
@@ -234,9 +234,7 @@ async function createWaku({
   return waku
 }
 
-async function getNodeList(
-  env: keyof NodesList = 'testnet'
-): Promise<string[]> {
+async function getNodeList(env: keyof NodesList): Promise<string[]> {
   const res = await fetch(NODES_LIST_URL)
   const nodesList = (await res.json()) as NodesList
 
