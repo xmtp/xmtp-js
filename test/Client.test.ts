@@ -10,7 +10,8 @@ const newLocalDockerClient = (): Promise<Client> =>
     ],
   })
 
-const newTestnetClient = (): Promise<Client> => Client.create(newWallet(), {})
+const newTestnetClient = (): Promise<Client> =>
+  Client.create(newWallet(), { env: 'testnet' })
 
 describe('Client', () => {
   const tests = [
