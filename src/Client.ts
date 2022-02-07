@@ -1,5 +1,7 @@
-import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import { Waku, WakuMessage, PageDirection } from 'js-waku'
+import { BootstrapOptions } from 'js-waku/build/main/lib/discovery'
+import fetch from 'cross-fetch'
+import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import Message from './Message'
 import {
   buildDirectMessageTopic,
@@ -12,6 +14,14 @@ import Stream from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore } from './store'
 
+const NODES_LIST_URL = 'https://nodes.xmtp.com/'
+
+type Nodes = { [k: string]: string }
+
+type NodesList = {
+  testnet: Nodes
+}
+
 type ListMessagesOptions = {
   pageSize?: number
   startTime?: Date
@@ -20,6 +30,8 @@ type ListMessagesOptions = {
 
 type CreateOptions = {
   bootstrapAddrs?: string[]
+  // Allow for specifying different envs later
+  env?: keyof NodesList
   waitForPeersTimeoutMs?: number
 }
 
@@ -37,7 +49,7 @@ export default class Client {
   }
 
   static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
-    const waku = await createWaku(opts)
+    const waku = await createWaku(opts || {})
     const keys = await loadOrCreateKeys(wallet)
     const client = new Client(waku, keys)
     await client.publishUserContact()
@@ -181,10 +193,18 @@ async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
   return keys
 }
 
-async function createWaku(opts?: CreateOptions): Promise<Waku> {
-  if (!opts?.bootstrapAddrs) {
-    throw new Error('missing bootstrap node addresses')
-  }
+async function createWaku({
+  bootstrapAddrs,
+  env = 'testnet',
+  waitForPeersTimeoutMs,
+}: CreateOptions): Promise<Waku> {
+  const bootstrap: BootstrapOptions = bootstrapAddrs?.length
+    ? {
+        peers: bootstrapAddrs,
+      }
+    : {
+        getPeers: () => getNodeList(env),
+      }
   const waku = await Waku.create({
     libp2p: {
       config: {
@@ -194,15 +214,13 @@ async function createWaku(opts?: CreateOptions): Promise<Waku> {
         },
       },
     },
-    bootstrap: {
-      peers: opts?.bootstrapAddrs,
-    },
+    bootstrap,
   })
 
   // Wait for peer connection.
   try {
     await promiseWithTimeout(
-      opts?.waitForPeersTimeoutMs || 10000,
+      waitForPeersTimeoutMs || 10000,
       () => waku.waitForConnectedPeer(),
       'timeout connecting to peers'
     )
@@ -214,4 +232,11 @@ async function createWaku(opts?: CreateOptions): Promise<Waku> {
   // a few ms seems to be enough, but it would be great to fix this upstream.
   await sleep(200)
   return waku
+}
+
+async function getNodeList(env: keyof NodesList): Promise<string[]> {
+  const res = await fetch(NODES_LIST_URL)
+  const nodesList: NodesList = await res.json()
+
+  return Object.values(nodesList[env])
 }
