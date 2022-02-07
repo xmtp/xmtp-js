@@ -10,12 +10,7 @@ const newLocalDockerClient = (): Promise<Client> =>
     ],
   })
 
-const newTestnetClient = (): Promise<Client> =>
-  Client.create(newWallet(), {
-    bootstrapAddrs: [
-      '/dns4/bootstrap-node-0.testnet.xmtp.network/tcp/8443/wss/p2p/16Uiu2HAm888gVYpr4cZQ4qhEendQW6oYEhG8n6fnqw1jVW3Prdc6',
-    ],
-  })
+const newTestnetClient = (): Promise<Client> => Client.create(newWallet(), {})
 
 describe('Client', () => {
   const tests = [
