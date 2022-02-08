@@ -4,7 +4,7 @@ import PublicKey from './PublicKey'
 import PublicKeyBundle from './PublicKeyBundle'
 import Ciphertext from './Ciphertext'
 import * as ethers from 'ethers'
-import { getRandomValues, hexToBytes } from './utils'
+import { bytesToHex, getRandomValues, hexToBytes } from './utils'
 import { decrypt, encrypt } from './encryption'
 import { NoMatchingPreKeyError } from './errors'
 
@@ -98,6 +98,19 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     return secret
   }
 
+  static storageSigRequestText(preKey: Uint8Array): string {
+    // Note that an update to this signature request text will require
+    // addition of backward compatability for existing encrypted bundles
+    // and/or a migration; otherwise clients will no longer be able to
+    // decrypt those bundles.
+    return (
+      'XMTP : Enable Identity\n' +
+      `${bytesToHex(preKey)}\n` +
+      '\n' +
+      'For more info: https://xmtp.org/signatures/'
+    )
+  }
+
   // encrypts/serializes the bundle for storage
   async encode(wallet: ethers.Signer): Promise<Uint8Array> {
     // serialize the contents
@@ -112,7 +125,9 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       preKeys: this.preKeys,
     }).finish()
     const wPreKey = getRandomValues(new Uint8Array(32))
-    const secret = hexToBytes(await wallet.signMessage(wPreKey))
+    const secret = hexToBytes(
+      await wallet.signMessage(PrivateKeyBundle.storageSigRequestText(wPreKey))
+    )
     const ciphertext = await encrypt(bytes, secret)
     return proto.EncryptedPrivateKeyBundle.encode({
       walletPreKey: wPreKey,
@@ -129,7 +144,11 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     if (!encrypted.walletPreKey) {
       throw new Error('missing wallet pre-key')
     }
-    const secret = hexToBytes(await wallet.signMessage(encrypted.walletPreKey))
+    const secret = hexToBytes(
+      await wallet.signMessage(
+        PrivateKeyBundle.storageSigRequestText(encrypted.walletPreKey)
+      )
+    )
     if (!encrypted.ciphertext?.aes256GcmHkdfSha256) {
       throw new Error('missing bundle ciphertext')
     }
