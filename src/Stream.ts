@@ -2,7 +2,9 @@ import { WakuMessage } from 'js-waku'
 import { Message } from '.'
 import Client from './Client'
 
-type MessageTransformer<T> = (msg: Message) => T
+export type MessageTransformer<T> = (msg: Message) => T
+
+export type MessageFilter = (msg: Message) => boolean
 
 // Stream implements an Asynchronous Iterable over messages received from a topic.
 // As such can be used with constructs like for-await-of, yield*, array destructing, etc.
@@ -20,25 +22,31 @@ export default class Stream<T> {
   constructor(
     client: Client,
     topic: string,
-    transformer: MessageTransformer<T>
+    messageTransformer: MessageTransformer<T>,
+    messageFilter?: MessageFilter
   ) {
     this.messages = []
     this.resolvers = []
     this.topic = topic
     this.client = client
-    this.callback = this.newMessageCallback(transformer)
+    this.callback = this.newMessageCallback(messageTransformer, messageFilter)
     client.waku.relay.addObserver(this.callback, [topic])
   }
 
   // returns new closure to handle incoming Waku messages
   private newMessageCallback(
-    transformer: MessageTransformer<T>
+    transformer: MessageTransformer<T>,
+    filter?: MessageFilter
   ): (wakuMsg: WakuMessage) => Promise<void> {
     return async (wakuMsg: WakuMessage) => {
       if (!wakuMsg.payload) {
         return
       }
       const msg = await Message.decode(this.client.keys, wakuMsg.payload)
+      // If there is a filter on the stream, and the filter returns false, ignore the message
+      if (filter && !filter(msg)) {
+        return
+      }
       // is there a Promise already pending?
       const resolver = this.resolvers.pop()
       if (resolver) {
