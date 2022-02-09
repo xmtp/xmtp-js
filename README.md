@@ -54,7 +54,3 @@ Before committing your time to code, please read the [CONTRIBUTING.md document](
 **Node**
 
 Please make sure you have a Node version compatible with that specified in the root `.nvmrc` file. We recommend using `nvm` to manage local node versions - find install instructions appropriate for your system [here](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-## License
-
-@TODO
