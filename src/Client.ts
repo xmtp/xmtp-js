@@ -8,7 +8,7 @@ import {
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
-import Stream from './Stream'
+import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore } from './store'
 
@@ -105,18 +105,18 @@ export default class Client {
     )
   }
 
-  streamIntroductionMessages(): Stream {
+  streamIntroductionMessages(): Stream<Message> {
     return this.streamMessages(buildUserIntroTopic(this.address))
   }
 
-  streamConversationMessages(peerAddress: string): Stream {
+  streamConversationMessages(peerAddress: string): Stream<Message> {
     return this.streamMessages(
       buildDirectMessageTopic(peerAddress, this.address)
     )
   }
 
-  private streamMessages(topic: string): Stream {
-    return new Stream(this, topic)
+  private streamMessages(topic: string): Stream<Message> {
+    return messageStream(this, topic)
   }
 
   listIntroductionMessages(opts?: ListMessagesOptions): Promise<Message[]> {
