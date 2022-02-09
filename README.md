@@ -23,7 +23,7 @@ Note that currently the Client uses browser's local storage, so starting it on a
 
 ### Sending messages
 
-To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses.
+To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. Message payload is a string but neither the SDK or the network puts any constraints on its contents or interpretation.
 
 First message and first response between two parties is sent to three separate topics:
 
