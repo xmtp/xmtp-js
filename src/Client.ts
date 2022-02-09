@@ -13,6 +13,7 @@ import { sleep } from '../test/helpers'
 import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore } from './store'
+import { Conversations } from './conversations'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 
@@ -23,7 +24,7 @@ type NodesList = {
 }
 
 // Parameters for the listMessages functions
-type ListMessagesOptions = {
+export type ListMessagesOptions = {
   pageSize?: number
   startTime?: Date
   endTime?: Date
@@ -47,12 +48,18 @@ export default class Client {
   keys: PrivateKeyBundle
   address: string
   contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
+  _conversations: Conversations
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
     this.contacts = new Map<string, PublicKeyBundle>()
     this.keys = keys
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
+    this._conversations = new Conversations(this)
+  }
+
+  get conversations(): Conversations {
+    return this._conversations
   }
 
   // create and start a client associated with given wallet;
@@ -125,7 +132,7 @@ export default class Client {
         const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
           timestamp,
         })
-        return this.waku.relay.send(wakuMsg)
+        return this.waku.lightPush.push(wakuMsg)
       })
     )
   }
