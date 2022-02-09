@@ -22,19 +22,26 @@ type NodesList = {
   testnet: Nodes
 }
 
+// Parameters for the listMessages functions
 type ListMessagesOptions = {
   pageSize?: number
   startTime?: Date
   endTime?: Date
 }
 
+// Network startup options
 type CreateOptions = {
+  // bootstrap node multiaddrs
   bootstrapAddrs?: string[]
   // Allow for specifying different envs later
   env?: keyof NodesList
+  // how long should we wait for the initial peer connection
+  // to declare the startup as successful or failed
   waitForPeersTimeoutMs?: number
 }
 
+// Client is the central hub of interaction with the network,
+// most relevant functionality is accessed through methods on the Client.
 export default class Client {
   waku: Waku
   keys: PrivateKeyBundle
@@ -48,6 +55,8 @@ export default class Client {
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
   }
 
+  // create and start a client associated with given wallet;
+  // create options specify how to to connect to the network
   static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
     const waku = await createWaku(opts || {})
     const keys = await loadOrCreateKeys(wallet)
@@ -56,11 +65,13 @@ export default class Client {
     return client
   }
 
+  // gracefully shut down the client
   async close(): Promise<void> {
     return this.waku.stop()
   }
 
-  async publishUserContact(): Promise<void> {
+  // publish the key bundle into the contact topic
+  private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
     await this.waku.relay.send(
       await WakuMessage.fromBytes(
@@ -70,6 +81,7 @@ export default class Client {
     )
   }
 
+  // retrieve a key bundle from given user's contact topic
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | undefined> {
@@ -86,6 +98,7 @@ export default class Client {
     return recipientKeys.length > 0 ? recipientKeys[0] : undefined
   }
 
+  // send a message to the wallet identified by @peerAddress
   async sendMessage(peerAddress: string, msgString: string): Promise<void> {
     let topics: string[]
     let recipient = this.contacts.get(peerAddress)
@@ -117,24 +130,29 @@ export default class Client {
     )
   }
 
+  // stream new messages from this wallet's introduction topic
   streamIntroductionMessages(): Stream {
     return this.streamMessages(buildUserIntroTopic(this.address))
   }
 
+  // stream new messages from the conversion topic with the peer
   streamConversationMessages(peerAddress: string): Stream {
     return this.streamMessages(
       buildDirectMessageTopic(peerAddress, this.address)
     )
   }
 
+  // stream new messages from the specified topic
   private streamMessages(topic: string): Stream {
     return new Stream(this, topic)
   }
 
+  // list stored messages from this wallet's introduction topic
   listIntroductionMessages(opts?: ListMessagesOptions): Promise<Message[]> {
     return this.listMessages(buildUserIntroTopic(this.address), opts)
   }
 
+  // list stored messages from conversation topic with the peer
   listConversationMessages(
     peerAddress: string,
     opts?: ListMessagesOptions
@@ -145,6 +163,7 @@ export default class Client {
     )
   }
 
+  // list stored messages from the specified topic
   private async listMessages(
     topic: string,
     opts?: ListMessagesOptions
@@ -182,6 +201,8 @@ export default class Client {
   }
 }
 
+// attempt to load pre-existing key bundle from storage,
+// otherwise create new key-bundle, store it and return it
 async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
   const store = new EncryptedStore(wallet, new LocalStorageStore())
   let keys = await store.loadPrivateKeyBundle()
@@ -193,6 +214,7 @@ async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
   return keys
 }
 
+// initialize connection to the network
 async function createWaku({
   bootstrapAddrs,
   env = 'testnet',
