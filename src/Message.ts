@@ -31,12 +31,12 @@ export default class Message implements proto.Message {
     return new Message(proto.Message.decode(bytes))
   }
 
-  sent(): Date | undefined {
+  get sent(): Date | undefined {
     return this.header ? new Date(this.header?.timestamp) : undefined
   }
 
   // wallet address of the message sender
-  senderAddress(): string | undefined {
+  get senderAddress(): string | undefined {
     if (!this.header?.sender?.identityKey) {
       return undefined
     }
@@ -46,7 +46,7 @@ export default class Message implements proto.Message {
   }
 
   // wallet address of the message recipient
-  recipientAddress(): string | undefined {
+  get recipientAddress(): string | undefined {
     if (!this.header?.recipient?.identityKey) {
       return undefined
     }
