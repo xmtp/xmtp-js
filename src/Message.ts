@@ -28,6 +28,10 @@ export default class Message implements proto.Message {
     return new Message(proto.Message.decode(bytes))
   }
 
+  get text(): string | undefined {
+    return this.decrypted
+  }
+
   senderAddress(): string | undefined {
     if (!this.header?.sender?.identityKey) {
       return undefined
