@@ -8,6 +8,9 @@ import {
   encrypt,
 } from './crypto'
 
+// Message is basic unit of communication on the network.
+// Message header carries the sender and recipient keys used to protect message.
+// Message timestamp is set by the sender.
 export default class Message implements proto.Message {
   header: proto.Message_Header | undefined // eslint-disable-line camelcase
   ciphertext: Ciphertext | undefined
@@ -28,7 +31,12 @@ export default class Message implements proto.Message {
     return new Message(proto.Message.decode(bytes))
   }
 
-  senderAddress(): string | undefined {
+  get sent(): Date | undefined {
+    return this.header ? new Date(this.header?.timestamp) : undefined
+  }
+
+  // wallet address of the message sender
+  get senderAddress(): string | undefined {
     if (!this.header?.sender?.identityKey) {
       return undefined
     }
@@ -37,7 +45,8 @@ export default class Message implements proto.Message {
     ).walletSignatureAddress()
   }
 
-  recipientAddress(): string | undefined {
+  // wallet address of the message recipient
+  get recipientAddress(): string | undefined {
     if (!this.header?.recipient?.identityKey) {
       return undefined
     }
