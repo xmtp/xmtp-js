@@ -48,7 +48,7 @@ export default class Client {
   keys: PrivateKeyBundle
   address: string
   contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
-  _conversations: Conversations
+  private _conversations: Conversations
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
