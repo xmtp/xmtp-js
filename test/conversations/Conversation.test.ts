@@ -57,12 +57,14 @@ describe('conversations', () => {
 
     let numMessages = 0
     for await (const message of stream) {
+      numMessages++
       if (numMessages == 2) {
         break
       }
       await aliceConversation.send('gm to you too')
-      numMessages++
     }
+    await sleep(1000)
     expect(numMessages).toBe(2)
+    expect(await aliceConversation.messages()).toHaveLength(2)
   })
 })
