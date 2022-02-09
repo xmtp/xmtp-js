@@ -28,7 +28,7 @@ export async function pollFor<T>(
 }
 
 export async function dumpStream(
-  stream: Stream,
+  stream: Stream<Message>,
   timeoutMs = 1000
 ): Promise<Message[]> {
   const messages: Message[] = []
