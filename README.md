@@ -19,7 +19,7 @@ A Client is created with `Client.create(wallet: ethers.Signer): Client` that req
 
 The Client will connect to XMTP testnet by default. CreateOptions can be used to override this and other parameters of the network connection.
 
-Note that currently the Client uses browser's local storage, so starting it on a different device or browser and connecting to the same wallet will create a "split identity" situation where only one of the clients will be able to decrypt given incoming message depending on which of the advertised key bundles the sender chose to use.
+Note that currently the Client uses browser's local storage, so starting it on a different device or browser and connecting to the same wallet will create a "split identity" situation where only one of the clients will be able to decrypt given incoming message depending on which of the advertised key bundles the sender chose to use. Similarly if local storage is cleared for whatever reason and a new key bundle is created, older messages encrypted with older bundles cannot be decrypted anymore and will cause the client to throw.
 
 ### Sending messages
 
