@@ -132,9 +132,16 @@ export default class Client {
         const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
           timestamp,
         })
-        return this.waku.lightPush.push(wakuMsg)
+        return this.sendWakuMessage(wakuMsg)
       })
     )
+  }
+
+  private async sendWakuMessage(msg: WakuMessage): Promise<void> {
+    const ack = await this.waku.lightPush.push(msg)
+    if (ack?.isSuccess === false) {
+      throw new Error(`Failed to send message with error: ${ack?.info}`)
+    }
   }
 
   streamIntroductionMessages(): Stream<Message> {
