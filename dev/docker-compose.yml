@@ -7,5 +7,6 @@ services:
       - --ws
       - --store
       - --lightpush
+      - --ws-port=9001
     ports:
       - 9001:9001
