@@ -23,15 +23,15 @@ describe('Messaging', function () {
       'Yo!',
       new Date()
     )
-    assert.equal(msg1.senderAddress(), aliceWallet.address)
-    assert.equal(msg1.recipientAddress(), bobWalletAddress)
+    assert.equal(msg1.senderAddress, aliceWallet.address)
+    assert.equal(msg1.recipientAddress, bobWalletAddress)
     assert.equal(msg1.decrypted, 'Yo!')
 
     // Bob decodes message from Alice
     const msg2 = await Message.decode(bob, msg1.toBytes())
     assert.equal(msg1.decrypted, msg2.decrypted)
-    assert.equal(msg2.senderAddress(), aliceWallet.address)
-    assert.equal(msg2.recipientAddress(), bobWalletAddress)
+    assert.equal(msg2.senderAddress, aliceWallet.address)
+    assert.equal(msg2.recipientAddress, bobWalletAddress)
   })
 
   it('senderAddress and recipientAddress throw errors without wallet', async () => {
@@ -43,10 +43,10 @@ describe('Messaging', function () {
       new Date()
     )
     expect(() => {
-      msg.senderAddress()
+      msg.senderAddress
     }).toThrow('key is not signed')
     expect(() => {
-      msg.recipientAddress()
+      msg.recipientAddress
     }).toThrow('key is not signed')
   })
 })
