@@ -23,7 +23,7 @@ Note that currently the Client uses browser's local storage, so starting it on a
 
 ### Sending messages
 
-To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. Message payload is a string but neither the SDK or the network puts any constraints on its contents or interpretation.
+To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. Message payload is a string but neither the SDK nor the network put any constraints on its contents or interpretation.
 
 First message and first response between two parties is sent to three separate topics:
 
@@ -43,7 +43,7 @@ There are two types of primitives for retrieving messages from the network. Use 
 
 A successfully received message (that makes it through the decoding and decryption without throwing) can be trusted to be authentic, i.e. that it was sent by the owner of the `message.senderAddress` wallet and that it wasn't modified in transit. The `message.sent` timestamp can be trusted to have been set by the sender.
 
-The Stream returned by the `stream` methods is an asynchronous iterator and as such usable by a for-await-of loop. Note however that it is by its nature infinite, so any looping construct used with it will not terminate, unless the termination is explicitly initiated (by breaking the loop or external call to `Stream.return()`)
+The Stream returned by the `stream` methods is an asynchronous iterator and as such usable by a for-await-of loop. Note however that it is by its nature infinite, so any looping construct used with it will not terminate, unless the termination is explicitly initiated (by breaking the loop or by an external call to `Stream.return()`)
 
 ## Developing
 
