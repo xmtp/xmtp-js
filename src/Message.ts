@@ -23,7 +23,6 @@ export default class Message implements proto.Message {
     if (obj.ciphertext) {
       this.ciphertext = new Ciphertext(obj.ciphertext)
     }
-    this.error = obj.error
   }
 
   toBytes(): Uint8Array {
