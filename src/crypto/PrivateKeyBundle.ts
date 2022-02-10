@@ -6,6 +6,7 @@ import Ciphertext from './Ciphertext'
 import * as ethers from 'ethers'
 import { getRandomValues, hexToBytes } from './utils'
 import { decrypt, encrypt } from './encryption'
+import { NoMatchingPreKeyError } from './errors'
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
@@ -40,7 +41,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   findPreKey(which: PublicKey): PrivateKey {
     const preKey = this.preKeys.find((key) => key.matches(which))
     if (!preKey) {
-      throw new Error('no matching pre-key found')
+      throw new NoMatchingPreKeyError()
     }
     return preKey
   }

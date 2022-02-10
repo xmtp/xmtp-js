@@ -52,9 +52,15 @@ export interface PublicKeyBundle {
   preKey: PublicKey | undefined
 }
 
+export interface Error {
+  name: string
+  message: string
+}
+
 export interface Message {
   header: Message_Header | undefined
   ciphertext: Ciphertext | undefined
+  error?: Error | undefined
 }
 
 export interface Message_Header {
@@ -776,8 +782,66 @@ export const PublicKeyBundle = {
   },
 }
 
+function createBaseError(): Error {
+  return { name: '', message: '' }
+}
+
+export const Error = {
+  encode(message: Error, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== '') {
+      writer.uint32(10).string(message.name)
+    }
+    if (message.message !== '') {
+      writer.uint32(18).string(message.message)
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Error {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseError()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.name = reader.string()
+          break
+        case 2:
+          message.message = reader.string()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): Error {
+    return {
+      name: isSet(object.name) ? String(object.name) : '',
+      message: isSet(object.message) ? String(object.message) : '',
+    }
+  },
+
+  toJSON(message: Error): unknown {
+    const obj: any = {}
+    message.name !== undefined && (obj.name = message.name)
+    message.message !== undefined && (obj.message = message.message)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Error>, I>>(object: I): Error {
+    const message = createBaseError()
+    message.name = object.name ?? ''
+    message.message = object.message ?? ''
+    return message
+  },
+}
+
 function createBaseMessage(): Message {
-  return { header: undefined, ciphertext: undefined }
+  return { header: undefined, ciphertext: undefined, error: undefined }
 }
 
 export const Message = {
@@ -790,6 +854,9 @@ export const Message = {
     }
     if (message.ciphertext !== undefined) {
       Ciphertext.encode(message.ciphertext, writer.uint32(18).fork()).ldelim()
+    }
+    if (message.error !== undefined) {
+      Error.encode(message.error, writer.uint32(26).fork()).ldelim()
     }
     return writer
   },
@@ -807,6 +874,9 @@ export const Message = {
         case 2:
           message.ciphertext = Ciphertext.decode(reader, reader.uint32())
           break
+        case 3:
+          message.error = Error.decode(reader, reader.uint32())
+          break
         default:
           reader.skipType(tag & 7)
           break
@@ -823,6 +893,7 @@ export const Message = {
       ciphertext: isSet(object.ciphertext)
         ? Ciphertext.fromJSON(object.ciphertext)
         : undefined,
+      error: isSet(object.error) ? Error.fromJSON(object.error) : undefined,
     }
   },
 
@@ -836,6 +907,8 @@ export const Message = {
       (obj.ciphertext = message.ciphertext
         ? Ciphertext.toJSON(message.ciphertext)
         : undefined)
+    message.error !== undefined &&
+      (obj.error = message.error ? Error.toJSON(message.error) : undefined)
     return obj
   },
 
@@ -848,6 +921,10 @@ export const Message = {
     message.ciphertext =
       object.ciphertext !== undefined && object.ciphertext !== null
         ? Ciphertext.fromPartial(object.ciphertext)
+        : undefined
+    message.error =
+      object.error !== undefined && object.error !== null
+        ? Error.fromPartial(object.error)
         : undefined
     return message
   },

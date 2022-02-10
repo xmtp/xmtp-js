@@ -48,6 +48,11 @@ message PublicKeyBundle {
   PublicKey preKey = 2;
 }
 
+message Error {
+  string name = 1;
+  string message = 2;
+}
+
 message Message {
     message Header {
         PublicKeyBundle sender = 1;
@@ -57,6 +62,7 @@ message Message {
 
     Header header = 1;
     Ciphertext ciphertext = 2;
+    optional Error error = 3;
 }
 
 // Private Key Storage
