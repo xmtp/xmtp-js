@@ -10,9 +10,10 @@ import {
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
-import Stream from './Stream'
+import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore } from './store'
+import { Conversations } from './conversations'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 
@@ -23,7 +24,7 @@ type NodesList = {
 }
 
 // Parameters for the listMessages functions
-type ListMessagesOptions = {
+export type ListMessagesOptions = {
   pageSize?: number
   startTime?: Date
   endTime?: Date
@@ -47,12 +48,18 @@ export default class Client {
   keys: PrivateKeyBundle
   address: string
   contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
+  private _conversations: Conversations
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
     this.contacts = new Map<string, PublicKeyBundle>()
     this.keys = keys
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
+    this._conversations = new Conversations(this)
+  }
+
+  get conversations(): Conversations {
+    return this._conversations
   }
 
   // create and start a client associated with given wallet;
@@ -125,26 +132,30 @@ export default class Client {
         const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
           timestamp,
         })
-        return this.waku.relay.send(wakuMsg)
+        return this.sendWakuMessage(wakuMsg)
       })
     )
   }
 
-  // stream new messages from this wallet's introduction topic
-  streamIntroductionMessages(): Stream {
+  private async sendWakuMessage(msg: WakuMessage): Promise<void> {
+    const ack = await this.waku.lightPush.push(msg)
+    if (ack?.isSuccess === false) {
+      throw new Error(`Failed to send message with error: ${ack?.info}`)
+    }
+  }
+
+  streamIntroductionMessages(): Stream<Message> {
     return this.streamMessages(buildUserIntroTopic(this.address))
   }
 
-  // stream new messages from the conversion topic with the peer
-  streamConversationMessages(peerAddress: string): Stream {
+  streamConversationMessages(peerAddress: string): Stream<Message> {
     return this.streamMessages(
       buildDirectMessageTopic(peerAddress, this.address)
     )
   }
 
-  // stream new messages from the specified topic
-  private streamMessages(topic: string): Stream {
-    return new Stream(this, topic)
+  private streamMessages(topic: string): Stream<Message> {
+    return messageStream(this, topic)
   }
 
   // list stored messages from this wallet's introduction topic

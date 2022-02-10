@@ -31,6 +31,10 @@ export default class Message implements proto.Message {
     return new Message(proto.Message.decode(bytes))
   }
 
+  get text(): string | undefined {
+    return this.decrypted
+  }
+
   get sent(): Date | undefined {
     return this.header ? new Date(this.header?.timestamp) : undefined
   }
