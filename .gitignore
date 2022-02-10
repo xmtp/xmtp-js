@@ -116,3 +116,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 scratch
+
+# generated docs
+docs/
+tmp/

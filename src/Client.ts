@@ -62,8 +62,12 @@ export default class Client {
     return this._conversations
   }
 
-  // create and start a client associated with given wallet;
-  // create options specify how to to connect to the network
+  /**
+   * Create and start a client associated with given wallet.
+   *
+   * @param wallet the wallet as a Signer instance
+   * @param opts specify how to to connect to the network
+   */
   static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
     const waku = await createWaku(opts || {})
     const keys = await loadOrCreateKeys(wallet)
