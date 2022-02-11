@@ -117,10 +117,9 @@ You can receive the complete message history by calling `conversation.messages()
 
 ```ts
 for await (const conversation of xmtp.conversations.list()) {
-  // All parameters are optional
+  // All parameters are optional and can be omitted
   const opts = {
-    pageSize: 100,
-    // Only show messages from yesterday
+    // Only show messages from last 24 hours
     startTime: new Date(new Date().setDate(new Date().getDate() - 1)),
     endTime: new Date(),
   }
