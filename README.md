@@ -98,7 +98,17 @@ You can create a new conversation with any Ethereum address on the XMTP network.
 const newConversation = await xmtp.conversations.newConversation(
   '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
 )
-await newConversation.send('gm')
+```
+
+#### Sending messages
+
+To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. Message payload is a string but neither the SDK nor the network put any constraints on its contents or interpretation.
+
+```ts
+const conversation = await xmtp.conversations.newConversation(
+  '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
+)
+await conversation.send('Hello world')
 ```
 
 #### List messages in a conversation
@@ -137,17 +147,6 @@ for await (const message of conversation.streamMessages()) {
   }
   console.log(`New message from ${message.senderAddress}: ${message.text}`)
 }
-```
-
-#### Sending messages
-
-To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. Message payload is a string but neither the SDK nor the network put any constraints on its contents or interpretation.
-
-```ts
-const conversation = await xmtp.conversations.newConversation(
-  '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
-)
-await conversation.send('Hello world')
 ```
 
 #### Under the hood
