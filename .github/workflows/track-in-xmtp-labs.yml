@@ -1,16 +1,14 @@
-name: Track new issues and PRs in XMTP Labs
+name: Track new issues in XMTP Labs
 
 on:
   issues:
-    types:
-      - opened
-  pull_request:
     types:
       - opened
 
 env:
   DEBUG_COMMANDS: true
   DEBUG_LOG: true
+  untriaged: Untriaged
   todo: Todo
   in_progress: In Progress
   review: Review
@@ -27,22 +25,8 @@ jobs:
       - name: Move new issue to ${{ env.todo }}
         uses: leonsteinhaeuser/project-beta-automations@v1.1.1
         with:
-          status_value: ${{ env.todo }}
+          status_value: ${{ env.untriaged }}
           organization: ${{ env.org }}
           project_id: ${{ env.project_id }}
           resource_node_id: ${{ github.event.issue.node_id }}
-          gh_token: ${{ secrets.GHPROJECT_TOKEN }}
-
-  pr_opened:
-    name: pr_opened
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.action == 'opened'
-    steps:
-      - name: Move new PR to ${{ env.in_progress }}
-        uses: leonsteinhaeuser/project-beta-automations@v1.2.0
-        with:
-          status_value: ${{ env.in_progress }}
-          organization: ${{ env.org }}
-          project_id: ${{ env.project_id }}
-          resource_node_id: ${{ github.event.pull_request.node_id }}
-          gh_token: ${{ secrets.GHPROJECT_TOKEN }}
+          gh_token: ${{ secrets.XMTP_LABS_GHPROJECT_TOKEN }}
