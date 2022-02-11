@@ -140,7 +140,7 @@ const conversation = await xmtp.conversations.newConversation(
   '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
 )
 for await (const message of conversation.streamMessages()) {
-  if (message.peerAddress === xmtp.address) {
+  if (message.senderAddress === xmtp.address) {
     // This message was sent from me
     continue
   }
