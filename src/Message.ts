@@ -7,6 +7,7 @@ import {
   decrypt,
   encrypt,
 } from './crypto'
+import { NoMatchingPreKeyError } from './crypto/errors'
 
 // Message is basic unit of communication on the network.
 // Message header carries the sender and recipient keys used to protect message.
@@ -15,6 +16,7 @@ export default class Message implements proto.Message {
   header: proto.Message_Header | undefined // eslint-disable-line camelcase
   ciphertext: Ciphertext | undefined
   decrypted: string | undefined
+  error?: Error
 
   constructor(obj: proto.Message) {
     this.header = obj.header
@@ -127,25 +129,33 @@ export default class Message implements proto.Message {
       new PublicKey(message.header.sender.identityKey),
       new PublicKey(message.header.sender.preKey)
     )
-    let secret: Uint8Array
-    if (viewer.identityKey.matches(sender.identityKey)) {
-      // viewer is the sender
-      secret = await viewer.sharedSecret(recipient, sender.preKey, false)
-    } else {
-      // viewer is the recipient
-      secret = await viewer.sharedSecret(sender, recipient.preKey, true)
-    }
-    if (!message.ciphertext?.aes256GcmHkdfSha256) {
-      throw new Error('missing message ciphertext')
-    }
-    const ciphertext = new Ciphertext(message.ciphertext)
     const headerBytes = proto.Message_Header.encode({
       sender: sender,
       recipient: recipient,
       timestamp: message.header.timestamp,
     }).finish()
-    bytes = await decrypt(ciphertext, secret, headerBytes)
+    if (!message.ciphertext?.aes256GcmHkdfSha256) {
+      throw new Error('missing message ciphertext')
+    }
+    const ciphertext = new Ciphertext(message.ciphertext)
     const msg = new Message(message)
+    let secret: Uint8Array
+    try {
+      if (viewer.identityKey.matches(sender.identityKey)) {
+        // viewer is the sender
+        secret = await viewer.sharedSecret(recipient, sender.preKey, false)
+      } else {
+        // viewer is the recipient
+        secret = await viewer.sharedSecret(sender, recipient.preKey, true)
+      }
+    } catch (e) {
+      if (!(e instanceof NoMatchingPreKeyError)) {
+        throw e
+      }
+      msg.error = e
+      return msg
+    }
+    bytes = await decrypt(ciphertext, secret, headerBytes)
     msg.decrypted = new TextDecoder().decode(bytes)
     return msg
   }
