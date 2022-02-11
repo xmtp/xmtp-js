@@ -20,7 +20,7 @@ const wallet = Wallet.createRandom()
 const xmtp = await Client.create(wallet)
 // Start a conversation with Vitalik
 const conversation = await xmtp.conversations.newConversation(
-  '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
+  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 )
 // Load all messages in the conversation
 const messages = await conversation.messages()
@@ -96,7 +96,7 @@ You can create a new conversation with any Ethereum address on the XMTP network.
 
 ```ts
 const newConversation = await xmtp.conversations.newConversation(
-  '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
+  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 )
 ```
 
@@ -106,7 +106,7 @@ To be able to send a message, the recipient must have already started their Clie
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
-  '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
+  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 )
 await conversation.send('Hello world')
 ```
@@ -137,7 +137,7 @@ The Stream returned by the `stream` methods is an asynchronous iterator and as s
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
-  '0x2b0D29fFA81fa6Bf35D31db7C3bc11a5913B45ef'
+  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 )
 for await (const message of conversation.streamMessages()) {
   if (message.senderAddress === xmtp.address) {
