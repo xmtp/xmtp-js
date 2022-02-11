@@ -6,13 +6,15 @@ import {
   PrivateKeyBundle,
 } from '../src/crypto'
 import Stream from './Stream'
-import Client from './Client'
+import Client, { CreateOptions, ListMessagesOptions } from './Client'
 import { Conversation, Conversations } from './conversations'
 
 export {
   Client,
   Conversation,
   Conversations,
+  CreateOptions,
+  ListMessagesOptions,
   Message,
   PrivateKey,
   PrivateKeyBundle,

@@ -30,19 +30,25 @@ export type ListMessagesOptions = {
   endTime?: Date
 }
 
-// Network startup options
-type CreateOptions = {
-  // bootstrap node multiaddrs
+/**
+ * Network startup options
+ */
+export type CreateOptions = {
+  /** List of multiaddrs for boot nodes */
   bootstrapAddrs?: string[]
   // Allow for specifying different envs later
   env?: keyof NodesList
-  // how long should we wait for the initial peer connection
-  // to declare the startup as successful or failed
+  /**
+   * How long we should wait for the initial peer connection
+   * to declare the startup as successful or failed
+   */
   waitForPeersTimeoutMs?: number
 }
 
-// Client is the central hub of interaction with the network,
-// most relevant functionality is accessed through methods on the Client.
+/**
+ * Client class initiates connection to the XMTP network.
+ * Should be created with `await Client.create(options)`
+ */
 export default class Client {
   waku: Waku
   address: string
@@ -58,6 +64,9 @@ export default class Client {
     this._conversations = new Conversations(this)
   }
 
+  /**
+   * @type {Conversations}
+   */
   get conversations(): Conversations {
     return this._conversations
   }
@@ -109,7 +118,9 @@ export default class Client {
     return recipientKeys.length > 0 ? recipientKeys[0] : undefined
   }
 
-  // send a message to the wallet identified by @peerAddress
+  /**
+   * Send a message to the wallet identified by @peerAddress
+   */
   async sendMessage(peerAddress: string, msgString: string): Promise<void> {
     let topics: string[]
     let recipient = this.contacts.get(peerAddress)
