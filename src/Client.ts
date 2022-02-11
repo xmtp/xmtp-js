@@ -45,9 +45,9 @@ type CreateOptions = {
 // most relevant functionality is accessed through methods on the Client.
 export default class Client {
   waku: Waku
-  keys: PrivateKeyBundle
   address: string
-  contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
+  keys: PrivateKeyBundle
+  private contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
   private _conversations: Conversations
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {

@@ -7,13 +7,16 @@ import {
 } from '../src/crypto'
 import Stream from './Stream'
 import Client from './Client'
+import { Conversation, Conversations } from './conversations'
 
 export {
   Client,
-  Stream,
+  Conversation,
+  Conversations,
   Message,
-  PublicKey,
-  PublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
+  PublicKey,
+  PublicKeyBundle,
+  Stream,
 }
