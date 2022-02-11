@@ -8,7 +8,7 @@
   "types": "dist/types/src/index.d.js",
   "scripts": {
     "postinstall": "husky install",
-    "prepublishOnly": "pinst --disable",
+    "prepublishOnly": "pinst --disable && npm run build",
     "postpublish": "pinst --enable",
     "build": "npm run build:proto && npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:types",
     "build:proto": "npm run clean:proto && buf generate",
