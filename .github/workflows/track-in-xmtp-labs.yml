@@ -1,0 +1,32 @@
+name: Track new issues in XMTP Labs
+
+on:
+  issues:
+    types:
+      - opened
+
+env:
+  DEBUG_COMMANDS: true
+  DEBUG_LOG: true
+  untriaged: Untriaged
+  todo: Todo
+  in_progress: In Progress
+  review: Review
+  done: Done
+  org: xmtp-labs
+  project_id: 2
+
+jobs:
+  issue_opened:
+    name: issue_opened
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    steps:
+      - name: Move new issue to ${{ env.untriaged }}
+        uses: leonsteinhaeuser/project-beta-automations@v1.1.1
+        with:
+          status_value: ${{ env.untriaged }}
+          organization: ${{ env.org }}
+          project_id: ${{ env.project_id }}
+          resource_node_id: ${{ github.event.issue.node_id }}
+          gh_token: ${{ secrets.XMTP_LABS_GHPROJECT_TOKEN }}
