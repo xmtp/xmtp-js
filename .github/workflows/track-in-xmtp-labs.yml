@@ -32,17 +32,17 @@ jobs:
           project_id: ${{ env.project_id }}
           resource_node_id: ${{ github.event.issue.node_id }}
           gh_token: ${{ secrets.GHPROJECT_TOKEN }}
-          
+
   pr_opened:
-      name: pr_opened
-      runs-on: ubuntu-latest
-      if: github.event_name == 'pull_request' && github.event.action == 'opened'
-      steps:
-        - name: Move new PR to ${{ env.in_progress }}
-          uses: leonsteinhaeuser/project-beta-automations@v1.2.0
-          with:
-            status_value: ${{ env.in_progress }}
-            organization: ${{ env.org }}
-            project_id: ${{ env.project_id }}
-            resource_node_id: ${{ github.event.pull_request.node_id }}
-            gh_token: ${{ secrets.GHPROJECT_TOKEN }}
+    name: pr_opened
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    steps:
+      - name: Move new PR to ${{ env.in_progress }}
+        uses: leonsteinhaeuser/project-beta-automations@v1.2.0
+        with:
+          status_value: ${{ env.in_progress }}
+          organization: ${{ env.org }}
+          project_id: ${{ env.project_id }}
+          resource_node_id: ${{ github.event.pull_request.node_id }}
+          gh_token: ${{ secrets.GHPROJECT_TOKEN }}
