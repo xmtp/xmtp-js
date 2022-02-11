@@ -116,7 +116,7 @@ await conversation.send('Hello world')
 You can receive the complete message history by calling `conversation.messages()`
 
 ```ts
-for await (const conversation of xmtp.conversations.list()) {
+for (const conversation of await xmtp.conversations.list()) {
   // All parameters are optional and can be omitted
   const opts = {
     // Only show messages from last 24 hours
