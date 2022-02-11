@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'issues' && github.event.action == 'opened'
     steps:
-      - name: Move new issue to ${{ env.todo }}
+      - name: Move new issue to ${{ env.untriaged }}
         uses: leonsteinhaeuser/project-beta-automations@v1.1.1
         with:
           status_value: ${{ env.untriaged }}
