@@ -1,7 +1,7 @@
 import * as proto from '../../src/proto/messaging'
 import * as secp from '@noble/secp256k1'
 import Signature from './Signature'
-import { hexToBytes } from './utils'
+import { bytesToHex, hexToBytes } from './utils'
 import * as ethers from 'ethers'
 import { sha256 } from './encryption'
 
@@ -63,6 +63,19 @@ export default class PublicKey implements proto.PublicKey {
     }).finish()
   }
 
+  identitySigRequestText(): string {
+    // Note that an update to this signature request text will require
+    // addition of backward compatability for existing signatures
+    // and/or a migration; otherwise clients will fail to verify previously
+    // signed keys.
+    return (
+      'XMTP : Create Identity\n' +
+      `${bytesToHex(this.bytesToSign())}\n` +
+      '\n' +
+      'For more info: https://xmtp.org/signatures/'
+    )
+  }
+
   // verify that the provided PublicKey was signed by the corresponding PrivateKey
   async verifyKey(pub: PublicKey): Promise<boolean> {
     if (typeof pub.signature === undefined) {
@@ -80,7 +93,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!this.secp256k1Uncompressed) {
       throw new Error('missing public key')
     }
-    const sigString = await wallet.signMessage(this.bytesToSign())
+    const sigString = await wallet.signMessage(this.identitySigRequestText())
     const eSig = ethers.utils.splitSignature(sigString)
     const r = hexToBytes(eSig.r)
     const s = hexToBytes(eSig.s)
@@ -104,7 +117,9 @@ export default class PublicKey implements proto.PublicKey {
     if (!this.secp256k1Uncompressed) {
       throw new Error('missing public key')
     }
-    const digest = hexToBytes(ethers.utils.hashMessage(this.bytesToSign()))
+    const digest = hexToBytes(
+      ethers.utils.hashMessage(this.identitySigRequestText())
+    )
     const pk = this.signature.getPublicKey(digest)
     if (!pk) {
       throw new Error('key was not signed by a wallet')
