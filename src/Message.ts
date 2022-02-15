@@ -8,6 +8,8 @@ import {
   encrypt,
 } from './crypto'
 import { NoMatchingPreKeyError } from './crypto/errors'
+import { bytesToHex } from './crypto/utils'
+import { sha256 } from './crypto/encryption'
 
 // Message is basic unit of communication on the network.
 // Message header carries the sender and recipient keys used to protect message.
@@ -17,8 +19,17 @@ export default class Message implements proto.Message {
   ciphertext: Ciphertext | undefined
   decrypted: string | undefined
   error?: Error
+  /**
+   * Identifier that is deterministically derived from the bytes of the message
+   * header and ciphertext, where all those bytes are authenticated. This can
+   * be used in determining uniqueness of messages.
+   */
+  id: string
+  private bytes: Uint8Array
 
-  constructor(obj: proto.Message) {
+  constructor(id: string, bytes: Uint8Array, obj: proto.Message) {
+    this.id = id
+    this.bytes = bytes
     this.header = obj.header
     if (obj.ciphertext) {
       this.ciphertext = new Ciphertext(obj.ciphertext)
@@ -26,11 +37,17 @@ export default class Message implements proto.Message {
   }
 
   toBytes(): Uint8Array {
-    return proto.Message.encode(this).finish()
+    return this.bytes
   }
 
-  static fromBytes(bytes: Uint8Array): Message {
-    return new Message(proto.Message.decode(bytes))
+  static async create(obj: proto.Message): Promise<Message> {
+    const bytes = proto.Message.encode(obj).finish()
+    const id = bytesToHex(await sha256(bytes))
+    return new Message(id, bytes, obj)
+  }
+
+  static async fromBytes(bytes: Uint8Array): Promise<Message> {
+    return Message.create(proto.Message.decode(bytes))
   }
 
   get text(): string | undefined {
@@ -84,7 +101,7 @@ export default class Message implements proto.Message {
     const headerBytes = proto.Message_Header.encode(header).finish()
     const ciphertext = await encrypt(bytes, secret, headerBytes)
 
-    const msg = new Message({
+    const msg = await Message.create({
       header,
       ciphertext,
     })
@@ -138,7 +155,7 @@ export default class Message implements proto.Message {
       throw new Error('missing message ciphertext')
     }
     const ciphertext = new Ciphertext(message.ciphertext)
-    const msg = new Message(message)
+    const msg = await Message.create(message)
     let secret: Uint8Array
     try {
       if (viewer.identityKey.matches(sender.identityKey)) {

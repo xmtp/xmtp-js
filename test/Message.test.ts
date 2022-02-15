@@ -2,6 +2,8 @@ import assert from 'assert'
 import { newWallet } from './helpers'
 import { Message, PrivateKeyBundle } from '../src'
 import { NoMatchingPreKeyError } from '../src/crypto/errors'
+import { bytesToHex } from '../src/crypto/utils'
+import { sha256 } from '../src/crypto/encryption'
 
 describe('Message', function () {
   it('fully encodes/decodes messages', async function () {
@@ -65,5 +67,17 @@ describe('Message', function () {
     expect(() => {
       msg.recipientAddress
     }).toThrow('key is not signed')
+  })
+
+  it('id returns bytes as hex string of sha256 hash', async () => {
+    const alice = await PrivateKeyBundle.generate()
+    const msg = await Message.encode(
+      alice,
+      alice.getPublicKeyBundle(),
+      'hi',
+      new Date()
+    )
+    assert.equal(msg.id.length, 64)
+    assert.equal(msg.id, bytesToHex(await sha256(msg.toBytes())))
   })
 })
