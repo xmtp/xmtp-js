@@ -154,7 +154,7 @@ for await (const message of conversation.streamMessages()) {
 
 #### Under the hood
 
-Using `xmtp.conversations` hides the details of this, but for the curious this is how sending a message on XMTP works. The first message and first response between two parties is sent to three separate PubSub topics:
+Using `xmtp.conversations` hides the details of this, but for the curious this is how sending a message on XMTP works. The first message and first response between two parties is sent to three separate [Waku](https://rfc.vac.dev/spec/10/) content topics:
 
 1. Sender's introduction topic
 2. Recipient's introduction topic
