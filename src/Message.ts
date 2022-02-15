@@ -19,6 +19,11 @@ export default class Message implements proto.Message {
   ciphertext: Ciphertext | undefined
   decrypted: string | undefined
   error?: Error
+  /**
+   * Identifier that is deterministically derived from the bytes of the message
+   * header and ciphertext, where all those bytes are authenticated. This can
+   * be used in determining uniqueness of messages.
+   */
   id: string
   private bytes: Uint8Array
 
