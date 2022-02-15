@@ -44,6 +44,7 @@ export interface Ciphertext {
 export interface Ciphertext_aes256gcmHkdfsha256 {
   hkdfSalt: Uint8Array
   gcmNonce: Uint8Array
+  /** payload MUST contain encoding of a Payload message */
   payload: Uint8Array
 }
 
@@ -72,6 +73,38 @@ export interface PrivateKeyBundle {
 export interface EncryptedPrivateKeyBundle {
   walletPreKey: Uint8Array
   ciphertext: Ciphertext | undefined
+}
+
+/** ContentTypeId is used */
+export interface ContentTypeId {
+  /** authority governing this content type */
+  authorityId: string
+  /** type identifier */
+  typeId: string
+  /** major version of the type */
+  versionMajor: number
+  /** minor version of the type */
+  versionMinor: number
+}
+
+/** EncodedContent is the type embedded in Ciphertext.payload bytes */
+export interface EncodedContent {
+  /** content type identifier used to match the payload with the correct decoding machinery */
+  contentType: ContentTypeId | undefined
+  /** optional encoding parameters required to correctly decode the content */
+  contentTypeParams: { [key: string]: string }
+  /**
+   * optional fallback description of the content that can be used in case
+   * the client cannot decode or render the content
+   */
+  contentFallback?: string | undefined
+  /** encoded content itself */
+  content: Uint8Array
+}
+
+export interface EncodedContent_ContentTypeParamsEntry {
+  key: string
+  value: string
 }
 
 function createBaseSignature(): Signature {
@@ -1106,6 +1139,292 @@ export const EncryptedPrivateKeyBundle = {
   },
 }
 
+function createBaseContentTypeId(): ContentTypeId {
+  return { authorityId: '', typeId: '', versionMajor: 0, versionMinor: 0 }
+}
+
+export const ContentTypeId = {
+  encode(
+    message: ContentTypeId,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.authorityId !== '') {
+      writer.uint32(10).string(message.authorityId)
+    }
+    if (message.typeId !== '') {
+      writer.uint32(18).string(message.typeId)
+    }
+    if (message.versionMajor !== 0) {
+      writer.uint32(24).uint32(message.versionMajor)
+    }
+    if (message.versionMinor !== 0) {
+      writer.uint32(32).uint32(message.versionMinor)
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ContentTypeId {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseContentTypeId()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.authorityId = reader.string()
+          break
+        case 2:
+          message.typeId = reader.string()
+          break
+        case 3:
+          message.versionMajor = reader.uint32()
+          break
+        case 4:
+          message.versionMinor = reader.uint32()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): ContentTypeId {
+    return {
+      authorityId: isSet(object.authorityId) ? String(object.authorityId) : '',
+      typeId: isSet(object.typeId) ? String(object.typeId) : '',
+      versionMajor: isSet(object.versionMajor)
+        ? Number(object.versionMajor)
+        : 0,
+      versionMinor: isSet(object.versionMinor)
+        ? Number(object.versionMinor)
+        : 0,
+    }
+  },
+
+  toJSON(message: ContentTypeId): unknown {
+    const obj: any = {}
+    message.authorityId !== undefined && (obj.authorityId = message.authorityId)
+    message.typeId !== undefined && (obj.typeId = message.typeId)
+    message.versionMajor !== undefined &&
+      (obj.versionMajor = Math.round(message.versionMajor))
+    message.versionMinor !== undefined &&
+      (obj.versionMinor = Math.round(message.versionMinor))
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ContentTypeId>, I>>(
+    object: I
+  ): ContentTypeId {
+    const message = createBaseContentTypeId()
+    message.authorityId = object.authorityId ?? ''
+    message.typeId = object.typeId ?? ''
+    message.versionMajor = object.versionMajor ?? 0
+    message.versionMinor = object.versionMinor ?? 0
+    return message
+  },
+}
+
+function createBaseEncodedContent(): EncodedContent {
+  return {
+    contentType: undefined,
+    contentTypeParams: {},
+    contentFallback: undefined,
+    content: new Uint8Array(),
+  }
+}
+
+export const EncodedContent = {
+  encode(
+    message: EncodedContent,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.contentType !== undefined) {
+      ContentTypeId.encode(
+        message.contentType,
+        writer.uint32(10).fork()
+      ).ldelim()
+    }
+    Object.entries(message.contentTypeParams).forEach(([key, value]) => {
+      EncodedContent_ContentTypeParamsEntry.encode(
+        { key: key as any, value },
+        writer.uint32(18).fork()
+      ).ldelim()
+    })
+    if (message.contentFallback !== undefined) {
+      writer.uint32(26).string(message.contentFallback)
+    }
+    if (message.content.length !== 0) {
+      writer.uint32(34).bytes(message.content)
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): EncodedContent {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseEncodedContent()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.contentType = ContentTypeId.decode(reader, reader.uint32())
+          break
+        case 2:
+          const entry2 = EncodedContent_ContentTypeParamsEntry.decode(
+            reader,
+            reader.uint32()
+          )
+          if (entry2.value !== undefined) {
+            message.contentTypeParams[entry2.key] = entry2.value
+          }
+          break
+        case 3:
+          message.contentFallback = reader.string()
+          break
+        case 4:
+          message.content = reader.bytes()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): EncodedContent {
+    return {
+      contentType: isSet(object.contentType)
+        ? ContentTypeId.fromJSON(object.contentType)
+        : undefined,
+      contentTypeParams: isObject(object.contentTypeParams)
+        ? Object.entries(object.contentTypeParams).reduce<{
+            [key: string]: string
+          }>((acc, [key, value]) => {
+            acc[key] = String(value)
+            return acc
+          }, {})
+        : {},
+      contentFallback: isSet(object.contentFallback)
+        ? String(object.contentFallback)
+        : undefined,
+      content: isSet(object.content)
+        ? bytesFromBase64(object.content)
+        : new Uint8Array(),
+    }
+  },
+
+  toJSON(message: EncodedContent): unknown {
+    const obj: any = {}
+    message.contentType !== undefined &&
+      (obj.contentType = message.contentType
+        ? ContentTypeId.toJSON(message.contentType)
+        : undefined)
+    obj.contentTypeParams = {}
+    if (message.contentTypeParams) {
+      Object.entries(message.contentTypeParams).forEach(([k, v]) => {
+        obj.contentTypeParams[k] = v
+      })
+    }
+    message.contentFallback !== undefined &&
+      (obj.contentFallback = message.contentFallback)
+    message.content !== undefined &&
+      (obj.content = base64FromBytes(
+        message.content !== undefined ? message.content : new Uint8Array()
+      ))
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EncodedContent>, I>>(
+    object: I
+  ): EncodedContent {
+    const message = createBaseEncodedContent()
+    message.contentType =
+      object.contentType !== undefined && object.contentType !== null
+        ? ContentTypeId.fromPartial(object.contentType)
+        : undefined
+    message.contentTypeParams = Object.entries(
+      object.contentTypeParams ?? {}
+    ).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = String(value)
+      }
+      return acc
+    }, {})
+    message.contentFallback = object.contentFallback ?? undefined
+    message.content = object.content ?? new Uint8Array()
+    return message
+  },
+}
+
+function createBaseEncodedContent_ContentTypeParamsEntry(): EncodedContent_ContentTypeParamsEntry {
+  return { key: '', value: '' }
+}
+
+export const EncodedContent_ContentTypeParamsEntry = {
+  encode(
+    message: EncodedContent_ContentTypeParamsEntry,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.key !== '') {
+      writer.uint32(10).string(message.key)
+    }
+    if (message.value !== '') {
+      writer.uint32(18).string(message.value)
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): EncodedContent_ContentTypeParamsEntry {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseEncodedContent_ContentTypeParamsEntry()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.key = reader.string()
+          break
+        case 2:
+          message.value = reader.string()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): EncodedContent_ContentTypeParamsEntry {
+    return {
+      key: isSet(object.key) ? String(object.key) : '',
+      value: isSet(object.value) ? String(object.value) : '',
+    }
+  },
+
+  toJSON(message: EncodedContent_ContentTypeParamsEntry): unknown {
+    const obj: any = {}
+    message.key !== undefined && (obj.key = message.key)
+    message.value !== undefined && (obj.value = message.value)
+    return obj
+  },
+
+  fromPartial<
+    I extends Exact<DeepPartial<EncodedContent_ContentTypeParamsEntry>, I>
+  >(object: I): EncodedContent_ContentTypeParamsEntry {
+    const message = createBaseEncodedContent_ContentTypeParamsEntry()
+    message.key = object.key ?? ''
+    message.value = object.value ?? ''
+    return message
+  },
+}
+
 declare var self: any | undefined
 declare var window: any | undefined
 declare var global: any | undefined
@@ -1177,6 +1496,10 @@ function longToNumber(long: Long): number {
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any
   _m0.configure()
+}
+
+function isObject(value: any): boolean {
+  return typeof value === 'object' && value !== null
 }
 
 function isSet(value: any): boolean {

@@ -14,6 +14,16 @@ import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore } from './store'
 import { Conversations } from './conversations'
+import {
+  ContentTypeId,
+  EncodedContent,
+  MessageContent,
+  ContentEncoder,
+  ContentTypeText,
+  TextContentEncoder,
+  AlternativeContentDescription,
+} from './MessageContent'
+import * as proto from './proto/messaging'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 
@@ -43,6 +53,8 @@ export type CreateOptions = {
    * to declare the startup as successful or failed
    */
   waitForPeersTimeoutMs?: number
+  // Allow configuring encoders for additional content types
+  encoders?: ContentEncoder<any>[]
 }
 
 /**
@@ -56,6 +68,7 @@ export default class Client {
   private contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
   private _conversations: Conversations
+  private _encoders: Map<string, ContentEncoder<any>>
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
@@ -64,6 +77,12 @@ export default class Client {
     this.keys = keys
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
+    this._encoders = new Map()
+    this.registerDefaultEncoders()
+  }
+
+  private registerDefaultEncoders(): void {
+    this.registerEncoder(new TextContentEncoder())
   }
 
   /**
@@ -83,6 +102,9 @@ export default class Client {
     const waku = await createWaku(opts || {})
     const keys = await loadOrCreateKeys(wallet)
     const client = new Client(waku, keys)
+    opts?.encoders?.forEach((encoder) => {
+      client.registerEncoder(encoder)
+    })
     await client.publishUserContact()
     return client
   }
@@ -155,7 +177,10 @@ export default class Client {
   /**
    * Send a message to the wallet identified by @peerAddress
    */
-  async sendMessage(peerAddress: string, msgString: string): Promise<void> {
+  async sendMessage(
+    peerAddress: string,
+    message: MessageContent
+  ): Promise<void> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
 
@@ -176,7 +201,7 @@ export default class Client {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
     const timestamp = new Date()
-    const msg = await Message.encode(this.keys, recipient, msgString, timestamp)
+    const msg = await this.encodeMessage(recipient, message, timestamp)
     await Promise.all(
       topics.map(async (topic) => {
         const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
@@ -192,6 +217,58 @@ export default class Client {
     if (ack?.isSuccess === false) {
       throw new Error(`Failed to send message with error: ${ack?.info}`)
     }
+  }
+
+  registerEncoder(encoder: ContentEncoder<any>): void {
+    const id = encoder.contentType
+    const key = `${id.authorityId}/${id.typeId}`
+    this._encoders.set(key, encoder)
+  }
+
+  encoderFor(contentType: ContentTypeId): ContentEncoder<any> | undefined {
+    const key = `${contentType.authorityId}/${contentType.typeId}`
+    return this._encoders.get(key)
+  }
+
+  encodeMessage(
+    recipient: PublicKeyBundle,
+    content: MessageContent,
+    timestamp: Date
+  ): Promise<Message> {
+    const contentType =
+      typeof content === 'string' ? ContentTypeText : content.contentType
+    const encoder = this.encoderFor(contentType)
+    if (!encoder) {
+      throw new Error(`unknown content type ${contentType}`)
+    }
+    const encoded = encoder.encode(content)
+    const payload = proto.EncodedContent.encode(encoded).finish()
+    return Message.encode(this.keys, recipient, payload, timestamp)
+  }
+
+  async decodeMessage(payload: Uint8Array): Promise<Message> {
+    const message = await Message.decode(this.keys, payload)
+    if (message.error) {
+      return message
+    }
+    const encoded = proto.EncodedContent.decode(message.decrypted as Uint8Array)
+    if (!encoded.contentType) {
+      throw new Error('missing content type')
+    }
+    const encoder = this.encoderFor(encoded.contentType)
+    if (encoder) {
+      message.content = encoder.decode(
+        encoded as EncodedContent
+      ) as MessageContent
+    } else {
+      message.error = new Error(`unknown content type ${encoded.contentType}`)
+      if (encoded.contentFallback) {
+        message.content = new AlternativeContentDescription(
+          encoded.contentFallback
+        )
+      }
+    }
+    return message
   }
 
   streamIntroductionMessages(): Stream<Message> {
@@ -256,7 +333,7 @@ export default class Client {
       wakuMsgs
         .filter((wakuMsg) => wakuMsg?.payload)
         .map(async (wakuMsg) =>
-          Message.decode(this.keys, wakuMsg.payload as Uint8Array)
+          this.decodeMessage(wakuMsg.payload as Uint8Array)
         )
     )
   }

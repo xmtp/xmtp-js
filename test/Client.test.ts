@@ -62,40 +62,40 @@ describe('Client', () => {
         // alice sends intro
         await alice.sendMessage(bob.address, 'hi bob!')
         let msg = await aliceIntros.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
 
         // bob sends intro in response
         msg = await bobIntros.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
         await bob.sendMessage(alice.address, 'hi alice!')
         msg = await bobIntros.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
 
         // alice sends follow up
         msg = await aliceIntros.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
         await alice.sendMessage(bob.address, 'how are you?')
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'how are you?')
+        assert.equal(msg.value.content, 'how are you?')
 
         // bob responds to follow up
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'how are you?')
+        assert.equal(msg.value.content, 'how are you?')
         await bob.sendMessage(alice.address, 'fantastic!')
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'fantastic!')
+        assert.equal(msg.value.content, 'fantastic!')
 
         // alice receives follow up
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'fantastic!')
+        assert.equal(msg.value.content, 'fantastic!')
 
         // list messages sent previously
         const fixtures: [string, Client, string | null, string[]][] = [
@@ -129,7 +129,7 @@ describe('Client', () => {
             )
             for (let i = 0; i < expected.length; i++) {
               assert.equal(
-                messages[i].decrypted,
+                messages[i].content,
                 expected[i],
                 `${name} message[${i}]`
               )
@@ -147,11 +147,11 @@ describe('Client', () => {
 
         const intros = await dumpStream(intro)
         assert.equal(intros.length, 1)
-        assert.equal(intros[0].decrypted, messages[0])
+        assert.equal(intros[0].content, messages[0])
 
         const convos = await dumpStream(convo)
         assert.equal(convos.length, messages.length)
-        convos.forEach((m, i) => assert.equal(m.decrypted, messages[i]))
+        convos.forEach((m, i) => assert.equal(m.content, messages[i]))
       })
 
       it('for-await-of with stream', async () => {
@@ -159,7 +159,7 @@ describe('Client', () => {
         let count = 5
         await alice.sendMessage(bob.address, 'msg ' + count)
         for await (const msg of convo) {
-          assert.equal(msg.decrypted, 'msg ' + count)
+          assert.equal(msg.content, 'msg ' + count)
           count--
           if (!count) {
             break

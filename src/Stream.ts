@@ -44,7 +44,7 @@ export default class Stream<T> {
       if (!wakuMsg.payload) {
         return
       }
-      const msg = await Message.decode(this.client.keys, wakuMsg.payload)
+      const msg = await this.client.decodeMessage(wakuMsg.payload)
       // If there is a filter on the stream, and the filter returns false, ignore the message
       if (filter && !filter(msg)) {
         return

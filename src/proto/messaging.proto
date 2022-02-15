@@ -36,6 +36,7 @@ message Ciphertext {
     message AES256GCM_HKDFSHA256 {
         bytes hkdfSalt = 1;
         bytes gcmNonce = 2;
+        // payload MUST contain encoding of a Payload message
         bytes payload = 3;
     }
     oneof union {
@@ -70,3 +71,26 @@ message EncryptedPrivateKeyBundle {
     bytes walletPreKey = 1;
     Ciphertext ciphertext = 2;
 }
+
+
+// ContentTypeId is used to identify the type of content stored in a Message.
+message ContentTypeId {
+  string authorityId = 1;  // authority governing this content type
+  string typeId = 2;  // type identifier
+  uint32 versionMajor = 3; // major version of the type
+  uint32 versionMinor = 4; // minor version of the type
+}
+
+// EncodedContent is the type embedded in Ciphertext.payload bytes
+message EncodedContent {
+  // content type identifier used to match the payload with the correct decoding machinery
+  ContentTypeId contentType = 1;
+  // optional encoding parameters required to correctly decode the content
+  map<string, string> contentTypeParams = 2;
+  // optional fallback description of the content that can be used in case
+  // the client cannot decode or render the content
+  optional string contentFallback = 3;
+  // encoded content itself
+  bytes content = 4;
+}
+

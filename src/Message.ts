@@ -10,15 +10,23 @@ import {
 import { NoMatchingPreKeyError } from './crypto/errors'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
+import {
+  MessageContent,
+  ContentTypeId,
+  ContentTypeText,
+} from './MessageContent'
 
 // Message is basic unit of communication on the network.
 // Message header carries the sender and recipient keys used to protect message.
 // Message timestamp is set by the sender.
 export default class Message implements proto.Message {
-  header: proto.MessageHeader | undefined // eslint-disable-line camelcase
+  header: proto.MessageHeader // eslint-disable-line camelcase
   headerBytes: Uint8Array // encoded header bytes
-  ciphertext: Ciphertext | undefined
-  decrypted: string | undefined
+  ciphertext: Ciphertext
+  decrypted?: Uint8Array
+  // content allows attaching decoded content to the Message
+  // the message receiving APIs need to return a Message to provide access to the header fields like sender/recipient
+  content?: MessageContent
   error?: Error
   /**
    * Identifier that is deterministically derived from the bytes of the message
@@ -38,9 +46,10 @@ export default class Message implements proto.Message {
     this.bytes = bytes
     this.headerBytes = obj.headerBytes
     this.header = header
-    if (obj.ciphertext) {
-      this.ciphertext = new Ciphertext(obj.ciphertext)
+    if (!obj.ciphertext) {
+      throw new Error('missing message ciphertext')
     }
+    this.ciphertext = new Ciphertext(obj.ciphertext)
   }
 
   toBytes(): Uint8Array {
@@ -62,8 +71,14 @@ export default class Message implements proto.Message {
     return Message.create(msg, header, bytes)
   }
 
-  get text(): string | undefined {
-    return this.decrypted
+  get contentType(): ContentTypeId | undefined {
+    if (!this.content) {
+      return undefined
+    }
+    if (typeof this.content === 'string') {
+      return ContentTypeText
+    }
+    return this.content.contentType
   }
 
   get sent(): Date | undefined {
@@ -94,11 +109,9 @@ export default class Message implements proto.Message {
   static async encode(
     sender: PrivateKeyBundle,
     recipient: PublicKeyBundle,
-    message: string,
+    message: Uint8Array,
     timestamp: Date
   ): Promise<Message> {
-    const msgBytes = new TextEncoder().encode(message)
-
     const secret = await sender.sharedSecret(
       recipient,
       sender.getCurrentPreKey().publicKey,
@@ -111,7 +124,7 @@ export default class Message implements proto.Message {
       timestamp: timestamp.getTime(),
     }
     const headerBytes = proto.MessageHeader.encode(header).finish()
-    const ciphertext = await encrypt(msgBytes, secret, headerBytes)
+    const ciphertext = await encrypt(message, secret, headerBytes)
     const protoMsg = { headerBytes: headerBytes, ciphertext }
     const bytes = proto.Message.encode(protoMsg).finish()
     const msg = await Message.create(protoMsg, header, bytes)
@@ -178,8 +191,7 @@ export default class Message implements proto.Message {
       msg.error = e
       return msg
     }
-    bytes = await decrypt(ciphertext, secret, message.headerBytes)
-    msg.decrypted = new TextDecoder().decode(bytes)
+    msg.decrypted = await decrypt(ciphertext, secret, message.headerBytes)
     return msg
   }
 }
