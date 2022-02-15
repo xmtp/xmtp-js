@@ -14,6 +14,21 @@ import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
 import { Conversations } from './conversations'
+import {
+  ContentTypeId,
+  EncodedContent,
+  ContentCodec,
+  ContentTypeText,
+  TextCodec,
+  decompress,
+  compress,
+  ContentTypeFallback,
+} from './MessageContent'
+import { Compression } from './proto/messaging'
+import * as proto from './proto/messaging'
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 
@@ -22,6 +37,9 @@ type Nodes = { [k: string]: string }
 type NodesList = {
   testnet: Nodes
 }
+
+// Default maximum allowed content size
+const MaxContentSize = 100 * 1024 * 1024 // 100M
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
@@ -33,6 +51,14 @@ export type ListMessagesOptions = {
 export enum KeyStoreType {
   networkTopicStoreV1,
   localStorage,
+}
+
+// Parameters for the send functions
+export { Compression }
+export type SendOptions = {
+  contentType: ContentTypeId
+  contentFallback?: string
+  compression?: Compression
 }
 
 /**
@@ -50,6 +76,15 @@ type NetworkOptions = {
   waitForPeersTimeoutMs: number
 }
 
+type ContentOptions = {
+  // Allow configuring codecs for additional content types
+  codecs: ContentCodec<any>[]
+
+  // Set the maximum content size in bytes that is allowed by the Client.
+  // Currently only checked when decompressing compressed content.
+  maxContentSize: number
+}
+
 type KeyStoreOptions = {
   /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
   keyStoreType: KeyStoreType
@@ -59,7 +94,7 @@ type KeyStoreOptions = {
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
-export type ClientOptions = NetworkOptions & KeyStoreOptions
+export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
@@ -67,12 +102,16 @@ export type ClientOptions = NetworkOptions & KeyStoreOptions
  * @param opts additional options to override the default settings
  */
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
-  const _defaultOptions = {
+  const _defaultOptions: ClientOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
     env: 'testnet',
     waitForPeersTimeoutMs: 10000,
+    codecs: [new TextCodec()],
+    maxContentSize: MaxContentSize,
   }
-
+  if (opts?.codecs) {
+    opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
+  }
   return { ..._defaultOptions, ...opts } as ClientOptions
 }
 
@@ -87,6 +126,8 @@ export default class Client {
   private contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
   private _conversations: Conversations
+  private _codecs: Map<string, ContentCodec<any>>
+  private _maxContentSize: number
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
@@ -95,6 +136,8 @@ export default class Client {
     this.keys = keys
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
+    this._codecs = new Map()
+    this._maxContentSize = MaxContentSize
   }
 
   /**
@@ -119,6 +162,10 @@ export default class Client {
     const keyStore = createKeyStoreFromConfig(options, wallet, waku)
     const keys = await loadOrCreateKeys(wallet, keyStore)
     const client = new Client(waku, keys)
+    options.codecs.forEach((codec) => {
+      client.registerCodec(codec)
+    })
+    client._maxContentSize = options.maxContentSize
     await client.publishUserContact()
     return client
   }
@@ -192,7 +239,11 @@ export default class Client {
   /**
    * Send a message to the wallet identified by @peerAddress
    */
-  async sendMessage(peerAddress: string, msgString: string): Promise<void> {
+  async sendMessage(
+    peerAddress: string,
+    content: any,
+    options?: SendOptions
+  ): Promise<void> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
 
@@ -213,7 +264,7 @@ export default class Client {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
     const timestamp = new Date()
-    const msg = await Message.encode(this.keys, recipient, msgString, timestamp)
+    const msg = await this.encodeMessage(recipient, timestamp, content, options)
     await Promise.all(
       topics.map(async (topic) => {
         const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
@@ -229,6 +280,75 @@ export default class Client {
     if (ack?.isSuccess === false) {
       throw new Error(`Failed to send message with error: ${ack?.info}`)
     }
+  }
+
+  registerCodec(codec: ContentCodec<any>): void {
+    const id = codec.contentType
+    const key = `${id.authorityId}/${id.typeId}`
+    this._codecs.set(key, codec)
+  }
+
+  codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
+    const key = `${contentType.authorityId}/${contentType.typeId}`
+    const codec = this._codecs.get(key)
+    if (!codec) {
+      return undefined
+    }
+    if (contentType.versionMajor > codec.contentType.versionMajor) {
+      return undefined
+    }
+    return codec
+  }
+
+  async encodeMessage(
+    recipient: PublicKeyBundle,
+    timestamp: Date,
+    content: any,
+    options?: SendOptions
+  ): Promise<Message> {
+    const contentType = options?.contentType || ContentTypeText
+    const codec = this.codecFor(contentType)
+    if (!codec) {
+      throw new Error('unknown content type ' + contentType)
+    }
+    const encoded = codec.encode(content, this)
+    if (options?.contentFallback) {
+      encoded.fallback = options.contentFallback
+    }
+    if (options?.compression) {
+      encoded.compression = options.compression
+    }
+    await compress(encoded)
+    const payload = proto.EncodedContent.encode(encoded).finish()
+    return Message.encode(this.keys, recipient, payload, timestamp)
+  }
+
+  async decodeMessage(payload: Uint8Array): Promise<Message> {
+    const message = await Message.decode(this.keys, payload)
+    if (message.error) {
+      return message
+    }
+    if (!message.decrypted) {
+      throw new Error('decrypted bytes missing')
+    }
+    const encoded = proto.EncodedContent.decode(message.decrypted)
+    await decompress(encoded, this._maxContentSize)
+    if (!encoded.type) {
+      throw new Error('missing content type')
+    }
+    const contentType = new ContentTypeId(encoded.type)
+    const codec = this.codecFor(contentType)
+    if (codec) {
+      message.content = codec.decode(encoded as EncodedContent, this)
+      message.contentType = contentType
+    } else {
+      message.error = new Error('unknown content type ' + contentType)
+      if (encoded.fallback) {
+        message.content = encoded.fallback
+        message.contentType = ContentTypeFallback
+      }
+    }
+    return message
   }
 
   streamIntroductionMessages(): Stream<Message> {
@@ -293,7 +413,7 @@ export default class Client {
       wakuMsgs
         .filter((wakuMsg) => wakuMsg?.payload)
         .map(async (wakuMsg) =>
-          Message.decode(this.keys, wakuMsg.payload as Uint8Array)
+          this.decodeMessage(wakuMsg.payload as Uint8Array)
         )
     )
   }

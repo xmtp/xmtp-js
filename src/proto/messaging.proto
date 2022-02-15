@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+// Signature represents a generalized public key signature,
+// defined as a union to support cryptographic algorithm agility.
 message Signature {
     message ECDSACompact {
         bytes bytes = 1; // compact representation [ R || S ], 64 bytes
@@ -10,6 +12,8 @@ message Signature {
     }
 }
 
+// PublicKey represents a generalized public key,
+// defined as a union to support cryptographic algorithm agility.
 message PublicKey {
     message Secp256k1Uncompresed {
       bytes bytes = 1; // uncompressed point with prefix (0x04) [ P || X || Y ], 65 bytes
@@ -21,21 +25,51 @@ message PublicKey {
     }
 }
 
-message PrivateKey {
-    message Secp256k1 {
-        bytes bytes = 1; // D big-endian, 32 bytes
-    }
-    uint64 timestamp = 1;
-    oneof union {
-        Secp256k1 secp256k1 = 2;
-    }
-    PublicKey publicKey = 3;
+// PublicKeyBundle packages the cryptographic keys associated with a wallet,
+// both senders and recipients are identified by their key bundles.
+message PublicKeyBundle {
+  PublicKey identityKey = 1;
+  PublicKey preKey = 2;
 }
 
+// ContentTypeId is used to identify the type of content stored in a Message.
+message ContentTypeId {
+  string authorityId = 1;  // authority governing this content type
+  string typeId = 2;  // type identifier
+  uint32 versionMajor = 3; // major version of the type
+  uint32 versionMinor = 4; // minor version of the type
+}
+
+// Recognized compression algorithms
+enum Compression {
+  deflate = 0;
+  gzip = 1;
+}
+
+// EncodedContent is the type embedded in Ciphertext.payload bytes,
+// it bundles the encoded content with metadata identifying the type of content
+// and parameters required for correct decoding and presentation of the content.
+message EncodedContent {
+  // content type identifier used to match the payload with the correct decoding machinery
+  ContentTypeId type = 1;
+  // optional encoding parameters required to correctly decode the content
+  map<string, string> parameters = 2;
+  // optional fallback description of the content that can be used in case
+  // the client cannot decode or render the content
+  optional string fallback = 3;
+  // optional compression; the value indicates algorithm used to compress the encoded content bytes
+  optional Compression compression = 5;
+  // encoded content itself
+  bytes content = 4;
+}
+
+// Ciphertext represents the payload of the message encoded and encrypted for transport.
+// It is definited as a union to support cryptographic algorithm agility.
 message Ciphertext {
     message AES256GCM_HKDFSHA256 {
         bytes hkdfSalt = 1;
         bytes gcmNonce = 2;
+        // payload MUST contain encoding of a EncodedContent message
         bytes payload = 3;
     }
     oneof union {
@@ -43,17 +77,15 @@ message Ciphertext {
     }
 }
 
-message PublicKeyBundle {
-  PublicKey identityKey = 1;
-  PublicKey preKey = 2;
-}
-
+// MessageHeader is encoded separately as the bytes are also used
+// as associated data for authenticated encryption
 message MessageHeader {
   PublicKeyBundle sender = 1;
   PublicKeyBundle recipient = 2;
   uint64 timestamp = 3;
 }
 
+// Message is the top level protocol element
 message V1Message {
     bytes headerBytes = 1; // encapsulates the encoded MessageHeader
     Ciphertext ciphertext = 2;
@@ -66,13 +98,27 @@ message Message {
 }
 
 // Private Key Storage
+//
+// Following definitions are not used in the protocol, instead
+// they provide a way for encoding private keys for storage.
+
+message PrivateKey {
+  message Secp256k1 {
+      bytes bytes = 1; // D big-endian, 32 bytes
+  }
+  uint64 timestamp = 1;
+  oneof union {
+      Secp256k1 secp256k1 = 2;
+  }
+  PublicKey publicKey = 3;
+}
 
 message PrivateKeyBundle {
-    PrivateKey identityKey = 1;
-    repeated PrivateKey preKeys = 2;
+  PrivateKey identityKey = 1;
+  repeated PrivateKey preKeys = 2;
 }
 
 message EncryptedPrivateKeyBundle {
-    bytes walletPreKey = 1;
-    Ciphertext ciphertext = 2;
+  bytes walletPreKey = 1;
+  Ciphertext ciphertext = 2;
 }

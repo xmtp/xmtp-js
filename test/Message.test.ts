@@ -20,19 +20,20 @@ describe('Message', function () {
       .identityKey.walletSignatureAddress()
 
     // Alice encodes message for Bob
+    const content = new TextEncoder().encode('Yo!')
     const msg1 = await Message.encode(
       alice,
       bob.getPublicKeyBundle(),
-      'Yo!',
+      content,
       new Date()
     )
     assert.equal(msg1.senderAddress, aliceWallet.address)
     assert.equal(msg1.recipientAddress, bobWalletAddress)
-    assert.equal(msg1.decrypted, 'Yo!')
+    assert.deepEqual(msg1.decrypted, content)
 
     // Bob decodes message from Alice
     const msg2 = await Message.decode(bob, msg1.toBytes())
-    assert.equal(msg1.decrypted, msg2.decrypted)
+    assert.deepEqual(msg1.decrypted, msg2.decrypted)
     assert.equal(msg2.senderAddress, aliceWallet.address)
     assert.equal(msg2.recipientAddress, bobWalletAddress)
   })
@@ -44,12 +45,12 @@ describe('Message', function () {
     const msg = await Message.encode(
       alice,
       bob.getPublicKeyBundle(),
-      'hi',
+      new TextEncoder().encode('hi'),
       new Date()
     )
     assert.ok(!msg.error)
     const eveDecoded = await Message.decode(eve, msg.toBytes())
-    assert.equal(eveDecoded.decrypted, undefined)
+    assert.equal(eveDecoded.contentType, undefined)
     assert.deepEqual(eveDecoded.error, new NoMatchingPreKeyError())
   })
 
@@ -58,7 +59,7 @@ describe('Message', function () {
     const msg = await Message.encode(
       alice,
       alice.getPublicKeyBundle(),
-      'hi',
+      new TextEncoder().encode('hi'),
       new Date()
     )
     expect(() => {
@@ -74,7 +75,7 @@ describe('Message', function () {
     const msg = await Message.encode(
       alice,
       alice.getPublicKeyBundle(),
-      'hi',
+      new TextEncoder().encode('hi'),
       new Date()
     )
     assert.equal(msg.id.length, 64)
