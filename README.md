@@ -4,7 +4,9 @@
 ![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
 ![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
 
-The XMTP SDK bundles the core code libraries, components, tools, documentation, and guides that developers require in order to build client experiences on top of the XMTP protocol and network.
+## Disclaimer: Pre-Stable Alpha
+
+The XMTP protocol is in the early stages of development. This pre-stable alpha library is being provided for evaluation, feedback, and community contribution. It has not undergone a formal security audit and is not intended for production applications. Significant breaking revisions should be expected for all pre-stable alpha software.
 
 ## Usage
 
@@ -36,12 +38,10 @@ for await (const message of conversation.streamMessages()) {
 
 A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>` that requires passing in a connected Wallet. The Client will request a wallet signature in 2 cases:
 
-1. To sign the newly generated key bundle, this happens only the very first time when key bundle is not found in storage
-2. To sign a random salt used to encrypt the key bundle in storage, this happens every time the Client is started (including the very first time)
+1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
+2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
 
-The Client will connect to XMTP testnet by default. CreateOptions can be used to override this and other parameters of the network connection.
-
-Note that currently the Client uses browser's local storage, so starting it on a different device or browser and connecting to the same wallet will create a "split identity" situation where only one of the clients will be able to decrypt given incoming message depending on which of the advertised key bundles the sender chose to use. Similarly if local storage is cleared for whatever reason and a new key bundle is created, older messages encrypted with older bundles cannot be decrypted anymore and will cause the client to throw.
+The Client will connect to the XMTP playnet by default. CreateOptions can be used to override this and other parameters of the network connection.
 
 ```ts
 import { Client } from 'xmtp-js'
@@ -49,9 +49,11 @@ import { Client } from 'xmtp-js'
 const xmtp = await Client.create(wallet)
 ```
 
+_Pre-Stable Alpha Limitation:_ Currently, the Client uses the browser's local storage to store the key bundle. Starting it on a different device or browser and connecting to the same wallet will create a "split identity" situation where only one of the clients will be able to decrypt an incoming message, depending on which of the advertised key bundles the sender chose to use. Similarly if local storage is cleared for whatever reason and a new key bundle is created, older messages encrypted with older bundles cannot be decrypted anymore and will cause the client to throw.
+
 ### Conversations
 
-Most of the time, when interacting with the network, you'll want to do it through `conversations`.
+Most of the time, when interacting with the network, you'll want to do it through `conversations`. Conversations are between two wallets.
 
 ```ts
 import { Client } from 'xmtp-js'
@@ -102,7 +104,7 @@ const newConversation = await xmtp.conversations.newConversation(
 
 #### Sending messages
 
-To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. Message payload is a string but neither the SDK nor the network put any constraints on its contents or interpretation.
+To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. The message payload is a string but neither the SDK nor the network put any constraints on its contents or interpretation.
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
@@ -113,7 +115,7 @@ await conversation.send('Hello world')
 
 #### List messages in a conversation
 
-You can receive the complete message history by calling `conversation.messages()`
+You can receive the complete message history in a conversation by calling `conversation.messages()`
 
 ```ts
 for (const conversation of await xmtp.conversations.list()) {
@@ -126,6 +128,8 @@ for (const conversation of await xmtp.conversations.list()) {
   const messagesInConversation = await conversation.messages(opts)
 }
 ```
+
+_Pre-Stable Alpha Limitation:_ After 30 days, messages are deleted from the network and cannot be retrieved.
 
 #### Listen for new messages in a conversation
 
@@ -150,7 +154,7 @@ for await (const message of conversation.streamMessages()) {
 
 #### Under the hood
 
-Using `xmtp.conversations` hides the details of this, but for the curious this is how sending a message on XMTP works. The first message and first response between two parties is sent to three separate topics:
+Using `xmtp.conversations` hides the details of this, but for the curious this is how sending a message on XMTP works. The first message and first response between two parties is sent to three separate [Waku](https://rfc.vac.dev/spec/10/) content topics:
 
 1. Sender's introduction topic
 2. Recipient's introduction topic
