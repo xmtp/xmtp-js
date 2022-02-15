@@ -3,13 +3,13 @@ import { Signer } from 'ethers'
 import { PrivateKeyBundle } from '../crypto'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
-/*
-  EncryptedStore is an abstraction on top of the generic Store which enables the decryption and decoding
-  of specific data types.
-
-  Currently supports:
-  - PrivateKeyBundle
-*/
+/**
+ * EncryptedStore is an abstraction on top of the generic Store which enables the decryption and decoding
+ * of specific data types.
+ *
+ * Currently supports:
+ * - PrivateKeyBundle
+ */
 export default class EncryptedStore {
   private store: Store
   private signer: Signer

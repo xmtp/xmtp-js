@@ -30,24 +30,30 @@ export type ListMessagesOptions = {
   endTime?: Date
 }
 
-// Network startup options
-type CreateOptions = {
-  // bootstrap node multiaddrs
+/**
+ * Network startup options
+ */
+export type CreateOptions = {
+  /** List of multiaddrs for boot nodes */
   bootstrapAddrs?: string[]
   // Allow for specifying different envs later
   env?: keyof NodesList
-  // how long should we wait for the initial peer connection
-  // to declare the startup as successful or failed
+  /**
+   * How long we should wait for the initial peer connection
+   * to declare the startup as successful or failed
+   */
   waitForPeersTimeoutMs?: number
 }
 
-// Client is the central hub of interaction with the network,
-// most relevant functionality is accessed through methods on the Client.
+/**
+ * Client class initiates connection to the XMTP network.
+ * Should be created with `await Client.create(options)`
+ */
 export default class Client {
   waku: Waku
-  keys: PrivateKeyBundle
   address: string
-  contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
+  keys: PrivateKeyBundle
+  private contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
   private _conversations: Conversations
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
@@ -58,12 +64,19 @@ export default class Client {
     this._conversations = new Conversations(this)
   }
 
+  /**
+   * @type {Conversations}
+   */
   get conversations(): Conversations {
     return this._conversations
   }
 
-  // create and start a client associated with given wallet;
-  // create options specify how to to connect to the network
+  /**
+   * Create and start a client associated with given wallet.
+   *
+   * @param wallet the wallet as a Signer instance
+   * @param opts specify how to to connect to the network
+   */
   static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
     const waku = await createWaku(opts || {})
     const keys = await loadOrCreateKeys(wallet)
@@ -105,7 +118,9 @@ export default class Client {
     return recipientKeys.length > 0 ? recipientKeys[0] : undefined
   }
 
-  // send a message to the wallet identified by @peerAddress
+  /**
+   * Send a message to the wallet identified by @peerAddress
+   */
   async sendMessage(peerAddress: string, msgString: string): Promise<void> {
     let topics: string[]
     let recipient = this.contacts.get(peerAddress)

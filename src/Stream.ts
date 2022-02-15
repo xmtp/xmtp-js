@@ -6,8 +6,10 @@ export type MessageTransformer<T> = (msg: Message) => T
 
 export type MessageFilter = (msg: Message) => boolean
 
-// Stream implements an Asynchronous Iterable over messages received from a topic.
-// As such can be used with constructs like for-await-of, yield*, array destructing, etc.
+/**
+ * Stream implements an Asynchronous Iterable over messages received from a topic.
+ * As such can be used with constructs like for-await-of, yield*, array destructing, etc.
+ */
 export default class Stream<T> {
   topic: string
   client: Client
