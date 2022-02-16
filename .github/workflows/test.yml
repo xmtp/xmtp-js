@@ -8,6 +8,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: ['node', 'jsdom']
     services:
       waku-node:
         image: snormore/go-waku:latest
@@ -21,4 +24,4 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - run: npm ci
-      - run: npm test
+      - run: npm run test:${{ matrix.env }}
