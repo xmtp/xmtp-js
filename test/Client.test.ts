@@ -176,6 +176,14 @@ describe('Client', () => {
           alice.sendMessage('unregistered address', 'hello as well')
         ).rejects.toThrow('recipient unregistered address is not registered')
       })
+
+      it('Check address can be sent to', async () => {
+        const can_mesg_a = await alice.canMessage('NOT AN ADDRESS')
+        assert.equal(can_mesg_a, false)
+
+        const can_mesg_b = await alice.canMessage(bob.address)
+        assert.equal(can_mesg_b, true)
+      })
     })
   })
 })

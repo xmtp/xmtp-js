@@ -119,6 +119,25 @@ export default class Client {
   }
 
   /**
+   * Check if @peerAddress can be messaged
+   */
+  public async canMessage(peerAddress: string): Promise<boolean> {
+    const existingRecipient = this.contacts.get(peerAddress)
+
+    if (existingRecipient) {
+      return true
+    }
+
+    return this.getUserContact(peerAddress)
+      .then((keyBundle) => {
+        return keyBundle !== undefined
+      })
+      .catch(() => {
+        return false
+      })
+  }
+
+  /**
    * Send a message to the wallet identified by @peerAddress
    */
   async sendMessage(peerAddress: string, msgString: string): Promise<void> {
