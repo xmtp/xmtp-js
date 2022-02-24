@@ -48,14 +48,14 @@ message PublicKeyBundle {
   PublicKey preKey = 2;
 }
 
-message Message {
-    message Header {
-        PublicKeyBundle sender = 1;
-        PublicKeyBundle recipient = 2;
-        uint64 timestamp = 3;
-    }
+message MessageHeader {
+  PublicKeyBundle sender = 1;
+  PublicKeyBundle recipient = 2;
+  uint64 timestamp = 3;
+}
 
-    Header header = 1;
+message Message {
+    bytes headerBytes = 1; // encapsulates the encoded MessageHeader
     Ciphertext ciphertext = 2;
 }
 
