@@ -47,9 +47,9 @@ describe('Client', () => {
 
       it('user contacts published', async () => {
         await sleep(10)
-        const alicePublic = await alice.getUserContact(alice.address)
+        const alicePublic = await alice.getUserContactFromNetwork(alice.address)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
-        const bobPublic = await bob.getUserContact(bob.address)
+        const bobPublic = await bob.getUserContactFromNetwork(bob.address)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
       })
 

@@ -53,12 +53,14 @@ export default class Client {
   waku: Waku
   address: string
   keys: PrivateKeyBundle
-  private contacts: Map<string, PublicKeyBundle> // addresses and key bundles that we already have connection with
+  private contacts: Set<string> // address which we have connected to
+  private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
   private _conversations: Conversations
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
-    this.contacts = new Map<string, PublicKeyBundle>()
+    this.contacts = new Set<string>()
+    this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
@@ -102,7 +104,7 @@ export default class Client {
   }
 
   // retrieve a key bundle from given user's contact topic
-  async getUserContact(
+  async getUserContactFromNetwork(
     peerAddress: string
   ): Promise<PublicKeyBundle | undefined> {
     const recipientKeys = (
@@ -119,15 +121,33 @@ export default class Client {
   }
 
   /**
-   * Check if @peerAddress can be messaged
+   * Returns the cached PublicKeyBundle if one is known for the given address or fetches
+   * one from the network
    */
-  public async canMessage(peerAddress: string): Promise<boolean> {
-    const existingRecipient = this.contacts.get(peerAddress)
 
-    if (existingRecipient) {
-      return true
+  async getUserContact(
+    peerAddress: string
+  ): Promise<PublicKeyBundle | undefined> {
+    const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
+
+    if (existingBundle) {
+      return existingBundle
     }
 
+    const newBundle = await this.getUserContactFromNetwork(peerAddress)
+
+    if (newBundle) {
+      this.knownPublicKeyBundles.set(peerAddress, newBundle)
+    }
+
+    return newBundle
+  }
+
+  /**
+   * Check if @peerAddress can be messaged, specifically it checks that a PublicKeyBundle can be
+   * found for the given address
+   */
+  public async canMessage(peerAddress: string): Promise<boolean> {
     const keyBundle = await this.getUserContact(peerAddress)
     return keyBundle !== undefined
   }
@@ -137,13 +157,13 @@ export default class Client {
    */
   async sendMessage(peerAddress: string, msgString: string): Promise<void> {
     let topics: string[]
-    let recipient = this.contacts.get(peerAddress)
+    const recipient = await this.getUserContact(peerAddress)
+
     if (!recipient) {
-      recipient = await this.getUserContact(peerAddress)
-      if (!recipient) {
-        throw new Error(`recipient ${peerAddress} is not registered`)
-      }
-      this.contacts.set(peerAddress, recipient)
+      throw new Error(`recipient ${peerAddress} is not registered`)
+    }
+
+    if (!this.contacts.has(peerAddress)) {
       topics = [
         buildUserIntroTopic(peerAddress),
         buildDirectMessageTopic(this.address, peerAddress),
@@ -151,6 +171,7 @@ export default class Client {
       if (peerAddress !== this.address) {
         topics.push(buildUserIntroTopic(this.address))
       }
+      this.contacts.add(peerAddress)
     } else {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
