@@ -47,9 +47,9 @@ describe('Client', () => {
 
       it('user contacts published', async () => {
         await sleep(10)
-        const alicePublic = await alice.getUserContact(alice.address)
+        const alicePublic = await alice.getUserContactFromNetwork(alice.address)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
-        const bobPublic = await bob.getUserContact(bob.address)
+        const bobPublic = await bob.getUserContactFromNetwork(bob.address)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
       })
 
@@ -175,6 +175,14 @@ describe('Client', () => {
         return expect(
           alice.sendMessage('unregistered address', 'hello as well')
         ).rejects.toThrow('recipient unregistered address is not registered')
+      })
+
+      it('Check address can be sent to', async () => {
+        const can_mesg_a = await alice.canMessage('NOT AN ADDRESS')
+        assert.equal(can_mesg_a, false)
+
+        const can_mesg_b = await alice.canMessage(bob.address)
+        assert.equal(can_mesg_b, true)
       })
     })
   })
