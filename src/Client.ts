@@ -128,13 +128,8 @@ export default class Client {
       return true
     }
 
-    return this.getUserContact(peerAddress)
-      .then((keyBundle) => {
-        return keyBundle !== undefined
-      })
-      .catch(() => {
-        return false
-      })
+    const keyBundle = await this.getUserContact(peerAddress)
+    return keyBundle !== undefined
   }
 
   /**
