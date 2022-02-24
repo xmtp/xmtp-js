@@ -8,6 +8,10 @@
 
 The XMTP protocol is in the early stages of development. This pre-stable alpha library is being provided for evaluation, feedback, and community contribution. It has not undergone a formal security audit and is not intended for production applications. Significant breaking revisions should be expected for all pre-stable alpha software.
 
+## Installation
+
+This library is not yet published as an NPM module. It can be installed from this repo using `npm install xmtp/xmtp-js`.
+
 ## Usage
 
 The API revolves around a network Client that allows retrieving and sending messages to other network participants. A Client must be connected to a wallet on startup. If this is the very first time the Client is created, the client will generate a key bundle that is used to encrypt and authenticate messages. The key bundle persists encrypted in local storage using a wallet signature. The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
