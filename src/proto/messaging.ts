@@ -52,15 +52,16 @@ export interface PublicKeyBundle {
   preKey: PublicKey | undefined
 }
 
-export interface Message {
-  header: Message_Header | undefined
-  ciphertext: Ciphertext | undefined
-}
-
-export interface Message_Header {
+export interface MessageHeader {
   sender: PublicKeyBundle | undefined
   recipient: PublicKeyBundle | undefined
   timestamp: number
+}
+
+export interface Message {
+  /** encapsulates the encoded MessageHeader */
+  headerBytes: Uint8Array
+  ciphertext: Ciphertext | undefined
 }
 
 export interface PrivateKeyBundle {
@@ -776,90 +777,13 @@ export const PublicKeyBundle = {
   },
 }
 
-function createBaseMessage(): Message {
-  return { header: undefined, ciphertext: undefined }
-}
-
-export const Message = {
-  encode(
-    message: Message,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.header !== undefined) {
-      Message_Header.encode(message.header, writer.uint32(10).fork()).ldelim()
-    }
-    if (message.ciphertext !== undefined) {
-      Ciphertext.encode(message.ciphertext, writer.uint32(18).fork()).ldelim()
-    }
-    return writer
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Message {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
-    let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseMessage()
-    while (reader.pos < end) {
-      const tag = reader.uint32()
-      switch (tag >>> 3) {
-        case 1:
-          message.header = Message_Header.decode(reader, reader.uint32())
-          break
-        case 2:
-          message.ciphertext = Ciphertext.decode(reader, reader.uint32())
-          break
-        default:
-          reader.skipType(tag & 7)
-          break
-      }
-    }
-    return message
-  },
-
-  fromJSON(object: any): Message {
-    return {
-      header: isSet(object.header)
-        ? Message_Header.fromJSON(object.header)
-        : undefined,
-      ciphertext: isSet(object.ciphertext)
-        ? Ciphertext.fromJSON(object.ciphertext)
-        : undefined,
-    }
-  },
-
-  toJSON(message: Message): unknown {
-    const obj: any = {}
-    message.header !== undefined &&
-      (obj.header = message.header
-        ? Message_Header.toJSON(message.header)
-        : undefined)
-    message.ciphertext !== undefined &&
-      (obj.ciphertext = message.ciphertext
-        ? Ciphertext.toJSON(message.ciphertext)
-        : undefined)
-    return obj
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
-    const message = createBaseMessage()
-    message.header =
-      object.header !== undefined && object.header !== null
-        ? Message_Header.fromPartial(object.header)
-        : undefined
-    message.ciphertext =
-      object.ciphertext !== undefined && object.ciphertext !== null
-        ? Ciphertext.fromPartial(object.ciphertext)
-        : undefined
-    return message
-  },
-}
-
-function createBaseMessage_Header(): Message_Header {
+function createBaseMessageHeader(): MessageHeader {
   return { sender: undefined, recipient: undefined, timestamp: 0 }
 }
 
-export const Message_Header = {
+export const MessageHeader = {
   encode(
-    message: Message_Header,
+    message: MessageHeader,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.sender !== undefined) {
@@ -877,10 +801,10 @@ export const Message_Header = {
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Message_Header {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MessageHeader {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseMessage_Header()
+    const message = createBaseMessageHeader()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -901,7 +825,7 @@ export const Message_Header = {
     return message
   },
 
-  fromJSON(object: any): Message_Header {
+  fromJSON(object: any): MessageHeader {
     return {
       sender: isSet(object.sender)
         ? PublicKeyBundle.fromJSON(object.sender)
@@ -913,7 +837,7 @@ export const Message_Header = {
     }
   },
 
-  toJSON(message: Message_Header): unknown {
+  toJSON(message: MessageHeader): unknown {
     const obj: any = {}
     message.sender !== undefined &&
       (obj.sender = message.sender
@@ -928,10 +852,10 @@ export const Message_Header = {
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<Message_Header>, I>>(
+  fromPartial<I extends Exact<DeepPartial<MessageHeader>, I>>(
     object: I
-  ): Message_Header {
-    const message = createBaseMessage_Header()
+  ): MessageHeader {
+    const message = createBaseMessageHeader()
     message.sender =
       object.sender !== undefined && object.sender !== null
         ? PublicKeyBundle.fromPartial(object.sender)
@@ -941,6 +865,82 @@ export const Message_Header = {
         ? PublicKeyBundle.fromPartial(object.recipient)
         : undefined
     message.timestamp = object.timestamp ?? 0
+    return message
+  },
+}
+
+function createBaseMessage(): Message {
+  return { headerBytes: new Uint8Array(), ciphertext: undefined }
+}
+
+export const Message = {
+  encode(
+    message: Message,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.headerBytes.length !== 0) {
+      writer.uint32(10).bytes(message.headerBytes)
+    }
+    if (message.ciphertext !== undefined) {
+      Ciphertext.encode(message.ciphertext, writer.uint32(18).fork()).ldelim()
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Message {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseMessage()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.headerBytes = reader.bytes()
+          break
+        case 2:
+          message.ciphertext = Ciphertext.decode(reader, reader.uint32())
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): Message {
+    return {
+      headerBytes: isSet(object.headerBytes)
+        ? bytesFromBase64(object.headerBytes)
+        : new Uint8Array(),
+      ciphertext: isSet(object.ciphertext)
+        ? Ciphertext.fromJSON(object.ciphertext)
+        : undefined,
+    }
+  },
+
+  toJSON(message: Message): unknown {
+    const obj: any = {}
+    message.headerBytes !== undefined &&
+      (obj.headerBytes = base64FromBytes(
+        message.headerBytes !== undefined
+          ? message.headerBytes
+          : new Uint8Array()
+      ))
+    message.ciphertext !== undefined &&
+      (obj.ciphertext = message.ciphertext
+        ? Ciphertext.toJSON(message.ciphertext)
+        : undefined)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
+    const message = createBaseMessage()
+    message.headerBytes = object.headerBytes ?? new Uint8Array()
+    message.ciphertext =
+      object.ciphertext !== undefined && object.ciphertext !== null
+        ? Ciphertext.fromPartial(object.ciphertext)
+        : undefined
     return message
   },
 }
