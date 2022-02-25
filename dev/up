@@ -21,3 +21,4 @@ if ! which buf &>/dev/null; then brew install buf; fi
 dev/docker-compose up -d
 
 npm install
+npx husky install
