@@ -12,7 +12,21 @@ The XMTP protocol is in the early stages of development. This pre-stable alpha l
 
 This library is not yet published as an NPM module. It can be installed from this repo using `npm install xmtp/xmtp-js`.
 
-Additional configuration is required in Webpack 5 environments due to the removal of polyfill support. For instance, in Next.js's `next.config.js`:
+Additional configuration is required in React environments due to the removal of polyfills from Webpack 5. 
+
+### Create React App
+
+Use `react-scripts` prior to version `5.0.0`. For example:
+
+```bash
+npx create-react-app --scripts-version 4.0.2
+```
+
+Or downgrade after creating your app.
+
+### Next.js
+
+In `next.config.js`:
 
 ```js
 webpack: (config, { isServer }) => {
