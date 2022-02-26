@@ -12,6 +12,31 @@ The XMTP protocol is in the early stages of development. This pre-stable alpha l
 
 This library is not yet published as an NPM module. It can be installed from this repo using `npm install xmtp/xmtp-js`.
 
+Additional configuration is required in React environments due to the removal of polyfills from Webpack 5.
+
+### Create React App
+
+Use `react-scripts` prior to version `5.0.0`. For example:
+
+```bash
+npx create-react-app --scripts-version 4.0.2
+```
+
+Or downgrade after creating your app.
+
+### Next.js
+
+In `next.config.js`:
+
+```js
+webpack: (config, { isServer }) => {
+  if (!isServer) {
+    config.resolve.fallback.fs = false
+  }
+  return config
+}
+```
+
 ## Usage
 
 The API revolves around a network Client that allows retrieving and sending messages to other network participants. A Client must be connected to a wallet on startup. If this is the very first time the Client is created, the client will generate a key bundle that is used to encrypt and authenticate messages. The key bundle persists encrypted in local storage using a wallet signature. The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
@@ -178,16 +203,26 @@ A new version of this package will be automatically published whenever there is 
 
 The table below shows example commits and the resulting release type:
 
+<!-- prettier-ignore-start -->
 | Commit message                                                                                                                                                                                   | Release type                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | `fix(pencil): stop graphite breaking when too much pressure applied`                                                                                                                             | ~~Patch~~ Fix Release                                                                                           |
 | `feat(pencil): add 'graphiteWidth' option`                                                                                                                                                       | ~~Minor~~ Feature Release                                                                                       |
-| `perf(pencil): remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | ~~Major~~ Breaking Release <br /> (Note that the `BREAKING CHANGE: ` token must be in the footer of the commit) |
+| `perf(pencil): remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | ~~Major~~ Breaking Release <br /> (Note that the `BREAKING CHANGE:` token must be in the footer of the commit) |
+<!-- prettier-ignore-end -->
 
 This is currently configured to use the [Angular Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format).
 
 ### Prerequisites
 
-**Node**
+#### Node
 
 Please make sure you have a Node version compatible with that specified in the root `.nvmrc` file. We recommend using `nvm` to manage local node versions - find install instructions appropriate for your system [here](https://github.com/nvm-sh/nvm#installing-and-updating).
+
+#### Buf
+
+You will need to install [Buf](https://buf.build/) in your environment in order to `npm build` this package from source.
+
+```bash
+brew install bufbuild/buf/buf
+```
