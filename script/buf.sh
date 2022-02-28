@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Based loosely off of the script here https://docs.buf.build/ci-cd/setup
+# Fixed a bug in their script + added support for checking if buf is already installed
 
 set -eu
 
@@ -7,19 +9,14 @@ if which buf &>/dev/null; then
     exit 0
 fi
 
-# Try and install curl if it doesn't exist. Needed for CloudFlare Pages
-if ! which curl &>/dev/null; then
-  echo "Installing curl"
-  apt update
-  apt install curl 
-fi
 
 # Use your desired buf version
 BUF_VERSION=1.0.0
 # Putting this in a location likely to already be in the $PATH
 BIN_DIR=/usr/local/bin
 
-curl -sSL \
-    "https://github.com/bufbuild/buf/releases/download/v$BUF_VERSION/buf-$(uname -s)-$(uname -m)" \
-    -o "$BIN_DIR/buf"
+URL="https://github.com/bufbuild/buf/releases/download/v$BUF_VERSION/buf-$(uname -s)-$(uname -m)"
+echo "Downloading from $URL"
+
+curl -sSL $URL -o "$BIN_DIR/buf"
 chmod +x "$BIN_DIR/buf"
