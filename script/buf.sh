@@ -8,7 +8,7 @@ if which buf &>/dev/null; then
 fi
 
 # Try and install curl if it doesn't exist. Needed for CloudFlare Pages
-if ! which curl &>/dev/null then
+if ! which curl &>/dev/null; then
   apt update
   apt install curl 
 fi
