@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 if which buf &>/dev/null; then
     echo "Existing buf version found. No need to install"
     exit 0
+fi
+
+# Try and install curl if it doesn't exist. Needed for CloudFlare Pages
+if ! which curl &>/dev/null then
+  apt update
+  apt install curl 
 fi
 
 # Use your desired buf version
