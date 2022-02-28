@@ -13,7 +13,7 @@ fi
 # Use your desired buf version
 BUF_VERSION=1.0.0
 # Putting this in a location likely to already be in the $PATH
-BIN_DIR=/usr/local/bin
+BIN_DIR=$HOME/bin
 
 URL="https://github.com/bufbuild/buf/releases/download/v$BUF_VERSION/buf-$(uname -s)-$(uname -m)"
 echo "Downloading from $URL"
