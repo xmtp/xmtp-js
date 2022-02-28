@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if which buf &>/dev/null; then
-    echo "existing buf version found"
+    echo "Existing buf version found. No need to install"
     exit 0
 fi
 

@@ -18,7 +18,7 @@
     "clean:proto": "rm -rf src/proto/*.ts",
     "package": "npm pack",
     "prepare": "npm run install:buf && npm run build",
-    "install:buf": "./script/buf.sh",
+    "install:buf": "./script/buf.sh || true",
     "test": "npm run test:node",
     "test:node": "jest --no-cache --runInBand --env='node'",
     "test:jsdom": "jest --no-cache --runInBand --env='./jest.jsdom.env.js'",
