@@ -9,6 +9,7 @@ fi
 
 # Try and install curl if it doesn't exist. Needed for CloudFlare Pages
 if ! which curl &>/dev/null; then
+  echo "Installing curl"
   apt update
   apt install curl 
 fi
