@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eu
 
 if which buf &>/dev/null; then
     echo "Existing buf version found. No need to install"
