@@ -20,6 +20,6 @@ BUF_VERSION=1.0.0
 BIN_DIR=/usr/local/bin
 
 curl -sSL \
-    "https://github.com/bufbuild/buf/releases/download/v$BUF_VERSION/buf-$(shell uname -s)-$(shell uname -m)" \
+    "https://github.com/bufbuild/buf/releases/download/v$BUF_VERSION/buf-$(uname -s)-$(uname -m)" \
     -o "$BIN_DIR/buf"
 chmod +x "$BIN_DIR/buf"
