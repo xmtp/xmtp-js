@@ -19,6 +19,7 @@ mkdir -p $BIN_DIR
 
 URL="https://github.com/bufbuild/buf/releases/download/v$BUF_VERSION/buf-$(uname -s)-$(uname -m)"
 echo "Downloading buf from $URL"
+echo $PATH
 
 curl -sSL $URL -o "$BIN_DIR/buf"
 chmod +x "$BIN_DIR/buf"
