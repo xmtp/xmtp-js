@@ -42,7 +42,7 @@ webpack: (config, { isServer }) => {
 The API revolves around a network Client that allows retrieving and sending messages to other network participants. A Client must be connected to a wallet on startup. If this is the very first time the Client is created, the client will generate a key bundle that is used to encrypt and authenticate messages. The key bundle persists encrypted in local storage using a wallet signature. The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
 
 ```ts
-import { Client } from 'xmtp-js'
+import { Client } from '@xmtp/xmtp-js'
 import { Wallet } from 'ethers'
 
 // You'll want to replace this with a wallet from your application
@@ -73,7 +73,7 @@ A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>`
 The Client will connect to the XMTP playnet by default. CreateOptions can be used to override this and other parameters of the network connection.
 
 ```ts
-import { Client } from 'xmtp-js'
+import { Client } from '@xmtp/xmtp-js'
 // Create the client with an `ethers.Signer` from your application
 const xmtp = await Client.create(wallet)
 ```
@@ -85,7 +85,7 @@ _Pre-Stable Alpha Limitation:_ Currently, the Client uses the browser's local st
 Most of the time, when interacting with the network, you'll want to do it through `conversations`. Conversations are between two wallets.
 
 ```ts
-import { Client } from 'xmtp-js'
+import { Client } from '@xmtp/xmtp-js'
 // Create the client with an `ethers.Signer` from your application
 const xmtp = await Client.create(wallet)
 const conversations = xmtp.conversations
