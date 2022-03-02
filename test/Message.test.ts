@@ -75,7 +75,7 @@ describe('Message', function () {
     const msg = await Message.encode(
       alice,
       alice.getPublicKeyBundle(),
-      'hi',
+      new TextEncoder().encode('hi'),
       new Date()
     )
     assert.equal(msg.id.length, 64)
