@@ -10,8 +10,7 @@ The XMTP protocol is in the early stages of development. This pre-stable alpha l
 
 ## Installation
 
-This library is not yet published as an NPM module. It can be installed from this repo using `npm install xmtp/xmtp-js` and included in `package.json` as `"@xmtp/xmtp-js": "github:xmtp/xmtp-js#v1.3.3"`.
-<!-- TODO: automate reference to latest release -->
+This library is not yet published as an NPM module. It can be installed from this repo using `npm install xmtp/xmtp-js` and included in `package.json` as `"@xmtp/xmtp-js": "github:xmtp/xmtp-js"`.
 
 Additional configuration is required in React environments due to the removal of polyfills from Webpack 5.
 
