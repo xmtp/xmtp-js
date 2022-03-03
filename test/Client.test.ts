@@ -2,6 +2,8 @@ import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
+import { TestKeyContentEncoder, ContentTypeTestKey } from './ContentType'
+import { PrivateKey } from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create(newWallet(), {
@@ -183,6 +185,25 @@ describe('Client', () => {
 
         const can_mesg_b = await alice.canMessage(bob.address)
         assert.equal(can_mesg_b, true)
+      })
+
+      it('can send custom content type', async () => {
+        const joe = await testCase.newClient()
+        joe.registerEncoder(new TestKeyContentEncoder())
+        const stream = joe.streamIntroductionMessages()
+        const key = PrivateKey.generate().publicKey
+        await joe.sendMessage(joe.address, {
+          contentType: ContentTypeTestKey,
+          content: key,
+        })
+        const msg = await stream.next()
+        const content = msg.value.content
+        assert(typeof content != 'string')
+        assert.equal(content.contentType, ContentTypeTestKey)
+        assert(key.equals(content.content))
+
+        stream.return()
+        joe.close()
       })
     })
   })

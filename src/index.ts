@@ -8,6 +8,13 @@ import {
 import Stream from './Stream'
 import Client, { CreateOptions, ListMessagesOptions } from './Client'
 import { Conversation, Conversations } from './conversations'
+import {
+  ContentTypeId,
+  ContentEncoder,
+  MessageContent,
+  ContentTypeText,
+  ContentTypeAlternativeDescription,
+} from './MessageContent'
 
 export {
   Client,
@@ -21,4 +28,9 @@ export {
   PublicKey,
   PublicKeyBundle,
   Stream,
+  ContentTypeId,
+  ContentEncoder,
+  MessageContent,
+  ContentTypeText,
+  ContentTypeAlternativeDescription,
 }
