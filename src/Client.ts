@@ -253,15 +253,20 @@ export default class Client {
     if (message.error) {
       return message
     }
-    const encoded = proto.EncodedContent.decode(message.decrypted as Uint8Array)
+    if (!message.decrypted) {
+      throw new Error('decrypted bytes missing')
+    }
+    const encoded = proto.EncodedContent.decode(message.decrypted)
     if (!encoded.contentType) {
       throw new Error('missing content type')
     }
-    const encoder = this.encoderFor(encoded.contentType)
+    const contentType = new ContentTypeId(encoded.contentType)
+    const encoder = this.encoderFor(contentType)
     if (encoder) {
-      message.content = encoder.decode(
-        encoded as EncodedContent
-      ) as MessageContent
+      const content = encoder.decode(encoded as EncodedContent)
+      message.content = ContentTypeText.sameAs(contentType)
+        ? content
+        : { contentType: contentType, content: content }
     } else {
       message.error = new Error(`unknown content type ${encoded.contentType}`)
       if (encoded.contentFallback) {

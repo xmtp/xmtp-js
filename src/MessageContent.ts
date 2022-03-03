@@ -1,9 +1,22 @@
+import * as proto from './proto/messaging'
+
 // Represents proto.ContentTypeId
-export type ContentTypeId = {
+export class ContentTypeId {
   authorityId: string
   typeId: string
   versionMajor: number
   versionMinor: number
+
+  constructor(obj: proto.ContentTypeId) {
+    this.authorityId = obj.authorityId
+    this.typeId = obj.typeId
+    this.versionMajor = obj.versionMajor
+    this.versionMinor = obj.versionMinor
+  }
+
+  sameAs(id: ContentTypeId): boolean {
+    return this.authorityId == id.authorityId && this.typeId == id.typeId
+  }
 }
 
 // Represents proto.EncodedContent
@@ -36,12 +49,12 @@ export type MessageContent =
 // xmtp.org/text
 //
 // This content type is used for a plain text content represented by a simple string
-export const ContentTypeText = {
+export const ContentTypeText = new ContentTypeId({
   authorityId: 'xmtp.org',
   typeId: 'text',
   versionMajor: 1,
   versionMinor: 0,
-}
+})
 
 export class TextContentEncoder implements ContentEncoder<string> {
   get contentType(): ContentTypeId {
@@ -66,12 +79,12 @@ export class TextContentEncoder implements ContentEncoder<string> {
 // This content type is used to provide the recipient
 // the alternative content description (if present)
 // in case the content type is not supported.
-export const ContentTypeAlternativeDescription = {
+export const ContentTypeAlternativeDescription = new ContentTypeId({
   authorityId: 'xmtp.org',
   typeId: 'alternative-description',
   versionMajor: 1,
   versionMinor: 0,
-}
+})
 
 export class AlternativeContentDescription {
   content: string

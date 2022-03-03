@@ -199,8 +199,8 @@ describe('Client', () => {
         })
         const result = await stream.next()
         const msg = result.value
-        assert.equal(msg.contentType, ContentTypeTestKey)
-        assert(key.equals(msg.content))
+        assert(msg.contentType.sameAs(ContentTypeTestKey))
+        assert(key.equals(msg.content.content))
 
         stream.return()
       })

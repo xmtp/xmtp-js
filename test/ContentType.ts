@@ -6,12 +6,12 @@ import {
   EncodedContent,
 } from '../src'
 
-export const ContentTypeTestKey = {
+export const ContentTypeTestKey = new ContentTypeId({
   authorityId: 'xmtp.test',
   typeId: 'public-key',
   versionMajor: 1,
   versionMinor: 0,
-}
+})
 
 export class TestKeyContentEncoder implements ContentEncoder<PublicKey> {
   get contentType(): ContentTypeId {
