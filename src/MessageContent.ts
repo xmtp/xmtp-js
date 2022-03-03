@@ -1,3 +1,4 @@
+// Represents proto.ContentTypeId
 export type ContentTypeId = {
   authorityId: string
   typeId: string
@@ -5,6 +6,7 @@ export type ContentTypeId = {
   versionMinor: number
 }
 
+// Represents proto.EncodedContent
 export interface EncodedContent {
   contentType: ContentTypeId
   contentTypeParams: Record<string, string>
@@ -12,12 +14,18 @@ export interface EncodedContent {
   content: Uint8Array
 }
 
+// Defines an interface for the encoding machinery for a specific content type
+// associated with a given ContentTypeId
+// An encoder can be registered with a Client to be automatically invoked when
+// handling content of the corresponding content type.
 export interface ContentEncoder<T> {
   contentType: ContentTypeId
   encode(message: T): EncodedContent
   decode(content: EncodedContent): T
 }
 
+// MessageContent represents types that the Client is able to map to a content type.
+// The Client API expects the provided content to conform to this type definition.
 export type MessageContent =
   | string
   | {
@@ -25,6 +33,9 @@ export type MessageContent =
       readonly content: any
     }
 
+// xmtp.org/text
+//
+// This content type is used for a plain text content represented by a simple string
 export const ContentTypeText = {
   authorityId: 'xmtp.org',
   typeId: 'text',
@@ -50,6 +61,8 @@ export class TextContentEncoder implements ContentEncoder<string> {
   }
 }
 
+// xmtp.org/alternative-description
+//
 // This content type is used to provide the recipient
 // the alternative content description (if present)
 // in case the content type is not supported.
