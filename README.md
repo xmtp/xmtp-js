@@ -10,7 +10,7 @@ The XMTP protocol is in the early stages of development. This pre-stable alpha l
 
 ## Installation
 
-This library is not yet published. It can be installed from this repo using `npm install xmtp/xmtp-js` or from `npm` using a private access token:
+This library is not yet public on npm. It can be installed from this repo using `npm install xmtp/xmtp-js` or from npm using a private access token:
 
 ```bash
 export NPM_TOKEN=$YOUR_NPM_TOKEN
