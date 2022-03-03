@@ -12,6 +12,7 @@ import {
   ContentTypeId,
   ContentEncoder,
   MessageContent,
+  EncodedContent,
   ContentTypeText,
   ContentTypeAlternativeDescription,
 } from './MessageContent'
@@ -31,6 +32,7 @@ export {
   ContentTypeId,
   ContentEncoder,
   MessageContent,
+  EncodedContent,
   ContentTypeText,
   ContentTypeAlternativeDescription,
 }

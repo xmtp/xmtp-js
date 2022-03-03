@@ -188,22 +188,21 @@ describe('Client', () => {
       })
 
       it('can send custom content type', async () => {
-        const joe = await testCase.newClient()
-        joe.registerEncoder(new TestKeyContentEncoder())
-        const stream = joe.streamIntroductionMessages()
+        alice.registerEncoder(new TestKeyContentEncoder())
+        bob.registerEncoder(new TestKeyContentEncoder())
+        const stream = bob.streamConversationMessages(alice.address)
         const key = PrivateKey.generate().publicKey
-        await joe.sendMessage(joe.address, {
+        assert(key.timestamp > 0)
+        await alice.sendMessage(bob.address, {
           contentType: ContentTypeTestKey,
           content: key,
         })
-        const msg = await stream.next()
-        const content = msg.value.content
-        assert(typeof content != 'string')
-        assert.equal(content.contentType, ContentTypeTestKey)
-        assert(key.equals(content.content))
+        const result = await stream.next()
+        const msg = result.value
+        assert.equal(msg.contentType, ContentTypeTestKey)
+        assert(key.equals(msg.content))
 
         stream.return()
-        joe.close()
       })
     })
   })

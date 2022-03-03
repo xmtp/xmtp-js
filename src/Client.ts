@@ -241,7 +241,9 @@ export default class Client {
     if (!encoder) {
       throw new Error(`unknown content type ${contentType}`)
     }
-    const encoded = encoder.encode(content)
+    const encoded = encoder.encode(
+      typeof content === 'string' ? content : content.content
+    )
     const payload = proto.EncodedContent.encode(encoded).finish()
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
