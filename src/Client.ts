@@ -17,13 +17,12 @@ import { Conversations } from './conversations'
 import {
   ContentTypeId,
   EncodedContent,
-  MessageContent,
   ContentEncoder,
   ContentTypeText,
   TextContentEncoder,
-  AlternativeContentDescription,
 } from './MessageContent'
 import * as proto from './proto/messaging'
+import { ContentTypeAlternativeDescription } from '.'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 
@@ -179,7 +178,8 @@ export default class Client {
    */
   async sendMessage(
     peerAddress: string,
-    message: MessageContent
+    content: any,
+    contentType?: ContentTypeId
   ): Promise<void> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
@@ -201,7 +201,12 @@ export default class Client {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
     const timestamp = new Date()
-    const msg = await this.encodeMessage(recipient, message, timestamp)
+    const msg = await this.encodeMessage(
+      recipient,
+      content,
+      contentType,
+      timestamp
+    )
     await Promise.all(
       topics.map(async (topic) => {
         const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
@@ -232,18 +237,16 @@ export default class Client {
 
   encodeMessage(
     recipient: PublicKeyBundle,
-    content: MessageContent,
+    content: any,
+    contentType: ContentTypeId | undefined,
     timestamp: Date
   ): Promise<Message> {
-    const contentType =
-      typeof content === 'string' ? ContentTypeText : content.contentType
+    contentType = contentType || ContentTypeText
     const encoder = this.encoderFor(contentType)
     if (!encoder) {
       throw new Error(`unknown content type ${contentType}`)
     }
-    const encoded = encoder.encode(
-      typeof content === 'string' ? content : content.content
-    )
+    const encoded = encoder.encode(content)
     const payload = proto.EncodedContent.encode(encoded).finish()
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
@@ -263,16 +266,13 @@ export default class Client {
     const contentType = new ContentTypeId(encoded.contentType)
     const encoder = this.encoderFor(contentType)
     if (encoder) {
-      const content = encoder.decode(encoded as EncodedContent)
-      message.content = ContentTypeText.sameAs(contentType)
-        ? content
-        : { contentType: contentType, content: content }
+      message.content = encoder.decode(encoded as EncodedContent)
+      message.contentType = contentType
     } else {
       message.error = new Error(`unknown content type ${encoded.contentType}`)
       if (encoded.contentFallback) {
-        message.content = new AlternativeContentDescription(
-          encoded.contentFallback
-        )
+        message.content = encoded.contentFallback
+        message.contentType = ContentTypeAlternativeDescription
       }
     }
     return message

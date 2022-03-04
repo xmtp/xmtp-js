@@ -10,11 +10,7 @@ import {
 import { NoMatchingPreKeyError } from './crypto/errors'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
-import {
-  MessageContent,
-  ContentTypeId,
-  ContentTypeText,
-} from './MessageContent'
+import { ContentTypeId, ContentTypeText } from './MessageContent'
 
 // Message is basic unit of communication on the network.
 // Message header carries the sender and recipient keys used to protect message.
@@ -26,7 +22,8 @@ export default class Message implements proto.Message {
   decrypted?: Uint8Array
   // content allows attaching decoded content to the Message
   // the message receiving APIs need to return a Message to provide access to the header fields like sender/recipient
-  content?: MessageContent
+  contentType?: ContentTypeId
+  content?: any
   error?: Error
   /**
    * Identifier that is deterministically derived from the bytes of the message
@@ -69,16 +66,6 @@ export default class Message implements proto.Message {
     const msg = proto.Message.decode(bytes)
     const header = proto.MessageHeader.decode(msg.headerBytes)
     return Message.create(msg, header, bytes)
-  }
-
-  get contentType(): ContentTypeId | undefined {
-    if (!this.content) {
-      return undefined
-    }
-    if (typeof this.content === 'string') {
-      return ContentTypeText
-    }
-    return this.content.contentType
   }
 
   get sent(): Date | undefined {

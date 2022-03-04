@@ -193,14 +193,11 @@ describe('Client', () => {
         const stream = bob.streamConversationMessages(alice.address)
         const key = PrivateKey.generate().publicKey
         assert(key.timestamp > 0)
-        await alice.sendMessage(bob.address, {
-          contentType: ContentTypeTestKey,
-          content: key,
-        })
+        await alice.sendMessage(bob.address, key, ContentTypeTestKey)
         const result = await stream.next()
         const msg = result.value
         assert(msg.contentType.sameAs(ContentTypeTestKey))
-        assert(key.equals(msg.content.content))
+        assert(key.equals(msg.content))
 
         stream.return()
       })

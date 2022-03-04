@@ -11,7 +11,6 @@ import { Conversation, Conversations } from './conversations'
 import {
   ContentTypeId,
   ContentEncoder,
-  MessageContent,
   EncodedContent,
   ContentTypeText,
   ContentTypeAlternativeDescription,
@@ -31,7 +30,6 @@ export {
   Stream,
   ContentTypeId,
   ContentEncoder,
-  MessageContent,
   EncodedContent,
   ContentTypeText,
   ContentTypeAlternativeDescription,

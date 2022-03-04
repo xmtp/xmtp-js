@@ -39,12 +39,12 @@ export interface ContentEncoder<T> {
 
 // MessageContent represents types that the Client is able to map to a content type.
 // The Client API expects the provided content to conform to this type definition.
-export type MessageContent =
-  | string
-  | {
-      readonly contentType: ContentTypeId
-      readonly content: any
-    }
+// export type MessageContent =
+//   | string
+//   | {
+//       readonly contentType: ContentTypeId
+//       readonly content: any
+//     }
 
 // xmtp.org/text
 //
@@ -85,14 +85,3 @@ export const ContentTypeAlternativeDescription = new ContentTypeId({
   versionMajor: 1,
   versionMinor: 0,
 })
-
-export class AlternativeContentDescription {
-  content: string
-  constructor(description: string) {
-    this.content = description
-  }
-
-  get contentType(): ContentTypeId {
-    return ContentTypeAlternativeDescription
-  }
-}
