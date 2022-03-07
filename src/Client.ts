@@ -179,7 +179,8 @@ export default class Client {
   async sendMessage(
     peerAddress: string,
     content: any,
-    contentType?: ContentTypeId
+    contentType?: ContentTypeId,
+    contentFallback?: string
   ): Promise<void> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
@@ -203,9 +204,10 @@ export default class Client {
     const timestamp = new Date()
     const msg = await this.encodeMessage(
       recipient,
+      timestamp,
       content,
       contentType,
-      timestamp
+      contentFallback
     )
     await Promise.all(
       topics.map(async (topic) => {
@@ -235,18 +237,24 @@ export default class Client {
     return this._encoders.get(key)
   }
 
-  encodeMessage(
+  async encodeMessage(
     recipient: PublicKeyBundle,
+    timestamp: Date,
     content: any,
-    contentType: ContentTypeId | undefined,
-    timestamp: Date
+    contentType?: ContentTypeId,
+    contentFallback?: string
   ): Promise<Message> {
     contentType = contentType || ContentTypeText
     const encoder = this.encoderFor(contentType)
     if (!encoder) {
-      throw new Error(`unknown content type ${contentType}`)
+      throw new Error(
+        `unknown content type ${contentType.authorityId}/${contentType.typeId}`
+      )
     }
     const encoded = encoder.encode(content)
+    if (contentFallback) {
+      encoded.contentFallback = contentFallback
+    }
     const payload = proto.EncodedContent.encode(encoded).finish()
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
@@ -269,7 +277,9 @@ export default class Client {
       message.content = encoder.decode(encoded as EncodedContent)
       message.contentType = contentType
     } else {
-      message.error = new Error(`unknown content type ${encoded.contentType}`)
+      message.error = new Error(
+        `unknown content type ${contentType.authorityId}/${contentType.typeId}`
+      )
       if (encoded.contentFallback) {
         message.content = encoded.contentFallback
         message.contentType = ContentTypeAlternativeDescription

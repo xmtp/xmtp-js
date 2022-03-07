@@ -3,7 +3,7 @@ import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
 import { TestKeyContentEncoder, ContentTypeTestKey } from './ContentType'
-import { PrivateKey } from '../src'
+import { ContentTypeAlternativeDescription, PrivateKey, Message } from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create(newWallet(), {
@@ -188,14 +188,39 @@ describe('Client', () => {
       })
 
       it('can send custom content type', async () => {
-        alice.registerEncoder(new TestKeyContentEncoder())
-        bob.registerEncoder(new TestKeyContentEncoder())
         const stream = bob.streamConversationMessages(alice.address)
         const key = PrivateKey.generate().publicKey
-        assert(key.timestamp > 0)
+
+        // alice doesn't recognize the type
+        await expect(
+          alice.sendMessage(bob.address, key, ContentTypeTestKey)
+        ).rejects.toThrow('unknown content type xmtp.test/public-key')
+
+        // bob doesn't recognize the type
+        alice.registerEncoder(new TestKeyContentEncoder())
+        await alice.sendMessage(
+          bob.address,
+          key,
+          ContentTypeTestKey,
+          'this is a public key'
+        )
+        let result = await stream.next()
+        let msg = result.value as Message
+        assert.ok(msg.error)
+        assert.equal(
+          msg.error.message,
+          'unknown content type xmtp.test/public-key'
+        )
+        assert.ok(msg.contentType)
+        assert(msg.contentType.sameAs(ContentTypeAlternativeDescription))
+        assert.equal(msg.content, 'this is a public key')
+
+        // both recognize the type
+        bob.registerEncoder(new TestKeyContentEncoder())
         await alice.sendMessage(bob.address, key, ContentTypeTestKey)
-        const result = await stream.next()
-        const msg = result.value
+        result = await stream.next()
+        msg = result.value as Message
+        assert(msg.contentType)
         assert(msg.contentType.sameAs(ContentTypeTestKey))
         assert(key.equals(msg.content))
 

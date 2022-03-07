@@ -23,7 +23,7 @@ export class ContentTypeId {
 export interface EncodedContent {
   contentType: ContentTypeId
   contentTypeParams: Record<string, string>
-  contentDescription?: string
+  contentFallback?: string
   content: Uint8Array
 }
 
@@ -76,8 +76,8 @@ export class TextContentEncoder implements ContentEncoder<string> {
 
 // xmtp.org/alternative-description
 //
-// This content type is used to provide the recipient
-// the alternative content description (if present)
+// This content type is used to indicate to the recipient
+// that the content in the message is the fallback description (if present)
 // in case the content type is not supported.
 export const ContentTypeAlternativeDescription = new ContentTypeId({
   authorityId: 'xmtp.org',
