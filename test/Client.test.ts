@@ -2,8 +2,8 @@ import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
-import { TestKeyContentEncoder, ContentTypeTestKey } from './ContentType'
-import { ContentTypeAlternativeDescription, PrivateKey, Message } from '../src'
+import { TestKeyContentEncoder, ContentTypeTestKey } from './ContentTypeTestKey'
+import { ContentTypeFallback, PrivateKey, Message } from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create(newWallet(), {
@@ -212,7 +212,7 @@ describe('Client', () => {
           'unknown content type xmtp.test/public-key'
         )
         assert.ok(msg.contentType)
-        assert(msg.contentType.sameAs(ContentTypeAlternativeDescription))
+        assert(msg.contentType.sameAs(ContentTypeFallback))
         assert.equal(msg.content, 'this is a public key')
 
         // both recognize the type

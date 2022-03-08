@@ -79,9 +79,9 @@ export class TextContentEncoder implements ContentEncoder<string> {
 // This content type is used to indicate to the recipient
 // that the content in the message is the fallback description (if present)
 // in case the content type is not supported.
-export const ContentTypeAlternativeDescription = new ContentTypeId({
+export const ContentTypeFallback = new ContentTypeId({
   authorityId: 'xmtp.org',
-  typeId: 'alternative-description',
+  typeId: 'fallback',
   versionMajor: 1,
   versionMinor: 0,
 })

@@ -13,7 +13,7 @@ import {
   ContentEncoder,
   EncodedContent,
   ContentTypeText,
-  ContentTypeAlternativeDescription,
+  ContentTypeFallback,
 } from './MessageContent'
 
 export {
@@ -32,5 +32,5 @@ export {
   ContentEncoder,
   EncodedContent,
   ContentTypeText,
-  ContentTypeAlternativeDescription,
+  ContentTypeFallback,
 }

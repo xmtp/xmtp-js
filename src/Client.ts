@@ -22,7 +22,7 @@ import {
   TextContentEncoder,
 } from './MessageContent'
 import * as proto from './proto/messaging'
-import { ContentTypeAlternativeDescription } from '.'
+import { ContentTypeFallback } from '.'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 
@@ -282,7 +282,7 @@ export default class Client {
       )
       if (encoded.contentFallback) {
         message.content = encoded.contentFallback
-        message.contentType = ContentTypeAlternativeDescription
+        message.contentType = ContentTypeFallback
       }
     }
     return message
