@@ -15,7 +15,7 @@ export class ContentTypeId {
   }
 
   sameAs(id: ContentTypeId): boolean {
-    return this.authorityId == id.authorityId && this.typeId == id.typeId
+    return this.authorityId === id.authorityId && this.typeId === id.typeId
   }
 }
 

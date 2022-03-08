@@ -10,7 +10,7 @@ import {
 import { NoMatchingPreKeyError } from './crypto/errors'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
-import { ContentTypeId, ContentTypeText } from './MessageContent'
+import { ContentTypeId } from './MessageContent'
 
 // Message is basic unit of communication on the network.
 // Message header carries the sender and recipient keys used to protect message.
