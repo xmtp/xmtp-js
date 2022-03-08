@@ -1,6 +1,7 @@
 import Stream from '../Stream'
 import Client, { ListMessagesOptions } from '../Client'
 import Message from '../Message'
+import { ContentTypeId } from '..'
 
 /**
  * Conversation class allows you to view, stream, and send messages to/from a peer address
@@ -31,7 +32,16 @@ export default class Conversation {
   /**
    * Send a message into the conversation
    */
-  async send(message: string): Promise<void> {
-    await this.client.sendMessage(this.peerAddress, message)
+  async send(
+    message: any,
+    contentType?: ContentTypeId,
+    contentFallback?: string
+  ): Promise<void> {
+    await this.client.sendMessage(
+      this.peerAddress,
+      message,
+      contentType,
+      contentFallback
+    )
   }
 }
