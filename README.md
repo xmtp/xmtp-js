@@ -133,7 +133,7 @@ const newConversation = await xmtp.conversations.newConversation(
 
 #### Sending messages
 
-To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. The message payload is a string but neither the SDK nor the network put any constraints on its contents or interpretation.
+To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. The message payload can be a plain string, but other types of contents can be supported through the use of the optional `contentType` argument. The sender can also include optional `contentFallback` string, if there is a concern that the recipient may not be able to handle particular content type. In that case the fallback will replace the original content and can be used to describe what the original content was.
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
@@ -180,6 +180,10 @@ for await (const message of conversation.streamMessages()) {
   console.log(`New message from ${message.senderAddress}: ${message.text}`)
 }
 ```
+
+#### Supporting different types of content
+
+(TODO:mk)
 
 #### Under the hood
 
