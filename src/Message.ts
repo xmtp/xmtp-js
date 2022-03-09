@@ -23,7 +23,7 @@ export default class Message implements proto.Message {
   // content allows attaching decoded content to the Message
   // the message receiving APIs need to return a Message to provide access to the header fields like sender/recipient
   contentType?: ContentTypeId
-  content?: any
+  content?: any // eslint-disable-line @typescript-eslint/no-explicit-any
   error?: Error
   /**
    * Identifier that is deterministically derived from the bytes of the message

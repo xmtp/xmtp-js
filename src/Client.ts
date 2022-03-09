@@ -24,6 +24,9 @@ import {
 import * as proto from './proto/messaging'
 import { ContentTypeFallback } from '.'
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 
 type Nodes = { [k: string]: string }
