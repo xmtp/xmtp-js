@@ -17,9 +17,9 @@ import { Conversations } from './conversations'
 import {
   ContentTypeId,
   EncodedContent,
-  ContentEncoder,
+  ContentCodec,
   ContentTypeText,
-  TextContentEncoder,
+  TextCodec,
 } from './MessageContent'
 import * as proto from './proto/messaging'
 import { ContentTypeFallback } from '.'
@@ -52,8 +52,8 @@ export type CreateOptions = {
    * to declare the startup as successful or failed
    */
   waitForPeersTimeoutMs?: number
-  // Allow configuring encoders for additional content types
-  encoders?: ContentEncoder<any>[]
+  // Allow configuring codecs for additional content types
+  codecs?: ContentCodec<any>[]
 }
 
 /**
@@ -67,7 +67,7 @@ export default class Client {
   private contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
   private _conversations: Conversations
-  private _encoders: Map<string, ContentEncoder<any>>
+  private _codecs: Map<string, ContentCodec<any>>
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
@@ -76,12 +76,12 @@ export default class Client {
     this.keys = keys
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
-    this._encoders = new Map()
-    this.registerDefaultEncoders()
+    this._codecs = new Map()
+    this.registerDefaultCodecs()
   }
 
-  private registerDefaultEncoders(): void {
-    this.registerEncoder(new TextContentEncoder())
+  private registerDefaultCodecs(): void {
+    this.registerCodec(new TextCodec())
   }
 
   /**
@@ -101,8 +101,8 @@ export default class Client {
     const waku = await createWaku(opts || {})
     const keys = await loadOrCreateKeys(wallet)
     const client = new Client(waku, keys)
-    opts?.encoders?.forEach((encoder) => {
-      client.registerEncoder(encoder)
+    opts?.codecs?.forEach((codec) => {
+      client.registerCodec(codec)
     })
     await client.publishUserContact()
     return client
@@ -226,15 +226,15 @@ export default class Client {
     }
   }
 
-  registerEncoder(encoder: ContentEncoder<any>): void {
-    const id = encoder.contentType
+  registerCodec(codec: ContentCodec<any>): void {
+    const id = codec.contentType
     const key = `${id.authorityId}/${id.typeId}`
-    this._encoders.set(key, encoder)
+    this._codecs.set(key, codec)
   }
 
-  encoderFor(contentType: ContentTypeId): ContentEncoder<any> | undefined {
+  codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
     const key = `${contentType.authorityId}/${contentType.typeId}`
-    return this._encoders.get(key)
+    return this._codecs.get(key)
   }
 
   async encodeMessage(
@@ -245,13 +245,13 @@ export default class Client {
     contentFallback?: string
   ): Promise<Message> {
     contentType = contentType || ContentTypeText
-    const encoder = this.encoderFor(contentType)
-    if (!encoder) {
+    const codec = this.codecFor(contentType)
+    if (!codec) {
       throw new Error(
         `unknown content type ${contentType.authorityId}/${contentType.typeId}`
       )
     }
-    const encoded = encoder.encode(content)
+    const encoded = codec.encode(content)
     if (contentFallback) {
       encoded.contentFallback = contentFallback
     }
@@ -272,9 +272,9 @@ export default class Client {
       throw new Error('missing content type')
     }
     const contentType = new ContentTypeId(encoded.contentType)
-    const encoder = this.encoderFor(contentType)
-    if (encoder) {
-      message.content = encoder.decode(encoded as EncodedContent)
+    const codec = this.codecFor(contentType)
+    if (codec) {
+      message.content = codec.decode(encoded as EncodedContent)
       message.contentType = contentType
     } else {
       message.error = new Error(

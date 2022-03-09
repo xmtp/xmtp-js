@@ -1,10 +1,5 @@
 import * as proto from '../src/proto/messaging'
-import {
-  ContentTypeId,
-  ContentEncoder,
-  PublicKey,
-  EncodedContent,
-} from '../src'
+import { ContentTypeId, ContentCodec, PublicKey, EncodedContent } from '../src'
 
 export const ContentTypeTestKey = new ContentTypeId({
   authorityId: 'xmtp.test',
@@ -13,7 +8,7 @@ export const ContentTypeTestKey = new ContentTypeId({
   versionMinor: 0,
 })
 
-export class TestKeyContentEncoder implements ContentEncoder<PublicKey> {
+export class TestKeyCodec implements ContentCodec<PublicKey> {
   get contentType(): ContentTypeId {
     return ContentTypeTestKey
   }

@@ -2,7 +2,7 @@ import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
 import Client from '../src/Client'
-import { TestKeyContentEncoder, ContentTypeTestKey } from './ContentTypeTestKey'
+import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import { ContentTypeFallback, PrivateKey, Message } from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
@@ -197,7 +197,7 @@ describe('Client', () => {
         ).rejects.toThrow('unknown content type xmtp.test/public-key')
 
         // bob doesn't recognize the type
-        alice.registerEncoder(new TestKeyContentEncoder())
+        alice.registerCodec(new TestKeyCodec())
         await alice.sendMessage(
           bob.address,
           key,
@@ -216,7 +216,7 @@ describe('Client', () => {
         assert.equal(msg.content, 'this is a public key')
 
         // both recognize the type
-        bob.registerEncoder(new TestKeyContentEncoder())
+        bob.registerCodec(new TestKeyCodec())
         await alice.sendMessage(bob.address, key, ContentTypeTestKey)
         result = await stream.next()
         msg = result.value as Message

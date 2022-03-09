@@ -10,7 +10,7 @@ import Client, { CreateOptions, ListMessagesOptions } from './Client'
 import { Conversation, Conversations } from './conversations'
 import {
   ContentTypeId,
-  ContentEncoder,
+  ContentCodec,
   EncodedContent,
   ContentTypeText,
   ContentTypeFallback,
@@ -29,7 +29,7 @@ export {
   PublicKeyBundle,
   Stream,
   ContentTypeId,
-  ContentEncoder,
+  ContentCodec,
   EncodedContent,
   ContentTypeText,
   ContentTypeFallback,

@@ -29,9 +29,9 @@ export interface EncodedContent {
 
 // Defines an interface for the encoding machinery for a specific content type
 // associated with a given ContentTypeId
-// An encoder can be registered with a Client to be automatically invoked when
+// A codec can be registered with a Client to be automatically invoked when
 // handling content of the corresponding content type.
-export interface ContentEncoder<T> {
+export interface ContentCodec<T> {
   contentType: ContentTypeId
   encode(message: T): EncodedContent
   decode(content: EncodedContent): T
@@ -56,7 +56,7 @@ export const ContentTypeText = new ContentTypeId({
   versionMinor: 0,
 })
 
-export class TextContentEncoder implements ContentEncoder<string> {
+export class TextCodec implements ContentCodec<string> {
   get contentType(): ContentTypeId {
     return ContentTypeText
   }
