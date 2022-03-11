@@ -7,12 +7,13 @@ import {
   buildDirectMessageTopic,
   buildUserContactTopic,
   buildUserIntroTopic,
+  buildUserPrivateStoreTopic,
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
 import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
-import { EncryptedStore, LocalStorageStore } from './store'
+import { EncryptedStore, LocalStorageStore, NetworkStore } from './store'
 import { Conversations } from './conversations'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
@@ -81,7 +82,10 @@ export default class Client {
    */
   static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
     const waku = await createWaku(opts || {})
-    const keys = await loadOrCreateKeys(wallet)
+    const keys = await loadOrCreateKeys(
+      wallet,
+      createPrivateKeyStore(wallet, waku)
+    )
     const client = new Client(waku, keys)
     await client.publishUserContact()
     return client
@@ -262,10 +266,23 @@ export default class Client {
   }
 }
 
+// select appropriate store for privateKeyBundles
+export function createPrivateKeyStore(
+  wallet: Signer,
+  waku: Waku | undefined = undefined
+): EncryptedStore {
+  const backingStore = waku
+    ? new NetworkStore(waku, buildUserPrivateStoreTopic)
+    : new LocalStorageStore()
+  return new EncryptedStore(wallet, backingStore)
+}
+
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
-async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
-  const store = new EncryptedStore(wallet, new LocalStorageStore())
+export async function loadOrCreateKeys(
+  wallet: Signer,
+  store: EncryptedStore
+): Promise<PrivateKeyBundle> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
@@ -276,7 +293,7 @@ async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
 }
 
 // initialize connection to the network
-async function createWaku({
+export async function createWaku({
   bootstrapAddrs,
   env = 'testnet',
   waitForPeersTimeoutMs,
