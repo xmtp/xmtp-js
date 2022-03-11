@@ -11,10 +11,17 @@ import { NoMatchingPreKeyError } from './crypto/errors'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 
+const extractV1Message = (msg: proto.Message): proto.V1Message => {
+  if (!msg.v1) {
+    throw new Error('Message is not of type v1')
+  }
+  return msg.v1
+}
+
 // Message is basic unit of communication on the network.
 // Message header carries the sender and recipient keys used to protect message.
 // Message timestamp is set by the sender.
-export default class Message implements proto.Message {
+export default class Message implements proto.V1Message {
   header: proto.MessageHeader | undefined // eslint-disable-line camelcase
   headerBytes: Uint8Array // encoded header bytes
   ciphertext: Ciphertext | undefined
@@ -34,12 +41,13 @@ export default class Message implements proto.Message {
     obj: proto.Message,
     header: proto.MessageHeader
   ) {
+    const msg = extractV1Message(obj)
     this.id = id
     this.bytes = bytes
-    this.headerBytes = obj.headerBytes
+    this.headerBytes = msg.headerBytes
     this.header = header
-    if (obj.ciphertext) {
-      this.ciphertext = new Ciphertext(obj.ciphertext)
+    if (msg.ciphertext) {
+      this.ciphertext = new Ciphertext(msg.ciphertext)
     }
   }
 
@@ -58,7 +66,8 @@ export default class Message implements proto.Message {
 
   static async fromBytes(bytes: Uint8Array): Promise<Message> {
     const msg = proto.Message.decode(bytes)
-    const header = proto.MessageHeader.decode(msg.headerBytes)
+    const innerMessage = extractV1Message(msg)
+    const header = proto.MessageHeader.decode(innerMessage.headerBytes)
     return Message.create(msg, header, bytes)
   }
 
@@ -112,7 +121,7 @@ export default class Message implements proto.Message {
     }
     const headerBytes = proto.MessageHeader.encode(header).finish()
     const ciphertext = await encrypt(msgBytes, secret, headerBytes)
-    const protoMsg = { headerBytes: headerBytes, ciphertext }
+    const protoMsg = { v1: { headerBytes: headerBytes, ciphertext } }
     const bytes = proto.Message.encode(protoMsg).finish()
     const msg = await Message.create(protoMsg, header, bytes)
     msg.decrypted = message
@@ -127,7 +136,8 @@ export default class Message implements proto.Message {
     bytes: Uint8Array
   ): Promise<Message> {
     const message = proto.Message.decode(bytes)
-    const header = proto.MessageHeader.decode(message.headerBytes)
+    const v1Message = extractV1Message(message)
+    const header = proto.MessageHeader.decode(v1Message.headerBytes)
     if (!header) {
       throw new Error('missing message header')
     }
@@ -157,10 +167,10 @@ export default class Message implements proto.Message {
       new PublicKey(header.sender.identityKey),
       new PublicKey(header.sender.preKey)
     )
-    if (!message.ciphertext?.aes256GcmHkdfSha256) {
+    if (!v1Message.ciphertext?.aes256GcmHkdfSha256) {
       throw new Error('missing message ciphertext')
     }
-    const ciphertext = new Ciphertext(message.ciphertext)
+    const ciphertext = new Ciphertext(v1Message.ciphertext)
     const msg = await Message.create(message, header, bytes)
     let secret: Uint8Array
     try {
@@ -178,7 +188,7 @@ export default class Message implements proto.Message {
       msg.error = e
       return msg
     }
-    bytes = await decrypt(ciphertext, secret, message.headerBytes)
+    bytes = await decrypt(ciphertext, secret, v1Message.headerBytes)
     msg.decrypted = new TextDecoder().decode(bytes)
     return msg
   }
