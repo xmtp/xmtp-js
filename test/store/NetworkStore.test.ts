@@ -43,7 +43,7 @@ describe('NetworkStore', () => {
 
       beforeEach(async () => {
         wallet = newWallet()
-        store = new NetworkStore(waku, buildUserPrivateStoreTopic)
+        store = new NetworkStore(waku)
       })
 
       it('roundtrip', async () => {

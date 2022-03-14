@@ -79,13 +79,18 @@ export default class Client {
    *
    * @param wallet the wallet as a Signer instance
    * @param opts specify how to to connect to the network
+   * @param useLocalKeyStore force client to use localStorage for persisting privateKeyBundles
    */
-  static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
+  static async create(
+    wallet: Signer,
+    opts?: CreateOptions,
+    useLocalKeyStore = false
+  ): Promise<Client> {
     const waku = await createWaku(opts || {})
-    const keys = await loadOrCreateKeys(
-      wallet,
-      createPrivateKeyStore(wallet, waku)
-    )
+    const keyStore = useLocalKeyStore
+      ? createNetworkPrivateKeyStore(wallet, waku)
+      : createLocalPrivateKeyStore(wallet)
+    const keys = await loadOrCreateKeys(wallet, keyStore)
     const client = new Client(waku, keys)
     await client.publishUserContact()
     return client
@@ -266,15 +271,17 @@ export default class Client {
   }
 }
 
-// select appropriate store for privateKeyBundles
-export function createPrivateKeyStore(
+// Create Encrypted store which uses the Network to store KeyBundles
+export function createNetworkPrivateKeyStore(
   wallet: Signer,
-  waku: Waku | undefined = undefined
+  waku: Waku
 ): EncryptedStore {
-  const backingStore = waku
-    ? new NetworkStore(waku, buildUserPrivateStoreTopic)
-    : new LocalStorageStore()
-  return new EncryptedStore(wallet, backingStore)
+  return new EncryptedStore(wallet, new NetworkStore(waku))
+}
+
+// Create Encrypted store which uses LocalStorage to store KeyBundles
+export function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
+  return new EncryptedStore(wallet, new LocalStorageStore())
 }
 
 // attempt to load pre-existing key bundle from storage,
