@@ -3,8 +3,7 @@ import { Waku } from 'js-waku'
 
 import { newWallet, sleep } from '../helpers'
 import { createWaku } from '../../src/Client'
-import { NetworkStore } from '../../src/store'
-import { buildUserPrivateStoreTopic } from '../../src/utils'
+import { PrivateTopicStore } from '../../src/store'
 
 const newLocalDockerWaku = (): Promise<Waku> =>
   createWaku({
@@ -15,7 +14,7 @@ const newLocalDockerWaku = (): Promise<Waku> =>
 
 const newTestnetWaku = (): Promise<Waku> => createWaku({ env: 'testnet' })
 
-describe('NetworkStore', () => {
+describe('PrivateTopicStore', () => {
   jest.setTimeout(10000)
   const tests = [
     {
@@ -33,7 +32,7 @@ describe('NetworkStore', () => {
     describe(testCase.name, () => {
       let waku: Waku
       let wallet: Wallet
-      let store: NetworkStore
+      let store: PrivateTopicStore
       beforeAll(async () => {
         waku = await testCase.newWaku()
       })
@@ -43,7 +42,7 @@ describe('NetworkStore', () => {
 
       beforeEach(async () => {
         wallet = newWallet()
-        store = new NetworkStore(waku)
+        store = new PrivateTopicStore(waku)
       })
 
       it('roundtrip', async () => {
@@ -79,16 +78,16 @@ describe('NetworkStore', () => {
       it('over write safety', async () => {
         const key = wallet.address
 
-        const first_value = new TextEncoder().encode('a')
-        const second_value = new TextEncoder().encode('bb')
+        const firstValue = new TextEncoder().encode('a')
+        const secondValue = new TextEncoder().encode('bb')
 
-        await store.set(key, Buffer.from(first_value))
+        await store.set(key, Buffer.from(firstValue))
         await sleep(10) // Add wait to enforce a consistent order of messages
-        await store.set(key, Buffer.from(second_value))
+        await store.set(key, Buffer.from(secondValue))
         await sleep(10) // Add wait to enforce a consistent order of messages
-        const returned_value = await store.get(key)
+        const returnedValue = await store.get(key)
 
-        expect(returned_value).toEqual(Buffer.from(first_value))
+        expect(returnedValue).toEqual(Buffer.from(firstValue))
       })
     })
   })

@@ -7,13 +7,12 @@ import {
   buildDirectMessageTopic,
   buildUserContactTopic,
   buildUserIntroTopic,
-  buildUserPrivateStoreTopic,
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
 import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
-import { EncryptedStore, LocalStorageStore, NetworkStore } from './store'
+import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
 import { Conversations } from './conversations'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
@@ -276,7 +275,7 @@ export function createNetworkPrivateKeyStore(
   wallet: Signer,
   waku: Waku
 ): EncryptedStore {
-  return new EncryptedStore(wallet, new NetworkStore(waku))
+  return new EncryptedStore(wallet, new PrivateTopicStore(waku))
 }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles
