@@ -271,7 +271,7 @@ export default class Client {
 }
 
 // Create Encrypted store which uses the Network to store KeyBundles
-export function createNetworkPrivateKeyStore(
+function createNetworkPrivateKeyStore(
   wallet: Signer,
   waku: Waku
 ): EncryptedStore {
@@ -279,13 +279,13 @@ export function createNetworkPrivateKeyStore(
 }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles
-export function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
+function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
   return new EncryptedStore(wallet, new LocalStorageStore())
 }
 
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
-export async function loadOrCreateKeys(
+async function loadOrCreateKeys(
   wallet: Signer,
   store: EncryptedStore
 ): Promise<PrivateKeyBundle> {

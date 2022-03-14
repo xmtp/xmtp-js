@@ -16,7 +16,7 @@ export default class NetworkStore implements Store {
       await this.waku.store.queryHistory([buildUserPrivateStoreTopic(key)], {
         pageSize: 1,
         pageDirection: PageDirection.FORWARD,
-        callback: function (msgs: WakuMessage[]): boolean | void {
+        callback: function (msgs: WakuMessage[]): boolean {
           return Boolean(msgs[0].payload)
         },
       })
