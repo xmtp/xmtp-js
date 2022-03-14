@@ -58,10 +58,14 @@ export interface MessageHeader {
   timestamp: number
 }
 
-export interface Message {
+export interface V1Message {
   /** encapsulates the encoded MessageHeader */
   headerBytes: Uint8Array
   ciphertext: Ciphertext | undefined
+}
+
+export interface Message {
+  v1: V1Message | undefined
 }
 
 export interface PrivateKeyBundle {
@@ -869,13 +873,13 @@ export const MessageHeader = {
   },
 }
 
-function createBaseMessage(): Message {
+function createBaseV1Message(): V1Message {
   return { headerBytes: new Uint8Array(), ciphertext: undefined }
 }
 
-export const Message = {
+export const V1Message = {
   encode(
-    message: Message,
+    message: V1Message,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.headerBytes.length !== 0) {
@@ -887,10 +891,10 @@ export const Message = {
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Message {
+  decode(input: _m0.Reader | Uint8Array, length?: number): V1Message {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseMessage()
+    const message = createBaseV1Message()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -908,7 +912,7 @@ export const Message = {
     return message
   },
 
-  fromJSON(object: any): Message {
+  fromJSON(object: any): V1Message {
     return {
       headerBytes: isSet(object.headerBytes)
         ? bytesFromBase64(object.headerBytes)
@@ -919,7 +923,7 @@ export const Message = {
     }
   },
 
-  toJSON(message: Message): unknown {
+  toJSON(message: V1Message): unknown {
     const obj: any = {}
     message.headerBytes !== undefined &&
       (obj.headerBytes = base64FromBytes(
@@ -934,12 +938,70 @@ export const Message = {
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
-    const message = createBaseMessage()
+  fromPartial<I extends Exact<DeepPartial<V1Message>, I>>(
+    object: I
+  ): V1Message {
+    const message = createBaseV1Message()
     message.headerBytes = object.headerBytes ?? new Uint8Array()
     message.ciphertext =
       object.ciphertext !== undefined && object.ciphertext !== null
         ? Ciphertext.fromPartial(object.ciphertext)
+        : undefined
+    return message
+  },
+}
+
+function createBaseMessage(): Message {
+  return { v1: undefined }
+}
+
+export const Message = {
+  encode(
+    message: Message,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.v1 !== undefined) {
+      V1Message.encode(message.v1, writer.uint32(10).fork()).ldelim()
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Message {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseMessage()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.v1 = V1Message.decode(reader, reader.uint32())
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): Message {
+    return {
+      v1: isSet(object.v1) ? V1Message.fromJSON(object.v1) : undefined,
+    }
+  },
+
+  toJSON(message: Message): unknown {
+    const obj: any = {}
+    message.v1 !== undefined &&
+      (obj.v1 = message.v1 ? V1Message.toJSON(message.v1) : undefined)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
+    const message = createBaseMessage()
+    message.v1 =
+      object.v1 !== undefined && object.v1 !== null
+        ? V1Message.fromPartial(object.v1)
         : undefined
     return message
   },

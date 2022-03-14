@@ -54,9 +54,15 @@ message MessageHeader {
   uint64 timestamp = 3;
 }
 
-message Message {
+message V1Message {
     bytes headerBytes = 1; // encapsulates the encoded MessageHeader
     Ciphertext ciphertext = 2;
+}
+
+message Message {
+  oneof version {
+    V1Message v1 = 1;
+  }
 }
 
 // Private Key Storage
