@@ -12,7 +12,7 @@ import {
 import { sleep } from '../test/helpers'
 import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
-import { EncryptedStore, LocalStorageStore } from './store'
+import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
 import { Conversations } from './conversations'
 
 const NODES_LIST_URL = 'https://nodes.xmtp.com/'
@@ -81,7 +81,8 @@ export default class Client {
    */
   static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
     const waku = await createWaku(opts || {})
-    const keys = await loadOrCreateKeys(wallet)
+    const keyStore = createNetworkPrivateKeyStore(wallet, waku)
+    const keys = await loadOrCreateKeys(wallet, keyStore)
     const client = new Client(waku, keys)
     await client.publishUserContact()
     return client
@@ -262,10 +263,25 @@ export default class Client {
   }
 }
 
+// Create Encrypted store which uses the Network to store KeyBundles
+function createNetworkPrivateKeyStore(
+  wallet: Signer,
+  waku: Waku
+): EncryptedStore {
+  return new EncryptedStore(wallet, new PrivateTopicStore(waku))
+}
+
+// Create Encrypted store which uses LocalStorage to store KeyBundles
+function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
+  return new EncryptedStore(wallet, new LocalStorageStore())
+}
+
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
-async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
-  const store = new EncryptedStore(wallet, new LocalStorageStore())
+async function loadOrCreateKeys(
+  wallet: Signer,
+  store: EncryptedStore
+): Promise<PrivateKeyBundle> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
@@ -276,7 +292,7 @@ async function loadOrCreateKeys(wallet: Signer): Promise<PrivateKeyBundle> {
 }
 
 // initialize connection to the network
-async function createWaku({
+export async function createWaku({
   bootstrapAddrs,
   env = 'testnet',
   waitForPeersTimeoutMs,
