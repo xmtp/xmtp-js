@@ -86,8 +86,6 @@ import { Client } from '@xmtp/xmtp-js'
 const xmtp = await Client.create(wallet)
 ```
 
-_Pre-Stable Alpha Limitation:_ Currently, the Client uses the browser's local storage to store the key bundle. Starting it on a different device or browser and connecting to the same wallet will create a "split identity" situation where only one of the clients will be able to decrypt an incoming message, depending on which of the advertised key bundles the sender chose to use. Similarly if local storage is cleared for whatever reason and a new key bundle is created, older messages encrypted with older bundles cannot be decrypted anymore and will cause the client to throw.
-
 ### Conversations
 
 Most of the time, when interacting with the network, you'll want to do it through `conversations`. Conversations are between two wallets.
