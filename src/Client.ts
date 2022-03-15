@@ -256,7 +256,7 @@ export default class Client {
     }
     const encoded = codec.encode(content)
     if (contentFallback) {
-      encoded.contentFallback = contentFallback
+      encoded.fallback = contentFallback
     }
     const payload = proto.EncodedContent.encode(encoded).finish()
     return Message.encode(this.keys, recipient, payload, timestamp)
@@ -271,10 +271,10 @@ export default class Client {
       throw new Error('decrypted bytes missing')
     }
     const encoded = proto.EncodedContent.decode(message.decrypted)
-    if (!encoded.contentType) {
+    if (!encoded.type) {
       throw new Error('missing content type')
     }
-    const contentType = new ContentTypeId(encoded.contentType)
+    const contentType = new ContentTypeId(encoded.type)
     const codec = this.codecFor(contentType)
     if (codec) {
       message.content = codec.decode(encoded as EncodedContent)
@@ -283,8 +283,8 @@ export default class Client {
       message.error = new Error(
         `unknown content type ${contentType.authorityId}/${contentType.typeId}`
       )
-      if (encoded.contentFallback) {
-        message.content = encoded.contentFallback
+      if (encoded.fallback) {
+        message.content = encoded.fallback
         message.contentType = ContentTypeFallback
       }
     }

@@ -45,12 +45,12 @@ message ContentTypeId {
 // and parameters required for correct decoding and presentation of the content.
 message EncodedContent {
   // content type identifier used to match the payload with the correct decoding machinery
-  ContentTypeId contentType = 1;
+  ContentTypeId type = 1;
   // optional encoding parameters required to correctly decode the content
-  map<string, string> contentTypeParams = 2;
+  map<string, string> parameters = 2;
   // optional fallback description of the content that can be used in case
   // the client cannot decode or render the content
-  optional string contentFallback = 3;
+  optional string fallback = 3;
   // encoded content itself
   bytes content = 4;
 }

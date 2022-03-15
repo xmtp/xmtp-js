@@ -15,8 +15,8 @@ export class TestKeyCodec implements ContentCodec<PublicKey> {
 
   encode(key: PublicKey): EncodedContent {
     return {
-      contentType: ContentTypeTestKey,
-      contentTypeParams: {},
+      type: ContentTypeTestKey,
+      parameters: {},
       content: proto.PublicKey.encode(key).finish(),
     }
   }

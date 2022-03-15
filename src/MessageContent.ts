@@ -21,9 +21,9 @@ export class ContentTypeId {
 
 // Represents proto.EncodedContent
 export interface EncodedContent {
-  contentType: ContentTypeId
-  contentTypeParams: Record<string, string>
-  contentFallback?: string
+  type: ContentTypeId
+  parameters: Record<string, string>
+  fallback?: string
   content: Uint8Array
 }
 
@@ -63,8 +63,8 @@ export class TextCodec implements ContentCodec<string> {
 
   encode(content: string): EncodedContent {
     return {
-      contentType: ContentTypeText,
-      contentTypeParams: {},
+      type: ContentTypeText,
+      parameters: {},
       content: new TextEncoder().encode(content),
     }
   }
