@@ -6,7 +6,12 @@ import {
   PrivateKeyBundle,
 } from '../src/crypto'
 import Stream from './Stream'
-import Client, { CreateOptions, ListMessagesOptions } from './Client'
+import Client, {
+  CreateOptions,
+  ListMessagesOptions,
+  SendOptions,
+  Compression,
+} from './Client'
 import { Conversation, Conversations } from './conversations'
 import {
   ContentTypeId,
@@ -33,4 +38,6 @@ export {
   EncodedContent,
   ContentTypeText,
   ContentTypeFallback,
+  SendOptions,
+  Compression,
 }

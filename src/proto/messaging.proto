@@ -40,6 +40,12 @@ message ContentTypeId {
   uint32 versionMinor = 4; // minor version of the type
 }
 
+// Recognized compression algorithms
+enum Compression {
+  deflate = 0;
+  gzip = 1;
+}
+
 // EncodedContent is the type embedded in Ciphertext.payload bytes,
 // it bundles the encoded content with metadata identifying the type of content
 // and parameters required for correct decoding and presentation of the content.
@@ -51,6 +57,8 @@ message EncodedContent {
   // optional fallback description of the content that can be used in case
   // the client cannot decode or render the content
   optional string fallback = 3;
+  // optional compression; the value indicates algorithm used to compress the encoded content bytes
+  optional Compression compression = 5;
   // encoded content itself
   bytes content = 4;
 }

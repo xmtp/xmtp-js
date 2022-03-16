@@ -1,9 +1,15 @@
 import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
-import { promiseWithTimeout, sleep } from '../src/utils'
+import { sleep } from '../src/utils'
 import Client from '../src/Client'
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
-import { ContentTypeFallback, PrivateKey, Message } from '../src'
+import {
+  ContentTypeFallback,
+  PrivateKey,
+  Message,
+  ContentTypeText,
+  Compression,
+} from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create(newWallet(), {
@@ -187,23 +193,36 @@ describe('Client', () => {
         assert.equal(can_mesg_b, true)
       })
 
+      it('can send compressed messages', async () => {
+        const convo = bob.streamConversationMessages(alice.address)
+        const content = 'A'.repeat(111)
+        await alice.sendMessage(bob.address, content, {
+          contentType: ContentTypeText,
+          compression: Compression.deflate,
+        })
+        const result = await convo.next()
+        const msg = result.value as Message
+        assert.equal(msg.content, content)
+        await convo.return()
+      })
+
       it('can send custom content type', async () => {
         const stream = bob.streamConversationMessages(alice.address)
         const key = PrivateKey.generate().publicKey
 
         // alice doesn't recognize the type
         await expect(
-          alice.sendMessage(bob.address, key, ContentTypeTestKey)
+          alice.sendMessage(bob.address, key, {
+            contentType: ContentTypeTestKey,
+          })
         ).rejects.toThrow('unknown content type xmtp.test/public-key')
 
         // bob doesn't recognize the type
         alice.registerCodec(new TestKeyCodec())
-        await alice.sendMessage(
-          bob.address,
-          key,
-          ContentTypeTestKey,
-          'this is a public key'
-        )
+        await alice.sendMessage(bob.address, key, {
+          contentType: ContentTypeTestKey,
+          contentFallback: 'this is a public key',
+        })
         let result = await stream.next()
         let msg = result.value as Message
         assert.ok(msg.error)
@@ -217,7 +236,9 @@ describe('Client', () => {
 
         // both recognize the type
         bob.registerCodec(new TestKeyCodec())
-        await alice.sendMessage(bob.address, key, ContentTypeTestKey)
+        await alice.sendMessage(bob.address, key, {
+          contentType: ContentTypeTestKey,
+        })
         result = await stream.next()
         msg = result.value as Message
         assert(msg.contentType)

@@ -20,7 +20,10 @@ import {
   ContentCodec,
   ContentTypeText,
   TextCodec,
+  decompress,
+  compress,
 } from './MessageContent'
+import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
 import { ContentTypeFallback } from '.'
 
@@ -40,6 +43,14 @@ export type ListMessagesOptions = {
   pageSize?: number
   startTime?: Date
   endTime?: Date
+}
+
+// Parameters for the send functions
+export { Compression }
+export type SendOptions = {
+  contentType: ContentTypeId
+  contentFallback?: string
+  compression?: Compression
 }
 
 /**
@@ -182,8 +193,7 @@ export default class Client {
   async sendMessage(
     peerAddress: string,
     content: any,
-    contentType?: ContentTypeId,
-    contentFallback?: string
+    options?: SendOptions
   ): Promise<void> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
@@ -205,13 +215,7 @@ export default class Client {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
     const timestamp = new Date()
-    const msg = await this.encodeMessage(
-      recipient,
-      timestamp,
-      content,
-      contentType,
-      contentFallback
-    )
+    const msg = await this.encodeMessage(recipient, timestamp, content, options)
     await Promise.all(
       topics.map(async (topic) => {
         const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
@@ -244,10 +248,9 @@ export default class Client {
     recipient: PublicKeyBundle,
     timestamp: Date,
     content: any,
-    contentType?: ContentTypeId,
-    contentFallback?: string
+    options?: SendOptions
   ): Promise<Message> {
-    contentType = contentType || ContentTypeText
+    const contentType = options?.contentType || ContentTypeText
     const codec = this.codecFor(contentType)
     if (!codec) {
       throw new Error(
@@ -255,9 +258,13 @@ export default class Client {
       )
     }
     const encoded = codec.encode(content)
-    if (contentFallback) {
-      encoded.fallback = contentFallback
+    if (options?.contentFallback) {
+      encoded.fallback = options.contentFallback
     }
+    if (options?.compression) {
+      encoded.compression = options.compression
+    }
+    await compress(encoded)
     const payload = proto.EncodedContent.encode(encoded).finish()
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
@@ -271,6 +278,7 @@ export default class Client {
       throw new Error('decrypted bytes missing')
     }
     const encoded = proto.EncodedContent.decode(message.decrypted)
+    await decompress(encoded)
     if (!encoded.type) {
       throw new Error('missing content type')
     }

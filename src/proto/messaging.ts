@@ -4,6 +4,39 @@ import _m0 from 'protobufjs/minimal'
 
 export const protobufPackage = ''
 
+/** Recognized compression algorithms */
+export enum Compression {
+  deflate = 0,
+  gzip = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function compressionFromJSON(object: any): Compression {
+  switch (object) {
+    case 0:
+    case 'deflate':
+      return Compression.deflate
+    case 1:
+    case 'gzip':
+      return Compression.gzip
+    case -1:
+    case 'UNRECOGNIZED':
+    default:
+      return Compression.UNRECOGNIZED
+  }
+}
+
+export function compressionToJSON(object: Compression): string {
+  switch (object) {
+    case Compression.deflate:
+      return 'deflate'
+    case Compression.gzip:
+      return 'gzip'
+    default:
+      return 'UNKNOWN'
+  }
+}
+
 /**
  * Signature represents a generalized public key signature,
  * defined as a union to support cryptographic algorithm agility.
@@ -70,6 +103,8 @@ export interface EncodedContent {
    * the client cannot decode or render the content
    */
   fallback?: string | undefined
+  /** optional compression; the value indicates algorithm used to compress the encoded content bytes */
+  compression?: Compression | undefined
   /** encoded content itself */
   content: Uint8Array
 }
@@ -607,6 +642,7 @@ function createBaseEncodedContent(): EncodedContent {
     type: undefined,
     parameters: {},
     fallback: undefined,
+    compression: undefined,
     content: new Uint8Array(),
   }
 }
@@ -627,6 +663,9 @@ export const EncodedContent = {
     })
     if (message.fallback !== undefined) {
       writer.uint32(26).string(message.fallback)
+    }
+    if (message.compression !== undefined) {
+      writer.uint32(40).int32(message.compression)
     }
     if (message.content.length !== 0) {
       writer.uint32(34).bytes(message.content)
@@ -656,6 +695,9 @@ export const EncodedContent = {
         case 3:
           message.fallback = reader.string()
           break
+        case 5:
+          message.compression = reader.int32() as any
+          break
         case 4:
           message.content = reader.bytes()
           break
@@ -682,6 +724,9 @@ export const EncodedContent = {
           )
         : {},
       fallback: isSet(object.fallback) ? String(object.fallback) : undefined,
+      compression: isSet(object.compression)
+        ? compressionFromJSON(object.compression)
+        : undefined,
       content: isSet(object.content)
         ? bytesFromBase64(object.content)
         : new Uint8Array(),
@@ -699,6 +744,11 @@ export const EncodedContent = {
       })
     }
     message.fallback !== undefined && (obj.fallback = message.fallback)
+    message.compression !== undefined &&
+      (obj.compression =
+        message.compression !== undefined
+          ? compressionToJSON(message.compression)
+          : undefined)
     message.content !== undefined &&
       (obj.content = base64FromBytes(
         message.content !== undefined ? message.content : new Uint8Array()
@@ -723,6 +773,7 @@ export const EncodedContent = {
       return acc
     }, {})
     message.fallback = object.fallback ?? undefined
+    message.compression = object.compression ?? undefined
     message.content = object.content ?? new Uint8Array()
     return message
   },

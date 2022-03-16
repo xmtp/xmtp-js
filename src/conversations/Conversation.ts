@@ -1,7 +1,6 @@
 import Stream from '../Stream'
-import Client, { ListMessagesOptions } from '../Client'
+import Client, { ListMessagesOptions, SendOptions } from '../Client'
 import Message from '../Message'
-import { ContentTypeId } from '..'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -36,14 +35,8 @@ export default class Conversation {
    */
   async send(
     message: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    contentType?: ContentTypeId,
-    contentFallback?: string
+    options?: SendOptions
   ): Promise<void> {
-    await this.client.sendMessage(
-      this.peerAddress,
-      message,
-      contentType,
-      contentFallback
-    )
+    await this.client.sendMessage(this.peerAddress, message, options)
   }
 }
