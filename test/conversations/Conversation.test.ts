@@ -34,6 +34,7 @@ describe('conversations', () => {
 
     const startingMessages = await aliceConversation.messages()
     expect(startingMessages).toHaveLength(0)
+    await sleep(50)
 
     await bobConversation.send('Hi Alice')
     await aliceConversation.send('Hi Bob')

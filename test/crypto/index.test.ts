@@ -4,7 +4,6 @@ import {
   PublicKeyBundle,
   PrivateKeyBundle,
   PrivateKey,
-  PublicKey,
   utils,
   encrypt,
   decrypt,

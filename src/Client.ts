@@ -112,6 +112,7 @@ export default class Client {
       await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
         pageSize: 1,
         pageDirection: PageDirection.BACKWARD,
+        callback: () => true,
       })
     )
       .filter((msg: WakuMessage) => msg.payload)
@@ -320,7 +321,7 @@ export async function createWaku({
   try {
     await promiseWithTimeout(
       waitForPeersTimeoutMs || 10000,
-      () => waku.waitForConnectedPeer(),
+      () => waku.waitForRemotePeer(),
       'timeout connecting to peers'
     )
   } catch (err) {

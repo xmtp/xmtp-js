@@ -11,13 +11,6 @@ jobs:
     strategy:
       matrix:
         env: ['node', 'jsdom']
-    services:
-      waku-node:
-        image: snormore/go-waku:latest
-        env:
-          GOWAKU-NODEKEY: 8a30dcb604b0b53627a5adc054dbf434b446628d4bd1eccc681d223f0550ce67
-        ports:
-          - 9001:9001
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -26,4 +19,5 @@ jobs:
       - name: Setup buf build
         uses: bufbuild/buf-setup-action@v0.6.0
       - run: npm ci
+      - run: ./dev/docker-compose up -d
       - run: npm run test:${{ matrix.env }}
