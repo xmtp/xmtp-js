@@ -1,7 +1,7 @@
 import * as assert from 'assert'
 import { PrivateKey, PrivateKeyBundle } from '../../src/crypto'
 import * as ethers from 'ethers'
-import { bytesToHex, getRandomValues, hexToBytes } from '../../src/crypto/utils'
+import { hexToBytes } from '../../src/crypto/utils'
 
 describe('Crypto', function () {
   describe('PrivateKeyBundle', function () {

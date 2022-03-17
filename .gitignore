@@ -120,3 +120,5 @@ scratch
 # generated docs
 docs/
 tmp/
+
+.DS_STORE

@@ -1,5 +1,5 @@
 import { WakuMessage } from 'js-waku'
-import { Message } from '.'
+import Message from './Message'
 import Client from './Client'
 
 export type MessageTransformer<T> = (msg: Message) => T
