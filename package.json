@@ -20,7 +20,7 @@
     "prepare": "npm run install:buf && npm run build",
     "install:buf": "./script/buf.sh || true",
     "test": "npm run test:node",
-    "test:node": "jest --no-cache --runInBand --env='node'",
+    "test:node": "jest --no-cache --runInBand --env='node' --forceExit",
     "test:jsdom": "jest --no-cache --runInBand --env='./jest.jsdom.env.js'",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
