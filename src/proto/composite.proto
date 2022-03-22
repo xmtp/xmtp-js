@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+import "messaging.proto";
+
+
+message Composite {
+  repeated EncodedContent parts = 1;
+}
