@@ -32,24 +32,20 @@ export interface EncodedContent {
   content: Uint8Array
 }
 
-// Defines an interface for the encoding machinery for a specific content type
+// Define an interface for the encoding machinery for a specific content type
 // associated with a given ContentTypeId
 // A codec can be registered with a Client to be automatically invoked when
 // handling content of the corresponding content type.
-export interface ContentCodec<T> {
-  contentType: ContentTypeId
-  encode(message: T): EncodedContent
-  decode(content: EncodedContent): T
+export interface CodecRegistry {
+  // eslint-disable-next-line no-use-before-define, @typescript-eslint/no-explicit-any
+  codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined
 }
 
-// MessageContent represents types that the Client is able to map to a content type.
-// The Client API expects the provided content to conform to this type definition.
-// export type MessageContent =
-//   | string
-//   | {
-//       readonly contentType: ContentTypeId
-//       readonly content: any
-//     }
+export interface ContentCodec<T> {
+  contentType: ContentTypeId
+  encode(message: T, registry: CodecRegistry): EncodedContent
+  decode(content: EncodedContent, registry: CodecRegistry): T
+}
 
 // xmtp.org/text
 //

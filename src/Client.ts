@@ -257,7 +257,7 @@ export default class Client {
         `unknown content type ${contentType.authorityId}/${contentType.typeId}`
       )
     }
-    const encoded = codec.encode(content)
+    const encoded = codec.encode(content, this)
     if (options?.contentFallback) {
       encoded.fallback = options.contentFallback
     }
@@ -285,7 +285,7 @@ export default class Client {
     const contentType = new ContentTypeId(encoded.type)
     const codec = this.codecFor(contentType)
     if (codec) {
-      message.content = codec.decode(encoded as EncodedContent)
+      message.content = codec.decode(encoded as EncodedContent, this)
       message.contentType = contentType
     } else {
       message.error = new Error(
