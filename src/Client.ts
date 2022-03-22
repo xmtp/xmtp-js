@@ -14,12 +14,11 @@ import Stream, { messageStream } from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
 import { Conversations } from './conversations'
+import { ContentTypeText, TextCodec } from './codecs/Text'
 import {
   ContentTypeId,
   EncodedContent,
   ContentCodec,
-  ContentTypeText,
-  TextCodec,
   decompress,
   compress,
   ContentTypeFallback,

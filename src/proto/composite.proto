@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "messaging.proto";
+
+message Composite {
+  message Part {
+    oneof element {
+      EncodedContent part = 1;
+      Composite composite = 2;
+    }
+  }
+
+  repeated Part parts = 1;
+}
