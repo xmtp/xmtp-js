@@ -17,6 +17,7 @@ import {
   ContentTypeId,
   ContentCodec,
   EncodedContent,
+  TextCodec,
   ContentTypeText,
   ContentTypeFallback,
 } from './MessageContent'
@@ -36,6 +37,7 @@ export {
   ContentTypeId,
   ContentCodec,
   EncodedContent,
+  TextCodec,
   ContentTypeText,
   ContentTypeFallback,
   SendOptions,
