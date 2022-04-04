@@ -344,7 +344,7 @@ async function loadOrCreateKeys(
 // initialize connection to the network
 export async function createWaku({
   bootstrapAddrs,
-  env = 'testnet',
+  env,
   waitForPeersTimeoutMs,
 }: NetworkOptions): Promise<Waku> {
   const bootstrap: BootstrapOptions = bootstrapAddrs?.length
