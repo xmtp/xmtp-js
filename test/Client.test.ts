@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
-import Client from '../src/Client'
+import Client, { KeyStoreType } from '../src/Client'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create(newWallet(), {
@@ -14,6 +14,7 @@ const newTestnetClient = (): Promise<Client> =>
   Client.create(newWallet(), { env: 'testnet' })
 
 describe('Client', () => {
+  jest.setTimeout(40000)
   const tests = [
     {
       name: 'local docker node',
@@ -48,6 +49,7 @@ describe('Client', () => {
       it('user contacts published', async () => {
         await sleep(10)
         const alicePublic = await alice.getUserContactFromNetwork(alice.address)
+        console.log(alicePublic)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
         const bobPublic = await bob.getUserContactFromNetwork(bob.address)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
@@ -184,6 +186,19 @@ describe('Client', () => {
         const can_mesg_b = await alice.canMessage(bob.address)
         assert.equal(can_mesg_b, true)
       })
+    })
+  })
+})
+
+describe('ClientOptions', () => {
+  it('Default/empty options', async () => {
+    await Client.create(newWallet(), {})
+  })
+
+  it('Partial specification', async () => {
+    await Client.create(newWallet(), {
+      keyStoreType: KeyStoreType.localStorage,
+      waitForPeersTimeoutMs: 1234,
     })
   })
 })

@@ -30,19 +30,46 @@ export type ListMessagesOptions = {
   endTime?: Date
 }
 
+export enum KeyStoreType {
+  networkTopicStoreV1,
+  localStorage,
+}
+
 /**
  * Network startup options
  */
-export type CreateOptions = {
+type NetworkOptions = {
   /** List of multiaddrs for boot nodes */
   bootstrapAddrs?: string[]
   // Allow for specifying different envs later
-  env?: keyof NodesList
+  env: keyof NodesList
   /**
    * How long we should wait for the initial peer connection
    * to declare the startup as successful or failed
    */
-  waitForPeersTimeoutMs?: number
+  waitForPeersTimeoutMs: number
+}
+
+type KeyStoreOptions = {
+  /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
+  keyStoreType: KeyStoreType
+}
+
+export type CreateOptions = NetworkOptions & KeyStoreOptions
+
+const _defaultOptions = {
+  keyStoreType: KeyStoreType.networkTopicStoreV1,
+  env: 'testnet',
+  waitForPeersTimeoutMs: 10000,
+}
+
+/**
+ * Provide a sensible default client configuration. These settings can be used on their own, or as a starting point for custom configurations
+ *
+ * @param opts additional options to override the default settings
+ */
+export function defaultOptions(opts?: Partial<CreateOptions>): CreateOptions {
+  return { ..._defaultOptions, ...opts } as CreateOptions
 }
 
 /**
@@ -79,9 +106,13 @@ export default class Client {
    * @param wallet the wallet as a Signer instance
    * @param opts specify how to to connect to the network
    */
-  static async create(wallet: Signer, opts?: CreateOptions): Promise<Client> {
-    const waku = await createWaku(opts || {})
-    const keyStore = createNetworkPrivateKeyStore(wallet, waku)
+  static async create(
+    wallet: Signer,
+    opts?: Partial<CreateOptions>
+  ): Promise<Client> {
+    const options = defaultOptions(opts)
+    const waku = await createWaku(options)
+    const keyStore = createKeyStoreFromConfig(options, wallet, waku)
     const keys = await loadOrCreateKeys(wallet, keyStore)
     const client = new Client(waku, keys)
     await client.publishUserContact()
@@ -264,6 +295,20 @@ export default class Client {
   }
 }
 
+function createKeyStoreFromConfig(
+  opts: KeyStoreOptions,
+  wallet: Signer,
+  waku: Waku
+): EncryptedStore {
+  switch (opts.keyStoreType) {
+    case KeyStoreType.networkTopicStoreV1:
+      return createNetworkPrivateKeyStore(wallet, waku)
+
+    case KeyStoreType.localStorage:
+      return createLocalPrivateKeyStore(wallet)
+  }
+}
+
 // Create Encrypted store which uses the Network to store KeyBundles
 function createNetworkPrivateKeyStore(
   wallet: Signer,
@@ -297,7 +342,7 @@ export async function createWaku({
   bootstrapAddrs,
   env = 'testnet',
   waitForPeersTimeoutMs,
-}: CreateOptions): Promise<Waku> {
+}: NetworkOptions): Promise<Waku> {
   const bootstrap: BootstrapOptions = bootstrapAddrs?.length
     ? {
         peers: bootstrapAddrs,
@@ -317,10 +362,11 @@ export async function createWaku({
     bootstrap,
   })
 
+  console.log(waitForPeersTimeoutMs)
   // Wait for peer connection.
   try {
     await promiseWithTimeout(
-      waitForPeersTimeoutMs || 10000,
+      waitForPeersTimeoutMs,
       () => waku.waitForRemotePeer(),
       'timeout connecting to peers'
     )
