@@ -164,7 +164,7 @@ for (const conversation of await xmtp.conversations.list()) {
 }
 ```
 
-_Pre-Stable Alpha Limitation:_ After 30 days, messages are deleted from the network and cannot be retrieved.
+_Pre-Stable Alpha Limitation:_ After 7 days, messages are deleted from the network and cannot be retrieved.
 
 #### Listen for new messages in a conversation
 
