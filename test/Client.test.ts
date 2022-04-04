@@ -14,7 +14,6 @@ const newTestnetClient = (): Promise<Client> =>
   Client.create(newWallet(), { env: 'testnet' })
 
 describe('Client', () => {
-  jest.setTimeout(40000)
   const tests = [
     {
       name: 'local docker node',
@@ -49,7 +48,6 @@ describe('Client', () => {
       it('user contacts published', async () => {
         await sleep(10)
         const alicePublic = await alice.getUserContactFromNetwork(alice.address)
-        console.log(alicePublic)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
         const bobPublic = await bob.getUserContactFromNetwork(bob.address)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)

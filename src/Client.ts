@@ -55,20 +55,24 @@ type KeyStoreOptions = {
   keyStoreType: KeyStoreType
 }
 
+/**
+ * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
+ * as needed by each function. All other defaults are specified in defaultOptions.
+ */
 export type CreateOptions = NetworkOptions & KeyStoreOptions
 
-const _defaultOptions = {
-  keyStoreType: KeyStoreType.networkTopicStoreV1,
-  env: 'testnet',
-  waitForPeersTimeoutMs: 10000,
-}
-
 /**
- * Provide a sensible default client configuration. These settings can be used on their own, or as a starting point for custom configurations
+ * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
  *
  * @param opts additional options to override the default settings
  */
 export function defaultOptions(opts?: Partial<CreateOptions>): CreateOptions {
+  const _defaultOptions = {
+    keyStoreType: KeyStoreType.networkTopicStoreV1,
+    env: 'testnet',
+    waitForPeersTimeoutMs: 10000,
+  }
+
   return { ..._defaultOptions, ...opts } as CreateOptions
 }
 
@@ -362,7 +366,6 @@ export async function createWaku({
     bootstrap,
   })
 
-  console.log(waitForPeersTimeoutMs)
   // Wait for peer connection.
   try {
     await promiseWithTimeout(
