@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
-import Client from '../src/Client'
+import Client, { KeyStoreType } from '../src/Client'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create(newWallet(), {
@@ -184,6 +184,19 @@ describe('Client', () => {
         const can_mesg_b = await alice.canMessage(bob.address)
         assert.equal(can_mesg_b, true)
       })
+    })
+  })
+})
+
+describe('ClientOptions', () => {
+  it('Default/empty options', async () => {
+    await Client.create(newWallet(), {})
+  })
+
+  it('Partial specification', async () => {
+    await Client.create(newWallet(), {
+      keyStoreType: KeyStoreType.localStorage,
+      waitForPeersTimeoutMs: 1234,
     })
   })
 })

@@ -2,17 +2,20 @@ import { Wallet } from 'ethers'
 import { Waku } from 'js-waku'
 
 import { newWallet, sleep } from '../helpers'
-import { createWaku } from '../../src/Client'
+import { createWaku, defaultOptions } from '../../src/Client'
 import { PrivateTopicStore } from '../../src/store'
 
 const newLocalDockerWaku = (): Promise<Waku> =>
-  createWaku({
-    bootstrapAddrs: [
-      '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
-    ],
-  })
+  createWaku(
+    defaultOptions({
+      bootstrapAddrs: [
+        '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
+      ],
+    })
+  )
 
-const newTestnetWaku = (): Promise<Waku> => createWaku({ env: 'testnet' })
+const newTestnetWaku = (): Promise<Waku> =>
+  createWaku(defaultOptions({ env: 'testnet' }))
 
 describe('PrivateTopicStore', () => {
   jest.setTimeout(10000)
