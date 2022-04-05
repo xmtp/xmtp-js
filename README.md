@@ -96,7 +96,6 @@ The client's network connection and key storage method can be configured with th
 | waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
 | keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
 
-
 ### Conversations
 
 Most of the time, when interacting with the network, you'll want to do it through `conversations`. Conversations are between two wallets.
