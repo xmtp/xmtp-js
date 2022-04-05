@@ -47,7 +47,7 @@ webpack: (config, { isServer }) => {
 
 ## Usage
 
-The API revolves around a network Client that allows retrieving and sending messages to other network participants. A Client must be connected to a wallet on startup. If this is the very first time the Client is created, the client will generate a key bundle that is used to encrypt and authenticate messages. The key bundle persists encrypted in local storage using a wallet signature. The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
+The API revolves around a network Client that allows retrieving and sending messages to other network participants. A Client must be connected to a wallet on startup. If this is the very first time the Client is created, the client will generate a key bundle that is used to encrypt and authenticate messages. The key bundle persists encrypted in the network using a wallet signature, or optionally in local storage. The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
@@ -78,13 +78,23 @@ A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>`
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
 
-The Client will connect to the XMTP playnet by default. CreateOptions can be used to override this and other parameters of the network connection.
+The Client will connect to the XMTP playnet by default. ClientOptions can be used to override this and other parameters of the network connection.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
 // Create the client with an `ethers.Signer` from your application
 const xmtp = await Client.create(wallet)
 ```
+
+#### Configuring the Client
+
+The client's network connection and key storage method can be configured with these optional parameters of `Client.create`:
+
+| Parameter             | Default               | Description                                                                      |
+| --------------------- | --------------------- | -------------------------------------------------------------------------------- |
+| env                   | `'testnet'`           | Connect to the specified network environment (currently only `'testnet'`).       |
+| waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
+| keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
 
 ### Conversations
 
