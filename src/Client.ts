@@ -59,21 +59,21 @@ type KeyStoreOptions = {
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
-export type CreateOptions = NetworkOptions & KeyStoreOptions
+export type ClientOptions = NetworkOptions & KeyStoreOptions
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
  *
  * @param opts additional options to override the default settings
  */
-export function defaultOptions(opts?: Partial<CreateOptions>): CreateOptions {
+export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
     env: 'testnet',
     waitForPeersTimeoutMs: 10000,
   }
 
-  return { ..._defaultOptions, ...opts } as CreateOptions
+  return { ..._defaultOptions, ...opts } as ClientOptions
 }
 
 /**
@@ -112,7 +112,7 @@ export default class Client {
    */
   static async create(
     wallet: Signer,
-    opts?: Partial<CreateOptions>
+    opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
     const waku = await createWaku(options)
