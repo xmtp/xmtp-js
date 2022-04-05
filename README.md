@@ -90,11 +90,11 @@ const xmtp = await Client.create(wallet)
 
 The client's network connection and key storage method can be configured with these optional parameters of `Client.create`:
 
-| Parameter | Default | Description |
-| - | - | - |
-| env | `'testnet'` | Connect to the specified network environment (currently only `'testnet'`).|
-| waitForPeersTimeoutMs | `10000` | Wait this long for an initial peer connection. |
-| keyStoreType | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
+| Parameter             | Default               | Description                                                                      |
+| --------------------- | --------------------- | -------------------------------------------------------------------------------- |
+| env                   | `'testnet'`           | Connect to the specified network environment (currently only `'testnet'`).       |
+| waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
+| keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
 
 
 ### Conversations
