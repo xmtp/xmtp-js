@@ -149,7 +149,7 @@ const newConversation = await xmtp.conversations.newConversation(
 
 #### Sending messages
 
-To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. The message payload is a string but neither the SDK nor the network put any constraints on its contents or interpretation.
+To be able to send a message, the recipient must have already started their Client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. The message payload can be a plain string, but other types of content can be supported through the use of SendOptions (see [Different types of content](#different-types-of-content) for more details)
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
@@ -195,6 +195,35 @@ for await (const message of conversation.streamMessages()) {
   }
   console.log(`New message from ${message.senderAddress}: ${message.text}`)
 }
+```
+
+#### Different types of content
+
+All the send functions support `SendOptions` as an optional parameter. Option `contentType` allows specifying different types of content than the default simple string, which is identified with content type identifier `ContentTypeText`. Support for other types of content can be added by registering additional `ContentCodecs` with the `Client`. Every codec is associated with a content type identifier, `ContentTypeId`, which is used to signal to the Client which codec should be used to process the content that is being sent or received. See XIP-5 for more details on Codecs and content types, new Codecs and content types are defined through XRCs.
+
+If there is a concern that the recipient may not be able to handle particular content type, the sender can use `contentFallback` option to provide a string that describes the content being sent. If the recipient fails to decode the original content, the fallback will replace it and can be used to inform the recipient what the original content was.
+
+```ts
+// Assuming we've loaded a fictional NumberCodec that can be used to encode numbers,
+// and is identified with ContentTypeNumber, we can use it as follows.
+
+xmtp.registerCodec:(new NumberCodec())
+conversation.send(3.14, {
+  contentType: ContentTypeNumber,
+  contentFallback: 'sending you a pie'
+})
+```
+
+#### Compression
+
+Message content can be optionally compressed using the `compression` option. The value of the option is the name of the compression algorithm to use. Currently supported are `gzip` and `deflate`. Compression is applied to the bytes produced by the content codec.
+
+Content will be decompressed transparently on the receiving end. Note that `Client` enforces maximum content size. The default limit can be overridden through the `ClientOptions`. Consequently a message that would expand beyond that limit on the receiving end will fail to decode.
+
+```ts
+conversation.send('#'.repeat(1000), {
+  compression: 'deflate',
+})
 ```
 
 #### Under the hood

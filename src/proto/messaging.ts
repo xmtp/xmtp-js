@@ -4,6 +4,43 @@ import _m0 from 'protobufjs/minimal'
 
 export const protobufPackage = ''
 
+/** Recognized compression algorithms */
+export enum Compression {
+  deflate = 0,
+  gzip = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function compressionFromJSON(object: any): Compression {
+  switch (object) {
+    case 0:
+    case 'deflate':
+      return Compression.deflate
+    case 1:
+    case 'gzip':
+      return Compression.gzip
+    case -1:
+    case 'UNRECOGNIZED':
+    default:
+      return Compression.UNRECOGNIZED
+  }
+}
+
+export function compressionToJSON(object: Compression): string {
+  switch (object) {
+    case Compression.deflate:
+      return 'deflate'
+    case Compression.gzip:
+      return 'gzip'
+    default:
+      return 'UNKNOWN'
+  }
+}
+
+/**
+ * Signature represents a generalized public key signature,
+ * defined as a union to support cryptographic algorithm agility.
+ */
 export interface Signature {
   ecdsaCompact: Signature_ECDSACompact | undefined
 }
@@ -15,6 +52,10 @@ export interface Signature_ECDSACompact {
   recovery: number
 }
 
+/**
+ * PublicKey represents a generalized public key,
+ * defined as a union to support cryptographic algorithm agility.
+ */
 export interface PublicKey {
   timestamp: number
   signature?: Signature | undefined
@@ -26,6 +67,89 @@ export interface PublicKey_Secp256k1Uncompresed {
   bytes: Uint8Array
 }
 
+/**
+ * PublicKeyBundle packages the cryptographic keys associated with a wallet,
+ * both senders and recipients are identified by their key bundles.
+ */
+export interface PublicKeyBundle {
+  identityKey: PublicKey | undefined
+  preKey: PublicKey | undefined
+}
+
+/** ContentTypeId is used to identify the type of content stored in a Message. */
+export interface ContentTypeId {
+  /** authority governing this content type */
+  authorityId: string
+  /** type identifier */
+  typeId: string
+  /** major version of the type */
+  versionMajor: number
+  /** minor version of the type */
+  versionMinor: number
+}
+
+/**
+ * EncodedContent is the type embedded in Ciphertext.payload bytes,
+ * it bundles the encoded content with metadata identifying the type of content
+ * and parameters required for correct decoding and presentation of the content.
+ */
+export interface EncodedContent {
+  /** content type identifier used to match the payload with the correct decoding machinery */
+  type: ContentTypeId | undefined
+  /** optional encoding parameters required to correctly decode the content */
+  parameters: { [key: string]: string }
+  /**
+   * optional fallback description of the content that can be used in case
+   * the client cannot decode or render the content
+   */
+  fallback?: string | undefined
+  /** optional compression; the value indicates algorithm used to compress the encoded content bytes */
+  compression?: Compression | undefined
+  /** encoded content itself */
+  content: Uint8Array
+}
+
+export interface EncodedContent_ParametersEntry {
+  key: string
+  value: string
+}
+
+/**
+ * Ciphertext represents the payload of the message encoded and encrypted for transport.
+ * It is definited as a union to support cryptographic algorithm agility.
+ */
+export interface Ciphertext {
+  aes256GcmHkdfSha256: Ciphertext_aes256gcmHkdfsha256 | undefined
+}
+
+export interface Ciphertext_aes256gcmHkdfsha256 {
+  hkdfSalt: Uint8Array
+  gcmNonce: Uint8Array
+  /** payload MUST contain encoding of a EncodedContent message */
+  payload: Uint8Array
+}
+
+/**
+ * MessageHeader is encoded separately as the bytes are also used
+ * as associated data for authenticated encryption
+ */
+export interface MessageHeader {
+  sender: PublicKeyBundle | undefined
+  recipient: PublicKeyBundle | undefined
+  timestamp: number
+}
+
+/** Message is the top level protocol element */
+export interface V1Message {
+  /** encapsulates the encoded MessageHeader */
+  headerBytes: Uint8Array
+  ciphertext: Ciphertext | undefined
+}
+
+export interface Message {
+  v1: V1Message | undefined
+}
+
 export interface PrivateKey {
   timestamp: number
   secp256k1: PrivateKey_Secp256k1 | undefined
@@ -35,37 +159,6 @@ export interface PrivateKey {
 export interface PrivateKey_Secp256k1 {
   /** D big-endian, 32 bytes */
   bytes: Uint8Array
-}
-
-export interface Ciphertext {
-  aes256GcmHkdfSha256: Ciphertext_aes256gcmHkdfsha256 | undefined
-}
-
-export interface Ciphertext_aes256gcmHkdfsha256 {
-  hkdfSalt: Uint8Array
-  gcmNonce: Uint8Array
-  payload: Uint8Array
-}
-
-export interface PublicKeyBundle {
-  identityKey: PublicKey | undefined
-  preKey: PublicKey | undefined
-}
-
-export interface MessageHeader {
-  sender: PublicKeyBundle | undefined
-  recipient: PublicKeyBundle | undefined
-  timestamp: number
-}
-
-export interface V1Message {
-  /** encapsulates the encoded MessageHeader */
-  headerBytes: Uint8Array
-  ciphertext: Ciphertext | undefined
-}
-
-export interface Message {
-  v1: V1Message | undefined
 }
 
 export interface PrivateKeyBundle {
@@ -382,48 +475,36 @@ export const PublicKey_Secp256k1Uncompresed = {
   },
 }
 
-function createBasePrivateKey(): PrivateKey {
-  return { timestamp: 0, secp256k1: undefined, publicKey: undefined }
+function createBasePublicKeyBundle(): PublicKeyBundle {
+  return { identityKey: undefined, preKey: undefined }
 }
 
-export const PrivateKey = {
+export const PublicKeyBundle = {
   encode(
-    message: PrivateKey,
+    message: PublicKeyBundle,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.timestamp !== 0) {
-      writer.uint32(8).uint64(message.timestamp)
+    if (message.identityKey !== undefined) {
+      PublicKey.encode(message.identityKey, writer.uint32(10).fork()).ldelim()
     }
-    if (message.secp256k1 !== undefined) {
-      PrivateKey_Secp256k1.encode(
-        message.secp256k1,
-        writer.uint32(18).fork()
-      ).ldelim()
-    }
-    if (message.publicKey !== undefined) {
-      PublicKey.encode(message.publicKey, writer.uint32(26).fork()).ldelim()
+    if (message.preKey !== undefined) {
+      PublicKey.encode(message.preKey, writer.uint32(18).fork()).ldelim()
     }
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): PrivateKey {
+  decode(input: _m0.Reader | Uint8Array, length?: number): PublicKeyBundle {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBasePrivateKey()
+    const message = createBasePublicKeyBundle()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
-          message.timestamp = longToNumber(reader.uint64() as Long)
+          message.identityKey = PublicKey.decode(reader, reader.uint32())
           break
         case 2:
-          message.secp256k1 = PrivateKey_Secp256k1.decode(
-            reader,
-            reader.uint32()
-          )
-          break
-        case 3:
-          message.publicKey = PublicKey.decode(reader, reader.uint32())
+          message.preKey = PublicKey.decode(reader, reader.uint32())
           break
         default:
           reader.skipType(tag & 7)
@@ -433,61 +514,289 @@ export const PrivateKey = {
     return message
   },
 
-  fromJSON(object: any): PrivateKey {
+  fromJSON(object: any): PublicKeyBundle {
     return {
-      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0,
-      secp256k1: isSet(object.secp256k1)
-        ? PrivateKey_Secp256k1.fromJSON(object.secp256k1)
+      identityKey: isSet(object.identityKey)
+        ? PublicKey.fromJSON(object.identityKey)
         : undefined,
-      publicKey: isSet(object.publicKey)
-        ? PublicKey.fromJSON(object.publicKey)
+      preKey: isSet(object.preKey)
+        ? PublicKey.fromJSON(object.preKey)
         : undefined,
     }
   },
 
-  toJSON(message: PrivateKey): unknown {
+  toJSON(message: PublicKeyBundle): unknown {
     const obj: any = {}
-    message.timestamp !== undefined &&
-      (obj.timestamp = Math.round(message.timestamp))
-    message.secp256k1 !== undefined &&
-      (obj.secp256k1 = message.secp256k1
-        ? PrivateKey_Secp256k1.toJSON(message.secp256k1)
+    message.identityKey !== undefined &&
+      (obj.identityKey = message.identityKey
+        ? PublicKey.toJSON(message.identityKey)
         : undefined)
-    message.publicKey !== undefined &&
-      (obj.publicKey = message.publicKey
-        ? PublicKey.toJSON(message.publicKey)
+    message.preKey !== undefined &&
+      (obj.preKey = message.preKey
+        ? PublicKey.toJSON(message.preKey)
         : undefined)
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<PrivateKey>, I>>(
+  fromPartial<I extends Exact<DeepPartial<PublicKeyBundle>, I>>(
     object: I
-  ): PrivateKey {
-    const message = createBasePrivateKey()
-    message.timestamp = object.timestamp ?? 0
-    message.secp256k1 =
-      object.secp256k1 !== undefined && object.secp256k1 !== null
-        ? PrivateKey_Secp256k1.fromPartial(object.secp256k1)
+  ): PublicKeyBundle {
+    const message = createBasePublicKeyBundle()
+    message.identityKey =
+      object.identityKey !== undefined && object.identityKey !== null
+        ? PublicKey.fromPartial(object.identityKey)
         : undefined
-    message.publicKey =
-      object.publicKey !== undefined && object.publicKey !== null
-        ? PublicKey.fromPartial(object.publicKey)
+    message.preKey =
+      object.preKey !== undefined && object.preKey !== null
+        ? PublicKey.fromPartial(object.preKey)
         : undefined
     return message
   },
 }
 
-function createBasePrivateKey_Secp256k1(): PrivateKey_Secp256k1 {
-  return { bytes: new Uint8Array() }
+function createBaseContentTypeId(): ContentTypeId {
+  return { authorityId: '', typeId: '', versionMajor: 0, versionMinor: 0 }
 }
 
-export const PrivateKey_Secp256k1 = {
+export const ContentTypeId = {
   encode(
-    message: PrivateKey_Secp256k1,
+    message: ContentTypeId,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.bytes.length !== 0) {
-      writer.uint32(10).bytes(message.bytes)
+    if (message.authorityId !== '') {
+      writer.uint32(10).string(message.authorityId)
+    }
+    if (message.typeId !== '') {
+      writer.uint32(18).string(message.typeId)
+    }
+    if (message.versionMajor !== 0) {
+      writer.uint32(24).uint32(message.versionMajor)
+    }
+    if (message.versionMinor !== 0) {
+      writer.uint32(32).uint32(message.versionMinor)
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ContentTypeId {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseContentTypeId()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.authorityId = reader.string()
+          break
+        case 2:
+          message.typeId = reader.string()
+          break
+        case 3:
+          message.versionMajor = reader.uint32()
+          break
+        case 4:
+          message.versionMinor = reader.uint32()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): ContentTypeId {
+    return {
+      authorityId: isSet(object.authorityId) ? String(object.authorityId) : '',
+      typeId: isSet(object.typeId) ? String(object.typeId) : '',
+      versionMajor: isSet(object.versionMajor)
+        ? Number(object.versionMajor)
+        : 0,
+      versionMinor: isSet(object.versionMinor)
+        ? Number(object.versionMinor)
+        : 0,
+    }
+  },
+
+  toJSON(message: ContentTypeId): unknown {
+    const obj: any = {}
+    message.authorityId !== undefined && (obj.authorityId = message.authorityId)
+    message.typeId !== undefined && (obj.typeId = message.typeId)
+    message.versionMajor !== undefined &&
+      (obj.versionMajor = Math.round(message.versionMajor))
+    message.versionMinor !== undefined &&
+      (obj.versionMinor = Math.round(message.versionMinor))
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ContentTypeId>, I>>(
+    object: I
+  ): ContentTypeId {
+    const message = createBaseContentTypeId()
+    message.authorityId = object.authorityId ?? ''
+    message.typeId = object.typeId ?? ''
+    message.versionMajor = object.versionMajor ?? 0
+    message.versionMinor = object.versionMinor ?? 0
+    return message
+  },
+}
+
+function createBaseEncodedContent(): EncodedContent {
+  return {
+    type: undefined,
+    parameters: {},
+    fallback: undefined,
+    compression: undefined,
+    content: new Uint8Array(),
+  }
+}
+
+export const EncodedContent = {
+  encode(
+    message: EncodedContent,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.type !== undefined) {
+      ContentTypeId.encode(message.type, writer.uint32(10).fork()).ldelim()
+    }
+    Object.entries(message.parameters).forEach(([key, value]) => {
+      EncodedContent_ParametersEntry.encode(
+        { key: key as any, value },
+        writer.uint32(18).fork()
+      ).ldelim()
+    })
+    if (message.fallback !== undefined) {
+      writer.uint32(26).string(message.fallback)
+    }
+    if (message.compression !== undefined) {
+      writer.uint32(40).int32(message.compression)
+    }
+    if (message.content.length !== 0) {
+      writer.uint32(34).bytes(message.content)
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): EncodedContent {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseEncodedContent()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.type = ContentTypeId.decode(reader, reader.uint32())
+          break
+        case 2:
+          const entry2 = EncodedContent_ParametersEntry.decode(
+            reader,
+            reader.uint32()
+          )
+          if (entry2.value !== undefined) {
+            message.parameters[entry2.key] = entry2.value
+          }
+          break
+        case 3:
+          message.fallback = reader.string()
+          break
+        case 5:
+          message.compression = reader.int32() as any
+          break
+        case 4:
+          message.content = reader.bytes()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): EncodedContent {
+    return {
+      type: isSet(object.type)
+        ? ContentTypeId.fromJSON(object.type)
+        : undefined,
+      parameters: isObject(object.parameters)
+        ? Object.entries(object.parameters).reduce<{ [key: string]: string }>(
+            (acc, [key, value]) => {
+              acc[key] = String(value)
+              return acc
+            },
+            {}
+          )
+        : {},
+      fallback: isSet(object.fallback) ? String(object.fallback) : undefined,
+      compression: isSet(object.compression)
+        ? compressionFromJSON(object.compression)
+        : undefined,
+      content: isSet(object.content)
+        ? bytesFromBase64(object.content)
+        : new Uint8Array(),
+    }
+  },
+
+  toJSON(message: EncodedContent): unknown {
+    const obj: any = {}
+    message.type !== undefined &&
+      (obj.type = message.type ? ContentTypeId.toJSON(message.type) : undefined)
+    obj.parameters = {}
+    if (message.parameters) {
+      Object.entries(message.parameters).forEach(([k, v]) => {
+        obj.parameters[k] = v
+      })
+    }
+    message.fallback !== undefined && (obj.fallback = message.fallback)
+    message.compression !== undefined &&
+      (obj.compression =
+        message.compression !== undefined
+          ? compressionToJSON(message.compression)
+          : undefined)
+    message.content !== undefined &&
+      (obj.content = base64FromBytes(
+        message.content !== undefined ? message.content : new Uint8Array()
+      ))
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EncodedContent>, I>>(
+    object: I
+  ): EncodedContent {
+    const message = createBaseEncodedContent()
+    message.type =
+      object.type !== undefined && object.type !== null
+        ? ContentTypeId.fromPartial(object.type)
+        : undefined
+    message.parameters = Object.entries(object.parameters ?? {}).reduce<{
+      [key: string]: string
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = String(value)
+      }
+      return acc
+    }, {})
+    message.fallback = object.fallback ?? undefined
+    message.compression = object.compression ?? undefined
+    message.content = object.content ?? new Uint8Array()
+    return message
+  },
+}
+
+function createBaseEncodedContent_ParametersEntry(): EncodedContent_ParametersEntry {
+  return { key: '', value: '' }
+}
+
+export const EncodedContent_ParametersEntry = {
+  encode(
+    message: EncodedContent_ParametersEntry,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.key !== '') {
+      writer.uint32(10).string(message.key)
+    }
+    if (message.value !== '') {
+      writer.uint32(18).string(message.value)
     }
     return writer
   },
@@ -495,15 +804,18 @@ export const PrivateKey_Secp256k1 = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number
-  ): PrivateKey_Secp256k1 {
+  ): EncodedContent_ParametersEntry {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBasePrivateKey_Secp256k1()
+    const message = createBaseEncodedContent_ParametersEntry()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
-          message.bytes = reader.bytes()
+          message.key = reader.string()
+          break
+        case 2:
+          message.value = reader.string()
           break
         default:
           reader.skipType(tag & 7)
@@ -513,28 +825,26 @@ export const PrivateKey_Secp256k1 = {
     return message
   },
 
-  fromJSON(object: any): PrivateKey_Secp256k1 {
+  fromJSON(object: any): EncodedContent_ParametersEntry {
     return {
-      bytes: isSet(object.bytes)
-        ? bytesFromBase64(object.bytes)
-        : new Uint8Array(),
+      key: isSet(object.key) ? String(object.key) : '',
+      value: isSet(object.value) ? String(object.value) : '',
     }
   },
 
-  toJSON(message: PrivateKey_Secp256k1): unknown {
+  toJSON(message: EncodedContent_ParametersEntry): unknown {
     const obj: any = {}
-    message.bytes !== undefined &&
-      (obj.bytes = base64FromBytes(
-        message.bytes !== undefined ? message.bytes : new Uint8Array()
-      ))
+    message.key !== undefined && (obj.key = message.key)
+    message.value !== undefined && (obj.value = message.value)
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<PrivateKey_Secp256k1>, I>>(
+  fromPartial<I extends Exact<DeepPartial<EncodedContent_ParametersEntry>, I>>(
     object: I
-  ): PrivateKey_Secp256k1 {
-    const message = createBasePrivateKey_Secp256k1()
-    message.bytes = object.bytes ?? new Uint8Array()
+  ): EncodedContent_ParametersEntry {
+    const message = createBaseEncodedContent_ParametersEntry()
+    message.key = object.key ?? ''
+    message.value = object.value ?? ''
     return message
   },
 }
@@ -698,85 +1008,6 @@ export const Ciphertext_aes256gcmHkdfsha256 = {
     message.hkdfSalt = object.hkdfSalt ?? new Uint8Array()
     message.gcmNonce = object.gcmNonce ?? new Uint8Array()
     message.payload = object.payload ?? new Uint8Array()
-    return message
-  },
-}
-
-function createBasePublicKeyBundle(): PublicKeyBundle {
-  return { identityKey: undefined, preKey: undefined }
-}
-
-export const PublicKeyBundle = {
-  encode(
-    message: PublicKeyBundle,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.identityKey !== undefined) {
-      PublicKey.encode(message.identityKey, writer.uint32(10).fork()).ldelim()
-    }
-    if (message.preKey !== undefined) {
-      PublicKey.encode(message.preKey, writer.uint32(18).fork()).ldelim()
-    }
-    return writer
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PublicKeyBundle {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
-    let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBasePublicKeyBundle()
-    while (reader.pos < end) {
-      const tag = reader.uint32()
-      switch (tag >>> 3) {
-        case 1:
-          message.identityKey = PublicKey.decode(reader, reader.uint32())
-          break
-        case 2:
-          message.preKey = PublicKey.decode(reader, reader.uint32())
-          break
-        default:
-          reader.skipType(tag & 7)
-          break
-      }
-    }
-    return message
-  },
-
-  fromJSON(object: any): PublicKeyBundle {
-    return {
-      identityKey: isSet(object.identityKey)
-        ? PublicKey.fromJSON(object.identityKey)
-        : undefined,
-      preKey: isSet(object.preKey)
-        ? PublicKey.fromJSON(object.preKey)
-        : undefined,
-    }
-  },
-
-  toJSON(message: PublicKeyBundle): unknown {
-    const obj: any = {}
-    message.identityKey !== undefined &&
-      (obj.identityKey = message.identityKey
-        ? PublicKey.toJSON(message.identityKey)
-        : undefined)
-    message.preKey !== undefined &&
-      (obj.preKey = message.preKey
-        ? PublicKey.toJSON(message.preKey)
-        : undefined)
-    return obj
-  },
-
-  fromPartial<I extends Exact<DeepPartial<PublicKeyBundle>, I>>(
-    object: I
-  ): PublicKeyBundle {
-    const message = createBasePublicKeyBundle()
-    message.identityKey =
-      object.identityKey !== undefined && object.identityKey !== null
-        ? PublicKey.fromPartial(object.identityKey)
-        : undefined
-    message.preKey =
-      object.preKey !== undefined && object.preKey !== null
-        ? PublicKey.fromPartial(object.preKey)
-        : undefined
     return message
   },
 }
@@ -1003,6 +1234,163 @@ export const Message = {
       object.v1 !== undefined && object.v1 !== null
         ? V1Message.fromPartial(object.v1)
         : undefined
+    return message
+  },
+}
+
+function createBasePrivateKey(): PrivateKey {
+  return { timestamp: 0, secp256k1: undefined, publicKey: undefined }
+}
+
+export const PrivateKey = {
+  encode(
+    message: PrivateKey,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.timestamp !== 0) {
+      writer.uint32(8).uint64(message.timestamp)
+    }
+    if (message.secp256k1 !== undefined) {
+      PrivateKey_Secp256k1.encode(
+        message.secp256k1,
+        writer.uint32(18).fork()
+      ).ldelim()
+    }
+    if (message.publicKey !== undefined) {
+      PublicKey.encode(message.publicKey, writer.uint32(26).fork()).ldelim()
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PrivateKey {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBasePrivateKey()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.timestamp = longToNumber(reader.uint64() as Long)
+          break
+        case 2:
+          message.secp256k1 = PrivateKey_Secp256k1.decode(
+            reader,
+            reader.uint32()
+          )
+          break
+        case 3:
+          message.publicKey = PublicKey.decode(reader, reader.uint32())
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): PrivateKey {
+    return {
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : 0,
+      secp256k1: isSet(object.secp256k1)
+        ? PrivateKey_Secp256k1.fromJSON(object.secp256k1)
+        : undefined,
+      publicKey: isSet(object.publicKey)
+        ? PublicKey.fromJSON(object.publicKey)
+        : undefined,
+    }
+  },
+
+  toJSON(message: PrivateKey): unknown {
+    const obj: any = {}
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp))
+    message.secp256k1 !== undefined &&
+      (obj.secp256k1 = message.secp256k1
+        ? PrivateKey_Secp256k1.toJSON(message.secp256k1)
+        : undefined)
+    message.publicKey !== undefined &&
+      (obj.publicKey = message.publicKey
+        ? PublicKey.toJSON(message.publicKey)
+        : undefined)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PrivateKey>, I>>(
+    object: I
+  ): PrivateKey {
+    const message = createBasePrivateKey()
+    message.timestamp = object.timestamp ?? 0
+    message.secp256k1 =
+      object.secp256k1 !== undefined && object.secp256k1 !== null
+        ? PrivateKey_Secp256k1.fromPartial(object.secp256k1)
+        : undefined
+    message.publicKey =
+      object.publicKey !== undefined && object.publicKey !== null
+        ? PublicKey.fromPartial(object.publicKey)
+        : undefined
+    return message
+  },
+}
+
+function createBasePrivateKey_Secp256k1(): PrivateKey_Secp256k1 {
+  return { bytes: new Uint8Array() }
+}
+
+export const PrivateKey_Secp256k1 = {
+  encode(
+    message: PrivateKey_Secp256k1,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.bytes.length !== 0) {
+      writer.uint32(10).bytes(message.bytes)
+    }
+    return writer
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): PrivateKey_Secp256k1 {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBasePrivateKey_Secp256k1()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.bytes = reader.bytes()
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): PrivateKey_Secp256k1 {
+    return {
+      bytes: isSet(object.bytes)
+        ? bytesFromBase64(object.bytes)
+        : new Uint8Array(),
+    }
+  },
+
+  toJSON(message: PrivateKey_Secp256k1): unknown {
+    const obj: any = {}
+    message.bytes !== undefined &&
+      (obj.bytes = base64FromBytes(
+        message.bytes !== undefined ? message.bytes : new Uint8Array()
+      ))
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PrivateKey_Secp256k1>, I>>(
+    object: I
+  ): PrivateKey_Secp256k1 {
+    const message = createBasePrivateKey_Secp256k1()
+    message.bytes = object.bytes ?? new Uint8Array()
     return message
   },
 }
@@ -1239,6 +1627,10 @@ function longToNumber(long: Long): number {
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any
   _m0.configure()
+}
+
+function isObject(value: any): boolean {
+  return typeof value === 'object' && value !== null
 }
 
 function isSet(value: any): boolean {

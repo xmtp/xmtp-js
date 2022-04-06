@@ -2,6 +2,15 @@ import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
 import { promiseWithTimeout, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
+import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
+import {
+  ContentTypeFallback,
+  PrivateKey,
+  Message,
+  ContentTypeText,
+  Compression,
+  ContentTypeId,
+} from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
   Client.create(newWallet(), {
@@ -62,40 +71,40 @@ describe('Client', () => {
         // alice sends intro
         await alice.sendMessage(bob.address, 'hi bob!')
         let msg = await aliceIntros.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
 
         // bob sends intro in response
         msg = await bobIntros.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
         await bob.sendMessage(alice.address, 'hi alice!')
         msg = await bobIntros.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
 
         // alice sends follow up
         msg = await aliceIntros.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
         await alice.sendMessage(bob.address, 'how are you?')
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'how are you?')
+        assert.equal(msg.value.content, 'how are you?')
 
         // bob responds to follow up
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'hi bob!')
+        assert.equal(msg.value.content, 'hi bob!')
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'hi alice!')
+        assert.equal(msg.value.content, 'hi alice!')
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'how are you?')
+        assert.equal(msg.value.content, 'how are you?')
         await bob.sendMessage(alice.address, 'fantastic!')
         msg = await bobAlice.next()
-        assert.equal(msg.value.decrypted, 'fantastic!')
+        assert.equal(msg.value.content, 'fantastic!')
 
         // alice receives follow up
         msg = await aliceBob.next()
-        assert.equal(msg.value.decrypted, 'fantastic!')
+        assert.equal(msg.value.content, 'fantastic!')
 
         // list messages sent previously
         const fixtures: [string, Client, string | null, string[]][] = [
@@ -129,7 +138,7 @@ describe('Client', () => {
             )
             for (let i = 0; i < expected.length; i++) {
               assert.equal(
-                messages[i].decrypted,
+                messages[i].content,
                 expected[i],
                 `${name} message[${i}]`
               )
@@ -147,11 +156,11 @@ describe('Client', () => {
 
         const intros = await dumpStream(intro)
         assert.equal(intros.length, 1)
-        assert.equal(intros[0].decrypted, messages[0])
+        assert.equal(intros[0].content, messages[0])
 
         const convos = await dumpStream(convo)
         assert.equal(convos.length, messages.length)
-        convos.forEach((m, i) => assert.equal(m.decrypted, messages[i]))
+        convos.forEach((m, i) => assert.equal(m.content, messages[i]))
       })
 
       it('for-await-of with stream', async () => {
@@ -159,7 +168,7 @@ describe('Client', () => {
         let count = 5
         await alice.sendMessage(bob.address, 'msg ' + count)
         for await (const msg of convo) {
-          assert.equal(msg.decrypted, 'msg ' + count)
+          assert.equal(msg.content, 'msg ' + count)
           count--
           if (!count) {
             break
@@ -183,6 +192,70 @@ describe('Client', () => {
 
         const can_mesg_b = await alice.canMessage(bob.address)
         assert.equal(can_mesg_b, true)
+      })
+
+      it('can send compressed messages', async () => {
+        const convo = bob.streamConversationMessages(alice.address)
+        const content = 'A'.repeat(111)
+        await alice.sendMessage(bob.address, content, {
+          contentType: ContentTypeText,
+          compression: Compression.deflate,
+        })
+        const result = await convo.next()
+        const msg = result.value as Message
+        assert.equal(msg.content, content)
+        await convo.return()
+      })
+
+      it('can send custom content type', async () => {
+        const stream = bob.streamConversationMessages(alice.address)
+        const key = PrivateKey.generate().publicKey
+
+        // alice doesn't recognize the type
+        await expect(
+          alice.sendMessage(bob.address, key, {
+            contentType: ContentTypeTestKey,
+          })
+        ).rejects.toThrow('unknown content type xmtp.test/public-key:1.0')
+
+        // bob doesn't recognize the type
+        alice.registerCodec(new TestKeyCodec())
+        await alice.sendMessage(bob.address, key, {
+          contentType: ContentTypeTestKey,
+          contentFallback: 'this is a public key',
+        })
+        let result = await stream.next()
+        let msg = result.value as Message
+        assert.ok(msg.error)
+        assert.equal(
+          msg.error.message,
+          'unknown content type xmtp.test/public-key:1.0'
+        )
+        assert.ok(msg.contentType)
+        assert(msg.contentType.sameAs(ContentTypeFallback))
+        assert.equal(msg.content, 'this is a public key')
+
+        // both recognize the type
+        bob.registerCodec(new TestKeyCodec())
+        await alice.sendMessage(bob.address, key, {
+          contentType: ContentTypeTestKey,
+        })
+        result = await stream.next()
+        msg = result.value as Message
+        assert(msg.contentType)
+        assert(msg.contentType.sameAs(ContentTypeTestKey))
+        assert(key.equals(msg.content))
+
+        // alice tries to send version that is not supported
+        const type2 = new ContentTypeId({
+          ...ContentTypeTestKey,
+          versionMajor: 2,
+        })
+        await expect(
+          alice.sendMessage(bob.address, key, { contentType: type2 })
+        ).rejects.toThrow('unknown content type xmtp.test/public-key:2.0')
+
+        stream.return()
       })
     })
   })

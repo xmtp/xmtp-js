@@ -1,6 +1,8 @@
 import Stream from '../Stream'
-import Client, { ListMessagesOptions } from '../Client'
+import Client, { ListMessagesOptions, SendOptions } from '../Client'
 import Message from '../Message'
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /**
  * Conversation class allows you to view, stream, and send messages to/from a peer address
@@ -31,7 +33,10 @@ export default class Conversation {
   /**
    * Send a message into the conversation
    */
-  async send(message: string): Promise<void> {
-    await this.client.sendMessage(this.peerAddress, message)
+  async send(
+    message: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<void> {
+    await this.client.sendMessage(this.peerAddress, message, options)
   }
 }
