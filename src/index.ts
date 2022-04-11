@@ -17,10 +17,9 @@ import {
   ContentTypeId,
   ContentCodec,
   EncodedContent,
-  TextCodec,
-  ContentTypeText,
   ContentTypeFallback,
 } from './MessageContent'
+import { TextCodec, ContentTypeText } from './codecs/Text'
 
 export {
   Client,
