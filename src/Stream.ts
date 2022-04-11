@@ -99,8 +99,3 @@ export default class Stream<T> {
     return new Promise((resolve) => this.resolvers.unshift(resolve))
   }
 }
-
-const messageTransformer: MessageTransformer<Message> = (msg: Message) => msg
-
-export const messageStream = (client: Client, topic: string): Stream<Message> =>
-  new Stream<Message>(client, topic, messageTransformer)

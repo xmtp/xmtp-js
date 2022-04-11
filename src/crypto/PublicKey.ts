@@ -108,8 +108,9 @@ export default class PublicKey implements proto.PublicKey {
     })
   }
 
-  // if the key was signed by a wallet, and the signature is valid,
-  // then return the wallet address, otherwise throw
+  // Assume the key was signed by a wallet and
+  // return the wallet address that validates
+  // the signature for this key.
   walletSignatureAddress(): string {
     if (!this.signature) {
       throw new Error('key is not signed')
@@ -122,7 +123,7 @@ export default class PublicKey implements proto.PublicKey {
     )
     const pk = this.signature.getPublicKey(digest)
     if (!pk) {
-      throw new Error('key was not signed by a wallet')
+      throw new Error('key signature is malformed')
     }
     return pk.getEthereumAddress()
   }

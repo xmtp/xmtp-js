@@ -10,7 +10,7 @@ import {
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
-import Stream, { messageStream } from './Stream'
+import Stream, { MessageFilter } from './Stream'
 import { Signer } from 'ethers'
 import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
 import { Conversations } from './conversations'
@@ -25,6 +25,7 @@ import {
 } from './MessageContent'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
+import { messagePrefix } from '@ethersproject/hash'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -42,6 +43,7 @@ const MaxContentSize = 100 * 1024 * 1024 // 100M
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
+  checkAddresses?: boolean
   pageSize?: number
   startTime?: Date
   endTime?: Date
@@ -189,18 +191,25 @@ export default class Client {
   async getUserContactFromNetwork(
     peerAddress: string
   ): Promise<PublicKeyBundle | undefined> {
-    const recipientKeys = (
-      await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
-        pageSize: 1,
-        pageDirection: PageDirection.BACKWARD,
-        callback: () => true,
-      })
-    )
-      .filter((msg: WakuMessage) => msg.payload)
-      .map((msg: WakuMessage) =>
-        PublicKeyBundle.fromBytes(msg.payload as Uint8Array)
-      )
-    return recipientKeys.length > 0 ? recipientKeys[0] : undefined
+    // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
+    let recipientKey: PublicKeyBundle | null = null
+    await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
+      pageSize: 5,
+      pageDirection: PageDirection.BACKWARD,
+      callback: (msgs: WakuMessage[]) => {
+        for (const msg of msgs) {
+          if (!msg.payload) continue
+          const bundle = PublicKeyBundle.fromBytes(msg.payload as Uint8Array)
+          const address = bundle.walletSignatureAddress()
+          if (address === peerAddress) {
+            recipientKey = bundle
+            break
+          }
+        }
+        return recipientKey !== null
+      },
+    })
+    return recipientKey === null ? undefined : recipientKey
   }
 
   /**
@@ -351,17 +360,21 @@ export default class Client {
   }
 
   streamIntroductionMessages(): Stream<Message> {
-    return this.streamMessages(buildUserIntroTopic(this.address))
-  }
-
-  streamConversationMessages(peerAddress: string): Stream<Message> {
-    return this.streamMessages(
-      buildDirectMessageTopic(peerAddress, this.address)
+    return new Stream<Message>(
+      this,
+      buildUserIntroTopic(this.address),
+      noTransformation
     )
   }
 
-  private streamMessages(topic: string): Stream<Message> {
-    return messageStream(this, topic)
+  streamConversationMessages(peerAddress: string): Stream<Message> {
+    const topic = buildDirectMessageTopic(peerAddress, this.address)
+    return new Stream<Message>(
+      this,
+      topic,
+      noTransformation,
+      filterForTopic(topic)
+    )
   }
 
   // list stored messages from this wallet's introduction topic
@@ -376,7 +389,7 @@ export default class Client {
   ): Promise<Message[]> {
     return this.listMessages(
       buildDirectMessageTopic(peerAddress, this.address),
-      opts
+      { ...opts, checkAddresses: true }
     )
   }
 
@@ -399,7 +412,7 @@ export default class Client {
       opts.pageSize = 10
     }
 
-    const wakuMsgs = await this.waku.store.queryHistory([topic], {
+    let wakuMsgs = await this.waku.store.queryHistory([topic], {
       pageSize: opts.pageSize,
       pageDirection: PageDirection.FORWARD,
       timeFilter: {
@@ -407,14 +420,16 @@ export default class Client {
         endTime: opts.endTime,
       },
     })
-
-    return Promise.all(
-      wakuMsgs
-        .filter((wakuMsg) => wakuMsg?.payload)
-        .map(async (wakuMsg) =>
-          this.decodeMessage(wakuMsg.payload as Uint8Array)
-        )
+    wakuMsgs = wakuMsgs.filter((wakuMsg) => wakuMsg?.payload)
+    let msgs = await Promise.all(
+      wakuMsgs.map((wakuMsg) =>
+        this.decodeMessage(wakuMsg.payload as Uint8Array)
+      )
     )
+    if (opts?.checkAddresses) {
+      msgs = msgs.filter(filterForTopic(topic))
+    }
+    return msgs
   }
 }
 
@@ -507,4 +522,20 @@ async function getNodeList(env: keyof NodesList): Promise<string[]> {
   const nodesList: NodesList = await res.json()
 
   return Object.values(nodesList[env])
+}
+
+function noTransformation(msg: Message) {
+  return msg
+}
+
+function filterForTopic(topic: string): MessageFilter {
+  return (msg) => {
+    const senderAddress = msg.senderAddress
+    const recipientAddress = msg.recipientAddress
+    return (
+      senderAddress !== undefined &&
+      recipientAddress !== undefined &&
+      buildDirectMessageTopic(senderAddress, recipientAddress) === topic
+    )
+  }
 }

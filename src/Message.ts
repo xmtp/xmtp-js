@@ -81,7 +81,7 @@ export default class Message implements proto.V1Message {
     return this.header ? new Date(this.header?.timestamp) : undefined
   }
 
-  // wallet address of the message sender
+  // wallet address derived from the signature of the message sender
   get senderAddress(): string | undefined {
     if (!this.header?.sender?.identityKey) {
       return undefined
@@ -91,7 +91,7 @@ export default class Message implements proto.V1Message {
     ).walletSignatureAddress()
   }
 
-  // wallet address of the message recipient
+  // wallet address derived from the signature of the message recipient
   get recipientAddress(): string | undefined {
     if (!this.header?.recipient?.identityKey) {
       return undefined
