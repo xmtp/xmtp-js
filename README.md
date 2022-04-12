@@ -95,6 +95,8 @@ The client's network connection and key storage method can be configured with th
 | env                   | `'testnet'`           | Connect to the specified network environment (currently only `'testnet'`).       |
 | waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
 | keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
+| codecs                | `[TextCodec]`         | Add codecs to support additional content types.                                  |
+| maxContentSize        | `100M`                | Maximum message content size in bytes.                                           |
 
 ### Conversations
 
@@ -199,7 +201,7 @@ for await (const message of conversation.streamMessages()) {
 
 #### Different types of content
 
-All the send functions support `SendOptions` as an optional parameter. Option `contentType` allows specifying different types of content than the default simple string, which is identified with content type identifier `ContentTypeText`. Support for other types of content can be added by registering additional `ContentCodecs` with the `Client`. Every codec is associated with a content type identifier, `ContentTypeId`, which is used to signal to the Client which codec should be used to process the content that is being sent or received. See XIP-5 for more details on Codecs and content types, new Codecs and content types are defined through XRCs.
+All the send functions support `SendOptions` as an optional parameter. Option `contentType` allows specifying different types of content than the default simple string, which is identified with content type identifier `ContentTypeText`. Support for other types of content can be added by registering additional `ContentCodecs` with the `Client`. Every codec is associated with a content type identifier, `ContentTypeId`, which is used to signal to the Client which codec should be used to process the content that is being sent or received. See [XIP-5](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-5-message-content-types.md) for more details on codecs and content types, new Codecs and content types are defined through [XRCs](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-9-composite-content-type.md).
 
 If there is a concern that the recipient may not be able to handle particular content type, the sender can use `contentFallback` option to provide a string that describes the content being sent. If the recipient fails to decode the original content, the fallback will replace it and can be used to inform the recipient what the original content was.
 
@@ -212,6 +214,14 @@ conversation.send(3.14, {
   contentType: ContentTypeNumber,
   contentFallback: 'sending you a pie'
 })
+```
+
+Additional codecs can configured through `ClientOptions` parameter of `Client.create`. The `codecs` option is a list of codec instances that should be added to the default set of codecs (currently only the `TextCodec`). If a codec is added for a content type that is already in the default set, it will replace the original codec.
+
+```ts
+// Adding support for `xmtp.org/composite` content type
+import { CompositeCodec } from '@xmtp/xmtp-js'
+const xmtp = Client.create(wallet, { codecs: [new CompositeCodec()] })
 ```
 
 #### Compression
