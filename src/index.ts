@@ -20,6 +20,11 @@ import {
   ContentTypeFallback,
 } from './MessageContent'
 import { TextCodec, ContentTypeText } from './codecs/Text'
+import {
+  Composite,
+  CompositeCodec,
+  ContentTypeComposite,
+} from './codecs/Composite'
 
 export {
   Client,
@@ -41,4 +46,7 @@ export {
   ContentTypeFallback,
   SendOptions,
   Compression,
+  Composite,
+  CompositeCodec,
+  ContentTypeComposite,
 }
