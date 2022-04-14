@@ -1,11 +1,8 @@
-
-
 # XMTP-JS
 
 ![Test](https://github.com/xmtp/xmtp-js/actions/workflows/test.yml/badge.svg)
 ![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
 ![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
-
 
 <img src="https://user-images.githubusercontent.com/510695/163474300-94983844-dc9f-40ec-8562-a588b0d8fff1.png" alt="XMTP Development Logo" width="244" />
 
