@@ -14,7 +14,7 @@
 >![](https://img.shields.io/badge/code%20stability-low-orange)
 >![](https://img.shields.io/badge/message%20retention-7%20days-orange)
 >
-> 🚧 **This package is in active development** 🚧. It has been made publicly available for evaluation, feedback, and community contribution. Messages are forcibly deleted from the network on Mondays.
+> 🚧 **This package is in active development** 🚧. It has been made publicly available for evaluation, feedback, and community contribution. Prior to a stable release, XMTP Labs will forcibly delete messages from the development network every Monday.
 > 
 > - **DO NOT** use this package version in production.
 > - **DO NOT** use this to share sensitive information.
