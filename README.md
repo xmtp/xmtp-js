@@ -4,15 +4,15 @@
 ![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
 ![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
 
-<img src="https://user-images.githubusercontent.com/510695/163474300-94983844-dc9f-40ec-8562-a588b0d8fff1.png" alt="XMTP Development Logo" width="244" />
+![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
 
 **Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.org) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
 
 ## :warning: Disclaimers
 
->![](https://img.shields.io/badge/security-unaudited-orange)
->![](https://img.shields.io/badge/code%20stability-low-orange)
->![](https://img.shields.io/badge/message%20retention-7%20days-orange)
+>![Security](https://img.shields.io/badge/security-unaudited-orange)
+>![Stability](https://img.shields.io/badge/code%20stability-low-orange)
+>![Message Retention](https://img.shields.io/badge/message%20retention-7%20days-orange)
 >
 > 🚧 **This package is in active development** 🚧. It has been made publicly available for evaluation, feedback, and community contribution. Prior to a stable release, XMTP Labs will forcibly delete messages from the development network every Monday.
 > 
