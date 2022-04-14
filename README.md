@@ -19,6 +19,7 @@
 > - **DO NOT** use this package version in production.
 > - **DO NOT** use this to share sensitive information.
 > - **DO** expect significant, frequent breaking revisions.
+> - **DO** expect delays in responding to issues and PRs.
 
 ## Installation
 
