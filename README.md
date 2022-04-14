@@ -1,8 +1,15 @@
-# XMTP JS client library
+
+
+# XMTP-JS
 
 ![Test](https://github.com/xmtp/xmtp-js/actions/workflows/test.yml/badge.svg)
 ![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
 ![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
+
+
+<img src="https://user-images.githubusercontent.com/510695/163474300-94983844-dc9f-40ec-8562-a588b0d8fff1.png" alt="XMTP Development Logo" width="244" />
+
+**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.org) development network in your own app. For a complete demonstration, see the XMTP [example React app](https://github.com/xmtp/example-chat-react).
 
 ## :warning: Disclaimers
 
@@ -12,9 +19,9 @@
 >
 > 🚧 **This package is in active development** 🚧. It has been made publicly available for evaluation, feedback, and community contribution. Messages are forcibly deleted from the network on Mondays.
 > 
-> - DO NOT use this package version in production.
-> - DO NOT use this to share sensitive information.
-> - DO expect significant, frequent breaking revisions.
+> - **DO NOT** use this package version in production.
+> - **DO NOT** use this to share sensitive information.
+> - **DO** expect significant, frequent breaking revisions.
 
 
 ## Installation
