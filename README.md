@@ -4,9 +4,18 @@
 ![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
 ![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
 
-## Disclaimer: Pre-Stable Alpha
+## :warning: Disclaimers
 
-The XMTP protocol is in the early stages of development. This pre-stable alpha library is being provided for evaluation, feedback, and community contribution. It has not undergone a formal security audit and is not intended for production applications. Significant breaking revisions should be expected for all pre-stable alpha software.
+>![](https://img.shields.io/badge/security-unaudited-orange)
+>![](https://img.shields.io/badge/code%20stability-low-orange)
+>![](https://img.shields.io/badge/message%20retention-7%20days-orange)
+>
+> 🚧 **This package is in active development** 🚧. It has been made publicly available for evaluation, feedback, and community contribution. Messages are forcibly deleted from the network on Mondays.
+> 
+> - DO NOT use this package version in production.
+> - DO NOT use this to share sensitive information.
+> - DO expect significant, frequent breaking revisions.
+
 
 ## Installation
 
@@ -175,8 +184,6 @@ for (const conversation of await xmtp.conversations.list()) {
   const messagesInConversation = await conversation.messages(opts)
 }
 ```
-
-_Pre-Stable Alpha Limitation:_ After 7 days, messages are deleted from the network and cannot be retrieved. We also forcibly wipe the playnet on Mondays.
 
 #### Listen for new messages in a conversation
 
