@@ -6,7 +6,7 @@
 
 <img src="https://user-images.githubusercontent.com/510695/163474300-94983844-dc9f-40ec-8562-a588b0d8fff1.png" alt="XMTP Development Logo" width="244" />
 
-**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.org) development network in your own app. For a complete demonstration, see the XMTP [example React app](https://github.com/xmtp/example-chat-react).
+**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.org) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
 
 ## :warning: Disclaimers
 
@@ -19,7 +19,6 @@
 > - **DO NOT** use this package version in production.
 > - **DO NOT** use this to share sensitive information.
 > - **DO** expect significant, frequent breaking revisions.
-
 
 ## Installation
 
