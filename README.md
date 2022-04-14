@@ -17,7 +17,7 @@
 > 🚧 **This package is in active development** 🚧. It has been made publicly available for evaluation, feedback, and community contribution. Prior to a stable release, XMTP Labs will forcibly delete messages from the development network every Monday.
 > 
 > - **DO NOT** use this package version in production.
-> - **DO NOT** use this to share sensitive information.
+> - **DO NOT** share sensitive information via the XMTP development network.
 > - **DO** expect significant, frequent breaking revisions.
 > - **DO** expect delays in responding to issues and PRs.
 
