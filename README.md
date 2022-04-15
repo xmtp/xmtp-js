@@ -10,9 +10,7 @@
 
 ## 🚧 **XMTP-JS is in active development** 🚧
 
->![Security](https://img.shields.io/badge/security-unaudited-orange)
->![Stability](https://img.shields.io/badge/code%20stability-low-orange)
->![Message Retention](https://img.shields.io/badge/message%20retention-7%20days-orange)
+>![Security](https://img.shields.io/badge/security-unaudited-orange) ![Stability](https://img.shields.io/badge/code%20stability-low-orange) ![Message Retention](https://img.shields.io/badge/message%20retention-7%20days-orange)
 >
 > This pre-stable development release is publicly available for evaluation, feedback, and community contribution. All wallets and messages are forcibly deleted from the development network on Mondays.
 >
