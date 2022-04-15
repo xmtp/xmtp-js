@@ -8,18 +8,18 @@
 
 **Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.org) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
 
-## :warning: Disclaimers
+## 🚧 **XMTP-JS is in active development** 🚧
 
 >![Security](https://img.shields.io/badge/security-unaudited-orange)
 >![Stability](https://img.shields.io/badge/code%20stability-low-orange)
 >![Message Retention](https://img.shields.io/badge/message%20retention-7%20days-orange)
 >
-> 🚧 **This package is in active development** 🚧. It has been made publicly available for evaluation, feedback, and community contribution. Prior to a stable release, XMTP Labs will forcibly delete messages from the development network every Monday.
+>  This pre-stable development release is publicly available for evaluation, feedback, and community contribution. All wallets and messages are forcibly deleted from the development network on Mondays.
 >
 > - **DO NOT** use this package version in production.
-> - **DO NOT** share sensitive information via the XMTP development network.
+> - **DO NOT** share sensitive information via the development network.
 > - **DO** expect significant, frequent breaking revisions.
-> - **DO** expect delays in responding to issues and PRs.
+> - **DO** contribute issues and PRs in this repo. The core team has limited bandwidth and may need a few days to review.
 
 ## Installation
 
