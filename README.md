@@ -21,13 +21,7 @@
 
 ## Installation
 
-This library is not yet public on npm. It can be installed from this repo to your project directory using `npm install xmtp/xmtp-js`, or from npm using a private access token:
-
-```bash
-# In your project directory
-
-export NPM_TOKEN=$YOUR_NPM_TOKEN
-echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+```
 npm install @xmtp/xmtp-js
 ```
 
