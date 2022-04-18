@@ -1,6 +1,6 @@
 services:
   waku-node:
-    image: xmtp/node-go:latest
+    image: xmtp/node-go@sha256:489f72a4049272989b42032f6fe23aac91cfaf13c93605017d4dce93d21f4993
     environment:
       - GOWAKU-NODEKEY=8a30dcb604b0b53627a5adc054dbf434b446628d4bd1eccc681d223f0550ce67
     command:
