@@ -8,6 +8,7 @@ import {
   buildUserContactTopic,
   buildUserIntroTopic,
   promiseWithTimeout,
+  publishUserContact,
 } from './utils'
 import { sleep } from '../test/helpers'
 import Stream, { MessageFilter } from './Stream'
@@ -179,12 +180,7 @@ export default class Client {
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
-    await this.waku.relay.send(
-      await WakuMessage.fromBytes(
-        pub.toBytes(),
-        buildUserContactTopic(this.address)
-      )
-    )
+    await publishUserContact(this.waku, pub, this.address)
   }
 
   // retrieve a key bundle from given user's contact topic
