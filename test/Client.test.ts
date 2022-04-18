@@ -1,6 +1,7 @@
 import assert from 'assert'
+import { WakuMessage } from 'js-waku'
 import { pollFor, newWallet, dumpStream } from './helpers'
-import { promiseWithTimeout, sleep } from '../src/utils'
+import { buildUserContactTopic, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import {
@@ -60,6 +61,19 @@ describe('Client', () => {
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
         const bobPublic = await bob.getUserContactFromNetwork(bob.address)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
+      })
+
+      it('user contacts are filtered to valid contacts', async () => {
+        // publish bob's keys to alice's contact topic
+        const bobPublic = bob.keys.getPublicKeyBundle()
+        await alice.waku.relay.send(
+          await WakuMessage.fromBytes(
+            bobPublic.toBytes(),
+            buildUserContactTopic(alice.address)
+          )
+        )
+        const alicePublic = await alice.getUserContactFromNetwork(alice.address)
+        assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
       it('send, stream and list messages', async () => {
