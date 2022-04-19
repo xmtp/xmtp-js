@@ -10,6 +10,7 @@ import {
   ContentTypeText,
   Compression,
   ContentTypeId,
+  PrivateKeyBundle,
 } from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
@@ -264,6 +265,23 @@ describe('Client', () => {
         ).rejects.toThrow('unknown content type xmtp.test/public-key:2.0')
 
         stream.return()
+      })
+
+      it('filters out spoofed messages', async () => {
+        const stream = bob.streamConversationMessages(alice.address)
+        // mallory takes over alice's client
+        const malloryWallet = newWallet()
+        const mallory = await PrivateKeyBundle.generate(malloryWallet)
+        const aliceKeys = alice.keys
+        alice.keys = mallory
+        await alice.sendMessage(bob.address, 'Hello from Mallory')
+        // alice restores control
+        alice.keys = aliceKeys
+        await alice.sendMessage(bob.address, 'Hello from Alice')
+        const result = await stream.next()
+        const msg = result.value as Message
+        assert.equal(msg.senderAddress, alice.address)
+        assert.equal(msg.content, 'Hello from Alice')
       })
     })
   })
