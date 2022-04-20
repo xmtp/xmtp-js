@@ -22,9 +22,8 @@ export default class Signature implements proto.Signature {
     this.ecdsaCompact.recovery = obj.ecdsaCompact.recovery
   }
 
-  // If the signature is valid for the provided digest
-  // then return the public key that validates it.
-  // Otherwise return undefined.
+  // Return the public key that validates this signature given the provided digest.
+  // Return undefined if the signature is malformed.
   getPublicKey(digest: Uint8Array): PublicKey | undefined {
     if (!this.ecdsaCompact) {
       throw new Error('invalid signature')
@@ -40,17 +39,6 @@ export default class Signature implements proto.Signature {
           timestamp: 0,
         })
       : undefined
-  }
-
-  // If the signature is valid for the provided digest
-  // return the address derived from te public key that validest it.
-  // Otherwise return undefined.
-  getEthereumAddress(digest: Uint8Array): string | undefined {
-    const pub = this.getPublicKey(digest)
-    if (!pub) {
-      return undefined
-    }
-    return pub.getEthereumAddress()
   }
 
   toBytes(): Uint8Array {

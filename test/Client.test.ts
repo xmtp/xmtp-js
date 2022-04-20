@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { pollFor, newWallet, dumpStream } from './helpers'
-import { promiseWithTimeout, sleep } from '../src/utils'
+import { publishUserContact, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import {
@@ -10,6 +10,7 @@ import {
   ContentTypeText,
   Compression,
   ContentTypeId,
+  PrivateKeyBundle,
 } from '../src'
 
 const newLocalDockerClient = (): Promise<Client> =>
@@ -60,6 +61,14 @@ describe('Client', () => {
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
         const bobPublic = await bob.getUserContactFromNetwork(bob.address)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
+      })
+
+      it('user contacts are filtered to valid contacts', async () => {
+        // publish bob's keys to alice's contact topic
+        const bobPublic = bob.keys.getPublicKeyBundle()
+        await publishUserContact(alice.waku, bobPublic, alice.address)
+        const alicePublic = await alice.getUserContactFromNetwork(alice.address)
+        assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
       it('send, stream and list messages', async () => {
@@ -256,6 +265,23 @@ describe('Client', () => {
         ).rejects.toThrow('unknown content type xmtp.test/public-key:2.0')
 
         stream.return()
+      })
+
+      it('filters out spoofed messages', async () => {
+        const stream = bob.streamConversationMessages(alice.address)
+        // mallory takes over alice's client
+        const malloryWallet = newWallet()
+        const mallory = await PrivateKeyBundle.generate(malloryWallet)
+        const aliceKeys = alice.keys
+        alice.keys = mallory
+        await alice.sendMessage(bob.address, 'Hello from Mallory')
+        // alice restores control
+        alice.keys = aliceKeys
+        await alice.sendMessage(bob.address, 'Hello from Alice')
+        const result = await stream.next()
+        const msg = result.value as Message
+        assert.equal(msg.senderAddress, alice.address)
+        assert.equal(msg.content, 'Hello from Alice')
       })
     })
   })

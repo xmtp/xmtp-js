@@ -1,3 +1,6 @@
+import { Waku, WakuMessage } from 'js-waku'
+import { PublicKeyBundle } from './crypto'
+
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
 
@@ -42,4 +45,14 @@ export const promiseWithTimeout = <T>(
     clearTimeout(timeoutHandle)
     return result
   })
+}
+
+export async function publishUserContact(
+  waku: Waku,
+  keys: PublicKeyBundle,
+  address: string
+): Promise<void> {
+  return waku.relay.send(
+    await WakuMessage.fromBytes(keys.toBytes(), buildUserContactTopic(address))
+  )
 }

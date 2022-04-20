@@ -19,6 +19,10 @@ export default class PublicKeyBundle implements proto.PublicKeyBundle {
     this.preKey = preKey
   }
 
+  walletSignatureAddress(): string {
+    return this.identityKey.walletSignatureAddress()
+  }
+
   toBytes(): Uint8Array {
     return proto.PublicKeyBundle.encode(this).finish()
   }

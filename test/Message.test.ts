@@ -50,7 +50,7 @@ describe('Message', function () {
     )
     assert.ok(!msg.error)
     const eveDecoded = await Message.decode(eve, msg.toBytes())
-    assert.equal(eveDecoded.contentType, undefined)
+    assert.equal(eveDecoded.decrypted, undefined)
     assert.deepEqual(eveDecoded.error, new NoMatchingPreKeyError())
   })
 
