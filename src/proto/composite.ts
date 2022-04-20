@@ -5,6 +5,7 @@ import { EncodedContent } from './messaging'
 
 export const protobufPackage = ''
 
+/** Composite is used to implement xmtp.org/composite content type */
 export interface Composite {
   parts: Composite_Part[]
 }
