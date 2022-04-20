@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "messaging.proto";
 
+// Composite is used to implement xmtp.org/composite content type
 message Composite {
   message Part {
     oneof element {

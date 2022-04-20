@@ -5,10 +5,10 @@ import {
   decompress,
   readStreamFromBytes,
   writeStreamToBytes,
-} from '../src/MessageContent'
+} from '../src/Compression'
 import { ContentTypeText } from '../src/codecs/Text'
 
-describe('MessageContent', function () {
+describe('Compression', function () {
   it('can stream bytes from source to sink', async function () {
     let from = new Uint8Array(111).fill(42)
     // make sink smaller so that it has to grow a lot
