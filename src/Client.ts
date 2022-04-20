@@ -20,13 +20,11 @@ import {
   ContentTypeId,
   EncodedContent,
   ContentCodec,
-  decompress,
-  compress,
   ContentTypeFallback,
 } from './MessageContent'
+import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
-import { messagePrefix } from '@ethersproject/hash'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
