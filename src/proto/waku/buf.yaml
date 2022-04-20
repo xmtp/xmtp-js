@@ -6,7 +6,5 @@ lint:
   use:
     - DEFAULT
 build:
-  excludes:
-    - ./src/proto/waku
   roots:
-    - ./src/proto
+    - ./

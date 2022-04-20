@@ -1,3 +1,4 @@
+import { WakuFilter } from './filter/index'
 import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import { BootstrapOptions } from 'js-waku/build/main/lib/discovery'
 import fetch from 'cross-fetch'
@@ -26,7 +27,6 @@ import {
 } from './MessageContent'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
-import { messagePrefix } from '@ethersproject/hash'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -123,6 +123,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  */
 export default class Client {
   waku: Waku
+  filter: WakuFilter
   address: string
   keys: PrivateKeyBundle
   private contacts: Set<string> // address which we have connected to
@@ -133,6 +134,7 @@ export default class Client {
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
+    this.filter = new WakuFilter(waku.libp2p)
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys

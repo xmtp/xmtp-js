@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package waku.v2;
+
+import "waku_message.proto";
+
+message FilterRequest {
+  bool subscribe = 1;
+  string topic = 2;
+  repeated ContentFilter content_filters = 3;
+
+  message ContentFilter {
+    string content_topic = 1;
+  }
+}
+
+message MessagePush {
+  repeated WakuMessage messages = 1;
+}
+
+message FilterRPC {
+  string request_id = 1;
+  FilterRequest request = 2;
+  MessagePush push = 3;
+}

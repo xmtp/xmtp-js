@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package waku.v2;
+
+message WakuMessage {
+  optional bytes payload = 1;
+  optional string content_topic = 2;
+  optional uint32 version = 3;
+  optional double timestamp_deprecated  = 4;
+  optional sint64 timestamp  = 10;
+}
