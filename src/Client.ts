@@ -134,7 +134,6 @@ export default class Client {
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
-    this.filter = new WakuFilter(waku.libp2p)
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
@@ -142,6 +141,7 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
+    this.filter = new WakuFilter(this)
   }
 
   /**

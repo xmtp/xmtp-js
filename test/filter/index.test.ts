@@ -31,76 +31,67 @@ describe('Waku Filter', () => {
   it('creates a subscription', async () => {
     let messageCount = 0
     const messageText = 'Filtering works!'
-    const callback = (msg: WakuMessage): void => {
-      log('Got a message')
-      messageCount++
-      expect(msg.contentTopic).toBe(TestContentTopic)
-      expect(msg.payloadAsUtf8).toBe(messageText)
-    }
-    await client.filter.subscribe(
-      { contentTopics: [TestContentTopic] },
-      callback
-    )
+    const results = await client.filter.subscribe({
+      contentTopics: [TestContentTopic],
+    })
     const message = await WakuMessage.fromUtf8String(
       messageText,
       TestContentTopic
     )
+    await sleep(100)
     client.waku.relay.send(message)
-    while (messageCount === 0) {
-      await sleep(250)
+    log('Sent a message to the stream')
+    for await (const msg of results) {
+      messageCount++
+      log('Received one message')
+      expect(msg.payloadAsUtf8).toBe(messageText)
+      break
     }
     expect(messageCount).toBe(1)
   })
 
   it('handles multiple messages', async () => {
-    let messageCount = 0
-    const callback = (msg: WakuMessage): void => {
-      messageCount++
-      expect(msg.contentTopic).toBe(TestContentTopic)
-    }
-    await client.filter.subscribe(
-      { contentTopics: [TestContentTopic] },
-      callback
-    )
-    client.waku.relay.send(
+    const results = await client.filter.subscribe({
+      contentTopics: [TestContentTopic],
+    })
+    // Ensuring that iteration happens before the messages are sent
+    ;(async () => {
+      await sleep(50)
+      await client.waku.relay.send(
+        await WakuMessage.fromUtf8String('Filtering works!', TestContentTopic)
+      )
+      await sleep(50)
+      await client.waku.relay.send(
+        await WakuMessage.fromUtf8String(
+          'Filtering still works!',
+          TestContentTopic
+        )
+      )
+      log('Sent two messages')
+    })()
+
+    const result1 = await results.next()
+    const result2 = await results.next()
+    expect(result2.value.payloadAsUtf8).toBe('Filtering still works!')
+  })
+
+  it('handles multiple messages successively', async () => {
+    const results = await client.filter.subscribe({
+      contentTopics: [TestContentTopic],
+    })
+    await sleep(50)
+    const result1Promise = results.next()
+    await client.waku.relay.send(
       await WakuMessage.fromUtf8String('Filtering works!', TestContentTopic)
     )
-    client.waku.relay.send(
+    const result1 = await result1Promise
+    await client.waku.relay.send(
       await WakuMessage.fromUtf8String(
         'Filtering still works!',
         TestContentTopic
       )
     )
-    while (messageCount < 2) {
-      await sleep(250)
-    }
-    expect(messageCount).toBe(2)
-  })
-
-  it('unsubscribes', async () => {
-    let messageCount = 0
-    const callback = (): void => {
-      messageCount++
-    }
-    const unsubscribe = await client.filter.subscribe(
-      { contentTopics: [TestContentTopic] },
-      callback
-    )
-    client.waku.relay.send(
-      await WakuMessage.fromUtf8String(
-        'This should be received',
-        TestContentTopic
-      )
-    )
-    await sleep(100)
-    await unsubscribe()
-    client.waku.relay.send(
-      await WakuMessage.fromUtf8String(
-        'This should not be received',
-        TestContentTopic
-      )
-    )
-    await sleep(100)
-    expect(messageCount).toBe(1)
+    const result2 = await results.next()
+    expect(result2.value.payloadAsUtf8).toBe('Filtering still works!')
   })
 })
