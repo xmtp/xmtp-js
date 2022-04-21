@@ -64,7 +64,10 @@
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
     "cross-fetch": "^3.1.5",
+    "debug": "^4.3.4",
     "ethers": "^5.5.3",
+    "it-length-prefixed": "^7.0.1",
+    "it-pipe": "^2.0.3",
     "js-waku": "^0.18.0",
     "protobufjs": "^6.11.2"
   },

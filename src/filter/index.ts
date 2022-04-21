@@ -1,4 +1,3 @@
-import debug from 'debug'
 import Libp2p from 'libp2p'
 import { Peer, PeerId } from 'libp2p/src/peer-store'
 import {
@@ -9,12 +8,9 @@ import { DefaultPubSubTopic } from 'js-waku'
 import { WakuMessage } from 'js-waku/build/main/lib/waku_message'
 import FilterRPC from './FilterRPC'
 import FilterStream from './FilterStream'
-import { map } from 'streaming-iterables'
 import Client from '../Client'
 
 export const FilterCodec = '/xmtp/filter/1.0.0-beta1'
-
-const log = debug('waku:filter')
 
 type FilterSubscriptionOpts = {
   topic?: string
