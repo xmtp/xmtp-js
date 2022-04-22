@@ -1,9 +1,9 @@
 import lp from 'it-length-prefixed'
-import { pipe } from 'it-pipe'
 import { MuxedStream } from 'Libp2p'
 import { WakuMessage } from 'js-waku/build/main/lib/waku_message'
 import FilterRPC from './FilterRPC'
 import debug from 'debug'
+import { pipe } from 'it-pipe'
 
 const log = debug('waku:filter')
 

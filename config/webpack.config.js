@@ -27,6 +27,19 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
+    alias: {
+      // These two modules have some issues with their exports.
+      // This paves over those issues
+      // This issue seems related, although I get a different error: https://github.com/alanshaw/it-pipe/issues/12
+      'it-pipe': path.resolve(
+        __dirname,
+        '../node_modules/it-pipe/dist/src/index.js'
+      ),
+      'it-length-prefixed': path.resolve(
+        __dirname,
+        '../node_modules/it-length-prefixed/dist/src/index.js'
+      ),
+    },
     fallback: {
       assert: false,
       crypto: false,

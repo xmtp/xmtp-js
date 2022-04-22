@@ -68,6 +68,7 @@
     "ethers": "^5.5.3",
     "it-length-prefixed": "^7.0.1",
     "it-pipe": "^2.0.3",
+    "it-reader": "^5.0.1",
     "js-waku": "^0.18.0",
     "protobufjs": "^6.11.2"
   },
