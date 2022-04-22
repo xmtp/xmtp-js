@@ -17,5 +17,5 @@ services:
     environment:
       POSTGRES_PASSWORD: xmtp
     ports:
-    # Use an alternate port to not conflict with other Postgres instances
+      # Use an alternate port to not conflict with other Postgres instances
       - 6543:5432

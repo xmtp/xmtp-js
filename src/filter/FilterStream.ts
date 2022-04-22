@@ -53,8 +53,6 @@ export default class FilterStream {
     // First we send the request so that the stream is already listening when we return.
     // Admittedly, this doesn't work perfectly, since it just waits for the request to be sent but not for it to be read by the server
     // One possibility to make this better would be some sort of ack from the server
-    // eslint-disable-next-line
-    // @ts-ignore
     await pipe([request.encode()], lp.encode(), stream.sink)
     return new FilterStream(stream)
   }
