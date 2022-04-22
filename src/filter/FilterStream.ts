@@ -3,7 +3,7 @@ import { MuxedStream } from 'libp2p'
 import { WakuMessage } from 'js-waku/build/main/lib/waku_message'
 import FilterRPC from './FilterRPC'
 import debug from 'debug'
-import { pipe, Source, Transform } from 'it-pipe'
+import { pipe } from 'it-pipe'
 
 const log = debug('waku:filter')
 
