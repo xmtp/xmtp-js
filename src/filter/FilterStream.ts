@@ -33,7 +33,7 @@ export default class FilterStream {
                   if (!wakuMsg || !wakuMsg.payload) {
                     continue
                   }
-                  log('Yielding message')
+                  log('Yielding message from stream')
                   yield wakuMsg
                 }
               }
@@ -65,7 +65,6 @@ export default class FilterStream {
   }
 
   async next(): Promise<IteratorResult<WakuMessage, WakuMessage>> {
-    log('Calling next')
     return this.iter.next()
   }
 
