@@ -14,8 +14,9 @@ services:
       - 9001:9001
   postgres:
     image: postgres:13
-    container_name: postgres
     expose:
       - 5432
     environment:
       POSTGRES_PASSWORD: xmtp
+    ports:
+      - 5432:5432
