@@ -9,13 +9,10 @@ services:
       - --lightpush
       - --filter
       - --ws-port=9001
-      - --db-connection-string=postgres://postgres:xmtp@postgres:6543/postgres?sslmode=disable
+      - --db-connection-string=postgres://postgres:xmtp@postgres:5432/postgres?sslmode=disable
     ports:
       - 9001:9001
   postgres:
     image: postgres:13
     environment:
       POSTGRES_PASSWORD: xmtp
-    ports:
-      # Use an alternate port to not conflict with other Postgres instances
-      - 6543:5432
