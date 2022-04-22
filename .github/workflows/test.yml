@@ -20,5 +20,5 @@ jobs:
         uses: bufbuild/buf-setup-action@v0.6.0
       - run: npm ci
       - run: ./dev/docker-compose up -d && sleep 5
-      - run: docker ps -a
+      - run: docker ps -a && ./dev/docker-compose logs waku-node
       - run: npm run test:${{ matrix.env }}
