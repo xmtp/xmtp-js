@@ -5,6 +5,7 @@ import {
   ContentCodec,
   ContentTypeId,
   TextCodec,
+  Client,
 } from '../src'
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
@@ -64,6 +65,16 @@ export function newWallet(): Wallet {
   }
   return new Wallet(key.secp256k1.bytes)
 }
+
+export const newLocalDockerClient = (): Promise<Client> =>
+  Client.create(newWallet(), {
+    bootstrapAddrs: [
+      '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
+    ],
+  })
+
+export const newTestnetClient = (): Promise<Client> =>
+  Client.create(newWallet(), { env: 'testnet' })
 
 // A helper to replace a full Client in testing custom content types,
 // extracting just the codec registry aspect of the client.

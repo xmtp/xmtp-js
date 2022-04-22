@@ -1,20 +1,12 @@
 import { sleep } from './../../src/utils'
 import debug from 'debug'
-
-import { newWallet } from '../helpers'
 import { WakuMessage } from 'js-waku'
 import { Client } from '../../src'
+import { newLocalDockerClient } from '../helpers'
 
 const log = debug('waku:test')
 
 const TestContentTopic = '/test/1/waku-filter'
-
-const newLocalDockerClient = (): Promise<Client> =>
-  Client.create(newWallet(), {
-    bootstrapAddrs: [
-      '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
-    ],
-  })
 
 describe('Waku Filter', () => {
   let client: Client

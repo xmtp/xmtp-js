@@ -1,5 +1,11 @@
 import assert from 'assert'
-import { pollFor, newWallet, dumpStream } from './helpers'
+import {
+  pollFor,
+  newWallet,
+  dumpStream,
+  newLocalDockerClient,
+  newTestnetClient,
+} from './helpers'
 import { publishUserContact, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
@@ -12,16 +18,6 @@ import {
   ContentTypeId,
   PrivateKeyBundle,
 } from '../src'
-
-const newLocalDockerClient = (): Promise<Client> =>
-  Client.create(newWallet(), {
-    bootstrapAddrs: [
-      '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
-    ],
-  })
-
-const newTestnetClient = (): Promise<Client> =>
-  Client.create(newWallet(), { env: 'testnet' })
 
 describe('Client', () => {
   const tests = [

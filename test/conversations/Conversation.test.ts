@@ -1,5 +1,5 @@
+import { newLocalDockerClient } from './../helpers'
 import { Client } from '../../src'
-import { Wallet } from 'ethers'
 import { sleep } from '../../src/utils'
 
 const opts = {
@@ -15,8 +15,8 @@ describe('conversations', () => {
   let bob: Client
 
   beforeEach(async () => {
-    alice = await Client.create(Wallet.createRandom(), opts)
-    bob = await Client.create(Wallet.createRandom(), opts)
+    alice = await newLocalDockerClient()
+    bob = await newLocalDockerClient()
   })
 
   afterEach(async () => {
