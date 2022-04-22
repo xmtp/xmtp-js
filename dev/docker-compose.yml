@@ -1,3 +1,6 @@
+version: '3'
+networks:
+  xmtp:
 services:
   waku-node:
     image: xmtp/node-go:dev
@@ -12,11 +15,13 @@ services:
       - --db-connection-string=postgres://postgres:xmtp@postgres:5432/postgres?sslmode=disable
     ports:
       - 9001:9001
+    networks:
+      - xmtp
   postgres:
     image: postgres:13
     expose:
       - 5432
     environment:
       POSTGRES_PASSWORD: xmtp
-    ports:
-      - 5432:5432
+    networks:
+      - xmtp
