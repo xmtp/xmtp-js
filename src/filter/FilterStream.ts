@@ -1,9 +1,9 @@
 import lp from 'it-length-prefixed'
-import { MuxedStream } from 'Libp2p'
+import { MuxedStream } from 'libp2p'
 import { WakuMessage } from 'js-waku/build/main/lib/waku_message'
 import FilterRPC from './FilterRPC'
 import debug from 'debug'
-import { pipe } from 'it-pipe'
+import { pipe, Source, Transform } from 'it-pipe'
 
 const log = debug('waku:filter')
 
@@ -16,13 +16,15 @@ export default class FilterStream {
 
   constructor(stream: MuxedStream) {
     this.stream = stream
-    // This will run until the iterator is closed
-    this.iter = pipe(
-      // eslint-disable-next-line
-      // @ts-ignore
+    // Iterator will run until the iterator is closed
+
+    // I'm having frustrating problems with the typing here
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.iter = pipe<any, any, any>(
       stream.source,
       lp.decode(),
-      (source: AsyncIterable<Buffer>): AsyncGenerator<WakuMessage> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (source: any): AsyncGenerator<WakuMessage> => {
         return (async function* () {
           for await (const bytes of source) {
             try {
