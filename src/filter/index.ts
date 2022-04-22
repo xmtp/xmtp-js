@@ -19,7 +19,11 @@ type FilterSubscriptionOpts = {
 }
 
 type FilterCallback = (msg: WakuMessage) => void | Promise<void>
-
+/**
+ * WakuFilter implements a variation of the Waku Filter spec
+ * The modifications include returning results in the same stream the filter was requested in
+ * https://rfc.vac.dev/spec/12/
+ */
 export class WakuFilter {
   private subscriptions: {
     [requestId: string]: FilterCallback
@@ -34,6 +38,9 @@ export class WakuFilter {
     this.libp2p = client.waku.libp2p
   }
 
+  /**
+   * Create a subscription, given some predicates, and receive an Async Iterable stream of messages
+   */
   async subscribe(opts: FilterSubscriptionOpts): Promise<FilterStream> {
     const topic = opts.topic || DefaultPubSubTopic
     const contentFilters = opts.contentTopics.map((contentTopic) => ({

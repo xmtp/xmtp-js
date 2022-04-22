@@ -7,6 +7,9 @@ import debug from 'debug'
 
 const log = debug('waku:filter')
 
+/**
+ * FilterStream converts a MuxedStream into an async iterable of WakuMessages
+ */
 export default class FilterStream {
   stream: MuxedStream
   iter: AsyncGenerator<WakuMessage>
@@ -15,11 +18,12 @@ export default class FilterStream {
     this.stream = stream
     // This will run until the iterator is closed
     this.iter = pipe(
+      // eslint-disable-next-line
+      // @ts-ignore
       stream.source,
       lp.decode(),
       (source: AsyncIterable<Buffer>): AsyncGenerator<WakuMessage> => {
         return (async function* () {
-          log('Starting iterator')
           for await (const bytes of source) {
             try {
               const res = FilterRPC.decode(bytes.slice())
@@ -49,6 +53,8 @@ export default class FilterStream {
     // First we send the request so that the stream is already listening when we return.
     // Admittedly, this doesn't work perfectly, since it just waits for the request to be sent but not for it to be read by the server
     // One possibility to make this better would be some sort of ack from the server
+    // eslint-disable-next-line
+    // @ts-ignore
     await pipe([request.encode()], lp.encode(), stream.sink)
     return new FilterStream(stream)
   }
