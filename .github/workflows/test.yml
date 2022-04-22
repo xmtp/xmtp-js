@@ -20,6 +20,5 @@ jobs:
         uses: bufbuild/buf-setup-action@v0.6.0
       - run: ./dev/docker-compose up -d postgres
       - run: ./dev/docker-compose up -d waku-node
-      - run: docker ps -a && ./dev/docker-compose logs waku-node
       - run: npm ci
       - run: npm run test:${{ matrix.env }}
