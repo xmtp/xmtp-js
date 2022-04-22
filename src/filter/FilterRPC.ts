@@ -7,7 +7,7 @@ export type ContentFilter = {
   contentTopic: string
 }
 
-export class FilterRPC {
+export default class FilterRPC {
   public proto: proto.FilterRPC
   constructor(protoFilter: proto.FilterRPC) {
     this.proto = protoFilter

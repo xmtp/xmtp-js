@@ -5,35 +5,29 @@ import {
   selectRandomPeer,
 } from 'js-waku/build/main/lib/select_peer'
 import { DefaultPubSubTopic } from 'js-waku'
-import { WakuMessage } from 'js-waku/build/main/lib/waku_message'
 import FilterRPC from './FilterRPC'
 import FilterStream from './FilterStream'
 import Client from '../Client'
 
 export const FilterCodec = '/xmtp/filter/1.0.0-beta1'
 
+// Options to filter the results
 type FilterSubscriptionOpts = {
   topic?: string
   peerId?: PeerId
   contentTopics: string[]
 }
 
-type FilterCallback = (msg: WakuMessage) => void | Promise<void>
 /**
  * WakuFilter implements a variation of the Waku Filter spec
  * The modifications include returning results in the same stream the filter was requested in
  * https://rfc.vac.dev/spec/12/
  */
 export class WakuFilter {
-  private subscriptions: {
-    [requestId: string]: FilterCallback
-  }
-
   client: Client
   libp2p: Libp2p
 
   constructor(client: Client) {
-    this.subscriptions = {}
     this.client = client
     this.libp2p = client.waku.libp2p
   }
