@@ -19,12 +19,10 @@ export default class FilterStream {
     // Iterator will run until the iterator is closed
 
     // I'm having frustrating problems with the typing here
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.iter = pipe<any, any, any>(
+    this.iter = pipe(
       stream.source,
       lp.decode(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (source: any): AsyncGenerator<WakuMessage> => {
+      (source: AsyncIterable<Uint8Array>): AsyncGenerator<WakuMessage> => {
         return (async function* () {
           for await (const bytes of source) {
             try {

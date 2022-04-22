@@ -66,8 +66,8 @@
     "cross-fetch": "^3.1.5",
     "debug": "^4.3.4",
     "ethers": "^5.5.3",
-    "it-length-prefixed": "^7.0.1",
-    "it-pipe": "^2.0.3",
+    "it-length-prefixed": "^5.0.3",
+    "it-pipe": "^1.1.0",
     "it-reader": "^5.0.1",
     "js-waku": "^0.18.0",
     "protobufjs": "^6.11.2"
