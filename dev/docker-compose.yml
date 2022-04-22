@@ -14,5 +14,7 @@ services:
       - 9001:9001
   postgres:
     image: postgres:13
+    expose:
+      - 5432
     environment:
       POSTGRES_PASSWORD: xmtp
