@@ -4,8 +4,6 @@ If you're seeing this document, you an early contributor to the development and 
 
 >If you wish to contribute, please [apply for Early Access](https://xmtp.typeform.com/yojTJarb) so that we can provide you with access to our Discord and Discourse forum.
 
-::::
-
 ## ❔ Questions
 
 Questions can be asked in our Discord #developers channel.
