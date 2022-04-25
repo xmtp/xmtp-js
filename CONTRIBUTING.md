@@ -2,7 +2,7 @@
 
 If you're seeing this document, you an early contributor to the development and success of XMTP. We welcome your questions, feedback, suggestions, and code contributions.
 
->If you wish to contribute, please [apply for Early Access](https://xmtp.typeform.com/yojTJarb) so that we can provide you with access to our Discord and Discourse forum.
+> If you wish to contribute, please [apply for Early Access](https://xmtp.typeform.com/yojTJarb) so that we can provide you with access to our Discord and Discourse forum.
 
 ## ❔ Questions
 
