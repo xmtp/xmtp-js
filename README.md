@@ -6,7 +6,7 @@
 
 ![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
 
-**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.com) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
+**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.com) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react). For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
 
 ## 🚧 **XMTP-JS is in active development** 🚧
 
