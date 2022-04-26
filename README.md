@@ -252,35 +252,3 @@ This is used to establish a shared secret and negotiate a topic to communicate o
 The introduction topics allow the participants to reconstruct the list of conversations that they participate(d) in.
 
 The conversation topics carry the contents of the conversations.
-
-## Developing
-
-### Auto-releasing and commit conventions
-
-A new version of this package will be automatically published whenever there is a merge to the `main` branch. Specifically, new GitHub releases and tags will be created, and a new NPM package version will be published. The release version increment type is derived from the commits that were bundled in the merge to `main`, using [semantic-release commit message conventions](https://github.com/semantic-release/semantic-release#commit-message-format).
-
-The table below shows example commits and the resulting release type:
-
-<!-- prettier-ignore-start -->
-| Commit message                                                                                                                                                                                   | Release type                                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `fix(pencil): stop graphite breaking when too much pressure applied`                                                                                                                             | ~~Patch~~ Fix Release                                                                                           |
-| `feat(pencil): add 'graphiteWidth' option`                                                                                                                                                       | ~~Minor~~ Feature Release                                                                                       |
-| `perf(pencil): remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | ~~Major~~ Breaking Release <br /> (Note that the `BREAKING CHANGE:` token must be in the footer of the commit) |
-<!-- prettier-ignore-end -->
-
-This is currently configured to use the [Angular Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format).
-
-### Prerequisites
-
-#### Node
-
-Please make sure you have a Node version compatible with that specified in the root `.nvmrc` file. We recommend using `nvm` to manage local node versions - find install instructions appropriate for your system [here](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-#### Buf
-
-You will need to install [Buf](https://buf.build/) in your environment in order to `npm build` this package from source.
-
-```bash
-brew install bufbuild/buf/buf
-```
