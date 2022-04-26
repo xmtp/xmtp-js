@@ -10,7 +10,7 @@ import { sha256 } from './encryption'
 // PublicKeys can be generated through PrivateKey.generate()
 export default class PublicKey implements proto.PublicKey {
   timestamp: number
-  secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompresed // eslint-disable-line camelcase
+  secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompressed // eslint-disable-line camelcase
   signature?: Signature
 
   constructor(obj: proto.PublicKey) {
