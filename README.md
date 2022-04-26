@@ -1,22 +1,27 @@
-# XMTP JS client library
+# XMTP-JS
 
 ![Test](https://github.com/xmtp/xmtp-js/actions/workflows/test.yml/badge.svg)
 ![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
 ![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
 
-## Disclaimer: Pre-Stable Alpha
+![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
 
-The XMTP protocol is in the early stages of development. This pre-stable alpha library is being provided for evaluation, feedback, and community contribution. It has not undergone a formal security audit and is not intended for production applications. Significant breaking revisions should be expected for all pre-stable alpha software.
+**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.com) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react). For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
+
+## 🚧 **XMTP-JS is in active development** 🚧
+
+> ![Security](https://img.shields.io/badge/security-unaudited-orange) ![Stability](https://img.shields.io/badge/code%20stability-low-orange) ![Message Retention](https://img.shields.io/badge/message%20retention-7%20days-orange)
+>
+> This pre-stable development release is publicly available for evaluation, feedback, and community contribution. All wallets and messages are forcibly deleted from the development network on Mondays.
+>
+> - **DO NOT** use this package version in production.
+> - **DO NOT** share sensitive information via the development network.
+> - **DO** expect significant, frequent breaking revisions.
+> - **DO** contribute issues and PRs in this repo. The core team has limited bandwidth and may need a few days to review.
 
 ## Installation
 
-This library is not yet public on npm. It can be installed from this repo to your project directory using `npm install xmtp/xmtp-js`, or from npm using a private access token:
-
-```bash
-# In your project directory
-
-export NPM_TOKEN=$YOUR_NPM_TOKEN
-echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+```
 npm install @xmtp/xmtp-js
 ```
 
@@ -175,8 +180,6 @@ for (const conversation of await xmtp.conversations.list()) {
   const messagesInConversation = await conversation.messages(opts)
 }
 ```
-
-_Pre-Stable Alpha Limitation:_ After 7 days, messages are deleted from the network and cannot be retrieved. We also forcibly wipe the playnet on Mondays.
 
 #### Listen for new messages in a conversation
 
