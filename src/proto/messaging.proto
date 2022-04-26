@@ -15,13 +15,13 @@ message Signature {
 // PublicKey represents a generalized public key,
 // defined as a union to support cryptographic algorithm agility.
 message PublicKey {
-    message Secp256k1Uncompresed {
+    message Secp256k1Uncompressed {
       bytes bytes = 1; // uncompressed point with prefix (0x04) [ P || X || Y ], 65 bytes
     }
     uint64 timestamp = 1;
     optional Signature signature = 2;
     oneof union {
-        Secp256k1Uncompresed secp256k1Uncompressed = 3;
+        Secp256k1Uncompressed secp256k1Uncompressed = 3;
     }
 }
 

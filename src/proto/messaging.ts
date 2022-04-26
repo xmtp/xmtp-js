@@ -59,10 +59,10 @@ export interface Signature_ECDSACompact {
 export interface PublicKey {
   timestamp: number
   signature?: Signature | undefined
-  secp256k1Uncompressed: PublicKey_Secp256k1Uncompresed | undefined
+  secp256k1Uncompressed: PublicKey_Secp256k1Uncompressed | undefined
 }
 
-export interface PublicKey_Secp256k1Uncompresed {
+export interface PublicKey_Secp256k1Uncompressed {
   /** uncompressed point with prefix (0x04) [ P || X || Y ], 65 bytes */
   bytes: Uint8Array
 }
@@ -310,7 +310,7 @@ export const PublicKey = {
       Signature.encode(message.signature, writer.uint32(18).fork()).ldelim()
     }
     if (message.secp256k1Uncompressed !== undefined) {
-      PublicKey_Secp256k1Uncompresed.encode(
+      PublicKey_Secp256k1Uncompressed.encode(
         message.secp256k1Uncompressed,
         writer.uint32(26).fork()
       ).ldelim()
@@ -332,10 +332,8 @@ export const PublicKey = {
           message.signature = Signature.decode(reader, reader.uint32())
           break
         case 3:
-          message.secp256k1Uncompressed = PublicKey_Secp256k1Uncompresed.decode(
-            reader,
-            reader.uint32()
-          )
+          message.secp256k1Uncompressed =
+            PublicKey_Secp256k1Uncompressed.decode(reader, reader.uint32())
           break
         default:
           reader.skipType(tag & 7)
@@ -352,7 +350,7 @@ export const PublicKey = {
         ? Signature.fromJSON(object.signature)
         : undefined,
       secp256k1Uncompressed: isSet(object.secp256k1Uncompressed)
-        ? PublicKey_Secp256k1Uncompresed.fromJSON(object.secp256k1Uncompressed)
+        ? PublicKey_Secp256k1Uncompressed.fromJSON(object.secp256k1Uncompressed)
         : undefined,
     }
   },
@@ -367,7 +365,7 @@ export const PublicKey = {
         : undefined)
     message.secp256k1Uncompressed !== undefined &&
       (obj.secp256k1Uncompressed = message.secp256k1Uncompressed
-        ? PublicKey_Secp256k1Uncompresed.toJSON(message.secp256k1Uncompressed)
+        ? PublicKey_Secp256k1Uncompressed.toJSON(message.secp256k1Uncompressed)
         : undefined)
     return obj
   },
@@ -384,7 +382,7 @@ export const PublicKey = {
     message.secp256k1Uncompressed =
       object.secp256k1Uncompressed !== undefined &&
       object.secp256k1Uncompressed !== null
-        ? PublicKey_Secp256k1Uncompresed.fromPartial(
+        ? PublicKey_Secp256k1Uncompressed.fromPartial(
             object.secp256k1Uncompressed
           )
         : undefined
@@ -392,13 +390,13 @@ export const PublicKey = {
   },
 }
 
-function createBasePublicKey_Secp256k1Uncompresed(): PublicKey_Secp256k1Uncompresed {
+function createBasePublicKey_Secp256k1Uncompressed(): PublicKey_Secp256k1Uncompressed {
   return { bytes: new Uint8Array() }
 }
 
-export const PublicKey_Secp256k1Uncompresed = {
+export const PublicKey_Secp256k1Uncompressed = {
   encode(
-    message: PublicKey_Secp256k1Uncompresed,
+    message: PublicKey_Secp256k1Uncompressed,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.bytes.length !== 0) {
@@ -410,10 +408,10 @@ export const PublicKey_Secp256k1Uncompresed = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number
-  ): PublicKey_Secp256k1Uncompresed {
+  ): PublicKey_Secp256k1Uncompressed {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBasePublicKey_Secp256k1Uncompresed()
+    const message = createBasePublicKey_Secp256k1Uncompressed()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -428,7 +426,7 @@ export const PublicKey_Secp256k1Uncompresed = {
     return message
   },
 
-  fromJSON(object: any): PublicKey_Secp256k1Uncompresed {
+  fromJSON(object: any): PublicKey_Secp256k1Uncompressed {
     return {
       bytes: isSet(object.bytes)
         ? bytesFromBase64(object.bytes)
@@ -436,7 +434,7 @@ export const PublicKey_Secp256k1Uncompresed = {
     }
   },
 
-  toJSON(message: PublicKey_Secp256k1Uncompresed): unknown {
+  toJSON(message: PublicKey_Secp256k1Uncompressed): unknown {
     const obj: any = {}
     message.bytes !== undefined &&
       (obj.bytes = base64FromBytes(
@@ -445,10 +443,10 @@ export const PublicKey_Secp256k1Uncompresed = {
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<PublicKey_Secp256k1Uncompresed>, I>>(
+  fromPartial<I extends Exact<DeepPartial<PublicKey_Secp256k1Uncompressed>, I>>(
     object: I
-  ): PublicKey_Secp256k1Uncompresed {
-    const message = createBasePublicKey_Secp256k1Uncompresed()
+  ): PublicKey_Secp256k1Uncompressed {
+    const message = createBasePublicKey_Secp256k1Uncompressed()
     message.bytes = object.bytes ?? new Uint8Array()
     return message
   },
