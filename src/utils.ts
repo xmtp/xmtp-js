@@ -52,7 +52,7 @@ export async function publishUserContact(
   keys: PublicKeyBundle,
   address: string
 ): Promise<void> {
-  return waku.relay.send(
+  await waku.lightPush.push(
     await WakuMessage.fromBytes(keys.toBytes(), buildUserContactTopic(address))
   )
 }
