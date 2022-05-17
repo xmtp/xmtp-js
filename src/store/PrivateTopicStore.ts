@@ -28,7 +28,7 @@ export default class NetworkStore implements Store {
 
   async set(key: string, value: Buffer): Promise<void> {
     const keys = Uint8Array.from(value)
-    await this.waku.relay.send(
+    await this.waku.lightPush.push(
       await WakuMessage.fromBytes(keys, this.buildTopic(key))
     )
   }

@@ -56,6 +56,7 @@ describe('PrivateTopicStore', () => {
         expect(empty).toBeNull()
 
         await store.set(key, Buffer.from(value))
+        await sleep(100)
         const full = await store.get(key)
 
         expect(full).toBeDefined()

@@ -17,6 +17,7 @@ describe('conversations', () => {
   beforeEach(async () => {
     alice = await Client.create(Wallet.createRandom(), opts)
     bob = await Client.create(Wallet.createRandom(), opts)
+    await sleep(100)
   })
 
   afterEach(async () => {
