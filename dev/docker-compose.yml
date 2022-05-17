@@ -18,4 +18,3 @@ services:
     image: postgres:13
     environment:
       POSTGRES_PASSWORD: xmtp
-
