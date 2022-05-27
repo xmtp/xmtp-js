@@ -53,7 +53,7 @@ describe('conversations', () => {
     )
 
     // Start the stream before sending the message to ensure delivery
-    const stream = aliceConversation.streamMessages()
+    const stream = await aliceConversation.streamMessages()
     await bobConversation.send('gm')
 
     let numMessages = 0

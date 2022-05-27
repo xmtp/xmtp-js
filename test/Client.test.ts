@@ -72,10 +72,10 @@ describe('Client', () => {
       })
 
       it('send, stream and list messages', async () => {
-        const bobIntros = bob.streamIntroductionMessages()
-        const bobAlice = bob.streamConversationMessages(alice.address)
-        const aliceIntros = alice.streamIntroductionMessages()
-        const aliceBob = alice.streamConversationMessages(bob.address)
+        const bobIntros = await bob.streamIntroductionMessages()
+        const bobAlice = await bob.streamConversationMessages(alice.address)
+        const aliceIntros = await alice.streamIntroductionMessages()
+        const aliceBob = await alice.streamConversationMessages(bob.address)
 
         // alice sends intro
         await alice.sendMessage(bob.address, 'hi bob!')
@@ -156,8 +156,8 @@ describe('Client', () => {
         )
       })
       it('messaging yourself', async () => {
-        const convo = alice.streamConversationMessages(alice.address)
-        const intro = alice.streamIntroductionMessages()
+        const convo = await alice.streamConversationMessages(alice.address)
+        const intro = await alice.streamIntroductionMessages()
         const messages = ['Hey me!', 'Yo!', 'Over and out']
         for (let message of messages) {
           await alice.sendMessage(alice.address, message)
@@ -173,7 +173,7 @@ describe('Client', () => {
       })
 
       it('for-await-of with stream', async () => {
-        const convo = alice.streamConversationMessages(bob.address)
+        const convo = await alice.streamConversationMessages(bob.address)
         let count = 5
         await alice.sendMessage(bob.address, 'msg ' + count)
         for await (const msg of convo) {
@@ -204,7 +204,7 @@ describe('Client', () => {
       })
 
       it('can send compressed messages', async () => {
-        const convo = bob.streamConversationMessages(alice.address)
+        const convo = await bob.streamConversationMessages(alice.address)
         const content = 'A'.repeat(111)
         await alice.sendMessage(bob.address, content, {
           contentType: ContentTypeText,
@@ -217,7 +217,7 @@ describe('Client', () => {
       })
 
       it('can send custom content type', async () => {
-        const stream = bob.streamConversationMessages(alice.address)
+        const stream = await bob.streamConversationMessages(alice.address)
         const key = PrivateKey.generate().publicKey
 
         // alice doesn't recognize the type
@@ -268,7 +268,7 @@ describe('Client', () => {
       })
 
       it('filters out spoofed messages', async () => {
-        const stream = bob.streamConversationMessages(alice.address)
+        const stream = await bob.streamConversationMessages(alice.address)
         // mallory takes over alice's client
         const malloryWallet = newWallet()
         const mallory = await PrivateKeyBundle.generate(malloryWallet)

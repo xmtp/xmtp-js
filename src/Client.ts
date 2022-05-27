@@ -353,17 +353,17 @@ export default class Client {
     return message
   }
 
-  streamIntroductionMessages(): Stream<Message> {
-    return new Stream<Message>(
+  streamIntroductionMessages(): Promise<Stream<Message>> {
+    return Stream.create<Message>(
       this,
       buildUserIntroTopic(this.address),
       noTransformation
     )
   }
 
-  streamConversationMessages(peerAddress: string): Stream<Message> {
+  streamConversationMessages(peerAddress: string): Promise<Stream<Message>> {
     const topic = buildDirectMessageTopic(peerAddress, this.address)
-    return new Stream<Message>(
+    return Stream.create<Message>(
       this,
       topic,
       noTransformation,

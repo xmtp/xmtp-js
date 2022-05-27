@@ -43,7 +43,7 @@ describe('conversations', () => {
   })
 
   it('streams conversations', async () => {
-    const stream = alice.conversations.stream()
+    const stream = await alice.conversations.stream()
     const conversation = await alice.conversations.newConversation(bob.address)
     await conversation.send('hi bob')
 

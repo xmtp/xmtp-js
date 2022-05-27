@@ -26,7 +26,7 @@ export default class Conversation {
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Stream<Message> {
+  streamMessages(): Promise<Stream<Message>> {
     return this.client.streamConversationMessages(this.peerAddress)
   }
 

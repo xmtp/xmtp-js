@@ -71,7 +71,7 @@ const messages = await conversation.messages()
 // Send a message
 await conversation.send('gm')
 // Listen for new messages in the conversation
-for await (const message of conversation.streamMessages()) {
+for await (const message of await conversation.streamMessages()) {
   console.log(`[${message.senderAddress}]: ${message.text}`)
 }
 ```
@@ -134,7 +134,7 @@ You can also listen for new conversations being started in real-time. This will 
 _Warning: this stream will continue infinitely. To end the stream you can either break from the loop, or call `await stream.return()`_
 
 ```ts
-const stream = xmtp.conversations.stream()
+const stream = await xmtp.conversations.stream()
 for await (const conversation of stream) {
   console.log(`New conversation started with ${conversation.peerAddress}`)
   // Say hello to your new friend
@@ -193,7 +193,7 @@ The Stream returned by the `stream` methods is an asynchronous iterator and as s
 const conversation = await xmtp.conversations.newConversation(
   '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 )
-for await (const message of conversation.streamMessages()) {
+for await (const message of await conversation.streamMessages()) {
   if (message.senderAddress === xmtp.address) {
     // This message was sent from me
     continue
