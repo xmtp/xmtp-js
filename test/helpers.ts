@@ -5,9 +5,13 @@ import {
   ContentCodec,
   ContentTypeId,
   TextCodec,
+  Client,
 } from '../src'
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
+
+const LOCAL_DOCKER_MULTIADDR =
+  '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA'
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
@@ -89,3 +93,11 @@ export class CodecRegistry {
     return this._codecs.get(key)
   }
 }
+
+export const newLocalDockerClient = (): Promise<Client> =>
+  Client.create(newWallet(), {
+    bootstrapAddrs: [LOCAL_DOCKER_MULTIADDR],
+  })
+
+export const newDevClient = (): Promise<Client> =>
+  Client.create(newWallet(), { env: 'dev' })
