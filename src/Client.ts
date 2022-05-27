@@ -35,6 +35,7 @@ type Nodes = { [k: string]: string }
 
 type NodesList = {
   testnet: Nodes
+  dev: Nodes
 }
 
 // Default maximum allowed content size
