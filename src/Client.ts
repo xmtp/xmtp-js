@@ -105,7 +105,7 @@ export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
-    env: 'testnet',
+    env: 'dev',
     waitForPeersTimeoutMs: 10000,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
