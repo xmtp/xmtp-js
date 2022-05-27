@@ -62,6 +62,16 @@ export default class Stream<T> {
     }
   }
 
+  private async start(): Promise<void> {
+    if (!this.callback) {
+      throw new Error('Missing callback for stream')
+    }
+    this.unsubscribeFn = await this.client.waku.filter.subscribe(
+      this.callback,
+      [this.topic]
+    )
+  }
+
   static async create<T>(
     client: Client,
     topic: string,
@@ -69,13 +79,7 @@ export default class Stream<T> {
     messageFilter?: MessageFilter
   ): Promise<Stream<T>> {
     const stream = new Stream(client, topic, messageTransformer, messageFilter)
-    if (!stream.callback) {
-      throw new Error('Missing callback for stream')
-    }
-    stream.unsubscribeFn = await client.waku.filter.subscribe(stream.callback, [
-      topic,
-    ])
-
+    await stream.start()
     return stream
   }
 
