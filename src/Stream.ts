@@ -21,6 +21,8 @@ export default class Stream<T> {
   // if callback is undefined the stream is closed
   callback: ((wakuMsg: WakuMessage) => Promise<void>) | undefined
 
+  unsubscribeFn?: () => Promise<void>
+
   constructor(
     client: Client,
     topic: string,
@@ -32,7 +34,6 @@ export default class Stream<T> {
     this.topic = topic
     this.client = client
     this.callback = this.newMessageCallback(messageTransformer, messageFilter)
-    client.waku.relay.addObserver(this.callback, [topic])
   }
 
   // returns new closure to handle incoming Waku messages
@@ -61,6 +62,27 @@ export default class Stream<T> {
     }
   }
 
+  private async start(): Promise<void> {
+    if (!this.callback) {
+      throw new Error('Missing callback for stream')
+    }
+    this.unsubscribeFn = await this.client.waku.filter.subscribe(
+      this.callback,
+      [this.topic]
+    )
+  }
+
+  static async create<T>(
+    client: Client,
+    topic: string,
+    messageTransformer: MessageTransformer<T>,
+    messageFilter?: MessageFilter
+  ): Promise<Stream<T>> {
+    const stream = new Stream(client, topic, messageTransformer, messageFilter)
+    await stream.start()
+    return stream
+  }
+
   // To make Stream proper Async Iterable
   [Symbol.asyncIterator](): AsyncIterableIterator<T> {
     return this
@@ -74,7 +96,9 @@ export default class Stream<T> {
     if (!this.callback) {
       return { value: undefined, done: true }
     }
-    this.client.waku.relay.deleteObserver(this.callback, [this.topic])
+    if (this.unsubscribeFn) {
+      await this.unsubscribeFn()
+    }
     this.callback = undefined
     this.resolvers.forEach((resolve) =>
       resolve({ value: undefined, done: true })

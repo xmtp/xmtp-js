@@ -1,12 +1,6 @@
+import { newLocalDockerClient } from './../helpers'
 import { Client } from '../../src'
-import { Wallet } from 'ethers'
 import { sleep } from '../../src/utils'
-
-const opts = {
-  bootstrapAddrs: [
-    '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
-  ],
-}
 
 jest.setTimeout(20000)
 
@@ -15,8 +9,8 @@ describe('conversations', () => {
   let bob: Client
 
   beforeEach(async () => {
-    alice = await Client.create(Wallet.createRandom(), opts)
-    bob = await Client.create(Wallet.createRandom(), opts)
+    alice = await newLocalDockerClient()
+    bob = await newLocalDockerClient()
     await sleep(100)
   })
 
@@ -43,7 +37,7 @@ describe('conversations', () => {
   })
 
   it('streams conversations', async () => {
-    const stream = alice.conversations.stream()
+    const stream = await alice.conversations.stream()
     const conversation = await alice.conversations.newConversation(bob.address)
     await conversation.send('hi bob')
 

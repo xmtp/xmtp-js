@@ -49,7 +49,7 @@ export default class Conversations {
    * Will dedupe to not return the same conversation twice in the same stream.
    * Does not dedupe any other previously seen conversations
    */
-  stream(): Stream<Conversation> {
+  stream(): Promise<Stream<Conversation>> {
     const messageTransformer: MessageTransformer<Conversation> = (
       msg: Message
     ) => {
@@ -72,7 +72,7 @@ export default class Conversations {
       return true
     }
 
-    return new Stream<Conversation>(
+    return Stream.create<Conversation>(
       this.client,
       buildUserIntroTopic(this.client.address),
       messageTransformer,

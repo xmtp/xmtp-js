@@ -1,12 +1,6 @@
 import { Client } from '../../src'
-import { Wallet } from 'ethers'
 import { sleep } from '../../src/utils'
-
-const opts = {
-  bootstrapAddrs: [
-    '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
-  ],
-}
+import { newLocalDockerClient } from '../helpers'
 
 jest.setTimeout(20000)
 
@@ -15,8 +9,8 @@ describe('conversations', () => {
   let bob: Client
 
   beforeEach(async () => {
-    alice = await Client.create(Wallet.createRandom(), opts)
-    bob = await Client.create(Wallet.createRandom(), opts)
+    alice = await newLocalDockerClient()
+    bob = await newLocalDockerClient()
   })
 
   afterEach(async () => {
@@ -53,7 +47,7 @@ describe('conversations', () => {
     )
 
     // Start the stream before sending the message to ensure delivery
-    const stream = aliceConversation.streamMessages()
+    const stream = await aliceConversation.streamMessages()
     await bobConversation.send('gm')
 
     let numMessages = 0

@@ -35,6 +35,7 @@ type Nodes = { [k: string]: string }
 
 type NodesList = {
   testnet: Nodes
+  dev: Nodes
 }
 
 // Default maximum allowed content size
@@ -104,7 +105,7 @@ export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
-    env: 'testnet',
+    env: 'dev',
     waitForPeersTimeoutMs: 10000,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
@@ -353,17 +354,17 @@ export default class Client {
     return message
   }
 
-  streamIntroductionMessages(): Stream<Message> {
-    return new Stream<Message>(
+  streamIntroductionMessages(): Promise<Stream<Message>> {
+    return Stream.create<Message>(
       this,
       buildUserIntroTopic(this.address),
       noTransformation
     )
   }
 
-  streamConversationMessages(peerAddress: string): Stream<Message> {
+  streamConversationMessages(peerAddress: string): Promise<Stream<Message>> {
     const topic = buildDirectMessageTopic(peerAddress, this.address)
-    return new Stream<Message>(
+    return Stream.create<Message>(
       this,
       topic,
       noTransformation,
