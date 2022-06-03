@@ -260,7 +260,7 @@ describe('Client', () => {
           alice.sendMessage(bob.address, key, { contentType: type2 })
         ).rejects.toThrow('unknown content type xmtp.test/public-key:2.0')
 
-        stream.return()
+        await stream.return()
       })
 
       it('filters out spoofed messages', async () => {
