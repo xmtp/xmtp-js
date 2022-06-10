@@ -4,6 +4,7 @@ import {
   newWallet,
   dumpStream,
   newLocalDockerClient,
+  newLocalHostClient,
   newDevClient,
 } from './helpers'
 import { publishUserContact, sleep } from '../src/utils'
@@ -20,12 +21,19 @@ import {
 } from '../src'
 
 describe('Client', () => {
-  const tests = [
-    {
+  const tests = []
+  if (process.env.LOCAL_NODE) {
+    tests.push({
+      name: 'local host node',
+      newClient: newLocalHostClient,
+    })
+  } else {
+    tests.push({
       name: 'local docker node',
       newClient: newLocalDockerClient,
-    },
-  ]
+    })
+  }
+
   if (process.env.CI || process.env.TESTNET) {
     tests.push({
       name: 'dev',
