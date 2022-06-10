@@ -105,7 +105,7 @@ export const newLocalDockerClient = (): Promise<Client> =>
   })
 
 // client running against local node running on the host,
-// see github.com/xmtp/xmtp-node-go/xmtp-js.sh
+// see github.com/xmtp/xmtp-node-go/scripts/xmtp-js.sh
 export const newLocalHostClient = (): Promise<Client> =>
   Client.create(newWallet(), {
     bootstrapAddrs: [LOCAL_HOST_MULTIADDR],
