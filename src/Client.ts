@@ -34,8 +34,8 @@ const NODES_LIST_URL = 'https://nodes.xmtp.com/'
 type Nodes = { [k: string]: string }
 
 type NodesList = {
-  testnet: Nodes
   dev: Nodes
+  production: Nodes
 }
 
 // Default maximum allowed content size
