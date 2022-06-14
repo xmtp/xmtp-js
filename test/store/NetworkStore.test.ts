@@ -15,7 +15,7 @@ const newLocalDockerWaku = (): Promise<Waku> =>
   )
 
 const newTestnetWaku = (): Promise<Waku> =>
-  createWaku(defaultOptions({ env: 'testnet' }))
+  createWaku(defaultOptions({ env: 'dev' }))
 
 describe('PrivateTopicStore', () => {
   jest.setTimeout(10000)
@@ -27,7 +27,7 @@ describe('PrivateTopicStore', () => {
   ]
   if (process.env.CI || process.env.TESTNET) {
     tests.push({
-      name: 'testnet',
+      name: 'dev',
       newWaku: newTestnetWaku,
     })
   }
