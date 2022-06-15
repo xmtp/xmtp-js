@@ -75,6 +75,9 @@ type NetworkOptions = {
    * to declare the startup as successful or failed
    */
   waitForPeersTimeoutMs: number
+
+  // Enable the relay listener. Defaults to disabled.
+  enableRelayListener?: boolean
 }
 
 type ContentOptions = {
@@ -109,6 +112,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     waitForPeersTimeoutMs: 10000,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
+    enableRelayListener: false,
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
@@ -475,6 +479,7 @@ export async function createWaku({
   bootstrapAddrs,
   env,
   waitForPeersTimeoutMs,
+  enableRelayListener,
 }: NetworkOptions): Promise<Waku> {
   const bootstrap: BootstrapOptions = bootstrapAddrs?.length
     ? {
@@ -494,6 +499,9 @@ export async function createWaku({
     },
     bootstrap,
   })
+  if (!enableRelayListener) {
+    waku.relay.removeAllListeners()
+  }
 
   // Wait for peer connection.
   try {

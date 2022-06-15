@@ -7,7 +7,7 @@ import {
   newLocalHostClient,
   newDevClient,
 } from './helpers'
-import { publishUserContact, sleep } from '../src/utils'
+import { promiseWithTimeout, publishUserContact, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import {
@@ -19,6 +19,7 @@ import {
   ContentTypeId,
   PrivateKeyBundle,
 } from '../src'
+import { WakuMessage } from 'js-waku'
 
 describe('Client', () => {
   const tests = []
@@ -301,5 +302,42 @@ describe('ClientOptions', () => {
       keyStoreType: KeyStoreType.localStorage,
       waitForPeersTimeoutMs: 1234,
     })
+  })
+
+  it('waku relay disabled by default', async () => {
+    const alice = await Client.create(newWallet(), {})
+    const bob = await Client.create(newWallet(), {})
+    const receivedMsgPromise: Promise<WakuMessage> = new Promise((resolve) => {
+      bob.waku.relay.addObserver(resolve)
+    })
+    const topic = (Math.random() + 1).toString(36).substring(7)
+    const msg = await WakuMessage.fromUtf8String('hi', `/${topic}`, {
+      timestamp: new Date(),
+    })
+    await alice.waku.relay.send(msg)
+    expect(
+      promiseWithTimeout(100, () => receivedMsgPromise, 'no relay messages')
+    ).rejects.toEqual(new Error('no relay messages'))
+  })
+
+  it('waku relay enabled', async () => {
+    const alice = await Client.create(newWallet(), {})
+    const bob = await Client.create(newWallet(), {
+      enableRelayListener: true,
+    })
+    const receivedMsgPromise: Promise<WakuMessage> = new Promise((resolve) => {
+      bob.waku.relay.addObserver(resolve)
+    })
+    const topic = `/test/${(Math.random() + 1).toString(36).substring(7)}`
+    const msg = await WakuMessage.fromUtf8String('hi', topic, {
+      timestamp: new Date(),
+    })
+    await alice.waku.relay.send(msg)
+    const receivedMsg = await promiseWithTimeout(
+      100,
+      () => receivedMsgPromise,
+      'expected relay messages'
+    )
+    assert(receivedMsg)
   })
 })
