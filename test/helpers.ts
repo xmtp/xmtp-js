@@ -6,6 +6,7 @@ import {
   ContentTypeId,
   TextCodec,
   Client,
+  ClientOptions,
 } from '../src'
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
@@ -99,9 +100,12 @@ export class CodecRegistry {
 
 // client running against local docker node,
 // see dev/docker-compose
-export const newLocalDockerClient = (): Promise<Client> =>
+export const newLocalDockerClient = (
+  opts?: Partial<ClientOptions>
+): Promise<Client> =>
   Client.create(newWallet(), {
     bootstrapAddrs: [LOCAL_DOCKER_MULTIADDR],
+    ...opts,
   })
 
 // client running against local node running on the host,
