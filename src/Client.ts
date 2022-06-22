@@ -8,7 +8,6 @@ import {
   buildUserContactTopic,
   buildUserIntroTopic,
   promiseWithTimeout,
-  publishUserContact,
 } from './utils'
 import { sleep } from '../test/helpers'
 import Stream, { MessageFilter } from './Stream'
@@ -173,12 +172,16 @@ export default class Client {
     const keyStore = createKeyStoreFromConfig(options, wallet, waku)
     const keys = await loadOrCreateKeys(wallet, keyStore)
     const client = new Client(waku, keys)
-    options.codecs.forEach((codec) => {
-      client.registerCodec(codec)
-    })
-    client._maxContentSize = options.maxContentSize
-    await client.publishUserContact()
+    await client.init(options)
     return client
+  }
+
+  async init(options: ClientOptions): Promise<void> {
+    options.codecs.forEach((codec) => {
+      this.registerCodec(codec)
+    })
+    this._maxContentSize = options.maxContentSize
+    await this.publishUserContact()
   }
 
   // gracefully shut down the client
@@ -189,7 +192,12 @@ export default class Client {
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
-    await publishUserContact(this.waku, pub, this.address)
+    await this.sendWakuMessage(
+      await WakuMessage.fromBytes(
+        pub.toBytes(),
+        buildUserContactTopic(this.address)
+      )
+    )
   }
 
   // retrieve a key bundle from given user's contact topic
