@@ -54,7 +54,7 @@ export default class PrivateKey implements proto.PrivateKey {
   }
 
   // sign provided digest
-  async sign(digest: Uint8Array): Promise<Signature> {
+  async sign(digest: Uint8Array | string): Promise<Signature> {
     if (!this.secp256k1) {
       throw new Error('invalid private key')
     }

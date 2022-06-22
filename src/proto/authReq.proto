@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+import "messaging.proto";
+
+message V1ClientAuthRequest {
+  bytes identityKeyBytes = 1;
+  Signature walletSignature = 2;
+  bytes authDataBytes = 3;
+  Signature authSignature = 4;
+}
+
+message ClientAuthRequest {
+  oneof version {
+    V1ClientAuthRequest v1 = 1;
+  }
+}
+
+message V1ClientAuthResponse {
+  bool authSuccessful = 1;
+  string errorStr = 2;
+}
+
+message ClientAuthResponse{
+  oneof version {
+    V1ClientAuthResponse v1 = 1;
+  }
+}
+
+message AuthData {
+  string walletAddr = 1;
+  string peerId = 2;
+  uint64 timestamp = 3;
+}

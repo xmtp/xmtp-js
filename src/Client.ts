@@ -25,6 +25,7 @@ import {
 import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
+import Authenticator from './authn/Authenticator'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -40,6 +41,13 @@ type NodesList = {
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
+
+export class AuthenticationError extends Error {
+  constructor() {
+    super('Authentication Error')
+    Object.setPrototypeOf(this, AuthenticationError.prototype)
+  }
+}
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
@@ -129,6 +137,7 @@ export default class Client {
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
+  protected authenticator: Authenticator
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
@@ -139,6 +148,7 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
+    this.authenticator = Authenticator.create(waku.libp2p, keys.identityKey)
   }
 
   /**
@@ -279,7 +289,22 @@ export default class Client {
   }
 
   private async sendWakuMessage(msg: WakuMessage): Promise<void> {
-    const ack = await this.waku.lightPush.push(msg)
+    // Waku randomly selects a peer from the Peerstore to send the message to. To ensure this is the
+    // same peer to which we authenticated to, a random peer is selected at this context and then
+    // passed in to LightPush to ensure a match
+    const dstPeer = await this.waku.lightPush.randomPeer
+    if (!dstPeer) {
+      throw new Error('no peer available to send message')
+    }
+
+    if (!this.authenticator.hasAuthenticated(dstPeer.id)) {
+      const authResult = await this.authenticator.authenticate(dstPeer.id)
+      if (!authResult.isAuthenticated) {
+        throw new AuthenticationError()
+      }
+    }
+
+    const ack = await this.waku.lightPush.push(msg, { peerId: dstPeer.id })
     if (ack?.isSuccess === false) {
       throw new Error(`Failed to send message with error: ${ack?.info}`)
     }
