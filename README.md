@@ -21,7 +21,7 @@
 
 ## Installation
 
-```
+```bash
 npm install @xmtp/xmtp-js
 ```
 
