@@ -60,7 +60,7 @@ import { Wallet } from 'ethers'
 
 // You'll want to replace this with a wallet from your application
 const wallet = Wallet.createRandom()
-// Create the client with your wallet. This will connect to the XMTP testnet by default
+// Create the client with your wallet. This will connect to the XMTP development network by default
 const xmtp = await Client.create(wallet)
 // Start a conversation with Vitalik
 const conversation = await xmtp.conversations.newConversation(
@@ -97,7 +97,7 @@ The client's network connection and key storage method can be configured with th
 
 | Parameter             | Default               | Description                                                                      |
 | --------------------- | --------------------- | -------------------------------------------------------------------------------- |
-| env                   | `'testnet'`           | Connect to the specified network environment (currently only `'testnet'`).       |
+| env                   | `'dev'`               | Connect to the specified network environment.                                    |
 | waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
 | keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
 | codecs                | `[TextCodec]`         | Add codecs to support additional content types.                                  |
