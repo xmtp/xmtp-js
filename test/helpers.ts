@@ -11,7 +11,7 @@ import {
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 
-const LOCAL_DOCKER_MULTIADDR =
+export const LOCAL_DOCKER_MULTIADDR =
   '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA'
 
 const LOCAL_HOST_MULTIADDR =

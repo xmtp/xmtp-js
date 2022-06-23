@@ -25,7 +25,8 @@
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "export:testcases": "jest Export.test.ts --testPathIgnorePatterns --runInBand"
   },
   "publishConfig": {
     "access": "public"
