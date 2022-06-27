@@ -76,6 +76,14 @@ export interface PublicKeyBundle {
   preKey: PublicKey | undefined
 }
 
+export interface ContactBundleV1 {
+  keyBundle: PublicKeyBundle | undefined
+}
+
+export interface ContactBundle {
+  v1: ContactBundleV1 | undefined
+}
+
 /** ContentTypeId is used to identify the type of content stored in a Message. */
 export interface ContentTypeId {
   /** authority governing this content type */
@@ -526,6 +534,129 @@ export const PublicKeyBundle = {
     message.preKey =
       object.preKey !== undefined && object.preKey !== null
         ? PublicKey.fromPartial(object.preKey)
+        : undefined
+    return message
+  },
+}
+
+function createBaseContactBundleV1(): ContactBundleV1 {
+  return { keyBundle: undefined }
+}
+
+export const ContactBundleV1 = {
+  encode(
+    message: ContactBundleV1,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.keyBundle !== undefined) {
+      PublicKeyBundle.encode(
+        message.keyBundle,
+        writer.uint32(10).fork()
+      ).ldelim()
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ContactBundleV1 {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseContactBundleV1()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.keyBundle = PublicKeyBundle.decode(reader, reader.uint32())
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): ContactBundleV1 {
+    return {
+      keyBundle: isSet(object.keyBundle)
+        ? PublicKeyBundle.fromJSON(object.keyBundle)
+        : undefined,
+    }
+  },
+
+  toJSON(message: ContactBundleV1): unknown {
+    const obj: any = {}
+    message.keyBundle !== undefined &&
+      (obj.keyBundle = message.keyBundle
+        ? PublicKeyBundle.toJSON(message.keyBundle)
+        : undefined)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ContactBundleV1>, I>>(
+    object: I
+  ): ContactBundleV1 {
+    const message = createBaseContactBundleV1()
+    message.keyBundle =
+      object.keyBundle !== undefined && object.keyBundle !== null
+        ? PublicKeyBundle.fromPartial(object.keyBundle)
+        : undefined
+    return message
+  },
+}
+
+function createBaseContactBundle(): ContactBundle {
+  return { v1: undefined }
+}
+
+export const ContactBundle = {
+  encode(
+    message: ContactBundle,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.v1 !== undefined) {
+      ContactBundleV1.encode(message.v1, writer.uint32(10).fork()).ldelim()
+    }
+    return writer
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ContactBundle {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
+    let end = length === undefined ? reader.len : reader.pos + length
+    const message = createBaseContactBundle()
+    while (reader.pos < end) {
+      const tag = reader.uint32()
+      switch (tag >>> 3) {
+        case 1:
+          message.v1 = ContactBundleV1.decode(reader, reader.uint32())
+          break
+        default:
+          reader.skipType(tag & 7)
+          break
+      }
+    }
+    return message
+  },
+
+  fromJSON(object: any): ContactBundle {
+    return {
+      v1: isSet(object.v1) ? ContactBundleV1.fromJSON(object.v1) : undefined,
+    }
+  },
+
+  toJSON(message: ContactBundle): unknown {
+    const obj: any = {}
+    message.v1 !== undefined &&
+      (obj.v1 = message.v1 ? ContactBundleV1.toJSON(message.v1) : undefined)
+    return obj
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ContactBundle>, I>>(
+    object: I
+  ): ContactBundle {
+    const message = createBaseContactBundle()
+    message.v1 =
+      object.v1 !== undefined && object.v1 !== null
+        ? ContactBundleV1.fromPartial(object.v1)
         : undefined
     return message
   },
