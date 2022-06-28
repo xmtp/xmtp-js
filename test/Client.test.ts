@@ -176,6 +176,37 @@ describe('Client', () => {
         convos.forEach((m, i) => assert.equal(m.content, messages[i]))
       })
 
+      it('query historic messages', async () => {
+        const c1 = await testCase.newClient()
+        const c2 = await testCase.newClient()
+        await c1.getUserContactFromNetwork(c2.address)
+
+        const msgCount = 10
+        const now = new Date().getTime()
+        const tenWeeksAgo = now - 1000 * 60 * 60 * 24 * 10
+        for (let i = 0; i < msgCount; i++) {
+          await c1.sendMessage(c2.address, 'msg' + (i + 1), {
+            timestamp: new Date(tenWeeksAgo + i * 1000),
+          })
+        }
+
+        const msgs = await pollFor(
+          async () => {
+            const msgs = await c2.listConversationMessages(c1.address)
+            assert.equal(msgs.length, msgCount)
+            return msgs
+          },
+          5000,
+          500
+        )
+
+        assert.equal(msgs.length, msgCount)
+        assert.deepEqual(
+          msgs.map((msg) => msg.error || msg.content),
+          [...Array(msgCount).keys()].map((i) => 'msg' + (i + 1))
+        )
+      })
+
       it('for-await-of with stream', async () => {
         const convo = await alice.streamConversationMessages(bob.address)
         let count = 5
