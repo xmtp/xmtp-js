@@ -10,11 +10,11 @@
 
 `xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript and React applications.
 
-`xmtp-js` is publicly available for building production apps, evaluation, feedback, and community contribution. It has not undergone a formal security audit.
-
 Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
 
 For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app](https://github.com/xmtp/example-chat-react).
+
+`xmtp-js` has not undergone a formal security audit.
 
 To learn more about XMTP and get answers to frequently asked questions, see <https://docs.xmtp.org/>.
 
@@ -24,7 +24,7 @@ Because `xmtp-js` is in active development, you should expect breaking revisions
 
 XMTP communicates about breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
 
-Feel free to [contribute](CONTRIBUTING.md) issues and PRs in this repo.
+Issues and PRs are welcome in accordance with our [contribution guidelines](CONTRIBUTING.md).
 
 ## XMTP `production` and `dev` network environments
 
