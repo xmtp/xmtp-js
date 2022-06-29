@@ -2,8 +2,6 @@ import { Client } from '../../src'
 import { sleep } from '../../src/utils'
 import { newLocalDockerClient } from '../helpers'
 
-jest.setTimeout(20000)
-
 describe('conversations', () => {
   let alice: Client
   let bob: Client
