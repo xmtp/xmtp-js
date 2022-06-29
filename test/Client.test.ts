@@ -20,8 +20,13 @@ import {
   PrivateKeyBundle,
 } from '../src'
 
+type TestCase = {
+  name: string
+  newClient: () => Promise<Client>
+}
+
 describe('Client', () => {
-  const tests = []
+  const tests: TestCase[] = []
   if (process.env.LOCAL_NODE) {
     tests.push({
       name: 'local host node',
