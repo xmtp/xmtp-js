@@ -24,11 +24,11 @@ Because `xmtp-js` is in active development, you should expect breaking revisions
 
 XMTP communicates about breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
 
-Feel free to [contribute](./CONTRIBUTING) issues and PRs in this repo.
+Feel free to [contribute](CONTRIBUTING.md) issues and PRs in this repo.
 
-## XMTP `dev` and `production` network environments
+## XMTP `production` and `dev` network environments
 
-XMTP provides both `dev` and `production` network environments to support the development phases of your project.
+XMTP provides both `production` and `dev` network environments to support the development phases of your project.
 
 The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)).
 
