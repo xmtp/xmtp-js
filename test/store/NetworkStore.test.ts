@@ -18,7 +18,6 @@ const newTestnetWaku = (): Promise<Waku> =>
   createWaku(defaultOptions({ env: 'dev' }))
 
 describe('PrivateTopicStore', () => {
-  jest.setTimeout(10000)
   const tests = [
     {
       name: 'local docker node',
