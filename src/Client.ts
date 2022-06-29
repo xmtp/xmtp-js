@@ -58,9 +58,10 @@ export enum KeyStoreType {
 // Parameters for the send functions
 export { Compression }
 export type SendOptions = {
-  contentType: ContentTypeId
+  contentType?: ContentTypeId
   contentFallback?: string
   compression?: Compression
+  timestamp?: Date
 }
 
 /**
@@ -269,7 +270,7 @@ export default class Client {
     } else {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
-    const timestamp = new Date()
+    const timestamp = options?.timestamp || new Date()
     const msg = await this.encodeMessage(recipient, timestamp, content, options)
     await Promise.all(
       topics.map(async (topic) => {
@@ -400,8 +401,7 @@ export default class Client {
       opts = {}
     }
     if (!opts.startTime) {
-      opts.startTime = new Date()
-      opts.startTime.setTime(Date.now() - 1000 * 60 * 60 * 24 * 7)
+      opts.startTime = new Date(0)
     }
     if (!opts.endTime) {
       opts.endTime = new Date(new Date().toUTCString())
