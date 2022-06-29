@@ -8,7 +8,7 @@
 
 **_Pre-stable_ XMTP client SDK for JavaScript applications**
 
-`xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript applications, including React. It does not yet support React Native.
+`xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript and React applications.
 
 Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
 
