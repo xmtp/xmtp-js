@@ -189,6 +189,37 @@ describe('Client', () => {
         const c2 = await testCase.newClient()
         assert(await waitForUserContact(c1, c2))
 
+        const msgCount = 5
+        const now = new Date().getTime()
+        const tenWeeksAgo = now - 1000 * 60 * 60 * 24 * 10
+        for (let i = 0; i < msgCount; i++) {
+          await c1.sendMessage(c2.address, 'msg' + (i + 1), {
+            timestamp: new Date(tenWeeksAgo + i * 1000),
+          })
+        }
+
+        const msgs = await pollFor(
+          async () => {
+            const msgs = await c2.listConversationMessages(c1.address)
+            assert.equal(msgs.length, msgCount)
+            return msgs
+          },
+          5000,
+          200
+        )
+
+        assert.equal(msgs.length, msgCount)
+        assert.deepEqual(
+          msgs.map((msg) => msg.error || msg.content),
+          [...Array(msgCount).keys()].map((i) => 'msg' + (i + 1))
+        )
+      })
+
+      it('query pagination', async () => {
+        const c1 = await testCase.newClient()
+        const c2 = await testCase.newClient()
+        assert(await waitForUserContact(c1, c2))
+
         const msgCount = 10
         const now = new Date().getTime()
         const tenWeeksAgo = now - 1000 * 60 * 60 * 24 * 10
@@ -201,7 +232,7 @@ describe('Client', () => {
         const msgs = await pollFor(
           async () => {
             const msgs = await c2.listConversationMessages(c1.address, {
-              pageSize: 100,
+              pageSize: 2,
             })
             assert.equal(msgs.length, msgCount)
             return msgs
