@@ -14,7 +14,6 @@
 
 Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
 
-
 For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app](https://github.com/xmtp/example-chat-react).
 
 To learn more about XMTP and get answers to frequently asked questions, see <https://docs.xmtp.org/>.
@@ -111,13 +110,13 @@ const xmtp = await Client.create(wallet)
 
 The client's network connection and key storage method can be configured with these optional parameters of `Client.create`:
 
-| Parameter             | Default               | Description                                                                      |
-| --------------------- | --------------------- | -------------------------------------------------------------------------------- |
-| env                   | `dev`               | Connect to the specified XMTP network environment. Valid values also include `production`. For important details about working with these environments, see [XMTP `dev` and `production` network environments](#xmpt-dev-and-production-network-environments). |
-| waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
-| keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
-| codecs                | `[TextCodec]`         | Add codecs to support additional content types.                                  |
-| maxContentSize        | `100M`                | Maximum message content size in bytes.                                           |
+| Parameter             | Default               | Description                                                                                                                                                                                                                                                    |
+| --------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| env                   | `dev`                 | Connect to the specified XMTP network environment. Valid values also include `production`. For important details about working with these environments, see [XMTP `dev` and `production` network environments](#xmtp-dev-and-production-network-environments). |
+| waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                                                                                                                                                                                                 |
+| keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`.                                                                                                                                                                               |
+| codecs                | `[TextCodec]`         | Add codecs to support additional content types.                                                                                                                                                                                                                |
+| maxContentSize        | `100M`                | Maximum message content size in bytes.                                                                                                                                                                                                                         |
 
 ### Conversations
 
