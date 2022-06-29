@@ -6,16 +6,15 @@
 
 ![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
 
-**Pre-stable** XMTP client SDK for JavaScript applications
+**_Pre-stable_ XMTP client SDK for JavaScript applications**
 
 `xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript applications, including React. It does not yet support React Native.
 
 Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
 
-For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
+For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app](https://github.com/xmtp/example-chat-react).
 
-For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
-
+To learn more about XMTP and get answers to frequently asked questions, see <https://docs.xmtp.org/>.
 
 ## 🏗 **XMTP-JS is in active development**
 
@@ -25,7 +24,7 @@ This **pre-stable** release is publicly available for evaluation, feedback, and 
 
 Because XMTP-JS is in active development, you should expect breaking revisions that might require you to adopt the latest SDK version to enable your app to continue working as expected.
 
-XMTP cares about the stability of your project and is committed to communicating breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible.
+XMTP communicates about breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible.
 
 Feel free to contribute issues and PRs in this repo. The core team has limited bandwidth and may need a few days to review.
 
@@ -36,10 +35,9 @@ XMTP provides both `dev` and `production` network environments to support the de
 Here are important points to understand when working with these network environments:
 
 - **DO NOT** share sensitive information on the `dev` network.
-- XMTP makes best efforts to not delete messages or keys from the `production` network. If wallets or keys need to be deleted to benefit the stability of the network, XMTP communicates this status in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)).
-- XMTP also makes best efforts to not delete wallets or keys from the `dev` network, but the likelihood of deletions might be greater on `dev` than on `production`. XMTP communicates this status in the XMTP Discord community.
+- XMTP does not regularly delete messages and keys from the `dev` and `production` networks. However, because XMTP is still in active development, we may need to delete messages and keys occasionally to maintain network stability. The likelihood of deletions might be greater on `dev` than on `production`. XMTP communicates about deletions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible.
 
-To learn how to set the network environment, see [Configuring the Client](#configuring-the-client).
+To learn how to set your client's network environment, see [Configuring the Client](#configuring-the-client).
 
 ## Installation
 
