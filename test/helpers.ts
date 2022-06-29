@@ -52,8 +52,8 @@ export async function waitForUserContact(
       assert.ok(contact)
       return contact
     },
-    5000,
-    100
+    20000,
+    200
   )
 }
 

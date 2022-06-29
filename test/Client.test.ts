@@ -200,12 +200,14 @@ describe('Client', () => {
 
         const msgs = await pollFor(
           async () => {
-            const msgs = await c2.listConversationMessages(c1.address)
+            const msgs = await c2.listConversationMessages(c1.address, {
+              pageSize: 100,
+            })
             assert.equal(msgs.length, msgCount)
             return msgs
           },
           5000,
-          500
+          200
         )
 
         assert.equal(msgs.length, msgCount)
