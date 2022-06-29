@@ -35,7 +35,7 @@ XMTP provides both `dev` and `production` network environments to support the de
 Here are important points to understand when working with these network environments:
 
 - **DO NOT** share sensitive information on the `dev` network.
-- XMTP does not regularly delete messages and keys from the `dev` and `production` networks. However, because XMTP is still in active development, we may need to delete messages and keys occasionally to maintain network stability. The likelihood of deletions might be greater on `dev` than on `production`. XMTP communicates about deletions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible.
+- XMTP does not regularly delete messages and keys from the `dev` and `production` networks. However, because XMTP is still in active development, we might need to delete messages and keys occasionally to maintain network stability. The likelihood of deletions might be greater on `dev` than on `production`. XMTP communicates about deletions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible.
 
 To learn how to set your client's network environment, see [Configuring the Client](#configuring-the-client).
 
