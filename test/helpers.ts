@@ -9,6 +9,8 @@ import {
 } from '../src'
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
+import assert from 'assert'
+import { PublicKeyBundle } from '../src/proto/messaging'
 
 const LOCAL_DOCKER_MULTIADDR =
   '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA'
@@ -38,6 +40,21 @@ export async function pollFor<T>(
     }
     return await pollFor(callback, remainingTimeoutMs, delayMs)
   }
+}
+
+export async function waitForUserContact(
+  c1: Client,
+  c2: Client
+): Promise<PublicKeyBundle | undefined> {
+  return pollFor(
+    async () => {
+      const contact = await c1.getUserContactFromNetwork(c2.address)
+      assert.ok(contact)
+      return contact
+    },
+    5000,
+    100
+  )
 }
 
 export async function dumpStream(

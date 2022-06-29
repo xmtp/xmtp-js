@@ -6,6 +6,7 @@ import {
   newLocalDockerClient,
   newLocalHostClient,
   newDevClient,
+  waitForUserContact,
 } from './helpers'
 import { publishUserContact, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
@@ -65,10 +66,9 @@ describe('Client', () => {
       })
 
       it('user contacts published', async () => {
-        await sleep(10)
-        const alicePublic = await alice.getUserContactFromNetwork(alice.address)
+        const alicePublic = await waitForUserContact(alice, alice)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
-        const bobPublic = await bob.getUserContactFromNetwork(bob.address)
+        const bobPublic = await waitForUserContact(bob, bob)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
       })
 
@@ -178,13 +178,16 @@ describe('Client', () => {
 
         const convos = await dumpStream(convo)
         assert.equal(convos.length, messages.length)
-        convos.forEach((m, i) => assert.equal(m.content, messages[i]))
+        assert.deepEqual(
+          convos.map((convo) => convo.content).sort(),
+          messages.sort()
+        )
       })
 
       it('query historic messages', async () => {
         const c1 = await testCase.newClient()
         const c2 = await testCase.newClient()
-        await c1.getUserContactFromNetwork(c2.address)
+        assert(await waitForUserContact(c1, c2))
 
         const msgCount = 10
         const now = new Date().getTime()
