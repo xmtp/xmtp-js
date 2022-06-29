@@ -12,11 +12,16 @@
 
 Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
 
+For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
+
+For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
+
+
 ## 🏗 **XMTP-JS is in active development**
 
 ![Security](https://img.shields.io/badge/security-unaudited-orange) ![Stability](https://img.shields.io/badge/code%20stability-low-orange)
 
-This pre-stable release is publicly available for evaluation, feedback, and community contribution.
+This **pre-stable** release is publicly available for evaluation, feedback, and community contribution.
 
 Because XMTP-JS is in active development, you should expect breaking revisions that might require you to adopt the latest SDK version to enable your app to continue working as expected.
 
@@ -24,21 +29,17 @@ XMTP cares about the stability of your project and is committed to communicating
 
 Feel free to contribute issues and PRs in this repo. The core team has limited bandwidth and may need a few days to review.
 
-## Building with XMTP
+## XMTP `dev` and `production` network environments
 
-Here are a few tips for building with XMTP.
+XMTP provides both `dev` and `production` network environments to support the development phases of your project.
 
-- Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.com) development network in your own app.
-- For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
+Here are important points to understand when working with these network environments:
 
-For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
+- **DO NOT** share sensitive information on the `dev` network.
+- XMTP makes best efforts to not delete messages or keys from the `production` network. If wallets or keys need to be deleted to benefit the stability of the network, XMTP communicates this status in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)).
+- XMTP also makes best efforts to not delete wallets or keys from the `dev` network, but the likelihood of deletions might be greater on `dev` than on `production`. XMTP communicates this status in the XMTP Discord community.
 
-All wallets and messages are forcibly deleted from the development network on Mondays.
->
-> - **DO NOT** use this package version in production.
-> - **DO NOT** share sensitive information via the development network.
-
-
+To learn how to set the network environment, see [Configuring the Client](#configuring-the-client).
 
 ## Installation
 
@@ -118,7 +119,7 @@ The client's network connection and key storage method can be configured with th
 
 | Parameter             | Default               | Description                                                                      |
 | --------------------- | --------------------- | -------------------------------------------------------------------------------- |
-| env                   | `'dev'`               | Connect to the specified network environment.                                    |
+| env                   | `dev`               | Connect to the specified XMTP network environment. Valid values also include `production`. For important details about working with these environments, see [XMTP `dev` and `production` network environments](#xmpt-dev-and-production-network-environments) |
 | waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
 | keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
 | codecs                | `[TextCodec]`         | Add codecs to support additional content types.                                  |
