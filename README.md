@@ -6,18 +6,39 @@
 
 ![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
 
-**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.com) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react). For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
+**Pre-stable** XMTP client SDK for JavaScript applications
 
-## 🚧 **XMTP-JS is in active development** 🚧
+`xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript applications, including React. It does not yet support React Native.
 
-> ![Security](https://img.shields.io/badge/security-unaudited-orange) ![Stability](https://img.shields.io/badge/code%20stability-low-orange) ![Message Retention](https://img.shields.io/badge/message%20retention-7%20days-orange)
->
-> This pre-stable development release is publicly available for evaluation, feedback, and community contribution. All wallets and messages are forcibly deleted from the development network on Mondays.
+Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
+
+## 🏗 **XMTP-JS is in active development**
+
+![Security](https://img.shields.io/badge/security-unaudited-orange) ![Stability](https://img.shields.io/badge/code%20stability-low-orange)
+
+This pre-stable release is publicly available for evaluation, feedback, and community contribution.
+
+Because XMTP-JS is in active development, you should expect breaking revisions that might require you to adopt the latest SDK version to enable your app to continue working as expected.
+
+XMTP cares about the stability of your project and is committed to communicating breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible.
+
+Feel free to contribute issues and PRs in this repo. The core team has limited bandwidth and may need a few days to review.
+
+## Building with XMTP
+
+Here are a few tips for building with XMTP.
+
+- Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.com) development network in your own app.
+- For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react).
+
+For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
+
+All wallets and messages are forcibly deleted from the development network on Mondays.
 >
 > - **DO NOT** use this package version in production.
 > - **DO NOT** share sensitive information via the development network.
-> - **DO** expect significant, frequent breaking revisions.
-> - **DO** contribute issues and PRs in this repo. The core team has limited bandwidth and may need a few days to review.
+
+
 
 ## Installation
 
