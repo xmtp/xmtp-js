@@ -11,7 +11,7 @@ import { NoMatchingPreKeyError } from './errors'
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
 // somehow so that older messages can be decrypted again.
-export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
+export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
   identityKey: PrivateKey
   preKeys: PrivateKey[]
 
@@ -121,10 +121,8 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
       throw new Error('missing identity key')
     }
     const bytes = proto.PrivateKeyBundle.encode({
-      v1: {
-        identityKey: this.identityKey,
-        preKeys: this.preKeys,
-      },
+      identityKey: this.identityKey,
+      preKeys: this.preKeys,
     }).finish()
     const wPreKey = getRandomValues(new Uint8Array(32))
     const secret = hexToBytes(
@@ -132,10 +130,8 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
     )
     const ciphertext = await encrypt(bytes, secret)
     return proto.EncryptedPrivateKeyBundle.encode({
-      v1: {
-        walletPreKey: wPreKey,
-        ciphertext,
-      },
+      walletPreKey: wPreKey,
+      ciphertext,
     }).finish()
   }
 
@@ -145,29 +141,29 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
     bytes: Uint8Array
   ): Promise<PrivateKeyBundle> {
     const encrypted = proto.EncryptedPrivateKeyBundle.decode(bytes)
-    if (!encrypted.v1?.walletPreKey) {
+    if (!encrypted.walletPreKey) {
       throw new Error('missing wallet pre-key')
     }
     const secret = hexToBytes(
       await wallet.signMessage(
-        PrivateKeyBundle.storageSigRequestText(encrypted.v1.walletPreKey)
+        PrivateKeyBundle.storageSigRequestText(encrypted.walletPreKey)
       )
     )
-    if (!encrypted.v1?.ciphertext?.aes256GcmHkdfSha256) {
+    if (!encrypted.ciphertext?.aes256GcmHkdfSha256) {
       throw new Error('missing bundle ciphertext')
     }
-    const ciphertext = new Ciphertext(encrypted.v1.ciphertext)
+    const ciphertext = new Ciphertext(encrypted.ciphertext)
     const decrypted = await decrypt(ciphertext, secret)
     const bundle = proto.PrivateKeyBundle.decode(decrypted)
-    if (!bundle.v1?.identityKey) {
+    if (!bundle.identityKey) {
       throw new Error('missing identity key')
     }
-    if (bundle.v1?.preKeys.length === 0) {
+    if (bundle.preKeys.length === 0) {
       throw new Error('missing pre-keys')
     }
     return new PrivateKeyBundle(
-      new PrivateKey(bundle.v1.identityKey),
-      bundle.v1.preKeys.map((protoKey) => new PrivateKey(protoKey))
+      new PrivateKey(bundle.identityKey),
+      bundle.preKeys.map((protoKey) => new PrivateKey(protoKey))
     )
   }
 }

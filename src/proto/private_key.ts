@@ -16,22 +16,14 @@ export interface PrivateKey_Secp256k1 {
   bytes: Uint8Array
 }
 
-export interface PrivateKeyBundleV1 {
+export interface PrivateKeyBundle {
   identityKey: PrivateKey | undefined
   preKeys: PrivateKey[]
 }
 
-export interface PrivateKeyBundle {
-  v1: PrivateKeyBundleV1 | undefined
-}
-
-export interface EncryptedPrivateKeyBundleV1 {
+export interface EncryptedPrivateKeyBundle {
   walletPreKey: Uint8Array
   ciphertext: Ciphertext | undefined
-}
-
-export interface EncryptedPrivateKeyBundle {
-  v1: EncryptedPrivateKeyBundleV1 | undefined
 }
 
 function createBasePrivateKey(): PrivateKey {
@@ -191,13 +183,13 @@ export const PrivateKey_Secp256k1 = {
   },
 }
 
-function createBasePrivateKeyBundleV1(): PrivateKeyBundleV1 {
+function createBasePrivateKeyBundle(): PrivateKeyBundle {
   return { identityKey: undefined, preKeys: [] }
 }
 
-export const PrivateKeyBundleV1 = {
+export const PrivateKeyBundle = {
   encode(
-    message: PrivateKeyBundleV1,
+    message: PrivateKeyBundle,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.identityKey !== undefined) {
@@ -209,10 +201,10 @@ export const PrivateKeyBundleV1 = {
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): PrivateKeyBundleV1 {
+  decode(input: _m0.Reader | Uint8Array, length?: number): PrivateKeyBundle {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBasePrivateKeyBundleV1()
+    const message = createBasePrivateKeyBundle()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -230,7 +222,7 @@ export const PrivateKeyBundleV1 = {
     return message
   },
 
-  fromJSON(object: any): PrivateKeyBundleV1 {
+  fromJSON(object: any): PrivateKeyBundle {
     return {
       identityKey: isSet(object.identityKey)
         ? PrivateKey.fromJSON(object.identityKey)
@@ -241,7 +233,7 @@ export const PrivateKeyBundleV1 = {
     }
   },
 
-  toJSON(message: PrivateKeyBundleV1): unknown {
+  toJSON(message: PrivateKeyBundle): unknown {
     const obj: any = {}
     message.identityKey !== undefined &&
       (obj.identityKey = message.identityKey
@@ -257,10 +249,10 @@ export const PrivateKeyBundleV1 = {
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<PrivateKeyBundleV1>, I>>(
+  fromPartial<I extends Exact<DeepPartial<PrivateKeyBundle>, I>>(
     object: I
-  ): PrivateKeyBundleV1 {
-    const message = createBasePrivateKeyBundleV1()
+  ): PrivateKeyBundle {
+    const message = createBasePrivateKeyBundle()
     message.identityKey =
       object.identityKey !== undefined && object.identityKey !== null
         ? PrivateKey.fromPartial(object.identityKey)
@@ -271,71 +263,13 @@ export const PrivateKeyBundleV1 = {
   },
 }
 
-function createBasePrivateKeyBundle(): PrivateKeyBundle {
-  return { v1: undefined }
-}
-
-export const PrivateKeyBundle = {
-  encode(
-    message: PrivateKeyBundle,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.v1 !== undefined) {
-      PrivateKeyBundleV1.encode(message.v1, writer.uint32(10).fork()).ldelim()
-    }
-    return writer
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PrivateKeyBundle {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
-    let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBasePrivateKeyBundle()
-    while (reader.pos < end) {
-      const tag = reader.uint32()
-      switch (tag >>> 3) {
-        case 1:
-          message.v1 = PrivateKeyBundleV1.decode(reader, reader.uint32())
-          break
-        default:
-          reader.skipType(tag & 7)
-          break
-      }
-    }
-    return message
-  },
-
-  fromJSON(object: any): PrivateKeyBundle {
-    return {
-      v1: isSet(object.v1) ? PrivateKeyBundleV1.fromJSON(object.v1) : undefined,
-    }
-  },
-
-  toJSON(message: PrivateKeyBundle): unknown {
-    const obj: any = {}
-    message.v1 !== undefined &&
-      (obj.v1 = message.v1 ? PrivateKeyBundleV1.toJSON(message.v1) : undefined)
-    return obj
-  },
-
-  fromPartial<I extends Exact<DeepPartial<PrivateKeyBundle>, I>>(
-    object: I
-  ): PrivateKeyBundle {
-    const message = createBasePrivateKeyBundle()
-    message.v1 =
-      object.v1 !== undefined && object.v1 !== null
-        ? PrivateKeyBundleV1.fromPartial(object.v1)
-        : undefined
-    return message
-  },
-}
-
-function createBaseEncryptedPrivateKeyBundleV1(): EncryptedPrivateKeyBundleV1 {
+function createBaseEncryptedPrivateKeyBundle(): EncryptedPrivateKeyBundle {
   return { walletPreKey: new Uint8Array(), ciphertext: undefined }
 }
 
-export const EncryptedPrivateKeyBundleV1 = {
+export const EncryptedPrivateKeyBundle = {
   encode(
-    message: EncryptedPrivateKeyBundleV1,
+    message: EncryptedPrivateKeyBundle,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.walletPreKey.length !== 0) {
@@ -350,10 +284,10 @@ export const EncryptedPrivateKeyBundleV1 = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number
-  ): EncryptedPrivateKeyBundleV1 {
+  ): EncryptedPrivateKeyBundle {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseEncryptedPrivateKeyBundleV1()
+    const message = createBaseEncryptedPrivateKeyBundle()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -371,7 +305,7 @@ export const EncryptedPrivateKeyBundleV1 = {
     return message
   },
 
-  fromJSON(object: any): EncryptedPrivateKeyBundleV1 {
+  fromJSON(object: any): EncryptedPrivateKeyBundle {
     return {
       walletPreKey: isSet(object.walletPreKey)
         ? bytesFromBase64(object.walletPreKey)
@@ -382,7 +316,7 @@ export const EncryptedPrivateKeyBundleV1 = {
     }
   },
 
-  toJSON(message: EncryptedPrivateKeyBundleV1): unknown {
+  toJSON(message: EncryptedPrivateKeyBundle): unknown {
     const obj: any = {}
     message.walletPreKey !== undefined &&
       (obj.walletPreKey = base64FromBytes(
@@ -397,85 +331,14 @@ export const EncryptedPrivateKeyBundleV1 = {
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<EncryptedPrivateKeyBundleV1>, I>>(
-    object: I
-  ): EncryptedPrivateKeyBundleV1 {
-    const message = createBaseEncryptedPrivateKeyBundleV1()
-    message.walletPreKey = object.walletPreKey ?? new Uint8Array()
-    message.ciphertext =
-      object.ciphertext !== undefined && object.ciphertext !== null
-        ? Ciphertext.fromPartial(object.ciphertext)
-        : undefined
-    return message
-  },
-}
-
-function createBaseEncryptedPrivateKeyBundle(): EncryptedPrivateKeyBundle {
-  return { v1: undefined }
-}
-
-export const EncryptedPrivateKeyBundle = {
-  encode(
-    message: EncryptedPrivateKeyBundle,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.v1 !== undefined) {
-      EncryptedPrivateKeyBundleV1.encode(
-        message.v1,
-        writer.uint32(10).fork()
-      ).ldelim()
-    }
-    return writer
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): EncryptedPrivateKeyBundle {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
-    let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseEncryptedPrivateKeyBundle()
-    while (reader.pos < end) {
-      const tag = reader.uint32()
-      switch (tag >>> 3) {
-        case 1:
-          message.v1 = EncryptedPrivateKeyBundleV1.decode(
-            reader,
-            reader.uint32()
-          )
-          break
-        default:
-          reader.skipType(tag & 7)
-          break
-      }
-    }
-    return message
-  },
-
-  fromJSON(object: any): EncryptedPrivateKeyBundle {
-    return {
-      v1: isSet(object.v1)
-        ? EncryptedPrivateKeyBundleV1.fromJSON(object.v1)
-        : undefined,
-    }
-  },
-
-  toJSON(message: EncryptedPrivateKeyBundle): unknown {
-    const obj: any = {}
-    message.v1 !== undefined &&
-      (obj.v1 = message.v1
-        ? EncryptedPrivateKeyBundleV1.toJSON(message.v1)
-        : undefined)
-    return obj
-  },
-
   fromPartial<I extends Exact<DeepPartial<EncryptedPrivateKeyBundle>, I>>(
     object: I
   ): EncryptedPrivateKeyBundle {
     const message = createBaseEncryptedPrivateKeyBundle()
-    message.v1 =
-      object.v1 !== undefined && object.v1 !== null
-        ? EncryptedPrivateKeyBundleV1.fromPartial(object.v1)
+    message.walletPreKey = object.walletPreKey ?? new Uint8Array()
+    message.ciphertext =
+      object.ciphertext !== undefined && object.ciphertext !== null
+        ? Ciphertext.fromPartial(object.ciphertext)
         : undefined
     return message
   },

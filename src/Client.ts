@@ -25,7 +25,6 @@ import {
 import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
-import ContactBundle from './ContactBundle'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -196,12 +195,10 @@ export default class Client {
       callback: (msgs: WakuMessage[]) => {
         for (const msg of msgs) {
           if (!msg.payload) continue
-          const bundle = ContactBundle.fromBytes(msg.payload as Uint8Array)
-          const keyBundle = bundle.keyBundle
-
-          const address = keyBundle?.walletSignatureAddress()
+          const bundle = PublicKeyBundle.fromBytes(msg.payload as Uint8Array)
+          const address = bundle.walletSignatureAddress()
           if (address === peerAddress) {
-            recipientKey = keyBundle
+            recipientKey = bundle
             break
           }
         }

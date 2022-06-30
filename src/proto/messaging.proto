@@ -32,16 +32,6 @@ message PublicKeyBundle {
   PublicKey preKey = 2;
 }
 
-message ContactBundleV1 {
-  PublicKeyBundle keyBundle = 1;
-}
-
-message ContactBundle {
-  oneof version {
-    ContactBundleV1 v1 = 1;
-  }
-}
-
 // ContentTypeId is used to identify the type of content stored in a Message.
 message ContentTypeId {
   string authorityId = 1;  // authority governing this content type
