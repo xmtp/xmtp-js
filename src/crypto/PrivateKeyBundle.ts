@@ -1,4 +1,4 @@
-import * as proto from '../../src/proto/private_key'
+import * as proto from '../proto/private_key'
 import PrivateKey from './PrivateKey'
 import PublicKey from './PublicKey'
 import PublicKeyBundle from './PublicKeyBundle'
@@ -11,7 +11,7 @@ import { NoMatchingPreKeyError } from './errors'
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
 // somehow so that older messages can be decrypted again.
-export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
+export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
   identityKey: PrivateKey
   preKeys: PrivateKey[]
 
@@ -120,7 +120,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     if (!this.identityKey) {
       throw new Error('missing identity key')
     }
-    const bytes = proto.PrivateKeyBundle.encode({
+    const bytes = proto.PrivateKeyBundleV1.encode({
       identityKey: this.identityKey,
       preKeys: this.preKeys,
     }).finish()
@@ -129,7 +129,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       await wallet.signMessage(PrivateKeyBundle.storageSigRequestText(wPreKey))
     )
     const ciphertext = await encrypt(bytes, secret)
-    return proto.EncryptedPrivateKeyBundle.encode({
+    return proto.EncryptedPrivateKeyBundleV1.encode({
       walletPreKey: wPreKey,
       ciphertext,
     }).finish()
@@ -140,21 +140,31 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
     wallet: ethers.Signer,
     bytes: Uint8Array
   ): Promise<PrivateKeyBundle> {
-    const encrypted = proto.EncryptedPrivateKeyBundle.decode(bytes)
-    if (!encrypted.walletPreKey) {
+    const eBundle = getEncryptedV1Bundle(bytes)
+
+    if (!eBundle) {
+      throw new Error('invalid bundle version')
+    }
+
+    if (!eBundle.walletPreKey) {
       throw new Error('missing wallet pre-key')
     }
     const secret = hexToBytes(
       await wallet.signMessage(
-        PrivateKeyBundle.storageSigRequestText(encrypted.walletPreKey)
+        PrivateKeyBundle.storageSigRequestText(eBundle.walletPreKey)
       )
     )
-    if (!encrypted.ciphertext?.aes256GcmHkdfSha256) {
+    if (!eBundle?.ciphertext?.aes256GcmHkdfSha256) {
       throw new Error('missing bundle ciphertext')
     }
-    const ciphertext = new Ciphertext(encrypted.ciphertext)
+    const ciphertext = new Ciphertext(eBundle.ciphertext)
     const decrypted = await decrypt(ciphertext, secret)
-    const bundle = proto.PrivateKeyBundle.decode(decrypted)
+    const bundle = getPrivateV1Bundle(decrypted)
+
+    if (!bundle) {
+      throw new Error('could not decode bundle')
+    }
+
     if (!bundle.identityKey) {
       throw new Error('missing identity key')
     }
@@ -165,5 +175,45 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundle {
       new PrivateKey(bundle.identityKey),
       bundle.preKeys.map((protoKey) => new PrivateKey(protoKey))
     )
+  }
+}
+
+// getEncryptedV1Bundle returns the decoded bundle from the provided bytes. If there is an error decoding the bundle it attempts
+// to decode the bundle as a legacy bundle.
+function getEncryptedV1Bundle(
+  bytes: Uint8Array
+): proto.EncryptedPrivateKeyBundleV1 | undefined {
+  try {
+    const b = proto.EncryptedPrivateKeyBundle.decode(bytes)
+    return b.v1
+  } catch (e) {
+    if (
+      e instanceof RangeError ||
+      (e instanceof Error && e.message.startsWith('invalid wire type'))
+    ) {
+      // Adds a default fallback for older versions of the KeyBundles
+      return proto.EncryptedPrivateKeyBundleV1.decode(bytes)
+    }
+    throw new Error("Couldn't decode encrypted bundle:" + e)
+  }
+}
+
+// getPrivateV1Bundle returns the decoded bundle from the provided bytes. If there is an error decoding the bundle it attempts
+// to decode the bundle as a legacy bundle.
+function getPrivateV1Bundle(
+  bytes: Uint8Array
+): proto.PrivateKeyBundleV1 | undefined {
+  try {
+    const b = proto.PrivateKeyBundle.decode(bytes)
+    return b.v1
+  } catch (e) {
+    if (
+      e instanceof RangeError ||
+      (e instanceof Error && e.message.startsWith('invalid wire type'))
+    ) {
+      // Adds a default fallback for older versions of the proto
+      return proto.PrivateKeyBundleV1.decode(bytes)
+    }
+    throw new Error("Couldn't decode private bundle:" + e)
   }
 }
