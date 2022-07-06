@@ -14,10 +14,8 @@ export default class ContactBundle implements proto.ContactBundleV1 {
   }
 
   toBytes(): Uint8Array {
-    return proto.ContactBundle.encode({
-      v1: {
-        keyBundle: this.keyBundle,
-      },
+    return proto.ContactBundleV1.encode({
+      keyBundle: this.keyBundle,
     }).finish()
   }
 
@@ -47,7 +45,10 @@ export default class ContactBundle implements proto.ContactBundleV1 {
       const b = proto.ContactBundle.decode(bytes)
       return b.v1?.keyBundle
     } catch (e) {
-      if (e instanceof Error && e.message.startsWith('invalid wire type')) {
+      if (
+        e instanceof RangeError ||
+        (e instanceof Error && e.message.startsWith('invalid wire type'))
+      ) {
         // Adds a default fallback for older versions of the proto
         const legacyBundle = proto.ContactBundleV1.decode(bytes)
         return legacyBundle.keyBundle

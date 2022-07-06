@@ -120,22 +120,18 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
     if (!this.identityKey) {
       throw new Error('missing identity key')
     }
-    const bytes = proto.PrivateKeyBundle.encode({
-      v1: {
-        identityKey: this.identityKey,
-        preKeys: this.preKeys,
-      },
+    const bytes = proto.PrivateKeyBundleV1.encode({
+      identityKey: this.identityKey,
+      preKeys: this.preKeys,
     }).finish()
     const wPreKey = getRandomValues(new Uint8Array(32))
     const secret = hexToBytes(
       await wallet.signMessage(PrivateKeyBundle.storageSigRequestText(wPreKey))
     )
     const ciphertext = await encrypt(bytes, secret)
-    return proto.EncryptedPrivateKeyBundle.encode({
-      v1: {
-        walletPreKey: wPreKey,
-        ciphertext,
-      },
+    return proto.EncryptedPrivateKeyBundleV1.encode({
+      walletPreKey: wPreKey,
+      ciphertext,
     }).finish()
   }
 
@@ -191,7 +187,10 @@ function getEncryptedV1Bundle(
     const b = proto.EncryptedPrivateKeyBundle.decode(bytes)
     return b.v1
   } catch (e) {
-    if (e instanceof Error && e.message.startsWith('invalid wire type')) {
+    if (
+      e instanceof RangeError ||
+      (e instanceof Error && e.message.startsWith('invalid wire type'))
+    ) {
       // Adds a default fallback for older versions of the KeyBundles
       return proto.EncryptedPrivateKeyBundleV1.decode(bytes)
     }
@@ -208,7 +207,10 @@ function getPrivateV1Bundle(
     const b = proto.PrivateKeyBundle.decode(bytes)
     return b.v1
   } catch (e) {
-    if (e instanceof Error && e.message.startsWith('invalid wire type')) {
+    if (
+      e instanceof RangeError ||
+      (e instanceof Error && e.message.startsWith('invalid wire type'))
+    ) {
       // Adds a default fallback for older versions of the proto
       return proto.PrivateKeyBundleV1.decode(bytes)
     }
