@@ -51,7 +51,7 @@ export default class ContactBundle implements proto.ContactBundleV1 {
         try {
           return proto.PublicKeyBundle.decode(bytes)
         } catch (e) {
-          throw new Error("Couldn't decode contact bundle:" + e)
+          throw new Error("Couldn't decode contact bundle: " + e)
         }
       }
     }
