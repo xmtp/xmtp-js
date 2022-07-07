@@ -77,11 +77,12 @@ export default class Stream<T> {
       this.callback,
       [this.topic]
     )
-    await this.startDisconnectWatcher()
+    await this.listenForDisconnect()
   }
 
-  private async startDisconnectWatcher() {
+  private async listenForDisconnect() {
     const peer = await this.client.waku.filter.randomPeer
+    // Save the callback function on the class so we can clean up later
     this._disconnectCallback = async (connection: Connection) => {
       if (connection.remotePeer.toB58String() === peer?.id?.toB58String()) {
         console.log(`Connection to peer ${connection.remoteAddr} lost`)
