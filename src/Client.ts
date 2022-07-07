@@ -131,6 +131,7 @@ export default class Client {
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
+  private _disconnectWatcher: ReturnType<typeof setInterval>
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
@@ -141,6 +142,7 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
+    this._disconnectWatcher = this.createDisconnectWatcher()
   }
 
   /**
@@ -175,6 +177,7 @@ export default class Client {
 
   // gracefully shut down the client
   async close(): Promise<void> {
+    clearInterval(this._disconnectWatcher)
     return this.waku.stop()
   }
 
@@ -428,6 +431,22 @@ export default class Client {
       msgs = msgs.filter(filterForTopic(topic))
     }
     return msgs
+  }
+
+  private createDisconnectWatcher() {
+    return setInterval(async () => {
+      const connectionsToClose: Promise<void>[] = []
+      for (const connections of this.waku.libp2p.connectionManager.connections.values()) {
+        for (const connection of connections) {
+          if (!connection.streams.length) {
+            console.log(`Closing connection to ${connection.remoteAddr}`)
+            connectionsToClose.push(connection.close())
+          }
+        }
+      }
+
+      await Promise.allSettled(connectionsToClose)
+    }, 10 * 1000)
   }
 }
 
