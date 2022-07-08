@@ -1,6 +1,10 @@
 import { WakuMessage } from 'js-waku'
+import { Connection } from 'libp2p'
 import Message from './Message'
 import Client from './Client'
+import { sleep } from './utils'
+
+const DISCONNECT_LOOP_INTERVAL = 1000
 
 export type MessageTransformer<T> = (msg: Message) => T
 
@@ -20,6 +24,8 @@ export default class Stream<T> {
   // cache the callback so that it can be properly deregistered in Waku
   // if callback is undefined the stream is closed
   callback: ((wakuMsg: WakuMessage) => Promise<void>) | undefined
+
+  private _disconnectCallback?: (connection: Connection) => Promise<void>
 
   unsubscribeFn?: () => Promise<void>
 
@@ -66,9 +72,42 @@ export default class Stream<T> {
     if (!this.callback) {
       throw new Error('Missing callback for stream')
     }
+
     this.unsubscribeFn = await this.client.waku.filter.subscribe(
       this.callback,
       [this.topic]
+    )
+    await this.listenForDisconnect()
+  }
+
+  private async listenForDisconnect() {
+    const peer = await this.client.waku.filter.randomPeer
+    // Save the callback function on the class so we can clean up later
+    this._disconnectCallback = async (connection: Connection) => {
+      if (connection.remotePeer.toB58String() === peer?.id?.toB58String()) {
+        console.log(`Connection to peer ${connection.remoteAddr} lost`)
+        while (true) {
+          try {
+            if (!this.callback) {
+              return
+            }
+            this.unsubscribeFn = await this.client.waku.filter.subscribe(
+              this.callback,
+              [this.topic]
+            )
+            console.log(`Connection to peer ${connection.remoteAddr} restored`)
+            return
+          } catch (e) {
+            console.warn(`Error reconnecting to ${connection.remoteAddr}`)
+            await sleep(DISCONNECT_LOOP_INTERVAL)
+          }
+        }
+      }
+    }
+
+    this.client.waku.libp2p.connectionManager.on(
+      'peer:disconnect',
+      this._disconnectCallback
     )
   }
 
@@ -93,6 +132,12 @@ export default class Stream<T> {
   // https://tc39.es/ecma262/#table-iterator-interface-optional-properties
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
+    if (this._disconnectCallback) {
+      this.client.waku.libp2p.connectionManager.off(
+        'peer:disconnect',
+        this._disconnectCallback
+      )
+    }
     if (!this.callback) {
       return { value: undefined, done: true }
     }
