@@ -2,35 +2,59 @@
 import { Store } from './Store'
 import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import { buildUserPrivateStoreTopic } from '../utils'
+import {
+  Envelope,
+  Message as MessageService,
+  QueryRequestSortDirection,
+} from '../proto/message.pb'
+import { b64Decode } from '../proto/fetch.pb'
 
 export default class NetworkStore implements Store {
-  private waku: Waku
-
-  constructor(waku: Waku) {
-    this.waku = waku
-  }
+  // constructor() {
+  //   // TODO: xmtpd client
+  // }
 
   // Returns the first record in a topic if it is present.
   async get(key: string): Promise<Buffer | null> {
-    const contents = (
-      await this.waku.store.queryHistory([buildUserPrivateStoreTopic(key)], {
-        pageSize: 1,
-        pageDirection: PageDirection.FORWARD,
-        callback: function (msgs: WakuMessage[]): boolean {
-          return Boolean(msgs[0].payload)
-        },
-      })
+    const res = await MessageService.Query(
+      {
+        contentTopic: this.buildTopic(key),
+        limit: 1,
+        sortDirection: QueryRequestSortDirection.SORT_DIRECTION_ASCENDING,
+      },
+      {
+        pathPrefix: 'https://localhost:5000',
+      }
     )
-      .filter((msg: WakuMessage) => msg.payload)
-      .map((msg: WakuMessage) => msg.payload as Uint8Array)
+
+    const contents: Uint8Array[] = []
+    for (const env of res.envelopes || []) {
+      if (!env.message) continue
+      try {
+        const bytes = b64Decode(env.message.toString())
+        contents.push(bytes)
+      } catch (e) {
+        console.log(e)
+      }
+    }
     return contents.length > 0 ? Buffer.from(contents[0]) : null
   }
 
   async set(key: string, value: Buffer): Promise<void> {
     const keys = Uint8Array.from(value)
-    await this.waku.lightPush.push(
-      await WakuMessage.fromBytes(keys, this.buildTopic(key))
-    )
+    try {
+      await MessageService.Publish(
+        {
+          contentTopic: this.buildTopic(key),
+          message: keys,
+        },
+        {
+          pathPrefix: 'https://localhost:5000',
+        }
+      )
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   private buildTopic(key: string): string {

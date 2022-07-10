@@ -1,6 +1,7 @@
-import { Waku, WakuMessage } from 'js-waku'
 import { PublicKeyBundle } from './crypto'
 import ContactBundle from './ContactBundle'
+import { Message as MessageService } from './proto/message.pb'
+import { b64Decode, b64Encode } from './proto/fetch.pb'
 
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
@@ -49,15 +50,22 @@ export const promiseWithTimeout = <T>(
 }
 
 export async function publishUserContact(
-  waku: Waku,
   keys: PublicKeyBundle,
   address: string
 ): Promise<void> {
   const contactBundle = new ContactBundle(keys)
-  await waku.lightPush.push(
-    await WakuMessage.fromBytes(
-      contactBundle.toBytes(),
-      buildUserContactTopic(address)
+  const bytes = contactBundle.toBytes()
+  try {
+    await MessageService.Publish(
+      {
+        contentTopic: buildUserContactTopic(address),
+        message: b64Decode(b64Encode(bytes, 0, bytes.length)),
+      },
+      {
+        pathPrefix: 'https://localhost:5000',
+      }
     )
-  )
+  } catch (err) {
+    console.log(err)
+  }
 }

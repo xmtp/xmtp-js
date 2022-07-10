@@ -16,9 +16,7 @@ message Envelope {
   string id = 1;
   string content_topic = 2;
   google.protobuf.Timestamp timestamp = 3;
-  string message_id = 4;
-  bytes message = 5;
-  string cursor = 6;
+  bytes message = 4;
 }
 
 // RPC
@@ -69,18 +67,15 @@ message SubscribeResponse{
 
 message QueryRequest {
   string content_topic = 1;
-  string cursor = 2;
-  google.protobuf.Timestamp start_timestamp = 3;
-  google.protobuf.Timestamp end_timestamp = 4;
-  uint32 limit = 5;
-}
-
-message PagingRequest {
-
+  uint32 limit = 2;
+  enum SortDirection {
+    SORT_DIRECTION_UNSPECIFIED = 0;
+    SORT_DIRECTION_ASCENDING = 1;
+    SORT_DIRECTION_DESCENDING = 2;
+  }
+  SortDirection sort_direction = 3;
 }
 
 message QueryResponse{
-  string id = 1;
-  string error = 2;
-  repeated Envelope envelopes = 3;
+  repeated Envelope envelopes = 1;
 }

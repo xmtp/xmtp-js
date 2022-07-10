@@ -1,4 +1,4 @@
-import { Waku, WakuMessage, PageDirection } from 'js-waku'
+import { Waku, WakuMessage } from 'js-waku'
 import { BootstrapOptions } from 'js-waku/build/main/lib/discovery'
 import fetch from 'cross-fetch'
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
@@ -26,7 +26,11 @@ import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
 import ContactBundle from './ContactBundle'
-import { Message as MessageService } from './proto/message.pb'
+import {
+  Message as MessageService,
+  QueryRequestSortDirection,
+} from './proto/message.pb'
+import { b64Decode, b64Encode } from './proto/fetch.pb'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -185,7 +189,7 @@ export default class Client {
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
-    await publishUserContact(this.waku, pub, this.address)
+    await publishUserContact(pub, this.address)
   }
 
   // retrieve a key bundle from given user's contact topic
@@ -194,37 +198,26 @@ export default class Client {
   ): Promise<PublicKeyBundle | undefined> {
     // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
     let recipientKey: PublicKeyBundle | null = null
-    try {
-      const res = await MessageService.Query(
-        {
-          contentTopic: 'test',
-        },
-        {
-          pathPrefix: 'https://localhost:5000',
-        }
-      )
-      console.log('here!!', res.error, res.envelopes)
-    } catch (err) {
-      console.log(err)
-    }
-    await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
-      pageSize: 5,
-      pageDirection: PageDirection.BACKWARD,
-      callback: (msgs: WakuMessage[]) => {
-        for (const msg of msgs) {
-          if (!msg.payload) continue
-          const bundle = ContactBundle.fromBytes(msg.payload as Uint8Array)
-          const keyBundle = bundle.keyBundle
-
-          const address = keyBundle?.walletSignatureAddress()
-          if (address === peerAddress) {
-            recipientKey = keyBundle
-            break
-          }
-        }
-        return recipientKey !== null
+    const res = await MessageService.Query(
+      {
+        contentTopic: buildUserContactTopic(peerAddress),
+        limit: 5,
       },
-    })
+      {
+        pathPrefix: 'https://localhost:5000',
+      }
+    )
+    for (const env of res.envelopes || []) {
+      if (!env.message) continue
+      const bundle = ContactBundle.fromBytes(b64Decode(env.message.toString()))
+      const keyBundle = bundle.keyBundle
+
+      const address = keyBundle?.walletSignatureAddress()
+      if (address === peerAddress) {
+        recipientKey = keyBundle
+        break
+      }
+    }
     return recipientKey === null ? undefined : recipientKey
   }
 
@@ -300,11 +293,14 @@ export default class Client {
   }
 
   private async sendWakuMessage(msg: WakuMessage): Promise<void> {
+    const bytes = msg.payload
     try {
       await MessageService.Publish(
         {
           contentTopic: msg.contentTopic,
-          message: msg.payload,
+          message: !bytes
+            ? undefined
+            : b64Decode(b64Encode(bytes, 0, bytes.length)),
         },
         {
           pathPrefix: 'https://localhost:5000',
@@ -313,10 +309,6 @@ export default class Client {
     } catch (err) {
       console.log(err)
     }
-    // const ack = await this.waku.lightPush.push(msg)
-    // if (ack?.isSuccess === false) {
-    //   throw new Error(`Failed to send message with error: ${ack?.info}`)
-    // }
   }
 
   registerCodec(codec: ContentCodec<any>): void {
@@ -430,30 +422,30 @@ export default class Client {
     if (!opts) {
       opts = {}
     }
-    if (!opts.startTime) {
-      opts.startTime = new Date(0)
-    }
-    if (!opts.endTime) {
-      opts.endTime = new Date(new Date().toUTCString())
-    }
     if (!opts.pageSize) {
       opts.pageSize = 10
     }
 
-    let wakuMsgs = await this.waku.store.queryHistory([topic], {
-      pageSize: opts.pageSize,
-      pageDirection: PageDirection.FORWARD,
-      timeFilter: {
-        startTime: opts.startTime,
-        endTime: opts.endTime,
+    const res = await MessageService.Query(
+      {
+        contentTopic: topic,
+        limit: opts.pageSize,
+        sortDirection: QueryRequestSortDirection.SORT_DIRECTION_ASCENDING,
       },
-    })
-    wakuMsgs = wakuMsgs.filter((wakuMsg) => wakuMsg?.payload)
-    let msgs = await Promise.all(
-      wakuMsgs.map((wakuMsg) =>
-        this.decodeMessage(wakuMsg.payload as Uint8Array)
-      )
+      {
+        pathPrefix: 'https://localhost:5000',
+      }
     )
+    let msgs: Message[] = []
+    for (const env of res.envelopes || []) {
+      if (!env.message) continue
+      try {
+        const msg = await this.decodeMessage(b64Decode(env.message.toString()))
+        msgs.push(msg)
+      } catch (e) {
+        console.log(e)
+      }
+    }
     if (opts?.checkAddresses) {
       msgs = msgs.filter(filterForTopic(topic))
     }
@@ -484,7 +476,7 @@ function createKeyStoreFromConfig(
 ): EncryptedStore {
   switch (opts.keyStoreType) {
     case KeyStoreType.networkTopicStoreV1:
-      return createNetworkPrivateKeyStore(wallet, waku)
+      return createNetworkPrivateKeyStore(wallet)
 
     case KeyStoreType.localStorage:
       return createLocalPrivateKeyStore(wallet)
@@ -492,11 +484,8 @@ function createKeyStoreFromConfig(
 }
 
 // Create Encrypted store which uses the Network to store KeyBundles
-function createNetworkPrivateKeyStore(
-  wallet: Signer,
-  waku: Waku
-): EncryptedStore {
-  return new EncryptedStore(wallet, new PrivateTopicStore(waku))
+function createNetworkPrivateKeyStore(wallet: Signer): EncryptedStore {
+  return new EncryptedStore(wallet, new PrivateTopicStore())
 }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles

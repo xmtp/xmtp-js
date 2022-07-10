@@ -6,6 +6,13 @@
 
 import * as fm from "./fetch.pb"
 import * as GoogleProtobufTimestamp from "./google/protobuf/timestamp.pb"
+
+export enum QueryRequestSortDirection {
+  SORT_DIRECTION_UNSPECIFIED = "SORT_DIRECTION_UNSPECIFIED",
+  SORT_DIRECTION_ASCENDING = "SORT_DIRECTION_ASCENDING",
+  SORT_DIRECTION_DESCENDING = "SORT_DIRECTION_DESCENDING",
+}
+
 export type Error = {
   code?: string
   message?: string
@@ -15,9 +22,7 @@ export type Envelope = {
   id?: string
   contentTopic?: string
   timestamp?: GoogleProtobufTimestamp.Timestamp
-  messageId?: string
   message?: Uint8Array
-  cursor?: string
 }
 
 export type PublishRequest = {
@@ -39,18 +44,11 @@ export type SubscribeResponse = {
 
 export type QueryRequest = {
   contentTopic?: string
-  cursor?: string
-  startTimestamp?: GoogleProtobufTimestamp.Timestamp
-  endTimestamp?: GoogleProtobufTimestamp.Timestamp
   limit?: number
-}
-
-export type PagingRequest = {
+  sortDirection?: QueryRequestSortDirection
 }
 
 export type QueryResponse = {
-  id?: string
-  error?: string
   envelopes?: Envelope[]
 }
 
