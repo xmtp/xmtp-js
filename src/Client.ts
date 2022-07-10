@@ -26,6 +26,7 @@ import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
 import ContactBundle from './ContactBundle'
+import { Message as MessageService } from './proto/message.pb'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -193,6 +194,19 @@ export default class Client {
   ): Promise<PublicKeyBundle | undefined> {
     // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
     let recipientKey: PublicKeyBundle | null = null
+    try {
+      const res = await MessageService.Query(
+        {
+          contentTopic: 'test',
+        },
+        {
+          pathPrefix: 'https://localhost:5000',
+        }
+      )
+      console.log('here!!', res.error, res.envelopes)
+    } catch (err) {
+      console.log(err)
+    }
     await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
       pageSize: 5,
       pageDirection: PageDirection.BACKWARD,
@@ -286,10 +300,23 @@ export default class Client {
   }
 
   private async sendWakuMessage(msg: WakuMessage): Promise<void> {
-    const ack = await this.waku.lightPush.push(msg)
-    if (ack?.isSuccess === false) {
-      throw new Error(`Failed to send message with error: ${ack?.info}`)
+    try {
+      await MessageService.Publish(
+        {
+          contentTopic: msg.contentTopic,
+          message: msg.payload,
+        },
+        {
+          pathPrefix: 'https://localhost:5000',
+        }
+      )
+    } catch (err) {
+      console.log(err)
     }
+    // const ack = await this.waku.lightPush.push(msg)
+    // if (ack?.isSuccess === false) {
+    //   throw new Error(`Failed to send message with error: ${ack?.info}`)
+    // }
   }
 
   registerCodec(codec: ContentCodec<any>): void {

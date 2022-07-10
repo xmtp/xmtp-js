@@ -3,6 +3,7 @@ import { Connection } from 'libp2p'
 import Message from './Message'
 import Client from './Client'
 import { sleep } from './utils'
+import { Message as MessageService, Envelope } from './proto/message.pb'
 
 const DISCONNECT_LOOP_INTERVAL = 1000
 
@@ -72,6 +73,23 @@ export default class Stream<T> {
     if (!this.callback) {
       throw new Error('Missing callback for stream')
     }
+
+    // try {
+    //   await MessageService.Subscribe(
+    //     {
+    //       contentTopic: this.topic,
+    //     },
+    //     (env: Envelope) => {
+    //       console.log('env', env)
+    //     },
+    //     {
+    //       pathPrefix: 'https://localhost:5000',
+    //     }
+    //   )
+    // } catch (err) {
+    //   console.log(err)
+    // }
+    // sleep(1000)
 
     this.unsubscribeFn = await this.client.waku.filter.subscribe(
       this.callback,

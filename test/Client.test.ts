@@ -65,7 +65,7 @@ describe('Client', () => {
         assert(Array.from(bob.waku.relay.getPeers()).length === 1)
       })
 
-      it('user contacts published', async () => {
+      it.only('user contacts published', async () => {
         const alicePublic = await waitForUserContact(alice, alice)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
         const bobPublic = await waitForUserContact(bob, bob)
@@ -80,7 +80,7 @@ describe('Client', () => {
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
-      it('send, stream and list messages', async () => {
+      it.only('send, stream and list messages', async () => {
         const bobIntros = await bob.streamIntroductionMessages()
         const bobAlice = await bob.streamConversationMessages(alice.address)
         const aliceIntros = await alice.streamIntroductionMessages()
