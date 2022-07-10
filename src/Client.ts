@@ -27,6 +27,7 @@ import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
 import ContactBundle from './ContactBundle'
 import {
+  Envelope,
   Message as MessageService,
   QueryRequestSortDirection,
 } from './proto/message.pb'
@@ -169,7 +170,7 @@ export default class Client {
   ): Promise<Client> {
     const options = defaultOptions(opts)
     const waku = await createWaku(options)
-    const keyStore = createKeyStoreFromConfig(options, wallet, waku)
+    const keyStore = createKeyStoreFromConfig(options, wallet)
     const keys = await loadOrCreateKeys(wallet, keyStore)
     const client = new Client(waku, keys)
     options.codecs.forEach((codec) => {
@@ -284,20 +285,20 @@ export default class Client {
     const msg = await this.encodeMessage(recipient, timestamp, content, options)
     await Promise.all(
       topics.map(async (topic) => {
-        const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
-          timestamp,
+        return this.publishEnvelope({
+          contentTopic: topic,
+          message: msg.toBytes(),
         })
-        return this.sendWakuMessage(wakuMsg)
       })
     )
   }
 
-  private async sendWakuMessage(msg: WakuMessage): Promise<void> {
-    const bytes = msg.payload
+  private async publishEnvelope(env: Envelope): Promise<void> {
+    const bytes = env.message
     try {
       await MessageService.Publish(
         {
-          contentTopic: msg.contentTopic,
+          contentTopic: env.contentTopic,
           message: !bytes
             ? undefined
             : b64Decode(b64Encode(bytes, 0, bytes.length)),
@@ -471,8 +472,7 @@ export default class Client {
 
 function createKeyStoreFromConfig(
   opts: KeyStoreOptions,
-  wallet: Signer,
-  waku: Waku
+  wallet: Signer
 ): EncryptedStore {
   switch (opts.keyStoreType) {
     case KeyStoreType.networkTopicStoreV1:

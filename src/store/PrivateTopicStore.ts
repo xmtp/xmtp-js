@@ -1,9 +1,7 @@
 // This creates an interface for storing data to the storage network.
 import { Store } from './Store'
-import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import { buildUserPrivateStoreTopic } from '../utils'
 import {
-  Envelope,
   Message as MessageService,
   QueryRequestSortDirection,
 } from '../proto/message.pb'
