@@ -10,7 +10,7 @@ export class AuthnRequest {
     this.proto = proto
   }
 
-  static async createRequest(
+  static async create(
     identityKey: PrivateKey,
     peerId: string
   ): Promise<AuthnRequest> {
@@ -18,7 +18,7 @@ export class AuthnRequest {
       throw new Error('no signature')
     }
 
-    const authData = AuthnData.createAuthData(
+    const authData = AuthnData.create(
       identityKey.publicKey.walletSignatureAddress(),
       peerId,
       new Date()

@@ -26,7 +26,7 @@ export class MockAuthSender extends AuthSender {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     authReq: AuthnRequest
   ): Promise<AuthnResponse> {
-    return AuthnResponse.createResponse(this.returnValue, '')
+    return AuthnResponse.create(this.returnValue, '')
   }
 }
 

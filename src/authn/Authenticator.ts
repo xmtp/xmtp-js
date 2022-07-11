@@ -58,7 +58,7 @@ export default class Authenticator {
   async authenticate(remotePeerId: PeerId): Promise<AuthResult> {
     const localPeerId = this.libp2p.peerId
 
-    const authReq = await AuthnRequest.createRequest(
+    const authReq = await AuthnRequest.create(
       this.identityKey,
       localPeerId.toB58String()
     )

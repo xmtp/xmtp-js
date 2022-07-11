@@ -7,7 +7,7 @@ export class AuthnData {
     this.proto = proto
   }
 
-  static createAuthData(
+  static create(
     walletAddr: string,
     peerId: string,
     timestamp?: Date

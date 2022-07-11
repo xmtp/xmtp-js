@@ -7,10 +7,7 @@ export class AuthnResponse {
     this.proto = proto
   }
 
-  static createResponse(
-    authSuccessful: boolean,
-    errorStr: string
-  ): AuthnResponse {
+  static create(authSuccessful: boolean, errorStr: string): AuthnResponse {
     return new AuthnResponse({
       v1: {
         authSuccessful: authSuccessful,
