@@ -3,15 +3,15 @@ import lp from 'it-length-prefixed'
 import { pipe } from 'it-pipe'
 import Libp2p from 'libp2p'
 
-import { AuthRequest, AuthResponse } from './AuthRequests'
-
+import { AuthnRequest } from './AuthnRequest'
+import { AuthnResponse } from './AuthnResponse'
 // AuthSender abstraction allows the send functionality of the Authenticator class to be changed at runtime.
 // This is helpful for testing failure and edge cases.
 export abstract class AuthSender {
   abstract send(
     stream: Libp2p.MuxedStream,
-    authReq: AuthRequest
-  ): Promise<AuthResponse>
+    authReq: AuthnRequest
+  ): Promise<AuthnResponse>
 }
 
 // StreamAuthSender is the primary production sender implemention. This should be used in all cases outside of
@@ -19,8 +19,8 @@ export abstract class AuthSender {
 export class ProductionAuthSender extends AuthSender {
   async send(
     stream: Libp2p.MuxedStream,
-    authReq: AuthRequest
-  ): Promise<AuthResponse> {
+    authReq: AuthnRequest
+  ): Promise<AuthnResponse> {
     const result = await pipe(
       [authReq.encode()],
       lp.encode(),
@@ -29,6 +29,6 @@ export class ProductionAuthSender extends AuthSender {
       concat
     )
 
-    return AuthResponse.decode(result.slice())
+    return AuthnResponse.decode(result.slice())
   }
 }

@@ -1,9 +1,7 @@
 import Libp2p from 'libp2p'
-import {
-  AuthData,
-  AuthRequest,
-  AuthResponse,
-} from '../../src/authn/AuthRequests'
+import { AuthnRequest } from '../../src/authn/AuthnRequest'
+import { AuthnResponse } from '../../src/authn/AuthnResponse'
+import { AuthnData } from '../../src/authn/AuthnData'
 import { AuthSender, ProductionAuthSender } from '../../src/authn/AuthSender'
 import { bytesToHex } from '../../src/crypto/utils'
 
@@ -26,22 +24,22 @@ export class MockAuthSender extends AuthSender {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     stream: Libp2p.MuxedStream,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    authReq: AuthRequest
-  ): Promise<AuthResponse> {
-    return AuthResponse.createResponse(this.returnValue, '')
+    authReq: AuthnRequest
+  ): Promise<AuthnResponse> {
+    return AuthnResponse.createResponse(this.returnValue, '')
   }
 }
 
 export class ExportAuthSender extends ProductionAuthSender {
   async send(
     stream: Libp2p.MuxedStream,
-    authReq: AuthRequest
-  ): Promise<AuthResponse> {
+    authReq: AuthnRequest
+  ): Promise<AuthnResponse> {
     const authBytes = authReq.proto.v1?.authDataBytes
     if (!authBytes) {
       throw new Error('unable to decode authbytes')
     }
-    const authData = AuthData.decode(authBytes)
+    const authData = AuthnData.decode(authBytes)
 
     const testcase = `    testCase{
       peerID:     "${authData.proto.peerId}",

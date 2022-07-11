@@ -1,7 +1,8 @@
 import Libp2p from 'libp2p'
 import PeerId from 'peer-id'
 
-import { AuthRequest, AuthResponse } from './AuthRequests'
+import { AuthnRequest } from './AuthnRequest'
+import { AuthnResponse } from './AuthnResponse'
 import { AuthSender, ProductionAuthSender } from './AuthSender'
 import { PrivateKey } from '../crypto'
 
@@ -57,7 +58,7 @@ export default class Authenticator {
   async authenticate(remotePeerId: PeerId): Promise<AuthResult> {
     const localPeerId = this.libp2p.peerId
 
-    const authReq = await AuthRequest.createRequest(
+    const authReq = await AuthnRequest.createRequest(
       this.identityKey,
       localPeerId.toB58String()
     )
@@ -74,8 +75,8 @@ export default class Authenticator {
 
   private async sendAuthRequest(
     remotePeerId: PeerId,
-    authReq: AuthRequest
-  ): Promise<AuthResponse> {
+    authReq: AuthnRequest
+  ): Promise<AuthnResponse> {
     const conn = this.libp2p.connectionManager.get(remotePeerId)
     if (!conn) {
       throw new Error(`cannot authenticate without valid connection`)
