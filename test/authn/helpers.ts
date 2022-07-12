@@ -1,9 +1,7 @@
 import Libp2p from 'libp2p'
 import { AuthnRequest } from '../../src/authn/AuthnRequest'
 import { AuthnResponse } from '../../src/authn/AuthnResponse'
-import { AuthnData } from '../../src/authn/AuthnData'
-import { AuthSender, ProductionAuthSender } from '../../src/authn/AuthSender'
-import { bytesToHex } from '../../src/crypto/utils'
+import { AuthSender } from '../../src/authn/AuthSender'
 
 // AuthSendMock provides an alternative AuthSender for testing. The returned response can be set
 // inorder to test failure cases easily
@@ -27,26 +25,5 @@ export class MockAuthSender extends AuthSender {
     authReq: AuthnRequest
   ): Promise<AuthnResponse> {
     return AuthnResponse.create(this.returnValue, '')
-  }
-}
-
-export class ExportAuthSender extends ProductionAuthSender {
-  async send(
-    stream: Libp2p.MuxedStream,
-    authReq: AuthnRequest
-  ): Promise<AuthnResponse> {
-    const authBytes = authReq.proto.v1?.authDataBytes
-    if (!authBytes) {
-      throw new Error('unable to decode authbytes')
-    }
-    const authData = AuthnData.decode(authBytes)
-
-    const testcase = `    testCase{
-      peerID:     "${authData.proto.peerId}",
-      walletAddr: "${authData.proto.walletAddr}",
-      reqBytes:   "${bytesToHex(authReq.encode())}",
-    }`
-    console.log(testcase)
-    return await super.send(stream, authReq)
   }
 }
