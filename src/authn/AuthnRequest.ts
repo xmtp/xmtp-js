@@ -7,7 +7,7 @@ import * as proto from '../proto/authn'
 import { AuthnData } from './AuthnData'
 
 export class AuthnRequest {
-  public constructor(public proto: proto.ClientAuthRequest) {
+  public constructor(public proto: proto.ClientAuthnRequest) {
     this.proto = proto
   }
 
@@ -19,34 +19,34 @@ export class AuthnRequest {
       throw new Error('no signature')
     }
 
-    const authData = AuthnData.create(
+    const authnData = AuthnData.create(
       identityKey.publicKey.walletSignatureAddress(),
       peerId,
       new Date()
     )
 
-    // The authdata struct is encoded to bytes prior to building the request to ensure
+    // The authnData struct is encoded to bytes prior to building the request to ensure
     // a consistent byte order when the signature is verified on the receiving side.
-    const authDataBytes = authData.encode()
-    const digest = await keccak256(authDataBytes)
-    const authSig = await identityKey.sign(hexToBytes(digest))
+    const authnDataBytes = authnData.encode()
+    const digest = await keccak256(authnDataBytes)
+    const authnSig = await identityKey.sign(hexToBytes(digest))
 
     return new AuthnRequest({
       v1: {
         identityKeyBytes: identityKey.publicKey.bytesToSign(),
         walletSignature: identityKey.publicKey.signature,
-        authDataBytes: authDataBytes,
-        authSignature: authSig,
+        authnDataBytes: authnDataBytes,
+        authnSignature: authnSig,
       },
     })
   }
 
   static decode(bytes: Uint8Array): AuthnRequest {
-    const res = proto.ClientAuthRequest.decode(Reader.create(bytes))
+    const res = proto.ClientAuthnRequest.decode(Reader.create(bytes))
     return new AuthnRequest(res)
   }
 
   encode(): Uint8Array {
-    return proto.ClientAuthRequest.encode(this.proto).finish()
+    return proto.ClientAuthnRequest.encode(this.proto).finish()
   }
 }

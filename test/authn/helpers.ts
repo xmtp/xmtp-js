@@ -1,11 +1,11 @@
 import Libp2p from 'libp2p'
 import { AuthnRequest } from '../../src/authn/AuthnRequest'
 import { AuthnResponse } from '../../src/authn/AuthnResponse'
-import { AuthSender } from '../../src/authn/AuthSender'
+import { AuthnSender } from '../../src/authn/AuthnSender'
 
-// AuthSendMock provides an alternative AuthSender for testing. The returned response can be set
+// AuthnSendMock provides an alternative authnSender for testing. The returned response can be set
 // inorder to test failure cases easily
-export class MockAuthSender extends AuthSender {
+export class MockAuthnSender extends AuthnSender {
   returnValue: boolean
 
   constructor(returnValue: boolean) {
@@ -22,7 +22,7 @@ export class MockAuthSender extends AuthSender {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     stream: Libp2p.MuxedStream,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    authReq: AuthnRequest
+    authnReq: AuthnRequest
   ): Promise<AuthnResponse> {
     return AuthnResponse.create(this.returnValue, '')
   }

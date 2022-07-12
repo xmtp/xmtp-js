@@ -1,8 +1,8 @@
 import assert from 'assert'
 import { pollFor, newLocalDockerClient, newWallet } from '../helpers'
-import Authenticator, { AuthResult } from '../../src/authn/Authenticator'
-import { MockAuthSender } from './helpers'
-import { TestClient } from '../testClient'
+import { Authenticator, AuthnResult } from '../../src/authn'
+import { MockAuthnSender } from './helpers'
+import { TestClient } from '../TestClient'
 import { AuthenticationError } from '../../src/Client'
 
 describe('Authenticator', () => {
@@ -25,36 +25,36 @@ describe('Authenticator', () => {
     )
   })
 
-  it('Auth Cache', async () => {
+  it('Authn Cache', async () => {
     const clientA = await newLocalDockerClient()
-    const sendMock = new MockAuthSender(false)
-    const auth = await Authenticator.create(
+    const sendMock = new MockAuthnSender(false)
+    const authn = await Authenticator.create(
       clientA.waku.libp2p,
       clientA.keys.identityKey,
       { sender: sendMock }
     )
-    let result: AuthResult
+    let result: AuthnResult
 
     const remotePeerId = await clientA.waku.store.randomPeer
     assert.ok(remotePeerId)
-    assert.equal(await auth.hasAuthenticated(remotePeerId.id), false)
+    assert.equal(await authn.hasAuthenticated(remotePeerId.id), false)
 
     sendMock.setResponse(false)
-    result = await auth.authenticate(remotePeerId.id)
+    result = await authn.authenticate(remotePeerId.id)
     assert.equal(result.isAuthenticated, false)
-    assert.equal(await auth.hasAuthenticated(remotePeerId.id), false)
+    assert.equal(await authn.hasAuthenticated(remotePeerId.id), false)
 
     sendMock.setResponse(true)
-    result = await auth.authenticate(remotePeerId.id)
+    result = await authn.authenticate(remotePeerId.id)
     assert.equal(result.isAuthenticated, true)
-    assert.equal(await auth.hasAuthenticated(remotePeerId.id), true)
+    assert.equal(await authn.hasAuthenticated(remotePeerId.id), true)
   })
 })
 
 describe('Client Authentication Integration', () => {
   jest.setTimeout(49000)
   it('nominal ', async () => {
-    const senderMock = new MockAuthSender(true)
+    const senderMock = new MockAuthnSender(true)
     const client = await TestClient.create(newWallet(), {
       authOpts: { sender: senderMock },
     })
@@ -68,7 +68,7 @@ describe('Client Authentication Integration', () => {
     let wasErrorThrown = false
 
     try {
-      const senderMock = new MockAuthSender(false)
+      const senderMock = new MockAuthnSender(false)
       client = await TestClient.create(newWallet(), {
         authOpts: { sender: senderMock },
       })

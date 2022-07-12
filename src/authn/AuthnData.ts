@@ -3,7 +3,7 @@ import { Reader } from 'protobufjs/minimal'
 import * as proto from '../proto/authn'
 
 export class AuthnData {
-  public constructor(public proto: proto.AuthData) {
+  public constructor(public proto: proto.AuthnData) {
     this.proto = proto
   }
 
@@ -21,11 +21,11 @@ export class AuthnData {
   }
 
   static decode(bytes: Uint8Array): AuthnData {
-    const res = proto.AuthData.decode(Reader.create(bytes))
+    const res = proto.AuthnData.decode(Reader.create(bytes))
     return new AuthnData(res)
   }
 
   encode(): Uint8Array {
-    return proto.AuthData.encode(this.proto).finish()
+    return proto.AuthnData.encode(this.proto).finish()
   }
 }

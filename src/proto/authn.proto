@@ -2,31 +2,31 @@ syntax = "proto3";
 
 import "messaging.proto";
 
-message V1ClientAuthRequest {
+message V1ClientAuthnRequest {
   bytes identityKeyBytes = 1;
   Signature walletSignature = 2;
-  bytes authDataBytes = 3;
-  Signature authSignature = 4;
+  bytes authnDataBytes = 3;
+  Signature authnSignature = 4;
 }
 
-message ClientAuthRequest {
+message ClientAuthnRequest {
   oneof version {
-    V1ClientAuthRequest v1 = 1;
+    V1ClientAuthnRequest v1 = 1;
   }
 }
 
-message V1ClientAuthResponse {
-  bool authSuccessful = 1;
+message V1ClientAuthnResponse {
+  bool authnSuccessful = 1;
   string errorStr = 2;
 }
 
-message ClientAuthResponse{
+message ClientAuthnResponse{
   oneof version {
-    V1ClientAuthResponse v1 = 1;
+    V1ClientAuthnResponse v1 = 1;
   }
 }
 
-message AuthData {
+message AuthnData {
   string walletAddr = 1;
   string peerId = 2;
   uint64 timestamp = 3;

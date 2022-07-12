@@ -5,44 +5,44 @@ import { Signature } from './messaging'
 
 export const protobufPackage = ''
 
-export interface V1ClientAuthRequest {
+export interface V1ClientAuthnRequest {
   identityKeyBytes: Uint8Array
   walletSignature: Signature | undefined
-  authDataBytes: Uint8Array
-  authSignature: Signature | undefined
+  authnDataBytes: Uint8Array
+  authnSignature: Signature | undefined
 }
 
-export interface ClientAuthRequest {
-  v1: V1ClientAuthRequest | undefined
+export interface ClientAuthnRequest {
+  v1: V1ClientAuthnRequest | undefined
 }
 
-export interface V1ClientAuthResponse {
-  authSuccessful: boolean
+export interface V1ClientAuthnResponse {
+  authnSuccessful: boolean
   errorStr: string
 }
 
-export interface ClientAuthResponse {
-  v1: V1ClientAuthResponse | undefined
+export interface ClientAuthnResponse {
+  v1: V1ClientAuthnResponse | undefined
 }
 
-export interface AuthData {
+export interface AuthnData {
   walletAddr: string
   peerId: string
   timestamp: number
 }
 
-function createBaseV1ClientAuthRequest(): V1ClientAuthRequest {
+function createBaseV1ClientAuthnRequest(): V1ClientAuthnRequest {
   return {
     identityKeyBytes: new Uint8Array(),
     walletSignature: undefined,
-    authDataBytes: new Uint8Array(),
-    authSignature: undefined,
+    authnDataBytes: new Uint8Array(),
+    authnSignature: undefined,
   }
 }
 
-export const V1ClientAuthRequest = {
+export const V1ClientAuthnRequest = {
   encode(
-    message: V1ClientAuthRequest,
+    message: V1ClientAuthnRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.identityKeyBytes.length !== 0) {
@@ -54,19 +54,25 @@ export const V1ClientAuthRequest = {
         writer.uint32(18).fork()
       ).ldelim()
     }
-    if (message.authDataBytes.length !== 0) {
-      writer.uint32(26).bytes(message.authDataBytes)
+    if (message.authnDataBytes.length !== 0) {
+      writer.uint32(26).bytes(message.authnDataBytes)
     }
-    if (message.authSignature !== undefined) {
-      Signature.encode(message.authSignature, writer.uint32(34).fork()).ldelim()
+    if (message.authnSignature !== undefined) {
+      Signature.encode(
+        message.authnSignature,
+        writer.uint32(34).fork()
+      ).ldelim()
     }
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): V1ClientAuthRequest {
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): V1ClientAuthnRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseV1ClientAuthRequest()
+    const message = createBaseV1ClientAuthnRequest()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -77,10 +83,10 @@ export const V1ClientAuthRequest = {
           message.walletSignature = Signature.decode(reader, reader.uint32())
           break
         case 3:
-          message.authDataBytes = reader.bytes()
+          message.authnDataBytes = reader.bytes()
           break
         case 4:
-          message.authSignature = Signature.decode(reader, reader.uint32())
+          message.authnSignature = Signature.decode(reader, reader.uint32())
           break
         default:
           reader.skipType(tag & 7)
@@ -90,7 +96,7 @@ export const V1ClientAuthRequest = {
     return message
   },
 
-  fromJSON(object: any): V1ClientAuthRequest {
+  fromJSON(object: any): V1ClientAuthnRequest {
     return {
       identityKeyBytes: isSet(object.identityKeyBytes)
         ? bytesFromBase64(object.identityKeyBytes)
@@ -98,16 +104,16 @@ export const V1ClientAuthRequest = {
       walletSignature: isSet(object.walletSignature)
         ? Signature.fromJSON(object.walletSignature)
         : undefined,
-      authDataBytes: isSet(object.authDataBytes)
-        ? bytesFromBase64(object.authDataBytes)
+      authnDataBytes: isSet(object.authnDataBytes)
+        ? bytesFromBase64(object.authnDataBytes)
         : new Uint8Array(),
-      authSignature: isSet(object.authSignature)
-        ? Signature.fromJSON(object.authSignature)
+      authnSignature: isSet(object.authnSignature)
+        ? Signature.fromJSON(object.authnSignature)
         : undefined,
     }
   },
 
-  toJSON(message: V1ClientAuthRequest): unknown {
+  toJSON(message: V1ClientAuthnRequest): unknown {
     const obj: any = {}
     message.identityKeyBytes !== undefined &&
       (obj.identityKeyBytes = base64FromBytes(
@@ -119,61 +125,61 @@ export const V1ClientAuthRequest = {
       (obj.walletSignature = message.walletSignature
         ? Signature.toJSON(message.walletSignature)
         : undefined)
-    message.authDataBytes !== undefined &&
-      (obj.authDataBytes = base64FromBytes(
-        message.authDataBytes !== undefined
-          ? message.authDataBytes
+    message.authnDataBytes !== undefined &&
+      (obj.authnDataBytes = base64FromBytes(
+        message.authnDataBytes !== undefined
+          ? message.authnDataBytes
           : new Uint8Array()
       ))
-    message.authSignature !== undefined &&
-      (obj.authSignature = message.authSignature
-        ? Signature.toJSON(message.authSignature)
+    message.authnSignature !== undefined &&
+      (obj.authnSignature = message.authnSignature
+        ? Signature.toJSON(message.authnSignature)
         : undefined)
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<V1ClientAuthRequest>, I>>(
+  fromPartial<I extends Exact<DeepPartial<V1ClientAuthnRequest>, I>>(
     object: I
-  ): V1ClientAuthRequest {
-    const message = createBaseV1ClientAuthRequest()
+  ): V1ClientAuthnRequest {
+    const message = createBaseV1ClientAuthnRequest()
     message.identityKeyBytes = object.identityKeyBytes ?? new Uint8Array()
     message.walletSignature =
       object.walletSignature !== undefined && object.walletSignature !== null
         ? Signature.fromPartial(object.walletSignature)
         : undefined
-    message.authDataBytes = object.authDataBytes ?? new Uint8Array()
-    message.authSignature =
-      object.authSignature !== undefined && object.authSignature !== null
-        ? Signature.fromPartial(object.authSignature)
+    message.authnDataBytes = object.authnDataBytes ?? new Uint8Array()
+    message.authnSignature =
+      object.authnSignature !== undefined && object.authnSignature !== null
+        ? Signature.fromPartial(object.authnSignature)
         : undefined
     return message
   },
 }
 
-function createBaseClientAuthRequest(): ClientAuthRequest {
+function createBaseClientAuthnRequest(): ClientAuthnRequest {
   return { v1: undefined }
 }
 
-export const ClientAuthRequest = {
+export const ClientAuthnRequest = {
   encode(
-    message: ClientAuthRequest,
+    message: ClientAuthnRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.v1 !== undefined) {
-      V1ClientAuthRequest.encode(message.v1, writer.uint32(10).fork()).ldelim()
+      V1ClientAuthnRequest.encode(message.v1, writer.uint32(10).fork()).ldelim()
     }
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ClientAuthRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ClientAuthnRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseClientAuthRequest()
+    const message = createBaseClientAuthnRequest()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
-          message.v1 = V1ClientAuthRequest.decode(reader, reader.uint32())
+          message.v1 = V1ClientAuthnRequest.decode(reader, reader.uint32())
           break
         default:
           reader.skipType(tag & 7)
@@ -183,44 +189,46 @@ export const ClientAuthRequest = {
     return message
   },
 
-  fromJSON(object: any): ClientAuthRequest {
+  fromJSON(object: any): ClientAuthnRequest {
     return {
       v1: isSet(object.v1)
-        ? V1ClientAuthRequest.fromJSON(object.v1)
+        ? V1ClientAuthnRequest.fromJSON(object.v1)
         : undefined,
     }
   },
 
-  toJSON(message: ClientAuthRequest): unknown {
+  toJSON(message: ClientAuthnRequest): unknown {
     const obj: any = {}
     message.v1 !== undefined &&
-      (obj.v1 = message.v1 ? V1ClientAuthRequest.toJSON(message.v1) : undefined)
+      (obj.v1 = message.v1
+        ? V1ClientAuthnRequest.toJSON(message.v1)
+        : undefined)
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<ClientAuthRequest>, I>>(
+  fromPartial<I extends Exact<DeepPartial<ClientAuthnRequest>, I>>(
     object: I
-  ): ClientAuthRequest {
-    const message = createBaseClientAuthRequest()
+  ): ClientAuthnRequest {
+    const message = createBaseClientAuthnRequest()
     message.v1 =
       object.v1 !== undefined && object.v1 !== null
-        ? V1ClientAuthRequest.fromPartial(object.v1)
+        ? V1ClientAuthnRequest.fromPartial(object.v1)
         : undefined
     return message
   },
 }
 
-function createBaseV1ClientAuthResponse(): V1ClientAuthResponse {
-  return { authSuccessful: false, errorStr: '' }
+function createBaseV1ClientAuthnResponse(): V1ClientAuthnResponse {
+  return { authnSuccessful: false, errorStr: '' }
 }
 
-export const V1ClientAuthResponse = {
+export const V1ClientAuthnResponse = {
   encode(
-    message: V1ClientAuthResponse,
+    message: V1ClientAuthnResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.authSuccessful === true) {
-      writer.uint32(8).bool(message.authSuccessful)
+    if (message.authnSuccessful === true) {
+      writer.uint32(8).bool(message.authnSuccessful)
     }
     if (message.errorStr !== '') {
       writer.uint32(18).string(message.errorStr)
@@ -231,15 +239,15 @@ export const V1ClientAuthResponse = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number
-  ): V1ClientAuthResponse {
+  ): V1ClientAuthnResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseV1ClientAuthResponse()
+    const message = createBaseV1ClientAuthnResponse()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
-          message.authSuccessful = reader.bool()
+          message.authnSuccessful = reader.bool()
           break
         case 2:
           message.errorStr = reader.string()
@@ -252,57 +260,60 @@ export const V1ClientAuthResponse = {
     return message
   },
 
-  fromJSON(object: any): V1ClientAuthResponse {
+  fromJSON(object: any): V1ClientAuthnResponse {
     return {
-      authSuccessful: isSet(object.authSuccessful)
-        ? Boolean(object.authSuccessful)
+      authnSuccessful: isSet(object.authnSuccessful)
+        ? Boolean(object.authnSuccessful)
         : false,
       errorStr: isSet(object.errorStr) ? String(object.errorStr) : '',
     }
   },
 
-  toJSON(message: V1ClientAuthResponse): unknown {
+  toJSON(message: V1ClientAuthnResponse): unknown {
     const obj: any = {}
-    message.authSuccessful !== undefined &&
-      (obj.authSuccessful = message.authSuccessful)
+    message.authnSuccessful !== undefined &&
+      (obj.authnSuccessful = message.authnSuccessful)
     message.errorStr !== undefined && (obj.errorStr = message.errorStr)
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<V1ClientAuthResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<V1ClientAuthnResponse>, I>>(
     object: I
-  ): V1ClientAuthResponse {
-    const message = createBaseV1ClientAuthResponse()
-    message.authSuccessful = object.authSuccessful ?? false
+  ): V1ClientAuthnResponse {
+    const message = createBaseV1ClientAuthnResponse()
+    message.authnSuccessful = object.authnSuccessful ?? false
     message.errorStr = object.errorStr ?? ''
     return message
   },
 }
 
-function createBaseClientAuthResponse(): ClientAuthResponse {
+function createBaseClientAuthnResponse(): ClientAuthnResponse {
   return { v1: undefined }
 }
 
-export const ClientAuthResponse = {
+export const ClientAuthnResponse = {
   encode(
-    message: ClientAuthResponse,
+    message: ClientAuthnResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.v1 !== undefined) {
-      V1ClientAuthResponse.encode(message.v1, writer.uint32(10).fork()).ldelim()
+      V1ClientAuthnResponse.encode(
+        message.v1,
+        writer.uint32(10).fork()
+      ).ldelim()
     }
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ClientAuthResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ClientAuthnResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseClientAuthResponse()
+    const message = createBaseClientAuthnResponse()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
         case 1:
-          message.v1 = V1ClientAuthResponse.decode(reader, reader.uint32())
+          message.v1 = V1ClientAuthnResponse.decode(reader, reader.uint32())
           break
         default:
           reader.skipType(tag & 7)
@@ -312,42 +323,42 @@ export const ClientAuthResponse = {
     return message
   },
 
-  fromJSON(object: any): ClientAuthResponse {
+  fromJSON(object: any): ClientAuthnResponse {
     return {
       v1: isSet(object.v1)
-        ? V1ClientAuthResponse.fromJSON(object.v1)
+        ? V1ClientAuthnResponse.fromJSON(object.v1)
         : undefined,
     }
   },
 
-  toJSON(message: ClientAuthResponse): unknown {
+  toJSON(message: ClientAuthnResponse): unknown {
     const obj: any = {}
     message.v1 !== undefined &&
       (obj.v1 = message.v1
-        ? V1ClientAuthResponse.toJSON(message.v1)
+        ? V1ClientAuthnResponse.toJSON(message.v1)
         : undefined)
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<ClientAuthResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<ClientAuthnResponse>, I>>(
     object: I
-  ): ClientAuthResponse {
-    const message = createBaseClientAuthResponse()
+  ): ClientAuthnResponse {
+    const message = createBaseClientAuthnResponse()
     message.v1 =
       object.v1 !== undefined && object.v1 !== null
-        ? V1ClientAuthResponse.fromPartial(object.v1)
+        ? V1ClientAuthnResponse.fromPartial(object.v1)
         : undefined
     return message
   },
 }
 
-function createBaseAuthData(): AuthData {
+function createBaseAuthnData(): AuthnData {
   return { walletAddr: '', peerId: '', timestamp: 0 }
 }
 
-export const AuthData = {
+export const AuthnData = {
   encode(
-    message: AuthData,
+    message: AuthnData,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.walletAddr !== '') {
@@ -362,10 +373,10 @@ export const AuthData = {
     return writer
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): AuthData {
+  decode(input: _m0.Reader | Uint8Array, length?: number): AuthnData {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input)
     let end = length === undefined ? reader.len : reader.pos + length
-    const message = createBaseAuthData()
+    const message = createBaseAuthnData()
     while (reader.pos < end) {
       const tag = reader.uint32()
       switch (tag >>> 3) {
@@ -386,7 +397,7 @@ export const AuthData = {
     return message
   },
 
-  fromJSON(object: any): AuthData {
+  fromJSON(object: any): AuthnData {
     return {
       walletAddr: isSet(object.walletAddr) ? String(object.walletAddr) : '',
       peerId: isSet(object.peerId) ? String(object.peerId) : '',
@@ -394,7 +405,7 @@ export const AuthData = {
     }
   },
 
-  toJSON(message: AuthData): unknown {
+  toJSON(message: AuthnData): unknown {
     const obj: any = {}
     message.walletAddr !== undefined && (obj.walletAddr = message.walletAddr)
     message.peerId !== undefined && (obj.peerId = message.peerId)
@@ -403,8 +414,10 @@ export const AuthData = {
     return obj
   },
 
-  fromPartial<I extends Exact<DeepPartial<AuthData>, I>>(object: I): AuthData {
-    const message = createBaseAuthData()
+  fromPartial<I extends Exact<DeepPartial<AuthnData>, I>>(
+    object: I
+  ): AuthnData {
+    const message = createBaseAuthnData()
     message.walletAddr = object.walletAddr ?? ''
     message.peerId = object.peerId ?? ''
     message.timestamp = object.timestamp ?? 0

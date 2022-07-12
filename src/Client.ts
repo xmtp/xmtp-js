@@ -24,7 +24,7 @@ import {
 import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
-import Authenticator from './authn/Authenticator'
+import { Authenticator } from './authn'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -306,8 +306,8 @@ export default class Client {
     }
 
     if (!this.authenticator.hasAuthenticated(dstPeer.id)) {
-      const authResult = await this.authenticator.authenticate(dstPeer.id)
-      if (!authResult.isAuthenticated) {
+      const authnResult = await this.authenticator.authenticate(dstPeer.id)
+      if (!authnResult.isAuthenticated) {
         throw new AuthenticationError()
       }
     }
