@@ -16,7 +16,7 @@ export interface AuthResult {
 
 export type AuthOptions = {
   // Specify a different sending mechanism for the authenticator to use
-  alternativeSender: AuthSender
+  sender: AuthSender
 }
 
 /**
@@ -42,8 +42,8 @@ export default class Authenticator {
     identityKey: PrivateKey,
     authOpts?: AuthOptions
   ): Authenticator {
-    const sender = authOpts?.alternativeSender
-      ? authOpts.alternativeSender
+    const sender = authOpts?.sender
+      ? authOpts.sender
       : new ProductionAuthSender()
 
     const authenticator = new Authenticator(libp2p, identityKey, sender)

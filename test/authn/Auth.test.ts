@@ -31,7 +31,7 @@ describe('Authenticator', () => {
     const auth = await Authenticator.create(
       clientA.waku.libp2p,
       clientA.keys.identityKey,
-      { alternativeSender: sendMock }
+      { sender: sendMock }
     )
     let result: AuthResult
 
@@ -56,7 +56,7 @@ describe('Client Authentication Integration', () => {
   it('nominal ', async () => {
     const senderMock = new MockAuthSender(true)
     const client = await TestClient.create(newWallet(), {
-      authOpts: { alternativeSender: senderMock },
+      authOpts: { sender: senderMock },
     })
 
     senderMock.setResponse(true)
@@ -70,7 +70,7 @@ describe('Client Authentication Integration', () => {
     try {
       const senderMock = new MockAuthSender(false)
       client = await TestClient.create(newWallet(), {
-        authOpts: { alternativeSender: senderMock },
+        authOpts: { sender: senderMock },
       })
     } catch (e) {
       if (e instanceof AuthenticationError) {
