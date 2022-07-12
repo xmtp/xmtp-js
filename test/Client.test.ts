@@ -299,7 +299,6 @@ describe('Client', () => {
 })
 
 describe('ClientOptions', () => {
-  jest.setTimeout(10000)
   const tests = [
     {
       name: 'local docker node',
