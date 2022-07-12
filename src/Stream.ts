@@ -1,11 +1,6 @@
-import { WakuMessage } from 'js-waku'
-import { Connection } from 'libp2p'
 import Message from './Message'
 import Client from './Client'
-import { sleep } from './utils'
 import { Message as MessageService, Envelope } from './proto/message.pb'
-
-const DISCONNECT_LOOP_INTERVAL = 1000
 
 export type MessageTransformer<T> = (msg: Message) => T
 
@@ -24,11 +19,7 @@ export default class Stream<T> {
   resolvers: ((value: IteratorResult<T>) => void)[]
   // cache the callback so that it can be properly deregistered in Waku
   // if callback is undefined the stream is closed
-  callback: ((wakuMsg: WakuMessage) => Promise<void>) | undefined
-
-  private _disconnectCallback?: (connection: Connection) => Promise<void>
-
-  unsubscribeFn?: () => Promise<void>
+  callback: ((env: Envelope) => Promise<void>) | undefined
 
   constructor(
     client: Client,
@@ -47,12 +38,12 @@ export default class Stream<T> {
   private newMessageCallback(
     transformer: MessageTransformer<T>,
     filter?: MessageFilter
-  ): (wakuMsg: WakuMessage) => Promise<void> {
-    return async (wakuMsg: WakuMessage) => {
-      if (!wakuMsg.payload) {
+  ): (env: Envelope) => Promise<void> {
+    return async (env: Envelope) => {
+      if (!env.message) {
         return
       }
-      const msg = await this.client.decodeMessage(wakuMsg.payload)
+      const msg = await this.client.decodeMessage(env.message)
       // If there is a filter on the stream, and the filter returns false, ignore the message
       if (filter && !filter(msg)) {
         return
@@ -74,59 +65,25 @@ export default class Stream<T> {
       throw new Error('Missing callback for stream')
     }
 
-    // try {
-    //   await MessageService.Subscribe(
-    //     {
-    //       contentTopic: this.topic,
-    //     },
-    //     (env: Envelope) => {
-    //       console.log('env', env)
-    //     },
-    //     {
-    //       pathPrefix: 'https://localhost:5000',
-    //     }
-    //   )
-    // } catch (err) {
-    //   console.log(err)
-    // }
-    // sleep(1000)
-
-    this.unsubscribeFn = await this.client.waku.filter.subscribe(
-      this.callback,
-      [this.topic]
-    )
-    await this.listenForDisconnect()
-  }
-
-  private async listenForDisconnect() {
-    const peer = await this.client.waku.filter.randomPeer
-    // Save the callback function on the class so we can clean up later
-    this._disconnectCallback = async (connection: Connection) => {
-      if (connection.remotePeer.toB58String() === peer?.id?.toB58String()) {
-        console.log(`Connection to peer ${connection.remoteAddr} lost`)
-        while (true) {
-          try {
-            if (!this.callback) {
-              return
-            }
-            this.unsubscribeFn = await this.client.waku.filter.subscribe(
-              this.callback,
-              [this.topic]
-            )
-            console.log(`Connection to peer ${connection.remoteAddr} restored`)
-            return
-          } catch (e) {
-            console.warn(`Error reconnecting to ${connection.remoteAddr}`)
-            await sleep(DISCONNECT_LOOP_INTERVAL)
+    setTimeout(async () => {
+      try {
+        await MessageService.Subscribe(
+          {
+            contentTopic: this.topic,
+          },
+          async (env: Envelope) => {
+            console.log('env', env)
+            if (!this.callback) return
+            await this?.callback(env)
+          },
+          {
+            pathPrefix: 'https://localhost:5000',
           }
-        }
+        )
+      } catch (err) {
+        console.log(err)
       }
-    }
-
-    this.client.waku.libp2p.connectionManager.on(
-      'peer:disconnect',
-      this._disconnectCallback
-    )
+    }, 0)
   }
 
   static async create<T>(
@@ -150,17 +107,8 @@ export default class Stream<T> {
   // https://tc39.es/ecma262/#table-iterator-interface-optional-properties
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
-    if (this._disconnectCallback) {
-      this.client.waku.libp2p.connectionManager.off(
-        'peer:disconnect',
-        this._disconnectCallback
-      )
-    }
     if (!this.callback) {
       return { value: undefined, done: true }
-    }
-    if (this.unsubscribeFn) {
-      await this.unsubscribeFn()
     }
     this.callback = undefined
     this.resolvers.forEach((resolve) =>

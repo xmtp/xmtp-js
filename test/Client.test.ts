@@ -73,7 +73,7 @@ describe('Client', () => {
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
-      it('send, stream and list messages', async () => {
+      it.only('send, stream and list messages', async () => {
         const bobIntros = await bob.streamIntroductionMessages()
         const bobAlice = await bob.streamConversationMessages(alice.address)
         const aliceIntros = await alice.streamIntroductionMessages()
