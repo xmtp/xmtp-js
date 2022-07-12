@@ -25,6 +25,7 @@ import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
 import { Authenticator } from './authn'
+import ContactBundle from './ContactBundle'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -64,9 +65,10 @@ export enum KeyStoreType {
 // Parameters for the send functions
 export { Compression }
 export type SendOptions = {
-  contentType: ContentTypeId
+  contentType?: ContentTypeId
   contentFallback?: string
   compression?: Compression
+  timestamp?: Date
 }
 
 /**
@@ -137,6 +139,7 @@ export default class Client {
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
   protected authenticator: Authenticator
+  private _disconnectWatcher: ReturnType<typeof setInterval>
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
     this.waku = waku
@@ -148,6 +151,7 @@ export default class Client {
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.authenticator = Authenticator.create(waku.libp2p, keys.identityKey)
+    this._disconnectWatcher = this.createDisconnectWatcher()
   }
 
   /**
@@ -186,6 +190,7 @@ export default class Client {
 
   // gracefully shut down the client
   async close(): Promise<void> {
+    clearInterval(this._disconnectWatcher)
     return this.waku.stop()
   }
 
@@ -212,10 +217,12 @@ export default class Client {
       callback: (msgs: WakuMessage[]) => {
         for (const msg of msgs) {
           if (!msg.payload) continue
-          const bundle = PublicKeyBundle.fromBytes(msg.payload as Uint8Array)
-          const address = bundle.walletSignatureAddress()
+          const bundle = ContactBundle.fromBytes(msg.payload as Uint8Array)
+          const keyBundle = bundle.keyBundle
+
+          const address = keyBundle?.walletSignatureAddress()
           if (address === peerAddress) {
-            recipientKey = bundle
+            recipientKey = keyBundle
             break
           }
         }
@@ -284,7 +291,7 @@ export default class Client {
     } else {
       topics = [buildDirectMessageTopic(this.address, peerAddress)]
     }
-    const timestamp = new Date()
+    const timestamp = options?.timestamp || new Date()
     const msg = await this.encodeMessage(recipient, timestamp, content, options)
     await Promise.all(
       topics.map(async (topic) => {
@@ -430,8 +437,7 @@ export default class Client {
       opts = {}
     }
     if (!opts.startTime) {
-      opts.startTime = new Date()
-      opts.startTime.setTime(Date.now() - 1000 * 60 * 60 * 24 * 7)
+      opts.startTime = new Date(0)
     }
     if (!opts.endTime) {
       opts.endTime = new Date(new Date().toUTCString())
@@ -458,6 +464,22 @@ export default class Client {
       msgs = msgs.filter(filterForTopic(topic))
     }
     return msgs
+  }
+
+  private createDisconnectWatcher() {
+    return setInterval(async () => {
+      const connectionsToClose: Promise<void>[] = []
+      for (const connections of this.waku.libp2p.connectionManager.connections.values()) {
+        for (const connection of connections) {
+          if (!connection.streams.length) {
+            console.log(`Closing connection to ${connection.remoteAddr}`)
+            connectionsToClose.push(connection.close())
+          }
+        }
+      }
+
+      await Promise.allSettled(connectionsToClose)
+    }, 10 * 1000)
   }
 }
 

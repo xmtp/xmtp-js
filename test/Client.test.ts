@@ -6,6 +6,7 @@ import {
   newLocalDockerClient,
   newLocalHostClient,
   newDevClient,
+  waitForUserContact,
 } from './helpers'
 import { buildUserContactTopic, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
@@ -22,8 +23,13 @@ import {
   PrivateKeyBundle,
 } from '../src'
 
+type TestCase = {
+  name: string
+  newClient: () => Promise<Client>
+}
+
 describe('Client', () => {
-  const tests = []
+  const tests: TestCase[] = []
   if (process.env.LOCAL_NODE) {
     tests.push({
       name: 'local host node',
@@ -62,10 +68,9 @@ describe('Client', () => {
       })
 
       it('user contacts published', async () => {
-        await sleep(10)
-        const alicePublic = await alice.getUserContactFromNetwork(alice.address)
+        const alicePublic = await waitForUserContact(alice, alice)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
-        const bobPublic = await bob.getUserContactFromNetwork(bob.address)
+        const bobPublic = await waitForUserContact(bob, bob)
         assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
       })
 
@@ -180,7 +185,74 @@ describe('Client', () => {
 
         const convos = await dumpStream(convo)
         assert.equal(convos.length, messages.length)
-        convos.forEach((m, i) => assert.equal(m.content, messages[i]))
+        assert.deepEqual(
+          convos.map((convo) => convo.content).sort(),
+          messages.sort()
+        )
+      })
+
+      it('query historic messages', async () => {
+        const c1 = await testCase.newClient()
+        const c2 = await testCase.newClient()
+        assert(await waitForUserContact(c1, c2))
+
+        const msgCount = 5
+        const now = new Date().getTime()
+        const tenWeeksAgo = now - 1000 * 60 * 60 * 24 * 10
+        for (let i = 0; i < msgCount; i++) {
+          await c1.sendMessage(c2.address, 'msg' + (i + 1), {
+            timestamp: new Date(tenWeeksAgo + i * 1000),
+          })
+        }
+
+        const msgs = await pollFor(
+          async () => {
+            const msgs = await c2.listConversationMessages(c1.address)
+            assert.equal(msgs.length, msgCount)
+            return msgs
+          },
+          5000,
+          200
+        )
+
+        assert.equal(msgs.length, msgCount)
+        assert.deepEqual(
+          msgs.map((msg) => msg.error || msg.content),
+          [...Array(msgCount).keys()].map((i) => 'msg' + (i + 1))
+        )
+      })
+
+      it('query pagination', async () => {
+        const c1 = await testCase.newClient()
+        const c2 = await testCase.newClient()
+        assert(await waitForUserContact(c1, c2))
+
+        const msgCount = 10
+        const now = new Date().getTime()
+        const tenWeeksAgo = now - 1000 * 60 * 60 * 24 * 10
+        for (let i = 0; i < msgCount; i++) {
+          await c1.sendMessage(c2.address, 'msg' + (i + 1), {
+            timestamp: new Date(tenWeeksAgo + i * 1000),
+          })
+        }
+
+        const msgs = await pollFor(
+          async () => {
+            const msgs = await c2.listConversationMessages(c1.address, {
+              pageSize: 2,
+            })
+            assert.equal(msgs.length, msgCount)
+            return msgs
+          },
+          5000,
+          200
+        )
+
+        assert.equal(msgs.length, msgCount)
+        assert.deepEqual(
+          msgs.map((msg) => msg.error || msg.content),
+          [...Array(msgCount).keys()].map((i) => 'msg' + (i + 1))
+        )
       })
 
       it('for-await-of with stream', async () => {

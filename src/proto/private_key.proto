@@ -18,12 +18,24 @@ message PrivateKey {
   PublicKey publicKey = 3;
 }
 
-message PrivateKeyBundle {
+message PrivateKeyBundleV1 {
   PrivateKey identityKey = 1;
   repeated PrivateKey preKeys = 2;
 }
 
-message EncryptedPrivateKeyBundle {
+message PrivateKeyBundle {
+   oneof version {
+      PrivateKeyBundleV1 v1 = 1;
+  }
+}
+
+message EncryptedPrivateKeyBundleV1 {
   bytes walletPreKey = 1;
   Ciphertext ciphertext = 2;
+}
+
+message EncryptedPrivateKeyBundle {
+   oneof version {
+      EncryptedPrivateKeyBundleV1 v1 = 1;
+  }
 }
