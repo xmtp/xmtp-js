@@ -2,6 +2,7 @@ import { keccak256 } from 'js-sha3'
 import { Reader } from 'protobufjs/minimal'
 
 import { PrivateKey } from '../crypto'
+import { hexToBytes } from '../crypto/utils'
 import * as proto from '../proto/authn'
 import { AuthnData } from './AuthnData'
 
@@ -28,7 +29,7 @@ export class AuthnRequest {
     // a consistent byte order when the signature is verified on the receiving side.
     const authDataBytes = authData.encode()
     const digest = await keccak256(authDataBytes)
-    const authSig = await identityKey.sign(digest)
+    const authSig = await identityKey.sign(hexToBytes(digest))
 
     return new AuthnRequest({
       v1: {
