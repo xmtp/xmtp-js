@@ -6,7 +6,7 @@ import { AuthnResponse } from './AuthnResponse'
 import { AuthnSender, ProductionAuthnSender } from './AuthnSender'
 import { PrivateKey } from '../crypto'
 
-const PROTO_AUTHN = '/xmtplabs/xmtp-v1/clientauthn/0.1.0-beta1'
+const PROTO_AUTHN = '/xmtplabs/xmtp-v1/clientauthn/1.0.0'
 
 // authnResult is the primary return type.
 export interface AuthnResult {
