@@ -1,5 +1,6 @@
 import { Waku, WakuMessage } from 'js-waku'
 import { PublicKeyBundle } from './crypto'
+import ContactBundle from './ContactBundle'
 
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
@@ -52,7 +53,11 @@ export async function publishUserContact(
   keys: PublicKeyBundle,
   address: string
 ): Promise<void> {
+  const contactBundle = new ContactBundle(keys)
   await waku.lightPush.push(
-    await WakuMessage.fromBytes(keys.toBytes(), buildUserContactTopic(address))
+    await WakuMessage.fromBytes(
+      contactBundle.toBytes(),
+      buildUserContactTopic(address)
+    )
   )
 }
