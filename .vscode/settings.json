@@ -9,5 +9,5 @@
   "editor.tabSize": 2,
   "editor.detectIndentation": false,
   "files.insertFinalNewline": true,
-  "cSpell.words": ["Ciphertext", "Waku"]
+  "cSpell.words": ["Ciphertext", "Waku", "authn"]
 }

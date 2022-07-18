@@ -8,7 +8,6 @@ import {
   buildUserContactTopic,
   buildUserIntroTopic,
   promiseWithTimeout,
-  publishUserContact,
 } from './utils'
 import { sleep } from '../test/helpers'
 import Stream, { MessageFilter } from './Stream'
@@ -25,6 +24,7 @@ import {
 import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
+import { Authenticator } from './authn'
 import ContactBundle from './ContactBundle'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -41,6 +41,13 @@ type NodesList = {
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
+
+export class AuthenticationError extends Error {
+  constructor() {
+    super('Authentication Error')
+    Object.setPrototypeOf(this, AuthenticationError.prototype)
+  }
+}
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
@@ -131,6 +138,7 @@ export default class Client {
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
+  protected authenticator: Authenticator
   private _disconnectWatcher: ReturnType<typeof setInterval>
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
@@ -142,6 +150,7 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
+    this.authenticator = Authenticator.create(waku.libp2p, keys.identityKey)
     this._disconnectWatcher = this.createDisconnectWatcher()
   }
 
@@ -167,12 +176,16 @@ export default class Client {
     const keyStore = createKeyStoreFromConfig(options, wallet, waku)
     const keys = await loadOrCreateKeys(wallet, keyStore)
     const client = new Client(waku, keys)
-    options.codecs.forEach((codec) => {
-      client.registerCodec(codec)
-    })
-    client._maxContentSize = options.maxContentSize
-    await client.publishUserContact()
+    await client.init(options)
     return client
+  }
+
+  async init(options: ClientOptions): Promise<void> {
+    options.codecs.forEach((codec) => {
+      this.registerCodec(codec)
+    })
+    this._maxContentSize = options.maxContentSize
+    await this.publishUserContact()
   }
 
   // gracefully shut down the client
@@ -184,7 +197,12 @@ export default class Client {
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
-    await publishUserContact(this.waku, pub, this.address)
+    await this.sendWakuMessage(
+      await WakuMessage.fromBytes(
+        pub.toBytes(),
+        buildUserContactTopic(this.address)
+      )
+    )
   }
 
   // retrieve a key bundle from given user's contact topic
@@ -286,7 +304,22 @@ export default class Client {
   }
 
   private async sendWakuMessage(msg: WakuMessage): Promise<void> {
-    const ack = await this.waku.lightPush.push(msg)
+    // Waku randomly selects a peer from the Peerstore to send the message to. To ensure this is the
+    // same peer to which we authenticated to, a random peer is selected at this context and then
+    // passed in to LightPush to ensure a match
+    const dstPeer = await this.waku.lightPush.randomPeer
+    if (!dstPeer) {
+      throw new Error('no peer available to send message')
+    }
+
+    if (!this.authenticator.hasAuthenticated(dstPeer.id)) {
+      const authnResult = await this.authenticator.authenticate(dstPeer.id)
+      if (!authnResult.isAuthenticated) {
+        throw new AuthenticationError()
+      }
+    }
+
+    const ack = await this.waku.lightPush.push(msg, { peerId: dstPeer.id })
     if (ack?.isSuccess === false) {
       throw new Error(`Failed to send message with error: ${ack?.info}`)
     }
