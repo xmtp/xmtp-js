@@ -78,21 +78,6 @@ describe('PrivateTopicStore', () => {
         expect(responseB).toEqual(valueB)
         expect(responseA).not.toEqual(responseB)
       })
-
-      it('over write safety', async () => {
-        const key = wallet.address
-
-        const firstValue = new TextEncoder().encode('a')
-        const secondValue = new TextEncoder().encode('bb')
-
-        await store.set(key, Buffer.from(firstValue))
-        await sleep(10) // Add wait to enforce a consistent order of messages
-        await store.set(key, Buffer.from(secondValue))
-        await sleep(10) // Add wait to enforce a consistent order of messages
-        const returnedValue = await store.get(key)
-
-        expect(returnedValue).toEqual(Buffer.from(firstValue))
-      })
     })
   })
 })
