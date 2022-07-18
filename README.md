@@ -6,18 +6,33 @@
 
 ![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
 
-**Pre-stable XMTP client implementation for JavaScript applications**. Test sending and receiving messages on behalf of Ethereum wallets via the [XMTP Labs](https://xmtp.com) development network in your own app. For a complete demonstration, see the [example React app](https://github.com/xmtp/example-chat-react). For key concepts and answers to frequently asked questions, see <https://docs.xmtp.org/>.
+**XMTP client SDK for JavaScript applications**
 
-## 🚧 **XMTP-JS is in active development** 🚧
+`xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript and React applications.
 
-> ![Security](https://img.shields.io/badge/security-unaudited-orange) ![Stability](https://img.shields.io/badge/code%20stability-low-orange) ![Message Retention](https://img.shields.io/badge/message%20retention-7%20days-orange)
->
-> This pre-stable development release is publicly available for evaluation, feedback, and community contribution. All wallets and messages are forcibly deleted from the development network on Mondays.
->
-> - **DO NOT** use this package version in production.
-> - **DO NOT** share sensitive information via the development network.
-> - **DO** expect significant, frequent breaking revisions.
-> - **DO** contribute issues and PRs in this repo. The core team has limited bandwidth and may need a few days to review.
+Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
+
+For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app](https://github.com/xmtp/example-chat-react).
+
+`xmtp-js` has not undergone a formal security audit.
+
+To learn more about XMTP and get answers to frequently asked questions, see <https://docs.xmtp.org/>.
+
+## 🏗 **Breaking revisions**
+
+Because `xmtp-js` is in active development, you should expect breaking revisions that might require you to adopt the latest SDK release to enable your app to continue working as expected.
+
+XMTP communicates about breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
+
+Issues and PRs are welcome in accordance with our [contribution guidelines](CONTRIBUTING.md).
+
+## XMTP `production` and `dev` network environments
+
+XMTP provides both `production` and `dev` network environments to support the development phases of your project.
+
+The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)).
+
+To learn how to set your client's network environment, see [Configuring the Client](#configuring-the-client).
 
 ## Installation
 
@@ -83,7 +98,7 @@ A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>`
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
 
-The Client will connect to the XMTP playnet by default. ClientOptions can be used to override this and other parameters of the network connection.
+The Client will connect to the XMTP `dev` environment by default. ClientOptions can be used to override this and other parameters of the network connection.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
@@ -95,13 +110,13 @@ const xmtp = await Client.create(wallet)
 
 The client's network connection and key storage method can be configured with these optional parameters of `Client.create`:
 
-| Parameter             | Default               | Description                                                                      |
-| --------------------- | --------------------- | -------------------------------------------------------------------------------- |
-| env                   | `'dev'`               | Connect to the specified network environment.                                    |
-| waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                   |
-| keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`. |
-| codecs                | `[TextCodec]`         | Add codecs to support additional content types.                                  |
-| maxContentSize        | `100M`                | Maximum message content size in bytes.                                           |
+| Parameter             | Default               | Description                                                                                                                                                                                                                                                    |
+| --------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| env                   | `dev`                 | Connect to the specified XMTP network environment. Valid values also include `production`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments). |
+| waitForPeersTimeoutMs | `10000`               | Wait this long for an initial peer connection.                                                                                                                                                                                                                 |
+| keyStoreType          | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`.                                                                                                                                                                               |
+| codecs                | `[TextCodec]`         | Add codecs to support additional content types.                                                                                                                                                                                                                |
+| maxContentSize        | `100M`                | Maximum message content size in bytes.                                                                                                                                                                                                                         |
 
 ### Conversations
 
