@@ -98,7 +98,7 @@ A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>`
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
 
-The Client will connect to the XMTP playnet by default. ClientOptions can be used to override this and other parameters of the network connection.
+The Client will connect to the XMTP `dev` environment by default. ClientOptions can be used to override this and other parameters of the network connection.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
