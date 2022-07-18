@@ -43,7 +43,7 @@ export default class EncryptedStore {
       )
     } catch (e) {
       // If a versioned bundle is not found, the legacy bundle needs to be resaved to the store in
-      // the new format. One all bundles have been upgraded, this migration code can be removed.
+      // the new format. Once all bundles have been upgraded, this migration code can be removed.
       if (e instanceof BundleUpgradeNeeded) {
         const bundle = (e as BundleUpgradeNeeded).bundle
         await this.storePrivateKeyBundle(bundle)
