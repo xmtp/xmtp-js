@@ -1,6 +1,5 @@
 import { EncryptedStore, LocalStorageStore } from '../../src/store'
 import assert from 'assert'
-import { WakuMessage } from 'js-waku'
 import { PrivateKey, PrivateKeyBundle } from '../../src/crypto'
 import { Wallet } from 'ethers'
 
@@ -26,23 +25,6 @@ describe('LocalStorageStore', () => {
 
   it('returns null for unset values', async () => {
     assert.equal(null, await store.get("key-that-doesn't-exist"))
-  })
-
-  it('works with a full waku message', async () => {
-    const message = await WakuMessage.fromUtf8String(
-      'Test full message',
-      '/topic'
-    )
-    const inputValue = Buffer.from(message.encode())
-    await store.set('message', inputValue)
-    const storedValue = await store.get('message')
-
-    assert.deepEqual(storedValue, inputValue)
-
-    const newMessage = await WakuMessage.decode(
-      Uint8Array.from(storedValue as Buffer)
-    )
-    assert.equal(newMessage?.payloadAsUtf8, message?.payloadAsUtf8)
   })
 })
 

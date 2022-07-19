@@ -2,6 +2,7 @@
   "extends": "../tsconfig",
   "compilerOptions": {
     "module": "commonjs" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */,
-    "declaration": false /* Generates corresponding '.d.ts' file. */
+    "declaration": false, /* Generates corresponding '.d.ts' file. */
+    "outDir": "../dist/umd/src" /* Redirect output structure to the directory. */
   }
 }

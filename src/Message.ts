@@ -8,7 +8,7 @@ import {
   encrypt,
 } from './crypto'
 import { NoMatchingPreKeyError } from './crypto/errors'
-import { bytesToHex } from './crypto/utils'
+import { bytesToHex, hexToBytes } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 import { ContentTypeId } from './MessageContent'
 
@@ -59,6 +59,10 @@ export default class Message implements proto.V1Message {
 
   toBytes(): Uint8Array {
     return this.bytes
+  }
+
+  toHex(): string {
+    return bytesToHex(this.toBytes())
   }
 
   static async create(

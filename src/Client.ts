@@ -1,19 +1,14 @@
-import { Waku, WakuMessage, PageDirection } from 'js-waku'
-import { BootstrapOptions } from 'js-waku/build/main/lib/discovery'
 import fetch from 'cross-fetch'
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import Message from './Message'
 import {
   buildDirectMessageTopic,
-  buildUserContactTopic,
   buildUserIntroTopic,
-  promiseWithTimeout,
   publishUserContact,
 } from './utils'
-import { sleep } from '../test/helpers'
 import Stream, { MessageFilter } from './Stream'
 import { Signer } from 'ethers'
-import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
+import { EncryptedStore, LocalStorageStore } from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import {
@@ -26,6 +21,9 @@ import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
 import ContactBundle from './ContactBundle'
+import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
+import { queryClient, txClient } from './xmtp'
+import { hexToBytes } from './crypto/utils'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -39,6 +37,11 @@ type NodesList = {
   production: Nodes
 }
 
+type Envelope = {
+  topic: string
+  message: Message
+}
+
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
 
@@ -46,8 +49,6 @@ const MaxContentSize = 100 * 1024 * 1024 // 100M
 export type ListMessagesOptions = {
   checkAddresses?: boolean
   pageSize?: number
-  startTime?: Date
-  endTime?: Date
 }
 
 export enum KeyStoreType {
@@ -123,7 +124,6 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  * Should be created with `await Client.create(options)`
  */
 export default class Client {
-  waku: Waku
   address: string
   keys: PrivateKeyBundle
   private contacts: Set<string> // address which we have connected to
@@ -131,10 +131,8 @@ export default class Client {
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
-  private _disconnectWatcher: ReturnType<typeof setInterval>
 
-  constructor(waku: Waku, keys: PrivateKeyBundle) {
-    this.waku = waku
+  constructor(keys: PrivateKeyBundle) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
@@ -142,7 +140,6 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
-    this._disconnectWatcher = this.createDisconnectWatcher()
   }
 
   /**
@@ -163,10 +160,9 @@ export default class Client {
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
-    const waku = await createWaku(options)
-    const keyStore = createKeyStoreFromConfig(options, wallet, waku)
+    const keyStore = createKeyStoreFromConfig(options, wallet)
     const keys = await loadOrCreateKeys(wallet, keyStore)
-    const client = new Client(waku, keys)
+    const client = new Client(keys)
     options.codecs.forEach((codec) => {
       client.registerCodec(codec)
     })
@@ -177,40 +173,38 @@ export default class Client {
 
   // gracefully shut down the client
   async close(): Promise<void> {
-    clearInterval(this._disconnectWatcher)
-    return this.waku.stop()
+    return undefined
   }
 
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
-    const pub = this.keys.getPublicKeyBundle()
-    await publishUserContact(this.waku, pub, this.address)
+    await publishUserContact(this.keys, this.address)
   }
 
   // retrieve a key bundle from given user's contact topic
   async getUserContactFromNetwork(
     peerAddress: string
   ): Promise<PublicKeyBundle | undefined> {
-    // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
     let recipientKey: PublicKeyBundle | null = null
-    await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
-      pageSize: 5,
-      pageDirection: PageDirection.BACKWARD,
-      callback: (msgs: WakuMessage[]) => {
-        for (const msg of msgs) {
-          if (!msg.payload) continue
-          const bundle = ContactBundle.fromBytes(msg.payload as Uint8Array)
-          const keyBundle = bundle.keyBundle
 
-          const address = keyBundle?.walletSignatureAddress()
-          if (address === peerAddress) {
-            recipientKey = keyBundle
-            break
-          }
-        }
-        return recipientKey !== null
-      },
+    const client = await queryClient({
+      addr: process.env.XMTP_QUERY_URL || 'http://localhost:1317',
     })
+    try {
+      const res = await client.queryContact({
+        id: peerAddress,
+      })
+      const bundle = ContactBundle.fromHex(res.data.contact?.bundle || '')
+      const keyBundle = bundle.keyBundle
+
+      const address = keyBundle?.walletSignatureAddress()
+      if (address === peerAddress) {
+        recipientKey = keyBundle
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
     return recipientKey === null ? undefined : recipientKey
   }
 
@@ -253,7 +247,7 @@ export default class Client {
     peerAddress: string,
     content: any,
     options?: SendOptions
-  ): Promise<void> {
+  ): Promise<Message> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
 
@@ -275,20 +269,65 @@ export default class Client {
     }
     const timestamp = options?.timestamp || new Date()
     const msg = await this.encodeMessage(recipient, timestamp, content, options)
-    await Promise.all(
-      topics.map(async (topic) => {
-        const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
-          timestamp,
-        })
-        return this.sendWakuMessage(wakuMsg)
+    msg.content = content
+    const envs: Envelope[] = await Promise.all(
+      topics.map((topic) => {
+        return {
+          topic: topic,
+          message: msg,
+        }
       })
     )
+    setTimeout(async () => {
+      try {
+        await this.sendXmtpMessages(envs)
+      } catch (e) {
+        console.error(e)
+      }
+    }, 1)
+
+    return msg
   }
 
-  private async sendWakuMessage(msg: WakuMessage): Promise<void> {
-    const ack = await this.waku.lightPush.push(msg)
-    if (ack?.isSuccess === false) {
-      throw new Error(`Failed to send message with error: ${ack?.info}`)
+  private async sendXmtpMessages(envs: Envelope[]): Promise<void> {
+    const wallet = await DirectSecp256k1Wallet.fromKey(
+      this.keys.identityKey.secp256k1?.bytes || new Uint8Array()
+    )
+    const client = await txClient(wallet, {
+      addr: process.env.XMTP_TX_URL || 'http://localhost:26657',
+    })
+    const accountAddr = (await wallet.getAccounts())[0].address
+    const createMsgs = envs.map((env) =>
+      client.msgCreateMessage({
+        actor: {
+          account: accountAddr,
+        },
+        message: {
+          id: env.message.id,
+          topic: env.topic,
+          updated_at: 0,
+          created_at: 0,
+          content: env.message.toHex(),
+        },
+      })
+    )
+    console.log('Sending messages', envs.length)
+    // await client.signAndBroadcast(createMsgs)
+    // TODO: figure out why sending multiple results in none being received
+    for (const msg of createMsgs) {
+      let shouldRetry = true
+      while (shouldRetry) {
+        try {
+          await client.signAndBroadcast([msg])
+          shouldRetry = false
+        } catch (e) {
+          if ((e as Error).toString().includes('incorrect account sequence')) {
+            continue
+          }
+          shouldRetry = false
+          console.error('sending message', e)
+        }
+      }
     }
   }
 
@@ -403,61 +442,39 @@ export default class Client {
     if (!opts) {
       opts = {}
     }
-    if (!opts.startTime) {
-      opts.startTime = new Date(0)
-    }
-    if (!opts.endTime) {
-      opts.endTime = new Date(new Date().toUTCString())
-    }
     if (!opts.pageSize) {
       opts.pageSize = 10
     }
 
-    let wakuMsgs = await this.waku.store.queryHistory([topic], {
-      pageSize: opts.pageSize,
-      pageDirection: PageDirection.FORWARD,
-      timeFilter: {
-        startTime: opts.startTime,
-        endTime: opts.endTime,
-      },
+    const client = await queryClient({
+      addr: process.env.XMTP_QUERY_URL || 'http://localhost:1317',
     })
-    wakuMsgs = wakuMsgs.filter((wakuMsg) => wakuMsg?.payload)
+    console.log('querying for messages')
+    const res = await client.queryMessages({
+      topic,
+      // 'pagination.reverse': true,
+      'pagination.limit': opts.pageSize.toString(),
+    })
     let msgs = await Promise.all(
-      wakuMsgs.map((wakuMsg) =>
-        this.decodeMessage(wakuMsg.payload as Uint8Array)
-      )
+      res.data.messages?.map((msg) =>
+        this.decodeMessage(hexToBytes(msg.content || ''))
+      ) || []
     )
     if (opts?.checkAddresses) {
       msgs = msgs.filter(filterForTopic(topic))
     }
     return msgs
   }
-
-  private createDisconnectWatcher() {
-    return setInterval(async () => {
-      const connectionsToClose: Promise<void>[] = []
-      for (const connections of this.waku.libp2p.connectionManager.connections.values()) {
-        for (const connection of connections) {
-          if (!connection.streams.length) {
-            console.log(`Closing connection to ${connection.remoteAddr}`)
-            connectionsToClose.push(connection.close())
-          }
-        }
-      }
-
-      await Promise.allSettled(connectionsToClose)
-    }, 10 * 1000)
-  }
 }
 
 function createKeyStoreFromConfig(
   opts: KeyStoreOptions,
-  wallet: Signer,
-  waku: Waku
+  wallet: Signer
 ): EncryptedStore {
   switch (opts.keyStoreType) {
     case KeyStoreType.networkTopicStoreV1:
-      return createNetworkPrivateKeyStore(wallet, waku)
+      return createLocalPrivateKeyStore(wallet)
+    // return createNetworkPrivateKeyStore(wallet)
 
     case KeyStoreType.localStorage:
       return createLocalPrivateKeyStore(wallet)
@@ -465,12 +482,9 @@ function createKeyStoreFromConfig(
 }
 
 // Create Encrypted store which uses the Network to store KeyBundles
-function createNetworkPrivateKeyStore(
-  wallet: Signer,
-  waku: Waku
-): EncryptedStore {
-  return new EncryptedStore(wallet, new PrivateTopicStore(waku))
-}
+// function createNetworkPrivateKeyStore(wallet: Signer): EncryptedStore {
+//   return new EncryptedStore(wallet, new PrivateTopicStore())
+// }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles
 function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
@@ -480,65 +494,33 @@ function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
 async function loadOrCreateKeys(
-  wallet: Signer,
+  signer: Signer,
   store: EncryptedStore
 ): Promise<PrivateKeyBundle> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
   }
-  keys = await PrivateKeyBundle.generate(wallet)
+  keys = await PrivateKeyBundle.generate(signer)
+  const wallet = await DirectSecp256k1Wallet.fromKey(
+    keys.identityKey.secp256k1?.bytes || new Uint8Array()
+  )
+  const accounts = await wallet.getAccounts()
+  const address = accounts[0].address
+  console.log(address)
+  // await fetch('http://localhost:4500', {
+  //   method: 'POST',
+  //   headers: {
+  //     Accept: 'application/json',
+  //     'Content-Type': 'application/json',
+  //   },
+  //   body: JSON.stringify({
+  //     address: address,
+  //     coins: ['10token'],
+  //   }),
+  // })
   await store.storePrivateKeyBundle(keys)
   return keys
-}
-
-// initialize connection to the network
-export async function createWaku({
-  bootstrapAddrs,
-  env,
-  waitForPeersTimeoutMs,
-}: NetworkOptions): Promise<Waku> {
-  const bootstrap: BootstrapOptions = bootstrapAddrs?.length
-    ? {
-        peers: bootstrapAddrs,
-      }
-    : {
-        getPeers: () => getNodeList(env),
-      }
-  const waku = await Waku.create({
-    libp2p: {
-      config: {
-        pubsub: {
-          enabled: true,
-          emitSelf: true,
-        },
-      },
-    },
-    bootstrap,
-  })
-
-  // Wait for peer connection.
-  try {
-    await promiseWithTimeout(
-      waitForPeersTimeoutMs,
-      () => waku.waitForRemotePeer(),
-      'timeout connecting to peers'
-    )
-  } catch (err) {
-    await waku.stop()
-    throw err
-  }
-  // There's a race happening here even with waitForConnectedPeer; waiting
-  // a few ms seems to be enough, but it would be great to fix this upstream.
-  await sleep(200)
-  return waku
-}
-
-async function getNodeList(env: keyof NodesList): Promise<string[]> {
-  const res = await fetch(NODES_LIST_URL)
-  const nodesList: NodesList = await res.json()
-
-  return Object.values(nodesList[env])
 }
 
 function noTransformation(msg: Message) {

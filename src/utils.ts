@@ -1,6 +1,7 @@
-import { Waku, WakuMessage } from 'js-waku'
-import { PublicKeyBundle } from './crypto'
+import { PrivateKeyBundle } from './crypto'
 import ContactBundle from './ContactBundle'
+import { txClient } from './xmtp'
+import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
 
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
@@ -49,15 +50,34 @@ export const promiseWithTimeout = <T>(
 }
 
 export async function publishUserContact(
-  waku: Waku,
-  keys: PublicKeyBundle,
+  keys: PrivateKeyBundle,
   address: string
 ): Promise<void> {
-  const contactBundle = new ContactBundle(keys)
-  await waku.lightPush.push(
-    await WakuMessage.fromBytes(
-      contactBundle.toBytes(),
-      buildUserContactTopic(address)
-    )
+  const contactBundle = new ContactBundle(keys.getPublicKeyBundle())
+  if (!keys?.identityKey?.secp256k1?.bytes) {
+    return
+  }
+  const wallet = await DirectSecp256k1Wallet.fromKey(
+    keys.identityKey.secp256k1.bytes
   )
+  const client = await txClient(wallet, {
+    addr: process.env.XMTP_TX_URL || 'http://localhost:26657',
+  })
+  const accountAddr = (await wallet.getAccounts())[0].address
+  console.log(accountAddr)
+  console.log('Sending contact', address)
+  await client.signAndBroadcast([
+    client.msgCreateContact({
+      actor: {
+        account: accountAddr,
+      },
+      contact: {
+        id: address,
+        topic: buildUserContactTopic(address),
+        updated_at: 0,
+        created_at: 0,
+        bundle: contactBundle.toHex(),
+      },
+    }),
+  ])
 }

@@ -1,6 +1,7 @@
 import * as proto from '../src/proto/messaging'
 import { PublicKeyBundle } from './crypto'
 import PublicKey from './crypto/PublicKey'
+import { bytesToHex, hexToBytes } from './crypto/utils'
 
 // ContactBundle packages all the infromation which a client uses to advertise on the network.
 export default class ContactBundle implements proto.ContactBundleV1 {
@@ -15,6 +16,15 @@ export default class ContactBundle implements proto.ContactBundleV1 {
 
   toBytes(): Uint8Array {
     return this.keyBundle.toBytes()
+  }
+
+  toHex(): string {
+    return bytesToHex(this.keyBundle.toBytes())
+  }
+
+  static fromHex(hex: string): ContactBundle {
+    const bytes = hexToBytes(hex)
+    return this.fromBytes(bytes)
   }
 
   static fromBytes(bytes: Uint8Array): ContactBundle {

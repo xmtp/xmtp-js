@@ -1,10 +1,11 @@
-import { WakuMessage } from 'js-waku'
-import { Connection } from 'libp2p'
 import Message from './Message'
 import Client from './Client'
-import { sleep } from './utils'
-
-const DISCONNECT_LOOP_INTERVAL = 1000
+import { WebsocketClient } from '@cosmjs/tendermint-rpc'
+import { createJsonRpcRequest } from '@cosmjs/tendermint-rpc/build/jsonrpc'
+import { decodeTxRaw } from '@cosmjs/proto-signing'
+import { fromBase64 } from '@cosmjs/encoding'
+import { MsgCreateMessage } from './xmtp/types/xmtp/tx'
+import { hexToBytes } from './crypto/utils'
 
 export type MessageTransformer<T> = (msg: Message) => T
 
@@ -17,15 +18,14 @@ export type MessageFilter = (msg: Message) => boolean
 export default class Stream<T> {
   topic: string
   client: Client
-  // queue of incoming Waku messages
+  ws: WebsocketClient
+  // queue of incoming messages
   messages: T[]
   // queue of already pending Promises
   resolvers: ((value: IteratorResult<T>) => void)[]
-  // cache the callback so that it can be properly deregistered in Waku
+  // cache the callback so that it can be properly deregistered
   // if callback is undefined the stream is closed
-  callback: ((wakuMsg: WakuMessage) => Promise<void>) | undefined
-
-  private _disconnectCallback?: (connection: Connection) => Promise<void>
+  callback: ((msg: Message) => Promise<void>) | undefined
 
   unsubscribeFn?: () => Promise<void>
 
@@ -40,18 +40,20 @@ export default class Stream<T> {
     this.topic = topic
     this.client = client
     this.callback = this.newMessageCallback(messageTransformer, messageFilter)
+    this.ws = new WebsocketClient(
+      process.env.XMTP_WS_URL || 'ws://0.0.0.0:26657'
+    )
   }
 
-  // returns new closure to handle incoming Waku messages
+  // returns new closure to handle incoming messages
   private newMessageCallback(
     transformer: MessageTransformer<T>,
     filter?: MessageFilter
-  ): (wakuMsg: WakuMessage) => Promise<void> {
-    return async (wakuMsg: WakuMessage) => {
-      if (!wakuMsg.payload) {
+  ): (msg: Message) => Promise<void> {
+    return async (msg: Message) => {
+      if (!msg.ciphertext) {
         return
       }
-      const msg = await this.client.decodeMessage(wakuMsg.payload)
       // If there is a filter on the stream, and the filter returns false, ignore the message
       if (filter && !filter(msg)) {
         return
@@ -73,42 +75,25 @@ export default class Stream<T> {
       throw new Error('Missing callback for stream')
     }
 
-    this.unsubscribeFn = await this.client.waku.filter.subscribe(
-      this.callback,
-      [this.topic]
-    )
-    await this.listenForDisconnect()
-  }
+    const callback = this.callback
+    const client = this.client
+    const req = createJsonRpcRequest('subscribe', {
+      query: `tm.event='Tx' AND xmtp.EventCreateMessage.topic='${this.topic}'`,
+    })
+    const headers = this.ws.listen(req)
+    const sub = headers.subscribe({
+      next: async (e) => {
+        const tx = decodeTxRaw(fromBase64(e.data.value.TxResult.tx))
+        const rawMsg = MsgCreateMessage.decode(tx.body.messages[0].value)
+          .message?.content
+        const msg = await client.decodeMessage(hexToBytes(rawMsg || ''))
+        await callback(msg)
+      },
+    })
 
-  private async listenForDisconnect() {
-    const peer = await this.client.waku.filter.randomPeer
-    // Save the callback function on the class so we can clean up later
-    this._disconnectCallback = async (connection: Connection) => {
-      if (connection.remotePeer.toB58String() === peer?.id?.toB58String()) {
-        console.log(`Connection to peer ${connection.remoteAddr} lost`)
-        while (true) {
-          try {
-            if (!this.callback) {
-              return
-            }
-            this.unsubscribeFn = await this.client.waku.filter.subscribe(
-              this.callback,
-              [this.topic]
-            )
-            console.log(`Connection to peer ${connection.remoteAddr} restored`)
-            return
-          } catch (e) {
-            console.warn(`Error reconnecting to ${connection.remoteAddr}`)
-            await sleep(DISCONNECT_LOOP_INTERVAL)
-          }
-        }
-      }
+    this.unsubscribeFn = async () => {
+      sub.unsubscribe()
     }
-
-    this.client.waku.libp2p.connectionManager.on(
-      'peer:disconnect',
-      this._disconnectCallback
-    )
   }
 
   static async create<T>(
@@ -132,12 +117,6 @@ export default class Stream<T> {
   // https://tc39.es/ecma262/#table-iterator-interface-optional-properties
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
-    if (this._disconnectCallback) {
-      this.client.waku.libp2p.connectionManager.off(
-        'peer:disconnect',
-        this._disconnectCallback
-      )
-    }
     if (!this.callback) {
       return { value: undefined, done: true }
     }

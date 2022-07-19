@@ -2,6 +2,6 @@
   "extends": "../tsconfig",
   "compilerOptions": {
     "module": "ESNext" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */,
-    "outDir": "../dist/esm" /* Redirect output structure to the directory. */
+    "outDir": "../dist/esm/src" /* Redirect output structure to the directory. */
   }
 }

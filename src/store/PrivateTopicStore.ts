@@ -1,39 +1,68 @@
 // This creates an interface for storing data to the storage network.
 import { Store } from './Store'
-import { Waku, WakuMessage, PageDirection } from 'js-waku'
 import { buildUserPrivateStoreTopic } from '../utils'
+import {
+  DirectSecp256k1HdWallet,
+  OfflineDirectSigner,
+} from '@cosmjs/proto-signing'
+import { queryClient, txClient } from '../xmtp'
+import { bytesToHex, hexToBytes } from '../crypto/utils'
 
-export default class NetworkStore implements Store {
-  private waku: Waku
+// export default class NetworkStore implements Store {
+//   private setter: OfflineDirectSigner | undefined
 
-  constructor(waku: Waku) {
-    this.waku = waku
-  }
+//   // Returns the first record in a topic if it is present.
+//   async get(key: string): Promise<Buffer | null> {
+//     const client = await queryClient()
+//     const res = await client.queryMessages({
+//       topic: this.buildTopic(key),
+//     })
+//     const keys = await Promise.all(
+//       res.data.messages?.map((msg) => hexToBytes(msg.content || '')) || []
+//     )
+//     if (!keys?.length) {
+//       return null
+//     }
+//     return Buffer.from(keys[0])
+//   }
 
-  // Returns the first record in a topic if it is present.
-  async get(key: string): Promise<Buffer | null> {
-    const contents = (
-      await this.waku.store.queryHistory([buildUserPrivateStoreTopic(key)], {
-        pageSize: 1,
-        pageDirection: PageDirection.FORWARD,
-        callback: function (msgs: WakuMessage[]): boolean {
-          return Boolean(msgs[0].payload)
-        },
-      })
-    )
-      .filter((msg: WakuMessage) => msg.payload)
-      .map((msg: WakuMessage) => msg.payload as Uint8Array)
-    return contents.length > 0 ? Buffer.from(contents[0]) : null
-  }
+//   async set(key: string, value: Buffer): Promise<void> {
+//     const keys = Uint8Array.from(value)
+//     if (!this.setter) {
+//       this.setter = await DirectSecp256k1HdWallet.generate()
+//       const accounts = await this.setter.getAccounts()
+//       const address = accounts[0].address
+//       await fetch('http://localhost:4500', {
+//         method: 'POST',
+//         headers: {
+//           Accept: 'application/json',
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//           address: address,
+//           coins: ['10token'],
+//         }),
+//       })
+//     }
+//     const client = await txClient(this.setter)
+//     const accountAddr = (await this.setter.getAccounts())[0].address
+//     await client.signAndBroadcast([
+//       client.msgCreateMessage({
+//         actor: {
+//           account: accountAddr,
+//         },
+//         message: {
+//           id: '',
+//           topic: this.buildTopic(key),
+//           updated_at: 0,
+//           created_at: 0,
+//           content: bytesToHex(keys),
+//         },
+//       }),
+//     ])
+//   }
 
-  async set(key: string, value: Buffer): Promise<void> {
-    const keys = Uint8Array.from(value)
-    await this.waku.lightPush.push(
-      await WakuMessage.fromBytes(keys, this.buildTopic(key))
-    )
-  }
-
-  private buildTopic(key: string): string {
-    return buildUserPrivateStoreTopic(key)
-  }
-}
+//   private buildTopic(key: string): string {
+//     return buildUserPrivateStoreTopic(key)
+//   }
+// }
