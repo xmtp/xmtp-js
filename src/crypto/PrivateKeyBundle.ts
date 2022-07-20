@@ -112,7 +112,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
   }
 
   // encrypts/serializes the bundle for storage
-  async encode(wallet: ethers.Signer): Promise<Uint8Array> {
+  async toEncryptedBytes(wallet: ethers.Signer): Promise<Uint8Array> {
     // serialize the contents
     if (this.preKeys.length === 0) {
       throw new Error('missing pre-keys')
@@ -139,8 +139,23 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
     }).finish()
   }
 
+  encode(): Uint8Array {
+    return proto.PrivateKeyBundle.encode({ v1: this }).finish()
+  }
+
+  static decode(bytes: Uint8Array): PrivateKeyBundle {
+    const [protoVal] = getPrivateV1Bundle(bytes)
+    if (!protoVal || !protoVal.identityKey || !protoVal.preKeys.length) {
+      throw new Error('Decode failure')
+    }
+    return new PrivateKeyBundle(
+      new PrivateKey(protoVal.identityKey),
+      protoVal.preKeys.map((protoKey) => new PrivateKey(protoKey))
+    )
+  }
+
   // decrypts/deserializes the bundle from storage bytes
-  static async decode(
+  static async fromEncryptedBytes(
     wallet: ethers.Signer,
     bytes: Uint8Array
   ): Promise<PrivateKeyBundle> {

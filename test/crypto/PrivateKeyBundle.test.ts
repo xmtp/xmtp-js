@@ -13,9 +13,12 @@ describe('Crypto', function () {
       // generate key bundle
       const bob = await PrivateKeyBundle.generate(wallet)
       // encrypt and serialize the bundle for storage
-      const bytes = await bob.encode(wallet)
+      const bytes = await bob.toEncryptedBytes(wallet)
       // decrypt and decode the bundle from storage
-      const bobDecoded = await PrivateKeyBundle.decode(wallet, bytes)
+      const bobDecoded = await PrivateKeyBundle.fromEncryptedBytes(
+        wallet,
+        bytes
+      )
       assert.ok(bob.identityKey)
       assert.ok(bobDecoded.identityKey)
       assert.ok(bob.identityKey.publicKey.signature)

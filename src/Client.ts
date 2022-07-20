@@ -98,6 +98,7 @@ type ContentOptions = {
 type KeyStoreOptions = {
   /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
   keyStoreType: KeyStoreType
+  privateKeyOverride: Uint8Array | undefined
 }
 
 /**
@@ -114,6 +115,7 @@ export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
+    privateKeyOverride: undefined,
     env: 'dev',
     waitForPeersTimeoutMs: 10000,
     codecs: [new TextCodec()],
@@ -173,11 +175,18 @@ export default class Client {
   ): Promise<Client> {
     const options = defaultOptions(opts)
     const waku = await createWaku(options)
-    const keyStore = createKeyStoreFromConfig(options, wallet, waku)
-    const keys = await loadOrCreateKeys(wallet, keyStore)
+    const keys = await loadOrCreateKeysFromOptions(options, wallet, waku)
     const client = new Client(waku, keys)
     await client.init(options)
     return client
+  }
+
+  static async getKeys(
+    wallet: Signer,
+    opts?: Partial<ClientOptions>
+  ): Promise<Uint8Array> {
+    const client = await Client.create(wallet, opts)
+    return client.keys.encode()
   }
 
   async init(options: ClientOptions): Promise<void> {
@@ -512,7 +521,7 @@ function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
 
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
-async function loadOrCreateKeys(
+async function loadOrCreateKeysFromStore(
   wallet: Signer,
   store: EncryptedStore
 ): Promise<PrivateKeyBundle> {
@@ -523,6 +532,19 @@ async function loadOrCreateKeys(
   keys = await PrivateKeyBundle.generate(wallet)
   await store.storePrivateKeyBundle(keys)
   return keys
+}
+
+async function loadOrCreateKeysFromOptions(
+  options: ClientOptions,
+  wallet: Signer,
+  waku: Waku
+) {
+  if (options.privateKeyOverride) {
+    return PrivateKeyBundle.decode(options.privateKeyOverride)
+  }
+
+  const keyStore = createKeyStoreFromConfig(options, wallet, waku)
+  return loadOrCreateKeysFromStore(wallet, keyStore)
 }
 
 // initialize connection to the network
