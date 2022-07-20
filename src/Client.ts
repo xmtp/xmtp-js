@@ -170,7 +170,7 @@ export default class Client {
    * @param opts specify how to to connect to the network
    */
   static async create(
-    wallet: Signer,
+    wallet: Signer | null,
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
@@ -182,7 +182,7 @@ export default class Client {
   }
 
   static async getKeys(
-    wallet: Signer,
+    wallet: Signer | null,
     opts?: Partial<ClientOptions>
   ): Promise<Uint8Array> {
     const client = await Client.create(wallet, opts)
@@ -536,11 +536,17 @@ async function loadOrCreateKeysFromStore(
 
 async function loadOrCreateKeysFromOptions(
   options: ClientOptions,
-  wallet: Signer,
+  wallet: Signer | null,
   waku: Waku
 ) {
   if (options.privateKeyOverride) {
     return PrivateKeyBundle.decode(options.privateKeyOverride)
+  }
+
+  if (!wallet) {
+    throw new Error(
+      'Must provide either an ethers.Signer or specify privateKeyOverride'
+    )
   }
 
   const keyStore = createKeyStoreFromConfig(options, wallet, waku)

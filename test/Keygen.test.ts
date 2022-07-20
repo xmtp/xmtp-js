@@ -20,7 +20,7 @@ describe('Key Generation', () => {
       bootstrapAddrs: [LOCAL_DOCKER_MULTIADDR],
     }
     const keys = await Client.getKeys(wallet, opts)
-    const client = await Client.create(wallet, {
+    const client = await Client.create(null, {
       ...opts,
       privateKeyOverride: keys,
     })
@@ -33,7 +33,7 @@ describe('Key Generation', () => {
       keyStoreType: KeyStoreType.localStorage,
     }
     const keys = await Client.getKeys(wallet, opts)
-    const client = await Client.create(wallet, {
+    const client = await Client.create(null, {
       ...opts,
       privateKeyOverride: keys,
     })
