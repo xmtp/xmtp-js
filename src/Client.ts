@@ -546,7 +546,7 @@ function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
 // otherwise create new key-bundle, store it and return it
 async function loadOrCreateKeysFromStore(
   wallet: Signer | null,
-  store: EncryptedStore
+  store: KeyStore
 ): Promise<PrivateKeyBundle> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
