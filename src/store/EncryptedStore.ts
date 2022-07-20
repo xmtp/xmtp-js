@@ -2,6 +2,7 @@ import { Store } from './Store'
 import { Signer } from 'ethers'
 import { PrivateKeyBundle } from '../crypto'
 import { BundleUpgradeNeeded } from '../crypto/PrivateKeyBundle'
+import { KeyStore } from './KeyStore'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
@@ -11,7 +12,7 @@ const KEY_BUNDLE_NAME = 'key_bundle'
  * Currently supports:
  * - PrivateKeyBundle
  */
-export default class EncryptedStore {
+export default class EncryptedStore implements KeyStore {
   private store: Store
   private signer: Signer
 

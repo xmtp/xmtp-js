@@ -12,7 +12,13 @@ import {
 import { sleep } from '../test/helpers'
 import Stream, { MessageFilter } from './Stream'
 import { Signer } from 'ethers'
-import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
+import {
+  EncryptedStore,
+  KeyStore,
+  LocalStorageStore,
+  PrivateTopicStore,
+  StaticKeyStore,
+} from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import {
@@ -60,6 +66,7 @@ export type ListMessagesOptions = {
 export enum KeyStoreType {
   networkTopicStoreV1,
   localStorage,
+  static,
 }
 
 // Parameters for the send functions
@@ -98,7 +105,7 @@ type ContentOptions = {
 type KeyStoreOptions = {
   /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
   keyStoreType: KeyStoreType
-  privateKeyOverride: Uint8Array | undefined
+  privateKeyOverride?: Uint8Array
 }
 
 /**
@@ -494,15 +501,27 @@ export default class Client {
 
 function createKeyStoreFromConfig(
   opts: KeyStoreOptions,
-  wallet: Signer,
+  wallet: Signer | null,
   waku: Waku
-): EncryptedStore {
+): KeyStore {
   switch (opts.keyStoreType) {
     case KeyStoreType.networkTopicStoreV1:
+      if (!wallet) {
+        throw new Error('Must provide a wallet for networkTopicStore')
+      }
       return createNetworkPrivateKeyStore(wallet, waku)
 
     case KeyStoreType.localStorage:
+      if (!wallet) {
+        throw new Error('Must provide a wallet for localStorageStore')
+      }
       return createLocalPrivateKeyStore(wallet)
+
+    case KeyStoreType.static:
+      if (!opts.privateKeyOverride) {
+        throw new Error('Must provide a privateKeyOverride to use static store')
+      }
+      return createStaticStore(opts.privateKeyOverride)
   }
 }
 
@@ -519,15 +538,22 @@ function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
   return new EncryptedStore(wallet, new LocalStorageStore())
 }
 
+function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
+  return new StaticKeyStore(privateKeyOverride)
+}
+
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
 async function loadOrCreateKeysFromStore(
-  wallet: Signer,
+  wallet: Signer | null,
   store: EncryptedStore
 ): Promise<PrivateKeyBundle> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
+  }
+  if (!wallet) {
+    throw new Error('No wallet found')
   }
   keys = await PrivateKeyBundle.generate(wallet)
   await store.storePrivateKeyBundle(keys)
@@ -539,11 +565,7 @@ async function loadOrCreateKeysFromOptions(
   wallet: Signer | null,
   waku: Waku
 ) {
-  if (options.privateKeyOverride) {
-    return PrivateKeyBundle.decode(options.privateKeyOverride)
-  }
-
-  if (!wallet) {
+  if (!options.privateKeyOverride && !wallet) {
     throw new Error(
       'Must provide either an ethers.Signer or specify privateKeyOverride'
     )
