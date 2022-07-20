@@ -24,7 +24,7 @@ describe('Key Generation', () => {
       ...opts,
       privateKeyOverride: keys,
     })
-    expect(client.keys).toEqual(keys)
+    expect(client.keys.encode()).toEqual(keys)
   })
 
   test('LocalStorage store', async () => {
@@ -37,7 +37,7 @@ describe('Key Generation', () => {
       ...opts,
       privateKeyOverride: keys,
     })
-    expect(client.keys).toEqual(keys)
+    expect(client.keys.encode()).toEqual(keys)
   })
 
   // Make sure that the keys are being saved to the network upon generation
@@ -50,8 +50,8 @@ describe('Key Generation', () => {
     const waku = await createWaku(opts)
     const store = new EncryptedStore(wallet, new PrivateTopicStore(waku))
 
-    expect((await store.loadPrivateKeyBundle())?.identityKey).toEqual(
-      bundle.identityKey
+    expect((await store.loadPrivateKeyBundle())?.identityKey.toBytes()).toEqual(
+      bundle.identityKey.toBytes()
     )
   })
 })
