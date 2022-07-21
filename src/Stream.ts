@@ -15,7 +15,7 @@ export type MessageFilter = (msg: Message) => boolean
  * As such can be used with constructs like for-await-of, yield*, array destructing, etc.
  */
 export default class Stream<T> {
-  topic: string
+  topics: string[]
   client: Client
   // queue of incoming Waku messages
   messages: T[]
@@ -31,13 +31,13 @@ export default class Stream<T> {
 
   constructor(
     client: Client,
-    topic: string,
+    topics: string[],
     messageTransformer: MessageTransformer<T>,
     messageFilter?: MessageFilter
   ) {
     this.messages = []
     this.resolvers = []
-    this.topic = topic
+    this.topics = topics
     this.client = client
     this.callback = this.newMessageCallback(messageTransformer, messageFilter)
   }
@@ -75,7 +75,7 @@ export default class Stream<T> {
 
     this.unsubscribeFn = await this.client.waku.filter.subscribe(
       this.callback,
-      [this.topic]
+      this.topics
     )
     await this.listenForDisconnect()
   }
@@ -93,7 +93,7 @@ export default class Stream<T> {
             }
             this.unsubscribeFn = await this.client.waku.filter.subscribe(
               this.callback,
-              [this.topic]
+              this.topics
             )
             console.log(`Connection to peer ${connection.remoteAddr} restored`)
             return
