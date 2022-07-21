@@ -6,7 +6,7 @@ If you're seeing this document, you an early contributor to the development and 
 
 ## ❔ Questions
 
-Questions can be asked in our Discord #developers channel.
+Have a question? We welcome you to ask it in [Q&A discussions](https://github.com/orgs/xmtp/discussions/categories/q-a).
 
 ## 🐞 Bugs
 
