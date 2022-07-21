@@ -131,6 +131,9 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
   }
+  if (opts?.privateKeyOverride && !opts?.keyStoreType) {
+    opts.keyStoreType = KeyStoreType.static
+  }
   return { ..._defaultOptions, ...opts } as ClientOptions
 }
 
