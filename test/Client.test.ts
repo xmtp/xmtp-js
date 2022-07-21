@@ -373,9 +373,7 @@ describe('Client', () => {
       const c2 = await testCase.newClient()
       assert(await waitForUserContact(c1, c2))
       // Create a bunch of messages with different sizes, in multiples of 1mb
-      const messageBodies = [0.5, 1, 2, 3, 4, 5].map((val) =>
-        'x'.repeat(val * 1024 * 1024)
-      )
+      const messageBodies = [0.5, 1].map((val) => 'x'.repeat(val * 1024 * 1024))
       await Promise.all(
         messageBodies.map((msg) => c1.sendMessage(c2.address, msg))
       )
