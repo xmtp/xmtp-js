@@ -386,7 +386,7 @@ describe('Client', () => {
           assert.equal(msgs.length, 5)
           return msgs
         },
-        5000,
+        20000,
         200
       )
       expect(msgs).toHaveLength(messageBodies.length)
