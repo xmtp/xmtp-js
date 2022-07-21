@@ -2,11 +2,11 @@
 
 If you're seeing this document, you an early contributor to the development and success of XMTP. We welcome your questions, feedback, suggestions, and code contributions.
 
-> If you wish to contribute, please [apply for Early Access](https://xmtp.typeform.com/yojTJarb) so that we can provide you with access to our Discord and Discourse forum.
+> If you wish to contribute, please [apply for Early Access](https://xmtp.typeform.com/yojTJarb) so that we can provide you with access to our Discord.
 
 ## ❔ Questions
 
-Questions can be asked in our Discord #developers channel.
+Have a question? We welcome you to ask it in [Q&A discussions](https://github.com/orgs/xmtp/discussions/categories/q-a).
 
 ## 🐞 Bugs
 
@@ -18,7 +18,7 @@ These should also be submitted as GitHub Issues. Again, please confirm there isn
 
 ## 🔀 Pull Requests
 
-PRs are encouraged, but we suggest starting with a Feature Request or Discourse post to temperature-check first. If the PR would involve a major change to the protocol, it should be fleshed out as an [XMTP Improvement Proposal](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-0-purpose-process.md) before work begins.
+PRs are encouraged, but we suggest starting with a Feature Request to temperature-check first. If the PR would involve a major change to the protocol, it should be fleshed out as an [XMTP Improvement Proposal](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-0-purpose-process.md) before work begins.
 
 ## 🔧 Developing
 
