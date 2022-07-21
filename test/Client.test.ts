@@ -367,6 +367,31 @@ describe('Client', () => {
         assert.equal(msg.content, 'Hello from Alice')
       })
     })
+
+    it('allows large messages', async () => {
+      const c1 = await testCase.newClient()
+      const c2 = await testCase.newClient()
+      assert(await waitForUserContact(c1, c2))
+      // Create a bunch of messages with different sizes, in multiples of 1mb
+      const messageBodies = [0.5, 1, 2, 3, 4, 5].map((val) =>
+        'x'.repeat(val * 1024 * 1024)
+      )
+      await Promise.all(
+        messageBodies.map((msg) => c1.sendMessage(c2.address, msg))
+      )
+
+      const msgs = await pollFor(
+        async () => {
+          const msgs = await c2.listConversationMessages(c1.address)
+          assert.equal(msgs.length, 5)
+          return msgs
+        },
+        5000,
+        200
+      )
+      expect(msgs).toHaveLength(messageBodies.length)
+      msgs.forEach((msg, i) => expect(msg.content).toEqual(messageBodies[i]))
+    })
   })
 })
 
