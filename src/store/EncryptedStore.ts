@@ -2,6 +2,7 @@ import { Store } from './Store'
 import { Signer } from 'ethers'
 import { PrivateKeyBundle } from '../crypto'
 import { BundleUpgradeNeeded } from '../crypto/PrivateKeyBundle'
+import { KeyStore } from './KeyStore'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
@@ -11,7 +12,7 @@ const KEY_BUNDLE_NAME = 'key_bundle'
  * Currently supports:
  * - PrivateKeyBundle
  */
-export default class EncryptedStore {
+export default class EncryptedStore implements KeyStore {
   private store: Store
   private signer: Signer
 
@@ -37,7 +38,7 @@ export default class EncryptedStore {
     }
 
     try {
-      return await PrivateKeyBundle.decode(
+      return await PrivateKeyBundle.fromEncryptedBytes(
         this.signer,
         Uint8Array.from(storageBuffer)
       )
@@ -56,7 +57,7 @@ export default class EncryptedStore {
   // Store the private key bundle at an address generated based on the active wallet in the signer
   async storePrivateKeyBundle(bundle: PrivateKeyBundle): Promise<void> {
     const keyAddress = await this.getStorageAddress(KEY_BUNDLE_NAME)
-    const encodedBundle = await bundle.encode(this.signer)
+    const encodedBundle = await bundle.toEncryptedBytes(this.signer)
     await this.store.set(keyAddress, Buffer.from(encodedBundle))
   }
 }

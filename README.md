@@ -254,6 +254,22 @@ conversation.send('#'.repeat(1000), {
 })
 ```
 
+#### Manually handling private key storage
+
+The SDK will handle key storage for the user by encrypting the private key bundle using a signature generated from the wallet, and storing the encrypted payload on the XMTP network. This can be awkward for some server-side applications, where you may only want to give the application access to the XMTP keys but not your wallet keys. Mobile applications may also want to store keys in a secure enclave rather than rely on decrypting the remote keys on the network each time the application starts up.
+
+You can export the unencrypted key bundle using the static method `Client.getKeys`, save it somewhere secure, and then provide those keys at a later time to initialize a new client using the exported XMTP identity.
+
+```ts
+import { Client } from '@xmtp/xmtp-js'
+// Get the keys using a valid ethers.Signer. Save them somewhere secure.
+const keys = await Client.getKeys(wallet)
+// Create a client using keys returned from getKeys
+const client = await Client.create(null, { privateKeyOverride: keys })
+```
+
+The keys returned by `getKeys` should be treated with the utmost care as compromise of these keys will allow an attacker to impersonate the user on the XMTP network. Ensure these keys are stored somewhere secure and encrypted.
+
 #### Under the hood
 
 Using `xmtp.conversations` hides the details of this, but for the curious this is how sending a message on XMTP works. The first message and first response between two parties is sent to three separate [Waku](https://rfc.vac.dev/spec/10/) content topics:

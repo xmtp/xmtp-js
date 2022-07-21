@@ -12,7 +12,13 @@ import {
 import { sleep } from '../test/helpers'
 import Stream, { MessageFilter } from './Stream'
 import { Signer } from 'ethers'
-import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
+import {
+  EncryptedStore,
+  KeyStore,
+  LocalStorageStore,
+  PrivateTopicStore,
+  StaticKeyStore,
+} from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import {
@@ -60,6 +66,7 @@ export type ListMessagesOptions = {
 export enum KeyStoreType {
   networkTopicStoreV1,
   localStorage,
+  static,
 }
 
 // Parameters for the send functions
@@ -98,6 +105,7 @@ type ContentOptions = {
 type KeyStoreOptions = {
   /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
   keyStoreType: KeyStoreType
+  privateKeyOverride?: Uint8Array
 }
 
 /**
@@ -114,6 +122,7 @@ export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
+    privateKeyOverride: undefined,
     env: 'dev',
     waitForPeersTimeoutMs: 10000,
     codecs: [new TextCodec()],
@@ -121,6 +130,9 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
+  }
+  if (opts?.privateKeyOverride && !opts?.keyStoreType) {
+    opts.keyStoreType = KeyStoreType.static
   }
   return { ..._defaultOptions, ...opts } as ClientOptions
 }
@@ -168,16 +180,23 @@ export default class Client {
    * @param opts specify how to to connect to the network
    */
   static async create(
-    wallet: Signer,
+    wallet: Signer | null,
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
     const waku = await createWaku(options)
-    const keyStore = createKeyStoreFromConfig(options, wallet, waku)
-    const keys = await loadOrCreateKeys(wallet, keyStore)
+    const keys = await loadOrCreateKeysFromOptions(options, wallet, waku)
     const client = new Client(waku, keys)
     await client.init(options)
     return client
+  }
+
+  static async getKeys(
+    wallet: Signer | null,
+    opts?: Partial<ClientOptions>
+  ): Promise<Uint8Array> {
+    const client = await Client.create(wallet, opts)
+    return client.keys.encode()
   }
 
   async init(options: ClientOptions): Promise<void> {
@@ -485,15 +504,27 @@ export default class Client {
 
 function createKeyStoreFromConfig(
   opts: KeyStoreOptions,
-  wallet: Signer,
+  wallet: Signer | null,
   waku: Waku
-): EncryptedStore {
+): KeyStore {
   switch (opts.keyStoreType) {
     case KeyStoreType.networkTopicStoreV1:
+      if (!wallet) {
+        throw new Error('Must provide a wallet for networkTopicStore')
+      }
       return createNetworkPrivateKeyStore(wallet, waku)
 
     case KeyStoreType.localStorage:
+      if (!wallet) {
+        throw new Error('Must provide a wallet for localStorageStore')
+      }
       return createLocalPrivateKeyStore(wallet)
+
+    case KeyStoreType.static:
+      if (!opts.privateKeyOverride) {
+        throw new Error('Must provide a privateKeyOverride to use static store')
+      }
+      return createStaticStore(opts.privateKeyOverride)
   }
 }
 
@@ -510,19 +541,41 @@ function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
   return new EncryptedStore(wallet, new LocalStorageStore())
 }
 
+function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
+  return new StaticKeyStore(privateKeyOverride)
+}
+
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
-async function loadOrCreateKeys(
-  wallet: Signer,
-  store: EncryptedStore
+async function loadOrCreateKeysFromStore(
+  wallet: Signer | null,
+  store: KeyStore
 ): Promise<PrivateKeyBundle> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
   }
+  if (!wallet) {
+    throw new Error('No wallet found')
+  }
   keys = await PrivateKeyBundle.generate(wallet)
   await store.storePrivateKeyBundle(keys)
   return keys
+}
+
+async function loadOrCreateKeysFromOptions(
+  options: ClientOptions,
+  wallet: Signer | null,
+  waku: Waku
+) {
+  if (!options.privateKeyOverride && !wallet) {
+    throw new Error(
+      'Must provide either an ethers.Signer or specify privateKeyOverride'
+    )
+  }
+
+  const keyStore = createKeyStoreFromConfig(options, wallet, waku)
+  return loadOrCreateKeysFromStore(wallet, keyStore)
 }
 
 // initialize connection to the network
