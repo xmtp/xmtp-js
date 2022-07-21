@@ -80,6 +80,17 @@ export default class Conversations {
     )
   }
 
+  async streamAllMessages(): Promise<Stream<Message>> {
+    const peerAddresses = (await this.list()).map(
+      (conversation) => conversation.peerAddress
+    )
+    const stream = Stream.create<Message>(this.client, ...) // Need to generate the topics from the peer addresses, and specify a message transformer + filter
+    for await (const conversation of await this.stream()) {
+      // Somehow modify the stream above to include the right topics
+    }
+    return stream
+  }
+
   /**
    * Creates a new conversation for the given address. Will throw an error if the peer is not found in the XMTP network
    */
