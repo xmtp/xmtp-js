@@ -30,9 +30,11 @@ describe('Key Generation', () => {
   test('LocalStorage store', async () => {
     const opts: Partial<ClientOptions> = {
       bootstrapAddrs: [LOCAL_DOCKER_MULTIADDR],
-      keyStoreType: KeyStoreType.localStorage,
     }
-    const keys = await Client.getKeys(wallet, opts)
+    const keys = await Client.getKeys(wallet, {
+      ...opts,
+      keyStoreType: KeyStoreType.localStorage,
+    })
     const client = await Client.create(null, {
       ...opts,
       privateKeyOverride: keys,
