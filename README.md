@@ -16,7 +16,7 @@ For a demonstration of the core concepts and capabilities of the `xmtp-js` clien
 
 `xmtp-js` has not undergone a formal security audit.
 
-To learn more about XMTP and get answers to frequently asked questions, see <https://docs.xmtp.org/>.
+To learn more about XMTP and get answers to frequently asked questions, see <https://xmtp.org/docs/>.
 
 ## 🏗 **Breaking revisions**
 
