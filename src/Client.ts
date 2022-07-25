@@ -500,9 +500,8 @@ export default class Client {
       for (const connections of this.waku.libp2p.connectionManager.connections.values()) {
         for (const connection of connections) {
           if (!connection.streams.length) {
-            console.log('### Shut it down in the client')
             console.log(`Closing connection to ${connection.remoteAddr}`)
-            // connectionsToClose.push(connection.close())
+            connectionsToClose.push(connection.close())
           }
         }
       }

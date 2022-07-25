@@ -77,7 +77,6 @@ export default class Stream<T> {
       this.callback,
       this.topics
     )
-    console.log('Subscribe to topics in start!')
     await this.listenForDisconnect()
   }
 
@@ -86,14 +85,12 @@ export default class Stream<T> {
     // Save the callback function on the class so we can clean up later
     this._disconnectCallback = async (connection: Connection) => {
       if (connection.remotePeer.toB58String() === peer?.id?.toB58String()) {
-        console.log('### Disconnect callback called!')
         console.log(`Connection to peer ${connection.remoteAddr} lost`)
         while (true) {
           try {
             if (!this.callback) {
               return
             }
-            console.log('Subscribe to topics in disconnect callback!')
             this.unsubscribeFn = await this.client.waku.filter.subscribe(
               this.callback,
               this.topics
@@ -108,7 +105,6 @@ export default class Stream<T> {
       }
     }
 
-    console.log('### Init disconnect callback!')
     this.client.waku.libp2p.connectionManager.on(
       'peer:disconnect',
       this._disconnectCallback
@@ -172,12 +168,10 @@ export default class Stream<T> {
     return new Promise((resolve) => this.resolvers.unshift(resolve))
   }
 
-  // Unsubscribe and resubscribe with new topics.
+  // Update the list of topics and unsubscribe to trigger a disconnect & new subscription.
   async resetTopics(topics: string[]): Promise<void> {
-    console.log(`New topics: ${topics}`)
     this.topics = topics
     if (this.unsubscribeFn) {
-      console.log('### Unsubscribe!')
       await this.unsubscribeFn()
     }
   }

@@ -87,17 +87,16 @@ export default class Conversations {
     const messagesStream =
       this.client.streamAllConversationMessages(peerAddresses)
 
-    // TODO(elise): unsubscribe message stream and resubscribe with new topics. use concat?
+    // TODO(elise): de-dupe conversations before triggering the unsubscribe.
     for await (const conversation of await this.stream()) {
       console.log('New conversation: ' + conversation.peerAddress)
       const newAddresses = (await this.list()).map(
         (conversation) => conversation.peerAddress
       )
-      // TODO(elise): Strip this out to match above?
-      const topics = newAddresses.map((peerAddress) =>
+      const newTopics = newAddresses.map((peerAddress) =>
         buildDirectMessageTopic(peerAddress, this.client.address)
       )
-      ;(await messagesStream).resetTopics(topics)
+      ;(await messagesStream).resetTopics(newTopics)
     }
 
     return messagesStream
