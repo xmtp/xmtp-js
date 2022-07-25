@@ -416,7 +416,7 @@ export default class Client {
   streamIntroductionMessages(): Promise<Stream<Message>> {
     return Stream.create<Message>(
       this,
-      buildUserIntroTopic(this.address),
+      [buildUserIntroTopic(this.address)],
       noTransformation
     )
   }
@@ -425,10 +425,19 @@ export default class Client {
     const topic = buildDirectMessageTopic(peerAddress, this.address)
     return Stream.create<Message>(
       this,
-      topic,
+      [topic],
       noTransformation,
       filterForTopic(topic)
     )
+  }
+
+  streamAllConversationMessages(
+    peerAddresses: string[]
+  ): Promise<Stream<Message>> {
+    const messageTopics = peerAddresses.map((peerAddress) =>
+      buildDirectMessageTopic(peerAddress, this.address)
+    )
+    return Stream.create<Message>(this, messageTopics, noTransformation)
   }
 
   // list stored messages from this wallet's introduction topic
@@ -491,8 +500,9 @@ export default class Client {
       for (const connections of this.waku.libp2p.connectionManager.connections.values()) {
         for (const connection of connections) {
           if (!connection.streams.length) {
+            console.log('### Shut it down in the client')
             console.log(`Closing connection to ${connection.remoteAddr}`)
-            connectionsToClose.push(connection.close())
+            // connectionsToClose.push(connection.close())
           }
         }
       }

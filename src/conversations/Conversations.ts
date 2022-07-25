@@ -2,7 +2,7 @@ import Conversation from './Conversation'
 import Message from '../Message'
 import Stream, { MessageFilter, MessageTransformer } from '../Stream'
 import Client from '../Client'
-import { buildUserIntroTopic } from '../utils'
+import { buildDirectMessageTopic, buildUserIntroTopic } from '../utils'
 
 const messageHasHeaders: MessageFilter = (msg: Message) => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
@@ -74,7 +74,7 @@ export default class Conversations {
 
     return Stream.create<Conversation>(
       this.client,
-      buildUserIntroTopic(this.client.address),
+      [buildUserIntroTopic(this.client.address)],
       messageTransformer,
       filter
     )
@@ -84,11 +84,23 @@ export default class Conversations {
     const peerAddresses = (await this.list()).map(
       (conversation) => conversation.peerAddress
     )
-    const stream = Stream.create<Message>(this.client, ...) // Need to generate the topics from the peer addresses, and specify a message transformer + filter
+    const messagesStream =
+      this.client.streamAllConversationMessages(peerAddresses)
+
+    // TODO(elise): unsubscribe message stream and resubscribe with new topics. use concat?
     for await (const conversation of await this.stream()) {
-      // Somehow modify the stream above to include the right topics
+      console.log('New conversation: ' + conversation.peerAddress)
+      const newAddresses = (await this.list()).map(
+        (conversation) => conversation.peerAddress
+      )
+      // TODO(elise): Strip this out to match above?
+      const topics = newAddresses.map((peerAddress) =>
+        buildDirectMessageTopic(peerAddress, this.client.address)
+      )
+      ;(await messagesStream).resetTopics(topics)
     }
-    return stream
+
+    return messagesStream
   }
 
   /**
