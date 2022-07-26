@@ -1,6 +1,8 @@
 import { Store } from './Store'
 import { Signer } from 'ethers'
 import { PrivateKeyBundle } from '../crypto'
+import { BundleUpgradeNeeded } from '../crypto/PrivateKeyBundle'
+import { KeyStore } from './KeyStore'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
@@ -10,7 +12,7 @@ const KEY_BUNDLE_NAME = 'key_bundle'
  * Currently supports:
  * - PrivateKeyBundle
  */
-export default class EncryptedStore {
+export default class EncryptedStore implements KeyStore {
   private store: Store
   private signer: Signer
 
@@ -34,13 +36,28 @@ export default class EncryptedStore {
     if (!storageBuffer) {
       return null
     }
-    return PrivateKeyBundle.decode(this.signer, Uint8Array.from(storageBuffer))
+
+    try {
+      return await PrivateKeyBundle.fromEncryptedBytes(
+        this.signer,
+        Uint8Array.from(storageBuffer)
+      )
+    } catch (e) {
+      // If a versioned bundle is not found, the legacy bundle needs to be resaved to the store in
+      // the new format. Once all bundles have been upgraded, this migration code can be removed.
+      if (e instanceof BundleUpgradeNeeded) {
+        const bundle = (e as BundleUpgradeNeeded).bundle
+        await this.storePrivateKeyBundle(bundle)
+        return bundle
+      }
+      throw e
+    }
   }
 
   // Store the private key bundle at an address generated based on the active wallet in the signer
   async storePrivateKeyBundle(bundle: PrivateKeyBundle): Promise<void> {
     const keyAddress = await this.getStorageAddress(KEY_BUNDLE_NAME)
-    const encodedBundle = await bundle.encode(this.signer)
+    const encodedBundle = await bundle.toEncryptedBytes(this.signer)
     await this.store.set(keyAddress, Buffer.from(encodedBundle))
   }
 }

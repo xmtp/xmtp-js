@@ -8,8 +8,10 @@ import {
   newDevClient,
   waitForUserContact,
 } from './helpers'
-import { publishUserContact, sleep } from '../src/utils'
+import { buildUserContactTopic, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
+import { WakuMessage } from 'js-waku'
+
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import {
   ContentTypeFallback,
@@ -68,7 +70,10 @@ describe('Client', () => {
       it('user contacts are filtered to valid contacts', async () => {
         // publish bob's keys to alice's contact topic
         const bobPublic = bob.keys.getPublicKeyBundle()
-        await publishUserContact(bobPublic, alice.address)
+        await alice.publishEnvelope({
+          message: bobPublic.toBytes(),
+          contentTopic: buildUserContactTopic(alice.address),
+        })
         const alicePublic = await alice.getUserContactFromNetwork(alice.address)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
@@ -357,14 +362,28 @@ describe('Client', () => {
 })
 
 describe('ClientOptions', () => {
-  it('Default/empty options', async () => {
-    await Client.create(newWallet(), {})
-  })
+  const tests = [
+    {
+      name: 'local docker node',
+      newClient: newLocalDockerClient,
+    },
+  ]
+  if (process.env.CI || process.env.TESTNET) {
+    tests.push({
+      name: 'dev',
+      newClient: newDevClient,
+    })
+  }
+  tests.forEach((testCase) => {
+    it('Default/empty options', async () => {
+      const c = await testCase.newClient()
+    })
 
-  it('Partial specification', async () => {
-    await Client.create(newWallet(), {
-      keyStoreType: KeyStoreType.localStorage,
-      waitForPeersTimeoutMs: 1234,
+    it('Partial specification', async () => {
+      const c = await testCase.newClient({
+        keyStoreType: KeyStoreType.localStorage,
+        waitForPeersTimeoutMs: 1234,
+      })
     })
   })
 })

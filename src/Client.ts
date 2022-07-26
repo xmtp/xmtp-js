@@ -8,12 +8,17 @@ import {
   buildUserContactTopic,
   buildUserIntroTopic,
   promiseWithTimeout,
-  publishUserContact,
 } from './utils'
 import { sleep } from '../test/helpers'
 import Stream, { MessageFilter } from './Stream'
 import { Signer } from 'ethers'
-import { EncryptedStore, LocalStorageStore, PrivateTopicStore } from './store'
+import {
+  EncryptedStore,
+  KeyStore,
+  LocalStorageStore,
+  PrivateTopicStore,
+  StaticKeyStore,
+} from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import {
@@ -25,6 +30,7 @@ import {
 import { decompress, compress } from './Compression'
 import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
+import { Authenticator } from './authn'
 import ContactBundle from './ContactBundle'
 import {
   Envelope,
@@ -48,6 +54,13 @@ type NodesList = {
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
 
+export class AuthenticationError extends Error {
+  constructor() {
+    super('Authentication Error')
+    Object.setPrototypeOf(this, AuthenticationError.prototype)
+  }
+}
+
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
   checkAddresses?: boolean
@@ -59,6 +72,7 @@ export type ListMessagesOptions = {
 export enum KeyStoreType {
   networkTopicStoreV1,
   localStorage,
+  static,
 }
 
 // Parameters for the send functions
@@ -97,6 +111,7 @@ type ContentOptions = {
 type KeyStoreOptions = {
   /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
   keyStoreType: KeyStoreType
+  privateKeyOverride?: Uint8Array
 }
 
 /**
@@ -113,6 +128,7 @@ export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
+    privateKeyOverride: undefined,
     env: 'dev',
     waitForPeersTimeoutMs: 10000,
     codecs: [new TextCodec()],
@@ -120,6 +136,9 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
+  }
+  if (opts?.privateKeyOverride && !opts?.keyStoreType) {
+    opts.keyStoreType = KeyStoreType.static
   }
   return { ..._defaultOptions, ...opts } as ClientOptions
 }
@@ -137,6 +156,7 @@ export default class Client {
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
+  protected authenticator: Authenticator
   private _disconnectWatcher: ReturnType<typeof setInterval>
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
@@ -148,6 +168,7 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
+    this.authenticator = Authenticator.create(waku.libp2p, keys.identityKey)
     this._disconnectWatcher = this.createDisconnectWatcher()
   }
 
@@ -165,20 +186,31 @@ export default class Client {
    * @param opts specify how to to connect to the network
    */
   static async create(
-    wallet: Signer,
+    wallet: Signer | null,
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
     const waku = await createWaku(options)
-    const keyStore = createKeyStoreFromConfig(options, wallet)
-    const keys = await loadOrCreateKeys(wallet, keyStore)
+    const keys = await loadOrCreateKeysFromOptions(options, wallet, waku)
     const client = new Client(waku, keys)
-    options.codecs.forEach((codec) => {
-      client.registerCodec(codec)
-    })
-    client._maxContentSize = options.maxContentSize
-    await client.publishUserContact()
+    await client.init(options)
     return client
+  }
+
+  static async getKeys(
+    wallet: Signer | null,
+    opts?: Partial<ClientOptions>
+  ): Promise<Uint8Array> {
+    const client = await Client.create(wallet, opts)
+    return client.keys.encode()
+  }
+
+  async init(options: ClientOptions): Promise<void> {
+    options.codecs.forEach((codec) => {
+      this.registerCodec(codec)
+    })
+    this._maxContentSize = options.maxContentSize
+    await this.publishUserContact()
   }
 
   // gracefully shut down the client
@@ -190,7 +222,10 @@ export default class Client {
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
-    await publishUserContact(pub, this.address)
+    await this.publishEnvelope({
+      contentTopic: buildUserContactTopic(this.address),
+      message: pub.toBytes(),
+    })
   }
 
   // retrieve a key bundle from given user's contact topic
@@ -293,7 +328,7 @@ export default class Client {
     )
   }
 
-  private async publishEnvelope(env: Envelope): Promise<void> {
+  async publishEnvelope(env: Envelope): Promise<void> {
     const bytes = env.message
     try {
       await MessageService.Publish(
@@ -476,10 +511,23 @@ function createKeyStoreFromConfig(
 ): EncryptedStore {
   switch (opts.keyStoreType) {
     case KeyStoreType.networkTopicStoreV1:
+      if (!wallet) {
+        throw new Error('Must provide a wallet for networkTopicStore')
+      }
       return createNetworkPrivateKeyStore(wallet)
 
     case KeyStoreType.localStorage:
+      if (!wallet) {
+        throw new Error('Must provide a wallet for localStorageStore')
+      }
       return createLocalPrivateKeyStore(wallet)
+
+    case KeyStoreType.static:
+      if (!opts.privateKeyOverride) {
+        throw new Error('Must provide a privateKeyOverride to use static store')
+      }
+
+      return createStaticStore(opts.privateKeyOverride)
   }
 }
 
@@ -493,19 +541,41 @@ function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
   return new EncryptedStore(wallet, new LocalStorageStore())
 }
 
+function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
+  return new StaticKeyStore(privateKeyOverride)
+}
+
 // attempt to load pre-existing key bundle from storage,
 // otherwise create new key-bundle, store it and return it
-async function loadOrCreateKeys(
-  wallet: Signer,
-  store: EncryptedStore
+async function loadOrCreateKeysFromStore(
+  wallet: Signer | null,
+  store: KeyStore
 ): Promise<PrivateKeyBundle> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
   }
+  if (!wallet) {
+    throw new Error('No wallet found')
+  }
   keys = await PrivateKeyBundle.generate(wallet)
   await store.storePrivateKeyBundle(keys)
   return keys
+}
+
+async function loadOrCreateKeysFromOptions(
+  options: ClientOptions,
+  wallet: Signer | null,
+  waku: Waku
+) {
+  if (!options.privateKeyOverride && !wallet) {
+    throw new Error(
+      'Must provide either an ethers.Signer or specify privateKeyOverride'
+    )
+  }
+
+  const keyStore = createKeyStoreFromConfig(options, wallet, waku)
+  return loadOrCreateKeysFromStore(wallet, keyStore)
 }
 
 // initialize connection to the network
