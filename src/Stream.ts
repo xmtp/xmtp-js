@@ -51,6 +51,7 @@ export default class Stream<T> {
       if (!wakuMsg.payload) {
         return
       }
+      console.log('New message: ' + wakuMsg.payload)
       const msg = await this.client.decodeMessage(wakuMsg.payload)
       // If there is a filter on the stream, and the filter returns false, ignore the message
       if (filter && !filter(msg)) {
@@ -168,11 +169,21 @@ export default class Stream<T> {
     return new Promise((resolve) => this.resolvers.unshift(resolve))
   }
 
-  // Update the list of topics and unsubscribe to trigger a disconnect & new subscription.
-  async resetTopics(topics: string[]): Promise<void> {
-    this.topics = topics
+  // Unsubscribe from the existing content topics and resubscribe to the given topics.
+  async resubscribeToTopics(topics: string[]): Promise<void> {
+    if (!this.callback) {
+      throw new Error('Missing callback for stream')
+    }
     if (this.unsubscribeFn) {
       await this.unsubscribeFn()
+      console.log('### Unsubscribed from topics: ' + this.topics)
     }
+    // TODO(elise): Commented out to test unsub/sub with the same topics.
+    // this.topics = topics
+    console.log('### Resubscribed to topics: ' + this.topics)
+    this.unsubscribeFn = await this.client.waku.filter.subscribe(
+      this.callback,
+      this.topics
+    )
   }
 }

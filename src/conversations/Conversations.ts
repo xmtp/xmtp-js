@@ -87,16 +87,21 @@ export default class Conversations {
     const messagesStream =
       this.client.streamAllConversationMessages(peerAddresses)
 
-    // TODO(elise): de-dupe conversations before triggering the unsubscribe.
     for await (const conversation of await this.stream()) {
-      console.log('New conversation: ' + conversation.peerAddress)
-      const newAddresses = (await this.list()).map(
-        (conversation) => conversation.peerAddress
-      )
-      const newTopics = newAddresses.map((peerAddress) =>
+      // TODO(elise): append the new conversation once unsubscribing is confirmed.
+      // Right now this should just trigger a resubscribe with the same addresses.
+
+      // if (!peerAddresses.includes(conversation.peerAddress)) {
+      // peerAddresses.push(conversation.peerAddress)
+      // }
+      // console.log('New conversation: ' + conversation.peerAddress)
+      // const newAddresses = (await this.list()).map(
+      //   (conversation) => conversation.peerAddress
+      // )
+      const newTopics = peerAddresses.map((peerAddress) =>
         buildDirectMessageTopic(peerAddress, this.client.address)
       )
-      ;(await messagesStream).resetTopics(newTopics)
+      ;(await messagesStream).resubscribeToTopics(newTopics)
     }
 
     return messagesStream
