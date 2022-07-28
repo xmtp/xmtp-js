@@ -81,27 +81,28 @@ export default class Conversations {
   }
 
   async streamAllMessages(): Promise<Stream<Message>> {
-    const peerAddresses = (await this.list()).map(
-      (conversation) => conversation.peerAddress
+    const seenPeers: Set<string> = new Set()
+    for await (const conversation of await this.list()) {
+      seenPeers.add(conversation.peerAddress)
+      console.log(`### Stream from og addy: ` + conversation.peerAddress)
+    }
+    const messagesStream = this.client.streamAllConversationMessages(
+      Array.from(seenPeers)
     )
-    const messagesStream =
-      this.client.streamAllConversationMessages(peerAddresses)
 
     for await (const conversation of await this.stream()) {
-      // TODO(elise): append the new conversation once unsubscribing is confirmed.
-      // Right now this should just trigger a resubscribe with the same addresses.
+      if (!seenPeers.has(conversation.peerAddress)) {
+        seenPeers.add(conversation.peerAddress)
+        console.log(`### Stream from new addy: ` + conversation.peerAddress)
 
-      // if (!peerAddresses.includes(conversation.peerAddress)) {
-      // peerAddresses.push(conversation.peerAddress)
-      // }
-      // console.log('New conversation: ' + conversation.peerAddress)
-      // const newAddresses = (await this.list()).map(
-      //   (conversation) => conversation.peerAddress
-      // )
-      const newTopics = peerAddresses.map((peerAddress) =>
-        buildDirectMessageTopic(peerAddress, this.client.address)
-      )
-      ;(await messagesStream).resubscribeToTopics(newTopics)
+        const newTopics = Array.from(seenPeers).map((peerAddress) =>
+          buildDirectMessageTopic(peerAddress, this.client.address)
+        )
+        messagesStream.then(function (result) {
+          console.log(`### Update!`)
+          result.resubscribeToTopics(newTopics)
+        })
+      }
     }
 
     return messagesStream
