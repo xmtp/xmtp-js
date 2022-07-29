@@ -90,6 +90,7 @@ export default class ApiClient {
     )
   }
 
+  // Use the Query API to return the full contents of any specified topics
   async query(
     params: QueryParams,
     {
@@ -98,7 +99,7 @@ export default class ApiClient {
     }: QueryAllOptions
   ): Promise<Envelope[]> {
     const out: Envelope[] = []
-    // Use queryStreamPages for better performance. 1/100th the number of Promises to resolve compared to queryStream
+    // Use queryIteratePages for better performance. 1/100th the number of Promises to resolve compared to queryStream
     for await (const page of this.queryIteratePages(params, {
       direction,
       // If there is a limit of < 100, use that as the page size. Otherwise use 100 and stop if/when limit reached.
@@ -169,6 +170,8 @@ export default class ApiClient {
     }
   }
 
+  // Publish a message to the network
+  // Will convert timestamps to the appropriate format expected by the network
   async publish({
     contentTopic,
     timestamp,
@@ -191,6 +194,8 @@ export default class ApiClient {
     })
   }
 
+  // Subscribe to a list of topics.
+  // Provided callback function will be called on each new message
   async subscribe(
     params: SubscribeParams,
     callback: SubscribeCallback
