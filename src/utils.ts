@@ -62,7 +62,7 @@ export async function retry<T extends (...arg0: any[]) => any>(
     const result = await fn(...args)
     return result
   } catch (e) {
-    console.error(e)
+    console.log(e)
     if (currRetry > maxRetries) {
       throw e
     }
