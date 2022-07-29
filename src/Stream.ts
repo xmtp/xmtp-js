@@ -1,6 +1,6 @@
 import Message from './Message'
 import Client from './Client'
-import { Message as MessageService, Envelope } from './proto/message.pb'
+import { MessageApi, Envelope } from '@xmtp/proto'
 
 export type MessageTransformer<T> = (msg: Message) => T
 
@@ -67,17 +67,14 @@ export default class Stream<T> {
 
     setTimeout(async () => {
       try {
-        await MessageService.Subscribe(
+        await this.client.apiClient.subscribe(
           {
-            contentTopic: this.topic,
+            contentTopics: [this.topic],
           },
           async (env: Envelope) => {
             console.log('env', env)
             if (!this.callback) return
             await this?.callback(env)
-          },
-          {
-            pathPrefix: 'https://localhost:5000',
           }
         )
       } catch (err) {

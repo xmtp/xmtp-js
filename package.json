@@ -5,7 +5,7 @@
   "main": "dist/cjs/src/index.js",
   "module": "dist/esm/src/index.js",
   "umd:main": "dist/umd/src/index.js",
-  "types": "dist/types/src/index.d.js",
+  "types": "dist/types/src/index.d.ts",
   "scripts": {
     "build": "npm run build:proto && npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:types",
     "build:proto": "npm run clean:proto && buf generate",
@@ -62,6 +62,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
+    "@xmtp/proto": "^1.0.0",
     "cross-fetch": "^3.1.5",
     "ethers": "^5.5.3",
     "js-waku": "^0.24.0",

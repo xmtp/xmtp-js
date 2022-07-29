@@ -8,4 +8,4 @@ cp ../xmtp-node-go/pkg/message/v1/message.proto src/proto/
   docker build -t xmtp/protoc .
 )
 
-docker run --rm -it -v${PWD}:/code snormore/protoc -I=src/proto --grpc-gateway-ts_out=src/proto message.proto
+docker run --rm -it -v${PWD}:/code xmtp/protoc -I=src/proto --grpc-gateway-ts_out=src/proto message.proto

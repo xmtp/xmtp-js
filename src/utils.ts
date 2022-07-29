@@ -1,7 +1,7 @@
 import { PublicKeyBundle } from './crypto'
 import ContactBundle from './ContactBundle'
-import { Message as MessageService } from './proto/message.pb'
-import { b64Decode, b64Encode } from './proto/fetch.pb'
+import { MessageApi, fetcher } from '@xmtp/proto'
+const { b64Decode, b64Encode } = fetcher
 
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
@@ -49,6 +49,29 @@ export const promiseWithTimeout = <T>(
   })
 }
 
+// Implements type safe retries of arbitrary async functions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function retry<T extends (...arg0: any[]) => any>(
+  fn: T,
+  args: Parameters<T>,
+  maxRetries: number,
+  sleepTime: number,
+  retryCount = 1
+): Promise<Awaited<ReturnType<T>>> {
+  const currRetry = typeof retryCount === 'number' ? retryCount : 1
+  try {
+    const result = await fn(...args)
+    return result
+  } catch (e) {
+    console.error(e)
+    if (currRetry > maxRetries) {
+      throw e
+    }
+    await sleep(sleepTime)
+    return retry(fn, args, maxRetries, sleepTime, currRetry + 1)
+  }
+}
+
 export async function publishUserContact(
   keys: PublicKeyBundle,
   address: string
@@ -56,7 +79,7 @@ export async function publishUserContact(
   const contactBundle = new ContactBundle(keys)
   const bytes = contactBundle.toBytes()
   try {
-    await MessageService.Publish(
+    await MessageApi.Publish(
       {
         contentTopic: buildUserContactTopic(address),
         message: b64Decode(b64Encode(bytes, 0, bytes.length)),
