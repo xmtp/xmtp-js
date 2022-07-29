@@ -90,7 +90,7 @@ export default class ApiClient {
     )
   }
 
-  async queryAll(
+  async query(
     params: QueryParams,
     {
       direction = SortDirection.SORT_DIRECTION_ASCENDING,
@@ -116,7 +116,7 @@ export default class ApiClient {
 
   // Will produce an AsyncGenerator of Envelopes
   // Uses queryStreamPages under the hood
-  async *queryStream(
+  async *queryIterator(
     params: QueryParams,
     options: QueryStreamOptions
   ): AsyncGenerator<Envelope> {
