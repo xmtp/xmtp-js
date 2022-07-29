@@ -1,3 +1,7 @@
+// This will create a global localStorage object on Node.js for use in tests
+// If we want to save some bytes from the bundle, we can have Webpack replace
+// this with an empty module for the browser
+import 'node-localstorage/register'
 import { EncryptedStore, LocalStorageStore } from '../../src/store'
 import assert from 'assert'
 import { WakuMessage } from 'js-waku'
