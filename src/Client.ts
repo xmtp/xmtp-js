@@ -422,22 +422,22 @@ export default class Client {
   }
 
   streamConversationMessages(peerAddress: string): Promise<Stream<Message>> {
-    const topic = buildDirectMessageTopic(peerAddress, this.address)
+    const topics = [buildDirectMessageTopic(peerAddress, this.address)]
     return Stream.create<Message>(
       this,
-      [topic],
+      topics,
       noTransformation,
-      filterForTopic(topic)
+      filterForTopics(topics)
     )
   }
 
-  streamAllConversationMessages(
-    peerAddresses: string[]
-  ): Promise<Stream<Message>> {
-    const messageTopics = peerAddresses.map((peerAddress) =>
-      buildDirectMessageTopic(peerAddress, this.address)
+  streamAllConversationMessages(topics: string[]): Promise<Stream<Message>> {
+    return Stream.create<Message>(
+      this,
+      topics,
+      noTransformation,
+      filterForTopics(topics)
     )
-    return Stream.create<Message>(this, messageTopics, noTransformation)
   }
 
   // list stored messages from this wallet's introduction topic
@@ -489,7 +489,7 @@ export default class Client {
       )
     )
     if (opts?.checkAddresses) {
-      msgs = msgs.filter(filterForTopic(topic))
+      msgs = msgs.filter(filterForTopics([topic]))
     }
     return msgs
   }
@@ -640,14 +640,14 @@ function noTransformation(msg: Message) {
   return msg
 }
 
-function filterForTopic(topic: string): MessageFilter {
+function filterForTopics(topics: string[]): MessageFilter {
   return (msg) => {
     const senderAddress = msg.senderAddress
     const recipientAddress = msg.recipientAddress
     return (
       senderAddress !== undefined &&
       recipientAddress !== undefined &&
-      buildDirectMessageTopic(senderAddress, recipientAddress) === topic
+      topics.includes(buildDirectMessageTopic(senderAddress, recipientAddress))
     )
   }
 }

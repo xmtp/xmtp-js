@@ -80,32 +80,30 @@ export default class Conversations {
     )
   }
 
+  /**
+   * Returns a stream for all new messages from all existing and new conversations.
+   */
   async streamAllMessages(): Promise<Stream<Message>> {
-    const seenPeers: Set<string> = new Set()
-    for await (const conversation of await this.list()) {
-      seenPeers.add(conversation.peerAddress)
-      console.log(`### Stream from og addy: ` + conversation.peerAddress)
-    }
-    const messagesStream = this.client.streamAllConversationMessages(
-      Array.from(seenPeers)
+    const topics = (await this.list()).map((conversation) =>
+      buildDirectMessageTopic(conversation.peerAddress, this.client.address)
     )
 
-    for await (const conversation of await this.stream()) {
-      if (!seenPeers.has(conversation.peerAddress)) {
-        seenPeers.add(conversation.peerAddress)
-        console.log(`### Stream from new addy: ` + conversation.peerAddress)
-
-        const newTopics = Array.from(seenPeers).map((peerAddress) =>
-          buildDirectMessageTopic(peerAddress, this.client.address)
-        )
-        messagesStream.then(function (result) {
-          console.log(`### Update!`)
-          result.resubscribeToTopics(newTopics)
-        })
-      }
+    const stream = this.client.streamAllConversationMessages(topics)
+    for await (const newConversation of await this.stream()) {
+      const newTopic = buildDirectMessageTopic(
+        newConversation.peerAddress,
+        this.client.address
+      )
+      // TODO ELISE: Dedupe.
+      console.log('### previous topics\n' + topics)
+      console.log('### NEW TOPIC ! ' + newTopic)
+      topics.push(newTopic)
+      ;(await stream).resubscribeToTopics(topics)
     }
 
-    return messagesStream
+    // TODO ELISE: not being hit.
+    console.log('### RETURN!')
+    return stream
   }
 
   /**

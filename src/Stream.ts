@@ -170,18 +170,15 @@ export default class Stream<T> {
 
   // Unsubscribe from the existing content topics and resubscribe to the given topics.
   async resubscribeToTopics(topics: string[]): Promise<void> {
-    if (!this.callback) {
+    if (!this.callback || !this.unsubscribeFn) {
       throw new Error('Missing callback for stream')
     }
-    if (this.unsubscribeFn) {
-      await this.unsubscribeFn()
-      console.log('### Unsubscribed from topics: ' + this.topics)
-    }
+    await this.unsubscribeFn()
     this.topics = topics
-    console.log('### Resubscribed to topics: ' + this.topics)
     this.unsubscribeFn = await this.client.waku.filter.subscribe(
       this.callback,
       this.topics
     )
+    console.log(`### Resubscribed to topics:\n${topics}`)
   }
 }
