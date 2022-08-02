@@ -10,6 +10,12 @@ export type MessageTransformer<T> = (msg: Message) => T
 
 export type MessageFilter = (msg: Message) => boolean
 
+export type ContentTopicUpdater = (msg: Message) => string[] | undefined
+
+export const noTransformation = (msg: Message): Message => {
+  return msg
+}
+
 /**
  * Stream implements an Asynchronous Iterable over messages received from a topic.
  * As such can be used with constructs like for-await-of, yield*, array destructing, etc.
@@ -33,28 +39,44 @@ export default class Stream<T> {
     client: Client,
     topics: string[],
     messageTransformer: MessageTransformer<T>,
-    messageFilter?: MessageFilter
+    messageFilter?: MessageFilter,
+    contentTopicUpdater?: ContentTopicUpdater
   ) {
     this.messages = []
     this.resolvers = []
     this.topics = topics
     this.client = client
-    this.callback = this.newMessageCallback(messageTransformer, messageFilter)
+    this.callback = this.newMessageCallback(
+      messageTransformer,
+      messageFilter,
+      contentTopicUpdater
+    )
   }
 
   // returns new closure to handle incoming Waku messages
   private newMessageCallback(
     transformer: MessageTransformer<T>,
-    filter?: MessageFilter
+    filter?: MessageFilter,
+    contentTopicUpdater?: ContentTopicUpdater
   ): (wakuMsg: WakuMessage) => Promise<void> {
     return async (wakuMsg: WakuMessage) => {
       if (!wakuMsg.payload) {
         return
       }
-      const msg = await this.client.decodeMessage(wakuMsg.payload)
+      const msg = await this.client.decodeMessage(
+        wakuMsg.payload,
+        wakuMsg.contentTopic
+      )
       // If there is a filter on the stream, and the filter returns false, ignore the message
       if (filter && !filter(msg)) {
         return
+      }
+      // Check to see if we should update the stream's content topic subscription
+      if (contentTopicUpdater) {
+        const newTopics = contentTopicUpdater(msg)
+        if (newTopics) {
+          this.resubscribeToTopics(newTopics)
+        }
       }
       // is there a Promise already pending?
       const resolver = this.resolvers.pop()
@@ -115,9 +137,16 @@ export default class Stream<T> {
     client: Client,
     topics: string[],
     messageTransformer: MessageTransformer<T>,
-    messageFilter?: MessageFilter
+    messageFilter?: MessageFilter,
+    contentTopicUpdater?: ContentTopicUpdater
   ): Promise<Stream<T>> {
-    const stream = new Stream(client, topics, messageTransformer, messageFilter)
+    const stream = new Stream(
+      client,
+      topics,
+      messageTransformer,
+      messageFilter,
+      contentTopicUpdater
+    )
     await stream.start()
     return stream
   }
@@ -169,7 +198,7 @@ export default class Stream<T> {
   }
 
   // Unsubscribe from the existing content topics and resubscribe to the given topics.
-  async resubscribeToTopics(topics: string[]): Promise<void> {
+  private async resubscribeToTopics(topics: string[]): Promise<void> {
     if (!this.callback || !this.unsubscribeFn) {
       throw new Error('Missing callback for stream')
     }
@@ -179,6 +208,5 @@ export default class Stream<T> {
       this.callback,
       this.topics
     )
-    console.log(`### Resubscribed to topics:\n${topics}`)
   }
 }

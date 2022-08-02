@@ -5,16 +5,19 @@ import { sleep } from '../../src/utils'
 describe('conversations', () => {
   let alice: Client
   let bob: Client
+  let charlie: Client
 
   beforeEach(async () => {
     alice = await newLocalDockerClient()
     bob = await newLocalDockerClient()
+    charlie = await newLocalDockerClient()
     await sleep(100)
   })
 
   afterEach(async () => {
     await alice.close()
     await bob.close()
+    await charlie.close()
   })
 
   it('lists all conversations', async () => {
@@ -46,6 +49,25 @@ describe('conversations', () => {
       break
     }
     expect(numConversations).toBe(1)
+  })
+
+  it('streams all conversation messages', async () => {
+    const stream = await alice.conversations.streamAllMessages()
+    const conversation1 = await alice.conversations.newConversation(bob.address)
+    const conversation2 = await alice.conversations.newConversation(
+      charlie.address
+    )
+    await conversation1.send('hi bob - alice')
+    await conversation2.send('hi bob - charlie')
+    await conversation1.send('hi bob again - alice')
+
+    let numMessages = 0
+    for await (const message of stream) {
+      numMessages++
+      expect(message.recipientAddress).toBe(bob.address)
+      break
+    }
+    expect(numMessages).toBe(3)
   })
 
   it('dedupes conversations when multiple messages are in the introduction topic', async () => {

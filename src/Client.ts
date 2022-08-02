@@ -10,7 +10,7 @@ import {
   promiseWithTimeout,
 } from './utils'
 import { sleep } from '../test/helpers'
-import Stream, { MessageFilter } from './Stream'
+import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
 import {
   EncryptedStore,
@@ -385,7 +385,10 @@ export default class Client {
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
 
-  async decodeMessage(payload: Uint8Array): Promise<Message> {
+  async decodeMessage(
+    payload: Uint8Array,
+    contentTopic: string | undefined
+  ): Promise<Message> {
     const message = await Message.decode(this.keys, payload)
     if (message.error) {
       return message
@@ -400,6 +403,7 @@ export default class Client {
     }
     const contentType = new ContentTypeId(encoded.type)
     const codec = this.codecFor(contentType)
+    message.contentTopic = contentTopic
     if (codec) {
       message.content = codec.decode(encoded as EncodedContent, this)
       message.contentType = contentType
@@ -423,15 +427,6 @@ export default class Client {
 
   streamConversationMessages(peerAddress: string): Promise<Stream<Message>> {
     const topics = [buildDirectMessageTopic(peerAddress, this.address)]
-    return Stream.create<Message>(
-      this,
-      topics,
-      noTransformation,
-      filterForTopics(topics)
-    )
-  }
-
-  streamAllConversationMessages(topics: string[]): Promise<Stream<Message>> {
     return Stream.create<Message>(
       this,
       topics,
@@ -485,7 +480,7 @@ export default class Client {
     wakuMsgs = wakuMsgs.filter((wakuMsg) => wakuMsg?.payload)
     let msgs = await Promise.all(
       wakuMsgs.map((wakuMsg) =>
-        this.decodeMessage(wakuMsg.payload as Uint8Array)
+        this.decodeMessage(wakuMsg.payload as Uint8Array, wakuMsg.contentTopic)
       )
     )
     if (opts?.checkAddresses) {
@@ -636,18 +631,9 @@ async function getNodeList(env: keyof NodesList): Promise<string[]> {
   return Object.values(nodesList[env])
 }
 
-function noTransformation(msg: Message) {
-  return msg
-}
-
+// Ensure the message received was in the original list of topics to subscribe to.
 function filterForTopics(topics: string[]): MessageFilter {
   return (msg) => {
-    const senderAddress = msg.senderAddress
-    const recipientAddress = msg.recipientAddress
-    return (
-      senderAddress !== undefined &&
-      recipientAddress !== undefined &&
-      topics.includes(buildDirectMessageTopic(senderAddress, recipientAddress))
-    )
+    return msg.contentTopic !== undefined && topics.includes(msg.contentTopic)
   }
 }

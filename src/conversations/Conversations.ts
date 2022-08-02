@@ -1,6 +1,10 @@
 import Conversation from './Conversation'
 import Message from '../Message'
-import Stream, { MessageFilter, MessageTransformer } from '../Stream'
+import Stream, {
+  MessageFilter,
+  MessageTransformer,
+  noTransformation,
+} from '../Stream'
 import Client from '../Client'
 import { buildDirectMessageTopic, buildUserIntroTopic } from '../utils'
 
@@ -84,26 +88,54 @@ export default class Conversations {
    * Returns a stream for all new messages from all existing and new conversations.
    */
   async streamAllMessages(): Promise<Stream<Message>> {
-    const topics = (await this.list()).map((conversation) =>
-      buildDirectMessageTopic(conversation.peerAddress, this.client.address)
+    const conversations = await this.list()
+    const dmAddresses: Set<string> = new Set()
+    for (const conversation of conversations) {
+      dmAddresses.add(conversation.peerAddress)
+    }
+    const topics = Array.from(dmAddresses).map((address) =>
+      buildDirectMessageTopic(address, this.client.address)
     )
 
-    const stream = this.client.streamAllConversationMessages(topics)
-    for await (const newConversation of await this.stream()) {
-      const newTopic = buildDirectMessageTopic(
-        newConversation.peerAddress,
-        this.client.address
+    // Ensure we listen for new conversation topics as well
+    const introTopic = buildUserIntroTopic(this.client.address)
+    topics.push(introTopic)
+
+    // Update the stream's content topics to include direct messages for new conversations
+    const contentTopicUpdater = (msg: Message): string[] | undefined => {
+      if (msg.contentTopic !== introTopic || !messageHasHeaders(msg)) {
+        return undefined
+      }
+      const peerAddress = this.getPeerAddress(msg)
+      if (dmAddresses.has(peerAddress) || peerAddress === this.client.address) {
+        return undefined
+      }
+      dmAddresses.add(this.getPeerAddress(msg))
+      return Array.from(dmAddresses).map((address) =>
+        buildDirectMessageTopic(address, this.client.address)
       )
-      // TODO ELISE: Dedupe.
-      console.log('### previous topics\n' + topics)
-      console.log('### NEW TOPIC ! ' + newTopic)
-      topics.push(newTopic)
-      ;(await stream).resubscribeToTopics(topics)
     }
 
-    // TODO ELISE: not being hit.
-    console.log('### RETURN!')
-    return stream
+    // Filter out duplicate intro messages if we're already streaming the conversation
+    const filter = (msg: Message): boolean => {
+      if (
+        msg.contentTopic === introTopic &&
+        messageHasHeaders(msg) &&
+        dmAddresses.has(this.getPeerAddress(msg))
+      ) {
+        console.log('FILTERED TOPIC: ' + msg.contentTopic)
+        return false
+      }
+      return true
+    }
+
+    return Stream.create<Message>(
+      this.client,
+      topics,
+      noTransformation,
+      filter,
+      contentTopicUpdater
+    )
   }
 
   /**
