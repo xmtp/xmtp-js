@@ -51,23 +51,58 @@ describe('conversations', () => {
     expect(numConversations).toBe(1)
   })
 
-  it('streams all conversation messages', async () => {
-    const stream = await alice.conversations.streamAllMessages()
-    const conversation1 = await alice.conversations.newConversation(bob.address)
-    const conversation2 = await alice.conversations.newConversation(
+  it('streams all conversation messages from empty state', async () => {
+    const aliceCharlie = await alice.conversations.newConversation(
       charlie.address
     )
-    await conversation1.send('hi bob - alice')
-    await conversation2.send('hi bob - charlie')
-    await conversation1.send('hi bob again - alice')
+    const bobAlice = await bob.conversations.newConversation(alice.address)
+    const charlieAlice = await charlie.conversations.newConversation(
+      alice.address
+    )
+
+    const stream = await alice.conversations.streamAllMessages()
+    await charlieAlice.send('gm alice -charlie')
 
     let numMessages = 0
     for await (const message of stream) {
       numMessages++
-      expect(message.recipientAddress).toBe(bob.address)
-      break
+      if (numMessages == 1) {
+        expect(message.content).toBe('gm alice -charlie')
+        await bobAlice.send('gm alice -bob')
+      }
+      if (numMessages == 2) {
+        expect(message.content).toBe('gm alice -bob')
+        await aliceCharlie.send('gm charlie -alice')
+      }
+      if (numMessages == 3) {
+        expect(message.content).toBe('gm charlie -alice')
+        break
+      }
     }
     expect(numMessages).toBe(3)
+  })
+
+  it('streams all conversation messages with existing conversations', async () => {
+    const aliceBob = await alice.conversations.newConversation(bob.address)
+    const bobAlice = await bob.conversations.newConversation(alice.address)
+
+    await aliceBob.send('gm alice - bob')
+    await sleep(1000)
+    const existingConversations = await alice.conversations.list()
+    expect(existingConversations).toHaveLength(1)
+
+    const stream = await alice.conversations.streamAllMessages()
+    await bobAlice.send('gm bob - alice')
+
+    let numMessages = 0
+    for await (const message of stream) {
+      numMessages++
+      if (numMessages == 2) {
+        break
+      }
+      await aliceBob.send('gm. hope you have a good day')
+    }
+    expect(numMessages).toBe(2)
   })
 
   it('dedupes conversations when multiple messages are in the introduction topic', async () => {

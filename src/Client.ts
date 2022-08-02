@@ -631,9 +631,15 @@ async function getNodeList(env: keyof NodesList): Promise<string[]> {
   return Object.values(nodesList[env])
 }
 
-// Ensure the message received was in the original list of topics to subscribe to.
+// Ensure the message didn't have a spoofed address
 function filterForTopics(topics: string[]): MessageFilter {
   return (msg) => {
-    return msg.contentTopic !== undefined && topics.includes(msg.contentTopic)
+    const senderAddress = msg.senderAddress
+    const recipientAddress = msg.recipientAddress
+    return (
+      senderAddress !== undefined &&
+      recipientAddress !== undefined &&
+      topics.includes(buildDirectMessageTopic(senderAddress, recipientAddress))
+    )
   }
 }

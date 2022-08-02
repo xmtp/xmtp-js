@@ -93,15 +93,13 @@ export default class Conversations {
     for (const conversation of conversations) {
       dmAddresses.add(conversation.peerAddress)
     }
-    const topics = Array.from(dmAddresses).map((address) =>
-      buildDirectMessageTopic(address, this.client.address)
+    const introTopic = buildUserIntroTopic(this.client.address)
+    const topics = this.buildTopicsForAllMessages(
+      Array.from(dmAddresses),
+      introTopic
     )
 
-    // Ensure we listen for new conversation topics as well
-    const introTopic = buildUserIntroTopic(this.client.address)
-    topics.push(introTopic)
-
-    // Update the stream's content topics to include direct messages for new conversations
+    // If we detect a new intro topic, update the stream's direct message topics to include the new topic
     const contentTopicUpdater = (msg: Message): string[] | undefined => {
       if (msg.contentTopic !== introTopic || !messageHasHeaders(msg)) {
         return undefined
@@ -111,19 +109,20 @@ export default class Conversations {
         return undefined
       }
       dmAddresses.add(this.getPeerAddress(msg))
-      return Array.from(dmAddresses).map((address) =>
-        buildDirectMessageTopic(address, this.client.address)
+      const newTopics = this.buildTopicsForAllMessages(
+        Array.from(dmAddresses),
+        introTopic
       )
+      return newTopics
     }
 
-    // Filter out duplicate intro messages if we're already streaming the conversation
+    // Filter intro topics if already streaming direct messages for that address to avoid duplicates
     const filter = (msg: Message): boolean => {
       if (
         msg.contentTopic === introTopic &&
         messageHasHeaders(msg) &&
         dmAddresses.has(this.getPeerAddress(msg))
       ) {
-        console.log('FILTERED TOPIC: ' + msg.contentTopic)
         return false
       }
       return true
@@ -136,6 +135,21 @@ export default class Conversations {
       filter,
       contentTopicUpdater
     )
+  }
+
+  /**
+   * Builds a list of topics for existing conversations and new intro topics
+   */
+  private buildTopicsForAllMessages(
+    peerAddresses: string[],
+    introTopic: string
+  ): string[] {
+    const topics = peerAddresses.map((address) =>
+      buildDirectMessageTopic(address, this.client.address)
+    )
+    // Ensure we listen for new conversation topics as well
+    topics.push(introTopic)
+    return topics
   }
 
   /**
