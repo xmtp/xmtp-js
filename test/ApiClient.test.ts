@@ -13,7 +13,7 @@ import {
 } from '@xmtp/proto'
 
 const PATH_PREFIX = 'http://fake:5050'
-const CURSOR = {
+const CURSOR: Cursor = {
   index: {
     digest: Uint8Array.from([1, 2, 3]),
     senderTimeNs: '3',
@@ -30,7 +30,7 @@ describe('Query', () => {
 
   it('stops when receiving empty results', async () => {
     const apiMock = createQueryMock([], 1)
-    const result = await client.queryAll({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
     expect(result).toHaveLength(0)
     expect(apiMock).toHaveBeenCalledTimes(1)
     const expectedReq: QueryRequest = {
@@ -47,14 +47,14 @@ describe('Query', () => {
 
   it('stops when receiving some results and a null cursor', async () => {
     const apiMock = createQueryMock([createEnvelope()], 1)
-    const result = await client.queryAll({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
     expect(result).toHaveLength(1)
     expect(apiMock).toHaveBeenCalledTimes(1)
   })
 
   it('gets multiple pages of results', async () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 2)
-    const result = await client.queryAll({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
     expect(result).toHaveLength(4)
     expect(apiMock).toHaveBeenCalledTimes(2)
   })
@@ -62,7 +62,7 @@ describe('Query', () => {
   it('streams a single page of results', async () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 1)
     let count = 0
-    for await (const _envelope of client.queryStream(
+    for await (const _envelope of client.queryIterator(
       { contentTopics: ['foo'] },
       { pageSize: 5 }
     )) {
@@ -85,7 +85,7 @@ describe('Query', () => {
   it('streams multiple pages of results', async () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 2)
     let count = 0
-    for await (const _envelope of client.queryStream(
+    for await (const _envelope of client.queryIterator(
       { contentTopics: [CONTENT_TOPIC] },
       { pageSize: 5 }
     )) {
@@ -123,14 +123,14 @@ describe('Publish', () => {
 
     await client.publish(msg)
     expect(publishMock).toHaveBeenCalledTimes(1)
-    expect(publishMock).toHaveBeenCalledWith(
-      {
-        message: msg.message,
-        contentTopic: msg.contentTopic,
-        timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
-      },
-      { pathPrefix: PATH_PREFIX }
-    )
+    const expectedRequest: PublishRequest = {
+      message: msg.message,
+      contentTopic: msg.contentTopic,
+      timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
+    }
+    expect(publishMock).toHaveBeenCalledWith(expectedRequest, {
+      pathPrefix: PATH_PREFIX,
+    })
   })
 
   it('throws on invalid message', () => {

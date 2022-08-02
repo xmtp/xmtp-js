@@ -90,7 +90,8 @@ export default class ApiClient {
     )
   }
 
-  async queryAll(
+  // Use the Query API to return the full contents of any specified topics
+  async query(
     params: QueryParams,
     {
       direction = SortDirection.SORT_DIRECTION_ASCENDING,
@@ -98,8 +99,8 @@ export default class ApiClient {
     }: QueryAllOptions
   ): Promise<Envelope[]> {
     const out: Envelope[] = []
-    // Use queryStreamPages for better performance. 1/100th the number of Promises to resolve compared to queryStream
-    for await (const page of this.queryStreamPages(params, {
+    // Use queryIteratePages for better performance. 1/100th the number of Promises to resolve compared to queryStream
+    for await (const page of this.queryIteratePages(params, {
       direction,
       // If there is a limit of < 100, use that as the page size. Otherwise use 100 and stop if/when limit reached.
       pageSize: limit && limit < 100 ? limit : 100,
@@ -116,11 +117,11 @@ export default class ApiClient {
 
   // Will produce an AsyncGenerator of Envelopes
   // Uses queryStreamPages under the hood
-  async *queryStream(
+  async *queryIterator(
     params: QueryParams,
     options: QueryStreamOptions
   ): AsyncGenerator<Envelope> {
-    for await (const page of this.queryStreamPages(params, options)) {
+    for await (const page of this.queryIteratePages(params, options)) {
       for (const envelope of page) {
         yield envelope
       }
@@ -129,7 +130,7 @@ export default class ApiClient {
 
   // Creates an async generator that will paginate through the Query API until it reaches the end
   // Will yield each page of results as needed
-  private async *queryStreamPages(
+  private async *queryIteratePages(
     { contentTopics, startTime, endTime }: QueryParams,
     { direction, pageSize = 10 }: QueryStreamOptions
   ): AsyncGenerator<Envelope[]> {
@@ -169,6 +170,8 @@ export default class ApiClient {
     }
   }
 
+  // Publish a message to the network
+  // Will convert timestamps to the appropriate format expected by the network
   async publish({
     contentTopic,
     timestamp,
@@ -191,6 +194,8 @@ export default class ApiClient {
     })
   }
 
+  // Subscribe to a list of topics.
+  // Provided callback function will be called on each new message
   async subscribe(
     params: SubscribeParams,
     callback: SubscribeCallback
