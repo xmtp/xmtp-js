@@ -89,15 +89,12 @@ export default class Conversations {
    */
   async streamAllMessages(): Promise<Stream<Message>> {
     const conversations = await this.list()
-    const dmAddresses: Set<string> = new Set()
+    const dmAddresses: string[] = []
     for (const conversation of conversations) {
-      dmAddresses.add(conversation.peerAddress)
+      dmAddresses.push(conversation.peerAddress)
     }
     const introTopic = buildUserIntroTopic(this.client.address)
-    const topics = this.buildTopicsForAllMessages(
-      Array.from(dmAddresses),
-      introTopic
-    )
+    const topics = this.buildTopicsForAllMessages(dmAddresses, introTopic)
 
     // If we detect a new intro topic, update the stream's direct message topics to include the new topic
     const contentTopicUpdater = (msg: Message): string[] | undefined => {
@@ -105,15 +102,15 @@ export default class Conversations {
         return undefined
       }
       const peerAddress = this.getPeerAddress(msg)
-      if (dmAddresses.has(peerAddress) || peerAddress === this.client.address) {
+      if (
+        dmAddresses.includes(peerAddress) ||
+        peerAddress === this.client.address
+      ) {
+        // No need to update if we're already subscribed
         return undefined
       }
-      dmAddresses.add(this.getPeerAddress(msg))
-      const newTopics = this.buildTopicsForAllMessages(
-        Array.from(dmAddresses),
-        introTopic
-      )
-      return newTopics
+      dmAddresses.push(this.getPeerAddress(msg))
+      return this.buildTopicsForAllMessages(dmAddresses, introTopic)
     }
 
     // Filter intro topics if already streaming direct messages for that address to avoid duplicates
@@ -121,7 +118,7 @@ export default class Conversations {
       if (
         msg.contentTopic === introTopic &&
         messageHasHeaders(msg) &&
-        dmAddresses.has(this.getPeerAddress(msg))
+        dmAddresses.includes(this.getPeerAddress(msg))
       ) {
         return false
       }
