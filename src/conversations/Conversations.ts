@@ -85,7 +85,7 @@ export default class Conversations {
   }
 
   /**
-   * Returns a stream for all new messages from all existing and new conversations.
+   * Returns a stream for all new messages from existing and new conversations.
    */
   async streamAllMessages(): Promise<Stream<Message>> {
     const conversations = await this.list()

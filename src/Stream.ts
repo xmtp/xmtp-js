@@ -73,9 +73,9 @@ export default class Stream<T> {
       }
       // Check to see if we should update the stream's content topic subscription
       if (contentTopicUpdater) {
-        const newTopics = contentTopicUpdater(msg)
-        if (newTopics) {
-          this.resubscribeToTopics(newTopics)
+        const topics = contentTopicUpdater(msg)
+        if (topics) {
+          this.resubscribeToTopics(topics)
         }
       }
       // is there a Promise already pending?
