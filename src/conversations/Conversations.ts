@@ -89,10 +89,9 @@ export default class Conversations {
    */
   async streamAllMessages(): Promise<Stream<Message>> {
     const conversations = await this.list()
-    const dmAddresses: string[] = []
-    for (const conversation of conversations) {
-      dmAddresses.push(conversation.peerAddress)
-    }
+    const dmAddresses: string[] = conversations.map(
+      (conversation) => conversation.peerAddress
+    )
     const introTopic = buildUserIntroTopic(this.client.address)
     const topics = this.buildTopicsForAllMessages(dmAddresses, introTopic)
 
