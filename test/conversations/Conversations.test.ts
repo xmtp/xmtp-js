@@ -1,6 +1,10 @@
 import { newLocalDockerClient } from './../helpers'
 import { Client } from '../../src'
-import { sleep } from '../../src/utils'
+import {
+  buildDirectMessageTopic,
+  buildUserIntroTopic,
+  sleep,
+} from '../../src/utils'
 
 describe('conversations', () => {
   let alice: Client
@@ -67,14 +71,19 @@ describe('conversations', () => {
     for await (const message of stream) {
       numMessages++
       if (numMessages == 1) {
+        expect(message.contentTopic).toBe(buildUserIntroTopic(alice.address))
         expect(message.content).toBe('gm alice -charlie')
         await bobAlice.send('gm alice -bob')
       }
       if (numMessages == 2) {
+        expect(message.contentTopic).toBe(buildUserIntroTopic(alice.address))
         expect(message.content).toBe('gm alice -bob')
         await aliceCharlie.send('gm charlie -alice')
       }
       if (numMessages == 3) {
+        expect(message.contentTopic).toBe(
+          buildDirectMessageTopic(alice.address, charlie.address)
+        )
         expect(message.content).toBe('gm charlie -alice')
         break
       }
@@ -98,9 +107,15 @@ describe('conversations', () => {
     for await (const message of stream) {
       numMessages++
       if (numMessages == 1) {
+        expect(message.contentTopic).toBe(
+          buildDirectMessageTopic(alice.address, bob.address)
+        )
         expect(message.content).toBe('gm bob -alice')
       }
       if (numMessages == 2) {
+        expect(message.contentTopic).toBe(
+          buildDirectMessageTopic(alice.address, bob.address)
+        )
         expect(message.content).toBe('gm. hope you have a good day')
         break
       }
