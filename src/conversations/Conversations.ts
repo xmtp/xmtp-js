@@ -108,7 +108,7 @@ export default class Conversations {
         // No need to update if we're already subscribed
         return undefined
       }
-      dmAddresses.push(this.getPeerAddress(msg))
+      dmAddresses.push(peerAddress)
       return this.buildTopicsForAllMessages(dmAddresses, introTopic)
     }
 
