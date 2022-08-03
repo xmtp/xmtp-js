@@ -86,18 +86,22 @@ describe('conversations', () => {
     const aliceBob = await alice.conversations.newConversation(bob.address)
     const bobAlice = await bob.conversations.newConversation(alice.address)
 
-    await aliceBob.send('gm alice - bob')
+    await aliceBob.send('gm alice -bob')
     await sleep(1000)
     const existingConversations = await alice.conversations.list()
     expect(existingConversations).toHaveLength(1)
 
     const stream = await alice.conversations.streamAllMessages()
-    await bobAlice.send('gm bob - alice')
+    await bobAlice.send('gm bob -alice')
 
     let numMessages = 0
     for await (const message of stream) {
       numMessages++
+      if (numMessages == 1) {
+        expect(message.content).toBe('gm bob -alice')
+      }
       if (numMessages == 2) {
+        expect(message.content).toBe('gm. hope you have a good day')
         break
       }
       await aliceBob.send('gm. hope you have a good day')
