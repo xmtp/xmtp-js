@@ -3,7 +3,6 @@ import {
   pollFor,
   newWallet,
   dumpStream,
-  newLocalDockerClient,
   newLocalHostClient,
   newDevClient,
   waitForUserContact,
@@ -29,18 +28,12 @@ type TestCase = {
 }
 
 describe('Client', () => {
-  const tests: TestCase[] = []
-  if (process.env.LOCAL_NODE) {
-    tests.push({
+  const tests: TestCase[] = [
+    {
       name: 'local host node',
       newClient: newLocalHostClient,
-    })
-  } else {
-    tests.push({
-      name: 'local docker node',
-      newClient: newLocalDockerClient,
-    })
-  }
+    },
+  ]
 
   if (process.env.CI || process.env.TESTNET) {
     tests.push({
@@ -213,38 +206,38 @@ describe('Client', () => {
         )
       })
 
-      // it('query pagination', async () => {
-      //   const c1 = await testCase.newClient()
-      //   const c2 = await testCase.newClient()
-      //   assert(await waitForUserContact(c1, c2))
+      it('query pagination', async () => {
+        const c1 = await testCase.newClient()
+        const c2 = await testCase.newClient()
+        assert(await waitForUserContact(c1, c2))
 
-      //   const msgCount = 10
-      //   const now = new Date().getTime()
-      //   const tenWeeksAgo = now - 1000 * 60 * 60 * 24 * 10
-      //   for (let i = 0; i < msgCount; i++) {
-      //     await c1.sendMessage(c2.address, 'msg' + (i + 1), {
-      //       timestamp: new Date(tenWeeksAgo + i * 1000),
-      //     })
-      //   }
+        const msgCount = 10
+        const now = new Date().getTime()
+        const tenWeeksAgo = now - 1000 * 60 * 60 * 24 * 10
+        for (let i = 0; i < msgCount; i++) {
+          await c1.sendMessage(c2.address, 'msg' + (i + 1), {
+            timestamp: new Date(tenWeeksAgo + i * 1000),
+          })
+        }
 
-      //   const msgs = await pollFor(
-      //     async () => {
-      //       const msgs = await c2.listConversationMessages(c1.address, {
-      //         pageSize: 2,
-      //       })
-      //       assert.equal(msgs.length, msgCount)
-      //       return msgs
-      //     },
-      //     5000,
-      //     200
-      //   )
+        const msgs = await pollFor(
+          async () => {
+            const msgs = await c2.listConversationMessages(c1.address, {
+              pageSize: 2,
+            })
+            assert.equal(msgs.length, msgCount)
+            return msgs
+          },
+          5000,
+          200
+        )
 
-      //   assert.equal(msgs.length, msgCount)
-      //   assert.deepEqual(
-      //     msgs.map((msg) => msg.error || msg.content),
-      //     [...Array(msgCount).keys()].map((i) => 'msg' + (i + 1))
-      //   )
-      // })
+        assert.equal(msgs.length, msgCount)
+        assert.deepEqual(
+          msgs.map((msg) => msg.error || msg.content),
+          [...Array(msgCount).keys()].map((i) => 'msg' + (i + 1))
+        )
+      })
 
       it('for-await-of with stream', async () => {
         const convo = await alice.streamConversationMessages(bob.address)
@@ -365,7 +358,7 @@ describe('ClientOptions', () => {
   const tests = [
     {
       name: 'local docker node',
-      newClient: newLocalDockerClient,
+      newClient: newLocalHostClient,
     },
   ]
   if (process.env.CI || process.env.TESTNET) {

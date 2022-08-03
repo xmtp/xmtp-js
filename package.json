@@ -20,8 +20,8 @@
     "prepare": "npm run install:buf && npm run build",
     "install:buf": "./script/buf.sh || true",
     "test": "NODE_TLS_REJECT_UNAUTHORIZED=0 npm run test:node",
-    "test:node": "jest --no-cache --runInBand --env='node' --forceExit --testTimeout=30000",
-    "test:jsdom": "jest --no-cache --runInBand --env='./jest.jsdom.env.js' --testTimeout=30000",
+    "test:node": "node --experimental-fetch ./node_modules/.bin/jest --no-cache --runInBand --env='node' --forceExit --testTimeout=30000",
+    "test:jsdom": "node --experimental-fetch ./node_modules/.bin/jest --no-cache --runInBand --env='./jest.jsdom.env.js' --testTimeout=30000",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
@@ -59,13 +59,14 @@
       "next"
     ]
   },
+  "engines": {
+    "node": ">=17.5"
+  },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
     "@xmtp/proto": "^1.0.0",
-    "cross-fetch": "^3.1.5",
     "ethers": "^5.5.3",
-    "js-waku": "^0.24.0",
     "node-localstorage": "^2.2.1",
     "protobufjs": "^6.11.3"
   },

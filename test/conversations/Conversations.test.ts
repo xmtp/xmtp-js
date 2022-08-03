@@ -1,4 +1,4 @@
-import { newLocalDockerClient } from './../helpers'
+import { newLocalHostClient } from './../helpers'
 import { Client } from '../../src'
 import { sleep } from '../../src/utils'
 
@@ -7,8 +7,8 @@ describe('conversations', () => {
   let bob: Client
 
   beforeEach(async () => {
-    alice = await newLocalDockerClient()
-    bob = await newLocalDockerClient()
+    alice = await newLocalHostClient()
+    bob = await newLocalHostClient()
     await sleep(100)
   })
 

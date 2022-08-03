@@ -11,6 +11,7 @@ import {
   PublishRequest,
   SubscribeRequest,
 } from '@xmtp/proto'
+import { sleep } from './helpers'
 
 const PATH_PREFIX = 'http://fake:5050'
 const CURSOR: Cursor = {
@@ -154,9 +155,13 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    await client.subscribe(req, cb)
+    client.subscribe(req, cb)
+    await sleep(10)
     expect(numEnvelopes).toBe(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, { pathPrefix: PATH_PREFIX })
+    expect(subscribeMock).toBeCalledWith(req, cb, {
+      pathPrefix: PATH_PREFIX,
+      signal: expect.anything(),
+    })
   })
 
   it('throws when no content topics returned', async () => {
@@ -166,8 +171,8 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [] }
-    const promise = client.subscribe(req, cb)
-    expect(promise).rejects.toEqual(
+    const t = () => client.subscribe(req, cb)
+    expect(t).toThrow(
       new Error('Must provide list of contentTopics to subscribe to')
     )
   })

@@ -27,9 +27,9 @@ import { Compression } from './proto/messaging'
 import * as proto from './proto/messaging'
 // import { Authenticator } from './authn'
 import ContactBundle from './ContactBundle'
-import { Envelope, MessageApi, SortDirection, fetcher } from '@xmtp/proto'
+import { Envelope, SortDirection, fetcher } from '@xmtp/proto'
 import ApiClient from './ApiClient'
-const { b64Decode, b64Encode } = fetcher
+const { b64Decode } = fetcher
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
@@ -142,7 +142,6 @@ export default class Client {
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
-  // protected authenticator: Authenticator
 
   constructor(keys: PrivateKeyBundle, apiClient: ApiClient) {
     this.contacts = new Set<string>()
@@ -153,7 +152,6 @@ export default class Client {
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
-    // this.authenticator = Authenticator.create(waku.libp2p, keys.identityKey)
   }
 
   /**
@@ -317,7 +315,7 @@ export default class Client {
     try {
       await this.apiClient.publish({
         contentTopic: env.contentTopic,
-        message: b64Decode(b64Encode(bytes, 0, bytes.length)),
+        message: bytes,
       })
     } catch (err) {
       console.log(err)
@@ -435,33 +433,28 @@ export default class Client {
     if (!opts) {
       opts = {}
     }
-    if (!opts.pageSize) {
-      opts.pageSize = 10
-    }
+    const { startTime, endTime, checkAddresses } = opts
 
-    const res = await MessageApi.Query(
+    const res = await this.apiClient.query(
+      { contentTopics: [topic], startTime, endTime },
       {
-        contentTopics: [topic],
-        pagingInfo: {
-          direction: SortDirection.SORT_DIRECTION_ASCENDING,
-          limit: opts.pageSize,
-        },
-      },
-      {
-        pathPrefix: 'https://localhost:5000',
+        direction: SortDirection.SORT_DIRECTION_ASCENDING,
       }
     )
+
     let msgs: Message[] = []
-    for (const env of res.envelopes || []) {
+    for (const env of res) {
       if (!env.message) continue
       try {
-        const msg = await this.decodeMessage(b64Decode(env.message.toString()))
+        const msg = await this.decodeMessage(
+          b64Decode(env.message as unknown as string)
+        )
         msgs.push(msg)
       } catch (e) {
         console.log(e)
       }
     }
-    if (opts?.checkAddresses) {
+    if (checkAddresses) {
       msgs = msgs.filter(filterForTopic(topic))
     }
     return msgs

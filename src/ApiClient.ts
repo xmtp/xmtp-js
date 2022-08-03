@@ -8,8 +8,8 @@ import {
   SortDirection,
   SubscribeRequest,
 } from '@xmtp/proto'
-import { retry } from './utils'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
+import { retry } from './utils'
 
 const RETRY_SLEEP_TIME = 100
 
@@ -43,6 +43,8 @@ export type ApiClientOptions = {
 }
 
 export type SubscribeCallback = NotifyStreamEntityArrival<Envelope>
+
+export type UnsubscribeFn = () => Promise<void>
 
 const toNanoString = (d: Date | undefined): undefined | string => {
   return d && (d.valueOf() * 1_000_000).toFixed(0)
@@ -81,13 +83,27 @@ export default class ApiClient {
   private _subscribe(
     req: SubscribeRequest,
     cb: NotifyStreamEntityArrival<Envelope>
-  ): ReturnType<typeof MessageApi.Subscribe> {
-    return retry(
-      MessageApi.Subscribe,
-      [req, cb, { pathPrefix: this.pathPrefix }],
-      this.maxRetries,
-      RETRY_SLEEP_TIME
-    )
+  ): UnsubscribeFn {
+    let abortController: AbortController
+    setTimeout(async () => {
+      try {
+        abortController = new AbortController()
+        await MessageApi.Subscribe(req, cb, {
+          pathPrefix: this.pathPrefix,
+          signal: abortController.signal,
+        })
+      } catch (e: any) {
+        if (e && e.name === 'AbortError') {
+          console.log('AbortError detected')
+          return
+        }
+        console.error('Subscription error', e)
+      }
+    }, 0)
+
+    return async () => {
+      abortController?.abort()
+    }
   }
 
   // Use the Query API to return the full contents of any specified topics
@@ -190,16 +206,17 @@ export default class ApiClient {
     return this._publish({
       contentTopic,
       timestampNs: toNanoString(dt),
-      message,
+      // Ensure that the array has the Uint8Array constructor so that it triggers the string replacement
+      message: new Uint8Array(message),
     })
   }
 
   // Subscribe to a list of topics.
   // Provided callback function will be called on each new message
-  async subscribe(
+  subscribe(
     params: SubscribeParams,
     callback: SubscribeCallback
-  ): ReturnType<typeof MessageApi.Subscribe> {
+  ): UnsubscribeFn {
     if (!params.contentTopics.length) {
       throw new Error('Must provide list of contentTopics to subscribe to')
     }

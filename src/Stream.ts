@@ -1,6 +1,7 @@
+import { UnsubscribeFn } from './ApiClient'
 import Message from './Message'
 import Client from './Client'
-import { Envelope } from '@xmtp/proto'
+import { Envelope, fetcher } from '@xmtp/proto'
 
 export type MessageTransformer<T> = (msg: Message) => T
 
@@ -20,6 +21,8 @@ export default class Stream<T> {
   // cache the callback so that it can be properly deregistered in Waku
   // if callback is undefined the stream is closed
   callback: ((env: Envelope) => Promise<void>) | undefined
+
+  unsubscribeFn?: UnsubscribeFn
 
   constructor(
     client: Client,
@@ -43,7 +46,9 @@ export default class Stream<T> {
       if (!env.message) {
         return
       }
-      const msg = await this.client.decodeMessage(env.message)
+      const msg = await this.client.decodeMessage(
+        fetcher.b64Decode(env.message as unknown as string)
+      )
       // If there is a filter on the stream, and the filter returns false, ignore the message
       if (filter && !filter(msg)) {
         return
@@ -65,22 +70,15 @@ export default class Stream<T> {
       throw new Error('Missing callback for stream')
     }
 
-    setTimeout(async () => {
-      try {
-        await this.client.apiClient.subscribe(
-          {
-            contentTopics: [this.topic],
-          },
-          async (env: Envelope) => {
-            console.log('env', env)
-            if (!this.callback) return
-            await this?.callback(env)
-          }
-        )
-      } catch (err) {
-        console.log(err)
+    this.unsubscribeFn = this.client.apiClient.subscribe(
+      {
+        contentTopics: [this.topic],
+      },
+      async (env: Envelope) => {
+        if (!this.callback) return
+        await this?.callback(env)
       }
-    }, 0)
+    )
   }
 
   static async create<T>(
@@ -104,6 +102,9 @@ export default class Stream<T> {
   // https://tc39.es/ecma262/#table-iterator-interface-optional-properties
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
+    if (this.unsubscribeFn) {
+      await this.unsubscribeFn()
+    }
     if (!this.callback) {
       return { value: undefined, done: true }
     }

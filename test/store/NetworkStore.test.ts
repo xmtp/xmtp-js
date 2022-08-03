@@ -2,6 +2,8 @@ import { Wallet } from 'ethers'
 
 import { newWallet, sleep } from '../helpers'
 import { PrivateTopicStore } from '../../src/store'
+import ApiClient from '../../src/ApiClient'
+import { ApiUrls } from '../../src/Client'
 
 describe('PrivateTopicStore', () => {
   const tests = [
@@ -23,7 +25,7 @@ describe('PrivateTopicStore', () => {
 
       beforeEach(async () => {
         wallet = newWallet()
-        store = new PrivateTopicStore()
+        store = new PrivateTopicStore(new ApiClient(ApiUrls['local']))
       })
 
       it('roundtrip', async () => {
