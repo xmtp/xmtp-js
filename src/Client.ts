@@ -35,7 +35,7 @@ const { b64Decode, b64Encode } = fetcher
 const MaxContentSize = 100 * 1024 * 1024 // 100M
 
 export const ApiUrls = {
-  local: 'http://localhost:1111/grpc',
+  local: 'https://localhost:5555',
   dev: 'https://nodes.dev.xmtp.network',
   production: 'https://nodes.production.xmtp.network',
 } as const
@@ -217,7 +217,7 @@ export default class Client {
   ): Promise<PublicKeyBundle | undefined> {
     // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
     let recipientKey: PublicKeyBundle | null = null
-    const stream = this.apiClient.queryStream(
+    const stream = this.apiClient.queryIterator(
       { contentTopics: [buildUserContactTopic(peerAddress)] },
       { pageSize: 5 }
     )
@@ -278,7 +278,6 @@ export default class Client {
   ): Promise<void> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
-
     if (!recipient) {
       throw new Error(`recipient ${peerAddress} is not registered`)
     }

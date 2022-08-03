@@ -121,7 +121,7 @@ export const newLocalDockerClient = (
   opts?: Partial<ClientOptions>
 ): Promise<Client> =>
   Client.create(newWallet(), {
-    bootstrapAddrs: [LOCAL_DOCKER_MULTIADDR],
+    env: 'local',
     ...opts,
   })
 
@@ -129,7 +129,7 @@ export const newLocalDockerClient = (
 // see github.com/xmtp/xmtp-node-go/scripts/xmtp-js.sh
 export const newLocalHostClient = (): Promise<Client> =>
   Client.create(newWallet(), {
-    bootstrapAddrs: [LOCAL_HOST_MULTIADDR],
+    env: 'local',
   })
 
 // client running against the dev cluster in AWS

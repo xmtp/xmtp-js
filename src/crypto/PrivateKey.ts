@@ -1,4 +1,4 @@
-import * as proto from '../../src/proto/private_key'
+import * as proto from '../proto/private_key'
 import * as secp from '@noble/secp256k1'
 import Signature from './Signature'
 import PublicKey from './PublicKey'

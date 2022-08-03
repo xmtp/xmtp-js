@@ -1,4 +1,4 @@
-import * as proto from '../../src/proto/messaging'
+import * as proto from '../proto/messaging'
 import PublicKey from './PublicKey'
 
 // PublicKeyBundle packages all the keys that a participant should advertise.

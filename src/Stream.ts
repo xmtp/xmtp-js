@@ -1,6 +1,6 @@
 import Message from './Message'
 import Client from './Client'
-import { MessageApi, Envelope } from '@xmtp/proto'
+import { Envelope } from '@xmtp/proto'
 
 export type MessageTransformer<T> = (msg: Message) => T
 
@@ -34,7 +34,7 @@ export default class Stream<T> {
     this.callback = this.newMessageCallback(messageTransformer, messageFilter)
   }
 
-  // returns new closure to handle incoming Waku messages
+  // returns new closure to handle incoming messages
   private newMessageCallback(
     transformer: MessageTransformer<T>,
     filter?: MessageFilter

@@ -1,6 +1,6 @@
 services:
   waku-node:
-    image: xmtp/node-go:latest
+    image: xmtp/node-go:dev
     environment:
       - GOWAKU-NODEKEY=8a30dcb604b0b53627a5adc054dbf434b446628d4bd1eccc681d223f0550ce67
     command:
@@ -13,6 +13,7 @@ services:
       - --wait-for-db=30s
     ports:
       - 9001:9001
+      - 5555:5555
     depends_on:
       - db
   db:

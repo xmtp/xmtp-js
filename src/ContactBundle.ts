@@ -1,4 +1,4 @@
-import * as proto from '../src/proto/messaging'
+import * as proto from './proto/messaging'
 import { PublicKeyBundle } from './crypto'
 import PublicKey from './crypto/PublicKey'
 

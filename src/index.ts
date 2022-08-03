@@ -4,7 +4,7 @@ import {
   PublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
-} from '../src/crypto'
+} from './crypto'
 import Stream from './Stream'
 import Client, {
   ClientOptions,
