@@ -36,7 +36,7 @@ const { b64Decode } = fetcher
 const MaxContentSize = 100 * 1024 * 1024 // 100M
 
 export const ApiUrls = {
-  local: 'https://localhost:5555',
+  local: 'http://localhost:5555',
   dev: 'https://nodes.dev.xmtp.network',
   production: 'https://nodes.production.xmtp.network',
 } as const

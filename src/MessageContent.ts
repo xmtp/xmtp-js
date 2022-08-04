@@ -1,12 +1,5 @@
+import './polyfills/stream'
 import * as proto from './proto/messaging'
-
-if (
-  typeof window !== 'object' ||
-  typeof navigator !== 'object' ||
-  navigator.userAgent.includes('jsdom')
-) {
-  require('@stardazed/streams-polyfill')
-}
 
 // Represents proto.ContentTypeId
 export class ContentTypeId {
