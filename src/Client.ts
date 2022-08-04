@@ -50,7 +50,6 @@ export class AuthenticationError extends Error {
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
   checkAddresses?: boolean
-  pageSize?: number
   startTime?: Date
   endTime?: Date
 }
@@ -74,15 +73,8 @@ export type SendOptions = {
  * Network startup options
  */
 type NetworkOptions = {
-  /** List of multiaddrs for boot nodes */
-  bootstrapAddrs?: string[]
   // Allow for specifying different envs later
   env: keyof typeof ApiUrls
-  /**
-   * How long we should wait for the initial peer connection
-   * to declare the startup as successful or failed
-   */
-  waitForPeersTimeoutMs: number
 }
 
 type ContentOptions = {
@@ -116,7 +108,6 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
     privateKeyOverride: undefined,
     env: 'dev',
-    waitForPeersTimeoutMs: 10000,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
   }
