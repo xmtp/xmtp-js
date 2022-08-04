@@ -306,10 +306,12 @@ export default class Client {
       throw new Error('Cannot publish empty message')
     }
     try {
-      await this.apiClient.publish({
-        contentTopic: env.contentTopic,
-        message: bytes,
-      })
+      await this.apiClient.publish([
+        {
+          contentTopic: env.contentTopic,
+          message: bytes,
+        },
+      ])
     } catch (err) {
       console.log(err)
     }

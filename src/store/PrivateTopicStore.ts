@@ -30,10 +30,12 @@ export default class NetworkStore implements Store {
 
   async set(key: string, value: Buffer): Promise<void> {
     const keys = Uint8Array.from(value)
-    await this.client.publish({
-      contentTopic: this.buildTopic(key),
-      message: keys,
-    })
+    await this.client.publish([
+      {
+        contentTopic: this.buildTopic(key),
+        message: keys,
+      },
+    ])
   }
 
   private buildTopic(key: string): string {

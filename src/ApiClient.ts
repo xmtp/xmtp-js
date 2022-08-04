@@ -191,26 +191,29 @@ export default class ApiClient {
 
   // Publish a message to the network
   // Will convert timestamps to the appropriate format expected by the network
-  async publish({
-    contentTopic,
-    timestamp,
-    message,
-  }: PublishParams): ReturnType<typeof MessageApi.Publish> {
-    if (!contentTopic.length) {
-      throw new Error('Content topic cannot be empty string')
-    }
+  async publish(
+    messages: PublishParams[]
+  ): ReturnType<typeof MessageApi.Publish> {
+    const toSend: Envelope[] = []
+    for (const { contentTopic, message, timestamp } of messages) {
+      if (!contentTopic.length) {
+        throw new Error('Content topic cannot be empty string')
+      }
 
-    if (!message.length) {
-      throw new Error('0 length messages not allowed')
-    }
+      if (!message.length) {
+        throw new Error('0 length messages not allowed')
+      }
 
-    const dt = timestamp || new Date()
+      const dt = timestamp || new Date()
+      toSend.push({
+        contentTopic,
+        timestampNs: toNanoString(dt),
+        message,
+      })
+    }
 
     return this._publish({
-      contentTopic,
-      timestampNs: toNanoString(dt),
-      // Ensure that the array has the Uint8Array constructor so that it triggers the string replacement
-      message: new Uint8Array(message),
+      envelopes: toSend,
     })
   }
 

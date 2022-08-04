@@ -125,12 +125,16 @@ describe('Publish', () => {
       contentTopic: CONTENT_TOPIC,
     }
 
-    await client.publish(msg)
+    await client.publish([msg])
     expect(publishMock).toHaveBeenCalledTimes(1)
     const expectedRequest: PublishRequest = {
-      message: msg.message,
-      contentTopic: msg.contentTopic,
-      timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
+      envelopes: [
+        {
+          message: msg.message,
+          contentTopic: msg.contentTopic,
+          timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
+        },
+      ],
     }
     expect(publishMock).toHaveBeenCalledWith(expectedRequest, {
       pathPrefix: PATH_PREFIX,
@@ -139,10 +143,12 @@ describe('Publish', () => {
   })
 
   it('throws on invalid message', () => {
-    const promise = client.publish({
-      contentTopic: '',
-      message: Uint8Array.from([]),
-    })
+    const promise = client.publish([
+      {
+        contentTopic: '',
+        message: Uint8Array.from([]),
+      },
+    ])
     expect(promise).rejects.toBeInstanceOf(Error)
   })
 })
@@ -223,7 +229,6 @@ function createSubscribeMock(numMessages: number) {
 
 function createEnvelope(): Envelope {
   return {
-    id: 'id',
     contentTopic: CONTENT_TOPIC,
     timestampNs: '1',
     message: Uint8Array.from([1, 2, 3]),

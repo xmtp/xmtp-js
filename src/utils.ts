@@ -71,24 +71,3 @@ export async function retry<T extends (...arg0: any[]) => any>(
     return retry(fn, args, maxRetries, sleepTime, currRetry + 1)
   }
 }
-
-export async function publishUserContact(
-  keys: PublicKeyBundle,
-  address: string
-): Promise<void> {
-  const contactBundle = new ContactBundle(keys)
-  const bytes = contactBundle.toBytes()
-  try {
-    await MessageApi.Publish(
-      {
-        contentTopic: buildUserContactTopic(address),
-        message: b64Decode(b64Encode(bytes, 0, bytes.length)),
-      },
-      {
-        pathPrefix: 'https://localhost:5000',
-      }
-    )
-  } catch (err) {
-    console.log(err)
-  }
-}
