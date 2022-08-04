@@ -221,9 +221,7 @@ describe('Client', () => {
 
         const msgs = await pollFor(
           async () => {
-            const msgs = await c2.listConversationMessages(c1.address, {
-              pageSize: 2,
-            })
+            const msgs = await c2.listConversationMessages(c1.address, {})
             assert.equal(msgs.length, msgCount)
             return msgs
           },
@@ -374,7 +372,6 @@ describe('ClientOptions', () => {
     it('Partial specification', async () => {
       const c = await testCase.newClient({
         keyStoreType: KeyStoreType.localStorage,
-        waitForPeersTimeoutMs: 1234,
       })
     })
   })

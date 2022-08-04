@@ -1,5 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
+const { IgnorePlugin } = require('webpack')
 
 module.exports = {
   mode: 'production',
@@ -25,6 +26,7 @@ module.exports = {
       },
     ],
   },
+  plugins: [new IgnorePlugin({ resourceRegExp: /fetchPolyfill/ })],
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
     fallback: {

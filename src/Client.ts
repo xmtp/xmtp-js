@@ -1,3 +1,4 @@
+import './fetchPolyfill'
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import Message from './Message'
 import {
@@ -52,6 +53,7 @@ export type ListMessagesOptions = {
   checkAddresses?: boolean
   startTime?: Date
   endTime?: Date
+  limit?: number
 }
 
 export enum KeyStoreType {
@@ -424,12 +426,13 @@ export default class Client {
     if (!opts) {
       opts = {}
     }
-    const { startTime, endTime, checkAddresses } = opts
+    const { startTime, endTime, checkAddresses, limit } = opts
 
     const res = await this.apiClient.query(
       { contentTopics: [topic], startTime, endTime },
       {
         direction: SortDirection.SORT_DIRECTION_ASCENDING,
+        limit,
       }
     )
 

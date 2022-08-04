@@ -96,9 +96,9 @@ export default class ApiClient {
         // For some reason this will still blow up the stack and throw
         if (err && err?.name === 'AbortError') {
           console.log('AbortError occurred', err)
-          return
+        } else {
+          console.error(err)
         }
-        throw err
       }
     }, 0)
 

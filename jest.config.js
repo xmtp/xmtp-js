@@ -10,8 +10,6 @@ module.exports = {
       './config/fileTransformer.js',
   },
   globals: {
-    // Needed to stop jest from overwriting fetch globals
-    ...{ fetch, Response, Request },
     'ts-jest': {
       tsconfig: 'tsconfig.json',
     },
