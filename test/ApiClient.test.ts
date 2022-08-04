@@ -43,6 +43,7 @@ describe('Query', () => {
     }
     expect(apiMock).toHaveBeenCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 
@@ -80,6 +81,7 @@ describe('Query', () => {
     }
     expect(apiMock).toHaveBeenCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 
@@ -104,6 +106,7 @@ describe('Query', () => {
     }
     expect(apiMock).toHaveBeenLastCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 })
@@ -131,6 +134,7 @@ describe('Publish', () => {
     }
     expect(publishMock).toHaveBeenCalledWith(expectedRequest, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 
@@ -161,6 +165,7 @@ describe('Subscribe', () => {
     expect(subscribeMock).toBeCalledWith(req, cb, {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
+      mode: 'cors',
     })
   })
 

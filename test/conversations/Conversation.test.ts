@@ -2,7 +2,7 @@ import { Client } from '../../src'
 import { sleep } from '../../src/utils'
 import { newLocalHostClient } from '../helpers'
 
-describe('conversations', () => {
+describe('conversation', () => {
   let alice: Client
   let bob: Client
 

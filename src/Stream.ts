@@ -103,7 +103,7 @@ export default class Stream<T> {
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
     if (this.unsubscribeFn) {
-      await this.unsubscribeFn()
+      this.unsubscribeFn().catch((e) => console.error('Unsubscribe error', e))
     }
     if (!this.callback) {
       return { value: undefined, done: true }

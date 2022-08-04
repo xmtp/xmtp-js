@@ -9,7 +9,6 @@ import {
 } from './helpers'
 import { buildUserContactTopic, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
-import { WakuMessage } from 'js-waku'
 
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import {

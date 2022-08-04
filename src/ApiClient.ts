@@ -63,7 +63,7 @@ export default class ApiClient {
   private _query(req: QueryRequest): ReturnType<typeof MessageApi.Query> {
     return retry(
       MessageApi.Query,
-      [req, { pathPrefix: this.pathPrefix }],
+      [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
       this.maxRetries,
       RETRY_SLEEP_TIME
     )
@@ -73,7 +73,7 @@ export default class ApiClient {
   private _publish(req: PublishRequest): ReturnType<typeof MessageApi.Publish> {
     return retry(
       MessageApi.Publish,
-      [req, { pathPrefix: this.pathPrefix }],
+      [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
       this.maxRetries,
       RETRY_SLEEP_TIME
     )
@@ -84,25 +84,27 @@ export default class ApiClient {
     req: SubscribeRequest,
     cb: NotifyStreamEntityArrival<Envelope>
   ): UnsubscribeFn {
-    let abortController: AbortController
+    const abortController = new AbortController()
     setTimeout(async () => {
       try {
-        abortController = new AbortController()
         await MessageApi.Subscribe(req, cb, {
           pathPrefix: this.pathPrefix,
           signal: abortController.signal,
+          mode: 'cors',
         })
-      } catch (e: any) {
-        if (e && e.name === 'AbortError') {
-          console.log('AbortError detected')
+      } catch (err: any) {
+        // For some reason this will still blow up the stack and throw
+        if (err && err?.name === 'AbortError') {
+          console.log('AbortError occurred', err)
           return
         }
-        console.error('Subscription error', e)
+        throw err
       }
     }, 0)
 
     return async () => {
-      abortController?.abort()
+      // FIXME: Need to find a way to catch the error that comes out of this.
+      // abortController?.abort()
     }
   }
 

@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 'lts/*'
+          node-version-file: '.nvmrc'
       - name: Setup buf build
         uses: bufbuild/buf-setup-action@v0.6.0
       - name: Install dependencies
