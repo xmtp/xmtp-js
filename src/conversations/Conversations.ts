@@ -1,8 +1,12 @@
 import Conversation from './Conversation'
 import Message from '../Message'
-import Stream, { MessageFilter, MessageTransformer } from '../Stream'
+import Stream, {
+  MessageFilter,
+  MessageTransformer,
+  noTransformation,
+} from '../Stream'
 import Client from '../Client'
-import { buildUserIntroTopic } from '../utils'
+import { buildDirectMessageTopic, buildUserIntroTopic } from '../utils'
 
 const messageHasHeaders: MessageFilter = (msg: Message) => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
@@ -74,10 +78,74 @@ export default class Conversations {
 
     return Stream.create<Conversation>(
       this.client,
-      buildUserIntroTopic(this.client.address),
+      [buildUserIntroTopic(this.client.address)],
       messageTransformer,
       filter
     )
+  }
+
+  /**
+   * Returns a stream for all new messages from existing and new conversations.
+   */
+  async streamAllMessages(): Promise<Stream<Message>> {
+    const conversations = await this.list()
+    const dmAddresses: string[] = conversations.map(
+      (conversation) => conversation.peerAddress
+    )
+    const introTopic = buildUserIntroTopic(this.client.address)
+    const topics = this.buildTopicsForAllMessages(dmAddresses, introTopic)
+
+    // If we detect a new intro topic, update the stream's direct message topics to include the new topic
+    const contentTopicUpdater = (msg: Message): string[] | undefined => {
+      if (msg.contentTopic !== introTopic || !messageHasHeaders(msg)) {
+        return undefined
+      }
+      const peerAddress = this.getPeerAddress(msg)
+      if (
+        dmAddresses.includes(peerAddress) ||
+        peerAddress === this.client.address
+      ) {
+        // No need to update if we're already subscribed
+        return undefined
+      }
+      dmAddresses.push(peerAddress)
+      return this.buildTopicsForAllMessages(dmAddresses, introTopic)
+    }
+
+    // Filter intro topics if already streaming direct messages for that address to avoid duplicates
+    const filter = (msg: Message): boolean => {
+      if (
+        msg.contentTopic === introTopic &&
+        messageHasHeaders(msg) &&
+        dmAddresses.includes(this.getPeerAddress(msg))
+      ) {
+        return false
+      }
+      return true
+    }
+
+    return Stream.create<Message>(
+      this.client,
+      topics,
+      noTransformation,
+      filter,
+      contentTopicUpdater
+    )
+  }
+
+  /**
+   * Builds a list of topics for existing conversations and new intro topics
+   */
+  private buildTopicsForAllMessages(
+    peerAddresses: string[],
+    introTopic: string
+  ): string[] {
+    const topics = peerAddresses.map((address) =>
+      buildDirectMessageTopic(address, this.client.address)
+    )
+    // Ensure we listen for new conversation topics as well
+    topics.push(introTopic)
+    return topics
   }
 
   /**

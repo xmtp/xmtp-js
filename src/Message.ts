@@ -31,6 +31,7 @@ export default class Message implements proto.V1Message {
   // the message receiving APIs need to return a Message to provide access to the header fields like sender/recipient
   contentType?: ContentTypeId
   content?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+  contentTopic?: string // content topic that triggered the message
   error?: Error
   /**
    * Identifier that is deterministically derived from the bytes of the message
