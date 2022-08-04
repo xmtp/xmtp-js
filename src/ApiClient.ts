@@ -208,7 +208,7 @@ export default class ApiClient {
       toSend.push({
         contentTopic,
         timestampNs: toNanoString(dt),
-        message,
+        message: Uint8Array.from(message),
       })
     }
 
