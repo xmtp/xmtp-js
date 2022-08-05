@@ -456,7 +456,7 @@ export default class Client {
       }
     }
     if (checkAddresses) {
-      msgs = msgs.filter(filterForTopic(topic))
+      msgs = msgs.filter(filterForTopics([topic]))
     }
     return msgs
   }
