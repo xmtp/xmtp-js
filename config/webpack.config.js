@@ -26,7 +26,7 @@ module.exports = {
       },
     ],
   },
-  plugins: [new IgnorePlugin({ resourceRegExp: /fetchPolyfill/ })],
+  plugins: [new IgnorePlugin({ resourceRegExp: /polyfills\/fetch/ })],
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
     fallback: {
