@@ -7,12 +7,18 @@ export type MessageTransformer<T> = (msg: Message) => T
 
 export type MessageFilter = (msg: Message) => boolean
 
+export type ContentTopicUpdater = (msg: Message) => string[] | undefined
+
+export const noTransformation = (msg: Message): Message => {
+  return msg
+}
+
 /**
  * Stream implements an Asynchronous Iterable over messages received from a topic.
  * As such can be used with constructs like for-await-of, yield*, array destructing, etc.
  */
 export default class Stream<T> {
-  topic: string
+  topics: string[]
   client: Client
   // queue of incoming Waku messages
   messages: T[]
@@ -26,32 +32,46 @@ export default class Stream<T> {
 
   constructor(
     client: Client,
-    topic: string,
+    topics: string[],
     messageTransformer: MessageTransformer<T>,
-    messageFilter?: MessageFilter
+    messageFilter?: MessageFilter,
+    contentTopicUpdater?: ContentTopicUpdater
   ) {
     this.messages = []
     this.resolvers = []
-    this.topic = topic
+    this.topics = topics
     this.client = client
-    this.callback = this.newMessageCallback(messageTransformer, messageFilter)
+    this.callback = this.newMessageCallback(
+      messageTransformer,
+      messageFilter,
+      contentTopicUpdater
+    )
   }
 
   // returns new closure to handle incoming messages
   private newMessageCallback(
     transformer: MessageTransformer<T>,
-    filter?: MessageFilter
+    filter?: MessageFilter,
+    contentTopicUpdater?: ContentTopicUpdater
   ): (env: Envelope) => Promise<void> {
     return async (env: Envelope) => {
       if (!env.message) {
         return
       }
       const msg = await this.client.decodeMessage(
-        fetcher.b64Decode(env.message as unknown as string)
+        fetcher.b64Decode(env.message as unknown as string),
+        env.contentTopic
       )
       // If there is a filter on the stream, and the filter returns false, ignore the message
       if (filter && !filter(msg)) {
         return
+      }
+      // Check to see if we should update the stream's content topic subscription
+      if (contentTopicUpdater) {
+        const topics = contentTopicUpdater(msg)
+        if (topics) {
+          this.resubscribeToTopics(topics)
+        }
       }
       // is there a Promise already pending?
       const resolver = this.resolvers.pop()
@@ -72,7 +92,7 @@ export default class Stream<T> {
 
     this.unsubscribeFn = this.client.apiClient.subscribe(
       {
-        contentTopics: [this.topic],
+        contentTopics: this.topics,
       },
       async (env: Envelope) => {
         if (!this.callback) return
@@ -83,11 +103,18 @@ export default class Stream<T> {
 
   static async create<T>(
     client: Client,
-    topic: string,
+    topics: string[],
     messageTransformer: MessageTransformer<T>,
-    messageFilter?: MessageFilter
+    messageFilter?: MessageFilter,
+    contentTopicUpdater?: ContentTopicUpdater
   ): Promise<Stream<T>> {
-    const stream = new Stream(client, topic, messageTransformer, messageFilter)
+    const stream = new Stream(
+      client,
+      topics,
+      messageTransformer,
+      messageFilter,
+      contentTopicUpdater
+    )
     await stream.start()
     return stream
   }
@@ -130,5 +157,23 @@ export default class Stream<T> {
     }
     // otherwise return empty Promise and queue its resolver
     return new Promise((resolve) => this.resolvers.unshift(resolve))
+  }
+
+  // Unsubscribe from the existing content topics and resubscribe to the given topics.
+  private async resubscribeToTopics(topics: string[]): Promise<void> {
+    if (!this.callback || !this.unsubscribeFn) {
+      throw new Error('Missing callback for stream')
+    }
+    await this.unsubscribeFn()
+    this.topics = topics
+    this.unsubscribeFn = this.client.apiClient.subscribe(
+      {
+        contentTopics: this.topics,
+      },
+      async (env: Envelope) => {
+        if (!this.callback) return
+        await this?.callback(env)
+      }
+    )
   }
 }

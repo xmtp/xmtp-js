@@ -6,7 +6,7 @@ import {
   buildUserContactTopic,
   buildUserIntroTopic,
 } from './utils'
-import Stream, { MessageFilter } from './Stream'
+import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
 import {
   EncryptedStore,
@@ -358,7 +358,10 @@ export default class Client {
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
 
-  async decodeMessage(payload: Uint8Array): Promise<Message> {
+  async decodeMessage(
+    payload: Uint8Array,
+    contentTopic: string | undefined
+  ): Promise<Message> {
     const message = await Message.decode(this.keys, payload)
     if (message.error) {
       return message
@@ -373,6 +376,7 @@ export default class Client {
     }
     const contentType = new ContentTypeId(encoded.type)
     const codec = this.codecFor(contentType)
+    message.contentTopic = contentTopic
     if (codec) {
       message.content = codec.decode(encoded as EncodedContent, this)
       message.contentType = contentType
@@ -389,18 +393,18 @@ export default class Client {
   streamIntroductionMessages(): Promise<Stream<Message>> {
     return Stream.create<Message>(
       this,
-      buildUserIntroTopic(this.address),
+      [buildUserIntroTopic(this.address)],
       noTransformation
     )
   }
 
   streamConversationMessages(peerAddress: string): Promise<Stream<Message>> {
-    const topic = buildDirectMessageTopic(peerAddress, this.address)
+    const topics = [buildDirectMessageTopic(peerAddress, this.address)]
     return Stream.create<Message>(
       this,
-      topic,
+      topics,
       noTransformation,
-      filterForTopic(topic)
+      filterForTopics(topics)
     )
   }
 
@@ -443,7 +447,8 @@ export default class Client {
       if (!env.message) continue
       try {
         const msg = await this.decodeMessage(
-          b64Decode(env.message as unknown as string)
+          b64Decode(env.message as unknown as string),
+          env.contentTopic
         )
         msgs.push(msg)
       } catch (e) {
@@ -534,22 +539,19 @@ async function loadOrCreateKeysFromOptions(
   return loadOrCreateKeysFromStore(wallet, keyStore)
 }
 
-function filterForTopic(topic: string): MessageFilter {
+// Ensure the message didn't have a spoofed address
+function filterForTopics(topics: string[]): MessageFilter {
   return (msg) => {
     const senderAddress = msg.senderAddress
     const recipientAddress = msg.recipientAddress
     return (
       senderAddress !== undefined &&
       recipientAddress !== undefined &&
-      buildDirectMessageTopic(senderAddress, recipientAddress) === topic
+      topics.includes(buildDirectMessageTopic(senderAddress, recipientAddress))
     )
   }
 }
 
 function createApiClientFromOptions(options: ClientOptions): ApiClient {
   return new ApiClient(ApiUrls[options.env])
-}
-
-function noTransformation(msg: Message) {
-  return msg
 }
