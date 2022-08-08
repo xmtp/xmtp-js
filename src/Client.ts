@@ -265,7 +265,7 @@ export default class Client {
     peerAddress: string,
     content: any,
     options?: SendOptions
-  ): Promise<void> {
+  ): Promise<Message> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
     if (!recipient) {
@@ -286,14 +286,18 @@ export default class Client {
     }
     const timestamp = options?.timestamp || new Date()
     const msg = await this.encodeMessage(recipient, timestamp, content, options)
+    const msgBytes = msg.toBytes()
+
     await Promise.all(
       topics.map(async (topic) => {
         return this.publishEnvelope({
           contentTopic: topic,
-          message: msg.toBytes(),
+          message: msgBytes,
         })
       })
     )
+
+    return this.decodeMessage(msgBytes, topics[0])
   }
 
   async publishEnvelope(env: Envelope): Promise<void> {
