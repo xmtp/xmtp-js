@@ -290,7 +290,7 @@ export default class Client {
     peerAddress: string,
     content: any,
     options?: SendOptions
-  ): Promise<void> {
+  ): Promise<Message> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
 
@@ -320,6 +320,8 @@ export default class Client {
         return this.sendWakuMessage(wakuMsg)
       })
     )
+
+    return msg
   }
 
   private async sendWakuMessage(msg: WakuMessage): Promise<void> {
