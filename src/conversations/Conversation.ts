@@ -33,7 +33,7 @@ export default class Conversation {
   /**
    * Send a message into the conversation
    */
-  async send(
+  send(
     message: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
   ): Promise<Message> {

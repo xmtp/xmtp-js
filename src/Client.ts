@@ -312,16 +312,18 @@ export default class Client {
     }
     const timestamp = options?.timestamp || new Date()
     const msg = await this.encodeMessage(recipient, timestamp, content, options)
+    const msgBytes = msg.toBytes()
+
     await Promise.all(
       topics.map(async (topic) => {
-        const wakuMsg = await WakuMessage.fromBytes(msg.toBytes(), topic, {
+        const wakuMsg = await WakuMessage.fromBytes(msgBytes, topic, {
           timestamp,
         })
         return this.sendWakuMessage(wakuMsg)
       })
     )
 
-    return msg
+    return this.decodeMessage(msgBytes, topics[0])
   }
 
   private async sendWakuMessage(msg: WakuMessage): Promise<void> {
