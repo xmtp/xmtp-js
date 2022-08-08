@@ -50,6 +50,10 @@ const toNanoString = (d: Date | undefined): undefined | string => {
   return d && (d.valueOf() * 1_000_000).toFixed(0)
 }
 
+/**
+ * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
+ * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
+ */
 export default class ApiClient {
   pathPrefix: string
   maxRetries: number
@@ -218,6 +222,7 @@ export default class ApiClient {
 
   // Subscribe to a list of topics.
   // Provided callback function will be called on each new message
+  // Returns an unsubscribe function that can be used to end the subscription
   subscribe(
     params: SubscribeParams,
     callback: SubscribeCallback

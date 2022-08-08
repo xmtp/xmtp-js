@@ -76,6 +76,8 @@ export type SendOptions = {
 type NetworkOptions = {
   // Allow for specifying different envs later
   env: keyof typeof ApiUrls
+  // apiUrl can be used to override the default URL for the env
+  apiUrl: string | undefined
 }
 
 type ContentOptions = {
@@ -109,6 +111,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
     privateKeyOverride: undefined,
     env: 'dev',
+    apiUrl: undefined,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
   }
@@ -556,5 +559,6 @@ function filterForTopics(topics: string[]): MessageFilter {
 }
 
 function createApiClientFromOptions(options: ClientOptions): ApiClient {
-  return new ApiClient(ApiUrls[options.env])
+  const apiUrl = options.apiUrl || ApiUrls[options.env]
+  return new ApiClient(apiUrl)
 }
