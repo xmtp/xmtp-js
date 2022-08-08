@@ -63,7 +63,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
-    "@xmtp/proto": "^1.0.1",
+    "@xmtp/proto": "^1.1.0",
     "ethers": "^5.5.3",
     "node-localstorage": "^2.2.1",
     "protobufjs": "^6.11.3"
