@@ -33,10 +33,10 @@ export default class Conversation {
   /**
    * Send a message into the conversation
    */
-  async send(
+  send(
     message: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
-  ): Promise<void> {
-    await this.client.sendMessage(this.peerAddress, message, options)
+  ): Promise<Message> {
+    return this.client.sendMessage(this.peerAddress, message, options)
   }
 }
