@@ -36,8 +36,8 @@ const MaxContentSize = 100 * 1024 * 1024 // 100M
 
 export const ApiUrls = {
   local: 'http://localhost:5555',
-  dev: 'https://nodes.dev.xmtp.network',
-  production: 'https://nodes.production.xmtp.network',
+  dev: 'https://api.dev.xmtp.network',
+  production: 'https://api.production.xmtp.network',
 } as const
 
 export class AuthenticationError extends Error {
