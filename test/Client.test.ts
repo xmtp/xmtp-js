@@ -96,6 +96,8 @@ describe('Client', () => {
         // alice sends intro
         const sentMessage = await alice.sendMessage(bob.address, 'hi bob!')
         assert.equal(sentMessage.content, 'hi bob!')
+        assert.ok(sentMessage.id)
+        assert.ok(sentMessage.sent)
         let msg = await aliceIntros.next()
         assert.equal(msg.value.content, 'hi bob!')
 
