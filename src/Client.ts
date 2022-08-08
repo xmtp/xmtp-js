@@ -1,4 +1,3 @@
-import './polyfills/fetch'
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import Message from './Message'
 import {
