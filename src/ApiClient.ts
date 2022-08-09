@@ -50,6 +50,16 @@ const toNanoString = (d: Date | undefined): undefined | string => {
   return d && (d.valueOf() * 1_000_000).toFixed(0)
 }
 
+const isAbortError = (err?: Error): boolean => {
+  if (!err) {
+    return false
+  }
+  if (err.name === 'AbortError' || err.message.includes('aborted')) {
+    return true
+  }
+  return false
+}
+
 /**
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
  * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
@@ -88,27 +98,35 @@ export default class ApiClient {
     req: SubscribeRequest,
     cb: NotifyStreamEntityArrival<Envelope>
   ): UnsubscribeFn {
-    const abortController = new AbortController()
-    setTimeout(async () => {
-      try {
-        await MessageApi.Subscribe(req, cb, {
-          pathPrefix: this.pathPrefix,
-          signal: abortController.signal,
-          mode: 'cors',
-        })
-      } catch (err: any) {
-        // For some reason this will still blow up the stack and throw
-        if (err && err?.name === 'AbortError') {
-          console.log('AbortError occurred', err)
-        } else {
-          console.error(err)
-        }
+    let abortController: AbortController
+
+    const doSubscribe = (numRetries = 0) => {
+      if (numRetries > this.maxRetries) {
+        console.error('Max retries reached')
+        return
       }
-    }, 0)
+      abortController = new AbortController()
+      MessageApi.Subscribe(req, cb, {
+        pathPrefix: this.pathPrefix,
+        signal: abortController.signal,
+        headers: {
+          Connection: 'Keep-Alive',
+          'Keep-Alive': 'timeout=1000, max=100',
+        },
+        mode: 'cors',
+      }).catch(async (err: any) => {
+        if (isAbortError(err)) {
+          console.log('AbortError detected. Stream ending')
+        } else {
+          console.log('Error detected. Resubscribing', err)
+          doSubscribe(++numRetries)
+        }
+      })
+    }
+    doSubscribe()
 
     return async () => {
-      // FIXME: Need to find a way to catch the error that comes out of this.
-      // abortController?.abort()
+      abortController?.abort()
     }
   }
 
