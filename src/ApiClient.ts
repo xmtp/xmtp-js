@@ -9,7 +9,7 @@ import {
   SubscribeRequest,
 } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import { retry } from './utils'
+import { retry, sleep } from './utils'
 
 const RETRY_SLEEP_TIME = 100
 
@@ -100,26 +100,25 @@ export default class ApiClient {
   ): UnsubscribeFn {
     let abortController: AbortController
 
-    const doSubscribe = (numRetries = 0) => {
-      if (numRetries > this.maxRetries) {
-        console.error('Max retries reached')
-        return
-      }
+    const doSubscribe = () => {
       abortController = new AbortController()
+      const startTime = +new Date()
+
       MessageApi.Subscribe(req, cb, {
         pathPrefix: this.pathPrefix,
         signal: abortController.signal,
-        headers: {
-          Connection: 'Keep-Alive',
-          'Keep-Alive': 'timeout=1000, max=100',
-        },
         mode: 'cors',
       }).catch(async (err: any) => {
         if (isAbortError(err)) {
           console.log('AbortError detected. Stream ending')
         } else {
           console.log('Error detected. Resubscribing', err)
-          doSubscribe(++numRetries)
+          // If connection was initiated less than 1 second ago, sleep for a bit
+          // TODO: exponential backoff + eventually giving up
+          if (+new Date() - startTime < 1000) {
+            await sleep(1000)
+          }
+          doSubscribe()
         }
       })
     }
