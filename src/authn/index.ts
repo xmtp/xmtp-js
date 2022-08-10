@@ -1,16 +1,4 @@
 // Commenting out this package until we have support for authn in GRPC
-// import { Authenticator, AuthnOptions, AuthnResult } from './Authenticator'
-// import { AuthnData } from './AuthnData'
-// import { AuthnRequest } from './AuthnRequest'
-// import { AuthnResponse } from './AuthnResponse'
-// import { AuthnSender } from './AuthnSender'
-
-// export {
-//   Authenticator,
-//   AuthnData,
-//   AuthnOptions,
-//   AuthnRequest,
-//   AuthnResponse,
-//   AuthnResult,
-//   AuthnSender,
-// }
+export { default as Authenticator } from './Authenticator'
+export { default as AuthData } from './AuthData'
+export { default as Token } from './Token'
