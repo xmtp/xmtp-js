@@ -2,6 +2,7 @@ import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import ApiClient, { PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
+const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
 const CURSOR: messageApi.Cursor = {
@@ -151,7 +152,7 @@ describe('Subscribe', () => {
   it('can subscribe', async () => {
     const subscribeMock = createSubscribeMock(2)
     let numEnvelopes = 0
-    const cb = (env: Envelope) => {
+    const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
@@ -168,7 +169,7 @@ describe('Subscribe', () => {
   it('throws when no content topics returned', async () => {
     const subscribeMock = createSubscribeMock(2)
     let numEnvelopes = 0
-    const cb = (env: Envelope) => {
+    const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
     }
     const req = { contentTopics: [] }
@@ -179,11 +180,11 @@ describe('Subscribe', () => {
   })
 })
 
-function createQueryMock(envelopes: Envelope[], numPages = 1) {
+function createQueryMock(envelopes: messageApi.Envelope[], numPages = 1) {
   let numCalls = 0
   return jest
     .spyOn(MessageApi, 'Query')
-    .mockImplementation(async (): Promise<QueryResponse> => {
+    .mockImplementation(async (): Promise<messageApi.QueryResponse> => {
       numCalls++
       return {
         envelopes: envelopes,
@@ -197,7 +198,7 @@ function createQueryMock(envelopes: Envelope[], numPages = 1) {
 function createPublishMock() {
   return jest
     .spyOn(MessageApi, 'Publish')
-    .mockImplementation(async (): Promise<PublishResponse> => ({}))
+    .mockImplementation(async (): Promise<messageApi.PublishResponse> => ({}))
 }
 
 function createSubscribeMock(numMessages: number) {
@@ -205,8 +206,8 @@ function createSubscribeMock(numMessages: number) {
     .spyOn(MessageApi, 'Subscribe')
     .mockImplementation(
       async (
-        req: SubscribeRequest,
-        cb: NotifyStreamEntityArrival<Envelope> | undefined
+        req: messageApi.SubscribeRequest,
+        cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined
       ): Promise<void> => {
         for (let i = 0; i < numMessages; i++) {
           if (cb) {
@@ -217,7 +218,7 @@ function createSubscribeMock(numMessages: number) {
     )
 }
 
-function createEnvelope(): Envelope {
+function createEnvelope(): messageApi.Envelope {
   return {
     contentTopic: CONTENT_TOPIC,
     timestampNs: '1',
