@@ -1,4 +1,4 @@
-import * as proto from '../../src/proto/messaging'
+import { xmtpEnvelope as proto } from '@xmtp/proto'
 import PublicKey from './PublicKey'
 
 // PublicKeyBundle packages all the keys that a participant should advertise.
