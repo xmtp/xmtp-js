@@ -1,7 +1,7 @@
 import { messageApi } from '@xmtp/proto'
-import { retry } from './utils'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-const { MessageApi } = messageApi
+import { retry, sleep } from './utils'
+const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
 
@@ -36,10 +36,26 @@ export type ApiClientOptions = {
 
 export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 
+export type UnsubscribeFn = () => Promise<void>
+
 const toNanoString = (d: Date | undefined): undefined | string => {
   return d && (d.valueOf() * 1_000_000).toFixed(0)
 }
 
+const isAbortError = (err?: Error): boolean => {
+  if (!err) {
+    return false
+  }
+  if (err.name === 'AbortError' || err.message.includes('aborted')) {
+    return true
+  }
+  return false
+}
+
+/**
+ * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
+ * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
+ */
 export default class ApiClient {
   pathPrefix: string
   maxRetries: number
@@ -55,7 +71,7 @@ export default class ApiClient {
   ): ReturnType<typeof MessageApi.Query> {
     return retry(
       MessageApi.Query,
-      [req, { pathPrefix: this.pathPrefix }],
+      [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
       this.maxRetries,
       RETRY_SLEEP_TIME
     )
@@ -67,7 +83,7 @@ export default class ApiClient {
   ): ReturnType<typeof MessageApi.Publish> {
     return retry(
       MessageApi.Publish,
-      [req, { pathPrefix: this.pathPrefix }],
+      [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
       this.maxRetries,
       RETRY_SLEEP_TIME
     )
@@ -77,20 +93,43 @@ export default class ApiClient {
   private _subscribe(
     req: messageApi.SubscribeRequest,
     cb: NotifyStreamEntityArrival<messageApi.Envelope>
-  ): ReturnType<typeof MessageApi.Subscribe> {
-    return retry(
-      MessageApi.Subscribe,
-      [req, cb, { pathPrefix: this.pathPrefix }],
-      this.maxRetries,
-      RETRY_SLEEP_TIME
-    )
+  ): UnsubscribeFn {
+    let abortController: AbortController
+
+    const doSubscribe = () => {
+      abortController = new AbortController()
+      const startTime = +new Date()
+
+      MessageApi.Subscribe(req, cb, {
+        pathPrefix: this.pathPrefix,
+        signal: abortController.signal,
+        mode: 'cors',
+      }).catch(async (err: any) => {
+        if (isAbortError(err)) {
+          console.log('AbortError detected. Stream ending')
+        } else {
+          console.log('Error detected. Resubscribing', err)
+          // If connection was initiated less than 1 second ago, sleep for a bit
+          // TODO: exponential backoff + eventually giving up
+          if (+new Date() - startTime < 1000) {
+            await sleep(1000)
+          }
+          doSubscribe()
+        }
+      })
+    }
+    doSubscribe()
+
+    return async () => {
+      abortController?.abort()
+    }
   }
 
   // Use the Query API to return the full contents of any specified topics
   async query(
     params: QueryParams,
     {
-      direction = messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+      direction = SortDirection.SORT_DIRECTION_ASCENDING,
       limit,
     }: QueryAllOptions
   ): Promise<messageApi.Envelope[]> {
@@ -168,36 +207,39 @@ export default class ApiClient {
 
   // Publish a message to the network
   // Will convert timestamps to the appropriate format expected by the network
-  async publish({
-    contentTopic,
-    timestamp,
-    message,
-  }: PublishParams): ReturnType<typeof MessageApi.Publish> {
-    if (!contentTopic.length) {
-      throw new Error('Content topic cannot be empty string')
-    }
+  async publish(
+    messages: PublishParams[]
+  ): ReturnType<typeof MessageApi.Publish> {
+    const toSend: messageApi.Envelope[] = []
+    for (const { contentTopic, message, timestamp } of messages) {
+      if (!contentTopic.length) {
+        throw new Error('Content topic cannot be empty string')
+      }
 
-    if (!message.length) {
-      throw new Error('0 length messages not allowed')
-    }
+      if (!message.length) {
+        throw new Error('0 length messages not allowed')
+      }
 
-    const dt = timestamp || new Date()
-
-    return this._publish([
-      {
+      const dt = timestamp || new Date()
+      toSend.push({
         contentTopic,
         timestampNs: toNanoString(dt),
-        message,
-      },
-    ])
+        message: Uint8Array.from(message),
+      })
+    }
+
+    return this._publish({
+      envelopes: toSend,
+    })
   }
 
   // Subscribe to a list of topics.
   // Provided callback function will be called on each new message
-  async subscribe(
+  // Returns an unsubscribe function that can be used to end the subscription
+  subscribe(
     params: SubscribeParams,
     callback: SubscribeCallback
-  ): ReturnType<typeof MessageApi.Subscribe> {
+  ): UnsubscribeFn {
     if (!params.contentTopics.length) {
       throw new Error('Must provide list of contentTopics to subscribe to')
     }
