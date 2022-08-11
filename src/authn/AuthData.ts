@@ -1,4 +1,3 @@
-import { Reader } from 'protobufjs/minimal'
 import { authn as authnProto } from '@xmtp/proto'
 
 export default class AuthData implements authnProto.AuthData {

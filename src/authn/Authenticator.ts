@@ -1,5 +1,5 @@
 import { keccak256 } from 'js-sha3'
-import { authn } from '@xmtp/proto'
+import { authn, xmtpEnvelope } from '@xmtp/proto'
 import AuthData from './AuthData'
 import { PrivateKey } from '../crypto'
 import { hexToBytes } from '../crypto/utils'
@@ -26,9 +26,11 @@ export default class Authenticator {
 
     return new Token(
       authn.Token.fromPartial({
-        identityKey: authn.PublicKey.fromJSON(this.identityKey.publicKey),
+        identityKey: xmtpEnvelope.PublicKey.fromJSON(
+          this.identityKey.publicKey
+        ),
         authDataBytes: authDataBytes,
-        authDataSignature: authn.Signature.fromJSON(authSig),
+        authDataSignature: xmtpEnvelope.Signature.fromJSON(authSig),
       })
     )
   }

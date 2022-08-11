@@ -1,8 +1,3 @@
-import { PublicKeyBundle } from './crypto'
-import ContactBundle from './ContactBundle'
-import { MessageApi, fetcher } from '@xmtp/proto'
-const { b64Decode, b64Encode } = fetcher
-
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
 

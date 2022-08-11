@@ -1,4 +1,4 @@
-import { SortDirection, fetcher } from '@xmtp/proto'
+import { messageApi, fetcher } from '@xmtp/proto'
 import { Store } from './Store'
 import { buildUserPrivateStoreTopic } from '../utils'
 import ApiClient from '../ApiClient'
@@ -14,7 +14,10 @@ export default class NetworkStore implements Store {
   async get(key: string): Promise<Buffer | null> {
     for await (const env of this.client.queryIterator(
       { contentTopics: [this.buildTopic(key)] },
-      { pageSize: 10, direction: SortDirection.SORT_DIRECTION_ASCENDING }
+      {
+        pageSize: 10,
+        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+      }
     )) {
       if (!env.message) continue
       try {
