@@ -1,7 +1,7 @@
 import { UnsubscribeFn } from './ApiClient'
 import Message from './Message'
 import Client from './Client'
-import { Envelope, fetcher } from '@xmtp/proto'
+import { messageApi, fetcher } from '@xmtp/proto'
 
 export type MessageTransformer<T> = (msg: Message) => T
 
@@ -26,7 +26,7 @@ export default class Stream<T> {
   resolvers: ((value: IteratorResult<T>) => void)[]
   // cache the callback so that it can be properly deregistered in Waku
   // if callback is undefined the stream is closed
-  callback: ((env: Envelope) => Promise<void>) | undefined
+  callback: ((env: messageApi.Envelope) => Promise<void>) | undefined
 
   unsubscribeFn?: UnsubscribeFn
 
@@ -53,8 +53,8 @@ export default class Stream<T> {
     transformer: MessageTransformer<T>,
     filter?: MessageFilter,
     contentTopicUpdater?: ContentTopicUpdater
-  ): (env: Envelope) => Promise<void> {
-    return async (env: Envelope) => {
+  ): (env: messageApi.Envelope) => Promise<void> {
+    return async (env: messageApi.Envelope) => {
       if (!env.message) {
         return
       }
@@ -94,7 +94,7 @@ export default class Stream<T> {
       {
         contentTopics: this.topics,
       },
-      async (env: Envelope) => {
+      async (env: messageApi.Envelope) => {
         if (!this.callback) return
         await this?.callback(env)
       }
@@ -170,7 +170,7 @@ export default class Stream<T> {
       {
         contentTopics: this.topics,
       },
-      async (env: Envelope) => {
+      async (env: messageApi.Envelope) => {
         if (!this.callback) return
         await this?.callback(env)
       }
