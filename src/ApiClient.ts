@@ -1,7 +1,7 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import { retry, sleep } from './utils'
-const { MessageApi, SortDirection } = messageApi
+export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
 
