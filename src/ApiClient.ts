@@ -1,15 +1,7 @@
-import {
-  Cursor,
-  Envelope,
-  MessageApi,
-  PagingInfo,
-  PublishRequest,
-  QueryRequest,
-  SortDirection,
-  SubscribeRequest,
-} from '@xmtp/proto'
+import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import { retry, sleep } from './utils'
+export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
 
@@ -20,7 +12,7 @@ export type QueryParams = {
 }
 
 export type QueryAllOptions = {
-  direction?: SortDirection
+  direction?: messageApi.SortDirection
   limit?: number
 }
 
@@ -42,7 +34,7 @@ export type ApiClientOptions = {
   maxRetries?: number
 }
 
-export type SubscribeCallback = NotifyStreamEntityArrival<Envelope>
+export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 
 export type UnsubscribeFn = () => Promise<void>
 
@@ -74,7 +66,9 @@ export default class ApiClient {
   }
 
   // Raw method for querying the API
-  private _query(req: QueryRequest): ReturnType<typeof MessageApi.Query> {
+  private _query(
+    req: messageApi.QueryRequest
+  ): ReturnType<typeof MessageApi.Query> {
     return retry(
       MessageApi.Query,
       [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
@@ -84,7 +78,9 @@ export default class ApiClient {
   }
 
   // Raw method for publishing to the API
-  private _publish(req: PublishRequest): ReturnType<typeof MessageApi.Publish> {
+  private _publish(
+    req: messageApi.PublishRequest
+  ): ReturnType<typeof MessageApi.Publish> {
     return retry(
       MessageApi.Publish,
       [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
@@ -95,8 +91,8 @@ export default class ApiClient {
 
   // Raw method for subscribing
   private _subscribe(
-    req: SubscribeRequest,
-    cb: NotifyStreamEntityArrival<Envelope>
+    req: messageApi.SubscribeRequest,
+    cb: NotifyStreamEntityArrival<messageApi.Envelope>
   ): UnsubscribeFn {
     let abortController: AbortController
 
@@ -136,8 +132,8 @@ export default class ApiClient {
       direction = SortDirection.SORT_DIRECTION_ASCENDING,
       limit,
     }: QueryAllOptions
-  ): Promise<Envelope[]> {
-    const out: Envelope[] = []
+  ): Promise<messageApi.Envelope[]> {
+    const out: messageApi.Envelope[] = []
     // Use queryIteratePages for better performance. 1/100th the number of Promises to resolve compared to queryStream
     for await (const page of this.queryIteratePages(params, {
       direction,
@@ -159,7 +155,7 @@ export default class ApiClient {
   async *queryIterator(
     params: QueryParams,
     options: QueryStreamOptions
-  ): AsyncGenerator<Envelope> {
+  ): AsyncGenerator<messageApi.Envelope> {
     for await (const page of this.queryIteratePages(params, options)) {
       for (const envelope of page) {
         yield envelope
@@ -172,17 +168,17 @@ export default class ApiClient {
   private async *queryIteratePages(
     { contentTopics, startTime, endTime }: QueryParams,
     { direction, pageSize = 10 }: QueryStreamOptions
-  ): AsyncGenerator<Envelope[]> {
+  ): AsyncGenerator<messageApi.Envelope[]> {
     if (!contentTopics || !contentTopics.length) {
       throw new Error('Must specify content topics')
     }
 
     const startTimeNs = toNanoString(startTime)
     const endTimeNs = toNanoString(endTime)
-    let cursor: Cursor | undefined
+    let cursor: messageApi.Cursor | undefined
 
     while (true) {
-      const pagingInfo: PagingInfo = {
+      const pagingInfo: messageApi.PagingInfo = {
         limit: pageSize,
         direction,
         cursor,
@@ -214,7 +210,7 @@ export default class ApiClient {
   async publish(
     messages: PublishParams[]
   ): ReturnType<typeof MessageApi.Publish> {
-    const toSend: Envelope[] = []
+    const toSend: messageApi.Envelope[] = []
     for (const { contentTopic, message, timestamp } of messages) {
       if (!contentTopic.length) {
         throw new Error('Content topic cannot be empty string')

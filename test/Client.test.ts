@@ -275,7 +275,7 @@ describe('Client', () => {
         const content = 'A'.repeat(111)
         await alice.sendMessage(bob.address, content, {
           contentType: ContentTypeText,
-          compression: Compression.deflate,
+          compression: Compression.COMPRESSION_DEFLATE,
         })
         const result = await convo.next()
         const msg = result.value as Message

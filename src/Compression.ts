@@ -1,4 +1,4 @@
-import * as proto from './proto/messaging'
+import { xmtpEnvelope as proto } from '@xmtp/proto'
 
 //
 // Compression
@@ -33,10 +33,10 @@ export async function compress(encoded: proto.EncodedContent): Promise<void> {
   encoded.content = sink.bytes
 }
 function compressionIdFromCode(code: proto.Compression): string {
-  if (code === proto.Compression.gzip) {
+  if (code === proto.Compression.COMPRESSION_GZIP) {
     return 'gzip'
   }
-  if (code === proto.Compression.deflate) {
+  if (code === proto.Compression.COMPRESSION_DEFLATE) {
     return 'deflate'
   }
   throw new Error('unrecognized compression algorithm')

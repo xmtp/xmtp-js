@@ -8,8 +8,7 @@
   "browser": "dist/umd/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
-    "build": "npm run build:proto && npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:types",
-    "build:proto": "npm run clean:proto && buf generate",
+    "build": "npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:types",
     "build:cjs": "node tools/cleanup cjs && tsc -p config/tsconfig.cjs.json",
     "build:esm": "node tools/cleanup esm && tsc -p config/tsconfig.esm.json",
     "build:umd": "node tools/cleanup umd && webpack --config config/webpack.config.js",
@@ -18,8 +17,7 @@
     "clean": "node tools/cleanup && npm run clean:proto",
     "clean:proto": "rm -rf src/proto/*.ts",
     "package": "npm pack",
-    "prepare": "npm run install:buf && npm run build",
-    "install:buf": "./script/buf.sh || true",
+    "prepare": "npm run build",
     "test": "npm run test:node",
     "test:node": "jest --no-cache --runInBand --env='node' --forceExit --testTimeout=30000",
     "test:jsdom": "jest --no-cache --runInBand --env='./jest.jsdom.env.js' --testTimeout=30000",
@@ -63,10 +61,9 @@
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
-    "@xmtp/proto": "^1.1.1",
+    "@xmtp/proto": "^1.2.0",
     "ethers": "^5.5.3",
-    "node-localstorage": "^2.2.1",
-    "protobufjs": "^6.11.3"
+    "node-localstorage": "^2.2.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
@@ -88,7 +85,6 @@
     "semantic-release": "^19.0.2",
     "ts-jest": "^27.0.5",
     "ts-loader": "^9.2.5",
-    "ts-proto": "^1.104.0",
     "typedoc": "^0.22.11",
     "typescript": "^4.4.3",
     "webpack": "^5.52.1",

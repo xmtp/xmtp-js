@@ -1,12 +1,6 @@
 import assert from 'assert'
+import { ContentTypeText } from '../../src'
 import {
-  ContentTypeId,
-  ContentCodec,
-  TextCodec,
-  ContentTypeText,
-} from '../../src'
-import {
-  Composite,
   CompositeCodec,
   ContentTypeComposite,
 } from '../../src/codecs/Composite'

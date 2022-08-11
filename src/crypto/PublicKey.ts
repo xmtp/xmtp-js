@@ -1,4 +1,4 @@
-import * as proto from '../proto/messaging'
+import { xmtpEnvelope as proto } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Signature from './Signature'
 import { bytesToHex, hexToBytes } from './utils'

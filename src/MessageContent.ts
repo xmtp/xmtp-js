@@ -1,5 +1,5 @@
 import './polyfills/stream'
-import * as proto from './proto/messaging'
+import { xmtpEnvelope as proto } from '@xmtp/proto'
 
 // Represents proto.ContentTypeId
 export class ContentTypeId {

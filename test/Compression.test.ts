@@ -1,5 +1,5 @@
 import assert from 'assert'
-import * as proto from '../src/proto/messaging'
+import { xmtpEnvelope as proto } from '@xmtp/proto'
 import {
   compress,
   decompress,
@@ -34,7 +34,7 @@ describe('Compression', function () {
       type: ContentTypeText,
       parameters: {},
       content: uncompressed,
-      compression: proto.Compression.deflate,
+      compression: proto.Compression.COMPRESSION_DEFLATE,
     }
     await compress(content)
     assert.deepEqual(content.content, compressed)

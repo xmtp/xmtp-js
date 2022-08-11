@@ -23,12 +23,10 @@ import {
   ContentTypeFallback,
 } from './MessageContent'
 import { decompress, compress } from './Compression'
-import { Compression } from './proto/messaging'
-import * as proto from './proto/messaging'
-// import { Authenticator } from './authn'
+import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import ContactBundle from './ContactBundle'
-import { Envelope, SortDirection, fetcher } from '@xmtp/proto'
 import ApiClient from './ApiClient'
+const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
 
 // Default maximum allowed content size
@@ -39,13 +37,6 @@ export const ApiUrls = {
   dev: 'https://api.dev.xmtp.network',
   production: 'https://api.production.xmtp.network',
 } as const
-
-export class AuthenticationError extends Error {
-  constructor() {
-    super('Authentication Error')
-    Object.setPrototypeOf(this, AuthenticationError.prototype)
-  }
-}
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
@@ -66,7 +57,7 @@ export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
   contentFallback?: string
-  compression?: Compression
+  compression?: xmtpEnvelope.Compression
   timestamp?: Date
 }
 
@@ -303,11 +294,12 @@ export default class Client {
     return this.decodeMessage(msgBytes, topics[0])
   }
 
-  async publishEnvelope(env: Envelope): Promise<void> {
+  async publishEnvelope(env: messageApi.Envelope): Promise<void> {
     const bytes = env.message
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
     }
+
     if (!bytes || !bytes.length) {
       throw new Error('Cannot publish empty message')
     }
@@ -360,7 +352,7 @@ export default class Client {
       encoded.compression = options.compression
     }
     await compress(encoded)
-    const payload = proto.EncodedContent.encode(encoded).finish()
+    const payload = xmtpEnvelope.EncodedContent.encode(encoded).finish()
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
 
@@ -375,7 +367,7 @@ export default class Client {
     if (!message.decrypted) {
       throw new Error('decrypted bytes missing')
     }
-    const encoded = proto.EncodedContent.decode(message.decrypted)
+    const encoded = xmtpEnvelope.EncodedContent.decode(message.decrypted)
     await decompress(encoded, this._maxContentSize)
     if (!encoded.type) {
       throw new Error('missing content type')
@@ -443,7 +435,7 @@ export default class Client {
     const res = await this.apiClient.query(
       { contentTopics: [topic], startTime, endTime },
       {
-        direction: SortDirection.SORT_DIRECTION_ASCENDING,
+        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
         limit,
       }
     )
