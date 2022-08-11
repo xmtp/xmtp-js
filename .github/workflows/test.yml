@@ -16,8 +16,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version-file: '.nvmrc'
-      - name: Setup buf build
-        uses: bufbuild/buf-setup-action@v0.6.0
       - run: npm ci
       - run: ./dev/docker-compose up -d
       - run: npm run test:${{ matrix.env }}
