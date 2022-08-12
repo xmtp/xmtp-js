@@ -23,7 +23,7 @@ describe('authn', () => {
     const token = await authenticator.createToken(timestamp)
 
     expect(token.authData.walletAddr).toEqual(
-      privateKey.publicKey.getEthereumAddress()
+      privateKey.publicKey.walletSignatureAddress()
     )
     expect(token.authData.createdNs).toEqual(+timestamp * 1000)
     expect(token.identityKey.timestamp).toEqual(privateKey.publicKey.timestamp)
