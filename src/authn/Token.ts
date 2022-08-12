@@ -35,4 +35,8 @@ export default class Token implements authn.Token {
   static fromBytes(bytes: Uint8Array): Token {
     return new Token(authn.Token.decode(bytes))
   }
+
+  toBase64(): string {
+    return Buffer.from(this.toBytes()).toString('base64url')
+  }
 }
