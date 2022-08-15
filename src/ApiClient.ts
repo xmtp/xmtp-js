@@ -1,6 +1,7 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import { retry, sleep } from './utils'
+import bigInt from 'big-integer'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
@@ -39,7 +40,7 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 export type UnsubscribeFn = () => Promise<void>
 
 const toNanoString = (d: Date | undefined): undefined | string => {
-  return d && (d.valueOf() * 1_000_000).toFixed(0)
+  return d && bigInt(d.valueOf()).multiply(1_000_000).toString()
 }
 
 const isAbortError = (err?: Error): boolean => {
