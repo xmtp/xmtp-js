@@ -23,7 +23,7 @@ describe('authn', () => {
     const token = await authenticator.createToken(timestamp)
 
     expect(token.authData.walletAddr).toEqual(
-      privateKey.publicKey.getEthereumAddress()
+      privateKey.publicKey.walletSignatureAddress()
     )
     expect(token.authData.createdNs).toEqual(+timestamp * 1000)
     expect(token.identityKey.timestamp).toEqual(privateKey.publicKey.timestamp)
@@ -43,7 +43,8 @@ describe('authn', () => {
 
   it('round trips safely', async () => {
     const originalToken = await authenticator.createToken()
-    const newToken = Token.fromBytes(originalToken.toBytes())
+    const bytes = originalToken.toBytes()
+    const newToken = Token.fromBytes(bytes)
     expect(originalToken.authData).toEqual(newToken.authData)
     expect(originalToken.toBytes()).toEqual(newToken.toBytes())
   })

@@ -17,7 +17,7 @@ export default class Authenticator {
 
   async createToken(timestamp?: Date): Promise<Token> {
     const authData = AuthData.create(
-      this.identityKey.publicKey.getEthereumAddress(),
+      this.identityKey.publicKey.walletSignatureAddress(),
       timestamp || new Date()
     )
     const authDataBytes = authData.toBytes()

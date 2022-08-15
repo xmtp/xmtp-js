@@ -13,7 +13,7 @@ export default class AuthData implements authnProto.AuthData {
     timestamp = timestamp || new Date()
     return new AuthData({
       walletAddr: walletAddr,
-      createdNs: timestamp.getTime() * 1000,
+      createdNs: timestamp.getTime() * 1000000,
     })
   }
 
