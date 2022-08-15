@@ -20,7 +20,7 @@
     "prepare": "npm run build",
     "test": "npm run test:node",
     "test:node": "jest --no-cache --runInBand --env='node' --forceExit --testTimeout=30000",
-    "test:jsdom": "jest --no-cache --runInBand --env='./jest.jsdom.env.js' --testTimeout=30000",
+    "test:jsdom": "jest --no-cache --runInBand --env='./jest.jsdom.env.js' --forceExit --testTimeout=30000",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
