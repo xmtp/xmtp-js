@@ -28,10 +28,9 @@ import {
   ContentTypeFallback,
 } from './MessageContent'
 import { decompress, compress } from './Compression'
-import { Compression } from './proto/messaging'
-import * as proto from './proto/messaging'
-import { Authenticator } from './authn'
+import { xmtpEnvelope } from '@xmtp/proto'
 import ContactBundle from './ContactBundle'
+const { Compression } = xmtpEnvelope
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -47,13 +46,6 @@ type NodesList = {
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
-
-export class AuthenticationError extends Error {
-  constructor() {
-    super('Authentication Error')
-    Object.setPrototypeOf(this, AuthenticationError.prototype)
-  }
-}
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
@@ -74,7 +66,7 @@ export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
   contentFallback?: string
-  compression?: Compression
+  compression?: xmtpEnvelope.Compression
   timestamp?: Date
 }
 
@@ -150,7 +142,6 @@ export default class Client {
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
-  protected authenticator: Authenticator
   private _disconnectWatcher: ReturnType<typeof setInterval>
 
   constructor(waku: Waku, keys: PrivateKeyBundle) {
@@ -162,7 +153,6 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
-    this.authenticator = Authenticator.create(waku.libp2p, keys.identityKey)
     this._disconnectWatcher = this.createDisconnectWatcher()
   }
 
@@ -335,13 +325,6 @@ export default class Client {
       throw new Error('no peer available to send message')
     }
 
-    if (!this.authenticator.hasAuthenticated(dstPeer.id)) {
-      const authnResult = await this.authenticator.authenticate(dstPeer.id)
-      if (!authnResult.isAuthenticated) {
-        throw new AuthenticationError()
-      }
-    }
-
     const ack = await this.waku.lightPush.push(msg, { peerId: dstPeer.id })
     if (ack?.isSuccess === false) {
       throw new Error(`Failed to send message with error: ${ack?.info}`)
@@ -385,7 +368,7 @@ export default class Client {
       encoded.compression = options.compression
     }
     await compress(encoded)
-    const payload = proto.EncodedContent.encode(encoded).finish()
+    const payload = xmtpEnvelope.EncodedContent.encode(encoded).finish()
     return Message.encode(this.keys, recipient, payload, timestamp)
   }
 
@@ -400,7 +383,7 @@ export default class Client {
     if (!message.decrypted) {
       throw new Error('decrypted bytes missing')
     }
-    const encoded = proto.EncodedContent.decode(message.decrypted)
+    const encoded = xmtpEnvelope.EncodedContent.decode(message.decrypted)
     await decompress(encoded, this._maxContentSize)
     if (!encoded.type) {
       throw new Error('missing content type')

@@ -5,7 +5,7 @@ import {
   EncodedContent,
   CodecRegistry,
 } from '../MessageContent'
-import * as proto from '../proto/composite'
+import { composite as proto } from '@xmtp/proto'
 
 // xmtp.org/composite
 //

@@ -11,7 +11,8 @@ import {
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 import assert from 'assert'
-import { PublicKeyBundle } from '../src/proto/messaging'
+import { xmtpEnvelope } from '@xmtp/proto'
+type PublicKeyBundle = xmtpEnvelope.PublicKeyBundle
 
 export const LOCAL_DOCKER_MULTIADDR =
   '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA'

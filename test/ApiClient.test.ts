@@ -1,19 +1,11 @@
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import ApiClient, { PublishParams } from '../src/ApiClient'
-import {
-  Cursor,
-  Envelope,
-  MessageApi,
-  SortDirection,
-  QueryRequest,
-  QueryResponse,
-  PublishResponse,
-  PublishRequest,
-  SubscribeRequest,
-} from '@xmtp/proto'
+import { messageApi } from '@xmtp/proto'
+import { sleep } from './helpers'
+const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
-const CURSOR: Cursor = {
+const CURSOR: messageApi.Cursor = {
   index: {
     digest: Uint8Array.from([1, 2, 3]),
     senderTimeNs: '3',
@@ -33,15 +25,16 @@ describe('Query', () => {
     const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
     expect(result).toHaveLength(0)
     expect(apiMock).toHaveBeenCalledTimes(1)
-    const expectedReq: QueryRequest = {
+    const expectedReq: messageApi.QueryRequest = {
       contentTopics: ['foo'],
       pagingInfo: {
-        direction: SortDirection.SORT_DIRECTION_ASCENDING,
+        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
         limit: 100,
       },
     }
     expect(apiMock).toHaveBeenCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 
@@ -71,7 +64,7 @@ describe('Query', () => {
     expect(count).toBe(2)
     expect(apiMock).toHaveBeenCalledTimes(1)
 
-    const expectedReq: QueryRequest = {
+    const expectedReq: messageApi.QueryRequest = {
       contentTopics: ['foo'],
       pagingInfo: {
         limit: 5,
@@ -79,6 +72,7 @@ describe('Query', () => {
     }
     expect(apiMock).toHaveBeenCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 
@@ -94,7 +88,7 @@ describe('Query', () => {
     expect(count).toBe(4)
     expect(apiMock).toHaveBeenCalledTimes(2)
 
-    const expectedReq: QueryRequest = {
+    const expectedReq: messageApi.QueryRequest = {
       contentTopics: [CONTENT_TOPIC],
       pagingInfo: {
         limit: 5,
@@ -103,6 +97,7 @@ describe('Query', () => {
     }
     expect(apiMock).toHaveBeenLastCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 })
@@ -121,23 +116,30 @@ describe('Publish', () => {
       contentTopic: CONTENT_TOPIC,
     }
 
-    await client.publish(msg)
+    await client.publish([msg])
     expect(publishMock).toHaveBeenCalledTimes(1)
-    const expectedRequest: PublishRequest = {
-      message: msg.message,
-      contentTopic: msg.contentTopic,
-      timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
+    const expectedRequest: messageApi.PublishRequest = {
+      envelopes: [
+        {
+          message: msg.message,
+          contentTopic: msg.contentTopic,
+          timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
+        },
+      ],
     }
     expect(publishMock).toHaveBeenCalledWith(expectedRequest, {
       pathPrefix: PATH_PREFIX,
+      mode: 'cors',
     })
   })
 
   it('throws on invalid message', () => {
-    const promise = client.publish({
-      contentTopic: '',
-      message: Uint8Array.from([]),
-    })
+    const promise = client.publish([
+      {
+        contentTopic: '',
+        message: Uint8Array.from([]),
+      },
+    ])
     expect(promise).rejects.toBeInstanceOf(Error)
   })
 })
@@ -150,34 +152,39 @@ describe('Subscribe', () => {
   it('can subscribe', async () => {
     const subscribeMock = createSubscribeMock(2)
     let numEnvelopes = 0
-    const cb = (env: Envelope) => {
+    const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    await client.subscribe(req, cb)
+    client.subscribe(req, cb)
+    await sleep(10)
     expect(numEnvelopes).toBe(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, { pathPrefix: PATH_PREFIX })
+    expect(subscribeMock).toBeCalledWith(req, cb, {
+      pathPrefix: PATH_PREFIX,
+      signal: expect.anything(),
+      mode: 'cors',
+    })
   })
 
   it('throws when no content topics returned', async () => {
     const subscribeMock = createSubscribeMock(2)
     let numEnvelopes = 0
-    const cb = (env: Envelope) => {
+    const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
     }
     const req = { contentTopics: [] }
-    const promise = client.subscribe(req, cb)
-    expect(promise).rejects.toEqual(
+    const t = () => client.subscribe(req, cb)
+    expect(t).toThrow(
       new Error('Must provide list of contentTopics to subscribe to')
     )
   })
 })
 
-function createQueryMock(envelopes: Envelope[], numPages = 1) {
+function createQueryMock(envelopes: messageApi.Envelope[], numPages = 1) {
   let numCalls = 0
   return jest
     .spyOn(MessageApi, 'Query')
-    .mockImplementation(async (): Promise<QueryResponse> => {
+    .mockImplementation(async (): Promise<messageApi.QueryResponse> => {
       numCalls++
       return {
         envelopes: envelopes,
@@ -191,7 +198,7 @@ function createQueryMock(envelopes: Envelope[], numPages = 1) {
 function createPublishMock() {
   return jest
     .spyOn(MessageApi, 'Publish')
-    .mockImplementation(async (): Promise<PublishResponse> => ({}))
+    .mockImplementation(async (): Promise<messageApi.PublishResponse> => ({}))
 }
 
 function createSubscribeMock(numMessages: number) {
@@ -199,8 +206,8 @@ function createSubscribeMock(numMessages: number) {
     .spyOn(MessageApi, 'Subscribe')
     .mockImplementation(
       async (
-        req: SubscribeRequest,
-        cb: NotifyStreamEntityArrival<Envelope> | undefined
+        req: messageApi.SubscribeRequest,
+        cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined
       ): Promise<void> => {
         for (let i = 0; i < numMessages; i++) {
           if (cb) {
@@ -211,9 +218,8 @@ function createSubscribeMock(numMessages: number) {
     )
 }
 
-function createEnvelope(): Envelope {
+function createEnvelope(): messageApi.Envelope {
   return {
-    id: 'id',
     contentTopic: CONTENT_TOPIC,
     timestampNs: '1',
     message: Uint8Array.from([1, 2, 3]),

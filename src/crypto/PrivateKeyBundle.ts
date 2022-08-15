@@ -1,4 +1,4 @@
-import * as proto from '../proto/private_key'
+import { privateKey as proto } from '@xmtp/proto'
 import PrivateKey from './PrivateKey'
 import PublicKey from './PublicKey'
 import PublicKeyBundle from './PublicKeyBundle'

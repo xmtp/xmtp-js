@@ -1,4 +1,4 @@
-import * as proto from '../src/proto/messaging'
+import { xmtpEnvelope as proto } from '@xmtp/proto'
 import { ContentTypeId, ContentCodec, PublicKey, EncodedContent } from '../src'
 
 export const ContentTypeTestKey = new ContentTypeId({
