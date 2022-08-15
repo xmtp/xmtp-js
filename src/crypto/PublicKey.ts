@@ -2,6 +2,7 @@ import { xmtpEnvelope as proto } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Signature from './Signature'
 import { bytesToHex, hexToBytes } from './utils'
+import Long from 'long'
 import * as ethers from 'ethers'
 import { sha256 } from './encryption'
 
@@ -9,7 +10,7 @@ import { sha256 } from './encryption'
 // that can optionally be signed with another trusted key pair.
 // PublicKeys can be generated through PrivateKey.generate()
 export default class PublicKey implements proto.PublicKey {
-  timestamp: number
+  timestamp: Long
   secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompressed // eslint-disable-line camelcase
   signature?: Signature
 
@@ -38,7 +39,7 @@ export default class PublicKey implements proto.PublicKey {
     if (!this.timestamp) {
       return undefined
     }
-    return new Date(this.timestamp)
+    return new Date(this.timestamp.toNumber())
   }
 
   // verify that Signature was created from provided digest using the corresponding PrivateKey

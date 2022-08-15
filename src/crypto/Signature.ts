@@ -1,4 +1,5 @@
 import { xmtpEnvelope as proto } from '@xmtp/proto'
+import Long from 'long'
 import * as secp from '@noble/secp256k1'
 import PublicKey from './PublicKey'
 
@@ -36,7 +37,7 @@ export default class Signature implements proto.Signature {
     return bytes
       ? new PublicKey({
           secp256k1Uncompressed: { bytes },
-          timestamp: 0,
+          timestamp: Long.fromNumber(0),
         })
       : undefined
   }

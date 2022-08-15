@@ -1,4 +1,5 @@
 import { keccak256 } from 'js-sha3'
+import Long from 'long'
 import { PrivateKey, PrivateKeyBundle, Signature } from '../../src/crypto'
 import Authenticator from '../../src/authn/Authenticator'
 import Token from '../../src/authn/Token'
@@ -25,7 +26,9 @@ describe('authn', () => {
     expect(token.authData.walletAddr).toEqual(
       privateKey.publicKey.walletSignatureAddress()
     )
-    expect(token.authData.createdNs).toEqual(+timestamp * 1000)
+    expect(token.authData.createdNs).toEqual(
+      Long.fromNumber(timestamp.valueOf()).toUnsigned().multiply(1_000_000)
+    )
     expect(token.identityKey.timestamp).toEqual(privateKey.publicKey.timestamp)
     expect(token.identityKey.signature).toEqual(privateKey.publicKey.signature)
     expect(token.identityKey.secp256k1Uncompressed).toEqual(

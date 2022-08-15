@@ -1,4 +1,5 @@
 import { xmtpEnvelope as proto } from '@xmtp/proto'
+import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
 import {
   PublicKeyBundle,
@@ -79,7 +80,7 @@ export default class Message implements proto.V1Message {
   }
 
   get sent(): Date | undefined {
-    return this.header ? new Date(this.header?.timestamp) : undefined
+    return this.header ? new Date(this.header?.timestamp.toNumber()) : undefined
   }
 
   // wallet address derived from the signature of the message sender
@@ -118,7 +119,7 @@ export default class Message implements proto.V1Message {
     const header: proto.MessageHeader = {
       sender: sender.getPublicKeyBundle(),
       recipient,
-      timestamp: timestamp.getTime(),
+      timestamp: Long.fromNumber(timestamp.getTime()),
     }
     const headerBytes = proto.MessageHeader.encode(header).finish()
     const ciphertext = await encrypt(message, secret, headerBytes)

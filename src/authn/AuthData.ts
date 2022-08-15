@@ -1,8 +1,9 @@
 import { authn as authnProto } from '@xmtp/proto'
+import Long from 'long'
 
 export default class AuthData implements authnProto.AuthData {
   walletAddr: string
-  createdNs: number
+  createdNs: Long
 
   public constructor({ walletAddr, createdNs }: authnProto.AuthData) {
     this.walletAddr = walletAddr
@@ -13,7 +14,7 @@ export default class AuthData implements authnProto.AuthData {
     timestamp = timestamp || new Date()
     return new AuthData({
       walletAddr: walletAddr,
-      createdNs: timestamp.getTime() * 1000000,
+      createdNs: Long.fromNumber(timestamp.getTime()).multiply(1_000_000),
     })
   }
 

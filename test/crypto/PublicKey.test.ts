@@ -1,4 +1,5 @@
 import * as assert from 'assert'
+import Long from 'long'
 import { PrivateKey, PublicKey, utils } from '../../src/crypto'
 import * as ethers from 'ethers'
 import { hexToBytes } from '../../src/crypto/utils'
@@ -12,7 +13,7 @@ describe('Crypto', function () {
       )
       const pub = new PublicKey({
         secp256k1Uncompressed: { bytes },
-        timestamp: new Date().getTime(),
+        timestamp: Long.fromNumber(new Date().getTime()),
       })
       const address = pub.getEthereumAddress()
       assert.equal(address, '0x0BED7ABd61247635c1973eB38474A2516eD1D884')

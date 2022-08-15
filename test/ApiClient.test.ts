@@ -1,6 +1,7 @@
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import ApiClient, { PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
+import Long from 'long'
 import { sleep } from './helpers'
 const { MessageApi } = messageApi
 
@@ -123,7 +124,9 @@ describe('Publish', () => {
         {
           message: msg.message,
           contentTopic: msg.contentTopic,
-          timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
+          timestampNs: Long.fromNumber(now.valueOf())
+            .multiply(1_000_000)
+            .toString(),
         },
       ],
     }
