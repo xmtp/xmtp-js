@@ -1,8 +1,8 @@
 import { xmtpEnvelope as proto } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
+import Long from 'long'
 import Signature from './Signature'
 import { bytesToHex, hexToBytes } from './utils'
-import Long from 'long'
 import * as ethers from 'ethers'
 import { sha256 } from './encryption'
 
