@@ -28,6 +28,13 @@ export default class Token implements authn.Token {
     return this._authData
   }
 
+  get ageMs(): number {
+    const now = new Date().valueOf()
+    const authData = this.authData
+    const createdAt = authData.createdNs.div(1_000_000).toNumber()
+    return now - createdAt
+  }
+
   toBytes(): Uint8Array {
     return authn.Token.encode(this).finish()
   }
