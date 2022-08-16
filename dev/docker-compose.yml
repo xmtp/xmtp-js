@@ -11,6 +11,7 @@ services:
       - --filter
       - --ws-port=9001
       - --wait-for-db=30s
+      - --api.authn.enable
     ports:
       - 9001:9001
       - 5555:5555
