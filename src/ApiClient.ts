@@ -108,7 +108,7 @@ export default class ApiClient {
         if (isAbortError(err)) {
           console.log('AbortError detected. Stream ending')
         } else {
-          console.log('Error detected. Resubscribing', err)
+          console.log('Subscription error detected. Resubscribing', err)
           // If connection was initiated less than 1 second ago, sleep for a bit
           // TODO: exponential backoff + eventually giving up
           if (+new Date() - startTime < 1000) {
