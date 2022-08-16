@@ -123,7 +123,7 @@ export default class ApiClient {
         throw e
       }
       await this.authCache?.refresh()
-      return this._publish(req, attemptNumber++)
+      return this._publish(req, attemptNumber + 1)
     }
   }
 

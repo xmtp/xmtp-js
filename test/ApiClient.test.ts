@@ -171,6 +171,45 @@ describe('Publish', () => {
   })
 })
 
+describe('Publish authn', () => {
+  let publishClient: ApiClient
+
+  beforeEach(() => {
+    publishClient = new ApiClient(PATH_PREFIX)
+  })
+
+  it('retries on invalid message', async () => {
+    const publishMock = createAuthErrorPublishMock(1)
+    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+
+    const now = new Date()
+    const msg: PublishParams = {
+      timestamp: now,
+      message: Uint8Array.from([1, 2, 3]),
+      contentTopic: CONTENT_TOPIC,
+    }
+
+    await publishClient.publish([msg])
+    expect(publishMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('gives up after a second auth error', async () => {
+    const publishMock = createAuthErrorPublishMock(5)
+    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+
+    const now = new Date()
+    const msg: PublishParams = {
+      timestamp: now,
+      message: Uint8Array.from([1, 2, 3]),
+      contentTopic: CONTENT_TOPIC,
+    }
+
+    const prom = publishClient.publish([msg])
+    expect(prom).rejects.toEqual({ code: 16 })
+    expect(publishMock).toHaveBeenCalledTimes(2)
+  })
+})
+
 describe('Subscribe', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -226,6 +265,22 @@ function createPublishMock() {
   return jest
     .spyOn(MessageApi, 'Publish')
     .mockImplementation(async (): Promise<messageApi.PublishResponse> => ({}))
+}
+
+function createAuthErrorPublishMock(rejectTimes = 1) {
+  let numRejections = 0
+  return jest
+    .spyOn(MessageApi, 'Publish')
+    .mockImplementation(async (): Promise<messageApi.PublishResponse> => {
+      if (numRejections < rejectTimes) {
+        numRejections++
+        throw {
+          code: 16,
+        }
+      }
+
+      return {}
+    })
 }
 
 function createSubscribeMock(numMessages: number) {
