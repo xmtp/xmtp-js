@@ -63,11 +63,9 @@ export async function retry<T extends (...arg0: any[]) => any>(
     const result = await fn(...args)
     return result
   } catch (e) {
-    console.log(e, { isRetryable: isRetryableFn(e as Error) })
     if (!isRetryableFn(e as Error) || currRetry > maxRetries) {
       throw e
     }
-    console.log('Retrying', e)
     await sleep(sleepTime)
     return retry(fn, args, maxRetries, sleepTime, isRetryableFn, currRetry + 1)
   }

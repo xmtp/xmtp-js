@@ -4,8 +4,9 @@ import { PrivateKey, PrivateKeyBundle, Signature } from '../../src/crypto'
 import Authenticator from '../../src/authn/Authenticator'
 import Token from '../../src/authn/Token'
 import { hexToBytes } from '../../src/crypto/utils'
-import { newWallet } from '../helpers'
+import { newWallet, sleep } from '../helpers'
 import { Wallet } from 'ethers'
+import AuthCache from '../../src/authn/AuthCache'
 
 describe('authn', () => {
   let authenticator: Authenticator
@@ -59,5 +60,41 @@ describe('authn', () => {
 
     expect(sig.getPublicKey(digest)?.equals(privateKey.publicKey)).toBeTruthy()
     expect(privateKey.publicKey.verify(sig, digest)).toBeTruthy()
+  })
+})
+
+describe('AuthCache', () => {
+  let authenticator: Authenticator
+  let privateKey: PrivateKey
+  let wallet: Wallet
+
+  beforeEach(async () => {
+    wallet = newWallet()
+    const bundle = await PrivateKeyBundle.generate(wallet)
+    privateKey = bundle.identityKey
+    authenticator = new Authenticator(privateKey)
+  })
+
+  it('safely re-uses cached token', async () => {
+    const authCache = new AuthCache(authenticator)
+    const firstToken = await authCache.getToken()
+    const secondToken = await authCache.getToken()
+    expect(firstToken).toEqual(secondToken)
+  })
+
+  it('refreshes to new token', async () => {
+    const authCache = new AuthCache(authenticator)
+    const firstToken = await authCache.getToken()
+    await authCache.refresh()
+    const secondToken = await authCache.getToken()
+    expect(firstToken === secondToken).toBeFalsy()
+  })
+
+  it('respects expiration', async () => {
+    const authCache = new AuthCache(authenticator, 0.01)
+    const firstToken = await authCache.getToken()
+    await sleep(50)
+    const secondToken = await authCache.getToken()
+    expect(firstToken === secondToken).toBeFalsy()
   })
 })
