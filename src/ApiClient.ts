@@ -117,6 +117,7 @@ export default class ApiClient {
         // Do not retry UnauthenticatedErrors
         isNotAuthError
       )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       // Try at most 2X. If refreshing the auth token doesn't work the first time, it won't work the second time
       if (isNotAuthError(e) || attemptNumber >= 1) {

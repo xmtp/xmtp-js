@@ -30,13 +30,15 @@ import { Authenticator } from './authn'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
 
 export const ApiUrls = {
   local: 'http://localhost:5555',
-  dev: 'https://api.dev.xmtp.network',
-  production: 'https://api.production.xmtp.network',
+  dev: 'https://dev.xmtp.network',
+  production: 'https://production.xmtp.network',
 } as const
 
 // Parameters for the listMessages functions
