@@ -1,4 +1,3 @@
-import './polyfills/stream'
 import { xmtpEnvelope as proto } from '@xmtp/proto'
 
 // Represents proto.ContentTypeId

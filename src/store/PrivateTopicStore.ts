@@ -16,7 +16,7 @@ export default class NetworkStore implements Store {
       { contentTopics: [this.buildTopic(key)] },
       {
         pageSize: 10,
-        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        direction: messageApi.SortDirection.SORT_DIRECTION_DESCENDING,
       }
     )) {
       if (!env.message) continue

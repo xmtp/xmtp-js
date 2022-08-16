@@ -75,7 +75,7 @@ describe('Client', () => {
         const bobAlice = await bob.streamConversationMessages(alice.address)
         const aliceIntros = await alice.streamIntroductionMessages()
         const aliceBob = await alice.streamConversationMessages(bob.address)
-
+        await sleep(100)
         // alice sends intro
         const sentMessage = await alice.sendMessage(bob.address, 'hi bob!')
         assert.equal(sentMessage.content, 'hi bob!')

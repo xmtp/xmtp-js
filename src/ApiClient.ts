@@ -107,22 +107,21 @@ export default class ApiClient {
         mode: 'cors',
       }).catch(async (err: any) => {
         if (isAbortError(err)) {
-          console.log('AbortError detected. Stream ending')
-        } else {
-          console.log('Error detected. Resubscribing', err)
-          // If connection was initiated less than 1 second ago, sleep for a bit
-          // TODO: exponential backoff + eventually giving up
-          if (+new Date() - startTime < 1000) {
-            await sleep(1000)
-          }
-          doSubscribe()
+          return
         }
+        console.error('Stream connection lost. Resubscribing', err)
+        // If connection was initiated less than 1 second ago, sleep for a bit
+        // TODO: exponential backoff + eventually giving up
+        if (+new Date() - startTime < 1000) {
+          await sleep(1000)
+        }
+        doSubscribe()
       })
     }
     doSubscribe()
 
     return async () => {
-      // abortController?.abort()
+      abortController?.abort()
     }
   }
 
