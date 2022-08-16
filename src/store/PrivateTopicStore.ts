@@ -2,6 +2,7 @@ import { messageApi, fetcher } from '@xmtp/proto'
 import { Store } from './Store'
 import { buildUserPrivateStoreTopic } from '../utils'
 import ApiClient from '../ApiClient'
+import { Authenticator } from '../authn'
 const b64Decode = fetcher.b64Decode
 
 export default class NetworkStore implements Store {
@@ -39,6 +40,10 @@ export default class NetworkStore implements Store {
         message: keys,
       },
     ])
+  }
+
+  setAuthenticator(authenticator: Authenticator): void {
+    this.client.setAuthenticator(authenticator)
   }
 
   private buildTopic(key: string): string {

@@ -1,3 +1,5 @@
+export type IsRetryable = (err?: Error) => boolean
+
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
 
@@ -44,6 +46,8 @@ export const promiseWithTimeout = <T>(
   })
 }
 
+const defaultIsRetryableFn = (err?: Error) => !!err
+
 // Implements type safe retries of arbitrary async functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function retry<T extends (...arg0: any[]) => any>(
@@ -51,6 +55,7 @@ export async function retry<T extends (...arg0: any[]) => any>(
   args: Parameters<T>,
   maxRetries: number,
   sleepTime: number,
+  isRetryableFn: IsRetryable = defaultIsRetryableFn,
   retryCount = 1
 ): Promise<Awaited<ReturnType<T>>> {
   const currRetry = typeof retryCount === 'number' ? retryCount : 1
@@ -58,11 +63,12 @@ export async function retry<T extends (...arg0: any[]) => any>(
     const result = await fn(...args)
     return result
   } catch (e) {
-    console.log(e)
-    if (currRetry > maxRetries) {
+    console.log(e, { isRetryable: isRetryableFn(e as Error) })
+    if (!isRetryableFn(e as Error) || currRetry > maxRetries) {
       throw e
     }
+    console.log('Retrying', e)
     await sleep(sleepTime)
-    return retry(fn, args, maxRetries, sleepTime, currRetry + 1)
+    return retry(fn, args, maxRetries, sleepTime, isRetryableFn, currRetry + 1)
   }
 }

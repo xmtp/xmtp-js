@@ -4,7 +4,7 @@ import Token from './Token'
 // Default to 10 seconds less than expected expiry to give some wiggle room near the end
 const DEFAULT_MAX_AGE_SECONDS = 60 * 60 - 10
 
-export default class CachedAuthenticator {
+export default class AuthCache {
   private authenticator: Authenticator
   private token?: Token
   maxAgeMs: number

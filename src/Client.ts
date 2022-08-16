@@ -26,6 +26,7 @@ import { decompress, compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import ContactBundle from './ContactBundle'
 import ApiClient from './ApiClient'
+import { Authenticator } from './authn'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
 
@@ -160,6 +161,7 @@ export default class Client {
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
+    apiClient.setAuthenticator(new Authenticator(keys.identityKey))
     const client = new Client(keys, apiClient)
     await client.init(options)
     return client

@@ -3,6 +3,8 @@ import ApiClient, { PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import Long from 'long'
 import { sleep } from './helpers'
+import { Authenticator } from '../src/authn'
+import { PrivateKey } from '../src'
 const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
@@ -13,8 +15,21 @@ const CURSOR: messageApi.Cursor = {
   },
 }
 const CONTENT_TOPIC = 'foo'
+const AUTH_TOKEN = 'foo'
 
 const client = new ApiClient(PATH_PREFIX)
+
+const mockGetToken = jest.fn().mockReturnValue(
+  Promise.resolve({
+    toBase64: () => AUTH_TOKEN,
+    age: 10,
+  })
+)
+jest.mock('../src/authn/Authenticator', () => {
+  return jest.fn().mockImplementation(() => {
+    return { createToken: mockGetToken }
+  })
+})
 
 describe('Query', () => {
   beforeEach(() => {
@@ -105,11 +120,17 @@ describe('Query', () => {
 
 describe('Publish', () => {
   const publishMock = createPublishMock()
+  let publishClient: ApiClient
+
   beforeEach(() => {
     publishMock.mockClear()
+    publishClient = new ApiClient(PATH_PREFIX)
   })
 
   it('publishes valid messages', async () => {
+    // This Authenticator will not actually be used by the mock
+    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+
     const now = new Date()
     const msg: PublishParams = {
       timestamp: now,
@@ -117,7 +138,7 @@ describe('Publish', () => {
       contentTopic: CONTENT_TOPIC,
     }
 
-    await client.publish([msg])
+    await publishClient.publish([msg])
     expect(publishMock).toHaveBeenCalledTimes(1)
     const expectedRequest: messageApi.PublishRequest = {
       envelopes: [
@@ -133,6 +154,9 @@ describe('Publish', () => {
     expect(publishMock).toHaveBeenCalledWith(expectedRequest, {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
+      headers: {
+        Authorization: `Bearer ${AUTH_TOKEN}`,
+      },
     })
   })
 
