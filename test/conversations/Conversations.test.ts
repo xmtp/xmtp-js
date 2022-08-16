@@ -15,7 +15,6 @@ describe('conversations', () => {
     alice = await newLocalHostClient()
     bob = await newLocalHostClient()
     charlie = await newLocalHostClient()
-    await sleep(100)
   })
 
   afterEach(async () => {
@@ -30,7 +29,7 @@ describe('conversations', () => {
 
     const aliceToBob = await alice.conversations.newConversation(bob.address)
     await aliceToBob.send('gm')
-    await sleep(1000)
+    await sleep(50)
 
     const aliceConversationsAfterMessage = await alice.conversations.list()
     expect(aliceConversationsAfterMessage).toHaveLength(1)
@@ -96,7 +95,7 @@ describe('conversations', () => {
     const bobAlice = await bob.conversations.newConversation(alice.address)
 
     await aliceBob.send('gm alice -bob')
-    await sleep(1000)
+    await sleep(50)
     const existingConversations = await alice.conversations.list()
     expect(existingConversations).toHaveLength(1)
 
@@ -135,7 +134,7 @@ describe('conversations', () => {
       aliceConversation.send('gm'),
       bobConversation.send('gm'),
     ])
-    await sleep(1000)
+    await sleep(50)
 
     const [aliceConversationsList, bobConversationList] = await Promise.all([
       alice.conversations.list(),
