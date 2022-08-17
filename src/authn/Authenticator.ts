@@ -26,11 +26,17 @@ export default class Authenticator {
 
     return new Token(
       authn.Token.fromPartial({
-        identityKey: xmtpEnvelope.PublicKey.fromJSON(
+        identityKey: xmtpEnvelope.PublicKey.fromPartial(
+          // The generated types are overly strict and don't like our additional methods
+          // eslint-disable-next-line
+          // @ts-ignore
           this.identityKey.publicKey
         ),
         authDataBytes: authDataBytes,
-        authDataSignature: xmtpEnvelope.Signature.fromJSON(authSig),
+        // The generated types are overly strict and don't like our additional methods
+        // eslint-disable-next-line
+        // @ts-ignore
+        authDataSignature: xmtpEnvelope.Signature.fromPartial(authSig),
       })
     )
   }
