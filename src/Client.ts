@@ -30,7 +30,8 @@ import { Authenticator } from './authn'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// eslint-disable @typescript-eslint/explicit-module-boundary-types
+// eslint-disable @typescript-eslint/no-explicit-any
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
@@ -307,6 +308,7 @@ export default class Client {
     if (!bytes || !bytes.length) {
       throw new Error('Cannot publish empty message')
     }
+
     try {
       await this.apiClient.publish([
         {
