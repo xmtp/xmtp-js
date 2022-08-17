@@ -44,13 +44,6 @@ export default class Token implements authn.Token {
   }
 
   toBase64(): string {
-    return (
-      Buffer.from(this.toBytes())
-        // base64url is not widely supported in browsers so convert to base64 and then replace the non url-safe characters
-        .toString('base64')
-        .replace(/=/g, '')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-    )
+    return Buffer.from(this.toBytes()).toString('base64')
   }
 }
