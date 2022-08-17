@@ -2,6 +2,7 @@ import Authenticator from './Authenticator'
 import Token from './Token'
 
 // Default to 10 seconds less than expected expiry to give some wiggle room near the end
+// https://github.com/xmtp/xmtp-node-go/blob/main/pkg/api/authentication.go#L18
 const DEFAULT_MAX_AGE_SECONDS = 60 * 60 - 10
 
 export default class AuthCache {
