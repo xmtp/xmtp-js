@@ -79,9 +79,7 @@ export default class Message implements proto.V1Message {
   }
 
   get sent(): Date | undefined {
-    return this.header
-      ? new Date(this.header?.timestamp.div(1_000_000).toNumber())
-      : undefined
+    return this.header ? new Date(this.header?.timestamp.toNumber()) : undefined
   }
 
   // wallet address derived from the signature of the message sender
