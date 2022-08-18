@@ -1,7 +1,10 @@
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import ApiClient, { PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
+import Long from 'long'
 import { sleep } from './helpers'
+import { Authenticator } from '../src/authn'
+import { PrivateKey } from '../src'
 const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
@@ -12,8 +15,21 @@ const CURSOR: messageApi.Cursor = {
   },
 }
 const CONTENT_TOPIC = 'foo'
+const AUTH_TOKEN = 'foo'
 
 const client = new ApiClient(PATH_PREFIX)
+
+const mockGetToken = jest.fn().mockReturnValue(
+  Promise.resolve({
+    toBase64: () => AUTH_TOKEN,
+    age: 10,
+  })
+)
+jest.mock('../src/authn/Authenticator', () => {
+  return jest.fn().mockImplementation(() => {
+    return { createToken: mockGetToken }
+  })
+})
 
 describe('Query', () => {
   beforeEach(() => {
@@ -104,11 +120,17 @@ describe('Query', () => {
 
 describe('Publish', () => {
   const publishMock = createPublishMock()
+  let publishClient: ApiClient
+
   beforeEach(() => {
     publishMock.mockClear()
+    publishClient = new ApiClient(PATH_PREFIX)
   })
 
   it('publishes valid messages', async () => {
+    // This Authenticator will not actually be used by the mock
+    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+
     const now = new Date()
     const msg: PublishParams = {
       timestamp: now,
@@ -116,20 +138,25 @@ describe('Publish', () => {
       contentTopic: CONTENT_TOPIC,
     }
 
-    await client.publish([msg])
+    await publishClient.publish([msg])
     expect(publishMock).toHaveBeenCalledTimes(1)
     const expectedRequest: messageApi.PublishRequest = {
       envelopes: [
         {
           message: msg.message,
           contentTopic: msg.contentTopic,
-          timestampNs: (now.valueOf() * 1_000_000).toFixed(0),
+          timestampNs: Long.fromNumber(now.valueOf())
+            .multiply(1_000_000)
+            .toString(),
         },
       ],
     }
     expect(publishMock).toHaveBeenCalledWith(expectedRequest, {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
+      headers: {
+        Authorization: `Bearer ${AUTH_TOKEN}`,
+      },
     })
   })
 
@@ -141,6 +168,45 @@ describe('Publish', () => {
       },
     ])
     expect(promise).rejects.toBeInstanceOf(Error)
+  })
+})
+
+describe('Publish authn', () => {
+  let publishClient: ApiClient
+
+  beforeEach(() => {
+    publishClient = new ApiClient(PATH_PREFIX)
+  })
+
+  it('retries on invalid message', async () => {
+    const publishMock = createAuthErrorPublishMock(1)
+    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+
+    const now = new Date()
+    const msg: PublishParams = {
+      timestamp: now,
+      message: Uint8Array.from([1, 2, 3]),
+      contentTopic: CONTENT_TOPIC,
+    }
+
+    await publishClient.publish([msg])
+    expect(publishMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('gives up after a second auth error', async () => {
+    const publishMock = createAuthErrorPublishMock(5)
+    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+
+    const now = new Date()
+    const msg: PublishParams = {
+      timestamp: now,
+      message: Uint8Array.from([1, 2, 3]),
+      contentTopic: CONTENT_TOPIC,
+    }
+
+    const prom = publishClient.publish([msg])
+    expect(prom).rejects.toEqual({ code: 16 })
+    expect(publishMock).toHaveBeenCalledTimes(2)
   })
 })
 
@@ -199,6 +265,22 @@ function createPublishMock() {
   return jest
     .spyOn(MessageApi, 'Publish')
     .mockImplementation(async (): Promise<messageApi.PublishResponse> => ({}))
+}
+
+function createAuthErrorPublishMock(rejectTimes = 1) {
+  let numRejections = 0
+  return jest
+    .spyOn(MessageApi, 'Publish')
+    .mockImplementation(async (): Promise<messageApi.PublishResponse> => {
+      if (numRejections < rejectTimes) {
+        numRejections++
+        throw {
+          code: 16,
+        }
+      }
+
+      return {}
+    })
 }
 
 function createSubscribeMock(numMessages: number) {

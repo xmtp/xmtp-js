@@ -1,50 +1,35 @@
 import { Wallet } from 'ethers'
-import { Waku } from 'js-waku'
 
 import { newWallet, sleep } from '../helpers'
-import { createWaku, defaultOptions } from '../../src/Client'
 import { PrivateTopicStore } from '../../src/store'
-
-const newLocalDockerWaku = (): Promise<Waku> =>
-  createWaku(
-    defaultOptions({
-      bootstrapAddrs: [
-        '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA',
-      ],
-    })
-  )
-
-const newTestnetWaku = (): Promise<Waku> =>
-  createWaku(defaultOptions({ env: 'dev' }))
+import ApiClient from '../../src/ApiClient'
+import { ApiUrls } from '../../src/Client'
+import { PrivateKeyBundle } from '../../src/crypto'
+import Authenticator from '../../src/authn/Authenticator'
 
 describe('PrivateTopicStore', () => {
   const tests = [
     {
       name: 'local docker node',
-      newWaku: newLocalDockerWaku,
     },
   ]
   if (process.env.CI || process.env.TESTNET) {
     tests.push({
       name: 'dev',
-      newWaku: newTestnetWaku,
     })
   }
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
-      let waku: Waku
       let wallet: Wallet
       let store: PrivateTopicStore
-      beforeAll(async () => {
-        waku = await testCase.newWaku()
-      })
-      afterAll(async () => {
-        if (waku) await waku.stop()
-      })
+      beforeAll(async () => {})
+      afterAll(async () => {})
 
       beforeEach(async () => {
         wallet = newWallet()
-        store = new PrivateTopicStore(waku)
+        store = new PrivateTopicStore(new ApiClient(ApiUrls['local']))
+        const keys = await PrivateKeyBundle.generate(wallet)
+        store.setAuthenticator(new Authenticator(keys.identityKey))
       })
 
       it('roundtrip', async () => {

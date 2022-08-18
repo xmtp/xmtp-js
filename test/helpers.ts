@@ -14,12 +14,6 @@ import assert from 'assert'
 import { xmtpEnvelope } from '@xmtp/proto'
 type PublicKeyBundle = xmtpEnvelope.PublicKeyBundle
 
-export const LOCAL_DOCKER_MULTIADDR =
-  '/ip4/127.0.0.1/tcp/9001/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA'
-
-const LOCAL_HOST_MULTIADDR =
-  '/ip4/127.0.0.1/tcp/9002/ws/p2p/16Uiu2HAmNCxLZCkXNbpVPBpSSnHj9iq4HZQj7fxRzw2kj1kKSHHA'
-
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -116,21 +110,14 @@ export class CodecRegistry {
   }
 }
 
-// client running against local docker node,
-// see dev/docker-compose
-export const newLocalDockerClient = (
+// client running against local node running on the host,
+// see github.com/xmtp/xmtp-node-go/scripts/xmtp-js.sh
+export const newLocalHostClient = (
   opts?: Partial<ClientOptions>
 ): Promise<Client> =>
   Client.create(newWallet(), {
-    bootstrapAddrs: [LOCAL_DOCKER_MULTIADDR],
+    env: 'local',
     ...opts,
-  })
-
-// client running against local node running on the host,
-// see github.com/xmtp/xmtp-node-go/scripts/xmtp-js.sh
-export const newLocalHostClient = (): Promise<Client> =>
-  Client.create(newWallet(), {
-    bootstrapAddrs: [LOCAL_HOST_MULTIADDR],
   })
 
 // client running against the dev cluster in AWS

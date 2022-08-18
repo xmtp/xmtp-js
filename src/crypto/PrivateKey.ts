@@ -1,5 +1,6 @@
 import { privateKey as proto } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
+import Long from 'long'
 import Signature from './Signature'
 import PublicKey from './PublicKey'
 import Ciphertext from './Ciphertext'
@@ -7,7 +8,7 @@ import { decrypt, encrypt, sha256 } from './encryption'
 
 // PrivateKey represents a secp256k1 private key.
 export default class PrivateKey implements proto.PrivateKey {
-  timestamp: number
+  timestamp: Long
   secp256k1: proto.PrivateKey_Secp256k1 | undefined // eslint-disable-line camelcase
   publicKey: PublicKey // caches corresponding PublicKey
 
@@ -33,7 +34,7 @@ export default class PrivateKey implements proto.PrivateKey {
     const secp256k1 = {
       bytes: secp.utils.randomPrivateKey(),
     }
-    const timestamp = new Date().getTime()
+    const timestamp = Long.fromNumber(new Date().getTime())
     return new PrivateKey({
       secp256k1,
       timestamp,
@@ -50,7 +51,7 @@ export default class PrivateKey implements proto.PrivateKey {
     if (!this.timestamp) {
       return undefined
     }
-    return new Date(this.timestamp)
+    return new Date(this.timestamp.toNumber())
   }
 
   // sign provided digest

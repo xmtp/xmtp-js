@@ -1,13 +1,5 @@
 import { xmtpEnvelope as proto } from '@xmtp/proto'
 
-if (
-  typeof window !== 'object' ||
-  typeof navigator !== 'object' ||
-  navigator.userAgent.includes('jsdom')
-) {
-  require('@stardazed/streams-polyfill')
-}
-
 // Represents proto.ContentTypeId
 export class ContentTypeId {
   authorityId: string

@@ -12,6 +12,10 @@ module.exports = class JsdomTestEnvironment extends Environment {
       const { TextDecoder } = require('util')
       this.global.TextDecoder = TextDecoder
     }
+    if (typeof this.global.setImmediate === 'undefined') {
+      this.global.setImmediate = setImmediate
+      this.global.clearImmediate = clearImmediate
+    }
     if (typeof this.global.crypto === 'undefined') {
       this.global.crypto = require('crypto').webcrypto
     }

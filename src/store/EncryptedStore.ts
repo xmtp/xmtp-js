@@ -3,6 +3,7 @@ import { Signer } from 'ethers'
 import { PrivateKeyBundle } from '../crypto'
 import { BundleUpgradeNeeded } from '../crypto/PrivateKeyBundle'
 import { KeyStore } from './KeyStore'
+import { Authenticator } from '../authn'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
@@ -58,6 +59,10 @@ export default class EncryptedStore implements KeyStore {
   async storePrivateKeyBundle(bundle: PrivateKeyBundle): Promise<void> {
     const keyAddress = await this.getStorageAddress(KEY_BUNDLE_NAME)
     const encodedBundle = await bundle.toEncryptedBytes(this.signer)
+    // We need to setup the Authenticator so that the underlying store can publish messages without error
+    if (typeof this.store.setAuthenticator === 'function') {
+      this.store.setAuthenticator(new Authenticator(bundle.identityKey))
+    }
     await this.store.set(keyAddress, Buffer.from(encodedBundle))
   }
 }

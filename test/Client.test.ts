@@ -3,14 +3,12 @@ import {
   pollFor,
   newWallet,
   dumpStream,
-  newLocalDockerClient,
   newLocalHostClient,
   newDevClient,
   waitForUserContact,
 } from './helpers'
 import { buildUserContactTopic, sleep } from '../src/utils'
 import Client, { KeyStoreType } from '../src/Client'
-import { WakuMessage } from 'js-waku'
 
 import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import {
@@ -29,18 +27,12 @@ type TestCase = {
 }
 
 describe('Client', () => {
-  const tests: TestCase[] = []
-  if (process.env.LOCAL_NODE) {
-    tests.push({
+  const tests: TestCase[] = [
+    {
       name: 'local host node',
       newClient: newLocalHostClient,
-    })
-  } else {
-    tests.push({
-      name: 'local docker node',
-      newClient: newLocalDockerClient,
-    })
-  }
+    },
+  ]
 
   if (process.env.CI || process.env.TESTNET) {
     tests.push({
@@ -60,13 +52,6 @@ describe('Client', () => {
         if (bob) await bob.close()
       })
 
-      it('waku setup', async () => {
-        assert.ok(alice.waku)
-        assert(Array.from(alice.waku.relay.getPeers()).length === 1)
-        assert.ok(bob.waku)
-        assert(Array.from(bob.waku.relay.getPeers()).length === 1)
-      })
-
       it('user contacts published', async () => {
         const alicePublic = await waitForUserContact(alice, alice)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
@@ -77,22 +62,20 @@ describe('Client', () => {
       it('user contacts are filtered to valid contacts', async () => {
         // publish bob's keys to alice's contact topic
         const bobPublic = bob.keys.getPublicKeyBundle()
-        await alice.waku.lightPush.push(
-          await WakuMessage.fromBytes(
-            bobPublic.toBytes(),
-            buildUserContactTopic(alice.address)
-          )
-        )
+        await alice.publishEnvelope({
+          message: bobPublic.toBytes(),
+          contentTopic: buildUserContactTopic(alice.address),
+        })
         const alicePublic = await alice.getUserContactFromNetwork(alice.address)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
-      it('send, stream and list messages', async () => {
+      it.only('send, stream and list messages', async () => {
         const bobIntros = await bob.streamIntroductionMessages()
         const bobAlice = await bob.streamConversationMessages(alice.address)
         const aliceIntros = await alice.streamIntroductionMessages()
         const aliceBob = await alice.streamConversationMessages(bob.address)
-
+        await sleep(100)
         // alice sends intro
         const sentMessage = await alice.sendMessage(bob.address, 'hi bob!')
         assert.equal(sentMessage.content, 'hi bob!')
@@ -241,9 +224,7 @@ describe('Client', () => {
 
         const msgs = await pollFor(
           async () => {
-            const msgs = await c2.listConversationMessages(c1.address, {
-              pageSize: 2,
-            })
+            const msgs = await c2.listConversationMessages(c1.address, {})
             assert.equal(msgs.length, msgCount)
             return msgs
           },
@@ -377,7 +358,7 @@ describe('ClientOptions', () => {
   const tests = [
     {
       name: 'local docker node',
-      newClient: newLocalDockerClient,
+      newClient: newLocalHostClient,
     },
   ]
   if (process.env.CI || process.env.TESTNET) {
@@ -394,7 +375,6 @@ describe('ClientOptions', () => {
     it('Partial specification', async () => {
       const c = await testCase.newClient({
         keyStoreType: KeyStoreType.localStorage,
-        waitForPeersTimeoutMs: 1234,
       })
     })
   })

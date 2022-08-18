@@ -1,4 +1,6 @@
+// This import has to come first so that the polyfills are registered before the stream polyfills
 import { xmtpEnvelope as proto } from '@xmtp/proto'
+import './polyfills/stream'
 
 //
 // Compression
@@ -32,6 +34,7 @@ export async function compress(encoded: proto.EncodedContent): Promise<void> {
     .pipeTo(writeStreamToBytes(sink, encoded.content.length + 1000))
   encoded.content = sink.bytes
 }
+
 function compressionIdFromCode(code: proto.Compression): string {
   if (code === proto.Compression.COMPRESSION_GZIP) {
     return 'gzip'

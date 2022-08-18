@@ -1,15 +1,10 @@
-import { Waku, WakuMessage, PageDirection } from 'js-waku'
-import { BootstrapOptions } from 'js-waku/build/main/lib/discovery'
-import fetch from 'cross-fetch'
 import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
 import Message from './Message'
 import {
   buildDirectMessageTopic,
   buildUserContactTopic,
   buildUserIntroTopic,
-  promiseWithTimeout,
 } from './utils'
-import { sleep } from '../test/helpers'
 import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
 import {
@@ -28,31 +23,31 @@ import {
   ContentTypeFallback,
 } from './MessageContent'
 import { decompress, compress } from './Compression'
-import { xmtpEnvelope } from '@xmtp/proto'
+import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import ContactBundle from './ContactBundle'
+import ApiClient from './ApiClient'
+import { Authenticator } from './authn'
 const { Compression } = xmtpEnvelope
+const { b64Decode } = fetcher
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-const NODES_LIST_URL = 'https://nodes.xmtp.com/'
-
-type Nodes = { [k: string]: string }
-
-type NodesList = {
-  dev: Nodes
-  production: Nodes
-}
+// eslint-disable @typescript-eslint/explicit-module-boundary-types
+// eslint-disable @typescript-eslint/no-explicit-any
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
 
+export const ApiUrls = {
+  local: 'http://localhost:5555',
+  dev: 'https://dev.xmtp.network',
+  production: 'https://production.xmtp.network',
+} as const
+
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
   checkAddresses?: boolean
-  pageSize?: number
   startTime?: Date
   endTime?: Date
+  limit?: number
 }
 
 export enum KeyStoreType {
@@ -74,15 +69,10 @@ export type SendOptions = {
  * Network startup options
  */
 type NetworkOptions = {
-  /** List of multiaddrs for boot nodes */
-  bootstrapAddrs?: string[]
   // Allow for specifying different envs later
-  env: keyof NodesList
-  /**
-   * How long we should wait for the initial peer connection
-   * to declare the startup as successful or failed
-   */
-  waitForPeersTimeoutMs: number
+  env: keyof typeof ApiUrls
+  // apiUrl can be used to override the default URL for the env
+  apiUrl: string | undefined
 }
 
 type ContentOptions = {
@@ -116,7 +106,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
     privateKeyOverride: undefined,
     env: 'dev',
-    waitForPeersTimeoutMs: 10000,
+    apiUrl: undefined,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
   }
@@ -134,18 +124,16 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  * Should be created with `await Client.create(options)`
  */
 export default class Client {
-  waku: Waku
   address: string
   keys: PrivateKeyBundle
+  apiClient: ApiClient
   private contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
-  private _disconnectWatcher: ReturnType<typeof setInterval>
 
-  constructor(waku: Waku, keys: PrivateKeyBundle) {
-    this.waku = waku
+  constructor(keys: PrivateKeyBundle, apiClient: ApiClient) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
@@ -153,7 +141,7 @@ export default class Client {
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
-    this._disconnectWatcher = this.createDisconnectWatcher()
+    this.apiClient = apiClient
   }
 
   /**
@@ -174,9 +162,10 @@ export default class Client {
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
-    const waku = await createWaku(options)
-    const keys = await loadOrCreateKeysFromOptions(options, wallet, waku)
-    const client = new Client(waku, keys)
+    const apiClient = createApiClientFromOptions(options)
+    const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
+    apiClient.setAuthenticator(new Authenticator(keys.identityKey))
+    const client = new Client(keys, apiClient)
     await client.init(options)
     return client
   }
@@ -199,19 +188,16 @@ export default class Client {
 
   // gracefully shut down the client
   async close(): Promise<void> {
-    clearInterval(this._disconnectWatcher)
-    return this.waku.stop()
+    return undefined
   }
 
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
-    await this.sendWakuMessage(
-      await WakuMessage.fromBytes(
-        pub.toBytes(),
-        buildUserContactTopic(this.address)
-      )
-    )
+    await this.publishEnvelope({
+      contentTopic: buildUserContactTopic(this.address),
+      message: pub.toBytes(),
+    })
   }
 
   // retrieve a key bundle from given user's contact topic
@@ -220,24 +206,22 @@ export default class Client {
   ): Promise<PublicKeyBundle | undefined> {
     // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
     let recipientKey: PublicKeyBundle | null = null
-    await this.waku.store.queryHistory([buildUserContactTopic(peerAddress)], {
-      pageSize: 5,
-      pageDirection: PageDirection.BACKWARD,
-      callback: (msgs: WakuMessage[]) => {
-        for (const msg of msgs) {
-          if (!msg.payload) continue
-          const bundle = ContactBundle.fromBytes(msg.payload as Uint8Array)
-          const keyBundle = bundle.keyBundle
+    const stream = this.apiClient.queryIterator(
+      { contentTopics: [buildUserContactTopic(peerAddress)] },
+      { pageSize: 5 }
+    )
 
-          const address = keyBundle?.walletSignatureAddress()
-          if (address === peerAddress) {
-            recipientKey = keyBundle
-            break
-          }
-        }
-        return recipientKey !== null
-      },
-    })
+    for await (const env of stream) {
+      if (!env.message) continue
+      const bundle = ContactBundle.fromBytes(b64Decode(env.message.toString()))
+      const keyBundle = bundle.keyBundle
+
+      const address = keyBundle?.walletSignatureAddress()
+      if (address === peerAddress) {
+        recipientKey = keyBundle
+        break
+      }
+    }
     return recipientKey === null ? undefined : recipientKey
   }
 
@@ -283,7 +267,6 @@ export default class Client {
   ): Promise<Message> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
-
     if (!recipient) {
       throw new Error(`recipient ${peerAddress} is not registered`)
     }
@@ -306,28 +289,35 @@ export default class Client {
 
     await Promise.all(
       topics.map(async (topic) => {
-        const wakuMsg = await WakuMessage.fromBytes(msgBytes, topic, {
-          timestamp,
+        return this.publishEnvelope({
+          contentTopic: topic,
+          message: msgBytes,
         })
-        return this.sendWakuMessage(wakuMsg)
       })
     )
 
     return this.decodeMessage(msgBytes, topics[0])
   }
 
-  private async sendWakuMessage(msg: WakuMessage): Promise<void> {
-    // Waku randomly selects a peer from the Peerstore to send the message to. To ensure this is the
-    // same peer to which we authenticated to, a random peer is selected at this context and then
-    // passed in to LightPush to ensure a match
-    const dstPeer = await this.waku.lightPush.randomPeer
-    if (!dstPeer) {
-      throw new Error('no peer available to send message')
+  async publishEnvelope(env: messageApi.Envelope): Promise<void> {
+    const bytes = env.message
+    if (!env.contentTopic) {
+      throw new Error('Missing content topic')
     }
 
-    const ack = await this.waku.lightPush.push(msg, { peerId: dstPeer.id })
-    if (ack?.isSuccess === false) {
-      throw new Error(`Failed to send message with error: ${ack?.info}`)
+    if (!bytes || !bytes.length) {
+      throw new Error('Cannot publish empty message')
+    }
+
+    try {
+      await this.apiClient.publish([
+        {
+          contentTopic: env.contentTopic,
+          message: bytes,
+        },
+      ])
+    } catch (err) {
+      console.log(err)
     }
   }
 
@@ -446,64 +436,47 @@ export default class Client {
     if (!opts) {
       opts = {}
     }
-    if (!opts.startTime) {
-      opts.startTime = new Date(0)
-    }
-    if (!opts.endTime) {
-      opts.endTime = new Date(new Date().toUTCString())
-    }
-    if (!opts.pageSize) {
-      opts.pageSize = 10
-    }
+    const { startTime, endTime, checkAddresses, limit } = opts
 
-    let wakuMsgs = await this.waku.store.queryHistory([topic], {
-      pageSize: opts.pageSize,
-      pageDirection: PageDirection.FORWARD,
-      timeFilter: {
-        startTime: opts.startTime,
-        endTime: opts.endTime,
-      },
-    })
-    wakuMsgs = wakuMsgs.filter((wakuMsg) => wakuMsg?.payload)
-    let msgs = await Promise.all(
-      wakuMsgs.map((wakuMsg) =>
-        this.decodeMessage(wakuMsg.payload as Uint8Array, wakuMsg.contentTopic)
-      )
+    const res = await this.apiClient.query(
+      { contentTopics: [topic], startTime, endTime },
+      {
+        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        limit,
+      }
     )
-    if (opts?.checkAddresses) {
+
+    let msgs: Message[] = []
+    for (const env of res) {
+      if (!env.message) continue
+      try {
+        const msg = await this.decodeMessage(
+          b64Decode(env.message as unknown as string),
+          env.contentTopic
+        )
+        msgs.push(msg)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    if (checkAddresses) {
       msgs = msgs.filter(filterForTopics([topic]))
     }
     return msgs
-  }
-
-  private createDisconnectWatcher() {
-    return setInterval(async () => {
-      const connectionsToClose: Promise<void>[] = []
-      for (const connections of this.waku.libp2p.connectionManager.connections.values()) {
-        for (const connection of connections) {
-          if (!connection.streams.length) {
-            console.log(`Closing connection to ${connection.remoteAddr}`)
-            connectionsToClose.push(connection.close())
-          }
-        }
-      }
-
-      await Promise.allSettled(connectionsToClose)
-    }, 10 * 1000)
   }
 }
 
 function createKeyStoreFromConfig(
   opts: KeyStoreOptions,
   wallet: Signer | null,
-  waku: Waku
+  apiClient: ApiClient
 ): KeyStore {
   switch (opts.keyStoreType) {
     case KeyStoreType.networkTopicStoreV1:
       if (!wallet) {
         throw new Error('Must provide a wallet for networkTopicStore')
       }
-      return createNetworkPrivateKeyStore(wallet, waku)
+      return createNetworkPrivateKeyStore(wallet, apiClient)
 
     case KeyStoreType.localStorage:
       if (!wallet) {
@@ -515,6 +488,7 @@ function createKeyStoreFromConfig(
       if (!opts.privateKeyOverride) {
         throw new Error('Must provide a privateKeyOverride to use static store')
       }
+
       return createStaticStore(opts.privateKeyOverride)
   }
 }
@@ -522,9 +496,9 @@ function createKeyStoreFromConfig(
 // Create Encrypted store which uses the Network to store KeyBundles
 function createNetworkPrivateKeyStore(
   wallet: Signer,
-  waku: Waku
+  apiClient: ApiClient
 ): EncryptedStore {
-  return new EncryptedStore(wallet, new PrivateTopicStore(waku))
+  return new EncryptedStore(wallet, new PrivateTopicStore(apiClient))
 }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles
@@ -557,7 +531,7 @@ async function loadOrCreateKeysFromStore(
 async function loadOrCreateKeysFromOptions(
   options: ClientOptions,
   wallet: Signer | null,
-  waku: Waku
+  apiClient: ApiClient
 ) {
   if (!options.privateKeyOverride && !wallet) {
     throw new Error(
@@ -565,57 +539,8 @@ async function loadOrCreateKeysFromOptions(
     )
   }
 
-  const keyStore = createKeyStoreFromConfig(options, wallet, waku)
+  const keyStore = createKeyStoreFromConfig(options, wallet, apiClient)
   return loadOrCreateKeysFromStore(wallet, keyStore)
-}
-
-// initialize connection to the network
-export async function createWaku({
-  bootstrapAddrs,
-  env,
-  waitForPeersTimeoutMs,
-}: NetworkOptions): Promise<Waku> {
-  const bootstrap: BootstrapOptions = bootstrapAddrs?.length
-    ? {
-        peers: bootstrapAddrs,
-      }
-    : {
-        getPeers: () => getNodeList(env),
-      }
-  const waku = await Waku.create({
-    libp2p: {
-      config: {
-        pubsub: {
-          enabled: true,
-          emitSelf: true,
-        },
-      },
-    },
-    bootstrap,
-  })
-
-  // Wait for peer connection.
-  try {
-    await promiseWithTimeout(
-      waitForPeersTimeoutMs,
-      () => waku.waitForRemotePeer(),
-      'timeout connecting to peers'
-    )
-  } catch (err) {
-    await waku.stop()
-    throw err
-  }
-  // There's a race happening here even with waitForConnectedPeer; waiting
-  // a few ms seems to be enough, but it would be great to fix this upstream.
-  await sleep(200)
-  return waku
-}
-
-async function getNodeList(env: keyof NodesList): Promise<string[]> {
-  const res = await fetch(NODES_LIST_URL)
-  const nodesList: NodesList = await res.json()
-
-  return Object.values(nodesList[env])
 }
 
 // Ensure the message didn't have a spoofed address
@@ -629,4 +554,9 @@ function filterForTopics(topics: string[]): MessageFilter {
       topics.includes(buildDirectMessageTopic(senderAddress, recipientAddress))
     )
   }
+}
+
+function createApiClientFromOptions(options: ClientOptions): ApiClient {
+  const apiUrl = options.apiUrl || ApiUrls[options.env]
+  return new ApiClient(apiUrl)
 }

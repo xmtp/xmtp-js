@@ -1,0 +1,1 @@
+require('@stardazed/streams-polyfill')

@@ -1,9 +1,15 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import { retry, sleep } from './utils'
+import Long from 'long'
+import AuthCache from './authn/AuthCache'
+import { Authenticator } from './authn'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
+const ERR_CODE_UNAUTHENTICATED = 16
+
+export type GrpcError = Error & { code?: number }
 
 export type QueryParams = {
   startTime?: Date
@@ -39,7 +45,7 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 export type UnsubscribeFn = () => Promise<void>
 
 const toNanoString = (d: Date | undefined): undefined | string => {
-  return d && (d.valueOf() * 1_000_000).toFixed(0)
+  return d && Long.fromNumber(d.valueOf()).multiply(1_000_000).toString()
 }
 
 const isAbortError = (err?: Error): boolean => {
@@ -52,6 +58,17 @@ const isAbortError = (err?: Error): boolean => {
   return false
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isAuthError = (err?: GrpcError): boolean => {
+  if (err && err.code === ERR_CODE_UNAUTHENTICATED) {
+    return true
+  }
+  return false
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isNotAuthError = (err?: GrpcError): boolean => !isAuthError(err)
+
 /**
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
  * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
@@ -59,6 +76,7 @@ const isAbortError = (err?: Error): boolean => {
 export default class ApiClient {
   pathPrefix: string
   maxRetries: number
+  private authCache?: AuthCache
 
   constructor(pathPrefix: string, opts?: ApiClientOptions) {
     this.pathPrefix = pathPrefix
@@ -78,15 +96,36 @@ export default class ApiClient {
   }
 
   // Raw method for publishing to the API
-  private _publish(
-    req: messageApi.PublishRequest
+  private async _publish(
+    req: messageApi.PublishRequest,
+    attemptNumber = 0
   ): ReturnType<typeof MessageApi.Publish> {
-    return retry(
-      MessageApi.Publish,
-      [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
-      this.maxRetries,
-      RETRY_SLEEP_TIME
-    )
+    const authToken = await this.getToken()
+    try {
+      return await retry(
+        MessageApi.Publish,
+        [
+          req,
+          {
+            pathPrefix: this.pathPrefix,
+            mode: 'cors',
+            headers: { Authorization: `Bearer ${authToken}` },
+          },
+        ],
+        this.maxRetries,
+        RETRY_SLEEP_TIME,
+        // Do not retry UnauthenticatedErrors
+        isNotAuthError
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      // Try at most 2X. If refreshing the auth token doesn't work the first time, it won't work the second time
+      if (isNotAuthError(e) || attemptNumber >= 1) {
+        throw e
+      }
+      await this.authCache?.refresh()
+      return this._publish(req, attemptNumber + 1)
+    }
   }
 
   // Raw method for subscribing
@@ -104,18 +143,17 @@ export default class ApiClient {
         pathPrefix: this.pathPrefix,
         signal: abortController.signal,
         mode: 'cors',
-      }).catch(async (err: any) => {
+      }).catch(async (err: GrpcError) => {
         if (isAbortError(err)) {
-          console.log('AbortError detected. Stream ending')
-        } else {
-          console.log('Subscription error detected. Resubscribing', err)
-          // If connection was initiated less than 1 second ago, sleep for a bit
-          // TODO: exponential backoff + eventually giving up
-          if (+new Date() - startTime < 1000) {
-            await sleep(1000)
-          }
-          doSubscribe()
+          return
         }
+        console.warn('Stream connection lost. Resubscribing', err)
+        // If connection was initiated less than 1 second ago, sleep for a bit
+        // TODO: exponential backoff + eventually giving up
+        if (+new Date() - startTime < 1000) {
+          await sleep(1000)
+        }
+        doSubscribe()
       })
     }
     doSubscribe()
@@ -228,9 +266,7 @@ export default class ApiClient {
       })
     }
 
-    return this._publish({
-      envelopes: toSend,
-    })
+    return this._publish({ envelopes: toSend })
   }
 
   // Subscribe to a list of topics.
@@ -245,5 +281,19 @@ export default class ApiClient {
     }
 
     return this._subscribe(params, callback)
+  }
+
+  private getToken(): Promise<string> {
+    if (!this.authCache) {
+      throw new Error('AuthCache is not set on API Client')
+    }
+    return this.authCache.getToken()
+  }
+
+  setAuthenticator(
+    authenticator: Authenticator,
+    cacheExpirySeconds?: number
+  ): void {
+    this.authCache = new AuthCache(authenticator, cacheExpirySeconds)
   }
 }
