@@ -87,7 +87,7 @@ const messages = await conversation.messages()
 await conversation.send('gm')
 // Listen for new messages in the conversation
 for await (const message of await conversation.streamMessages()) {
-  console.log(`[${message.senderAddress}]: ${message.text}`)
+  console.log(`[${message.senderAddress}]: ${message.content}`)
 }
 ```
 
@@ -214,7 +214,7 @@ for await (const message of await conversation.streamMessages()) {
     // This message was sent from me
     continue
   }
-  console.log(`New message from ${message.senderAddress}: ${message.text}`)
+  console.log(`New message from ${message.senderAddress}: ${message.content}`)
 }
 ```
 
