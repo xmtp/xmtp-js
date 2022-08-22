@@ -214,7 +214,7 @@ for await (const message of await conversation.streamMessages()) {
     // This message was sent from me
     continue
   }
-  console.log(`New message from ${message.senderAddress}: ${message.text}`)
+  console.log(`New message from ${message.senderAddress}: ${message.content}`)
 }
 ```
 
