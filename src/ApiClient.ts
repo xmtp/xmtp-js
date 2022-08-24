@@ -109,7 +109,7 @@ export default class ApiClient {
           {
             pathPrefix: this.pathPrefix,
             mode: 'cors',
-            headers: { Authorization: `Bearer ${authToken}` },
+            headers: new Headers({ Authorization: `Bearer ${authToken}` }),
           },
         ],
         this.maxRetries,
