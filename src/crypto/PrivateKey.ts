@@ -1,4 +1,4 @@
-import { privateKey as proto } from '@xmtp/proto'
+import { privateKey, publicKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature from './Signature'
@@ -7,12 +7,12 @@ import Ciphertext from './Ciphertext'
 import { decrypt, encrypt, sha256 } from './encryption'
 
 // PrivateKey represents a secp256k1 private key.
-export default class PrivateKey implements proto.PrivateKey {
+export default class PrivateKey implements privateKey.PrivateKey {
   timestamp: Long
-  secp256k1: proto.PrivateKey_Secp256k1 | undefined // eslint-disable-line camelcase
+  secp256k1: privateKey.PrivateKey_Secp256k1 | undefined // eslint-disable-line camelcase
   publicKey: PublicKey // caches corresponding PublicKey
 
-  constructor(obj: proto.PrivateKey) {
+  constructor(obj: privateKey.PrivateKey) {
     if (!obj.secp256k1) {
       throw new Error('invalid private key')
     }
@@ -127,10 +127,10 @@ export default class PrivateKey implements proto.PrivateKey {
   }
 
   toBytes(): Uint8Array {
-    return proto.PrivateKey.encode(this).finish()
+    return privateKey.PrivateKey.encode(this).finish()
   }
 
   static fromBytes(bytes: Uint8Array): PrivateKey {
-    return new PrivateKey(proto.PrivateKey.decode(bytes))
+    return new PrivateKey(privateKey.PrivateKey.decode(bytes))
   }
 }

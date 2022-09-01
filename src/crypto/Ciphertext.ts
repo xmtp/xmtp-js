@@ -1,4 +1,4 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { ciphertext as proto } from '@xmtp/proto'
 
 export const AESKeySize = 32 // bytes
 export const KDFSaltSize = 32 // bytes

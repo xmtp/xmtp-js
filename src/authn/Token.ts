@@ -1,10 +1,10 @@
-import { authn, xmtpEnvelope } from '@xmtp/proto'
+import { authn, signature, publicKey } from '@xmtp/proto'
 import AuthData from './AuthData'
 
 export default class Token implements authn.Token {
-  identityKey: xmtpEnvelope.PublicKey
+  identityKey: publicKey.PublicKey
   authDataBytes: Uint8Array
-  authDataSignature: xmtpEnvelope.Signature
+  authDataSignature: signature.Signature
   private _authData?: AuthData
 
   constructor({ identityKey, authDataBytes, authDataSignature }: authn.Token) {

@@ -1,10 +1,10 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { publicKey } from '@xmtp/proto'
 import PublicKey from './PublicKey'
 
 // PublicKeyBundle packages all the keys that a participant should advertise.
 // The PreKey must be signed by the IdentityKey.
 // The IdentityKey can be signed by the wallet to authenticate it.
-export default class PublicKeyBundle implements proto.PublicKeyBundle {
+export default class PublicKeyBundle implements publicKey.PublicKeyBundle {
   identityKey: PublicKey
   preKey: PublicKey
 
@@ -24,11 +24,11 @@ export default class PublicKeyBundle implements proto.PublicKeyBundle {
   }
 
   toBytes(): Uint8Array {
-    return proto.PublicKeyBundle.encode(this).finish()
+    return publicKey.PublicKeyBundle.encode(this).finish()
   }
 
   static fromBytes(bytes: Uint8Array): PublicKeyBundle {
-    const decoded = proto.PublicKeyBundle.decode(bytes)
+    const decoded = publicKey.PublicKeyBundle.decode(bytes)
     if (!decoded.identityKey) {
       throw new Error('missing identity key')
     }

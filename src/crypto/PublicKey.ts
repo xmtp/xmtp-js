@@ -1,4 +1,4 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { publicKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature from './Signature'
@@ -9,12 +9,12 @@ import { sha256 } from './encryption'
 // PublicKey represents uncompressed secp256k1 public key,
 // that can optionally be signed with another trusted key pair.
 // PublicKeys can be generated through PrivateKey.generate()
-export default class PublicKey implements proto.PublicKey {
+export default class PublicKey implements publicKey.PublicKey {
   timestamp: Long
-  secp256k1Uncompressed: proto.PublicKey_Secp256k1Uncompressed // eslint-disable-line camelcase
+  secp256k1Uncompressed: publicKey.PublicKey_Secp256k1Uncompressed // eslint-disable-line camelcase
   signature?: Signature
 
-  constructor(obj: proto.PublicKey) {
+  constructor(obj: publicKey.PublicKey) {
     if (!obj?.secp256k1Uncompressed?.bytes) {
       throw new Error('invalid public key')
     }
@@ -58,7 +58,7 @@ export default class PublicKey implements proto.PublicKey {
   }
 
   bytesToSign(): Uint8Array {
-    return proto.PublicKey.encode({
+    return publicKey.PublicKey.encode({
       timestamp: this.timestamp,
       secp256k1Uncompressed: this.secp256k1Uncompressed,
     }).finish()
@@ -154,10 +154,10 @@ export default class PublicKey implements proto.PublicKey {
   }
 
   toBytes(): Uint8Array {
-    return proto.PublicKey.encode(this).finish()
+    return publicKey.PublicKey.encode(this).finish()
   }
 
   static fromBytes(bytes: Uint8Array): PublicKey {
-    return new PublicKey(proto.PublicKey.decode(bytes))
+    return new PublicKey(publicKey.PublicKey.decode(bytes))
   }
 }
