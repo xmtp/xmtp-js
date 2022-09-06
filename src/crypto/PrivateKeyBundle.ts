@@ -4,8 +4,8 @@ import PublicKey from './PublicKey'
 import PublicKeyBundle from './PublicKeyBundle'
 import Ciphertext from './Ciphertext'
 import * as ethers from 'ethers'
-import { bytesToHex, getRandomValues, hexToBytes } from './utils'
-import { decrypt, encrypt } from './encryption'
+import { bytesToHex, hexToBytes } from './utils'
+import { decrypt, encrypt, getRandomValues } from './encryption'
 import { NoMatchingPreKeyError } from './errors'
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.

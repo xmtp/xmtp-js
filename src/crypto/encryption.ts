@@ -1,20 +1,32 @@
 import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext'
 
-// crypto should provide access to standard Web Crypto API
+import * as nodeCrypto from 'crypto'
+
+// webcrypto should provide access to standard Web Crypto API
 // in both the browser environment and node.
-export const crypto: Crypto =
+const webcrypto: Crypto =
   typeof window !== 'undefined'
     ? window.crypto
-    : // eslint-disable-next-line @typescript-eslint/no-var-requires
-      (require('crypto').webcrypto as unknown as Crypto)
+    : (nodeCrypto.webcrypto as unknown as Crypto)
 
 const hkdfNoInfo = new ArrayBuffer(0)
 
-// This is a variation of https://github.com/paulmillr/noble-secp256k1/blob/main/index.ts#L1378-L1388
+// This is a variation of https://github.com/paulmillr/noble-secp256k1/blob/2eb78c9f7b33f514e74a72e4af00ba5d0bcbba20/index.ts#L1554-L1557
 // that uses `digest('SHA-256', bytes)` instead of `digest('SHA-256', bytes.buffer)`
 // which seems to produce different results.
 export async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))
+  if (webcrypto.subtle) {
+    return new Uint8Array(await webcrypto.subtle.digest('SHA-256', bytes))
+  } else if (nodeCrypto) {
+    const hash = nodeCrypto.createHash('sha256').update(bytes)
+    return Uint8Array.from(hash.digest())
+  } else {
+    throw new Error("The environment doesn't have sha256 function")
+  }
+}
+
+export function getRandomValues<T extends ArrayBufferView | null>(array: T): T {
+  return webcrypto.getRandomValues(array)
 }
 
 // symmetric authenticated encryption of plaintext using the secret;
@@ -25,14 +37,26 @@ export async function encrypt(
   secret: Uint8Array,
   additionalData?: Uint8Array
 ): Promise<Ciphertext> {
-  const salt = crypto.getRandomValues(new Uint8Array(KDFSaltSize))
-  const nonce = crypto.getRandomValues(new Uint8Array(AESGCMNonceSize))
-  const key = await hkdf(secret, salt)
-  const encrypted: ArrayBuffer = await crypto.subtle.encrypt(
-    aesGcmParams(nonce, additionalData),
-    key,
-    plain
-  )
+  const salt = getRandomValues(new Uint8Array(KDFSaltSize))
+  const nonce = getRandomValues(new Uint8Array(AESGCMNonceSize))
+
+  let encrypted: ArrayBuffer
+  if (webcrypto.subtle) {
+    const key = await hkdf(secret, salt)
+    encrypted = await webcrypto.subtle.encrypt(
+      aesGcmParams(nonce, additionalData),
+      key,
+      plain
+    )
+  } else if (nodeCrypto) {
+    encrypted = await encryptNodeAesGCM(
+      aesGcmParams(nonce, additionalData),
+      secret,
+      Buffer.from(plain)
+    )
+  } else {
+    throw new Error("The environment doesn't have aes-256-gcm encryption")
+  }
   return new Ciphertext({
     aes256GcmHkdfSha256: {
       payload: new Uint8Array(encrypted),
@@ -51,12 +75,23 @@ export async function decrypt(
   if (!encrypted.aes256GcmHkdfSha256) {
     throw new Error('invalid payload ciphertext')
   }
-  const key = await hkdf(secret, encrypted.aes256GcmHkdfSha256.hkdfSalt)
-  const decrypted: ArrayBuffer = await crypto.subtle.decrypt(
-    aesGcmParams(encrypted.aes256GcmHkdfSha256.gcmNonce, additionalData),
-    key,
-    encrypted.aes256GcmHkdfSha256.payload
-  )
+  let decrypted: ArrayBuffer
+  if (webcrypto.subtle) {
+    const key = await hkdf(secret, encrypted.aes256GcmHkdfSha256.hkdfSalt)
+    decrypted = await webcrypto.subtle.decrypt(
+      aesGcmParams(encrypted.aes256GcmHkdfSha256.gcmNonce, additionalData),
+      key,
+      encrypted.aes256GcmHkdfSha256.payload
+    )
+  } else if (nodeCrypto) {
+    decrypted = await decryptNodeAesGCM(
+      aesGcmParams(encrypted.aes256GcmHkdfSha256.gcmNonce, additionalData),
+      secret,
+      Buffer.from(encrypted.aes256GcmHkdfSha256.payload)
+    )
+  } else {
+    throw new Error("The environment doesn't support aes-256-gcm decryption")
+  }
   return new Uint8Array(decrypted)
 }
 
@@ -78,14 +113,62 @@ function aesGcmParams(
 // Derive AES-256-GCM key from a shared secret and salt.
 // Returns crypto.CryptoKey suitable for the encrypt/decrypt API
 async function hkdf(secret: Uint8Array, salt: Uint8Array): Promise<CryptoKey> {
-  const key = await crypto.subtle.importKey('raw', secret, 'HKDF', false, [
+  const key = await webcrypto.subtle.importKey('raw', secret, 'HKDF', false, [
     'deriveKey',
   ])
-  return crypto.subtle.deriveKey(
+  return webcrypto.subtle.deriveKey(
     { name: 'HKDF', hash: 'SHA-256', salt: salt, info: hkdfNoInfo },
     key,
     { name: 'AES-GCM', length: 256 },
     false,
     ['encrypt', 'decrypt']
   )
+}
+
+// This is a variation of @peculiar/webcrypto's AES-256-GCM encryption which uses Node crypto
+// and is more React Native friendly. https://github.com/PeculiarVentures/webcrypto/blob/7a3f11f3fd7df282084ce377d4be2e3b8b7ac118/src/mechs/aes/crypto.ts#L137-L148
+async function encryptNodeAesGCM(
+  algorithm: AesGcmParams,
+  secret: Uint8Array,
+  data: Buffer
+) {
+  const cipher = nodeCrypto.createCipheriv(
+    'aes-256-gcm',
+    secret,
+    Buffer.from(algorithm.iv as ArrayBuffer),
+    {
+      authTagLength: (algorithm.tagLength || 128) >> 3,
+    }
+  )
+  if (algorithm.additionalData) {
+    cipher.setAAD(Buffer.from(algorithm.additionalData as ArrayBuffer))
+  }
+  let enc = cipher.update(data)
+  enc = Buffer.concat([enc, cipher.final(), cipher.getAuthTag()])
+  const res = new Uint8Array(enc).buffer
+  return res
+}
+
+// This is a variation of @peculiar/webcrypto's AES-256-GCM decryption which uses Node crypto
+// and is more React Native friendly. https://github.com/PeculiarVentures/webcrypto/blob/7a3f11f3fd7df282084ce377d4be2e3b8b7ac118/src/mechs/aes/crypto.ts#L150-L161
+async function decryptNodeAesGCM(
+  algorithm: AesGcmParams,
+  secret: Uint8Array,
+  data: Buffer
+) {
+  const decipher = nodeCrypto.createDecipheriv(
+    'aes-256-gcm',
+    secret,
+    new Uint8Array(algorithm.iv as ArrayBuffer)
+  )
+  const tagLength = (algorithm.tagLength || 128) >> 3
+  const enc = data.slice(0, data.length - tagLength)
+  const tag = data.slice(data.length - tagLength)
+  if (algorithm.additionalData) {
+    decipher.setAAD(Buffer.from(algorithm.additionalData as ArrayBuffer))
+  }
+  decipher.setAuthTag(tag)
+  let dec = decipher.update(enc)
+  dec = Buffer.concat([dec, decipher.final()])
+  return new Uint8Array(dec).buffer
 }
