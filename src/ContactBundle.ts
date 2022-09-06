@@ -1,4 +1,4 @@
-import { xmtpEnvelope as proto, contact, publicKey } from '@xmtp/proto'
+import { contact, publicKey } from '@xmtp/proto'
 import { PublicKeyBundle } from './crypto'
 import PublicKey from './crypto/PublicKey'
 
