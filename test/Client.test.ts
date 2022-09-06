@@ -350,6 +350,15 @@ describe('Client', () => {
         assert.equal(msg.senderAddress, alice.address)
         assert.equal(msg.content, 'Hello from Alice')
       })
+
+      it('handles limiting page size', async () => {
+        const bobConvo = await alice.conversations.newConversation(bob.address)
+        for (let i = 0; i < 5; i++) {
+          await bobConvo.send('hi')
+        }
+        const messages = await bobConvo.messages({ limit: 2 })
+        expect(messages).toHaveLength(2)
+      })
     })
   })
 })
