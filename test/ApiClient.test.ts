@@ -54,6 +54,16 @@ describe('Query', () => {
     })
   })
 
+  it('stops when limit is used', async () => {
+    const apiMock = createQueryMock([createEnvelope()], 3)
+    const result = await client.query(
+      { contentTopics: [CONTENT_TOPIC] },
+      { limit: 2 }
+    )
+    expect(result).toHaveLength(2)
+    expect(apiMock).toHaveBeenCalledTimes(2)
+  })
+
   it('stops when receiving some results and a null cursor', async () => {
     const apiMock = createQueryMock([createEnvelope()], 1)
     const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})

@@ -181,7 +181,7 @@ export default class ApiClient {
       for (const envelope of page) {
         out.push(envelope)
         if (limit && out.length === limit) {
-          break
+          return out
         }
       }
     }
