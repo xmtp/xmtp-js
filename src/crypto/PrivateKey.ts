@@ -1,4 +1,4 @@
-import { privateKey, publicKey } from '@xmtp/proto'
+import { privateKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature from './Signature'
