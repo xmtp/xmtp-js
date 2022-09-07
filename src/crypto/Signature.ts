@@ -1,13 +1,14 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { signature } from '@xmtp/proto'
 import Long from 'long'
 import * as secp from '@noble/secp256k1'
 import PublicKey from './PublicKey'
 
 // Signature represents an ECDSA signature with recovery bit.
-export default class Signature implements proto.Signature {
-  ecdsaCompact: proto.Signature_ECDSACompact | undefined // eslint-disable-line camelcase
+export default class Signature implements signature.Signature {
+  ecdsaCompact: signature.Signature_ECDSACompact | undefined // eslint-disable-line camelcase
+  walletEcdsaCompact: signature.Signature_WalletECDSACompact | undefined // eslint-disable-line camelcase
 
-  constructor(obj: proto.Signature) {
+  constructor(obj: Partial<signature.Signature>) {
     if (!obj.ecdsaCompact) {
       throw new Error('invalid signature')
     }
@@ -43,10 +44,10 @@ export default class Signature implements proto.Signature {
   }
 
   toBytes(): Uint8Array {
-    return proto.Signature.encode(this).finish()
+    return signature.Signature.encode(this).finish()
   }
 
   static fromBytes(bytes: Uint8Array): Signature {
-    return new Signature(proto.Signature.decode(bytes))
+    return new Signature(signature.Signature.decode(bytes))
   }
 }

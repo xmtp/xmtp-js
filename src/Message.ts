@@ -13,7 +13,7 @@ import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 import { ContentTypeId } from './MessageContent'
 
-const extractV1Message = (msg: proto.Message): proto.V1Message => {
+const extractV1Message = (msg: proto.Message): proto.MessageV1 => {
   if (!msg.v1) {
     throw new Error('Message is not of type v1')
   }
@@ -23,8 +23,8 @@ const extractV1Message = (msg: proto.Message): proto.V1Message => {
 // Message is basic unit of communication on the network.
 // Message header carries the sender and recipient keys used to protect message.
 // Message timestamp is set by the sender.
-export default class Message implements proto.V1Message {
-  header: proto.MessageHeader // eslint-disable-line camelcase
+export default class Message implements proto.MessageV1 {
+  header: proto.MessageHeaderV1 // eslint-disable-line camelcase
   headerBytes: Uint8Array // encoded header bytes
   ciphertext: Ciphertext
   decrypted?: Uint8Array
@@ -46,7 +46,7 @@ export default class Message implements proto.V1Message {
     id: string,
     bytes: Uint8Array,
     obj: proto.Message,
-    header: proto.MessageHeader
+    header: proto.MessageHeaderV1
   ) {
     const msg = extractV1Message(obj)
     this.id = id
@@ -65,7 +65,7 @@ export default class Message implements proto.V1Message {
 
   static async create(
     obj: proto.Message,
-    header: proto.MessageHeader,
+    header: proto.MessageHeaderV1,
     bytes: Uint8Array
   ): Promise<Message> {
     const id = bytesToHex(await sha256(bytes))
@@ -75,7 +75,7 @@ export default class Message implements proto.V1Message {
   static async fromBytes(bytes: Uint8Array): Promise<Message> {
     const msg = proto.Message.decode(bytes)
     const innerMessage = extractV1Message(msg)
-    const header = proto.MessageHeader.decode(innerMessage.headerBytes)
+    const header = proto.MessageHeaderV1.decode(innerMessage.headerBytes)
     return Message.create(msg, header, bytes)
   }
 
@@ -116,14 +116,17 @@ export default class Message implements proto.V1Message {
       false
     )
     // eslint-disable-next-line camelcase
-    const header: proto.MessageHeader = {
+    const header: proto.MessageHeaderV1 = {
       sender: sender.getPublicKeyBundle(),
       recipient,
       timestamp: Long.fromNumber(timestamp.getTime()),
     }
-    const headerBytes = proto.MessageHeader.encode(header).finish()
+    const headerBytes = proto.MessageHeaderV1.encode(header).finish()
     const ciphertext = await encrypt(message, secret, headerBytes)
-    const protoMsg = { v1: { headerBytes: headerBytes, ciphertext } }
+    const protoMsg = {
+      v1: { headerBytes: headerBytes, ciphertext },
+      v2: undefined,
+    }
     const bytes = proto.Message.encode(protoMsg).finish()
     const msg = await Message.create(protoMsg, header, bytes)
     msg.decrypted = message
@@ -139,7 +142,7 @@ export default class Message implements proto.V1Message {
   ): Promise<Message> {
     const message = proto.Message.decode(bytes)
     const v1Message = extractV1Message(message)
-    const header = proto.MessageHeader.decode(v1Message.headerBytes)
+    const header = proto.MessageHeaderV1.decode(v1Message.headerBytes)
     if (!header) {
       throw new Error('missing message header')
     }

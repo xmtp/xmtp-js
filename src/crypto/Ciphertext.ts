@@ -1,4 +1,4 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { ciphertext } from '@xmtp/proto'
 
 export const AESKeySize = 32 // bytes
 export const KDFSaltSize = 32 // bytes
@@ -8,10 +8,10 @@ export const AESGCMTagLength = 16 // property tagLength
 
 // Ciphertext packages the encrypted ciphertext with the salt and nonce used to produce it.
 // salt and nonce are not secret, and should be transmitted/stored along with the encrypted ciphertext.
-export default class Ciphertext implements proto.Ciphertext {
-  aes256GcmHkdfSha256: proto.Ciphertext_Aes256gcmHkdfsha256 | undefined // eslint-disable-line camelcase
+export default class Ciphertext implements ciphertext.Ciphertext {
+  aes256GcmHkdfSha256: ciphertext.Ciphertext_Aes256gcmHkdfsha256 | undefined // eslint-disable-line camelcase
 
-  constructor(obj: proto.Ciphertext) {
+  constructor(obj: ciphertext.Ciphertext) {
     if (!obj.aes256GcmHkdfSha256) {
       throw new Error('invalid ciphertext')
     }
@@ -34,10 +34,10 @@ export default class Ciphertext implements proto.Ciphertext {
   }
 
   toBytes(): Uint8Array {
-    return proto.Ciphertext.encode(this).finish()
+    return ciphertext.Ciphertext.encode(this).finish()
   }
 
   static fromBytes(bytes: Uint8Array): Ciphertext {
-    return new Ciphertext(proto.Ciphertext.decode(bytes))
+    return new Ciphertext(ciphertext.Ciphertext.decode(bytes))
   }
 }

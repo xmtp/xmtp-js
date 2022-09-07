@@ -1,4 +1,4 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { publicKey } from '@xmtp/proto'
 import { ContentTypeId, ContentCodec, PublicKey, EncodedContent } from '../src'
 
 export const ContentTypeTestKey = new ContentTypeId({
@@ -17,11 +17,11 @@ export class TestKeyCodec implements ContentCodec<PublicKey> {
     return {
       type: ContentTypeTestKey,
       parameters: {},
-      content: proto.PublicKey.encode(key).finish(),
+      content: publicKey.PublicKey.encode(key).finish(),
     }
   }
 
   decode(content: EncodedContent): PublicKey {
-    return new PublicKey(proto.PublicKey.decode(content.content))
+    return new PublicKey(publicKey.PublicKey.decode(content.content))
   }
 }

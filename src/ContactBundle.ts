@@ -1,9 +1,9 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { contact, publicKey } from '@xmtp/proto'
 import { PublicKeyBundle } from './crypto'
 import PublicKey from './crypto/PublicKey'
 
 // ContactBundle packages all the infromation which a client uses to advertise on the network.
-export default class ContactBundle implements proto.ContactBundleV1 {
+export default class ContactBundle implements contact.ContactBundleV1 {
   keyBundle: PublicKeyBundle
 
   constructor(publicKeyBundle: PublicKeyBundle) {
@@ -14,10 +14,11 @@ export default class ContactBundle implements proto.ContactBundleV1 {
   }
 
   toBytes(): Uint8Array {
-    return proto.ContactBundle.encode({
+    return contact.ContactBundle.encode({
       v1: {
         keyBundle: this.keyBundle,
       },
+      v2: undefined,
     }).finish()
   }
 
@@ -42,9 +43,9 @@ export default class ContactBundle implements proto.ContactBundleV1 {
     )
   }
 
-  static decodeV1(bytes: Uint8Array): proto.PublicKeyBundle | undefined {
+  static decodeV1(bytes: Uint8Array): publicKey.PublicKeyBundle | undefined {
     try {
-      const b = proto.ContactBundle.decode(bytes)
+      const b = contact.ContactBundle.decode(bytes)
       return b.v1?.keyBundle
     } catch (e) {
       if (
@@ -53,7 +54,7 @@ export default class ContactBundle implements proto.ContactBundleV1 {
       ) {
         // Adds a default fallback for older versions of the proto (Which may also fail)
         try {
-          return proto.PublicKeyBundle.decode(bytes)
+          return publicKey.PublicKeyBundle.decode(bytes)
         } catch (e) {
           throw new Error("Couldn't decode contact bundle: " + e)
         }
