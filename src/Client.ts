@@ -161,7 +161,6 @@ export default class Client {
     wallet: Signer | null,
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
-    console.log('Is in beta channel')
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
