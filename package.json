@@ -55,7 +55,10 @@
   "release": {
     "branches": [
       "main",
-      "next"
+      {
+        "name": "beta",
+        "prerelease": true
+      }
     ]
   },
   "dependencies": {
