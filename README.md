@@ -8,29 +8,29 @@
 
 **XMTP client SDK for JavaScript applications**
 
-`xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript and React applications.
+`xmtp-js` provides a TypeScript implementation of an XMTP client for use with JavaScript and React applications.
 
 Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
 
-For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app](https://github.com/xmtp/example-chat-react).
+For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app repo](https://github.com/xmtp/example-chat-react).
 
 `xmtp-js` has not undergone a formal security audit.
 
-To learn more about XMTP and get answers to frequently asked questions, see <https://xmtp.org/docs/>.
+To learn more about XMTP and get answers to frequently asked questions, see [FAQ about XMTP](https://xmtp.org/docs/dev-concepts/faq).
 
 ## 🏗 **Breaking revisions**
 
 Because `xmtp-js` is in active development, you should expect breaking revisions that might require you to adopt the latest SDK release to enable your app to continue working as expected.
 
-XMTP communicates about breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
+XMTP communicates about breaking revisions in the [XMTP Discord community](https://discord.gg/xmtp), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
 
-Issues and PRs are welcome in accordance with our [contribution guidelines](CONTRIBUTING.md).
+Issues and PRs are welcome in accordance with our [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
 
 ## XMTP `production` and `dev` network environments
 
 XMTP provides both `production` and `dev` network environments to support the development phases of your project.
 
-The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)).
+The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the [XMTP Discord community](https://discord.gg/xmtp).
 
 To learn how to set your client's network environment, see [Configuring the Client](#configuring-the-client).
 
