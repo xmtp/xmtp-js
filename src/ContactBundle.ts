@@ -1,6 +1,6 @@
 import { contact, publicKey } from '@xmtp/proto'
 import { PublicKeyBundle } from './crypto'
-import PublicKey from './crypto/PublicKey'
+import { PublicKey } from './crypto/PublicKey'
 
 // ContactBundle packages all the infromation which a client uses to advertise on the network.
 export default class ContactBundle implements contact.ContactBundleV1 {

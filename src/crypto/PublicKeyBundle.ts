@@ -1,5 +1,5 @@
 import { publicKey } from '@xmtp/proto'
-import PublicKey from './PublicKey'
+import { PublicKey } from './PublicKey'
 
 // PublicKeyBundle packages all the keys that a participant should advertise.
 // The PreKey must be signed by the IdentityKey.

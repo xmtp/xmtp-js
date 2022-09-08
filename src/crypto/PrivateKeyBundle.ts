@@ -1,9 +1,9 @@
 import { privateKey as proto } from '@xmtp/proto'
-import PrivateKey from './PrivateKey'
-import PublicKey from './PublicKey'
+import { PrivateKey } from './PrivateKey'
+import { PublicKey } from './PublicKey'
 import PublicKeyBundle from './PublicKeyBundle'
 import Ciphertext from './Ciphertext'
-import * as ethers from 'ethers'
+import { Signer } from 'ethers'
 import { bytesToHex, getRandomValues, hexToBytes } from './utils'
 import { decrypt, encrypt } from './encryption'
 import { NoMatchingPreKeyError } from './errors'
@@ -22,7 +22,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
 
   // Generate a new key bundle with the preKey signed byt the identityKey.
   // Optionally sign the identityKey with the provided wallet as well.
-  static async generate(wallet?: ethers.Signer): Promise<PrivateKeyBundle> {
+  static async generate(wallet?: Signer): Promise<PrivateKeyBundle> {
     const identityKey = PrivateKey.generate()
     if (wallet) {
       await identityKey.publicKey.signWithWallet(wallet)
@@ -100,7 +100,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
 
   static storageSigRequestText(preKey: Uint8Array): string {
     // Note that an update to this signature request text will require
-    // addition of backward compatability for existing encrypted bundles
+    // addition of backward compatibility for existing encrypted bundles
     // and/or a migration; otherwise clients will no longer be able to
     // decrypt those bundles.
     return (
@@ -112,7 +112,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
   }
 
   // encrypts/serializes the bundle for storage
-  async toEncryptedBytes(wallet: ethers.Signer): Promise<Uint8Array> {
+  async toEncryptedBytes(wallet: Signer): Promise<Uint8Array> {
     // serialize the contents
     if (this.preKeys.length === 0) {
       throw new Error('missing pre-keys')
@@ -125,6 +125,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
         identityKey: this.identityKey,
         preKeys: this.preKeys,
       },
+      v2: undefined,
     }).finish()
     const wPreKey = getRandomValues(new Uint8Array(32))
     const secret = hexToBytes(
@@ -140,7 +141,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
   }
 
   encode(): Uint8Array {
-    return proto.PrivateKeyBundle.encode({ v1: this }).finish()
+    return proto.PrivateKeyBundle.encode({ v1: this, v2: undefined }).finish()
   }
 
   static decode(bytes: Uint8Array): PrivateKeyBundle {
@@ -156,7 +157,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
 
   // decrypts/deserializes the bundle from storage bytes
   static async fromEncryptedBytes(
-    wallet: ethers.Signer,
+    wallet: Signer,
     bytes: Uint8Array
   ): Promise<PrivateKeyBundle> {
     const [eBundle, needsUpdateA] = getEncryptedV1Bundle(bytes)
