@@ -47,7 +47,7 @@ Additional configuration is required in React environments due to the removal of
 Use `react-scripts` prior to version `5.0.0`. For example:
 
 ```bash
-npx create-react-app --scripts-version 4.0.2
+npx create-react-app my-app --scripts-version 4.0.2
 ```
 
 Or downgrade after creating your app.
