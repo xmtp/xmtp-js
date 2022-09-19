@@ -38,7 +38,7 @@ describe('TopicKeyManager', () => {
     keyManager.addDirectMessageTopic(TOPICS[0], record, sender, sentAt)
 
     // Lookup latest result by address
-    const topicResultByAddress = keyManager.getLatestDirectMessageTopic(
+    const topicResultByAddress = keyManager.getLatestByWalletAddress(
       senderWallet.address
     )
     expect(topicResultByAddress?.contentTopic).toEqual(TOPICS[0])
@@ -47,14 +47,12 @@ describe('TopicKeyManager', () => {
     )
 
     // Lookup all results by address
-    const allResults = keyManager.getAllDirectMessageTopics(
-      senderWallet.address
-    )
+    const allResults = keyManager.getAllByWalletAddress(senderWallet.address)
     expect(allResults).toHaveLength(1)
     expect(allResults[0]).toEqual(topicResultByAddress)
 
     // Lookup result by topic
-    const topicResultByTopic = keyManager.getTopicResult(TOPICS[0])
+    const topicResultByTopic = keyManager.getByTopic(TOPICS[0])
     expect(topicResultByTopic).toEqual(topicResultByAddress)
   })
 
@@ -73,16 +71,16 @@ describe('TopicKeyManager', () => {
 
     // Should use the record with the latest date
     expect(
-      keyManager.getLatestDirectMessageTopic(senderWallet.address)?.contentTopic
+      keyManager.getLatestByWalletAddress(senderWallet.address)?.contentTopic
     ).toEqual(TOPICS[1])
 
     // Should return both results
-    expect(
-      keyManager.getAllDirectMessageTopics(senderWallet.address)
-    ).toHaveLength(2)
+    expect(keyManager.getAllByWalletAddress(senderWallet.address)).toHaveLength(
+      2
+    )
 
     // It should still be possible to look up the older topic using the topic name directly
-    expect(keyManager.getTopicResult(TOPICS[0])?.topicKey.keyMaterial).toEqual(
+    expect(keyManager.getByTopic(TOPICS[0])?.topicKey.keyMaterial).toEqual(
       record1.keyMaterial
     )
   })
@@ -99,6 +97,7 @@ describe('TopicKeyManager', () => {
       sender,
       new Date()
     )
+
     expect(() =>
       keyManager.addDirectMessageTopic(
         TOPICS[0],

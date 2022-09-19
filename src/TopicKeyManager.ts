@@ -80,7 +80,7 @@ export default class TopicKeyManager {
   }
 
   // Would be used to get all information required to decrypt/validate a given message
-  getTopicResult(contentTopic: string): TopicResult | undefined {
+  getByTopic(contentTopic: string): TopicResult | undefined {
     const topicKey = this.topicKeys.get(contentTopic)
     if (!topicKey) {
       return undefined
@@ -92,20 +92,20 @@ export default class TopicKeyManager {
   }
 
   // Would be used to know which topic/key to use to send to a given wallet address
-  getLatestDirectMessageTopic(walletAddress: string): TopicResult | undefined {
+  getLatestByWalletAddress(walletAddress: string): TopicResult | undefined {
     const walletTopics = this.dmTopics.get(walletAddress)
     if (!walletTopics || !walletTopics.length) {
       return undefined
     }
     const newestTopic = findLatestTopic(walletTopics)
-    return this.getTopicResult(newestTopic.contentTopic)
+    return this.getByTopic(newestTopic.contentTopic)
   }
 
   // Would be used to get the topic list to listen for all messages from a given wallet address
-  getAllDirectMessageTopics(walletAddress: string): TopicResult[] {
+  getAllByWalletAddress(walletAddress: string): TopicResult[] {
     const dmTopics = this.dmTopics
       .get(walletAddress)
-      ?.map(({ contentTopic }) => this.getTopicResult(contentTopic))
+      ?.map(({ contentTopic }) => this.getByTopic(contentTopic))
       .filter((res) => !!res) as TopicResult[]
 
     return dmTopics || []
