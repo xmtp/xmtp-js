@@ -1,23 +1,26 @@
-import PrivateKey from './crypto/PrivateKey'
-import PrivateKeyBundle from './crypto/PrivateKeyBundle'
 import PublicKeyBundle from './crypto/PublicKeyBundle'
 
-enum EncryptionAlgorithm {
+export enum EncryptionAlgorithm {
   AES_256_GCM_HKDF_SHA_256,
 }
 
-type TopicKeyRecord = {
+// TopicKeyRecord encapsulates the key, algorithm, and a list of allowed signers
+export type TopicKeyRecord = {
   keyMaterial: Uint8Array
   encryptionAlgorithm: EncryptionAlgorithm
+  // Callers should validate that the signature comes from the list of allowed signers
+  // Not strictly necessary, but it prevents against compromised topic keys being
+  // used by third parties who would sign the message with a different key
   allowedSigners: PublicKeyBundle[]
 }
 
-type TopicResult = {
-  // This would never include the client. We can assume you are in every topic available
+// TopicResult is the public interface for receiving a TopicKey
+export type TopicResult = {
   topicKey: TopicKeyRecord
   contentTopic: string
 }
 
+// Internal data structure used to store the relationship between a topic and a wallet address
 type WalletTopicRecord = {
   contentTopic: string
   createdAt: Date
@@ -26,17 +29,39 @@ type WalletTopicRecord = {
 type ContentTopic = string
 type WalletAddress = string
 
-export default class KeyManager {
-  privateKeyBundle: PrivateKeyBundle
+export class DuplicateTopicError extends Error {
+  constructor(topic: string) {
+    super(`Topic ${topic} has already been added`)
+    this.name = 'DuplicateTopicError'
+    Object.setPrototypeOf(this, DuplicateTopicError.prototype)
+  }
+}
+
+const findLatestTopic = (records: WalletTopicRecord[]): WalletTopicRecord => {
+  let latestRecord: WalletTopicRecord | undefined
+  for (const record of records) {
+    if (!latestRecord || record.createdAt > latestRecord.createdAt) {
+      latestRecord = record
+    }
+  }
+  if (!latestRecord) {
+    throw new Error('No record found')
+  }
+  return latestRecord
+}
+
+export default class TopicKeyManager {
+  // Mapping of content topics to the keys used for decryption on that topic
   private topicKeys: Map<ContentTopic, TopicKeyRecord>
+  // Mapping of wallet addresses and topics
   private dmTopics: Map<WalletAddress, WalletTopicRecord[]>
 
-  constructor(bundle: PrivateKeyBundle) {
+  constructor() {
     this.topicKeys = new Map<ContentTopic, TopicKeyRecord>()
     this.dmTopics = new Map<WalletAddress, WalletTopicRecord[]>()
-    this.privateKeyBundle = bundle
   }
 
+  // Create a TopicKeyRecord for the topic and store it for later access
   addDirectMessageTopic(
     contentTopic: string,
     key: TopicKeyRecord,
@@ -44,7 +69,7 @@ export default class KeyManager {
     createdAt: Date
   ): void {
     if (this.topicKeys.has(contentTopic)) {
-      throw new Error('Topic key has already been set')
+      throw new DuplicateTopicError(contentTopic)
     }
     this.topicKeys.set(contentTopic, key)
 
@@ -72,7 +97,7 @@ export default class KeyManager {
     if (!walletTopics || !walletTopics.length) {
       return undefined
     }
-    const newestTopic = this.findLatestTopic(walletTopics)
+    const newestTopic = findLatestTopic(walletTopics)
     return this.getTopicResult(newestTopic.contentTopic)
   }
 
@@ -84,18 +109,5 @@ export default class KeyManager {
       .filter((res) => !!res) as TopicResult[]
 
     return dmTopics || []
-  }
-
-  private findLatestTopic(records: WalletTopicRecord[]): WalletTopicRecord {
-    let latestRecord: WalletTopicRecord | undefined
-    for (const record of records) {
-      if (!latestRecord || record.createdAt > latestRecord.createdAt) {
-        latestRecord = record
-      }
-    }
-    if (!latestRecord) {
-      throw new Error('No record found')
-    }
-    return latestRecord
   }
 }
