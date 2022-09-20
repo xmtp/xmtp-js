@@ -9,7 +9,7 @@ import PrivateKeyBundle from '../src/crypto/PrivateKeyBundle'
 import PublicKeyBundle from '../src/crypto/PublicKeyBundle'
 import { newWallet } from './helpers'
 
-const TOPICS = ['topic1', 'topic2', 'topic3']
+const TOPICS = ['topic1', 'topic2']
 
 const createTopicKeyRecord = (
   allowedSigners: PublicKeyBundle[] = []
@@ -54,6 +54,12 @@ describe('TopicKeyManager', () => {
     // Lookup result by topic
     const topicResultByTopic = keyManager.getByTopic(TOPICS[0])
     expect(topicResultByTopic).toEqual(topicResultByAddress)
+  })
+
+  it('returns undefined when no topic key has been added', async () => {
+    expect(keyManager.getByTopic(TOPICS[0])).toBeUndefined()
+    expect(keyManager.getLatestByWalletAddress(TOPICS[0])).toBeUndefined()
+    expect(keyManager.getAllByWalletAddress(TOPICS[0])).toHaveLength(0)
   })
 
   it('can add multiple topic keys for a wallet', async () => {
