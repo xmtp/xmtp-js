@@ -1,6 +1,5 @@
 import * as assert from 'assert'
 import ContactBundle from '../src/ContactBundle'
-import * as ethers from 'ethers'
 import { PrivateKeyBundle } from '../src'
 
 describe('ContactBundles', function () {
