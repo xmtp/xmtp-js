@@ -4,7 +4,9 @@ export enum EncryptionAlgorithm {
   AES_256_GCM_HKDF_SHA_256,
 }
 
-// TopicKeyRecord encapsulates the key, algorithm, and a list of allowed signers
+/**
+ * TopicKeyRecord encapsulates the key, algorithm, and a list of allowed signers
+ */
 export type TopicKeyRecord = {
   keyMaterial: Uint8Array
   encryptionAlgorithm: EncryptionAlgorithm
@@ -14,7 +16,9 @@ export type TopicKeyRecord = {
   allowedSigners: PublicKeyBundle[]
 }
 
-// TopicResult is the public interface for receiving a TopicKey
+/**
+ * TopicResult is the public interface for receiving a TopicKey
+ */
 export type TopicResult = {
   topicKey: TopicKeyRecord
   contentTopic: string
@@ -29,6 +33,9 @@ type WalletTopicRecord = {
 type ContentTopic = string
 type WalletAddress = string
 
+/**
+ * Custom error type for cases where the caller attempted to add a second key to the same topic
+ */
 export class DuplicateTopicError extends Error {
   constructor(topic: string) {
     super(`Topic ${topic} has already been added`)
@@ -50,6 +57,9 @@ const findLatestTopic = (records: WalletTopicRecord[]): WalletTopicRecord => {
   return latestRecord
 }
 
+/**
+ * TopicKeyManager stores the mapping between topics -> keys and wallet addresses -> keys
+ */
 export default class TopicKeyManager {
   // Mapping of content topics to the keys used for decryption on that topic
   private topicKeys: Map<ContentTopic, TopicKeyRecord>
@@ -61,7 +71,14 @@ export default class TopicKeyManager {
     this.dmTopics = new Map<WalletAddress, WalletTopicRecord[]>()
   }
 
-  // Create a TopicKeyRecord for the topic and store it for later access
+  /**
+   * Create a TopicKeyRecord for the topic and store it for later access
+   *
+   * @param contentTopic The topic
+   * @param key TopicKeyRecord that contains the topic key and encryption algorithm
+   * @param counterparty The other user's PublicKeyBundle
+   * @param createdAt Date
+   */
   addDirectMessageTopic(
     contentTopic: string,
     key: TopicKeyRecord,
@@ -79,7 +96,12 @@ export default class TopicKeyManager {
     this.dmTopics.set(walletAddress, counterpartyTopicList)
   }
 
-  // Would be used to get all information required to decrypt/validate a given message
+  /**
+   * Would be used to get all information required to decrypt/validate a given message
+   *
+   * @param contentTopic The topic name
+   * @returns TopicResult | undefined
+   */
   getByTopic(contentTopic: string): TopicResult | undefined {
     const topicKey = this.topicKeys.get(contentTopic)
     if (!topicKey) {
@@ -91,7 +113,12 @@ export default class TopicKeyManager {
     }
   }
 
-  // Would be used to know which topic/key to use to send to a given wallet address
+  /**
+   *  Used to know which topic/key to use to send to a given wallet address
+   *
+   * @param walletAddress The wallet address
+   * @returns TopicResult | undefined
+   */
   getLatestByWalletAddress(walletAddress: string): TopicResult | undefined {
     const walletTopics = this.dmTopics.get(walletAddress)
     if (!walletTopics || !walletTopics.length) {
@@ -101,7 +128,12 @@ export default class TopicKeyManager {
     return this.getByTopic(newestTopic.contentTopic)
   }
 
-  // Would be used to get the topic list to listen for all messages from a given wallet address
+  /**
+   * Used to get the topic list to listen for all messages from a given wallet address
+   *
+   * @param walletAddress The wallet address
+   * @returns TopicResult[]
+   */
   getAllByWalletAddress(walletAddress: string): TopicResult[] {
     const dmTopics = this.dmTopics
       .get(walletAddress)
