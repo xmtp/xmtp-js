@@ -1,6 +1,6 @@
 import * as assert from 'assert'
 import { PrivateKey, PrivateKeyBundle } from '../../src/crypto'
-import * as ethers from 'ethers'
+import { Wallet } from 'ethers'
 import { hexToBytes } from '../../src/crypto/utils'
 
 describe('Crypto', function () {
@@ -9,7 +9,7 @@ describe('Crypto', function () {
       // create a wallet using a generated key
       const bobPri = PrivateKey.generate()
       assert.ok(bobPri.secp256k1)
-      const wallet = new ethers.Wallet(bobPri.secp256k1.bytes)
+      const wallet = new Wallet(bobPri.secp256k1.bytes)
       // generate key bundle
       const bob = await PrivateKeyBundle.generate(wallet)
       // encrypt and serialize the bundle for storage
@@ -48,7 +48,7 @@ describe('Crypto', function () {
         )
       )
       assert.ok(pri.secp256k1)
-      const wallet = new ethers.Wallet(pri.secp256k1.bytes)
+      const wallet = new Wallet(pri.secp256k1.bytes)
       const bundle = await PrivateKeyBundle.generate(wallet)
       const preKey = hexToBytes(
         'f51bd1da9ec2239723ae2cf6a9f8d0ac37546b27e634002c653d23bacfcc67ad'

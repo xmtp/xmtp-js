@@ -8,7 +8,6 @@ import {
   encrypt,
   decrypt,
 } from '../../src/crypto'
-import * as ethers from 'ethers'
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
