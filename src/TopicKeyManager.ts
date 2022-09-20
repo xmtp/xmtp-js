@@ -98,9 +98,6 @@ export default class TopicKeyManager {
 
   /**
    * Would be used to get all information required to decrypt/validate a given message
-   *
-   * @param contentTopic The topic name
-   * @returns TopicResult | undefined
    */
   getByTopic(contentTopic: string): TopicResult | undefined {
     const topicKey = this.topicKeys.get(contentTopic)
@@ -115,9 +112,6 @@ export default class TopicKeyManager {
 
   /**
    *  Used to know which topic/key to use to send to a given wallet address
-   *
-   * @param walletAddress The wallet address
-   * @returns TopicResult | undefined
    */
   getLatestByWalletAddress(walletAddress: string): TopicResult | undefined {
     const walletTopics = this.dmTopics.get(walletAddress)
@@ -130,9 +124,6 @@ export default class TopicKeyManager {
 
   /**
    * Used to get the topic list to listen for all messages from a given wallet address
-   *
-   * @param walletAddress The wallet address
-   * @returns TopicResult[]
    */
   getAllByWalletAddress(walletAddress: string): TopicResult[] {
     const dmTopics = this.dmTopics
