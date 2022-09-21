@@ -10,8 +10,6 @@ export const { MessageApi, SortDirection } = messageApi
 const RETRY_SLEEP_TIME = 100
 const ERR_CODE_UNAUTHENTICATED = 16
 
-const getClientVersion = () => 'xmtp-js/' + getPackageVersion()
-
 const clientVersionHeaderKey = 'X-Client-Version'
 
 export type GrpcError = Error & { code?: number }
@@ -82,10 +80,12 @@ export default class ApiClient {
   pathPrefix: string
   maxRetries: number
   private authCache?: AuthCache
+  version: string
 
   constructor(pathPrefix: string, opts?: ApiClientOptions) {
     this.pathPrefix = pathPrefix
     this.maxRetries = opts?.maxRetries || 5
+    this.version = 'xmtp-js/' + getPackageVersion()
   }
 
   // Raw method for querying the API
@@ -100,7 +100,7 @@ export default class ApiClient {
           pathPrefix: this.pathPrefix,
           mode: 'cors',
           headers: new Headers({
-            [clientVersionHeaderKey]: getClientVersion(),
+            [clientVersionHeaderKey]: this.version,
           }),
         },
       ],
@@ -125,7 +125,7 @@ export default class ApiClient {
             mode: 'cors',
             headers: new Headers({
               Authorization: `Bearer ${authToken}`,
-              [clientVersionHeaderKey]: getClientVersion(),
+              [clientVersionHeaderKey]: this.version,
             }),
           },
         ],
@@ -161,7 +161,7 @@ export default class ApiClient {
         signal: abortController.signal,
         mode: 'cors',
         headers: new Headers({
-          [clientVersionHeaderKey]: getClientVersion(),
+          [clientVersionHeaderKey]: this.version,
         }),
       }).catch(async (err: GrpcError) => {
         if (isAbortError(err)) {
