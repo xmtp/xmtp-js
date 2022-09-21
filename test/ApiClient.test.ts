@@ -5,7 +5,7 @@ import Long from 'long'
 import { sleep } from './helpers'
 import { Authenticator } from '../src/authn'
 import { PrivateKey } from '../src'
-import getPackageVersion from '@jsbits/get-package-version'
+import { version } from '../package.json'
 const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
@@ -53,7 +53,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+        'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
   })
@@ -104,7 +104,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+        'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
   })
@@ -132,7 +132,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+        'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
   })
@@ -176,7 +176,7 @@ describe('Publish', () => {
       mode: 'cors',
       headers: new Headers({
         Authorization: `Bearer ${AUTH_TOKEN}`,
-        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+        'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
   })
@@ -251,7 +251,7 @@ describe('Subscribe', () => {
       signal: expect.anything(),
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+        'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
   })
