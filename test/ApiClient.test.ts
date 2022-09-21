@@ -5,6 +5,7 @@ import Long from 'long'
 import { sleep } from './helpers'
 import { Authenticator } from '../src/authn'
 import { PrivateKey } from '../src'
+import getPackageVersion from '@jsbits/get-package-version'
 const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
@@ -51,6 +52,9 @@ describe('Query', () => {
     expect(apiMock).toHaveBeenCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
+      headers: new Headers({
+        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+      }),
     })
   })
 
@@ -99,6 +103,9 @@ describe('Query', () => {
     expect(apiMock).toHaveBeenCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
+      headers: new Headers({
+        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+      }),
     })
   })
 
@@ -124,6 +131,9 @@ describe('Query', () => {
     expect(apiMock).toHaveBeenLastCalledWith(expectedReq, {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
+      headers: new Headers({
+        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+      }),
     })
   })
 })
@@ -164,7 +174,10 @@ describe('Publish', () => {
     expect(publishMock).toHaveBeenCalledWith(expectedRequest, {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
-      headers: new Headers({ Authorization: `Bearer ${AUTH_TOKEN}` }),
+      headers: new Headers({
+        Authorization: `Bearer ${AUTH_TOKEN}`,
+        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+      }),
     })
   })
 
@@ -237,6 +250,9 @@ describe('Subscribe', () => {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
+      headers: new Headers({
+        'X-Client-Version': 'xmtp-js/' + getPackageVersion(),
+      }),
     })
   })
 
