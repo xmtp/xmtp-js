@@ -4,10 +4,15 @@ import { retry, sleep } from './utils'
 import Long from 'long'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
+import getPackageVersion from '@jsbits/get-package-version'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
 const ERR_CODE_UNAUTHENTICATED = 16
+
+const getClientVersion = () => 'xmtp-js/' + getPackageVersion()
+
+const clientVersionHeaderKey = 'X-Client-Version'
 
 export type GrpcError = Error & { code?: number }
 
@@ -89,7 +94,16 @@ export default class ApiClient {
   ): ReturnType<typeof MessageApi.Query> {
     return retry(
       MessageApi.Query,
-      [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
+      [
+        req,
+        {
+          pathPrefix: this.pathPrefix,
+          mode: 'cors',
+          headers: new Headers({
+            [clientVersionHeaderKey]: getClientVersion(),
+          }),
+        },
+      ],
       this.maxRetries,
       RETRY_SLEEP_TIME
     )
@@ -109,7 +123,10 @@ export default class ApiClient {
           {
             pathPrefix: this.pathPrefix,
             mode: 'cors',
-            headers: new Headers({ Authorization: `Bearer ${authToken}` }),
+            headers: new Headers({
+              Authorization: `Bearer ${authToken}`,
+              [clientVersionHeaderKey]: getClientVersion(),
+            }),
           },
         ],
         this.maxRetries,
@@ -143,6 +160,9 @@ export default class ApiClient {
         pathPrefix: this.pathPrefix,
         signal: abortController.signal,
         mode: 'cors',
+        headers: new Headers({
+          [clientVersionHeaderKey]: getClientVersion(),
+        }),
       }).catch(async (err: GrpcError) => {
         if (isAbortError(err)) {
           return
