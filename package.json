@@ -59,7 +59,6 @@
     ]
   },
   "dependencies": {
-    "@jsbits/get-package-version": "^1.0.3",
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
     "@xmtp/proto": "^3.1.0",

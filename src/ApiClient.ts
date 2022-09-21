@@ -4,7 +4,7 @@ import { retry, sleep } from './utils'
 import Long from 'long'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
-import getPackageVersion from '@jsbits/get-package-version'
+import { version } from '../package.json'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
@@ -85,7 +85,7 @@ export default class ApiClient {
   constructor(pathPrefix: string, opts?: ApiClientOptions) {
     this.pathPrefix = pathPrefix
     this.maxRetries = opts?.maxRetries || 5
-    this.version = 'xmtp-js/' + getPackageVersion()
+    this.version = 'xmtp-js/' + version
   }
 
   // Raw method for querying the API
