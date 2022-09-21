@@ -6,7 +6,7 @@ import {
 import KeyManager from '../src/TopicKeyManager'
 import { crypto } from '../src/crypto/encryption'
 import PrivateKeyBundle from '../src/crypto/PrivateKeyBundle'
-import PublicKeyBundle from '../src/crypto/PublicKeyBundle'
+import { PublicKeyBundle } from '../src/crypto/PublicKeyBundle'
 import { newWallet } from './helpers'
 
 const TOPICS = ['topic1', 'topic2']

@@ -11,8 +11,7 @@ import {
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 import assert from 'assert'
-import { publicKey } from '@xmtp/proto'
-type PublicKeyBundle = publicKey.PublicKeyBundle
+import { PublicKeyBundle } from '../src/crypto'
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
