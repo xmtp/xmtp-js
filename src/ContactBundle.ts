@@ -2,6 +2,7 @@ import { contact, publicKey } from '@xmtp/proto'
 import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
 
 // ContactBundle packages all the information which a client uses to advertise on the network.
+// V1 uses the legacy PublicKeyBundle.
 export class ContactBundleV1 implements contact.ContactBundleV1 {
   keyBundle: PublicKeyBundle
 
@@ -22,6 +23,8 @@ export class ContactBundleV1 implements contact.ContactBundleV1 {
   }
 }
 
+// ContactBundle packages all the information which a client uses to advertise on the network.
+// V2 uses the SignedPublicKeyBundle.
 export class ContactBundleV2 implements contact.ContactBundleV2 {
   keyBundle: SignedPublicKeyBundle
 
@@ -42,8 +45,10 @@ export class ContactBundleV2 implements contact.ContactBundleV2 {
   }
 }
 
+// This is the union of all supported bundle versions.
 export type ContactBundle = ContactBundleV1 | ContactBundleV2
 
+// This is the primary function for reading contact bundles off the wire.
 export function DecodeContactBundle(bytes: Uint8Array): ContactBundle {
   let cb: contact.ContactBundle
   try {
