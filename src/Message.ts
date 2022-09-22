@@ -164,14 +164,14 @@ export default class Message implements proto.MessageV1 {
     if (!header.recipient.preKey) {
       throw new Error('missing message recipient pre-key')
     }
-    const recipient = new PublicKeyBundle(
-      new PublicKey(header.recipient.identityKey),
-      new PublicKey(header.recipient.preKey)
-    )
-    const sender = new PublicKeyBundle(
-      new PublicKey(header.sender.identityKey),
-      new PublicKey(header.sender.preKey)
-    )
+    const recipient = new PublicKeyBundle({
+      identityKey: new PublicKey(header.recipient.identityKey),
+      preKey: new PublicKey(header.recipient.preKey),
+    })
+    const sender = new PublicKeyBundle({
+      identityKey: new PublicKey(header.sender.identityKey),
+      preKey: new PublicKey(header.sender.preKey),
+    })
     if (!v1Message.ciphertext?.aes256GcmHkdfSha256) {
       throw new Error('missing message ciphertext')
     }

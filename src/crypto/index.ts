@@ -1,4 +1,4 @@
-import PublicKeyBundle from './PublicKeyBundle'
+import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
 import { SignedPrivateKey, PrivateKey } from './PrivateKey'
 import PrivateKeyBundle from './PrivateKeyBundle'
 import { UnsignedPublicKey, SignedPublicKey, PublicKey } from './PublicKey'
@@ -12,6 +12,7 @@ export {
   decrypt,
   UnsignedPublicKey,
   SignedPublicKey,
+  SignedPublicKeyBundle,
   PublicKey,
   PublicKeyBundle,
   PrivateKey,

@@ -1,7 +1,7 @@
 import { privateKey as proto } from '@xmtp/proto'
 import { PrivateKey } from './PrivateKey'
 import { PublicKey } from './PublicKey'
-import PublicKeyBundle from './PublicKeyBundle'
+import { PublicKeyBundle } from './PublicKeyBundle'
 import Ciphertext from './Ciphertext'
 import { Signer } from 'ethers'
 import { bytesToHex, getRandomValues, hexToBytes } from './utils'
@@ -55,10 +55,10 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
 
   // Return a key bundle with the current pre-key.
   getPublicKeyBundle(): PublicKeyBundle {
-    return new PublicKeyBundle(
-      this.identityKey.publicKey,
-      this.getCurrentPreKey().publicKey
-    )
+    return new PublicKeyBundle({
+      identityKey: this.identityKey.publicKey,
+      preKey: this.getCurrentPreKey().publicKey,
+    })
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol

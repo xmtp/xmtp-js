@@ -1,4 +1,4 @@
-import PublicKeyBundle from './crypto/PublicKeyBundle'
+import { PublicKeyBundle } from './crypto/PublicKeyBundle'
 
 export enum EncryptionAlgorithm {
   AES_256_GCM_HKDF_SHA_256,

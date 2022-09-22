@@ -24,8 +24,8 @@ import {
 } from './MessageContent'
 import { decompress, compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
-import ContactBundle from './ContactBundle'
-import ApiClient from './ApiClient'
+import { DecodeContactBundle } from './ContactBundle'
+import ApiClient, { SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
@@ -208,16 +208,17 @@ export default class Client {
     let recipientKey: PublicKeyBundle | null = null
     const stream = this.apiClient.queryIterator(
       { contentTopics: [buildUserContactTopic(peerAddress)] },
-      { pageSize: 5 }
+      { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
     )
 
     for await (const env of stream) {
       if (!env.message) continue
-      const bundle = ContactBundle.fromBytes(b64Decode(env.message.toString()))
+      const bundle = DecodeContactBundle(b64Decode(env.message.toString()))
       const keyBundle = bundle.keyBundle
 
       const address = keyBundle?.walletSignatureAddress()
-      if (address === peerAddress) {
+      // TODO: Ignore SignedPublicKeyBundles for now.
+      if (address === peerAddress && keyBundle instanceof PublicKeyBundle) {
         recipientKey = keyBundle
         break
       }
