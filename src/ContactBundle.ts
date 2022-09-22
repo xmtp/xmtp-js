@@ -42,8 +42,7 @@ export class ContactBundleV2 implements contact.ContactBundleV2 {
   }
 }
 
-type ContactBundle = ContactBundleV1 | ContactBundleV2
-export default ContactBundle
+export type ContactBundle = ContactBundleV1 | ContactBundleV2
 
 export function DecodeContactBundle(bytes: Uint8Array): ContactBundle {
   let cb: contact.ContactBundle
