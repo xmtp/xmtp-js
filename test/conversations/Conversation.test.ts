@@ -1,3 +1,4 @@
+import { buildDirectMessageTopic } from './../../src/utils'
 import { Client, Message } from '../../src'
 import { SortDirection } from '../../src/ApiClient'
 import { sleep } from '../../src/utils'
@@ -75,6 +76,26 @@ describe('conversation', () => {
         lastMessage = msg
       }
     }
+  })
+
+  it('ignores failed decoding of messages', async () => {
+    const aliceConversation = await alice.conversations.newConversation(
+      bob.address
+    )
+
+    // This should be readable
+    await aliceConversation.send('gm')
+    // This should not be readable
+    await alice.publishEnvelope({
+      message: Uint8Array.from([1, 2, 3]),
+      contentTopic: buildDirectMessageTopic(alice.address, bob.address),
+    })
+
+    let numMessages = 0
+    for await (const page of aliceConversation.messagesPaginated()) {
+      numMessages += page.length
+    }
+    expect(numMessages).toBe(1)
   })
 
   it('streams messages', async () => {
