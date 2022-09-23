@@ -45,15 +45,21 @@ describe('conversation', () => {
     for (let i = 0; i < 10; i++) {
       await aliceConversation.send('gm')
     }
+
     let numPages = 0
+    const messageIds = new Set<string>()
     for await (const page of aliceConversation.messagesPaginated({
       pageSize: 5,
     })) {
       numPages++
       expect(page).toHaveLength(5)
-      expect(page[0].content).toBe('gm')
+      for (const msg of page) {
+        expect(msg.content).toBe('gm')
+        messageIds.add(msg.id)
+      }
     }
     expect(numPages).toBe(2)
+    expect(messageIds.size).toBe(10)
 
     // Test sorting
     let lastMessage: Message | undefined = undefined
