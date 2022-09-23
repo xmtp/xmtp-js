@@ -1,4 +1,5 @@
-import { Client } from '../../src'
+import { Client, Message } from '../../src'
+import { SortDirection } from '../../src/ApiClient'
 import { sleep } from '../../src/utils'
 import { newLocalHostClient } from '../helpers'
 
@@ -34,6 +35,40 @@ describe('conversation', () => {
 
     expect(await aliceConversation.messages()).toHaveLength(2)
     expect(await bobConversation.messages()).toHaveLength(2)
+  })
+
+  it('lists paginated messages', async () => {
+    const aliceConversation = await alice.conversations.newConversation(
+      bob.address
+    )
+
+    for (let i = 0; i < 10; i++) {
+      await aliceConversation.send('gm')
+    }
+    let numPages = 0
+    for await (const page of aliceConversation.messagesPaginated({
+      pageSize: 5,
+    })) {
+      numPages++
+      expect(page).toHaveLength(5)
+      expect(page[0].content).toBe('gm')
+    }
+    expect(numPages).toBe(2)
+
+    // Test sorting
+    let lastMessage: Message | undefined = undefined
+    for await (const page of aliceConversation.messagesPaginated({
+      direction: SortDirection.SORT_DIRECTION_DESCENDING,
+    })) {
+      for (const msg of page) {
+        if (lastMessage && lastMessage.sent) {
+          expect(msg.sent?.valueOf()).toBeLessThanOrEqual(
+            lastMessage.sent?.valueOf()
+          )
+        }
+        lastMessage = msg
+      }
+    }
   })
 
   it('streams messages', async () => {

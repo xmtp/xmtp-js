@@ -1,3 +1,5 @@
+import { messageApi } from '@xmtp/proto'
+
 export type IsRetryable = (err?: Error) => boolean
 
 export const buildContentTopic = (name: string): string =>
@@ -68,5 +70,31 @@ export async function retry<T extends (...arg0: any[]) => any>(
     }
     await sleep(sleepTime)
     return retry(fn, args, maxRetries, sleepTime, isRetryableFn, currRetry + 1)
+  }
+}
+
+type EnvelopeMapper<Out> = (env: messageApi.Envelope) => Promise<Out>
+
+// Takes an async generator returning pages of envelopes and converts to an async
+// generator returning pages of an arbitrary type using a mapper function
+export async function* mapPaginatedStream<Out>(
+  gen: AsyncGenerator<messageApi.Envelope[]>,
+  mapper: EnvelopeMapper<Out>
+): AsyncGenerator<Out[]> {
+  for await (const page of gen) {
+    const results = await Promise.allSettled(page.map(mapper))
+    const out: Out[] = []
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        out.push(result.value)
+      } else {
+        console.warn(
+          'Failed to process envelope due to reason: ',
+          result.reason
+        )
+      }
+    }
+
+    yield out
   }
 }
