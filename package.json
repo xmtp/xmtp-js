@@ -63,8 +63,7 @@
     "@stardazed/streams-polyfill": "^2.4.0",
     "@xmtp/proto": "^3.1.0",
     "ethers": "^5.5.3",
-    "long": "^5.2.0",
-    "node-localstorage": "^2.2.1"
+    "long": "^5.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
@@ -85,6 +84,7 @@
     "eslint-plugin-promise": "^6.0.1",
     "husky": "^7.0.4",
     "jest": "^27.2.0",
+    "node-localstorage": "^2.2.1",
     "prettier": "^2.4.0",
     "semantic-release": "^19.0.2",
     "ts-jest": "^27.0.5",
