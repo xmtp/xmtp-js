@@ -206,7 +206,7 @@ const conversation = await xmtp.conversations.newConversation(
   '0x3F11b27F323b62B159D2642964fa27C46C841897'
 )
 
-for await (const page of conversation.messagesPaginated()) {
+for await (const page of conversation.messagesPaginated({ pageSize: 25 })) {
   for (const msg of page) {
     // Breaking from the loop will stop the client from requesting any further pages
     if (msg.content === 'gm') {
