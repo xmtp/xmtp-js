@@ -199,7 +199,7 @@ for (const conversation of await xmtp.conversations.list()) {
 
 #### List messages in a conversation with pagination
 
-For large conversations, it may be helpful to retrieve and process the messages page by page. You can do this by calling `conversation.messagesPaginated()` which will return an [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) yielding one page of results at a time. `conversation.messages()` uses this under the hood internally to fetch all messages.
+It may be helpful to retrieve and process the messages in a conversation page by page. You can do this by calling `conversation.messagesPaginated()` which will return an [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) yielding one page of results at a time. `conversation.messages()` uses this under the hood internally to gather all messages.
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
@@ -208,6 +208,10 @@ const conversation = await xmtp.conversations.newConversation(
 
 for await (const page of conversation.messagesPaginated()) {
   for (const msg of page) {
+    // Breaking from the loop will stop the client from requesting any further pages
+    if (msg.content === 'gm') {
+      break
+    }
     console.log(msg.content)
   }
 }
