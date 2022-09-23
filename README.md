@@ -197,6 +197,22 @@ for (const conversation of await xmtp.conversations.list()) {
 }
 ```
 
+#### List messages in a conversation with pagination
+
+For large conversations, it may be helpful to retrieve and process the messages page by page. You can do this by calling `conversation.messagesPaginated()` which will return an [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) yielding one page of results at a time. `conversation.messages()` uses this under the hood internally to fetch all messages.
+
+```ts
+const conversation = await xmtp.conversations.newConversation(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
+)
+
+for await (const page of conversation.messagesPaginated()) {
+  for (const msg of page) {
+    console.log(msg.content)
+  }
+}
+```
+
 #### Listen for new messages in a conversation
 
 You can listen for any new messages (incoming or outgoing) in a conversation by calling `conversation.streamMessages()`.
@@ -217,6 +233,8 @@ for await (const message of await conversation.streamMessages()) {
   console.log(`New message from ${message.senderAddress}: ${message.content}`)
 }
 ```
+
+
 
 #### Different types of content
 
