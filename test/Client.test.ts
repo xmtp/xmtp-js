@@ -66,7 +66,7 @@ describe('Client', () => {
           message: bobPublic.toBytes(),
           contentTopic: buildUserContactTopic(alice.address),
         })
-        const alicePublic = await alice.getUserContactFromNetwork(alice.address)
+        const alicePublic = await alice.getUserContact(alice.address)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
@@ -360,6 +360,25 @@ describe('Client', () => {
         expect(messages).toHaveLength(2)
       })
     })
+  })
+})
+
+describe('canMessage', () => {
+  it('can confirm a user is on the network statically', async () => {
+    const registeredClient = await newLocalHostClient()
+    const canMessageRegisteredClient = await Client.canMessage(
+      registeredClient.address,
+      {
+        env: 'local',
+      }
+    )
+    expect(canMessageRegisteredClient).toBeTruthy()
+
+    const canMessageUnregisteredClient = await Client.canMessage(
+      newWallet().address,
+      { env: 'local' }
+    )
+    expect(canMessageUnregisteredClient).toBeFalsy()
   })
 })
 
