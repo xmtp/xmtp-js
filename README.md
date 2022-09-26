@@ -225,8 +225,13 @@ If you would like to check and see if a blockchain address is registered on the 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
 
-const isOnDevNetwork = await Client.canMessage('0x3F11b27F323b62B159D2642964fa27C46C841897')
-const isOnProdNetwork = await Client.canMessage('0x3F11b27F323b62B159D2642964fa27C46C841897', { env: 'production' })
+const isOnDevNetwork = await Client.canMessage(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
+)
+const isOnProdNetwork = await Client.canMessage(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897',
+  { env: 'production' }
+)
 ```
 
 #### Different types of content
