@@ -200,32 +200,6 @@ export default class Client {
     })
   }
 
-  // retrieve a key bundle from given user's contact topic
-  async getUserContactFromNetwork(
-    peerAddress: string
-  ): Promise<PublicKeyBundle | undefined> {
-    // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
-    let recipientKey: PublicKeyBundle | null = null
-    const stream = this.apiClient.queryIterator(
-      { contentTopics: [buildUserContactTopic(peerAddress)] },
-      { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
-    )
-
-    for await (const env of stream) {
-      if (!env.message) continue
-      const bundle = DecodeContactBundle(b64Decode(env.message.toString()))
-      const keyBundle = bundle.keyBundle
-
-      const address = keyBundle?.walletSignatureAddress()
-      // TODO: Ignore SignedPublicKeyBundles for now.
-      if (address === peerAddress && keyBundle instanceof PublicKeyBundle) {
-        recipientKey = keyBundle
-        break
-      }
-    }
-    return recipientKey === null ? undefined : recipientKey
-  }
-
   /**
    * Returns the cached PublicKeyBundle if one is known for the given address or fetches
    * one from the network
@@ -240,7 +214,10 @@ export default class Client {
       return existingBundle
     }
 
-    const newBundle = await this.getUserContactFromNetwork(peerAddress)
+    const newBundle = await getUserContactFromNetwork(
+      this.apiClient,
+      peerAddress
+    )
 
     if (newBundle) {
       this.knownPublicKeyBundles.set(peerAddress, newBundle)
@@ -255,6 +232,18 @@ export default class Client {
    */
   public async canMessage(peerAddress: string): Promise<boolean> {
     const keyBundle = await this.getUserContact(peerAddress)
+    return keyBundle !== undefined
+  }
+
+  static async canMessage(
+    peerAddress: string,
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean> {
+    const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+    const keyBundle = await getUserContactFromNetwork(
+      new ApiClient(apiUrl),
+      peerAddress
+    )
     return keyBundle !== undefined
   }
 
@@ -560,4 +549,31 @@ function filterForTopics(topics: string[]): MessageFilter {
 function createApiClientFromOptions(options: ClientOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
   return new ApiClient(apiUrl)
+}
+
+// retrieve a key bundle from given user's contact topic
+async function getUserContactFromNetwork(
+  apiClient: ApiClient,
+  peerAddress: string
+): Promise<PublicKeyBundle | undefined> {
+  // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
+  let recipientKey: PublicKeyBundle | null = null
+  const stream = apiClient.queryIterator(
+    { contentTopics: [buildUserContactTopic(peerAddress)] },
+    { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+  )
+
+  for await (const env of stream) {
+    if (!env.message) continue
+    const bundle = DecodeContactBundle(b64Decode(env.message.toString()))
+    const keyBundle = bundle.keyBundle
+
+    const address = keyBundle?.walletSignatureAddress()
+    // TODO: Ignore SignedPublicKeyBundles for now.
+    if (address === peerAddress && keyBundle instanceof PublicKeyBundle) {
+      recipientKey = keyBundle
+      break
+    }
+  }
+  return recipientKey === null ? undefined : recipientKey
 }
