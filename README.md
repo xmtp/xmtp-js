@@ -42,16 +42,6 @@ npm install @xmtp/xmtp-js
 
 Additional configuration is required in React environments due to the removal of polyfills from Webpack 5.
 
-### Create React App
-
-Use `react-scripts` prior to version `5.0.0`. For example:
-
-```bash
-npx create-react-app my-app --scripts-version 4.0.2
-```
-
-Or downgrade after creating your app.
-
 ### Next.js
 
 In `next.config.js`:
