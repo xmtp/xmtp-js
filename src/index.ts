@@ -3,7 +3,7 @@ import {
   PublicKey,
   PublicKeyBundle,
   PrivateKey,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
 } from './crypto'
 import Stream from './Stream'
 import Client, {
@@ -34,7 +34,7 @@ export {
   ListMessagesOptions,
   Message,
   PrivateKey,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
   PublicKey,
   PublicKeyBundle,
   Stream,

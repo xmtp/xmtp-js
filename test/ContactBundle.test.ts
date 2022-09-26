@@ -1,10 +1,10 @@
 import * as assert from 'assert'
 import { ContactBundleV1, DecodeContactBundle } from '../src/ContactBundle'
-import { PrivateKeyBundle, PublicKeyBundle } from '../src'
+import { PrivateKeyBundleV1, PublicKeyBundle } from '../src'
 
 describe('ContactBundles', function () {
   it('roundtrip', async function () {
-    const priv = await PrivateKeyBundle.generate()
+    const priv = await PrivateKeyBundleV1.generate()
     const pub = priv.getPublicKeyBundle()
     let bytes = pub.toBytes()
     const cb = DecodeContactBundle(bytes)

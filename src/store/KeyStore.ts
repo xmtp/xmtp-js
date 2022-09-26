@@ -1,6 +1,6 @@
-import PrivateKeyBundle from '../crypto/PrivateKeyBundle'
+import { PrivateKeyBundleV1 } from '../crypto/PrivateKeyBundle'
 
 export interface KeyStore {
-  loadPrivateKeyBundle(): Promise<PrivateKeyBundle | null>
-  storePrivateKeyBundle(bundle: PrivateKeyBundle): Promise<void>
+  loadPrivateKeyBundle(): Promise<PrivateKeyBundleV1 | null>
+  storePrivateKeyBundle(bundle: PrivateKeyBundleV1): Promise<void>
 }

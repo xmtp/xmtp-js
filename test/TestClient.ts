@@ -1,6 +1,6 @@
 import { Signer } from 'ethers'
 import { Waku } from 'js-waku'
-import { PrivateKeyBundle } from '../src'
+import { PrivateKeyBundleV1 } from '../src'
 import { Authenticator, AuthnOptions, AuthnSender } from '../src/authn'
 
 import Client, {
@@ -17,7 +17,7 @@ type TestOptions = {
 export type TestClientOptions = ClientOptions & TestOptions
 
 export class TestClient extends Client {
-  constructor(waku: Waku, keys: PrivateKeyBundle, authnSender?: AuthnSender) {
+  constructor(waku: Waku, keys: PrivateKeyBundleV1, authnSender?: AuthnSender) {
     super(waku, keys)
     this.authenticator = Authenticator.create(
       this.waku.libp2p,
@@ -33,7 +33,7 @@ export class TestClient extends Client {
     const clientOptions = defaultOptions(opts)
 
     const waku = await createWaku(clientOptions)
-    const keys = await PrivateKeyBundle.generate(wallet)
+    const keys = await PrivateKeyBundleV1.generate(wallet)
     const c = new TestClient(waku, keys, opts?.authOpts?.sender)
     await c.init(clientOptions)
     return c

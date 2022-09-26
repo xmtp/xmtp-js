@@ -12,17 +12,18 @@ Following snippet shows the API for managing key bundles (assuming a connected w
 
 ```js
 // generate new wallet keys
-let pri = await PrivateKeyBundle.generate(wallet)
+let pri = await PrivateKeyBundleV1.generate(wallet)
 let pub = pri.getPublicKeyBundle()
 
 // serialize the public bundle for advertisement on the network
 let bytes = pub.toBytes()
 
 // serialize/encrypt the private bundle for secure storage
-bytes = await pri.encode(wallet)
+store = EncryptedStore(wallet, new LocalStorageStore())
+await store.storePrivateKeyBundle(pri)
 
 // deserialize/decrypt private key bundle from storage
-let pri2 = await PrivateKeyBundle.decode(wallet, bytes)
+let pri2 = await store.loadPrivateKeyBundle()
 ```
 
 ## Sending a message

@@ -1,5 +1,10 @@
 import * as assert from 'assert'
-import { PrivateKey, PrivateKeyBundle } from '../../src/crypto'
+import { PrivateKey, PrivateKeyBundleV1 } from '../../src/crypto'
+import {
+  EncryptedStore,
+  LocalStorageStore,
+  storageSigRequestText,
+} from '../../src/store'
 import { Wallet } from 'ethers'
 import { hexToBytes } from '../../src/crypto/utils'
 
@@ -11,14 +16,14 @@ describe('Crypto', function () {
       assert.ok(bobPri.secp256k1)
       const wallet = new Wallet(bobPri.secp256k1.bytes)
       // generate key bundle
-      const bob = await PrivateKeyBundle.generate(wallet)
+      const bob = await PrivateKeyBundleV1.generate(wallet)
       // encrypt and serialize the bundle for storage
-      const bytes = await bob.toEncryptedBytes(wallet)
+      const store = new EncryptedStore(wallet, new LocalStorageStore())
+      const bytes = await store.storePrivateKeyBundle(bob)
       // decrypt and decode the bundle from storage
-      const bobDecoded = await PrivateKeyBundle.fromEncryptedBytes(
-        wallet,
-        bytes
-      )
+      const bobDecoded = await store.loadPrivateKeyBundle()
+
+      assert.ok(bobDecoded)
       assert.ok(bob.identityKey)
       assert.ok(bobDecoded.identityKey)
       assert.ok(bob.identityKey.publicKey.signature)
@@ -49,11 +54,11 @@ describe('Crypto', function () {
       )
       assert.ok(pri.secp256k1)
       const wallet = new Wallet(pri.secp256k1.bytes)
-      const bundle = await PrivateKeyBundle.generate(wallet)
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
       const preKey = hexToBytes(
         'f51bd1da9ec2239723ae2cf6a9f8d0ac37546b27e634002c653d23bacfcc67ad'
       )
-      const actual = PrivateKeyBundle.storageSigRequestText(preKey)
+      const actual = storageSigRequestText(preKey)
       const expected =
         'XMTP : Enable Identity\nf51bd1da9ec2239723ae2cf6a9f8d0ac37546b27e634002c653d23bacfcc67ad\n\nFor more info: https://xmtp.org/signatures/'
       assert.equal(actual, expected)

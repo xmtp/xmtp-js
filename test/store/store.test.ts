@@ -1,6 +1,6 @@
 import { EncryptedStore, LocalStorageStore } from '../../src/store'
 import assert from 'assert'
-import { PrivateKey, PrivateKeyBundle } from '../../src/crypto'
+import { PrivateKey, PrivateKeyBundleV1 } from '../../src/crypto'
 import { Wallet } from 'ethers'
 
 describe('LocalStorageStore', () => {
@@ -52,11 +52,10 @@ describe('EncryptedStore', () => {
 
   it('can encrypt and store a private key bundle', async () => {
     const secureStore = new EncryptedStore(wallet, store)
-    const originalBundle = await PrivateKeyBundle.generate(wallet)
+    const originalBundle = await PrivateKeyBundleV1.generate(wallet)
 
     await secureStore.storePrivateKeyBundle(originalBundle)
-    const returnedBundle =
-      (await secureStore.loadPrivateKeyBundle()) as PrivateKeyBundle
+    const returnedBundle = await secureStore.loadPrivateKeyBundle()
 
     assert.ok(returnedBundle)
     assert.deepEqual(
