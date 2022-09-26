@@ -1,8 +1,8 @@
-// This will create a global localStorage object on Node.js for use in tests
 import { Store } from './Store'
 
-if (!isProductionEnv()) {
-  require('node-localstorage/register')
+if (process.env.NODE_ENV !== 'production') {
+  // This will create a global localStorage object on Node.js for use in tests
+  require('node-localStorage/register')
 }
 
 const KEY_PREFIX = '/xmtp/'
@@ -18,17 +18,15 @@ export default class LocalStorageStore implements Store {
   }
 
   async get(key: string): Promise<Buffer | null> {
-    if (isProductionEnv()) return null
+    if (process.env.NODE_ENV === 'production') return null
+
     const storedString = localStorage.getItem(this.keyPrefix + key)
     return storedString === null ? null : Buffer.from(storedString, ENCODING)
   }
 
   async set(key: string, value: Buffer): Promise<void> {
-    if (!isProductionEnv()) return
+    if (process.env.NODE_ENV === 'production') return
+
     return localStorage.setItem(this.keyPrefix + key, value.toString(ENCODING))
   }
-}
-
-function isProductionEnv(): boolean {
-  return process.env.NODE_ENV === 'production'
 }
