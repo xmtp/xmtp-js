@@ -5,7 +5,7 @@ import {
 } from './../src/TopicKeyManager'
 import KeyManager from '../src/TopicKeyManager'
 import { crypto } from '../src/crypto/encryption'
-import PrivateKeyBundle from '../src/crypto/PrivateKeyBundle'
+import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
 import { PublicKeyBundle } from '../src/crypto/PublicKeyBundle'
 import { newWallet } from './helpers'
 
@@ -30,7 +30,7 @@ describe('TopicKeyManager', () => {
   it('can add and retrieve a topic key', async () => {
     const senderWallet = newWallet()
     const sender = (
-      await PrivateKeyBundle.generate(senderWallet)
+      await PrivateKeyBundleV1.generate(senderWallet)
     ).getPublicKeyBundle()
     const sentAt = new Date()
     const record = createTopicKeyRecord([sender])
@@ -65,7 +65,7 @@ describe('TopicKeyManager', () => {
   it('can add multiple topic keys for a wallet', async () => {
     const senderWallet = newWallet()
     const sender = (
-      await PrivateKeyBundle.generate(senderWallet)
+      await PrivateKeyBundleV1.generate(senderWallet)
     ).getPublicKeyBundle()
     const record1 = createTopicKeyRecord([sender])
     const record2 = createTopicKeyRecord([sender])
@@ -94,7 +94,7 @@ describe('TopicKeyManager', () => {
   it('cannot add multiple records for the same topic', async () => {
     const senderWallet = newWallet()
     const sender = (
-      await PrivateKeyBundle.generate(senderWallet)
+      await PrivateKeyBundleV1.generate(senderWallet)
     ).getPublicKeyBundle()
 
     keyManager.addDirectMessageTopic(

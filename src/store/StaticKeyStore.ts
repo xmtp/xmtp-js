@@ -1,4 +1,7 @@
-import PrivateKeyBundle from '../crypto/PrivateKeyBundle'
+import {
+  decodePrivateKeyBundle,
+  PrivateKeyBundleV1,
+} from '../crypto/PrivateKeyBundle'
 import { KeyStore } from './KeyStore'
 
 export default class StaticKeyStore implements KeyStore {
@@ -7,8 +10,9 @@ export default class StaticKeyStore implements KeyStore {
     this.value = value
   }
 
-  async loadPrivateKeyBundle(): Promise<PrivateKeyBundle | null> {
-    return PrivateKeyBundle.decode(this.value)
+  async loadPrivateKeyBundle(): Promise<PrivateKeyBundleV1> {
+    // TODO: add support for V2
+    return decodePrivateKeyBundle(this.value) as PrivateKeyBundleV1
   }
 
   async storePrivateKeyBundle(): Promise<void> {

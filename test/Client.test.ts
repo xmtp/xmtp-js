@@ -18,7 +18,7 @@ import {
   ContentTypeText,
   Compression,
   ContentTypeId,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
 } from '../src'
 
 type TestCase = {
@@ -338,7 +338,7 @@ describe('Client', () => {
         const stream = await bob.streamConversationMessages(alice.address)
         // mallory takes over alice's client
         const malloryWallet = newWallet()
-        const mallory = await PrivateKeyBundle.generate(malloryWallet)
+        const mallory = await PrivateKeyBundleV1.generate(malloryWallet)
         const aliceKeys = alice.keys
         alice.keys = mallory
         await alice.sendMessage(bob.address, 'Hello from Mallory')
