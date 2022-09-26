@@ -2,7 +2,7 @@ import { Store } from './Store'
 
 if (process.env.NODE_ENV !== 'production') {
   // This will create a global localStorage object on Node.js for use in tests
-  require('node-localStorage/register')
+  require('node-localstorage/register')
 }
 
 const KEY_PREFIX = '/xmtp/'
