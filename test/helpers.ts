@@ -43,7 +43,7 @@ export async function waitForUserContact(
 ): Promise<PublicKeyBundle | undefined> {
   return pollFor(
     async () => {
-      const contact = await c1.getUserContactFromNetwork(c2.address)
+      const contact = await c1.getUserContact(c2.address)
       assert.ok(contact)
       return contact
     },
