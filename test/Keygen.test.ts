@@ -7,7 +7,6 @@ import Client, {
 } from '../src/Client'
 import { Signer } from 'ethers'
 import { EncryptedStore, PrivateTopicStore, StaticKeyStore } from '../src/store'
-import { PrivateKeyBundleV1 } from '../src'
 import ApiClient from '../src/ApiClient'
 
 describe('Key Generation', () => {

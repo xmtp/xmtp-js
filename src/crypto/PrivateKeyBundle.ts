@@ -28,7 +28,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
       new WalletSigner(wallet)
     )
     const bundle = new PrivateKeyBundleV2({
-      identityKey: identityKey,
+      identityKey,
       preKeys: [],
     })
     await bundle.addPreKey()
@@ -103,6 +103,15 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   encode(): Uint8Array {
     return proto.PrivateKeyBundle.encode({ v1: undefined, v2: this }).finish()
   }
+
+  static fromLegacyBundle(bundle: PrivateKeyBundleV1): PrivateKeyBundleV2 {
+    return new PrivateKeyBundleV2({
+      identityKey: SignedPrivateKey.fromLegacyKey(bundle.identityKey, true),
+      preKeys: bundle.preKeys.map((k: PrivateKey) =>
+        SignedPrivateKey.fromLegacyKey(k)
+      ),
+    })
+  }
 }
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
@@ -128,7 +137,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
       await identityKey.publicKey.signWithWallet(wallet)
     }
     const bundle = new PrivateKeyBundleV1({
-      identityKey: identityKey,
+      identityKey,
       preKeys: [],
     })
     await bundle.addPreKey()
