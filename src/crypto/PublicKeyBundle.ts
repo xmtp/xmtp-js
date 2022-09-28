@@ -38,6 +38,13 @@ export class SignedPublicKeyBundle implements publicKey.SignedPublicKeyBundle {
     const decoded = publicKey.SignedPublicKeyBundle.decode(bytes)
     return new SignedPublicKeyBundle(decoded)
   }
+
+  static fromLegacyBundle(bundle: PublicKeyBundle): SignedPublicKeyBundle {
+    return new SignedPublicKeyBundle({
+      identityKey: SignedPublicKey.fromLegacyKey(bundle.identityKey),
+      preKey: SignedPublicKey.fromLegacyKey(bundle.preKey),
+    })
+  }
 }
 
 // LEGACY: PublicKeyBundle packages all the keys that a participant should advertise.
