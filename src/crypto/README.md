@@ -19,7 +19,7 @@ let pub = pri.getPublicKeyBundle()
 let bytes = pub.toBytes()
 
 // serialize/encrypt the private bundle for secure storage
-store = EncryptedStore(wallet, new LocalStorageStore())
+store = EncryptedKeyStore(wallet, new LocalStorageStore())
 await store.storePrivateKeyBundle(pri)
 
 // deserialize/decrypt private key bundle from storage

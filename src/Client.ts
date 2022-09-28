@@ -8,7 +8,7 @@ import {
 import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
 import {
-  EncryptedStore,
+  EncryptedKeyStore,
   KeyStore,
   LocalStorageStore,
   PrivateTopicStore,
@@ -487,13 +487,13 @@ function createKeyStoreFromConfig(
 function createNetworkPrivateKeyStore(
   wallet: Signer,
   apiClient: ApiClient
-): EncryptedStore {
-  return new EncryptedStore(wallet, new PrivateTopicStore(apiClient))
+): EncryptedKeyStore {
+  return new EncryptedKeyStore(wallet, new PrivateTopicStore(apiClient))
 }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles
-function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
-  return new EncryptedStore(wallet, new LocalStorageStore())
+function createLocalPrivateKeyStore(wallet: Signer): EncryptedKeyStore {
+  return new EncryptedKeyStore(wallet, new LocalStorageStore())
 }
 
 function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {

@@ -1,7 +1,7 @@
 import * as assert from 'assert'
 import { PrivateKey, PrivateKeyBundleV1 } from '../../src/crypto'
 import {
-  EncryptedStore,
+  EncryptedKeyStore,
   LocalStorageStore,
   storageSigRequestText,
 } from '../../src/store'
@@ -18,7 +18,7 @@ describe('Crypto', function () {
       // generate key bundle
       const bob = await PrivateKeyBundleV1.generate(wallet)
       // encrypt and serialize the bundle for storage
-      const store = new EncryptedStore(wallet, new LocalStorageStore())
+      const store = new EncryptedKeyStore(wallet, new LocalStorageStore())
       const bytes = await store.storePrivateKeyBundle(bob)
       // decrypt and decode the bundle from storage
       const bobDecoded = await store.loadPrivateKeyBundle()

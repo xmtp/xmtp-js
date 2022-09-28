@@ -6,7 +6,11 @@ import Client, {
   KeyStoreType,
 } from '../src/Client'
 import { Signer } from 'ethers'
-import { EncryptedStore, PrivateTopicStore, StaticKeyStore } from '../src/store'
+import {
+  EncryptedKeyStore,
+  PrivateTopicStore,
+  StaticKeyStore,
+} from '../src/store'
 import ApiClient from '../src/ApiClient'
 
 describe('Key Generation', () => {
@@ -51,7 +55,10 @@ describe('Key Generation', () => {
     const staticStore = new StaticKeyStore(keys)
     const bundle = await staticStore.loadPrivateKeyBundle()
     const apiClient = new ApiClient(ApiUrls[opts.env])
-    const store = new EncryptedStore(wallet, new PrivateTopicStore(apiClient))
+    const store = new EncryptedKeyStore(
+      wallet,
+      new PrivateTopicStore(apiClient)
+    )
 
     expect((await store.loadPrivateKeyBundle())?.identityKey.toBytes()).toEqual(
       bundle.identityKey.toBytes()
