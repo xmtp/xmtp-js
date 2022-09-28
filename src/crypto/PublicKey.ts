@@ -22,9 +22,15 @@ function secp256k1UncompressedCheck(key: secp256k1Uncompressed): void {
   }
 }
 
+const MS_NS_TIMESTAMP_THRESHOLD = new Long(10 ** 9).mul(10 ** 9)
+
 // Basic public key without a signature.
 export class UnsignedPublicKey implements publicKey.UnsignedPublicKey {
-  createdNs: Long // time the key was generated, ns since epoch
+  // time the key was generated, normally ns since epoch, however
+  // to allow transparent conversion of pre-existing signed PublicKey to SignedPublicKey
+  // it can also be ms since epoch; use MS_NS_TIMESTAMP_THRESHOLD to distinguish
+  // the two cases.
+  createdNs: Long
   secp256k1Uncompressed: secp256k1Uncompressed // eslint-disable-line camelcase
 
   constructor(obj: publicKey.UnsignedPublicKey) {
@@ -38,7 +44,14 @@ export class UnsignedPublicKey implements publicKey.UnsignedPublicKey {
 
   // The time the key was generated.
   generated(): Date | undefined {
-    return new Date(this.createdNs.div(1000000).toNumber())
+    return new Date(this.timestamp.toNumber())
+  }
+
+  // creation time in milliseconds
+  get timestamp(): Long {
+    return this.createdNs < MS_NS_TIMESTAMP_THRESHOLD
+      ? this.createdNs
+      : this.createdNs.div(1000000)
   }
 
   // Verify that signature was created from the digest using matching private key.
@@ -154,6 +167,25 @@ export class SignedPublicKey
   // Decode signed key from bytes.
   static fromBytes(bytes: Uint8Array): SignedPublicKey {
     return new SignedPublicKey(publicKey.SignedPublicKey.decode(bytes))
+  }
+
+  static fromLegacyKey(
+    legacyKey: PublicKey,
+    signedByWallet?: boolean
+  ): SignedPublicKey {
+    if (!legacyKey.signature) {
+      throw new Error('key is not signed')
+    }
+    let signature = legacyKey.signature
+    if (signedByWallet) {
+      signature = new Signature({
+        walletEcdsaCompact: signature.ecdsaCompact,
+      })
+    }
+    return new SignedPublicKey({
+      keyBytes: legacyKey.bytesToSign(),
+      signature,
+    })
   }
 }
 
