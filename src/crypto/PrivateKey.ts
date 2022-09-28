@@ -54,7 +54,7 @@ export class SignedPrivateKey
       secp256k1Uncompressed: {
         bytes: secp.getPublicKey(secp256k1.bytes),
       },
-      createdNs: createdNs,
+      createdNs,
     })
     const signed = await signer.signKey(unsigned)
     return new SignedPrivateKey({
@@ -193,7 +193,7 @@ export class PrivateKey implements privateKey.PrivateKey {
         secp256k1Uncompressed: {
           bytes: secp.getPublicKey(secp256k1.bytes),
         },
-        timestamp: timestamp,
+        timestamp,
       }),
     })
   }
@@ -226,7 +226,7 @@ export class PrivateKey implements privateKey.PrivateKey {
 
   // derive shared secret from peer's PublicKey;
   // the peer can derive the same secret using their PrivateKey and our PublicKey
-  sharedSecret(peer: PublicKey): Uint8Array {
+  sharedSecret(peer: PublicKey | SignedPublicKey): Uint8Array {
     return secp.getSharedSecret(
       this.secp256k1.bytes,
       peer.secp256k1Uncompressed.bytes,

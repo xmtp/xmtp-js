@@ -1,0 +1,151 @@
+import Long from 'long'
+import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
+import { invitation } from '@xmtp/proto'
+import Ciphertext from './crypto/Ciphertext'
+import { encrypt, PrivateKeyBundle } from './crypto'
+
+export class InvitationV1 implements invitation.InvitationV1 {
+  topic: string
+  aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256 // eslint-disable-line camelcase
+
+  constructor({ topic, aes256GcmHkdfSha256 }: invitation.InvitationV1) {
+    if (topic || !topic.length) {
+      throw new Error('Missing topic')
+    }
+    if (
+      !aes256GcmHkdfSha256 ||
+      !aes256GcmHkdfSha256.keyMaterial ||
+      !aes256GcmHkdfSha256.keyMaterial.length
+    ) {
+      throw new Error('Missing key material')
+    }
+    this.topic = topic
+    this.aes256GcmHkdfSha256 = aes256GcmHkdfSha256
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.InvitationV1.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): InvitationV1 {
+    return new InvitationV1(invitation.InvitationV1.decode(bytes))
+  }
+}
+
+export class SealedInvitationHeaderV1
+  implements invitation.SealedInvitationHeaderV1
+{
+  sender: SignedPublicKeyBundle
+  recipient: SignedPublicKeyBundle
+  createdNs: Long
+
+  constructor({
+    sender,
+    recipient,
+    createdNs,
+  }: invitation.SealedInvitationHeaderV1) {
+    if (!sender) {
+      throw new Error('Missing sender')
+    }
+    if (!recipient) {
+      throw new Error('Missing recipient')
+    }
+    this.sender = new SignedPublicKeyBundle(sender)
+    this.recipient = new SignedPublicKeyBundle(recipient)
+    this.createdNs = createdNs
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.SealedInvitationHeaderV1.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): SealedInvitationHeaderV1 {
+    return new SealedInvitationHeaderV1(
+      invitation.SealedInvitationHeaderV1.decode(bytes)
+    )
+  }
+}
+
+export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
+  headerBytes: Uint8Array
+  ciphertext: Ciphertext
+  private _header?: SealedInvitationHeaderV1
+
+  constructor({ headerBytes, ciphertext }: invitation.SealedInvitationV1) {
+    if (!headerBytes || !headerBytes.length) {
+      throw new Error('Missing header bytes')
+    }
+    if (!ciphertext) {
+      throw new Error('Missing ciphertext')
+    }
+    this.headerBytes = headerBytes
+    this.ciphertext = new Ciphertext(ciphertext)
+  }
+
+  get header(): SealedInvitationHeaderV1 {
+    if (this._header) {
+      return this._header
+    }
+    this._header = SealedInvitationHeaderV1.fromBytes(this.headerBytes)
+    return this._header
+  }
+
+  // async getInvitation(viewer: PrivateKeyBundle): Promise<InvitationV1> {
+  //   // The constructors for child classes will validate that this is complete
+  //   const header = this.header
+  //   let secret: Uint8Array
+  //   try {
+  //     if (viewer.identityKey.matches(this.header.sender.identityKey)) {
+  //       secret = await viewer.sharedSecret
+  //     }
+  //   }
+  // }
+}
+
+export class SealedInvitation implements invitation.SealedInvitation {
+  v1: invitation.SealedInvitationV1
+
+  constructor({ v1 }: invitation.SealedInvitation) {
+    if (!v1) {
+      throw new Error('Missing v1 invitation')
+    }
+    this.v1 = v1
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.SealedInvitation.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): SealedInvitation {
+    return new SealedInvitation(invitation.SealedInvitation.decode(bytes))
+  }
+
+  static async createV1({
+    sender,
+    recipient,
+    created,
+    invitation,
+  }: {
+    sender: PrivateKeyBundle
+    recipient: SignedPublicKeyBundle
+    created: Date
+    invitation: InvitationV1
+  }): Promise<SealedInvitation> {
+    const headerBytes = new SealedInvitationHeaderV1({
+      sender: sender.getSignedPublicKeyBundle(),
+      recipient,
+      createdNs: Long.fromNumber(created.valueOf()).multiply(1_000_000),
+    }).toBytes()
+
+    const secret = await sender.sharedSecret(
+      recipient,
+      sender.getCurrentPreKey().publicKey,
+      false
+    )
+
+    const invitationBytes = invitation.toBytes()
+    const ciphertext = await encrypt(invitationBytes, secret, headerBytes)
+
+    return new SealedInvitation({ v1: { headerBytes, ciphertext } })
+  }
+}

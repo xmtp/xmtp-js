@@ -1,7 +1,7 @@
 import { privateKey as proto } from '@xmtp/proto'
 import { PrivateKey } from './PrivateKey'
 import { PublicKey } from './PublicKey'
-import { PublicKeyBundle } from './PublicKeyBundle'
+import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
 import Ciphertext from './Ciphertext'
 import { Signer } from 'ethers'
 import { bytesToHex, getRandomValues, hexToBytes } from './utils'
@@ -18,6 +18,10 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
   constructor(identityKey: PrivateKey, preKeys?: PrivateKey[]) {
     this.identityKey = identityKey
     this.preKeys = preKeys || []
+  }
+
+  get isSigned(): boolean {
+    return !!this.identityKey.publicKey.signature
   }
 
   // Generate a new key bundle with the preKey signed byt the identityKey.
@@ -67,7 +71,7 @@ export default class PrivateKeyBundle implements proto.PrivateKeyBundleV1 {
   // @myPreKey indicates which of my preKeys should be used to derive the secret
   // @recipient indicates if this is the sending or receiving side.
   async sharedSecret(
-    peer: PublicKeyBundle,
+    peer: PublicKeyBundle | SignedPublicKeyBundle,
     myPreKey: PublicKey,
     isRecipient: boolean
   ): Promise<Uint8Array> {
