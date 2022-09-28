@@ -2,6 +2,7 @@ import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
 import { SignedPrivateKey, PrivateKey } from './PrivateKey'
 import {
   PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   PrivateKeyBundle,
   DecodePrivateKeyBundle,
 } from './PrivateKeyBundle'
@@ -24,6 +25,7 @@ export {
   PrivateKeyBundle,
   DecodePrivateKeyBundle,
   PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   Signature,
   WalletSigner,
 }

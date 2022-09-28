@@ -10,13 +10,13 @@ import {
   utils,
 } from '../../src/crypto'
 import { Wallet } from 'ethers'
-import * as secp from '@noble/secp256k1'
 import { hexToBytes, equalBytes } from '../../src/crypto/utils'
+import { newWallet } from '../helpers'
 
 describe('Crypto', function () {
   describe('Signed Keys', function () {
     it('generate, verify, encode, decode', async function () {
-      const wallet = new Wallet(secp.utils.randomPrivateKey())
+      const wallet = newWallet()
       const keySigner = new WalletSigner(wallet)
       const idPri = await SignedPrivateKey.generate(keySigner)
       const idPub = idPri.publicKey
@@ -81,7 +81,7 @@ describe('Crypto', function () {
     })
     it('converts legacy keys to new keys', async function () {
       // Key signed by a wallet
-      const wallet = new Wallet(PrivateKey.generate().secp256k1.bytes)
+      const wallet = newWallet()
       const identityKey = PrivateKey.generate()
       await identityKey.publicKey.signWithWallet(wallet)
       const iPub = identityKey.publicKey

@@ -2,6 +2,7 @@ import { EncryptedKeyStore, LocalStorageStore } from '../../src/store'
 import assert from 'assert'
 import { PrivateKey, PrivateKeyBundleV1 } from '../../src/crypto'
 import { Wallet } from 'ethers'
+import { newWallet } from '../helpers'
 
 describe('LocalStorageStore', () => {
   beforeEach(() => {
@@ -45,9 +46,7 @@ describe('EncryptedKeyStore', () => {
     localStorage.clear()
   })
 
-  const wallet = new Wallet(
-    PrivateKey.generate().secp256k1?.bytes as Uint8Array
-  )
+  const wallet = newWallet()
   const store = new LocalStorageStore()
 
   it('can encrypt and store a private key bundle', async () => {

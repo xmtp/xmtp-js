@@ -104,6 +104,18 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     return proto.PrivateKeyBundle.encode({ v1: undefined, v2: this }).finish()
   }
 
+  equals(other: this): boolean {
+    if (this.preKeys.length !== other.preKeys.length) {
+      return false
+    }
+    for (let i = 0; i < this.preKeys.length; i++) {
+      if (!this.preKeys[i].equals(other.preKeys[i])) {
+        return false
+      }
+    }
+    return this.identityKey.equals(other.identityKey)
+  }
+
   static fromLegacyBundle(bundle: PrivateKeyBundleV1): PrivateKeyBundleV2 {
     return new PrivateKeyBundleV2({
       identityKey: SignedPrivateKey.fromLegacyKey(bundle.identityKey, true),
