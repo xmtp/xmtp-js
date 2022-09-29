@@ -21,10 +21,6 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     this.preKeys = (bundle.preKeys || []).map((k) => new SignedPrivateKey(k))
   }
 
-  get isSigned(): boolean {
-    return !!this.identityKey.publicKey.signature
-  }
-
   // Generate a new key bundle with the preKey signed byt the identityKey.
   // Optionally sign the identityKey with the provided wallet as well.
   static async generate(wallet: Signer): Promise<PrivateKeyBundleV2> {
