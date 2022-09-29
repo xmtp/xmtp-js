@@ -1,7 +1,6 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import { dateToNs, retry, sleep } from './utils'
-import Long from 'long'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
 import { version } from '../package.json'
