@@ -1,4 +1,4 @@
-import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
+import { PublicKeyBundle, PrivateKeyBundleV1 } from './crypto'
 import Message from './Message'
 import {
   buildDirectMessageTopic,
@@ -8,7 +8,7 @@ import {
 import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
 import {
-  EncryptedStore,
+  EncryptedKeyStore,
   KeyStore,
   LocalStorageStore,
   PrivateTopicStore,
@@ -125,7 +125,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  */
 export default class Client {
   address: string
-  keys: PrivateKeyBundle
+  keys: PrivateKeyBundleV1
   apiClient: ApiClient
   private contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
@@ -133,7 +133,7 @@ export default class Client {
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
 
-  constructor(keys: PrivateKeyBundle, apiClient: ApiClient) {
+  constructor(keys: PrivateKeyBundleV1, apiClient: ApiClient) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
@@ -487,13 +487,13 @@ function createKeyStoreFromConfig(
 function createNetworkPrivateKeyStore(
   wallet: Signer,
   apiClient: ApiClient
-): EncryptedStore {
-  return new EncryptedStore(wallet, new PrivateTopicStore(apiClient))
+): EncryptedKeyStore {
+  return new EncryptedKeyStore(wallet, new PrivateTopicStore(apiClient))
 }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles
-function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
-  return new EncryptedStore(wallet, new LocalStorageStore())
+function createLocalPrivateKeyStore(wallet: Signer): EncryptedKeyStore {
+  return new EncryptedKeyStore(wallet, new LocalStorageStore())
 }
 
 function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
@@ -505,7 +505,7 @@ function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
 async function loadOrCreateKeysFromStore(
   wallet: Signer | null,
   store: KeyStore
-): Promise<PrivateKeyBundle> {
+): Promise<PrivateKeyBundleV1> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
@@ -513,7 +513,7 @@ async function loadOrCreateKeysFromStore(
   if (!wallet) {
     throw new Error('No wallet found')
   }
-  keys = await PrivateKeyBundle.generate(wallet)
+  keys = await PrivateKeyBundleV1.generate(wallet)
   await store.storePrivateKeyBundle(keys)
   return keys
 }

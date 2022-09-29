@@ -43,6 +43,12 @@ export class ContactBundleV2 implements contact.ContactBundleV2 {
       },
     }).finish()
   }
+
+  static fromLegacyBundle(bundle: ContactBundleV1): ContactBundleV2 {
+    return new ContactBundleV2({
+      keyBundle: SignedPublicKeyBundle.fromLegacyBundle(bundle.keyBundle),
+    })
+  }
 }
 
 // This is the union of all supported bundle versions.

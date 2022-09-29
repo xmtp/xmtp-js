@@ -2,8 +2,10 @@ import Message from './Message'
 import {
   PublicKey,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
   PrivateKey,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
 } from './crypto'
 import Stream from './Stream'
 import Client, {
@@ -34,9 +36,11 @@ export {
   ListMessagesOptions,
   Message,
   PrivateKey,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   PublicKey,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
   Stream,
   ContentTypeId,
   ContentCodec,

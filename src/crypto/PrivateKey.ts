@@ -159,6 +159,17 @@ export class SignedPrivateKey
   static fromBytes(bytes: Uint8Array): SignedPrivateKey {
     return new SignedPrivateKey(privateKey.SignedPrivateKey.decode(bytes))
   }
+
+  static fromLegacyKey(
+    key: PrivateKey,
+    signedByWallet?: boolean
+  ): SignedPrivateKey {
+    return new SignedPrivateKey({
+      createdNs: key.timestamp.mul(1000000),
+      secp256k1: key.secp256k1,
+      publicKey: SignedPublicKey.fromLegacyKey(key.publicKey, signedByWallet),
+    })
+  }
 }
 
 // LEGACY: PrivateKey represents a secp256k1 private key.

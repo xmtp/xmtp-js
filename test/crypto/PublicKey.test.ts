@@ -10,13 +10,13 @@ import {
   utils,
 } from '../../src/crypto'
 import { Wallet } from 'ethers'
-import * as secp from '@noble/secp256k1'
-import { hexToBytes } from '../../src/crypto/utils'
+import { hexToBytes, equalBytes } from '../../src/crypto/utils'
+import { newWallet } from '../helpers'
 
 describe('Crypto', function () {
   describe('Signed Keys', function () {
     it('generate, verify, encode, decode', async function () {
-      const wallet = new Wallet(secp.utils.randomPrivateKey())
+      const wallet = newWallet()
       const keySigner = new WalletSigner(wallet)
       const idPri = await SignedPrivateKey.generate(keySigner)
       const idPub = idPri.publicKey
@@ -78,6 +78,40 @@ describe('Crypto', function () {
       // validate the key signature and return wallet address
       const address = alice.publicKey.walletSignatureAddress()
       assert.equal(address, wallet.address)
+    })
+    it('converts legacy keys to new keys', async function () {
+      // Key signed by a wallet
+      const wallet = newWallet()
+      const identityKey = PrivateKey.generate()
+      await identityKey.publicKey.signWithWallet(wallet)
+      const iPub = identityKey.publicKey
+      assert.equal(iPub.walletSignatureAddress(), wallet.address)
+      const iPub2 = SignedPublicKey.fromLegacyKey(iPub, true)
+      assert.ok(
+        equalBytes(
+          iPub2.secp256k1Uncompressed.bytes,
+          iPub.secp256k1Uncompressed.bytes
+        )
+      )
+      assert.equal(iPub2.generated, iPub.generated)
+      assert.ok(equalBytes(iPub2.keyBytes, iPub.bytesToSign()))
+      const address = await iPub2.walletSignatureAddress()
+      assert.equal(address, wallet.address)
+
+      // Key signed by a key
+      const preKey = PrivateKey.generate()
+      await identityKey.signKey(preKey.publicKey)
+      const pPub = preKey.publicKey
+      const pPub2 = SignedPublicKey.fromLegacyKey(pPub)
+      assert.ok(
+        equalBytes(
+          pPub2.secp256k1Uncompressed.bytes,
+          pPub.secp256k1Uncompressed.bytes
+        )
+      )
+      assert.equal(pPub2.generated, pPub.generated)
+      assert.ok(equalBytes(pPub2.keyBytes, pPub.bytesToSign()))
+      assert.ok(iPub2.verifyKey(pPub2))
     })
   })
 })
