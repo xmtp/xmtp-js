@@ -237,7 +237,7 @@ export class PrivateKey implements privateKey.PrivateKey {
 
   // derive shared secret from peer's PublicKey;
   // the peer can derive the same secret using their PrivateKey and our PublicKey
-  sharedSecret(peer: PublicKey): Uint8Array {
+  sharedSecret(peer: PublicKey | SignedPublicKey): Uint8Array {
     return secp.getSharedSecret(
       this.secp256k1.bytes,
       peer.secp256k1Uncompressed.bytes,

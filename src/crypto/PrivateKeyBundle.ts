@@ -193,7 +193,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
   // @myPreKey indicates which of my preKeys should be used to derive the secret
   // @recipient indicates if this is the sending or receiving side.
   async sharedSecret(
-    peer: PublicKeyBundle,
+    peer: PublicKeyBundle | SignedPublicKeyBundle,
     myPreKey: PublicKey,
     isRecipient: boolean
   ): Promise<Uint8Array> {

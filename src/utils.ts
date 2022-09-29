@@ -1,3 +1,5 @@
+import Long from 'long'
+
 export type IsRetryable = (err?: Error) => boolean
 
 export const buildContentTopic = (name: string): string =>
@@ -69,4 +71,8 @@ export async function retry<T extends (...arg0: any[]) => any>(
     await sleep(sleepTime)
     return retry(fn, args, maxRetries, sleepTime, isRetryableFn, currRetry + 1)
   }
+}
+
+export function dateToNs(date: Date): Long {
+  return Long.fromNumber(date.valueOf()).multiply(1_000_000)
 }

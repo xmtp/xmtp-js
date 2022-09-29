@@ -124,7 +124,7 @@ export default class Message implements proto.MessageV1 {
     const headerBytes = proto.MessageHeaderV1.encode(header).finish()
     const ciphertext = await encrypt(message, secret, headerBytes)
     const protoMsg = {
-      v1: { headerBytes: headerBytes, ciphertext },
+      v1: { headerBytes, ciphertext },
       v2: undefined,
     }
     const bytes = proto.Message.encode(protoMsg).finish()

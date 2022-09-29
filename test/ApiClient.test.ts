@@ -6,6 +6,7 @@ import { sleep } from './helpers'
 import { Authenticator } from '../src/authn'
 import { PrivateKey } from '../src'
 import { version } from '../package.json'
+import { dateToNs } from '../src/utils'
 const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
@@ -165,9 +166,7 @@ describe('Publish', () => {
         {
           message: msg.message,
           contentTopic: msg.contentTopic,
-          timestampNs: Long.fromNumber(now.valueOf())
-            .multiply(1_000_000)
-            .toString(),
+          timestampNs: dateToNs(now).toString(),
         },
       ],
     }
