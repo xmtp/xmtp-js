@@ -1,6 +1,6 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import { retry, sleep } from './utils'
+import { dateToNs, retry, sleep } from './utils'
 import Long from 'long'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
@@ -48,7 +48,7 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 export type UnsubscribeFn = () => Promise<void>
 
 const toNanoString = (d: Date | undefined): undefined | string => {
-  return d && Long.fromNumber(d.valueOf()).multiply(1_000_000).toString()
+  return d && dateToNs(d).toString()
 }
 
 const isAbortError = (err?: Error): boolean => {

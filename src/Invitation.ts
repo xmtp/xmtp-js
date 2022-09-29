@@ -4,6 +4,7 @@ import { invitation } from '@xmtp/proto'
 import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt } from './crypto'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
+import { dateToNs } from './utils'
 
 /**
  * InvitationV1 is a protobuf message to be encrypted and used as the ciphertext in a SealedInvitationV1 message
@@ -184,7 +185,7 @@ export class SealedInvitation implements invitation.SealedInvitation {
     const headerBytes = new SealedInvitationHeaderV1({
       sender: sender.getPublicKeyBundle(),
       recipient,
-      createdNs: Long.fromNumber(created.valueOf()).multiply(1_000_000),
+      createdNs: dateToNs(created),
     }).toBytes()
 
     const secret = await sender.sharedSecret(
