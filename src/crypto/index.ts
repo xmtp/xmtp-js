@@ -4,7 +4,7 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
   PrivateKeyBundle,
-  DecodePrivateKeyBundle,
+  decodePrivateKeyBundle,
 } from './PrivateKeyBundle'
 import { UnsignedPublicKey, SignedPublicKey, PublicKey } from './PublicKey'
 import Signature, { WalletSigner } from './Signature'
@@ -23,7 +23,7 @@ export {
   PrivateKey,
   SignedPrivateKey,
   PrivateKeyBundle,
-  DecodePrivateKeyBundle,
+  decodePrivateKeyBundle,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
   Signature,

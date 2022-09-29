@@ -24,7 +24,7 @@ import {
 } from './MessageContent'
 import { decompress, compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
-import { DecodeContactBundle } from './ContactBundle'
+import { decodeContactBundle } from './ContactBundle'
 import ApiClient, { SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 const { Compression } = xmtpEnvelope
@@ -565,7 +565,7 @@ async function getUserContactFromNetwork(
 
   for await (const env of stream) {
     if (!env.message) continue
-    const bundle = DecodeContactBundle(b64Decode(env.message.toString()))
+    const bundle = decodeContactBundle(b64Decode(env.message.toString()))
     const keyBundle = bundle.keyBundle
 
     const address = keyBundle?.walletSignatureAddress()

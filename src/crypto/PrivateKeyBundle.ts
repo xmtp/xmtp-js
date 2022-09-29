@@ -12,6 +12,7 @@ import { NoMatchingPreKeyError } from './errors'
 export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   identityKey: SignedPrivateKey
   preKeys: SignedPrivateKey[]
+  version = 2
 
   constructor(bundle: proto.PrivateKeyBundleV2) {
     if (!bundle.identityKey) {
@@ -132,6 +133,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
 export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
   identityKey: PrivateKey
   preKeys: PrivateKey[]
+  version = 1
 
   constructor(bundle: proto.PrivateKeyBundleV1) {
     if (!bundle.identityKey) {
@@ -229,7 +231,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
 
 export type PrivateKeyBundle = PrivateKeyBundleV1 | PrivateKeyBundleV2
 
-export function DecodePrivateKeyBundle(bytes: Uint8Array): PrivateKeyBundle {
+export function decodePrivateKeyBundle(bytes: Uint8Array): PrivateKeyBundle {
   const b = proto.PrivateKeyBundle.decode(bytes)
   if (b.v1) {
     return new PrivateKeyBundleV1(b.v1)

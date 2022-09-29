@@ -1,6 +1,6 @@
 import * as assert from 'assert'
 import {
-  DecodePrivateKeyBundle,
+  decodePrivateKeyBundle,
   PrivateKey,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
@@ -12,7 +12,7 @@ import {
 } from '../../src/store'
 import { hexToBytes } from '../../src/crypto/utils'
 import { newWallet } from '../helpers'
-import { DecodeContactBundle } from '../../src/ContactBundle'
+import { decodeContactBundle } from '../../src/ContactBundle'
 
 describe('Crypto', function () {
   describe('PrivateKeyBundle', function () {
@@ -21,10 +21,11 @@ describe('Crypto', function () {
       // generate key bundle
       const bundle = await PrivateKeyBundleV2.generate(wallet)
       const bytes = bundle.encode()
-      const bundle2 = DecodePrivateKeyBundle(bytes)
+      const bundle2 = decodePrivateKeyBundle(bytes)
       expect(bundle2).toBeInstanceOf(PrivateKeyBundleV2)
-      assert.ok(bundle.equals(bundle2 as PrivateKeyBundleV2))
-      assert.ok(
+      expect(bundle2.version).toBe(2)
+      expect(bundle.equals(bundle2 as PrivateKeyBundleV2))
+      expect(
         bundle
           .getPublicKeyBundle()
           .equals((bundle2 as PrivateKeyBundleV2).getPublicKeyBundle())

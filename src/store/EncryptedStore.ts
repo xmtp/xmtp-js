@@ -2,7 +2,7 @@ import { Store } from './Store'
 import { Signer } from 'ethers'
 import {
   PrivateKeyBundleV1,
-  DecodePrivateKeyBundle,
+  decodePrivateKeyBundle,
   decrypt,
   encrypt,
 } from '../crypto'
@@ -129,7 +129,8 @@ function getEncryptedBundle(
 // to decode the bundle as a legacy bundle. Additionally return whether the bundle is in the expected format.
 function getPrivateBundle(bytes: Uint8Array): [PrivateKeyBundleV1, boolean] {
   try {
-    const b = DecodePrivateKeyBundle(bytes) as PrivateKeyBundleV1
+    // TODO: add support for V2
+    const b = decodePrivateKeyBundle(bytes) as PrivateKeyBundleV1
     return [b, false]
   } catch (e) {
     // Adds a default fallback for older versions of the proto
