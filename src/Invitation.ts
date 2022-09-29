@@ -5,6 +5,9 @@ import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt } from './crypto'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
 
+/**
+ * InvitationV1 is a protobuf message to be encrypted and used as the ciphertext in a SealedInvitationV1 message
+ */
 export class InvitationV1 implements invitation.InvitationV1 {
   topic: string
   aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256 // eslint-disable-line camelcase
@@ -33,6 +36,9 @@ export class InvitationV1 implements invitation.InvitationV1 {
   }
 }
 
+/**
+ * SealedInvitationHeaderV1 is a protobuf message to be used as the headerBytes in a SealedInvitationV1
+ */
 export class SealedInvitationHeaderV1
   implements invitation.SealedInvitationHeaderV1
 {
@@ -84,6 +90,9 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
     this.ciphertext = new Ciphertext(ciphertext)
   }
 
+  /**
+   * Accessor method for the full header object
+   */
   get header(): SealedInvitationHeaderV1 {
     // Use cached value if already exists
     if (this._header) {
@@ -93,6 +102,9 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
     return this._header
   }
 
+  /**
+   * getInvitation decrypts and returns the InvitationV1 stored in the ciphertext of the Sealed Invitation
+   */
   async getInvitation(viewer: PrivateKeyBundleV2): Promise<InvitationV1> {
     // Use cached value if already exists
     if (this._invitation) {
@@ -133,6 +145,9 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
   }
 }
 
+/**
+ * Wrapper class for SealedInvitationV1 and any future iterations of SealedInvitation
+ */
 export class SealedInvitation implements invitation.SealedInvitation {
   v1: SealedInvitationV1
 
@@ -151,6 +166,10 @@ export class SealedInvitation implements invitation.SealedInvitation {
     return new SealedInvitation(invitation.SealedInvitation.decode(bytes))
   }
 
+  /**
+   * Create a SealedInvitation with a SealedInvitationV1 payload
+   * Will encrypt all contents and validate inputs
+   */
   static async createV1({
     sender,
     recipient,
