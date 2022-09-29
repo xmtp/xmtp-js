@@ -91,9 +91,9 @@ describe('Invitations', () => {
       })
       const ciphertext = new Ciphertext({
         aes256GcmHkdfSha256: {
-          hkdfSalt: Uint8Array.from([1, 2, 3]),
-          gcmNonce: Uint8Array.from([1, 2, 3]),
-          payload: Uint8Array.from([1, 2, 3]),
+          hkdfSalt: crypto.getRandomValues(new Uint8Array(32)),
+          gcmNonce: crypto.getRandomValues(new Uint8Array(12)),
+          payload: crypto.getRandomValues(new Uint8Array(16)),
         },
       })
       const invite = new SealedInvitationV1({

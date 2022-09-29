@@ -10,7 +10,7 @@ export class InvitationV1 implements invitation.InvitationV1 {
   aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256 // eslint-disable-line camelcase
 
   constructor({ topic, aes256GcmHkdfSha256 }: invitation.InvitationV1) {
-    if (topic || !topic.length) {
+    if (!topic || !topic.length) {
       throw new Error('Missing topic')
     }
     if (
