@@ -2,7 +2,8 @@ import Long from 'long'
 import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
 import { invitation } from '@xmtp/proto'
 import Ciphertext from './crypto/Ciphertext'
-import { encrypt, PrivateKeyBundle } from './crypto'
+import { decrypt, encrypt } from './crypto'
+import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
 
 export class InvitationV1 implements invitation.InvitationV1 {
   topic: string
@@ -90,26 +91,49 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
     return this._header
   }
 
-  // async getInvitation(viewer: PrivateKeyBundle): Promise<InvitationV1> {
-  //   // The constructors for child classes will validate that this is complete
-  //   const header = this.header
-  //   let secret: Uint8Array
-  //   try {
-  //     if (viewer.identityKey.matches(this.header.sender.identityKey)) {
-  //       secret = await viewer.sharedSecret
-  //     }
-  //   }
-  // }
+  async getInvitation(viewer: PrivateKeyBundleV2): Promise<InvitationV1> {
+    // The constructors for child classes will validate that this is complete
+    const header = this.header
+    let secret: Uint8Array
+    if (viewer.identityKey.matches(this.header.sender.identityKey)) {
+      secret = await viewer.sharedSecret(
+        header.recipient,
+        header.sender.preKey,
+        false
+      )
+    } else {
+      secret = await viewer.sharedSecret(
+        header.sender,
+        header.recipient.preKey,
+        true
+      )
+    }
+
+    const decryptedBytes = await decrypt(
+      this.ciphertext,
+      secret,
+      this.headerBytes
+    )
+    return InvitationV1.fromBytes(decryptedBytes)
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.SealedInvitationV1.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): SealedInvitationV1 {
+    return new SealedInvitationV1(invitation.SealedInvitationV1.decode(bytes))
+  }
 }
 
 export class SealedInvitation implements invitation.SealedInvitation {
-  v1: invitation.SealedInvitationV1
+  v1: SealedInvitationV1
 
   constructor({ v1 }: invitation.SealedInvitation) {
     if (!v1) {
       throw new Error('Missing v1 invitation')
     }
-    this.v1 = v1
+    this.v1 = new SealedInvitationV1(v1)
   }
 
   toBytes(): Uint8Array {
@@ -126,13 +150,13 @@ export class SealedInvitation implements invitation.SealedInvitation {
     created,
     invitation,
   }: {
-    sender: PrivateKeyBundle
+    sender: PrivateKeyBundleV2
     recipient: SignedPublicKeyBundle
     created: Date
     invitation: InvitationV1
   }): Promise<SealedInvitation> {
     const headerBytes = new SealedInvitationHeaderV1({
-      sender: sender.getSignedPublicKeyBundle(),
+      sender: sender.getPublicKeyBundle(),
       recipient,
       createdNs: Long.fromNumber(created.valueOf()).multiply(1_000_000),
     }).toBytes()
