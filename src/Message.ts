@@ -3,7 +3,7 @@ import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
 import {
   PublicKeyBundle,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
   PublicKey,
   decrypt,
   encrypt,
@@ -105,7 +105,7 @@ export default class Message implements proto.MessageV1 {
 
   // encrypt and serialize the message
   static async encode(
-    sender: PrivateKeyBundle,
+    sender: PrivateKeyBundleV1,
     recipient: PublicKeyBundle,
     message: Uint8Array,
     timestamp: Date
@@ -137,7 +137,7 @@ export default class Message implements proto.MessageV1 {
   // throws if any part of the messages (including the header) was tampered with
   // or the recipient preKey used to encrypt the message is not recognized
   static async decode(
-    viewer: PrivateKeyBundle,
+    viewer: PrivateKeyBundleV1,
     bytes: Uint8Array
   ): Promise<Message> {
     const message = proto.Message.decode(bytes)
