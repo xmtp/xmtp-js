@@ -23,8 +23,8 @@ describe('Invitations', () => {
   let alice: PrivateKeyBundleV2, bob: PrivateKeyBundleV2
 
   beforeEach(async () => {
-    const alice = await PrivateKeyBundleV2.generate(newWallet())
-    const bob = await PrivateKeyBundleV2.generate(newWallet())
+    alice = await PrivateKeyBundleV2.generate(newWallet())
+    bob = await PrivateKeyBundleV2.generate(newWallet())
   })
 
   describe('SealedInvitation', () => {

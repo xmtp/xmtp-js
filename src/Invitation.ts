@@ -71,6 +71,7 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
   headerBytes: Uint8Array
   ciphertext: Ciphertext
   private _header?: SealedInvitationHeaderV1
+  private _invitation?: InvitationV1
 
   constructor({ headerBytes, ciphertext }: invitation.SealedInvitationV1) {
     if (!headerBytes || !headerBytes.length) {
@@ -84,6 +85,7 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
   }
 
   get header(): SealedInvitationHeaderV1 {
+    // Use cached value if already exists
     if (this._header) {
       return this._header
     }
@@ -92,6 +94,10 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
   }
 
   async getInvitation(viewer: PrivateKeyBundleV2): Promise<InvitationV1> {
+    // Use cached value if already exists
+    if (this._invitation) {
+      return this._invitation
+    }
     // The constructors for child classes will validate that this is complete
     const header = this.header
     let secret: Uint8Array
@@ -114,7 +120,8 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
       secret,
       this.headerBytes
     )
-    return InvitationV1.fromBytes(decryptedBytes)
+    this._invitation = InvitationV1.fromBytes(decryptedBytes)
+    return this._invitation
   }
 
   toBytes(): Uint8Array {
