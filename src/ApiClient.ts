@@ -222,7 +222,7 @@ export default class ApiClient {
 
   // Creates an async generator that will paginate through the Query API until it reaches the end
   // Will yield each page of results as needed
-  private async *queryIteratePages(
+  async *queryIteratePages(
     { contentTopics, startTime, endTime }: QueryParams,
     { direction, pageSize = 10 }: QueryStreamOptions
   ): AsyncGenerator<messageApi.Envelope[]> {
