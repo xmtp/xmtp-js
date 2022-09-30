@@ -1,4 +1,5 @@
 import { messageApi } from '@xmtp/proto'
+import Long from 'long'
 
 export type IsRetryable = (err?: Error) => boolean
 
@@ -97,4 +98,8 @@ export async function* mapPaginatedStream<Out>(
 
     yield out
   }
+}
+
+export function dateToNs(date: Date): Long {
+  return Long.fromNumber(date.valueOf()).multiply(1_000_000)
 }

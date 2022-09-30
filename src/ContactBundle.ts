@@ -43,13 +43,19 @@ export class ContactBundleV2 implements contact.ContactBundleV2 {
       },
     }).finish()
   }
+
+  static fromLegacyBundle(bundle: ContactBundleV1): ContactBundleV2 {
+    return new ContactBundleV2({
+      keyBundle: SignedPublicKeyBundle.fromLegacyBundle(bundle.keyBundle),
+    })
+  }
 }
 
 // This is the union of all supported bundle versions.
 export type ContactBundle = ContactBundleV1 | ContactBundleV2
 
 // This is the primary function for reading contact bundles off the wire.
-export function DecodeContactBundle(bytes: Uint8Array): ContactBundle {
+export function decodeContactBundle(bytes: Uint8Array): ContactBundle {
   let cb: contact.ContactBundle
   try {
     cb = contact.ContactBundle.decode(bytes)

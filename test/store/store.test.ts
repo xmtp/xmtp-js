@@ -1,7 +1,8 @@
-import { EncryptedStore, LocalStorageStore } from '../../src/store'
+import { EncryptedKeyStore, LocalStorageStore } from '../../src/store'
 import assert from 'assert'
-import { PrivateKey, PrivateKeyBundle } from '../../src/crypto'
+import { PrivateKey, PrivateKeyBundleV1 } from '../../src/crypto'
 import { Wallet } from 'ethers'
+import { newWallet } from '../helpers'
 
 describe('LocalStorageStore', () => {
   beforeEach(() => {
@@ -40,23 +41,20 @@ describe('LocalStorageStore', () => {
   })
 })
 
-describe('EncryptedStore', () => {
+describe('EncryptedKeyStore', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
-  const wallet = new Wallet(
-    PrivateKey.generate().secp256k1?.bytes as Uint8Array
-  )
+  const wallet = newWallet()
   const store = new LocalStorageStore()
 
   it('can encrypt and store a private key bundle', async () => {
-    const secureStore = new EncryptedStore(wallet, store)
-    const originalBundle = await PrivateKeyBundle.generate(wallet)
+    const secureStore = new EncryptedKeyStore(wallet, store)
+    const originalBundle = await PrivateKeyBundleV1.generate(wallet)
 
     await secureStore.storePrivateKeyBundle(originalBundle)
-    const returnedBundle =
-      (await secureStore.loadPrivateKeyBundle()) as PrivateKeyBundle
+    const returnedBundle = await secureStore.loadPrivateKeyBundle()
 
     assert.ok(returnedBundle)
     assert.deepEqual(
@@ -71,7 +69,7 @@ describe('EncryptedStore', () => {
   })
 
   it('returns null when no bundle found', async () => {
-    const secureStore = new EncryptedStore(wallet, store)
+    const secureStore = new EncryptedKeyStore(wallet, store)
     assert.equal(null, await secureStore.loadPrivateKeyBundle())
   })
 })
