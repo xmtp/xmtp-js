@@ -290,6 +290,7 @@ export default class Client {
         return this.publishEnvelope({
           contentTopic: topic,
           message: msgBytes,
+          timestamp,
         })
       })
     )
@@ -297,7 +298,11 @@ export default class Client {
     return this.decodeMessage(msgBytes, topics[0])
   }
 
-  async publishEnvelope(env: messageApi.Envelope): Promise<void> {
+  async publishEnvelope(env: {
+    contentTopic: string
+    message: Uint8Array
+    timestamp?: Date
+  }): Promise<void> {
     const bytes = env.message
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
@@ -312,6 +317,7 @@ export default class Client {
         {
           contentTopic: env.contentTopic,
           message: bytes,
+          timestamp: env.timestamp,
         },
       ])
     } catch (err) {
