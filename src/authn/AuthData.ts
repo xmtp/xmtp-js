@@ -1,5 +1,6 @@
 import { authn as authnProto } from '@xmtp/proto'
 import Long from 'long'
+import { dateToNs } from '../utils'
 
 export default class AuthData implements authnProto.AuthData {
   walletAddr: string
@@ -13,8 +14,8 @@ export default class AuthData implements authnProto.AuthData {
   static create(walletAddr: string, timestamp?: Date): AuthData {
     timestamp = timestamp || new Date()
     return new AuthData({
-      walletAddr: walletAddr,
-      createdNs: Long.fromNumber(timestamp.getTime()).multiply(1_000_000),
+      walletAddr,
+      createdNs: dateToNs(timestamp),
     })
   }
 

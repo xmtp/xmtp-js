@@ -1,5 +1,9 @@
 import Stream from '../Stream'
-import Client, { ListMessagesOptions, SendOptions } from '../Client'
+import Client, {
+  ListMessagesOptions,
+  ListMessagesPaginatedOptions,
+  SendOptions,
+} from '../Client'
 import Message from '../Message'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -21,6 +25,12 @@ export default class Conversation {
    */
   async messages(opts?: ListMessagesOptions): Promise<Message[]> {
     return this.client.listConversationMessages(this.peerAddress, opts)
+  }
+
+  messagesPaginated(
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<Message[]> {
+    return this.client.listConversationMessagesPaginated(this.peerAddress, opts)
   }
 
   /**

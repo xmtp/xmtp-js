@@ -4,6 +4,7 @@ import {
   buildDirectMessageTopic,
   buildUserContactTopic,
   buildUserIntroTopic,
+  mapPaginatedStream,
 } from './utils'
 import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
@@ -48,6 +49,13 @@ export type ListMessagesOptions = {
   startTime?: Date
   endTime?: Date
   limit?: number
+}
+
+export type ListMessagesPaginatedOptions = {
+  startTime?: Date
+  endTime?: Date
+  pageSize?: number
+  direction?: messageApi.SortDirection
 }
 
 export enum KeyStoreType {
@@ -413,6 +421,12 @@ export default class Client {
     return this.listMessages(buildUserIntroTopic(this.address), opts)
   }
 
+  // listIntroductionMessagesPaginated(
+  //   opts?: ListMessagesPaginatedOptions
+  // ): AsyncGenerator<Message[]> {
+  //   return this.listMessagesPaginated([buildUserIntroTopic(this.address)], opts)
+  // }
+
   // list stored messages from conversation topic with the peer
   listConversationMessages(
     peerAddress: string,
@@ -421,6 +435,46 @@ export default class Client {
     return this.listMessages(
       buildDirectMessageTopic(peerAddress, this.address),
       { ...opts, checkAddresses: true }
+    )
+  }
+
+  listConversationMessagesPaginated(
+    peerAddress: string,
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<Message[]> {
+    return this.listMessagesPaginated(
+      [buildDirectMessageTopic(peerAddress, this.address)],
+      opts
+    )
+  }
+
+  /**
+   * List messages on a given set of content topics, yielding one page at a time
+   */
+  listMessagesPaginated(
+    contentTopics: string[],
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<Message[]> {
+    const topicFilter = filterForTopics(contentTopics)
+    return mapPaginatedStream(
+      this.apiClient.queryIteratePages(
+        {
+          contentTopics,
+          startTime: opts?.startTime,
+          endTime: opts?.endTime,
+        },
+        { direction: opts?.direction, pageSize: opts?.pageSize || 100 }
+      ),
+      async (env): Promise<Message> => {
+        const msg = await this.decodeMessage(
+          b64Decode(env.message as unknown as string),
+          env.contentTopic
+        )
+        if (!topicFilter(msg)) {
+          throw new Error('Mismatched topic')
+        }
+        return msg
+      }
     )
   }
 
