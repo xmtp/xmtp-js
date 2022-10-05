@@ -625,8 +625,7 @@ async function getUserContactFromNetwork(
 
   for await (const env of stream) {
     if (!env.message) continue
-    const bundle = decodeContactBundle(b64Decode(env.message.toString()))
-    const keyBundle = bundle.keyBundle
+    const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
 
     const address = keyBundle?.walletSignatureAddress()
     // TODO: Ignore SignedPublicKeyBundles for now.
