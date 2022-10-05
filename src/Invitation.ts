@@ -3,8 +3,14 @@ import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
 import { invitation } from '@xmtp/proto'
 import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt } from './crypto'
+import { crypto } from './crypto/encryption'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
-import { dateToNs } from './utils'
+import { dateToNs, buildDirectMessageTopicV2 } from './utils'
+
+export type InvitationContext = {
+  conversationId: string
+  metadata: { [k: string]: string }
+}
 
 /**
  * InvitationV1 is a protobuf message to be encrypted and used as the ciphertext in a SealedInvitationV1 message
@@ -12,8 +18,13 @@ import { dateToNs } from './utils'
 export class InvitationV1 implements invitation.InvitationV1 {
   topic: string
   aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256 // eslint-disable-line camelcase
+  context: InvitationContext | undefined
 
-  constructor({ topic, aes256GcmHkdfSha256 }: invitation.InvitationV1) {
+  constructor({
+    topic,
+    aes256GcmHkdfSha256,
+    context,
+  }: invitation.InvitationV1) {
     if (!topic || !topic.length) {
       throw new Error('Missing topic')
     }
@@ -26,6 +37,22 @@ export class InvitationV1 implements invitation.InvitationV1 {
     }
     this.topic = topic
     this.aes256GcmHkdfSha256 = aes256GcmHkdfSha256
+    this.context = context
+  }
+
+  static createRandom(context?: invitation.InvitationV1_Context): InvitationV1 {
+    const topic = buildDirectMessageTopicV2(
+      Buffer.from(crypto.getRandomValues(new Uint8Array(32)))
+        .toString('base64')
+        .replace(/=*$/g, '')
+    )
+    const keyMaterial = crypto.getRandomValues(new Uint8Array(32))
+
+    return new InvitationV1({
+      topic,
+      aes256GcmHkdfSha256: { keyMaterial },
+      context,
+    })
   }
 
   toBytes(): Uint8Array {

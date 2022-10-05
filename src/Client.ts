@@ -1,10 +1,14 @@
+import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
+import { SealedInvitation } from './Invitation'
 import { PublicKeyBundle, PrivateKeyBundleV1 } from './crypto'
 import Message from './Message'
 import {
   buildDirectMessageTopic,
   buildUserContactTopic,
   buildUserIntroTopic,
+  buildUserInviteTopic,
   mapPaginatedStream,
+  nsLongToDate,
 } from './utils'
 import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
@@ -28,6 +32,7 @@ import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle } from './ContactBundle'
 import ApiClient, { SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
+import TopicKeyManager, { EncryptionAlgorithm } from './TopicKeyManager'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
 
@@ -134,8 +139,10 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
 export default class Client {
   address: string
   keys: PrivateKeyBundleV1
+  keysV2: PrivateKeyBundleV2
   apiClient: ApiClient
   private contacts: Set<string> // address which we have connected to
+  private topicKeyManager: TopicKeyManager
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
@@ -145,11 +152,13 @@ export default class Client {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
+    this.keysV2 = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
+    this.topicKeyManager = new TopicKeyManager()
   }
 
   /**
@@ -507,6 +516,57 @@ export default class Client {
       msgs = msgs.filter(filterForTopics([topic]))
     }
     return msgs
+  }
+
+  async listInvites(): Promise<SealedInvitation[]> {
+    const envelopes = await this.apiClient.query(
+      {
+        contentTopics: [buildUserInviteTopic(this.address)],
+      },
+      {}
+    )
+    const bundle = PrivateKeyBundleV2.fromLegacyBundle(this.keys)
+    const invites: SealedInvitation[] = []
+    for (const { message } of envelopes) {
+      if (!message) {
+        continue
+      }
+      try {
+        const invite = SealedInvitation.fromBytes(
+          b64Decode(message as unknown as string)
+        )
+        // Get the invitation (and cache the value) to ensure decryption works
+        invite.v1.getInvitation(bundle)
+        invites.push(invite)
+      } catch (e) {
+        console.warn('Error decoding invite', e)
+      }
+    }
+
+    return invites
+  }
+
+  async saveInvite(invite: SealedInvitation) {
+    const unsealed = await invite.v1.getInvitation(this.keysV2)
+    const header = invite.v1.header
+    const myBundle = this.keysV2.getPublicKeyBundle()
+    const isSender = header.recipient.equals(myBundle)
+    const isRecipient = header.recipient.equals(myBundle)
+    if (!isSender && !isRecipient) {
+      throw new Error(
+        'Current user is neither the sender nor the recipient of this bundle'
+      )
+    }
+    this.topicKeyManager.addDirectMessageTopic(
+      unsealed.topic,
+      {
+        keyMaterial: unsealed.aes256GcmHkdfSha256.keyMaterial,
+        encryptionAlgorithm: EncryptionAlgorithm.AES_256_GCM_HKDF_SHA_256,
+        allowedSigners: [header.recipient, header.sender],
+      },
+      isSender ? header.recipient : header.sender,
+      nsLongToDate(header.createdNs)
+    )
   }
 }
 

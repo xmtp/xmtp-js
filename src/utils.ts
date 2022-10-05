@@ -15,12 +15,20 @@ export const buildDirectMessageTopic = (
   return buildContentTopic(`dm-${members.join('-')}`)
 }
 
+export const buildDirectMessageTopicV2 = (randomString: string): string => {
+  return buildContentTopic(`dm-${randomString}`)
+}
+
 export const buildUserContactTopic = (walletAddr: string): string => {
   return buildContentTopic(`contact-${walletAddr}`)
 }
 
 export const buildUserIntroTopic = (walletAddr: string): string => {
   return buildContentTopic(`intro-${walletAddr}`)
+}
+
+export const buildUserInviteTopic = (walletAddr: string): string => {
+  return buildContentTopic(`invite-${walletAddr}`)
 }
 
 export const buildUserPrivateStoreTopic = (walletAddr: string): string => {
@@ -102,4 +110,8 @@ export async function* mapPaginatedStream<Out>(
 
 export function dateToNs(date: Date): Long {
   return Long.fromNumber(date.valueOf()).multiply(1_000_000)
+}
+
+export function nsLongToDate(nsDate: Long): Date {
+  return new Date(nsDate.div(1_000_000).toNumber())
 }

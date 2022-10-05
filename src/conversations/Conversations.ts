@@ -7,6 +7,8 @@ import Stream, {
 } from '../Stream'
 import Client from '../Client'
 import { buildDirectMessageTopic, buildUserIntroTopic } from '../utils'
+import { SealedInvitation } from '../Invitation'
+import { SignedPublicKeyBundle } from '../crypto/PublicKeyBundle'
 
 const messageHasHeaders: MessageFilter = (msg: Message) => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
@@ -24,6 +26,15 @@ export default class Conversations {
    * List all conversations with the current wallet found in the network, deduped by peer address
    */
   async list(): Promise<Conversation[]> {
+    const v1Addresses = await this.getV1Addresses()
+    const v2Invites = await this.getV2Invites()
+
+    return v1Addresses.map(
+      (peerAddress) => new Conversation(this.client, peerAddress)
+    )
+  }
+
+  private async getV1Addresses(): Promise<Set<string>> {
     const messages = await this.client.listIntroductionMessages()
     const seenPeers: Set<string> = new Set()
     for (const message of messages) {
@@ -40,12 +51,17 @@ export default class Conversations {
       }
     }
 
-    return (
-      Array.from(seenPeers)
-        // Consistently order the results
-        .sort()
-        .map((peerAddress) => new Conversation(this.client, peerAddress))
+    return seenPeers
+  }
+
+  private async getV2Invites(): Promise<SealedInvitation[]> {
+    const invites = await this.client.listInvites()
+    const myPublicKeyBundle = SignedPublicKeyBundle.fromLegacyBundle(
+      this.client.keys.getPublicKeyBundle()
     )
+    const out: Conversation[] = []
+    for (const invite of invites) {
+    }
   }
 
   /**
@@ -58,7 +74,7 @@ export default class Conversations {
       msg: Message
     ) => {
       const peerAddress = this.getPeerAddress(msg)
-      return new Conversation(this.client, peerAddress)
+      return new Conversation(this.client, peerAddress, [get])
     }
 
     const seenPeers: Set<string> = new Set()

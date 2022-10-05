@@ -1,4 +1,5 @@
-import { PublicKeyBundle } from './crypto/PublicKeyBundle'
+import Long from 'long'
+import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
 
 export enum EncryptionAlgorithm {
   AES_256_GCM_HKDF_SHA_256,
@@ -13,7 +14,7 @@ export type TopicKeyRecord = {
   // Callers should validate that the signature comes from the list of allowed signers
   // Not strictly necessary, but it prevents against compromised topic keys being
   // used by third parties who would sign the message with a different key
-  allowedSigners: PublicKeyBundle[]
+  allowedSigners: SignedPublicKeyBundle[]
 }
 
 /**
@@ -27,7 +28,7 @@ export type TopicResult = {
 // Internal data structure used to store the relationship between a topic and a wallet address
 type WalletTopicRecord = {
   contentTopic: string
-  createdAt: Date
+  createdAtNs: Long
 }
 
 type ContentTopic = string
@@ -47,7 +48,10 @@ export class DuplicateTopicError extends Error {
 const findLatestTopic = (records: WalletTopicRecord[]): WalletTopicRecord => {
   let latestRecord: WalletTopicRecord | undefined
   for (const record of records) {
-    if (!latestRecord || record.createdAt > latestRecord.createdAt) {
+    if (
+      !latestRecord ||
+      record.createdAtNs.greaterThan(latestRecord.createdAtNs)
+    ) {
       latestRecord = record
     }
   }
@@ -65,10 +69,13 @@ export default class TopicKeyManager {
   private topicKeys: Map<ContentTopic, TopicKeyRecord>
   // Mapping of wallet addresses and topics
   private dmTopics: Map<WalletAddress, WalletTopicRecord[]>
+  // The newest record in the store's timestamp in nanoseconds
+  private newestRecord: Long
 
   constructor() {
     this.topicKeys = new Map<ContentTopic, TopicKeyRecord>()
     this.dmTopics = new Map<WalletAddress, WalletTopicRecord[]>()
+    this.newestRecord = new Long(0)
   }
 
   /**
@@ -77,23 +84,27 @@ export default class TopicKeyManager {
    * @param contentTopic The topic
    * @param key TopicKeyRecord that contains the topic key and encryption algorithm
    * @param counterparty The other user's PublicKeyBundle
-   * @param createdAt Date
+   * @param createdAtNs Date in nanoseconds
    */
-  addDirectMessageTopic(
+  async addDirectMessageTopic(
     contentTopic: string,
     key: TopicKeyRecord,
-    counterparty: PublicKeyBundle,
-    createdAt: Date
-  ): void {
+    counterparty: SignedPublicKeyBundle,
+    createdAtNs: Long
+  ): Promise<void> {
     if (this.topicKeys.has(contentTopic)) {
       throw new DuplicateTopicError(contentTopic)
     }
     this.topicKeys.set(contentTopic, key)
 
-    const walletAddress = counterparty.identityKey.walletSignatureAddress()
+    const walletAddress =
+      await counterparty.identityKey.walletSignatureAddress()
     const counterpartyTopicList = this.dmTopics.get(walletAddress) || []
-    counterpartyTopicList.push({ contentTopic, createdAt })
+    counterpartyTopicList.push({ contentTopic, createdAtNs })
     this.dmTopics.set(walletAddress, counterpartyTopicList)
+    if (createdAtNs.greaterThan(this.newestRecord)) {
+      this.newestRecord = createdAtNs
+    }
   }
 
   /**

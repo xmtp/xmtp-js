@@ -15,7 +15,12 @@ export default class Conversation {
   peerAddress: string
   private client: Client
 
-  constructor(client: Client, address: string) {
+  constructor(
+    client: Client,
+    address: string,
+    topics: string[],
+    context?: InvitationContext
+  ) {
     this.peerAddress = address
     this.client = client
   }
