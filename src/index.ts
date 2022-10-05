@@ -27,6 +27,7 @@ import {
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
+import { SortDirection } from './ApiClient'
 
 export {
   Client,
@@ -53,4 +54,5 @@ export {
   Composite,
   CompositeCodec,
   ContentTypeComposite,
+  SortDirection,
 }
