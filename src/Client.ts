@@ -49,6 +49,7 @@ export type ListMessagesOptions = {
   startTime?: Date
   endTime?: Date
   limit?: number
+  direction?: messageApi.SortDirection
 }
 
 export type ListMessagesPaginatedOptions = {
@@ -491,7 +492,8 @@ export default class Client {
     const res = await this.apiClient.query(
       { contentTopics: [topic], startTime, endTime },
       {
-        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        direction:
+          opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
         limit,
       }
     )

@@ -98,6 +98,23 @@ describe('conversation', () => {
     expect(numMessages).toBe(1)
   })
 
+  it('allows for sorted listing', async () => {
+    const aliceConversation = await alice.conversations.newConversation(
+      bob.address
+    )
+    await aliceConversation.send('1')
+    await sleep(1)
+    await aliceConversation.send('2')
+
+    const sortedAscending = await aliceConversation.messages()
+    expect(sortedAscending[0].content).toBe('1')
+
+    const sortedDescending = await aliceConversation.messages({
+      direction: SortDirection.SORT_DIRECTION_DESCENDING,
+    })
+    expect(sortedDescending[0].content).toBe('2')
+  })
+
   it('streams messages', async () => {
     const aliceConversation = await alice.conversations.newConversation(
       bob.address
