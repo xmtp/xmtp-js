@@ -30,7 +30,7 @@ import {
 import { decompress, compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle } from './ContactBundle'
-import ApiClient, { SortDirection } from './ApiClient'
+import ApiClient, { PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import TopicKeyManager, {
   DuplicateTopicError,
@@ -59,6 +59,7 @@ export type ListMessagesOptions = {
   startTime?: Date
   endTime?: Date
   limit?: number
+  direction?: messageApi.SortDirection
 }
 
 export type ListMessagesPaginatedOptions = {
@@ -309,6 +310,7 @@ export default class Client {
           {
             contentTopic: topic,
             message: msgBytes,
+            timestamp,
           },
         ])
       })
@@ -317,23 +319,18 @@ export default class Client {
     return this.decodeMessage(msgBytes, topics[0])
   }
 
-  async publishEnvelopes(envelopes: messageApi.Envelope[]): Promise<void> {
+  async publishEnvelopes(envelopes: PublishParams[]): Promise<void> {
     for (const env of envelopes) {
       this.validateEnvelope(env)
     }
     try {
-      await this.apiClient.publish(
-        envelopes.map((env) => ({
-          contentTopic: env.contentTopic!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-          message: env.message!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        }))
-      )
+      await this.apiClient.publish(envelopes)
     } catch (err) {
       console.log(err)
     }
   }
 
-  private validateEnvelope(env: messageApi.Envelope): void {
+  private validateEnvelope(env: PublishParams): void {
     const bytes = env.message
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
@@ -510,7 +507,8 @@ export default class Client {
     const res = await this.apiClient.query(
       { contentTopics: [topic], startTime, endTime },
       {
-        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        direction:
+          opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
         limit,
       }
     )
@@ -724,8 +722,7 @@ async function getUserContactFromNetwork(
 
   for await (const env of stream) {
     if (!env.message) continue
-    const bundle = decodeContactBundle(b64Decode(env.message.toString()))
-    const keyBundle = bundle.keyBundle
+    const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
 
     const address = keyBundle?.walletSignatureAddress()
     // TODO: Ignore SignedPublicKeyBundles for now.
