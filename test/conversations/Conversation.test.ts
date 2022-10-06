@@ -86,10 +86,12 @@ describe('conversation', () => {
     // This should be readable
     await aliceConversation.send('gm')
     // This should not be readable
-    await alice.publishEnvelope({
-      message: Uint8Array.from([1, 2, 3]),
-      contentTopic: buildDirectMessageTopic(alice.address, bob.address),
-    })
+    await alice.publishEnvelopes([
+      {
+        message: Uint8Array.from([1, 2, 3]),
+        contentTopic: buildDirectMessageTopic(alice.address, bob.address),
+      },
+    ])
 
     let numMessages = 0
     for await (const page of aliceConversation.messagesPaginated()) {

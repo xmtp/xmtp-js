@@ -13,7 +13,9 @@ import Message from '../Message'
  */
 export default class Conversation {
   peerAddress: string
+  context?: InvitationContext
   private client: Client
+  private topics: string[]
 
   constructor(
     client: Client,
@@ -23,6 +25,8 @@ export default class Conversation {
   ) {
     this.peerAddress = address
     this.client = client
+    this.topics = topics
+    this.context = context
   }
 
   /**

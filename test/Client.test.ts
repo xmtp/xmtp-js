@@ -62,10 +62,12 @@ describe('Client', () => {
       it('user contacts are filtered to valid contacts', async () => {
         // publish bob's keys to alice's contact topic
         const bobPublic = bob.keys.getPublicKeyBundle()
-        await alice.publishEnvelope({
-          message: bobPublic.toBytes(),
-          contentTopic: buildUserContactTopic(alice.address),
-        })
+        await alice.publishEnvelopes([
+          {
+            message: bobPublic.toBytes(),
+            contentTopic: buildUserContactTopic(alice.address),
+          },
+        ])
         const alicePublic = await alice.getUserContact(alice.address)
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })

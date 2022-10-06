@@ -1,5 +1,5 @@
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
-import { SealedInvitation } from './Invitation'
+import { InvitationContext, SealedInvitation } from './Invitation'
 import { PublicKeyBundle, PrivateKeyBundleV1 } from './crypto'
 import Message from './Message'
 import {
@@ -32,7 +32,11 @@ import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle } from './ContactBundle'
 import ApiClient, { SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
-import TopicKeyManager, { EncryptionAlgorithm } from './TopicKeyManager'
+import TopicKeyManager, {
+  DuplicateTopicError,
+  EncryptionAlgorithm,
+} from './TopicKeyManager'
+import Long from 'long'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
 
@@ -40,7 +44,8 @@ const { b64Decode } = fetcher
 // eslint-disable @typescript-eslint/no-explicit-any
 
 // Default maximum allowed content size
-const MaxContentSize = 100 * 1024 * 1024 // 100M
+const MAX_CONTENT_SIZE = 100 * 1024 * 1024 // 100M
+const INVITE_LOAD_OFFSET = 30
 
 export const ApiUrls = {
   local: 'http://localhost:5555',
@@ -121,7 +126,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     env: 'dev',
     apiUrl: undefined,
     codecs: [new TextCodec()],
-    maxContentSize: MaxContentSize,
+    maxContentSize: MAX_CONTENT_SIZE,
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
@@ -144,6 +149,7 @@ export default class Client {
   private contacts: Set<string> // address which we have connected to
   private topicKeyManager: TopicKeyManager
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
+  private latestInviteNs: Long
   private _conversations: Conversations
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
@@ -156,9 +162,10 @@ export default class Client {
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
-    this._maxContentSize = MaxContentSize
+    this._maxContentSize = MAX_CONTENT_SIZE
     this.apiClient = apiClient
     this.topicKeyManager = new TopicKeyManager()
+    this.latestInviteNs = new Long(0)
   }
 
   /**
@@ -211,10 +218,12 @@ export default class Client {
   // publish the key bundle into the contact topic
   private async publishUserContact(): Promise<void> {
     const pub = this.keys.getPublicKeyBundle()
-    await this.publishEnvelope({
-      contentTopic: buildUserContactTopic(this.address),
-      message: pub.toBytes(),
-    })
+    await this.publishEnvelopes([
+      {
+        contentTopic: buildUserContactTopic(this.address),
+        message: pub.toBytes(),
+      },
+    ])
   }
 
   /**
@@ -296,17 +305,35 @@ export default class Client {
 
     await Promise.all(
       topics.map(async (topic) => {
-        return this.publishEnvelope({
-          contentTopic: topic,
-          message: msgBytes,
-        })
+        return this.publishEnvelopes([
+          {
+            contentTopic: topic,
+            message: msgBytes,
+          },
+        ])
       })
     )
 
     return this.decodeMessage(msgBytes, topics[0])
   }
 
-  async publishEnvelope(env: messageApi.Envelope): Promise<void> {
+  async publishEnvelopes(envelopes: messageApi.Envelope[]): Promise<void> {
+    for (const env of envelopes) {
+      this.validateEnvelope(env)
+    }
+    try {
+      await this.apiClient.publish(
+        envelopes.map((env) => ({
+          contentTopic: env.contentTopic!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          message: env.message!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        }))
+      )
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  private validateEnvelope(env: messageApi.Envelope): void {
     const bytes = env.message
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
@@ -314,17 +341,6 @@ export default class Client {
 
     if (!bytes || !bytes.length) {
       throw new Error('Cannot publish empty message')
-    }
-
-    try {
-      await this.apiClient.publish([
-        {
-          contentTopic: env.contentTopic,
-          message: bytes,
-        },
-      ])
-    } catch (err) {
-      console.log(err)
     }
   }
 
@@ -518,56 +534,85 @@ export default class Client {
     return msgs
   }
 
-  async listInvites(): Promise<SealedInvitation[]> {
+  async loadInvites(): Promise<void> {
     const envelopes = await this.apiClient.query(
       {
         contentTopics: [buildUserInviteTopic(this.address)],
+        // Offset the last seen date by 30s for safety around race conditions
+        startTime: nsLongToDate(
+          this.latestInviteNs.sub(INVITE_LOAD_OFFSET * 1000 * 1_000_000)
+        ),
       },
-      {}
+      {
+        direction: SortDirection.SORT_DIRECTION_ASCENDING,
+        limit: 100,
+      }
     )
-    const bundle = PrivateKeyBundleV2.fromLegacyBundle(this.keys)
-    const invites: SealedInvitation[] = []
-    for (const { message } of envelopes) {
-      if (!message) {
+    for (const { message, timestampNs } of envelopes) {
+      if (!message || !timestampNs) {
+        console.warn('Invite missing required field')
         continue
       }
       try {
         const invite = SealedInvitation.fromBytes(
           b64Decode(message as unknown as string)
         )
-        // Get the invitation (and cache the value) to ensure decryption works
-        invite.v1.getInvitation(bundle)
-        invites.push(invite)
+
+        const serverTime = Long.fromString(timestampNs)
+        const headerTime = invite.v1.header.createdNs
+        if (!headerTime.equals(serverTime)) {
+          console.warn(
+            `Server and header timestamps do not match for invite. Server time: ${serverTime.toString()}. Header time: ${headerTime.toString()}`
+          )
+          continue
+        }
+        // This will decrypt and load the invite, which validates against forged messages
+        await this.saveInvite(invite)
+
+        if (headerTime.gt(this.latestInviteNs)) {
+          this.latestInviteNs = headerTime
+        }
       } catch (e) {
-        console.warn('Error decoding invite', e)
+        if (!(e instanceof DuplicateTopicError)) {
+          console.warn('Error decoding invite', e)
+        }
       }
     }
-
-    return invites
   }
 
   async saveInvite(invite: SealedInvitation) {
+    // Get the invitation (and cache the value) to ensure decryption works
+    // Will throw if the invite cannot be decrypted
     const unsealed = await invite.v1.getInvitation(this.keysV2)
     const header = invite.v1.header
     const myBundle = this.keysV2.getPublicKeyBundle()
-    const isSender = header.recipient.equals(myBundle)
+    const createdAt = header.createdNs
+    const isSender = header.sender.equals(myBundle)
     const isRecipient = header.recipient.equals(myBundle)
+    const counterparty = isSender ? header.recipient : header.sender
+
     if (!isSender && !isRecipient) {
       throw new Error(
-        'Current user is neither the sender nor the recipient of this bundle'
+        'Current account is neither the sender nor the recipient of this bundle'
       )
     }
+
     this.topicKeyManager.addDirectMessageTopic(
       unsealed.topic,
+      await counterparty.walletSignatureAddress(),
       {
-        keyMaterial: unsealed.aes256GcmHkdfSha256.keyMaterial,
-        encryptionAlgorithm: EncryptionAlgorithm.AES_256_GCM_HKDF_SHA_256,
+        topicKey: {
+          keyMaterial: unsealed.aes256GcmHkdfSha256.keyMaterial,
+          encryptionAlgorithm: EncryptionAlgorithm.AES_256_GCM_HKDF_SHA_256,
+        },
         allowedSigners: [header.recipient, header.sender],
+        context: unsealed.context,
       },
-      isSender ? header.recipient : header.sender,
-      nsLongToDate(header.createdNs)
+      createdAt
     )
   }
+
+  async sendInvite(walletAddress: string, context?: InvitationContext) {}
 }
 
 function createKeyStoreFromConfig(

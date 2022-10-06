@@ -1,3 +1,4 @@
+import { InvitationContext } from './Invitation'
 import Long from 'long'
 import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
 
@@ -11,10 +12,6 @@ export enum EncryptionAlgorithm {
 export type TopicKeyRecord = {
   keyMaterial: Uint8Array
   encryptionAlgorithm: EncryptionAlgorithm
-  // Callers should validate that the signature comes from the list of allowed signers
-  // Not strictly necessary, but it prevents against compromised topic keys being
-  // used by third parties who would sign the message with a different key
-  allowedSigners: SignedPublicKeyBundle[]
 }
 
 /**
@@ -23,7 +20,14 @@ export type TopicKeyRecord = {
 export type TopicResult = {
   topicKey: TopicKeyRecord
   contentTopic: string
+  // Callers should validate that the signature comes from the list of allowed signers
+  // Not strictly necessary, but it prevents against compromised topic keys being
+  // used by third parties who would sign the message with a different key
+  allowedSigners: SignedPublicKeyBundle[]
+  context?: InvitationContext
 }
+
+type IndexedTopicResult = Omit<TopicResult, 'contentTopic'>
 
 // Internal data structure used to store the relationship between a topic and a wallet address
 type WalletTopicRecord = {
@@ -66,57 +70,45 @@ const findLatestTopic = (records: WalletTopicRecord[]): WalletTopicRecord => {
  */
 export default class TopicKeyManager {
   // Mapping of content topics to the keys used for decryption on that topic
-  private topicKeys: Map<ContentTopic, TopicKeyRecord>
+  private topicKeys: Map<ContentTopic, IndexedTopicResult>
   // Mapping of wallet addresses and topics
   private dmTopics: Map<WalletAddress, WalletTopicRecord[]>
-  // The newest record in the store's timestamp in nanoseconds
-  private newestRecord: Long
 
   constructor() {
-    this.topicKeys = new Map<ContentTopic, TopicKeyRecord>()
+    this.topicKeys = new Map<ContentTopic, TopicResult>()
     this.dmTopics = new Map<WalletAddress, WalletTopicRecord[]>()
-    this.newestRecord = new Long(0)
   }
 
   /**
    * Create a TopicKeyRecord for the topic and store it for later access
    *
-   * @param contentTopic The topic
-   * @param key TopicKeyRecord that contains the topic key and encryption algorithm
-   * @param counterparty The other user's PublicKeyBundle
    * @param createdAtNs Date in nanoseconds
    */
-  async addDirectMessageTopic(
+  addDirectMessageTopic(
     contentTopic: string,
-    key: TopicKeyRecord,
-    counterparty: SignedPublicKeyBundle,
+    walletAddress: string,
+    data: IndexedTopicResult,
     createdAtNs: Long
-  ): Promise<void> {
+  ): void {
     if (this.topicKeys.has(contentTopic)) {
       throw new DuplicateTopicError(contentTopic)
     }
-    this.topicKeys.set(contentTopic, key)
-
-    const walletAddress =
-      await counterparty.identityKey.walletSignatureAddress()
+    this.topicKeys.set(contentTopic, data)
     const counterpartyTopicList = this.dmTopics.get(walletAddress) || []
     counterpartyTopicList.push({ contentTopic, createdAtNs })
     this.dmTopics.set(walletAddress, counterpartyTopicList)
-    if (createdAtNs.greaterThan(this.newestRecord)) {
-      this.newestRecord = createdAtNs
-    }
   }
 
   /**
    * Would be used to get all information required to decrypt/validate a given message
    */
   getByTopic(contentTopic: string): TopicResult | undefined {
-    const topicKey = this.topicKeys.get(contentTopic)
-    if (!topicKey) {
+    const result = this.topicKeys.get(contentTopic)
+    if (!result) {
       return undefined
     }
     return {
-      topicKey,
+      ...result,
       contentTopic,
     }
   }
