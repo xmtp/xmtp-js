@@ -25,6 +25,7 @@ export default class Conversations {
    */
   async list(): Promise<Conversation[]> {
     const v1Addresses = await this.getV1Addresses()
+    await this.client.loadInvites()
     const topicResults = this.client.allTopics()
     const out: Conversation[] = []
     for (const result of topicResults) {
@@ -191,7 +192,7 @@ export default class Conversations {
       throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
     }
 
-    return new Conversation(this.client, peerAddres, [
+    return new Conversation(this.client, peerAddress, [
       buildDirectMessageTopic(this.client.address, peerAddress),
     ])
   }
