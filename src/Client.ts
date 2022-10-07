@@ -1,5 +1,6 @@
+import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
-import { InvitationContext, SealedInvitation } from './Invitation'
+import { InvitationContext, InvitationV1, SealedInvitation } from './Invitation'
 import { PublicKeyBundle, PrivateKeyBundleV1 } from './crypto'
 import Message from './Message'
 import {
@@ -35,6 +36,7 @@ import { Authenticator } from './authn'
 import TopicKeyManager, {
   DuplicateTopicError,
   EncryptionAlgorithm,
+  TopicResult,
 } from './TopicKeyManager'
 import Long from 'long'
 const { Compression } = xmtpEnvelope
@@ -145,7 +147,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
 export default class Client {
   address: string
   keys: PrivateKeyBundleV1
-  keysV2: PrivateKeyBundleV2
+  signedKeys: PrivateKeyBundleV2
   apiClient: ApiClient
   private contacts: Set<string> // address which we have connected to
   private topicKeyManager: TopicKeyManager
@@ -159,7 +161,7 @@ export default class Client {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
-    this.keysV2 = PrivateKeyBundleV2.fromLegacyBundle(keys)
+    this.signedKeys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
@@ -581,9 +583,9 @@ export default class Client {
   async saveInvite(invite: SealedInvitation) {
     // Get the invitation (and cache the value) to ensure decryption works
     // Will throw if the invite cannot be decrypted
-    const unsealed = await invite.v1.getInvitation(this.keysV2)
+    const unsealed = await invite.v1.getInvitation(this.signedKeys)
     const header = invite.v1.header
-    const myBundle = this.keysV2.getPublicKeyBundle()
+    const myBundle = this.signedKeys.getPublicKeyBundle()
     const createdAt = header.createdNs
     const isSender = header.sender.equals(myBundle)
     const isRecipient = header.recipient.equals(myBundle)
@@ -601,16 +603,47 @@ export default class Client {
       {
         topicKey: {
           keyMaterial: unsealed.aes256GcmHkdfSha256.keyMaterial,
-          encryptionAlgorithm: EncryptionAlgorithm.AES_256_GCM_HKDF_SHA_256,
+          encryptionAlgorithm: EncryptionAlgorithm.AES_256_GCM_HKDF_SHA_256, // TODO: Actually map algorithm instead of hardcoding
         },
         allowedSigners: [header.recipient, header.sender],
         context: unsealed.context,
+        peerAddress: await counterparty.walletSignatureAddress(),
       },
       createdAt
     )
   }
 
-  async sendInvite(walletAddress: string, context?: InvitationContext) {}
+  async sendInvite(peerAddress: string, context?: InvitationContext) {
+    const recipientContact = await this.getUserContact(peerAddress)
+    if (!recipientContact) {
+      throw new Error(`Recipient with address ${peerAddress} cannot be found`)
+    }
+    const created = new Date()
+    const recipient = SignedPublicKeyBundle.fromLegacyBundle(recipientContact)
+    const sealedInvite = await SealedInvitation.createV1({
+      sender: this.signedKeys,
+      recipient,
+      created,
+      invitation: InvitationV1.createRandom(context),
+    })
+    const inviteBytes = sealedInvite.toBytes()
+    const envelopes: PublishParams[] = [
+      buildUserInviteTopic(this.address),
+      buildUserInviteTopic(peerAddress),
+    ].map((topic) => ({
+      contentTopic: topic,
+      message: inviteBytes,
+      timestamp: created,
+    }))
+
+    await this.publishEnvelopes(envelopes)
+    // Eagerly save the invite so it can be used immediately
+    await this.saveInvite(sealedInvite)
+  }
+
+  allTopics(): TopicResult[] {
+    return this.topicKeyManager.getAll()
+  }
 }
 
 function createKeyStoreFromConfig(

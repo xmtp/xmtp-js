@@ -6,10 +6,13 @@ export enum EncryptionAlgorithm {
   AES_256_GCM_HKDF_SHA_256,
 }
 
+type ContentTopic = string
+type WalletAddress = string
+
 /**
- * TopicKeyRecord encapsulates the key, algorithm, and a list of allowed signers
+ * TopicKey encapsulates the key, algorithm, and a list of allowed signers
  */
-export type TopicKeyRecord = {
+export type TopicKey = {
   keyMaterial: Uint8Array
   encryptionAlgorithm: EncryptionAlgorithm
 }
@@ -18,13 +21,14 @@ export type TopicKeyRecord = {
  * TopicResult is the public interface for receiving a TopicKey
  */
 export type TopicResult = {
-  topicKey: TopicKeyRecord
+  topicKey: TopicKey
   contentTopic: string
   // Callers should validate that the signature comes from the list of allowed signers
   // Not strictly necessary, but it prevents against compromised topic keys being
   // used by third parties who would sign the message with a different key
   allowedSigners: SignedPublicKeyBundle[]
   context?: InvitationContext
+  peerAddress: WalletAddress
 }
 
 type IndexedTopicResult = Omit<TopicResult, 'contentTopic'>
@@ -34,9 +38,6 @@ type WalletTopicRecord = {
   contentTopic: string
   createdAtNs: Long
 }
-
-type ContentTopic = string
-type WalletAddress = string
 
 /**
  * Custom error type for cases where the caller attempted to add a second key to the same topic
@@ -135,5 +136,16 @@ export default class TopicKeyManager {
       .filter((res) => !!res) as TopicResult[]
 
     return dmTopics || []
+  }
+
+  /**
+   * Gets all the results with no grouping or sorting
+   */
+  getAll(): TopicResult[] {
+    const out: TopicResult[] = []
+    for (const [contentTopic, result] of this.topicKeys) {
+      out.push({ ...result, contentTopic })
+    }
+    return out
   }
 }

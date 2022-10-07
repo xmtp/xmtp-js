@@ -7,8 +7,6 @@ import Stream, {
 } from '../Stream'
 import Client from '../Client'
 import { buildDirectMessageTopic, buildUserIntroTopic } from '../utils'
-import { SealedInvitation } from '../Invitation'
-import { SignedPublicKeyBundle } from '../crypto/PublicKeyBundle'
 
 const messageHasHeaders: MessageFilter = (msg: Message) => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
@@ -27,10 +25,38 @@ export default class Conversations {
    */
   async list(): Promise<Conversation[]> {
     const v1Addresses = await this.getV1Addresses()
-    const v2Invites = await this.getV2Invites()
+    const topicResults = this.client.allTopics()
+    const out: Conversation[] = []
+    for (const result of topicResults) {
+      // If no context, attempt to join with existing V1 intro
+      const topics = [result.contentTopic]
+      if (!result.context) {
+        if (v1Addresses.has(result.peerAddress)) {
+          topics.unshift(
+            buildDirectMessageTopic(result.peerAddress, this.client.address)
+          )
+          //
+          v1Addresses.delete(result.peerAddress)
+        }
+      }
+      out.push(
+        new Conversation(
+          this.client,
+          result.peerAddress,
+          topics,
+          result.context
+        )
+      )
+    }
 
-    return v1Addresses.map(
-      (peerAddress) => new Conversation(this.client, peerAddress)
+    // Add the remaining addresses that do not have a matching invite as V1 conversations
+    return out.concat(
+      Array.from(v1Addresses).map(
+        (address) =>
+          new Conversation(this.client, address, [
+            buildDirectMessageTopic(address, this.client.address),
+          ])
+      )
     )
   }
 
@@ -54,16 +80,6 @@ export default class Conversations {
     return seenPeers
   }
 
-  private async getV2Invites(): Promise<SealedInvitation[]> {
-    const invites = await this.client.listInvites()
-    const myPublicKeyBundle = SignedPublicKeyBundle.fromLegacyBundle(
-      this.client.keys.getPublicKeyBundle()
-    )
-    const out: Conversation[] = []
-    for (const invite of invites) {
-    }
-  }
-
   /**
    * Returns a stream of any newly created conversations.
    * Will dedupe to not return the same conversation twice in the same stream.
@@ -74,7 +90,9 @@ export default class Conversations {
       msg: Message
     ) => {
       const peerAddress = this.getPeerAddress(msg)
-      return new Conversation(this.client, peerAddress, [get])
+      return new Conversation(this.client, peerAddress, [
+        buildDirectMessageTopic(peerAddress, this.client.address),
+      ])
     }
 
     const seenPeers: Set<string> = new Set()
@@ -173,7 +191,9 @@ export default class Conversations {
       throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
     }
 
-    return new Conversation(this.client, peerAddress)
+    return new Conversation(this.client, peerAddres, [
+      buildDirectMessageTopic(this.client.address, peerAddress),
+    ])
   }
 
   private getPeerAddress(message: Message): string {
