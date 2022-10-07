@@ -545,7 +545,6 @@ export default class Client {
       },
       {
         direction: SortDirection.SORT_DIRECTION_ASCENDING,
-        limit: 100,
       }
     )
     for (const { message, timestampNs } of envelopes) {
