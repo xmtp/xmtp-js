@@ -1,4 +1,4 @@
-import { newLocalHostClient } from './../helpers'
+import { newLocalHostClient, waitForUserContact } from './../helpers'
 import { Client } from '../../src'
 import {
   buildDirectMessageTopic,
@@ -15,12 +15,15 @@ describe('conversations', () => {
     alice = await newLocalHostClient()
     bob = await newLocalHostClient()
     charlie = await newLocalHostClient()
+    await waitForUserContact(alice, alice)
+    await waitForUserContact(bob, bob)
+    await waitForUserContact(charlie, charlie)
   })
 
   afterEach(async () => {
-    await alice.close()
-    await bob.close()
-    await charlie.close()
+    if (alice) await alice.close()
+    if (bob) await bob.close()
+    if (charlie) await charlie.close()
   })
 
   it('lists all conversations', async () => {

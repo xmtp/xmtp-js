@@ -2,7 +2,7 @@ import { buildDirectMessageTopic } from './../../src/utils'
 import { Client, Message } from '../../src'
 import { SortDirection } from '../../src/ApiClient'
 import { sleep } from '../../src/utils'
-import { newLocalHostClient } from '../helpers'
+import { newLocalHostClient, waitForUserContact } from '../helpers'
 
 describe('conversation', () => {
   let alice: Client
@@ -11,11 +11,13 @@ describe('conversation', () => {
   beforeEach(async () => {
     alice = await newLocalHostClient()
     bob = await newLocalHostClient()
+    await waitForUserContact(alice, alice)
+    await waitForUserContact(bob, bob)
   })
 
   afterEach(async () => {
-    await alice.close()
-    await bob.close()
+    if (alice) await alice.close()
+    if (bob) await bob.close()
   })
 
   it('lists all messages', async () => {
@@ -125,6 +127,7 @@ describe('conversation', () => {
 
     // Start the stream before sending the message to ensure delivery
     const stream = await aliceConversation.streamMessages()
+    await sleep(100)
     await bobConversation.send('gm')
 
     let numMessages = 0
