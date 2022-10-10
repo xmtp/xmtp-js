@@ -39,7 +39,7 @@ export class UnsignedPublicKey implements publicKey.UnsignedPublicKey {
     }
     secp256k1UncompressedCheck(obj.secp256k1Uncompressed)
     this.secp256k1Uncompressed = obj.secp256k1Uncompressed
-    this.createdNs = obj.createdNs
+    this.createdNs = obj.createdNs.toUnsigned()
   }
 
   // The time the key was generated.
@@ -49,9 +49,11 @@ export class UnsignedPublicKey implements publicKey.UnsignedPublicKey {
 
   // creation time in milliseconds
   get timestamp(): Long {
-    return this.createdNs < MS_NS_TIMESTAMP_THRESHOLD
-      ? this.createdNs
-      : this.createdNs.div(1000000)
+    return (
+      this.createdNs < MS_NS_TIMESTAMP_THRESHOLD
+        ? this.createdNs
+        : this.createdNs.div(1000000)
+    ).toUnsigned()
   }
 
   // Verify that signature was created from the digest using matching private key.
