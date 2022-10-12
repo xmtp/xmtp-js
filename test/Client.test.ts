@@ -70,6 +70,27 @@ describe('Client', () => {
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
+      it('user contacts are case-insensitive', async () => {
+        return pollFor(
+          async () => {
+            const contact1 = await bob.getUserContact(alice.address)
+            const contact2 = await bob.getUserContact(
+              alice.address.toUpperCase()
+            )
+            const contact3 = await bob.getUserContact(
+              alice.address.toLowerCase()
+            )
+            assert.ok(contact1)
+            assert.ok(contact2)
+            assert.ok(contact3)
+            assert.deepEqual(contact1, contact2)
+            assert.deepEqual(contact2, contact3)
+          },
+          20000,
+          200
+        )
+      })
+
       it.only('send, stream and list messages', async () => {
         const bobIntros = await bob.streamIntroductionMessages()
         const bobAlice = await bob.streamConversationMessages(alice.address)
