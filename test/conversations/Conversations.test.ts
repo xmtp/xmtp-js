@@ -146,4 +146,20 @@ describe('conversations', () => {
     expect(aliceConversationsList).toHaveLength(1)
     expect(bobConversationList).toHaveLength(1)
   })
+
+  it('new conversations are case-insensitive to given address', async () => {
+    const aliceToBob = await alice.conversations.newConversation(
+      bob.address.toLowerCase()
+    )
+    await aliceToBob.send('gm')
+    await sleep(50)
+
+    const aliceConversationsAfterMessage = await alice.conversations.list()
+    expect(aliceConversationsAfterMessage).toHaveLength(1)
+    expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
+
+    const bobConversations = await bob.conversations.list()
+    expect(bobConversations).toHaveLength(1)
+    expect(bobConversations[0].peerAddress).toBe(alice.address)
+  })
 })
