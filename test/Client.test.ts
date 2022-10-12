@@ -409,6 +409,31 @@ describe('canMessage', () => {
     )
     expect(canMessageUnregisteredClient).toBeFalsy()
   })
+
+  it('is case-insensitive to given peerAddress', async () => {
+    const registeredClient = await newLocalHostClient()
+    await waitForUserContact(registeredClient, registeredClient)
+    const upperCaseCanMessage = await Client.canMessage(
+      registeredClient.address.toUpperCase(),
+      {
+        env: 'local',
+      }
+    )
+    expect(upperCaseCanMessage).toBeTruthy()
+
+    const lowerCaseCanMessage = await Client.canMessage(
+      registeredClient.address.toLowerCase(),
+      {
+        env: 'local',
+      }
+    )
+    expect(lowerCaseCanMessage).toBeTruthy()
+
+    const invalidClient = await Client.canMessage('bad_address', {
+      env: 'local',
+    })
+    expect(invalidClient).toBeFalsy()
+  })
 })
 
 describe('ClientOptions', () => {
