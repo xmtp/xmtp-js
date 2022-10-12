@@ -7,7 +7,7 @@ import {
   mapPaginatedStream,
 } from './utils'
 import Stream, { MessageFilter, noTransformation } from './Stream'
-import { Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import {
   EncryptedKeyStore,
   KeyStore,
@@ -213,11 +213,11 @@ export default class Client {
    * Returns the cached PublicKeyBundle if one is known for the given address or fetches
    * one from the network
    */
-
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | undefined> {
-    const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
+    const safeAddress = ethers.utils.getAddress(peerAddress)
+    const existingBundle = this.knownPublicKeyBundles.get(safeAddress)
 
     if (existingBundle) {
       return existingBundle
@@ -225,11 +225,11 @@ export default class Client {
 
     const newBundle = await getUserContactFromNetwork(
       this.apiClient,
-      peerAddress
+      safeAddress
     )
 
     if (newBundle) {
-      this.knownPublicKeyBundles.set(peerAddress, newBundle)
+      this.knownPublicKeyBundles.set(safeAddress, newBundle)
     }
 
     return newBundle

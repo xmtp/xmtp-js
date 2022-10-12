@@ -72,6 +72,27 @@ describe('Client', () => {
         assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
       })
 
+      it('user contacts are case-insensitive to given address', async () => {
+        return pollFor(
+          async () => {
+            const contact1 = await bob.getUserContact(alice.address)
+            const contact2 = await bob.getUserContact(
+              alice.address.toUpperCase()
+            )
+            const contact3 = await bob.getUserContact(
+              alice.address.toLowerCase()
+            )
+            assert.ok(contact1)
+            assert.ok(contact2)
+            assert.ok(contact3)
+            assert.deepEqual(contact1, contact2)
+            assert.deepEqual(contact2, contact3)
+          },
+          20000,
+          200
+        )
+      })
+
       it('send, stream and list messages', async () => {
         const bobIntros = await bob.streamIntroductionMessages()
         const bobAlice = await bob.streamConversationMessages(alice.address)
@@ -387,6 +408,31 @@ describe('canMessage', () => {
       { env: 'local' }
     )
     expect(canMessageUnregisteredClient).toBeFalsy()
+  })
+
+  it('is case-insensitive to given peerAddress', async () => {
+    const registeredClient = await newLocalHostClient()
+    await waitForUserContact(registeredClient, registeredClient)
+    const upperCaseCanMessage = await Client.canMessage(
+      registeredClient.address.toUpperCase(),
+      {
+        env: 'local',
+      }
+    )
+    expect(upperCaseCanMessage).toBeTruthy()
+
+    const lowerCaseCanMessage = await Client.canMessage(
+      registeredClient.address.toLowerCase(),
+      {
+        env: 'local',
+      }
+    )
+    expect(lowerCaseCanMessage).toBeTruthy()
+
+    const invalidClient = await Client.canMessage('bad_address', {
+      env: 'local',
+    })
+    expect(invalidClient).toBeFalsy()
   })
 })
 
