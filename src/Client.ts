@@ -213,7 +213,6 @@ export default class Client {
    * Returns the cached PublicKeyBundle if one is known for the given address or fetches
    * one from the network
    */
-
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | undefined> {
