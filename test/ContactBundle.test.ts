@@ -1,11 +1,11 @@
 import * as assert from 'assert'
 import { decodeContactBundle, encodeContactBundle } from '../src/ContactBundle'
+import { PublicKeyBundle, SignedPublicKeyBundle } from '../src'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
-  PublicKeyBundle,
-  SignedPublicKeyBundle,
-} from '../src'
+} from '../src/crypto/PrivateKeyBundle'
+
 import { newWallet } from './helpers'
 
 describe('ContactBundles', function () {

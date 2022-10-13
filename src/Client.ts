@@ -1,12 +1,19 @@
-import { PublicKeyBundle, PrivateKeyBundleV1 } from './crypto'
-import Message from './Message'
+import {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
+} from './crypto'
+import { MessageV1, MessageV2 } from './Message'
 import {
   buildDirectMessageTopic,
   buildUserContactTopic,
   buildUserIntroTopic,
   mapPaginatedStream,
+  EnvelopeMapper,
+  buildUserInviteTopic,
 } from './utils'
-import Stream, { MessageFilter, noTransformation } from './Stream'
+import Stream from './Stream'
 import { Signer } from 'ethers'
 import {
   EncryptedKeyStore,
@@ -25,9 +32,10 @@ import {
 } from './MessageContent'
 import { decompress, compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
-import { decodeContactBundle } from './ContactBundle'
-import ApiClient, { SortDirection } from './ApiClient'
+import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
+import ApiClient, { PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
+import { SealedInvitation } from './Invitation'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
 
@@ -86,6 +94,7 @@ type NetworkOptions = {
 
 type ContentOptions = {
   // Allow configuring codecs for additional content types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecs: ContentCodec<any>[]
 
   // Set the maximum content size in bytes that is allowed by the Client.
@@ -134,18 +143,28 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  */
 export default class Client {
   address: string
-  keys: PrivateKeyBundleV1
+  legacyKeys: PrivateKeyBundleV1
+  keys: PrivateKeyBundleV2
   apiClient: ApiClient
   private contacts: Set<string> // address which we have connected to
-  private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
+  private knownPublicKeyBundles: Map<
+    string,
+    PublicKeyBundle | SignedPublicKeyBundle
+  > // addresses and key bundles that we have witnessed
+
   private _conversations: Conversations
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
 
   constructor(keys: PrivateKeyBundleV1, apiClient: ApiClient) {
     this.contacts = new Set<string>()
-    this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
-    this.keys = keys
+    this.knownPublicKeyBundles = new Map<
+      string,
+      PublicKeyBundle | SignedPublicKeyBundle
+    >()
+    this.legacyKeys = keys
+    this.keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
@@ -184,7 +203,7 @@ export default class Client {
     opts?: Partial<ClientOptions>
   ): Promise<Uint8Array> {
     const client = await Client.create(wallet, opts)
-    return client.keys.encode()
+    return client.legacyKeys.encode()
   }
 
   async init(options: ClientOptions): Promise<void> {
@@ -201,12 +220,16 @@ export default class Client {
   }
 
   // publish the key bundle into the contact topic
-  private async publishUserContact(): Promise<void> {
-    const pub = this.keys.getPublicKeyBundle()
-    await this.publishEnvelope({
-      contentTopic: buildUserContactTopic(this.address),
-      message: pub.toBytes(),
-    })
+  // WARNING: temporarily public to allow testing negotiated topics
+  // TODO: make private again asap
+  async publishUserContact(legacy = true): Promise<void> {
+    const keys = legacy ? this.legacyKeys : this.keys
+    await this.publishEnvelopes([
+      {
+        contentTopic: buildUserContactTopic(this.address),
+        message: encodeContactBundle(keys.getPublicKeyBundle()),
+      },
+    ])
   }
 
   /**
@@ -216,7 +239,7 @@ export default class Client {
 
   async getUserContact(
     peerAddress: string
-  ): Promise<PublicKeyBundle | undefined> {
+  ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
 
     if (existingBundle) {
@@ -233,6 +256,10 @@ export default class Client {
     }
 
     return newBundle
+  }
+
+  forgetContact(peerAddress: string) {
+    this.knownPublicKeyBundles.delete(peerAddress)
   }
 
   /**
@@ -261,13 +288,17 @@ export default class Client {
    */
   async sendMessage(
     peerAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content: any,
     options?: SendOptions
-  ): Promise<Message> {
+  ): Promise<MessageV1> {
     let topics: string[]
     const recipient = await this.getUserContact(peerAddress)
     if (!recipient) {
       throw new Error(`recipient ${peerAddress} is not registered`)
+    }
+    if (!(recipient instanceof PublicKeyBundle)) {
+      throw new Error(`recipient bundle is not legacy bundle`)
     }
 
     if (!this.contacts.has(peerAddress)) {
@@ -288,22 +319,20 @@ export default class Client {
 
     await Promise.all(
       topics.map(async (topic) => {
-        return this.publishEnvelope({
-          contentTopic: topic,
-          message: msgBytes,
-          timestamp,
-        })
+        return this.publishEnvelopes([
+          {
+            contentTopic: topic,
+            message: msgBytes,
+            timestamp,
+          },
+        ])
       })
     )
 
     return this.decodeMessage(msgBytes, topics[0])
   }
 
-  async publishEnvelope(env: {
-    contentTopic: string
-    message: Uint8Array
-    timestamp?: Date
-  }): Promise<void> {
+  private validateEnvelope(env: PublishParams): void {
     const bytes = env.message
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
@@ -312,26 +341,27 @@ export default class Client {
     if (!bytes || !bytes.length) {
       throw new Error('Cannot publish empty message')
     }
+  }
 
+  async publishEnvelopes(envelopes: PublishParams[]): Promise<void> {
+    for (const env of envelopes) {
+      this.validateEnvelope(env)
+    }
     try {
-      await this.apiClient.publish([
-        {
-          contentTopic: env.contentTopic,
-          message: bytes,
-          timestamp: env.timestamp,
-        },
-      ])
+      await this.apiClient.publish(envelopes)
     } catch (err) {
       console.log(err)
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerCodec(codec: ContentCodec<any>): void {
     const id = codec.contentType
     const key = `${id.authorityId}/${id.typeId}`
     this._codecs.set(key, codec)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
     const key = `${contentType.authorityId}/${contentType.typeId}`
     const codec = this._codecs.get(key)
@@ -344,12 +374,11 @@ export default class Client {
     return codec
   }
 
-  async encodeMessage(
-    recipient: PublicKeyBundle,
-    timestamp: Date,
+  async encodeContent(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content: any,
     options?: SendOptions
-  ): Promise<Message> {
+  ): Promise<Uint8Array> {
     const contentType = options?.contentType || ContentTypeText
     const codec = this.codecFor(contentType)
     if (!codec) {
@@ -363,18 +392,34 @@ export default class Client {
       encoded.compression = options.compression
     }
     await compress(encoded)
-    const payload = xmtpEnvelope.EncodedContent.encode(encoded).finish()
-    return Message.encode(this.keys, recipient, payload, timestamp)
+    return xmtpEnvelope.EncodedContent.encode(encoded).finish()
+  }
+
+  async encodeMessage(
+    recipient: PublicKeyBundle,
+    timestamp: Date,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    content: any,
+    options?: SendOptions
+  ): Promise<MessageV1> {
+    const payload = await this.encodeContent(content, options)
+    return MessageV1.encode(this.legacyKeys, recipient, payload, timestamp)
   }
 
   async decodeMessage(
     payload: Uint8Array,
     contentTopic: string | undefined
-  ): Promise<Message> {
-    const message = await Message.decode(this.keys, payload)
+  ): Promise<MessageV1> {
+    const message = await MessageV1.decode(this.legacyKeys, payload)
     if (message.error) {
       return message
     }
+    message.contentTopic = contentTopic
+    this.decodeContent(message)
+    return message
+  }
+
+  async decodeContent(message: MessageV1 | MessageV2): Promise<void> {
     if (!message.decrypted) {
       throw new Error('decrypted bytes missing')
     }
@@ -385,7 +430,6 @@ export default class Client {
     }
     const contentType = new ContentTypeId(encoded.type)
     const codec = this.codecFor(contentType)
-    message.contentTopic = contentTopic
     if (codec) {
       message.content = codec.decode(encoded as EncodedContent, this)
       message.contentType = contentType
@@ -396,30 +440,46 @@ export default class Client {
         message.contentType = ContentTypeFallback
       }
     }
-    return message
   }
 
-  streamIntroductionMessages(): Promise<Stream<Message>> {
-    return Stream.create<Message>(
+  decodeEnvelope(env: messageApi.Envelope): Promise<MessageV1> {
+    if (!env.message) {
+      throw new Error('empty envelope')
+    }
+    return this.decodeMessage(
+      fetcher.b64Decode(env.message as unknown as string),
+      env.contentTopic
+    )
+  }
+
+  streamIntroductionMessages(): Promise<Stream<MessageV1>> {
+    return Stream.create<MessageV1>(
       this,
       [buildUserIntroTopic(this.address)],
-      noTransformation
+      this.decodeEnvelope.bind(this)
     )
   }
 
-  streamConversationMessages(peerAddress: string): Promise<Stream<Message>> {
+  streamConversationMessages(peerAddress: string): Promise<Stream<MessageV1>> {
     const topics = [buildDirectMessageTopic(peerAddress, this.address)]
-    return Stream.create<Message>(
-      this,
-      topics,
-      noTransformation,
-      filterForTopics(topics)
-    )
+    const filter = filterForTopics(topics)
+    return Stream.create<MessageV1>(this, topics, async (env) => {
+      const msg = await this.decodeEnvelope(env)
+      return filter(msg) ? msg : undefined
+    })
   }
 
   // list stored messages from this wallet's introduction topic
-  listIntroductionMessages(opts?: ListMessagesOptions): Promise<Message[]> {
+  listIntroductionMessages(opts?: ListMessagesOptions): Promise<MessageV1[]> {
     return this.listMessages(buildUserIntroTopic(this.address), opts)
+  }
+
+  listInvitations(opts?: ListMessagesOptions): Promise<SealedInvitation[]> {
+    return this.listEnvelopes(
+      [buildUserInviteTopic(this.address)],
+      SealedInvitation.fromEnvelope,
+      opts
+    )
   }
 
   // listIntroductionMessagesPaginated(
@@ -432,7 +492,7 @@ export default class Client {
   listConversationMessages(
     peerAddress: string,
     opts?: ListMessagesOptions
-  ): Promise<Message[]> {
+  ): Promise<MessageV1[]> {
     return this.listMessages(
       buildDirectMessageTopic(peerAddress, this.address),
       { ...opts, checkAddresses: true }
@@ -442,7 +502,7 @@ export default class Client {
   listConversationMessagesPaginated(
     peerAddress: string,
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<Message[]> {
+  ): AsyncGenerator<MessageV1[]> {
     return this.listMessagesPaginated(
       [buildDirectMessageTopic(peerAddress, this.address)],
       opts
@@ -455,8 +515,77 @@ export default class Client {
   listMessagesPaginated(
     contentTopics: string[],
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<Message[]> {
+  ): AsyncGenerator<MessageV1[]> {
     const topicFilter = filterForTopics(contentTopics)
+    return this.listEnvelopesPaginated(
+      contentTopics,
+      async (env): Promise<MessageV1> => {
+        const msg = await this.decodeEnvelope(env)
+        if (!topicFilter(msg)) {
+          throw new Error('Mismatched topic')
+        }
+        return msg
+      },
+      opts
+    )
+  }
+
+  // list stored messages from the specified topic
+  private async listMessages(
+    topic: string,
+    opts?: ListMessagesOptions
+  ): Promise<MessageV1[]> {
+    let msgs = await this.listEnvelopes(
+      [topic],
+      this.decodeEnvelope.bind(this),
+      opts
+    )
+    if (opts?.checkAddresses) {
+      msgs = msgs.filter(filterForTopics([topic]))
+    }
+    return msgs
+  }
+
+  // list stored messages from the specified topic
+  async listEnvelopes<Out>(
+    topics: string[],
+    mapper: EnvelopeMapper<Out>,
+    opts?: ListMessagesOptions
+  ): Promise<Out[]> {
+    if (!opts) {
+      opts = {}
+    }
+    const { startTime, endTime, limit } = opts
+
+    const envelopes = await this.apiClient.query(
+      { contentTopics: topics, startTime, endTime },
+      {
+        direction:
+          opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        limit,
+      }
+    )
+    const results: Out[] = []
+    for (const env of envelopes) {
+      if (!env.message) continue
+      try {
+        const res = await mapper(env)
+        results.push(res)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    return results
+  }
+
+  /**
+   * List messages on a given set of content topics, yielding one page at a time
+   */
+  listEnvelopesPaginated<Out>(
+    contentTopics: string[],
+    mapper: EnvelopeMapper<Out>,
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<Out[]> {
     return mapPaginatedStream(
       this.apiClient.queryIteratePages(
         {
@@ -466,55 +595,8 @@ export default class Client {
         },
         { direction: opts?.direction, pageSize: opts?.pageSize || 100 }
       ),
-      async (env): Promise<Message> => {
-        const msg = await this.decodeMessage(
-          b64Decode(env.message as unknown as string),
-          env.contentTopic
-        )
-        if (!topicFilter(msg)) {
-          throw new Error('Mismatched topic')
-        }
-        return msg
-      }
+      mapper
     )
-  }
-
-  // list stored messages from the specified topic
-  private async listMessages(
-    topic: string,
-    opts?: ListMessagesOptions
-  ): Promise<Message[]> {
-    if (!opts) {
-      opts = {}
-    }
-    const { startTime, endTime, checkAddresses, limit } = opts
-
-    const res = await this.apiClient.query(
-      { contentTopics: [topic], startTime, endTime },
-      {
-        direction:
-          opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
-        limit,
-      }
-    )
-
-    let msgs: Message[] = []
-    for (const env of res) {
-      if (!env.message) continue
-      try {
-        const msg = await this.decodeMessage(
-          b64Decode(env.message as unknown as string),
-          env.contentTopic
-        )
-        msgs.push(msg)
-      } catch (e) {
-        console.log(e)
-      }
-    }
-    if (checkAddresses) {
-      msgs = msgs.filter(filterForTopics([topic]))
-    }
-    return msgs
   }
 }
 
@@ -596,7 +678,7 @@ async function loadOrCreateKeysFromOptions(
 }
 
 // Ensure the message didn't have a spoofed address
-function filterForTopics(topics: string[]): MessageFilter {
+function filterForTopics(topics: string[]): (msg: MessageV1) => boolean {
   return (msg) => {
     const senderAddress = msg.senderAddress
     const recipientAddress = msg.recipientAddress
@@ -617,9 +699,7 @@ function createApiClientFromOptions(options: ClientOptions): ApiClient {
 async function getUserContactFromNetwork(
   apiClient: ApiClient,
   peerAddress: string
-): Promise<PublicKeyBundle | undefined> {
-  // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
-  let recipientKey: PublicKeyBundle | null = null
+): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
   const stream = apiClient.queryIterator(
     { contentTopics: [buildUserContactTopic(peerAddress)] },
     { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
@@ -629,12 +709,10 @@ async function getUserContactFromNetwork(
     if (!env.message) continue
     const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
 
-    const address = keyBundle?.walletSignatureAddress()
-    // TODO: Ignore SignedPublicKeyBundles for now.
-    if (address === peerAddress && keyBundle instanceof PublicKeyBundle) {
-      recipientKey = keyBundle
-      break
+    const address = await keyBundle?.walletSignatureAddress()
+    if (address === peerAddress) {
+      return keyBundle
     }
   }
-  return recipientKey === null ? undefined : recipientKey
+  return undefined
 }

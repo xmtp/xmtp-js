@@ -14,12 +14,12 @@ import { TestKeyCodec, ContentTypeTestKey } from './ContentTypeTestKey'
 import {
   ContentTypeFallback,
   PrivateKey,
-  Message,
   ContentTypeText,
   Compression,
   ContentTypeId,
-  PrivateKeyBundleV1,
 } from '../src'
+import { MessageV1 } from '../src/Message'
+import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
 
 type TestCase = {
   name: string
@@ -56,20 +56,22 @@ describe('Client', () => {
 
       it('user contacts published', async () => {
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
         const bobPublic = await bob.getUserContact(bob.address)
-        assert.deepEqual(bob.keys.getPublicKeyBundle(), bobPublic)
+        assert.deepEqual(bob.legacyKeys.getPublicKeyBundle(), bobPublic)
       })
 
       it('user contacts are filtered to valid contacts', async () => {
         // publish bob's keys to alice's contact topic
-        const bobPublic = bob.keys.getPublicKeyBundle()
-        await alice.publishEnvelope({
-          message: bobPublic.toBytes(),
-          contentTopic: buildUserContactTopic(alice.address),
-        })
+        const bobPublic = bob.legacyKeys.getPublicKeyBundle()
+        await alice.publishEnvelopes([
+          {
+            message: bobPublic.toBytes(),
+            contentTopic: buildUserContactTopic(alice.address),
+          },
+        ])
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.keys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
       })
 
       it('send, stream and list messages', async () => {
@@ -283,7 +285,7 @@ describe('Client', () => {
           compression: Compression.COMPRESSION_DEFLATE,
         })
         const result = await convo.next()
-        const msg = result.value as Message
+        const msg = result.value as MessageV1
         assert.equal(msg.content, content)
         await convo.return()
       })
@@ -307,7 +309,7 @@ describe('Client', () => {
           contentFallback: 'this is a public key',
         })
         let result = await stream.next()
-        let msg = result.value as Message
+        let msg = result.value as MessageV1
         assert.ok(msg.error)
         assert.equal(
           msg.error.message,
@@ -323,7 +325,7 @@ describe('Client', () => {
           contentType: ContentTypeTestKey,
         })
         result = await stream.next()
-        msg = result.value as Message
+        msg = result.value as MessageV1
         assert(msg.contentType)
         assert(msg.contentType.sameAs(ContentTypeTestKey))
         assert(key.equals(msg.content))
@@ -346,14 +348,14 @@ describe('Client', () => {
         // mallory takes over alice's client
         const malloryWallet = newWallet()
         const mallory = await PrivateKeyBundleV1.generate(malloryWallet)
-        const aliceKeys = alice.keys
-        alice.keys = mallory
+        const aliceKeys = alice.legacyKeys
+        alice.legacyKeys = mallory
         await alice.sendMessage(bob.address, 'Hello from Mallory')
         // alice restores control
-        alice.keys = aliceKeys
+        alice.legacyKeys = aliceKeys
         await alice.sendMessage(bob.address, 'Hello from Alice')
         const result = await stream.next()
-        const msg = result.value as Message
+        const msg = result.value as MessageV1
         assert.equal(msg.senderAddress, alice.address)
         assert.equal(msg.content, 'Hello from Alice')
       })

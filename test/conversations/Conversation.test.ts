@@ -1,8 +1,11 @@
 import { buildDirectMessageTopic } from './../../src/utils'
-import { Client, Message } from '../../src'
+import { MessageV1, MessageV2 } from '../../src/Message'
+import { Client } from '../../src'
 import { SortDirection } from '../../src/ApiClient'
 import { sleep } from '../../src/utils'
 import { newLocalHostClient, waitForUserContact } from '../helpers'
+import { SignedPublicKeyBundle } from '../../src/crypto'
+import { ConversationV2 } from '../../src/conversations/Conversation'
 
 describe('conversation', () => {
   let alice: Client
@@ -30,11 +33,11 @@ describe('conversation', () => {
 
     const startingMessages = await aliceConversation.messages()
     expect(startingMessages).toHaveLength(0)
-    await sleep(50)
+    await sleep(100)
 
     await bobConversation.send('Hi Alice')
     await aliceConversation.send('Hi Bob')
-    await sleep(1000)
+    await sleep(100)
 
     expect(await aliceConversation.messages()).toHaveLength(2)
     expect(await bobConversation.messages()).toHaveLength(2)
@@ -48,6 +51,7 @@ describe('conversation', () => {
     for (let i = 0; i < 10; i++) {
       await aliceConversation.send('gm')
     }
+    await sleep(100)
 
     let numPages = 0
     const messageIds = new Set<string>()
@@ -65,7 +69,7 @@ describe('conversation', () => {
     expect(messageIds.size).toBe(10)
 
     // Test sorting
-    let lastMessage: Message | undefined = undefined
+    let lastMessage: MessageV1 | MessageV2 | undefined = undefined
     for await (const page of aliceConversation.messagesPaginated({
       direction: SortDirection.SORT_DIRECTION_DESCENDING,
     })) {
@@ -75,6 +79,7 @@ describe('conversation', () => {
             lastMessage.sent?.valueOf()
           )
         }
+        expect(msg).toBeInstanceOf(MessageV1)
         lastMessage = msg
       }
     }
@@ -88,10 +93,13 @@ describe('conversation', () => {
     // This should be readable
     await aliceConversation.send('gm')
     // This should not be readable
-    await alice.publishEnvelope({
-      message: Uint8Array.from([1, 2, 3]),
-      contentTopic: buildDirectMessageTopic(alice.address, bob.address),
-    })
+    await alice.publishEnvelopes([
+      {
+        message: Uint8Array.from([1, 2, 3]),
+        contentTopic: buildDirectMessageTopic(alice.address, bob.address),
+      },
+    ])
+    await sleep(100)
 
     let numMessages = 0
     for await (const page of aliceConversation.messagesPaginated()) {
@@ -105,10 +113,11 @@ describe('conversation', () => {
       bob.address
     )
     await aliceConversation.send('1')
-    await sleep(1)
     await aliceConversation.send('2')
+    await sleep(100)
 
     const sortedAscending = await aliceConversation.messages()
+    expect(sortedAscending.length).toBe(2)
     expect(sortedAscending[0].content).toBe('1')
 
     const sortedDescending = await aliceConversation.messages({
@@ -141,5 +150,49 @@ describe('conversation', () => {
     await sleep(1000)
     expect(numMessages).toBe(2)
     expect(await aliceConversation.messages()).toHaveLength(2)
+  })
+
+  it('v2 conversation', async () => {
+    // publish new contact bundles
+    alice.publishUserContact(false)
+    await sleep(100)
+    bob.forgetContact(alice.address)
+    waitForUserContact(bob, alice)
+    expect(await bob.getUserContact(alice.address)).toBeInstanceOf(
+      SignedPublicKeyBundle
+    )
+
+    bob.publishUserContact(false)
+    await sleep(100)
+    alice.forgetContact(bob.address)
+    waitForUserContact(alice, bob)
+    expect(await alice.getUserContact(bob.address)).toBeInstanceOf(
+      SignedPublicKeyBundle
+    )
+
+    const ac = await alice.conversations.newConversation(bob.address)
+    if (!(ac instanceof ConversationV2)) {
+      fail()
+    }
+    const as = await ac.streamMessages()
+    await sleep(100)
+
+    const bcs = await bob.conversations.list()
+    expect(bcs).toHaveLength(1)
+    const bc = bcs[0]
+    if (!(bc instanceof ConversationV2)) {
+      fail()
+    }
+    expect(bc.topic).toBe(ac.topic)
+    expect(bc.keyMaterial).toEqual(ac.keyMaterial)
+    const bs = await bc.streamMessages()
+    await sleep(100)
+
+    await ac.send('gm')
+    expect((await bs.next()).value.content).toBe('gm')
+    expect((await as.next()).value.content).toBe('gm')
+    await bc.send('gm to you too')
+    expect((await bs.next()).value.content).toBe('gm to you too')
+    expect((await as.next()).value.content).toBe('gm to you too')
   })
 })
