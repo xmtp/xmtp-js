@@ -32,7 +32,7 @@ export default class Authenticator {
           // @ts-ignore
           this.identityKey.publicKey
         ),
-        authDataBytes: authDataBytes,
+        authDataBytes,
         // The generated types are overly strict and don't like our additional methods
         // eslint-disable-next-line
         // @ts-ignore

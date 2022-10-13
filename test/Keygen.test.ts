@@ -1,5 +1,5 @@
 import { ApiUrls } from './../src/Client'
-import { newWallet } from './helpers'
+import { newWallet, sleep } from './helpers'
 import Client, {
   ClientOptions,
   defaultOptions,
@@ -59,6 +59,7 @@ describe('Key Generation', () => {
       wallet,
       new PrivateTopicStore(apiClient)
     )
+    await sleep(500)
 
     expect((await store.loadPrivateKeyBundle())?.identityKey.toBytes()).toEqual(
       bundle.identityKey.toBytes()
