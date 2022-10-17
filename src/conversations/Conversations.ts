@@ -7,6 +7,7 @@ import Stream, {
 } from '../Stream'
 import Client from '../Client'
 import { buildDirectMessageTopic, buildUserIntroTopic } from '../utils'
+import { InvitationContext } from '../Invitation'
 
 const messageHasHeaders: MessageFilter = (msg: Message) => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
@@ -24,8 +25,11 @@ export default class Conversations {
    * List all conversations with the current wallet found in the network, deduped by peer address
    */
   async list(): Promise<Conversation[]> {
-    const v1Addresses = await this.getV1Addresses()
-    await this.client.loadInvites()
+    const [v1Addresses] = await Promise.all([
+      this.getV1Addresses(),
+      this.client.loadInvites(),
+    ])
+
     const topicResults = this.client.allTopics()
     const out: Conversation[] = []
     for (const result of topicResults) {
@@ -195,6 +199,37 @@ export default class Conversations {
     return new Conversation(this.client, peerAddress, [
       buildDirectMessageTopic(this.client.address, peerAddress),
     ])
+  }
+
+  async findOrCreate(
+    peerAddress: string,
+    context?: InvitationContext
+  ): Promise<Conversation> {
+    await this.client.loadInvites()
+    let topicResult = this.client.topicKeyManager
+      .getAllByWalletAddress(peerAddress)
+      .find((invite) => {
+        if (context?.conversationId) {
+          return invite.context?.conversationId === context?.conversationId
+        }
+        return invite.context?.conversationId === undefined
+      })
+
+    if (!topicResult) {
+      topicResult = await this.client.sendInvite(peerAddress, context)
+    }
+
+    return new Conversation(
+      this.client,
+      peerAddress,
+      [
+        // Always include the legacy topic for reads, even if it is a brand new invite.
+        // Rationale: it's basically free to include in reads when the topic is empty and it saves us from checking if inclusion is necessary
+        buildDirectMessageTopic(this.client.address, peerAddress),
+        topicResult.contentTopic,
+      ],
+      topicResult.context
+    )
   }
 
   private getPeerAddress(message: Message): string {

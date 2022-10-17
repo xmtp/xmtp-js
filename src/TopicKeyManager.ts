@@ -90,7 +90,7 @@ export default class TopicKeyManager {
     walletAddress: string,
     data: IndexedTopicResult,
     createdAtNs: Long
-  ): void {
+  ): TopicResult {
     if (this.topicKeys.has(contentTopic)) {
       throw new DuplicateTopicError(contentTopic)
     }
@@ -98,6 +98,8 @@ export default class TopicKeyManager {
     const counterpartyTopicList = this.dmTopics.get(walletAddress) || []
     counterpartyTopicList.push({ contentTopic, createdAtNs })
     this.dmTopics.set(walletAddress, counterpartyTopicList)
+
+    return { contentTopic, ...data }
   }
 
   /**

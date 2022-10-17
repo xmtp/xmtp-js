@@ -149,8 +149,8 @@ export default class Client {
   keys: PrivateKeyBundleV1
   signedKeys: PrivateKeyBundleV2
   apiClient: ApiClient
+  topicKeyManager: TopicKeyManager
   private contacts: Set<string> // address which we have connected to
-  private topicKeyManager: TopicKeyManager
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
   private latestInviteNs: Long
   private _conversations: Conversations
@@ -436,7 +436,7 @@ export default class Client {
 
   // list stored messages from this wallet's introduction topic
   listIntroductionMessages(opts?: ListMessagesOptions): Promise<Message[]> {
-    return this.listMessages(buildUserIntroTopic(this.address), opts)
+    return this.listMessages([buildUserIntroTopic(this.address)], opts)
   }
 
   // listIntroductionMessagesPaginated(
@@ -451,7 +451,7 @@ export default class Client {
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
     return this.listMessages(
-      buildDirectMessageTopic(peerAddress, this.address),
+      [buildDirectMessageTopic(peerAddress, this.address)],
       { ...opts, checkAddresses: true }
     )
   }
@@ -498,7 +498,7 @@ export default class Client {
 
   // list stored messages from the specified topic
   private async listMessages(
-    topic: string,
+    topics: string[],
     opts?: ListMessagesOptions
   ): Promise<Message[]> {
     if (!opts) {
@@ -507,7 +507,7 @@ export default class Client {
     const { startTime, endTime, checkAddresses, limit } = opts
 
     const res = await this.apiClient.query(
-      { contentTopics: [topic], startTime, endTime },
+      { contentTopics: topics, startTime, endTime },
       {
         direction:
           opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
@@ -529,7 +529,7 @@ export default class Client {
       }
     }
     if (checkAddresses) {
-      msgs = msgs.filter(filterForTopics([topic]))
+      msgs = msgs.filter(filterForTopics(topics))
     }
     return msgs
   }
@@ -579,7 +579,7 @@ export default class Client {
     }
   }
 
-  async saveInvite(invite: SealedInvitation) {
+  async saveInvite(invite: SealedInvitation): Promise<TopicResult> {
     // Get the invitation (and cache the value) to ensure decryption works
     // Will throw if the invite cannot be decrypted
     const unsealed = await invite.v1.getInvitation(this.signedKeys)
@@ -596,7 +596,7 @@ export default class Client {
       )
     }
 
-    this.topicKeyManager.addDirectMessageTopic(
+    return this.topicKeyManager.addDirectMessageTopic(
       unsealed.topic,
       await counterparty.walletSignatureAddress(),
       {
@@ -612,7 +612,10 @@ export default class Client {
     )
   }
 
-  async sendInvite(peerAddress: string, context?: InvitationContext) {
+  async sendInvite(
+    peerAddress: string,
+    context?: InvitationContext
+  ): Promise<TopicResult> {
     const recipientContact = await this.getUserContact(peerAddress)
     if (!recipientContact) {
       throw new Error(`Recipient with address ${peerAddress} cannot be found`)
@@ -637,7 +640,7 @@ export default class Client {
 
     await this.publishEnvelopes(envelopes)
     // Eagerly save the invite so it can be used immediately
-    await this.saveInvite(sealedInvite)
+    return this.saveInvite(sealedInvite)
   }
 
   allTopics(): TopicResult[] {
