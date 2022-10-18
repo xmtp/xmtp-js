@@ -1,13 +1,15 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import { retry, sleep } from './utils'
-import Long from 'long'
+import { dateToNs, retry, sleep } from './utils'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
+import { version } from '../package.json'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
 const ERR_CODE_UNAUTHENTICATED = 16
+
+const clientVersionHeaderKey = 'X-Client-Version'
 
 export type GrpcError = Error & { code?: number }
 
@@ -45,7 +47,7 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 export type UnsubscribeFn = () => Promise<void>
 
 const toNanoString = (d: Date | undefined): undefined | string => {
-  return d && Long.fromNumber(d.valueOf()).multiply(1_000_000).toString()
+  return d && dateToNs(d).toString()
 }
 
 const isAbortError = (err?: Error): boolean => {
@@ -77,10 +79,12 @@ export default class ApiClient {
   pathPrefix: string
   maxRetries: number
   private authCache?: AuthCache
+  version: string
 
   constructor(pathPrefix: string, opts?: ApiClientOptions) {
     this.pathPrefix = pathPrefix
     this.maxRetries = opts?.maxRetries || 5
+    this.version = 'xmtp-js/' + version
   }
 
   // Raw method for querying the API
@@ -89,7 +93,16 @@ export default class ApiClient {
   ): ReturnType<typeof MessageApi.Query> {
     return retry(
       MessageApi.Query,
-      [req, { pathPrefix: this.pathPrefix, mode: 'cors' }],
+      [
+        req,
+        {
+          pathPrefix: this.pathPrefix,
+          mode: 'cors',
+          headers: new Headers({
+            [clientVersionHeaderKey]: this.version,
+          }),
+        },
+      ],
       this.maxRetries,
       RETRY_SLEEP_TIME
     )
@@ -109,7 +122,10 @@ export default class ApiClient {
           {
             pathPrefix: this.pathPrefix,
             mode: 'cors',
-            headers: new Headers({ Authorization: `Bearer ${authToken}` }),
+            headers: new Headers({
+              Authorization: `Bearer ${authToken}`,
+              [clientVersionHeaderKey]: this.version,
+            }),
           },
         ],
         this.maxRetries,
@@ -143,6 +159,9 @@ export default class ApiClient {
         pathPrefix: this.pathPrefix,
         signal: abortController.signal,
         mode: 'cors',
+        headers: new Headers({
+          [clientVersionHeaderKey]: this.version,
+        }),
       }).catch(async (err: GrpcError) => {
         if (isAbortError(err)) {
           return
@@ -203,7 +222,7 @@ export default class ApiClient {
 
   // Creates an async generator that will paginate through the Query API until it reaches the end
   // Will yield each page of results as needed
-  private async *queryIteratePages(
+  async *queryIteratePages(
     { contentTopics, startTime, endTime }: QueryParams,
     { direction, pageSize = 10 }: QueryStreamOptions
   ): AsyncGenerator<messageApi.Envelope[]> {

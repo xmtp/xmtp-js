@@ -1,17 +1,17 @@
 import * as assert from 'assert'
-import { PrivateKeyBundle } from '../../src/crypto'
+import { PrivateKeyBundleV1 } from '../../src/crypto'
 import { newWallet } from '../helpers'
 
 describe('Crypto', function () {
   describe('Signature', function () {
     it('transplanting a wallet signature changes the derived wallet address', async function () {
       const alice = newWallet()
-      const alicePri = await PrivateKeyBundle.generate(alice)
+      const alicePri = await PrivateKeyBundleV1.generate(alice)
       const alicePub = alicePri.getPublicKeyBundle()
       assert.equal(alicePub.identityKey.walletSignatureAddress(), alice.address)
       const malory = newWallet()
       assert.notEqual(alice.address, malory.address)
-      const maloryPri = await PrivateKeyBundle.generate(malory)
+      const maloryPri = await PrivateKeyBundleV1.generate(malory)
       const maloryPub = maloryPri.getPublicKeyBundle()
       assert.equal(
         maloryPub.identityKey.walletSignatureAddress(),

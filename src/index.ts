@@ -2,8 +2,10 @@ import Message from './Message'
 import {
   PublicKey,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
   PrivateKey,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
 } from './crypto'
 import Stream from './Stream'
 import Client, {
@@ -25,6 +27,7 @@ import {
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
+import { SortDirection } from './ApiClient'
 
 export {
   Client,
@@ -34,9 +37,11 @@ export {
   ListMessagesOptions,
   Message,
   PrivateKey,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   PublicKey,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
   Stream,
   ContentTypeId,
   ContentCodec,
@@ -49,4 +54,5 @@ export {
   Composite,
   CompositeCodec,
   ContentTypeComposite,
+  SortDirection,
 }

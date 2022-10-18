@@ -1,18 +1,29 @@
 import * as assert from 'assert'
-import ContactBundle from '../src/ContactBundle'
-import * as ethers from 'ethers'
-import { PrivateKeyBundle } from '../src'
+import { decodeContactBundle, encodeContactBundle } from '../src/ContactBundle'
+import {
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from '../src'
+import { newWallet } from './helpers'
 
 describe('ContactBundles', function () {
   it('roundtrip', async function () {
-    const priv = await PrivateKeyBundle.generate()
-
-    const cb1 = new ContactBundle(priv.getPublicKeyBundle())
-    const bytes1 = cb1.toBytes()
-
-    const cb2 = ContactBundle.fromBytes(bytes1)
-    const bytes2 = cb2.toBytes()
-
-    assert.deepEqual(bytes1, bytes2)
+    const priv = await PrivateKeyBundleV1.generate()
+    const pub = priv.getPublicKeyBundle()
+    let bytes = encodeContactBundle(pub)
+    const cb = decodeContactBundle(bytes)
+    expect(cb).toBeInstanceOf(PublicKeyBundle)
+    assert.ok(pub.equals(cb as PublicKeyBundle))
+  })
+  it('roundtrip v2', async function () {
+    const wallet = newWallet()
+    const priv = await PrivateKeyBundleV2.generate(wallet)
+    const pub = priv.getPublicKeyBundle()
+    let bytes = encodeContactBundle(pub)
+    const cb = decodeContactBundle(bytes)
+    expect(cb).toBeInstanceOf(SignedPublicKeyBundle)
+    assert.ok(pub.equals(cb as SignedPublicKeyBundle))
   })
 })

@@ -2,13 +2,12 @@ import * as assert from 'assert'
 import { TextEncoder, TextDecoder } from 'util'
 import {
   PublicKeyBundle,
-  PrivateKeyBundle,
+  PrivateKeyBundleV1,
   PrivateKey,
   utils,
   encrypt,
   decrypt,
 } from '../../src/crypto'
-import * as ethers from 'ethers'
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
@@ -62,8 +61,8 @@ describe('Crypto', function () {
     )
   })
   it('encrypts and decrypts payload with key bundles', async function () {
-    const alice = await PrivateKeyBundle.generate()
-    const bob = await PrivateKeyBundle.generate()
+    const alice = await PrivateKeyBundleV1.generate()
+    const bob = await PrivateKeyBundleV1.generate()
     const msg1 = 'Yo!'
     const decrypted = new TextEncoder().encode(msg1)
     // Alice encrypts msg for Bob.
@@ -78,7 +77,7 @@ describe('Crypto', function () {
     assert.equal(msg2, msg1)
   })
   it('serializes and deserializes keys and signatures', async function () {
-    const alice = await PrivateKeyBundle.generate()
+    const alice = await PrivateKeyBundleV1.generate()
     const bytes = alice.getPublicKeyBundle().toBytes()
     assert.ok(bytes.length >= 213)
     const pub2 = PublicKeyBundle.fromBytes(bytes)

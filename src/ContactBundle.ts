@@ -1,63 +1,39 @@
-import { xmtpEnvelope as proto } from '@xmtp/proto'
-import { PublicKeyBundle } from './crypto'
-import PublicKey from './crypto/PublicKey'
+import { contact, publicKey } from '@xmtp/proto'
+import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
 
-// ContactBundle packages all the infromation which a client uses to advertise on the network.
-export default class ContactBundle implements proto.ContactBundleV1 {
-  keyBundle: PublicKeyBundle
-
-  constructor(publicKeyBundle: PublicKeyBundle) {
-    if (!publicKeyBundle) {
-      throw new Error('missing keyBundle')
-    }
-    this.keyBundle = publicKeyBundle
+// Decodes contact bundles from the contact topic.
+export function decodeContactBundle(
+  bytes: Uint8Array
+): PublicKeyBundle | SignedPublicKeyBundle {
+  let cb: contact.ContactBundle
+  try {
+    cb = contact.ContactBundle.decode(bytes)
+  } catch (e) {
+    const pb = publicKey.PublicKeyBundle.decode(bytes)
+    cb = { v1: { keyBundle: new PublicKeyBundle(pb) }, v2: undefined }
   }
+  if (cb.v1?.keyBundle) {
+    return new PublicKeyBundle(cb.v1.keyBundle)
+  }
+  if (cb.v2?.keyBundle) {
+    return new SignedPublicKeyBundle(cb.v2.keyBundle)
+  }
+  throw new Error('unknown or invalid contact bundle')
+}
 
-  toBytes(): Uint8Array {
-    return proto.ContactBundle.encode({
-      v1: {
-        keyBundle: this.keyBundle,
-      },
+// Encodes public key bundle for the contact topic.
+export function encodeContactBundle(
+  bundle: PublicKeyBundle | SignedPublicKeyBundle
+): Uint8Array {
+  if (bundle instanceof PublicKeyBundle) {
+    return contact.ContactBundle.encode({
+      v1: { keyBundle: bundle },
+      v2: undefined,
     }).finish()
-  }
-
-  static fromBytes(bytes: Uint8Array): ContactBundle {
-    const bundle = this.decodeV1(bytes)
-
-    if (!bundle) {
-      throw new Error('could not parse bundle')
-    }
-
-    if (!bundle.identityKey) {
-      throw new Error('missing keyBundle')
-    }
-    if (!bundle.preKey) {
-      throw new Error('missing pre-key')
-    }
-    return new ContactBundle(
-      new PublicKeyBundle(
-        new PublicKey(bundle.identityKey),
-        new PublicKey(bundle.preKey)
-      )
-    )
-  }
-
-  static decodeV1(bytes: Uint8Array): proto.PublicKeyBundle | undefined {
-    try {
-      const b = proto.ContactBundle.decode(bytes)
-      return b.v1?.keyBundle
-    } catch (e) {
-      if (
-        e instanceof RangeError ||
-        (e instanceof Error && e.message.startsWith('invalid wire type'))
-      ) {
-        // Adds a default fallback for older versions of the proto (Which may also fail)
-        try {
-          return proto.PublicKeyBundle.decode(bytes)
-        } catch (e) {
-          throw new Error("Couldn't decode contact bundle: " + e)
-        }
-      }
-    }
+  } else {
+    return contact.ContactBundle.encode({
+      v1: undefined,
+      v2: { keyBundle: bundle },
+    }).finish()
   }
 }

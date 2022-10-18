@@ -8,29 +8,29 @@
 
 **XMTP client SDK for JavaScript applications**
 
-`xmtp-js` provides a TypeScript implementation of the XMTP client protocol for use with JavaScript and React applications.
+`xmtp-js` provides a TypeScript implementation of an XMTP client for use with JavaScript and React applications.
 
 Build with `xmtp-js` to provide messaging between blockchain wallet addresses, delivering on use cases such as wallet-to-wallet messaging and dapp-to-wallet notifications.
 
-For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app](https://github.com/xmtp/example-chat-react).
+For a demonstration of the core concepts and capabilities of the `xmtp-js` client SDK, see the [example React app repo](https://github.com/xmtp/example-chat-react).
 
 `xmtp-js` has not undergone a formal security audit.
 
-To learn more about XMTP and get answers to frequently asked questions, see <https://xmtp.org/docs/>.
+To learn more about XMTP and get answers to frequently asked questions, see [FAQ about XMTP](https://xmtp.org/docs/dev-concepts/faq).
 
 ## 🏗 **Breaking revisions**
 
 Because `xmtp-js` is in active development, you should expect breaking revisions that might require you to adopt the latest SDK release to enable your app to continue working as expected.
 
-XMTP communicates about breaking revisions in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
+XMTP communicates about breaking revisions in the [XMTP Discord community](https://discord.gg/xmtp), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
 
-Issues and PRs are welcome in accordance with our [contribution guidelines](CONTRIBUTING.md).
+Issues and PRs are welcome in accordance with our [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
 
 ## XMTP `production` and `dev` network environments
 
 XMTP provides both `production` and `dev` network environments to support the development phases of your project.
 
-The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the XMTP Discord community ([request access](https://xmtp.typeform.com/to/yojTJarb?utm_source=docs_home)).
+The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the [XMTP Discord community](https://discord.gg/xmtp).
 
 To learn how to set your client's network environment, see [Configuring the Client](#configuring-the-client).
 
@@ -47,7 +47,7 @@ Additional configuration is required in React environments due to the removal of
 Use `react-scripts` prior to version `5.0.0`. For example:
 
 ```bash
-npx create-react-app --scripts-version 4.0.2
+npx create-react-app my-app --scripts-version 4.0.2
 ```
 
 Or downgrade after creating your app.
@@ -77,9 +77,9 @@ import { Wallet } from 'ethers'
 const wallet = Wallet.createRandom()
 // Create the client with your wallet. This will connect to the XMTP development network by default
 const xmtp = await Client.create(wallet)
-// Start a conversation with Vitalik
+// Start a conversation with XMTP
 const conversation = await xmtp.conversations.newConversation(
-  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
 )
 // Load all messages in the conversation
 const messages = await conversation.messages()
@@ -166,7 +166,7 @@ You can create a new conversation with any Ethereum address on the XMTP network.
 
 ```ts
 const newConversation = await xmtp.conversations.newConversation(
-  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
 )
 ```
 
@@ -176,7 +176,7 @@ To be able to send a message, the recipient must have already started their Clie
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
-  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
 )
 await conversation.send('Hello world')
 ```
@@ -197,6 +197,26 @@ for (const conversation of await xmtp.conversations.list()) {
 }
 ```
 
+#### List messages in a conversation with pagination
+
+It may be helpful to retrieve and process the messages in a conversation page by page. You can do this by calling `conversation.messagesPaginated()` which will return an [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) yielding one page of results at a time. `conversation.messages()` uses this under the hood internally to gather all messages.
+
+```ts
+const conversation = await xmtp.conversations.newConversation(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
+)
+
+for await (const page of conversation.messagesPaginated({ pageSize: 25 })) {
+  for (const msg of page) {
+    // Breaking from the outer loop will stop the client from requesting any further pages
+    if (msg.content === 'gm') {
+      return
+    }
+    console.log(msg.content)
+  }
+}
+```
+
 #### Listen for new messages in a conversation
 
 You can listen for any new messages (incoming or outgoing) in a conversation by calling `conversation.streamMessages()`.
@@ -207,7 +227,7 @@ The Stream returned by the `stream` methods is an asynchronous iterator and as s
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
-  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
 )
 for await (const message of await conversation.streamMessages()) {
   if (message.senderAddress === xmtp.address) {
@@ -216,6 +236,22 @@ for await (const message of await conversation.streamMessages()) {
   }
   console.log(`New message from ${message.senderAddress}: ${message.content}`)
 }
+```
+
+#### Checking if an address is on the network
+
+If you would like to check and see if a blockchain address is registered on the network before instantiating a client instance, you can use `Client.canMessage`.
+
+```ts
+import { Client } from '@xmtp/xmtp-js'
+
+const isOnDevNetwork = await Client.canMessage(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897'
+)
+const isOnProdNetwork = await Client.canMessage(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897',
+  { env: 'production' }
+)
 ```
 
 #### Different types of content

@@ -1,14 +1,15 @@
-import { PublicKeyBundle, PrivateKeyBundle } from './crypto'
+import { PublicKeyBundle, PrivateKeyBundleV1 } from './crypto'
 import Message from './Message'
 import {
   buildDirectMessageTopic,
   buildUserContactTopic,
   buildUserIntroTopic,
+  mapPaginatedStream,
 } from './utils'
 import Stream, { MessageFilter, noTransformation } from './Stream'
 import { Signer } from 'ethers'
 import {
-  EncryptedStore,
+  EncryptedKeyStore,
   KeyStore,
   LocalStorageStore,
   PrivateTopicStore,
@@ -24,8 +25,8 @@ import {
 } from './MessageContent'
 import { decompress, compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
-import ContactBundle from './ContactBundle'
-import ApiClient from './ApiClient'
+import { decodeContactBundle } from './ContactBundle'
+import ApiClient, { SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 const { Compression } = xmtpEnvelope
 const { b64Decode } = fetcher
@@ -48,6 +49,14 @@ export type ListMessagesOptions = {
   startTime?: Date
   endTime?: Date
   limit?: number
+  direction?: messageApi.SortDirection
+}
+
+export type ListMessagesPaginatedOptions = {
+  startTime?: Date
+  endTime?: Date
+  pageSize?: number
+  direction?: messageApi.SortDirection
 }
 
 export enum KeyStoreType {
@@ -125,7 +134,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  */
 export default class Client {
   address: string
-  keys: PrivateKeyBundle
+  keys: PrivateKeyBundleV1
   apiClient: ApiClient
   private contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<string, PublicKeyBundle> // addresses and key bundles that we have witnessed
@@ -133,7 +142,7 @@ export default class Client {
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
 
-  constructor(keys: PrivateKeyBundle, apiClient: ApiClient) {
+  constructor(keys: PrivateKeyBundleV1, apiClient: ApiClient) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<string, PublicKeyBundle>()
     this.keys = keys
@@ -200,31 +209,6 @@ export default class Client {
     })
   }
 
-  // retrieve a key bundle from given user's contact topic
-  async getUserContactFromNetwork(
-    peerAddress: string
-  ): Promise<PublicKeyBundle | undefined> {
-    // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
-    let recipientKey: PublicKeyBundle | null = null
-    const stream = this.apiClient.queryIterator(
-      { contentTopics: [buildUserContactTopic(peerAddress)] },
-      { pageSize: 5 }
-    )
-
-    for await (const env of stream) {
-      if (!env.message) continue
-      const bundle = ContactBundle.fromBytes(b64Decode(env.message.toString()))
-      const keyBundle = bundle.keyBundle
-
-      const address = keyBundle?.walletSignatureAddress()
-      if (address === peerAddress) {
-        recipientKey = keyBundle
-        break
-      }
-    }
-    return recipientKey === null ? undefined : recipientKey
-  }
-
   /**
    * Returns the cached PublicKeyBundle if one is known for the given address or fetches
    * one from the network
@@ -239,7 +223,10 @@ export default class Client {
       return existingBundle
     }
 
-    const newBundle = await this.getUserContactFromNetwork(peerAddress)
+    const newBundle = await getUserContactFromNetwork(
+      this.apiClient,
+      peerAddress
+    )
 
     if (newBundle) {
       this.knownPublicKeyBundles.set(peerAddress, newBundle)
@@ -254,6 +241,18 @@ export default class Client {
    */
   public async canMessage(peerAddress: string): Promise<boolean> {
     const keyBundle = await this.getUserContact(peerAddress)
+    return keyBundle !== undefined
+  }
+
+  static async canMessage(
+    peerAddress: string,
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean> {
+    const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+    const keyBundle = await getUserContactFromNetwork(
+      new ApiClient(apiUrl),
+      peerAddress
+    )
     return keyBundle !== undefined
   }
 
@@ -292,6 +291,7 @@ export default class Client {
         return this.publishEnvelope({
           contentTopic: topic,
           message: msgBytes,
+          timestamp,
         })
       })
     )
@@ -299,7 +299,11 @@ export default class Client {
     return this.decodeMessage(msgBytes, topics[0])
   }
 
-  async publishEnvelope(env: messageApi.Envelope): Promise<void> {
+  async publishEnvelope(env: {
+    contentTopic: string
+    message: Uint8Array
+    timestamp?: Date
+  }): Promise<void> {
     const bytes = env.message
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
@@ -314,6 +318,7 @@ export default class Client {
         {
           contentTopic: env.contentTopic,
           message: bytes,
+          timestamp: env.timestamp,
         },
       ])
     } catch (err) {
@@ -417,6 +422,12 @@ export default class Client {
     return this.listMessages(buildUserIntroTopic(this.address), opts)
   }
 
+  // listIntroductionMessagesPaginated(
+  //   opts?: ListMessagesPaginatedOptions
+  // ): AsyncGenerator<Message[]> {
+  //   return this.listMessagesPaginated([buildUserIntroTopic(this.address)], opts)
+  // }
+
   // list stored messages from conversation topic with the peer
   listConversationMessages(
     peerAddress: string,
@@ -425,6 +436,46 @@ export default class Client {
     return this.listMessages(
       buildDirectMessageTopic(peerAddress, this.address),
       { ...opts, checkAddresses: true }
+    )
+  }
+
+  listConversationMessagesPaginated(
+    peerAddress: string,
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<Message[]> {
+    return this.listMessagesPaginated(
+      [buildDirectMessageTopic(peerAddress, this.address)],
+      opts
+    )
+  }
+
+  /**
+   * List messages on a given set of content topics, yielding one page at a time
+   */
+  listMessagesPaginated(
+    contentTopics: string[],
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<Message[]> {
+    const topicFilter = filterForTopics(contentTopics)
+    return mapPaginatedStream(
+      this.apiClient.queryIteratePages(
+        {
+          contentTopics,
+          startTime: opts?.startTime,
+          endTime: opts?.endTime,
+        },
+        { direction: opts?.direction, pageSize: opts?.pageSize || 100 }
+      ),
+      async (env): Promise<Message> => {
+        const msg = await this.decodeMessage(
+          b64Decode(env.message as unknown as string),
+          env.contentTopic
+        )
+        if (!topicFilter(msg)) {
+          throw new Error('Mismatched topic')
+        }
+        return msg
+      }
     )
   }
 
@@ -441,7 +492,8 @@ export default class Client {
     const res = await this.apiClient.query(
       { contentTopics: [topic], startTime, endTime },
       {
-        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        direction:
+          opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
         limit,
       }
     )
@@ -497,13 +549,13 @@ function createKeyStoreFromConfig(
 function createNetworkPrivateKeyStore(
   wallet: Signer,
   apiClient: ApiClient
-): EncryptedStore {
-  return new EncryptedStore(wallet, new PrivateTopicStore(apiClient))
+): EncryptedKeyStore {
+  return new EncryptedKeyStore(wallet, new PrivateTopicStore(apiClient))
 }
 
 // Create Encrypted store which uses LocalStorage to store KeyBundles
-function createLocalPrivateKeyStore(wallet: Signer): EncryptedStore {
-  return new EncryptedStore(wallet, new LocalStorageStore())
+function createLocalPrivateKeyStore(wallet: Signer): EncryptedKeyStore {
+  return new EncryptedKeyStore(wallet, new LocalStorageStore())
 }
 
 function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
@@ -515,7 +567,7 @@ function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
 async function loadOrCreateKeysFromStore(
   wallet: Signer | null,
   store: KeyStore
-): Promise<PrivateKeyBundle> {
+): Promise<PrivateKeyBundleV1> {
   let keys = await store.loadPrivateKeyBundle()
   if (keys) {
     return keys
@@ -523,7 +575,7 @@ async function loadOrCreateKeysFromStore(
   if (!wallet) {
     throw new Error('No wallet found')
   }
-  keys = await PrivateKeyBundle.generate(wallet)
+  keys = await PrivateKeyBundleV1.generate(wallet)
   await store.storePrivateKeyBundle(keys)
   return keys
 }
@@ -559,4 +611,30 @@ function filterForTopics(topics: string[]): MessageFilter {
 function createApiClientFromOptions(options: ClientOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
   return new ApiClient(apiUrl)
+}
+
+// retrieve a key bundle from given user's contact topic
+async function getUserContactFromNetwork(
+  apiClient: ApiClient,
+  peerAddress: string
+): Promise<PublicKeyBundle | undefined> {
+  // have to avoid undefined to not trip TS's strictNullChecks on recipientKey
+  let recipientKey: PublicKeyBundle | null = null
+  const stream = apiClient.queryIterator(
+    { contentTopics: [buildUserContactTopic(peerAddress)] },
+    { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+  )
+
+  for await (const env of stream) {
+    if (!env.message) continue
+    const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
+
+    const address = keyBundle?.walletSignatureAddress()
+    // TODO: Ignore SignedPublicKeyBundles for now.
+    if (address === peerAddress && keyBundle instanceof PublicKeyBundle) {
+      recipientKey = keyBundle
+      break
+    }
+  }
+  return recipientKey === null ? undefined : recipientKey
 }

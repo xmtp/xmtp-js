@@ -1,6 +1,6 @@
 import { keccak256 } from 'js-sha3'
 import Long from 'long'
-import { PrivateKey, PrivateKeyBundle, Signature } from '../../src/crypto'
+import { PrivateKey, PrivateKeyBundleV1, Signature } from '../../src/crypto'
 import Authenticator from '../../src/authn/Authenticator'
 import Token from '../../src/authn/Token'
 import { hexToBytes } from '../../src/crypto/utils'
@@ -15,7 +15,7 @@ describe('authn', () => {
 
   beforeEach(async () => {
     wallet = newWallet()
-    const bundle = await PrivateKeyBundle.generate(wallet)
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
     privateKey = bundle.identityKey
     authenticator = new Authenticator(privateKey)
   })
@@ -70,7 +70,7 @@ describe('AuthCache', () => {
 
   beforeEach(async () => {
     wallet = newWallet()
-    const bundle = await PrivateKeyBundle.generate(wallet)
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
     privateKey = bundle.identityKey
     authenticator = new Authenticator(privateKey)
   })
