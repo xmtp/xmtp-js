@@ -29,14 +29,17 @@ export default class Conversations {
    * List all conversations with the current wallet found in the network, deduped by peer address
    */
   async list(): Promise<Conversation[]> {
-    const seenPeers = await this.getIntroductionPeers()
+    const [seenPeers, invitations] = await Promise.all([
+      this.getIntroductionPeers(),
+      this.client.listInvitations(),
+    ])
 
     const conversations: Conversation[] = []
     seenPeers.forEach((sent, peerAddress) =>
       conversations.push(new ConversationV1(this.client, peerAddress, sent))
     )
 
-    for (const sealed of await this.client.listInvitations()) {
+    for (const sealed of invitations) {
       const unsealed = await sealed.v1.getInvitation(this.client.keys)
       conversations.push(
         await ConversationV2.create(this.client, unsealed, sealed.v1.header)
