@@ -28,7 +28,7 @@ describe('Key Generation', () => {
       ...opts,
       privateKeyOverride: keys,
     })
-    expect(client.keys.encode()).toEqual(keys)
+    expect(client.legacyKeys.encode()).toEqual(keys)
   })
 
   test('LocalStorage store', async () => {
@@ -43,7 +43,7 @@ describe('Key Generation', () => {
       ...opts,
       privateKeyOverride: keys,
     })
-    expect(client.keys.encode()).toEqual(keys)
+    expect(client.legacyKeys.encode()).toEqual(keys)
   })
 
   // Make sure that the keys are being saved to the network upon generation

@@ -41,7 +41,9 @@ export class SignedPublicKeyBundle implements publicKey.SignedPublicKeyBundle {
 
   static fromLegacyBundle(bundle: PublicKeyBundle): SignedPublicKeyBundle {
     return new SignedPublicKeyBundle({
-      identityKey: SignedPublicKey.fromLegacyKey(bundle.identityKey),
+      // Note: I am assuming all PublicKeyBundles passed into this have had their identity keys signed by a wallet
+      // Maybe that is not universally true in the future
+      identityKey: SignedPublicKey.fromLegacyKey(bundle.identityKey, true),
       preKey: SignedPublicKey.fromLegacyKey(bundle.preKey),
     })
   }

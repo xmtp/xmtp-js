@@ -82,7 +82,7 @@ async function hkdf(secret: Uint8Array, salt: Uint8Array): Promise<CryptoKey> {
     'deriveKey',
   ])
   return crypto.subtle.deriveKey(
-    { name: 'HKDF', hash: 'SHA-256', salt: salt, info: hkdfNoInfo },
+    { name: 'HKDF', hash: 'SHA-256', salt, info: hkdfNoInfo },
     key,
     { name: 'AES-GCM', length: 256 },
     false,

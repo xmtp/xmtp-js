@@ -1,7 +1,6 @@
 import { Wallet } from 'ethers'
 import {
   PrivateKey,
-  Message,
   ContentCodec,
   ContentTypeId,
   TextCodec,
@@ -11,7 +10,7 @@ import {
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 import assert from 'assert'
-import { PublicKeyBundle } from '../src/crypto'
+import { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
@@ -40,7 +39,7 @@ export async function pollFor<T>(
 export async function waitForUserContact(
   c1: Client,
   c2: Client
-): Promise<PublicKeyBundle | undefined> {
+): Promise<PublicKeyBundle | SignedPublicKeyBundle> {
   return pollFor(
     async () => {
       const contact = await c1.getUserContact(c2.address)
@@ -52,11 +51,11 @@ export async function waitForUserContact(
   )
 }
 
-export async function dumpStream(
-  stream: Stream<Message>,
+export async function dumpStream<T>(
+  stream: Stream<T>,
   timeoutMs = 1000
-): Promise<Message[]> {
-  const messages: Message[] = []
+): Promise<T[]> {
+  const messages: T[] = []
   try {
     while (true) {
       const result = await promiseWithTimeout(

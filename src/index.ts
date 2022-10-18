@@ -1,11 +1,10 @@
-import Message from './Message'
+import { Message } from './Message'
 import {
   PublicKey,
   PublicKeyBundle,
   SignedPublicKeyBundle,
   PrivateKey,
-  PrivateKeyBundleV1,
-  PrivateKeyBundleV2,
+  PrivateKeyBundle,
 } from './crypto'
 import Stream from './Stream'
 import Client, {
@@ -14,7 +13,7 @@ import Client, {
   SendOptions,
   Compression,
 } from './Client'
-import { Conversation, Conversations } from './conversations'
+import { Conversations, Conversation } from './conversations'
 import {
   ContentTypeId,
   ContentCodec,
@@ -37,8 +36,7 @@ export {
   ListMessagesOptions,
   Message,
   PrivateKey,
-  PrivateKeyBundleV1,
-  PrivateKeyBundleV2,
+  PrivateKeyBundle,
   PublicKey,
   PublicKeyBundle,
   SignedPublicKeyBundle,
