@@ -101,8 +101,8 @@ export default class Conversations {
    * Streams messages from all conversations.
    *
    * When a new conversation is initiated with the client's address, this function will automatically register it and add it to the list of conversations to watch.
-   * Callers should be aware that in some cases the first messages in a newly created legacy conversation may not be picked up by this method.
-   * This will be resolved in a future release where all new conversations will be `ConversationV2`
+   * Callers should be aware the first messages in a newly created conversation are picked up on a best effort basis and there are other potential race conditions which may cause some newly created conversations to be missed.
+   *
    */
   async streamAllMessages(): Promise<AsyncGenerator<Message>> {
     const introTopic = buildUserIntroTopic(this.client.address)
