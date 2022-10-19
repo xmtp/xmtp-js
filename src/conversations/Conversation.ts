@@ -184,7 +184,8 @@ export class ConversationV2 {
     if (!env.message) {
       throw new Error('empty envelope')
     }
-    const msg = xmtpEnvelope.Message.decode(b64Decode(env.message.toString()))
+    const messageBytes = b64Decode(env.message.toString())
+    const msg = xmtpEnvelope.Message.decode(messageBytes)
     if (!msg.v2) {
       throw new Error('unknown message version')
     }
@@ -209,7 +210,6 @@ export class ConversationV2 {
     ) {
       throw new Error('incomplete signed content')
     }
-
     const digest = await sha256(concat(msgv2.headerBytes, signed.payload))
     if (
       !new SignedPublicKey(signed.sender?.preKey).verify(
@@ -219,7 +219,7 @@ export class ConversationV2 {
     ) {
       throw new Error('invalid signature')
     }
-    const message = await MessageV2.create(msg, header, signed, env.message)
+    const message = await MessageV2.create(msg, header, signed, messageBytes)
     await this.client.decodeContent(message)
     return message
   }
