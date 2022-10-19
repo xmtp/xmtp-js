@@ -45,6 +45,9 @@ export class InvitationV1 implements invitation.InvitationV1 {
       Buffer.from(utils.getRandomValues(new Uint8Array(32)))
         .toString('base64')
         .replace(/=*$/g, '')
+        // Replace slashes with dashes so that the topic is still easily split by /
+        // We do not treat this as needing to be valid Base64 anywhere
+        .replace('/', '-')
     )
     const keyMaterial = utils.getRandomValues(new Uint8Array(32))
 
