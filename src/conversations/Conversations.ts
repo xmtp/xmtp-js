@@ -1,7 +1,7 @@
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { InvitationContext } from './../Invitation'
 import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
-import { MessageV1 } from '../Message'
+import { Message, MessageV1, MessageV2 } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
 import {
@@ -98,55 +98,119 @@ export default class Conversations {
   }
 
   /**
-   * Returns a stream for all new messages from existing and new conversations.
+   * Streams messages from all conversations.
+   *
+   * When a new conversation is initiated with the client's address, this function will automatically register it and add it to the list of conversations to watch.
+   * Callers should be aware the first messages in a newly created conversation are picked up on a best effort basis and there are other potential race conditions which may cause some newly created conversations to be missed.
+   *
    */
-  async streamAllMessages(): Promise<Stream<MessageV1>> {
-    const conversations = await this.list()
-    const dmAddresses: string[] = []
-    for (const conversation of conversations) {
-      dmAddresses.push(conversation.peerAddress)
-    }
+  async streamAllMessages(): Promise<AsyncGenerator<Message>> {
     const introTopic = buildUserIntroTopic(this.client.address)
-    const topics = this.buildTopicsForAllMessages(dmAddresses, introTopic)
+    const inviteTopic = buildUserInviteTopic(this.client.address)
+    const topics = new Set<string>([introTopic, inviteTopic])
+    const convoMap = new Map<string, Conversation>()
 
-    // If we detect a new intro topic, update the stream's direct message topics to include the new topic
-    const contentTopicUpdater = (msg: MessageV1): string[] | undefined => {
-      if (msg.contentTopic !== introTopic || !messageHasHeaders(msg)) {
-        return undefined
-      }
-      const peerAddress = this.getPeerAddress(msg)
-      if (
-        dmAddresses.includes(peerAddress) ||
-        peerAddress === this.client.address
-      ) {
-        // No need to update if we're already subscribed
-        return undefined
-      }
-      dmAddresses.push(peerAddress)
-      return this.buildTopicsForAllMessages(dmAddresses, introTopic)
+    for (const conversation of await this.list()) {
+      topics.add(conversation.topic)
+      convoMap.set(conversation.topic, conversation)
     }
 
-    // Filter intro topics if already streaming direct messages for that address to avoid duplicates
-    const filter = (msg: MessageV1): boolean => {
-      if (
-        msg.contentTopic === introTopic &&
-        messageHasHeaders(msg) &&
-        dmAddresses.includes(this.getPeerAddress(msg))
-      ) {
+    const decodeMessage = async (
+      env: messageApi.Envelope
+    ): Promise<Conversation | Message | null> => {
+      const contentTopic = env.contentTopic
+      if (!contentTopic) {
+        return null
+      }
+
+      if (contentTopic === introTopic) {
+        const msg = await this.client.decodeEnvelope(env)
+        if (!messageHasHeaders(msg)) {
+          return null
+        }
+
+        return msg
+      }
+
+      // Decode as an invite and return the envelope
+      // This gives the contentTopicUpdater everything it needs to add to the topic list
+      if (contentTopic === inviteTopic) {
+        const sealed = await SealedInvitation.fromEnvelope(env)
+        const unsealed = await sealed.v1.getInvitation(this.client.keys)
+        return ConversationV2.create(this.client, unsealed, sealed.v1.header)
+      }
+
+      const convo = convoMap.get(contentTopic)
+
+      // Decode as a V1 message if the topic matches a V1 convo
+      if (convo instanceof ConversationV1) {
+        return this.client.decodeEnvelope(env)
+      }
+
+      // Decode as a V2 message if the topic matches a V2 convo
+      if (convo instanceof ConversationV2) {
+        return convo.decodeMessage(env)
+      }
+
+      console.log('Unknown topic')
+
+      throw new Error('Unknown topic')
+    }
+
+    const addConvo = (topic: string, conversation: Conversation): boolean => {
+      if (topics.has(topic)) {
         return false
       }
+      convoMap.set(topic, conversation)
+      topics.add(topic)
       return true
     }
 
-    return Stream.create<MessageV1>(
+    const contentTopicUpdater = (msg: Conversation | Message | null) => {
+      // If we have a V1 message from the introTopic, store the conversation in our mapping
+      if (msg instanceof MessageV1 && msg.contentTopic === introTopic) {
+        const convo = new ConversationV1(
+          this.client,
+          msg.recipientAddress === this.client.address
+            ? (msg.senderAddress as string)
+            : (msg.recipientAddress as string),
+          msg.sent
+        )
+        const isNew = addConvo(convo.topic, convo)
+
+        return isNew ? Array.from(topics.values()) : undefined
+      }
+
+      if (msg instanceof ConversationV2) {
+        const isNew = addConvo(msg.topic, msg)
+
+        return isNew ? Array.from(topics.values()) : undefined
+      }
+
+      return undefined
+    }
+
+    const str = await Stream.create<Message | Conversation | null>(
       this.client,
-      topics,
-      async (env) => {
-        const msg = await this.client.decodeEnvelope(env)
-        return filter(msg) ? msg : undefined
-      },
+      Array.from(topics.values()),
+      decodeMessage,
       contentTopicUpdater
     )
+
+    return (async function* generate() {
+      for await (const val of str) {
+        if (val instanceof MessageV1 || val instanceof MessageV2) {
+          yield val
+        }
+        // For conversation V2, we may have messages in the new topic before we started streaming.
+        // To be safe, we fetch all messages
+        if (val instanceof ConversationV2) {
+          for (const convoMessage of await val.messages()) {
+            yield convoMessage
+          }
+        }
+      }
+    })()
   }
 
   private async getIntroductionPeers(): Promise<Map<string, Date>> {
