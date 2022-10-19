@@ -150,6 +150,15 @@ export default class Conversations {
       throw new Error('Unknown topic')
     }
 
+    const addConvo = (topic: string, conversation: Conversation): boolean => {
+      if (topics.has(topic)) {
+        return false
+      }
+      convoMap.set(topic, conversation)
+      topics.add(topic)
+      return true
+    }
+
     const contentTopicUpdater = (msg: Conversation | Message | null) => {
       // If we have a V1 message from the introTopic, store the conversation in our mapping
       if (msg instanceof MessageV1 && msg.contentTopic === introTopic) {
@@ -161,23 +170,19 @@ export default class Conversations {
           msg.sent
         )
 
-        if (topics.has(convo.topic)) {
+        const isNew = addConvo(convo.topic, convo)
+        if (!isNew) {
           return undefined
         }
-
-        convoMap.set(convo.topic, convo)
-        topics.add(convo.topic)
 
         return Array.from(topics.values())
       }
 
       if (msg instanceof ConversationV2) {
-        if (topics.has(msg.topic)) {
+        const isNew = addConvo(msg.topic, msg)
+        if (!isNew) {
           return undefined
         }
-
-        convoMap.set(msg.topic, msg)
-        topics.add(msg.topic)
 
         return Array.from(topics.values())
       }
