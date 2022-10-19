@@ -209,7 +209,7 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
     header: proto.MessageHeaderV2,
     signed: proto.SignedContent,
     // wallet address derived from the signature of the message sender
-    senderAddress: string | undefined
+    senderAddress: string
   ) {
     super(id, bytes, obj)
     this.decrypted = signed.payload
