@@ -169,22 +169,15 @@ export default class Conversations {
             : (msg.recipientAddress as string),
           msg.sent
         )
-
         const isNew = addConvo(convo.topic, convo)
-        if (!isNew) {
-          return undefined
-        }
 
-        return Array.from(topics.values())
+        return isNew ? Array.from(topics.values()) : undefined
       }
 
       if (msg instanceof ConversationV2) {
         const isNew = addConvo(msg.topic, msg)
-        if (!isNew) {
-          return undefined
-        }
 
-        return Array.from(topics.values())
+        return isNew ? Array.from(topics.values()) : undefined
       }
 
       return undefined
@@ -202,8 +195,8 @@ export default class Conversations {
         if (val instanceof MessageV1 || val instanceof MessageV2) {
           yield val
         }
-        // For conversation V2, we know we have already missed the message when we get the invite
-        // Load the newly created topic and yield all messages
+        // For conversation V2, we may have messages in the new topic before we started streaming.
+        // To be safe, we fetch all messages
         if (val instanceof ConversationV2) {
           for (const convoMessage of await val.messages()) {
             yield convoMessage
