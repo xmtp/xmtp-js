@@ -14,7 +14,7 @@ import { messageApi, xmtpEnvelope, fetcher } from '@xmtp/proto'
 import { encrypt, decrypt, SignedPublicKey, Signature } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
-import { dateToNs, nsToDate } from '../utils'
+import { buildDirectMessageTopic, dateToNs, nsToDate } from '../utils'
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -39,6 +39,10 @@ export class ConversationV1 {
    */
   async messages(opts?: ListMessagesOptions): Promise<MessageV1[]> {
     return this.client.listConversationMessages(this.peerAddress, opts)
+  }
+
+  get topic(): string {
+    return buildDirectMessageTopic(this.peerAddress, this.client.address)
   }
 
   messagesPaginated(
@@ -180,8 +184,8 @@ export class ConversationV2 {
     return msg
   }
 
-  private async decodeMessage(env: messageApi.Envelope): Promise<MessageV2> {
-    if (!env.message) {
+  async decodeMessage(env: messageApi.Envelope): Promise<MessageV2> {
+    if (!env.message || !env.contentTopic) {
       throw new Error('empty envelope')
     }
     const messageBytes = b64Decode(env.message.toString())
@@ -210,6 +214,7 @@ export class ConversationV2 {
     ) {
       throw new Error('incomplete signed content')
     }
+
     const digest = await sha256(concat(msgv2.headerBytes, signed.payload))
     if (
       !new SignedPublicKey(signed.sender?.preKey).verify(
@@ -220,6 +225,7 @@ export class ConversationV2 {
       throw new Error('invalid signature')
     }
     const message = await MessageV2.create(msg, header, signed, messageBytes)
+    message.contentTopic = env.contentTopic
     await this.client.decodeContent(message)
     return message
   }

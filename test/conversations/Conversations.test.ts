@@ -68,12 +68,9 @@ describe('conversations', () => {
       charlie.address
     )
     const bobAlice = await bob.conversations.newConversation(alice.address)
-    const charlieAlice = await charlie.conversations.newConversation(
-      alice.address
-    )
 
     const stream = await alice.conversations.streamAllMessages()
-    await charlieAlice.send('gm alice -charlie')
+    await aliceCharlie.send('gm alice -charlie')
 
     let numMessages = 0
     for await (const message of stream) {
@@ -99,37 +96,44 @@ describe('conversations', () => {
     expect(numMessages).toBe(3)
   })
 
-  it('streams all conversation messages with existing conversations', async () => {
-    const aliceBob = await alice.conversations.newConversation(bob.address)
-    const bobAlice = await bob.conversations.newConversation(alice.address)
-
-    await aliceBob.send('gm alice -bob')
+  it('streams all conversation messages with a mix of v1 and v2 conversations', async () => {
+    const aliceBobV1 = await alice.conversations.newConversation(bob.address)
+    const aliceBobV2 = await alice.conversations.newConversation(bob.address, {
+      conversationId: 'xmtp.org/foo',
+      metadata: {},
+    })
     await sleep(100)
-    const existingConversations = await alice.conversations.list()
-    expect(existingConversations).toHaveLength(1)
 
     const stream = await alice.conversations.streamAllMessages()
-    await bobAlice.send('gm bob -alice')
+    await sleep(100)
 
-    let numMessages = 0
-    for await (const message of stream) {
-      numMessages++
-      if (numMessages == 1) {
-        expect(message.contentTopic).toBe(
-          buildDirectMessageTopic(alice.address, bob.address)
-        )
-        expect(message.content).toBe('gm bob -alice')
+    await aliceBobV1.send('V1')
+    const message1 = await stream.next()
+    expect(message1.value.content).toBe('V1')
+    expect(message1.value.contentTopic).toBe(buildUserIntroTopic(alice.address))
+
+    await aliceBobV2.send('V2')
+    const message2 = await stream.next()
+    expect(message2.value.content).toBe('V2')
+    expect(message2.value.contentTopic).toBe(aliceBobV2.topic)
+
+    await aliceBobV1.send('Second message in V1 channel')
+    const message3 = await stream.next()
+    expect(message3.value.content).toBe('Second message in V1 channel')
+    expect(message3.value.contentTopic).toBe(
+      buildDirectMessageTopic(alice.address, bob.address)
+    )
+
+    const aliceBobV2Bar = await alice.conversations.newConversation(
+      bob.address,
+      {
+        conversationId: 'xmtp.org/bar',
+        metadata: {},
       }
-      if (numMessages == 2) {
-        expect(message.contentTopic).toBe(
-          buildDirectMessageTopic(alice.address, bob.address)
-        )
-        expect(message.content).toBe('gm. hope you have a good day')
-        break
-      }
-      await aliceBob.send('gm. hope you have a good day')
-    }
-    expect(numMessages).toBe(2)
+    )
+    await aliceBobV2Bar.send('bar')
+    const message4 = await stream.next()
+    expect(message4.value.content).toBe('bar')
   })
 
   it('dedupes conversations when multiple messages are in the introduction topic', async () => {
