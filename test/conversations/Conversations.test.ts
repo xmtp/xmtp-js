@@ -68,12 +68,9 @@ describe('conversations', () => {
       charlie.address
     )
     const bobAlice = await bob.conversations.newConversation(alice.address)
-    const charlieAlice = await charlie.conversations.newConversation(
-      alice.address
-    )
 
     const stream = await alice.conversations.streamAllMessages()
-    await charlieAlice.send('gm alice -charlie')
+    await aliceCharlie.send('gm alice -charlie')
 
     let numMessages = 0
     for await (const message of stream) {
