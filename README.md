@@ -31,7 +31,7 @@ Older versions of the SDK will eventually become deprecated, which means:
 1. The network will not support and eventually actively reject connections from clients using deprecated versions.
 2. Bugs will not be fixed in deprecated versions.
 
-Following table shows the currently scheduled deprecations
+Following table shows the deprecation schedule.
 
 | Announced | Effective | Minimum Version | Rationale
 | --- | --- | --- | ---
