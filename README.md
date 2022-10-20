@@ -38,7 +38,6 @@ Following table shows the currently scheduled deprecations
 | 2022-08-18 | 2022-11-08 | v6.0.0 | XMTP network will stop supporting the Waku/libp2p based client interface in favor of the new GRPC based interface
 | 2022-11-21 | 2022-11-08 | v6.4.0 | V2 contact bundles will start being published to the network, pre-v6.4.0 clients may not be able to tolerate this activity ([details](...))
 
-
 Issues and PRs are welcome in accordance with our [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
 
 ## XMTP `production` and `dev` network environments
