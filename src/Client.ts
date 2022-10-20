@@ -4,7 +4,7 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from './crypto'
-import { MessageV1, MessageV2 } from './Message'
+import { DecodedMessage, MessageV1, MessageV2 } from './Message'
 import {
   buildDirectMessageTopic,
   buildUserContactTopic,
@@ -419,7 +419,10 @@ export default class Client {
     return message
   }
 
-  async decodeContent(message: MessageV1 | MessageV2): Promise<void> {
+  async decodeContent(
+    message: MessageV1 | MessageV2,
+    conversation: Conversation
+  ): Promise<DecodedMessage> {
     if (!message.decrypted) {
       throw new Error('decrypted bytes missing')
     }
@@ -428,18 +431,33 @@ export default class Client {
     if (!encoded.type) {
       throw new Error('missing content type')
     }
-    const contentType = new ContentTypeId(encoded.type)
+    let contentType = new ContentTypeId(encoded.type)
     const codec = this.codecFor(contentType)
+    let content: any
+    let error: Error | undefined
     if (codec) {
-      message.content = codec.decode(encoded as EncodedContent, this)
-      message.contentType = contentType
+      content = codec.decode(encoded as EncodedContent, this)
     } else {
-      message.error = new Error('unknown content type ' + contentType)
+      error = new Error('unknown content type ' + contentType)
       if (encoded.fallback) {
         message.content = encoded.fallback
-        message.contentType = ContentTypeFallback
+        contentType = ContentTypeFallback
       }
     }
+
+    if (!message.senderAddress) {
+      throw new Error('No sender address')
+    }
+
+    return new DecodedMessage({
+      id: message.id,
+      senderAddress: message.senderAddress,
+      contentType,
+      conversation,
+      content,
+      sent: message.sent,
+      error,
+    })
   }
 
   decodeEnvelope(env: messageApi.Envelope): Promise<MessageV1> {

@@ -1,3 +1,4 @@
+import type { Conversation } from './conversations/Conversation'
 import { xmtpEnvelope as proto } from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
@@ -240,3 +241,40 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
 }
 
 export type Message = MessageV1 | MessageV2
+
+export interface IDecodedMessage {
+  id: string
+  senderAddress: string
+  conversation: Conversation
+  contentType?: ContentTypeId
+  content?: any
+  sent: Date
+  error?: Error
+}
+export class DecodedMessage {
+  id: string
+  senderAddress: string
+  sent: Date
+  conversation: Conversation
+  contentType?: ContentTypeId
+  content?: any
+  error?: Error
+
+  constructor({
+    id,
+    senderAddress,
+    conversation,
+    contentType,
+    content,
+    sent,
+    error,
+  }: IDecodedMessage) {
+    this.id = id
+    this.senderAddress = senderAddress
+    this.conversation = conversation
+    this.contentType = contentType
+    this.sent = sent
+    this.error = error
+    this.content = content
+  }
+}
