@@ -287,7 +287,7 @@ const conversations = await xmtp.conversations.list()
 const myAppConversations = conversations.filter(
   (convo) =>
     convo.context?.conversationId &&
-    convo.context?.conversationId.startsWith('mydomain.xyz/')
+    convo.context.conversationId.startsWith('mydomain.xyz/')
 )
 
 for (const conversation of myAppConversations) {
