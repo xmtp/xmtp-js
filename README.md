@@ -258,14 +258,13 @@ const isOnProdNetwork = await Client.canMessage(
 
 With XMTP, you can have multiple ongoing conversations with the same blockchain address. For example, you might want to have a conversation scoped to your particular application, or even a conversation scoped to a particular item in your application.
 
-To accomplish this, just set the `conversationId` when you are creating a conversation.
+To accomplish this, just set the `conversationId` when you are creating a conversation. We recommend conversation IDs start with a domain, to help avoid unwanted collisions between your application and other apps on the XMTP network.
 
 ```ts
 // Start a scoped conversation with ID mydomain.xyz/foo
 const conversation1 = await xmtp.conversations.newConversation(
   '0x3F11b27F323b62B159D2642964fa27C46C841897',
   {
-    // Always scope your conversationId with a domain to avoid conflicts with other applications on the network
     conversationId: 'mydomain.xyz/foo',
   }
 )
