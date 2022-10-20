@@ -77,7 +77,7 @@ export class CompositeCodec implements ContentCodec<Composite> {
     for (const part of content.parts) {
       parts.push(this.toProto(part, codecs))
     }
-    return { composite: { parts: parts }, part: undefined }
+    return { composite: { parts }, part: undefined }
   }
 
   private fromProto(
@@ -105,6 +105,6 @@ export class CompositeCodec implements ContentCodec<Composite> {
     for (const part of content.composite.parts) {
       parts.push(this.fromProto(part, codecs))
     }
-    return { parts: parts }
+    return { parts }
   }
 }

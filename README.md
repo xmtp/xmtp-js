@@ -33,10 +33,10 @@ Older versions of the SDK will eventually become deprecated, which means:
 
 Following table shows the deprecation schedule.
 
-| Announced | Effective | Minimum Version | Rationale
-| --- | --- | --- | ---
-| 2022-08-18 | 2022-11-08 | v6.0.0 | XMTP network will stop supporting the Waku/libp2p based client interface in favor of the new GRPC based interface
-| 2022-11-21 | 2022-11-08 | v6.4.0 | clients will start publishing V2 contact bundles to the network, pre-v6.4.0 clients may not be able to tolerate this activity ([details](https://github.com/xmtp/xmtp-js/issues/178#issuecomment-1285527263))
+| Announced  | Effective  | Minimum Version | Rationale                                                                                                                                                                                                     |
+| ---------- | ---------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2022-08-18 | 2022-11-08 | v6.0.0          | XMTP network will stop supporting the Waku/libp2p based client interface in favor of the new GRPC based interface                                                                                             |
+| 2022-11-21 | 2022-11-08 | v6.4.0          | clients will start publishing V2 contact bundles to the network, pre-v6.4.0 clients may not be able to tolerate this activity ([details](https://github.com/xmtp/xmtp-js/issues/178#issuecomment-1285527263)) |
 
 Issues and PRs are welcome in accordance with our [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
 
