@@ -254,6 +254,54 @@ const isOnProdNetwork = await Client.canMessage(
 )
 ```
 
+#### Handling multiple conversations with the same blockchain address
+
+With XMTP, you can have multiple ongoing conversations with the same blockchain address. For example, you might want to have a conversation scoped to your particular application, or even a conversation scoped to a particular item in your application.
+
+To accomplish this, just set the `conversationId` when you are creating a conversation.
+
+```ts
+// Start a scoped conversation with ID mydomain.xyz/foo
+const conversation1 = await xmtp.conversations.newConversation(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897',
+  {
+    // Always scope your conversationId with a domain to avoid conflicts with other applications on the network
+    conversationId: 'mydomain.xyz/foo',
+  }
+)
+
+// Start a scoped conversation with ID mydomain.xyz/bar. And add some metadata
+const conversation2 = await xmtp.conversations.newConversation(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897',
+  {
+    conversationId: 'mydomain.xyz/bar',
+    metadata: {
+      title: 'Bar conversation',
+    },
+  }
+)
+
+// Get all the conversations
+const conversations = await xmtp.conversations.list()
+// Filter for the ones from your application
+const myAppConversations = conversations.filter(
+  (convo) =>
+    convo.context?.conversationId &&
+    convo.context?.conversationId.startsWith('mydomain.xyz/')
+)
+
+for (const conversation of myAppConversations) {
+  const conversationId = conversation.context?.conversationId
+  if (conversationId === 'mydomain.xyz/foo') {
+    await conversation.send('foo')
+  }
+  if (conversationId === 'mydomain.xyz/bar') {
+    await conversation.send('bar')
+    console.log(conversation.context?.metadata.title)
+  }
+}
+```
+
 #### Different types of content
 
 All the send functions support `SendOptions` as an optional parameter. The `contentType` option allows specifying different types of content than the default simple string, which is identified with content type identifier `ContentTypeText`. Support for other types of content can be added by registering additional `ContentCodecs` with the `Client`. Every codec is associated with a content type identifier, `ContentTypeId`, which is used to signal to the Client which codec should be used to process the content that is being sent or received. See [XIP-5](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-5-message-content-types.md) for more details on codecs and content types.
