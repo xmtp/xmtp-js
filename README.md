@@ -24,7 +24,14 @@ Because `xmtp-js` is in active development, you should expect breaking revisions
 
 XMTP communicates about breaking revisions in the [XMTP Discord community](https://discord.gg/xmtp), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
 
-### Deprecation Schedule
+### Deprecation
+
+Older versions of the SDK will eventually become deprecated, which means:
+
+1. The network will not support and eventually actively reject connections from clients using deprecated versions.
+2. Bugs will not be fixed in deprecated versions.
+
+Following table shows the currently scheduled deprecations
 
 | Announced | Effective | Minimum Version | Rationale
 | --- | --- | --- | ---
