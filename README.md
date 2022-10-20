@@ -26,10 +26,10 @@ XMTP communicates about breaking revisions in the [XMTP Discord community](https
 
 ### Deprecation Schedule
 
-| Announced | Effective | Version | Rationale |
+| Announced | Effective | Minimum Version | Rationale |
 | --- | --- | --- | --- |
 | 2022-08-18 | 2022-11-08 | v6.0.0 | The XMTP network will stop supporting the Waku/libp2p based client interface in favor of the new GRPC based interface |
-| 2022-11-21 | 2022-11-08 | v6.4.0 | The V2 contact bundles will start being published to the network, pre-v6.4.0 will not be able to tolerate this activity ([details](...)) |
+| 2022-11-21 | 2022-11-08 | v6.4.0 | The V2 contact bundles will start being published to the network, pre-v6.4.0 clients will not be able to tolerate this activity ([details](...)) |
 
 
 Issues and PRs are welcome in accordance with our [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
