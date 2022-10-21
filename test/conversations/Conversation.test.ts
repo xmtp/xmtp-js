@@ -1,4 +1,3 @@
-import { Message } from '@components/Messages/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import { MessageV1, MessageV2 } from '../../src/Message'
 import { Client } from '../../src'
@@ -217,10 +216,12 @@ describe('conversation', () => {
       conversationId
     )
 
-    const firstMessageFromStream: Message = (await stream.next()).value
+    const firstMessageFromStream: MessageV2 = (await stream.next()).value
     expect(firstMessageFromStream instanceof MessageV2).toBeTruthy()
     expect(firstMessageFromStream.content).toBe('foo')
-    expect(firstMessageFromStream.conversation.context.id).toBe(conversationId)
+    expect(firstMessageFromStream.conversation.context?.conversationId).toBe(
+      conversationId
+    )
 
     const messages = await convo.messages()
     expect(messages).toHaveLength(1)
