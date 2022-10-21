@@ -1,3 +1,4 @@
+import { Message } from '@components/Messages/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import { MessageV1, MessageV2 } from '../../src/Message'
 import { Client } from '../../src'
@@ -194,5 +195,36 @@ describe('conversation', () => {
     await bc.send('gm to you too')
     expect((await bs.next()).value.content).toBe('gm to you too')
     expect((await as.next()).value.content).toBe('gm to you too')
+  })
+
+  it('conversation filtering', async () => {
+    const conversationId = 'xmtp.org/foo'
+    const title = 'foo'
+    const convo = await alice.conversations.newConversation(bob.address, {
+      conversationId,
+      metadata: {
+        title,
+      },
+    })
+
+    const stream = await convo.streamMessages()
+    await sleep(100)
+    const sentMessage = await convo.send('foo')
+    if (!(sentMessage instanceof MessageV2)) {
+      throw new Error('Not a V2 message')
+    }
+    expect(sentMessage.conversation.context?.conversationId).toBe(
+      conversationId
+    )
+
+    const firstMessageFromStream: Message = (await stream.next()).value
+    expect(firstMessageFromStream instanceof MessageV2).toBeTruthy()
+    expect(firstMessageFromStream.content).toBe('foo')
+    expect(firstMessageFromStream.conversation.context.id).toBe(conversationId)
+
+    const messages = await convo.messages()
+    expect(messages).toHaveLength(1)
+    expect(messages[0].content).toBe('foo')
+    expect(messages[0].conversation).toBe(convo)
   })
 })

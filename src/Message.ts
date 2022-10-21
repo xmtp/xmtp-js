@@ -65,6 +65,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
   header: proto.MessageHeaderV1 // eslint-disable-line camelcase
   // wallet address derived from the signature of the message recipient
   senderAddress: string | undefined
+  conversation = undefined
 
   constructor(
     id: string,
