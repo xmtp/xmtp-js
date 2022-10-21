@@ -9,6 +9,7 @@ import {
   decrypt,
   encrypt,
 } from './crypto'
+import type { ConversationV2 } from './conversations/Conversation'
 import { NoMatchingPreKeyError } from './crypto/errors'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
@@ -199,6 +200,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
 
 export class MessageV2 extends MessageBase implements proto.MessageV2 {
   senderAddress: string | undefined
+  conversation: ConversationV2
   private header: proto.MessageHeaderV2 // eslint-disable-line camelcase
   private signed?: proto.SignedContent
 
@@ -209,20 +211,23 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
     header: proto.MessageHeaderV2,
     signed: proto.SignedContent,
     // wallet address derived from the signature of the message sender
-    senderAddress: string
+    senderAddress: string,
+    conversation: ConversationV2
   ) {
     super(id, bytes, obj)
     this.decrypted = signed.payload
     this.header = header
     this.signed = signed
     this.senderAddress = senderAddress
+    this.conversation = conversation
   }
 
   static async create(
     obj: proto.Message,
     header: proto.MessageHeaderV2,
     signed: proto.SignedContent,
-    bytes: Uint8Array
+    bytes: Uint8Array,
+    conversation: ConversationV2
   ): Promise<MessageV2> {
     const id = bytesToHex(await sha256(bytes))
     if (!signed.sender) {
@@ -231,7 +236,15 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
     const senderAddress = await new SignedPublicKeyBundle(
       signed.sender
     ).walletSignatureAddress()
-    return new MessageV2(id, bytes, obj, header, signed, senderAddress)
+    return new MessageV2(
+      id,
+      bytes,
+      obj,
+      header,
+      signed,
+      senderAddress,
+      conversation
+    )
   }
 
   get sent(): Date {
