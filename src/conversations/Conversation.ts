@@ -146,7 +146,7 @@ export class ConversationV2 {
     options?: SendOptions
   ): Promise<MessageV2> {
     const msg = await this.encodeMessage(message, options)
-    this.client.publishEnvelopes([
+    await this.client.publishEnvelopes([
       {
         contentTopic: this.topic,
         message: msg.toBytes(),
@@ -180,7 +180,7 @@ export class ConversationV2 {
       v2: { headerBytes, ciphertext },
     }
     const bytes = xmtpEnvelope.Message.encode(protoMsg).finish()
-    const msg = await MessageV2.create(protoMsg, header, signed, bytes)
+    const msg = await MessageV2.create(protoMsg, header, signed, bytes, this)
     return msg
   }
 
@@ -224,7 +224,13 @@ export class ConversationV2 {
     ) {
       throw new Error('invalid signature')
     }
-    const message = await MessageV2.create(msg, header, signed, messageBytes)
+    const message = await MessageV2.create(
+      msg,
+      header,
+      signed,
+      messageBytes,
+      this
+    )
     message.contentTopic = env.contentTopic
     await this.client.decodeContent(message)
     return message
