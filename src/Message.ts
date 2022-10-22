@@ -132,9 +132,69 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
       v2: undefined,
     }
     const bytes = proto.Message.encode(protoMsg).finish()
-    const msg = await MessageV1.create(protoMsg, header, bytes)
-    msg.decrypted = message
-    return msg
+    return MessageV1.create(protoMsg, header, bytes)
+  }
+
+  static fromBytes(bytes: Uint8Array): Promise<MessageV1> {
+    const message = proto.Message.decode(bytes)
+    const [headerBytes] = headerBytesAndCiphertext(message)
+    const header = proto.MessageHeaderV1.decode(headerBytes)
+    if (!header) {
+      throw new Error('missing message header')
+    }
+    if (!header.sender) {
+      throw new Error('missing message sender')
+    }
+    if (!header.sender.identityKey) {
+      throw new Error('missing message sender identity key')
+    }
+    if (!header.sender.preKey) {
+      throw new Error('missing message sender pre-key')
+    }
+    if (!header.recipient) {
+      throw new Error('missing message recipient')
+    }
+    if (!header.recipient.identityKey) {
+      throw new Error('missing message recipient identity-key')
+    }
+    if (!header.recipient.preKey) {
+      throw new Error('missing message recipient pre-key')
+    }
+
+    return MessageV1.create(message, header, bytes)
+  }
+
+  async decrypt(viewer: PrivateKeyBundleV1) {
+    const header = this.header
+    // This should never happen if the message was created through the fromBytes function
+    // But needed for type safety
+    if (
+      !header.recipient?.identityKey ||
+      !header.sender?.identityKey ||
+      !header.recipient.preKey ||
+      !header.sender.preKey
+    ) {
+      throw new Error('Missing headers')
+    }
+    const recipient = new PublicKeyBundle({
+      identityKey: new PublicKey(header.recipient.identityKey),
+      preKey: new PublicKey(header.recipient.preKey),
+    })
+    const sender = new PublicKeyBundle({
+      identityKey: new PublicKey(header.sender.identityKey),
+      preKey: new PublicKey(header.sender.preKey),
+    })
+
+    let secret: Uint8Array
+    if (viewer.identityKey.matches(sender.identityKey)) {
+      // viewer is the sender
+      secret = await viewer.sharedSecret(recipient, sender.preKey, false)
+    } else {
+      // viewer is the recipient
+      secret = await viewer.sharedSecret(sender, recipient.preKey, true)
+    }
+
+    return decrypt(this.ciphertext, secret, this.headerBytes)
   }
 
   // deserialize and decrypt the message;
@@ -242,18 +302,21 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
 
 export type Message = MessageV1 | MessageV2
 
-export interface IDecodedMessage {
+export interface DecodedMessage {
   id: string
   senderAddress: string
   conversation: Conversation
   contentType?: ContentTypeId
-  content?: any
   sent: Date
+  recipientAddress?: string
   error?: Error
+  content?: any
 }
+
 export class DecodedMessage {
   id: string
   senderAddress: string
+  recipientAddress?: string
   sent: Date
   conversation: Conversation
   contentType?: ContentTypeId
@@ -263,18 +326,41 @@ export class DecodedMessage {
   constructor({
     id,
     senderAddress,
+    recipientAddress,
     conversation,
     contentType,
     content,
     sent,
     error,
-  }: IDecodedMessage) {
+  }: DecodedMessage) {
     this.id = id
     this.senderAddress = senderAddress
+    this.recipientAddress = recipientAddress
     this.conversation = conversation
     this.contentType = contentType
     this.sent = sent
     this.error = error
     this.content = content
+  }
+
+  static fromV1Message(
+    message: MessageV1,
+    content: any,
+    contentType: ContentTypeId,
+    conversation: Conversation
+  ): DecodedMessage {
+    const { id, senderAddress, recipientAddress, sent } = message
+    if (!senderAddress) {
+      throw new Error('Sender address is required')
+    }
+    return new DecodedMessage({
+      id,
+      senderAddress,
+      recipientAddress,
+      sent,
+      content,
+      contentType,
+      conversation,
+    })
   }
 }
