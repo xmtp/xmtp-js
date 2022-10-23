@@ -1,17 +1,14 @@
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { InvitationContext } from './../Invitation'
 import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
-import { Message, MessageV1, MessageV2 } from '../Message'
+import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
-import {
-  buildDirectMessageTopic,
-  buildUserIntroTopic,
-  buildUserInviteTopic,
-} from '../utils'
+import { buildUserIntroTopic, buildUserInviteTopic } from '../utils'
 import { SealedInvitation, InvitationV1 } from '../Invitation'
 import { PublicKeyBundle } from '../crypto'
-import { messageApi } from '@xmtp/proto'
+import { messageApi, fetcher } from '@xmtp/proto'
+const { b64Decode } = fetcher
 
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
@@ -71,7 +68,8 @@ export default class Conversations {
 
     const decodeConversation = async (env: messageApi.Envelope) => {
       if (env.contentTopic === introTopic) {
-        const msg = await this.client.decodeEnvelope(env)
+        const messageBytes = b64Decode(env.message as unknown as string)
+        const msg = await MessageV1.fromBytes(messageBytes)
         const peerAddress = this.getPeerAddress(msg)
         if (!newPeer(peerAddress)) {
           return undefined
@@ -104,7 +102,7 @@ export default class Conversations {
    * Callers should be aware the first messages in a newly created conversation are picked up on a best effort basis and there are other potential race conditions which may cause some newly created conversations to be missed.
    *
    */
-  async streamAllMessages(): Promise<AsyncGenerator<Message>> {
+  async streamAllMessages(): Promise<AsyncGenerator<DecodedMessage>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
     const topics = new Set<string>([introTopic, inviteTopic])
@@ -117,19 +115,31 @@ export default class Conversations {
 
     const decodeMessage = async (
       env: messageApi.Envelope
-    ): Promise<Conversation | Message | null> => {
+    ): Promise<Conversation | DecodedMessage | null> => {
       const contentTopic = env.contentTopic
       if (!contentTopic) {
         return null
       }
 
       if (contentTopic === introTopic) {
-        const msg = await this.client.decodeEnvelope(env)
+        const messageBytes = b64Decode(env.message as unknown as string)
+        const msg = await MessageV1.fromBytes(messageBytes)
         if (!messageHasHeaders(msg)) {
           return null
         }
+        const peerAddress =
+          msg.senderAddress === this.client.address
+            ? msg.recipientAddress
+            : msg.senderAddress
 
-        return msg
+        // Temporarily create a convo to decrypt the message
+        const convo = new ConversationV1(
+          this.client,
+          peerAddress as string,
+          msg.sent
+        )
+
+        return convo.decodeMessage(env)
       }
 
       // Decode as an invite and return the envelope
@@ -144,7 +154,7 @@ export default class Conversations {
 
       // Decode as a V1 message if the topic matches a V1 convo
       if (convo instanceof ConversationV1) {
-        return this.client.decodeEnvelope(env)
+        return convo.decodeMessage(env)
       }
 
       // Decode as a V2 message if the topic matches a V2 convo
@@ -166,9 +176,9 @@ export default class Conversations {
       return true
     }
 
-    const contentTopicUpdater = (msg: Conversation | Message | null) => {
+    const contentTopicUpdater = (msg: Conversation | DecodedMessage | null) => {
       // If we have a V1 message from the introTopic, store the conversation in our mapping
-      if (msg instanceof MessageV1 && msg.contentTopic === introTopic) {
+      if (msg instanceof DecodedMessage && msg.contentTopic === introTopic) {
         const convo = new ConversationV1(
           this.client,
           msg.recipientAddress === this.client.address
@@ -190,7 +200,7 @@ export default class Conversations {
       return undefined
     }
 
-    const str = await Stream.create<Message | Conversation | null>(
+    const str = await Stream.create<DecodedMessage | Conversation | null>(
       this.client,
       Array.from(topics.values()),
       decodeMessage,
@@ -199,7 +209,7 @@ export default class Conversations {
 
     return (async function* generate() {
       for await (const val of str) {
-        if (val instanceof MessageV1 || val instanceof MessageV2) {
+        if (val instanceof DecodedMessage) {
           yield val
         }
         // For conversation V2, we may have messages in the new topic before we started streaming.
@@ -214,7 +224,17 @@ export default class Conversations {
   }
 
   private async getIntroductionPeers(): Promise<Map<string, Date>> {
-    const messages = await this.client.listIntroductionMessages()
+    const messages = await this.client.listEnvelopes(
+      [buildUserIntroTopic(this.client.address)],
+      async (env) => {
+        const msg = await MessageV1.fromBytes(
+          b64Decode(env.message as unknown as string)
+        )
+        // Decrypt the message to ensure it is valid. Ignore the contents
+        await msg.decrypt(this.client.legacyKeys)
+        return msg
+      }
+    )
     const seenPeers: Map<string, Date> = new Map()
     for (const message of messages) {
       // Ignore all messages without sender or recipient address headers
@@ -234,21 +254,6 @@ export default class Conversations {
     }
 
     return seenPeers
-  }
-
-  /**
-   * Builds a list of topics for existing conversations and new intro topics
-   */
-  private buildTopicsForAllMessages(
-    peerAddresses: string[],
-    introTopic: string
-  ): string[] {
-    const topics = peerAddresses.map((address) =>
-      buildDirectMessageTopic(address, this.client.address)
-    )
-    // Ensure we listen for new conversation topics as well
-    topics.push(introTopic)
-    return topics
   }
 
   /**

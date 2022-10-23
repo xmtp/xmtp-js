@@ -4,16 +4,14 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from './crypto'
-import { Message, MessageV1, MessageV2 } from './Message'
+import { MessageV1 } from './Message'
 import {
   buildDirectMessageTopic,
   buildUserContactTopic,
-  buildUserIntroTopic,
   mapPaginatedStream,
   EnvelopeMapper,
   buildUserInviteTopic,
 } from './utils'
-import Stream from './Stream'
 import { Signer } from 'ethers'
 import {
   EncryptedKeyStore,
@@ -24,13 +22,8 @@ import {
 } from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
-import {
-  ContentTypeId,
-  EncodedContent,
-  ContentCodec,
-  ContentTypeFallback,
-} from './MessageContent'
-import { decompress, compress } from './Compression'
+import { ContentTypeId, ContentCodec } from './MessageContent'
+import { compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { PublishParams, SortDirection } from './ApiClient'
@@ -353,6 +346,7 @@ export default class Client {
       opts
     )
   }
+
   // list stored messages from the specified topic
   async listEnvelopes<Out>(
     topics: string[],
@@ -482,19 +476,6 @@ async function loadOrCreateKeysFromOptions(
 
   const keyStore = createKeyStoreFromConfig(options, wallet, apiClient)
   return loadOrCreateKeysFromStore(wallet, keyStore)
-}
-
-// Ensure the message didn't have a spoofed address
-function filterForTopics(topics: string[]): (msg: MessageV1) => boolean {
-  return (msg) => {
-    const senderAddress = msg.senderAddress
-    const recipientAddress = msg.recipientAddress
-    return (
-      senderAddress !== undefined &&
-      recipientAddress !== undefined &&
-      topics.includes(buildDirectMessageTopic(senderAddress, recipientAddress))
-    )
-  }
 }
 
 function createApiClientFromOptions(options: ClientOptions): ApiClient {

@@ -1,6 +1,4 @@
 import { buildUserIntroTopic } from './../utils'
-import { ContentTypeFallback } from './../MessageContent'
-import { NoMatchingPreKeyError } from './../crypto/errors'
 import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
@@ -13,7 +11,7 @@ import {
   InvitationV1,
   SealedInvitationHeaderV1,
 } from '../Invitation'
-import { Message, MessageV1, MessageV2 } from '../Message'
+import { MessageV1, MessageV2, decodeContent } from '../Message'
 import { messageApi, xmtpEnvelope, fetcher } from '@xmtp/proto'
 import {
   encrypt,
@@ -21,25 +19,13 @@ import {
   SignedPublicKey,
   Signature,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
 } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
 import { buildDirectMessageTopic, dateToNs, nsToDate } from '../utils'
-import { ContentTypeId, EncodedContent } from '../MessageContent'
 import { ContentTypeText } from '../codecs/Text'
 const { b64Decode } = fetcher
-
-function filterForTopics(topics: string[]): (msg: DecodedMessage) => boolean {
-  return (msg) => {
-    const senderAddress = msg.senderAddress
-    const recipientAddress = msg.recipientAddress
-    return (
-      senderAddress !== undefined &&
-      recipientAddress !== undefined &&
-      topics.includes(buildDirectMessageTopic(senderAddress, recipientAddress))
-    )
-  }
-}
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -65,7 +51,11 @@ export class ConversationV1 {
     const topics = [
       buildDirectMessageTopic(this.peerAddress, this.client.address),
     ]
-    return this.client.listEnvelopes(topics, this.decodeMessage.bind(this))
+    return this.client.listEnvelopes(
+      topics,
+      this.decodeMessage.bind(this),
+      opts
+    )
   }
 
   get topic(): string {
@@ -93,7 +83,7 @@ export class ConversationV1 {
     )
   }
 
-  private async decodeMessage({
+  async decodeMessage({
     message,
     contentTopic,
   }: messageApi.Envelope): Promise<DecodedMessage> {
@@ -111,32 +101,19 @@ export class ConversationV1 {
       throw new Error('Not allowed topic')
     }
     const decrypted = await decoded.decrypt(this.client.legacyKeys)
-    const encodedContent = xmtpEnvelope.EncodedContent.decode(decrypted)
-
-    if (!encodedContent.type) {
-      throw new Error('missing content type')
-    }
-
-    let content: any
-    let contentType = new ContentTypeId(encodedContent.type)
-    let error: Error | undefined
-
-    const codec = this.client.codecFor(contentType)
-    if (codec) {
-      content = codec.decode(encodedContent as EncodedContent, this.client)
-    } else {
-      error = new Error('unknown content type ' + contentType)
-      if (encodedContent.fallback) {
-        content = encodedContent.fallback
-        contentType = ContentTypeFallback
-      }
-    }
+    const { content, contentType, error } = decodeContent(
+      decrypted,
+      this.client
+    )
 
     return new DecodedMessage({
       id,
       senderAddress: senderAddress as string,
       recipientAddress,
       sent,
+      content,
+      contentType,
+      contentTopic,
       error,
       conversation: this,
     })
@@ -175,15 +152,21 @@ export class ConversationV1 {
       timestamp
     )
 
-    await this.client.publishEnvelopes([
-      {
-        contentTopic: this.topic,
+    await this.client.publishEnvelopes(
+      topics.map((topic) => ({
+        contentTopic: topic,
         message: msg.toBytes(),
         timestamp: msg.sent,
-      },
-    ])
+      }))
+    )
 
-    return DecodedMessage.fromV1Message(msg, content, contentType, this)
+    return DecodedMessage.fromV1Message(
+      msg,
+      content,
+      contentType,
+      topics[0], // Just use the first topic for the returned value
+      this
+    )
   }
 }
 
@@ -227,7 +210,7 @@ export class ConversationV2 {
   /**
    * Returns a list of all messages to/from the peerAddress
    */
-  async messages(opts?: ListMessagesOptions): Promise<MessageV2[]> {
+  async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
     return this.client.listEnvelopes(
       [this.topic],
       this.decodeMessage.bind(this),
@@ -237,7 +220,7 @@ export class ConversationV2 {
 
   messagesPaginated(
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<MessageV2[]> {
+  ): AsyncGenerator<DecodedMessage[]> {
     return this.client.listEnvelopesPaginated(
       [this.topic],
       this.decodeMessage.bind(this),
@@ -248,8 +231,8 @@ export class ConversationV2 {
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<MessageV2>> {
-    return Stream.create<MessageV2>(
+  streamMessages(): Promise<Stream<DecodedMessage>> {
+    return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
       this.decodeMessage.bind(this)
@@ -298,11 +281,11 @@ export class ConversationV2 {
       v2: { headerBytes, ciphertext },
     }
     const bytes = xmtpEnvelope.Message.encode(protoMsg).finish()
-    const msg = await MessageV2.create(protoMsg, header, signed, bytes, this)
+    const msg = await MessageV2.create(protoMsg, header, signed, bytes)
     return msg
   }
 
-  async decodeMessage(env: messageApi.Envelope): Promise<MessageV2> {
+  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
     if (!env.message || !env.contentTopic) {
       throw new Error('empty envelope')
     }
@@ -343,9 +326,24 @@ export class ConversationV2 {
       throw new Error('invalid signature')
     }
     const message = await MessageV2.create(msg, header, signed, messageBytes)
-    message.contentTopic = env.contentTopic
-    await this.client.decodeContent(message)
-    return message
+    const { content, contentType, error } = decodeContent(
+      decrypted,
+      this.client
+    )
+    const senderAddress = await new SignedPublicKeyBundle(
+      signed.sender
+    ).walletSignatureAddress()
+
+    return new DecodedMessage({
+      id: message.id,
+      senderAddress,
+      sent: message.sent,
+      content,
+      contentType,
+      contentTopic: env.contentTopic,
+      error,
+      conversation: this,
+    })
   }
 }
 
