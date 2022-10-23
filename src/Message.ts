@@ -246,12 +246,12 @@ export interface DecodedMessage {
   id: string
   senderAddress: string
   conversation: Conversation
-  contentType?: ContentTypeId
+  contentType: ContentTypeId
   sent: Date
   contentTopic: string
   recipientAddress?: string
   error?: Error
-  content?: any
+  content: any
 }
 
 export class DecodedMessage {
@@ -261,8 +261,8 @@ export class DecodedMessage {
   sent: Date
   contentTopic: string
   conversation: Conversation
-  contentType?: ContentTypeId
-  content?: any
+  contentType: ContentTypeId
+  content: any
   error?: Error
 
   constructor({
