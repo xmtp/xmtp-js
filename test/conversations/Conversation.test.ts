@@ -46,8 +46,18 @@ describe('conversation', () => {
       await aliceConversation.send('Hi Bob')
       await sleep(100)
 
-      expect(await aliceConversation.messages()).toHaveLength(2)
-      expect(await bobConversation.messages()).toHaveLength(2)
+      const [aliceMessages, bobMessages] = await Promise.all([
+        aliceConversation.messages(),
+        bobConversation.messages(),
+      ])
+
+      expect(aliceMessages).toHaveLength(2)
+      expect(aliceMessages[0].messageVersion).toBe('v1')
+      expect(aliceMessages[0].error).toBeUndefined()
+      expect(aliceMessages[0].senderAddress).toBe(bob.address)
+      expect(aliceMessages[0].conversation.topic).toBe(aliceConversation.topic)
+
+      expect(bobMessages).toHaveLength(2)
     })
 
     it('lists paginated messages', async () => {
@@ -165,6 +175,7 @@ describe('conversation', () => {
         )
         expect(message.conversation.topic).toBe(aliceConversation.topic)
         expect(message.error).toBeUndefined()
+        expect(message.messageVersion).toBe(1)
         if (numMessages === 1) {
           expect(message.content).toBe('gm')
           expect(message.senderAddress).toBe(bob.address)
