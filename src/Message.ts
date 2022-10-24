@@ -253,7 +253,7 @@ export interface DecodedMessage {
   contentTopic: string
   recipientAddress?: string
   error?: Error
-  content: any
+  content: any // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export class DecodedMessage {
@@ -265,7 +265,7 @@ export class DecodedMessage {
   contentTopic: string
   conversation: Conversation
   contentType: ContentTypeId
-  content: any
+  content: any // eslint-disable-line @typescript-eslint/no-explicit-any
   error?: Error
 
   constructor({
@@ -294,7 +294,7 @@ export class DecodedMessage {
 
   static fromV1Message(
     message: MessageV1,
-    content: any,
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
     contentTopic: string,
     conversation: Conversation
@@ -318,7 +318,7 @@ export class DecodedMessage {
 
   static fromV2Message(
     message: MessageV2,
-    content: any,
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
     contentTopic: string,
     conversation: Conversation
@@ -348,7 +348,7 @@ export function decodeContent(contentBytes: Uint8Array, client: Client) {
     throw new Error('missing content type')
   }
 
-  let content: any
+  let content: any // eslint-disable-line @typescript-eslint/no-explicit-any
   let contentType = new ContentTypeId(encodedContent.type)
   let error: Error | undefined
 
