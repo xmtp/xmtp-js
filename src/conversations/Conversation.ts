@@ -98,7 +98,7 @@ export class ConversationV1 {
       !contentTopic ||
       buildDirectMessageTopic(senderAddress, recipientAddress) !== this.topic
     ) {
-      throw new Error('Not allowed topic')
+      throw new Error('Headers do not match intended recipient')
     }
     const decrypted = await decoded.decrypt(this.client.legacyKeys)
     const { content, contentType, error } = decodeContent(
@@ -108,7 +108,7 @@ export class ConversationV1 {
 
     return new DecodedMessage({
       id,
-      senderAddress: senderAddress as string,
+      senderAddress,
       recipientAddress,
       sent,
       content,
