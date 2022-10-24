@@ -230,6 +230,7 @@ export default class Conversations {
         const msg = await MessageV1.fromBytes(
           b64Decode(env.message as unknown as string)
         )
+
         // Decrypt the message to ensure it is valid. Ignore the contents
         await msg.decrypt(this.client.legacyKeys)
         return msg

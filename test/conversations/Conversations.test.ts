@@ -94,6 +94,7 @@ describe('conversations', () => {
       }
     }
     expect(numMessages).toBe(3)
+    await stream.return(undefined)
   })
 
   it('streams all conversation messages with a mix of v1 and v2 conversations', async () => {
@@ -134,6 +135,7 @@ describe('conversations', () => {
     await aliceBobV2Bar.send('bar')
     const message4 = await stream.next()
     expect(message4.value.content).toBe('bar')
+    await stream.return(undefined)
   })
 
   it('dedupes conversations when multiple messages are in the introduction topic', async () => {

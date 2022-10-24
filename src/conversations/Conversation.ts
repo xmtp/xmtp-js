@@ -137,7 +137,11 @@ export class ConversationV1 {
     }
 
     if (!this.client.contacts.has(this.peerAddress)) {
-      topics = [buildUserIntroTopic(this.peerAddress), this.topic]
+      topics = [
+        buildUserIntroTopic(this.peerAddress),
+        buildUserIntroTopic(this.client.address),
+        this.topic,
+      ]
       this.client.contacts.add(this.peerAddress)
     } else {
       topics = [this.topic]
