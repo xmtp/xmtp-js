@@ -108,6 +108,7 @@ export class ConversationV1 {
 
     return new DecodedMessage({
       id,
+      messageVersion: 'v1',
       senderAddress,
       recipientAddress,
       sent,
@@ -243,10 +244,10 @@ export class ConversationV2 {
    * Send a message into the conversation
    */
   async send(
-    message: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
-  ): Promise<MessageV2> {
-    const msg = await this.encodeMessage(message, options)
+  ): Promise<DecodedMessage> {
+    const msg = await this.encodeMessage(content, options)
     await this.client.publishEnvelopes([
       {
         contentTopic: this.topic,
@@ -254,7 +255,15 @@ export class ConversationV2 {
         timestamp: msg.sent,
       },
     ])
-    return msg
+    const contentType = options?.contentType || ContentTypeText
+
+    return DecodedMessage.fromV2Message(
+      msg,
+      content,
+      contentType,
+      this.topic,
+      this
+    )
   }
 
   private async encodeMessage(
@@ -281,8 +290,7 @@ export class ConversationV2 {
       v2: { headerBytes, ciphertext },
     }
     const bytes = xmtpEnvelope.Message.encode(protoMsg).finish()
-    const msg = await MessageV2.create(protoMsg, header, signed, bytes)
-    return msg
+    return MessageV2.create(protoMsg, header, signed, bytes)
   }
 
   async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
@@ -327,7 +335,7 @@ export class ConversationV2 {
     }
     const message = await MessageV2.create(msg, header, signed, messageBytes)
     const { content, contentType, error } = decodeContent(
-      decrypted,
+      signed.payload,
       this.client
     )
     const senderAddress = await new SignedPublicKeyBundle(
@@ -336,6 +344,7 @@ export class ConversationV2 {
 
     return new DecodedMessage({
       id: message.id,
+      messageVersion: 'v2',
       senderAddress,
       sent: message.sent,
       content,

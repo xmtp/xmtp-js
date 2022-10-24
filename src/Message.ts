@@ -139,7 +139,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
 
   static fromBytes(bytes: Uint8Array): Promise<MessageV1> {
     const message = proto.Message.decode(bytes)
-    const [headerBytes] = headerBytesAndCiphertext(message)
+    const [headerBytes, _ciphertext] = headerBytesAndCiphertext(message)
     const header = proto.MessageHeaderV1.decode(headerBytes)
     if (!header) {
       throw new Error('missing message header')
@@ -245,6 +245,7 @@ export type Message = MessageV1 | MessageV2
 
 export interface DecodedMessage {
   id: string
+  messageVersion: 'v1' | 'v2'
   senderAddress: string
   conversation: Conversation
   contentType: ContentTypeId
@@ -257,6 +258,7 @@ export interface DecodedMessage {
 
 export class DecodedMessage {
   id: string
+  messageVersion: 'v1' | 'v2'
   senderAddress: string
   recipientAddress?: string
   sent: Date
@@ -268,6 +270,7 @@ export class DecodedMessage {
 
   constructor({
     id,
+    messageVersion,
     senderAddress,
     recipientAddress,
     conversation,
@@ -278,6 +281,7 @@ export class DecodedMessage {
     error,
   }: DecodedMessage) {
     this.id = id
+    this.messageVersion = messageVersion
     this.senderAddress = senderAddress
     this.recipientAddress = recipientAddress
     this.conversation = conversation
@@ -301,8 +305,33 @@ export class DecodedMessage {
     }
     return new DecodedMessage({
       id,
+      messageVersion: 'v1',
       senderAddress,
       recipientAddress,
+      sent,
+      content,
+      contentType,
+      contentTopic,
+      conversation,
+    })
+  }
+
+  static fromV2Message(
+    message: MessageV2,
+    content: any,
+    contentType: ContentTypeId,
+    contentTopic: string,
+    conversation: Conversation
+  ): DecodedMessage {
+    const { id, senderAddress, sent } = message
+    if (!senderAddress) {
+      throw new Error('Sender address is required')
+    }
+
+    return new DecodedMessage({
+      id,
+      messageVersion: 'v2',
+      senderAddress,
       sent,
       content,
       contentType,
