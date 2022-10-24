@@ -70,6 +70,7 @@ export default class Conversations {
       if (env.contentTopic === introTopic) {
         const messageBytes = b64Decode(env.message as unknown as string)
         const msg = await MessageV1.fromBytes(messageBytes)
+        await msg.decrypt(this.client.legacyKeys)
         const peerAddress = this.getPeerAddress(msg)
         if (!newPeer(peerAddress)) {
           return undefined
