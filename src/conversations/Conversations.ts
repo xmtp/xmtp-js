@@ -127,6 +127,8 @@ export default class Conversations {
         if (!messageHasHeaders(msg)) {
           return null
         }
+        // Decrypt the message to ensure it hasn't been spoofed
+        await msg.decrypt(this.client.legacyKeys)
         const peerAddress =
           msg.senderAddress === this.client.address
             ? msg.recipientAddress
