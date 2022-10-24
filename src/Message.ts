@@ -139,7 +139,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
 
   static fromBytes(bytes: Uint8Array): Promise<MessageV1> {
     const message = proto.Message.decode(bytes)
-    const [headerBytes, _ciphertext] = headerBytesAndCiphertext(message)
+    const [headerBytes] = headerBytesAndCiphertext(message)
     const header = proto.MessageHeaderV1.decode(headerBytes)
     if (!header) {
       throw new Error('missing message header')
