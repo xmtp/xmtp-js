@@ -1,4 +1,4 @@
-import { Message } from './Message'
+import { Message, DecodedMessage } from './Message'
 import {
   PublicKey,
   PublicKeyBundle,
@@ -13,7 +13,12 @@ import Client, {
   SendOptions,
   Compression,
 } from './Client'
-import { Conversations, Conversation } from './conversations'
+import {
+  Conversations,
+  Conversation,
+  ConversationV1,
+  ConversationV2,
+} from './conversations'
 import {
   ContentTypeId,
   ContentCodec,
@@ -31,8 +36,11 @@ import { SortDirection } from './ApiClient'
 export {
   Client,
   Conversation,
+  ConversationV1,
+  ConversationV2,
   Conversations,
   ClientOptions,
+  DecodedMessage,
   ListMessagesOptions,
   Message,
   PrivateKey,
