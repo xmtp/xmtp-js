@@ -4,9 +4,7 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from './crypto'
-import { MessageV1 } from './Message'
 import {
-  buildDirectMessageTopic,
   buildUserContactTopic,
   mapPaginatedStream,
   EnvelopeMapper,
