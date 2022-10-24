@@ -175,7 +175,7 @@ describe('conversation', () => {
         )
         expect(message.conversation.topic).toBe(aliceConversation.topic)
         expect(message.error).toBeUndefined()
-        expect(message.messageVersion).toBe(1)
+        expect(message.messageVersion).toBe('v1')
         if (numMessages === 1) {
           expect(message.content).toBe('gm')
           expect(message.senderAddress).toBe(bob.address)
