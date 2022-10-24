@@ -217,4 +217,37 @@ describe('conversation', () => {
       expect(messages).toHaveLength(2)
     })
   })
+
+  it('conversation filtering', async () => {
+    const conversationId = 'xmtp.org/foo'
+    const title = 'foo'
+    const convo = await alice.conversations.newConversation(bob.address, {
+      conversationId,
+      metadata: {
+        title,
+      },
+    })
+
+    const stream = await convo.streamMessages()
+    await sleep(100)
+    const sentMessage = await convo.send('foo')
+    if (!(sentMessage instanceof MessageV2)) {
+      throw new Error('Not a V2 message')
+    }
+    expect(sentMessage.conversation.context?.conversationId).toBe(
+      conversationId
+    )
+
+    const firstMessageFromStream: MessageV2 = (await stream.next()).value
+    expect(firstMessageFromStream instanceof MessageV2).toBeTruthy()
+    expect(firstMessageFromStream.content).toBe('foo')
+    expect(firstMessageFromStream.conversation.context?.conversationId).toBe(
+      conversationId
+    )
+
+    const messages = await convo.messages()
+    expect(messages).toHaveLength(1)
+    expect(messages[0].content).toBe('foo')
+    expect(messages[0].conversation).toBe(convo)
+  })
 })

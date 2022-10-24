@@ -16,7 +16,7 @@ export const buildDirectMessageTopic = (
 }
 
 export const buildDirectMessageTopicV2 = (randomString: string): string => {
-  return buildContentTopic(`dm-${randomString}`)
+  return buildContentTopic(`m-${randomString}`)
 }
 
 export const buildUserContactTopic = (walletAddr: string): string => {

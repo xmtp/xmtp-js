@@ -281,7 +281,7 @@ export class ConversationV2 {
       v2: { headerBytes, ciphertext },
     }
     const bytes = xmtpEnvelope.Message.encode(protoMsg).finish()
-    const msg = await MessageV2.create(protoMsg, header, signed, bytes)
+    const msg = await MessageV2.create(protoMsg, header, signed, bytes, this)
     return msg
   }
 
