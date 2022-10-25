@@ -233,6 +233,7 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
     const senderAddress = await new SignedPublicKeyBundle(
       signed.sender
     ).walletSignatureAddress()
+
     return new MessageV2(id, bytes, obj, header, signed, senderAddress)
   }
 
@@ -242,19 +243,6 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
 }
 
 export type Message = MessageV1 | MessageV2
-
-export interface DecodedMessage {
-  id: string
-  messageVersion: 'v1' | 'v2'
-  senderAddress: string
-  conversation: Conversation
-  contentType: ContentTypeId
-  sent: Date
-  contentTopic: string
-  recipientAddress?: string
-  error?: Error
-  content: any // eslint-disable-line @typescript-eslint/no-explicit-any
-}
 
 export class DecodedMessage {
   id: string
