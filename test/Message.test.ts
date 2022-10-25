@@ -30,11 +30,13 @@ describe('Message', function () {
     )
     assert.equal(msg1.senderAddress, aliceWallet.address)
     assert.equal(msg1.recipientAddress, bobWalletAddress)
-    assert.deepEqual(msg1.decrypted, content)
+    const decrypted = await msg1.decrypt(alice)
+    assert.deepEqual(decrypted, content)
 
     // Bob decodes message from Alice
-    const msg2 = await MessageV1.decode(bob, msg1.toBytes())
-    assert.deepEqual(msg1.decrypted, msg2.decrypted)
+    const msg2 = await MessageV1.fromBytes(msg1.toBytes())
+    const msg2Decrypted = await msg2.decrypt(alice)
+    assert.deepEqual(msg2Decrypted, decrypted)
     assert.equal(msg2.senderAddress, aliceWallet.address)
     assert.equal(msg2.recipientAddress, bobWalletAddress)
   })
@@ -50,9 +52,7 @@ describe('Message', function () {
       new Date()
     )
     assert.ok(!msg.error)
-    const eveDecoded = await MessageV1.decode(eve, msg.toBytes())
-    assert.equal(eveDecoded.decrypted, undefined)
-    assert.deepEqual(eveDecoded.error, new NoMatchingPreKeyError())
+    await expect(msg.decrypt(eve)).rejects.toThrow(NoMatchingPreKeyError)
   })
 
   it('Message create throws error for sender without wallet', async () => {

@@ -1,3 +1,5 @@
+import { buildUserIntroTopic } from './../utils'
+import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
   ListMessagesOptions,
@@ -9,12 +11,19 @@ import {
   InvitationV1,
   SealedInvitationHeaderV1,
 } from '../Invitation'
-import { MessageV1, MessageV2 } from '../Message'
+import { MessageV1, MessageV2, decodeContent } from '../Message'
 import { messageApi, xmtpEnvelope, fetcher } from '@xmtp/proto'
-import { encrypt, decrypt, SignedPublicKey, Signature } from '../crypto'
+import {
+  encrypt,
+  decrypt,
+  SignedPublicKey,
+  Signature,
+  PublicKeyBundle,
+} from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
 import { buildDirectMessageTopic, dateToNs, nsToDate } from '../utils'
+import { ContentTypeText } from '../codecs/Text'
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -37,8 +46,15 @@ export class ConversationV1 {
   /**
    * Returns a list of all messages to/from the peerAddress
    */
-  async messages(opts?: ListMessagesOptions): Promise<MessageV1[]> {
-    return this.client.listConversationMessages(this.peerAddress, opts)
+  async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
+    const topics = [
+      buildDirectMessageTopic(this.peerAddress, this.client.address),
+    ]
+    return this.client.listEnvelopes(
+      topics,
+      this.decodeMessage.bind(this),
+      opts
+    )
   }
 
   get topic(): string {
@@ -47,25 +63,110 @@ export class ConversationV1 {
 
   messagesPaginated(
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<MessageV1[]> {
-    return this.client.listConversationMessagesPaginated(this.peerAddress, opts)
+  ): AsyncGenerator<DecodedMessage[]> {
+    return this.client.listEnvelopesPaginated(
+      [this.topic],
+      this.decodeMessage.bind(this),
+      opts
+    )
   }
 
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<MessageV1>> {
-    return this.client.streamConversationMessages(this.peerAddress)
+  streamMessages(): Promise<Stream<DecodedMessage>> {
+    return Stream.create<DecodedMessage>(
+      this.client,
+      [this.topic],
+      this.decodeMessage.bind(this)
+    )
+  }
+
+  async decodeMessage({
+    message,
+    contentTopic,
+  }: messageApi.Envelope): Promise<DecodedMessage> {
+    const messageBytes = fetcher.b64Decode(message as unknown as string)
+    const decoded = await MessageV1.fromBytes(messageBytes)
+    const { senderAddress, recipientAddress } = decoded
+
+    // Filter for topics
+    if (
+      !senderAddress ||
+      !recipientAddress ||
+      !contentTopic ||
+      buildDirectMessageTopic(senderAddress, recipientAddress) !== this.topic
+    ) {
+      throw new Error('Headers do not match intended recipient')
+    }
+    const decrypted = await decoded.decrypt(this.client.legacyKeys)
+    const { content, contentType, error } = decodeContent(
+      decrypted,
+      this.client
+    )
+
+    return DecodedMessage.fromV1Message(
+      decoded,
+      content,
+      contentType,
+      contentTopic,
+      this,
+      error
+    )
   }
 
   /**
    * Send a message into the conversation
    */
-  send(
-    message: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  async send(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
-  ): Promise<MessageV1> {
-    return this.client.sendMessage(this.peerAddress, message, options)
+  ): Promise<DecodedMessage> {
+    let topics: string[]
+    const recipient = await this.client.getUserContact(this.peerAddress)
+    if (!recipient) {
+      throw new Error(`recipient ${this.peerAddress} is not registered`)
+    }
+    if (!(recipient instanceof PublicKeyBundle)) {
+      throw new Error(`recipient bundle is not legacy bundle`)
+    }
+
+    if (!this.client.contacts.has(this.peerAddress)) {
+      topics = [
+        buildUserIntroTopic(this.peerAddress),
+        buildUserIntroTopic(this.client.address),
+        this.topic,
+      ]
+      this.client.contacts.add(this.peerAddress)
+    } else {
+      topics = [this.topic]
+    }
+
+    const contentType = options?.contentType || ContentTypeText
+    const timestamp = options?.timestamp || new Date()
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await MessageV1.encode(
+      this.client.legacyKeys,
+      recipient,
+      payload,
+      timestamp
+    )
+
+    await this.client.publishEnvelopes(
+      topics.map((topic) => ({
+        contentTopic: topic,
+        message: msg.toBytes(),
+        timestamp: msg.sent,
+      }))
+    )
+
+    return DecodedMessage.fromV1Message(
+      msg,
+      content,
+      contentType,
+      topics[0], // Just use the first topic for the returned value
+      this
+    )
   }
 }
 
@@ -109,7 +210,7 @@ export class ConversationV2 {
   /**
    * Returns a list of all messages to/from the peerAddress
    */
-  async messages(opts?: ListMessagesOptions): Promise<MessageV2[]> {
+  async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
     return this.client.listEnvelopes(
       [this.topic],
       this.decodeMessage.bind(this),
@@ -119,7 +220,7 @@ export class ConversationV2 {
 
   messagesPaginated(
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<MessageV2[]> {
+  ): AsyncGenerator<DecodedMessage[]> {
     return this.client.listEnvelopesPaginated(
       [this.topic],
       this.decodeMessage.bind(this),
@@ -130,8 +231,8 @@ export class ConversationV2 {
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<MessageV2>> {
-    return Stream.create<MessageV2>(
+  streamMessages(): Promise<Stream<DecodedMessage>> {
+    return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
       this.decodeMessage.bind(this)
@@ -142,10 +243,10 @@ export class ConversationV2 {
    * Send a message into the conversation
    */
   async send(
-    message: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
-  ): Promise<MessageV2> {
-    const msg = await this.encodeMessage(message, options)
+  ): Promise<DecodedMessage> {
+    const msg = await this.encodeMessage(content, options)
     await this.client.publishEnvelopes([
       {
         contentTopic: this.topic,
@@ -153,7 +254,15 @@ export class ConversationV2 {
         timestamp: msg.sent,
       },
     ])
-    return msg
+    const contentType = options?.contentType || ContentTypeText
+
+    return DecodedMessage.fromV2Message(
+      msg,
+      content,
+      contentType,
+      this.topic,
+      this
+    )
   }
 
   private async encodeMessage(
@@ -180,11 +289,10 @@ export class ConversationV2 {
       v2: { headerBytes, ciphertext },
     }
     const bytes = xmtpEnvelope.Message.encode(protoMsg).finish()
-    const msg = await MessageV2.create(protoMsg, header, signed, bytes, this)
-    return msg
+    return MessageV2.create(protoMsg, header, signed, bytes)
   }
 
-  async decodeMessage(env: messageApi.Envelope): Promise<MessageV2> {
+  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
     if (!env.message || !env.contentTopic) {
       throw new Error('empty envelope')
     }
@@ -224,16 +332,20 @@ export class ConversationV2 {
     ) {
       throw new Error('invalid signature')
     }
-    const message = await MessageV2.create(
-      msg,
-      header,
-      signed,
-      messageBytes,
-      this
+    const message = await MessageV2.create(msg, header, signed, messageBytes)
+    const { content, contentType, error } = decodeContent(
+      signed.payload,
+      this.client
     )
-    message.contentTopic = env.contentTopic
-    await this.client.decodeContent(message)
-    return message
+
+    return DecodedMessage.fromV2Message(
+      message,
+      content,
+      contentType,
+      env.contentTopic,
+      this,
+      error
+    )
   }
 }
 

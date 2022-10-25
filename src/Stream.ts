@@ -47,26 +47,30 @@ export default class Stream<T> {
       if (!env.message) {
         return
       }
-      const msg = await decoder(env)
-      // decoder can return undefined to signal a message to ignore/skip.
-      if (!msg) {
-        return
-      }
-      // Check to see if we should update the stream's content topic subscription
-      if (contentTopicUpdater) {
-        const topics = contentTopicUpdater(msg)
-        if (topics) {
-          this.resubscribeToTopics(topics)
+      try {
+        const msg = await decoder(env)
+        // decoder can return undefined to signal a message to ignore/skip.
+        if (!msg) {
+          return
         }
-      }
-      // is there a Promise already pending?
-      const resolver = this.resolvers.pop()
-      if (resolver) {
-        // yes, resolve it
-        resolver({ value: msg })
-      } else {
-        // no, push the message into the queue
-        this.messages.unshift(msg)
+        // Check to see if we should update the stream's content topic subscription
+        if (contentTopicUpdater) {
+          const topics = contentTopicUpdater(msg)
+          if (topics) {
+            this.resubscribeToTopics(topics)
+          }
+        }
+        // is there a Promise already pending?
+        const resolver = this.resolvers.pop()
+        if (resolver) {
+          // yes, resolve it
+          resolver({ value: msg })
+        } else {
+          // no, push the message into the queue
+          this.messages.unshift(msg)
+        }
+      } catch (e) {
+        console.warn(e)
       }
     }
   }
