@@ -7,12 +7,13 @@ import {
 } from '../../src/crypto'
 import {
   EncryptedKeyStore,
-  LocalStorageStore,
+  PrivateTopicStore,
   storageSigRequestText,
 } from '../../src/store'
 import { hexToBytes } from '../../src/crypto/utils'
 import { newWallet } from '../helpers'
-import { decodeContactBundle } from '../../src/ContactBundle'
+import { ApiUrls } from '../../src/Client'
+import ApiClient from '../../src/ApiClient'
 
 describe('Crypto', function () {
   describe('PrivateKeyBundle', function () {
@@ -36,7 +37,10 @@ describe('Crypto', function () {
       // generate key bundle
       const bob = await PrivateKeyBundleV1.generate(wallet)
       // encrypt and serialize the bundle for storage
-      const store = new EncryptedKeyStore(wallet, new LocalStorageStore())
+      const store = new EncryptedKeyStore(
+        wallet,
+        new PrivateTopicStore(new ApiClient(ApiUrls['local']))
+      )
       const bytes = await store.storePrivateKeyBundle(bob)
       // decrypt and decode the bundle from storage
       const bobDecoded = await store.loadPrivateKeyBundle()

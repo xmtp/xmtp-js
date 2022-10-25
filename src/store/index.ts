@@ -1,4 +1,3 @@
-export { default as LocalStorageStore } from './LocalStorageStore'
 export {
   default as EncryptedKeyStore,
   storageSigRequestText,
