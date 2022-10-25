@@ -14,7 +14,6 @@ import { Signer } from 'ethers'
 import {
   EncryptedKeyStore,
   KeyStore,
-  LocalStorageStore,
   PrivateTopicStore,
   StaticKeyStore,
 } from './store'
@@ -60,7 +59,6 @@ export type ListMessagesPaginatedOptions = {
 
 export enum KeyStoreType {
   networkTopicStoreV1,
-  localStorage,
   static,
 }
 
@@ -411,12 +409,6 @@ function createKeyStoreFromConfig(
       }
       return createNetworkPrivateKeyStore(wallet, apiClient)
 
-    case KeyStoreType.localStorage:
-      if (!wallet) {
-        throw new Error('Must provide a wallet for localStorageStore')
-      }
-      return createLocalPrivateKeyStore(wallet)
-
     case KeyStoreType.static:
       if (!opts.privateKeyOverride) {
         throw new Error('Must provide a privateKeyOverride to use static store')
@@ -432,11 +424,6 @@ function createNetworkPrivateKeyStore(
   apiClient: ApiClient
 ): EncryptedKeyStore {
   return new EncryptedKeyStore(wallet, new PrivateTopicStore(apiClient))
-}
-
-// Create Encrypted store which uses LocalStorage to store KeyBundles
-function createLocalPrivateKeyStore(wallet: Signer): EncryptedKeyStore {
-  return new EncryptedKeyStore(wallet, new LocalStorageStore())
 }
 
 function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {

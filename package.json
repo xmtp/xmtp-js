@@ -17,10 +17,10 @@
     "clean": "node tools/cleanup && npm run clean:proto",
     "clean:proto": "rm -rf src/proto/*.ts",
     "package": "npm pack",
-    "prepare": "npm run build",
+    "prepublish": "npm run build",
     "test": "npm run test:node",
-    "test:node": "jest --no-cache --runInBand --env='node' --forceExit --testTimeout=30000",
-    "test:jsdom": "jest --no-cache --runInBand --env='./jest.jsdom.env.js' --forceExit --testTimeout=30000",
+    "test:node": "jest --no-cache --env='node' --forceExit --testTimeout=30000",
+    "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.js' --forceExit --testTimeout=30000",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
@@ -66,8 +66,7 @@
     "@stardazed/streams-polyfill": "^2.4.0",
     "@xmtp/proto": "^3.4.0",
     "ethers": "^5.5.3",
-    "long": "^5.2.0",
-    "node-localstorage": "^2.2.1"
+    "long": "^5.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
