@@ -31,21 +31,6 @@ describe('Key Generation', () => {
     expect(client.legacyKeys.encode()).toEqual(keys)
   })
 
-  test('LocalStorage store', async () => {
-    const opts: Partial<ClientOptions> = {
-      env: 'local' as keyof typeof ApiUrls,
-    }
-    const keys = await Client.getKeys(wallet, {
-      ...opts,
-      keyStoreType: KeyStoreType.localStorage,
-    })
-    const client = await Client.create(null, {
-      ...opts,
-      privateKeyOverride: keys,
-    })
-    expect(client.legacyKeys.encode()).toEqual(keys)
-  })
-
   // Make sure that the keys are being saved to the network upon generation
   test('Ensure persistence', async () => {
     const opts = defaultOptions({

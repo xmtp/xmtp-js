@@ -412,7 +412,7 @@ describe('ClientOptions', () => {
 
     it('Partial specification', async () => {
       const c = await testCase.newClient({
-        keyStoreType: KeyStoreType.localStorage,
+        keyStoreType: KeyStoreType.networkTopicStoreV1,
       })
     })
   })
