@@ -66,8 +66,7 @@
     "@stardazed/streams-polyfill": "^2.4.0",
     "@xmtp/proto": "^3.4.0",
     "ethers": "^5.5.3",
-    "long": "^5.2.0",
-    "node-localstorage": "^2.2.1"
+    "long": "^5.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
