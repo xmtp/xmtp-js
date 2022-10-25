@@ -297,7 +297,8 @@ export class DecodedMessage {
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
     contentTopic: string,
-    conversation: Conversation
+    conversation: Conversation,
+    error?: Error
   ): DecodedMessage {
     const { id, senderAddress, recipientAddress, sent } = message
     if (!senderAddress) {
@@ -313,6 +314,7 @@ export class DecodedMessage {
       contentType,
       contentTopic,
       conversation,
+      error,
     })
   }
 
@@ -321,7 +323,8 @@ export class DecodedMessage {
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
     contentTopic: string,
-    conversation: Conversation
+    conversation: Conversation,
+    error?: Error
   ): DecodedMessage {
     const { id, senderAddress, sent } = message
     if (!senderAddress) {
@@ -337,6 +340,7 @@ export class DecodedMessage {
       contentType,
       contentTopic,
       conversation,
+      error,
     })
   }
 }

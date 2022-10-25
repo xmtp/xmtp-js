@@ -89,7 +89,7 @@ export class ConversationV1 {
   }: messageApi.Envelope): Promise<DecodedMessage> {
     const messageBytes = fetcher.b64Decode(message as unknown as string)
     const decoded = await MessageV1.fromBytes(messageBytes)
-    const { id, senderAddress, recipientAddress, sent } = decoded
+    const { senderAddress, recipientAddress } = decoded
 
     // Filter for topics
     if (
@@ -106,18 +106,14 @@ export class ConversationV1 {
       this.client
     )
 
-    return new DecodedMessage({
-      id,
-      messageVersion: 'v1',
-      senderAddress,
-      recipientAddress,
-      sent,
+    return DecodedMessage.fromV1Message(
+      decoded,
       content,
       contentType,
       contentTopic,
-      error,
-      conversation: this,
-    })
+      this,
+      error
+    )
   }
 
   /**
@@ -342,21 +338,15 @@ export class ConversationV2 {
       signed.payload,
       this.client
     )
-    const senderAddress = await new SignedPublicKeyBundle(
-      signed.sender
-    ).walletSignatureAddress()
 
-    return new DecodedMessage({
-      id: message.id,
-      messageVersion: 'v2',
-      senderAddress,
-      sent: message.sent,
+    return DecodedMessage.fromV2Message(
+      message,
       content,
       contentType,
-      contentTopic: env.contentTopic,
-      error,
-      conversation: this,
-    })
+      env.contentTopic,
+      this,
+      error
+    )
   }
 }
 
