@@ -51,7 +51,8 @@ describe('Message', function () {
     assert.ok(!msg.error)
     const eveDecoded = await Message.decode(eve, msg.toBytes())
     assert.equal(eveDecoded.decrypted, undefined)
-    assert.deepEqual(eveDecoded.error, new NoMatchingPreKeyError())
+    const preKey = bob.getPublicKeyBundle().preKey
+    assert.deepEqual(eveDecoded.error, new NoMatchingPreKeyError(preKey))
   })
 
   it('senderAddress and recipientAddress throw errors without wallet', async () => {
