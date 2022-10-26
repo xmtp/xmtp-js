@@ -45,7 +45,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   findPreKey(which: SignedPublicKey): SignedPrivateKey {
     const preKey = this.preKeys.find((key) => key.matches(which))
     if (!preKey) {
-      throw new NoMatchingPreKeyError()
+      throw new NoMatchingPreKeyError(which)
     }
     return preKey
   }

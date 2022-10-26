@@ -1,5 +1,8 @@
+import PublicKey from './PublicKey'
+import { bytesToHex } from './utils'
+
 export class NoMatchingPreKeyError extends Error {
-  constructor() {
-    super('no matching pre-key')
+  constructor(peer: PublicKey) {
+    super(`no pre-key matches: ${bytesToHex(peer.secp256k1Uncompressed)}`)
   }
 }
