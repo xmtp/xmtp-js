@@ -369,7 +369,7 @@ export default class Client {
         const res = await mapper(env)
         results.push(res)
       } catch (e) {
-        console.log(e)
+        console.log('Error in listEnvelopes mapper', e)
       }
     }
     return results
