@@ -37,10 +37,14 @@ export default class Conversations {
     )
 
     for (const sealed of invitations) {
-      const unsealed = await sealed.v1.getInvitation(this.client.keys)
-      conversations.push(
-        await ConversationV2.create(this.client, unsealed, sealed.v1.header)
-      )
+      try {
+        const unsealed = await sealed.v1.getInvitation(this.client.keys)
+        conversations.push(
+          await ConversationV2.create(this.client, unsealed, sealed.v1.header)
+        )
+      } catch (e) {
+        console.warn('Error decrypting invitation', e)
+      }
     }
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
