@@ -2,7 +2,7 @@ import { Wallet } from 'ethers'
 import { EncryptedKeyStore, PrivateTopicStore } from '../../src/store'
 import assert from 'assert'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
-import { newWallet } from '../helpers'
+import { newWallet, sleep } from '../helpers'
 import ApiClient from '../../src/ApiClient'
 import { ApiUrls } from '../../src/Client'
 
@@ -20,6 +20,7 @@ describe('EncryptedKeyStore', () => {
     const originalBundle = await PrivateKeyBundleV1.generate(wallet)
 
     await secureStore.storePrivateKeyBundle(originalBundle)
+    await sleep(100)
     const returnedBundle = await secureStore.loadPrivateKeyBundle()
 
     assert.ok(returnedBundle)
