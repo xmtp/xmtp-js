@@ -224,7 +224,13 @@ export default class Client {
     ) {
       return
     }
-    this.publishUserContact(legacy)
+    // TEMPORARY: publish V1 contact to make sure there is one in the topic
+    // in order to preserve compatibility with pre-v7 clients.
+    // Remove when pre-v7 clients are deprecated
+    this.publishUserContact(true)
+    if (!legacy) {
+      this.publishUserContact(legacy)
+    }
   }
 
   // PRIVATE: publish the key bundle into the contact topic
