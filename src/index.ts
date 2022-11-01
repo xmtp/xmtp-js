@@ -28,4 +28,4 @@ export {
   ContentTypeComposite,
 } from './codecs/Composite'
 export { SortDirection } from './ApiClient'
-export { nsToDate, dateToNs } from './utils'
+export { nsToDate, dateToNs, fromNanoString, toNanoString } from './utils'
