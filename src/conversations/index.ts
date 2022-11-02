@@ -1,2 +1,2 @@
 export { default as Conversations } from './Conversations'
-export { default as Conversation } from './Conversation'
+export { Conversation, ConversationV1, ConversationV2 } from './Conversation'

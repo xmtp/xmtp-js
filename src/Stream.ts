@@ -1,17 +1,12 @@
 import { UnsubscribeFn } from './ApiClient'
-import Message from './Message'
 import Client from './Client'
-import { messageApi, fetcher } from '@xmtp/proto'
+import { messageApi } from '@xmtp/proto'
 
-export type MessageTransformer<T> = (msg: Message) => T
+export type MessageDecoder<M> = (
+  env: messageApi.Envelope
+) => Promise<M | undefined>
 
-export type MessageFilter = (msg: Message) => boolean
-
-export type ContentTopicUpdater = (msg: Message) => string[] | undefined
-
-export const noTransformation = (msg: Message): Message => {
-  return msg
-}
+export type ContentTopicUpdater<M> = (msg: M) => string[] | undefined
 
 /**
  * Stream implements an Asynchronous Iterable over messages received from a topic.
@@ -33,54 +28,49 @@ export default class Stream<T> {
   constructor(
     client: Client,
     topics: string[],
-    messageTransformer: MessageTransformer<T>,
-    messageFilter?: MessageFilter,
-    contentTopicUpdater?: ContentTopicUpdater
+    decoder: MessageDecoder<T>,
+    contentTopicUpdater?: ContentTopicUpdater<T>
   ) {
     this.messages = []
     this.resolvers = []
     this.topics = topics
     this.client = client
-    this.callback = this.newMessageCallback(
-      messageTransformer,
-      messageFilter,
-      contentTopicUpdater
-    )
+    this.callback = this.newMessageCallback(decoder, contentTopicUpdater)
   }
 
   // returns new closure to handle incoming messages
   private newMessageCallback(
-    transformer: MessageTransformer<T>,
-    filter?: MessageFilter,
-    contentTopicUpdater?: ContentTopicUpdater
+    decoder: MessageDecoder<T>,
+    contentTopicUpdater?: ContentTopicUpdater<T>
   ): (env: messageApi.Envelope) => Promise<void> {
     return async (env: messageApi.Envelope) => {
       if (!env.message) {
         return
       }
-      const msg = await this.client.decodeMessage(
-        fetcher.b64Decode(env.message as unknown as string),
-        env.contentTopic
-      )
-      // If there is a filter on the stream, and the filter returns false, ignore the message
-      if (filter && !filter(msg)) {
-        return
-      }
-      // Check to see if we should update the stream's content topic subscription
-      if (contentTopicUpdater) {
-        const topics = contentTopicUpdater(msg)
-        if (topics) {
-          this.resubscribeToTopics(topics)
+      try {
+        const msg = await decoder(env)
+        // decoder can return undefined to signal a message to ignore/skip.
+        if (!msg) {
+          return
         }
-      }
-      // is there a Promise already pending?
-      const resolver = this.resolvers.pop()
-      if (resolver) {
-        // yes, resolve it
-        resolver({ value: transformer(msg) })
-      } else {
-        // no, push the message into the queue
-        this.messages.unshift(transformer(msg))
+        // Check to see if we should update the stream's content topic subscription
+        if (contentTopicUpdater) {
+          const topics = contentTopicUpdater(msg)
+          if (topics) {
+            this.resubscribeToTopics(topics)
+          }
+        }
+        // is there a Promise already pending?
+        const resolver = this.resolvers.pop()
+        if (resolver) {
+          // yes, resolve it
+          resolver({ value: msg })
+        } else {
+          // no, push the message into the queue
+          this.messages.unshift(msg)
+        }
+      } catch (e) {
+        console.warn(e)
       }
     }
   }
@@ -104,17 +94,10 @@ export default class Stream<T> {
   static async create<T>(
     client: Client,
     topics: string[],
-    messageTransformer: MessageTransformer<T>,
-    messageFilter?: MessageFilter,
-    contentTopicUpdater?: ContentTopicUpdater
+    decoder: MessageDecoder<T>,
+    contentTopicUpdater?: ContentTopicUpdater<T>
   ): Promise<Stream<T>> {
-    const stream = new Stream(
-      client,
-      topics,
-      messageTransformer,
-      messageFilter,
-      contentTopicUpdater
-    )
+    const stream = new Stream(client, topics, decoder, contentTopicUpdater)
     await stream.start()
     return stream
   }

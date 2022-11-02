@@ -13,6 +13,7 @@ import Ciphertext from '../src/crypto/Ciphertext'
 const createInvitation = (): InvitationV1 => {
   return new InvitationV1({
     topic: crypto.getRandomValues(new Uint8Array(32)).toString(),
+    context: undefined,
     aes256GcmHkdfSha256: {
       keyMaterial: crypto.getRandomValues(new Uint8Array(32)),
     },
@@ -183,6 +184,7 @@ describe('Invitations', () => {
       const topic = 'foo'
       const invite = new InvitationV1({
         topic,
+        context: undefined,
         aes256GcmHkdfSha256: {
           keyMaterial,
         },
@@ -205,13 +207,18 @@ describe('Invitations', () => {
         () =>
           new InvitationV1({
             topic,
+            context: undefined,
             aes256GcmHkdfSha256: { keyMaterial: new Uint8Array() },
           })
       ).toThrow('Missing key material')
 
       expect(
         () =>
-          new InvitationV1({ topic: '', aes256GcmHkdfSha256: { keyMaterial } })
+          new InvitationV1({
+            topic: '',
+            context: undefined,
+            aes256GcmHkdfSha256: { keyMaterial },
+          })
       ).toThrow('Missing topic')
     })
   })

@@ -80,7 +80,7 @@ webpack: (config, { isServer }) => {
 
 ## Usage
 
-The API revolves around a network Client that allows retrieving and sending messages to other network participants. A Client must be connected to a wallet on startup. If this is the very first time the Client is created, the client will generate a key bundle that is used to encrypt and authenticate messages. The key bundle persists encrypted in the network using a wallet signature, or optionally in local storage. The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
+The API revolves around a network Client that allows retrieving and sending messages to other network participants. A Client must be connected to a wallet on startup. If this is the very first time the Client is created, the client will generate a key bundle that is used to encrypt and authenticate messages. The key bundle persists encrypted in the network using a wallet signature. The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
@@ -128,7 +128,7 @@ The client's network connection and key storage method can be configured with th
 | env            | `dev`                 | Connect to the specified XMTP network environment. Valid values also include `production` and `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments). |
 | apiUrl         | `undefined`           | Manually specify an API URL to use. If specified, value of `env` will be ignored.                                                                                                                                                                                          |
 |                |
-| keyStoreType   | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or optionally to `localStorage`.                                                                                                                                                                                           |
+| keyStoreType   | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or use `static` to provide private keys manually.                                                                                                                                                                          |
 | codecs         | `[TextCodec]`         | Add codecs to support additional content types.                                                                                                                                                                                                                            |
 | maxContentSize | `100M`                | Maximum message content size in bytes.                                                                                                                                                                                                                                     |
 
@@ -265,6 +265,53 @@ const isOnProdNetwork = await Client.canMessage(
   '0x3F11b27F323b62B159D2642964fa27C46C841897',
   { env: 'production' }
 )
+```
+
+#### Handling multiple conversations with the same blockchain address
+
+With XMTP, you can have multiple ongoing conversations with the same blockchain address. For example, you might want to have a conversation scoped to your particular application, or even a conversation scoped to a particular item in your application.
+
+To accomplish this, just set the `conversationId` when you are creating a conversation. We recommend conversation IDs start with a domain, to help avoid unwanted collisions between your application and other apps on the XMTP network.
+
+```ts
+// Start a scoped conversation with ID mydomain.xyz/foo
+const conversation1 = await xmtp.conversations.newConversation(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897',
+  {
+    conversationId: 'mydomain.xyz/foo',
+  }
+)
+
+// Start a scoped conversation with ID mydomain.xyz/bar. And add some metadata
+const conversation2 = await xmtp.conversations.newConversation(
+  '0x3F11b27F323b62B159D2642964fa27C46C841897',
+  {
+    conversationId: 'mydomain.xyz/bar',
+    metadata: {
+      title: 'Bar conversation',
+    },
+  }
+)
+
+// Get all the conversations
+const conversations = await xmtp.conversations.list()
+// Filter for the ones from your application
+const myAppConversations = conversations.filter(
+  (convo) =>
+    convo.context?.conversationId &&
+    convo.context.conversationId.startsWith('mydomain.xyz/')
+)
+
+for (const conversation of myAppConversations) {
+  const conversationId = conversation.context?.conversationId
+  if (conversationId === 'mydomain.xyz/foo') {
+    await conversation.send('foo')
+  }
+  if (conversationId === 'mydomain.xyz/bar') {
+    await conversation.send('bar')
+    console.log(conversation.context?.metadata.title)
+  }
+}
 ```
 
 #### Different types of content

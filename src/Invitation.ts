@@ -1,19 +1,30 @@
 import Long from 'long'
 import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
-import { invitation } from '@xmtp/proto'
+import { messageApi, invitation, fetcher } from '@xmtp/proto'
 import Ciphertext from './crypto/Ciphertext'
-import { decrypt, encrypt } from './crypto'
+import { decrypt, encrypt, utils } from './crypto'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
-import { dateToNs } from './utils'
+import { dateToNs, buildDirectMessageTopicV2 } from './utils'
+const { b64Decode } = fetcher
+
+export type InvitationContext = {
+  conversationId: string
+  metadata: { [k: string]: string }
+}
 
 /**
  * InvitationV1 is a protobuf message to be encrypted and used as the ciphertext in a SealedInvitationV1 message
  */
 export class InvitationV1 implements invitation.InvitationV1 {
   topic: string
+  context: InvitationContext | undefined
   aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256 // eslint-disable-line camelcase
 
-  constructor({ topic, aes256GcmHkdfSha256 }: invitation.InvitationV1) {
+  constructor({
+    topic,
+    context,
+    aes256GcmHkdfSha256,
+  }: invitation.InvitationV1) {
     if (!topic || !topic.length) {
       throw new Error('Missing topic')
     }
@@ -25,7 +36,26 @@ export class InvitationV1 implements invitation.InvitationV1 {
       throw new Error('Missing key material')
     }
     this.topic = topic
+    this.context = context
     this.aes256GcmHkdfSha256 = aes256GcmHkdfSha256
+  }
+
+  static createRandom(context?: invitation.InvitationV1_Context): InvitationV1 {
+    const topic = buildDirectMessageTopicV2(
+      Buffer.from(utils.getRandomValues(new Uint8Array(32)))
+        .toString('base64')
+        .replace(/=*$/g, '')
+        // Replace slashes with dashes so that the topic is still easily split by /
+        // We do not treat this as needing to be valid Base64 anywhere
+        .replace('/', '-')
+    )
+    const keyMaterial = utils.getRandomValues(new Uint8Array(32))
+
+    return new InvitationV1({
+      topic,
+      aes256GcmHkdfSha256: { keyMaterial },
+      context,
+    })
   }
 
   toBytes(): Uint8Array {
@@ -165,6 +195,23 @@ export class SealedInvitation implements invitation.SealedInvitation {
 
   static fromBytes(bytes: Uint8Array): SealedInvitation {
     return new SealedInvitation(invitation.SealedInvitation.decode(bytes))
+  }
+
+  static async fromEnvelope(
+    env: messageApi.Envelope
+  ): Promise<SealedInvitation> {
+    if (!env.message || !env.timestampNs) {
+      throw new Error('invalid invitation envelope')
+    }
+    const sealed = SealedInvitation.fromBytes(
+      b64Decode(env.message as unknown as string)
+    )
+    const envelopeTime = Long.fromString(env.timestampNs)
+    const headerTime = sealed.v1.header.createdNs
+    if (!headerTime.equals(envelopeTime)) {
+      throw new Error('envelope and header timestamp mistmatch')
+    }
+    return sealed
   }
 
   /**
