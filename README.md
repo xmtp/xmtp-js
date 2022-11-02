@@ -24,6 +24,19 @@ Because `xmtp-js` is in active development, you should expect breaking revisions
 
 XMTP communicates about breaking revisions in the [XMTP Discord community](https://discord.gg/xmtp), providing as much advance notice as possible. Additionally, breaking revisions in an `xmtp-js` release are described on the [Releases page](https://github.com/xmtp/xmtp-js/releases).
 
+### Deprecation
+
+Older versions of the SDK will eventually become deprecated, which means:
+
+1. The network will not support and eventually actively reject connections from clients using deprecated versions.
+2. Bugs will not be fixed in deprecated versions.
+
+Following table shows the deprecation schedule.
+
+| Announced  | Effective  | Minimum Version | Rationale                                                                                                         |
+| ---------- | ---------- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 2022-08-18 | 2022-11-08 | v6.0.0          | XMTP network will stop supporting the Waku/libp2p based client interface in favor of the new GRPC based interface |
+
 Issues and PRs are welcome in accordance with our [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
 
 ## XMTP `production` and `dev` network environments
