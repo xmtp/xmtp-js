@@ -161,7 +161,7 @@ export default class ApiClient {
         if (isAbortError(err)) {
           return
         }
-        console.warn('Stream connection lost. Resubscribing', err)
+        console.info('Stream connection lost. Resubscribing', err)
         // If connection was initiated less than 1 second ago, sleep for a bit
         // TODO: exponential backoff + eventually giving up
         if (+new Date() - startTime < 1000) {
