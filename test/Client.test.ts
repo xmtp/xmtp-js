@@ -78,15 +78,13 @@ describe('canMessage', () => {
     await waitForUserContact(registeredClient, registeredClient)
     const canMessageRegisteredClient = await Client.canMessage(
       registeredClient.address,
-      {
-        env: 'local',
-      }
+      'local'
     )
     expect(canMessageRegisteredClient).toBeTruthy()
 
     const canMessageUnregisteredClient = await Client.canMessage(
       newWallet().address,
-      { env: 'local' }
+      'local'
     )
     expect(canMessageUnregisteredClient).toBeFalsy()
   })

@@ -89,7 +89,7 @@ import { Wallet } from 'ethers'
 // You'll want to replace this with a wallet from your application
 const wallet = Wallet.createRandom()
 // Create the client with your wallet. This will connect to the XMTP development network by default
-const xmtp = await Client.create(wallet)
+const xmtp = await Client.create(wallet, 'dev')
 // Start a conversation with XMTP
 const conversation = await xmtp.conversations.newConversation(
   '0x3F11b27F323b62B159D2642964fa27C46C841897'
@@ -106,31 +106,30 @@ for await (const message of await conversation.streamMessages()) {
 
 ### Creating a Client
 
-A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>` that requires passing in a connected Wallet. The Client will request a wallet signature in 2 cases:
+A Client is created with `Client.create(wallet: ethers.Signer, env: "local" | "dev" | "production"): Promise<Client>` that requires passing in a connected Wallet and an XMTP environment. The Client will request a wallet signature in 2 cases:
 
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
 
-The Client will connect to the XMTP `dev` environment by default. ClientOptions can be used to override this and other parameters of the network connection.
+For important details about working with XMTP environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments). Additionally, ClientOptions can be used to override parameters of the network connection.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
 // Create the client with an `ethers.Signer` from your application
-const xmtp = await Client.create(wallet)
+const xmtp = await Client.create(wallet, 'dev')
 ```
 
 #### Configuring the Client
 
 The client's network connection and key storage method can be configured with these optional parameters of `Client.create`:
 
-| Parameter      | Default               | Description                                                                                                                                                                                                                                                                |
-| -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| env            | `dev`                 | Connect to the specified XMTP network environment. Valid values also include `production` and `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments). |
-| apiUrl         | `undefined`           | Manually specify an API URL to use. If specified, value of `env` will be ignored.                                                                                                                                                                                          |
+| Parameter      | Default               | Description                                                                                       |
+| -------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
+| apiUrl         | `undefined`           | Manually specify an API URL to use. If specified, value of `env` will be ignored.                 |
 |                |
-| keyStoreType   | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or use `static` to provide private keys manually.                                                                                                                                                                          |
-| codecs         | `[TextCodec]`         | Add codecs to support additional content types.                                                                                                                                                                                                                            |
-| maxContentSize | `100M`                | Maximum message content size in bytes.                                                                                                                                                                                                                                     |
+| keyStoreType   | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or use `static` to provide private keys manually. |
+| codecs         | `[TextCodec]`         | Add codecs to support additional content types.                                                   |
+| maxContentSize | `100M`                | Maximum message content size in bytes.                                                            |
 
 ### Conversations
 
@@ -139,7 +138,7 @@ Most of the time, when interacting with the network, you'll want to do it throug
 ```ts
 import { Client } from '@xmtp/xmtp-js'
 // Create the client with an `ethers.Signer` from your application
-const xmtp = await Client.create(wallet)
+const xmtp = await Client.create(wallet, 'dev')
 const conversations = xmtp.conversations
 ```
 
@@ -259,11 +258,12 @@ If you would like to check and see if a blockchain address is registered on the 
 import { Client } from '@xmtp/xmtp-js'
 
 const isOnDevNetwork = await Client.canMessage(
-  '0x3F11b27F323b62B159D2642964fa27C46C841897'
+  '0x3F11b27F323b62B159D2642964fa27C46C841897',
+  'dev'
 )
 const isOnProdNetwork = await Client.canMessage(
   '0x3F11b27F323b62B159D2642964fa27C46C841897',
-  { env: 'production' }
+  'production'
 )
 ```
 
@@ -336,7 +336,7 @@ Additional codecs can be configured through the `ClientOptions` parameter of `Cl
 ```ts
 // Adding support for `xmtp.org/composite` content type
 import { CompositeCodec } from '@xmtp/xmtp-js'
-const xmtp = Client.create(wallet, { codecs: [new CompositeCodec()] })
+const xmtp = Client.create(wallet, 'dev', { codecs: [new CompositeCodec()] })
 ```
 
 #### Compression
@@ -360,9 +360,9 @@ You can export the unencrypted key bundle using the static method `Client.getKey
 ```ts
 import { Client } from '@xmtp/xmtp-js'
 // Get the keys using a valid ethers.Signer. Save them somewhere secure.
-const keys = await Client.getKeys(wallet)
+const keys = await Client.getKeys(wallet, 'dev')
 // Create a client using keys returned from getKeys
-const client = await Client.create(null, { privateKeyOverride: keys })
+const client = await Client.create(null, 'dev', { privateKeyOverride: keys })
 ```
 
 The keys returned by `getKeys` should be treated with the utmost care as compromise of these keys will allow an attacker to impersonate the user on the XMTP network. Ensure these keys are stored somewhere secure and encrypted.

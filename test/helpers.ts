@@ -113,11 +113,10 @@ export class CodecRegistry {
 export const newLocalHostClient = (
   opts?: Partial<ClientOptions>
 ): Promise<Client> =>
-  Client.create(newWallet(), {
-    env: 'local',
+  Client.create(newWallet(), 'local', {
     ...opts,
   })
 
 // client running against the dev cluster in AWS
 export const newDevClient = (): Promise<Client> =>
-  Client.create(newWallet(), { env: 'dev' })
+  Client.create(newWallet(), 'dev')

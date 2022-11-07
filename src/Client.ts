@@ -72,13 +72,11 @@ export type SendOptions = {
 }
 
 /**
- * Network startup options
+ * Network startup options. Environment is required.
  */
-type NetworkOptions = {
-  // Allow for specifying different envs later
-  env: keyof typeof ApiUrls
+export type NetworkOptions = {
   // apiUrl can be used to override the default URL for the env
-  apiUrl: string | undefined
+  apiUrl?: string
   // app identifier included with client version header
   appVersion?: string
 }
@@ -114,8 +112,8 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
     keyStoreType: KeyStoreType.networkTopicStoreV1,
     privateKeyOverride: undefined,
-    env: 'dev',
     apiUrl: undefined,
+    appVersion: undefined,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
   }
@@ -178,10 +176,11 @@ export default class Client {
    */
   static async create(
     wallet: Signer | null,
+    env: keyof typeof ApiUrls,
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
-    const apiClient = createApiClientFromOptions(options)
+    const apiClient = createApiClientFromOptions(env, options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
     const client = new Client(keys, apiClient)
@@ -191,9 +190,10 @@ export default class Client {
 
   static async getKeys(
     wallet: Signer | null,
+    env: keyof typeof ApiUrls,
     opts?: Partial<ClientOptions>
   ): Promise<Uint8Array> {
-    const client = await Client.create(wallet, opts)
+    const client = await Client.create(wallet, env, opts)
     return client.legacyKeys.encode()
   }
 
@@ -264,9 +264,10 @@ export default class Client {
 
   static async canMessage(
     peerAddress: string,
+    env: keyof typeof ApiUrls,
     opts?: Partial<NetworkOptions>
   ): Promise<boolean> {
-    const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+    const apiUrl = opts?.apiUrl || ApiUrls[env]
     const keyBundle = await getUserContactFromNetwork(
       new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
       peerAddress
@@ -465,8 +466,11 @@ async function loadOrCreateKeysFromOptions(
   return loadOrCreateKeysFromStore(wallet, keyStore)
 }
 
-function createApiClientFromOptions(options: ClientOptions): ApiClient {
-  const apiUrl = options.apiUrl || ApiUrls[options.env]
+function createApiClientFromOptions(
+  env: keyof typeof ApiUrls,
+  options: ClientOptions
+): ApiClient {
+  const apiUrl = options.apiUrl || ApiUrls[env]
   return new ApiClient(apiUrl, { appVersion: options.appVersion })
 }
 
