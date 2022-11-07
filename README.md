@@ -43,9 +43,11 @@ Issues and PRs are welcome in accordance with our [contribution guidelines](http
 
 XMTP provides both `production` and `dev` network environments to support the development phases of your project.
 
-The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the [XMTP Discord community](https://discord.gg/xmtp).
+The `production` and `dev` networks are not interchangeable. For example, an account (XMTP identity) and messages created on the `dev` network can't be accessed from or moved to the `production` network, and vice versa.
 
 **Important:** When you [create a client](#creating-a-client), it connects to the XMTP `dev` environment by default. To learn how to use the `env` parameter to set your client's network environment, see [Configuring the Client](#configuring-the-client).
+
+The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the [XMTP Discord community](https://discord.gg/xmtp).
 
 ## Installation
 
