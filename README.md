@@ -45,7 +45,7 @@ XMTP provides both `production` and `dev` network environments to support the de
 
 The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the [XMTP Discord community](https://discord.gg/xmtp).
 
-To learn how to set your client's network environment, see [Configuring the Client](#configuring-the-client).
+**Important:** When you [create a client](#creating-a-client), it connects to the XMTP `dev` environment by default. To learn how to use the `env` parameter to set your client's network environment, see [Configuring the Client](#configuring-the-client).
 
 ## Installation
 
@@ -111,7 +111,7 @@ A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>`
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
 
-The Client will connect to the XMTP `dev` environment by default. ClientOptions can be used to override this and other parameters of the network connection.
+**Important:** The Client connects to the XMTP `dev` environment by default. [Use `ClientOptions`](#configuring-the-client) to change this and other parameters of the network connection.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
@@ -125,7 +125,7 @@ The client's network connection and key storage method can be configured with th
 
 | Parameter      | Default               | Description                                                                                                                                                                                                                                                                |
 | -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| env            | `dev`                 | Connect to the specified XMTP network environment. Valid values also include `production` and `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments). |
+| env            | `dev`                 | Connect to the specified XMTP network environment. Valid values include `dev`, `production`, or `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments). |
 | apiUrl         | `undefined`           | Manually specify an API URL to use. If specified, value of `env` will be ignored.                                                                                                                                                                                          |
 |                |
 | keyStoreType   | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or use `static` to provide private keys manually.                                                                                                                                                                          |
