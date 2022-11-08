@@ -22,14 +22,14 @@ describe('conversation', () => {
   let alice: Client
   let bob: Client
 
-  beforeEach(async () => {
-    alice = await newLocalHostClient()
-    bob = await newLocalHostClient()
-    await waitForUserContact(alice, alice)
-    await waitForUserContact(bob, bob)
-  })
-
   describe('v1', () => {
+    beforeEach(async () => {
+      alice = await newLocalHostClient({ publishLegacyContact: true })
+      bob = await newLocalHostClient({ publishLegacyContact: true })
+      await waitForUserContact(alice, alice)
+      await waitForUserContact(bob, bob)
+    })
+
     it('lists all messages', async () => {
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
@@ -193,6 +193,7 @@ describe('conversation', () => {
       let result = await stream.next()
       expect(result.done).toBeTruthy()
 
+      await sleep(100)
       expect(numMessages).toBe(5)
       expect(await aliceConversation.messages()).toHaveLength(5)
       await stream.return()
@@ -216,6 +217,7 @@ describe('conversation', () => {
       for (const date of dates) {
         await convo.send('gm: ' + date.valueOf(), { timestamp: date })
       }
+      await sleep(100)
 
       const fourDaysAgoOrMore = await convo.messages({ endTime: dates[3] })
       expect(fourDaysAgoOrMore).toHaveLength(2)
@@ -237,6 +239,7 @@ describe('conversation', () => {
         contentType: ContentTypeText,
         compression: Compression.COMPRESSION_DEFLATE,
       })
+      await sleep(100)
       const results = await convo.messages()
       expect(results).toHaveLength(1)
       const msg = results[0]
@@ -331,18 +334,17 @@ describe('conversation', () => {
   })
 
   describe('v2', () => {
+    beforeEach(async () => {
+      alice = await newLocalHostClient()
+      bob = await newLocalHostClient()
+      await waitForUserContact(alice, alice)
+      await waitForUserContact(bob, bob)
+    })
+
     it('v2 conversation', async () => {
-      // publish new contact bundles
-      alice.publishUserContact(false)
-      await sleep(100)
-      bob.forgetContact(alice.address)
       expect(await bob.getUserContact(alice.address)).toBeInstanceOf(
         SignedPublicKeyBundle
       )
-
-      bob.publishUserContact(false)
-      await sleep(100)
-      alice.forgetContact(bob.address)
       expect(await alice.getUserContact(bob.address)).toBeInstanceOf(
         SignedPublicKeyBundle
       )
@@ -385,134 +387,140 @@ describe('conversation', () => {
       for (let i = 0; i < 5; i++) {
         await bobConvo.send('hi')
       }
+      await sleep(100)
       const messages = await bobConvo.messages({ limit: 2 })
       expect(messages).toHaveLength(2)
     })
-  })
 
-  it('conversation filtering', async () => {
-    const conversationId = 'xmtp.org/foo'
-    const title = 'foo'
-    const convo = await alice.conversations.newConversation(bob.address, {
-      conversationId,
-      metadata: {
-        title,
-      },
+    it('conversation filtering', async () => {
+      const conversationId = 'xmtp.org/foo'
+      const title = 'foo'
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId,
+        metadata: {
+          title,
+        },
+      })
+
+      const stream = await convo.streamMessages()
+      await sleep(100)
+      const sentMessage = await convo.send('foo')
+      if (!(sentMessage instanceof DecodedMessage)) {
+        throw new Error('Not a DecodedMessage')
+      }
+      expect(sentMessage.conversation.context?.conversationId).toBe(
+        conversationId
+      )
+      await sleep(100)
+
+      const firstMessageFromStream: DecodedMessage = (await stream.next()).value
+      expect(firstMessageFromStream.messageVersion).toBe('v2')
+      expect(firstMessageFromStream.content).toBe('foo')
+      expect(firstMessageFromStream.conversation.context?.conversationId).toBe(
+        conversationId
+      )
+
+      const messages = await convo.messages()
+      expect(messages).toHaveLength(1)
+      expect(messages[0].content).toBe('foo')
+      expect(messages[0].conversation).toBe(convo)
+      await stream.return()
     })
 
-    const stream = await convo.streamMessages()
-    await sleep(100)
-    const sentMessage = await convo.send('foo')
-    if (!(sentMessage instanceof DecodedMessage)) {
-      throw new Error('Not a DecodedMessage')
-    }
-    expect(sentMessage.conversation.context?.conversationId).toBe(
-      conversationId
-    )
+    it('queries with date filters', async () => {
+      const now = new Date().valueOf()
+      const dates = [1, 2, 3, 4, 5].map(
+        (daysAgo) => new Date(now - daysAgo * 1000 * 60 * 60 * 24)
+      )
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId: 'xmtp.org/foo',
+        metadata: {},
+      })
+      for (const date of dates) {
+        await convo.send('gm: ' + date.valueOf(), { timestamp: date })
+      }
+      await sleep(100)
 
-    const firstMessageFromStream: DecodedMessage = (await stream.next()).value
-    expect(firstMessageFromStream.messageVersion).toBe('v2')
-    expect(firstMessageFromStream.content).toBe('foo')
-    expect(firstMessageFromStream.conversation.context?.conversationId).toBe(
-      conversationId
-    )
+      const fourDaysAgoOrMore = await convo.messages({ endTime: dates[3] })
+      expect(fourDaysAgoOrMore).toHaveLength(2)
 
-    const messages = await convo.messages()
-    expect(messages).toHaveLength(1)
-    expect(messages[0].content).toBe('foo')
-    expect(messages[0].conversation).toBe(convo)
-    await stream.return()
-  })
+      const twoDaysAgoOrLess = await convo.messages({ startTime: dates[1] })
+      expect(twoDaysAgoOrLess).toHaveLength(2)
 
-  it('queries with date filters', async () => {
-    const now = new Date().valueOf()
-    const dates = [1, 2, 3, 4, 5].map(
-      (daysAgo) => new Date(now - daysAgo * 1000 * 60 * 60 * 24)
-    )
-    const convo = await alice.conversations.newConversation(bob.address, {
-      conversationId: 'xmtp.org/foo',
-      metadata: {},
+      const twoToFourDaysAgo = await convo.messages({
+        endTime: dates[1],
+        startTime: dates[3],
+      })
+      expect(twoToFourDaysAgo).toHaveLength(3)
     })
-    for (const date of dates) {
-      await convo.send('gm: ' + date.valueOf(), { timestamp: date })
-    }
 
-    const fourDaysAgoOrMore = await convo.messages({ endTime: dates[3] })
-    expect(fourDaysAgoOrMore).toHaveLength(2)
+    it('can send custom content type', async () => {
+      const aliceConvo = await alice.conversations.newConversation(
+        bob.address,
+        {
+          conversationId: 'xmtp.org/key',
+          metadata: {},
+        }
+      )
+      await sleep(100)
+      const bobConvo = await bob.conversations.newConversation(alice.address, {
+        conversationId: 'xmtp.org/key',
+        metadata: {},
+      })
+      const aliceStream = await aliceConvo.streamMessages()
+      const bobStream = await bobConvo.streamMessages()
+      const key = PrivateKey.generate().publicKey
 
-    const twoDaysAgoOrLess = await convo.messages({ startTime: dates[1] })
-    expect(twoDaysAgoOrLess).toHaveLength(2)
+      // alice doesn't recognize the type
+      await expect(
+        aliceConvo.send(key, {
+          contentType: ContentTypeTestKey,
+        })
+      ).rejects.toThrow('unknown content type xmtp.test/public-key:1.0')
 
-    const twoToFourDaysAgo = await convo.messages({
-      endTime: dates[1],
-      startTime: dates[3],
-    })
-    expect(twoToFourDaysAgo).toHaveLength(3)
-  })
+      // bob doesn't recognize the type
+      alice.registerCodec(new TestKeyCodec())
+      await aliceConvo.send(key, {
+        contentType: ContentTypeTestKey,
+        contentFallback: 'this is a public key',
+      })
 
-  it('can send custom content type', async () => {
-    const aliceConvo = await alice.conversations.newConversation(bob.address, {
-      conversationId: 'xmtp.org/key',
-      metadata: {},
-    })
-    await sleep(100)
-    const bobConvo = await bob.conversations.newConversation(alice.address, {
-      conversationId: 'xmtp.org/key',
-      metadata: {},
-    })
-    const aliceStream = await aliceConvo.streamMessages()
-    const bobStream = await bobConvo.streamMessages()
-    const key = PrivateKey.generate().publicKey
+      const aliceResult1 = await aliceStream.next()
+      const aliceMessage1 = aliceResult1.value as DecodedMessage
+      expect(aliceMessage1.content).toEqual(key)
 
-    // alice doesn't recognize the type
-    await expect(
-      aliceConvo.send(key, {
+      const bobResult1 = await bobStream.next()
+      const bobMessage1 = bobResult1.value as DecodedMessage
+      expect(bobMessage1).toBeTruthy()
+      expect(bobMessage1.error?.message).toBe(
+        'unknown content type xmtp.test/public-key:1.0'
+      )
+      expect(bobMessage1.contentType).toBeTruthy()
+      expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
+      expect(bobMessage1.content).toBe('this is a public key')
+
+      // both recognize the type
+      bob.registerCodec(new TestKeyCodec())
+      await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
-    ).rejects.toThrow('unknown content type xmtp.test/public-key:1.0')
+      const bobResult2 = await bobStream.next()
+      const bobMessage2 = bobResult2.value as DecodedMessage
+      expect(bobMessage2.contentType).toBeTruthy()
+      expect(bobMessage2.contentType.sameAs(ContentTypeTestKey)).toBeTruthy()
+      expect(key.equals(bobMessage2.content)).toBeTruthy()
 
-    // bob doesn't recognize the type
-    alice.registerCodec(new TestKeyCodec())
-    await aliceConvo.send(key, {
-      contentType: ContentTypeTestKey,
-      contentFallback: 'this is a public key',
+      // alice tries to send version that is not supported
+      const type2 = new ContentTypeId({
+        ...ContentTypeTestKey,
+        versionMajor: 2,
+      })
+      await expect(
+        aliceConvo.send(key, { contentType: type2 })
+      ).rejects.toThrow('unknown content type xmtp.test/public-key:2.0')
+
+      await bobStream.return()
+      await aliceStream.return()
     })
-
-    const aliceResult1 = await aliceStream.next()
-    const aliceMessage1 = aliceResult1.value as DecodedMessage
-    expect(aliceMessage1.content).toEqual(key)
-
-    const bobResult1 = await bobStream.next()
-    const bobMessage1 = bobResult1.value as DecodedMessage
-    expect(bobMessage1).toBeTruthy()
-    expect(bobMessage1.error?.message).toBe(
-      'unknown content type xmtp.test/public-key:1.0'
-    )
-    expect(bobMessage1.contentType).toBeTruthy()
-    expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
-    expect(bobMessage1.content).toBe('this is a public key')
-
-    // both recognize the type
-    bob.registerCodec(new TestKeyCodec())
-    await aliceConvo.send(key, {
-      contentType: ContentTypeTestKey,
-    })
-    const bobResult2 = await bobStream.next()
-    const bobMessage2 = bobResult2.value as DecodedMessage
-    expect(bobMessage2.contentType).toBeTruthy()
-    expect(bobMessage2.contentType.sameAs(ContentTypeTestKey)).toBeTruthy()
-    expect(key.equals(bobMessage2.content)).toBeTruthy()
-
-    // alice tries to send version that is not supported
-    const type2 = new ContentTypeId({
-      ...ContentTypeTestKey,
-      versionMajor: 2,
-    })
-    await expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
-      'unknown content type xmtp.test/public-key:2.0'
-    )
-
-    await bobStream.return()
-    await aliceStream.return()
   })
 })
