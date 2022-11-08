@@ -145,7 +145,7 @@ describe('Publish', () => {
 
   beforeEach(() => {
     publishMock.mockClear()
-    publishClient = new ApiClient(PATH_PREFIX)
+    publishClient = new ApiClient(PATH_PREFIX, { appVersion: 'test/0.0.0' })
   })
 
   it('publishes valid messages', async () => {
@@ -176,6 +176,7 @@ describe('Publish', () => {
       headers: new Headers({
         Authorization: `Bearer ${AUTH_TOKEN}`,
         'X-Client-Version': 'xmtp-js/' + version,
+        'X-App-Version': 'test/0.0.0',
       }),
     })
   })

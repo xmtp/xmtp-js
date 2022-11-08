@@ -1,5 +1,5 @@
 import { Store } from './Store'
-import { Signer } from 'ethers'
+import { Signer, utils } from 'ethers'
 import {
   PrivateKeyBundleV1,
   decodePrivateKeyBundle,
@@ -73,9 +73,27 @@ export default class EncryptedKeyStore implements KeyStore {
     // serialize the contents
     const bytes = bundle.encode()
     const wPreKey = getRandomValues(new Uint8Array(32))
-    const secret = hexToBytes(
-      await wallet.signMessage(storageSigRequestText(wPreKey))
-    )
+    const input = storageSigRequestText(wPreKey)
+    const walletAddr = await wallet.getAddress()
+
+    let sig = await wallet.signMessage(input)
+
+    // Check that the signature is correct, was created using the expected
+    // input, and retry if not. This mitigates a bug in interacting with
+    // LedgerLive for iOS, where the previous signature response is
+    // returned in some cases.
+    let address = utils.verifyMessage(input, sig)
+    if (address !== walletAddr) {
+      sig = await wallet.signMessage(input)
+      console.log('invalid signature, retrying')
+
+      address = utils.verifyMessage(input, sig)
+      if (address !== walletAddr) {
+        throw new Error('invalid signature')
+      }
+    }
+
+    const secret = hexToBytes(sig)
     const ciphertext = await encrypt(bytes, secret)
     return proto.EncryptedPrivateKeyBundle.encode({
       v1: {

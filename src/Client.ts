@@ -79,6 +79,8 @@ type NetworkOptions = {
   env: keyof typeof ApiUrls
   // apiUrl can be used to override the default URL for the env
   apiUrl: string | undefined
+  // app identifier included with client version header
+  appVersion?: string
 }
 
 type ContentOptions = {
@@ -293,7 +295,7 @@ export default class Client {
   ): Promise<boolean> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
     const keyBundle = await getUserContactFromNetwork(
-      new ApiClient(apiUrl),
+      new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
       peerAddress
     )
     return keyBundle !== undefined
@@ -492,7 +494,7 @@ async function loadOrCreateKeysFromOptions(
 
 function createApiClientFromOptions(options: ClientOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
-  return new ApiClient(apiUrl)
+  return new ApiClient(apiUrl, { appVersion: options.appVersion })
 }
 
 // retrieve a key bundle from given user's contact topic
