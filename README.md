@@ -366,17 +366,3 @@ const client = await Client.create(null, { privateKeyOverride: keys })
 ```
 
 The keys returned by `getKeys` should be treated with the utmost care as compromise of these keys will allow an attacker to impersonate the user on the XMTP network. Ensure these keys are stored somewhere secure and encrypted.
-
-#### Under the hood
-
-Using `xmtp.conversations` hides the details of this, but for the curious this is how sending a message on XMTP works. The first message and first response between two parties is sent to three separate [Waku](https://rfc.vac.dev/spec/10/) content topics:
-
-1. Sender's introduction topic
-2. Recipient's introduction topic
-3. Conversation topic shared by the sender and the recipient
-
-This is used to establish a shared secret and negotiate a topic to communicate on. Any following messages are sent to the conversation topic only.
-
-The introduction topics allow the participants to reconstruct the list of conversations that they participate(d) in.
-
-The conversation topics carry the contents of the conversations.
