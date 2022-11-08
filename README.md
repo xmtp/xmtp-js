@@ -251,6 +251,21 @@ for await (const message of await conversation.streamMessages()) {
 }
 ```
 
+#### Listen for new messages in all conversations
+
+To listen for any new incoming/outgoing messages from *all* conversations, use `streamAllMessages()`:
+
+```ts
+for await (const message of await xmtp.conversations.streamAllMessages()) {
+
+  if (message.senderAddress === xmtp.address) {
+    // This message was sent from me
+    continue
+  }
+  console.log(`New message from ${message.senderAddress}: ${message.content}`)
+}
+```
+
 #### Checking if an address is on the network
 
 If you would like to check and see if a blockchain address is registered on the network before instantiating a client instance, you can use `Client.canMessage`.
