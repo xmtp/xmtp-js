@@ -119,5 +119,8 @@ export const newLocalHostClient = (
   })
 
 // client running against the dev cluster in AWS
-export const newDevClient = (): Promise<Client> =>
-  Client.create(newWallet(), { env: 'dev' })
+export const newDevClient = (opts?: Partial<ClientOptions>): Promise<Client> =>
+  Client.create(newWallet(), {
+    env: 'dev',
+    ...opts,
+  })

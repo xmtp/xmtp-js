@@ -11,7 +11,7 @@ import {
   storageSigRequestText,
 } from '../../src/store'
 import { hexToBytes } from '../../src/crypto/utils'
-import { newWallet } from '../helpers'
+import { newWallet, sleep } from '../helpers'
 import { ApiUrls } from '../../src/Client'
 import ApiClient from '../../src/ApiClient'
 
@@ -42,6 +42,7 @@ describe('Crypto', function () {
         new PrivateTopicStore(new ApiClient(ApiUrls['local']))
       )
       const bytes = await store.storePrivateKeyBundle(bob)
+      await sleep(100)
       // decrypt and decode the bundle from storage
       const bobDecoded = await store.loadPrivateKeyBundle()
 

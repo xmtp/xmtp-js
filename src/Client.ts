@@ -99,11 +99,18 @@ type KeyStoreOptions = {
   privateKeyOverride?: Uint8Array
 }
 
+type LegacyOptions = {
+  publishLegacyContact?: boolean
+}
+
 /**
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
-export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
+export type ClientOptions = NetworkOptions &
+  KeyStoreOptions &
+  ContentOptions &
+  LegacyOptions
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
@@ -197,12 +204,12 @@ export default class Client {
     return client.legacyKeys.encode()
   }
 
-  async init(options: ClientOptions): Promise<void> {
+  private async init(options: ClientOptions): Promise<void> {
     options.codecs.forEach((codec) => {
       this.registerCodec(codec)
     })
     this._maxContentSize = options.maxContentSize
-    await this.publishUserContact()
+    await this.ensureUserContactPublished(options.publishLegacyContact)
   }
 
   // gracefully shut down the client
@@ -210,10 +217,27 @@ export default class Client {
     return undefined
   }
 
-  // publish the key bundle into the contact topic
-  // WARNING: temporarily public to allow testing negotiated topics
-  // TODO: make private again asap
-  async publishUserContact(legacy = true): Promise<void> {
+  private async ensureUserContactPublished(legacy = false): Promise<void> {
+    const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
+    if (
+      bundle &&
+      bundle instanceof SignedPublicKeyBundle &&
+      this.keys.getPublicKeyBundle().equals(bundle)
+    ) {
+      return
+    }
+    // TEMPORARY: publish V1 contact to make sure there is one in the topic
+    // in order to preserve compatibility with pre-v7 clients.
+    // Remove when pre-v7 clients are deprecated
+    this.publishUserContact(true)
+    if (!legacy) {
+      this.publishUserContact(legacy)
+    }
+  }
+
+  // PRIVATE: publish the key bundle into the contact topic
+  // left public for testing purposes
+  async publishUserContact(legacy = false): Promise<void> {
     const keys = legacy ? this.legacyKeys : this.keys
     await this.publishEnvelopes([
       {
@@ -249,6 +273,9 @@ export default class Client {
     return newBundle
   }
 
+  /**
+   * Used to force getUserContact fetch contact from the network.
+   */
   forgetContact(peerAddress: string) {
     this.knownPublicKeyBundles.delete(peerAddress)
   }

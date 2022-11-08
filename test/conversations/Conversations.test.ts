@@ -16,9 +16,9 @@ describe('conversations', () => {
   let charlie: Client
 
   beforeEach(async () => {
-    alice = await newLocalHostClient()
-    bob = await newLocalHostClient()
-    charlie = await newLocalHostClient()
+    alice = await newLocalHostClient({ publishLegacyContact: true })
+    bob = await newLocalHostClient({ publishLegacyContact: true })
+    charlie = await newLocalHostClient({ publishLegacyContact: true })
     await waitForUserContact(alice, alice)
     await waitForUserContact(bob, bob)
     await waitForUserContact(charlie, charlie)
@@ -40,13 +40,11 @@ describe('conversations', () => {
 
     const aliceConversationsAfterMessage = await alice.conversations.list()
     expect(aliceConversationsAfterMessage).toHaveLength(1)
-    expect(await aliceConversationsAfterMessage[0].peerAddress).toBe(
-      bob.address
-    )
+    expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
 
     const bobConversations = await bob.conversations.list()
     expect(bobConversations).toHaveLength(1)
-    expect(await bobConversations[0].peerAddress).toBe(alice.address)
+    expect(bobConversations[0].peerAddress).toBe(alice.address)
   })
 
   it('streams conversations', async () => {
@@ -57,7 +55,7 @@ describe('conversations', () => {
     let numConversations = 0
     for await (const conversation of stream) {
       numConversations++
-      expect(await conversation.peerAddress).toBe(bob.address)
+      expect(conversation.peerAddress).toBe(bob.address)
       break
     }
     expect(numConversations).toBe(1)
