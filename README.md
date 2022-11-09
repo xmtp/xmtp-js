@@ -253,9 +253,9 @@ for await (const message of await conversation.streamMessages()) {
 
 #### Listen for new messages in all conversations
 
-To listen for any new incoming/outgoing messages from _all_ conversations, use `conversations.streamAllMessages()`.
+To listen for any new messages from _all_ conversations, use `conversations.streamAllMessages()`.
 
-**Note:** there is a chance this stream can miss messages if multiple conversations begin at nearly the same time while we are updating the stream to account for a new conversation.
+**Note:** There is a chance this stream can miss messages if multiple new conversations are received in the time it takes to update the stream to include a new conversation.
 
 ```ts
 for await (const message of await xmtp.conversations.streamAllMessages()) {
