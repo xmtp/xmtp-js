@@ -285,7 +285,7 @@ export default class Client {
    * found for the given address
    */
   public async canMessage(peerAddress: string): Promise<boolean> {
-    const keyBundle = await this.getUserContact(peerAddress)
+    const keyBundle = await this.getUserContact(peerAddress.toLowerCase())
     return keyBundle !== undefined
   }
 
@@ -296,7 +296,7 @@ export default class Client {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
     const keyBundle = await getUserContactFromNetwork(
       new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
-      peerAddress
+      peerAddress.toLowerCase()
     )
     return keyBundle !== undefined
   }
