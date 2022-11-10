@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-escape */
 export const XMTP_DEV_WARNING = `
 XX    XX MM    MM TTTTTTT PPPPPP   DDDDD   EEEEEEE VV     VV 
  XX  XX  MMM  MMM   TTT   PP   PP  DD  DD  EE      VV     VV 
