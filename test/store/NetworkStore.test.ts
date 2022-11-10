@@ -2,8 +2,7 @@ import { Wallet } from 'ethers'
 
 import { newWallet, sleep } from '../helpers'
 import { PrivateTopicStore } from '../../src/store'
-import ApiClient from '../../src/ApiClient'
-import { ApiUrls } from '../../src/Client'
+import ApiClient, { ApiUrls } from '../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
 import Authenticator from '../../src/authn/Authenticator'
 

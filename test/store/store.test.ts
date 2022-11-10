@@ -3,8 +3,7 @@ import { EncryptedKeyStore, PrivateTopicStore } from '../../src/store'
 import assert from 'assert'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
 import { newWallet, sleep } from '../helpers'
-import ApiClient from '../../src/ApiClient'
-import { ApiUrls } from '../../src/Client'
+import ApiClient, { ApiUrls } from '../../src/ApiClient'
 
 describe('EncryptedKeyStore', () => {
   let wallet: Wallet

@@ -12,8 +12,7 @@ import {
 } from '../../src/store'
 import { hexToBytes } from '../../src/crypto/utils'
 import { newWallet, sleep } from '../helpers'
-import { ApiUrls } from '../../src/Client'
-import ApiClient from '../../src/ApiClient'
+import ApiClient, { ApiUrls } from '../../src/ApiClient'
 
 describe('Crypto', function () {
   describe('PrivateKeyBundle', function () {
