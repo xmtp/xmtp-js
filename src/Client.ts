@@ -23,7 +23,7 @@ import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
 import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import ApiClient, { PublishParams, SortDirection } from './ApiClient'
+import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
 const { Compression } = xmtpEnvelope
@@ -34,12 +34,6 @@ const { b64Decode } = fetcher
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
-
-export const ApiUrls = {
-  local: 'http://localhost:5555',
-  dev: 'https://dev.xmtp.network',
-  production: 'https://production.xmtp.network',
-} as const
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
