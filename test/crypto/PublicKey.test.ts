@@ -36,6 +36,34 @@ describe('Crypto', function () {
       const idPri2 = SignedPrivateKey.fromBytes(bytes)
       assert.ok(idPri.equals(idPri2))
     })
+    it('legacy conversation fails for ns creation timestamps', async function () {
+      const wallet = newWallet()
+      const keySigner = new WalletSigner(wallet)
+      const idPri = await SignedPrivateKey.generate(keySigner)
+      expect(idPri.publicKey.isFromLegacyKey()).toBeFalsy()
+      expect(() => idPri.publicKey.toLegacyKey()).toThrow(
+        'cannot be converted to legacy key'
+      )
+    })
+    it('public key legacy roundtrip', async function () {
+      const wallet = newWallet()
+      const idPri = PrivateKey.generate()
+      await idPri.publicKey.signWithWallet(wallet)
+      const idPub = SignedPublicKey.fromLegacyKey(idPri.publicKey, true)
+      expect(idPub.isFromLegacyKey()).toBeTruthy()
+      const idPubLeg = idPub.toLegacyKey()
+      const idPub2 = SignedPublicKey.fromLegacyKey(idPubLeg, true)
+      assert.ok(idPub.equals(idPub2))
+
+      const prePri = PrivateKey.generate()
+      await idPri.signKey(prePri.publicKey)
+      const prePub = SignedPublicKey.fromLegacyKey(prePri.publicKey, false)
+      expect(prePub.isFromLegacyKey()).toBeTruthy()
+      const prePubLeg = prePub.toLegacyKey()
+      const prePub2 = SignedPublicKey.fromLegacyKey(prePubLeg, false)
+      assert.ok(prePub.equals(prePub2))
+      assert.ok(idPub2.verifyKey(prePub2))
+    })
   })
   describe('PublicKey', function () {
     it('derives address from public key', function () {

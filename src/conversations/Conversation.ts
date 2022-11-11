@@ -123,12 +123,12 @@ export class ConversationV1 {
     options?: SendOptions
   ): Promise<DecodedMessage> {
     let topics: string[]
-    const recipient = await this.client.getUserContact(this.peerAddress)
+    let recipient = await this.client.getUserContact(this.peerAddress)
     if (!recipient) {
       throw new Error(`recipient ${this.peerAddress} is not registered`)
     }
     if (!(recipient instanceof PublicKeyBundle)) {
-      throw new Error(`recipient bundle is not legacy bundle`)
+      recipient = recipient.toLegacyBundle()
     }
 
     if (!this.client.contacts.has(this.peerAddress)) {
