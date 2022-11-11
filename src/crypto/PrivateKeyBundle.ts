@@ -53,6 +53,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
 
   // Generate a new pre-key to be used as the current pre-key.
   async addPreKey(): Promise<void> {
+    this._publicKeyBundle = undefined
     const preKey = await SignedPrivateKey.generate(this.identityKey)
     this.preKeys.unshift(preKey)
   }
@@ -179,6 +180,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
 
   // Generate a new pre-key to be used as the current pre-key.
   async addPreKey(): Promise<void> {
+    this._publicKeyBundle = undefined
     const preKey = PrivateKey.generate()
     await this.identityKey.signKey(preKey.publicKey)
     this.preKeys.unshift(preKey)
