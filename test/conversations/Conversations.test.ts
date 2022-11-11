@@ -176,6 +176,15 @@ describe('conversations', () => {
 
       const aliceConvo2 = await alice.conversations.newConversation(bob.address)
       expect(aliceConvo2 instanceof ConversationV1).toBeTruthy()
+      await aliceConvo2.send('hi')
+
+      await sleep(100)
+      const bobConvo = await bob.conversations.newConversation(alice.address)
+      expect(bobConvo instanceof ConversationV1).toBeTruthy()
+      const messages = await bobConvo.messages()
+      expect(messages.length).toBe(2)
+      expect(messages[0].content).toBe('gm')
+      expect(messages[1].content).toBe('hi')
     })
 
     it('creates a new V2 conversation when no existing convo and V2 bundle', async () => {

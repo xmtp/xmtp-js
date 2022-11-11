@@ -13,6 +13,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   identityKey: SignedPrivateKey
   preKeys: SignedPrivateKey[]
   version = 2
+  private _publicKeyBundle?: SignedPublicKeyBundle
 
   constructor(bundle: proto.PrivateKeyBundleV2) {
     if (!bundle.identityKey) {
@@ -58,10 +59,13 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
 
   // Return a key bundle with the current pre-key.
   getPublicKeyBundle(): SignedPublicKeyBundle {
-    return new SignedPublicKeyBundle({
-      identityKey: this.identityKey.publicKey,
-      preKey: this.getCurrentPreKey().publicKey,
-    })
+    if (!this._publicKeyBundle) {
+      this._publicKeyBundle = new SignedPublicKeyBundle({
+        identityKey: this.identityKey.publicKey,
+        preKey: this.getCurrentPreKey().publicKey,
+      })
+    }
+    return this._publicKeyBundle
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
@@ -134,6 +138,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
   identityKey: PrivateKey
   preKeys: PrivateKey[]
   version = 1
+  private _publicKeyBundle?: PublicKeyBundle
 
   constructor(bundle: proto.PrivateKeyBundleV1) {
     if (!bundle.identityKey) {
@@ -181,10 +186,13 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
 
   // Return a key bundle with the current pre-key.
   getPublicKeyBundle(): PublicKeyBundle {
-    return new PublicKeyBundle({
-      identityKey: this.identityKey.publicKey,
-      preKey: this.getCurrentPreKey().publicKey,
-    })
+    if (!this._publicKeyBundle) {
+      this._publicKeyBundle = new PublicKeyBundle({
+        identityKey: this.identityKey.publicKey,
+        preKey: this.getCurrentPreKey().publicKey,
+      })
+    }
+    return this._publicKeyBundle
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol

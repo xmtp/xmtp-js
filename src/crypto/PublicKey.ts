@@ -47,12 +47,14 @@ export class UnsignedPublicKey implements publicKey.UnsignedPublicKey {
     return new Date(this.timestamp.toNumber())
   }
 
+  isFromLegacyKey(): boolean {
+    return this.createdNs.lessThan(MS_NS_TIMESTAMP_THRESHOLD)
+  }
+
   // creation time in milliseconds
   get timestamp(): Long {
     return (
-      this.createdNs < MS_NS_TIMESTAMP_THRESHOLD
-        ? this.createdNs
-        : this.createdNs.div(1000000)
+      this.isFromLegacyKey() ? this.createdNs : this.createdNs.div(1000000)
     ).toUnsigned()
   }
 
@@ -169,6 +171,23 @@ export class SignedPublicKey
   // Decode signed key from bytes.
   static fromBytes(bytes: Uint8Array): SignedPublicKey {
     return new SignedPublicKey(publicKey.SignedPublicKey.decode(bytes))
+  }
+
+  toLegacyKey(): PublicKey {
+    if (!this.isFromLegacyKey()) {
+      throw new Error('cannot be converted to legacy key')
+    }
+    let signature = this.signature
+    if (signature.walletEcdsaCompact) {
+      signature = new Signature({
+        ecdsaCompact: signature.walletEcdsaCompact,
+      })
+    }
+    return new PublicKey({
+      timestamp: this.timestamp,
+      secp256k1Uncompressed: this.secp256k1Uncompressed,
+      signature,
+    })
   }
 
   static fromLegacyKey(
