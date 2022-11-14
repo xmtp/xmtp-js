@@ -285,7 +285,21 @@ export default class Conversations {
       const intros = await this.getIntroductionPeers()
       const introSentTime = intros.get(peerAddress)
       // If intro already exists, return V1 conversation
+      // if both peers have V1 compatible key bundles
       if (introSentTime) {
+        if (!this.client.keys.getPublicKeyBundle().isFromLegacyBundle()) {
+          throw new Error(
+            'cannot resume pre-existing V1 conversation; client keys not compatible'
+          )
+        }
+        if (
+          !(contact instanceof PublicKeyBundle) &&
+          !contact.isFromLegacyBundle()
+        ) {
+          throw new Error(
+            'cannot resume pre-existing V1 conversation; peer keys not compatible'
+          )
+        }
         return new ConversationV1(this.client, peerAddress, introSentTime)
       }
     }

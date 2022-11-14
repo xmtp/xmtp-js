@@ -4,6 +4,7 @@ import {
   PrivateKey,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
+  SignedPublicKeyBundle,
 } from '../../src/crypto'
 import {
   EncryptedKeyStore,
@@ -85,6 +86,20 @@ describe('Crypto', function () {
         'XMTP : Enable Identity\nf51bd1da9ec2239723ae2cf6a9f8d0ac37546b27e634002c653d23bacfcc67ad\n\nFor more info: https://xmtp.org/signatures/'
       assert.equal(actual, expected)
       assert.ok(true)
+    })
+  })
+  describe('SignedPublicKeyBundle', () => {
+    it('legacy roundtrip', async function () {
+      const wallet = newWallet()
+      const pri = await PrivateKeyBundleV1.generate(wallet)
+      const pub = SignedPublicKeyBundle.fromLegacyBundle(
+        pri.getPublicKeyBundle()
+      )
+      expect(pub.isFromLegacyBundle()).toBeTruthy()
+      const leg = pub.toLegacyBundle()
+      const pub2 = SignedPublicKeyBundle.fromLegacyBundle(leg)
+      expect(pub.equals(pub2)).toBeTruthy()
+      expect(pub2.identityKey.verifyKey(pub2.preKey)).toBeTruthy()
     })
   })
 })
