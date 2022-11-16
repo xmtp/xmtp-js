@@ -6,11 +6,11 @@ import {
   waitForUserContact,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
-import Client, { KeyStoreType } from '../src/Client'
+import Client, { KeyStoreType, ClientOptions } from '../src/Client'
 
 type TestCase = {
   name: string
-  newClient: () => Promise<Client>
+  newClient: (opts?: Partial<ClientOptions>) => Promise<Client>
 }
 
 describe('Client', () => {
@@ -31,8 +31,8 @@ describe('Client', () => {
     describe(testCase.name, () => {
       let alice: Client, bob: Client
       beforeAll(async () => {
-        alice = await testCase.newClient()
-        bob = await testCase.newClient()
+        alice = await testCase.newClient({ publishLegacyContact: true })
+        bob = await testCase.newClient({ publishLegacyContact: true })
         await waitForUserContact(alice, alice)
         await waitForUserContact(bob, bob)
       })

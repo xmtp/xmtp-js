@@ -2,8 +2,7 @@ import { Wallet } from 'ethers'
 
 import { newWallet, sleep } from '../helpers'
 import { PrivateTopicStore } from '../../src/store'
-import ApiClient from '../../src/ApiClient'
-import { ApiUrls } from '../../src/Client'
+import ApiClient, { ApiUrls } from '../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
 import Authenticator from '../../src/authn/Authenticator'
 
@@ -55,7 +54,7 @@ describe('PrivateTopicStore', () => {
 
         store.set(keyA, valueA)
         store.set(keyB, valueB)
-        await sleep(50)
+        await sleep(100)
         const responseA = await store.get(keyA)
         const responseB = await store.get(keyB)
 
