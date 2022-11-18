@@ -1,7 +1,6 @@
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import ApiClient, { PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
-import Long from 'long'
 import { sleep } from './helpers'
 import { Authenticator } from '../src/authn'
 import { PrivateKey } from '../src'
