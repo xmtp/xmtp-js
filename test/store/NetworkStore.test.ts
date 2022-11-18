@@ -60,7 +60,7 @@ describe('PrivateTopicStore', () => {
 
         store.set(keyA, valueA)
         store.set(keyB, valueB)
-        await sleep(50)
+        await sleep(100)
         const responseA = await store.get(keyA)
         const responseB = await store.get(keyB)
 
