@@ -246,10 +246,10 @@ describe('conversation', () => {
       expect(msg.content).toBe(content)
     })
 
-    it('throws when opening a conversation with an unknown address', async () => {
-      return expect(
-        alice.conversations.newConversation('0xfoo')
-      ).rejects.toThrow('Recipient 0xfoo is not on the XMTP network')
+    it('throws when opening a conversation with an unknown address', () => {
+      expect(alice.conversations.newConversation('0xfoo')).rejects.toThrow(
+        'Recipient 0xfoo is not on the XMTP network'
+      )
     })
 
     it('filters out spoofed messages', async () => {
@@ -324,9 +324,9 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
-      await expect(
-        aliceConvo.send(key, { contentType: type2 })
-      ).rejects.toThrow('unknown content type xmtp.test/public-key:2.0')
+      expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
+        'unknown content type xmtp.test/public-key:2.0'
+      )
 
       await bobStream.return()
       await aliceStream.return()
@@ -472,7 +472,7 @@ describe('conversation', () => {
       const key = PrivateKey.generate().publicKey
 
       // alice doesn't recognize the type
-      await expect(
+      expect(
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -515,9 +515,9 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
-      await expect(
-        aliceConvo.send(key, { contentType: type2 })
-      ).rejects.toThrow('unknown content type xmtp.test/public-key:2.0')
+      expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
+        'unknown content type xmtp.test/public-key:2.0'
+      )
 
       await bobStream.return()
       await aliceStream.return()

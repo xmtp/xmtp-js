@@ -1,7 +1,6 @@
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import ApiClient, { PublishParams } from '../src/ApiClient'
+import ApiClient, { GrpcStatus, PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
-import Long from 'long'
 import { sleep } from './helpers'
 import { Authenticator } from '../src/authn'
 import { PrivateKey } from '../src'
@@ -188,7 +187,7 @@ describe('Publish', () => {
         message: Uint8Array.from([]),
       },
     ])
-    expect(promise).rejects.toBeInstanceOf(Error)
+    expect(promise).rejects.toThrow('Content topic cannot be empty string')
   })
 })
 
@@ -226,7 +225,7 @@ describe('Publish authn', () => {
     }
 
     const prom = publishClient.publish([msg])
-    expect(prom).rejects.toEqual({ code: 16 })
+    expect(prom).rejects.toEqual({ code: GrpcStatus.UNAUTHENTICATED })
     expect(publishMock).toHaveBeenCalledTimes(2)
   })
 })

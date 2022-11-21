@@ -45,23 +45,6 @@ describe('PrivateTopicStore', () => {
         expect(full).toBeDefined()
         expect(full).toEqual(Buffer.from(value))
       })
-
-      it('distinct topics', async () => {
-        const valueA = Buffer.from(new TextEncoder().encode('helloA'))
-        const valueB = Buffer.from(new TextEncoder().encode('helloB'))
-        const keyA = wallet.address + 'A'
-        const keyB = wallet.address + 'B'
-
-        store.set(keyA, valueA)
-        store.set(keyB, valueB)
-        await sleep(100)
-        const responseA = await store.get(keyA)
-        const responseB = await store.get(keyB)
-
-        expect(responseA).toEqual(valueA)
-        expect(responseB).toEqual(valueB)
-        expect(responseA).not.toEqual(responseB)
-      })
     })
   })
 })

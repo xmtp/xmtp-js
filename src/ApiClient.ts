@@ -19,7 +19,27 @@ export const ApiUrls = {
   production: 'https://production.xmtp.network',
 } as const
 
-export type GrpcError = Error & { code?: number }
+export enum GrpcStatus {
+  OK = 0,
+  CANCELLED,
+  UNKNOWN,
+  INVALID_ARGUMENT,
+  DEADLINE_EXCEEDED,
+  NOT_FOUND,
+  ALREADY_EXISTS,
+  PERMISSION_DENIED,
+  RESOURCE_EXHAUSTED,
+  FAILED_PRECONDITION,
+  ABORTED,
+  OUT_OF_RANGE,
+  UNIMPLEMENTED,
+  INTERNAL,
+  UNAVAILABLE,
+  DATA_LOSS,
+  UNAUTHENTICATED,
+}
+
+export type GrpcError = Error & { code?: GrpcStatus }
 
 export type QueryParams = {
   startTime?: Date
