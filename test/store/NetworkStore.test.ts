@@ -6,15 +6,19 @@ import ApiClient, { ApiUrls } from '../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
 import Authenticator from '../../src/authn/Authenticator'
 
+type TestCase = { name: string; api: string }
+
 describe('PrivateTopicStore', () => {
-  const tests = [
+  const tests: TestCase[] = [
     {
       name: 'local docker node',
+      api: ApiUrls.local,
     },
   ]
   if (process.env.CI || process.env.TESTNET) {
     tests.push({
       name: 'dev',
+      api: ApiUrls.dev,
     })
   }
   tests.forEach((testCase) => {
@@ -26,7 +30,7 @@ describe('PrivateTopicStore', () => {
 
       beforeEach(async () => {
         wallet = newWallet()
-        store = new PrivateTopicStore(new ApiClient(ApiUrls['local']))
+        store = new PrivateTopicStore(new ApiClient(testCase.api))
         const keys = await PrivateKeyBundleV1.generate(wallet)
         store.setAuthenticator(new Authenticator(keys.identityKey))
       })
