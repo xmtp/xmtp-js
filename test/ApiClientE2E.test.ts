@@ -1,4 +1,4 @@
-import ApiClient, { ApiUrls, PublishParams } from '../src/ApiClient'
+import ApiClient, { ApiUrls, GrpcStatus, PublishParams } from '../src/ApiClient'
 import { newWallet, sleep } from './helpers'
 import { Authenticator } from '../src/authn'
 import { buildUserPrivateStoreTopic, dateToNs } from '../src/utils'
@@ -43,18 +43,21 @@ describe('e2e tests', () => {
         ).resolves
       })
 
-      it('publish restricted topic', async () => {
+      it('publish restricted topic', () => {
         expect(
-          async () =>
-            await client.publish([
-              {
-                contentTopic: buildUserPrivateStoreTopic(
-                  keys.getPublicKeyBundle().preKey.getEthereumAddress()
-                ),
-                message: new Uint8Array(5),
-              },
-            ])
-        ).toThrow('permission denied')
+          client.publish([
+            {
+              contentTopic: buildUserPrivateStoreTopic(
+                keys.getPublicKeyBundle().preKey.getEthereumAddress()
+              ),
+              message: new Uint8Array(5),
+            },
+          ])
+        ).rejects.toEqual({
+          code: GrpcStatus.PERMISSION_DENIED,
+          details: [],
+          message: 'publishing to restricted topic',
+        })
       })
     })
   })

@@ -61,6 +61,6 @@ describe('CompositeType', () => {
   it('definitely not a composite', () => {
     const codec = codecs.codecFor(ContentTypeComposite)
     assert(codec)
-    expect(() => codec.encode('definitely not a composite', codecs)).rejects
+    expect(() => codec.encode('definitely not a composite', codecs)).toThrow()
   })
 })

@@ -9,6 +9,7 @@ import { newWallet } from './helpers'
 import { crypto } from '../src/crypto/encryption'
 import Long from 'long'
 import Ciphertext from '../src/crypto/Ciphertext'
+import { NoMatchingPreKeyError } from '../src/crypto/errors'
 
 const createInvitation = (): InvitationV1 => {
   return new InvitationV1({
@@ -73,7 +74,7 @@ describe('Invitations', () => {
       })
       expect(
         sealedInvitationWithWrongSender.v1.getInvitation(alice)
-      ).rejects.toThrow()
+      ).rejects.toThrow(NoMatchingPreKeyError)
 
       expect(() => {
         const sealedInvite = new SealedInvitation({
