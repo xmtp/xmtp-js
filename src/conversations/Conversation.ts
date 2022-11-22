@@ -12,7 +12,7 @@ import {
   SealedInvitationHeaderV1,
 } from '../Invitation'
 import { MessageV1, MessageV2, decodeContent } from '../Message'
-import { messageApi, xmtpEnvelope, fetcher } from '@xmtp/proto'
+import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
 import {
   encrypt,
   decrypt,
@@ -271,24 +271,24 @@ export class ConversationV2 {
     options?: SendOptions
   ): Promise<MessageV2> {
     const payload = await this.client.encodeContent(content, options)
-    const header: xmtpEnvelope.MessageHeaderV2 = {
+    const header: message.MessageHeaderV2 = {
       topic: this.topic,
       createdNs: dateToNs(options?.timestamp || new Date()),
     }
-    const headerBytes = xmtpEnvelope.MessageHeaderV2.encode(header).finish()
+    const headerBytes = message.MessageHeaderV2.encode(header).finish()
     const digest = await sha256(concat(headerBytes, payload))
     const signed = {
       payload,
       sender: this.client.keys.getPublicKeyBundle(),
       signature: await this.client.keys.getCurrentPreKey().sign(digest),
     }
-    const signedBytes = xmtpEnvelope.SignedContent.encode(signed).finish()
+    const signedBytes = proto.SignedContent.encode(signed).finish()
     const ciphertext = await encrypt(signedBytes, this.keyMaterial, headerBytes)
     const protoMsg = {
       v1: undefined,
       v2: { headerBytes, ciphertext },
     }
-    const bytes = xmtpEnvelope.Message.encode(protoMsg).finish()
+    const bytes = message.Message.encode(protoMsg).finish()
     return MessageV2.create(protoMsg, header, signed, bytes)
   }
 
@@ -297,12 +297,12 @@ export class ConversationV2 {
       throw new Error('empty envelope')
     }
     const messageBytes = b64Decode(env.message.toString())
-    const msg = xmtpEnvelope.Message.decode(messageBytes)
+    const msg = message.Message.decode(messageBytes)
     if (!msg.v2) {
       throw new Error('unknown message version')
     }
     const msgv2 = msg.v2
-    const header = xmtpEnvelope.MessageHeaderV2.decode(msgv2.headerBytes)
+    const header = message.MessageHeaderV2.decode(msgv2.headerBytes)
     if (header.topic !== this.topic) {
       throw new Error('topic mismatch')
     }
@@ -314,7 +314,7 @@ export class ConversationV2 {
       this.keyMaterial,
       msgv2.headerBytes
     )
-    const signed = xmtpEnvelope.SignedContent.decode(decrypted)
+    const signed = proto.SignedContent.decode(decrypted)
     if (
       !signed.sender?.identityKey ||
       !signed.sender?.preKey ||
@@ -332,14 +332,14 @@ export class ConversationV2 {
     ) {
       throw new Error('invalid signature')
     }
-    const message = await MessageV2.create(msg, header, signed, messageBytes)
+    const messageV2 = await MessageV2.create(msg, header, signed, messageBytes)
     const { content, contentType, error } = decodeContent(
       signed.payload,
       this.client
     )
 
     return DecodedMessage.fromV2Message(
-      message,
+      messageV2,
       content,
       contentType,
       env.contentTopic,
