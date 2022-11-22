@@ -21,12 +21,12 @@ import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
-import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
+import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
-const { Compression } = xmtpEnvelope
+const { Compression } = proto
 const { b64Decode } = fetcher
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -61,7 +61,7 @@ export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
   contentFallback?: string
-  compression?: xmtpEnvelope.Compression
+  compression?: proto.Compression
   timestamp?: Date
 }
 
@@ -355,7 +355,7 @@ export default class Client {
       encoded.compression = options.compression
     }
     await compress(encoded)
-    return xmtpEnvelope.EncodedContent.encode(encoded).finish()
+    return proto.EncodedContent.encode(encoded).finish()
   }
 
   listInvitations(opts?: ListMessagesOptions): Promise<SealedInvitation[]> {

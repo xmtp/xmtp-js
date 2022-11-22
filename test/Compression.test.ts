@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { content as proto } from '@xmtp/proto'
 import {
   compress,
   decompress,

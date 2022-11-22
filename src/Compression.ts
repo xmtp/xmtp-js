@@ -1,5 +1,5 @@
 // This import has to come first so that the polyfills are registered before the stream polyfills
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { content as proto } from '@xmtp/proto'
 import './polyfills/stream'
 
 //
