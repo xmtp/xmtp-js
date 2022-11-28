@@ -1,4 +1,4 @@
-export { Message, DecodedMessage } from './Message'
+export { Message, DecodedMessage, decodeContent } from './Message'
 export {
   PublicKey,
   PublicKeyBundle,
