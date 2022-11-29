@@ -29,7 +29,7 @@ export {
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
-export { SortDirection } from './ApiClient'
+export { ApiUrls, SortDirection } from './ApiClient'
 export {
   nsToDate,
   dateToNs,
