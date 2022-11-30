@@ -3,6 +3,7 @@ import {
   SignedPublicKeyBundle,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
+  Signature,
 } from './crypto'
 import {
   buildUserContactTopic,
@@ -417,6 +418,10 @@ export default class Client {
       ),
       mapper
     )
+  }
+
+  async signBytes(bytes: Uint8Array): Promise<Signature> {
+    return this.keys.identityKey.sign(bytes)
   }
 }
 
