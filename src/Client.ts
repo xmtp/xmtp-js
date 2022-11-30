@@ -421,7 +421,7 @@ export default class Client {
   }
 
   async signBytes(bytes: Uint8Array): Promise<Signature> {
-    return await this.keys.identityKey.sign(bytes)
+    return this.keys.identityKey.sign(bytes)
   }
 }
 
