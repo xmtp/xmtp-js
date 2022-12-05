@@ -168,6 +168,10 @@ export class ConversationV1 {
       this
     )
   }
+
+  get clientAddress() {
+    return this.client.address
+  }
 }
 
 export class ConversationV2 {
@@ -263,6 +267,10 @@ export class ConversationV2 {
       this.topic,
       this
     )
+  }
+
+  get clientAddress() {
+    return this.client.address
   }
 
   private async encodeMessage(
