@@ -4,6 +4,7 @@ import { retry, sleep, toNanoString } from './utils'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
 import { version } from '../package.json'
+import { XMTP_DEV_WARNING } from './constants'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
@@ -12,7 +13,33 @@ const ERR_CODE_UNAUTHENTICATED = 16
 const clientVersionHeaderKey = 'X-Client-Version'
 const appVersionHeaderKey = 'X-App-Version'
 
-export type GrpcError = Error & { code?: number }
+export const ApiUrls = {
+  local: 'http://localhost:5555',
+  dev: 'https://dev.xmtp.network',
+  production: 'https://production.xmtp.network',
+} as const
+
+export enum GrpcStatus {
+  OK = 0,
+  CANCELLED,
+  UNKNOWN,
+  INVALID_ARGUMENT,
+  DEADLINE_EXCEEDED,
+  NOT_FOUND,
+  ALREADY_EXISTS,
+  PERMISSION_DENIED,
+  RESOURCE_EXHAUSTED,
+  FAILED_PRECONDITION,
+  ABORTED,
+  OUT_OF_RANGE,
+  UNIMPLEMENTED,
+  INTERNAL,
+  UNAVAILABLE,
+  DATA_LOSS,
+  UNAUTHENTICATED,
+}
+
+export type GrpcError = Error & { code?: GrpcStatus }
 
 export type QueryParams = {
   startTime?: Date
@@ -85,6 +112,10 @@ export default class ApiClient {
     this.maxRetries = opts?.maxRetries || 5
     this.appVersion = opts?.appVersion
     this.version = 'xmtp-js/' + version
+
+    if (pathPrefix === ApiUrls.dev) {
+      console.info(XMTP_DEV_WARNING)
+    }
   }
 
   // Raw method for querying the API

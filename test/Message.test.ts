@@ -52,7 +52,7 @@ describe('Message', function () {
       new Date()
     )
     assert.ok(!msg.error)
-    await expect(msg.decrypt(eve)).rejects.toThrow(NoMatchingPreKeyError)
+    expect(msg.decrypt(eve)).rejects.toThrow(NoMatchingPreKeyError)
   })
 
   it('Message create throws error for sender without wallet', async () => {

@@ -27,16 +27,22 @@ describe('ContentTypeText', () => {
   })
 
   it('throws on non-string', () => {
-    expect(codec.encode(7, codecs)).rejects
+    expect(() =>
+      new TextEncoder().encode({
+        toString() {
+          throw new Error('GM!')
+        },
+      } as any)
+    ).toThrow('GM!')
   })
 
-  it('throws on invalid utf8', () => {
+  it('throws on invalid input', () => {
     const ec = {
       type: ContentTypeText,
       parameters: {},
-      content: new Uint8Array([0xe2, 0x28, 0x81]),
+      content: {} as Uint8Array,
     }
-    expect(() => codec.decode(ec, codecs)).rejects
+    expect(() => codec.decode(ec, codecs)).toThrow()
   })
 
   it('throws on unknown encoding', () => {

@@ -3,6 +3,7 @@ import {
   SignedPublicKeyBundle,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
+  Signature,
 } from './crypto'
 import {
   buildUserContactTopic,
@@ -21,12 +22,12 @@ import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
-import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
+import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import ApiClient, { PublishParams, SortDirection } from './ApiClient'
+import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
-const { Compression } = xmtpEnvelope
+const { Compression } = proto
 const { b64Decode } = fetcher
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -34,12 +35,6 @@ const { b64Decode } = fetcher
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
-
-export const ApiUrls = {
-  local: 'http://localhost:5555',
-  dev: 'https://dev.xmtp.network',
-  production: 'https://production.xmtp.network',
-} as const
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
@@ -67,7 +62,7 @@ export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
   contentFallback?: string
-  compression?: xmtpEnvelope.Compression
+  compression?: proto.Compression
   timestamp?: Date
 }
 
@@ -361,7 +356,7 @@ export default class Client {
       encoded.compression = options.compression
     }
     await compress(encoded)
-    return xmtpEnvelope.EncodedContent.encode(encoded).finish()
+    return proto.EncodedContent.encode(encoded).finish()
   }
 
   listInvitations(opts?: ListMessagesOptions): Promise<SealedInvitation[]> {
@@ -423,6 +418,10 @@ export default class Client {
       ),
       mapper
     )
+  }
+
+  async signBytes(bytes: Uint8Array): Promise<Signature> {
+    return this.keys.identityKey.sign(bytes)
   }
 }
 

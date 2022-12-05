@@ -2,8 +2,6 @@
 
 If you're seeing this document, you are an early contributor to the development and success of XMTP. We welcome your questions, feedback, suggestions, and code contributions.
 
-> If you wish to contribute, please [apply for Early Access](https://xmtp.typeform.com/yojTJarb) so that we can provide you with access to our Discord.
-
 ## ❔ Questions
 
 Have a question? We welcome you to ask it in [Q&A discussions](https://github.com/orgs/xmtp/discussions/categories/q-a).
@@ -36,7 +34,7 @@ The table below shows example commits and the resulting release type:
 | `perf(pencil): remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | ~~Major~~ Breaking Release <br /> (Note that the `BREAKING CHANGE:` token must be in the footer of the commit) |
 <!-- prettier-ignore-end -->
 
-This is currently configured to use the [Angular Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format).
+This is currently configured to use the [Angular Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format). e.g. `feat: add message signing` would cause a minor release.
 
 ### Prerequisites
 
