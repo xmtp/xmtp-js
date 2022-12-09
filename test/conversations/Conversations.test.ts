@@ -56,6 +56,7 @@ describe('conversations', () => {
         conversationId: 'foo',
         metadata: {},
       })
+      await sleep(100)
       const aliceConversations2 = await alice.conversations.list()
       expect(aliceConversations2).toHaveLength(1)
 
@@ -63,6 +64,7 @@ describe('conversations', () => {
         conversationId: 'bar',
         metadata: {},
       })
+      await sleep(100)
       const aliceConversations3 = await alice.conversations.list()
       expect(aliceConversations3).toHaveLength(2)
     })

@@ -47,6 +47,7 @@ class ConversationCache {
           }
         }
       }
+      // No catch block so that errors still bubble
     } finally {
       release()
     }
