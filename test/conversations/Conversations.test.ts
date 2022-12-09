@@ -2,6 +2,7 @@ import {
   ConversationV1,
   ConversationV2,
 } from './../../src/conversations/Conversation'
+import { ConversationCache } from '../../src/conversations/Conversations'
 import { newLocalHostClient, waitForUserContact } from './../helpers'
 import { Client } from '../../src'
 import {
@@ -67,6 +68,34 @@ describe('conversations', () => {
       await sleep(100)
       const aliceConversations3 = await alice.conversations.list()
       expect(aliceConversations3).toHaveLength(2)
+    })
+
+    it('caches results and updates the latestSeen date', async () => {
+      const cache = new ConversationCache()
+      const convoDate = new Date()
+      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
+
+      const results = await cache.load(async () => {
+        return [firstConvo]
+      })
+      expect(results[0]).toBe(firstConvo)
+
+      // Should dedupe repeated result
+      const results2 = await cache.load(async ({ latestSeen }) => {
+        expect(latestSeen).toBe(convoDate)
+        return [firstConvo]
+      })
+
+      expect(results2).toHaveLength(1)
+    })
+
+    it('bubbles up errors in loader', async () => {
+      const cache = new ConversationCache()
+      await expect(
+        cache.load(async () => {
+          throw new Error('test')
+        })
+      ).rejects.toThrow('test')
     })
   })
 

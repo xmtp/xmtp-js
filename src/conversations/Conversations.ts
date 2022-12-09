@@ -22,7 +22,7 @@ type CacheLoader = (args: {
   latestSeen: Date | undefined
 }) => Promise<Conversation[]>
 
-class ConversationCache {
+export class ConversationCache {
   private conversations: Conversation[]
   private mutex: Mutex
   private latestSeen?: Date
@@ -108,6 +108,7 @@ export default class Conversations {
           console.warn('Error decrypting invitation', e)
         }
       }
+
       return newConvos
     })
   }
