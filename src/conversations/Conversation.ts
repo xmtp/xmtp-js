@@ -1,4 +1,9 @@
-import { buildUserIntroTopic } from './../utils'
+import {
+  buildUserIntroTopic,
+  buildDirectMessageTopic,
+  dateToNs,
+  nsToDate,
+} from '../utils'
 import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
@@ -22,7 +27,6 @@ import {
 } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
-import { buildDirectMessageTopic, dateToNs, nsToDate } from '../utils'
 import { ContentTypeText } from '../codecs/Text'
 const { b64Decode } = fetcher
 
