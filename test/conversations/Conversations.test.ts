@@ -30,21 +30,42 @@ describe('conversations', () => {
     if (charlie) await charlie.close()
   })
 
-  it('lists all conversations', async () => {
-    const aliceConversations = await alice.conversations.list()
-    expect(aliceConversations).toHaveLength(0)
+  describe('listConversations', () => {
+    it('lists all conversations', async () => {
+      const aliceConversations = await alice.conversations.list()
+      expect(aliceConversations).toHaveLength(0)
 
-    const aliceToBob = await alice.conversations.newConversation(bob.address)
-    await aliceToBob.send('gm')
-    await sleep(100)
+      const aliceToBob = await alice.conversations.newConversation(bob.address)
+      await aliceToBob.send('gm')
+      await sleep(100)
 
-    const aliceConversationsAfterMessage = await alice.conversations.list()
-    expect(aliceConversationsAfterMessage).toHaveLength(1)
-    expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
+      const aliceConversationsAfterMessage = await alice.conversations.list()
+      expect(aliceConversationsAfterMessage).toHaveLength(1)
+      expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
 
-    const bobConversations = await bob.conversations.list()
-    expect(bobConversations).toHaveLength(1)
-    expect(bobConversations[0].peerAddress).toBe(alice.address)
+      const bobConversations = await bob.conversations.list()
+      expect(bobConversations).toHaveLength(1)
+      expect(bobConversations[0].peerAddress).toBe(alice.address)
+    })
+
+    it('resumes list with cache after new conversation is created', async () => {
+      const aliceConversations1 = await alice.conversations.list()
+      expect(aliceConversations1).toHaveLength(0)
+
+      await alice.conversations.newConversation(bob.address, {
+        conversationId: 'foo',
+        metadata: {},
+      })
+      const aliceConversations2 = await alice.conversations.list()
+      expect(aliceConversations2).toHaveLength(1)
+
+      await alice.conversations.newConversation(bob.address, {
+        conversationId: 'bar',
+        metadata: {},
+      })
+      const aliceConversations3 = await alice.conversations.list()
+      expect(aliceConversations3).toHaveLength(2)
+    })
   })
 
   it('streams conversations', async () => {
