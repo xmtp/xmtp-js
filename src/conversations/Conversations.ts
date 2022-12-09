@@ -12,9 +12,15 @@ import { messageApi, fetcher } from '@xmtp/proto'
 import { SortDirection } from '../ApiClient'
 const { b64Decode } = fetcher
 
+const CLOCK_SKEW_OFFSET_MS = 10000
+
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
 }
+
+type CacheLoader = (args: {
+  latestSeen: Date | undefined
+}) => Promise<Conversation[]>
 
 class ConversationCache {
   private conversations: Conversation[]
@@ -28,27 +34,24 @@ class ConversationCache {
     this.seenTopics = new Set()
   }
 
-  async getAndLock() {
+  async load(loader: CacheLoader) {
     const release = await this.mutex.acquire()
-    return {
-      // Release MUST be called. All callers should use a try/finally block
-      release,
-      latestSeen: this.latestSeen,
-      // addConvos adds new conversations to the cache and returns the complete list
-      addConvos: (newConvos: Conversation[]): Conversation[] => {
-        for (const convo of newConvos) {
-          if (!this.seenTopics.has(convo.topic)) {
-            this.seenTopics.add(convo.topic)
-            this.conversations.push(convo)
-            if (!this.latestSeen || convo.createdAt > this.latestSeen) {
-              this.latestSeen = convo.createdAt
-            }
+    try {
+      const newConvos = await loader({ latestSeen: this.latestSeen })
+      for (const convo of newConvos) {
+        if (!this.seenTopics.has(convo.topic)) {
+          this.seenTopics.add(convo.topic)
+          this.conversations.push(convo)
+          if (!this.latestSeen || convo.createdAt > this.latestSeen) {
+            this.latestSeen = convo.createdAt
           }
         }
-        // Create a new array so that callers can't accidentally modify the cache
-        return [...this.conversations]
-      },
+      }
+    } finally {
+      release()
     }
+
+    return [...this.conversations]
   }
 }
 
@@ -85,11 +88,12 @@ export default class Conversations {
   }
 
   private async listV2Conversations(): Promise<Conversation[]> {
-    const { latestSeen, release, addConvos } = await this.v2Cache.getAndLock()
-    try {
+    return this.v2Cache.load(async ({ latestSeen }) => {
       const newConvos: Conversation[] = []
       const invites = await this.client.listInvitations({
-        startTime: latestSeen,
+        startTime: latestSeen
+          ? new Date(+latestSeen - CLOCK_SKEW_OFFSET_MS)
+          : undefined,
         direction: SortDirection.SORT_DIRECTION_ASCENDING,
       })
 
@@ -103,12 +107,8 @@ export default class Conversations {
           console.warn('Error decrypting invitation', e)
         }
       }
-
-      return addConvos(newConvos)
-    } finally {
-      // Always release the mutex
-      release()
-    }
+      return newConvos
+    })
   }
 
   /**
