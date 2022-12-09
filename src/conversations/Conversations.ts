@@ -16,7 +16,7 @@ const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
 }
 
-class ConversationsCache {
+class ConversationCache {
   private conversations: Conversation[]
   private mutex: Mutex
   private latestSeen?: Date
@@ -31,9 +31,10 @@ class ConversationsCache {
   async getAndLock() {
     const release = await this.mutex.acquire()
     return {
+      // Release MUST be called. All callers should use a try/finally block
       release,
       latestSeen: this.latestSeen,
-      // Done MUST be called. All callers should use a try/finally block
+      // addConvos adds new conversations to the cache and returns the complete list
       addConvos: (newConvos: Conversation[]): Conversation[] => {
         for (const convo of newConvos) {
           if (!this.seenTopics.has(convo.topic)) {
@@ -56,11 +57,11 @@ class ConversationsCache {
  */
 export default class Conversations {
   private client: Client
-  private v2Cache: ConversationsCache
+  private v2Cache: ConversationCache
 
   constructor(client: Client) {
     this.client = client
-    this.v2Cache = new ConversationsCache()
+    this.v2Cache = new ConversationCache()
   }
 
   /**
@@ -72,14 +73,12 @@ export default class Conversations {
       this.listV2Conversations(),
     ])
 
-    const conversations: Conversation[] = []
+    const v1Convos: Conversation[] = []
     seenPeers.forEach((sent, peerAddress) =>
-      conversations.push(new ConversationV1(this.client, peerAddress, sent))
+      v1Convos.push(new ConversationV1(this.client, peerAddress, sent))
     )
 
-    for (const convo of v2Convos) {
-      conversations.push(convo)
-    }
+    const conversations = v1Convos.concat(v2Convos)
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
     return conversations
