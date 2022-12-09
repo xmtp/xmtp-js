@@ -56,11 +56,11 @@ class ConversationsCache {
  */
 export default class Conversations {
   private client: Client
-  private inviteCache: ConversationsCache
+  private v2Cache: ConversationsCache
 
   constructor(client: Client) {
     this.client = client
-    this.inviteCache = new ConversationsCache()
+    this.v2Cache = new ConversationsCache()
   }
 
   /**
@@ -86,8 +86,7 @@ export default class Conversations {
   }
 
   private async listV2Conversations(): Promise<Conversation[]> {
-    const { latestSeen, release, addConvos } =
-      await this.inviteCache.getAndLock()
+    const { latestSeen, release, addConvos } = await this.v2Cache.getAndLock()
     try {
       const newConvos: Conversation[] = []
       const invites = await this.client.listInvitations({
