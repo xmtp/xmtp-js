@@ -97,6 +97,25 @@ describe('conversations', () => {
         })
       ).rejects.toThrow('test')
     })
+
+    it('waits for one request to finish before the second one starts', async () => {
+      const cache = new ConversationCache()
+      const convoDate = new Date()
+      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
+      const promise1 = cache.load(async ({ latestSeen }) => {
+        expect(latestSeen).toBeUndefined()
+        return [firstConvo]
+      })
+
+      const promise2 = cache.load(async ({ latestSeen }) => {
+        expect(latestSeen).toBe(convoDate)
+        return []
+      })
+
+      const [result1, result2] = await Promise.all([promise1, promise2])
+      expect(result1).toHaveLength(1)
+      expect(result2).toHaveLength(1)
+    })
   })
 
   it('streams conversations', async () => {
