@@ -1,3 +1,4 @@
+import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { InvitationContext } from './../Invitation'
 import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
@@ -8,27 +9,67 @@ import { buildUserIntroTopic, buildUserInviteTopic } from '../utils'
 import { SealedInvitation, InvitationV1 } from '../Invitation'
 import { PublicKeyBundle } from '../crypto'
 import { messageApi, fetcher } from '@xmtp/proto'
+import { SortDirection } from '../ApiClient'
 const { b64Decode } = fetcher
 
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
 }
+
+class ConversationsCache {
+  private conversations: Conversation[]
+  private mutex: Mutex
+  private latestSeen?: Date
+  private seenTopics: Set<string>
+
+  constructor() {
+    this.conversations = []
+    this.mutex = new Mutex()
+    this.seenTopics = new Set()
+  }
+
+  async getAndLock() {
+    const release = await this.mutex.acquire()
+    return {
+      release,
+      latestSeen: this.latestSeen,
+      // Done MUST be called. All callers should use a try/finally block
+      addConvos: (newConvos: Conversation[]): Conversation[] => {
+        for (const convo of newConvos) {
+          if (!this.seenTopics.has(convo.topic)) {
+            this.seenTopics.add(convo.topic)
+            this.conversations.push(convo)
+            if (!this.latestSeen || convo.createdAt > this.latestSeen) {
+              this.latestSeen = convo.createdAt
+            }
+          }
+        }
+        // Create a new array so that callers can't accidentally modify the cache
+        return [...this.conversations]
+      },
+    }
+  }
+}
+
 /**
  * Conversations allows you to view ongoing 1:1 messaging sessions with another wallet
  */
 export default class Conversations {
   private client: Client
+  private inviteCache: ConversationsCache
+
   constructor(client: Client) {
     this.client = client
+    this.inviteCache = new ConversationsCache()
   }
 
   /**
    * List all conversations with the current wallet found in the network, deduped by peer address
    */
   async list(): Promise<Conversation[]> {
-    const [seenPeers, invitations] = await Promise.all([
+    const [seenPeers, v2Convos] = await Promise.all([
       this.getIntroductionPeers(),
-      this.client.listInvitations(),
+      this.listV2Conversations(),
     ])
 
     const conversations: Conversation[] = []
@@ -36,19 +77,40 @@ export default class Conversations {
       conversations.push(new ConversationV1(this.client, peerAddress, sent))
     )
 
-    for (const sealed of invitations) {
-      try {
-        const unsealed = await sealed.v1.getInvitation(this.client.keys)
-        conversations.push(
-          await ConversationV2.create(this.client, unsealed, sealed.v1.header)
-        )
-      } catch (e) {
-        console.warn('Error decrypting invitation', e)
-      }
+    for (const convo of v2Convos) {
+      conversations.push(convo)
     }
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
     return conversations
+  }
+
+  private async listV2Conversations(): Promise<Conversation[]> {
+    const { latestSeen, release, addConvos } =
+      await this.inviteCache.getAndLock()
+    try {
+      const newConvos: Conversation[] = []
+      const invites = await this.client.listInvitations({
+        startTime: latestSeen,
+        direction: SortDirection.SORT_DIRECTION_ASCENDING,
+      })
+
+      for (const sealed of invites) {
+        try {
+          const unsealed = await sealed.v1.getInvitation(this.client.keys)
+          newConvos.push(
+            await ConversationV2.create(this.client, unsealed, sealed.v1.header)
+          )
+        } catch (e) {
+          console.warn('Error decrypting invitation', e)
+        }
+      }
+
+      return addConvos(newConvos)
+    } finally {
+      // Always release the mutex
+      release()
+    }
   }
 
   /**
