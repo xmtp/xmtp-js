@@ -67,6 +67,9 @@ describe('Client', () => {
 
         const can_mesg_b = await alice.canMessage(bob.address)
         assert.equal(can_mesg_b, true)
+
+        const lower = await alice.canMessage(bob.address.toLowerCase())
+        assert.equal(lower, true)
       })
     })
   })

@@ -11,7 +11,7 @@ import {
   EnvelopeMapper,
   buildUserInviteTopic,
 } from './utils'
-import { Signer } from 'ethers'
+import { Signer, utils } from 'ethers'
 import {
   EncryptedKeyStore,
   KeyStore,
@@ -245,13 +245,16 @@ export default class Client {
   /**
    * Returns the cached PublicKeyBundle if one is known for the given address or fetches
    * one from the network
+   *
+   * This throws if either the address is invalid or the contact is not published.
+   * See also [#canMessage].
    */
 
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
+    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
-
     if (existingBundle) {
       return existingBundle
     }
@@ -272,6 +275,7 @@ export default class Client {
    * Used to force getUserContact fetch contact from the network.
    */
   forgetContact(peerAddress: string) {
+    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     this.knownPublicKeyBundles.delete(peerAddress)
   }
 
@@ -280,14 +284,24 @@ export default class Client {
    * found for the given address
    */
   public async canMessage(peerAddress: string): Promise<boolean> {
-    const keyBundle = await this.getUserContact(peerAddress)
-    return keyBundle !== undefined
+    try {
+      const keyBundle = await this.getUserContact(peerAddress)
+      return keyBundle !== undefined
+    } catch (e) {
+      // Instead of throwing, a bad address should just return false.
+      return false
+    }
   }
 
   static async canMessage(
     peerAddress: string,
     opts?: Partial<NetworkOptions>
   ): Promise<boolean> {
+    try {
+      peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+    } catch (e) {
+      return false
+    }
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
     const keyBundle = await getUserContactFromNetwork(
       new ApiClient(apiUrl, { appVersion: opts?.appVersion }),

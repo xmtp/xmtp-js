@@ -4,6 +4,7 @@ import {
   dateToNs,
   nsToDate,
 } from '../utils'
+import { utils } from 'ethers'
 import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
@@ -42,7 +43,7 @@ export class ConversationV1 {
   private client: Client
 
   constructor(client: Client, address: string, createdAt: Date) {
-    this.peerAddress = address
+    this.peerAddress = utils.getAddress(address)
     this.client = client
     this.createdAt = createdAt
   }
@@ -197,7 +198,7 @@ export class ConversationV2 {
     this.context = invitation.context
     this.client = client
     this.header = header
-    this.peerAddress = peerAddress
+    this.peerAddress = utils.getAddress(peerAddress)
   }
 
   static async create(
