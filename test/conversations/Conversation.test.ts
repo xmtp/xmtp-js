@@ -248,8 +248,29 @@ describe('conversation', () => {
 
     it('throws when opening a conversation with an unknown address', () => {
       expect(alice.conversations.newConversation('0xfoo')).rejects.toThrow(
-        'Recipient 0xfoo is not on the XMTP network'
+        'invalid address'
       )
+      const validButUnknown = '0x1111111111222222222233333333334444444444'
+      expect(
+        alice.conversations.newConversation(validButUnknown)
+      ).rejects.toThrow(
+        `Recipient ${validButUnknown} is not on the XMTP network`
+      )
+    })
+
+    it('normalizes upper and lowercase addresses', async () => {
+      const bobLower = bob.address.toLowerCase()
+      const bobUpper = '0x' + bob.address.substring(2).toUpperCase()
+      await expect(
+        alice.conversations.newConversation(bobLower)
+      ).resolves.toMatchObject({
+        peerAddress: bob.address,
+      })
+      await expect(
+        alice.conversations.newConversation(bobUpper)
+      ).resolves.toMatchObject({
+        peerAddress: bob.address,
+      })
     })
 
     it('filters out spoofed messages', async () => {
