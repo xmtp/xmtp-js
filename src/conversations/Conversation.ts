@@ -32,6 +32,23 @@ const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+type ConversationV1Export = {
+  version: 'v1'
+  peerAddress: string
+  createdAt: Date
+}
+
+type ConversationV2Export = {
+  version: 'v2'
+  topic: string
+  keyMaterial: string
+  createdAt: Date
+  peerAddress: string
+  context: InvitationContext | undefined
+}
+
+export type ConversationExport = ConversationV1Export | ConversationV2Export
+
 /**
  * Conversation class allows you to view, stream, and send messages to/from a peer address
  */
@@ -84,6 +101,21 @@ export class ConversationV1 {
       [this.topic],
       this.decodeMessage.bind(this)
     )
+  }
+
+  export(): ConversationV1Export {
+    return {
+      version: 'v1',
+      peerAddress: this.peerAddress,
+      createdAt: this.createdAt,
+    }
+  }
+
+  static fromExport(
+    client: Client,
+    data: ConversationV1Export
+  ): ConversationV1 {
+    return new ConversationV1(client, data.peerAddress, data.createdAt)
   }
 
   async decodeMessage({
@@ -180,23 +212,25 @@ export class ConversationV1 {
 
 export class ConversationV2 {
   topic: string
-  keyMaterial: Uint8Array // MUST be kept secret
+  private keyMaterial: Uint8Array // MUST be kept secret
   context?: InvitationContext
-  private header: SealedInvitationHeaderV1
   private client: Client
+  createdAt: Date
   peerAddress: string
 
   constructor(
     client: Client,
-    invitation: InvitationV1,
-    header: SealedInvitationHeaderV1,
-    peerAddress: string
+    topic: string,
+    keyMaterial: Uint8Array,
+    peerAddress: string,
+    createdAt: Date,
+    context: InvitationContext | undefined
   ) {
-    this.topic = invitation.topic
-    this.keyMaterial = invitation.aes256GcmHkdfSha256.keyMaterial
-    this.context = invitation.context
+    this.topic = topic
+    this.keyMaterial = keyMaterial
+    this.createdAt = createdAt
+    this.context = context
     this.client = client
-    this.header = header
     this.peerAddress = peerAddress
   }
 
@@ -208,11 +242,14 @@ export class ConversationV2 {
     const myKeys = client.keys.getPublicKeyBundle()
     const peer = myKeys.equals(header.sender) ? header.recipient : header.sender
     const peerAddress = await peer.walletSignatureAddress()
-    return new ConversationV2(client, invitation, header, peerAddress)
-  }
-
-  get createdAt(): Date {
-    return nsToDate(this.header.createdNs)
+    return new ConversationV2(
+      client,
+      invitation.topic,
+      invitation.aes256GcmHkdfSha256.keyMaterial,
+      peerAddress,
+      nsToDate(header.createdNs),
+      invitation.context
+    )
   }
 
   /**
@@ -357,6 +394,31 @@ export class ConversationV2 {
       env.contentTopic,
       this,
       error
+    )
+  }
+
+  export(): ConversationV2Export {
+    return {
+      version: 'v2',
+      topic: this.topic,
+      keyMaterial: Buffer.from(this.keyMaterial).toString('base64'),
+      peerAddress: this.peerAddress,
+      createdAt: this.createdAt,
+      context: this.context,
+    }
+  }
+
+  static fromExport(
+    client: Client,
+    data: ConversationV2Export
+  ): ConversationV2 {
+    return new ConversationV2(
+      client,
+      data.topic,
+      Buffer.from(data.keyMaterial, 'base64'),
+      data.peerAddress,
+      data.createdAt,
+      data.context
     )
   }
 }
