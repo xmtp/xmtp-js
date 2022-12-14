@@ -12,6 +12,7 @@ export { default as Stream } from './Stream'
 export {
   default as Client,
   ClientOptions,
+  KeyStoreType,
   ListMessagesOptions,
   SendOptions,
   Compression,
