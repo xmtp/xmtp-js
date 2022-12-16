@@ -27,6 +27,7 @@ import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
+import { LocalKeyStorage } from './store/EncryptedStore'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -92,6 +93,7 @@ type KeyStoreOptions = {
   /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
   keyStoreType: KeyStoreType
   privateKeyOverride?: Uint8Array
+  localKeyStorage?: LocalKeyStorage
 }
 
 type LegacyOptions = {
@@ -149,6 +151,7 @@ export default class Client {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
+  private localKeyStorage?: LocalKeyStorage
 
   constructor(keys: PrivateKeyBundleV1, apiClient: ApiClient) {
     this.contacts = new Set<string>()
@@ -449,7 +452,7 @@ function createKeyStoreFromConfig(
       if (!wallet) {
         throw new Error('Must provide a wallet for networkTopicStore')
       }
-      return createNetworkPrivateKeyStore(wallet, apiClient)
+      return createNetworkPrivateKeyStore(wallet, apiClient, opts)
 
     case KeyStoreType.static:
       if (!opts.privateKeyOverride) {
@@ -463,9 +466,14 @@ function createKeyStoreFromConfig(
 // Create Encrypted store which uses the Network to store KeyBundles
 function createNetworkPrivateKeyStore(
   wallet: Signer,
-  apiClient: ApiClient
+  apiClient: ApiClient,
+  options?: KeyStoreOptions
 ): EncryptedKeyStore {
-  return new EncryptedKeyStore(wallet, new PrivateTopicStore(apiClient))
+  return new EncryptedKeyStore(
+    wallet,
+    new PrivateTopicStore(apiClient),
+    options?.localKeyStorage
+  )
 }
 
 function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {

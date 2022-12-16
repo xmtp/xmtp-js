@@ -38,3 +38,5 @@ export {
   toNanoString,
   mapPaginatedStream,
 } from './utils'
+
+export type { LocalKeyStorage } from './store/EncryptedStore'

@@ -12,6 +12,13 @@ import { bytesToHex, getRandomValues, hexToBytes } from '../crypto/utils'
 import Ciphertext from '../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
 
+// This is a simple interface that allows a user of this library
+// to decide how to store the wallet signature result, which is used as the private decryption key.
+export interface LocalKeyStorage {
+  get: () => Promise<string | null>
+  set: (value: string) => Promise<void>
+}
+
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
  * EncryptedKeyStore wraps Store to enable encryption of private key bundles
@@ -20,10 +27,12 @@ const KEY_BUNDLE_NAME = 'key_bundle'
 export default class EncryptedKeyStore implements KeyStore {
   private store: Store
   private signer: Signer
+  private localKeyStore?: LocalKeyStorage
 
-  constructor(signer: Signer, store: Store) {
+  constructor(signer: Signer, store: Store, localKeyStore?: LocalKeyStorage) {
     this.signer = signer
     this.store = store
+    this.localKeyStore = localKeyStore
   }
 
   private async getStorageAddress(name: string): Promise<string> {
@@ -118,9 +127,27 @@ export default class EncryptedKeyStore implements KeyStore {
       throw new Error('missing bundle ciphertext')
     }
 
-    const secret = hexToBytes(
-      await wallet.signMessage(storageSigRequestText(eBundle.walletPreKey))
-    )
+    let secret: Uint8Array | null = null
+
+    // If we have a local key store, get the secret from there instead of requesting from the user
+    if (this.localKeyStore) {
+      const tmp = this.localKeyStore && (await this.localKeyStore.get())
+      if (tmp) {
+        secret = hexToBytes(tmp)
+      }
+    }
+
+    if (!secret) {
+      secret = hexToBytes(
+        await wallet.signMessage(storageSigRequestText(eBundle.walletPreKey))
+      )
+
+      // If we have a local key store, save the secret there
+      if (this.localKeyStore) {
+        await this.localKeyStore.set(bytesToHex(secret))
+      }
+    }
+
     const ciphertext = new Ciphertext(eBundle.ciphertext)
     const decrypted = await decrypt(ciphertext, secret)
     const [bundle, needsUpdate2] = getPrivateBundle(decrypted)
