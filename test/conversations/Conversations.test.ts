@@ -376,7 +376,9 @@ describe('conversations', () => {
 
       const roundTripped = JSON.parse(JSON.stringify(exported))
       expect(roundTripped).toHaveLength(2)
-      expect(roundTripped[0].createdAt).toBe(exported[0].createdAt)
+      expect(roundTripped[0].createdAt).toEqual(
+        exported[0].createdAt.toString()
+      )
     })
 
     it('imports from export', async () => {
@@ -394,12 +396,11 @@ describe('conversations', () => {
       await sleep(50)
 
       const exported = await clientA.conversations.export()
+      expect(exported).toHaveLength(2)
 
       const clientB = await Client.create(wallet, { env: 'local' })
       const failed = await clientB.conversations.import(exported)
       expect(failed).toBe(0)
-
-      expect(await clientB.conversations.list()).toHaveLength(2)
     })
   })
 })
