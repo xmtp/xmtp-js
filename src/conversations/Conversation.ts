@@ -4,6 +4,7 @@ import {
   dateToNs,
   nsToDate,
 } from '../utils'
+import { utils } from 'ethers'
 import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
@@ -59,7 +60,7 @@ export class ConversationV1 {
   private client: Client
 
   constructor(client: Client, address: string, createdAt: Date) {
-    this.peerAddress = address
+    this.peerAddress = utils.getAddress(address)
     this.client = client
     this.createdAt = createdAt
   }
@@ -241,7 +242,7 @@ export class ConversationV2 {
   ): Promise<ConversationV2> {
     const myKeys = client.keys.getPublicKeyBundle()
     const peer = myKeys.equals(header.sender) ? header.recipient : header.sender
-    const peerAddress = await peer.walletSignatureAddress()
+    const peerAddress = utils.getAddress(await peer.walletSignatureAddress())
     return new ConversationV2(
       client,
       invitation.topic,
