@@ -387,7 +387,7 @@ describe('conversations', () => {
           metadata: {},
         }),
       ])
-      await sleep(50)
+      await sleep(100)
 
       const exported = await clientA.conversations.export()
 
