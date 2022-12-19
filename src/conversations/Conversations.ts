@@ -435,9 +435,10 @@ export default class Conversations {
     return conversations.map((convo) => convo.export())
   }
 
-  async import(convoExports: ConversationExport[]): Promise<void> {
+  async import(convoExports: ConversationExport[]): Promise<number> {
     const v1Exports: ConversationV1[] = []
     const v2Exports: ConversationV2[] = []
+    let failed = 0
 
     for (const convoExport of convoExports) {
       try {
@@ -448,6 +449,7 @@ export default class Conversations {
         }
       } catch (e) {
         console.log('Failed to import conversation', e)
+        failed += 1
       }
     }
 
@@ -455,6 +457,8 @@ export default class Conversations {
       this.v1Cache.load(async () => v1Exports),
       this.v2Cache.load(async () => v2Exports),
     ])
+
+    return failed
   }
 
   private async sendInvitation(

@@ -361,7 +361,9 @@ describe('conversations', () => {
   describe('export', () => {
     it('exports something JSON serializable', async () => {
       await Promise.all([
-        alice.conversations.newConversation(bob.address),
+        alice.conversations
+          .newConversation(bob.address)
+          .then((convo) => convo.send('hello')),
         alice.conversations.newConversation(bob.address, {
           conversationId: 'xmtp.org/foo',
           metadata: {},
@@ -381,18 +383,21 @@ describe('conversations', () => {
       const wallet = Wallet.createRandom()
       const clientA = await Client.create(wallet, { env: 'local' })
       await Promise.all([
-        clientA.conversations.newConversation(bob.address),
+        alice.conversations
+          .newConversation(bob.address)
+          .then((convo) => convo.send('hello')),
         clientA.conversations.newConversation(bob.address, {
           conversationId: 'xmtp.org/foo',
           metadata: {},
         }),
       ])
-      await sleep(100)
+      await sleep(50)
 
       const exported = await clientA.conversations.export()
 
       const clientB = await Client.create(wallet, { env: 'local' })
-      await clientB.conversations.import(exported)
+      const failed = await clientB.conversations.import(exported)
+      expect(failed).toBe(0)
 
       expect(await clientB.conversations.list()).toHaveLength(2)
     })
