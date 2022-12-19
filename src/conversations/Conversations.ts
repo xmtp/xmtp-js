@@ -1,7 +1,13 @@
+import { ListMessagesOptions } from './../Client'
 import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { InvitationContext } from './../Invitation'
-import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
+import {
+  Conversation,
+  ConversationV1,
+  ConversationV2,
+  ConversationExport,
+} from './Conversation'
 import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
@@ -61,10 +67,12 @@ export class ConversationCache {
  */
 export default class Conversations {
   private client: Client
+  private v1Cache: ConversationCache
   private v2Cache: ConversationCache
 
   constructor(client: Client) {
     this.client = client
+    this.v1Cache = new ConversationCache()
     this.v2Cache = new ConversationCache()
   }
 
@@ -72,20 +80,31 @@ export default class Conversations {
    * List all conversations with the current wallet found in the network, deduped by peer address
    */
   async list(): Promise<Conversation[]> {
-    const [seenPeers, v2Convos] = await Promise.all([
-      this.getIntroductionPeers(),
+    const [v1Convos, v2Convos] = await Promise.all([
+      this.listV1Conversations(),
       this.listV2Conversations(),
     ])
-
-    const v1Convos: Conversation[] = []
-    seenPeers.forEach((sent, peerAddress) =>
-      v1Convos.push(new ConversationV1(this.client, peerAddress, sent))
-    )
 
     const conversations = v1Convos.concat(v2Convos)
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
     return conversations
+  }
+
+  private async listV1Conversations(): Promise<Conversation[]> {
+    return this.v1Cache.load(async ({ latestSeen }) => {
+      const seenPeers = await this.getIntroductionPeers({
+        startTime: latestSeen
+          ? new Date(+latestSeen - CLOCK_SKEW_OFFSET_MS)
+          : undefined,
+        direction: SortDirection.SORT_DIRECTION_ASCENDING,
+      })
+
+      return Array.from(seenPeers).map(
+        ([peerAddress, sent]) =>
+          new ConversationV1(this.client, peerAddress, sent)
+      )
+    })
   }
 
   private async listV2Conversations(): Promise<Conversation[]> {
@@ -292,7 +311,9 @@ export default class Conversations {
     })()
   }
 
-  private async getIntroductionPeers(): Promise<Map<string, Date>> {
+  private async getIntroductionPeers(
+    opts?: ListMessagesOptions
+  ): Promise<Map<string, Date>> {
     const messages = await this.client.listEnvelopes(
       [buildUserIntroTopic(this.client.address)],
       async (env) => {
@@ -303,7 +324,8 @@ export default class Conversations {
         // Decrypt the message to ensure it is valid. Ignore the contents
         await msg.decrypt(this.client.legacyKeys)
         return msg
-      }
+      },
+      opts
     )
     const seenPeers: Map<string, Date> = new Map()
     for (const message of messages) {
@@ -406,6 +428,33 @@ export default class Conversations {
       invitation,
       sealedInvite.v1.header
     )
+  }
+
+  async export(): Promise<ConversationExport[]> {
+    const conversations = await this.list()
+    return conversations.map((convo) => convo.export())
+  }
+
+  async import(convoExports: ConversationExport[]): Promise<void> {
+    const v1Exports: ConversationV1[] = []
+    const v2Exports: ConversationV2[] = []
+
+    for (const convoExport of convoExports) {
+      try {
+        if (convoExport.version === 'v1') {
+          v1Exports.push(ConversationV1.fromExport(this.client, convoExport))
+        } else if (convoExport.version === 'v2') {
+          v2Exports.push(ConversationV2.fromExport(this.client, convoExport))
+        }
+      } catch (e) {
+        console.log('Failed to import conversation', e)
+      }
+    }
+
+    await Promise.all([
+      this.v1Cache.load(async () => v1Exports),
+      this.v2Cache.load(async () => v2Exports),
+    ])
   }
 
   private async sendInvitation(

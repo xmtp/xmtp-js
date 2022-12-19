@@ -10,6 +10,7 @@ import {
   buildUserIntroTopic,
   sleep,
 } from '../../src/utils'
+import { Wallet } from 'ethers'
 
 describe('conversations', () => {
   let alice: Client
@@ -354,6 +355,46 @@ describe('conversations', () => {
 
       const bobInvites = await bob.listInvitations()
       expect(bobInvites).toHaveLength(2)
+    })
+  })
+
+  describe('export', () => {
+    it('exports something JSON serializable', async () => {
+      await Promise.all([
+        alice.conversations.newConversation(bob.address),
+        alice.conversations.newConversation(bob.address, {
+          conversationId: 'xmtp.org/foo',
+          metadata: {},
+        }),
+      ])
+      await sleep(50)
+
+      const exported = await alice.conversations.export()
+      expect(exported).toHaveLength(2)
+
+      const roundTripped = JSON.parse(JSON.stringify(exported))
+      expect(roundTripped).toHaveLength(2)
+      expect(roundTripped[0].createdAt).toBe(exported[0].createdAt)
+    })
+
+    it('imports from export', async () => {
+      const wallet = Wallet.createRandom()
+      const clientA = await Client.create(wallet, { env: 'local' })
+      await Promise.all([
+        clientA.conversations.newConversation(bob.address),
+        clientA.conversations.newConversation(bob.address, {
+          conversationId: 'xmtp.org/foo',
+          metadata: {},
+        }),
+      ])
+      await sleep(50)
+
+      const exported = await clientA.conversations.export()
+
+      const clientB = await Client.create(wallet, { env: 'local' })
+      await clientB.conversations.import(exported)
+
+      expect(await clientB.conversations.list()).toHaveLength(2)
     })
   })
 })
