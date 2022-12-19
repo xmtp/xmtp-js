@@ -376,16 +376,14 @@ describe('conversations', () => {
 
       const roundTripped = JSON.parse(JSON.stringify(exported))
       expect(roundTripped).toHaveLength(2)
-      expect(roundTripped[0].createdAt).toEqual(
-        JSON.stringify(exported[0].createdAt)
-      )
+      expect(new Date(roundTripped[0].createdAt)).toEqual(exported[0].createdAt)
     })
 
     it('imports from export', async () => {
       const wallet = Wallet.createRandom()
       const clientA = await Client.create(wallet, { env: 'local' })
       await Promise.all([
-        alice.conversations
+        clientA.conversations
           .newConversation(bob.address)
           .then((convo) => convo.send('hello')),
         clientA.conversations.newConversation(bob.address, {
