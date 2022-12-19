@@ -410,7 +410,7 @@ describe('conversation', () => {
         fail()
       }
       expect(bc.topic).toBe(ac.topic)
-      expect(bc.export()).toEqual(ac.export())
+      expect(bc.export().keyMaterial).toEqual(ac.export().keyMaterial)
       const bs = await bc.streamMessages()
       await sleep(100)
 
