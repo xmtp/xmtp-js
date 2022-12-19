@@ -377,7 +377,7 @@ describe('conversations', () => {
       const roundTripped = JSON.parse(JSON.stringify(exported))
       expect(roundTripped).toHaveLength(2)
       expect(roundTripped[0].createdAt).toEqual(
-        exported[0].createdAt.toString()
+        JSON.stringify(exported[0].createdAt)
       )
     })
 
