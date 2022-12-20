@@ -242,7 +242,7 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    client.subscribe(req, cb)
+    const unsubscribeFn = client.subscribe(req, cb)
     await sleep(10)
     expect(numEnvelopes).toBe(2)
     expect(subscribeMock).toBeCalledWith(req, cb, {
@@ -253,6 +253,7 @@ describe('Subscribe', () => {
         'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
+    await unsubscribeFn()
   })
 
   it('should resubscribe on error', async () => {
@@ -280,7 +281,7 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    client.subscribe(req, cb)
+    const unsubscribeFn = client.subscribe(req, cb)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
     expect(subscribeMock).toBeCalledWith(req, cb, {
@@ -291,6 +292,7 @@ describe('Subscribe', () => {
         'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
+    await unsubscribeFn()
   })
 
   it('should resubscribe on completion', async () => {
@@ -318,7 +320,7 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    client.subscribe(req, cb)
+    const unsubscribeFn = client.subscribe(req, cb)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
     expect(subscribeMock).toBeCalledWith(req, cb, {
@@ -329,6 +331,7 @@ describe('Subscribe', () => {
         'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
+    await unsubscribeFn()
   })
 
   it('throws when no content topics returned', async () => {

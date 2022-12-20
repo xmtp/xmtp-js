@@ -196,6 +196,7 @@ export default class ApiClient {
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)
           }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           if (isAbortError(err) || abortController.signal.aborted) {
             return
