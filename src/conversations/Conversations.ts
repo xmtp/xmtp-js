@@ -430,11 +430,20 @@ export default class Conversations {
     )
   }
 
+  /**
+   * Exports all conversations to a JSON serializable list that can be stored in your application.
+   * WARNING: Be careful with where you store this data. It contains encryption keys for V2 conversations, which can be used to read/write messages.
+   */
   async export(): Promise<ConversationExport[]> {
     const conversations = await this.list()
     return conversations.map((convo) => convo.export())
   }
 
+  /**
+   * Import a list of conversations exported using `conversations.export()`.
+   * This list must be exhaustive, as the SDK will only look for conversations
+   * started after the last imported conversation (-30 seconds) in subsequent calls to `conversations.list()`
+   */
   async import(convoExports: ConversationExport[]): Promise<number> {
     const v1Exports: ConversationV1[] = []
     const v2Exports: ConversationV2[] = []

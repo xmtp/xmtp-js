@@ -394,3 +394,25 @@ const client = await Client.create(null, { privateKeyOverride: keys })
 ```
 
 The keys returned by `getKeys` should be treated with the utmost care as compromise of these keys will allow an attacker to impersonate the user on the XMTP network. Ensure these keys are stored somewhere secure and encrypted.
+
+#### Caching conversations
+
+As a performance optimization, you may want to persist the list of conversations in your application outside of the SDK to speed up the first call to `client.conversations.list()`.
+
+The exported conversation list contains encryption keys for any V2 conversations included in the list. As such, you should treat it with the same care that you treat [private keys](#manually-handling-private-key-storage).
+
+You can get a JSON serializable list of conversations by calling:
+
+```ts
+const client = await Client.create(wallet)
+const conversations = await client.conversations.export()
+saveConversationsSomewhere(JSON.stringify(conversations))
+```
+
+To load the conversations in a new SDK instance you can run:
+
+```ts
+const client = await Client.create(wallet)
+const conversations = JSON.parse(loadConversationsFromSomewhere())
+await client.conversations.import(conversations)
+```
