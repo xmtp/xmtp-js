@@ -1,3 +1,4 @@
+import { ConversationV1 } from './../../src/conversations/Conversation'
 import { DecodedMessage } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import {
@@ -352,6 +353,31 @@ describe('conversation', () => {
       await bobStream.return()
       await aliceStream.return()
     })
+
+    it('exports', async () => {
+      const convo = await alice.conversations.newConversation(bob.address)
+      const exported = convo.export()
+
+      expect(exported.peerAddress).toBe(bob.address)
+      expect(+exported.createdAt).toBe(+convo.createdAt)
+      expect(exported.version).toBe('v1')
+    })
+
+    it('imports', async () => {
+      const convo = await alice.conversations.newConversation(bob.address)
+      const exported = convo.export()
+
+      if (exported.version !== 'v1') {
+        fail()
+      }
+      const imported = ConversationV1.fromExport(alice, exported)
+      await imported.send('hello')
+      await sleep(50)
+
+      const results = await convo.messages()
+      expect(results).toHaveLength(1)
+      expect(results[0].content).toBe('hello')
+    })
   })
 
   describe('v2', () => {
@@ -384,7 +410,7 @@ describe('conversation', () => {
         fail()
       }
       expect(bc.topic).toBe(ac.topic)
-      expect(bc.keyMaterial).toEqual(ac.keyMaterial)
+      expect(bc.export().keyMaterial).toEqual(ac.export().keyMaterial)
       const bs = await bc.streamMessages()
       await sleep(100)
 
@@ -542,6 +568,46 @@ describe('conversation', () => {
 
       await bobStream.return()
       await aliceStream.return()
+    })
+
+    it('exports', async () => {
+      const conversationId = 'xmtp.org/foo'
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId,
+        metadata: {},
+      })
+      const exported = convo.export()
+
+      if (exported.version !== 'v2') {
+        fail()
+      }
+      expect(exported.peerAddress).toBe(bob.address)
+      expect(+exported.createdAt).toBe(+convo.createdAt)
+      expect(exported.context?.conversationId).toBe(conversationId)
+      expect(exported.keyMaterial).toBeTruthy()
+      expect(exported.topic).toBe(convo.topic)
+    })
+
+    it('imports', async () => {
+      const conversationId = 'xmtp.org/foo'
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId,
+        metadata: {},
+      })
+      const exported = convo.export()
+
+      if (exported.version !== 'v2') {
+        fail()
+      }
+
+      const imported = ConversationV2.fromExport(alice, exported)
+      await imported.send('hello')
+      await sleep(50)
+
+      // Get messages from original conversation
+      const results = await convo.messages()
+      expect(results).toHaveLength(1)
+      expect(results[0].content).toBe('hello')
     })
   })
 })
