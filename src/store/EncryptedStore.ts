@@ -1,5 +1,5 @@
 import { Store } from './Store'
-import { Signer, utils } from 'ethers'
+import { utils } from 'ethers'
 import {
   PrivateKeyBundleV1,
   decodePrivateKeyBundle,

@@ -4,6 +4,7 @@ import {
   newLocalHostClient,
   newDevClient,
   waitForUserContact,
+  newLocalHostClientWithCustomWallet,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { KeyStoreType, ClientOptions } from '../src/Client'
@@ -18,6 +19,10 @@ describe('Client', () => {
     {
       name: 'local host node',
       newClient: newLocalHostClient,
+    },
+    {
+      name: 'local host node with non-ethers wallet',
+      newClient: newLocalHostClientWithCustomWallet,
     },
   ]
 
