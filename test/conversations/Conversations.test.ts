@@ -131,6 +131,7 @@ describe('conversations', () => {
       break
     }
     expect(numConversations).toBe(1)
+    await stream.return()
   })
 
   it('streams all conversation messages from empty state', async () => {
