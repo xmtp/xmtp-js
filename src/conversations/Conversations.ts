@@ -26,6 +26,7 @@ const messageHasHeaders = (msg: MessageV1): boolean => {
 
 type CacheLoader = (args: {
   latestSeen: Date | undefined
+  existing: Conversation[]
 }) => Promise<Conversation[]>
 
 export class ConversationCache {
@@ -43,7 +44,10 @@ export class ConversationCache {
   async load(loader: CacheLoader) {
     const release = await this.mutex.acquire()
     try {
-      const newConvos = await loader({ latestSeen: this.latestSeen })
+      const newConvos = await loader({
+        latestSeen: this.latestSeen,
+        existing: this.conversations,
+      })
       for (const convo of newConvos) {
         if (!this.seenTopics.has(convo.topic)) {
           this.seenTopics.add(convo.topic)
@@ -108,28 +112,35 @@ export default class Conversations {
   }
 
   private async listV2Conversations(): Promise<Conversation[]> {
-    return this.v2Cache.load(async ({ latestSeen }) => {
-      const newConvos: Conversation[] = []
-      const invites = await this.client.listInvitations({
-        startTime: latestSeen
-          ? new Date(+latestSeen - CLOCK_SKEW_OFFSET_MS)
-          : undefined,
-        direction: SortDirection.SORT_DIRECTION_ASCENDING,
-      })
+    return this.v2Cache.load(async ({ latestSeen }) =>
+      this.v2ConversationLoader(latestSeen)
+    )
+  }
 
-      for (const sealed of invites) {
-        try {
-          const unsealed = await sealed.v1.getInvitation(this.client.keys)
-          newConvos.push(
-            await ConversationV2.create(this.client, unsealed, sealed.v1.header)
-          )
-        } catch (e) {
-          console.warn('Error decrypting invitation', e)
-        }
-      }
-
-      return newConvos
+  // Callback called in listV2Conversations and in newConversation
+  private async v2ConversationLoader(
+    latestSeen: Date | undefined
+  ): Promise<Conversation[]> {
+    const newConvos: Conversation[] = []
+    const invites = await this.client.listInvitations({
+      startTime: latestSeen
+        ? new Date(+latestSeen - CLOCK_SKEW_OFFSET_MS)
+        : undefined,
+      direction: SortDirection.SORT_DIRECTION_ASCENDING,
     })
+
+    for (const sealed of invites) {
+      try {
+        const unsealed = await sealed.v1.getInvitation(this.client.keys)
+        newConvos.push(
+          await ConversationV2.create(this.client, unsealed, sealed.v1.header)
+        )
+      } catch (e) {
+        console.warn('Error decrypting invitation', e)
+      }
+    }
+
+    return newConvos
   }
 
   /**
@@ -396,36 +407,53 @@ export default class Conversations {
       contact = SignedPublicKeyBundle.fromLegacyBundle(contact)
     }
 
-    const v2Convos = await this.listV2Conversations()
-    const matchingV2Convo = v2Convos.find(
-      (convo) =>
-        convo.peerAddress === peerAddress &&
-        isMatchingContext(context, convo.context ?? undefined)
+    // Define a function for matching V2 conversations
+    const matcherFn = (convo: Conversation) =>
+      convo.peerAddress === peerAddress &&
+      isMatchingContext(context, convo.context ?? undefined)
+
+    let v2Convo: Conversation | undefined
+    // Perform all future operations while holding the mutex
+    await this.v2Cache.load(
+      async ({ latestSeen, existing }): Promise<Conversation[]> => {
+        // First check the cache without doing a network request
+        const existingMatch = existing.find(matcherFn)
+        if (existingMatch) {
+          v2Convo = existingMatch
+          return []
+        }
+
+        // Next try and load new items into the cache from the network
+        const newItems = await this.v2ConversationLoader(latestSeen)
+        const newItemMatch = newItems.find(matcherFn)
+        // If one of those matches, return it to update the cache
+        if (newItemMatch) {
+          v2Convo = newItemMatch
+          return newItems
+        }
+
+        // If all else fails, create a new invite
+        const invitation = InvitationV1.createRandom(context)
+        const sealedInvite = await this.sendInvitation(
+          contact as SignedPublicKeyBundle,
+          invitation,
+          new Date()
+        )
+
+        v2Convo = await ConversationV2.create(
+          this.client,
+          invitation,
+          sealedInvite.v1.header
+        )
+
+        return [v2Convo]
+      }
     )
 
-    // If a match is found, return it
-    if (matchingV2Convo) {
-      return matchingV2Convo
+    if (!v2Convo) {
+      throw new Error('Failed to create conversation')
     }
-
-    // No existing matches found, so create a new one V2 convo
-    const invitation = InvitationV1.createRandom(context)
-    const sealedInvite = await this.sendInvitation(
-      contact as SignedPublicKeyBundle,
-      invitation,
-      new Date()
-    )
-
-    const newConvo = await ConversationV2.create(
-      this.client,
-      invitation,
-      sealedInvite.v1.header
-    )
-
-    // Cache the conversation for immediate use
-    await this.v2Cache.load(async () => [newConvo])
-
-    return newConvo
+    return v2Convo
   }
 
   /**

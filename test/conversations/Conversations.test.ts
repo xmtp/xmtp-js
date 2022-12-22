@@ -357,6 +357,23 @@ describe('conversations', () => {
       const bobInvites = await bob.listInvitations()
       expect(bobInvites).toHaveLength(2)
     })
+
+    it('handles races', async () => {
+      const ctx = {
+        conversationId: 'xmtp.org/foo',
+        metadata: {},
+      }
+      // Create three conversations in parallel
+      await Promise.all([
+        alice.conversations.newConversation(bob.address, ctx),
+        alice.conversations.newConversation(bob.address, ctx),
+        alice.conversations.newConversation(bob.address, ctx),
+      ])
+      await sleep(50)
+
+      const invites = await alice.listInvitations()
+      expect(invites).toHaveLength(1)
+    })
   })
 
   describe('export', () => {
