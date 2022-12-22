@@ -365,12 +365,15 @@ export default class Conversations {
       return new ConversationV1(this.client, peerAddress, new Date())
     }
 
+    // If no conversationId, check and see if we have an existing V1 conversation
     if (!context?.conversationId) {
-      const intros = await this.getIntroductionPeers()
-      const introSentTime = intros.get(peerAddress)
+      const v1Convos = await this.listV1Conversations()
+      const matchingConvo = v1Convos.find(
+        (convo) => convo.peerAddress === peerAddress
+      )
       // If intro already exists, return V1 conversation
       // if both peers have V1 compatible key bundles
-      if (introSentTime) {
+      if (matchingConvo) {
         if (!this.client.keys.getPublicKeyBundle().isFromLegacyBundle()) {
           throw new Error(
             'cannot resume pre-existing V1 conversation; client keys not compatible'
@@ -384,7 +387,7 @@ export default class Conversations {
             'cannot resume pre-existing V1 conversation; peer keys not compatible'
           )
         }
-        return new ConversationV1(this.client, peerAddress, introSentTime)
+        return matchingConvo
       }
     }
 
@@ -393,41 +396,36 @@ export default class Conversations {
       contact = SignedPublicKeyBundle.fromLegacyBundle(contact)
     }
 
-    for (const sealedInvite of await this.client.listInvitations()) {
-      const isSamePeer =
-        sealedInvite.v1.header.recipient.equals(contact) ||
-        sealedInvite.v1.header.sender.equals(contact)
-      if (!isSamePeer) {
-        continue
-      }
-      try {
-        // Need to decode invite even without a context to ensure decryption succeeds and invite is valid
-        const invite = await sealedInvite.v1.getInvitation(this.client.keys)
-        // If the contexts match, return early
-        if (isMatchingContext(context, invite.context)) {
-          return await ConversationV2.create(
-            this.client,
-            invite,
-            sealedInvite.v1.header
-          )
-        }
-      } catch (e) {
-        console.warn('Error decoding invite', e)
-      }
+    const v2Convos = await this.listV2Conversations()
+    const matchingV2Convo = v2Convos.find(
+      (convo) =>
+        convo.peerAddress === peerAddress &&
+        isMatchingContext(context, convo.context ?? undefined)
+    )
+
+    // If a match is found, return it
+    if (matchingV2Convo) {
+      return matchingV2Convo
     }
 
-    // If no existing invite, send a new one
+    // No existing matches found, so create a new one V2 convo
     const invitation = InvitationV1.createRandom(context)
     const sealedInvite = await this.sendInvitation(
-      contact,
+      contact as SignedPublicKeyBundle,
       invitation,
       new Date()
     )
-    return ConversationV2.create(
+
+    const newConvo = await ConversationV2.create(
       this.client,
       invitation,
       sealedInvite.v1.header
     )
+
+    // Cache the conversation for immediate use
+    await this.v2Cache.load(async () => [newConvo])
+
+    return newConvo
   }
 
   /**
