@@ -413,7 +413,8 @@ export default class Conversations {
       isMatchingContext(context, convo.context ?? undefined)
 
     let v2Convo: Conversation | undefined
-    // Perform all future operations while holding the mutex
+
+    // Perform all read/write operations on the cache while holding the mutex
     await this.v2Cache.load(
       async ({ latestSeen, existing }): Promise<Conversation[]> => {
         // First check the cache without doing a network request
