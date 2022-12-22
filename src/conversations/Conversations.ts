@@ -450,6 +450,8 @@ export default class Conversations {
       }
     )
 
+    // Keep the typechecker happy
+    // v2Convo should never actually be undefined. An error in the loader will bubble and halt execution
     if (!v2Convo) {
       throw new Error('Failed to create conversation')
     }
