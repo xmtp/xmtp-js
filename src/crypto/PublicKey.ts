@@ -4,6 +4,7 @@ import Long from 'long'
 import Signature, { WalletSigner } from './Signature'
 import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
+import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
 
 // SECP256k1 public key in uncompressed format with prefix

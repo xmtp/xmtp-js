@@ -7,6 +7,7 @@ import {
   Client,
   ClientOptions,
 } from '../src'
+import { Signer } from '../src/types/Signer'
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 import assert from 'assert'

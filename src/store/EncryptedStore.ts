@@ -1,5 +1,6 @@
 import { Store } from './Store'
 import { utils } from 'ethers'
+import { Signer } from '../types/Signer'
 import {
   PrivateKeyBundleV1,
   decodePrivateKeyBundle,

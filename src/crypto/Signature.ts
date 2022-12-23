@@ -4,6 +4,7 @@ import * as secp from '@noble/secp256k1'
 import { PublicKey, UnsignedPublicKey, SignedPublicKey } from './PublicKey'
 import { SignedPrivateKey } from './PrivateKey'
 import { utils } from 'ethers'
+import { Signer } from '../types/Signer'
 import { bytesToHex, equalBytes, hexToBytes } from './utils'
 
 // ECDSA signature with recovery bit.

@@ -12,6 +12,7 @@ import {
   buildUserInviteTopic,
 } from './utils'
 import { utils } from 'ethers'
+import { Signer } from './types/Signer'
 import {
   EncryptedKeyStore,
   KeyStore,
