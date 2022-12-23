@@ -1,7 +1,7 @@
 import { ApiUrls } from './../src/ApiClient'
 import { newWallet, sleep } from './helpers'
 import Client, { defaultOptions } from '../src/Client'
-import { Signer } from 'ethers'
+import { Signer } from '../src/types/Signer'
 import {
   EncryptedKeyStore,
   PrivateTopicStore,
