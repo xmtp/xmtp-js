@@ -18,6 +18,8 @@
     "clean:proto": "rm -rf src/proto/*.ts",
     "package": "npm pack",
     "prepublishOnly": "npm run build",
+    "test:setup": "./dev/up",
+    "test:teardown": "./dev/down",
     "test": "npm run test:node",
     "test:node": "jest --no-cache --env='node' --forceExit --testTimeout=30000",
     "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.js' --forceExit --testTimeout=30000",
