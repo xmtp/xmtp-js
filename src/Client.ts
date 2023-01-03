@@ -11,7 +11,8 @@ import {
   EnvelopeMapper,
   buildUserInviteTopic,
 } from './utils'
-import { Signer, utils } from 'ethers'
+import { utils } from 'ethers'
+import { Signer } from './types/Signer'
 import {
   EncryptedKeyStore,
   KeyStore,
@@ -497,7 +498,7 @@ async function loadOrCreateKeysFromOptions(
 ) {
   if (!options.privateKeyOverride && !wallet) {
     throw new Error(
-      'Must provide either an ethers.Signer or specify privateKeyOverride'
+      'Must provide either a Signer or specify privateKeyOverride'
     )
   }
 

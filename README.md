@@ -120,7 +120,7 @@ Currently, network nodes are configured to rate limit high-volume publishing fro
 
 ### Creating a Client
 
-A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>` that requires passing in a connected Wallet. The Client will request a wallet signature in 2 cases:
+A Client is created with `Client.create(wallet: Signer): Promise<Client>` that requires passing in a connected Wallet that implements the [Signer](src/types/Signer.ts) interface. The Client will request a wallet signature in 2 cases:
 
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
@@ -129,7 +129,7 @@ A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>`
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
-// Create the client with an `ethers.Signer` from your application
+// Create the client with a `Signer` from your application
 const xmtp = await Client.create(wallet)
 ```
 
@@ -152,7 +152,7 @@ Most of the time, when interacting with the network, you'll want to do it throug
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
-// Create the client with an `ethers.Signer` from your application
+// Create the client with a `Signer` from your application
 const xmtp = await Client.create(wallet)
 const conversations = xmtp.conversations
 ```
@@ -389,7 +389,7 @@ You can export the unencrypted key bundle using the static method `Client.getKey
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
-// Get the keys using a valid ethers.Signer. Save them somewhere secure.
+// Get the keys using a valid Signer. Save them somewhere secure.
 const keys = await Client.getKeys(wallet)
 // Create a client using keys returned from getKeys
 const client = await Client.create(null, { privateKeyOverride: keys })

@@ -104,6 +104,9 @@ describe('conversation', () => {
     })
 
     it('ignores failed decoding of messages', async () => {
+      const consoleWarn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
@@ -124,6 +127,8 @@ describe('conversation', () => {
         numMessages += page.length
       }
       expect(numMessages).toBe(1)
+      expect(consoleWarn).toBeCalledTimes(1)
+      consoleWarn.mockRestore()
     })
 
     it('works for messaging yourself', async () => {
@@ -275,6 +280,9 @@ describe('conversation', () => {
     })
 
     it('filters out spoofed messages', async () => {
+      const consoleWarn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       const stream = await bobConvo.streamMessages()
@@ -293,6 +301,8 @@ describe('conversation', () => {
       expect(msg.senderAddress).toBe(alice.address)
       expect(msg.content).toBe('Hello from Alice')
       await stream.return()
+      expect(consoleWarn).toBeCalledTimes(1)
+      consoleWarn.mockRestore()
     })
 
     it('can send custom content type', async () => {
