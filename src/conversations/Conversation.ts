@@ -36,14 +36,14 @@ const { b64Decode } = fetcher
 type ConversationV1Export = {
   version: 'v1'
   peerAddress: string
-  createdAt: Date
+  createdAt: string
 }
 
 type ConversationV2Export = {
   version: 'v2'
   topic: string
   keyMaterial: string
-  createdAt: Date
+  createdAt: string
   peerAddress: string
   context: InvitationContext | undefined
 }
@@ -108,7 +108,7 @@ export class ConversationV1 {
     return {
       version: 'v1',
       peerAddress: this.peerAddress,
-      createdAt: this.createdAt,
+      createdAt: this.createdAt.toISOString(),
     }
   }
 
@@ -116,7 +116,11 @@ export class ConversationV1 {
     client: Client,
     data: ConversationV1Export
   ): ConversationV1 {
-    return new ConversationV1(client, data.peerAddress, data.createdAt)
+    return new ConversationV1(
+      client,
+      data.peerAddress,
+      new Date(data.createdAt)
+    )
   }
 
   async decodeMessage({
@@ -404,7 +408,7 @@ export class ConversationV2 {
       topic: this.topic,
       keyMaterial: Buffer.from(this.keyMaterial).toString('base64'),
       peerAddress: this.peerAddress,
-      createdAt: this.createdAt,
+      createdAt: this.createdAt.toISOString(),
       context: this.context,
     }
   }
@@ -418,7 +422,7 @@ export class ConversationV2 {
       data.topic,
       Buffer.from(data.keyMaterial, 'base64'),
       data.peerAddress,
-      data.createdAt,
+      new Date(data.createdAt),
       data.context
     )
   }
