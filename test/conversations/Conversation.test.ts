@@ -369,7 +369,7 @@ describe('conversation', () => {
       const exported = convo.export()
 
       expect(exported.peerAddress).toBe(bob.address)
-      expect(+exported.createdAt).toBe(+convo.createdAt)
+      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
       expect(exported.version).toBe('v1')
     })
 
@@ -381,6 +381,7 @@ describe('conversation', () => {
         fail()
       }
       const imported = ConversationV1.fromExport(alice, exported)
+      expect(imported.createdAt).toEqual(convo.createdAt)
       await imported.send('hello')
       await sleep(50)
 
@@ -592,7 +593,7 @@ describe('conversation', () => {
         fail()
       }
       expect(exported.peerAddress).toBe(bob.address)
-      expect(+exported.createdAt).toBe(+convo.createdAt)
+      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
       expect(exported.context?.conversationId).toBe(conversationId)
       expect(exported.keyMaterial).toBeTruthy()
       expect(exported.topic).toBe(convo.topic)
@@ -611,6 +612,7 @@ describe('conversation', () => {
       }
 
       const imported = ConversationV2.fromExport(alice, exported)
+      expect(imported.createdAt).toEqual(convo.createdAt)
       await imported.send('hello')
       await sleep(50)
 
