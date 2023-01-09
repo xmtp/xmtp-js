@@ -87,6 +87,20 @@ describe('Crypto', function () {
       assert.equal(actual, expected)
       assert.ok(true)
     })
+
+    it('1Party SharedKey derivation', async function () {
+      const pri = PrivateKey.fromBytes(
+        hexToBytes(
+          '08aaa9dad3ed2f12220a206fd789a6ee2376bb6595b4ebace57c7a79e6e4f1f12c8416d611399eda6c74cb1a4c08aaa9dad3ed2f1a430a4104e208133ea0973a9968fe5362e5ac0a8bbbe2aa16d796add31f3d027a1b894389873d7f282163bceb1fc3ca60d589d1e667956c40fed4cdaa7edc1392d2100b8a'
+        )
+      )
+
+      expect(() => {
+        pri.sharedSecret(pri.publicKey)
+      }).toThrowError(
+        'Cannot derive sharedsecret using keys from the same keypair'
+      )
+    })
   })
   describe('SignedPublicKeyBundle', () => {
     it('legacy roundtrip', async function () {

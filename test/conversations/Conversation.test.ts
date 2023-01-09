@@ -131,15 +131,11 @@ describe('conversation', () => {
       consoleWarn.mockRestore()
     })
 
-    it('works for messaging yourself', async () => {
+    it('cannot message yourself', async () => {
       const convo = await alice.conversations.newConversation(alice.address)
-      await convo.send('hey me')
-
-      const messages = await convo.messages()
-      expect(messages).toHaveLength(1)
-      expect(messages[0].content).toBe('hey me')
-      expect(messages[0].senderAddress).toBe(alice.address)
-      expect(messages[0].recipientAddress).toBe(alice.address)
+      expect(convo.send('hey me')).rejects.toThrowError(
+        'Cannot derive sharedsecret using keys from the same keypair'
+      )
     })
 
     it('allows for sorted listing', async () => {

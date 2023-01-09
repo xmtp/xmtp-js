@@ -23,6 +23,29 @@ function secp256k1Check(key: secp256k1): void {
   }
 }
 
+function deriveSharedSecret(
+  privateKey: SignedPrivateKey | PrivateKey,
+  publicKey: SignedPublicKey | UnsignedPublicKey
+): Uint8Array {
+  // Single party DHKE should be avoided. Throw error if publickey matches this keypair
+  if (
+    equalBytes(
+      privateKey.publicKey.secp256k1Uncompressed.bytes,
+      publicKey.secp256k1Uncompressed.bytes
+    )
+  ) {
+    throw new Error(
+      'Cannot derive sharedsecret using keys from the same keypair'
+    )
+  }
+
+  return secp.getSharedSecret(
+    privateKey.secp256k1.bytes,
+    publicKey.secp256k1Uncompressed.bytes,
+    false
+  )
+}
+
 // A private key signed with another key pair or a wallet.
 export class SignedPrivateKey
   implements privateKey.SignedPrivateKey, KeySigner
@@ -107,11 +130,7 @@ export class SignedPrivateKey
   // Derive shared secret from peer's PublicKey;
   // the peer can derive the same secret using their private key and our public key.
   sharedSecret(peer: SignedPublicKey | UnsignedPublicKey): Uint8Array {
-    return secp.getSharedSecret(
-      this.secp256k1.bytes,
-      peer.secp256k1Uncompressed.bytes,
-      false
-    )
+    return deriveSharedSecret(this, peer)
   }
 
   // encrypt plain bytes using a shared secret derived from peer's PublicKey;
@@ -238,11 +257,7 @@ export class PrivateKey implements privateKey.PrivateKey {
   // derive shared secret from peer's PublicKey;
   // the peer can derive the same secret using their PrivateKey and our PublicKey
   sharedSecret(peer: PublicKey | SignedPublicKey): Uint8Array {
-    return secp.getSharedSecret(
-      this.secp256k1.bytes,
-      peer.secp256k1Uncompressed.bytes,
-      false
-    )
+    return deriveSharedSecret(this, peer)
   }
 
   // encrypt plain bytes using a shared secret derived from peer's PublicKey;

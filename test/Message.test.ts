@@ -84,9 +84,10 @@ describe('Message', function () {
 
   it('id returns bytes as hex string of sha256 hash', async () => {
     const alice = await PrivateKeyBundleV1.generate(newWallet())
+    const bob = await PrivateKeyBundleV1.generate(newWallet())
     const msg = await MessageV1.encode(
       alice,
-      alice.getPublicKeyBundle(),
+      bob.getPublicKeyBundle(),
       new TextEncoder().encode('hi'),
       new Date()
     )
