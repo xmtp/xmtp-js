@@ -232,7 +232,7 @@ describe('conversation', () => {
       expect(twoToFourDaysAgo).toHaveLength(3)
     })
 
-    it('can send compressed messages', async () => {
+    it('can send compressed v1 messages', async () => {
       const convo = await alice.conversations.newConversation(bob.address)
       const content = 'A'.repeat(111)
       await convo.send(content, {
@@ -376,6 +376,23 @@ describe('conversation', () => {
 
       await bs.return()
       await as.return()
+    })
+
+    it('can send compressed v2 messages', async () => {
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId: 'example.com/compressedv2',
+        metadata: {},
+      })
+      const content = 'A'.repeat(111)
+      await convo.send(content, {
+        contentType: ContentTypeText,
+        compression: Compression.COMPRESSION_DEFLATE,
+      })
+      await sleep(100)
+      const results = await convo.messages()
+      expect(results).toHaveLength(1)
+      const msg = results[0]
+      expect(msg.content).toBe(content)
     })
 
     it('handles limiting page size', async () => {

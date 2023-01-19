@@ -19,6 +19,7 @@ import {
   EncodedContent,
 } from './MessageContent'
 import { nsToDate } from './utils'
+import { decompress } from './Compression'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
@@ -333,7 +334,7 @@ export class DecodedMessage {
   }
 }
 
-export function decodeContent(contentBytes: Uint8Array, client: Client) {
+export async function decodeContent(contentBytes: Uint8Array, client: Client) {
   const encodedContent = protoContent.EncodedContent.decode(contentBytes)
 
   if (!encodedContent.type) {
@@ -343,6 +344,8 @@ export function decodeContent(contentBytes: Uint8Array, client: Client) {
   let content: any // eslint-disable-line @typescript-eslint/no-explicit-any
   let contentType = new ContentTypeId(encodedContent.type)
   let error: Error | undefined
+
+  await decompress(encodedContent, 1000)
 
   const codec = client.codecFor(contentType)
   if (codec) {
