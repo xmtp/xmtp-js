@@ -4,6 +4,7 @@ import {
   newLocalHostClient,
   newDevClient,
   waitForUserContact,
+  newLocalHostClientWithCustomWallet,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { KeyStoreType, ClientOptions } from '../src/Client'
@@ -20,6 +21,10 @@ describe('Client', () => {
     {
       name: 'local host node',
       newClient: newLocalHostClient,
+    },
+    {
+      name: 'local host node with non-ethers wallet',
+      newClient: newLocalHostClientWithCustomWallet,
     },
   ]
 
@@ -69,6 +74,9 @@ describe('Client', () => {
 
         const can_mesg_b = await alice.canMessage(bob.address)
         assert.equal(can_mesg_b, true)
+
+        const lower = await alice.canMessage(bob.address.toLowerCase())
+        assert.equal(lower, true)
       })
     })
   })

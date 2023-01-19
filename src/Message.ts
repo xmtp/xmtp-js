@@ -18,7 +18,7 @@ import {
   ContentTypeId,
   EncodedContent,
 } from './MessageContent'
-import { nsToDate } from './utils'
+import { nsToDate } from './utils/date'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message

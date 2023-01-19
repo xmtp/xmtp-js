@@ -1,3 +1,4 @@
+import { ConversationV1 } from './../../src/conversations/Conversation'
 import { DecodedMessage } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import {
@@ -103,6 +104,9 @@ describe('conversation', () => {
     })
 
     it('ignores failed decoding of messages', async () => {
+      const consoleWarn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
@@ -123,6 +127,8 @@ describe('conversation', () => {
         numMessages += page.length
       }
       expect(numMessages).toBe(1)
+      expect(consoleWarn).toBeCalledTimes(1)
+      consoleWarn.mockRestore()
     })
 
     it('works for messaging yourself', async () => {
@@ -248,11 +254,35 @@ describe('conversation', () => {
 
     it('throws when opening a conversation with an unknown address', () => {
       expect(alice.conversations.newConversation('0xfoo')).rejects.toThrow(
-        'Recipient 0xfoo is not on the XMTP network'
+        'invalid address'
+      )
+      const validButUnknown = '0x1111111111222222222233333333334444444444'
+      expect(
+        alice.conversations.newConversation(validButUnknown)
+      ).rejects.toThrow(
+        `Recipient ${validButUnknown} is not on the XMTP network`
       )
     })
 
+    it('normalizes upper and lowercase addresses', async () => {
+      const bobLower = bob.address.toLowerCase()
+      const bobUpper = '0x' + bob.address.substring(2).toUpperCase()
+      await expect(
+        alice.conversations.newConversation(bobLower)
+      ).resolves.toMatchObject({
+        peerAddress: bob.address,
+      })
+      await expect(
+        alice.conversations.newConversation(bobUpper)
+      ).resolves.toMatchObject({
+        peerAddress: bob.address,
+      })
+    })
+
     it('filters out spoofed messages', async () => {
+      const consoleWarn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {})
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       const stream = await bobConvo.streamMessages()
@@ -271,6 +301,8 @@ describe('conversation', () => {
       expect(msg.senderAddress).toBe(alice.address)
       expect(msg.content).toBe('Hello from Alice')
       await stream.return()
+      expect(consoleWarn).toBeCalledTimes(1)
+      consoleWarn.mockRestore()
     })
 
     it('can send custom content type', async () => {
@@ -331,6 +363,32 @@ describe('conversation', () => {
       await bobStream.return()
       await aliceStream.return()
     })
+
+    it('exports', async () => {
+      const convo = await alice.conversations.newConversation(bob.address)
+      const exported = convo.export()
+
+      expect(exported.peerAddress).toBe(bob.address)
+      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
+      expect(exported.version).toBe('v1')
+    })
+
+    it('imports', async () => {
+      const convo = await alice.conversations.newConversation(bob.address)
+      const exported = convo.export()
+
+      if (exported.version !== 'v1') {
+        fail()
+      }
+      const imported = ConversationV1.fromExport(alice, exported)
+      expect(imported.createdAt).toEqual(convo.createdAt)
+      await imported.send('hello')
+      await sleep(50)
+
+      const results = await convo.messages()
+      expect(results).toHaveLength(1)
+      expect(results[0].content).toBe('hello')
+    })
   })
 
   describe('v2', () => {
@@ -363,7 +421,7 @@ describe('conversation', () => {
         fail()
       }
       expect(bc.topic).toBe(ac.topic)
-      expect(bc.keyMaterial).toEqual(ac.keyMaterial)
+      expect(bc.export().keyMaterial).toEqual(ac.export().keyMaterial)
       const bs = await bc.streamMessages()
       await sleep(100)
 
@@ -521,6 +579,47 @@ describe('conversation', () => {
 
       await bobStream.return()
       await aliceStream.return()
+    })
+
+    it('exports', async () => {
+      const conversationId = 'xmtp.org/foo'
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId,
+        metadata: {},
+      })
+      const exported = convo.export()
+
+      if (exported.version !== 'v2') {
+        fail()
+      }
+      expect(exported.peerAddress).toBe(bob.address)
+      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
+      expect(exported.context?.conversationId).toBe(conversationId)
+      expect(exported.keyMaterial).toBeTruthy()
+      expect(exported.topic).toBe(convo.topic)
+    })
+
+    it('imports', async () => {
+      const conversationId = 'xmtp.org/foo'
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId,
+        metadata: {},
+      })
+      const exported = convo.export()
+
+      if (exported.version !== 'v2') {
+        fail()
+      }
+
+      const imported = ConversationV2.fromExport(alice, exported)
+      expect(imported.createdAt).toEqual(convo.createdAt)
+      await imported.send('hello')
+      await sleep(50)
+
+      // Get messages from original conversation
+      const results = await convo.messages()
+      expect(results).toHaveLength(1)
+      expect(results[0].content).toBe('hello')
     })
   })
 })

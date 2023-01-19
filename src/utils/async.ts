@@ -1,38 +1,6 @@
 import { messageApi } from '@xmtp/proto'
-import Long from 'long'
 
 export type IsRetryable = (err?: Error) => boolean
-
-export const buildContentTopic = (name: string): string =>
-  `/xmtp/0/${name}/proto`
-
-export const buildDirectMessageTopic = (
-  sender: string,
-  recipient: string
-): string => {
-  const members = [sender, recipient]
-  members.sort()
-  return buildContentTopic(`dm-${members.join('-')}`)
-}
-
-export const buildDirectMessageTopicV2 = (randomString: string): string => {
-  return buildContentTopic(`m-${randomString}`)
-}
-
-export const buildUserContactTopic = (walletAddr: string): string => {
-  return buildContentTopic(`contact-${walletAddr}`)
-}
-
-export const buildUserIntroTopic = (walletAddr: string): string => {
-  return buildContentTopic(`intro-${walletAddr}`)
-}
-
-export const buildUserInviteTopic = (walletAddr: string): string => {
-  return buildContentTopic(`invite-${walletAddr}`)
-}
-export const buildUserPrivateStoreTopic = (walletAddr: string): string => {
-  return buildContentTopic(`privatestore-${walletAddr}`)
-}
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
@@ -105,23 +73,4 @@ export async function* mapPaginatedStream<Out>(
 
     yield out
   }
-}
-
-export function dateToNs(date: Date): Long {
-  return Long.fromNumber(date.valueOf()).multiply(1_000_000)
-}
-
-export function nsToDate(ns: Long): Date {
-  return new Date(ns.divide(1_000_000).toNumber())
-}
-
-export const toNanoString = (d: Date | undefined): undefined | string => {
-  return d && dateToNs(d).toString()
-}
-
-export const fromNanoString = (s: string | undefined): undefined | Date => {
-  if (!s) {
-    return undefined
-  }
-  return nsToDate(Long.fromString(s))
 }

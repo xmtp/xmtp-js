@@ -9,9 +9,11 @@ export {
   Signature,
 } from './crypto'
 export { default as Stream } from './Stream'
+export { Signer } from './types/Signer'
 export {
   default as Client,
   ClientOptions,
+  KeyStoreType,
   ListMessagesOptions,
   SendOptions,
   Compression,
