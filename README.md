@@ -379,7 +379,7 @@ Content will be decompressed transparently on the receiving end. Note that `Clie
 import { Compression } from '@xmtp/xmtp-js'
 
 conversation.send('#'.repeat(1000), {
-  compression: Compression.COMPRESSION_DEFLATE
+  compression: Compression.COMPRESSION_DEFLATE,
 })
 ```
 
