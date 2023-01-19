@@ -2,6 +2,7 @@ import {
   ConversationV1,
   ConversationV2,
 } from './../../src/conversations/Conversation'
+import { ConversationCache } from '../../src/conversations/Conversations'
 import { newLocalHostClient, waitForUserContact } from './../helpers'
 import { Client } from '../../src'
 import {
@@ -9,6 +10,7 @@ import {
   buildUserIntroTopic,
   sleep,
 } from '../../src/utils'
+import { Wallet } from 'ethers'
 
 describe('conversations', () => {
   let alice: Client
@@ -30,21 +32,91 @@ describe('conversations', () => {
     if (charlie) await charlie.close()
   })
 
-  it('lists all conversations', async () => {
-    const aliceConversations = await alice.conversations.list()
-    expect(aliceConversations).toHaveLength(0)
+  describe('listConversations', () => {
+    it('lists all conversations', async () => {
+      const aliceConversations = await alice.conversations.list()
+      expect(aliceConversations).toHaveLength(0)
 
-    const aliceToBob = await alice.conversations.newConversation(bob.address)
-    await aliceToBob.send('gm')
-    await sleep(100)
+      const aliceToBob = await alice.conversations.newConversation(bob.address)
+      await aliceToBob.send('gm')
+      await sleep(100)
 
-    const aliceConversationsAfterMessage = await alice.conversations.list()
-    expect(aliceConversationsAfterMessage).toHaveLength(1)
-    expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
+      const aliceConversationsAfterMessage = await alice.conversations.list()
+      expect(aliceConversationsAfterMessage).toHaveLength(1)
+      expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
 
-    const bobConversations = await bob.conversations.list()
-    expect(bobConversations).toHaveLength(1)
-    expect(bobConversations[0].peerAddress).toBe(alice.address)
+      const bobConversations = await bob.conversations.list()
+      expect(bobConversations).toHaveLength(1)
+      expect(bobConversations[0].peerAddress).toBe(alice.address)
+    })
+
+    it('resumes list with cache after new conversation is created', async () => {
+      const aliceConversations1 = await alice.conversations.list()
+      expect(aliceConversations1).toHaveLength(0)
+
+      await alice.conversations.newConversation(bob.address, {
+        conversationId: 'foo',
+        metadata: {},
+      })
+      await sleep(100)
+      const aliceConversations2 = await alice.conversations.list()
+      expect(aliceConversations2).toHaveLength(1)
+
+      await alice.conversations.newConversation(bob.address, {
+        conversationId: 'bar',
+        metadata: {},
+      })
+      await sleep(100)
+      const aliceConversations3 = await alice.conversations.list()
+      expect(aliceConversations3).toHaveLength(2)
+    })
+
+    it('caches results and updates the latestSeen date', async () => {
+      const cache = new ConversationCache()
+      const convoDate = new Date()
+      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
+
+      const results = await cache.load(async () => {
+        return [firstConvo]
+      })
+      expect(results[0]).toBe(firstConvo)
+
+      // Should dedupe repeated result
+      const results2 = await cache.load(async ({ latestSeen }) => {
+        expect(latestSeen).toBe(convoDate)
+        return [firstConvo]
+      })
+
+      expect(results2).toHaveLength(1)
+    })
+
+    it('bubbles up errors in loader', async () => {
+      const cache = new ConversationCache()
+      await expect(
+        cache.load(async () => {
+          throw new Error('test')
+        })
+      ).rejects.toThrow('test')
+    })
+
+    it('waits for one request to finish before the second one starts', async () => {
+      const cache = new ConversationCache()
+      const convoDate = new Date()
+      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
+      const promise1 = cache.load(async ({ latestSeen }) => {
+        expect(latestSeen).toBeUndefined()
+        return [firstConvo]
+      })
+
+      const promise2 = cache.load(async ({ latestSeen }) => {
+        expect(latestSeen).toBe(convoDate)
+        return []
+      })
+
+      const [result1, result2] = await Promise.all([promise1, promise2])
+      expect(result1).toHaveLength(1)
+      expect(result2).toHaveLength(1)
+    })
   })
 
   it('streams conversations', async () => {
@@ -59,6 +131,7 @@ describe('conversations', () => {
       break
     }
     expect(numConversations).toBe(1)
+    await stream.return()
   })
 
   it('streams all conversation messages from empty state', async () => {
@@ -283,6 +356,67 @@ describe('conversations', () => {
 
       const bobInvites = await bob.listInvitations()
       expect(bobInvites).toHaveLength(2)
+    })
+
+    it('handles races', async () => {
+      const ctx = {
+        conversationId: 'xmtp.org/foo',
+        metadata: {},
+      }
+      // Create three conversations in parallel
+      await Promise.all([
+        alice.conversations.newConversation(bob.address, ctx),
+        alice.conversations.newConversation(bob.address, ctx),
+        alice.conversations.newConversation(bob.address, ctx),
+      ])
+      await sleep(50)
+
+      const invites = await alice.listInvitations()
+      expect(invites).toHaveLength(1)
+    })
+  })
+
+  describe('export', () => {
+    it('exports something JSON serializable', async () => {
+      await Promise.all([
+        alice.conversations
+          .newConversation(bob.address)
+          .then((convo) => convo.send('hello')),
+        alice.conversations.newConversation(bob.address, {
+          conversationId: 'xmtp.org/foo',
+          metadata: {},
+        }),
+      ])
+      await sleep(50)
+
+      const exported = await alice.conversations.export()
+      expect(exported).toHaveLength(2)
+
+      const roundTripped = JSON.parse(JSON.stringify(exported))
+      expect(roundTripped).toHaveLength(2)
+      expect(roundTripped[0].createdAt).toEqual(exported[0].createdAt)
+    })
+
+    it('imports from export', async () => {
+      const wallet = Wallet.createRandom()
+      const clientA = await Client.create(wallet, { env: 'local' })
+      await Promise.all([
+        clientA.conversations
+          .newConversation(bob.address)
+          .then((convo) => convo.send('hello')),
+        clientA.conversations.newConversation(bob.address, {
+          conversationId: 'xmtp.org/foo',
+          metadata: {},
+        }),
+      ])
+      await sleep(50)
+
+      const exported = await clientA.conversations.export()
+      expect(exported).toHaveLength(2)
+
+      const clientB = await Client.create(wallet, { env: 'local' })
+      const failed = await clientB.conversations.import(exported)
+      expect(failed).toBe(0)
     })
   })
 })

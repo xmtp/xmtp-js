@@ -1,5 +1,6 @@
 import { Store } from './Store'
-import { Signer, utils } from 'ethers'
+import { utils } from 'ethers'
+import { Signer } from '../types/Signer'
 import {
   PrivateKeyBundleV1,
   decodePrivateKeyBundle,
@@ -29,7 +30,8 @@ export default class EncryptedKeyStore implements KeyStore {
   private async getStorageAddress(name: string): Promise<string> {
     // I think we want to namespace the storage address by wallet
     // This will allow us to support switching between multiple wallets in the same browser
-    const walletAddress = await this.signer.getAddress()
+    let walletAddress = await this.signer.getAddress()
+    walletAddress = utils.getAddress(walletAddress)
     return `${walletAddress}/${name}`
   }
 

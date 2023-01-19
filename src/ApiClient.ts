@@ -177,29 +177,39 @@ export default class ApiClient {
     req: messageApi.SubscribeRequest,
     cb: NotifyStreamEntityArrival<messageApi.Envelope>
   ): UnsubscribeFn {
-    let abortController: AbortController
+    const abortController = new AbortController()
 
-    const doSubscribe = () => {
-      abortController = new AbortController()
-      const startTime = +new Date()
-
-      MessageApi.Subscribe(req, cb, {
-        pathPrefix: this.pathPrefix,
-        signal: abortController.signal,
-        mode: 'cors',
-        headers: this.headers(),
-      }).catch(async (err: GrpcError) => {
-        if (isAbortError(err)) {
-          return
+    const doSubscribe = async () => {
+      while (true) {
+        const startTime = new Date().getTime()
+        try {
+          await MessageApi.Subscribe(req, cb, {
+            pathPrefix: this.pathPrefix,
+            signal: abortController.signal,
+            mode: 'cors',
+            headers: this.headers(),
+          })
+          if (abortController.signal.aborted) {
+            return
+          }
+          console.info('Stream connection closed. Resubscribing')
+          if (new Date().getTime() - startTime < 1000) {
+            await sleep(1000)
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+          if (isAbortError(err) || abortController.signal.aborted) {
+            return
+          }
+          console.info(
+            'Stream connection closed. Resubscribing',
+            err.toString()
+          )
+          if (new Date().getTime() - startTime < 1000) {
+            await sleep(1000)
+          }
         }
-        console.info('Stream connection lost. Resubscribing', err)
-        // If connection was initiated less than 1 second ago, sleep for a bit
-        // TODO: exponential backoff + eventually giving up
-        if (+new Date() - startTime < 1000) {
-          await sleep(1000)
-        }
-        doSubscribe()
-      })
+      }
     }
     doSubscribe()
 
