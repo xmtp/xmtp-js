@@ -8,6 +8,8 @@ import {
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { KeyStoreType, ClientOptions } from '../src/Client'
+import { Compression } from '../src'
+import { content as proto } from '@xmtp/proto'
 
 type TestCase = {
   name: string
@@ -77,6 +79,28 @@ describe('Client', () => {
         assert.equal(lower, true)
       })
     })
+  })
+})
+
+describe('encodeContent', () => {
+  it('passes deflate compression option through properly', async function () {
+    const c = await newLocalHostClient()
+    const utf8Encode = new TextEncoder()
+    const uncompressed = utf8Encode.encode('hello world '.repeat(20))
+
+    const compressed = Uint8Array.from([
+      10, 18, 10, 8, 120, 109, 116, 112, 46, 111, 114, 103, 18, 4, 116, 101,
+      120, 116, 24, 1, 18, 17, 10, 8, 101, 110, 99, 111, 100, 105, 110, 103, 18,
+      5, 85, 84, 70, 45, 56, 40, 0, 34, 45, 120, 1, 51, 52, 48, 209, 49, 52, 48,
+      4, 98, 11, 8, 54, 52, 212, 49, 54, 2, 82, 150, 96, 166, 161, 161, 9, 84,
+      202, 0, 44, 60, 170, 122, 84, 245, 168, 106, 218, 171, 6, 0, 139, 43, 173,
+      229,
+    ])
+
+    const payload = await c.encodeContent(uncompressed, {
+      compression: Compression.COMPRESSION_DEFLATE,
+    })
+    assert.deepEqual(Uint8Array.from(payload), compressed)
   })
 })
 
