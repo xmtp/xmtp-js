@@ -1,5 +1,5 @@
 import { ConversationV1 } from './../../src/conversations/Conversation'
-import { DecodedMessage } from './../../src/Message'
+import { DecodedMessage, MessageV1 } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import {
   Client,
@@ -18,6 +18,7 @@ import {
 } from '../../src/crypto'
 import { ConversationV2 } from '../../src/conversations/Conversation'
 import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
+import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
 
 describe('conversation', () => {
   let alice: Client
@@ -245,7 +246,27 @@ describe('conversation', () => {
         contentType: ContentTypeText,
         compression: Compression.COMPRESSION_DEFLATE,
       })
+
       await sleep(100)
+
+      // Verify that messages are actually compressed
+      const envelopes = await alice.apiClient.query(
+        {
+          contentTopics: [convo.topic],
+        },
+        { limit: 1 }
+      )
+      const messageBytes = fetcher.b64Decode(
+        envelopes[0].message as unknown as string
+      )
+      const decoded = await MessageV1.fromBytes(messageBytes)
+      const decrypted = await decoded.decrypt(alice.legacyKeys)
+      const encodedContent = proto.EncodedContent.decode(decrypted)
+      expect(encodedContent.content).not.toStrictEqual(
+        new Uint8Array(111).fill(65)
+      )
+      expect(encodedContent.compression).toBe(Compression.COMPRESSION_DEFLATE)
+
       const results = await convo.messages()
       expect(results).toHaveLength(1)
       const msg = results[0]
