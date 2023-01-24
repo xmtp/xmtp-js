@@ -32,16 +32,16 @@ After a pull request is submitted, a single approval is required to merge it.
 
 A new version of this package will be automatically published whenever there is a merge to the `main` branch. Specifically, new GitHub releases and tags will be created, and a new NPM package version will be published. The release version increment type is derived from the format of the commit messages that were bundled in the merge to `main`, using [semantic-release commit message conventions](https://github.com/semantic-release/semantic-release#commit-message-format).
 
-The table below shows example commits and the resulting release type:
+The table below shows example commits and the resulting release type for a `pencil` project:
 
 <!-- prettier-ignore-start -->
 | Commit message                                                                                                                                                                                   | Release type                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `docs(pencil): describe scribble feature` | No Release |
-| `test(pencil): fix failing unit test` | No Release |
-| `fix(pencil): stop graphite breaking when too much pressure applied` | ~~Patch~~ Fix Release |
-| `feat(pencil): add 'graphiteWidth' option` | ~~Minor~~ Feature Release |
-| `perf(pencil): remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | ~~Major~~ Breaking Release <br /> (Note that the `BREAKING CHANGE:` token must be in the footer of the commit) |
+| `docs: describe scribble feature` | No Release |
+| `test: fix failing unit test` | No Release |
+| `fix: stop graphite breaking when too much pressure applied` | ~~Patch~~ Fix Release |
+| `feat: add 'graphiteWidth' option` | ~~Minor~~ Feature Release |
+| `perf: remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | ~~Major~~ Breaking Release <br /> (Note that the `BREAKING CHANGE:` token must be in the footer of the commit) |
 <!-- prettier-ignore-end -->
 
 This is currently configured to use the [Angular Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format). e.g. `feat: add message signing` would cause a minor release.
