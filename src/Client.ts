@@ -367,7 +367,7 @@ export default class Client {
     if (options?.contentFallback) {
       encoded.fallback = options.contentFallback
     }
-    if (options?.compression) {
+    if (typeof options?.compression === 'number') {
       encoded.compression = options.compression
     }
     await compress(encoded)
