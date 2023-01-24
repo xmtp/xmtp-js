@@ -1,5 +1,5 @@
 import { ConversationV1 } from './../../src/conversations/Conversation'
-import { DecodedMessage } from './../../src/Message'
+import { DecodedMessage, MessageV1 } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import {
   Client,
@@ -18,6 +18,7 @@ import {
 } from '../../src/crypto'
 import { ConversationV2 } from '../../src/conversations/Conversation'
 import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
+import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
 
 describe('conversation', () => {
   let alice: Client
@@ -238,14 +239,34 @@ describe('conversation', () => {
       expect(twoToFourDaysAgo).toHaveLength(3)
     })
 
-    it('can send compressed messages', async () => {
+    it('can send compressed v1 messages', async () => {
       const convo = await alice.conversations.newConversation(bob.address)
       const content = 'A'.repeat(111)
       await convo.send(content, {
         contentType: ContentTypeText,
         compression: Compression.COMPRESSION_DEFLATE,
       })
+
       await sleep(100)
+
+      // Verify that messages are actually compressed
+      const envelopes = await alice.apiClient.query(
+        {
+          contentTopics: [convo.topic],
+        },
+        { limit: 1 }
+      )
+      const messageBytes = fetcher.b64Decode(
+        envelopes[0].message as unknown as string
+      )
+      const decoded = await MessageV1.fromBytes(messageBytes)
+      const decrypted = await decoded.decrypt(alice.legacyKeys)
+      const encodedContent = proto.EncodedContent.decode(decrypted)
+      expect(encodedContent.content).not.toStrictEqual(
+        new Uint8Array(111).fill(65)
+      )
+      expect(encodedContent.compression).toBe(Compression.COMPRESSION_DEFLATE)
+
       const results = await convo.messages()
       expect(results).toHaveLength(1)
       const msg = results[0]
@@ -369,7 +390,7 @@ describe('conversation', () => {
       const exported = convo.export()
 
       expect(exported.peerAddress).toBe(bob.address)
-      expect(+exported.createdAt).toBe(+convo.createdAt)
+      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
       expect(exported.version).toBe('v1')
     })
 
@@ -381,6 +402,7 @@ describe('conversation', () => {
         fail()
       }
       const imported = ConversationV1.fromExport(alice, exported)
+      expect(imported.createdAt).toEqual(convo.createdAt)
       await imported.send('hello')
       await sleep(50)
 
@@ -433,6 +455,23 @@ describe('conversation', () => {
 
       await bs.return()
       await as.return()
+    })
+
+    it('can send compressed v2 messages', async () => {
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId: 'example.com/compressedv2',
+        metadata: {},
+      })
+      const content = 'A'.repeat(111)
+      await convo.send(content, {
+        contentType: ContentTypeText,
+        compression: Compression.COMPRESSION_DEFLATE,
+      })
+      await sleep(100)
+      const results = await convo.messages()
+      expect(results).toHaveLength(1)
+      const msg = results[0]
+      expect(msg.content).toBe(content)
     })
 
     it('handles limiting page size', async () => {
@@ -592,7 +631,7 @@ describe('conversation', () => {
         fail()
       }
       expect(exported.peerAddress).toBe(bob.address)
-      expect(+exported.createdAt).toBe(+convo.createdAt)
+      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
       expect(exported.context?.conversationId).toBe(conversationId)
       expect(exported.keyMaterial).toBeTruthy()
       expect(exported.topic).toBe(convo.topic)
@@ -611,6 +650,7 @@ describe('conversation', () => {
       }
 
       const imported = ConversationV2.fromExport(alice, exported)
+      expect(imported.createdAt).toEqual(convo.createdAt)
       await imported.send('hello')
       await sleep(50)
 

@@ -116,6 +116,8 @@ for await (const message of await conversation.streamMessages()) {
 }
 ```
 
+Currently, network nodes are configured to rate limit high-volume publishing from Clients. A rate-limited Client can expect to receive a 429 status code response from a node. Rate limits can change at any time in the interest of maintaining network health.
+
 ### Creating a Client
 
 A Client is created with `Client.create(wallet: Signer): Promise<Client>` that requires passing in a connected Wallet that implements the [Signer](src/types/Signer.ts) interface. The Client will request a wallet signature in 2 cases:
@@ -374,8 +376,10 @@ Message content can be optionally compressed using the `compression` option. The
 Content will be decompressed transparently on the receiving end. Note that `Client` enforces maximum content size. The default limit can be overridden through the `ClientOptions`. Consequently a message that would expand beyond that limit on the receiving end will fail to decode.
 
 ```ts
+import { Compression } from '@xmtp/xmtp-js'
+
 conversation.send('#'.repeat(1000), {
-  compression: 'deflate',
+  compression: Compression.COMPRESSION_DEFLATE,
 })
 ```
 
