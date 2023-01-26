@@ -239,7 +239,9 @@ describe('Subscribe', () => {
   })
 
   it('can subscribe', async () => {
-    const subscribeMock = createSubscribeMock(2)
+    const subscribeMock = jest
+      .spyOn(MessageApi, 'Subscribe')
+      .mockImplementation(subscribeMockImplementation(2))
     let numEnvelopes = 0
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
@@ -260,7 +262,24 @@ describe('Subscribe', () => {
   })
 
   it('should resubscribe on error', async () => {
-    const subscribeMock = createSubscribeMock(2)
+    let called = 0
+    const subscribeMock = jest
+      .spyOn(MessageApi, 'Subscribe')
+      .mockImplementation(
+        async (
+          req: messageApi.SubscribeRequest,
+          cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
+          initReq?: InitReq
+        ): Promise<void> => {
+          called++
+          if (called == 1) {
+            throw new Error('error')
+          }
+          let nonErroringSubscribe = subscribeMockImplementation(2)
+          return await nonErroringSubscribe(req, cb, initReq)
+        }
+      )
+    const consoleInfo = jest.spyOn(console, 'info').mockImplementation(() => {})
     let numEnvelopes = 0
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
@@ -269,7 +288,9 @@ describe('Subscribe', () => {
     const unsubscribeFn = client.subscribe(req, cb)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
-    expect(subscribeMock).toBeCalledTimes(1)
+    // Resubscribing triggers an info log
+    expect(consoleInfo).toBeCalledTimes(1)
+    expect(subscribeMock).toBeCalledTimes(2)
     expect(subscribeMock).toBeCalledWith(req, cb, {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
@@ -278,11 +299,29 @@ describe('Subscribe', () => {
         'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
+    consoleInfo.mockRestore()
     await unsubscribeFn()
   })
 
   it('should resubscribe on completion', async () => {
-    const subscribeMock = createSubscribeMock(2)
+    let called = 0
+    const subscribeMock = jest
+      .spyOn(MessageApi, 'Subscribe')
+      .mockImplementation(
+        async (
+          req: messageApi.SubscribeRequest,
+          cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
+          initReq?: InitReq
+        ): Promise<void> => {
+          called++
+          if (called == 1) {
+            return
+          }
+          let nonAbortingSubscribe = subscribeMockImplementation(2)
+          return await nonAbortingSubscribe(req, cb, initReq)
+        }
+      )
+    const consoleInfo = jest.spyOn(console, 'info').mockImplementation(() => {})
     let numEnvelopes = 0
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
@@ -291,7 +330,9 @@ describe('Subscribe', () => {
     const unsubscribeFn = client.subscribe(req, cb)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
-    expect(subscribeMock).toBeCalledTimes(1)
+    // Resubscribing triggers an info log
+    expect(consoleInfo).toBeCalledTimes(1)
+    expect(subscribeMock).toBeCalledTimes(2)
     expect(subscribeMock).toBeCalledWith(req, cb, {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
@@ -300,6 +341,7 @@ describe('Subscribe', () => {
         'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
+    consoleInfo.mockRestore()
     await unsubscribeFn()
   })
 
@@ -355,26 +397,27 @@ function createAuthErrorPublishMock(rejectTimes = 1) {
 }
 
 function createSubscribeMock(numMessages: number) {
-  return jest
-    .spyOn(MessageApi, 'Subscribe')
-    .mockImplementation(
-      async (
-        req: messageApi.SubscribeRequest,
-        cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
-        initReq?: InitReq
-      ): Promise<void> => {
-        for (let i = 0; i < numMessages; i++) {
-          if (cb) {
-            cb(createEnvelope())
-          }
-        }
-        // Connection stream is expected to stay open until terminated
-        const connectionClosePromise = new Promise((resolve) => {
-          initReq!.signal!.onabort = () => resolve(null)
-        })
-        await connectionClosePromise
+  return jest.spyOn(MessageApi, 'Subscribe').mockImplementation()
+}
+
+function subscribeMockImplementation(numMessages: number) {
+  let subscribe = async (
+    req: messageApi.SubscribeRequest,
+    cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
+    initReq?: InitReq
+  ): Promise<void> => {
+    for (let i = 0; i < numMessages; i++) {
+      if (cb) {
+        cb(createEnvelope())
       }
-    )
+    }
+    // Connection stream is expected to stay open until terminated
+    const connectionClosePromise = new Promise((resolve) => {
+      initReq!.signal!.onabort = () => resolve(null)
+    })
+    await connectionClosePromise
+  }
+  return subscribe
 }
 
 function createEnvelope(): messageApi.Envelope {
