@@ -353,6 +353,16 @@ export default class Client {
   }
 
   static async canMessage(
+    peerAddress: string,
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean>
+
+  static async canMessage(
+    peerAddress: string[],
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean[]>
+
+  static async canMessage(
     peerAddress: string | string[],
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
@@ -361,21 +371,16 @@ export default class Client {
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
       // Try to normalize each of the peer addresses
-      try {
-        const normalizedPeerAddresses = rawPeerAddresses.map((address) =>
-          utils.getAddress(address)
-        )
-        const contacts = await getUserContactsFromNetwork(
-          new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
-          normalizedPeerAddresses
-        )
-        return contacts.map((contact) => !!contact)
-      } catch (e) {
-        // If any of the addresses are invalid, return false for all of them
-        return rawPeerAddresses.map(() => false)
-      }
-      // If we end up here, return false
-      return rawPeerAddresses.map(() => false)
+      const normalizedPeerAddresses = rawPeerAddresses.map((address) =>
+        utils.getAddress(address)
+      )
+      // The getUserContactsFromNetwork will return false instead of throwing
+      // on invalid envelopes
+      const contacts = await getUserContactsFromNetwork(
+        new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
+        normalizedPeerAddresses
+      )
+      return contacts.map((contact) => !!contact)
     }
     try {
       peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
@@ -618,24 +623,35 @@ async function getUserContactsFromNetwork(
 ): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
   const userContactTopics = peerAddresses.map(buildUserContactTopic)
   const topicToEnvelopes = await apiClient.batchQuery(
-    { contentTopics: userContactTopics },
-    { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+    userContactTopics.map((topic) => ({
+      contentTopics: [topic],
+      pageSize: 5,
+      direction: SortDirection.SORT_DIRECTION_DESCENDING,
+    }))
   )
 
   // Transform topicToEnvelopes into a list of PublicKeyBundles or undefined
   // by going through each message and attempting to decode
   return Promise.all(
-    peerAddresses.map(async (address) => {
-      const envelopes = topicToEnvelopes.get(buildUserContactTopic(address))
+    peerAddresses.map(async (address: string, index: number) => {
+      const envelopes = topicToEnvelopes[index]
       if (!envelopes) {
         return undefined
       }
       for (const env of envelopes) {
         if (!env.message) continue
-        const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
-        const signingAddress = await keyBundle?.walletSignatureAddress()
-        if (address === signingAddress) {
-          return keyBundle
+        try {
+          const keyBundle = decodeContactBundle(
+            b64Decode(env.message.toString())
+          )
+          const signingAddress = await keyBundle?.walletSignatureAddress()
+          if (address === signingAddress) {
+            return keyBundle
+          } else {
+            console.info('Received contact bundle with incorrect address')
+          }
+        } catch (e) {
+          console.info('Invalid contact bundle', e)
         }
       }
       return undefined

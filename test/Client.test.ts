@@ -136,7 +136,7 @@ describe('canMessageBatch', () => {
     )
     // Now call canMessage with all of the peerAddresses
     const canMessageRegisteredClients = await Client.canMessage(
-      [...registeredClients.map((client) => client.address)],
+      registeredClients.map((client) => client.address),
       {
         env: 'local',
       }
@@ -171,6 +171,13 @@ describe('canMessageMultipleBatches', () => {
     for (let i = 0; i < 8; i++) {
       repeatedPeerAddresses.push(...initialPeerAddresses)
     }
+    // Add 5 fake addresses
+    repeatedPeerAddresses.push(
+      ...Array.from(
+        { length: 5 },
+        () => '0x0000000000000000000000000000000000000000'
+      )
+    )
 
     // Now call canMessage with all of the peerAddresses
     const canMessageRegisteredClients = await Client.canMessage(
@@ -179,9 +186,11 @@ describe('canMessageMultipleBatches', () => {
         env: 'local',
       }
     )
-    // Expect all of the clients to be registered, so response should be all True
+    // Expect 80 True and 5 False
     expect(canMessageRegisteredClients).toEqual(
-      repeatedPeerAddresses.map(() => true)
+      Array.from({ length: 80 }, () => true).concat(
+        Array.from({ length: 5 }, () => false)
+      )
     )
   })
 })
