@@ -239,9 +239,7 @@ describe('Subscribe', () => {
   })
 
   it('can subscribe', async () => {
-    const subscribeMock = jest
-      .spyOn(MessageApi, 'Subscribe')
-      .mockImplementation(subscribeMockImplementation(2))
+    const subscribeMock = createSubscribeMock(2)
     let numEnvelopes = 0
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
@@ -397,7 +395,9 @@ function createAuthErrorPublishMock(rejectTimes = 1) {
 }
 
 function createSubscribeMock(numMessages: number) {
-  return jest.spyOn(MessageApi, 'Subscribe').mockImplementation()
+  return jest
+    .spyOn(MessageApi, 'Subscribe')
+    .mockImplementation(subscribeMockImplementation(numMessages))
 }
 
 function subscribeMockImplementation(numMessages: number) {
