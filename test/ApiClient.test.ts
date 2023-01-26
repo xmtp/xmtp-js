@@ -269,6 +269,9 @@ describe('Subscribe', () => {
           cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
           initReq?: InitReq
         ): Promise<void> => {
+          // We mock a connection stream that immediately errors the first time
+          // it is called. The second time it is called, it behaves as expected (the connection
+          // stays open, and two messages are received over the subscription)
           called++
           if (called == 1) {
             throw new Error('error')
@@ -311,6 +314,9 @@ describe('Subscribe', () => {
           cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
           initReq?: InitReq
         ): Promise<void> => {
+          // We mock a connection stream that immediately terminates the first time
+          // it is called. The second time it is called, it behaves as expected (the connection
+          // stays open, and two messages are received over the subscription)
           called++
           if (called == 1) {
             return
@@ -400,6 +406,9 @@ function createSubscribeMock(numMessages: number) {
     .mockImplementation(subscribeMockImplementation(numMessages))
 }
 
+// Subscribes to a connection stream that pushes down the number of messages specified.
+// The connection stream is expected to stay open until it is closed by an unsubscribe
+// request (which is reflected by the 'onabort' signal)
 function subscribeMockImplementation(numMessages: number) {
   let subscribe = async (
     req: messageApi.SubscribeRequest,
