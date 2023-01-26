@@ -308,7 +308,12 @@ export default class Client {
     // Now merge the newBundles into the addressToBundle map
     for (let i = 0; i < newBundles.length; i++) {
       const address = uncachedAddresses[i]
-      addressToBundle.set(address, newBundles[i])
+      const bundle = newBundles[i]
+      addressToBundle.set(address, bundle)
+      // If the bundle is not undefined, cache it
+      if (bundle) {
+        this.knownPublicKeyBundles.set(address, bundle)
+      }
     }
 
     // Finally return the bundles in the same order as the input addresses
