@@ -147,40 +147,42 @@ describe('canMessageBatch', () => {
     )
 
     const canMessageUnregisteredClient = await Client.canMessage(
-      newWallet().address,
+      [newWallet().address],
       { env: 'local' }
     )
-    expect(canMessageUnregisteredClient).toBeFalsy()
+    expect(canMessageUnregisteredClient).toEqual([false])
   })
 })
 
-describe('canMessageBatch75', () => {
+describe('canMessageMultipleBatches', () => {
   it('can confirm many multiple users are on the network statically', async () => {
-    // Create 10 registered clients
     const registeredClients = await Promise.all(
-      Array.from({ length: 75 }, () => newLocalHostClient())
+      Array.from({ length: 10 }, () => newLocalHostClient())
     )
     // Wait for all clients to be registered
     await Promise.all(
       registeredClients.map((client) => waitForUserContact(client, client))
     )
+    // Repeat registeredClients 8 times to arrive at 80 addresses
+    const initialPeerAddresses = registeredClients.map(
+      (client) => client.address
+    )
+    const repeatedPeerAddresses: string[] = []
+    for (let i = 0; i < 8; i++) {
+      repeatedPeerAddresses.push(...initialPeerAddresses)
+    }
+
     // Now call canMessage with all of the peerAddresses
     const canMessageRegisteredClients = await Client.canMessage(
-      [...registeredClients.map((client) => client.address)],
+      repeatedPeerAddresses,
       {
         env: 'local',
       }
     )
     // Expect all of the clients to be registered, so response should be all True
     expect(canMessageRegisteredClients).toEqual(
-      registeredClients.map(() => true)
+      repeatedPeerAddresses.map(() => true)
     )
-
-    const canMessageUnregisteredClient = await Client.canMessage(
-      newWallet().address,
-      { env: 'local' }
-    )
-    expect(canMessageUnregisteredClient).toBeFalsy()
   })
 })
 

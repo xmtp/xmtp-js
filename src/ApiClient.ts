@@ -329,14 +329,21 @@ export default class ApiClient {
     // Group content topics into batches of 50 (implicit server-side limit) and then perform BatchQueries
     const BATCH_SIZE = 50
     const topicToEnvelopes = new Map<string, messageApi.Envelope[]>()
+    // Keep a list of BatchQueryRequests to execute all at once later
+    const batchRequests: messageApi.BatchQueryRequest[] = []
+    // Keep a list of list of topics, grouped by batch for assembling responses in order later
+    const batchTopics: string[][] = []
+
+    // Assemble batches
     for (let i = 0; i < contentTopics.length; i += BATCH_SIZE) {
-      const batch = contentTopics.slice(i, i + BATCH_SIZE)
+      const topicsInBatch = contentTopics.slice(i, i + BATCH_SIZE)
+      batchTopics.push(topicsInBatch)
       // Perform batch query by first compiling a list of repeated individual QueryRequests
       // and then calling the BatchQuery API with that list of requests in a BatchQueryRequest
-      const batchQueryRequests: messageApi.QueryRequest[] = []
-      for (let j = 0; j < batch.length; j++) {
-        batchQueryRequests.push({
-          contentTopics: [batch[j]],
+      const queryRequests: messageApi.QueryRequest[] = []
+      for (const topic of topicsInBatch) {
+        queryRequests.push({
+          contentTopics: [topic],
           startTimeNs: toNanoString(startTime),
           endTimeNs: toNanoString(endTime),
           pagingInfo: {
@@ -346,25 +353,42 @@ export default class ApiClient {
         })
       }
       const batchQueryRequest = {
-        requests: batchQueryRequests,
+        requests: queryRequests,
       }
-      const batchQueryResponse = await this._batchQuery(batchQueryRequest)
-      // Add the results of the batch query to the topicToEnvelopes map
-      // The results are returned as a list of BatchQueryResponses, one for each request
-      // in the BatchQueryRequest
-      if (!batchQueryResponse.responses) {
-        throw new Error('Batch query response does not contain responses')
-      }
-      batchQueryResponse.responses.forEach(
-        (response: messageApi.QueryResponse, index: number) => {
-          if (response.envelopes?.length) {
-            topicToEnvelopes.set(batch[index], response.envelopes)
-          } else {
-            topicToEnvelopes.set(batch[index], [])
-          }
-        }
-      )
+      batchRequests.push(batchQueryRequest)
     }
+
+    // Execute batches
+    const batchQueryResponses = await Promise.all(
+      batchRequests.map(async (batch) => this._batchQuery(batch))
+    )
+
+    // Read responses and assemble into a map of topic to envelopes
+    batchQueryResponses.forEach(
+      (
+        batchQueryResponse: messageApi.BatchQueryResponse,
+        batchIndex: number
+      ) => {
+        // Add the results of the batch query to the topicToEnvelopes map
+        // The results are returned as a list of BatchQueryResponses, one for each request
+        // in the BatchQueryRequest
+        if (!batchQueryResponse.responses) {
+          throw new Error('Batch query response does not contain responses')
+        }
+        batchQueryResponse.responses.forEach(
+          (response: messageApi.QueryResponse, index: number) => {
+            if (response.envelopes?.length) {
+              topicToEnvelopes.set(
+                batchTopics[batchIndex][index],
+                response.envelopes
+              )
+            } else {
+              topicToEnvelopes.set(batchTopics[batchIndex][index], [])
+            }
+          }
+        )
+      }
+    )
     return topicToEnvelopes
   }
 
