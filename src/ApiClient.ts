@@ -56,6 +56,9 @@ export type QueryStreamOptions = Omit<QueryAllOptions, 'limit'> & {
   pageSize?: number
 }
 
+// All of the fields in both QueryParams and QueryStreamOptions
+export type Query = QueryParams & QueryStreamOptions
+
 export type PublishParams = {
   contentTopic: string
   message: Uint8Array
@@ -124,6 +127,25 @@ export default class ApiClient {
   ): ReturnType<typeof MessageApi.Query> {
     return retry(
       MessageApi.Query,
+      [
+        req,
+        {
+          pathPrefix: this.pathPrefix,
+          mode: 'cors',
+          headers: this.headers(),
+        },
+      ],
+      this.maxRetries,
+      RETRY_SLEEP_TIME
+    )
+  }
+
+  // Raw method for batch-querying the API
+  private _batchQuery(
+    req: messageApi.BatchQueryRequest
+  ): ReturnType<typeof MessageApi.BatchQuery> {
+    return retry(
+      MessageApi.BatchQuery,
       [
         req,
         {
@@ -296,6 +318,64 @@ export default class ApiClient {
         return
       }
     }
+  }
+
+  // Take a list of queries and execute them in batches
+  async batchQuery(queries: Query[]): Promise<messageApi.Envelope[][]> {
+    // Group queries into batches of 50 (implicit server-side limit) and then perform BatchQueries
+    const BATCH_SIZE = 50
+    // Keep a list of BatchQueryRequests to execute all at once later
+    const batchRequests: messageApi.BatchQueryRequest[] = []
+
+    // Assemble batches
+    for (let i = 0; i < queries.length; i += BATCH_SIZE) {
+      const queriesInBatch = queries.slice(i, i + BATCH_SIZE)
+      // Perform batch query by first compiling a list of repeated individual QueryRequests
+      // then populating a BatchQueryRequest with that list
+      const constructedQueries: messageApi.QueryRequest[] = []
+
+      for (const queryParams of queriesInBatch) {
+        constructedQueries.push({
+          contentTopics: queryParams.contentTopics,
+          startTimeNs: toNanoString(queryParams.startTime),
+          endTimeNs: toNanoString(queryParams.endTime),
+          pagingInfo: {
+            limit: queryParams.pageSize || 10,
+            direction:
+              queryParams.direction || SortDirection.SORT_DIRECTION_ASCENDING,
+          },
+        })
+      }
+      const batchQueryRequest = {
+        requests: constructedQueries,
+      }
+      batchRequests.push(batchQueryRequest)
+    }
+
+    // Execute batches
+    const batchQueryResponses = await Promise.all(
+      batchRequests.map(async (batch) => this._batchQuery(batch))
+    )
+
+    // For every batch, read all responses within the batch, and add to a list of lists of envelopes
+    // one top-level list for every original query
+    const allEnvelopes: messageApi.Envelope[][] = []
+    for (const batchResponse of batchQueryResponses) {
+      if (!batchResponse.responses) {
+        // An error on any of the batch query is propagated to the caller
+        // for simplicity, rather than trying to return partial results
+        throw new Error('BatchQueryResponse missing responses')
+      }
+      for (const queryResponse of batchResponse.responses) {
+        if (queryResponse.envelopes) {
+          allEnvelopes.push(queryResponse.envelopes)
+        } else {
+          // If no envelopes provided, then add an empty list
+          allEnvelopes.push([])
+        }
+      }
+    }
+    return allEnvelopes
   }
 
   // Publish a message to the network
