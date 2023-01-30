@@ -283,7 +283,7 @@ export default class Client {
     )
     // The logic here is tricky because we need to do a batch query for any uncached bundles,
     // then interleave back into an ordered array. So we create a map<string, keybundle|undefined>
-    // and fill it with cached values, then take any undefined entries and form a BatchQuery from there.
+    // and fill it with cached values, then take any undefined entries and form a BatchQuery from those.
     const addressToBundle = new Map<
       string,
       PublicKeyBundle | SignedPublicKeyBundle | undefined

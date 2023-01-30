@@ -320,9 +320,9 @@ export default class ApiClient {
     }
   }
 
-  // Take a list of queries and execute them in batches. queryOptions can be empty
+  // Take a list of queries and execute them in batches
   async batchQuery(queries: Query[]): Promise<messageApi.Envelope[][]> {
-    // Group content topics into batches of 50 (implicit server-side limit) and then perform BatchQueries
+    // Group queries into batches of 50 (implicit server-side limit) and then perform BatchQueries
     const BATCH_SIZE = 50
     // Keep a list of BatchQueryRequests to execute all at once later
     const batchRequests: messageApi.BatchQueryRequest[] = []
@@ -331,7 +331,7 @@ export default class ApiClient {
     for (let i = 0; i < queries.length; i += BATCH_SIZE) {
       const queriesInBatch = queries.slice(i, i + BATCH_SIZE)
       // Perform batch query by first compiling a list of repeated individual QueryRequests
-      // and then calling the BatchQuery API with that list of requests in a BatchQueryRequest
+      // then populating a BatchQueryRequest with that list
       const constructedQueries: messageApi.QueryRequest[] = []
 
       for (const queryParams of queriesInBatch) {
@@ -357,17 +357,20 @@ export default class ApiClient {
       batchRequests.map(async (batch) => this._batchQuery(batch))
     )
 
-    // For every batch, read all responses within the batch, and add them to a list of list of envelopes
+    // For every batch, read all responses within the batch, and add to a list of lists of envelopes
     // one top-level list for every original query
     const allEnvelopes: messageApi.Envelope[][] = []
     for (const batchResponse of batchQueryResponses) {
       if (!batchResponse.responses) {
+        // An error on any of the batch query is propagated to the caller
+        // for simplicity, rather than trying to return partial results
         throw new Error('BatchQueryResponse missing responses')
       }
       for (const queryResponse of batchResponse.responses) {
         if (queryResponse.envelopes) {
           allEnvelopes.push(queryResponse.envelopes)
         } else {
+          // If no envelopes provided, then add an empty list
           allEnvelopes.push([])
         }
       }
