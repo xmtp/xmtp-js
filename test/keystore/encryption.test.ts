@@ -21,24 +21,30 @@ describe('encryption primitives', () => {
   describe('decryptV1', () => {
     it('should decrypt a valid payload', async () => {
       const message = new TextEncoder().encode('Hello world')
-      const topic = buildDirectMessageTopic(
-        aliceWallet.address,
-        bobWallet.address
+      const payload = await MessageV1.encode(
+        aliceKeys,
+        bobKeys.getPublicKeyBundle(),
+        message,
+        new Date()
       )
-      const encryptedPayload = (
-        await MessageV1.encode(
-          aliceKeys,
-          bobKeys.getPublicKeyBundle(),
-          message,
-          new Date()
-        )
-      ).toBytes()
 
-      const aliceDecrypted = await decryptV1(aliceKeys, encryptedPayload, topic)
-      expect(equalBytes(aliceDecrypted, message)).toBeTruthy()
+      const aliceDecrypted = await decryptV1(
+        aliceKeys,
+        bobKeys.getPublicKeyBundle(),
+        payload.ciphertext,
+        payload.headerBytes,
+        true
+      )
 
-      const bobDecrypted = await decryptV1(bobKeys, encryptedPayload, topic)
-      expect(equalBytes(bobDecrypted, message)).toBeTruthy()
+      const bobDecrypted = await decryptV1(
+        bobKeys,
+        aliceKeys.getPublicKeyBundle(),
+        payload.ciphertext,
+        payload.headerBytes,
+        false
+      )
+
+      expect(equalBytes(aliceDecrypted, bobDecrypted)).toBeTruthy()
     })
   })
 })
