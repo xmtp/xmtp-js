@@ -417,33 +417,21 @@ export default class Conversations {
     // Perform all read/write operations on the cache while holding the mutex
     await this.v2Cache.load(
       async ({ latestSeen, existing }): Promise<Conversation[]> => {
-        console.log(
-          'Loading conversations after',
-          latestSeen,
-          'looking for',
-          peerAddress,
-          'with context',
-          context
-        )
         // First check the cache without doing a network request
         const existingMatch = existing.find(matcherFn)
         if (existingMatch) {
-          console.log('Found an existing match')
           v2Convo = existingMatch
           return []
         }
 
         // Next try and load new items into the cache from the network
         const newItems = await this.v2ConversationLoader(latestSeen)
-        console.log(`Found ${newItems.length} new items`, newItems)
         const newItemMatch = newItems.find(matcherFn)
         // If one of those matches, return it to update the cache
         if (newItemMatch) {
           v2Convo = newItemMatch
           return newItems
         }
-
-        console.log('No new items matched')
 
         // If all else fails, create a new invite
         const invitation = InvitationV1.createRandom(context)
