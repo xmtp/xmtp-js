@@ -34,26 +34,6 @@ type TopicData = {
   createdAt: Date
 }
 
-export class TopicKeyManager {
-  private topicKeys: Map<string, TopicData>
-
-  constructor() {
-    this.topicKeys = new Map<string, TopicData>()
-  }
-
-  addTopicKey(topic: string, key: Uint8Array, context?: InvitationContext) {
-    this.topicKeys.set(topic, {
-      key,
-      context,
-      createdAt: new Date(),
-    })
-  }
-
-  getTopicKey(topic: string): TopicData | undefined {
-    return this.topicKeys.get(topic)
-  }
-}
-
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
