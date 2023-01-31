@@ -6,6 +6,7 @@ export enum ErrorCode {
   UNIMPLEMENTED = 4, // maps to GRPC code 12 and HTTP code 501 (not implemented)
   INTERNAL_ERROR = 5, // maps to GRPC code 13 and HTTP code 500 (internal server error)
   VALIDATION_FAILED = 6, // maps to GRPC code 3 and HTTP code 400 (bad request)
+  NOT_FOUND = 7, // maps to GRPC code 5 and HTTP code 404 (not found)
 }
 
 export class KeystoreError extends Error {

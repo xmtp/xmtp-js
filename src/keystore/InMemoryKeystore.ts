@@ -19,12 +19,12 @@ import {
   EncryptV1Request,
   EncryptV2Request,
   CreateInviteRequest,
-  SealedInvitation as ISealedInvitation,
+  CreateInviteResponse,
   ResultOrError,
   ConversationReference,
 } from './interfaces'
-import { decryptV1, encryptV1 } from './encryption'
-import { ErrorCode } from './errors'
+import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
+import { ErrorCode, KeystoreError } from './errors'
 import { mapAndConvertErrors } from './utils'
 import { nsToDate } from '../utils'
 
@@ -32,6 +32,26 @@ type TopicData = {
   key: Uint8Array
   context?: InvitationContext
   createdAt: Date
+}
+
+export class TopicKeyManager {
+  private topicKeys: Map<string, TopicData>
+
+  constructor() {
+    this.topicKeys = new Map<string, TopicData>()
+  }
+
+  addTopicKey(topic: string, key: Uint8Array, context?: InvitationContext) {
+    this.topicKeys.set(topic, {
+      key,
+      context,
+      createdAt: new Date(),
+    })
+  }
+
+  getTopicKey(topic: string): TopicData | undefined {
+    return this.topicKeys.get(topic)
+  }
 }
 
 export default class InMemoryKeystore implements Keystore {
@@ -48,29 +68,46 @@ export default class InMemoryKeystore implements Keystore {
   decryptV1(req: DecryptV1Request[]): Promise<DecryptV1Response[]> {
     return mapAndConvertErrors(
       req,
-      async ({ payload, contentTopic }) => {
-        const decrypted = await decryptV1(this.v1Keys, payload, contentTopic)
+      async ({ payload, peerKeys, headerBytes, isSender }) => {
+        const decrypted = await decryptV1(
+          this.v1Keys,
+          peerKeys,
+          payload,
+          headerBytes,
+          isSender
+        )
         return {
           decrypted,
         }
       },
-      ErrorCode.VALIDATION_FAILED
+      ErrorCode.INTERNAL_ERROR
     )
   }
 
   async decryptV2(req: DecryptV2Request[]): Promise<DecryptV2Response[]> {
-    throw new Error('unimplemented')
+    return mapAndConvertErrors(
+      req,
+      async ({ payload, headerBytes, contentTopic }) => {
+        const topicData = this.topicKeys.get(contentTopic)
+        if (!topicData) {
+          throw new KeystoreError(ErrorCode.NOT_FOUND, 'no topic key')
+        }
+        const decrypted = await decryptV2(payload, topicData.key, headerBytes)
+        return { decrypted }
+      },
+      ErrorCode.INTERNAL_ERROR
+    )
   }
 
   encryptV1(req: EncryptV1Request[]): Promise<EncryptResponse[]> {
     return mapAndConvertErrors(
       req,
-      async ({ recipient, message, headerBytes }) => {
+      async ({ recipient, payload, headerBytes }) => {
         return {
           ciphertext: await encryptV1(
             this.v1Keys,
             recipient,
-            message,
+            payload,
             headerBytes
           ),
         }
@@ -80,7 +117,19 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async encryptV2(req: EncryptV2Request[]): Promise<EncryptResponse[]> {
-    throw new Error('unimplemented')
+    return mapAndConvertErrors(
+      req,
+      async ({ contentTopic, message, headerBytes }) => {
+        const topicData = this.topicKeys.get(contentTopic)
+        if (!topicData) {
+          throw new KeystoreError(ErrorCode.NOT_FOUND, 'no topic key')
+        }
+        return {
+          ciphertext: await encryptV2(message, topicData.key, headerBytes),
+        }
+      },
+      ErrorCode.INTERNAL_ERROR
+    )
   }
 
   async saveInvites(
@@ -100,8 +149,20 @@ export default class InMemoryKeystore implements Keystore {
     )
   }
 
-  async createInvite(req: CreateInviteRequest): Promise<ISealedInvitation> {
-    throw new Error('unimplemented')
+  async createInvite(req: CreateInviteRequest): Promise<CreateInviteResponse> {
+    const invitation = InvitationV1.createRandom(req.context)
+    const sealed = await SealedInvitation.createV1({
+      sender: this.v2Keys,
+      recipient: req.recipient,
+      created: req.createdAt,
+      invitation,
+    })
+    const convo = this.addConversationFromV1Invite(invitation, req.createdAt)
+
+    return {
+      conversation: convo,
+      payload: sealed.toBytes(),
+    }
   }
 
   async getV2Conversations(): Promise<ConversationReference[]> {
