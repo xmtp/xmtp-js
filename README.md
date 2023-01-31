@@ -376,8 +376,10 @@ Message content can be optionally compressed using the `compression` option. The
 Content will be decompressed transparently on the receiving end. Note that `Client` enforces maximum content size. The default limit can be overridden through the `ClientOptions`. Consequently a message that would expand beyond that limit on the receiving end will fail to decode.
 
 ```ts
+import { Compression } from '@xmtp/xmtp-js'
+
 conversation.send('#'.repeat(1000), {
-  compression: 'deflate',
+  compression: Compression.COMPRESSION_DEFLATE,
 })
 ```
 
