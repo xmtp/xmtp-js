@@ -18,9 +18,11 @@
     "clean:proto": "rm -rf src/proto/*.ts",
     "package": "npm pack",
     "prepublishOnly": "npm run build",
+    "test:setup": "./dev/up",
+    "test:teardown": "./dev/down",
     "test": "npm run test:node",
-    "test:node": "jest --no-cache --env='node' --forceExit --testTimeout=30000",
-    "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.js' --forceExit --testTimeout=30000",
+    "test:node": "jest --no-cache --env='node' --testTimeout=30000",
+    "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.js' --testTimeout=30000",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
@@ -64,7 +66,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
-    "@xmtp/proto": "^3.9.0",
+    "@xmtp/proto": "^3.12.0",
     "async-mutex": "^0.4.0",
     "ethers": "^5.5.3",
     "long": "^5.2.0"

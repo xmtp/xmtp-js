@@ -250,7 +250,6 @@ export default class Client {
    * This throws if either the address is invalid or the contact is not published.
    * See also [#canMessage].
    */
-
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
@@ -273,6 +272,55 @@ export default class Client {
   }
 
   /**
+   * Identical to getUserContact but for multiple peer addresses
+   */
+  async getUserContacts(
+    peerAddresses: string[]
+  ): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
+    // EIP55 normalize all peer addresses
+    const normalizedAddresses = peerAddresses.map((address) =>
+      utils.getAddress(address)
+    )
+    // The logic here is tricky because we need to do a batch query for any uncached bundles,
+    // then interleave back into an ordered array. So we create a map<string, keybundle|undefined>
+    // and fill it with cached values, then take any undefined entries and form a BatchQuery from those.
+    const addressToBundle = new Map<
+      string,
+      PublicKeyBundle | SignedPublicKeyBundle | undefined
+    >()
+    const uncachedAddresses = []
+    for (const address of normalizedAddresses) {
+      const existingBundle = this.knownPublicKeyBundles.get(address)
+      if (existingBundle) {
+        addressToBundle.set(address, existingBundle)
+      } else {
+        addressToBundle.set(address, undefined)
+        uncachedAddresses.push(address)
+      }
+    }
+
+    // Now do a getUserContactsFromNetwork call
+    const newBundles = await getUserContactsFromNetwork(
+      this.apiClient,
+      uncachedAddresses
+    )
+
+    // Now merge the newBundles into the addressToBundle map
+    for (let i = 0; i < newBundles.length; i++) {
+      const address = uncachedAddresses[i]
+      const bundle = newBundles[i]
+      addressToBundle.set(address, bundle)
+      // If the bundle is not undefined, cache it
+      if (bundle) {
+        this.knownPublicKeyBundles.set(address, bundle)
+      }
+    }
+
+    // Finally return the bundles in the same order as the input addresses
+    return normalizedAddresses.map((address) => addressToBundle.get(address))
+  }
+
+  /**
    * Used to force getUserContact fetch contact from the network.
    */
   forgetContact(peerAddress: string) {
@@ -280,12 +328,22 @@ export default class Client {
     this.knownPublicKeyBundles.delete(peerAddress)
   }
 
+  public async canMessage(peerAddress: string): Promise<boolean>
+  public async canMessage(peerAddress: string[]): Promise<boolean[]>
+
   /**
-   * Check if @peerAddress can be messaged, specifically it checks that a PublicKeyBundle can be
-   * found for the given address
+   * Check if @peerAddress can be messaged, specifically
+   * it checks that a PublicKeyBundle can be found for the given address
    */
-  public async canMessage(peerAddress: string): Promise<boolean> {
+  public async canMessage(
+    peerAddress: string | string[]
+  ): Promise<boolean | boolean[]> {
     try {
+      if (Array.isArray(peerAddress)) {
+        const contacts = await this.getUserContacts(peerAddress)
+        return contacts.map((contact) => !!contact)
+      }
+      // Else do the single address case
       const keyBundle = await this.getUserContact(peerAddress)
       return keyBundle !== undefined
     } catch (e) {
@@ -297,13 +355,38 @@ export default class Client {
   static async canMessage(
     peerAddress: string,
     opts?: Partial<NetworkOptions>
-  ): Promise<boolean> {
+  ): Promise<boolean>
+
+  static async canMessage(
+    peerAddress: string[],
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean[]>
+
+  static async canMessage(
+    peerAddress: string | string[],
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean | boolean[]> {
+    const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+
+    if (Array.isArray(peerAddress)) {
+      const rawPeerAddresses: string[] = peerAddress
+      // Try to normalize each of the peer addresses
+      const normalizedPeerAddresses = rawPeerAddresses.map((address) =>
+        utils.getAddress(address)
+      )
+      // The getUserContactsFromNetwork will return false instead of throwing
+      // on invalid envelopes
+      const contacts = await getUserContactsFromNetwork(
+        new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
+        normalizedPeerAddresses
+      )
+      return contacts.map((contact) => !!contact)
+    }
     try {
       peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     } catch (e) {
       return false
     }
-    const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
     const keyBundle = await getUserContactFromNetwork(
       new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
       peerAddress
@@ -367,7 +450,7 @@ export default class Client {
     if (options?.contentFallback) {
       encoded.fallback = options.contentFallback
     }
-    if (options?.compression) {
+    if (typeof options?.compression === 'number') {
       encoded.compression = options.compression
     }
     await compress(encoded)
@@ -531,4 +614,47 @@ async function getUserContactFromNetwork(
     }
   }
   return undefined
+}
+
+// retrieve a list of key bundles given a list of user addresses
+async function getUserContactsFromNetwork(
+  apiClient: ApiClient,
+  peerAddresses: string[]
+): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
+  const userContactTopics = peerAddresses.map(buildUserContactTopic)
+  const topicToEnvelopes = await apiClient.batchQuery(
+    userContactTopics.map((topic) => ({
+      contentTopics: [topic],
+      pageSize: 5,
+      direction: SortDirection.SORT_DIRECTION_DESCENDING,
+    }))
+  )
+
+  // Transform topicToEnvelopes into a list of PublicKeyBundles or undefined
+  // by going through each message and attempting to decode
+  return Promise.all(
+    peerAddresses.map(async (address: string, index: number) => {
+      const envelopes = topicToEnvelopes[index]
+      if (!envelopes) {
+        return undefined
+      }
+      for (const env of envelopes) {
+        if (!env.message) continue
+        try {
+          const keyBundle = decodeContactBundle(
+            b64Decode(env.message.toString())
+          )
+          const signingAddress = await keyBundle?.walletSignatureAddress()
+          if (address === signingAddress) {
+            return keyBundle
+          } else {
+            console.info('Received contact bundle with incorrect address')
+          }
+        } catch (e) {
+          console.info('Invalid contact bundle', e)
+        }
+      }
+      return undefined
+    })
+  )
 }

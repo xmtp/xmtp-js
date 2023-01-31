@@ -141,7 +141,7 @@ export class ConversationV1 {
       throw new Error('Headers do not match intended recipient')
     }
     const decrypted = await decoded.decrypt(this.client.legacyKeys)
-    const { content, contentType, error } = decodeContent(
+    const { content, contentType, error } = await decodeContent(
       decrypted,
       this.client
     )
@@ -387,7 +387,7 @@ export class ConversationV2 {
       throw new Error('invalid signature')
     }
     const messageV2 = await MessageV2.create(msg, header, signed, messageBytes)
-    const { content, contentType, error } = decodeContent(
+    const { content, contentType, error } = await decodeContent(
       signed.payload,
       this.client
     )
