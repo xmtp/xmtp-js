@@ -512,11 +512,6 @@ export default class Conversations {
     })
 
     const peerAddress = await recipient.walletSignatureAddress()
-    console.log(
-      'Sending invitation',
-      await recipient.walletSignatureAddress(),
-      invitation.context
-    )
     this.client.publishEnvelopes([
       {
         contentTopic: buildUserInviteTopic(peerAddress),
