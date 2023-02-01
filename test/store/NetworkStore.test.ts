@@ -1,6 +1,6 @@
 import { Wallet } from 'ethers'
 
-import { newWallet, sleep } from '../helpers'
+import { newWallet, pollFor, sleep } from '../helpers'
 import { PrivateTopicStore } from '../../src/store'
 import ApiClient, { ApiUrls } from '../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
@@ -43,8 +43,17 @@ describe('PrivateTopicStore', () => {
         expect(empty).toBeNull()
 
         await store.set(key, Buffer.from(value))
-        await sleep(100)
-        const full = await store.get(key)
+        const full = await pollFor(
+          async () => {
+            const full = await store.get(key)
+            if (!full) {
+              throw new Error('not found')
+            }
+            return full
+          },
+          500,
+          50
+        )
 
         expect(full).toBeDefined()
         expect(full).toEqual(Buffer.from(value))
