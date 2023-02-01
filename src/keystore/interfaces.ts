@@ -1,9 +1,4 @@
-import { messageApi } from '@xmtp/proto'
-import Ciphertext from '../crypto/Ciphertext'
-import {
-  SignedPublicKeyBundle,
-  PublicKeyBundle,
-} from '../crypto/PublicKeyBundle'
+import { messageApi, ciphertext, publicKey } from '@xmtp/proto'
 import { InvitationContext } from '../Invitation'
 import { ErrorCode } from './errors'
 
@@ -21,8 +16,8 @@ export type ConversationReference = {
 }
 
 export type DecryptV1Request = {
-  payload: Ciphertext
-  peerKeys: PublicKeyBundle
+  payload: ciphertext.Ciphertext
+  peerKeys: publicKey.PublicKeyBundle
   headerBytes: Uint8Array
   isSender: boolean
 }
@@ -32,7 +27,7 @@ export type DecryptV1Response = ResultOrError<{
 }>
 
 export type DecryptV2Request = {
-  payload: Ciphertext
+  payload: ciphertext.Ciphertext
   headerBytes: Uint8Array
   // Need to include contentTopic for the Keystore to know what topic key to use
   contentTopic: string
@@ -43,13 +38,13 @@ export type DecryptV2Response = ResultOrError<{
 }>
 
 export type EncryptV1Request = {
-  recipient: PublicKeyBundle
+  recipient: publicKey.PublicKeyBundle
   payload: Uint8Array
   headerBytes: Uint8Array
 }
 
 export type EncryptResponse = ResultOrError<{
-  ciphertext: Ciphertext
+  ciphertext: ciphertext.Ciphertext
 }>
 
 export type EncryptV2Request = {
@@ -59,9 +54,9 @@ export type EncryptV2Request = {
 }
 
 export type CreateInviteRequest = {
-  recipient: SignedPublicKeyBundle
+  recipient: publicKey.SignedPublicKeyBundle
   createdAt: Date
-  context: InvitationContext
+  context?: InvitationContext
 }
 
 export type CreateInviteResponse = {
@@ -88,7 +83,7 @@ export interface Keystore {
   // Get V2 conversations
   getV2Conversations(): Promise<ConversationReference[]>
   // Used for publishing the contact
-  getPublicKeyBundle(): Promise<SignedPublicKeyBundle>
+  getPublicKeyBundle(): Promise<publicKey.SignedPublicKeyBundle>
   // Technically duplicative of `getPublicKeyBundle`, but nice for ergonomics
   getWalletAddress(): Promise<string>
 }

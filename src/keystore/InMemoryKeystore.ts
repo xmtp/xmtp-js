@@ -8,7 +8,7 @@ import {
   InvitationV1,
   SealedInvitation,
 } from './../Invitation'
-import { SignedPublicKeyBundle } from '../crypto'
+import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import {
   Keystore,
   DecryptV1Request,
@@ -25,7 +25,12 @@ import {
 } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { ErrorCode, KeystoreError } from './errors'
-import { mapAndConvertErrors } from './utils'
+import {
+  convertError,
+  mapAndConvertErrors,
+  toPublicKeyBundle,
+  toSignedPublicKeyBundle,
+} from './utils'
 import { nsToDate } from '../utils'
 
 type TopicData = {
@@ -51,7 +56,7 @@ export default class InMemoryKeystore implements Keystore {
       async ({ payload, peerKeys, headerBytes, isSender }) => {
         const decrypted = await decryptV1(
           this.v1Keys,
-          peerKeys,
+          toPublicKeyBundle(peerKeys),
           payload,
           headerBytes,
           isSender
@@ -60,7 +65,7 @@ export default class InMemoryKeystore implements Keystore {
           decrypted,
         }
       },
-      ErrorCode.INTERNAL_ERROR
+      ErrorCode.VALIDATION_FAILED
     )
   }
 
@@ -86,7 +91,7 @@ export default class InMemoryKeystore implements Keystore {
         return {
           ciphertext: await encryptV1(
             this.v1Keys,
-            recipient,
+            toPublicKeyBundle(recipient),
             payload,
             headerBytes
           ),
@@ -130,23 +135,27 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async createInvite(req: CreateInviteRequest): Promise<CreateInviteResponse> {
-    const invitation = InvitationV1.createRandom(req.context)
-    const sealed = await SealedInvitation.createV1({
-      sender: this.v2Keys,
-      recipient: req.recipient,
-      created: req.createdAt,
-      invitation,
-    })
-    const convo = this.addConversationFromV1Invite(invitation, req.createdAt)
+    try {
+      const invitation = InvitationV1.createRandom(req.context)
+      const sealed = await SealedInvitation.createV1({
+        sender: this.v2Keys,
+        recipient: toSignedPublicKeyBundle(req.recipient),
+        created: req.createdAt,
+        invitation,
+      })
+      const convo = this.addConversationFromV1Invite(invitation, req.createdAt)
 
-    return {
-      conversation: convo,
-      payload: sealed.toBytes(),
+      return {
+        conversation: convo,
+        payload: sealed.toBytes(),
+      }
+    } catch (e) {
+      throw convertError(e as Error, ErrorCode.VALIDATION_FAILED)
     }
   }
 
   async getV2Conversations(): Promise<ConversationReference[]> {
-    const convos = Object.entries(this.topicKeys).map(
+    const convos = Array.from(this.topicKeys.entries()).map(
       ([topic, data]): ConversationReference => ({
         topic,
         createdAt: data.createdAt,
@@ -155,7 +164,6 @@ export default class InMemoryKeystore implements Keystore {
     )
 
     convos.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-
     return convos
   }
 

@@ -1,3 +1,4 @@
+import { ciphertext } from '@xmtp/proto'
 import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext'
 
 // crypto should provide access to standard Web Crypto API
@@ -44,7 +45,7 @@ export async function encrypt(
 
 // symmetric authenticated decryption of the encrypted ciphertext using the secret and additionalData
 export async function decrypt(
-  encrypted: Ciphertext,
+  encrypted: Ciphertext | ciphertext.Ciphertext,
   secret: Uint8Array,
   additionalData?: Uint8Array
 ): Promise<Uint8Array> {
