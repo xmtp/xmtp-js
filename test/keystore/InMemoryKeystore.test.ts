@@ -1,12 +1,8 @@
-import { shuffleArray } from './../helpers'
 import { InvitationContext } from './../../src/Invitation'
-import { toNanoString } from './../../src/utils'
 import { DecryptV1Request } from './../../src/keystore/interfaces'
 import { MessageV1 } from './../../src/Message'
-import { Wallet } from 'ethers'
 import {
   PrivateKeyBundleV1,
-  PublicKeyBundle,
   SignedPublicKeyBundle,
   PrivateKeyBundleV2,
 } from '../../src/crypto'

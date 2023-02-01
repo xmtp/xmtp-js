@@ -8,7 +8,7 @@ import {
   InvitationV1,
   SealedInvitation,
 } from './../Invitation'
-import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
+import { SignedPublicKeyBundle } from '../crypto'
 import {
   Keystore,
   DecryptV1Request,
