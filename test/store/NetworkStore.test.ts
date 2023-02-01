@@ -1,6 +1,6 @@
 import { Wallet } from 'ethers'
 
-import { newWallet, pollFor, sleep } from '../helpers'
+import { newWallet, pollFor } from '../helpers'
 import { PrivateTopicStore } from '../../src/store'
 import ApiClient, { ApiUrls } from '../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
