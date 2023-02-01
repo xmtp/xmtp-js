@@ -7,6 +7,7 @@ import {
   Client,
   ClientOptions,
 } from '../src'
+import { Signer } from '../src/types/Signer'
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 import assert from 'assert'
@@ -83,6 +84,21 @@ export function newWallet(): Wallet {
   return new Wallet(key.secp256k1.bytes)
 }
 
+export function newCustomWallet(): Signer {
+  const ethersWallet = newWallet()
+  // Client apps don't have to use ethers, they can implement their
+  // own Signer methods. Here we implement a custom Signer that is actually
+  // backed by ethers.
+  return {
+    getAddress(): Promise<string> {
+      return ethersWallet.getAddress()
+    },
+    signMessage(message: ArrayLike<number> | string): Promise<string> {
+      return ethersWallet.signMessage(message)
+    },
+  }
+}
+
 // A helper to replace a full Client in testing custom content types,
 // extracting just the codec registry aspect of the client.
 export class CodecRegistry {
@@ -118,6 +134,19 @@ export const newLocalHostClient = (
     ...opts,
   })
 
+// client running against local node running on the host,
+// with a non-ethers wallet
+export const newLocalHostClientWithCustomWallet = (
+  opts?: Partial<ClientOptions>
+): Promise<Client> =>
+  Client.create(newCustomWallet(), {
+    env: 'local',
+    ...opts,
+  })
+
 // client running against the dev cluster in AWS
-export const newDevClient = (): Promise<Client> =>
-  Client.create(newWallet(), { env: 'dev' })
+export const newDevClient = (opts?: Partial<ClientOptions>): Promise<Client> =>
+  Client.create(newWallet(), {
+    env: 'dev',
+    ...opts,
+  })

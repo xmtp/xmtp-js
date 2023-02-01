@@ -34,6 +34,17 @@ export class SignedPublicKeyBundle implements publicKey.SignedPublicKeyBundle {
     return publicKey.SignedPublicKeyBundle.encode(this).finish()
   }
 
+  isFromLegacyBundle(): boolean {
+    return this.identityKey.isFromLegacyKey() && this.preKey.isFromLegacyKey()
+  }
+
+  toLegacyBundle(): PublicKeyBundle {
+    return new PublicKeyBundle({
+      identityKey: this.identityKey.toLegacyKey(),
+      preKey: this.preKey.toLegacyKey(),
+    })
+  }
+
   static fromBytes(bytes: Uint8Array): SignedPublicKeyBundle {
     const decoded = publicKey.SignedPublicKeyBundle.decode(bytes)
     return new SignedPublicKeyBundle(decoded)

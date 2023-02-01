@@ -1,6 +1,6 @@
 import { messageApi, fetcher } from '@xmtp/proto'
 import { Store } from './Store'
-import { buildUserPrivateStoreTopic } from '../utils'
+import { buildUserPrivateStoreTopic } from '../utils/topic'
 import ApiClient from '../ApiClient'
 import { Authenticator } from '../authn'
 const b64Decode = fetcher.b64Decode

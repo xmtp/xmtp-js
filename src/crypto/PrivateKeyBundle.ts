@@ -3,7 +3,7 @@ import { PrivateKey, SignedPrivateKey } from './PrivateKey'
 import { WalletSigner } from './Signature'
 import { PublicKey, SignedPublicKey } from './PublicKey'
 import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
-import { Signer } from 'ethers'
+import { Signer } from '../types/Signer'
 import { NoMatchingPreKeyError } from './errors'
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
@@ -13,6 +13,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   identityKey: SignedPrivateKey
   preKeys: SignedPrivateKey[]
   version = 2
+  private _publicKeyBundle?: SignedPublicKeyBundle
 
   constructor(bundle: proto.PrivateKeyBundleV2) {
     if (!bundle.identityKey) {
@@ -52,16 +53,20 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
 
   // Generate a new pre-key to be used as the current pre-key.
   async addPreKey(): Promise<void> {
+    this._publicKeyBundle = undefined
     const preKey = await SignedPrivateKey.generate(this.identityKey)
     this.preKeys.unshift(preKey)
   }
 
   // Return a key bundle with the current pre-key.
   getPublicKeyBundle(): SignedPublicKeyBundle {
-    return new SignedPublicKeyBundle({
-      identityKey: this.identityKey.publicKey,
-      preKey: this.getCurrentPreKey().publicKey,
-    })
+    if (!this._publicKeyBundle) {
+      this._publicKeyBundle = new SignedPublicKeyBundle({
+        identityKey: this.identityKey.publicKey,
+        preKey: this.getCurrentPreKey().publicKey,
+      })
+    }
+    return this._publicKeyBundle
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
@@ -134,6 +139,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
   identityKey: PrivateKey
   preKeys: PrivateKey[]
   version = 1
+  private _publicKeyBundle?: PublicKeyBundle
 
   constructor(bundle: proto.PrivateKeyBundleV1) {
     if (!bundle.identityKey) {
@@ -174,6 +180,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
 
   // Generate a new pre-key to be used as the current pre-key.
   async addPreKey(): Promise<void> {
+    this._publicKeyBundle = undefined
     const preKey = PrivateKey.generate()
     await this.identityKey.signKey(preKey.publicKey)
     this.preKeys.unshift(preKey)
@@ -181,10 +188,13 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
 
   // Return a key bundle with the current pre-key.
   getPublicKeyBundle(): PublicKeyBundle {
-    return new PublicKeyBundle({
-      identityKey: this.identityKey.publicKey,
-      preKey: this.getCurrentPreKey().publicKey,
-    })
+    if (!this._publicKeyBundle) {
+      this._publicKeyBundle = new PublicKeyBundle({
+        identityKey: this.identityKey.publicKey,
+        preKey: this.getCurrentPreKey().publicKey,
+      })
+    }
+    return this._publicKeyBundle
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol

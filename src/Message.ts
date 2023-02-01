@@ -1,6 +1,6 @@
 import type { Conversation } from './conversations/Conversation'
 import type Client from './Client'
-import { xmtpEnvelope as proto, xmtpEnvelope } from '@xmtp/proto'
+import { message as proto, content as protoContent } from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
 import {
@@ -19,6 +19,7 @@ import {
   EncodedContent,
 } from './MessageContent'
 import { nsToDate } from './utils'
+import { decompress } from './Compression'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
@@ -203,14 +204,14 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
 export class MessageV2 extends MessageBase implements proto.MessageV2 {
   senderAddress: string | undefined
   private header: proto.MessageHeaderV2 // eslint-disable-line camelcase
-  private signed?: proto.SignedContent
+  private signed?: protoContent.SignedContent
 
   constructor(
     id: string,
     bytes: Uint8Array,
     obj: proto.Message,
     header: proto.MessageHeaderV2,
-    signed: proto.SignedContent,
+    signed: protoContent.SignedContent,
     // wallet address derived from the signature of the message sender
     senderAddress: string
   ) {
@@ -223,7 +224,7 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
   static async create(
     obj: proto.Message,
     header: proto.MessageHeaderV2,
-    signed: proto.SignedContent,
+    signed: protoContent.SignedContent,
     bytes: Uint8Array
   ): Promise<MessageV2> {
     const id = bytesToHex(await sha256(bytes))
@@ -333,8 +334,8 @@ export class DecodedMessage {
   }
 }
 
-export function decodeContent(contentBytes: Uint8Array, client: Client) {
-  const encodedContent = xmtpEnvelope.EncodedContent.decode(contentBytes)
+export async function decodeContent(contentBytes: Uint8Array, client: Client) {
+  const encodedContent = protoContent.EncodedContent.decode(contentBytes)
 
   if (!encodedContent.type) {
     throw new Error('missing content type')
@@ -343,6 +344,8 @@ export function decodeContent(contentBytes: Uint8Array, client: Client) {
   let content: any // eslint-disable-line @typescript-eslint/no-explicit-any
   let contentType = new ContentTypeId(encodedContent.type)
   let error: Error | undefined
+
+  await decompress(encodedContent, 1000)
 
   const codec = client.codecFor(contentType)
   if (codec) {

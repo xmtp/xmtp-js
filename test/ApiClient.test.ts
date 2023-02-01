@@ -1,7 +1,9 @@
-import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import ApiClient, { PublishParams } from '../src/ApiClient'
+import {
+  InitReq,
+  NotifyStreamEntityArrival,
+} from '@xmtp/proto/ts/dist/types/fetch.pb'
+import ApiClient, { GrpcStatus, PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
-import Long from 'long'
 import { sleep } from './helpers'
 import { Authenticator } from '../src/authn'
 import { PrivateKey } from '../src'
@@ -188,7 +190,7 @@ describe('Publish', () => {
         message: Uint8Array.from([]),
       },
     ])
-    expect(promise).rejects.toBeInstanceOf(Error)
+    expect(promise).rejects.toThrow('Content topic cannot be empty string')
   })
 })
 
@@ -226,7 +228,7 @@ describe('Publish authn', () => {
     }
 
     const prom = publishClient.publish([msg])
-    expect(prom).rejects.toEqual({ code: 16 })
+    expect(prom).rejects.toEqual({ code: GrpcStatus.UNAUTHENTICATED })
     expect(publishMock).toHaveBeenCalledTimes(2)
   })
 })
@@ -243,7 +245,7 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    client.subscribe(req, cb)
+    const unsubscribeFn = client.subscribe(req, cb)
     await sleep(10)
     expect(numEnvelopes).toBe(2)
     expect(subscribeMock).toBeCalledWith(req, cb, {
@@ -254,6 +256,97 @@ describe('Subscribe', () => {
         'X-Client-Version': 'xmtp-js/' + version,
       }),
     })
+    await unsubscribeFn()
+  })
+
+  it('should resubscribe on error', async () => {
+    let called = 0
+    const subscribeMock = jest
+      .spyOn(MessageApi, 'Subscribe')
+      .mockImplementation(
+        async (
+          req: messageApi.SubscribeRequest,
+          cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
+          initReq?: InitReq
+        ): Promise<void> => {
+          // We mock a connection stream that immediately errors the first time
+          // it is called. The second time it is called, it behaves as expected (the connection
+          // stays open, and two messages are received over the subscription)
+          called++
+          if (called == 1) {
+            throw new Error('error')
+          }
+          let nonErroringSubscribe = subscribeMockImplementation(2)
+          return await nonErroringSubscribe(req, cb, initReq)
+        }
+      )
+    const consoleInfo = jest.spyOn(console, 'info').mockImplementation(() => {})
+    let numEnvelopes = 0
+    const cb = (env: messageApi.Envelope) => {
+      numEnvelopes++
+    }
+    const req = { contentTopics: [CONTENT_TOPIC] }
+    const unsubscribeFn = client.subscribe(req, cb)
+    await sleep(1200)
+    expect(numEnvelopes).toBe(2)
+    // Resubscribing triggers an info log
+    expect(consoleInfo).toBeCalledTimes(1)
+    expect(subscribeMock).toBeCalledTimes(2)
+    expect(subscribeMock).toBeCalledWith(req, cb, {
+      pathPrefix: PATH_PREFIX,
+      signal: expect.anything(),
+      mode: 'cors',
+      headers: new Headers({
+        'X-Client-Version': 'xmtp-js/' + version,
+      }),
+    })
+    consoleInfo.mockRestore()
+    await unsubscribeFn()
+  })
+
+  it('should resubscribe on completion', async () => {
+    let called = 0
+    const subscribeMock = jest
+      .spyOn(MessageApi, 'Subscribe')
+      .mockImplementation(
+        async (
+          req: messageApi.SubscribeRequest,
+          cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
+          initReq?: InitReq
+        ): Promise<void> => {
+          // We mock a connection stream that immediately terminates the first time
+          // it is called. The second time it is called, it behaves as expected (the connection
+          // stays open, and two messages are received over the subscription)
+          called++
+          if (called == 1) {
+            return
+          }
+          let nonAbortingSubscribe = subscribeMockImplementation(2)
+          return await nonAbortingSubscribe(req, cb, initReq)
+        }
+      )
+    const consoleInfo = jest.spyOn(console, 'info').mockImplementation(() => {})
+    let numEnvelopes = 0
+    const cb = (env: messageApi.Envelope) => {
+      numEnvelopes++
+    }
+    const req = { contentTopics: [CONTENT_TOPIC] }
+    const unsubscribeFn = client.subscribe(req, cb)
+    await sleep(1200)
+    expect(numEnvelopes).toBe(2)
+    // Resubscribing triggers an info log
+    expect(consoleInfo).toBeCalledTimes(1)
+    expect(subscribeMock).toBeCalledTimes(2)
+    expect(subscribeMock).toBeCalledWith(req, cb, {
+      pathPrefix: PATH_PREFIX,
+      signal: expect.anything(),
+      mode: 'cors',
+      headers: new Headers({
+        'X-Client-Version': 'xmtp-js/' + version,
+      }),
+    })
+    consoleInfo.mockRestore()
+    await unsubscribeFn()
   })
 
   it('throws when no content topics returned', async () => {
@@ -310,18 +403,30 @@ function createAuthErrorPublishMock(rejectTimes = 1) {
 function createSubscribeMock(numMessages: number) {
   return jest
     .spyOn(MessageApi, 'Subscribe')
-    .mockImplementation(
-      async (
-        req: messageApi.SubscribeRequest,
-        cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined
-      ): Promise<void> => {
-        for (let i = 0; i < numMessages; i++) {
-          if (cb) {
-            cb(createEnvelope())
-          }
-        }
+    .mockImplementation(subscribeMockImplementation(numMessages))
+}
+
+// Subscribes to a connection stream that pushes down the number of messages specified.
+// The connection stream is expected to stay open until it is closed by an unsubscribe
+// request (which is reflected by the 'onabort' signal)
+function subscribeMockImplementation(numMessages: number) {
+  let subscribe = async (
+    req: messageApi.SubscribeRequest,
+    cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
+    initReq?: InitReq
+  ): Promise<void> => {
+    for (let i = 0; i < numMessages; i++) {
+      if (cb) {
+        cb(createEnvelope())
       }
-    )
+    }
+    // Connection stream is expected to stay open until terminated
+    const connectionClosePromise = new Promise((resolve) => {
+      initReq!.signal!.onabort = () => resolve(null)
+    })
+    await connectionClosePromise
+  }
+  return subscribe
 }
 
 function createEnvelope(): messageApi.Envelope {

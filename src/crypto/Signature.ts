@@ -3,7 +3,8 @@ import Long from 'long'
 import * as secp from '@noble/secp256k1'
 import { PublicKey, UnsignedPublicKey, SignedPublicKey } from './PublicKey'
 import { SignedPrivateKey } from './PrivateKey'
-import { Signer, utils } from 'ethers'
+import { utils } from 'ethers'
+import { Signer } from '../types/Signer'
 import { bytesToHex, equalBytes, hexToBytes } from './utils'
 
 // ECDSA signature with recovery bit.
@@ -51,7 +52,7 @@ export function ecdsaSignerKey(
 export default class Signature implements signature.Signature {
   // SECP256k1/SHA256 ECDSA signature
   ecdsaCompact: ECDSACompactWithRecovery | undefined // eslint-disable-line camelcase
-  // SECP256k1/keccak256 ECDSA signature created with ethers.Signer.signMessage (see WalletSigner)
+  // SECP256k1/keccak256 ECDSA signature created with Signer.signMessage (see WalletSigner)
   walletEcdsaCompact: ECDSACompactWithRecovery | undefined // eslint-disable-line camelcase
 
   constructor(obj: Partial<signature.Signature>) {

@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { xmtpEnvelope as proto } from '@xmtp/proto'
+import { content as proto } from '@xmtp/proto'
 import {
   compress,
   decompress,
@@ -17,10 +17,10 @@ describe('Compression', function () {
     assert.deepEqual(from, to.bytes)
   })
 
-  it('will not write beyond limit', async () => {
+  it('will not write beyond limit', () => {
     let from = new Uint8Array(111).fill(42)
     let to = { bytes: new Uint8Array(10) }
-    await expect(
+    expect(
       readStreamFromBytes(from, 23).pipeTo(writeStreamToBytes(to, 100))
     ).rejects.toThrow('maximum output size exceeded')
   })

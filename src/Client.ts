@@ -3,6 +3,7 @@ import {
   SignedPublicKeyBundle,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
+  Signature,
 } from './crypto'
 import {
   buildUserContactTopic,
@@ -10,7 +11,8 @@ import {
   EnvelopeMapper,
   buildUserInviteTopic,
 } from './utils'
-import { Signer } from 'ethers'
+import { utils } from 'ethers'
+import { Signer } from './types/Signer'
 import {
   EncryptedKeyStore,
   KeyStore,
@@ -21,12 +23,12 @@ import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
-import { xmtpEnvelope, messageApi, fetcher } from '@xmtp/proto'
+import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import ApiClient, { PublishParams, SortDirection } from './ApiClient'
+import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
-const { Compression } = xmtpEnvelope
+const { Compression } = proto
 const { b64Decode } = fetcher
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -34,12 +36,6 @@ const { b64Decode } = fetcher
 
 // Default maximum allowed content size
 const MaxContentSize = 100 * 1024 * 1024 // 100M
-
-export const ApiUrls = {
-  local: 'http://localhost:5555',
-  dev: 'https://dev.xmtp.network',
-  production: 'https://production.xmtp.network',
-} as const
 
 // Parameters for the listMessages functions
 export type ListMessagesOptions = {
@@ -67,7 +63,7 @@ export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
   contentFallback?: string
-  compression?: xmtpEnvelope.Compression
+  compression?: proto.Compression
   timestamp?: Date
 }
 
@@ -99,11 +95,18 @@ type KeyStoreOptions = {
   privateKeyOverride?: Uint8Array
 }
 
+type LegacyOptions = {
+  publishLegacyContact?: boolean
+}
+
 /**
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
-export type ClientOptions = NetworkOptions & KeyStoreOptions & ContentOptions
+export type ClientOptions = NetworkOptions &
+  KeyStoreOptions &
+  ContentOptions &
+  LegacyOptions
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
@@ -197,12 +200,12 @@ export default class Client {
     return client.legacyKeys.encode()
   }
 
-  async init(options: ClientOptions): Promise<void> {
+  private async init(options: ClientOptions): Promise<void> {
     options.codecs.forEach((codec) => {
       this.registerCodec(codec)
     })
     this._maxContentSize = options.maxContentSize
-    await this.publishUserContact()
+    await this.ensureUserContactPublished(options.publishLegacyContact)
   }
 
   // gracefully shut down the client
@@ -210,10 +213,27 @@ export default class Client {
     return undefined
   }
 
-  // publish the key bundle into the contact topic
-  // WARNING: temporarily public to allow testing negotiated topics
-  // TODO: make private again asap
-  async publishUserContact(legacy = true): Promise<void> {
+  private async ensureUserContactPublished(legacy = false): Promise<void> {
+    const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
+    if (
+      bundle &&
+      bundle instanceof SignedPublicKeyBundle &&
+      this.keys.getPublicKeyBundle().equals(bundle)
+    ) {
+      return
+    }
+    // TEMPORARY: publish V1 contact to make sure there is one in the topic
+    // in order to preserve compatibility with pre-v7 clients.
+    // Remove when pre-v7 clients are deprecated
+    this.publishUserContact(true)
+    if (!legacy) {
+      this.publishUserContact(legacy)
+    }
+  }
+
+  // PRIVATE: publish the key bundle into the contact topic
+  // left public for testing purposes
+  async publishUserContact(legacy = false): Promise<void> {
     const keys = legacy ? this.legacyKeys : this.keys
     await this.publishEnvelopes([
       {
@@ -226,13 +246,15 @@ export default class Client {
   /**
    * Returns the cached PublicKeyBundle if one is known for the given address or fetches
    * one from the network
+   *
+   * This throws if either the address is invalid or the contact is not published.
+   * See also [#canMessage].
    */
-
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
+    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
-
     if (existingBundle) {
       return existingBundle
     }
@@ -249,24 +271,122 @@ export default class Client {
     return newBundle
   }
 
-  forgetContact(peerAddress: string) {
-    this.knownPublicKeyBundles.delete(peerAddress)
+  /**
+   * Identical to getUserContact but for multiple peer addresses
+   */
+  async getUserContacts(
+    peerAddresses: string[]
+  ): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
+    // EIP55 normalize all peer addresses
+    const normalizedAddresses = peerAddresses.map((address) =>
+      utils.getAddress(address)
+    )
+    // The logic here is tricky because we need to do a batch query for any uncached bundles,
+    // then interleave back into an ordered array. So we create a map<string, keybundle|undefined>
+    // and fill it with cached values, then take any undefined entries and form a BatchQuery from those.
+    const addressToBundle = new Map<
+      string,
+      PublicKeyBundle | SignedPublicKeyBundle | undefined
+    >()
+    const uncachedAddresses = []
+    for (const address of normalizedAddresses) {
+      const existingBundle = this.knownPublicKeyBundles.get(address)
+      if (existingBundle) {
+        addressToBundle.set(address, existingBundle)
+      } else {
+        addressToBundle.set(address, undefined)
+        uncachedAddresses.push(address)
+      }
+    }
+
+    // Now do a getUserContactsFromNetwork call
+    const newBundles = await getUserContactsFromNetwork(
+      this.apiClient,
+      uncachedAddresses
+    )
+
+    // Now merge the newBundles into the addressToBundle map
+    for (let i = 0; i < newBundles.length; i++) {
+      const address = uncachedAddresses[i]
+      const bundle = newBundles[i]
+      addressToBundle.set(address, bundle)
+      // If the bundle is not undefined, cache it
+      if (bundle) {
+        this.knownPublicKeyBundles.set(address, bundle)
+      }
+    }
+
+    // Finally return the bundles in the same order as the input addresses
+    return normalizedAddresses.map((address) => addressToBundle.get(address))
   }
 
   /**
-   * Check if @peerAddress can be messaged, specifically it checks that a PublicKeyBundle can be
-   * found for the given address
+   * Used to force getUserContact fetch contact from the network.
    */
-  public async canMessage(peerAddress: string): Promise<boolean> {
-    const keyBundle = await this.getUserContact(peerAddress)
-    return keyBundle !== undefined
+  forgetContact(peerAddress: string) {
+    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+    this.knownPublicKeyBundles.delete(peerAddress)
+  }
+
+  public async canMessage(peerAddress: string): Promise<boolean>
+  public async canMessage(peerAddress: string[]): Promise<boolean[]>
+
+  /**
+   * Check if @peerAddress can be messaged, specifically
+   * it checks that a PublicKeyBundle can be found for the given address
+   */
+  public async canMessage(
+    peerAddress: string | string[]
+  ): Promise<boolean | boolean[]> {
+    try {
+      if (Array.isArray(peerAddress)) {
+        const contacts = await this.getUserContacts(peerAddress)
+        return contacts.map((contact) => !!contact)
+      }
+      // Else do the single address case
+      const keyBundle = await this.getUserContact(peerAddress)
+      return keyBundle !== undefined
+    } catch (e) {
+      // Instead of throwing, a bad address should just return false.
+      return false
+    }
   }
 
   static async canMessage(
     peerAddress: string,
     opts?: Partial<NetworkOptions>
-  ): Promise<boolean> {
+  ): Promise<boolean>
+
+  static async canMessage(
+    peerAddress: string[],
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean[]>
+
+  static async canMessage(
+    peerAddress: string | string[],
+    opts?: Partial<NetworkOptions>
+  ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+
+    if (Array.isArray(peerAddress)) {
+      const rawPeerAddresses: string[] = peerAddress
+      // Try to normalize each of the peer addresses
+      const normalizedPeerAddresses = rawPeerAddresses.map((address) =>
+        utils.getAddress(address)
+      )
+      // The getUserContactsFromNetwork will return false instead of throwing
+      // on invalid envelopes
+      const contacts = await getUserContactsFromNetwork(
+        new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
+        normalizedPeerAddresses
+      )
+      return contacts.map((contact) => !!contact)
+    }
+    try {
+      peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+    } catch (e) {
+      return false
+    }
     const keyBundle = await getUserContactFromNetwork(
       new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
       peerAddress
@@ -330,11 +450,11 @@ export default class Client {
     if (options?.contentFallback) {
       encoded.fallback = options.contentFallback
     }
-    if (options?.compression) {
+    if (typeof options?.compression === 'number') {
       encoded.compression = options.compression
     }
     await compress(encoded)
-    return xmtpEnvelope.EncodedContent.encode(encoded).finish()
+    return proto.EncodedContent.encode(encoded).finish()
   }
 
   listInvitations(opts?: ListMessagesOptions): Promise<SealedInvitation[]> {
@@ -397,6 +517,10 @@ export default class Client {
       mapper
     )
   }
+
+  async signBytes(bytes: Uint8Array): Promise<Signature> {
+    return this.keys.identityKey.sign(bytes)
+  }
 }
 
 function createKeyStoreFromConfig(
@@ -457,7 +581,7 @@ async function loadOrCreateKeysFromOptions(
 ) {
   if (!options.privateKeyOverride && !wallet) {
     throw new Error(
-      'Must provide either an ethers.Signer or specify privateKeyOverride'
+      'Must provide either a Signer or specify privateKeyOverride'
     )
   }
 
@@ -490,4 +614,47 @@ async function getUserContactFromNetwork(
     }
   }
   return undefined
+}
+
+// retrieve a list of key bundles given a list of user addresses
+async function getUserContactsFromNetwork(
+  apiClient: ApiClient,
+  peerAddresses: string[]
+): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
+  const userContactTopics = peerAddresses.map(buildUserContactTopic)
+  const topicToEnvelopes = await apiClient.batchQuery(
+    userContactTopics.map((topic) => ({
+      contentTopics: [topic],
+      pageSize: 5,
+      direction: SortDirection.SORT_DIRECTION_DESCENDING,
+    }))
+  )
+
+  // Transform topicToEnvelopes into a list of PublicKeyBundles or undefined
+  // by going through each message and attempting to decode
+  return Promise.all(
+    peerAddresses.map(async (address: string, index: number) => {
+      const envelopes = topicToEnvelopes[index]
+      if (!envelopes) {
+        return undefined
+      }
+      for (const env of envelopes) {
+        if (!env.message) continue
+        try {
+          const keyBundle = decodeContactBundle(
+            b64Decode(env.message.toString())
+          )
+          const signingAddress = await keyBundle?.walletSignatureAddress()
+          if (address === signingAddress) {
+            return keyBundle
+          } else {
+            console.info('Received contact bundle with incorrect address')
+          }
+        } catch (e) {
+          console.info('Invalid contact bundle', e)
+        }
+      }
+      return undefined
+    })
+  )
 }

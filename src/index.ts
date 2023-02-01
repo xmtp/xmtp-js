@@ -1,15 +1,19 @@
-export { Message, DecodedMessage } from './Message'
+export { Message, DecodedMessage, decodeContent } from './Message'
 export {
   PublicKey,
   PublicKeyBundle,
+  SignedPublicKey,
   SignedPublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
+  Signature,
 } from './crypto'
 export { default as Stream } from './Stream'
+export { Signer } from './types/Signer'
 export {
   default as Client,
   ClientOptions,
+  KeyStoreType,
   ListMessagesOptions,
   SendOptions,
   Compression,
@@ -27,5 +31,11 @@ export {
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
-export { SortDirection } from './ApiClient'
-export { nsToDate, dateToNs, fromNanoString, toNanoString } from './utils'
+export { ApiUrls, SortDirection } from './ApiClient'
+export {
+  nsToDate,
+  dateToNs,
+  fromNanoString,
+  toNanoString,
+  mapPaginatedStream,
+} from './utils'

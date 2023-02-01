@@ -1,4 +1,10 @@
-import { buildUserIntroTopic } from './../utils'
+import {
+  buildUserIntroTopic,
+  buildDirectMessageTopic,
+  dateToNs,
+  nsToDate,
+} from '../utils'
+import { utils } from 'ethers'
 import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
@@ -12,7 +18,7 @@ import {
   SealedInvitationHeaderV1,
 } from '../Invitation'
 import { MessageV1, MessageV2, decodeContent } from '../Message'
-import { messageApi, xmtpEnvelope, fetcher } from '@xmtp/proto'
+import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
 import {
   encrypt,
   decrypt,
@@ -22,11 +28,27 @@ import {
 } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
-import { buildDirectMessageTopic, dateToNs, nsToDate } from '../utils'
 import { ContentTypeText } from '../codecs/Text'
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+type ConversationV1Export = {
+  version: 'v1'
+  peerAddress: string
+  createdAt: string
+}
+
+type ConversationV2Export = {
+  version: 'v2'
+  topic: string
+  keyMaterial: string
+  createdAt: string
+  peerAddress: string
+  context: InvitationContext | undefined
+}
+
+export type ConversationExport = ConversationV1Export | ConversationV2Export
 
 /**
  * Conversation class allows you to view, stream, and send messages to/from a peer address
@@ -38,7 +60,7 @@ export class ConversationV1 {
   private client: Client
 
   constructor(client: Client, address: string, createdAt: Date) {
-    this.peerAddress = address
+    this.peerAddress = utils.getAddress(address)
     this.client = client
     this.createdAt = createdAt
   }
@@ -82,6 +104,25 @@ export class ConversationV1 {
     )
   }
 
+  export(): ConversationV1Export {
+    return {
+      version: 'v1',
+      peerAddress: this.peerAddress,
+      createdAt: this.createdAt.toISOString(),
+    }
+  }
+
+  static fromExport(
+    client: Client,
+    data: ConversationV1Export
+  ): ConversationV1 {
+    return new ConversationV1(
+      client,
+      data.peerAddress,
+      new Date(data.createdAt)
+    )
+  }
+
   async decodeMessage({
     message,
     contentTopic,
@@ -100,7 +141,7 @@ export class ConversationV1 {
       throw new Error('Headers do not match intended recipient')
     }
     const decrypted = await decoded.decrypt(this.client.legacyKeys)
-    const { content, contentType, error } = decodeContent(
+    const { content, contentType, error } = await decodeContent(
       decrypted,
       this.client
     )
@@ -123,12 +164,12 @@ export class ConversationV1 {
     options?: SendOptions
   ): Promise<DecodedMessage> {
     let topics: string[]
-    const recipient = await this.client.getUserContact(this.peerAddress)
+    let recipient = await this.client.getUserContact(this.peerAddress)
     if (!recipient) {
       throw new Error(`recipient ${this.peerAddress} is not registered`)
     }
     if (!(recipient instanceof PublicKeyBundle)) {
-      throw new Error(`recipient bundle is not legacy bundle`)
+      recipient = recipient.toLegacyBundle()
     }
 
     if (!this.client.contacts.has(this.peerAddress)) {
@@ -168,27 +209,33 @@ export class ConversationV1 {
       this
     )
   }
+
+  get clientAddress() {
+    return this.client.address
+  }
 }
 
 export class ConversationV2 {
   topic: string
-  keyMaterial: Uint8Array // MUST be kept secret
+  private keyMaterial: Uint8Array // MUST be kept secret
   context?: InvitationContext
-  private header: SealedInvitationHeaderV1
   private client: Client
+  createdAt: Date
   peerAddress: string
 
   constructor(
     client: Client,
-    invitation: InvitationV1,
-    header: SealedInvitationHeaderV1,
-    peerAddress: string
+    topic: string,
+    keyMaterial: Uint8Array,
+    peerAddress: string,
+    createdAt: Date,
+    context: InvitationContext | undefined
   ) {
-    this.topic = invitation.topic
-    this.keyMaterial = invitation.aes256GcmHkdfSha256.keyMaterial
-    this.context = invitation.context
+    this.topic = topic
+    this.keyMaterial = keyMaterial
+    this.createdAt = createdAt
+    this.context = context
     this.client = client
-    this.header = header
     this.peerAddress = peerAddress
   }
 
@@ -199,12 +246,15 @@ export class ConversationV2 {
   ): Promise<ConversationV2> {
     const myKeys = client.keys.getPublicKeyBundle()
     const peer = myKeys.equals(header.sender) ? header.recipient : header.sender
-    const peerAddress = await peer.walletSignatureAddress()
-    return new ConversationV2(client, invitation, header, peerAddress)
-  }
-
-  get createdAt(): Date {
-    return nsToDate(this.header.createdNs)
+    const peerAddress = utils.getAddress(await peer.walletSignatureAddress())
+    return new ConversationV2(
+      client,
+      invitation.topic,
+      invitation.aes256GcmHkdfSha256.keyMaterial,
+      peerAddress,
+      nsToDate(header.createdNs),
+      invitation.context
+    )
   }
 
   /**
@@ -265,30 +315,34 @@ export class ConversationV2 {
     )
   }
 
+  get clientAddress() {
+    return this.client.address
+  }
+
   private async encodeMessage(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content: any,
     options?: SendOptions
   ): Promise<MessageV2> {
     const payload = await this.client.encodeContent(content, options)
-    const header: xmtpEnvelope.MessageHeaderV2 = {
+    const header: message.MessageHeaderV2 = {
       topic: this.topic,
       createdNs: dateToNs(options?.timestamp || new Date()),
     }
-    const headerBytes = xmtpEnvelope.MessageHeaderV2.encode(header).finish()
+    const headerBytes = message.MessageHeaderV2.encode(header).finish()
     const digest = await sha256(concat(headerBytes, payload))
     const signed = {
       payload,
       sender: this.client.keys.getPublicKeyBundle(),
       signature: await this.client.keys.getCurrentPreKey().sign(digest),
     }
-    const signedBytes = xmtpEnvelope.SignedContent.encode(signed).finish()
+    const signedBytes = proto.SignedContent.encode(signed).finish()
     const ciphertext = await encrypt(signedBytes, this.keyMaterial, headerBytes)
     const protoMsg = {
       v1: undefined,
       v2: { headerBytes, ciphertext },
     }
-    const bytes = xmtpEnvelope.Message.encode(protoMsg).finish()
+    const bytes = message.Message.encode(protoMsg).finish()
     return MessageV2.create(protoMsg, header, signed, bytes)
   }
 
@@ -297,12 +351,12 @@ export class ConversationV2 {
       throw new Error('empty envelope')
     }
     const messageBytes = b64Decode(env.message.toString())
-    const msg = xmtpEnvelope.Message.decode(messageBytes)
+    const msg = message.Message.decode(messageBytes)
     if (!msg.v2) {
       throw new Error('unknown message version')
     }
     const msgv2 = msg.v2
-    const header = xmtpEnvelope.MessageHeaderV2.decode(msgv2.headerBytes)
+    const header = message.MessageHeaderV2.decode(msgv2.headerBytes)
     if (header.topic !== this.topic) {
       throw new Error('topic mismatch')
     }
@@ -314,7 +368,7 @@ export class ConversationV2 {
       this.keyMaterial,
       msgv2.headerBytes
     )
-    const signed = xmtpEnvelope.SignedContent.decode(decrypted)
+    const signed = proto.SignedContent.decode(decrypted)
     if (
       !signed.sender?.identityKey ||
       !signed.sender?.preKey ||
@@ -332,19 +386,44 @@ export class ConversationV2 {
     ) {
       throw new Error('invalid signature')
     }
-    const message = await MessageV2.create(msg, header, signed, messageBytes)
-    const { content, contentType, error } = decodeContent(
+    const messageV2 = await MessageV2.create(msg, header, signed, messageBytes)
+    const { content, contentType, error } = await decodeContent(
       signed.payload,
       this.client
     )
 
     return DecodedMessage.fromV2Message(
-      message,
+      messageV2,
       content,
       contentType,
       env.contentTopic,
       this,
       error
+    )
+  }
+
+  export(): ConversationV2Export {
+    return {
+      version: 'v2',
+      topic: this.topic,
+      keyMaterial: Buffer.from(this.keyMaterial).toString('base64'),
+      peerAddress: this.peerAddress,
+      createdAt: this.createdAt.toISOString(),
+      context: this.context,
+    }
+  }
+
+  static fromExport(
+    client: Client,
+    data: ConversationV2Export
+  ): ConversationV2 {
+    return new ConversationV2(
+      client,
+      data.topic,
+      Buffer.from(data.keyMaterial, 'base64'),
+      data.peerAddress,
+      new Date(data.createdAt),
+      data.context
     )
   }
 }

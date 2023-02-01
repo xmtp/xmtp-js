@@ -3,6 +3,7 @@
 ![Test](https://github.com/xmtp/xmtp-js/actions/workflows/test.yml/badge.svg)
 ![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
 ![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
+![Status](https://img.shields.io/badge/Project_Status-General_Availability-brightgreen)
 
 ![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
 
@@ -43,9 +44,20 @@ Issues and PRs are welcome in accordance with our [contribution guidelines](http
 
 XMTP provides both `production` and `dev` network environments to support the development phases of your project.
 
-The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the [XMTP Discord community](https://discord.gg/xmtp).
+The `production` and `dev` networks are completely separate and not interchangeable.
+For example, for a given blockchain account address, its XMTP identity on `dev` network is completely distinct from its XMTP identity on the `production` network, as are the messages associated with these identities. In addition, XMTP identities and messages created on the `dev` network can't be accessed from or moved to the `production` network, and vice versa.
 
-To learn how to set your client's network environment, see [Configuring the Client](#configuring-the-client).
+**Important:** When you [create a client](#creating-a-client), it connects to the XMTP `dev` environment by default. To learn how to use the `env` parameter to set your client's network environment, see [Configuring the Client](#configuring-the-client).
+
+The `env` parameter accepts one of three valid values: `dev`, `production`, or `local`. Here are some best practices for when to use each environment:
+
+- `dev`: Use to have a client communicate with the `dev` network. As a best practice, set `env` to `dev` while developing and testing your app. Follow this best practice to isolate test messages to `dev` inboxes.
+
+- `production`: Use to have a client communicate with the `production` network. As a best practice, set `env` to `production` when your app is serving real users. Follow this best practice to isolate messages between real-world users to `production` inboxes.
+
+- `local`: Use to have a client communicate with an XMTP node you are running locally. For example, an XMTP node developer can set `env` to `local` to generate client traffic to test a node running locally.
+
+The `production` network is configured to store messages indefinitely. XMTP may occasionally delete messages and keys from the `dev` network, and will provide advance notice in the [XMTP Discord community](https://discord.gg/xmtp).
 
 ## Installation
 
@@ -104,18 +116,20 @@ for await (const message of await conversation.streamMessages()) {
 }
 ```
 
+Currently, network nodes are configured to rate limit high-volume publishing from Clients. A rate-limited Client can expect to receive a 429 status code response from a node. Rate limits can change at any time in the interest of maintaining network health.
+
 ### Creating a Client
 
-A Client is created with `Client.create(wallet: ethers.Signer): Promise<Client>` that requires passing in a connected Wallet. The Client will request a wallet signature in 2 cases:
+A Client is created with `Client.create(wallet: Signer): Promise<Client>` that requires passing in a connected Wallet that implements the [Signer](src/types/Signer.ts) interface. The Client will request a wallet signature in 2 cases:
 
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the Client is started (including the very first time).
 
-The Client will connect to the XMTP `dev` environment by default. ClientOptions can be used to override this and other parameters of the network connection.
+**Important:** The Client connects to the XMTP `dev` environment by default. [Use `ClientOptions`](#configuring-the-client) to change this and other parameters of the network connection.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
-// Create the client with an `ethers.Signer` from your application
+// Create the client with a `Signer` from your application
 const xmtp = await Client.create(wallet)
 ```
 
@@ -123,14 +137,14 @@ const xmtp = await Client.create(wallet)
 
 The client's network connection and key storage method can be configured with these optional parameters of `Client.create`:
 
-| Parameter      | Default               | Description                                                                                                                                                                                                                                                                |
-| -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| env            | `dev`                 | Connect to the specified XMTP network environment. Valid values also include `production` and `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments). |
-| apiUrl         | `undefined`           | Manually specify an API URL to use. If specified, value of `env` will be ignored.                                                                                                                                                                                          |
-|                |
-| keyStoreType   | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or use `static` to provide private keys manually.                                                                                                                                                                          |
-| codecs         | `[TextCodec]`         | Add codecs to support additional content types.                                                                                                                                                                                                                            |
-| maxContentSize | `100M`                | Maximum message content size in bytes.                                                                                                                                                                                                                                     |
+| Parameter      | Default               | Description                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| env            | `dev`                 | Connect to the specified XMTP network environment. Valid values include `dev`, `production`, or `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments).                                                                                                                                                     |
+| apiUrl         | Undefined             | Manually specify an API URL to use. If specified, value of `env` will be ignored.                                                                                                                                                                                                                                                                                                                                                |
+| keyStoreType   | `networkTopicStoreV1` | Persist the wallet's key bundle to the network, or use `static` to provide private keys manually.                                                                                                                                                                                                                                                                                                                                |
+| codecs         | `[TextCodec]`         | Add codecs to support additional content types.                                                                                                                                                                                                                                                                                                                                                                                  |
+| maxContentSize | `100M`                | Maximum message content size in bytes.                                                                                                                                                                                                                                                                                                                                                                                           |
+| appVersion     | Undefined             | Add a client app version identifier that's included with API requests. For example, you can use the following format: `appVersion: APP_NAME + '/' + APP_VERSION`. Setting this value provides telemetry that shows which apps are using the XMTP client SDK. This information can help XMTP developers provide app support, especially around communicating important SDK updates, including deprecations and required upgrades. |
 
 ### Conversations
 
@@ -138,7 +152,7 @@ Most of the time, when interacting with the network, you'll want to do it throug
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
-// Create the client with an `ethers.Signer` from your application
+// Create the client with a `Signer` from your application
 const xmtp = await Client.create(wallet)
 const conversations = xmtp.conversations
 ```
@@ -251,6 +265,22 @@ for await (const message of await conversation.streamMessages()) {
 }
 ```
 
+#### Listen for new messages in all conversations
+
+To listen for any new messages from _all_ conversations, use `conversations.streamAllMessages()`.
+
+**Note:** There is a chance this stream can miss messages if multiple new conversations are received in the time it takes to update the stream to include a new conversation.
+
+```ts
+for await (const message of await xmtp.conversations.streamAllMessages()) {
+  if (message.senderAddress === xmtp.address) {
+    // This message was sent from me
+    continue
+  }
+  console.log(`New message from ${message.senderAddress}: ${message.content}`)
+}
+```
+
 #### Checking if an address is on the network
 
 If you would like to check and see if a blockchain address is registered on the network before instantiating a client instance, you can use `Client.canMessage`.
@@ -346,8 +376,10 @@ Message content can be optionally compressed using the `compression` option. The
 Content will be decompressed transparently on the receiving end. Note that `Client` enforces maximum content size. The default limit can be overridden through the `ClientOptions`. Consequently a message that would expand beyond that limit on the receiving end will fail to decode.
 
 ```ts
+import { Compression } from '@xmtp/xmtp-js'
+
 conversation.send('#'.repeat(1000), {
-  compression: 'deflate',
+  compression: Compression.COMPRESSION_DEFLATE,
 })
 ```
 
@@ -359,7 +391,7 @@ You can export the unencrypted key bundle using the static method `Client.getKey
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
-// Get the keys using a valid ethers.Signer. Save them somewhere secure.
+// Get the keys using a valid Signer. Save them somewhere secure.
 const keys = await Client.getKeys(wallet)
 // Create a client using keys returned from getKeys
 const client = await Client.create(null, { privateKeyOverride: keys })
@@ -367,16 +399,24 @@ const client = await Client.create(null, { privateKeyOverride: keys })
 
 The keys returned by `getKeys` should be treated with the utmost care as compromise of these keys will allow an attacker to impersonate the user on the XMTP network. Ensure these keys are stored somewhere secure and encrypted.
 
-#### Under the hood
+#### Caching conversations
 
-Using `xmtp.conversations` hides the details of this, but for the curious this is how sending a message on XMTP works. The first message and first response between two parties is sent to three separate [Waku](https://rfc.vac.dev/spec/10/) content topics:
+As a performance optimization, you may want to persist the list of conversations in your application outside of the SDK to speed up the first call to `client.conversations.list()`.
 
-1. Sender's introduction topic
-2. Recipient's introduction topic
-3. Conversation topic shared by the sender and the recipient
+The exported conversation list contains encryption keys for any V2 conversations included in the list. As such, you should treat it with the same care that you treat [private keys](#manually-handling-private-key-storage).
 
-This is used to establish a shared secret and negotiate a topic to communicate on. Any following messages are sent to the conversation topic only.
+You can get a JSON serializable list of conversations by calling:
 
-The introduction topics allow the participants to reconstruct the list of conversations that they participate(d) in.
+```ts
+const client = await Client.create(wallet)
+const conversations = await client.conversations.export()
+saveConversationsSomewhere(JSON.stringify(conversations))
+```
 
-The conversation topics carry the contents of the conversations.
+To load the conversations in a new SDK instance you can run:
+
+```ts
+const client = await Client.create(wallet)
+const conversations = JSON.parse(loadConversationsFromSomewhere())
+await client.conversations.import(conversations)
+```
