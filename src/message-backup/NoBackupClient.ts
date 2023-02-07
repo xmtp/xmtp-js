@@ -1,7 +1,16 @@
-import BackupClient, { BackupProvider } from './BackupClient'
+import BackupClient, {
+  BackupConfiguration,
+  BackupProvider,
+} from './BackupClient'
 
 export default class NoBackupClient extends BackupClient {
-  getProvider(): BackupProvider {
+  public static createConfiguration(): BackupConfiguration {
+    return {
+      provider: BackupProvider.none,
+    }
+  }
+
+  public getProvider(): BackupProvider {
     return BackupProvider.none
   }
 }

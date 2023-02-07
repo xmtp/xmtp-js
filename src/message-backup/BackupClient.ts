@@ -44,11 +44,18 @@ export default abstract class BackupClient {
     identityKey: PrivateKey,
     provider: BackupProvider
   ): Promise<BackupConfiguration> {
-    // TODO:
-    // Validate there is no existing backup provider
-    // Generate location and encryption key
-    // Upload new pref
-    throw new Error('Not implemented')
+    // TODO: Validate there is no existing configuration in the backend
+    let backupConfiguration: BackupConfiguration
+    switch (provider) {
+      case BackupProvider.none:
+        backupConfiguration = NoBackupClient.createConfiguration()
+        break
+      case BackupProvider.xmtp:
+        backupConfiguration = XMTPBackupClient.createConfiguration(identityKey)
+        break
+    }
+    // TODO: Upload new configuration to backend
+    return backupConfiguration
   }
 
   public static create(
