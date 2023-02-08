@@ -1,4 +1,4 @@
-import { messageApi } from '@xmtp/proto'
+import { keystore } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
@@ -9,29 +9,18 @@ import {
   SealedInvitation,
 } from './../Invitation'
 import { SignedPublicKeyBundle } from '../crypto'
-import {
-  Keystore,
-  DecryptV1Request,
-  DecryptV2Request,
-  DecryptV1Response,
-  DecryptV2Response,
-  EncryptResponse,
-  EncryptV1Request,
-  EncryptV2Request,
-  CreateInviteRequest,
-  CreateInviteResponse,
-  ResultOrError,
-  ConversationReference,
-} from './interfaces'
+import { Keystore } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
-import { ErrorCode, KeystoreError } from './errors'
+import { KeystoreError } from './errors'
 import {
   convertError,
   mapAndConvertErrors,
   toPublicKeyBundle,
   toSignedPublicKeyBundle,
+  wrapResult,
 } from './utils'
-import { nsToDate } from '../utils'
+import { dateToNs, nsToDate } from '../utils'
+const { ErrorCode } = keystore
 
 type TopicData = {
   key: Uint8Array
@@ -50,10 +39,19 @@ export default class InMemoryKeystore implements Keystore {
     this.topicKeys = new Map<string, TopicData>()
   }
 
-  decryptV1(req: DecryptV1Request[]): Promise<DecryptV1Response[]> {
-    return mapAndConvertErrors(
-      req,
+  async decryptV1(
+    req: keystore.DecryptV1Request
+  ): Promise<keystore.DecryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
       async ({ payload, peerKeys, headerBytes, isSender }) => {
+        if (!payload || !peerKeys || !headerBytes.length) {
+          throw new KeystoreError(
+            keystore.ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'missing required field'
+          )
+        }
+
         const decrypted = await decryptV1(
           this.v1Keys,
           toPublicKeyBundle(peerKeys),
@@ -61,109 +59,183 @@ export default class InMemoryKeystore implements Keystore {
           headerBytes,
           isSender
         )
-        return {
+
+        return wrapResult({
           decrypted,
-        }
+        })
       },
-      ErrorCode.VALIDATION_FAILED
+      keystore.ErrorCode.ERROR_CODE_UNSPECIFIED
     )
+
+    return keystore.DecryptResponse.fromPartial({
+      responses,
+    })
   }
 
-  async decryptV2(req: DecryptV2Request[]): Promise<DecryptV2Response[]> {
-    return mapAndConvertErrors(
-      req,
+  async decryptV2(
+    req: keystore.DecryptV2Request
+  ): Promise<keystore.DecryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
       async ({ payload, headerBytes, contentTopic }) => {
+        if (!payload || !headerBytes.length || !contentTopic) {
+          throw new KeystoreError(
+            keystore.ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'missing required field'
+          )
+        }
         const topicData = this.topicKeys.get(contentTopic)
         if (!topicData) {
-          throw new KeystoreError(ErrorCode.NOT_FOUND, 'no topic key')
+          // This is the wrong error type. Will add to the proto repo later
+          throw new KeystoreError(
+            keystore.ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
+            'no topic key'
+          )
         }
         const decrypted = await decryptV2(payload, topicData.key, headerBytes)
-        return { decrypted }
+
+        return wrapResult({ decrypted })
       },
-      ErrorCode.INTERNAL_ERROR
+      ErrorCode.ERROR_CODE_UNSPECIFIED
     )
+
+    return keystore.DecryptResponse.fromPartial({
+      responses,
+    })
   }
 
-  encryptV1(req: EncryptV1Request[]): Promise<EncryptResponse[]> {
-    return mapAndConvertErrors(
-      req,
+  async encryptV1(
+    req: keystore.EncryptV1Request
+  ): Promise<keystore.EncryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
       async ({ recipient, payload, headerBytes }) => {
-        return {
-          ciphertext: await encryptV1(
+        if (!recipient || !payload.length || !headerBytes.length) {
+          throw new KeystoreError(
+            ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'missing required field'
+          )
+        }
+
+        return wrapResult({
+          encrypted: await encryptV1(
             this.v1Keys,
             toPublicKeyBundle(recipient),
             payload,
             headerBytes
           ),
-        }
+        })
       },
-      ErrorCode.VALIDATION_FAILED
+      ErrorCode.ERROR_CODE_UNSPECIFIED
     )
+
+    return keystore.EncryptResponse.fromPartial({
+      responses,
+    })
   }
 
-  async encryptV2(req: EncryptV2Request[]): Promise<EncryptResponse[]> {
-    return mapAndConvertErrors(
-      req,
-      async ({ contentTopic, message, headerBytes }) => {
+  async encryptV2(
+    req: keystore.EncryptV2Request
+  ): Promise<keystore.EncryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
+      async ({ contentTopic, payload, headerBytes }) => {
+        if (!contentTopic || !payload.length || !headerBytes.length) {
+          throw new KeystoreError(
+            ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'missing required field'
+          )
+        }
+
         const topicData = this.topicKeys.get(contentTopic)
         if (!topicData) {
-          throw new KeystoreError(ErrorCode.NOT_FOUND, 'no topic key')
+          throw new KeystoreError(
+            ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
+            'no topic key'
+          )
         }
-        return {
-          ciphertext: await encryptV2(message, topicData.key, headerBytes),
-        }
+
+        return wrapResult({
+          encrypted: await encryptV2(payload, topicData.key, headerBytes),
+        })
       },
-      ErrorCode.INTERNAL_ERROR
+      ErrorCode.ERROR_CODE_INVALID_INPUT
     )
+
+    return keystore.EncryptResponse.fromPartial({
+      responses,
+    })
   }
 
   async saveInvites(
-    req: messageApi.Envelope[]
-  ): Promise<ResultOrError<ConversationReference>[]> {
-    return mapAndConvertErrors(
-      req,
-      async (envelope) => {
-        const sealedInvitation = await SealedInvitation.fromEnvelope(envelope)
-        const invite = await sealedInvitation.v1.getInvitation(this.v2Keys)
-        return this.addConversationFromV1Invite(
-          invite,
-          nsToDate(sealedInvitation.v1.header.createdNs)
-        )
+    req: keystore.SaveInvitesRequest
+  ): Promise<keystore.SaveInvitesResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
+      async ({ payload, timestampNs }) => {
+        const sealed = SealedInvitation.fromBytes(payload)
+
+        const headerTime = sealed.v1.header.createdNs
+        if (!headerTime.equals(timestampNs)) {
+          throw new Error('envelope and header timestamp mismatch')
+        }
+
+        const invite = await sealed.v1.getInvitation(this.v2Keys)
+
+        return wrapResult({
+          conversation: this.addConversationFromV1Invite(
+            invite,
+            nsToDate(sealed.v1.header.createdNs)
+          ),
+        })
       },
-      ErrorCode.VALIDATION_FAILED
+      ErrorCode.ERROR_CODE_INVALID_INPUT
     )
+
+    return keystore.SaveInvitesResponse.fromPartial({
+      responses,
+    })
   }
 
-  async createInvite(req: CreateInviteRequest): Promise<CreateInviteResponse> {
+  async createInvite(
+    req: keystore.CreateInviteRequest
+  ): Promise<keystore.CreateInviteResponse> {
     try {
+      if (!req.recipient) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing recipient'
+        )
+      }
       const invitation = InvitationV1.createRandom(req.context)
+      const created = nsToDate(req.createdNs)
       const sealed = await SealedInvitation.createV1({
         sender: this.v2Keys,
         recipient: toSignedPublicKeyBundle(req.recipient),
-        created: req.createdAt,
+        created,
         invitation,
       })
-      const convo = this.addConversationFromV1Invite(invitation, req.createdAt)
+      const convo = this.addConversationFromV1Invite(invitation, created)
 
-      return {
+      return keystore.CreateInviteResponse.fromPartial({
         conversation: convo,
         payload: sealed.toBytes(),
-      }
+      })
     } catch (e) {
-      throw convertError(e as Error, ErrorCode.VALIDATION_FAILED)
+      throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
     }
   }
 
-  async getV2Conversations(): Promise<ConversationReference[]> {
+  async getV2Conversations(): Promise<keystore.ConversationReference[]> {
     const convos = Array.from(this.topicKeys.entries()).map(
-      ([topic, data]): ConversationReference => ({
+      ([topic, data]): keystore.ConversationReference => ({
         topic,
-        createdAt: data.createdAt,
+        createdNs: dateToNs(data.createdAt),
         context: data.context,
       })
     )
 
-    convos.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    convos.sort((a, b) => a.createdNs.sub(b.createdNs).toNumber())
     return convos
   }
 
@@ -178,7 +250,7 @@ export default class InMemoryKeystore implements Keystore {
   private addConversationFromV1Invite(
     invite: InvitationV1,
     createdAt: Date
-  ): ConversationReference {
+  ): keystore.ConversationReference {
     this.topicKeys.set(invite.topic, {
       key: invite.aes256GcmHkdfSha256.keyMaterial,
       context: invite.context,
@@ -187,7 +259,7 @@ export default class InMemoryKeystore implements Keystore {
 
     return {
       topic: invite.topic,
-      createdAt,
+      createdNs: dateToNs(createdAt),
       context: invite.context,
     }
   }

@@ -1,5 +1,4 @@
 import { InvitationContext } from './../../src/Invitation'
-import { DecryptV1Request } from './../../src/keystore/interfaces'
 import { MessageV1 } from './../../src/Message'
 import {
   PrivateKeyBundleV1,
@@ -12,7 +11,8 @@ import InMemoryKeystore from '../../src/keystore/InMemoryKeystore'
 import { equalBytes } from '../../src/crypto/utils'
 import { InvitationV1, SealedInvitation } from '../../src/Invitation'
 import { fetcher } from '@xmtp/proto'
-import { buildEnvelope, newWallet } from '../helpers'
+import { buildProtoEnvelope, newWallet } from '../helpers'
+import { dateToNs, nsToDate } from '../../src/utils/date'
 
 const { b64Encode } = fetcher
 
@@ -58,22 +58,25 @@ describe('InMemoryKeystore', () => {
         headerBytes,
       }))
 
-      const res = await aliceKeystore.encryptV1(req)
-      expect(res).toHaveLength(req.length)
-      for (const item of res) {
-        if ('error' in item) {
-          throw new Error(item.error)
+      const res = await aliceKeystore.encryptV1({ requests: req })
+      expect(res.responses).toHaveLength(req.length)
+      for (const { error, result } of res.responses) {
+        if (error || !result) {
+          throw error
         }
-        expect(item).toHaveProperty('ciphertext')
-        expect(item.ciphertext.aes256GcmHkdfSha256?.gcmNonce).toBeTruthy()
-        expect(item.ciphertext.aes256GcmHkdfSha256?.hkdfSalt).toBeTruthy()
-        expect(item.ciphertext.aes256GcmHkdfSha256?.payload).toBeTruthy()
+        const encrypted = result!.encrypted
+        if (!encrypted) {
+          throw new Error('No encrypted result')
+        }
 
+        expect(result.encrypted?.aes256GcmHkdfSha256?.gcmNonce).toBeTruthy()
+        expect(result.encrypted?.aes256GcmHkdfSha256?.hkdfSalt).toBeTruthy()
+        expect(result.encrypted?.aes256GcmHkdfSha256?.payload).toBeTruthy()
         // Ensure decryption doesn't throw
         await decryptV1(
           aliceKeys,
           bobKeys.getPublicKeyBundle(),
-          item.ciphertext,
+          encrypted,
           headerBytes,
           true
         )
@@ -81,7 +84,7 @@ describe('InMemoryKeystore', () => {
     })
 
     it('fails to encrypt with invalid params', async () => {
-      const req = [
+      const requests = [
         {
           recipient: {},
           payload: new Uint8Array(10),
@@ -90,12 +93,11 @@ describe('InMemoryKeystore', () => {
       ]
 
       // @ts-expect-error
-      const res = await aliceKeystore.encryptV1(req)
+      const res = await aliceKeystore.encryptV1({ requests })
 
-      expect(res).toHaveLength(req.length)
-      expect(res[0]).toHaveProperty('error')
-      expect(res[0]).toHaveProperty('code')
-      expect(res[0]).toBeInstanceOf(KeystoreError)
+      expect(res.responses).toHaveLength(requests.length)
+      expect(res.responses[0]).toHaveProperty('error')
+      expect(res.responses[0].error).toHaveProperty('code')
     })
   })
 
@@ -110,7 +112,7 @@ describe('InMemoryKeystore', () => {
         new Date()
       )
 
-      const req: DecryptV1Request[] = [
+      const requests = [
         {
           payload: message.ciphertext,
           peerKeys,
@@ -119,13 +121,14 @@ describe('InMemoryKeystore', () => {
         },
       ]
 
-      const res = await aliceKeystore.decryptV1(req)
+      const { responses } = await aliceKeystore.decryptV1({ requests })
 
-      expect(res).toHaveLength(req.length)
-      if ('error' in res[0]) {
-        throw res[0]
+      expect(responses).toHaveLength(requests.length)
+      if (responses[0].error) {
+        throw responses[0].error
       }
-      expect(equalBytes(res[0].decrypted, msg)).toBe(true)
+
+      expect(equalBytes(responses[0]!.result!.decrypted, msg)).toBe(true)
     })
 
     it('fails to decrypt an invalid message', async () => {
@@ -138,7 +141,7 @@ describe('InMemoryKeystore', () => {
         new Date()
       )
 
-      const req: DecryptV1Request[] = [
+      const requests = [
         {
           payload: message.ciphertext,
           peerKeys: bobKeys.getPublicKeyBundle(),
@@ -147,14 +150,13 @@ describe('InMemoryKeystore', () => {
         },
       ]
 
-      const res = await aliceKeystore.decryptV1(req)
+      const { responses } = await aliceKeystore.decryptV1({ requests })
 
-      expect(res).toHaveLength(req.length)
+      expect(responses).toHaveLength(requests.length)
 
-      if (!('error' in res[0])) {
+      if (!responses[0].error) {
         throw new Error('should have errored')
       }
-      expect(res[0]).toHaveProperty('error')
     })
   })
 
@@ -163,17 +165,16 @@ describe('InMemoryKeystore', () => {
       const recipient = SignedPublicKeyBundle.fromLegacyBundle(
         bobKeys.getPublicKeyBundle()
       )
-      const createdAt = new Date()
+      const createdNs = dateToNs(new Date())
       const response = await aliceKeystore.createInvite({
         recipient,
-        createdAt,
+        createdNs,
+        context: undefined,
       })
 
-      expect(response.conversation.topic).toBeTruthy()
-      expect(response.conversation.context).toBeUndefined()
-      expect(response.conversation.createdAt.getTime()).toEqual(
-        createdAt.getTime()
-      )
+      expect(response.conversation?.topic).toBeTruthy()
+      expect(response.conversation?.context).toBeUndefined()
+      expect(response.conversation?.createdNs.equals(createdNs)).toBeTruthy()
       expect(response.payload).toBeInstanceOf(Uint8Array)
     })
 
@@ -181,24 +182,25 @@ describe('InMemoryKeystore', () => {
       const recipient = SignedPublicKeyBundle.fromLegacyBundle(
         bobKeys.getPublicKeyBundle()
       )
-      const createdAt = new Date()
+      const createdNs = dateToNs(new Date())
       const context = { conversationId: 'xmtp.org/foo', metadata: {} }
       const response = await aliceKeystore.createInvite({
         recipient,
-        createdAt,
+        createdNs,
         context,
       })
 
-      expect(response.conversation.topic).toBeTruthy()
-      expect(response.conversation.context).toEqual(context)
+      expect(response.conversation?.topic).toBeTruthy()
+      expect(response.conversation?.context).toEqual(context)
     })
 
     it('throws if an invalid recipient is included', async () => {
-      const createdAt = new Date()
+      const createdNs = dateToNs(new Date())
       expect(async () => {
         await aliceKeystore.createInvite({
           recipient: {} as any,
-          createdAt,
+          createdNs,
+          context: undefined,
         })
       }).rejects.toThrow(KeystoreError)
     })
@@ -209,17 +211,21 @@ describe('InMemoryKeystore', () => {
       const { invite, created, sealed } = await buildInvite()
 
       const sealedBytes = sealed.toBytes()
-      const envelope = buildEnvelope(sealedBytes, 'foo', created)
-      const response = await bobKeystore.saveInvites([envelope])
+      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
+      const { responses } = await bobKeystore.saveInvites({
+        requests: [envelope],
+      })
 
-      expect(response).toHaveLength(1)
-      const firstResult = response[0]
-      if ('error' in firstResult) {
-        throw firstResult
+      expect(responses).toHaveLength(1)
+      const firstResult = responses[0]
+      if (firstResult.error) {
+        throw firstResult.error
       }
-      expect(firstResult.createdAt.getTime()).toEqual(created.getTime())
-      expect(firstResult.topic).toEqual(invite.topic)
-      expect(firstResult.context).toBeUndefined()
+      expect(
+        nsToDate(firstResult.result!.conversation!.createdNs).getTime()
+      ).toEqual(created.getTime())
+      expect(firstResult.result!.conversation!.topic).toEqual(invite.topic)
+      expect(firstResult.result!.conversation?.context).toBeUndefined()
 
       const conversations = await bobKeystore.getV2Conversations()
       expect(conversations).toHaveLength(1)
@@ -227,21 +233,27 @@ describe('InMemoryKeystore', () => {
     })
 
     it('can save received invites', async () => {
-      const { invite, created, sealed } = await buildInvite()
+      const { created, sealed } = await buildInvite()
 
       const sealedBytes = sealed.toBytes()
-      const envelope = buildEnvelope(sealedBytes, 'foo', created)
+      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
 
-      const [aliceResponse] = await aliceKeystore.saveInvites([envelope])
-      if ('error' in aliceResponse) {
+      const {
+        responses: [aliceResponse],
+      } = await aliceKeystore.saveInvites({
+        requests: [envelope],
+      })
+      if (aliceResponse.error) {
         throw aliceResponse
       }
 
       const aliceConversations = await aliceKeystore.getV2Conversations()
       expect(aliceConversations).toHaveLength(1)
 
-      const [bobResponse] = await bobKeystore.saveInvites([envelope])
-      if ('error' in bobResponse) {
+      const {
+        responses: [bobResponse],
+      } = await bobKeystore.saveInvites({ requests: [envelope] })
+      if (bobResponse.error) {
         throw bobResponse
       }
 
@@ -256,25 +268,33 @@ describe('InMemoryKeystore', () => {
         metadata: {},
       })
       const envelopes = [
-        buildEnvelope(new Uint8Array(10), 'bar', new Date()),
-        buildEnvelope(sealed.toBytes(), 'foo', created),
+        buildProtoEnvelope(new Uint8Array(10), 'bar', new Date()),
+        buildProtoEnvelope(sealed.toBytes(), 'foo', created),
       ]
 
-      const response = await bobKeystore.saveInvites(envelopes)
-      expect(response).toHaveLength(2)
+      const response = await bobKeystore.saveInvites({ requests: envelopes })
+      expect(response.responses).toHaveLength(2)
 
-      const [firstResult, secondResult] = response
-      if (!('error' in firstResult)) {
+      const {
+        responses: [firstResult, secondResult],
+      } = response
+
+      if (!firstResult.error) {
         fail('should have errored')
       }
-      expect(firstResult).toBeInstanceOf(KeystoreError)
+      expect(firstResult.error.code).toBeTruthy()
 
-      if ('error' in secondResult) {
+      if (secondResult.error) {
         fail('should not have errored')
       }
-      expect(secondResult.createdAt.getTime()).toEqual(created.getTime())
-      expect(secondResult.topic).toEqual(invite.topic)
-      expect(secondResult.context?.conversationId).toEqual(conversationId)
+
+      expect(
+        secondResult.result?.conversation?.createdNs.equals(dateToNs(created))
+      ).toBeTruthy()
+      expect(secondResult.result?.conversation?.topic).toEqual(invite.topic)
+      expect(
+        secondResult.result?.conversation?.context?.conversationId
+      ).toEqual(conversationId)
     })
   })
 
@@ -283,67 +303,80 @@ describe('InMemoryKeystore', () => {
       const { invite, created, sealed } = await buildInvite()
 
       const sealedBytes = sealed.toBytes()
-      const envelope = buildEnvelope(sealedBytes, 'foo', created)
-      await aliceKeystore.saveInvites([envelope])
+      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
+      await aliceKeystore.saveInvites({ requests: [envelope] })
 
-      const message = new TextEncoder().encode('Hello, world!')
+      const payload = new TextEncoder().encode('Hello, world!')
       const headerBytes = new Uint8Array(10)
 
-      const [encrypted] = await aliceKeystore.encryptV2([
-        {
-          contentTopic: invite.topic,
-          message,
-          headerBytes,
-        },
-      ])
+      const {
+        responses: [encrypted],
+      } = await aliceKeystore.encryptV2({
+        requests: [
+          {
+            contentTopic: invite.topic,
+            payload,
+            headerBytes,
+          },
+        ],
+      })
 
-      if ('error' in encrypted) {
+      if (encrypted.error) {
         throw encrypted
       }
 
-      expect(encrypted.ciphertext).toBeTruthy()
+      expect(encrypted.result?.encrypted).toBeTruthy()
     })
 
     it('round trips using a created invite', async () => {
       const recipient = SignedPublicKeyBundle.fromLegacyBundle(
         bobKeys.getPublicKeyBundle()
       )
-      const createdAt = new Date()
+      const createdNs = dateToNs(new Date())
       const response = await aliceKeystore.createInvite({
         recipient,
-        createdAt,
+        createdNs,
+        context: undefined,
       })
 
-      const message = new TextEncoder().encode('Hello, world!')
+      const payload = new TextEncoder().encode('Hello, world!')
       const headerBytes = new Uint8Array(10)
 
-      const [encrypted] = await aliceKeystore.encryptV2([
-        {
-          contentTopic: response.conversation.topic,
-          message,
-          headerBytes,
-        },
-      ])
+      const {
+        responses: [encrypted],
+      } = await aliceKeystore.encryptV2({
+        requests: [
+          {
+            contentTopic: response.conversation!.topic,
+            payload,
+            headerBytes,
+          },
+        ],
+      })
 
-      if ('error' in encrypted) {
-        throw encrypted
+      if (encrypted.error) {
+        throw encrypted.error
       }
 
-      expect(encrypted.ciphertext).toBeTruthy()
+      expect(encrypted.result?.encrypted).toBeTruthy()
 
-      const [decrypted] = await aliceKeystore.decryptV2([
-        {
-          payload: encrypted.ciphertext,
-          headerBytes,
-          contentTopic: response.conversation.topic,
-        },
-      ])
+      const {
+        responses: [decrypted],
+      } = await aliceKeystore.decryptV2({
+        requests: [
+          {
+            payload: encrypted.result?.encrypted,
+            headerBytes,
+            contentTopic: response.conversation!.topic,
+          },
+        ],
+      })
 
-      if ('error' in decrypted) {
-        throw decrypted
+      if (decrypted.error) {
+        throw decrypted.error
       }
 
-      expect(equalBytes(message, decrypted.decrypted)).toBeTruthy()
+      expect(equalBytes(payload, decrypted.result!.decrypted)).toBeTruthy()
     })
   })
 
@@ -365,14 +398,15 @@ describe('InMemoryKeystore', () => {
         shuffled.map((createdAt) => {
           return aliceKeystore.createInvite({
             recipient,
-            createdAt,
+            createdNs: dateToNs(createdAt),
+            context: undefined,
           })
         })
       )
 
       const convos = await aliceKeystore.getV2Conversations()
       for (let i = 0; i < convos.length; i++) {
-        expect(convos[i].createdAt.getTime()).toEqual(timestamps[i].getTime())
+        expect(convos[i].createdNs.equals(dateToNs(timestamps[i]))).toBeTruthy()
       }
     })
   })

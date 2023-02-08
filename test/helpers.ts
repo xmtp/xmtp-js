@@ -1,4 +1,4 @@
-import { toNanoString } from './../src/utils'
+import { dateToNs, toNanoString } from './../src/utils'
 import { Wallet } from 'ethers'
 import {
   PrivateKey,
@@ -164,5 +164,17 @@ export const buildEnvelope = (
     contentTopic,
     timestampNs: toNanoString(created),
     message: b64Encode(message, 0, message.length) as unknown as Uint8Array,
+  }
+}
+
+export const buildProtoEnvelope = (
+  payload: Uint8Array,
+  contentTopic: string,
+  timestamp: Date
+) => {
+  return {
+    contentTopic,
+    timestampNs: dateToNs(timestamp),
+    payload,
   }
 }

@@ -1,12 +1,11 @@
-import { publicKey } from '@xmtp/proto'
+import { publicKey, keystore } from '@xmtp/proto'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
-import { ErrorCode, KeystoreError } from './errors'
-import { ResultOrError } from './interfaces'
+import { KeystoreError } from './errors'
 
 export const convertError = (
   e: Error,
   // Default error code to apply to errors that don't have one
-  errorCode: ErrorCode
+  errorCode: keystore.ErrorCode
 ) => {
   if (e instanceof KeystoreError) {
     return e
@@ -15,13 +14,15 @@ export const convertError = (
   return new KeystoreError(errorCode, e.message)
 }
 
+type ResultOrError<T> = T | { error: KeystoreError }
+
 // Map an array of items to an array of results or errors
 // Transform any errors thrown into `KeystoreError`s
 export const mapAndConvertErrors = <Input, Output>(
   input: Input[],
   mapper: (input: Input) => Promise<Output> | Output,
   // Default error code to apply to errors that don't have one
-  errorCode: ErrorCode
+  errorCode: keystore.ErrorCode
 ): Promise<ResultOrError<Output>[]> => {
   return Promise.all(
     input.map(async (item: Input) => {
@@ -29,7 +30,7 @@ export const mapAndConvertErrors = <Input, Output>(
         // Be sure to await mapper result to catch errors
         return await mapper(item)
       } catch (e) {
-        return convertError(e as Error, errorCode)
+        return { error: convertError(e as Error, errorCode) }
       }
     })
   )
@@ -54,3 +55,5 @@ export const toSignedPublicKeyBundle = (
 
   return new SignedPublicKeyBundle(bundle)
 }
+
+export const wrapResult = <T>(result: T): { result: T } => ({ result })
