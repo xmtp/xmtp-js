@@ -4,19 +4,29 @@ import BackupClient, {
   BackupProvider,
 } from './BackupClient'
 
-export default class XMTPBackupClient extends BackupClient {
+const PROVIDER = BackupProvider.xmtp
+export default class XMTPBackupClient implements BackupClient {
+  private configuration: BackupConfiguration
+
   public static createConfiguration(
     identityKey: PrivateKey
   ): BackupConfiguration {
     // TODO: randomly generate topic and encryption key
     return {
-      provider: BackupProvider.xmtp,
+      provider: PROVIDER,
       location: 'dummy-hist:' + identityKey.publicKey.getEthereumAddress(),
       encryptionKey: 'dummyEncryptionKey',
     }
   }
 
-  getProvider(): BackupProvider {
-    return BackupProvider.xmtp
+  constructor(configuration: BackupConfiguration) {
+    if (configuration.provider !== PROVIDER) {
+      throw new Error('Using incorrect backup client for provider')
+    }
+    this.configuration = configuration
+  }
+
+  public get provider(): BackupProvider {
+    return PROVIDER
   }
 }

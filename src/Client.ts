@@ -30,6 +30,7 @@ import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
 import BackupClient, { BackupProvider } from './message-backup/BackupClient'
+import { createBackupClient } from './message-backup/BackupClientFactory'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -181,6 +182,10 @@ export default class Client {
     return this._conversations
   }
 
+  get backupProvider(): BackupProvider {
+    return this._backupClient.provider
+  }
+
   /**
    * Create and start a client associated with given wallet.
    *
@@ -199,7 +204,6 @@ export default class Client {
       keys.identityKey,
       options.env
     )
-    console.log('Backup client', backupClient.constructor.name)
     const client = new Client(keys, apiClient, backupClient)
     await client.init(options)
     return client
@@ -217,16 +221,13 @@ export default class Client {
     identityKey: PrivateKey,
     env: keyof typeof ApiUrls
   ): Promise<BackupClient> {
-    let backupConfiguration = await BackupClient.fetchConfiguration(identityKey)
-    if (!backupConfiguration) {
-      const backupProvider =
+    // Hard-code the provider to use for now
+    const backupProviderSelector = async () => {
+      return Promise.resolve(
         env === 'local' ? BackupProvider.xmtp : BackupProvider.none
-      backupConfiguration = await BackupClient.setupConfiguration(
-        identityKey,
-        backupProvider
       )
     }
-    return BackupClient.create(backupConfiguration)
+    return createBackupClient(identityKey, backupProviderSelector)
   }
 
   private async init(options: ClientOptions): Promise<void> {

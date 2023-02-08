@@ -1,11 +1,11 @@
-import { PrivateKey } from '../crypto'
-import NoBackupClient from './NoBackupClient'
-import XMTPBackupClient from './XMTPBackupClient'
-
+/**
+ * Where message backups should be stored
+ */
 export enum BackupProvider {
   none,
   xmtp,
 }
+export type BackupProviderSelector = () => Promise<BackupProvider>
 
 export interface BackupConfiguration {
   provider: BackupProvider
@@ -15,57 +15,6 @@ export interface BackupConfiguration {
   encryptionKey?: string
 }
 
-/**
- * BackupClient class manages message backups according to a user-specified configuration.
- * Should be created with `await BackupClient.create(existingConfiguration)`
- */
-export default abstract class BackupClient {
-  protected configuration: BackupConfiguration
-
-  constructor(configuration: BackupConfiguration) {
-    if (configuration.provider !== this.getProvider()) {
-      throw new Error('Using incorrect backup client for provider')
-    }
-    this.configuration = configuration
-  }
-
-  public abstract getProvider(): BackupProvider
-
-  public static async fetchConfiguration(
-    identityKey: PrivateKey
-  ): Promise<BackupConfiguration | null> {
-    // TODO: fetch configuration from the backend
-    return Promise.resolve(null)
-  }
-
-  // If there is no existing configuration, a new configuration can be created
-  // by setting a backup provider of the user's preference
-  public static async setupConfiguration(
-    identityKey: PrivateKey,
-    provider: BackupProvider
-  ): Promise<BackupConfiguration> {
-    // TODO: Validate there is no existing configuration in the backend
-    let backupConfiguration: BackupConfiguration
-    switch (provider) {
-      case BackupProvider.none:
-        backupConfiguration = NoBackupClient.createConfiguration()
-        break
-      case BackupProvider.xmtp:
-        backupConfiguration = XMTPBackupClient.createConfiguration(identityKey)
-        break
-    }
-    // TODO: Upload new configuration to backend
-    return backupConfiguration
-  }
-
-  public static create(
-    existingConfiguration: BackupConfiguration
-  ): BackupClient {
-    switch (existingConfiguration.provider) {
-      case BackupProvider.none:
-        return new NoBackupClient(existingConfiguration)
-      case BackupProvider.xmtp:
-        return new XMTPBackupClient(existingConfiguration)
-    }
-  }
+export default interface BackupClient {
+  get provider(): BackupProvider
 }
