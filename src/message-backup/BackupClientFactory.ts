@@ -2,7 +2,7 @@ import { PrivateKey } from '../crypto'
 import BackupClient, {
   BackupConfiguration,
   BackupProvider,
-  BackupProviderSelector,
+  SelectBackupProvider,
 } from './BackupClient'
 import NoBackupClient from './NoBackupClient'
 import XMTPBackupClient from './XMTPBackupClient'
@@ -20,11 +20,11 @@ import XMTPBackupClient from './XMTPBackupClient'
  */
 export async function createBackupClient(
   identityKey: PrivateKey,
-  providerSelector: BackupProviderSelector
+  selectBackupProvider: SelectBackupProvider
 ): Promise<BackupClient> {
   const configuration = await fetchOrCreateConfiguration(
     identityKey,
-    providerSelector
+    selectBackupProvider
   )
   switch (configuration.provider) {
     case BackupProvider.none:
@@ -36,11 +36,11 @@ export async function createBackupClient(
 
 export async function fetchOrCreateConfiguration(
   identityKey: PrivateKey,
-  providerSelector: BackupProviderSelector
+  selectBackupProvider: SelectBackupProvider
 ): Promise<BackupConfiguration> {
   // TODO: return existing configuration from the backend if it exists
   let backupConfiguration: BackupConfiguration
-  const provider = await providerSelector()
+  const provider = await selectBackupProvider()
   switch (provider) {
     case BackupProvider.none:
       backupConfiguration = NoBackupClient.createConfiguration()

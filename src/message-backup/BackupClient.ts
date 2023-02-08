@@ -5,7 +5,7 @@ export enum BackupProvider {
   none,
   xmtp,
 }
-export type BackupProviderSelector = () => Promise<BackupProvider>
+export type SelectBackupProvider = () => Promise<BackupProvider>
 
 export interface BackupConfiguration {
   provider: BackupProvider

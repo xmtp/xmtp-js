@@ -222,12 +222,12 @@ export default class Client {
     env: keyof typeof ApiUrls
   ): Promise<BackupClient> {
     // Hard-code the provider to use for now
-    const backupProviderSelector = async () => {
+    const selectBackupProvider = async () => {
       return Promise.resolve(
         env === 'local' ? BackupProvider.xmtp : BackupProvider.none
       )
     }
-    return createBackupClient(identityKey, backupProviderSelector)
+    return createBackupClient(identityKey, selectBackupProvider)
   }
 
   private async init(options: ClientOptions): Promise<void> {
