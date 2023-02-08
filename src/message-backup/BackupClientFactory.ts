@@ -20,7 +20,7 @@ import XMTPBackupClient from './XMTPBackupClient'
  */
 export async function createBackupClient(
   identityKey: PrivateKey,
-  providerSelector?: BackupProviderSelector
+  providerSelector: BackupProviderSelector
 ): Promise<BackupClient> {
   const configuration = await fetchOrCreateConfiguration(
     identityKey,
@@ -36,21 +36,19 @@ export async function createBackupClient(
 
 export async function fetchOrCreateConfiguration(
   identityKey: PrivateKey,
-  providerSelector?: BackupProviderSelector
+  providerSelector: BackupProviderSelector
 ): Promise<BackupConfiguration> {
   // TODO: return existing configuration from the backend if it exists
-  let backupConfiguration = NoBackupClient.createConfiguration()
-  if (providerSelector) {
-    const provider = await providerSelector()
-    switch (provider) {
-      case BackupProvider.none:
-        backupConfiguration = NoBackupClient.createConfiguration()
-        break
-      case BackupProvider.xmtp:
-        backupConfiguration = XMTPBackupClient.createConfiguration(identityKey)
-        break
-    }
-    // TODO: Persist new configuration to backend
+  let backupConfiguration: BackupConfiguration
+  const provider = await providerSelector()
+  switch (provider) {
+    case BackupProvider.none:
+      backupConfiguration = NoBackupClient.createConfiguration()
+      break
+    case BackupProvider.xmtp:
+      backupConfiguration = XMTPBackupClient.createConfiguration(identityKey)
+      break
   }
+  // TODO: Persist new configuration to backend
   return backupConfiguration
 }
