@@ -1,10 +1,6 @@
-import { PrivateKey } from '../crypto'
-import BackupClient, {
-  BackupConfiguration,
-  BackupProvider,
-} from './BackupClient'
+import BackupClient, { BackupConfiguration, BackupType } from './BackupClient'
 
-const PROVIDER = BackupProvider.xmtp
+const BACKUP_TYPE = BackupType.xmtp
 export default class XMTPBackupClient implements BackupClient {
   private configuration: BackupConfiguration
 
@@ -13,19 +9,21 @@ export default class XMTPBackupClient implements BackupClient {
   ): BackupConfiguration {
     // TODO: randomly generate topic and encryption key
     return {
-      provider: PROVIDER,
+      provider: {
+        type: BACKUP_TYPE,
+      },
       location: 'dummy-history:' + walletAddress,
     }
   }
 
   constructor(configuration: BackupConfiguration) {
-    if (configuration.provider !== PROVIDER) {
-      throw new Error('Using incorrect backup client for provider')
+    if (configuration.provider.type !== BACKUP_TYPE) {
+      throw new Error('Initializing incorrect backup type')
     }
     this.configuration = configuration
   }
 
-  public get provider(): BackupProvider {
-    return PROVIDER
+  public get backupType(): BackupType {
+    return BACKUP_TYPE
   }
 }

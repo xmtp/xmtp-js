@@ -1,9 +1,12 @@
 /**
  * Where message backups should be stored
  */
-export enum BackupProvider {
+export enum BackupType {
   none,
   xmtp,
+}
+export interface BackupProvider {
+  type: BackupType
 }
 export type SelectBackupProvider = () => Promise<BackupProvider>
 
@@ -16,5 +19,5 @@ export interface BackupConfiguration {
 }
 
 export default interface BackupClient {
-  get provider(): BackupProvider
+  get backupType(): BackupType
 }

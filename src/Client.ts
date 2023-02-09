@@ -4,7 +4,6 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
   Signature,
-  PrivateKey,
 } from './crypto'
 import {
   buildUserContactTopic,
@@ -29,7 +28,7 @@ import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
-import BackupClient, { BackupProvider } from './message-backup/BackupClient'
+import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
 const { Compression } = proto
 const { b64Decode } = fetcher
@@ -182,8 +181,8 @@ export default class Client {
     return this._conversations
   }
 
-  get backupProvider(): BackupProvider {
-    return this._backupClient.provider
+  get backupType(): BackupType {
+    return this._backupClient.backupType
   }
 
   /**
@@ -223,9 +222,9 @@ export default class Client {
   ): Promise<BackupClient> {
     // Hard-code the provider to use for now
     const selectBackupProvider = async () => {
-      return Promise.resolve(
-        env === 'local' ? BackupProvider.xmtp : BackupProvider.none
-      )
+      return Promise.resolve({
+        type: env === 'local' ? BackupType.xmtp : BackupType.none,
+      })
     }
     return createBackupClient(walletAddress, selectBackupProvider)
   }
