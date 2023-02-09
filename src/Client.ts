@@ -201,7 +201,7 @@ export default class Client {
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
     const backupClient = await Client.setupBackupClient(
-      keys.identityKey,
+      keys.identityKey.publicKey.walletSignatureAddress(),
       options.env
     )
     const client = new Client(keys, apiClient, backupClient)
@@ -218,7 +218,7 @@ export default class Client {
   }
 
   private static async setupBackupClient(
-    identityKey: PrivateKey,
+    walletAddress: string,
     env: keyof typeof ApiUrls
   ): Promise<BackupClient> {
     // Hard-code the provider to use for now
@@ -227,7 +227,7 @@ export default class Client {
         env === 'local' ? BackupProvider.xmtp : BackupProvider.none
       )
     }
-    return createBackupClient(identityKey, selectBackupProvider)
+    return createBackupClient(walletAddress, selectBackupProvider)
   }
 
   private async init(options: ClientOptions): Promise<void> {

@@ -9,13 +9,12 @@ export default class XMTPBackupClient implements BackupClient {
   private configuration: BackupConfiguration
 
   public static createConfiguration(
-    identityKey: PrivateKey
+    walletAddress: string
   ): BackupConfiguration {
     // TODO: randomly generate topic and encryption key
     return {
       provider: PROVIDER,
-      location: 'dummy-hist:' + identityKey.publicKey.getEthereumAddress(),
-      encryptionKey: 'dummyEncryptionKey',
+      location: 'dummy-history:' + walletAddress,
     }
   }
 

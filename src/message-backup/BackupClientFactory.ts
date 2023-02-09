@@ -12,18 +12,18 @@ import XMTPBackupClient from './XMTPBackupClient'
  * Uses an existing user preference from the backend if it exists, else prompts for a new
  * one using the `providerSelector`
  *
- * @param identityKey
- * @param providerSelector A method for getting the provider to use, in the event there is no
+ * @param walletAddress The public address of the user's wallet
+ * @param selectBackupProvider A callback for determining the provider to use, in the event there is no
  * existing user preference. The app can define the policy to use here (e.g. prompt the user,
  * or default to a certain provider type).
  * @returns A backup client of the correct type
  */
 export async function createBackupClient(
-  identityKey: PrivateKey,
+  walletAddress: string,
   selectBackupProvider: SelectBackupProvider
 ): Promise<BackupClient> {
   const configuration = await fetchOrCreateConfiguration(
-    identityKey,
+    walletAddress,
     selectBackupProvider
   )
   switch (configuration.provider) {
@@ -35,7 +35,7 @@ export async function createBackupClient(
 }
 
 export async function fetchOrCreateConfiguration(
-  identityKey: PrivateKey,
+  walletAddress: string,
   selectBackupProvider: SelectBackupProvider
 ): Promise<BackupConfiguration> {
   // TODO: return existing configuration from the backend if it exists
@@ -46,7 +46,7 @@ export async function fetchOrCreateConfiguration(
       backupConfiguration = NoBackupClient.createConfiguration()
       break
     case BackupProvider.xmtp:
-      backupConfiguration = XMTPBackupClient.createConfiguration(identityKey)
+      backupConfiguration = XMTPBackupClient.createConfiguration(walletAddress)
       break
   }
   // TODO: Persist new configuration to backend

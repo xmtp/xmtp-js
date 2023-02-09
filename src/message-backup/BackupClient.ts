@@ -12,7 +12,7 @@ export interface BackupConfiguration {
   // For the XMTP BackupProvider, this is the name of a topic
   location?: string
   // For the XMTP BackupProvider, this is the symmetric encryption key used to encrypt/decrypt backups
-  encryptionKey?: string
+  secret?: Uint8Array
 }
 
 export default interface BackupClient {
