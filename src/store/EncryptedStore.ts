@@ -122,10 +122,40 @@ export default class EncryptedKeyStore implements KeyStore {
     const secret = hexToBytes(
       await wallet.signMessage(storageSigRequestText(eBundle.walletPreKey))
     )
-    const ciphertext = new Ciphertext(eBundle.ciphertext)
-    const decrypted = await decrypt(ciphertext, secret)
-    const [bundle, needsUpdate2] = getPrivateBundle(decrypted)
-    return [bundle, needsUpdate || needsUpdate2]
+
+    // Ledger uses the last byte = v=[0,1,...] but Metamask and other wallets generate with
+    // v+27 as the last byte. We need to support both for interoperability. Doing this
+    // on the decryption side provides an immediate retroactive fix.
+    // Ledger is using the canonical way, whereas Ethereum adds 27 due to some legacy stuff
+    // https://github.com/ethereum/go-ethereum/issues/19751#issuecomment-504900739
+    try {
+      // Try the original version of the signature first
+      const ciphertext = new Ciphertext(eBundle.ciphertext)
+      const decrypted = await decrypt(ciphertext, secret)
+      const [bundle, needsUpdate2] = getPrivateBundle(decrypted)
+      return [bundle, needsUpdate || needsUpdate2]
+    } catch (e) {
+      // Assert that the secret is length 65 (encoded signature + recovery byte)
+      if (secret.length !== 65) {
+        throw new Error(
+          'Expected 65 bytes before trying a different recovery byte'
+        )
+      }
+      // Try the other version of recovery byte, either +27 or -27
+      const lastByte = secret[secret.length - 1]
+      let newSecret = secret.slice(0, secret.length - 1)
+      if (lastByte < 27) {
+        // This is a canonical signature, so we need to add 27 to the recovery byte and try again
+        newSecret = new Uint8Array([...newSecret, lastByte + 27])
+      } else {
+        // This canocalizes v to 0 or 1 (or maybe 2 or 3 but very unlikely)
+        newSecret = new Uint8Array([...newSecret, lastByte - 27])
+      }
+      const ciphertext = new Ciphertext(eBundle.ciphertext)
+      const decrypted = await decrypt(ciphertext, newSecret)
+      const [bundle, needsUpdate2] = getPrivateBundle(decrypted)
+      return [bundle, needsUpdate || needsUpdate2]
+    }
   }
 }
 
