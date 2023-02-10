@@ -1,21 +1,16 @@
-import BackupClient, { BackupConfiguration, BackupType } from './BackupClient'
+import BackupClient, { BackupType, NoBackupConfiguration } from './BackupClient'
 
 const BACKUP_TYPE = BackupType.none
 export default class NoBackupClient implements BackupClient {
-  private configuration: BackupConfiguration
+  private configuration: NoBackupConfiguration
 
-  public static createConfiguration(): BackupConfiguration {
+  public static createConfiguration(): NoBackupConfiguration {
     return {
-      provider: {
-        type: BACKUP_TYPE,
-      },
+      type: BACKUP_TYPE,
     }
   }
 
-  constructor(configuration: BackupConfiguration) {
-    if (configuration.provider.type !== BACKUP_TYPE) {
-      throw new Error('Initializing incorrect backup type')
-    }
+  constructor(configuration: NoBackupConfiguration) {
     this.configuration = configuration
   }
 

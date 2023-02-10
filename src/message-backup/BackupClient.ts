@@ -10,13 +10,19 @@ export interface BackupProvider {
 }
 export type SelectBackupProvider = () => Promise<BackupProvider>
 
-export interface BackupConfiguration {
-  provider: BackupProvider
-  // For the XMTP BackupProvider, this is the name of a topic
-  location?: string
-  // For the XMTP BackupProvider, this is the symmetric encryption key used to encrypt/decrypt backups
+export interface NoBackupConfiguration {
+  type: BackupType.none
+}
+export interface TopicStoreBackupConfiguration {
+  type: BackupType.xmtpTopicStore
+  // The location where the backup will be stored
+  topic: string
+  // The symmetric encryption key used to encrypt/decrypt backups (optional for now)
   secret?: Uint8Array
 }
+export type BackupConfiguration =
+  | NoBackupConfiguration
+  | TopicStoreBackupConfiguration
 
 export default interface BackupClient {
   get backupType(): BackupType

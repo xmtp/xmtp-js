@@ -1,25 +1,23 @@
-import BackupClient, { BackupConfiguration, BackupType } from './BackupClient'
+import BackupClient, {
+  BackupType,
+  TopicStoreBackupConfiguration,
+} from './BackupClient'
 
 const BACKUP_TYPE = BackupType.xmtpTopicStore
 export default class TopicStoreBackupClient implements BackupClient {
-  private configuration: BackupConfiguration
+  private configuration: TopicStoreBackupConfiguration
 
   public static createConfiguration(
     walletAddress: string
-  ): BackupConfiguration {
+  ): TopicStoreBackupConfiguration {
     // TODO: randomly generate topic and encryption key
     return {
-      provider: {
-        type: BACKUP_TYPE,
-      },
-      location: 'dummy-history:' + walletAddress,
+      type: BACKUP_TYPE,
+      topic: 'history-v0-0:' + walletAddress,
     }
   }
 
-  constructor(configuration: BackupConfiguration) {
-    if (configuration.provider.type !== BACKUP_TYPE) {
-      throw new Error('Initializing incorrect backup type')
-    }
+  constructor(configuration: TopicStoreBackupConfiguration) {
     this.configuration = configuration
   }
 

@@ -25,7 +25,7 @@ export async function createBackupClient(
     walletAddress,
     selectBackupProvider
   )
-  switch (configuration.provider.type) {
+  switch (configuration.type) {
     case BackupType.none:
       return new NoBackupClient(configuration)
     case BackupType.xmtpTopicStore:
