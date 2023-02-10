@@ -1,7 +1,7 @@
 import BackupClient, { BackupConfiguration, BackupType } from './BackupClient'
 
-const BACKUP_TYPE = BackupType.xmtp
-export default class XMTPBackupClient implements BackupClient {
+const BACKUP_TYPE = BackupType.xmtpTopicStore
+export default class TopicStoreBackupClient implements BackupClient {
   private configuration: BackupConfiguration
 
   public static createConfiguration(

@@ -223,7 +223,7 @@ export default class Client {
     // Hard-code the provider to use for now
     const selectBackupProvider = async () => {
       return Promise.resolve({
-        type: env === 'local' ? BackupType.xmtp : BackupType.none,
+        type: env === 'local' ? BackupType.xmtpTopicStore : BackupType.none,
       })
     }
     return createBackupClient(walletAddress, selectBackupProvider)

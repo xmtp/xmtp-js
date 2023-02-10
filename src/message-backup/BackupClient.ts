@@ -3,7 +3,7 @@
  */
 export enum BackupType {
   none,
-  xmtp,
+  xmtpTopicStore,
 }
 export interface BackupProvider {
   type: BackupType

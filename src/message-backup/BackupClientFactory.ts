@@ -4,7 +4,7 @@ import BackupClient, {
   SelectBackupProvider,
 } from './BackupClient'
 import NoBackupClient from './NoBackupClient'
-import XMTPBackupClient from './XMTPBackupClient'
+import TopicStoreBackupClient from './TopicStoreBackupClient'
 
 /**
  * Creates a backup client of the correct provider type (e.g. xmtp backup, no backup, etc).
@@ -28,8 +28,8 @@ export async function createBackupClient(
   switch (configuration.provider.type) {
     case BackupType.none:
       return new NoBackupClient(configuration)
-    case BackupType.xmtp:
-      return new XMTPBackupClient(configuration)
+    case BackupType.xmtpTopicStore:
+      return new TopicStoreBackupClient(configuration)
   }
 }
 
@@ -44,8 +44,9 @@ export async function fetchOrCreateConfiguration(
     case BackupType.none:
       backupConfiguration = NoBackupClient.createConfiguration()
       break
-    case BackupType.xmtp:
-      backupConfiguration = XMTPBackupClient.createConfiguration(walletAddress)
+    case BackupType.xmtpTopicStore:
+      backupConfiguration =
+        TopicStoreBackupClient.createConfiguration(walletAddress)
       break
   }
   // TODO: Persist new configuration to backend
