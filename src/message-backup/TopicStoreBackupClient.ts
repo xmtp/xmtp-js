@@ -13,7 +13,8 @@ export default class TopicStoreBackupClient implements BackupClient {
     // TODO: randomly generate topic and encryption key
     return {
       type: BACKUP_TYPE,
-      topic: 'history-v0-0:' + walletAddress,
+      version: 0,
+      topic: 'history-v0:' + walletAddress,
     }
   }
 

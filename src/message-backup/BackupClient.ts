@@ -12,9 +12,11 @@ export type SelectBackupProvider = () => Promise<BackupProvider>
 
 export interface NoBackupConfiguration {
   type: BackupType.none
+  version: number
 }
 export interface TopicStoreBackupConfiguration {
   type: BackupType.xmtpTopicStore
+  version: number
   // The location where the backup will be stored
   topic: string
   // The symmetric encryption key used to encrypt/decrypt backups (optional for now)

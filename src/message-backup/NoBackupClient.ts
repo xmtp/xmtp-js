@@ -7,6 +7,7 @@ export default class NoBackupClient implements BackupClient {
   public static createConfiguration(): NoBackupConfiguration {
     return {
       type: BACKUP_TYPE,
+      version: 0,
     }
   }
 
