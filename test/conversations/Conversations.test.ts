@@ -3,7 +3,7 @@ import {
   ConversationV2,
 } from './../../src/conversations/Conversation'
 import { ConversationCache } from '../../src/conversations/Conversations'
-import { newLocalHostClient, waitForUserContact } from './../helpers'
+import { newLocalHostClient, newWallet, waitForUserContact } from './../helpers'
 import { Client } from '../../src'
 import {
   buildDirectMessageTopic,
@@ -398,7 +398,7 @@ describe('conversations', () => {
     })
 
     it('imports from export', async () => {
-      const wallet = Wallet.createRandom()
+      const wallet = newWallet()
       const clientA = await Client.create(wallet, { env: 'local' })
       await Promise.all([
         clientA.conversations

@@ -1,3 +1,4 @@
+import { dateToNs, toNanoString } from './../src/utils'
 import { Wallet } from 'ethers'
 import {
   PrivateKey,
@@ -12,6 +13,9 @@ import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 import assert from 'assert'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
+import { messageApi, fetcher } from '@xmtp/proto'
+
+const { b64Encode } = fetcher
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
@@ -150,3 +154,27 @@ export const newDevClient = (opts?: Partial<ClientOptions>): Promise<Client> =>
     env: 'dev',
     ...opts,
   })
+
+export const buildEnvelope = (
+  message: Uint8Array,
+  contentTopic: string,
+  created: Date
+): messageApi.Envelope => {
+  return {
+    contentTopic,
+    timestampNs: toNanoString(created),
+    message: b64Encode(message, 0, message.length) as unknown as Uint8Array,
+  }
+}
+
+export const buildProtoEnvelope = (
+  payload: Uint8Array,
+  contentTopic: string,
+  timestamp: Date
+) => {
+  return {
+    contentTopic,
+    timestampNs: dateToNs(timestamp),
+    payload,
+  }
+}
