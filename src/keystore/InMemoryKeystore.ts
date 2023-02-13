@@ -17,7 +17,6 @@ import {
   mapAndConvertErrors,
   toPublicKeyBundle,
   toSignedPublicKeyBundle,
-  wrapResult,
 } from './utils'
 import { dateToNs, nsToDate } from '../utils'
 const { ErrorCode } = keystore
