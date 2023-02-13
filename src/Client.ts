@@ -28,6 +28,8 @@ import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
+import BackupClient, { BackupType } from './message-backup/BackupClient'
+import { createBackupClient } from './message-backup/BackupClientFactory'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -146,12 +148,17 @@ export default class Client {
     PublicKeyBundle | SignedPublicKeyBundle
   > // addresses and key bundles that we have witnessed
 
+  private _backupClient: BackupClient
   private _conversations: Conversations
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
 
-  constructor(keys: PrivateKeyBundleV1, apiClient: ApiClient) {
+  constructor(
+    keys: PrivateKeyBundleV1,
+    apiClient: ApiClient,
+    backupClient: BackupClient
+  ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
       string,
@@ -164,6 +171,7 @@ export default class Client {
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
+    this._backupClient = backupClient
   }
 
   /**
@@ -171,6 +179,10 @@ export default class Client {
    */
   get conversations(): Conversations {
     return this._conversations
+  }
+
+  get backupType(): BackupType {
+    return this._backupClient.backupType
   }
 
   /**
@@ -187,7 +199,11 @@ export default class Client {
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
-    const client = new Client(keys, apiClient)
+    const backupClient = await Client.setupBackupClient(
+      keys.identityKey.publicKey.walletSignatureAddress(),
+      options.env
+    )
+    const client = new Client(keys, apiClient, backupClient)
     await client.init(options)
     return client
   }
@@ -198,6 +214,19 @@ export default class Client {
   ): Promise<Uint8Array> {
     const client = await Client.create(wallet, opts)
     return client.legacyKeys.encode()
+  }
+
+  private static async setupBackupClient(
+    walletAddress: string,
+    env: keyof typeof ApiUrls
+  ): Promise<BackupClient> {
+    // Hard-code the provider to use for now
+    const selectBackupProvider = async () => {
+      return Promise.resolve({
+        type: env === 'local' ? BackupType.xmtpTopicStore : BackupType.none,
+      })
+    }
+    return createBackupClient(walletAddress, selectBackupProvider)
   }
 
   private async init(options: ClientOptions): Promise<void> {
