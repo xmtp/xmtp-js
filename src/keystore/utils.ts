@@ -14,7 +14,9 @@ export const convertError = (
   return new KeystoreError(errorCode, e.message)
 }
 
-type ResultOrError<T> = T | { error: KeystoreError }
+export const wrapResult = <T>(result: T): { result: T } => ({ result })
+
+type ResultOrError<T> = { result: T } | { error: KeystoreError }
 
 // Map an array of items to an array of results or errors
 // Transform any errors thrown into `KeystoreError`s
@@ -28,7 +30,7 @@ export const mapAndConvertErrors = <Input, Output>(
     input.map(async (item: Input) => {
       try {
         // Be sure to await mapper result to catch errors
-        return await mapper(item)
+        return wrapResult(await mapper(item))
       } catch (e) {
         return { error: convertError(e as Error, errorCode) }
       }
@@ -55,5 +57,3 @@ export const toSignedPublicKeyBundle = (
 
   return new SignedPublicKeyBundle(bundle)
 }
-
-export const wrapResult = <T>(result: T): { result: T } => ({ result })

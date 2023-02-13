@@ -88,9 +88,9 @@ export default class InMemoryKeystore implements Keystore {
           isSender
         )
 
-        return wrapResult({
+        return {
           decrypted,
-        })
+        }
       },
       keystore.ErrorCode.ERROR_CODE_UNSPECIFIED
     )
@@ -124,7 +124,7 @@ export default class InMemoryKeystore implements Keystore {
         }
         const decrypted = await decryptV2(payload, topicData.key, headerBytes)
 
-        return wrapResult({ decrypted })
+        return { decrypted }
       },
       ErrorCode.ERROR_CODE_UNSPECIFIED
     )
@@ -149,14 +149,14 @@ export default class InMemoryKeystore implements Keystore {
 
         const { recipient, payload, headerBytes } = req
 
-        return wrapResult({
+        return {
           encrypted: await encryptV1(
             this.v1Keys,
             toPublicKeyBundle(recipient),
             payload,
             headerBytes
           ),
-        })
+        }
       },
       ErrorCode.ERROR_CODE_UNSPECIFIED
     )
@@ -189,9 +189,9 @@ export default class InMemoryKeystore implements Keystore {
           )
         }
 
-        return wrapResult({
+        return {
           encrypted: await encryptV2(payload, topicData.key, headerBytes),
-        })
+        }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
     )
@@ -216,12 +216,12 @@ export default class InMemoryKeystore implements Keystore {
 
         const invite = await sealed.v1.getInvitation(this.v2Keys)
 
-        return wrapResult({
+        return {
           conversation: this.addConversationFromV1Invite(
             invite,
             nsToDate(sealed.v1.header.createdNs)
           ),
-        })
+        }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
     )
