@@ -10,11 +10,8 @@ import { KeystoreError } from '../../src/keystore/errors'
 import InMemoryKeystore from '../../src/keystore/InMemoryKeystore'
 import { equalBytes } from '../../src/crypto/utils'
 import { InvitationV1, SealedInvitation } from '../../src/Invitation'
-import { fetcher } from '@xmtp/proto'
 import { buildProtoEnvelope, newWallet } from '../helpers'
 import { dateToNs, nsToDate } from '../../src/utils/date'
-
-const { b64Encode } = fetcher
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -423,12 +420,12 @@ describe('InMemoryKeystore', () => {
     })
   })
 
-  describe('getWalletAddress', () => {
+  describe('getAccountAddress', () => {
     it('returns the wallet address', async () => {
       const aliceAddress = aliceKeys
         .getPublicKeyBundle()
         .walletSignatureAddress()
-      const returnedAddress = await aliceKeystore.getWalletAddress()
+      const returnedAddress = await aliceKeystore.getAccountAddress()
 
       expect(aliceAddress).toEqual(returnedAddress)
     })

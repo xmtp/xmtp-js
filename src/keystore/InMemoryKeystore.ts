@@ -25,7 +25,37 @@ const { ErrorCode } = keystore
 type TopicData = {
   key: Uint8Array
   context?: InvitationContext
-  createdAt: Date
+  created: Date
+}
+
+type WithoutUndefined<T> = { [P in keyof T]: NonNullable<T[P]> }
+
+// Takes object and returns true if none of the `objectFields` are null or undefined and none of the `arrayFields` are empty
+const validateObject = <T>(
+  obj: T,
+  objectFields: (keyof T)[],
+  arrayFields: (keyof T)[]
+): obj is WithoutUndefined<T> => {
+  for (const field of objectFields) {
+    if (!obj[field]) {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        `Missing field ${String(field)}`
+      )
+    }
+  }
+  for (const field of arrayFields) {
+    const val = obj[field]
+    // @ts-expect-error does not know it's an array
+    if (!val || !val?.length) {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        `Missing field ${String(field)}`
+      )
+    }
+  }
+
+  return true
 }
 
 export default class InMemoryKeystore implements Keystore {
@@ -44,13 +74,11 @@ export default class InMemoryKeystore implements Keystore {
   ): Promise<keystore.DecryptResponse> {
     const responses = await mapAndConvertErrors(
       req.requests,
-      async ({ payload, peerKeys, headerBytes, isSender }) => {
-        if (!payload || !peerKeys || !headerBytes.length) {
-          throw new KeystoreError(
-            keystore.ErrorCode.ERROR_CODE_INVALID_INPUT,
-            'missing required field'
-          )
+      async (req) => {
+        if (!validateObject(req, ['payload', 'peerKeys'], ['headerBytes'])) {
+          throw new KeystoreError(ErrorCode.ERROR_CODE_INVALID_INPUT, 'invalid')
         }
+        const { payload, peerKeys, headerBytes, isSender } = req
 
         const decrypted = await decryptV1(
           this.v1Keys,
@@ -77,13 +105,15 @@ export default class InMemoryKeystore implements Keystore {
   ): Promise<keystore.DecryptResponse> {
     const responses = await mapAndConvertErrors(
       req.requests,
-      async ({ payload, headerBytes, contentTopic }) => {
-        if (!payload || !headerBytes.length || !contentTopic) {
+      async (req) => {
+        if (!validateObject(req, ['payload'], ['headerBytes'])) {
           throw new KeystoreError(
             keystore.ErrorCode.ERROR_CODE_INVALID_INPUT,
             'missing required field'
           )
         }
+
+        const { payload, headerBytes, contentTopic } = req
         const topicData = this.topicKeys.get(contentTopic)
         if (!topicData) {
           // This is the wrong error type. Will add to the proto repo later
@@ -109,13 +139,15 @@ export default class InMemoryKeystore implements Keystore {
   ): Promise<keystore.EncryptResponse> {
     const responses = await mapAndConvertErrors(
       req.requests,
-      async ({ recipient, payload, headerBytes }) => {
-        if (!recipient || !payload.length || !headerBytes.length) {
+      async (req) => {
+        if (!validateObject(req, ['payload', 'recipient'], ['headerBytes'])) {
           throw new KeystoreError(
             ErrorCode.ERROR_CODE_INVALID_INPUT,
             'missing required field'
           )
         }
+
+        const { recipient, payload, headerBytes } = req
 
         return wrapResult({
           encrypted: await encryptV1(
@@ -139,13 +171,15 @@ export default class InMemoryKeystore implements Keystore {
   ): Promise<keystore.EncryptResponse> {
     const responses = await mapAndConvertErrors(
       req.requests,
-      async ({ contentTopic, payload, headerBytes }) => {
-        if (!contentTopic || !payload.length || !headerBytes.length) {
+      async (req) => {
+        if (!validateObject(req, ['payload'], ['headerBytes'])) {
           throw new KeystoreError(
             ErrorCode.ERROR_CODE_INVALID_INPUT,
             'missing required field'
           )
         }
+
+        const { payload, headerBytes, contentTopic } = req
 
         const topicData = this.topicKeys.get(contentTopic)
         if (!topicData) {
@@ -201,7 +235,7 @@ export default class InMemoryKeystore implements Keystore {
     req: keystore.CreateInviteRequest
   ): Promise<keystore.CreateInviteResponse> {
     try {
-      if (!req.recipient) {
+      if (!validateObject(req, ['recipient'], [])) {
         throw new KeystoreError(
           ErrorCode.ERROR_CODE_INVALID_INPUT,
           'missing recipient'
@@ -230,7 +264,7 @@ export default class InMemoryKeystore implements Keystore {
     const convos = Array.from(this.topicKeys.entries()).map(
       ([topic, data]): keystore.ConversationReference => ({
         topic,
-        createdNs: dateToNs(data.createdAt),
+        createdNs: dateToNs(data.created),
         context: data.context,
       })
     )
@@ -243,23 +277,23 @@ export default class InMemoryKeystore implements Keystore {
     return this.v2Keys.getPublicKeyBundle()
   }
 
-  async getWalletAddress(): Promise<string> {
+  async getAccountAddress(): Promise<string> {
     return this.v2Keys.getPublicKeyBundle().walletSignatureAddress()
   }
 
   private addConversationFromV1Invite(
     invite: InvitationV1,
-    createdAt: Date
+    created: Date
   ): keystore.ConversationReference {
     this.topicKeys.set(invite.topic, {
       key: invite.aes256GcmHkdfSha256.keyMaterial,
       context: invite.context,
-      createdAt,
+      created,
     })
 
     return {
       topic: invite.topic,
-      createdNs: dateToNs(createdAt),
+      createdNs: dateToNs(created),
       context: invite.context,
     }
   }

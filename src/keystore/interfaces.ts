@@ -21,5 +21,5 @@ export interface Keystore {
   // Used for publishing the contact
   getPublicKeyBundle(): Promise<publicKey.SignedPublicKeyBundle>
   // Technically duplicative of `getPublicKeyBundle`, but nice for ergonomics
-  getWalletAddress(): Promise<string>
+  getAccountAddress(): Promise<string>
 }
