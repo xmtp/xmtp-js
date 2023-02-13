@@ -5,6 +5,7 @@ import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
 import { version } from '../package.json'
 import { XMTP_DEV_WARNING } from './constants'
+import { Flatten } from './utils/typedefs'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100
@@ -39,7 +40,7 @@ export enum GrpcStatus {
   UNAUTHENTICATED,
 }
 
-export type GrpcError = Error & { code?: GrpcStatus }
+export type GrpcError = Flatten<Error & { code?: GrpcStatus }>
 
 export type QueryParams = {
   startTime?: Date
@@ -52,12 +53,14 @@ export type QueryAllOptions = {
   limit?: number
 }
 
-export type QueryStreamOptions = Omit<QueryAllOptions, 'limit'> & {
-  pageSize?: number
-}
+export type QueryStreamOptions = Flatten<
+  Omit<QueryAllOptions, 'limit'> & {
+    pageSize?: number
+  }
+>
 
 // All of the fields in both QueryParams and QueryStreamOptions
-export type Query = QueryParams & QueryStreamOptions
+export type Query = Flatten<QueryParams & QueryStreamOptions>
 
 export type PublishParams = {
   contentTopic: string
