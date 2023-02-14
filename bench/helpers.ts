@@ -23,13 +23,13 @@ export const randomBytes = (size: number) => {
 export const newPrivateKeyBundle = () =>
   PrivateKeyBundleV1.generate(newWallet())
 
-type TestGenerator = (
+type BenchGenerator = (
   config: Config
 ) => Promise<(suiteObj: Benchmark.Suite) => Benchmark.Suite>
 
 // Async test suites should be wrapped in a function so that they can be run one at a time
 export const wrapSuite =
-  (name: string, ...tests: TestGenerator[]) =>
+  (name: string, ...tests: BenchGenerator[]) =>
   () =>
     suite(
       name,
