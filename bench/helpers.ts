@@ -1,4 +1,6 @@
+import type Benchmark from 'benchmark'
 import { suite, save, cycle } from 'benny'
+import { Config } from 'benny/lib/internal/common-types'
 import { crypto } from '../src/crypto/encryption'
 import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
 import { newWallet } from '../test/helpers'
@@ -21,9 +23,13 @@ export const randomBytes = (size: number) => {
 export const newPrivateKeyBundle = () =>
   PrivateKeyBundleV1.generate(newWallet())
 
+type TestGenerator = (
+  config: Config
+) => Promise<(suiteObj: Benchmark.Suite) => Benchmark.Suite>
+
 // Async test suites should be wrapped in a function so that they can be run one at a time
 export const wrapSuite =
-  (name: string, ...tests: any[]) =>
+  (name: string, ...tests: TestGenerator[]) =>
   () =>
     suite(
       name,
