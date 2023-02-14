@@ -319,7 +319,7 @@ export class ConversationV2 {
     return this.client.address
   }
 
-  private async encodeMessage(
+  async encodeMessage(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content: any,
     options?: SendOptions

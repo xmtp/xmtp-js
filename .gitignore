@@ -122,3 +122,6 @@ docs/
 tmp/
 
 .DS_STORE
+
+# Benchmark results
+bench/results
