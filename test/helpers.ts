@@ -98,7 +98,34 @@ export function newCustomWallet(): Signer {
       return ethersWallet.getAddress()
     },
     signMessage(message: ArrayLike<number> | string): Promise<string> {
-      return ethersWallet.signMessage(message)
+      return ethersWallet.signMessage(message).then((signature) => {
+        return new Promise((resolve) => {
+          resolve(signature)
+        })
+      })
+    },
+  }
+}
+
+export function wrapAsLedgerWallet(ethersWallet: Wallet): Signer {
+  // Wraps a wallet and switches the last byte of signature to canonical form
+  // so 0x1b => 0x00 and 0x1c => 0x01
+  return {
+    getAddress(): Promise<string> {
+      return ethersWallet.getAddress()
+    },
+    signMessage(message: ArrayLike<number> | string): Promise<string> {
+      return ethersWallet.signMessage(message).then((signature) => {
+        const bytes = Buffer.from(signature.slice(2), 'hex')
+        const lastByte = bytes[bytes.length - 1]
+        if (lastByte < 0x1b) {
+          return new Promise((resolve) => resolve(signature))
+        }
+        bytes[bytes.length - 1] = lastByte - 0x1b
+        return new Promise((resolve) => {
+          resolve('0x' + bytes.toString('hex'))
+        })
+      })
     },
   }
 }
