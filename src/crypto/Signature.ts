@@ -6,6 +6,7 @@ import { SignedPrivateKey } from './PrivateKey'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { bytesToHex, equalBytes, hexToBytes } from './utils'
+import { parseObjectToUint8Array } from '../utils/uint8Array'
 
 // ECDSA signature with recovery bit.
 export type ECDSACompactWithRecovery = {
@@ -15,6 +16,9 @@ export type ECDSACompactWithRecovery = {
 
 // Validate signature.
 function ecdsaCheck(sig: ECDSACompactWithRecovery): void {
+  if (typeof sig.bytes === 'object') {
+    sig.bytes = parseObjectToUint8Array(sig.bytes)
+  }
   if (sig.bytes.length !== 64) {
     throw new Error(`invalid signature length: ${sig.bytes.length}`)
   }

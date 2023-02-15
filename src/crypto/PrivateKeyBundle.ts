@@ -5,6 +5,8 @@ import { PublicKey, SignedPublicKey } from './PublicKey'
 import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
 import { Signer } from '../types/Signer'
 import { NoMatchingPreKeyError } from './errors'
+import { parseObjectToUint8Array } from '../utils/uint8Array'
+import Long from 'long'
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
@@ -21,6 +23,16 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     }
     this.identityKey = new SignedPrivateKey(bundle.identityKey)
     this.preKeys = (bundle.preKeys || []).map((k) => new SignedPrivateKey(k))
+  }
+
+  static from(
+    bundle: proto.PrivateKeyBundleV2 | PrivateKeyBundleV2
+  ): PrivateKeyBundleV2 {
+    if (bundle instanceof PrivateKeyBundleV2) {
+      return bundle
+    } else {
+      return new PrivateKeyBundleV2(bundle)
+    }
   }
 
   // Generate a new key bundle with the preKey signed byt the identityKey.
@@ -145,8 +157,80 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
     if (!bundle.identityKey) {
       throw new Error('missing identity key')
     }
+    PrivateKeyBundleV1.fixBoundleAfterPossibleJsonCopy(bundle)
     this.identityKey = new PrivateKey(bundle.identityKey)
     this.preKeys = (bundle.preKeys || []).map((k) => new PrivateKey(k))
+  }
+
+  static from(
+    bundle: proto.PrivateKeyBundleV1 | PrivateKeyBundleV1
+  ): PrivateKeyBundleV1 {
+    if (bundle instanceof PrivateKeyBundleV1) {
+      return bundle
+    } else {
+      return new PrivateKeyBundleV1(bundle)
+    }
+  }
+
+  static fixBoundleAfterPossibleJsonCopy(bundle: proto.PrivateKeyBundleV1) {
+    const fixPrivateKey = (privateKey: proto.PrivateKey) => {
+      if (privateKey.secp256k1) {
+        if (
+          !((privateKey.timestamp as any) instanceof Long) &&
+          privateKey.timestamp !== undefined
+        ) {
+          privateKey.timestamp = Long.fromValue(privateKey.timestamp as any)
+        }
+        if (typeof privateKey.secp256k1.bytes === 'object') {
+          privateKey.secp256k1.bytes = parseObjectToUint8Array(
+            privateKey.secp256k1.bytes
+          )
+        }
+        if (privateKey.publicKey) {
+          if (
+            typeof privateKey.publicKey.secp256k1Uncompressed?.bytes ===
+            'object'
+          ) {
+            privateKey.publicKey.secp256k1Uncompressed.bytes =
+              parseObjectToUint8Array(
+                privateKey.publicKey.secp256k1Uncompressed.bytes
+              )
+          }
+          if (
+            !((privateKey.publicKey.timestamp as any) instanceof Long) &&
+            privateKey.publicKey.timestamp !== undefined
+          ) {
+            privateKey.publicKey.timestamp = Long.fromValue(
+              privateKey.publicKey.timestamp as any
+            )
+          }
+          if (privateKey.publicKey.signature) {
+            if (
+              typeof privateKey.publicKey.signature.ecdsaCompact?.bytes ===
+              'object'
+            ) {
+              privateKey.publicKey.signature.ecdsaCompact.bytes =
+                parseObjectToUint8Array(
+                  privateKey.publicKey.signature.ecdsaCompact.bytes
+                )
+            }
+          }
+          if (
+            typeof privateKey.publicKey.signature?.walletEcdsaCompact?.bytes ===
+            'object'
+          ) {
+            privateKey.publicKey.signature.walletEcdsaCompact.bytes =
+              parseObjectToUint8Array(
+                privateKey.publicKey.signature.walletEcdsaCompact.bytes
+              )
+          }
+        }
+      }
+    }
+    if (bundle.identityKey) {
+      fixPrivateKey(bundle.identityKey)
+    }
+    bundle.preKeys?.forEach((preKey) => fixPrivateKey(preKey))
   }
 
   // Generate a new key bundle with the preKey signed byt the identityKey.

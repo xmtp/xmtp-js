@@ -1,14 +1,19 @@
-import { ConversationV1 } from './../../src/conversations/Conversation'
-import { DecodedMessage, MessageV1 } from './../../src/Message'
-import { buildDirectMessageTopic } from './../../src/utils'
+import {
+  ConversationV1,
+  decodeMessageV1,
+  decodeMessageV2,
+  encodeMessageV1, encodeMessageV2
+} from "./../../src/conversations/Conversation";
+import { DecodedMessage, DecodedMessageExport, MessageV1 } from "./../../src/Message";
+import { buildDirectMessageTopic, buildUserIntroTopic } from "../../src/utils";
 import {
   Client,
   Compression,
   ContentTypeFallback,
   ContentTypeId,
-  ContentTypeText,
-} from '../../src'
-import { SortDirection } from '../../src/ApiClient'
+  ContentTypeText, PublicKeyBundle, TextCodec
+} from "../../src";
+import { SortDirection } from "../../src"
 import { sleep } from '../../src/utils'
 import { newLocalHostClient, newWallet, waitForUserContact } from '../helpers'
 import {
@@ -16,14 +21,14 @@ import {
   PrivateKeyBundleV1,
   SignedPublicKeyBundle,
 } from '../../src/crypto'
-import { ConversationV2 } from '../../src/conversations/Conversation'
+import { ConversationV2 } from "../../src/conversations"
 import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
-import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
+import { content as proto, fetcher } from '@xmtp/proto'
+import Stream from "../../src/Stream";
 
 describe('conversation', () => {
   let alice: Client
   let bob: Client
-
   describe('v1', () => {
     beforeEach(async () => {
       alice = await newLocalHostClient({ publishLegacyContact: true })
@@ -411,7 +416,6 @@ describe('conversation', () => {
       expect(results[0].content).toBe('hello')
     })
   })
-
   describe('v2', () => {
     beforeEach(async () => {
       alice = await newLocalHostClient()
@@ -660,4 +664,213 @@ describe('conversation', () => {
       expect(results[0].content).toBe('hello')
     })
   })
+  const deepcopy = <A>(obj: A): A => JSON.parse(JSON.stringify(obj))
+
+  describe('encode/decode is classless on V1', () => {
+    beforeEach(async () => {
+      alice = await newLocalHostClient({publishLegacyContact: true})
+      bob = await newLocalHostClient({publishLegacyContact: true})
+      await waitForUserContact(alice, alice)
+      await waitForUserContact(bob, bob)
+    })
+
+    it('decodeMessageV1', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+      const bobConversation = await bob.conversations.newConversation(
+        alice.address
+      )
+      const baseCodecs = {
+        [`${ContentTypeText.authorityId}/${ContentTypeText.typeId}`]: new TextCodec(),
+      }
+
+      const stream = await Stream.create<DecodedMessageExport>(
+        aliceConversation.getClient(),
+        [aliceConversation.topic],
+        async (e) => {
+          const convo = deepcopy(aliceConversation.export())
+          if(convo.version !== 'v1') {
+            throw new Error('unexpected convo version')
+          }
+          const keys = deepcopy(aliceConversation.getClient().legacyKeys)
+          return await decodeMessageV1(
+            e,
+            convo,
+            {codecFor: (c: ContentTypeId) => baseCodecs[`${c.authorityId}/${c.typeId}`]},
+            keys
+          )
+        }
+      )
+
+      await sleep(100)
+      await bobConversation.send('Hi Alice')
+
+      for await (const message of stream) {
+        expect(message.content).toBe('Hi Alice')
+        break
+      }
+
+      let result = await stream.next()
+      expect(result.done).toBeTruthy()
+      await stream.return()
+    })
+
+    it('encodeMessageV1', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+      const bobConversation = await bob.conversations.newConversation(
+        alice.address
+      )
+      const baseCodecs = {
+        [`${ContentTypeText.authorityId}/${ContentTypeText.typeId}`]: new TextCodec(),
+      }
+
+      await sleep(100)
+
+      let topics: string[]
+      let recipient = await bobConversation.getClient().getUserContact(bobConversation.peerAddress)
+      if (!recipient) {
+        throw new Error(`recipient ${bobConversation.peerAddress} is not registered`)
+      }
+      if (!(recipient instanceof PublicKeyBundle)) {
+        recipient = recipient.toLegacyBundle()
+      }
+
+      if (!bobConversation.getClient().contacts.has(bobConversation.peerAddress)) {
+        topics = [
+          buildUserIntroTopic(bobConversation.peerAddress),
+          buildUserIntroTopic(bobConversation.getClient().address),
+          bobConversation.topic,
+        ]
+        bobConversation.getClient().contacts.add(bobConversation.peerAddress)
+      } else {
+        topics = [bobConversation.topic]
+      }
+
+      const keys = deepcopy(bobConversation.getClient().legacyKeys)
+
+      const msg = await encodeMessageV1(
+        "Hi Alice!",
+        keys,
+        recipient,
+        {codecFor: (c: ContentTypeId) => baseCodecs[`${c.authorityId}/${c.typeId}`]},
+      )
+
+      await bobConversation.getClient().publishEnvelopes(
+        topics.map((topic) => ({
+          contentTopic: topic,
+          message: msg.toBytes(),
+          timestamp: msg.sent,
+        }))
+      )
+
+      await sleep(100)
+
+      const [aliceMessages] = await Promise.all([
+        aliceConversation.messages(),
+      ])
+
+      expect(aliceMessages).toHaveLength(1)
+      expect(aliceMessages[0].messageVersion).toBe('v1')
+      expect(aliceMessages[0].error).toBeUndefined()
+      expect(aliceMessages[0].senderAddress).toBe(bob.address)
+      expect(aliceMessages[0].conversation.topic).toBe(aliceConversation.topic)
+    })
+  })
+  describe('encode/decode is classless on V2', () => {
+    beforeEach(async () => {
+      alice = await newLocalHostClient()
+      bob = await newLocalHostClient()
+      await waitForUserContact(alice, alice)
+      await waitForUserContact(bob, bob)
+    })
+
+    it('decodeMessageV2', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+      const bobConversation = await bob.conversations.newConversation(
+        alice.address
+      )
+      const baseCodecs = {
+        [`${ContentTypeText.authorityId}/${ContentTypeText.typeId}`]: new TextCodec(),
+      }
+
+      const stream = await Stream.create<DecodedMessageExport>(
+        aliceConversation.getClient(),
+        [aliceConversation.topic],
+        async (e) => {
+          const convo = deepcopy(aliceConversation.export())
+          if(convo.version !== 'v2') {
+            throw new Error('unexpected convo version')
+          }
+          return await decodeMessageV2(
+            e,
+            convo,
+            {codecFor: (c: ContentTypeId) => baseCodecs[`${c.authorityId}/${c.typeId}`]}
+          )
+        }
+      )
+
+      await sleep(100)
+      await bobConversation.send('Hi Alice')
+
+      for await (const message of stream) {
+        expect(message.content).toBe('Hi Alice')
+        break
+      }
+
+      let result = await stream.next()
+      expect(result.done).toBeTruthy()
+      await stream.return()
+    })
+
+    it('encodeMessageV2', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+      const bobConversation = await bob.conversations.newConversation(
+        alice.address
+      )
+      const baseCodecs = {
+        [`${ContentTypeText.authorityId}/${ContentTypeText.typeId}`]: new TextCodec(),
+      }
+
+      const convo = bobConversation.export()
+      if(convo.version !== 'v2') {
+        throw new Error('unexpected convo version')
+      }
+
+      const msg = await encodeMessageV2(
+        "Hi Alice!",
+        deepcopy(convo),
+        deepcopy(bobConversation.getClient().keys),
+        {codecFor: (c: ContentTypeId) => baseCodecs[`${c.authorityId}/${c.typeId}`]},
+        undefined
+      )
+      await bobConversation.getClient().publishEnvelopes([
+        {
+          contentTopic: bobConversation.topic,
+          message: msg.toBytes(),
+          timestamp: msg.sent,
+        }]
+      )
+
+      await sleep(100)
+
+      const [aliceMessages] = await Promise.all([
+        aliceConversation.messages(),
+      ])
+
+      expect(aliceMessages).toHaveLength(1)
+      expect(aliceMessages[0].messageVersion).toBe('v2')
+      expect(aliceMessages[0].error).toBeUndefined()
+      expect(aliceMessages[0].senderAddress).toBe(bob.address)
+      expect(aliceMessages[0].conversation.topic).toBe(aliceConversation.topic)
+    })
+
+  })
+
 })

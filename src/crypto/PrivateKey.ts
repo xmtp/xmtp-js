@@ -10,6 +10,7 @@ import { PublicKey, SignedPublicKey, UnsignedPublicKey } from './PublicKey'
 import Ciphertext from './Ciphertext'
 import { decrypt, encrypt, sha256 } from './encryption'
 import { equalBytes } from './utils'
+import { parseObjectToUint8Array } from '../utils/uint8Array'
 
 // SECP256k1 private key
 type secp256k1 = {
@@ -18,6 +19,9 @@ type secp256k1 = {
 
 // Validate SECP256k1 private key
 function secp256k1Check(key: secp256k1): void {
+  if (typeof key.bytes === 'object') {
+    key.bytes = parseObjectToUint8Array(key.bytes)
+  }
   if (key.bytes.length !== 32) {
     throw new Error(`invalid private key length: ${key.bytes.length}`)
   }

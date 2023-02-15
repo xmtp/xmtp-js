@@ -21,7 +21,7 @@ import {
 } from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
-import { ContentTypeId, ContentCodec } from './MessageContent'
+import { ContentTypeId, ContentCodec, CodecRegistry } from './MessageContent'
 import { compress } from './Compression'
 import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
@@ -441,20 +441,7 @@ export default class Client {
     content: any,
     options?: SendOptions
   ): Promise<Uint8Array> {
-    const contentType = options?.contentType || ContentTypeText
-    const codec = this.codecFor(contentType)
-    if (!codec) {
-      throw new Error('unknown content type ' + contentType)
-    }
-    const encoded = codec.encode(content, this)
-    if (options?.contentFallback) {
-      encoded.fallback = options.contentFallback
-    }
-    if (typeof options?.compression === 'number') {
-      encoded.compression = options.compression
-    }
-    await compress(encoded)
-    return proto.EncodedContent.encode(encoded).finish()
+    return encodeContent(content, this, options)
   }
 
   listInvitations(opts?: ListMessagesOptions): Promise<SealedInvitation[]> {
@@ -657,4 +644,26 @@ async function getUserContactsFromNetwork(
       return undefined
     })
   )
+}
+
+export async function encodeContent(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content: any,
+  registry: CodecRegistry,
+  options?: SendOptions
+): Promise<Uint8Array> {
+  const contentType = options?.contentType || ContentTypeText
+  const codec = registry.codecFor(contentType)
+  if (!codec) {
+    throw new Error('unknown content type ' + contentType)
+  }
+  const encoded = codec.encode(content, registry)
+  if (options?.contentFallback) {
+    encoded.fallback = options.contentFallback
+  }
+  if (typeof options?.compression === 'number') {
+    encoded.compression = options.compression
+  }
+  await compress(encoded)
+  return proto.EncodedContent.encode(encoded).finish()
 }

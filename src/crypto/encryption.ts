@@ -23,9 +23,12 @@ export async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
 // in the authentication scope of the encryption.
 export async function encrypt(
   plain: Uint8Array,
-  secret: Uint8Array,
+  secret: Uint8Array | string,
   additionalData?: Uint8Array
 ): Promise<Ciphertext> {
+  if (typeof secret === 'string') {
+    secret = Buffer.from(secret, 'base64')
+  }
   const salt = crypto.getRandomValues(new Uint8Array(KDFSaltSize))
   const nonce = crypto.getRandomValues(new Uint8Array(AESGCMNonceSize))
   const key = await hkdf(secret, salt)
@@ -46,9 +49,12 @@ export async function encrypt(
 // symmetric authenticated decryption of the encrypted ciphertext using the secret and additionalData
 export async function decrypt(
   encrypted: Ciphertext | ciphertext.Ciphertext,
-  secret: Uint8Array,
+  secret: Uint8Array | string,
   additionalData?: Uint8Array
 ): Promise<Uint8Array> {
+  if (typeof secret === 'string') {
+    secret = Buffer.from(secret, 'base64')
+  }
   if (!encrypted.aes256GcmHkdfSha256) {
     throw new Error('invalid payload ciphertext')
   }

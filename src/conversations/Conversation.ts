@@ -1,13 +1,20 @@
 import {
-  buildUserIntroTopic,
   buildDirectMessageTopic,
+  buildUserIntroTopic,
   dateToNs,
   nsToDate,
 } from '../utils'
 import { utils } from 'ethers'
-import { DecodedMessage } from './../Message'
+import {
+  decodeContent,
+  DecodedMessage,
+  DecodedMessageExport,
+  MessageV1,
+  MessageV2,
+} from '../Message'
 import Stream from '../Stream'
 import Client, {
+  encodeContent,
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
   SendOptions,
@@ -17,18 +24,28 @@ import {
   InvitationV1,
   SealedInvitationHeaderV1,
 } from '../Invitation'
-import { MessageV1, MessageV2, decodeContent } from '../Message'
-import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
 import {
-  encrypt,
+  content as proto,
+  fetcher,
+  message,
+  messageApi,
+  privateKey as privateKeyProto,
+  publicKey,
+} from '@xmtp/proto'
+import {
   decrypt,
-  SignedPublicKey,
-  Signature,
+  encrypt,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   PublicKeyBundle,
+  Signature,
+  SignedPublicKey,
 } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
 import { ContentTypeText } from '../codecs/Text'
+import { CodecRegistry } from '../MessageContent'
+
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -37,6 +54,7 @@ type ConversationV1Export = {
   version: 'v1'
   peerAddress: string
   createdAt: string
+  topic: string
 }
 
 type ConversationV2Export = {
@@ -58,11 +76,17 @@ export class ConversationV1 {
   createdAt: Date
   context = null
   private client: Client
+  readonly topic: string
 
   constructor(client: Client, address: string, createdAt: Date) {
     this.peerAddress = utils.getAddress(address)
     this.client = client
     this.createdAt = createdAt
+    this.topic = buildDirectMessageTopic(this.peerAddress, this.client.address)
+  }
+
+  getClient(): Client {
+    return this.client
   }
 
   /**
@@ -77,10 +101,6 @@ export class ConversationV1 {
       this.decodeMessage.bind(this),
       opts
     )
-  }
-
-  get topic(): string {
-    return buildDirectMessageTopic(this.peerAddress, this.client.address)
   }
 
   messagesPaginated(
@@ -109,6 +129,7 @@ export class ConversationV1 {
       version: 'v1',
       peerAddress: this.peerAddress,
       createdAt: this.createdAt.toISOString(),
+      topic: this.topic,
     }
   }
 
@@ -123,37 +144,14 @@ export class ConversationV1 {
     )
   }
 
-  async decodeMessage({
-    message,
-    contentTopic,
-  }: messageApi.Envelope): Promise<DecodedMessage> {
-    const messageBytes = fetcher.b64Decode(message as unknown as string)
-    const decoded = await MessageV1.fromBytes(messageBytes)
-    const { senderAddress, recipientAddress } = decoded
-
-    // Filter for topics
-    if (
-      !senderAddress ||
-      !recipientAddress ||
-      !contentTopic ||
-      buildDirectMessageTopic(senderAddress, recipientAddress) !== this.topic
-    ) {
-      throw new Error('Headers do not match intended recipient')
-    }
-    const decrypted = await decoded.decrypt(this.client.legacyKeys)
-    const { content, contentType, error } = await decodeContent(
-      decrypted,
-      this.client
+  async decodeMessage(envelope: messageApi.Envelope): Promise<DecodedMessage> {
+    const dme = await decodeMessageV1(
+      envelope,
+      this.export(),
+      this.client,
+      this.client.legacyKeys
     )
-
-    return DecodedMessage.fromV1Message(
-      decoded,
-      content,
-      contentType,
-      contentTopic,
-      this,
-      error
-    )
+    return DecodedMessage.fromExport(dme, this)
   }
 
   /**
@@ -184,13 +182,12 @@ export class ConversationV1 {
     }
 
     const contentType = options?.contentType || ContentTypeText
-    const timestamp = options?.timestamp || new Date()
-    const payload = await this.client.encodeContent(content, options)
-    const msg = await MessageV1.encode(
+    const msg = await encodeMessageV1(
+      content,
       this.client.legacyKeys,
       recipient,
-      payload,
-      timestamp
+      this.client,
+      options
     )
 
     await this.client.publishEnvelopes(
@@ -237,6 +234,10 @@ export class ConversationV2 {
     this.context = context
     this.client = client
     this.peerAddress = peerAddress
+  }
+
+  getClient(): Client {
+    return this.client
   }
 
   static async create(
@@ -324,82 +325,18 @@ export class ConversationV2 {
     content: any,
     options?: SendOptions
   ): Promise<MessageV2> {
-    const payload = await this.client.encodeContent(content, options)
-    const header: message.MessageHeaderV2 = {
-      topic: this.topic,
-      createdNs: dateToNs(options?.timestamp || new Date()),
-    }
-    const headerBytes = message.MessageHeaderV2.encode(header).finish()
-    const digest = await sha256(concat(headerBytes, payload))
-    const signed = {
-      payload,
-      sender: this.client.keys.getPublicKeyBundle(),
-      signature: await this.client.keys.getCurrentPreKey().sign(digest),
-    }
-    const signedBytes = proto.SignedContent.encode(signed).finish()
-    const ciphertext = await encrypt(signedBytes, this.keyMaterial, headerBytes)
-    const protoMsg = {
-      v1: undefined,
-      v2: { headerBytes, ciphertext },
-    }
-    const bytes = message.Message.encode(protoMsg).finish()
-    return MessageV2.create(protoMsg, header, signed, bytes)
+    return encodeMessageV2(
+      content,
+      this.export(),
+      this.client.keys,
+      this.client,
+      options
+    )
   }
 
   async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
-    if (!env.message || !env.contentTopic) {
-      throw new Error('empty envelope')
-    }
-    const messageBytes = b64Decode(env.message.toString())
-    const msg = message.Message.decode(messageBytes)
-    if (!msg.v2) {
-      throw new Error('unknown message version')
-    }
-    const msgv2 = msg.v2
-    const header = message.MessageHeaderV2.decode(msgv2.headerBytes)
-    if (header.topic !== this.topic) {
-      throw new Error('topic mismatch')
-    }
-    if (!msgv2.ciphertext) {
-      throw new Error('missing ciphertext')
-    }
-    const decrypted = await decrypt(
-      new Ciphertext(msgv2.ciphertext),
-      this.keyMaterial,
-      msgv2.headerBytes
-    )
-    const signed = proto.SignedContent.decode(decrypted)
-    if (
-      !signed.sender?.identityKey ||
-      !signed.sender?.preKey ||
-      !signed.signature
-    ) {
-      throw new Error('incomplete signed content')
-    }
-
-    const digest = await sha256(concat(msgv2.headerBytes, signed.payload))
-    if (
-      !new SignedPublicKey(signed.sender?.preKey).verify(
-        new Signature(signed.signature),
-        digest
-      )
-    ) {
-      throw new Error('invalid signature')
-    }
-    const messageV2 = await MessageV2.create(msg, header, signed, messageBytes)
-    const { content, contentType, error } = await decodeContent(
-      signed.payload,
-      this.client
-    )
-
-    return DecodedMessage.fromV2Message(
-      messageV2,
-      content,
-      contentType,
-      env.contentTopic,
-      this,
-      error
-    )
+    const dme = await decodeMessageV2(env, this.export(), this.client)
+    return DecodedMessage.fromExport(dme, this)
   }
 
   export(): ConversationV2Export {
@@ -430,9 +367,171 @@ export class ConversationV2 {
 
 export type Conversation = ConversationV1 | ConversationV2
 
+export const conversationFromExport = (
+  data: ConversationExport,
+  client: Client
+): Conversation => {
+  switch (data.version) {
+    case 'v1':
+      return ConversationV1.fromExport(client, data)
+    case 'v2':
+      return ConversationV2.fromExport(client, data)
+    default:
+      throw new Error('unknown conversation version')
+  }
+}
+
 function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
   const ab = new Uint8Array(a.length + b.length)
   ab.set(a)
   ab.set(b, a.length)
   return ab
+}
+
+export async function decodeMessageV1(
+  envelope: messageApi.Envelope,
+  conversation: ConversationV1Export,
+  registry: CodecRegistry,
+  keys: privateKeyProto.PrivateKeyBundleV1
+): Promise<DecodedMessageExport> {
+  const legacyKeys = PrivateKeyBundleV1.from(keys)
+  const { message, contentTopic } = envelope
+  const messageBytes = fetcher.b64Decode(message as unknown as string)
+  const decoded = await MessageV1.fromBytes(messageBytes)
+  const { senderAddress, recipientAddress } = decoded
+
+  // Filter for topics
+  if (
+    !senderAddress ||
+    !recipientAddress ||
+    !contentTopic ||
+    buildDirectMessageTopic(senderAddress, recipientAddress) !==
+      conversation.topic
+  ) {
+    throw new Error('Headers do not match intended recipient')
+  }
+  const decrypted = await decoded.decrypt(legacyKeys)
+  const { content, contentType, error } = await decodeContent(
+    decrypted,
+    registry
+  )
+
+  return DecodedMessage.exportFromV1Message(
+    decoded,
+    content,
+    contentType,
+    contentTopic,
+    conversation,
+    error
+  )
+}
+
+export async function decodeMessageV2(
+  env: messageApi.Envelope,
+  conversation: ConversationV2Export,
+  registry: CodecRegistry
+): Promise<DecodedMessageExport> {
+  if (!env.message || !env.contentTopic) {
+    throw new Error('empty envelope')
+  }
+  const messageBytes = b64Decode(env.message.toString())
+  const msg = message.Message.decode(messageBytes)
+  if (!msg.v2) {
+    throw new Error('unknown message version')
+  }
+  const msgv2 = msg.v2
+  const header = message.MessageHeaderV2.decode(msgv2.headerBytes)
+  if (header.topic !== conversation.topic) {
+    throw new Error('topic mismatch')
+  }
+  if (!msgv2.ciphertext) {
+    throw new Error('missing ciphertext')
+  }
+  const decrypted = await decrypt(
+    new Ciphertext(msgv2.ciphertext),
+    conversation.keyMaterial,
+    msgv2.headerBytes
+  )
+  const signed = proto.SignedContent.decode(decrypted)
+  if (
+    !signed.sender?.identityKey ||
+    !signed.sender?.preKey ||
+    !signed.signature
+  ) {
+    throw new Error('incomplete signed content')
+  }
+
+  const digest = await sha256(concat(msgv2.headerBytes, signed.payload))
+  if (
+    !new SignedPublicKey(signed.sender?.preKey).verify(
+      new Signature(signed.signature),
+      digest
+    )
+  ) {
+    throw new Error('invalid signature')
+  }
+  const messageV2 = await MessageV2.create(msg, header, signed, messageBytes)
+  const { content, contentType, error } = await decodeContent(
+    signed.payload,
+    registry
+  )
+
+  return DecodedMessage.exportFromV2Message(
+    messageV2,
+    content,
+    contentType,
+    env.contentTopic,
+    conversation,
+    error
+  )
+}
+
+export async function encodeMessageV1(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content: any,
+  senderBundle: privateKeyProto.PrivateKeyBundleV1,
+  recipientBundle: publicKey.PublicKeyBundle,
+  registry: CodecRegistry,
+  options?: SendOptions
+): Promise<MessageV1> {
+  const sender = PrivateKeyBundleV1.from(senderBundle)
+  const recipient = PublicKeyBundle.from(recipientBundle)
+  const timestamp = options?.timestamp || new Date()
+  const payload = await encodeContent(content, registry, options)
+  return MessageV1.encode(sender, recipient, payload, timestamp)
+}
+
+export async function encodeMessageV2(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content: any,
+  conversation: ConversationV2Export,
+  keyBundleV2: privateKeyProto.PrivateKeyBundleV2,
+  registry: CodecRegistry,
+  options?: SendOptions
+): Promise<MessageV2> {
+  const keys = PrivateKeyBundleV2.from(keyBundleV2)
+  const payload = await encodeContent(content, registry, options)
+  const header: message.MessageHeaderV2 = {
+    topic: conversation.topic,
+    createdNs: dateToNs(options?.timestamp || new Date()),
+  }
+  const headerBytes = message.MessageHeaderV2.encode(header).finish()
+  const digest = await sha256(concat(headerBytes, payload))
+  const signed = {
+    payload,
+    sender: keys.getPublicKeyBundle(),
+    signature: await keys.getCurrentPreKey().sign(digest),
+  }
+  const signedBytes = proto.SignedContent.encode(signed).finish()
+  const ciphertext = await encrypt(
+    signedBytes,
+    conversation.keyMaterial,
+    headerBytes
+  )
+  const protoMsg = {
+    v1: undefined,
+    v2: { headerBytes, ciphertext },
+  }
+  const bytes = message.Message.encode(protoMsg).finish()
+  return MessageV2.create(protoMsg, header, signed, bytes)
 }

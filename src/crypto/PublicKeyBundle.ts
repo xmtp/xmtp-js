@@ -78,6 +78,16 @@ export class PublicKeyBundle implements publicKey.PublicKeyBundle {
     this.preKey = new PublicKey(bundle.preKey)
   }
 
+  static from(
+    bundle: publicKey.PublicKeyBundle | PublicKeyBundle
+  ): PublicKeyBundle {
+    if (bundle instanceof PublicKeyBundle) {
+      return bundle
+    } else {
+      return new PublicKeyBundle(bundle)
+    }
+  }
+
   equals(other: this): boolean {
     return (
       this.identityKey.equals(other.identityKey) &&

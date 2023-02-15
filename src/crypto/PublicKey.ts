@@ -6,6 +6,7 @@ import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
+import { parseObjectToUint8Array } from '../utils/uint8Array'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -15,6 +16,9 @@ type secp256k1Uncompressed = {
 
 // Validate a key.
 function secp256k1UncompressedCheck(key: secp256k1Uncompressed): void {
+  if (typeof key.bytes === 'object') {
+    key.bytes = parseObjectToUint8Array(key.bytes)
+  }
   if (key.bytes.length !== 65) {
     throw new Error(`invalid public key length: ${key.bytes.length}`)
   }
@@ -115,6 +119,9 @@ export class SignedPublicKey
   constructor(obj: publicKey.SignedPublicKey) {
     if (!obj.keyBytes) {
       throw new Error('missing key bytes')
+    }
+    if (typeof obj.keyBytes === 'object') {
+      obj.keyBytes = parseObjectToUint8Array(obj.keyBytes)
     }
     super(publicKey.UnsignedPublicKey.decode(obj.keyBytes))
     this.keyBytes = obj.keyBytes
@@ -220,8 +227,17 @@ export class PublicKey
   signature?: Signature
 
   constructor(obj: publicKey.PublicKey) {
+    if (typeof obj.secp256k1Uncompressed?.bytes === 'object') {
+      obj.secp256k1Uncompressed.bytes = parseObjectToUint8Array(
+        obj.secp256k1Uncompressed.bytes
+      )
+    }
     super({
-      createdNs: obj.timestamp.mul(1000000),
+      createdNs: obj.timestamp
+        ? obj.timestamp.mul(1000000)
+        : // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          Long.fromValue(obj.createdNs),
       secp256k1Uncompressed: obj.secp256k1Uncompressed,
     })
     if (obj.signature) {
