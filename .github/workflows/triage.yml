@@ -1,0 +1,11 @@
+name: Add issues to project
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  call-add-issues-to-project:
+    uses: xmtp/workflow_calls/.github/workflows/add-issues-to-project.yml@main
+    secrets: inherit
