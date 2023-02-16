@@ -1,4 +1,10 @@
-export { Message, DecodedMessage, decodeContent } from './Message'
+export {
+  Message,
+  DecodedMessage,
+  DecodedMessageExport,
+  decodeContent,
+} from './Message'
+export * as message from './Message'
 export {
   PublicKey,
   PublicKeyBundle,
@@ -19,6 +25,7 @@ export {
   Compression,
 } from './Client'
 export { Conversations, Conversation } from './conversations'
+export * as conversations from './conversations'
 export {
   ContentTypeId,
   ContentCodec,

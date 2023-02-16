@@ -50,14 +50,14 @@ const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-type ConversationV1Export = {
+export type ConversationV1Export = {
   version: 'v1'
   peerAddress: string
   createdAt: string
   topic: string
 }
 
-type ConversationV2Export = {
+export type ConversationV2Export = {
   version: 'v2'
   topic: string
   keyMaterial: string
