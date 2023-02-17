@@ -1,3 +1,4 @@
+import { dateToNs, toNanoString } from './../src/utils'
 import { Wallet } from 'ethers'
 import {
   PrivateKey,
@@ -12,6 +13,9 @@ import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
 import assert from 'assert'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
+import { messageApi, fetcher } from '@xmtp/proto'
+
+const { b64Encode } = fetcher
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
@@ -94,7 +98,34 @@ export function newCustomWallet(): Signer {
       return ethersWallet.getAddress()
     },
     signMessage(message: ArrayLike<number> | string): Promise<string> {
-      return ethersWallet.signMessage(message)
+      return ethersWallet.signMessage(message).then((signature) => {
+        return new Promise((resolve) => {
+          resolve(signature)
+        })
+      })
+    },
+  }
+}
+
+export function wrapAsLedgerWallet(ethersWallet: Wallet): Signer {
+  // Wraps a wallet and switches the last byte of signature to canonical form
+  // so 0x1b => 0x00 and 0x1c => 0x01
+  return {
+    getAddress(): Promise<string> {
+      return ethersWallet.getAddress()
+    },
+    signMessage(message: ArrayLike<number> | string): Promise<string> {
+      return ethersWallet.signMessage(message).then((signature) => {
+        const bytes = Buffer.from(signature.slice(2), 'hex')
+        const lastByte = bytes[bytes.length - 1]
+        if (lastByte < 0x1b) {
+          return new Promise((resolve) => resolve(signature))
+        }
+        bytes[bytes.length - 1] = lastByte - 0x1b
+        return new Promise((resolve) => {
+          resolve('0x' + bytes.toString('hex'))
+        })
+      })
     },
   }
 }
@@ -150,3 +181,27 @@ export const newDevClient = (opts?: Partial<ClientOptions>): Promise<Client> =>
     env: 'dev',
     ...opts,
   })
+
+export const buildEnvelope = (
+  message: Uint8Array,
+  contentTopic: string,
+  created: Date
+): messageApi.Envelope => {
+  return {
+    contentTopic,
+    timestampNs: toNanoString(created),
+    message: b64Encode(message, 0, message.length) as unknown as Uint8Array,
+  }
+}
+
+export const buildProtoEnvelope = (
+  payload: Uint8Array,
+  contentTopic: string,
+  timestamp: Date
+) => {
+  return {
+    contentTopic,
+    timestampNs: dateToNs(timestamp),
+    payload,
+  }
+}

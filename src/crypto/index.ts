@@ -10,11 +10,13 @@ import { UnsignedPublicKey, SignedPublicKey, PublicKey } from './PublicKey'
 import Signature, { WalletSigner } from './Signature'
 import * as utils from './utils'
 import { encrypt, decrypt } from './encryption'
+import Ciphertext from './Ciphertext'
 
 export {
   utils,
   encrypt,
   decrypt,
+  Ciphertext,
   UnsignedPublicKey,
   SignedPublicKey,
   SignedPublicKeyBundle,

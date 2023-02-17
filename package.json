@@ -8,6 +8,8 @@
   "browser": "dist/umd/index.js",
   "types": "dist/types/src/index.d.ts",
   "scripts": {
+    "prebench": "npm run build:cjs",
+    "bench": "node dist/cjs/bench/index.js",
     "build": "npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:types",
     "build:cjs": "node tools/cleanup cjs && tsc -p config/tsconfig.cjs.json",
     "build:esm": "node tools/cleanup esm && tsc -p config/tsconfig.esm.json",
@@ -66,7 +68,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
-    "@xmtp/proto": "^3.12.0",
+    "@xmtp/proto": "^3.13.0",
     "async-mutex": "^0.4.0",
     "ethers": "^5.5.3",
     "long": "^5.2.0"
@@ -74,11 +76,13 @@
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
+    "@types/benchmark": "^2.1.2",
     "@types/bl": "^5.0.2",
     "@types/callback-to-async-iterator": "^1.1.4",
     "@types/jest": "^27.0.1",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
+    "benny": "^3.7.1",
     "dd-trace": "^2.12.2",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",

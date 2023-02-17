@@ -1,0 +1,33 @@
+name: Request a feature
+description: Create a feature request to suggest an idea or enhancement.
+title: 'Feature request: '
+labels: enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to request a feature. Community contributions like yours are key to the development and adoption of XMTP. Review the following guidelines for requesting a feature:
+          - Include 1 feature request per issue. Creating 1 issue per request will make it easier to explore and assign a priority to a request.
+          - Check [existing issues](https://github.com/xmtp/xmtp-js/issues) to see if the feature has already been requested.
+          - Ensure that the feature is not security-related and can safely be disclosed publicly on GitHub. For information about how to report a security issue, see [Security policy](https://github.com/xmtp/xmtp-js/security/policy).
+          - Follow the [XMTP code of conduct](https://github.com/xmtp/xmtp-js/blob/main/CODE_OF_CONDUCT.md).
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Is your feature request related to a problem?
+      description: Provide a clear and concise description of the problem to be solved.
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution to the problem
+      description: Provide a clear and concise description of what you want to happen to solve the problem.
+  - type: textarea
+    id: usecases
+    attributes:
+      label: Describe the uses cases for the feature
+      description: Provide a clear and concise description of the use cases the feature unlocks.
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional details
+      description: Add any other details about your feature request. Attach screenshots, if applicable.

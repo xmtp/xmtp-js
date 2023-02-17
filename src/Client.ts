@@ -28,6 +28,7 @@ import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
+import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
 const { Compression } = proto
@@ -105,10 +106,9 @@ type LegacyOptions = {
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
-export type ClientOptions = NetworkOptions &
-  KeyStoreOptions &
-  ContentOptions &
-  LegacyOptions
+export type ClientOptions = Flatten<
+  NetworkOptions & KeyStoreOptions & ContentOptions & LegacyOptions
+>
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
