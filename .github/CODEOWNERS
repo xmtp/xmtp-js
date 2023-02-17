@@ -1,2 +1,3 @@
 # Global rule:
 *     @xmtp/engineering
+*.md  @jhaaaa
