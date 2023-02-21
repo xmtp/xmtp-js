@@ -162,13 +162,17 @@ export class ConversationV1 {
     decrypted: Uint8Array,
     topic: string
   ): Promise<DecodedMessage> {
-    const { content, contentType } = await decodeContent(decrypted, this.client)
+    const { content, contentType, error } = await decodeContent(
+      decrypted,
+      this.client
+    )
     return DecodedMessage.fromV1Message(
       message,
       content,
       contentType,
       topic,
-      this
+      this,
+      error
     )
   }
 
