@@ -94,28 +94,7 @@ export class ConversationV1 {
     throwOnError = false
   ): Promise<DecodedMessage[]> {
     const responses = (
-      await this.client.keystore.decryptV1({
-        requests: messages.map((m: MessageV1) => {
-          const sender = new PublicKeyBundle({
-            identityKey: m.header.sender?.identityKey,
-            preKey: m.header.sender?.preKey,
-          })
-
-          const isSender = this.client.publicKeyBundle.equals(sender)
-
-          return {
-            payload: m.ciphertext,
-            peerKeys: isSender
-              ? new PublicKeyBundle({
-                  identityKey: m.header.recipient?.identityKey,
-                  preKey: m.header.recipient?.preKey,
-                })
-              : sender,
-            headerBytes: m.headerBytes,
-            isSender,
-          }
-        }),
-      })
+      await this.client.keystore.decryptV1(this.buildDecryptRequest(messages))
     ).responses
 
     const out: DecodedMessage[] = []
@@ -127,7 +106,10 @@ export class ConversationV1 {
         if (throwOnError) {
           throw new KeystoreError(result.error?.code, result.error?.message)
         }
-      } else if (!result.result?.decrypted) {
+        continue
+      }
+
+      if (!result.result?.decrypted) {
         console.warn('Error decrypting message', result)
         if (throwOnError) {
           throw new KeystoreError(
@@ -135,25 +117,53 @@ export class ConversationV1 {
             'No result returned'
           )
         }
-      } else {
-        try {
-          out.push(
-            await this.buildDecodedMessage(
-              message,
-              result.result.decrypted,
-              topic
-            )
+        continue
+      }
+
+      try {
+        out.push(
+          await this.buildDecodedMessage(
+            message,
+            result.result.decrypted,
+            topic
           )
-        } catch (e) {
-          console.warn('Error decoding content', e)
-          if (throwOnError) {
-            throw e
-          }
+        )
+      } catch (e) {
+        console.warn('Error decoding content', e)
+        if (throwOnError) {
+          throw e
         }
       }
     }
 
     return out
+  }
+
+  private buildDecryptRequest(
+    messages: MessageV1[]
+  ): keystore.DecryptV1Request {
+    return {
+      requests: messages.map((m: MessageV1) => {
+        const sender = new PublicKeyBundle({
+          identityKey: m.header.sender?.identityKey,
+          preKey: m.header.sender?.preKey,
+        })
+
+        const isSender = this.client.publicKeyBundle.equals(sender)
+
+        return {
+          payload: m.ciphertext,
+          peerKeys: isSender
+            ? new PublicKeyBundle({
+                identityKey: m.header.recipient?.identityKey,
+                preKey: m.header.recipient?.preKey,
+              })
+            : sender,
+          headerBytes: m.headerBytes,
+          isSender,
+        }
+      }),
+    }
   }
 
   private async buildDecodedMessage(
