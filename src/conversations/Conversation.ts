@@ -175,6 +175,18 @@ export class ConversationV1 {
     )
   }
 
+  messagesPaginated(
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<DecodedMessage[]> {
+    return this.client.listEnvelopesPaginated(
+      [this.topic],
+      // This won't be performant once we start supporting a remote keystore
+      // TODO: Either better batch support or we ditch this under-utilized feature
+      this.decodeMessage.bind(this),
+      opts
+    )
+  }
+
   // decodeMessage takes an envelope and either returns a `DecodedMessage` or throws if an error occurs
   async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
     if (!env.contentTopic) {
