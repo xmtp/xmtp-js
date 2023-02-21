@@ -18,17 +18,25 @@ import {
   SealedInvitationHeaderV1,
 } from '../Invitation'
 import { MessageV1, MessageV2, decodeContent } from '../Message'
-import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
+import {
+  messageApi,
+  message,
+  content as proto,
+  fetcher,
+  keystore,
+} from '@xmtp/proto'
 import {
   encrypt,
   decrypt,
   SignedPublicKey,
   Signature,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
 } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
 import { ContentTypeText } from '../codecs/Text'
+import { KeystoreError } from '../keystore'
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -69,28 +77,120 @@ export class ConversationV1 {
    * Returns a list of all messages to/from the peerAddress
    */
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
-    const topics = [
-      buildDirectMessageTopic(this.peerAddress, this.client.address),
-    ]
-    return this.client.listEnvelopes(
-      topics,
-      this.decodeMessage.bind(this),
+    const topic = buildDirectMessageTopic(this.peerAddress, this.client.address)
+    const messages = await this.client.listEnvelopes(
+      [topic],
+      this.decodeEnvelope.bind(this),
       opts
     )
+
+    return this.decryptBatch(messages, topic, false)
+  }
+
+  async decryptBatch(
+    messages: MessageV1[],
+    topic: string,
+    throwOnError = false
+  ): Promise<DecodedMessage[]> {
+    const responses = (
+      await this.client.keystore.decryptV1({
+        requests: messages.map((m: MessageV1) => {
+          const sender = new PublicKeyBundle({
+            identityKey: m.header.sender?.identityKey,
+            preKey: m.header.sender?.preKey,
+          })
+
+          const isSender = this.client.publicKeyBundle.equals(
+            SignedPublicKeyBundle.fromLegacyBundle(sender)
+          )
+
+          return {
+            payload: m.ciphertext,
+            peerKeys: isSender
+              ? new PublicKeyBundle({
+                  identityKey: m.header.recipient?.identityKey,
+                  preKey: m.header.recipient?.preKey,
+                })
+              : sender,
+            headerBytes: m.headerBytes,
+            isSender,
+          }
+        }),
+      })
+    ).responses
+
+    const out: DecodedMessage[] = []
+    for (let i = 0; i < responses.length; i++) {
+      const result = responses[i]
+      const message = messages[i]
+      if (result.error) {
+        console.warn('Error decrypting message', result.error)
+        if (throwOnError) {
+          throw new KeystoreError(result.error?.code, result.error?.message)
+        }
+      } else if (!result.result?.decrypted) {
+        console.warn('Error decrypting message', result)
+        if (throwOnError) {
+          throw new KeystoreError(
+            keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
+            'No result returned'
+          )
+        }
+      } else {
+        try {
+          out.push(
+            await this.buildDecodedMessage(
+              message,
+              result.result.decrypted,
+              topic
+            )
+          )
+        } catch (e) {
+          console.warn('Error decoding content', e)
+          if (throwOnError) {
+            throw e
+          }
+        }
+      }
+    }
+
+    return out
+  }
+
+  private async buildDecodedMessage(
+    message: MessageV1,
+    decrypted: Uint8Array,
+    topic: string
+  ): Promise<DecodedMessage> {
+    const { content, contentType } = await decodeContent(decrypted, this.client)
+    return DecodedMessage.fromV1Message(
+      message,
+      content,
+      contentType,
+      topic,
+      this
+    )
+  }
+
+  // decodeMessage takes an envelope and either returns a `DecodedMessage` or throws if an error occurs
+  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
+    if (!env.contentTopic) {
+      throw new Error('Missing content topic')
+    }
+    const msg = await this.decodeEnvelope(env)
+    const decryptResults = await this.decryptBatch(
+      [msg],
+      env.contentTopic,
+      true
+    )
+    if (!decryptResults.length) {
+      throw new Error('No results')
+    }
+    return decryptResults[0]
   }
 
   get topic(): string {
     return buildDirectMessageTopic(this.peerAddress, this.client.address)
-  }
-
-  messagesPaginated(
-    opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<DecodedMessage[]> {
-    return this.client.listEnvelopesPaginated(
-      [this.topic],
-      this.decodeMessage.bind(this),
-      opts
-    )
   }
 
   /**
@@ -100,7 +200,7 @@ export class ConversationV1 {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
-      this.decodeMessage.bind(this)
+      async (env: messageApi.Envelope) => this.decodeMessage(env)
     )
   }
 
@@ -123,10 +223,10 @@ export class ConversationV1 {
     )
   }
 
-  async decodeMessage({
+  async decodeEnvelope({
     message,
     contentTopic,
-  }: messageApi.Envelope): Promise<DecodedMessage> {
+  }: messageApi.Envelope): Promise<MessageV1> {
     const messageBytes = fetcher.b64Decode(message as unknown as string)
     const decoded = await MessageV1.fromBytes(messageBytes)
     const { senderAddress, recipientAddress } = decoded
@@ -140,20 +240,8 @@ export class ConversationV1 {
     ) {
       throw new Error('Headers do not match intended recipient')
     }
-    const decrypted = await decoded.decrypt(this.client.legacyKeys)
-    const { content, contentType, error } = await decodeContent(
-      decrypted,
-      this.client
-    )
 
-    return DecodedMessage.fromV1Message(
-      decoded,
-      content,
-      contentType,
-      contentTopic,
-      this,
-      error
-    )
+    return decoded
   }
 
   /**

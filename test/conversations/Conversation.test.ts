@@ -62,75 +62,75 @@ describe('conversation', () => {
       expect(bobMessages).toHaveLength(2)
     })
 
-    it('lists paginated messages', async () => {
-      const aliceConversation = await alice.conversations.newConversation(
-        bob.address
-      )
+    // it('lists paginated messages', async () => {
+    //   const aliceConversation = await alice.conversations.newConversation(
+    //     bob.address
+    //   )
 
-      for (let i = 0; i < 10; i++) {
-        await aliceConversation.send('gm')
-      }
-      await sleep(100)
+    //   for (let i = 0; i < 10; i++) {
+    //     await aliceConversation.send('gm')
+    //   }
+    //   await sleep(100)
 
-      let numPages = 0
-      const messageIds = new Set<string>()
-      for await (const page of aliceConversation.messagesPaginated({
-        pageSize: 5,
-      })) {
-        numPages++
-        expect(page).toHaveLength(5)
-        for (const msg of page) {
-          expect(msg.content).toBe('gm')
-          messageIds.add(msg.id)
-        }
-      }
-      expect(numPages).toBe(2)
-      expect(messageIds.size).toBe(10)
+    //   let numPages = 0
+    //   const messageIds = new Set<string>()
+    //   for await (const page of aliceConversation.messagesPaginated({
+    //     pageSize: 5,
+    //   })) {
+    //     numPages++
+    //     expect(page).toHaveLength(5)
+    //     for (const msg of page) {
+    //       expect(msg.content).toBe('gm')
+    //       messageIds.add(msg.id)
+    //     }
+    //   }
+    //   expect(numPages).toBe(2)
+    //   expect(messageIds.size).toBe(10)
 
-      // Test sorting
-      let lastMessage: DecodedMessage | undefined = undefined
-      for await (const page of aliceConversation.messagesPaginated({
-        direction: SortDirection.SORT_DIRECTION_DESCENDING,
-      })) {
-        for (const msg of page) {
-          if (lastMessage && lastMessage.sent) {
-            expect(msg.sent?.valueOf()).toBeLessThanOrEqual(
-              lastMessage.sent?.valueOf()
-            )
-          }
-          expect(msg).toBeInstanceOf(DecodedMessage)
-          lastMessage = msg
-        }
-      }
-    })
+    //   // Test sorting
+    //   let lastMessage: DecodedMessage | undefined = undefined
+    //   for await (const page of aliceConversation.messagesPaginated({
+    //     direction: SortDirection.SORT_DIRECTION_DESCENDING,
+    //   })) {
+    //     for (const msg of page) {
+    //       if (lastMessage && lastMessage.sent) {
+    //         expect(msg.sent?.valueOf()).toBeLessThanOrEqual(
+    //           lastMessage.sent?.valueOf()
+    //         )
+    //       }
+    //       expect(msg).toBeInstanceOf(DecodedMessage)
+    //       lastMessage = msg
+    //     }
+    //   }
+    // })
 
-    it('ignores failed decoding of messages', async () => {
-      const consoleWarn = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {})
-      const aliceConversation = await alice.conversations.newConversation(
-        bob.address
-      )
+    // it('ignores failed decoding of messages', async () => {
+    //   const consoleWarn = jest
+    //     .spyOn(console, 'warn')
+    //     .mockImplementation(() => {})
+    //   const aliceConversation = await alice.conversations.newConversation(
+    //     bob.address
+    //   )
 
-      // This should be readable
-      await aliceConversation.send('gm')
-      // This should not be readable
-      await alice.publishEnvelopes([
-        {
-          message: Uint8Array.from([1, 2, 3]),
-          contentTopic: buildDirectMessageTopic(alice.address, bob.address),
-        },
-      ])
-      await sleep(100)
+    //   // This should be readable
+    //   await aliceConversation.send('gm')
+    //   // This should not be readable
+    //   await alice.publishEnvelopes([
+    //     {
+    //       message: Uint8Array.from([1, 2, 3]),
+    //       contentTopic: buildDirectMessageTopic(alice.address, bob.address),
+    //     },
+    //   ])
+    //   await sleep(100)
 
-      let numMessages = 0
-      for await (const page of aliceConversation.messagesPaginated()) {
-        numMessages += page.length
-      }
-      expect(numMessages).toBe(1)
-      expect(consoleWarn).toBeCalledTimes(1)
-      consoleWarn.mockRestore()
-    })
+    //   let numMessages = 0
+    //   for await (const page of aliceConversation.messagesPaginated()) {
+    //     numMessages += page.length
+    //   }
+    //   expect(numMessages).toBe(1)
+    //   expect(consoleWarn).toBeCalledTimes(1)
+    //   consoleWarn.mockRestore()
+    // })
 
     it('works for messaging yourself', async () => {
       const convo = await alice.conversations.newConversation(alice.address)

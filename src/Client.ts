@@ -23,12 +23,14 @@ import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
-import { content as proto, messageApi, fetcher } from '@xmtp/proto'
+import { content as proto, messageApi, fetcher, keystore } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
 import { Flatten } from './utils/typedefs'
+import { InMemoryKeystore, Keystore } from './keystore'
+import { MessageV1 } from './Message'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -139,6 +141,7 @@ export default class Client {
   address: string
   legacyKeys: PrivateKeyBundleV1
   keys: PrivateKeyBundleV2
+  keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<
@@ -151,14 +154,20 @@ export default class Client {
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
 
-  constructor(keys: PrivateKeyBundleV1, apiClient: ApiClient) {
+  constructor(
+    keys: PrivateKeyBundleV1,
+    apiClient: ApiClient,
+    keystore: Keystore
+  ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
       string,
       PublicKeyBundle | SignedPublicKeyBundle
     >()
+    // TODO: Remove keys and legacyKeys
     this.legacyKeys = keys
     this.keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
+    this.keystore = keystore
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
@@ -171,6 +180,10 @@ export default class Client {
    */
   get conversations(): Conversations {
     return this._conversations
+  }
+
+  get publicKeyBundle(): SignedPublicKeyBundle {
+    return this.keys.getPublicKeyBundle()
   }
 
   /**
@@ -186,8 +199,10 @@ export default class Client {
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
+    // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
+    const keystore = new InMemoryKeystore(keys)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
-    const client = new Client(keys, apiClient)
+    const client = new Client(keys, apiClient, keystore)
     await client.init(options)
     return client
   }
@@ -495,6 +510,47 @@ export default class Client {
       }
     }
     return results
+  }
+
+  async decryptV1(messages: MessageV1[]): Promise<(Uint8Array | null)[]> {
+    const results = await this.keystore.decryptV1({
+      requests: messages.map((m: MessageV1) => {
+        const sender = new PublicKeyBundle({
+          identityKey: m.header.sender?.identityKey,
+          preKey: m.header.sender?.preKey,
+        })
+
+        const isSender = this.publicKeyBundle.equals(
+          SignedPublicKeyBundle.fromLegacyBundle(sender)
+        )
+
+        return {
+          payload: m.ciphertext,
+          peerKeys: isSender
+            ? new PublicKeyBundle({
+                identityKey: m.header.recipient?.identityKey,
+                preKey: m.header.recipient?.preKey,
+              })
+            : sender,
+          headerBytes: m.headerBytes,
+          isSender,
+        }
+      }),
+    })
+
+    const out: (Uint8Array | null)[] = []
+    for (const result of results.responses) {
+      if (result.error) {
+        console.warn('Error decrypting message', result.error)
+        out.push(null)
+      } else if (result.result?.decrypted) {
+        out.push(result.result?.decrypted)
+      } else {
+        console.warn('No result or error in decrypt response')
+        out.push(null)
+      }
+    }
+    return out
   }
 
   /**
