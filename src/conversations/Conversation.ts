@@ -37,6 +37,7 @@ import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
 import { ContentTypeText } from '../codecs/Text'
 import { KeystoreError } from '../keystore'
+import Long from 'long'
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -100,9 +101,7 @@ export class ConversationV1 {
             preKey: m.header.sender?.preKey,
           })
 
-          const isSender = this.client.publicKeyBundle.equals(
-            SignedPublicKeyBundle.fromLegacyBundle(sender)
-          )
+          const isSender = this.client.publicKeyBundle.equals(sender)
 
           return {
             payload: m.ciphertext,
@@ -274,16 +273,8 @@ export class ConversationV1 {
     } else {
       topics = [this.topic]
     }
-
     const contentType = options?.contentType || ContentTypeText
-    const timestamp = options?.timestamp || new Date()
-    const payload = await this.client.encodeContent(content, options)
-    const msg = await MessageV1.encode(
-      this.client.legacyKeys,
-      recipient,
-      payload,
-      timestamp
-    )
+    const msg = await this.encodeMessage(content, recipient, options)
 
     await this.client.publishEnvelopes(
       topics.map((topic) => ({
@@ -300,6 +291,62 @@ export class ConversationV1 {
       topics[0], // Just use the first topic for the returned value
       this
     )
+  }
+
+  private async encodeMessage(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    content: any,
+    recipient: PublicKeyBundle,
+    options?: SendOptions
+  ): Promise<MessageV1> {
+    const timestamp = options?.timestamp || new Date()
+    const payload = await this.client.encodeContent(content, options)
+    const header: message.MessageHeaderV1 = {
+      sender: this.client.publicKeyBundle,
+      recipient,
+      timestamp: Long.fromNumber(timestamp.getTime()),
+    }
+    const headerBytes = message.MessageHeaderV1.encode(header).finish()
+    const results = await this.client.keystore.encryptV1({
+      requests: [
+        {
+          recipient,
+          headerBytes,
+          payload,
+        },
+      ],
+    })
+
+    if (!results.responses.length) {
+      throw new Error('No response from Keystore')
+    }
+
+    const response = results.responses[0]
+    this.validateKeystoreResponse(response)
+
+    const ciphertext = response.result?.encrypted
+    const protoMsg = {
+      v1: { headerBytes, ciphertext },
+      v2: undefined,
+    }
+    const bytes = message.Message.encode(protoMsg).finish()
+    return MessageV1.create(protoMsg, header, bytes)
+  }
+
+  private validateKeystoreResponse(
+    response:
+      | keystore.DecryptResponse_Response
+      | keystore.EncryptResponse_Response
+  ) {
+    if (response.error) {
+      throw new KeystoreError(response.error.code, response.error.message)
+    }
+    if (!response.result) {
+      throw new KeystoreError(
+        keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
+        'No result from Keystore'
+      )
+    }
   }
 
   get clientAddress() {

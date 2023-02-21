@@ -182,8 +182,8 @@ export default class Client {
     return this._conversations
   }
 
-  get publicKeyBundle(): SignedPublicKeyBundle {
-    return this.keys.getPublicKeyBundle()
+  get publicKeyBundle(): PublicKeyBundle {
+    return this.legacyKeys.getPublicKeyBundle()
   }
 
   /**
@@ -510,47 +510,6 @@ export default class Client {
       }
     }
     return results
-  }
-
-  async decryptV1(messages: MessageV1[]): Promise<(Uint8Array | null)[]> {
-    const results = await this.keystore.decryptV1({
-      requests: messages.map((m: MessageV1) => {
-        const sender = new PublicKeyBundle({
-          identityKey: m.header.sender?.identityKey,
-          preKey: m.header.sender?.preKey,
-        })
-
-        const isSender = this.publicKeyBundle.equals(
-          SignedPublicKeyBundle.fromLegacyBundle(sender)
-        )
-
-        return {
-          payload: m.ciphertext,
-          peerKeys: isSender
-            ? new PublicKeyBundle({
-                identityKey: m.header.recipient?.identityKey,
-                preKey: m.header.recipient?.preKey,
-              })
-            : sender,
-          headerBytes: m.headerBytes,
-          isSender,
-        }
-      }),
-    })
-
-    const out: (Uint8Array | null)[] = []
-    for (const result of results.responses) {
-      if (result.error) {
-        console.warn('Error decrypting message', result.error)
-        out.push(null)
-      } else if (result.result?.decrypted) {
-        out.push(result.result?.decrypted)
-      } else {
-        console.warn('No result or error in decrypt response')
-        out.push(null)
-      }
-    }
-    return out
   }
 
   /**
