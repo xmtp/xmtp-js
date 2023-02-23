@@ -15,12 +15,6 @@ export default class LocalStoragePonyfill implements Storage {
     this.store = new Map()
   }
 
-  private validateString(key: string): void {
-    if (!(typeof key === 'string')) {
-      throw new TypeError('Key must be a string')
-    }
-  }
-
   getItem(key: string): string | null {
     this.validateString(key)
 
@@ -58,5 +52,11 @@ export default class LocalStoragePonyfill implements Storage {
     this.validateString(key)
     this.validateString(value)
     this.store.set(String(key), String(value))
+  }
+
+  private validateString(key: string): void {
+    if (!(typeof key === 'string')) {
+      throw new TypeError('Key must be a string')
+    }
   }
 }
