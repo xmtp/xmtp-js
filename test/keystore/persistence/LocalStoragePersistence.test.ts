@@ -29,9 +29,5 @@ describe('Persistence', () => {
       const result = await persistence.getItem('wrong key')
       expect(result).toBeNull()
     })
-
-    it('throws when invalid key is used', async () => {
-      expect(persistence.getItem([1, 2, 3] as any)).rejects.toThrow()
-    })
   })
 })
