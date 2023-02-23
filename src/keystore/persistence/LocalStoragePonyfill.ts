@@ -54,8 +54,8 @@ export default class LocalStoragePonyfill implements Storage {
     this.store.set(String(key), String(value))
   }
 
-  private validateString(key: string): void {
-    if (!(typeof key === 'string')) {
+  private validateString(val: string): void {
+    if (!(typeof val === 'string')) {
       throw new TypeError('Key must be a string')
     }
   }
