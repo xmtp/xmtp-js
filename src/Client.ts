@@ -29,6 +29,7 @@ import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
 import { Flatten } from './utils/typedefs'
+import { InMemoryKeystore, Keystore } from './keystore'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -139,6 +140,7 @@ export default class Client {
   address: string
   legacyKeys: PrivateKeyBundleV1
   keys: PrivateKeyBundleV2
+  keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<
@@ -151,14 +153,20 @@ export default class Client {
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
 
-  constructor(keys: PrivateKeyBundleV1, apiClient: ApiClient) {
+  constructor(
+    keys: PrivateKeyBundleV1,
+    apiClient: ApiClient,
+    keystore: Keystore
+  ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
       string,
       PublicKeyBundle | SignedPublicKeyBundle
     >()
+    // TODO: Remove keys and legacyKeys
     this.legacyKeys = keys
     this.keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
+    this.keystore = keystore
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
@@ -171,6 +179,10 @@ export default class Client {
    */
   get conversations(): Conversations {
     return this._conversations
+  }
+
+  get publicKeyBundle(): PublicKeyBundle {
+    return this.legacyKeys.getPublicKeyBundle()
   }
 
   /**
@@ -186,8 +198,10 @@ export default class Client {
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
+    // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
+    const keystore = new InMemoryKeystore(keys)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
-    const client = new Client(keys, apiClient)
+    const client = new Client(keys, apiClient, keystore)
     await client.init(options)
     return client
   }

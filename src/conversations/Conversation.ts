@@ -18,7 +18,13 @@ import {
   SealedInvitationHeaderV1,
 } from '../Invitation'
 import { MessageV1, MessageV2, decodeContent } from '../Message'
-import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
+import {
+  messageApi,
+  message,
+  content as proto,
+  fetcher,
+  keystore,
+} from '@xmtp/proto'
 import {
   encrypt,
   decrypt,
@@ -29,6 +35,8 @@ import {
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
 import { ContentTypeText } from '../codecs/Text'
+import { KeystoreError } from '../keystore'
+import Long from 'long'
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -69,18 +77,111 @@ export class ConversationV1 {
    * Returns a list of all messages to/from the peerAddress
    */
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
-    const topics = [
-      buildDirectMessageTopic(this.peerAddress, this.client.address),
-    ]
-    return this.client.listEnvelopes(
-      topics,
-      this.decodeMessage.bind(this),
+    const topic = buildDirectMessageTopic(this.peerAddress, this.client.address)
+    const messages = await this.client.listEnvelopes(
+      [topic],
+      this.decodeEnvelope.bind(this),
       opts
     )
+
+    return this.decryptBatch(messages, topic, false)
   }
 
-  get topic(): string {
-    return buildDirectMessageTopic(this.peerAddress, this.client.address)
+  async decryptBatch(
+    messages: MessageV1[],
+    topic: string,
+    throwOnError = false
+  ): Promise<DecodedMessage[]> {
+    const responses = (
+      await this.client.keystore.decryptV1(this.buildDecryptRequest(messages))
+    ).responses
+
+    const out: DecodedMessage[] = []
+    for (let i = 0; i < responses.length; i++) {
+      const result = responses[i]
+      const message = messages[i]
+      if (result.error) {
+        console.warn('Error decrypting message', result.error)
+        if (throwOnError) {
+          throw new KeystoreError(result.error?.code, result.error?.message)
+        }
+        continue
+      }
+
+      if (!result.result?.decrypted) {
+        console.warn('Error decrypting message', result)
+        if (throwOnError) {
+          throw new KeystoreError(
+            keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
+            'No result returned'
+          )
+        }
+        continue
+      }
+
+      try {
+        out.push(
+          await this.buildDecodedMessage(
+            message,
+            result.result.decrypted,
+            topic
+          )
+        )
+      } catch (e) {
+        console.warn('Error decoding content', e)
+        if (throwOnError) {
+          throw e
+        }
+      }
+    }
+
+    return out
+  }
+
+  private buildDecryptRequest(
+    messages: MessageV1[]
+  ): keystore.DecryptV1Request {
+    return {
+      requests: messages.map((m: MessageV1) => {
+        const sender = new PublicKeyBundle({
+          identityKey: m.header.sender?.identityKey,
+          preKey: m.header.sender?.preKey,
+        })
+
+        const isSender = this.client.publicKeyBundle.equals(sender)
+
+        return {
+          payload: m.ciphertext,
+          peerKeys: isSender
+            ? new PublicKeyBundle({
+                identityKey: m.header.recipient?.identityKey,
+                preKey: m.header.recipient?.preKey,
+              })
+            : sender,
+          headerBytes: m.headerBytes,
+          isSender,
+        }
+      }),
+    }
+  }
+
+  private async buildDecodedMessage(
+    message: MessageV1,
+    decrypted: Uint8Array,
+    topic: string
+  ): Promise<DecodedMessage> {
+    const { content, contentType, error } = await decodeContent(
+      decrypted,
+      this.client
+    )
+    return DecodedMessage.fromV1Message(
+      message,
+      content,
+      contentType,
+      topic,
+      this,
+      error
+    )
   }
 
   messagesPaginated(
@@ -88,9 +189,32 @@ export class ConversationV1 {
   ): AsyncGenerator<DecodedMessage[]> {
     return this.client.listEnvelopesPaginated(
       [this.topic],
+      // This won't be performant once we start supporting a remote keystore
+      // TODO: Either better batch support or we ditch this under-utilized feature
       this.decodeMessage.bind(this),
       opts
     )
+  }
+
+  // decodeMessage takes an envelope and either returns a `DecodedMessage` or throws if an error occurs
+  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
+    if (!env.contentTopic) {
+      throw new Error('Missing content topic')
+    }
+    const msg = await this.decodeEnvelope(env)
+    const decryptResults = await this.decryptBatch(
+      [msg],
+      env.contentTopic,
+      true
+    )
+    if (!decryptResults.length) {
+      throw new Error('No results')
+    }
+    return decryptResults[0]
+  }
+
+  get topic(): string {
+    return buildDirectMessageTopic(this.peerAddress, this.client.address)
   }
 
   /**
@@ -100,7 +224,7 @@ export class ConversationV1 {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
-      this.decodeMessage.bind(this)
+      async (env: messageApi.Envelope) => this.decodeMessage(env)
     )
   }
 
@@ -123,10 +247,10 @@ export class ConversationV1 {
     )
   }
 
-  async decodeMessage({
+  async decodeEnvelope({
     message,
     contentTopic,
-  }: messageApi.Envelope): Promise<DecodedMessage> {
+  }: messageApi.Envelope): Promise<MessageV1> {
     const messageBytes = fetcher.b64Decode(message as unknown as string)
     const decoded = await MessageV1.fromBytes(messageBytes)
     const { senderAddress, recipientAddress } = decoded
@@ -140,20 +264,8 @@ export class ConversationV1 {
     ) {
       throw new Error('Headers do not match intended recipient')
     }
-    const decrypted = await decoded.decrypt(this.client.legacyKeys)
-    const { content, contentType, error } = await decodeContent(
-      decrypted,
-      this.client
-    )
 
-    return DecodedMessage.fromV1Message(
-      decoded,
-      content,
-      contentType,
-      contentTopic,
-      this,
-      error
-    )
+    return decoded
   }
 
   /**
@@ -182,16 +294,8 @@ export class ConversationV1 {
     } else {
       topics = [this.topic]
     }
-
     const contentType = options?.contentType || ContentTypeText
-    const timestamp = options?.timestamp || new Date()
-    const payload = await this.client.encodeContent(content, options)
-    const msg = await MessageV1.encode(
-      this.client.legacyKeys,
-      recipient,
-      payload,
-      timestamp
-    )
+    const msg = await this.encodeMessage(content, recipient, options)
 
     await this.client.publishEnvelopes(
       topics.map((topic) => ({
@@ -208,6 +312,62 @@ export class ConversationV1 {
       topics[0], // Just use the first topic for the returned value
       this
     )
+  }
+
+  private async encodeMessage(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    content: any,
+    recipient: PublicKeyBundle,
+    options?: SendOptions
+  ): Promise<MessageV1> {
+    const timestamp = options?.timestamp || new Date()
+    const payload = await this.client.encodeContent(content, options)
+    const header: message.MessageHeaderV1 = {
+      sender: this.client.publicKeyBundle,
+      recipient,
+      timestamp: Long.fromNumber(timestamp.getTime()),
+    }
+    const headerBytes = message.MessageHeaderV1.encode(header).finish()
+    const results = await this.client.keystore.encryptV1({
+      requests: [
+        {
+          recipient,
+          headerBytes,
+          payload,
+        },
+      ],
+    })
+
+    if (!results.responses.length) {
+      throw new Error('No response from Keystore')
+    }
+
+    const response = results.responses[0]
+    this.validateKeystoreResponse(response)
+
+    const ciphertext = response.result?.encrypted
+    const protoMsg = {
+      v1: { headerBytes, ciphertext },
+      v2: undefined,
+    }
+    const bytes = message.Message.encode(protoMsg).finish()
+    return MessageV1.create(protoMsg, header, bytes)
+  }
+
+  private validateKeystoreResponse(
+    response:
+      | keystore.DecryptResponse_Response
+      | keystore.EncryptResponse_Response
+  ) {
+    if (response.error) {
+      throw new KeystoreError(response.error.code, response.error.message)
+    }
+    if (!response.result) {
+      throw new KeystoreError(
+        keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
+        'No result from Keystore'
+      )
+    }
   }
 
   get clientAddress() {
