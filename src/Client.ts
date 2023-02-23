@@ -23,14 +23,13 @@ import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
-import { content as proto, messageApi, fetcher, keystore } from '@xmtp/proto'
+import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
 import { Flatten } from './utils/typedefs'
 import { InMemoryKeystore, Keystore } from './keystore'
-import { MessageV1 } from './Message'
 const { Compression } = proto
 const { b64Decode } = fetcher
 

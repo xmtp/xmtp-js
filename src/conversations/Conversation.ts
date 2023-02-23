@@ -31,7 +31,6 @@ import {
   SignedPublicKey,
   Signature,
   PublicKeyBundle,
-  SignedPublicKeyBundle,
 } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
