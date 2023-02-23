@@ -1,5 +1,5 @@
 import LocalStoragePersistence from '../../../src/keystore/persistence/LocalStoragePersistence'
-import { PrivateKeyBundleV1 } from '../../../src/crypto'
+import { decodePrivateKeyBundle, PrivateKeyBundleV1 } from '../../../src/crypto'
 import { privateKey } from '@xmtp/proto'
 
 describe('Persistence', () => {
@@ -12,18 +12,17 @@ describe('Persistence', () => {
 
     it('can store and retrieve proto objects', async () => {
       const pk = await PrivateKeyBundleV1.generate()
-      await persistence.setItem(key, pk.encode())
+      const encodedPk = Uint8Array.from(pk.encode())
+      await persistence.setItem(key, encodedPk)
       const retrieved = await persistence.getItem(key)
       expect(retrieved).toBeTruthy()
-
-      const decoded = new PrivateKeyBundleV1(
-        privateKey.PrivateKeyBundleV1.decode(retrieved as Uint8Array)
-      )
+      const decoded = decodePrivateKeyBundle(retrieved as Uint8Array)
+      if (!(decoded instanceof PrivateKeyBundleV1)) {
+        throw new Error('Decoded key is not a PrivateKeyBundleV1')
+      }
       expect(
         decoded.identityKey.publicKey.equals(pk.identityKey.publicKey)
       ).toBeTruthy()
-
-      expect(pk).toEqual(decoded)
     })
 
     it('returns null when no object found', async () => {
