@@ -15,11 +15,17 @@ export default class LocalStoragePonyfill implements Storage {
     this.store = new Map()
   }
 
+  private validateString(key: string): void {
+    if (!(typeof key === 'string')) {
+      throw new TypeError('Key must be a string')
+    }
+  }
+
   getItem(key: string): string | null {
-    const stringKey = String(key)
+    this.validateString(key)
 
     if (this.store.has(key)) {
-      return String(this.store.get(stringKey))
+      return String(this.store.get(key))
     }
 
     return null
@@ -44,10 +50,13 @@ export default class LocalStoragePonyfill implements Storage {
   }
 
   removeItem(key: string): void {
+    this.validateString(key)
     this.store.delete(key)
   }
 
   setItem(key: string, value: string): void {
+    this.validateString(key)
+    this.validateString(value)
     this.store.set(String(key), String(value))
   }
 }
