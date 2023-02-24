@@ -194,9 +194,34 @@ export class ConversationV1 {
     topic: string,
     throwOnError = false
   ): Promise<DecodedMessage[]> {
-    const responses = (
-      await this.client.keystore.decryptV1(this.buildDecryptRequest(messages))
-    ).responses
+    const decryptResponse = await this.client.keystore.decryptV1(this.buildDecryptRequest(messages))
+    let responses = decryptResponse.responses
+
+    // ALL BELOW IS FOR TESTING WITH libxmtp
+    // For debugging, log the serialized private key bundle base64 encoded
+    console.log("private key bundle: ", Buffer.from(this.client.keys.encode()).toString('base64'))
+    // Log the decrypt request base64 encoded
+    const decryptRequest = this.buildDecryptRequest(messages)
+    const decryptRequestBytes = keystore.DecryptV1Request.encode(
+      decryptRequest
+    ).finish()
+    console.log("decrypt request: ", Buffer.from(decryptRequestBytes).toString('base64'))
+    console.log("expected base64 decryptResponse: ", Buffer.from(keystore.DecryptResponse.encode(decryptResponse).finish()).toString('base64'))
+
+    // console.log('decryptRequestBytes', decryptRequestBytes)
+
+    // Try a duplicate decrypt with this.xmtplib
+    const fake_response_bytes = this.client.xmtplib?.decryptV1(decryptRequestBytes)
+    // console.log('fake_response_bytes', fake_response_bytes)
+    // Read fake_response_bytes into a keystore.DecryptResponse
+    const fake_response = keystore.DecryptResponse.decode(fake_response_bytes!)
+    console.log('fake_response', fake_response)
+    for (let i = 0; i < fake_response.responses.length; i++) {
+      // Print the error for each response
+      console.log('fake_response.responses[i].error', fake_response.responses[i].error)
+    }
+    // ==== DONE ===
+    responses = fake_response.responses
 
     const out: DecodedMessage[] = []
     for (let i = 0; i < responses.length; i++) {
