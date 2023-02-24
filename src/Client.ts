@@ -31,6 +31,9 @@ import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
 import { InMemoryKeystore, Keystore } from './keystore'
+
+import libxmtp from 'libxmtp'
+
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -144,6 +147,8 @@ export default class Client {
   keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
+  // Optional, libxmtp.XmtpApi may be null
+  xmtplib: libxmtp.XmtpApi | null
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -176,6 +181,16 @@ export default class Client {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
+    this.xmtplib = null
+    libxmtp.XmtpApi.initialize()
+      .then((xmtp) => {
+        this.xmtplib = xmtp
+        this.xmtplib.setPrivateKeyBundle(this.keys.encode())
+      })
+      .catch((err) => {
+        // throw the error
+        throw err
+      })
   }
 
   /**
