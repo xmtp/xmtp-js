@@ -30,6 +30,9 @@ import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
 import { Flatten } from './utils/typedefs'
 import { InMemoryKeystore, Keystore } from './keystore'
+
+import libxmtp from 'libxmtp'
+
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -143,6 +146,8 @@ export default class Client {
   keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
+  // Optional, libxmtp.XmtpApi may be null
+  xmtplib: libxmtp.XmtpApi | null
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -172,6 +177,16 @@ export default class Client {
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
+    this.xmtplib = null
+    libxmtp.XmtpApi.initialize()
+      .then((xmtp) => {
+        this.xmtplib = xmtp
+        this.xmtplib.setPrivateKeyBundle(this.keys.encode())
+      })
+      .catch((err) => {
+        // throw the error
+        throw err
+      })
   }
 
   /**

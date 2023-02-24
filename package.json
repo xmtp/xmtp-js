@@ -72,6 +72,7 @@
     "async-mutex": "^0.4.0",
     "eccrypto": "^1.1.6",
     "ethers": "^5.5.3",
+    "libxmtp": "file:../libxmtp/bindings/wasm",
     "long": "^5.2.0"
   },
   "devDependencies": {
