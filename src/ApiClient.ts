@@ -91,7 +91,6 @@ const isAbortError = (err?: Error): boolean => {
   return false
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isAuthError = (err?: GrpcError): boolean => {
   if (err && err.code === ERR_CODE_UNAUTHENTICATED) {
     return true
@@ -99,7 +98,6 @@ const isAuthError = (err?: GrpcError): boolean => {
   return false
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isNotAuthError = (err?: GrpcError): boolean => !isAuthError(err)
 
 /**
