@@ -198,13 +198,8 @@ export class ConversationV1 {
     const decryptRequestBytes =
       keystore.DecryptV1Request.encode(decryptRequest).finish()
     // Feed the decrypt request into xmtplib (Rust keystore)
-    const decryptResponseBytes = this.client.xmtplib?.decryptV1(
-      this.client.xmtpHandle,
-      decryptRequestBytes
-    )
-    const responses = keystore.DecryptResponse.decode(
-      decryptResponseBytes!
-    ).responses
+    const decryptResponse = this.client.xmtplib?.decryptV1(decryptRequest)
+    const responses = decryptResponse?.responses || []
 
     const out: DecodedMessage[] = []
     for (let i = 0; i < responses.length; i++) {
