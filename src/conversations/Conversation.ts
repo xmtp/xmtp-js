@@ -93,8 +93,6 @@ export class ConversationV1 {
     throwOnError = false
   ): Promise<DecodedMessage[]> {
     const decryptRequest = this.buildDecryptRequest(messages)
-    const decryptRequestBytes =
-      keystore.DecryptV1Request.encode(decryptRequest).finish()
     // Feed the decrypt request into xmtplib (Rust keystore)
     const decryptResponse = this.client.xmtplib?.decryptV1(decryptRequest)
     const responses = decryptResponse?.responses || []
