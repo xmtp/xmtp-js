@@ -18,17 +18,6 @@ export const decryptV1 = async (
     myKeys.getCurrentPreKey().publicKey, // assumes that the current preKey is what was used to encrypt
     !isSender
   )
-  // Log all the parameters used to decrypt
-  //  console.log('decrypting with', {
-  //    myKeys,
-  //    peerKeys,
-  //    secret,
-  //    ciphertext,
-  //    headerBytes,
-  //    isSender,
-  //  })
-  //  // Console log the secret base64 encoded
-  console.log('shared secret', Buffer.from(secret).toString('base64'))
 
   return decrypt(ciphertext, secret, headerBytes)
 }

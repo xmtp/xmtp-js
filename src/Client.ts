@@ -146,9 +146,8 @@ export default class Client {
   keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
-  // Optional, libxmtp.XmtpApi may be null
-  xmtplib: libxmtp.XmtpApi | null
-  xmtpHandle: string
+  // Optional, libxmtp.Keystore may be null
+  xmtplib: libxmtp.Keystore | null
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -179,12 +178,10 @@ export default class Client {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this.xmtplib = null
-    this.xmtpHandle = ''
-    libxmtp.XmtpApi.initialize()
-      .then((xmtp) => {
-        this.xmtplib = xmtp
-        this.xmtpHandle = xmtp.newKeystore()
-        this.xmtplib.setPrivateKeyBundle(this.xmtpHandle, this.keys.encode())
+    libxmtp.XMTPWasm.initialize()
+      .then((xmtp: libxmtp.XMTPWasm) => {
+        this.xmtplib = xmtp.newKeystore()
+        this.xmtplib.setPrivateKeyBundle(this.keys.encode())
       })
       .catch((err) => {
         // throw the error
