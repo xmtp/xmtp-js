@@ -184,8 +184,7 @@ export default class Client {
     this.xmtplib = null
     libxmtp.XMTPWasm.initialize()
       .then((xmtp: libxmtp.XMTPWasm) => {
-        this.xmtplib = xmtp.newKeystore()
-        this.xmtplib.setPrivateKeyBundle(this.keys.encode())
+        this.xmtplib = xmtp.newKeystoreWithBundle(this.keys.encode())
       })
       .catch((err) => {
         // throw the error
