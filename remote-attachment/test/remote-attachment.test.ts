@@ -112,3 +112,74 @@ test('fails if url is not https', async () => {
     conversation.send(remoteAttachment, { contentType: ContentTypeRemoteAttachment })
   ).rejects.toThrow('scheme must be https')
 })
+
+test('fails if content digest does not match', async () => {
+  const aliceWallet = Wallet.createRandom()
+  const aliceClient = await Client.create(aliceWallet, { env: 'local' })
+  aliceClient.registerCodec(new AttachmentCodec())
+  aliceClient.registerCodec(new RemoteAttachmentCodec())
+  await aliceClient.publishUserContact()
+
+  const bobWallet = Wallet.createRandom()
+  const bobClient = await Client.create(bobWallet, { env: 'local' })
+  bobClient.registerCodec(new AttachmentCodec())
+  bobClient.registerCodec(new RemoteAttachmentCodec())
+  await bobClient.publishUserContact()
+
+  const conversation = await aliceClient.conversations.newConversation(bobWallet.address)
+
+  const attachment: Attachment = {
+    filename: 'test.txt',
+    mimeType: 'text/plain',
+    data: new TextEncoder().encode("hello world")
+  }
+  const encryptedEncodedContent = await RemoteAttachmentCodec.encodeEncrypted(attachment, new AttachmentCodec())
+
+  try {
+    await fetch('https://localhost/test', {
+      method: 'POST',
+      body: encryptedEncodedContent.payload,
+      headers: {
+        'Content-Type': 'application/octet-stream'
+      }
+    })
+  } catch (e) {
+    console.log('error fetch', e)
+  }
+
+  const remoteAttachment: RemoteAttachment = {
+    url: 'https://localhost/test',
+    contentDigest: encryptedEncodedContent.digest,
+    salt: encryptedEncodedContent.salt,
+    nonce: encryptedEncodedContent.nonce,
+    secret: encryptedEncodedContent.secret,
+    scheme: 'https',
+    contentLength: encryptedEncodedContent.payload.length,
+    filename: "test.txt"
+  }
+
+  await conversation.send(remoteAttachment, { contentType: ContentTypeRemoteAttachment })
+
+  const bobConversation = await bobClient.conversations.newConversation(aliceWallet.address)
+  const messages = await bobConversation.messages()
+  const message = messages[0]
+
+  // Tamper with the content
+  const tamperedAttachment: Attachment = {
+    filename: 'fake.txt',
+    mimeType: 'text/plain',
+    data: new TextEncoder().encode("im a fake")
+  }
+  const encryptedEncoded2 = await RemoteAttachmentCodec.encodeEncrypted(attachment, new AttachmentCodec())
+  await fetch('https://localhost/test', {
+    method: 'POST',
+    body: encryptedEncoded2.payload,
+    headers: {
+      'Content-Type': 'application/octet-stream'
+    }
+  })
+
+  await expect(
+    RemoteAttachmentCodec.load(message.content, bobClient)
+  ).rejects.toThrow('content digest does not match')
+})

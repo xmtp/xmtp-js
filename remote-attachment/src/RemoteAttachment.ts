@@ -1,7 +1,7 @@
-import { ContentCodec, ContentTypeId, EncodedContent } from "@xmtp/xmtp-js"
+import { ContentCodec, ContentTypeId, EncodedContent, encrypt, decrypt } from "@xmtp/xmtp-js"
 import * as secp from '@noble/secp256k1'
 import { CodecRegistry } from "@xmtp/xmtp-js/dist/types/src/MessageContent"
-import { crypto, encrypt, decrypt } from './encryption'
+import { crypto } from './encryption'
 import { content as proto } from '@xmtp/proto'
 import Ciphertext from "./Ciphertext"
 
@@ -39,6 +39,12 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
       throw 'no payload for remote attachment at ' + remoteAttachment.url
     }
 
+    const digestBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', payload))
+    const digest = secp.utils.bytesToHex(digestBytes)
+    if (digest !== remoteAttachment.contentDigest) {
+      throw new Error('content digest does not match')
+    }
+
     const ciphertext = new Ciphertext({
       aes256GcmHkdfSha256: {
         hkdfSalt: remoteAttachment.salt,
@@ -73,10 +79,7 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
     const encodedContent = proto.EncodedContent.encode(codec.encode(content, {
       codecFor(contentType: ContentTypeId) { return undefined }
     })).finish()
-    const digestBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', encodedContent))
-    const digest = secp.utils.bytesToHex(digestBytes)
     const ciphertext = await encrypt(encodedContent, secret)
-
     const salt = ciphertext.aes256GcmHkdfSha256?.hkdfSalt
     const nonce = ciphertext.aes256GcmHkdfSha256?.gcmNonce
     const payload = ciphertext.aes256GcmHkdfSha256?.payload
@@ -84,6 +87,9 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
     if (!salt || !nonce || !payload) {
       throw 'missing encryption key'
     }
+
+    const digestBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', payload))
+    const digest = secp.utils.bytesToHex(digestBytes)
 
     return {
       digest,
