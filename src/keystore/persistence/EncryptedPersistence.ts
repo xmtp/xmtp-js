@@ -4,6 +4,7 @@ import eccrypto, { Ecies } from 'eccrypto'
 const IV_LENGTH = 16
 const EPHEMERAL_PUBLIC_KEY_LENGTH = 65
 const MAC_LENGTH = 32
+const CIPHERTEXT_BLOCK_SIZE_BYTES = 16
 
 const assertEciesLengths = (ecies: Ecies): void => {
   if (ecies.iv.length !== IV_LENGTH) {
@@ -12,7 +13,10 @@ const assertEciesLengths = (ecies: Ecies): void => {
   if (ecies.ephemPublicKey.length !== EPHEMERAL_PUBLIC_KEY_LENGTH) {
     throw new Error('Invalid ephemPublicKey length')
   }
-  if (ecies.ciphertext.length < 1 || ecies.ciphertext.length % 16 !== 0) {
+  if (
+    ecies.ciphertext.length < 1 ||
+    ecies.ciphertext.length % CIPHERTEXT_BLOCK_SIZE_BYTES !== 0
+  ) {
     throw new Error('Invalid ciphertext length')
   }
   if (ecies.mac.length !== MAC_LENGTH) {
@@ -34,7 +38,13 @@ const serializeEcies = (ecies: Ecies): Uint8Array => {
 }
 
 const deserializeEcies = (data: Uint8Array): Ecies => {
-  if (data.length < IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH + MAC_LENGTH) {
+  if (
+    data.length <
+    IV_LENGTH +
+      EPHEMERAL_PUBLIC_KEY_LENGTH +
+      MAC_LENGTH +
+      CIPHERTEXT_BLOCK_SIZE_BYTES
+  ) {
     throw new Error('Invalid data length')
   }
   const iv = data.slice(0, IV_LENGTH)
