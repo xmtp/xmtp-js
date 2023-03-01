@@ -3,13 +3,9 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from './../crypto/PrivateKeyBundle'
-import {
-  InvitationContext,
-  InvitationV1,
-  SealedInvitation,
-} from './../Invitation'
+import { InvitationV1, SealedInvitation } from './../Invitation'
 import { SignedPublicKeyBundle } from '../crypto'
-import { Keystore } from './interfaces'
+import { Keystore, TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
 import {
@@ -17,55 +13,28 @@ import {
   mapAndConvertErrors,
   toPublicKeyBundle,
   toSignedPublicKeyBundle,
+  validateObject,
+  getKeyMaterial,
+  topicDataToConversationReference,
 } from './utils'
-import { dateToNs, nsToDate } from '../utils'
+import { nsToDate } from '../utils'
+import InviteStore from './InviteStore'
+import { Persistence } from './persistence'
 const { ErrorCode } = keystore
-
-type TopicData = {
-  key: Uint8Array
-  context?: InvitationContext
-  created: Date
-}
-
-type WithoutUndefined<T> = { [P in keyof T]: NonNullable<T[P]> }
-
-// Takes object and returns true if none of the `objectFields` are null or undefined and none of the `arrayFields` are empty
-const validateObject = <T>(
-  obj: T,
-  objectFields: (keyof T)[],
-  arrayFields: (keyof T)[]
-): obj is WithoutUndefined<T> => {
-  for (const field of objectFields) {
-    if (!obj[field]) {
-      throw new KeystoreError(
-        ErrorCode.ERROR_CODE_INVALID_INPUT,
-        `Missing field ${String(field)}`
-      )
-    }
-  }
-  for (const field of arrayFields) {
-    const val = obj[field]
-    // @ts-expect-error does not know it's an array
-    if (!val || !val?.length) {
-      throw new KeystoreError(
-        ErrorCode.ERROR_CODE_INVALID_INPUT,
-        `Missing field ${String(field)}`
-      )
-    }
-  }
-
-  return true
-}
 
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
-  private topicKeys: Map<string, TopicData>
+  private inviteStore: InviteStore
 
-  constructor(keys: PrivateKeyBundleV1) {
+  constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
-    this.topicKeys = new Map<string, TopicData>()
+    this.inviteStore = inviteStore
+  }
+
+  static async create(keys: PrivateKeyBundleV1, persistence?: Persistence) {
+    return new InMemoryKeystore(keys, await InviteStore.create(persistence))
   }
 
   async decryptV1(
@@ -113,7 +82,7 @@ export default class InMemoryKeystore implements Keystore {
         }
 
         const { payload, headerBytes, contentTopic } = req
-        const topicData = this.topicKeys.get(contentTopic)
+        const topicData = this.inviteStore.lookup(contentTopic)
         if (!topicData) {
           // This is the wrong error type. Will add to the proto repo later
           throw new KeystoreError(
@@ -121,7 +90,11 @@ export default class InMemoryKeystore implements Keystore {
             'no topic key'
           )
         }
-        const decrypted = await decryptV2(payload, topicData.key, headerBytes)
+        const decrypted = await decryptV2(
+          payload,
+          getKeyMaterial(topicData.invitation),
+          headerBytes
+        )
 
         return { decrypted }
       },
@@ -180,7 +153,7 @@ export default class InMemoryKeystore implements Keystore {
 
         const { payload, headerBytes, contentTopic } = req
 
-        const topicData = this.topicKeys.get(contentTopic)
+        const topicData = this.inviteStore.lookup(contentTopic)
         if (!topicData) {
           throw new KeystoreError(
             ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
@@ -189,7 +162,11 @@ export default class InMemoryKeystore implements Keystore {
         }
 
         return {
-          encrypted: await encryptV2(payload, topicData.key, headerBytes),
+          encrypted: await encryptV2(
+            payload,
+            getKeyMaterial(topicData.invitation),
+            headerBytes
+          ),
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -203,6 +180,8 @@ export default class InMemoryKeystore implements Keystore {
   async saveInvites(
     req: keystore.SaveInvitesRequest
   ): Promise<keystore.SaveInvitesResponse> {
+    const toAdd: TopicData[] = []
+
     const responses = await mapAndConvertErrors(
       req.requests,
       async ({ payload, timestampNs }) => {
@@ -213,17 +192,17 @@ export default class InMemoryKeystore implements Keystore {
           throw new Error('envelope and header timestamp mismatch')
         }
 
-        const invite = await sealed.v1.getInvitation(this.v2Keys)
-
+        const invitation = await sealed.v1.getInvitation(this.v2Keys)
+        const topicData = { invitation, createdNs: sealed.v1.header.createdNs }
+        toAdd.push(topicData)
         return {
-          conversation: this.addConversationFromV1Invite(
-            invite,
-            nsToDate(sealed.v1.header.createdNs)
-          ),
+          conversation: topicDataToConversationReference(topicData),
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
     )
+
+    await this.inviteStore.add(toAdd)
 
     return keystore.SaveInvitesResponse.fromPartial({
       responses,
@@ -248,10 +227,11 @@ export default class InMemoryKeystore implements Keystore {
         created,
         invitation,
       })
-      const convo = this.addConversationFromV1Invite(invitation, created)
+      const topicData = { invitation, createdNs: req.createdNs }
+      await this.inviteStore.add([topicData])
 
       return keystore.CreateInviteResponse.fromPartial({
-        conversation: convo,
+        conversation: topicDataToConversationReference(topicData),
         payload: sealed.toBytes(),
       })
     } catch (e) {
@@ -260,12 +240,8 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async getV2Conversations(): Promise<keystore.ConversationReference[]> {
-    const convos = Array.from(this.topicKeys.entries()).map(
-      ([topic, data]): keystore.ConversationReference => ({
-        topic,
-        createdNs: dateToNs(data.created),
-        context: data.context,
-      })
+    const convos = this.inviteStore.topics.map((invite) =>
+      topicDataToConversationReference(invite)
     )
 
     convos.sort((a, b) => a.createdNs.sub(b.createdNs).toNumber())
@@ -278,22 +254,5 @@ export default class InMemoryKeystore implements Keystore {
 
   async getAccountAddress(): Promise<string> {
     return this.v2Keys.getPublicKeyBundle().walletSignatureAddress()
-  }
-
-  private addConversationFromV1Invite(
-    invite: InvitationV1,
-    created: Date
-  ): keystore.ConversationReference {
-    this.topicKeys.set(invite.topic, {
-      key: invite.aes256GcmHkdfSha256.keyMaterial,
-      context: invite.context,
-      created,
-    })
-
-    return {
-      topic: invite.topic,
-      createdNs: dateToNs(created),
-      context: invite.context,
-    }
   }
 }

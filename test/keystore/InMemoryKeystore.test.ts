@@ -12,18 +12,24 @@ import { equalBytes } from '../../src/crypto/utils'
 import { InvitationV1, SealedInvitation } from '../../src/Invitation'
 import { buildProtoEnvelope, newWallet } from '../helpers'
 import { dateToNs, nsToDate } from '../../src/utils/date'
+import { LocalStoragePersistence } from '../../src/keystore/persistence'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
   let aliceKeystore: InMemoryKeystore
+  let aliceKeystoreWithPersistence: InMemoryKeystore
   let bobKeys: PrivateKeyBundleV1
   let bobKeystore: InMemoryKeystore
 
   beforeEach(async () => {
     aliceKeys = await PrivateKeyBundleV1.generate(newWallet())
-    aliceKeystore = new InMemoryKeystore(aliceKeys)
+    aliceKeystore = await InMemoryKeystore.create(aliceKeys)
+    aliceKeystoreWithPersistence = await InMemoryKeystore.create(
+      aliceKeys,
+      new LocalStoragePersistence()
+    )
     bobKeys = await PrivateKeyBundleV1.generate(newWallet())
-    bobKeystore = new InMemoryKeystore(bobKeys)
+    bobKeystore = await InMemoryKeystore.create(bobKeys)
   })
 
   const buildInvite = async (context?: InvitationContext) => {
@@ -205,28 +211,30 @@ describe('InMemoryKeystore', () => {
 
   describe('saveInvites', () => {
     it('can save a batch of valid envelopes', async () => {
-      const { invite, created, sealed } = await buildInvite()
+      for (const keystore of [aliceKeystore, aliceKeystoreWithPersistence]) {
+        const { invite, created, sealed } = await buildInvite()
 
-      const sealedBytes = sealed.toBytes()
-      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
-      const { responses } = await bobKeystore.saveInvites({
-        requests: [envelope],
-      })
+        const sealedBytes = sealed.toBytes()
+        const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
+        const { responses } = await keystore.saveInvites({
+          requests: [envelope],
+        })
 
-      expect(responses).toHaveLength(1)
-      const firstResult = responses[0]
-      if (firstResult.error) {
-        throw firstResult.error
+        expect(responses).toHaveLength(1)
+        const firstResult = responses[0]
+        if (firstResult.error) {
+          throw firstResult.error
+        }
+        expect(
+          nsToDate(firstResult.result!.conversation!.createdNs).getTime()
+        ).toEqual(created.getTime())
+        expect(firstResult.result!.conversation!.topic).toEqual(invite.topic)
+        expect(firstResult.result!.conversation?.context).toBeUndefined()
+
+        const conversations = await keystore.getV2Conversations()
+        expect(conversations).toHaveLength(1)
+        expect(conversations[0].topic).toBe(invite.topic)
       }
-      expect(
-        nsToDate(firstResult.result!.conversation!.createdNs).getTime()
-      ).toEqual(created.getTime())
-      expect(firstResult.result!.conversation!.topic).toEqual(invite.topic)
-      expect(firstResult.result!.conversation?.context).toBeUndefined()
-
-      const conversations = await bobKeystore.getV2Conversations()
-      expect(conversations).toHaveLength(1)
-      expect(conversations[0].topic).toBe(invite.topic)
     })
 
     it('can save received invites', async () => {
@@ -297,32 +305,34 @@ describe('InMemoryKeystore', () => {
 
   describe('encryptV2/decryptV2', () => {
     it('encrypts using a saved envelope', async () => {
-      const { invite, created, sealed } = await buildInvite()
+      for (const keystore of [aliceKeystore, aliceKeystoreWithPersistence]) {
+        const { invite, created, sealed } = await buildInvite()
 
-      const sealedBytes = sealed.toBytes()
-      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
-      await aliceKeystore.saveInvites({ requests: [envelope] })
+        const sealedBytes = sealed.toBytes()
+        const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
+        await keystore.saveInvites({ requests: [envelope] })
 
-      const payload = new TextEncoder().encode('Hello, world!')
-      const headerBytes = new Uint8Array(10)
+        const payload = new TextEncoder().encode('Hello, world!')
+        const headerBytes = new Uint8Array(10)
 
-      const {
-        responses: [encrypted],
-      } = await aliceKeystore.encryptV2({
-        requests: [
-          {
-            contentTopic: invite.topic,
-            payload,
-            headerBytes,
-          },
-        ],
-      })
+        const {
+          responses: [encrypted],
+        } = await keystore.encryptV2({
+          requests: [
+            {
+              contentTopic: invite.topic,
+              payload,
+              headerBytes,
+            },
+          ],
+        })
 
-      if (encrypted.error) {
-        throw encrypted
+        if (encrypted.error) {
+          throw encrypted
+        }
+
+        expect(encrypted.result?.encrypted).toBeTruthy()
       }
-
-      expect(encrypted.result?.encrypted).toBeTruthy()
     })
 
     it('round trips using a created invite', async () => {
@@ -406,6 +416,8 @@ describe('InMemoryKeystore', () => {
         expect(convos[i].createdNs.equals(dateToNs(timestamps[i]))).toBeTruthy()
       }
     })
+
+    it('works with persistence', async () => {})
   })
 
   describe('getPublicKeyBundle', () => {

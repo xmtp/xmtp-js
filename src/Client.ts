@@ -199,7 +199,7 @@ export default class Client {
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
     // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
-    const keystore = new InMemoryKeystore(keys)
+    const keystore = await InMemoryKeystore.create(keys)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
     const client = new Client(keys, apiClient, keystore)
     await client.init(options)
