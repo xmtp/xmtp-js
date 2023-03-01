@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-docker-compose -p xmtp-js -f dev/docker-compose.yml up --force-recreate
+docker-compose -p xmtp-js -f dev/docker-compose.yml up -d

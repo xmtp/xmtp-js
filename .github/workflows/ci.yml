@@ -1,0 +1,16 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - run: ./dev/up
+      - run: NODE_TLS_REJECT_UNAUTHORIZED=0 npm run test
