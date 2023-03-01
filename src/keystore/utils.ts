@@ -1,6 +1,5 @@
 import { TopicData } from './interfaces'
 import { publicKey, keystore, invitation } from '@xmtp/proto'
-import Long from 'long'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import { KeystoreError } from './errors'
 
