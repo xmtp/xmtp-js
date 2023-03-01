@@ -1,9 +1,8 @@
-import { ContentCodec, ContentTypeId, EncodedContent, encrypt, decrypt } from "@xmtp/xmtp-js"
+import { Ciphertext, ContentCodec, ContentTypeId, EncodedContent, encrypt, decrypt } from "@xmtp/xmtp-js"
 import * as secp from '@noble/secp256k1'
 import { CodecRegistry } from "@xmtp/xmtp-js/dist/types/src/MessageContent"
 import { crypto } from './encryption'
 import { content as proto } from '@xmtp/proto'
-import Ciphertext from "./Ciphertext"
 
 export const ContentTypeRemoteAttachment = new ContentTypeId({
   authorityId: 'xmtp.org',
