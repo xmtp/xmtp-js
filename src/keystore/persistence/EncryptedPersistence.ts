@@ -53,7 +53,7 @@ export default class EncryptedPersistence implements Persistence {
   constructor(persistence: Persistence, privateKey: Uint8Array) {
     this.persistence = persistence
     this.privateKey = Buffer.from(privateKey)
-    this.publicKey = eccrypto.getPublic(Buffer.from(privateKey))
+    this.publicKey = eccrypto.getPublic(this.privateKey)
   }
 
   async getItem(key: string): Promise<Uint8Array | null> {

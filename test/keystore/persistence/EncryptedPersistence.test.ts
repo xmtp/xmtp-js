@@ -13,7 +13,7 @@ describe('EncryptedPersistence', () => {
 
   beforeEach(async () => {
     const bundle = await PrivateKeyBundleV1.generate()
-    privateKey = bundle.getCurrentPreKey().secp256k1.bytes
+    privateKey = bundle.identityKey.secp256k1.bytes
   })
 
   it('can encrypt and decrypt a value', async () => {
