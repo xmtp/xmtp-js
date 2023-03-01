@@ -72,8 +72,7 @@
     "async-mutex": "^0.4.0",
     "eccrypto": "^1.1.6",
     "ethers": "^5.5.3",
-    "long": "^5.2.0",
-    "save": "^2.9.0"
+    "long": "^5.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
