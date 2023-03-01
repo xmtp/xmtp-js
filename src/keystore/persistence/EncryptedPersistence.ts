@@ -34,6 +34,9 @@ const serializeEcies = (ecies: Ecies): Uint8Array => {
 }
 
 const deserializeEcies = (data: Uint8Array): Ecies => {
+  if (data.length < IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH + MAC_LENGTH) {
+    throw new Error('Invalid data length')
+  }
   const iv = data.slice(0, IV_LENGTH)
   const ephemPublicKey = data.slice(
     IV_LENGTH,
