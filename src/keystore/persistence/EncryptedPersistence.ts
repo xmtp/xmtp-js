@@ -53,9 +53,9 @@ const deserializeEcies = (data: Uint8Array): Ecies => {
   )
   const ciphertext = data.slice(
     IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH,
-    data.length - 32
+    data.length - MAC_LENGTH
   )
-  const mac = data.slice(data.length - 32, data.length)
+  const mac = data.slice(data.length - MAC_LENGTH, data.length)
   return {
     iv: Buffer.from(iv),
     ephemPublicKey: Buffer.from(ephemPublicKey),
