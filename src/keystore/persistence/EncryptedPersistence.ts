@@ -66,6 +66,8 @@ const deserializeEcies = (data: Uint8Array): Ecies => {
 
 /**
  * EncryptedPersistence is a Persistence implementation that uses ECIES to encrypt all values
+ * ECIES encryption protects against unauthorized reads, but not unauthorized writes.
+ * A third party with access to the underlying store could write malicious data using the public key of the owner
  */
 export default class EncryptedPersistence implements Persistence {
   private persistence: Persistence
