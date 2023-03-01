@@ -12,9 +12,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
       - run: ./dev/up
-      - run:
-        working-directory: remote-attachment
-        command: npm install
-      - run:
-        working-directory: remote-attachment
-        command: NODE_TLS_REJECT_UNAUTHORIZED=0 npm test
+      - run: cd remote-attachment ; npm install
+      - run: cd remote-attachment ; NODE_TLS_REJECT_UNAUTHORIZED=0 npm test
