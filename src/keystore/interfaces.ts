@@ -1,4 +1,5 @@
 import { keystore, publicKey } from '@xmtp/proto'
+import { WithoutUndefined } from './utils'
 export interface Keystore {
   // Decrypt a batch of V1 messages
   decryptV1(req: keystore.DecryptV1Request): Promise<keystore.DecryptResponse>
@@ -23,3 +24,5 @@ export interface Keystore {
   // Technically duplicative of `getPublicKeyBundle`, but nice for ergonomics
   getAccountAddress(): Promise<string>
 }
+
+export type TopicData = WithoutUndefined<keystore.TopicMap_TopicData>

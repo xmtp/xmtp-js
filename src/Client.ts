@@ -31,6 +31,7 @@ import { SealedInvitation } from './Invitation'
 import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
+import { InMemoryKeystore, Keystore } from './keystore'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -141,6 +142,7 @@ export default class Client {
   address: string
   legacyKeys: PrivateKeyBundleV1
   keys: PrivateKeyBundleV2
+  keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   private knownPublicKeyBundles: Map<
@@ -157,15 +159,18 @@ export default class Client {
   constructor(
     keys: PrivateKeyBundleV1,
     apiClient: ApiClient,
-    backupClient: BackupClient
+    backupClient: BackupClient,
+    keystore: Keystore
   ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
       string,
       PublicKeyBundle | SignedPublicKeyBundle
     >()
+    // TODO: Remove keys and legacyKeys
     this.legacyKeys = keys
     this.keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
+    this.keystore = keystore
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
@@ -185,6 +190,10 @@ export default class Client {
     return this._backupClient.backupType
   }
 
+  get publicKeyBundle(): PublicKeyBundle {
+    return this.legacyKeys.getPublicKeyBundle()
+  }
+
   /**
    * Create and start a client associated with given wallet.
    *
@@ -198,12 +207,14 @@ export default class Client {
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
+    // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
+    const keystore = await InMemoryKeystore.create(keys)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
     const backupClient = await Client.setupBackupClient(
       keys.identityKey.publicKey.walletSignatureAddress(),
       options.env
     )
-    const client = new Client(keys, apiClient, backupClient)
+    const client = new Client(keys, apiClient, backupClient, keystore)
     await client.init(options)
     return client
   }

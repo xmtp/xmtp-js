@@ -1,5 +1,6 @@
 export { Message, DecodedMessage, decodeContent } from './Message'
 export {
+  Ciphertext,
   PublicKey,
   PublicKeyBundle,
   SignedPublicKey,
@@ -7,7 +8,10 @@ export {
   PrivateKey,
   PrivateKeyBundle,
   Signature,
+  encrypt,
+  decrypt,
 } from './crypto'
+export { getRandomValues } from './crypto/utils'
 export { default as Stream } from './Stream'
 export { Signer } from './types/Signer'
 export {
