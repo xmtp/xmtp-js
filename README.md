@@ -170,6 +170,10 @@ for (const conversation of allConversations) {
 }
 ```
 
+These conversations include all conversations for a user **regardless of which app created the conversation.** This functionality provides the concept of an [interoperable inbox](https://xmtp.org/docs/dev-concepts/interoperable-inbox), which enables a user to access all of their conversations in any app built with XMTP.
+
+You might choose to provide an additional filtered view of conversations. To learn more, see [Handling multiple conversations with the same blockchain address](#handling-multiple-conversations-with-the-same-blockchain-address) and [Filter conversations using conversation IDs and metadata](https://xmtp.org/docs/client-sdk/javascript/tutorials/filter-conversations).
+
 #### Listen for new conversations
 
 You can also listen for new conversations being started in real-time. This will allow applications to display incoming messages from new contacts.
