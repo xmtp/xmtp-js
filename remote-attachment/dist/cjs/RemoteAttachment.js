@@ -66,6 +66,7 @@ class RemoteAttachmentCodec {
                     payload: payload
                 }
             });
+            console.log(`load payload`, payload);
             const encodedContentData = yield (0, xmtp_js_1.decrypt)(ciphertext, remoteAttachment.secret);
             const encodedContent = proto_1.content.EncodedContent.decode(encodedContentData);
             if (!encodedContent || !encodedContent.type) {
@@ -96,6 +97,7 @@ class RemoteAttachmentCodec {
             if (!salt || !nonce || !payload) {
                 throw 'missing encryption key';
             }
+            console.log(`encode payload`, payload);
             const digestBytes = new Uint8Array(yield encryption_1.crypto.subtle.digest('SHA-256', payload));
             const digest = secp.utils.bytesToHex(digestBytes);
             return {
