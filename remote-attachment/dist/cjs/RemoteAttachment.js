@@ -53,6 +53,7 @@ class RemoteAttachmentCodec {
                 throw 'no payload for remote attachment at ' + remoteAttachment.url;
             }
             console.log(`load payload`, payload);
+            debugger;
             const digestBytes = new Uint8Array(yield encryption_1.crypto.subtle.digest('SHA-256', payload));
             const digest = secp.utils.bytesToHex(digestBytes);
             console.log(`digest: ${digest}`);
