@@ -196,7 +196,7 @@ export class ConversationV1 {
   ): Promise<DecodedMessage[]> {
     const decryptRequest = this.buildDecryptRequest(messages)
     // Feed the decrypt request into xmtplib (Rust keystore)
-    const decryptResponse = this.client.xmtplib?.decryptV1(decryptRequest)
+    const decryptResponse = await this.client.xmtplib?.decryptV1(decryptRequest)
     const responses = decryptResponse?.responses || []
 
     const out: DecodedMessage[] = []
