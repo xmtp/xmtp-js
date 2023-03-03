@@ -39,7 +39,7 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
       throw 'no payload for remote attachment at ' + remoteAttachment.url
     }
 
-    console.log(`load payload`, payload)
+    console.info(`load payload`, payload)
     debugger
 
     const digestBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', payload))
