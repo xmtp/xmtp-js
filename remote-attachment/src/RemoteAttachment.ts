@@ -32,7 +32,8 @@ export type RemoteAttachment = {
 
 export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
   static async load<T>(remoteAttachment: RemoteAttachment, codecRegistry: CodecRegistry): Promise<T> {
-    const payload = new Uint8Array(await (await fetch(remoteAttachment.url)).arrayBuffer())
+    const response = await fetch(remoteAttachment.url)
+    const payload = new Uint8Array(await response.arrayBuffer())
 
     if (!payload) {
       throw 'no payload for remote attachment at ' + remoteAttachment.url
@@ -40,6 +41,10 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
 
     const digestBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', payload))
     const digest = secp.utils.bytesToHex(digestBytes)
+
+    console.log(`digest: ${digest}`)
+    console.log(`contentDigest: ${remoteAttachment.contentDigest}`)
+
     if (digest !== remoteAttachment.contentDigest) {
       throw new Error('content digest does not match')
     }
