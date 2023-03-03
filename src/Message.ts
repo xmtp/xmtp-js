@@ -7,7 +7,6 @@ import {
   PublicKeyBundle,
   PrivateKeyBundleV1,
   PublicKey,
-  SignedPublicKeyBundle,
   decrypt,
   encrypt,
 } from './crypto'
@@ -204,38 +203,25 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
 export class MessageV2 extends MessageBase implements proto.MessageV2 {
   senderAddress: string | undefined
   private header: proto.MessageHeaderV2 // eslint-disable-line camelcase
-  private signed?: protoContent.SignedContent
 
   constructor(
     id: string,
     bytes: Uint8Array,
     obj: proto.Message,
-    header: proto.MessageHeaderV2,
-    signed: protoContent.SignedContent,
-    // wallet address derived from the signature of the message sender
-    senderAddress: string
+    header: proto.MessageHeaderV2
   ) {
     super(id, bytes, obj)
     this.header = header
-    this.signed = signed
-    this.senderAddress = senderAddress
   }
 
   static async create(
     obj: proto.Message,
     header: proto.MessageHeaderV2,
-    signed: protoContent.SignedContent,
     bytes: Uint8Array
   ): Promise<MessageV2> {
     const id = bytesToHex(await sha256(bytes))
-    if (!signed.sender) {
-      throw new Error('missing message sender')
-    }
-    const senderAddress = await new SignedPublicKeyBundle(
-      signed.sender
-    ).walletSignatureAddress()
 
-    return new MessageV2(id, bytes, obj, header, signed, senderAddress)
+    return new MessageV2(id, bytes, obj, header)
   }
 
   get sent(): Date {
@@ -313,12 +299,10 @@ export class DecodedMessage {
     contentType: ContentTypeId,
     contentTopic: string,
     conversation: Conversation,
+    senderAddress: string,
     error?: Error
   ): DecodedMessage {
-    const { id, senderAddress, sent } = message
-    if (!senderAddress) {
-      throw new Error('Sender address is required')
-    }
+    const { id, sent } = message
 
     return new DecodedMessage({
       id,

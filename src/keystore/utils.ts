@@ -104,9 +104,11 @@ export const getKeyMaterial = (
 export const topicDataToConversationReference = ({
   invitation,
   createdNs,
+  peerAddress,
 }: TopicData): keystore.ConversationReference => ({
   context: invitation.context,
   topic: invitation.topic,
+  peerAddress,
   createdNs,
 })
 

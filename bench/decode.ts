@@ -4,7 +4,7 @@ import {
 } from './../src/conversations/Conversation'
 import { MessageV1 } from '../src/Message'
 import { newLocalHostClient } from '../test/helpers'
-import { utils } from '../src/crypto'
+import { SignedPublicKeyBundle, utils } from '../src/crypto'
 import {
   MESSAGE_SIZES,
   newPrivateKeyBundle,
@@ -13,6 +13,7 @@ import {
 } from './helpers'
 import { add } from 'benny'
 import { fetcher } from '@xmtp/proto'
+import { dateToNs } from '../src/utils'
 
 const decodeV1 = () => {
   return MESSAGE_SIZES.map((size) =>
@@ -58,10 +59,16 @@ const decodeV2 = () => {
       const bob = await newPrivateKeyBundle()
 
       const message = randomBytes(size)
+      const invite = await alice.keystore.createInvite({
+        recipient: SignedPublicKeyBundle.fromLegacyBundle(
+          bob.getPublicKeyBundle()
+        ),
+        createdNs: dateToNs(new Date()),
+        context: undefined,
+      })
       const convo = new ConversationV2(
         alice,
-        'xmtp/0/foo',
-        utils.getRandomValues(new Uint8Array(32)),
+        invite.conversation?.topic ?? '',
         bob.identityKey.publicKey.walletSignatureAddress(),
         new Date(),
         undefined

@@ -192,8 +192,18 @@ export default class InMemoryKeystore implements Keystore {
           throw new Error('envelope and header timestamp mismatch')
         }
 
+        const isSender = sealed.v1.header.sender.equals(
+          this.v2Keys.getPublicKeyBundle()
+        )
+
         const invitation = await sealed.v1.getInvitation(this.v2Keys)
-        const topicData = { invitation, createdNs: sealed.v1.header.createdNs }
+        const topicData = {
+          invitation,
+          createdNs: sealed.v1.header.createdNs,
+          peerAddress: isSender
+            ? await sealed.v1.header.recipient.walletSignatureAddress()
+            : await sealed.v1.header.sender.walletSignatureAddress(),
+        }
         toAdd.push(topicData)
         return {
           conversation: topicDataToConversationReference(topicData),
@@ -221,13 +231,18 @@ export default class InMemoryKeystore implements Keystore {
       }
       const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
+      const recipient = toSignedPublicKeyBundle(req.recipient)
       const sealed = await SealedInvitation.createV1({
         sender: this.v2Keys,
-        recipient: toSignedPublicKeyBundle(req.recipient),
+        recipient,
         created,
         invitation,
       })
-      const topicData = { invitation, createdNs: req.createdNs }
+      const topicData = {
+        invitation,
+        createdNs: req.createdNs,
+        peerAddress: await recipient.walletSignatureAddress(),
+      }
       await this.inviteStore.add([topicData])
 
       return keystore.CreateInviteResponse.fromPartial({
@@ -244,7 +259,9 @@ export default class InMemoryKeystore implements Keystore {
       topicDataToConversationReference(invite)
     )
 
-    convos.sort((a, b) => a.createdNs.sub(b.createdNs).toNumber())
+    convos.sort((a, b) =>
+      a.createdNs.div(1_000_000).sub(b.createdNs.div(1_000_000)).toNumber()
+    )
     return convos
   }
 
