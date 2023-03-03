@@ -1,9 +1,9 @@
 import { ConversationV2 } from './../src/conversations/Conversation'
 import { MessageV1 } from '../src/Message'
 import { add } from 'benny'
-import { Client } from '../src'
+import { Client, dateToNs } from '../src'
 import { newWallet, newLocalHostClient } from '../test/helpers'
-import { utils } from '../src/crypto'
+import { SignedPublicKeyBundle, utils } from '../src/crypto'
 import {
   MESSAGE_SIZES,
   newPrivateKeyBundle,
@@ -39,12 +39,19 @@ const encodeV2 = () => {
   return MESSAGE_SIZES.map((size) =>
     add(`encode and encrypt a ${size} byte v2 message`, async () => {
       const alice = await newLocalHostClient()
-      const topicKey = utils.getRandomValues(new Uint8Array(32))
+      const bob = await newPrivateKeyBundle()
+
+      const invite = await alice.keystore.createInvite({
+        recipient: SignedPublicKeyBundle.fromLegacyBundle(
+          bob.getPublicKeyBundle()
+        ),
+        createdNs: dateToNs(new Date()),
+        context: undefined,
+      })
       const convo = new ConversationV2(
         alice,
-        'xmtp/0/foo',
-        topicKey,
-        '0xf00',
+        invite.conversation?.topic ?? '',
+        bob.identityKey.publicKey.walletSignatureAddress(),
         new Date(),
         undefined
       )
