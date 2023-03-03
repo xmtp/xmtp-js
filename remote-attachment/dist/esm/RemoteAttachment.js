@@ -26,6 +26,7 @@ export class RemoteAttachmentCodec {
             if (!payload) {
                 throw 'no payload for remote attachment at ' + remoteAttachment.url;
             }
+            console.log(`load payload`, payload);
             const digestBytes = new Uint8Array(yield crypto.subtle.digest('SHA-256', payload));
             const digest = secp.utils.bytesToHex(digestBytes);
             console.log(`digest: ${digest}`);
@@ -40,7 +41,6 @@ export class RemoteAttachmentCodec {
                     payload: payload
                 }
             });
-            console.log(`load payload`, payload);
             const encodedContentData = yield decrypt(ciphertext, remoteAttachment.secret);
             const encodedContent = proto.EncodedContent.decode(encodedContentData);
             if (!encodedContent || !encodedContent.type) {

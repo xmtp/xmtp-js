@@ -39,6 +39,8 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
       throw 'no payload for remote attachment at ' + remoteAttachment.url
     }
 
+    console.log(`load payload`, payload)
+
     const digestBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', payload))
     const digest = secp.utils.bytesToHex(digestBytes)
 
@@ -56,8 +58,6 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
         payload: payload
       }
     })
-
-    console.log(`load payload`, payload)
 
     const encodedContentData = await decrypt(ciphertext, remoteAttachment.secret)
     const encodedContent = proto.EncodedContent.decode(encodedContentData)
