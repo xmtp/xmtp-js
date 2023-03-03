@@ -115,3 +115,4 @@ export class RemoteAttachmentCodec {
         };
     }
 }
+//# sourceMappingURL=RemoteAttachment.js.map

@@ -15,3 +15,4 @@ export function sha256(bytes) {
         return new Uint8Array(yield crypto.subtle.digest('SHA-256', bytes));
     });
 }
+//# sourceMappingURL=utils.js.map

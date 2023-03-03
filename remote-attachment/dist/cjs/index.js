@@ -7,3 +7,4 @@ Object.defineProperty(exports, "ContentTypeAttachment", { enumerable: true, get:
 var RemoteAttachment_1 = require("./RemoteAttachment");
 Object.defineProperty(exports, "RemoteAttachmentCodec", { enumerable: true, get: function () { return RemoteAttachment_1.RemoteAttachmentCodec; } });
 Object.defineProperty(exports, "ContentTypeRemoteAttachment", { enumerable: true, get: function () { return RemoteAttachment_1.ContentTypeRemoteAttachment; } });
+//# sourceMappingURL=index.js.map

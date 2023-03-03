@@ -142,3 +142,4 @@ class RemoteAttachmentCodec {
     }
 }
 exports.RemoteAttachmentCodec = RemoteAttachmentCodec;
+//# sourceMappingURL=RemoteAttachment.js.map

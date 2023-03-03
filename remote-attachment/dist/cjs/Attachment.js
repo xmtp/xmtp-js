@@ -31,3 +31,4 @@ class AttachmentCodec {
     }
 }
 exports.AttachmentCodec = AttachmentCodec;
+//# sourceMappingURL=Attachment.js.map

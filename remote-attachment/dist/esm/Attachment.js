@@ -27,3 +27,4 @@ export class AttachmentCodec {
         };
     }
 }
+//# sourceMappingURL=Attachment.js.map

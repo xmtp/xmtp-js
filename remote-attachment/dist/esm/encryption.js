@@ -4,3 +4,4 @@ export const crypto = typeof window !== 'undefined'
     ? window.crypto
     : // eslint-disable-next-line @typescript-eslint/no-var-requires
         require('crypto').webcrypto;
+//# sourceMappingURL=encryption.js.map
