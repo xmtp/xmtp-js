@@ -5,6 +5,7 @@ import { dateToNs } from '../../src/utils'
 
 const buildTopicData = (): TopicData => ({
   createdNs: dateToNs(new Date()).toUnsigned(),
+  peerAddress: getRandomValues(new Uint8Array(42)).toString(),
   invitation: {
     topic: getRandomValues(new Uint8Array(32)).toString(),
     aes256GcmHkdfSha256: {

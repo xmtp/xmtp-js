@@ -27,7 +27,6 @@ import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
 import { Authenticator } from './authn'
-import { SealedInvitation } from './Invitation'
 import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
@@ -192,6 +191,10 @@ export default class Client {
 
   get publicKeyBundle(): PublicKeyBundle {
     return this.legacyKeys.getPublicKeyBundle()
+  }
+
+  get signedPublicKeyBundle(): SignedPublicKeyBundle {
+    return SignedPublicKeyBundle.fromLegacyBundle(this.publicKeyBundle)
   }
 
   /**
@@ -497,10 +500,10 @@ export default class Client {
     return proto.EncodedContent.encode(encoded).finish()
   }
 
-  listInvitations(opts?: ListMessagesOptions): Promise<SealedInvitation[]> {
+  listInvitations(opts?: ListMessagesOptions): Promise<messageApi.Envelope[]> {
     return this.listEnvelopes(
       [buildUserInviteTopic(this.address)],
-      SealedInvitation.fromEnvelope,
+      async (env) => env,
       opts
     )
   }

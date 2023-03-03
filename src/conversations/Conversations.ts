@@ -1,22 +1,22 @@
-import { ListMessagesOptions } from './../Client'
+import { messageApi, keystore } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
+import { ListMessagesOptions } from './../Client'
 import { InvitationContext } from './../Invitation'
-import {
-  Conversation,
-  ConversationV1,
-  ConversationV2,
-  ConversationExport,
-} from './Conversation'
+import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
 import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
-import { buildUserIntroTopic, buildUserInviteTopic } from '../utils'
-import { SealedInvitation, InvitationV1 } from '../Invitation'
+import {
+  b64Decode,
+  buildUserIntroTopic,
+  buildUserInviteTopic,
+  dateToNs,
+  nsToDate,
+} from '../utils'
 import { PublicKeyBundle } from '../crypto'
-import { messageApi, fetcher } from '@xmtp/proto'
 import { SortDirection } from '../ApiClient'
-const { b64Decode } = fetcher
+import Long from 'long'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
@@ -72,12 +72,12 @@ export class ConversationCache {
 export default class Conversations {
   private client: Client
   private v1Cache: ConversationCache
-  private v2Cache: ConversationCache
+  private v2Mutex: Mutex
 
   constructor(client: Client) {
     this.client = client
     this.v1Cache = new ConversationCache()
-    this.v2Cache = new ConversationCache()
+    this.v2Mutex = new Mutex()
   }
 
   /**
@@ -111,36 +111,99 @@ export default class Conversations {
     })
   }
 
+  /**
+   * List all V2 conversations
+   */
   private async listV2Conversations(): Promise<Conversation[]> {
-    return this.v2Cache.load(async ({ latestSeen }) =>
-      this.v2ConversationLoader(latestSeen)
+    // Get all conversations already in the KeyStore
+    const existing = await this.getV2ConversationsFromKeystore()
+    const latestConversationTime = existing[existing.length - 1]?.createdAt
+
+    // Load all conversations started after the newest conversation found
+    const newConversations = await this.updateV2Conversations(
+      latestConversationTime
+    )
+
+    // Create a Set of all the existing topics to ensure no duplicates are added
+    const existingTopics = new Set(existing.map((c) => c.topic))
+    // Add all new conversations to the existing list
+    for (const convo of newConversations) {
+      if (!existingTopics.has(convo.topic)) {
+        existing.push(convo)
+        existingTopics.add(convo.topic)
+      }
+    }
+
+    // Sort the result set by creation time in ascending order
+    existing.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    return existing
+  }
+
+  private async getV2ConversationsFromKeystore(): Promise<ConversationV2[]> {
+    return (await this.client.keystore.getV2Conversations()).map(
+      this.conversationReferenceToV2.bind(this)
     )
   }
 
-  // Callback called in listV2Conversations and in newConversation
-  private async v2ConversationLoader(
-    latestSeen: Date | undefined
-  ): Promise<Conversation[]> {
-    const newConvos: Conversation[] = []
-    const invites = await this.client.listInvitations({
-      startTime: latestSeen
-        ? new Date(+latestSeen - CLOCK_SKEW_OFFSET_MS)
+  // Called in listV2Conversations and in newConversation
+  async updateV2Conversations(startTime?: Date): Promise<ConversationV2[]> {
+    const envelopes = await this.client.listInvitations({
+      startTime: startTime
+        ? new Date(+startTime - CLOCK_SKEW_OFFSET_MS)
         : undefined,
       direction: SortDirection.SORT_DIRECTION_ASCENDING,
     })
 
-    for (const sealed of invites) {
+    return this.decodeInvites(envelopes)
+  }
+
+  private async decodeInvites(
+    envelopes: messageApi.Envelope[],
+    shouldThrow = false
+  ): Promise<ConversationV2[]> {
+    const { responses } = await this.client.keystore.saveInvites({
+      requests: envelopes.map((env) => ({
+        payload: b64Decode(env.message as unknown as string),
+        timestampNs: Long.fromString(env.timestampNs as string),
+        contentTopic: env.contentTopic as string,
+      })),
+    })
+
+    const out: ConversationV2[] = []
+    for (const response of responses) {
       try {
-        const unsealed = await sealed.v1.getInvitation(this.client.keys)
-        newConvos.push(
-          await ConversationV2.create(this.client, unsealed, sealed.v1.header)
-        )
+        const convo = this.saveInviteResponseToConversation(response)
+        out.push(convo)
       } catch (e) {
-        console.warn('Error decrypting invitation', e)
+        console.warn('Error saving invite response to conversation: ', e)
+        if (shouldThrow) {
+          throw e
+        }
       }
     }
+    return out
+  }
 
-    return newConvos
+  private saveInviteResponseToConversation({
+    result,
+    error,
+  }: keystore.SaveInvitesResponse_Response): ConversationV2 {
+    if (error || !result || !result.conversation) {
+      throw new Error(`Error from keystore: ${error?.code} ${error?.message}}`)
+    }
+    return this.conversationReferenceToV2(result.conversation)
+  }
+
+  private conversationReferenceToV2(
+    convoRef: keystore.ConversationReference
+  ): ConversationV2 {
+    return new ConversationV2(
+      this.client,
+      convoRef.topic,
+      convoRef.peerAddress,
+      nsToDate(convoRef.createdNs),
+      convoRef.context
+    )
   }
 
   /**
@@ -174,13 +237,10 @@ export default class Conversations {
         return new ConversationV1(this.client, peerAddress, msg.sent)
       }
       if (env.contentTopic === inviteTopic) {
-        const sealed = await SealedInvitation.fromEnvelope(env)
-        const unsealed = await sealed.v1.getInvitation(this.client.keys)
-        return await ConversationV2.create(
-          this.client,
-          unsealed,
-          sealed.v1.header
-        )
+        const results = await this.decodeInvites([env], true)
+        if (results.length) {
+          return results[0]
+        }
       }
       throw new Error('unrecognized invite topic')
     }
@@ -244,9 +304,8 @@ export default class Conversations {
       // Decode as an invite and return the envelope
       // This gives the contentTopicUpdater everything it needs to add to the topic list
       if (contentTopic === inviteTopic) {
-        const sealed = await SealedInvitation.fromEnvelope(env)
-        const unsealed = await sealed.v1.getInvitation(this.client.keys)
-        return ConversationV2.create(this.client, unsealed, sealed.v1.header)
+        const results = await this.decodeInvites([env], true)
+        return results[0]
       }
 
       const convo = convoMap.get(contentTopic)
@@ -412,120 +471,54 @@ export default class Conversations {
       convo.peerAddress === peerAddress &&
       isMatchingContext(context, convo.context ?? undefined)
 
-    let v2Convo: Conversation | undefined
-
-    // Perform all read/write operations on the cache while holding the mutex
-    await this.v2Cache.load(
-      async ({ latestSeen, existing }): Promise<Conversation[]> => {
-        // First check the cache without doing a network request
-        const existingMatch = existing.find(matcherFn)
-        if (existingMatch) {
-          v2Convo = existingMatch
-          return []
-        }
-
-        // Next try and load new items into the cache from the network
-        const newItems = await this.v2ConversationLoader(latestSeen)
-        const newItemMatch = newItems.find(matcherFn)
-        // If one of those matches, return it to update the cache
-        if (newItemMatch) {
-          v2Convo = newItemMatch
-          return newItems
-        }
-
-        // If all else fails, create a new invite
-        const invitation = InvitationV1.createRandom(context)
-        const sealedInvite = await this.sendInvitation(
-          contact as SignedPublicKeyBundle,
-          invitation,
-          new Date()
-        )
-
-        v2Convo = await ConversationV2.create(
-          this.client,
-          invitation,
-          sealedInvite.v1.header
-        )
-
-        return [v2Convo]
+    return this.v2Mutex.runExclusive(async () => {
+      const existing = await this.getV2ConversationsFromKeystore()
+      const existingMatch = existing.find(matcherFn)
+      if (existingMatch) {
+        return existingMatch
       }
-    )
-
-    // Keep the typechecker happy
-    // v2Convo should never actually be undefined. An error in the loader will bubble and halt execution
-    if (!v2Convo) {
-      throw new Error('Failed to create conversation')
-    }
-    return v2Convo
-  }
-
-  /**
-   * Exports all conversations to a JSON serializable list that can be stored in your application.
-   * WARNING: Be careful with where you store this data. It contains encryption keys for V2 conversations, which can be used to read/write messages.
-   */
-  async export(): Promise<ConversationExport[]> {
-    const conversations = await this.list()
-    return conversations.map((convo) => convo.export())
-  }
-
-  /**
-   * Import a list of conversations exported using `conversations.export()`.
-   * This list must be exhaustive, as the SDK will only look for conversations
-   * started after the last imported conversation (-30 seconds) in subsequent calls to `conversations.list()`
-   */
-  async import(convoExports: ConversationExport[]): Promise<number> {
-    const v1Exports: ConversationV1[] = []
-    const v2Exports: ConversationV2[] = []
-    let failed = 0
-
-    for (const convoExport of convoExports) {
-      try {
-        if (convoExport.version === 'v1') {
-          v1Exports.push(ConversationV1.fromExport(this.client, convoExport))
-        } else if (convoExport.version === 'v2') {
-          v2Exports.push(ConversationV2.fromExport(this.client, convoExport))
-        }
-      } catch (e) {
-        console.log('Failed to import conversation', e)
-        failed += 1
+      const latestSeen = existing[existing.length - 1]?.createdAt
+      const newItems = await this.updateV2Conversations(latestSeen)
+      const newItemMatch = newItems.find(matcherFn)
+      // If one of those matches, return it to update the cache
+      if (newItemMatch) {
+        return newItemMatch
       }
-    }
 
-    await Promise.all([
-      this.v1Cache.load(async () => v1Exports),
-      this.v2Cache.load(async () => v2Exports),
-    ])
-
-    return failed
-  }
-
-  private async sendInvitation(
-    recipient: SignedPublicKeyBundle,
-    invitation: InvitationV1,
-    created: Date
-  ): Promise<SealedInvitation> {
-    const sealed = await SealedInvitation.createV1({
-      sender: this.client.keys,
-      recipient,
-      created,
-      invitation,
+      return this.createV2Convo(contact as SignedPublicKeyBundle, context)
     })
+  }
+
+  private async createV2Convo(
+    recipient: SignedPublicKeyBundle,
+    context?: InvitationContext
+  ): Promise<ConversationV2> {
+    const timestamp = new Date()
+    const { payload, conversation } = await this.client.keystore.createInvite({
+      recipient,
+      context,
+      createdNs: dateToNs(timestamp),
+    })
+    if (!payload || !conversation) {
+      throw new Error('Required field not returned from Keystore')
+    }
 
     const peerAddress = await recipient.walletSignatureAddress()
-    this.client.publishEnvelopes([
+
+    await this.client.publishEnvelopes([
       {
         contentTopic: buildUserInviteTopic(peerAddress),
-        message: sealed.toBytes(),
-        timestamp: created,
+        message: payload,
+        timestamp,
       },
       {
         contentTopic: buildUserInviteTopic(this.client.address),
-        message: sealed.toBytes(),
-        timestamp: created,
+        message: payload,
+        timestamp,
       },
     ])
 
-    return sealed
+    return this.conversationReferenceToV2(conversation)
   }
 
   private getPeerAddress(message: MessageV1): string {
