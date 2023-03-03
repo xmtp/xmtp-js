@@ -47,12 +47,15 @@ class RemoteAttachmentCodec {
     static load(remoteAttachment, codecRegistry) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const payload = new Uint8Array(yield (yield fetch(remoteAttachment.url)).arrayBuffer());
+            const response = yield fetch(remoteAttachment.url);
+            const payload = new Uint8Array(yield response.arrayBuffer());
             if (!payload) {
                 throw 'no payload for remote attachment at ' + remoteAttachment.url;
             }
             const digestBytes = new Uint8Array(yield encryption_1.crypto.subtle.digest('SHA-256', payload));
             const digest = secp.utils.bytesToHex(digestBytes);
+            console.log(`digest: ${digest}`);
+            console.log(`contentDigest: ${remoteAttachment.contentDigest}`);
             if (digest !== remoteAttachment.contentDigest) {
                 throw new Error('content digest does not match');
             }
