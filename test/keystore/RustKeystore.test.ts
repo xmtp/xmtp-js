@@ -439,7 +439,7 @@ describe('RustWasmKeystore', () => {
 
   describe('getPublicKeyBundle', () => {
     it('can retrieve a valid bundle', async () => {
-      const bundle = await aliceKeystore.getPublicKeyBundle()
+      const bundle = await aliceRustKeystore.getPublicKeyBundle()
       const wrappedBundle = new SignedPublicKeyBundle(bundle)
       expect(
         wrappedBundle.equals(
@@ -454,7 +454,11 @@ describe('RustWasmKeystore', () => {
       const aliceAddress = aliceKeys
         .getPublicKeyBundle()
         .walletSignatureAddress()
-      const returnedAddress = await aliceKeystore.getAccountAddress()
+      const v2keyBundle = PrivateKeyBundleV2.fromLegacyBundle(aliceKeys)
+      // encoded
+      const encoded = v2keyBundle.encode()
+
+      const returnedAddress = await aliceRustKeystore.getAccountAddress()
 
       expect(aliceAddress).toEqual(returnedAddress)
     })
