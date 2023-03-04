@@ -176,7 +176,7 @@ describe('RustWasmKeystore', () => {
         bobKeys.getPublicKeyBundle()
       )
       const createdNs = dateToNs(new Date())
-      const response = await aliceKeystore.createInvite({
+      const response = await aliceRustKeystore.createInvite({
         recipient,
         createdNs,
         context: undefined,
@@ -194,7 +194,7 @@ describe('RustWasmKeystore', () => {
       )
       const createdNs = dateToNs(new Date())
       const context = { conversationId: 'xmtp.org/foo', metadata: {} }
-      const response = await aliceKeystore.createInvite({
+      const response = await aliceRustKeystore.createInvite({
         recipient,
         createdNs,
         context,
@@ -250,14 +250,14 @@ describe('RustWasmKeystore', () => {
 
       const {
         responses: [aliceResponse],
-      } = await aliceKeystore.saveInvites({
+      } = await aliceRustKeystore.saveInvites({
         requests: [envelope],
       })
       if (aliceResponse.error) {
         throw aliceResponse
       }
 
-      const aliceConversations = await aliceKeystore.getV2Conversations()
+      const aliceConversations = await aliceRustKeystore.getV2Conversations()
       expect(aliceConversations).toHaveLength(1)
 
       const {
