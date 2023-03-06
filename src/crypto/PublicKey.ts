@@ -6,6 +6,7 @@ import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
+import AssociationProof from './Proof'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -207,6 +208,40 @@ export class SignedPublicKey
     return new SignedPublicKey({
       keyBytes: legacyKey.bytesToSign(),
       signature,
+    })
+  }
+}
+
+export class SignedSendKeyPublicKey
+  extends UnsignedPublicKey
+  implements publicKey.SignedSendKeyPublicKey
+{
+  keyBytes: Uint8Array
+  proof: AssociationProof | undefined
+
+  constructor(obj: publicKey.SignedSendKeyPublicKey) {
+    if (!obj.keyBytes) {
+      throw new Error('missing key bytes')
+    }
+    super(publicKey.UnsignedPublicKey.decode(obj.keyBytes))
+    this.keyBytes = obj.keyBytes
+    if (!obj.proof) {
+      throw new Error('missing key association proof')
+    }
+    this.proof = new AssociationProof()
+  }
+}
+
+export class SignedPublicKeyV2 extends SignedPublicKey {
+  constructor(obj: publicKey.SignedPublicKeyV2) {
+    const staticCreateIdentityProof = obj.proof?.staticCreateIdentityProof
+    // TODO(sendkey) support for siwe
+    if (!staticCreateIdentityProof) {
+      throw new Error('Signed public key v2 proto is missing fields')
+    }
+    super({
+      keyBytes: staticCreateIdentityProof.text,
+      signature: staticCreateIdentityProof.signature,
     })
   }
 }

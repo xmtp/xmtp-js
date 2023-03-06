@@ -6,7 +6,12 @@ import Signature, {
   ecdsaSignerKey,
   KeySigner,
 } from './Signature'
-import { PublicKey, SignedPublicKey, UnsignedPublicKey } from './PublicKey'
+import {
+  PublicKey,
+  SignedPublicKey,
+  SignedSendKeyPublicKey,
+  UnsignedPublicKey,
+} from './PublicKey'
 import Ciphertext from './Ciphertext'
 import { decrypt, encrypt, sha256 } from './encryption'
 import { equalBytes } from './utils'
@@ -168,6 +173,47 @@ export class SignedPrivateKey
       createdNs: key.timestamp.mul(1000000),
       secp256k1: key.secp256k1,
       publicKey: SignedPublicKey.fromLegacyKey(key.publicKey, signedByWallet),
+    })
+  }
+}
+
+export class SignedSendKeyPrivateKey
+  implements privateKey.SignedSendKeyPrivateKey
+{
+  createdNs: Long
+  secp256k1: privateKey.SignedSendKeyPrivateKey_Secp256k1 | undefined
+  publicKey: SignedSendKeyPublicKey | undefined
+
+  constructor(obj: privateKey.SignedSendKeyPrivateKey) {
+    if (!obj.secp256k1) {
+      throw new Error('invalid private key')
+    }
+    secp256k1Check(obj.secp256k1)
+    this.secp256k1 = obj.secp256k1
+    this.createdNs = obj.createdNs
+    if (!obj.publicKey) {
+      throw new Error('missing public key')
+    }
+    this.publicKey = new SignedSendKeyPublicKey(obj.publicKey)
+  }
+
+  // Create a random key pair signed by the signer.
+  static async generate(signer: KeySigner): Promise<SignedPrivateKey> {
+    const secp256k1 = {
+      bytes: secp.utils.randomPrivateKey(),
+    }
+    const createdNs = Long.fromNumber(new Date().getTime()).mul(1000000)
+    const unsigned = new UnsignedPublicKey({
+      secp256k1Uncompressed: {
+        bytes: secp.getPublicKey(secp256k1.bytes),
+      },
+      createdNs,
+    })
+    const signed = await signer.signKey(unsigned)
+    return new SignedPrivateKey({
+      secp256k1,
+      createdNs,
+      publicKey: signed,
     })
   }
 }

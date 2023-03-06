@@ -4,6 +4,8 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
   Signature,
+  SignedPrivateKey,
+  WalletSigner,
 } from './crypto'
 import {
   buildUserContactTopic,
@@ -30,6 +32,8 @@ import { Authenticator } from './authn'
 import { SealedInvitation } from './Invitation'
 import { Flatten } from './utils/typedefs'
 import { InMemoryKeystore, Keystore } from './keystore'
+import LocalStoragePersistence from './keystore/persistence/LocalStoragePersistence'
+import { SEND_KEY_KEY } from './keystore/persistence/interface'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -198,6 +202,8 @@ export default class Client {
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
+    // TODO(sendkey) merge this into `loadOrCreateKeysFromOptions`
+    const sendKey = await loadOrCreateSendKey(wallet!)
     // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
     const keystore = await InMemoryKeystore.create(keys)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
@@ -220,6 +226,7 @@ export default class Client {
     })
     this._maxContentSize = options.maxContentSize
     await this.ensureUserContactPublished(options.publishLegacyContact)
+    // TODO(sendkey) ensure send key is published.
   }
 
   // gracefully shut down the client
@@ -586,6 +593,20 @@ async function loadOrCreateKeysFromStore(
   keys = await PrivateKeyBundleV1.generate(wallet)
   await store.storePrivateKeyBundle(keys)
   return keys
+}
+
+async function loadOrCreateSendKey(wallet: Signer): Promise<SignedPrivateKey> {
+  // TODO(sendkey) SIWE and signature batching
+  // TODO(sendkey) integration at the keystore level
+  const persistence = new LocalStoragePersistence() // TODO make this configurable by the app
+  const address = await wallet.getAddress()
+  const sendKeyBytes = await persistence.getItem(address + ':' + SEND_KEY_KEY)
+  if (sendKeyBytes) {
+    return SignedPrivateKey.fromBytes(sendKeyBytes)
+  }
+  const sendKey = await SignedPrivateKey.generate(new WalletSigner(wallet))
+  await persistence.setItem(address + ':' + SEND_KEY_KEY, sendKey.toBytes())
+  return sendKey
 }
 
 async function loadOrCreateKeysFromOptions(
