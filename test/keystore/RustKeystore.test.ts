@@ -68,7 +68,7 @@ describe('RustWasmKeystore', () => {
         headerBytes,
       }))
 
-      const res = await aliceKeystore.encryptV1({ requests: req })
+      const res = await aliceRustKeystore.encryptV1({ requests: req })
       expect(res.responses).toHaveLength(req.length)
       for (const { error, result } of res.responses) {
         if (error || !result) {
@@ -103,7 +103,7 @@ describe('RustWasmKeystore', () => {
       ]
 
       // @ts-expect-error
-      const res = await aliceKeystore.encryptV1({ requests })
+      const res = await aliceRustKeystore.encryptV1({ requests })
 
       expect(res.responses).toHaveLength(requests.length)
       expect(res.responses[0]).toHaveProperty('error')
@@ -207,7 +207,7 @@ describe('RustWasmKeystore', () => {
     it('throws if an invalid recipient is included', async () => {
       const createdNs = dateToNs(new Date())
       expect(async () => {
-        await aliceKeystore.createInvite({
+        await aliceRustKeystore.createInvite({
           recipient: {} as any,
           createdNs,
           context: undefined,
