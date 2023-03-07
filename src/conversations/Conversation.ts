@@ -31,6 +31,7 @@ import {
   SignedPublicKey,
   Signature,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
 } from '../crypto'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
@@ -322,6 +323,7 @@ export class ConversationV1 {
   ): Promise<MessageV1> {
     const timestamp = options?.timestamp || new Date()
     const payload = await this.client.encodeContent(content, options)
+    console.log('Conversationv1 encoding message')
     const header: message.MessageHeaderV1 = {
       sender: this.client.publicKeyBundle,
       recipient,
@@ -491,10 +493,13 @@ export class ConversationV2 {
     }
     const headerBytes = message.MessageHeaderV2.encode(header).finish()
     const digest = await sha256(concat(headerBytes, payload))
+    // Here
+    console.log('Conversationv2 encode message test final')
+    const sendKeyPrivateBundle = this.client.sendKeyPrivateBundle
     const signed = {
       payload,
-      sender: this.client.keys.getPublicKeyBundle(),
-      signature: await this.client.keys.getCurrentPreKey().sign(digest),
+      sender: sendKeyPrivateBundle.getPublicKeyBundle(),
+      signature: await sendKeyPrivateBundle.getCurrentPreKey().sign(digest),
     }
     const signedBytes = proto.SignedContent.encode(signed).finish()
     const ciphertext = await encrypt(signedBytes, this.keyMaterial, headerBytes)

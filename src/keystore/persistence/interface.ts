@@ -3,4 +3,4 @@ export interface Persistence {
   setItem(key: string, value: Uint8Array): Promise<void>
 }
 
-export const SEND_KEY_KEY = 'send_key'
+export const SEND_KEY_KEY = 'send_key_bundle'

@@ -105,6 +105,9 @@ type LegacyOptions = {
   publishLegacyContact?: boolean
 }
 
+export type SendKey = SignedPrivateKey
+export type SendKeyPrivateBundle = PrivateKeyBundleV2
+
 /**
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
@@ -152,6 +155,8 @@ export default class Client {
     PublicKeyBundle | SignedPublicKeyBundle
   > // addresses and key bundles that we have witnessed
 
+  sendKeyPrivateBundle: SendKeyPrivateBundle
+
   private _conversations: Conversations
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
@@ -160,7 +165,8 @@ export default class Client {
   constructor(
     keys: PrivateKeyBundleV1,
     apiClient: ApiClient,
-    keystore: Keystore
+    keystore: Keystore,
+    sendKeyPrivateBundle: SendKeyPrivateBundle
   ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
@@ -176,6 +182,7 @@ export default class Client {
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
+    this.sendKeyPrivateBundle = sendKeyPrivateBundle
   }
 
   /**
@@ -203,11 +210,11 @@ export default class Client {
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
     // TODO(sendkey) merge this into `loadOrCreateKeysFromOptions`
-    const sendKey = await loadOrCreateSendKey(wallet!)
+    const sendKeyBundle = await loadOrCreateSendKey(wallet!) // Here
     // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
     const keystore = await InMemoryKeystore.create(keys)
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
-    const client = new Client(keys, apiClient, keystore)
+    const client = new Client(keys, apiClient, keystore, sendKeyBundle)
     await client.init(options)
     return client
   }
@@ -600,18 +607,23 @@ async function loadOrCreateKeysFromStore(
   return keys
 }
 
-async function loadOrCreateSendKey(wallet: Signer): Promise<SignedPrivateKey> {
+async function loadOrCreateSendKey(
+  wallet: Signer
+): Promise<SendKeyPrivateBundle> {
   // TODO(sendkey) SIWE and signature batching
   // TODO(sendkey) integration at the keystore level
   const persistence = new LocalStoragePersistence() // TODO make this configurable by the app
   const address = await wallet.getAddress()
   const sendKeyBytes = await persistence.getItem(address + ':' + SEND_KEY_KEY)
   if (sendKeyBytes) {
-    return SignedPrivateKey.fromBytes(sendKeyBytes)
+    return PrivateKeyBundleV2.decode(sendKeyBytes)!
   }
-  const sendKey = await SignedPrivateKey.generate(new WalletSigner(wallet))
-  await persistence.setItem(address + ':' + SEND_KEY_KEY, sendKey.toBytes())
-  return sendKey
+  const sendKeyBundle = await PrivateKeyBundleV2.generate(wallet)
+  await persistence.setItem(
+    address + ':' + SEND_KEY_KEY,
+    sendKeyBundle.encode()
+  )
+  return sendKeyBundle
 }
 
 async function loadOrCreateKeysFromOptions(

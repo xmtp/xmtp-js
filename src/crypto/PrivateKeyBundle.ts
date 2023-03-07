@@ -110,6 +110,14 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     return proto.PrivateKeyBundle.encode({ v1: undefined, v2: this }).finish()
   }
 
+  static decode(bytes: Uint8Array): PrivateKeyBundleV2 | undefined {
+    const bundleProto = proto.PrivateKeyBundle.decode(bytes).v2
+    if (!bundleProto) {
+      return undefined
+    }
+    return new PrivateKeyBundleV2(bundleProto)
+  }
+
   equals(other: this): boolean {
     if (this.preKeys.length !== other.preKeys.length) {
       return false

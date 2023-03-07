@@ -28,6 +28,7 @@ export const encryptV1 = async (
   message: Uint8Array,
   headerBytes: Uint8Array
 ): Promise<ciphertext.Ciphertext> => {
+  console.log('encryptv1')
   const secret = await keys.sharedSecret(
     recipient,
     keys.getCurrentPreKey().publicKey,
