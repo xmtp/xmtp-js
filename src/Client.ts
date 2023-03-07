@@ -496,13 +496,18 @@ export default class Client {
       opts = {}
     }
     const { startTime, endTime, limit } = opts
+    let actualLimit = limit
+    if (actualLimit === 1) {
+      console.log('bumped limit')
+      actualLimit += 10
+    }
 
     const envelopes = await this.apiClient.query(
       { contentTopics: topics, startTime, endTime },
       {
         direction:
           opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
-        limit,
+        limit: actualLimit,
       }
     )
     const results: Out[] = []
