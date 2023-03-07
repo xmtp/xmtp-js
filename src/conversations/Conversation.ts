@@ -544,17 +544,14 @@ export class ConversationV2 {
     if (!senderPreKey || !senderPreKey.signature || !senderPreKey.keyBytes) {
       throw new Error('missing pre-key or pre-key signature')
     }
-    const keyDigest = await sha256(senderPreKey.keyBytes)
     const senderIdentityKey = signed.sender?.identityKey
     if (!senderIdentityKey) {
       throw new Error('missing identity key in bundle')
     }
-    if (
-      !new SignedPublicKey(senderIdentityKey).verify(
-        new Signature(senderPreKey.signature),
-        keyDigest
-      )
-    ) {
+    const isValidPrekey = await new SignedPublicKey(
+      senderIdentityKey
+    ).verifyKey(new SignedPublicKey(senderPreKey))
+    if (!isValidPrekey) {
       throw new Error('pre key not signed by identity key')
     }
 
