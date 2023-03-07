@@ -537,6 +537,27 @@ export class ConversationV2 {
       throw new Error('incomplete signed content')
     }
 
+    // Check that the pre key is signed by the identity key
+    // this is required to chain the prekey-signed message to the identity key
+    // and finally to the user's wallet address
+    const senderPreKey = signed.sender?.preKey
+    if (!senderPreKey || !senderPreKey.signature || !senderPreKey.keyBytes) {
+      throw new Error('missing pre-key or pre-key signature')
+    }
+    const keyDigest = await sha256(senderPreKey.keyBytes)
+    const senderIdentityKey = signed.sender?.identityKey
+    if (!senderIdentityKey) {
+      throw new Error('missing identity key in bundle')
+    }
+    if (
+      !new SignedPublicKey(senderIdentityKey).verify(
+        new Signature(senderPreKey.signature),
+        keyDigest
+      )
+    ) {
+      throw new Error('pre key not signed by identity key')
+    }
+
     const digest = await sha256(concat(msgv2.headerBytes, signed.payload))
     if (
       !new SignedPublicKey(signed.sender?.preKey).verify(
