@@ -46,6 +46,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   findPreKey(which: SignedPublicKey): SignedPrivateKey {
     const preKey = this.preKeys.find((key) => key.matches(which))
     if (!preKey) {
+      console.log('No matching prekey')
       throw new NoMatchingPreKeyError(which)
     }
     return preKey
@@ -99,6 +100,30 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
       dh2 = preKey.sharedSecret(peer.identityKey)
     }
     const dh3 = preKey.sharedSecret(peer.preKey)
+    const secret = new Uint8Array(dh1.length + dh2.length + dh3.length)
+    secret.set(dh1, 0)
+    secret.set(dh2, dh1.length)
+    secret.set(dh3, dh1.length + dh2.length)
+    return secret
+  }
+
+  async sharedSecretV2(
+    sendKey: SignedPublicKeyBundle,
+    myPreKey: SignedPublicKey
+  ): Promise<Uint8Array> {
+    if (!sendKey.identityKey || !sendKey.preKey) {
+      throw new Error('invalid peer key bundle')
+    }
+    if (!(await sendKey.identityKey.verifyKey(sendKey.preKey))) {
+      throw new Error('peer preKey signature invalid')
+    }
+    if (!this.identityKey) {
+      throw new Error('missing identity key')
+    }
+    const preKey = this.findPreKey(myPreKey)
+    const dh1 = preKey.sharedSecret(sendKey.identityKey)
+    const dh2 = this.identityKey.sharedSecret(sendKey.preKey)
+    const dh3 = preKey.sharedSecret(sendKey.preKey)
     const secret = new Uint8Array(dh1.length + dh2.length + dh3.length)
     secret.set(dh1, 0)
     secret.set(dh2, dh1.length)

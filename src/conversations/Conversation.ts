@@ -408,7 +408,17 @@ export class ConversationV2 {
   ): Promise<ConversationV2> {
     const myKeys = client.keys.getPublicKeyBundle()
     const peer = myKeys.equals(header.sender) ? header.recipient : header.sender
-    const peerAddress = utils.getAddress(await peer.walletSignatureAddress())
+    let peerAddress = utils.getAddress(await peer.walletSignatureAddress())
+    if (
+      header.conversationParticipants &&
+      header.conversationParticipants.length === 2
+    ) {
+      peerAddress =
+        client.address === header.conversationParticipants[0]
+          ? header.conversationParticipants[1]
+          : header.conversationParticipants[0]
+    }
+    console.log('Peer is ', peerAddress)
     return new ConversationV2(
       client,
       invitation.topic,

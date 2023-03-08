@@ -219,6 +219,7 @@ export default class InMemoryKeystore implements Keystore {
           'missing recipient'
         )
       }
+      console.log('Keystore create invite')
       const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
       const sealed = await SealedInvitation.createV1({
@@ -226,6 +227,7 @@ export default class InMemoryKeystore implements Keystore {
         recipient: toSignedPublicKeyBundle(req.recipient),
         created,
         invitation,
+        conversationParticipants: [],
       })
       const topicData = { invitation, createdNs: req.createdNs }
       await this.inviteStore.add([topicData])

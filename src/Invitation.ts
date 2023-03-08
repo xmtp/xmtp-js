@@ -76,11 +76,13 @@ export class SealedInvitationHeaderV1
   sender: SignedPublicKeyBundle
   recipient: SignedPublicKeyBundle
   createdNs: Long
+  conversationParticipants: string[]
 
   constructor({
     sender,
     recipient,
     createdNs,
+    conversationParticipants,
   }: invitation.SealedInvitationHeaderV1) {
     if (!sender) {
       throw new Error('Missing sender')
@@ -91,6 +93,7 @@ export class SealedInvitationHeaderV1
     this.sender = new SignedPublicKeyBundle(sender)
     this.recipient = new SignedPublicKeyBundle(recipient)
     this.createdNs = createdNs
+    this.conversationParticipants = conversationParticipants
   }
 
   toBytes(): Uint8Array {
@@ -144,13 +147,31 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
     // The constructors for child classes will validate that this is complete
     const header = this.header
     let secret: Uint8Array
-    if (viewer.identityKey.matches(this.header.sender.identityKey)) {
+    // Here
+    // 1) sender === senderKey, viewer will never match
+    // Sender
+    //  - derive participant
+    //  - x3dh
+    // Recipient
+    if (
+      header.conversationParticipants &&
+      header.conversationParticipants.length > 0
+    ) {
+      console.log('New secret derivation')
+      secret = await viewer.sharedSecretV2(
+        header.sender,
+        header.recipient.preKey
+      )
+      console.log('Got secret')
+    } else if (viewer.identityKey.matches(this.header.sender.identityKey)) {
+      console.log('Old secret derivation')
       secret = await viewer.sharedSecret(
         header.recipient,
         header.sender.preKey,
         false
       )
     } else {
+      console.log('Old secret derivation')
       secret = await viewer.sharedSecret(
         header.sender,
         header.recipient.preKey,
@@ -163,7 +184,9 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
       secret,
       this.headerBytes
     )
+    console.log('Got decrypted bytes')
     this._invitation = InvitationV1.fromBytes(decryptedBytes)
+    console.log('Got invitation: ', this._invitation)
     return this._invitation
   }
 
@@ -223,18 +246,22 @@ export class SealedInvitation implements invitation.SealedInvitation {
     recipient,
     created,
     invitation,
+    conversationParticipants,
   }: {
     sender: PrivateKeyBundleV2
     recipient: SignedPublicKeyBundle
     created: Date
     invitation: InvitationV1
+    conversationParticipants: string[]
   }): Promise<SealedInvitation> {
     const headerBytes = new SealedInvitationHeaderV1({
       sender: sender.getPublicKeyBundle(),
       recipient,
       createdNs: dateToNs(created),
+      conversationParticipants,
     }).toBytes()
 
+    console.log('Creating invitation')
     const secret = await sender.sharedSecret(
       recipient,
       sender.getCurrentPreKey().publicKey,

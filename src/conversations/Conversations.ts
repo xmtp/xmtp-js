@@ -1,7 +1,7 @@
 import { ListMessagesOptions } from './../Client'
 import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
-import { InvitationContext } from './../Invitation'
+import { InvitationContext, SealedInvitationHeaderV1 } from './../Invitation'
 import {
   Conversation,
   ConversationV1,
@@ -11,7 +11,7 @@ import {
 import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
-import { buildUserIntroTopic, buildUserInviteTopic } from '../utils'
+import { buildUserIntroTopic, buildUserInviteTopic, dateToNs } from '../utils'
 import { SealedInvitation, InvitationV1 } from '../Invitation'
 import { PublicKeyBundle } from '../crypto'
 import { messageApi, fetcher } from '@xmtp/proto'
@@ -504,28 +504,44 @@ export default class Conversations {
     invitation: InvitationV1,
     created: Date
   ): Promise<SealedInvitation> {
-    const sealed = await SealedInvitation.createV1({
-      sender: this.client.keys,
-      recipient,
+    const myAddress = this.client.address
+    const theirAddress = await recipient.walletSignatureAddress()
+    const conversationParticipants = [myAddress, theirAddress]
+
+    const mySendKey = this.client.sendKeyPrivateBundle
+    const myInboxKey = this.client.keys.getPublicKeyBundle()
+    const theirInboxKey = recipient
+
+    console.log('Sending invitation using send key')
+    const theirSealedInvitation = await SealedInvitation.createV1({
+      sender: mySendKey,
+      recipient: theirInboxKey,
       created,
       invitation,
+      conversationParticipants,
+    })
+    const mySealedInvitation = await SealedInvitation.createV1({
+      sender: mySendKey,
+      recipient: myInboxKey,
+      created,
+      invitation,
+      conversationParticipants,
     })
 
-    const peerAddress = await recipient.walletSignatureAddress()
     this.client.publishEnvelopes([
       {
-        contentTopic: buildUserInviteTopic(peerAddress),
-        message: sealed.toBytes(),
+        contentTopic: buildUserInviteTopic(theirAddress),
+        message: theirSealedInvitation.toBytes(),
         timestamp: created,
       },
       {
-        contentTopic: buildUserInviteTopic(this.client.address),
-        message: sealed.toBytes(),
+        contentTopic: buildUserInviteTopic(myAddress),
+        message: mySealedInvitation.toBytes(),
         timestamp: created,
       },
     ])
 
-    return sealed
+    return mySealedInvitation
   }
 
   private getPeerAddress(message: MessageV1): string {
