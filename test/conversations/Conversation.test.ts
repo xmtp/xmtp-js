@@ -457,6 +457,35 @@ describe('conversation', () => {
       await as.return()
     })
 
+    it('rejects spoofed contact bundles', async () => {
+      // Generated via exporting 1) conversationV2Export and 2) pre-crafted envelope with swapped contact bundles
+      const topic =
+        '/xmtp/0/m-Gdb7oj5nNdfZ3MJFLAcS4WTABgr6al1hePy6JV1-QUE/proto'
+      const envelopeMessage = Buffer.from(
+        'Er0ECkcIwNruhKLgkKUXEjsveG10cC8wL20tR2RiN29qNW5OZGZaM01KRkxBY1M0V1RBQmdyNmFsMWhlUHk2SlYxLVFVRS9wcm90bxLxAwruAwognstLoG6LWgiBRsWuBOt+tYNJz+CqCj9zq6hYymLoak8SDFsVSy+cVAII0/r3sxq7A/GCOrVtKH6J+4ggfUuI5lDkFPJ8G5DHlysCfRyFMcQDIG/2SFUqSILAlpTNbeTC9eSI2hUjcnlpH9+ncFcBu8StGfmilVGfiADru2fGdThiQ+VYturqLIJQXCHO2DkvbbUOg9xI66E4Hj41R9vE8yRGeZ/eRGRLRm06HftwSQgzAYf2AukbvjNx/k+xCMqti49Qtv9AjzxVnwttLiA/9O+GDcOsiB1RQzbZZzaDjQ/nLDTF6K4vKI4rS9QwzTJqnoCdp0SbMZFf+KVZpq3VWnMGkMxLW5Fr6gMvKny1e1LAtUJSIclI/1xPXu5nsKd4IyzGb2ZQFXFQ/BVL9Z4CeOZTsjZLGTOGS75xzzGHDtKohcl79+0lgIhAuSWSLDa2+o2OYT0fAjChp+qqxXcisAyrD5FB6c9spXKfoDZsqMV/bnCg3+udIuNtk7zBk7jdTDMkofEtE3hyIm8d3ycmxKYOakDPqeo+Nk1hQ0ogxI8Z7cEoS2ovi9+rGBMwREzltUkTVR3BKvgV2EOADxxTWo7y8WRwWxQ+O6mYPACsiFNqjX5Nvah5lRjihphQldJfyVOG8Rgf4UwkFxmI'
+      )
+      const convoExport = {
+        version: 'v2' as const,
+        topic: '/xmtp/0/m-Gdb7oj5nNdfZ3MJFLAcS4WTABgr6al1hePy6JV1-QUE/proto',
+        keyMaterial: 'R0BBM5OPftNEuavH/991IKyJ1UqsgdEG4SrdxlIG2ZY=',
+        peerAddress: '0x2f25e33D7146602Ec08D43c1D6B1b65fc151A677',
+        createdAt: '2023-03-07T22:18:07.553Z',
+        context: { conversationId: 'xmtp.org/foo', metadata: {} },
+      }
+
+      // Create a ConversationV2 from export (client here shouldn't matter)
+      const convo = ConversationV2.fromExport(alice, convoExport)
+
+      // Feed in a message directly into "decodeMessage" and assert that it throws
+      // and look for "pre key not signed" in the error message
+      expect(
+        convo.decodeMessage({
+          contentTopic: topic,
+          message: envelopeMessage,
+        })
+      ).rejects.toThrow('pre key not signed by identity key')
+    })
+
     it('can send compressed v2 messages', async () => {
       const convo = await alice.conversations.newConversation(bob.address, {
         conversationId: 'example.com/compressedv2',
