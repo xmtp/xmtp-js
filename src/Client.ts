@@ -147,8 +147,6 @@ export default class Client {
   keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
-  // Optional, libxmtp.Keystore may be null
-  xmtplib: libxmtp.Keystore | null
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -174,22 +172,15 @@ export default class Client {
     // TODO: Remove keys and legacyKeys
     this.legacyKeys = keys
     this.keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
-    this.keystore = keystore
     this.address = keys.identityKey.publicKey.walletSignatureAddress()
     this._conversations = new Conversations(this)
+    // Immediately kick off this._conversations.list() to test our Keystore code
+    this._conversations.list()
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
-    this.xmtplib = null
-    libxmtp.XMTPWasm.initialize()
-      .then((xmtp: libxmtp.XMTPWasm) => {
-        this.xmtplib = xmtp.newKeystoreWithBundle(this.keys.encode())
-      })
-      .catch((err) => {
-        // throw the error
-        throw err
-      })
+    this.keystore = keystore
   }
 
   /**
@@ -225,7 +216,10 @@ export default class Client {
     const apiClient = createApiClientFromOptions(options)
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
     // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
-    const keystore = await InMemoryKeystore.create(keys)
+    const keystore = await libxmtp.XMTPWasm.initialize().then((xmtp) => {
+      const v2keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
+      return xmtp.newKeystoreWithBundle(v2keys.encode())
+    })
     apiClient.setAuthenticator(new Authenticator(keys.identityKey))
     const backupClient = await Client.setupBackupClient(
       keys.identityKey.publicKey.walletSignatureAddress(),

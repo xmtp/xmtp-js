@@ -140,6 +140,17 @@ export default class Conversations {
   }
 
   private async getV2ConversationsFromKeystore(): Promise<ConversationV2[]> {
+    if (!this.client.keystore) {
+      // Keystore isn't initialized yet
+      return []
+    }
+    console.log('keystore: ', this.client.keystore)
+    console.log(
+      'keystore getV2Conversations: ',
+      this.client.keystore.getV2Conversations
+    )
+    const conversations = await this.client.keystore.getV2Conversations()
+    console.log('CONVERSATIONS', conversations)
     return (await this.client.keystore.getV2Conversations()).map(
       this.conversationReferenceToV2.bind(this)
     )
@@ -161,6 +172,7 @@ export default class Conversations {
     envelopes: messageApi.Envelope[],
     shouldThrow = false
   ): Promise<ConversationV2[]> {
+    console.log('DECODING INVITES')
     const { responses } = await this.client.keystore.saveInvites({
       requests: envelopes.map((env) => ({
         payload: b64Decode(env.message as unknown as string),
@@ -168,6 +180,7 @@ export default class Conversations {
         contentTopic: env.contentTopic as string,
       })),
     })
+    console.log('RESPONSES', responses)
 
     const out: ConversationV2[] = []
     for (const response of responses) {

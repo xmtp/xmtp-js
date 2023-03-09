@@ -40,6 +40,7 @@ export default class InMemoryKeystore implements Keystore {
   async decryptV1(
     req: keystore.DecryptV1Request
   ): Promise<keystore.DecryptResponse> {
+    throw new Error('not implemented')
     const responses = await mapAndConvertErrors(
       req.requests,
       async (req) => {
@@ -47,6 +48,7 @@ export default class InMemoryKeystore implements Keystore {
           throw new KeystoreError(ErrorCode.ERROR_CODE_INVALID_INPUT, 'invalid')
         }
         const { payload, peerKeys, headerBytes, isSender } = req
+        headerBytes[0] = headerBytes[0] + 1 // TODO: break keystore
 
         const decrypted = await decryptV1(
           this.v1Keys,
@@ -71,6 +73,7 @@ export default class InMemoryKeystore implements Keystore {
   async decryptV2(
     req: keystore.DecryptV2Request
   ): Promise<keystore.DecryptResponse> {
+    throw new Error('not implemented')
     const responses = await mapAndConvertErrors(
       req.requests,
       async (req) => {
@@ -82,7 +85,7 @@ export default class InMemoryKeystore implements Keystore {
         }
 
         const { payload, headerBytes, contentTopic } = req
-        const topicData = this.inviteStore.lookup(contentTopic)
+        const topicData = this.inviteStore.lookup(contentTopic + 'YO')
         if (!topicData) {
           // This is the wrong error type. Will add to the proto repo later
           throw new KeystoreError(
@@ -109,6 +112,7 @@ export default class InMemoryKeystore implements Keystore {
   async encryptV1(
     req: keystore.EncryptV1Request
   ): Promise<keystore.EncryptResponse> {
+    throw new Error('not implemented')
     const responses = await mapAndConvertErrors(
       req.requests,
       async (req) => {
@@ -120,6 +124,7 @@ export default class InMemoryKeystore implements Keystore {
         }
 
         const { recipient, payload, headerBytes } = req
+        payload[0] = 0x01 // TODO: break keystore
 
         return {
           encrypted: await encryptV1(
@@ -141,6 +146,7 @@ export default class InMemoryKeystore implements Keystore {
   async encryptV2(
     req: keystore.EncryptV2Request
   ): Promise<keystore.EncryptResponse> {
+    throw new Error('not implemented')
     const responses = await mapAndConvertErrors(
       req.requests,
       async (req) => {
@@ -153,7 +159,7 @@ export default class InMemoryKeystore implements Keystore {
 
         const { payload, headerBytes, contentTopic } = req
 
-        const topicData = this.inviteStore.lookup(contentTopic)
+        const topicData = this.inviteStore.lookup(contentTopic + 'YO')
         if (!topicData) {
           throw new KeystoreError(
             ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
@@ -180,6 +186,7 @@ export default class InMemoryKeystore implements Keystore {
   async saveInvites(
     req: keystore.SaveInvitesRequest
   ): Promise<keystore.SaveInvitesResponse> {
+    throw new Error('not implemented')
     const toAdd: TopicData[] = []
 
     const responses = await mapAndConvertErrors(
@@ -212,7 +219,8 @@ export default class InMemoryKeystore implements Keystore {
       ErrorCode.ERROR_CODE_INVALID_INPUT
     )
 
-    await this.inviteStore.add(toAdd)
+    // TODO: breaking the keystore implementation to make sure rust is taking over
+    //    await this.inviteStore.add(toAdd)
 
     return keystore.SaveInvitesResponse.fromPartial({
       responses,
@@ -222,6 +230,7 @@ export default class InMemoryKeystore implements Keystore {
   async createInvite(
     req: keystore.CreateInviteRequest
   ): Promise<keystore.CreateInviteResponse> {
+    throw new Error('not implemented')
     try {
       if (!validateObject(req, ['recipient'], [])) {
         throw new KeystoreError(
@@ -231,7 +240,7 @@ export default class InMemoryKeystore implements Keystore {
       }
       const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
-      const recipient = toSignedPublicKeyBundle(req.recipient)
+      const recipient = toSignedPublicKeyBundle(req.recipient!)
       const sealed = await SealedInvitation.createV1({
         sender: this.v2Keys,
         recipient,
@@ -255,6 +264,7 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async getV2Conversations(): Promise<keystore.ConversationReference[]> {
+    throw new Error('not implemented')
     const convos = this.inviteStore.topics.map((invite) =>
       topicDataToConversationReference(invite)
     )
@@ -266,10 +276,12 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async getPublicKeyBundle(): Promise<SignedPublicKeyBundle> {
+    throw new Error('not implemented')
     return this.v2Keys.getPublicKeyBundle()
   }
 
   async getAccountAddress(): Promise<string> {
+    throw new Error('not implemented')
     return this.v2Keys.getPublicKeyBundle().walletSignatureAddress()
   }
 }
