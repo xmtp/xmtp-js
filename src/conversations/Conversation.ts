@@ -450,9 +450,18 @@ export class ConversationV2 {
     messages: MessageV2[],
     throwOnError = false
   ): Promise<DecodedMessage[]> {
-    const responses = (
+    // BENCHMARK: try running this 100 times and measuring, then output the parameters
+    let start = Date.now()
+    let responses = (
       await this.client.keystore.decryptV2(this.buildDecryptRequest(messages))
     ).responses
+    for (let i = 0; i < 99; i++) {
+      responses = (
+        await this.client.keystore.decryptV2(this.buildDecryptRequest(messages))
+      ).responses
+    }
+    let end = Date.now()
+    console.log('wasm decryptBatch: size/100: ', messages.length, end - start)
 
     const out: DecodedMessage[] = []
     for (let i = 0; i < responses.length; i++) {
