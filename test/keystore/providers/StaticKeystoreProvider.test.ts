@@ -9,7 +9,10 @@ const ENV = 'local'
 describe('StaticKeystoreProvider', () => {
   it('works with a valid key', async () => {
     const key = await PrivateKeyBundleV1.generate(newWallet())
-    const keyBytes = privateKey.PrivateKeyBundleV1.encode(key).finish()
+    const keyBytes = privateKey.PrivateKeyBundle.encode({
+      v1: key,
+      v2: undefined,
+    }).finish()
     const provider = new StaticKeystoreProvider()
     const keystore = await provider.newKeystore({
       privateKeyOverride: keyBytes,

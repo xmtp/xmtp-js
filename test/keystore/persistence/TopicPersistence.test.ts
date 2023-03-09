@@ -5,7 +5,8 @@ import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence
 import { Authenticator } from '../../../src/authn'
 import { PrivateKeyBundleV1 } from '../../../src/crypto'
 
-const TEST_KEY = 'foo'
+// We restrict publishing to topics that do not match this pattern
+const buildValidKey = (walletAddress: string) => `${walletAddress}/key_bundle`
 
 describe('TopicPersistence', () => {
   let apiClient: ApiClient
@@ -16,28 +17,41 @@ describe('TopicPersistence', () => {
   })
   it('round trips items from the store', async () => {
     const input = new TextEncoder().encode('hello')
+    const storageKey = buildValidKey(
+      bundle.identityKey.publicKey.walletSignatureAddress()
+    )
     apiClient.setAuthenticator(new Authenticator(bundle.identityKey))
     const store = new TopicPersistence(apiClient)
-    await store.setItem(TEST_KEY, input)
+    try {
+      await store.setItem(storageKey, input)
+    } catch (e) {
+      console.log('Error setting item', e)
+    }
 
-    const output = await store.getItem(TEST_KEY)
+    const output = await store.getItem(storageKey)
     expect(output).toEqual(input)
   })
 
   it('returns null for missing items', async () => {
     const store = new TopicPersistence(apiClient)
-    expect(await store.getItem(TEST_KEY)).toBeNull()
+    const storageKey = buildValidKey(
+      bundle.identityKey.publicKey.walletSignatureAddress()
+    )
+    expect(await store.getItem(storageKey)).toBeNull()
   })
 
   it('allows overwriting of values', async () => {
     const firstInput = new TextEncoder().encode('hello')
-    apiClient.setAuthenticator(new Authenticator(bundle.identityKey))
+    const storageKey = buildValidKey(
+      bundle.identityKey.publicKey.walletSignatureAddress()
+    )
     const store = new TopicPersistence(apiClient)
-    await store.setItem(TEST_KEY, firstInput)
-    expect(await store.getItem(TEST_KEY)).toEqual(firstInput)
+    store.setAuthenticator(new Authenticator(bundle.identityKey))
+    await store.setItem(storageKey, firstInput)
+    expect(await store.getItem(storageKey)).toEqual(firstInput)
 
     const secondInput = new TextEncoder().encode('goodbye')
-    await store.setItem(TEST_KEY, secondInput)
-    expect(await store.getItem(TEST_KEY)).toEqual(secondInput)
+    await store.setItem(storageKey, secondInput)
+    expect(await store.getItem(storageKey)).toEqual(secondInput)
   })
 })
