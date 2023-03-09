@@ -1,4 +1,3 @@
-import { privateKey } from '@xmtp/proto'
 import ApiClient from '../../ApiClient'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import { Signer } from '../../types/Signer'
