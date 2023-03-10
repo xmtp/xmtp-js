@@ -1,4 +1,4 @@
-import { keystore, publicKey } from '@xmtp/proto'
+import { keystore, publicKey, authn } from '@xmtp/proto'
 import { WithoutUndefined } from './utils'
 export interface Keystore {
   // Decrypt a batch of V1 messages
@@ -17,6 +17,8 @@ export interface Keystore {
   createInvite(
     req: keystore.CreateInviteRequest
   ): Promise<keystore.CreateInviteResponse>
+  // Get an API auth token
+  createAuthToken(): Promise<authn.Token>
   // Get V2 conversations
   getV2Conversations(): Promise<keystore.ConversationReference[]>
   // Used for publishing the contact

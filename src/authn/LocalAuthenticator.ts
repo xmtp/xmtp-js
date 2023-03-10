@@ -12,6 +12,7 @@ export default class Authenticator {
     if (!identityKey.publicKey.signature) {
       throw new Error('Provided public key is not signed')
     }
+
     this.identityKey = identityKey
   }
 

@@ -1,4 +1,4 @@
-import { keystore } from '@xmtp/proto'
+import { authn, keystore } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
@@ -20,17 +20,20 @@ import {
 import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
+import LocalAuthenticator from '../authn/LocalAuthenticator'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private inviteStore: InviteStore
+  private authenticator: LocalAuthenticator
 
   constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.inviteStore = inviteStore
+    this.authenticator = new LocalAuthenticator(keys.identityKey)
   }
 
   static async create(keys: PrivateKeyBundleV1, persistence?: Persistence) {
@@ -136,6 +139,14 @@ export default class InMemoryKeystore implements Keystore {
     return keystore.EncryptResponse.fromPartial({
       responses,
     })
+  }
+
+  async createAuthToken({
+    timestampNs,
+  }: keystore.CreateAuthTokenRequest): Promise<authn.Token> {
+    return this.authenticator.createToken(
+      timestampNs ? nsToDate(timestampNs) : undefined
+    )
   }
 
   async encryptV2(

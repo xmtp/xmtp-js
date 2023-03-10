@@ -16,7 +16,7 @@ import NetworkKeyManager, {
 } from '../../../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
 import { getRandomValues, hexToBytes } from '../../../src/crypto/utils'
-import Authenticator from '../../../src/authn/Authenticator'
+import Authenticator from '../../../src/authn/LocalAuthenticator'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
