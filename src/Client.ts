@@ -70,12 +70,14 @@ export type SendOptions = {
   timestamp?: Date
 }
 
+export type XmtpEnv = keyof typeof ApiUrls
+
 /**
  * Network startup options
  */
 type NetworkOptions = {
   // Allow for specifying different envs later
-  env: keyof typeof ApiUrls
+  env: XmtpEnv
   // apiUrl can be used to override the default URL for the env
   apiUrl: string | undefined
   // app identifier included with client version header
