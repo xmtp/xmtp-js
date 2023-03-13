@@ -68,7 +68,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@stardazed/streams-polyfill": "^2.4.0",
-    "@xmtp/proto": "^3.20.0",
+    "@xmtp/proto": "^3.22.0-beta.1",
     "async-mutex": "^0.4.0",
     "eccrypto": "^1.1.6",
     "ethers": "^5.5.3",
