@@ -6,6 +6,10 @@ import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
+import {
+  AccountLinkedStaticSignature,
+  AccountLinkedSIWESignature,
+} from '@xmtp/proto/ts/dist/types/message_contents/signature.pb'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -208,6 +212,48 @@ export class SignedPublicKey
       keyBytes: legacyKey.bytesToSign(),
       signature,
     })
+  }
+}
+
+export class AccountLinkedPublicKeyV1
+  implements publicKey.AccountLinkedPublicKey_V1
+{
+  keyBytes: Uint8Array
+  staticSignature: AccountLinkedStaticSignature | undefined
+  siweSignature: AccountLinkedSIWESignature | undefined
+
+  constructor(obj: publicKey.AccountLinkedPublicKey_V1) {
+    if (!obj.keyBytes) {
+      throw new Error('Invalid AccountLinkedPublicKeyV1 has no keyBytes')
+    }
+    this.keyBytes = obj.keyBytes
+    if (obj.staticSignature) {
+      this.staticSignature = obj.staticSignature
+    } else if (obj.siweSignature) {
+      this.siweSignature = obj.siweSignature
+    } else {
+      throw new Error('Invalid AccountLinkedPublicKeyV1 has no signature')
+    }
+  }
+
+  // Return bytes of the encoded unsigned key.
+  bytesToSign(): Uint8Array {
+    return this.keyBytes
+  }
+}
+
+export class AccountLinkedPublicKey
+  implements publicKey.AccountLinkedPublicKey
+{
+  v1: AccountLinkedPublicKeyV1
+
+  constructor(obj: publicKey.AccountLinkedPublicKey) {
+    // TODO: validation of key
+    if (obj.v1) {
+      this.v1 = new AccountLinkedPublicKeyV1(obj.v1)
+    } else {
+      throw new Error('Invalid AccountLinkedPublicKey has no version')
+    }
   }
 }
 

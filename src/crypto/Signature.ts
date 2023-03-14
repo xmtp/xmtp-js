@@ -119,6 +119,34 @@ export default class Signature implements signature.Signature {
   }
 }
 
+class AccountLinkedStaticSignatureV1
+  implements signature.AccountLinkedStaticSignature_V1
+{
+  text: Uint8Array
+  signature: Signature
+
+  constructor(obj: Partial<signature.AccountLinkedStaticSignature_V1>) {
+    if (!obj.text || !obj.signature) {
+      throw new Error('Invalid AccountLinkedStaticSignatureV1')
+    }
+    this.text = obj.text
+    this.signature = new Signature(obj.signature)
+  }
+}
+
+export class AccountLinkedStaticSignature
+  implements signature.AccountLinkedStaticSignature
+{
+  v1: AccountLinkedStaticSignatureV1
+
+  constructor(obj: Partial<signature.AccountLinkedStaticSignature>) {
+    if (!obj.v1) {
+      throw new Error('Invalid AccountLinkedStaticSignature')
+    }
+    this.v1 = new AccountLinkedStaticSignatureV1(obj.v1)
+  }
+}
+
 // A signer that can be used to sign public keys.
 export interface KeySigner {
   signKey(key: UnsignedPublicKey): Promise<SignedPublicKey>

@@ -197,27 +197,30 @@ export default class InMemoryKeystore implements Keystore {
       req.requests,
       async ({ payload, timestampNs }) => {
         const sealed = SealedInvitation.fromBytes(payload)
+        if (sealed.v1) {
+          const headerTime = sealed.v1.header.createdNs
+          if (!headerTime.equals(timestampNs)) {
+            throw new Error('envelope and header timestamp mismatch')
+          }
 
-        const headerTime = sealed.v1.header.createdNs
-        if (!headerTime.equals(timestampNs)) {
-          throw new Error('envelope and header timestamp mismatch')
-        }
+          const isSender = sealed.v1.header.sender.equals(
+            this.v2Keys.getPublicKeyBundle()
+          )
 
-        const isSender = sealed.v1.header.sender.equals(
-          this.v2Keys.getPublicKeyBundle()
-        )
-
-        const invitation = await sealed.v1.getInvitation(this.v2Keys)
-        const topicData = {
-          invitation,
-          createdNs: sealed.v1.header.createdNs,
-          peerAddress: isSender
-            ? await sealed.v1.header.recipient.walletSignatureAddress()
-            : await sealed.v1.header.sender.walletSignatureAddress(),
-        }
-        toAdd.push(topicData)
-        return {
-          conversation: topicDataToConversationReference(topicData),
+          const invitation = await sealed.v1.getInvitation(this.v2Keys)
+          const topicData = {
+            invitation,
+            createdNs: sealed.v1.header.createdNs,
+            peerAddress: isSender
+              ? await sealed.v1.header.recipient.walletSignatureAddress()
+              : await sealed.v1.header.sender.walletSignatureAddress(),
+          }
+          toAdd.push(topicData)
+          return {
+            conversation: topicDataToConversationReference(topicData),
+          }
+        } else {
+          throw new Error('Invite v2 not implemented')
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT

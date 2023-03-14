@@ -1,5 +1,8 @@
 import Long from 'long'
-import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
+import {
+  SignedPublicKeyBundle,
+  SignedPublicKeyBundleV2,
+} from './crypto/PublicKeyBundle'
 import { messageApi, invitation, fetcher } from '@xmtp/proto'
 import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt, utils } from './crypto'
@@ -67,7 +70,131 @@ export class InvitationV1 implements invitation.InvitationV1 {
   }
 }
 
+export class PeerInvitationHeader
+  implements invitation.SealedInvitationHeaderV2_PeerInvitationHeader
+{
+  sendKeyBundle: SignedPublicKeyBundleV2
+  inboxKeyBundle: SignedPublicKeyBundleV2
+  createdNs: Long
+
+  constructor({
+    sendKeyBundle,
+    inboxKeyBundle,
+    createdNs,
+  }: invitation.SealedInvitationHeaderV2_PeerInvitationHeader) {
+    // TODO: validation of header
+    if (!sendKeyBundle) {
+      throw new Error('Missing send key bundle')
+    }
+    if (!inboxKeyBundle) {
+      throw new Error('Missing inbox key bundle')
+    }
+    this.sendKeyBundle = new SignedPublicKeyBundleV2(sendKeyBundle)
+    this.inboxKeyBundle = new SignedPublicKeyBundleV2(inboxKeyBundle)
+    this.createdNs = createdNs
+  }
+}
+
+export class SelfInvitationHeader
+  implements invitation.SealedInvitationHeaderV2_SelfInvitationHeader
+{
+  sendKeyBundle: SignedPublicKeyBundleV2 | undefined
+  inboxKeyBundle: SignedPublicKeyBundleV2 | undefined
+  createdNs: Long
+  recipientAddress: string
+
+  constructor({
+    sendKeyBundle,
+    inboxKeyBundle,
+    createdNs,
+    recipientAddress,
+  }: invitation.SealedInvitationHeaderV2_SelfInvitationHeader) {
+    // TODO: validation of header
+    if (!sendKeyBundle) {
+      throw new Error('Missing send key bundle')
+    }
+    if (!inboxKeyBundle) {
+      throw new Error('Missing inbox key bundle')
+    }
+    if (!recipientAddress || !recipientAddress.length) {
+      throw new Error('Missing recipient address')
+    }
+    this.sendKeyBundle = new SignedPublicKeyBundleV2(sendKeyBundle)
+    this.inboxKeyBundle = new SignedPublicKeyBundleV2(inboxKeyBundle)
+    this.createdNs = createdNs
+    this.recipientAddress = recipientAddress
+  }
+}
+
+export class SealedInvitationHeaderV2
+  implements invitation.SealedInvitationHeaderV2
+{
+  peerHeader: PeerInvitationHeader | undefined
+  selfHeader: SelfInvitationHeader | undefined
+
+  constructor({ peerHeader, selfHeader }: invitation.SealedInvitationHeaderV2) {
+    if (peerHeader) {
+      this.peerHeader = new PeerInvitationHeader(peerHeader)
+    } else if (selfHeader) {
+      this.selfHeader = new SelfInvitationHeader(selfHeader)
+    } else {
+      throw new Error('SealedInvitationHeaderV2 missing peer or self header')
+    }
+  }
+
+  public get createdNs(): Long {
+    if (this.peerHeader) {
+      return this.peerHeader.createdNs
+    } else if (this.selfHeader) {
+      return this.selfHeader.createdNs
+    } else {
+      throw new Error('SealedInvitationHeaderV2 missing peer or self header')
+    }
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.SealedInvitationHeaderV2.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): SealedInvitationHeaderV2 {
+    return new SealedInvitationHeaderV2(
+      invitation.SealedInvitationHeaderV2.decode(bytes)
+    )
+  }
+}
+
+export class SealedInvitationV2 implements invitation.SealedInvitationV2 {
+  headerBytes: Uint8Array
+  ciphertext: Ciphertext | undefined
+  private _header?: SealedInvitationHeaderV2
+  // private _invitation?: InvitationV1
+
+  constructor({ headerBytes, ciphertext }: invitation.SealedInvitationV2) {
+    if (!headerBytes || !headerBytes.length) {
+      throw new Error('Missing header bytes')
+    }
+    if (!ciphertext) {
+      throw new Error('Missing ciphertext')
+    }
+    this.headerBytes = headerBytes
+    this.ciphertext = new Ciphertext(ciphertext)
+  }
+
+  /**
+   * Accessor method for the full header object
+   */
+  get header(): SealedInvitationHeaderV2 {
+    // Use cached value if already exists
+    if (this._header) {
+      return this._header
+    }
+    this._header = SealedInvitationHeaderV2.fromBytes(this.headerBytes)
+    return this._header
+  }
+}
+
 /**
+ * IN PROCESS OF DEPRECATION
  * SealedInvitationHeaderV1 is a protobuf message to be used as the headerBytes in a SealedInvitationV1
  */
 export class SealedInvitationHeaderV1
@@ -180,13 +307,17 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
  * Wrapper class for SealedInvitationV1 and any future iterations of SealedInvitation
  */
 export class SealedInvitation implements invitation.SealedInvitation {
-  v1: SealedInvitationV1
+  v1: SealedInvitationV1 | undefined
+  v2: SealedInvitationV2 | undefined
 
-  constructor({ v1 }: invitation.SealedInvitation) {
-    if (!v1) {
-      throw new Error('Missing v1 invitation')
+  constructor({ v1, v2 }: invitation.SealedInvitation) {
+    if (v2) {
+      this.v2 = new SealedInvitationV2(v2)
+    } else if (v1) {
+      this.v1 = new SealedInvitationV1(v1)
+    } else {
+      throw new Error('Missing v1 or v2 invitation')
     }
-    this.v1 = new SealedInvitationV1(v1)
   }
 
   toBytes(): Uint8Array {
@@ -207,8 +338,9 @@ export class SealedInvitation implements invitation.SealedInvitation {
       b64Decode(env.message as unknown as string)
     )
     const envelopeTime = Long.fromString(env.timestampNs)
-    const headerTime = sealed.v1.header.createdNs
-    if (!headerTime.equals(envelopeTime)) {
+    const headerTime =
+      sealed.v2?.header.createdNs || sealed.v1?.header.createdNs
+    if (!headerTime || !headerTime.equals(envelopeTime)) {
       throw new Error('envelope and header timestamp mistmatch')
     }
     return sealed
@@ -244,6 +376,9 @@ export class SealedInvitation implements invitation.SealedInvitation {
     const invitationBytes = invitation.toBytes()
     const ciphertext = await encrypt(invitationBytes, secret, headerBytes)
 
-    return new SealedInvitation({ v1: { headerBytes, ciphertext } })
+    return new SealedInvitation({
+      v1: { headerBytes, ciphertext },
+      v2: undefined,
+    })
   }
 }

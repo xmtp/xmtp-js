@@ -107,7 +107,11 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   }
 
   encode(): Uint8Array {
-    return proto.PrivateKeyBundle.encode({ v1: undefined, v2: this }).finish()
+    return proto.PrivateKeyBundle.encode({
+      v1: undefined,
+      v2: this,
+      v3: undefined,
+    }).finish()
   }
 
   equals(other: this): boolean {
@@ -129,6 +133,19 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
         SignedPrivateKey.fromLegacyKey(k)
       ),
     })
+  }
+}
+
+export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
+  accountLinkedKey: proto.AccountLinkedPrivateKey | undefined
+  preKeys: proto.SignedPrivateKey[]
+
+  constructor(bundle: proto.PrivateKeyBundleV3) {
+    if (!bundle.accountLinkedKey) {
+      throw new Error('missing account linked key')
+    }
+    this.accountLinkedKey = bundle.accountLinkedKey
+    this.preKeys = bundle.preKeys || []
   }
 }
 
@@ -235,7 +252,11 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
   }
 
   encode(): Uint8Array {
-    return proto.PrivateKeyBundle.encode({ v1: this, v2: undefined }).finish()
+    return proto.PrivateKeyBundle.encode({
+      v1: this,
+      v2: undefined,
+      v3: undefined,
+    }).finish()
   }
 }
 
