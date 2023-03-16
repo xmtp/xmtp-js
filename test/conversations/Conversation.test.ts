@@ -107,7 +107,7 @@ describe('conversation', () => {
     it('ignores failed decoding of messages', async () => {
       const consoleWarn = jest
         .spyOn(console, 'warn')
-        .mockImplementation(() => {})
+        .mockImplementation(() => { })
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
@@ -141,6 +141,41 @@ describe('conversation', () => {
       expect(messages[0].content).toBe('hey me')
       expect(messages[0].senderAddress).toBe(alice.address)
       expect(messages[0].recipientAddress).toBe(alice.address)
+    })
+
+    it('can send a prepared message v1', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+      expect(aliceConversation.export().version).toBe('v1')
+
+      const preparedMessage = await aliceConversation.prepareMessage('1')
+      const messageID = await preparedMessage.messageID()
+
+      await preparedMessage.send()
+
+      const messages = await aliceConversation.messages()
+      const message = messages[0]
+      expect(message.id).toBe(messageID)
+    })
+
+    it('can send a prepared message v2', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address, {
+        conversationId: "example.com",
+        metadata: {}
+      })
+      expect(aliceConversation.export().version).toBe('v2')
+
+      const preparedMessage = await aliceConversation.prepareMessage('sup')
+      const messageID = await preparedMessage.messageID()
+
+      await preparedMessage.send()
+
+      const messages = await aliceConversation.messages()
+      const message = messages[0]
+      expect(message.id).toBe(messageID)
+      expect(message.content).toBe('sup')
     })
 
     it('allows for sorted listing', async () => {
@@ -303,7 +338,7 @@ describe('conversation', () => {
     it('filters out spoofed messages', async () => {
       const consoleWarn = jest
         .spyOn(console, 'warn')
-        .mockImplementation(() => {})
+        .mockImplementation(() => { })
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       const stream = await bobConvo.streamMessages()
