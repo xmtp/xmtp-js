@@ -1,9 +1,9 @@
 import { ConversationV2 } from './../src/conversations/Conversation'
-import { encodeV1Message, MessageV1 } from '../src/Message'
+import { encodeV1Message } from '../src/Message'
 import { add } from 'benny'
 import { Client, dateToNs } from '../src'
 import { newWallet, newLocalHostClient } from '../test/helpers'
-import { SignedPublicKeyBundle, utils } from '../src/crypto'
+import { SignedPublicKeyBundle } from '../src/crypto'
 import {
   MESSAGE_SIZES,
   newPrivateKeyBundle,
@@ -25,7 +25,7 @@ const encodeV1 = () => {
         const encodedMessage = await alice.encodeContent(message)
         await encodeV1Message(
           alice.keystore,
-          message,
+          encodedMessage,
           alice.publicKeyBundle,
           bobKeys,
           timestamp

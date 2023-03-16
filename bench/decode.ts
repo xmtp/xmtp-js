@@ -2,9 +2,9 @@ import {
   ConversationV1,
   ConversationV2,
 } from './../src/conversations/Conversation'
-import { encodeV1Message, MessageV1 } from '../src/Message'
+import { encodeV1Message } from '../src/Message'
 import { newLocalHostClient } from '../test/helpers'
-import { SignedPublicKeyBundle, utils } from '../src/crypto'
+import { SignedPublicKeyBundle } from '../src/crypto'
 import {
   MESSAGE_SIZES,
   newPrivateKeyBundle,
