@@ -266,7 +266,7 @@ export default class Client {
     // Remove when pre-v7 clients are deprecated
     await this.publishUserContact(true)
     if (!legacy) {
-      this.publishUserContact(legacy)
+      await this.publishUserContact(legacy)
     }
   }
 
