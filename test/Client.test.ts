@@ -8,8 +8,9 @@ import {
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { KeyStoreType, ClientOptions } from '../src/Client'
-import { Compression } from '../src'
+import { Compression, getRandomValues } from '../src'
 import { content as proto } from '@xmtp/proto'
+import { InMemoryKeystore } from '../src/keystore'
 
 type TestCase = {
   name: string
@@ -50,14 +51,14 @@ describe('Client', () => {
 
       it('user contacts published', async () => {
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.publicKeyBundle, alicePublic)
         const bobPublic = await bob.getUserContact(bob.address)
-        assert.deepEqual(bob.legacyKeys.getPublicKeyBundle(), bobPublic)
+        assert.deepEqual(bob.publicKeyBundle, bobPublic)
       })
 
       it('user contacts are filtered to valid contacts', async () => {
         // publish bob's keys to alice's contact topic
-        const bobPublic = bob.legacyKeys.getPublicKeyBundle()
+        const bobPublic = bob.publicKeyBundle
         await alice.publishEnvelopes([
           {
             message: bobPublic.toBytes(),
@@ -65,7 +66,7 @@ describe('Client', () => {
           },
         ])
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.publicKeyBundle, alicePublic)
       })
 
       it('Check address can be sent to', async () => {
@@ -215,7 +216,7 @@ describe('ClientOptions', () => {
 
     it('Partial specification', async () => {
       const c = await testCase.newClient({
-        keyStoreType: KeyStoreType.networkTopicStoreV1,
+        persistConversations: true,
       })
     })
   })

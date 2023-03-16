@@ -229,12 +229,13 @@ export default class Conversations {
       if (env.contentTopic === introTopic) {
         const messageBytes = b64Decode(env.message as unknown as string)
         const msg = await MessageV1.fromBytes(messageBytes)
-        await msg.decrypt(this.client.legacyKeys)
         const peerAddress = this.getPeerAddress(msg)
         if (!newPeer(peerAddress)) {
           return undefined
         }
-        return new ConversationV1(this.client, peerAddress, msg.sent)
+        const newConvo = new ConversationV1(this.client, peerAddress, msg.sent)
+        await newConvo.decryptBatch([msg], introTopic, true)
+        return newConvo
       }
       if (env.contentTopic === inviteTopic) {
         const results = await this.decodeInvites([env], true)
@@ -284,12 +285,7 @@ export default class Conversations {
         if (!messageHasHeaders(msg)) {
           return null
         }
-        // Decrypt the message to ensure it hasn't been spoofed
-        await msg.decrypt(this.client.legacyKeys)
-        const peerAddress =
-          msg.senderAddress === this.client.address
-            ? msg.recipientAddress
-            : msg.senderAddress
+        const peerAddress = this.getPeerAddress(msg)
 
         // Temporarily create a convo to decrypt the message
         const convo = new ConversationV1(
@@ -298,6 +294,8 @@ export default class Conversations {
           msg.sent
         )
 
+        // TODO: This duplicates the proto deserialization unnecessarily
+        // Refactor to avoid duplicate work
         return convo.decodeMessage(env)
       }
 
@@ -384,15 +382,22 @@ export default class Conversations {
   private async getIntroductionPeers(
     opts?: ListMessagesOptions
   ): Promise<Map<string, Date>> {
+    const topic = buildUserIntroTopic(this.client.address)
     const messages = await this.client.listEnvelopes(
-      [buildUserIntroTopic(this.client.address)],
+      [topic],
       async (env) => {
         const msg = await MessageV1.fromBytes(
           b64Decode(env.message as unknown as string)
         )
 
+        const tmpConvo = new ConversationV1(
+          this.client,
+          this.getPeerAddress(msg),
+          msg.sent
+        )
         // Decrypt the message to ensure it is valid. Ignore the contents
-        await msg.decrypt(this.client.legacyKeys)
+        // TODO: Refactor to only require decrypting one message per peer
+        await tmpConvo.decryptBatch([msg], topic, true)
         return msg
       },
       opts
@@ -444,7 +449,7 @@ export default class Conversations {
       // If intro already exists, return V1 conversation
       // if both peers have V1 compatible key bundles
       if (matchingConvo) {
-        if (!this.client.keys.getPublicKeyBundle().isFromLegacyBundle()) {
+        if (!this.client.signedPublicKeyBundle.isFromLegacyBundle()) {
           throw new Error(
             'cannot resume pre-existing V1 conversation; client keys not compatible'
           )

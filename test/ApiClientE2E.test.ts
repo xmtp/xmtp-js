@@ -1,6 +1,6 @@
 import ApiClient, { ApiUrls, GrpcStatus, PublishParams } from '../src/ApiClient'
-import { newWallet, sleep } from './helpers'
-import { Authenticator } from '../src/authn'
+import { newWallet } from './helpers'
+import { LocalAuthenticator } from '../src/authn'
 import { buildUserPrivateStoreTopic, dateToNs } from '../src/utils'
 import { Wallet } from 'ethers'
 import { PrivateKeyBundleV1 } from '../src/crypto'
@@ -29,7 +29,7 @@ describe('e2e tests', () => {
         wallet = newWallet()
         client = new ApiClient(testCase.api)
         keys = await PrivateKeyBundleV1.generate(wallet)
-        client.setAuthenticator(new Authenticator(keys.identityKey))
+        client.setAuthenticator(new LocalAuthenticator(keys.identityKey))
       })
 
       it('publish success', async () => {

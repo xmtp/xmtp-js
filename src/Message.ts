@@ -1,3 +1,4 @@
+import { MessageHeaderV1 } from './../node_modules/@xmtp/proto/ts/dist/types/message_contents/message.pb.d'
 import type { Conversation } from './conversations/Conversation'
 import type Client from './Client'
 import { message as proto, content as protoContent } from '@xmtp/proto'
@@ -19,6 +20,11 @@ import {
 } from './MessageContent'
 import { nsToDate } from './utils'
 import { decompress } from './Compression'
+import { Keystore } from './keystore'
+import {
+  buildDecryptV1Request,
+  validateKeystoreResponse,
+} from './utils/keystore'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
@@ -109,34 +115,6 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
     ).walletSignatureAddress()
   }
 
-  // encrypt and serialize the message
-  static async encode(
-    sender: PrivateKeyBundleV1,
-    recipient: PublicKeyBundle,
-    message: Uint8Array,
-    timestamp: Date
-  ): Promise<MessageV1> {
-    const secret = await sender.sharedSecret(
-      recipient,
-      sender.getCurrentPreKey().publicKey,
-      false
-    )
-    // eslint-disable-next-line camelcase
-    const header: proto.MessageHeaderV1 = {
-      sender: sender.getPublicKeyBundle(),
-      recipient,
-      timestamp: Long.fromNumber(timestamp.getTime()),
-    }
-    const headerBytes = proto.MessageHeaderV1.encode(header).finish()
-    const ciphertext = await encrypt(message, secret, headerBytes)
-    const protoMsg = {
-      v1: { headerBytes, ciphertext },
-      v2: undefined,
-    }
-    const bytes = proto.Message.encode(protoMsg).finish()
-    return MessageV1.create(protoMsg, header, bytes)
-  }
-
   static fromBytes(bytes: Uint8Array): Promise<MessageV1> {
     const message = proto.Message.decode(bytes)
     const [headerBytes] = headerBytesAndCiphertext(message)
@@ -164,39 +142,6 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
     }
 
     return MessageV1.create(message, header, bytes)
-  }
-
-  async decrypt(viewer: PrivateKeyBundleV1) {
-    const header = this.header
-    // This should never happen if the message was created through the fromBytes function
-    // But needed for type safety
-    if (
-      !header.recipient?.identityKey ||
-      !header.sender?.identityKey ||
-      !header.recipient.preKey ||
-      !header.sender.preKey
-    ) {
-      throw new Error('Missing headers')
-    }
-    const recipient = new PublicKeyBundle({
-      identityKey: new PublicKey(header.recipient.identityKey),
-      preKey: new PublicKey(header.recipient.preKey),
-    })
-    const sender = new PublicKeyBundle({
-      identityKey: new PublicKey(header.sender.identityKey),
-      preKey: new PublicKey(header.sender.preKey),
-    })
-
-    let secret: Uint8Array
-    if (viewer.identityKey.matches(sender.identityKey)) {
-      // viewer is the sender
-      secret = await viewer.sharedSecret(recipient, sender.preKey, false)
-    } else {
-      // viewer is the recipient
-      secret = await viewer.sharedSecret(sender, recipient.preKey, true)
-    }
-
-    return decrypt(this.ciphertext, secret, this.headerBytes)
   }
 }
 
@@ -343,4 +288,63 @@ export async function decodeContent(contentBytes: Uint8Array, client: Client) {
   }
 
   return { content, contentType, error }
+}
+
+export async function encodeV1Message(
+  keystore: Keystore,
+  payload: Uint8Array,
+  sender: PublicKeyBundle,
+  recipient: PublicKeyBundle,
+  timestamp: Date
+): Promise<MessageV1> {
+  const header: proto.MessageHeaderV1 = {
+    sender,
+    recipient,
+    timestamp: Long.fromNumber(timestamp.getTime()),
+  }
+  const headerBytes = proto.MessageHeaderV1.encode(header).finish()
+  const results = await keystore.encryptV1({
+    requests: [
+      {
+        recipient,
+        headerBytes,
+        payload,
+      },
+    ],
+  })
+
+  if (!results.responses.length) {
+    throw new Error('No response from Keystore')
+  }
+
+  const response = results.responses[0]
+  validateKeystoreResponse(response)
+
+  const ciphertext = response.result?.encrypted
+  const protoMsg = {
+    v1: { headerBytes, ciphertext },
+    v2: undefined,
+  }
+  const bytes = proto.Message.encode(protoMsg).finish()
+  return MessageV1.create(protoMsg, header, bytes)
+}
+
+export async function decryptV1Message(
+  keystore: Keystore,
+  message: MessageV1,
+  myPublicKeyBundle: PublicKeyBundle
+): Promise<Uint8Array> {
+  const responses = (
+    await keystore.decryptV1(
+      buildDecryptV1Request([message], myPublicKeyBundle)
+    )
+  ).responses
+
+  if (!responses.length) {
+    throw new Error('No response from Keystore')
+  }
+
+  validateKeystoreResponse(responses[0])
+
+  return responses[0].result?.decrypted as Uint8Array
 }

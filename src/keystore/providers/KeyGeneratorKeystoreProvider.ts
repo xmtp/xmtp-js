@@ -20,6 +20,10 @@ export default class KeyGeneratorKeystoreProvider {
         'Wallet required to generate new keys'
       )
     }
+    console.log(
+      'Generating new key bundle for wallet',
+      await wallet.getAddress()
+    )
     const bundle = await PrivateKeyBundleV1.generate(wallet)
     const manager = new NetworkKeyManager(
       wallet,

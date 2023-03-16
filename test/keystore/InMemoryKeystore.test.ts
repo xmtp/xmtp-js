@@ -1,5 +1,5 @@
 import { InvitationContext } from './../../src/Invitation'
-import { MessageV1 } from './../../src/Message'
+import { encodeV1Message, MessageV1 } from './../../src/Message'
 import {
   PrivateKeyBundleV1,
   SignedPublicKeyBundle,
@@ -108,10 +108,11 @@ describe('InMemoryKeystore', () => {
     it('can decrypt a valid message', async () => {
       const msg = new TextEncoder().encode('Hello, world!')
       const peerKeys = bobKeys.getPublicKeyBundle()
-      const message = await MessageV1.encode(
-        aliceKeys,
-        peerKeys,
+      const message = await encodeV1Message(
+        aliceKeystore,
         msg,
+        aliceKeys.getPublicKeyBundle(),
+        peerKeys,
         new Date()
       )
 
@@ -137,10 +138,11 @@ describe('InMemoryKeystore', () => {
     it('fails to decrypt an invalid message', async () => {
       const msg = new TextEncoder().encode('Hello, world!')
       const charlieKeys = await PrivateKeyBundleV1.generate(newWallet())
-      const message = await MessageV1.encode(
-        aliceKeys,
-        charlieKeys.getPublicKeyBundle(),
+      const message = await encodeV1Message(
+        bobKeystore,
         msg,
+        bobKeys.getPublicKeyBundle(),
+        charlieKeys.getPublicKeyBundle(),
         new Date()
       )
 
@@ -423,7 +425,7 @@ describe('InMemoryKeystore', () => {
   describe('getPublicKeyBundle', () => {
     it('can retrieve a valid bundle', async () => {
       const bundle = await aliceKeystore.getPublicKeyBundle()
-      const wrappedBundle = new SignedPublicKeyBundle(bundle)
+      const wrappedBundle = SignedPublicKeyBundle.fromLegacyBundle(bundle)
       expect(
         wrappedBundle.equals(
           SignedPublicKeyBundle.fromLegacyBundle(aliceKeys.getPublicKeyBundle())

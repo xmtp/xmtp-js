@@ -50,7 +50,7 @@ describe('NetworkKeystoreProvider', () => {
       wallet
     )
     expect(await keystore.getPublicKeyBundle()).toEqual(
-      SignedPublicKeyBundle.fromLegacyBundle(bundle.getPublicKeyBundle())
+      bundle.getPublicKeyBundle()
     )
   })
 
