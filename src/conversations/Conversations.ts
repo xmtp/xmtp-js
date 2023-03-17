@@ -233,9 +233,12 @@ export default class Conversations {
         if (!newPeer(peerAddress)) {
           return undefined
         }
-        const newConvo = new ConversationV1(this.client, peerAddress, msg.sent)
-        await newConvo.decryptBatch([msg], introTopic, true)
-        return newConvo
+        await decryptV1Message(
+          this.client.keystore,
+          msg,
+          this.client.publicKeyBundle
+        )
+        return new ConversationV1(this.client, peerAddress, msg.sent)
       }
       if (env.contentTopic === inviteTopic) {
         const results = await this.decodeInvites([env], true)
