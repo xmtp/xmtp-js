@@ -4,7 +4,7 @@ import { newWallet, pollFor } from '../helpers'
 import { PrivateTopicStore } from '../../src/store'
 import ApiClient, { ApiUrls } from '../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
-import Authenticator from '../../src/authn/Authenticator'
+import LocalAuthenticator from '../../src/authn/LocalAuthenticator'
 
 type TestCase = { name: string; api: string }
 
@@ -32,7 +32,7 @@ describe('PrivateTopicStore', () => {
         wallet = newWallet()
         store = new PrivateTopicStore(new ApiClient(testCase.api))
         const keys = await PrivateKeyBundleV1.generate(wallet)
-        store.setAuthenticator(new Authenticator(keys.identityKey))
+        store.setAuthenticator(new LocalAuthenticator(keys.identityKey))
       })
 
       it('roundtrip', async () => {

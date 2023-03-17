@@ -29,7 +29,7 @@ const mockGetToken = jest.fn().mockReturnValue(
     age: 10,
   })
 )
-jest.mock('../src/authn/Authenticator', () => {
+jest.mock('../src/authn/LocalAuthenticator', () => {
   return jest.fn().mockImplementation(() => {
     return { createToken: mockGetToken }
   })
