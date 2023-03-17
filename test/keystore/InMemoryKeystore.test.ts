@@ -1,5 +1,7 @@
+import { keystore } from '@xmtp/proto'
+import { randomBytes } from './../../bench/helpers'
 import { InvitationContext } from './../../src/Invitation'
-import { encodeV1Message, MessageV1 } from './../../src/Message'
+import { encodeV1Message } from './../../src/Message'
 import {
   PrivateKeyBundleV1,
   SignedPublicKeyBundle,
@@ -386,6 +388,55 @@ describe('InMemoryKeystore', () => {
       }
 
       expect(equalBytes(payload, decrypted.result!.decrypted)).toBeTruthy()
+    })
+  })
+
+  describe('SignDigest', () => {
+    it('signs a valid digest with the identity key', async () => {
+      const digest = randomBytes(32)
+      const signature = await aliceKeystore.signDigest({
+        digest,
+        identityKey: true,
+        prekeyIndex: undefined,
+      })
+      expect(signature).toEqual(await aliceKeys.identityKey.sign(digest))
+    })
+
+    it('rejects an invalid digest', async () => {
+      const digest = new Uint8Array(0)
+      await expect(
+        aliceKeystore.signDigest({
+          digest,
+          identityKey: true,
+          prekeyIndex: undefined,
+        })
+      ).rejects.toThrow()
+    })
+
+    it('signs a valid digest with a specified prekey', async () => {
+      const digest = randomBytes(32)
+      const signature = await aliceKeystore.signDigest({
+        digest,
+        identityKey: false,
+        prekeyIndex: 0,
+      })
+      expect(signature).toEqual(await aliceKeys.preKeys[0].sign(digest))
+    })
+
+    it('rejects signing with an invalid prekey index', async () => {
+      const digest = randomBytes(32)
+      expect(
+        aliceKeystore.signDigest({
+          digest,
+          identityKey: false,
+          prekeyIndex: 100,
+        })
+      ).rejects.toThrow(
+        new KeystoreError(
+          keystore.ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
+          'no prekey found'
+        )
+      )
     })
   })
 
