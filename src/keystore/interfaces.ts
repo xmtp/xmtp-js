@@ -1,4 +1,4 @@
-import { keystore, publicKey } from '@xmtp/proto'
+import { keystore, privateKey, publicKey, authn, signature } from '@xmtp/proto'
 import { WithoutUndefined } from './utils'
 export interface Keystore {
   // Decrypt a batch of V1 messages
@@ -17,10 +17,16 @@ export interface Keystore {
   createInvite(
     req: keystore.CreateInviteRequest
   ): Promise<keystore.CreateInviteResponse>
+  // Get an API auth token
+  createAuthToken(req: keystore.CreateAuthTokenRequest): Promise<authn.Token>
+  // Sign the provided digest
+  signDigest(req: keystore.SignDigestRequest): Promise<signature.Signature>
   // Get V2 conversations
   getV2Conversations(): Promise<keystore.ConversationReference[]>
   // Used for publishing the contact
-  getPublicKeyBundle(): Promise<publicKey.SignedPublicKeyBundle>
+  getPublicKeyBundle(): Promise<publicKey.PublicKeyBundle>
+  // Export the private keys. May throw an error if the keystore does not allow this operation
+  getPrivateKeyBundle(): Promise<privateKey.PrivateKeyBundleV1>
   // Technically duplicative of `getPublicKeyBundle`, but nice for ergonomics
   getAccountAddress(): Promise<string>
 }

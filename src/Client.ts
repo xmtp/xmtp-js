@@ -26,7 +26,7 @@ import { compress } from './Compression'
 import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
-import { Authenticator } from './authn'
+import { KeystoreAuthenticator } from './authn'
 import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
@@ -214,7 +214,7 @@ export default class Client {
     const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
     // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
     const keystore = await InMemoryKeystore.create(keys)
-    apiClient.setAuthenticator(new Authenticator(keys.identityKey))
+    apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(
       keys.identityKey.publicKey.walletSignatureAddress(),
       options.env

@@ -7,7 +7,7 @@ import {
   encrypt,
   PrivateKeyBundleV2,
 } from '../../crypto'
-import { Authenticator } from '../../authn'
+import { LocalAuthenticator } from '../../authn'
 import { bytesToHex, getRandomValues, hexToBytes } from '../../crypto/utils'
 import Ciphertext from '../../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
@@ -62,7 +62,9 @@ export default class NetworkKeyManager {
     const encodedBundle = await this.toEncryptedBytes(bundle, this.signer)
     // We need to setup the Authenticator so that the underlying store can publish messages without error
     if (typeof this.persistence.setAuthenticator === 'function') {
-      this.persistence.setAuthenticator(new Authenticator(bundle.identityKey))
+      this.persistence.setAuthenticator(
+        new LocalAuthenticator(bundle.identityKey)
+      )
     }
 
     await this.persistence.setItem(keyAddress, encodedBundle)

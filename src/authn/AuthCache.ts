@@ -1,4 +1,4 @@
-import Authenticator from './Authenticator'
+import { Authenticator } from './interfaces'
 import Token from './Token'
 
 // Default to 10 seconds less than expected expiry to give some wiggle room near the end

@@ -1,3 +1,5 @@
+import { keystore } from '@xmtp/proto'
+import { randomBytes } from './../../bench/helpers'
 import { InvitationContext } from './../../src/Invitation'
 import { MessageV1 } from './../../src/Message'
 import {
@@ -13,6 +15,8 @@ import { InvitationV1, SealedInvitation } from '../../src/Invitation'
 import { buildProtoEnvelope, newWallet } from '../helpers'
 import { dateToNs, nsToDate } from '../../src/utils/date'
 import { LocalStoragePersistence } from '../../src/keystore/persistence'
+import Token from '../../src/authn/Token'
+import Long from 'long'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -387,6 +391,55 @@ describe('InMemoryKeystore', () => {
     })
   })
 
+  describe('SignDigest', () => {
+    it('signs a valid digest with the identity key', async () => {
+      const digest = randomBytes(32)
+      const signature = await aliceKeystore.signDigest({
+        digest,
+        identityKey: true,
+        prekeyIndex: undefined,
+      })
+      expect(signature).toEqual(await aliceKeys.identityKey.sign(digest))
+    })
+
+    it('rejects an invalid digest', async () => {
+      const digest = new Uint8Array(0)
+      await expect(
+        aliceKeystore.signDigest({
+          digest,
+          identityKey: true,
+          prekeyIndex: undefined,
+        })
+      ).rejects.toThrow()
+    })
+
+    it('signs a valid digest with a specified prekey', async () => {
+      const digest = randomBytes(32)
+      const signature = await aliceKeystore.signDigest({
+        digest,
+        identityKey: false,
+        prekeyIndex: 0,
+      })
+      expect(signature).toEqual(await aliceKeys.preKeys[0].sign(digest))
+    })
+
+    it('rejects signing with an invalid prekey index', async () => {
+      const digest = randomBytes(32)
+      expect(
+        aliceKeystore.signDigest({
+          digest,
+          identityKey: false,
+          prekeyIndex: 100,
+        })
+      ).rejects.toThrow(
+        new KeystoreError(
+          keystore.ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
+          'no prekey found'
+        )
+      )
+    })
+  })
+
   describe('getV2Conversations', () => {
     it('correctly sorts conversations', async () => {
       const recipient = SignedPublicKeyBundle.fromLegacyBundle(
@@ -401,7 +454,7 @@ describe('InMemoryKeystore', () => {
       // Shuffle the order they go into the store
       const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
 
-      const invites = Promise.all(
+      await Promise.all(
         shuffled.map((createdAt) => {
           return aliceKeystore.createInvite({
             recipient,
@@ -420,10 +473,31 @@ describe('InMemoryKeystore', () => {
     it('works with persistence', async () => {})
   })
 
+  describe('createAuthToken', () => {
+    it('creates an auth token', async () => {
+      const authToken = new Token(await aliceKeystore.createAuthToken({}))
+      expect(authToken.authDataBytes).toBeDefined()
+      expect(authToken.authData.createdNs).toBeInstanceOf(Long)
+      expect(authToken.authDataSignature).toBeDefined()
+      expect(authToken.identityKey?.secp256k1Uncompressed).toBeDefined()
+      expect(authToken.identityKey?.signature).toBeDefined()
+    })
+
+    it('creates an auth token with a defined time', async () => {
+      const definedTime = new Date(+new Date() - 5000)
+      const token = new Token(
+        await aliceKeystore.createAuthToken({
+          timestampNs: dateToNs(definedTime),
+        })
+      )
+      expect(token.ageMs).toBeGreaterThan(5000)
+    })
+  })
+
   describe('getPublicKeyBundle', () => {
     it('can retrieve a valid bundle', async () => {
       const bundle = await aliceKeystore.getPublicKeyBundle()
-      const wrappedBundle = new SignedPublicKeyBundle(bundle)
+      const wrappedBundle = SignedPublicKeyBundle.fromLegacyBundle(bundle)
       expect(
         wrappedBundle.equals(
           SignedPublicKeyBundle.fromLegacyBundle(aliceKeys.getPublicKeyBundle())
