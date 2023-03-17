@@ -4,7 +4,7 @@ import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { ListMessagesOptions } from './../Client'
 import { InvitationContext } from './../Invitation'
 import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
-import { MessageV1, DecodedMessage, decryptV1Message } from '../Message'
+import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
 import {
@@ -233,11 +233,7 @@ export default class Conversations {
         if (!newPeer(peerAddress)) {
           return undefined
         }
-        await decryptV1Message(
-          this.client.keystore,
-          msg,
-          this.client.publicKeyBundle
-        )
+        await msg.decrypt(this.client.keystore, this.client.publicKeyBundle)
         return new ConversationV1(this.client, peerAddress, msg.sent)
       }
       if (env.contentTopic === inviteTopic) {
@@ -408,9 +404,8 @@ export default class Conversations {
         if (!have || have > message.sent) {
           try {
             // Verify that the message can be decrypted before treating the intro as valid
-            await decryptV1Message(
+            await message.decrypt(
               this.client.keystore,
-              message,
               this.client.publicKeyBundle
             )
             seenPeers.set(peerAddress, message.sent)

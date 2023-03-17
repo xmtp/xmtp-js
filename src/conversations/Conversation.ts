@@ -6,7 +6,6 @@ import {
   b64Decode,
 } from '../utils'
 import { utils } from 'ethers'
-import { DecodedMessage, encodeV1Message } from './../Message'
 import Stream from '../Stream'
 import Client, {
   ListMessagesOptions,
@@ -14,7 +13,7 @@ import Client, {
   SendOptions,
 } from '../Client'
 import { InvitationContext } from '../Invitation'
-import { MessageV1, MessageV2, decodeContent } from '../Message'
+import { DecodedMessage, MessageV1, MessageV2, decodeContent } from '../Message'
 import {
   messageApi,
   message,
@@ -257,7 +256,7 @@ export class ConversationV1 {
     const timestamp = options?.timestamp || new Date()
     const payload = await this.client.encodeContent(content, options)
 
-    return encodeV1Message(
+    return MessageV1.encode(
       this.client.keystore,
       payload,
       this.client.publicKeyBundle,

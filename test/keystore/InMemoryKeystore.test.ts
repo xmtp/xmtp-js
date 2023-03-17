@@ -1,7 +1,7 @@
 import { keystore } from '@xmtp/proto'
 import { randomBytes } from './../../bench/helpers'
 import { InvitationContext } from './../../src/Invitation'
-import { encodeV1Message } from './../../src/Message'
+import { MessageV1 } from './../../src/Message'
 import {
   PrivateKeyBundleV1,
   SignedPublicKeyBundle,
@@ -110,7 +110,7 @@ describe('InMemoryKeystore', () => {
     it('can decrypt a valid message', async () => {
       const msg = new TextEncoder().encode('Hello, world!')
       const peerKeys = bobKeys.getPublicKeyBundle()
-      const message = await encodeV1Message(
+      const message = await MessageV1.encode(
         aliceKeystore,
         msg,
         aliceKeys.getPublicKeyBundle(),
@@ -140,7 +140,7 @@ describe('InMemoryKeystore', () => {
     it('fails to decrypt an invalid message', async () => {
       const msg = new TextEncoder().encode('Hello, world!')
       const charlieKeys = await PrivateKeyBundleV1.generate(newWallet())
-      const message = await encodeV1Message(
+      const message = await MessageV1.encode(
         bobKeystore,
         msg,
         bobKeys.getPublicKeyBundle(),

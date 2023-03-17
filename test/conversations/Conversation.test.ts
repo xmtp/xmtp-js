@@ -1,8 +1,4 @@
-import {
-  DecodedMessage,
-  decryptV1Message,
-  MessageV1,
-} from './../../src/Message'
+import { DecodedMessage, MessageV1 } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import {
   Client,
@@ -263,9 +259,8 @@ describe('conversation', () => {
         envelopes[0].message as unknown as string
       )
       const decoded = await MessageV1.fromBytes(messageBytes)
-      const decrypted = await decryptV1Message(
+      const decrypted = await decoded.decrypt(
         alice.keystore,
-        decoded,
         alice.publicKeyBundle
       )
       const encodedContent = proto.EncodedContent.decode(decrypted)

@@ -2,7 +2,7 @@ import { Keystore } from '../../src/keystore'
 import { Ciphertext } from '../../src/crypto'
 import { PrivateKeyBundleV1 } from './../../src/crypto/PrivateKeyBundle'
 import { decryptV1, encryptV1 } from '../../src/keystore/encryption'
-import { encodeV1Message, MessageV1 } from '../../src/Message'
+import { MessageV1 } from '../../src/Message'
 import { Wallet } from 'ethers'
 import { equalBytes } from '../../src/crypto/utils'
 import { newWallet } from '../helpers'
@@ -28,7 +28,7 @@ describe('encryption primitives', () => {
       const messageText = 'Hello, world!'
       const message = new TextEncoder().encode(messageText)
 
-      const payload = await encodeV1Message(
+      const payload = await MessageV1.encode(
         aliceKeystore,
         message,
         aliceKeys.getPublicKeyBundle(),
@@ -60,7 +60,7 @@ describe('encryption primitives', () => {
     it('fails to decrypt when wrong keys are used', async () => {
       const message = new TextEncoder().encode('should fail')
 
-      const payload = await encodeV1Message(
+      const payload = await MessageV1.encode(
         aliceKeystore,
         message,
         aliceKeys.getPublicKeyBundle(),
