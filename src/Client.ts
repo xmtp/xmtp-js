@@ -91,6 +91,7 @@ type ContentOptions = {
 }
 
 type KeyStoreOptions = {
+  // Provide an array of KeystoreProviders to limit where the Client will look to
   keystoreProviders: KeystoreProvider[]
   persistConversations: boolean
   privateKeyOverride?: Uint8Array
@@ -639,6 +640,7 @@ export function defaultKeystoreProviders(): KeystoreProvider[] {
   ]
 }
 
+// Take an array of KeystoreProviders from the options and try them until one succeeds
 async function bootstrapKeystore(
   opts: ClientOptions,
   apiClient: ApiClient,
