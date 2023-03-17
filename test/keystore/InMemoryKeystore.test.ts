@@ -454,7 +454,7 @@ describe('InMemoryKeystore', () => {
       // Shuffle the order they go into the store
       const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
 
-      const invites = Promise.all(
+      await Promise.all(
         shuffled.map((createdAt) => {
           return aliceKeystore.createInvite({
             recipient,
