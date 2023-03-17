@@ -5,7 +5,6 @@ import {
 } from '../../../src/keystore/persistence'
 import { getRandomValues } from '../../../src/crypto/utils'
 import { PrivateKey, SignedEciesCiphertext } from '../../../src/crypto'
-import { SignedContent } from '@xmtp/proto/ts/dist/types/message_contents/content.pb'
 
 const TEST_KEY = 'test-key'
 const TEST_KEY_2 = 'test-key-2'
