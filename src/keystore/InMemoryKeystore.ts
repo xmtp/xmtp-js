@@ -1,10 +1,10 @@
-import { keystore } from '@xmtp/proto'
+import { authn, keystore, privateKey, signature } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
-import { SignedPublicKeyBundle } from '../crypto'
+import { PrivateKey, PublicKeyBundle } from '../crypto'
 import { Keystore, TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
@@ -20,17 +20,20 @@ import {
 import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
+import LocalAuthenticator from '../authn/LocalAuthenticator'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private inviteStore: InviteStore
+  private authenticator: LocalAuthenticator
 
   constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.inviteStore = inviteStore
+    this.authenticator = new LocalAuthenticator(keys.identityKey)
   }
 
   static async create(keys: PrivateKeyBundleV1, persistence?: Persistence) {
@@ -136,6 +139,14 @@ export default class InMemoryKeystore implements Keystore {
     return keystore.EncryptResponse.fromPartial({
       responses,
     })
+  }
+
+  async createAuthToken({
+    timestampNs,
+  }: keystore.CreateAuthTokenRequest): Promise<authn.Token> {
+    return this.authenticator.createToken(
+      timestampNs ? nsToDate(timestampNs) : undefined
+    )
   }
 
   async encryptV2(
@@ -254,6 +265,41 @@ export default class InMemoryKeystore implements Keystore {
     }
   }
 
+  async signDigest(
+    req: keystore.SignDigestRequest
+  ): Promise<signature.Signature> {
+    if (!validateObject(req, ['digest'], [])) {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        'missing required field'
+      )
+    }
+
+    const { digest, identityKey, prekeyIndex } = req
+    let key: PrivateKey
+    if (identityKey) {
+      key = this.v1Keys.identityKey
+    } else if (
+      typeof prekeyIndex !== 'undefined' &&
+      Number.isInteger(prekeyIndex)
+    ) {
+      key = this.v1Keys.preKeys[prekeyIndex]
+      if (!key) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
+          'no prekey found'
+        )
+      }
+    } else {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        'must specifify identityKey or prekeyIndex'
+      )
+    }
+
+    return key.sign(digest)
+  }
+
   async getV2Conversations(): Promise<keystore.ConversationReference[]> {
     const convos = this.inviteStore.topics.map((invite) =>
       topicDataToConversationReference(invite)
@@ -265,8 +311,12 @@ export default class InMemoryKeystore implements Keystore {
     return convos
   }
 
-  async getPublicKeyBundle(): Promise<SignedPublicKeyBundle> {
-    return this.v2Keys.getPublicKeyBundle()
+  async getPublicKeyBundle(): Promise<PublicKeyBundle> {
+    return this.v1Keys.getPublicKeyBundle()
+  }
+
+  async getPrivateKeyBundle(): Promise<privateKey.PrivateKeyBundleV1> {
+    return this.v1Keys
   }
 
   async getAccountAddress(): Promise<string> {

@@ -8,7 +8,7 @@ import {
   encrypt,
 } from '../crypto'
 import { KeyStore } from './KeyStore'
-import { Authenticator } from '../authn'
+import { LocalAuthenticator } from '../authn'
 import { bytesToHex, getRandomValues, hexToBytes } from '../crypto/utils'
 import Ciphertext from '../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
@@ -62,7 +62,7 @@ export default class EncryptedKeyStore implements KeyStore {
     const encodedBundle = await this.toEncryptedBytes(bundle, this.signer)
     // We need to setup the Authenticator so that the underlying store can publish messages without error
     if (typeof this.store.setAuthenticator === 'function') {
-      this.store.setAuthenticator(new Authenticator(bundle.identityKey))
+      this.store.setAuthenticator(new LocalAuthenticator(bundle.identityKey))
     }
     await this.store.set(keyAddress, Buffer.from(encodedBundle))
   }

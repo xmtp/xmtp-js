@@ -5,13 +5,14 @@ import { PrivateKey } from '../crypto'
 import { hexToBytes } from '../crypto/utils'
 import Token from './Token'
 
-export default class Authenticator {
+export default class LocalAuthenticator {
   private identityKey: PrivateKey
 
   constructor(identityKey: PrivateKey) {
     if (!identityKey.publicKey.signature) {
       throw new Error('Provided public key is not signed')
     }
+
     this.identityKey = identityKey
   }
 

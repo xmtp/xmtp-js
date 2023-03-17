@@ -2,7 +2,7 @@ import { Signer } from './../../../src/types/Signer'
 import ApiClient, { ApiUrls } from '../../../src/ApiClient'
 import { newWallet } from '../../helpers'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { Authenticator } from '../../../src/authn'
+import { LocalAuthenticator } from '../../../src/authn'
 import { PrivateKeyBundleV1 } from '../../../src/crypto'
 
 // We restrict publishing to topics that do not match this pattern
@@ -20,7 +20,7 @@ describe('TopicPersistence', () => {
     const storageKey = buildValidKey(
       bundle.identityKey.publicKey.walletSignatureAddress()
     )
-    apiClient.setAuthenticator(new Authenticator(bundle.identityKey))
+    apiClient.setAuthenticator(new LocalAuthenticator(bundle.identityKey))
     const store = new TopicPersistence(apiClient)
     try {
       await store.setItem(storageKey, input)
@@ -46,7 +46,7 @@ describe('TopicPersistence', () => {
       bundle.identityKey.publicKey.walletSignatureAddress()
     )
     const store = new TopicPersistence(apiClient)
-    store.setAuthenticator(new Authenticator(bundle.identityKey))
+    store.setAuthenticator(new LocalAuthenticator(bundle.identityKey))
     await store.setItem(storageKey, firstInput)
     expect(await store.getItem(storageKey)).toEqual(firstInput)
 

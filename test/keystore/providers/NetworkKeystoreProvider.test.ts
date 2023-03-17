@@ -16,7 +16,7 @@ import NetworkKeyManager, {
 } from '../../../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
 import { getRandomValues, hexToBytes } from '../../../src/crypto/utils'
-import Authenticator from '../../../src/authn/Authenticator'
+import { LocalAuthenticator } from '../../../src/authn'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
@@ -50,7 +50,7 @@ describe('NetworkKeystoreProvider', () => {
       wallet
     )
     expect(await keystore.getPublicKeyBundle()).toEqual(
-      SignedPublicKeyBundle.fromLegacyBundle(bundle.getPublicKeyBundle())
+      bundle.getPublicKeyBundle()
     )
   })
 
@@ -70,7 +70,7 @@ describe('NetworkKeystoreProvider', () => {
     }).finish()
 
     // Store the legacy key on the node
-    apiClient.setAuthenticator(new Authenticator(bundle.identityKey))
+    apiClient.setAuthenticator(new LocalAuthenticator(bundle.identityKey))
     const persistence = new TopicPersistence(apiClient)
     const key = `${walletAddr}/key_bundle`
     await persistence.setItem(key, bytesToStore)
