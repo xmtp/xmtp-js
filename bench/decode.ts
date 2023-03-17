@@ -24,7 +24,7 @@ const decodeV1 = () => {
       const message = randomBytes(size)
       const encodedMessage = await MessageV1.encode(
         alice.keystore,
-        message,
+        await alice.encodeContent(message),
         alice.publicKeyBundle,
         bob.getPublicKeyBundle(),
         new Date()
