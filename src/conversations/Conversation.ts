@@ -32,11 +32,13 @@ import {
   Signature,
   PublicKeyBundle,
 } from '../crypto'
+import { PreparedMessage } from '../PreparedMessage'
 import Ciphertext from '../crypto/Ciphertext'
 import { sha256 } from '../crypto/encryption'
 import { ContentTypeText } from '../codecs/Text'
 import { KeystoreError } from '../keystore'
 import Long from 'long'
+import { Envelope } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
 const { b64Decode } = fetcher
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -215,6 +217,49 @@ export class ConversationV1 {
 
   get topic(): string {
     return buildDirectMessageTopic(this.peerAddress, this.client.address)
+  }
+
+  async prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage> {
+    let topics: string[]
+    let recipient = await this.client.getUserContact(this.peerAddress)
+    if (!recipient) {
+      throw new Error(`recipient ${this.peerAddress} is not registered`)
+    }
+    if (!(recipient instanceof PublicKeyBundle)) {
+      recipient = recipient.toLegacyBundle()
+    }
+
+    if (!this.client.contacts.has(this.peerAddress)) {
+      topics = [
+        buildUserIntroTopic(this.peerAddress),
+        buildUserIntroTopic(this.client.address),
+        this.topic,
+      ]
+      this.client.contacts.add(this.peerAddress)
+    } else {
+      topics = [this.topic]
+    }
+    const contentType = options?.contentType || ContentTypeText
+    const msg = await this.encodeMessage(content, recipient, options)
+
+    const env = {
+      contentTopic: this.topic,
+      message: msg.toBytes(),
+      timestamp: msg.sent,
+    }
+
+    return new PreparedMessage(env, async () => {
+      await this.client.publishEnvelopes(
+        topics.map((topic) => ({
+          contentTopic: topic,
+          message: msg.toBytes(),
+          timestamp: msg.sent,
+        }))
+      )
+    })
   }
 
   /**
@@ -578,6 +623,29 @@ export class ConversationV2 {
       this,
       error
     )
+  }
+
+  async prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage> {
+    const msg = await this.encodeMessage(content, options)
+
+    const env = {
+      contentTopic: this.topic,
+      message: msg.toBytes(),
+      timestamp: msg.sent,
+    }
+
+    return new PreparedMessage(env, async () => {
+      await this.client.publishEnvelopes([
+        {
+          contentTopic: this.topic,
+          message: msg.toBytes(),
+          timestamp: msg.sent,
+        },
+      ])
+    })
   }
 
   export(): ConversationV2Export {
