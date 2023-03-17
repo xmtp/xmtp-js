@@ -50,9 +50,6 @@ function equalConstTime(b1: Buffer, b2: Buffer) {
   return res === 0
 }
 
-/* This must check if we're in the browser or
-not, since the functions are different and does
-not convert using browserify */
 function randomBytes(size: number): Buffer {
   const arr = new Uint8Array(size)
   browserCrypto.getRandomValues(arr)
@@ -99,15 +96,6 @@ async function hmacSha256Sign(key: Buffer, msg: Buffer) {
     await subtle.sign({ name: 'HMAC', hash: 'SHA-256' }, newKey, msg)
   )
 }
-
-// function hmacSha256Sign(key, msg) {
-//   return new Promise(function (resolve) {
-//     const hmac = nodeCrypto.createHmac('sha256', Buffer.from(key))
-//     hmac.update(msg)
-//     const result = hmac.digest()
-//     resolve(result)
-//   })
-// }
 
 async function hmacSha256Verify(key: Buffer, msg: Buffer, sig: Buffer) {
   const expectedSig = await hmacSha256Sign(key, msg)
