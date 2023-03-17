@@ -11,6 +11,13 @@ const EC_GROUP_ORDER = Buffer.from(
 )
 const ZERO32 = Buffer.alloc(32, 0)
 
+export type Ecies = {
+  iv: Buffer
+  ephemeralPublicKey: Buffer
+  ciphertext: Buffer
+  mac: Buffer
+}
+
 function assert(condition: boolean, message: string) {
   if (!condition) {
     throw new Error(message || 'Assertion failed')
@@ -205,77 +212,54 @@ export function derive(
   })
 }
 
-export function encrypt(
+export async function encrypt(
   publicKeyTo: Buffer,
   msg: Buffer,
   opts?: { ephemPrivateKey?: Buffer; iv?: Buffer } | undefined
 ) {
   opts = opts || {}
-  // Tmp variables to save context from flat promises;
-  let iv: Buffer, ephemPublicKey: Buffer, ciphertext: Buffer, macKey: Buffer
-  return new Promise(function (resolve: (value: Promise<Buffer>) => void) {
-    let ephemPrivateKey = opts?.ephemPrivateKey || randomBytes(32)
-    // There is a very unlikely possibility that it is not a valid key
-    while (!isValidPrivateKey(ephemPrivateKey)) {
-      ephemPrivateKey = opts?.ephemPrivateKey || randomBytes(32)
+  // Take IV from opts or generate randomly
+  const iv = opts?.iv || randomBytes(16)
+  let ephemPrivateKey = opts?.ephemPrivateKey || randomBytes(32)
+  // There is a very unlikely possibility that it is not a valid key
+  while (!isValidPrivateKey(ephemPrivateKey)) {
+    if (opts?.ephemPrivateKey) {
+      throw new Error('ephemPrivateKey is not valid')
     }
-    ephemPublicKey = getPublic(ephemPrivateKey)
-    resolve(derive(ephemPrivateKey, publicKeyTo))
-  })
-    .then(function (Px: Buffer) {
-      return sha512(Px)
-    })
-    .then(function (hash) {
-      iv = opts?.iv || randomBytes(16)
-      const encryptionKey = hash.slice(0, 32)
-      macKey = hash.slice(32)
-      return aesCbcEncrypt(iv, encryptionKey, msg)
-    })
-    .then(function (data: Buffer) {
-      ciphertext = data
-      const dataToMac = Buffer.concat([iv, ephemPublicKey, ciphertext])
-      return hmacSha256Sign(macKey, dataToMac)
-    })
-    .then(function (mac) {
-      return {
-        iv,
-        ephemPublicKey,
-        ciphertext,
-        mac,
-      }
-    })
+    ephemPrivateKey = randomBytes(32)
+  }
+  // Get the public key from the ephemeral private key
+  const ephemeralPublicKey = getPublic(ephemPrivateKey)
+
+  const hash = await sha512(await derive(ephemPrivateKey, publicKeyTo))
+  const encryptionKey = hash.slice(0, 32)
+  const macKey = hash.slice(32)
+  const ciphertext = await aesCbcEncrypt(iv, encryptionKey, msg)
+
+  // Get a MAC
+  const dataToMac = Buffer.concat([iv, ephemeralPublicKey, ciphertext])
+  const mac = await hmacSha256Sign(macKey, dataToMac)
+
+  // Return the payload
+  return {
+    iv,
+    ephemeralPublicKey,
+    ciphertext,
+    mac,
+  }
 }
 
-export function decrypt(
-  privateKey: Buffer,
-  opts: {
-    iv: Buffer
-    ephemPublicKey: Buffer
-    ciphertext: Buffer
-    mac: Buffer
-  }
-) {
-  // Tmp variable to save context from flat promises;
-  let encryptionKey: Buffer
-  return derive(privateKey, opts?.ephemPublicKey)
-    .then(function (Px) {
-      return sha512(Px)
-    })
-    .then(function (hash) {
-      encryptionKey = hash.slice(0, 32)
-      const macKey = hash.slice(32)
-      const dataToMac = Buffer.concat([
-        opts.iv,
-        opts.ephemPublicKey,
-        opts.ciphertext,
-      ])
-      return hmacSha256Verify(macKey, dataToMac, opts.mac)
-    })
-    .then(function (macGood) {
-      assert(macGood, 'Bad MAC')
-      return aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext)
-    })
-    .then(function (msg) {
-      return Buffer.from(new Uint8Array(msg))
-    })
+export async function decrypt(privateKey: Buffer, opts: Ecies) {
+  const px = await derive(privateKey, opts.ephemeralPublicKey)
+  const hash = await sha512(px)
+  const encryptionKey = hash.slice(0, 32)
+  const macKey = hash.slice(32)
+  const dataToMac = Buffer.concat([
+    opts.iv,
+    opts.ephemeralPublicKey,
+    opts.ciphertext,
+  ])
+  assert(await hmacSha256Verify(macKey, dataToMac, opts.mac), 'Bad mac')
+
+  return aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext)
 }
