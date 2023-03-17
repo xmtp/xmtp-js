@@ -1,5 +1,7 @@
 import { Persistence } from './interface'
-import eccrypto, { Ecies } from 'eccrypto'
+// eslint-disable-next-line
+// @ts-ignore
+import { Ecies, getPublic, encrypt, decrypt } from '../../crypto/ecies'
 
 const IV_LENGTH = 16
 const EPHEMERAL_PUBLIC_KEY_LENGTH = 65
@@ -77,7 +79,7 @@ export default class EncryptedPersistence implements Persistence {
   constructor(persistence: Persistence, privateKey: Uint8Array) {
     this.persistence = persistence
     this.privateKey = Buffer.from(privateKey)
-    this.publicKey = eccrypto.getPublic(this.privateKey)
+    this.publicKey = getPublic(this.privateKey)
   }
 
   async getItem(key: string): Promise<Uint8Array | null> {
@@ -94,13 +96,13 @@ export default class EncryptedPersistence implements Persistence {
   }
 
   private async encrypt(value: Uint8Array): Promise<Uint8Array> {
-    const ecies = await eccrypto.encrypt(this.publicKey, Buffer.from(value))
+    const ecies = await encrypt(this.publicKey, Buffer.from(value))
     return serializeEcies(ecies)
   }
 
   private async decrypt(value: Uint8Array): Promise<Uint8Array> {
     const ecies = deserializeEcies(value)
-    const result = await eccrypto.decrypt(this.privateKey, ecies)
+    const result = await decrypt(this.privateKey, ecies)
     return Uint8Array.from(result)
   }
 }
