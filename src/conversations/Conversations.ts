@@ -4,7 +4,7 @@ import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { ListMessagesOptions } from './../Client'
 import { InvitationContext } from './../Invitation'
 import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
-import { MessageV1, DecodedMessage } from '../Message'
+import { MessageV1, DecodedMessage, decryptV1Message } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
 import {
@@ -385,20 +385,8 @@ export default class Conversations {
     const topic = buildUserIntroTopic(this.client.address)
     const messages = await this.client.listEnvelopes(
       [topic],
-      async (env) => {
-        const msg = await MessageV1.fromBytes(
-          b64Decode(env.message as unknown as string)
-        )
-
-        const tmpConvo = new ConversationV1(
-          this.client,
-          this.getPeerAddress(msg),
-          msg.sent
-        )
-        // Decrypt the message to ensure it is valid. Ignore the contents
-        // TODO: Refactor to only require decrypting one message per peer
-        await tmpConvo.decryptBatch([msg], topic, true)
-        return msg
+      (env) => {
+        return MessageV1.fromBytes(b64Decode(env.message as unknown as string))
       },
       opts
     )
@@ -415,7 +403,17 @@ export default class Conversations {
       if (peerAddress) {
         const have = seenPeers.get(peerAddress)
         if (!have || have > message.sent) {
-          seenPeers.set(peerAddress, message.sent)
+          try {
+            // Verify that the message can be decrypted before treating the intro as valid
+            await decryptV1Message(
+              this.client.keystore,
+              message,
+              this.client.publicKeyBundle
+            )
+            seenPeers.set(peerAddress, message.sent)
+          } catch (e) {
+            continue
+          }
         }
       }
     }
