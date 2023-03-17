@@ -1,3 +1,4 @@
+// This file is taken from `bitchan/eccrypto` and ported to TS. All references to `nodeCrypto` have been replaced with `browserCrypto`
 import { ec as EC } from 'elliptic'
 import { crypto as browserCrypto } from './encryption'
 const ec = new EC('secp256k1')
