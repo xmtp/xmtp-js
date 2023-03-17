@@ -1,10 +1,11 @@
 import assert from 'assert'
+import { keystore } from '@xmtp/proto'
 import { newWallet } from './helpers'
 import { MessageV1 } from '../src/Message'
 import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
-import { NoMatchingPreKeyError } from '../src/crypto/errors'
 import { bytesToHex } from '../src/crypto/utils'
 import { sha256 } from '../src/crypto/encryption'
+import { InMemoryKeystore, InviteStore, KeystoreError } from '../src/keystore'
 
 describe('Message', function () {
   it('fully encodes/decodes messages', async function () {
@@ -19,23 +20,33 @@ describe('Message', function () {
     const bobWalletAddress = bob
       .getPublicKeyBundle()
       .identityKey.walletSignatureAddress()
-
+    const bobKeystore = new InMemoryKeystore(bob, new InviteStore())
     // Alice encodes message for Bob
     const content = new TextEncoder().encode('Yo!')
+    const aliceKeystore = new InMemoryKeystore(alice, new InviteStore())
+
     const msg1 = await MessageV1.encode(
-      alice,
-      bob.getPublicKeyBundle(),
+      aliceKeystore,
       content,
+      alicePub,
+      bob.getPublicKeyBundle(),
       new Date()
     )
+
     assert.equal(msg1.senderAddress, aliceWallet.address)
     assert.equal(msg1.recipientAddress, bobWalletAddress)
-    const decrypted = await msg1.decrypt(alice)
+    const decrypted = await msg1.decrypt(
+      aliceKeystore,
+      alice.getPublicKeyBundle()
+    )
     assert.deepEqual(decrypted, content)
 
     // Bob decodes message from Alice
     const msg2 = await MessageV1.fromBytes(msg1.toBytes())
-    const msg2Decrypted = await msg2.decrypt(alice)
+    const msg2Decrypted = await msg2.decrypt(
+      bobKeystore,
+      bob.getPublicKeyBundle()
+    )
     assert.deepEqual(msg2Decrypted, decrypted)
     assert.equal(msg2.senderAddress, aliceWallet.address)
     assert.equal(msg2.recipientAddress, bobWalletAddress)
@@ -45,24 +56,31 @@ describe('Message', function () {
     const alice = await PrivateKeyBundleV1.generate(newWallet())
     const bob = await PrivateKeyBundleV1.generate(newWallet())
     const eve = await PrivateKeyBundleV1.generate(newWallet())
+    const aliceKeystore = new InMemoryKeystore(alice, new InviteStore())
+    const eveKeystore = new InMemoryKeystore(eve, new InviteStore())
     const msg = await MessageV1.encode(
-      alice,
+      aliceKeystore,
+      new TextEncoder().encode('Hi'),
+      alice.getPublicKeyBundle(),
       bob.getPublicKeyBundle(),
-      new TextEncoder().encode('hi'),
       new Date()
     )
     assert.ok(!msg.error)
-    expect(msg.decrypt(eve)).rejects.toThrow(NoMatchingPreKeyError)
+    const eveResult = msg.decrypt(eveKeystore, eve.getPublicKeyBundle())
+    expect(eveResult).rejects.toThrow(KeystoreError)
   })
 
   it('Message create throws error for sender without wallet', async () => {
     const alice = await PrivateKeyBundleV1.generate()
     const bob = await PrivateKeyBundleV1.generate(newWallet())
+    const keystore = new InMemoryKeystore(bob, new InviteStore())
+
     expect(
       MessageV1.encode(
-        alice,
-        bob.getPublicKeyBundle(),
+        keystore,
         new TextEncoder().encode('hi'),
+        alice.getPublicKeyBundle(),
+        bob.getPublicKeyBundle(),
         new Date()
       )
     ).rejects.toThrow('key is not signed')
@@ -71,12 +89,15 @@ describe('Message', function () {
   it('recipientAddress throws error without wallet', async () => {
     const alice = await PrivateKeyBundleV1.generate(newWallet())
     const bob = await PrivateKeyBundleV1.generate()
+    const keystore = new InMemoryKeystore(alice, new InviteStore())
     const msg = await MessageV1.encode(
-      alice,
-      bob.getPublicKeyBundle(),
+      keystore,
       new TextEncoder().encode('hi'),
+      alice.getPublicKeyBundle(),
+      bob.getPublicKeyBundle(),
       new Date()
     )
+
     expect(() => {
       msg.recipientAddress
     }).toThrow('key is not signed')
@@ -84,10 +105,12 @@ describe('Message', function () {
 
   it('id returns bytes as hex string of sha256 hash', async () => {
     const alice = await PrivateKeyBundleV1.generate(newWallet())
+    const keystore = new InMemoryKeystore(alice, new InviteStore())
     const msg = await MessageV1.encode(
-      alice,
-      alice.getPublicKeyBundle(),
+      keystore,
       new TextEncoder().encode('hi'),
+      alice.getPublicKeyBundle(),
+      alice.getPublicKeyBundle(),
       new Date()
     )
     assert.equal(msg.id.length, 64)

@@ -4,7 +4,7 @@ import {
 } from './../src/conversations/Conversation'
 import { MessageV1 } from '../src/Message'
 import { newLocalHostClient } from '../test/helpers'
-import { SignedPublicKeyBundle, utils } from '../src/crypto'
+import { SignedPublicKeyBundle } from '../src/crypto'
 import {
   MESSAGE_SIZES,
   newPrivateKeyBundle,
@@ -23,11 +23,13 @@ const decodeV1 = () => {
 
       const message = randomBytes(size)
       const encodedMessage = await MessageV1.encode(
-        alice.legacyKeys,
-        bob.getPublicKeyBundle(),
+        alice.keystore,
         await alice.encodeContent(message),
+        alice.publicKeyBundle,
+        bob.getPublicKeyBundle(),
         new Date()
       )
+
       const messageBytes = encodedMessage.toBytes()
 
       const convo = new ConversationV1(

@@ -1,10 +1,5 @@
-import {
-  PublicKeyBundle,
-  SignedPublicKeyBundle,
-  PrivateKeyBundleV1,
-  PrivateKeyBundleV2,
-  Signature,
-} from './crypto'
+import { PrivateKeyBundleV1 } from './crypto/PrivateKeyBundle'
+import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
 import {
   buildUserContactTopic,
   mapPaginatedStream,
@@ -13,12 +8,6 @@ import {
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
-import {
-  EncryptedKeyStore,
-  KeyStore,
-  PrivateTopicStore,
-  StaticKeyStore,
-} from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
@@ -30,7 +19,14 @@ import { KeystoreAuthenticator } from './authn'
 import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
-import { InMemoryKeystore, Keystore } from './keystore'
+import { Keystore } from './keystore'
+import {
+  KeyGeneratorKeystoreProvider,
+  KeystoreProvider,
+  KeystoreProviderUnavailableError,
+  NetworkKeystoreProvider,
+  StaticKeystoreProvider,
+} from './keystore/providers'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -95,8 +91,9 @@ type ContentOptions = {
 }
 
 type KeyStoreOptions = {
-  /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
-  keyStoreType: KeyStoreType
+  // Provide an array of KeystoreProviders to limit where the Client will look to
+  keystoreProviders: KeystoreProvider[]
+  persistConversations: boolean
   privateKeyOverride?: Uint8Array
 }
 
@@ -119,19 +116,18 @@ export type ClientOptions = Flatten<
  */
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
-    keyStoreType: KeyStoreType.networkTopicStoreV1,
     privateKeyOverride: undefined,
     env: 'dev',
     apiUrl: undefined,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
+    persistConversations: true,
+    keystoreProviders: defaultKeystoreProviders(),
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
   }
-  if (opts?.privateKeyOverride && !opts?.keyStoreType) {
-    opts.keyStoreType = KeyStoreType.static
-  }
+
   return { ..._defaultOptions, ...opts } as ClientOptions
 }
 
@@ -141,11 +137,10 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  */
 export default class Client {
   address: string
-  legacyKeys: PrivateKeyBundleV1
-  keys: PrivateKeyBundleV2
   keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
+  publicKeyBundle: PublicKeyBundle
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -158,7 +153,7 @@ export default class Client {
   private _maxContentSize: number
 
   constructor(
-    keys: PrivateKeyBundleV1,
+    publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
     keystore: Keystore
@@ -169,10 +164,9 @@ export default class Client {
       PublicKeyBundle | SignedPublicKeyBundle
     >()
     // TODO: Remove keys and legacyKeys
-    this.legacyKeys = keys
-    this.keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.keystore = keystore
-    this.address = keys.identityKey.publicKey.walletSignatureAddress()
+    this.publicKeyBundle = publicKeyBundle
+    this.address = publicKeyBundle.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
@@ -191,10 +185,6 @@ export default class Client {
     return this._backupClient.backupType
   }
 
-  get publicKeyBundle(): PublicKeyBundle {
-    return this.legacyKeys.getPublicKeyBundle()
-  }
-
   get signedPublicKeyBundle(): SignedPublicKeyBundle {
     return SignedPublicKeyBundle.fromLegacyBundle(this.publicKeyBundle)
   }
@@ -211,15 +201,19 @@ export default class Client {
   ): Promise<Client> {
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
-    const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
-    // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
-    const keystore = await InMemoryKeystore.create(keys)
-    apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
-    const backupClient = await Client.setupBackupClient(
-      keys.identityKey.publicKey.walletSignatureAddress(),
-      options.env
+    const keystore = await bootstrapKeystore(options, apiClient, wallet)
+    const publicKeyBundle = new PublicKeyBundle(
+      await keystore.getPublicKeyBundle()
     )
-    const client = new Client(keys, apiClient, backupClient, keystore)
+    const address = publicKeyBundle.walletSignatureAddress()
+    apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
+    const backupClient = await Client.setupBackupClient(address, options.env)
+    const client = new Client(
+      publicKeyBundle,
+      apiClient,
+      backupClient,
+      keystore
+    )
     await client.init(options)
     return client
   }
@@ -229,7 +223,8 @@ export default class Client {
     opts?: Partial<ClientOptions>
   ): Promise<Uint8Array> {
     const client = await Client.create(wallet, opts)
-    return client.legacyKeys.encode()
+    const keys = await client.keystore.getPrivateKeyBundle()
+    return new PrivateKeyBundleV1(keys).encode()
   }
 
   private static async setupBackupClient(
@@ -263,27 +258,27 @@ export default class Client {
     if (
       bundle &&
       bundle instanceof SignedPublicKeyBundle &&
-      this.keys.getPublicKeyBundle().equals(bundle)
+      this.signedPublicKeyBundle.equals(bundle)
     ) {
       return
     }
     // TEMPORARY: publish V1 contact to make sure there is one in the topic
     // in order to preserve compatibility with pre-v7 clients.
     // Remove when pre-v7 clients are deprecated
-    this.publishUserContact(true)
+    await this.publishUserContact(true)
     if (!legacy) {
-      this.publishUserContact(legacy)
+      await this.publishUserContact(legacy)
     }
   }
 
   // PRIVATE: publish the key bundle into the contact topic
   // left public for testing purposes
   async publishUserContact(legacy = false): Promise<void> {
-    const keys = legacy ? this.legacyKeys : this.keys
+    const bundle = legacy ? this.publicKeyBundle : this.signedPublicKeyBundle
     await this.publishEnvelopes([
       {
         contentTopic: buildUserContactTopic(this.address),
-        message: encodeContactBundle(keys.getPublicKeyBundle()),
+        message: encodeContactBundle(bundle),
       },
     ])
   }
@@ -562,76 +557,6 @@ export default class Client {
       mapper
     )
   }
-
-  async signBytes(bytes: Uint8Array): Promise<Signature> {
-    return this.keys.identityKey.sign(bytes)
-  }
-}
-
-function createKeyStoreFromConfig(
-  opts: KeyStoreOptions,
-  wallet: Signer | null,
-  apiClient: ApiClient
-): KeyStore {
-  switch (opts.keyStoreType) {
-    case KeyStoreType.networkTopicStoreV1:
-      if (!wallet) {
-        throw new Error('Must provide a wallet for networkTopicStore')
-      }
-      return createNetworkPrivateKeyStore(wallet, apiClient)
-
-    case KeyStoreType.static:
-      if (!opts.privateKeyOverride) {
-        throw new Error('Must provide a privateKeyOverride to use static store')
-      }
-
-      return createStaticStore(opts.privateKeyOverride)
-  }
-}
-
-// Create Encrypted store which uses the Network to store KeyBundles
-function createNetworkPrivateKeyStore(
-  wallet: Signer,
-  apiClient: ApiClient
-): EncryptedKeyStore {
-  return new EncryptedKeyStore(wallet, new PrivateTopicStore(apiClient))
-}
-
-function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
-  return new StaticKeyStore(privateKeyOverride)
-}
-
-// attempt to load pre-existing key bundle from storage,
-// otherwise create new key-bundle, store it and return it
-async function loadOrCreateKeysFromStore(
-  wallet: Signer | null,
-  store: KeyStore
-): Promise<PrivateKeyBundleV1> {
-  let keys = await store.loadPrivateKeyBundle()
-  if (keys) {
-    return keys
-  }
-  if (!wallet) {
-    throw new Error('No wallet found')
-  }
-  keys = await PrivateKeyBundleV1.generate(wallet)
-  await store.storePrivateKeyBundle(keys)
-  return keys
-}
-
-async function loadOrCreateKeysFromOptions(
-  options: ClientOptions,
-  wallet: Signer | null,
-  apiClient: ApiClient
-) {
-  if (!options.privateKeyOverride && !wallet) {
-    throw new Error(
-      'Must provide either a Signer or specify privateKeyOverride'
-    )
-  }
-
-  const keyStore = createKeyStoreFromConfig(options, wallet, apiClient)
-  return loadOrCreateKeysFromStore(wallet, keyStore)
 }
 
 function createApiClientFromOptions(options: ClientOptions): ApiClient {
@@ -702,4 +627,34 @@ async function getUserContactsFromNetwork(
       return undefined
     })
   )
+}
+
+export function defaultKeystoreProviders(): KeystoreProvider[] {
+  return [
+    // First check to see if a `privateKeyOverride` is provided and use that
+    new StaticKeystoreProvider(),
+    // Next check to see if a EncryptedPrivateKeyBundle exists on the network for the wallet
+    new NetworkKeystoreProvider(),
+    // If the first two failed with `KeystoreProviderUnavailableError`, then generate a new key and write it to the network
+    new KeyGeneratorKeystoreProvider(),
+  ]
+}
+
+// Take an array of KeystoreProviders from the options and try them until one succeeds
+async function bootstrapKeystore(
+  opts: ClientOptions,
+  apiClient: ApiClient,
+  wallet: Signer | null
+): Promise<Keystore> {
+  for (const provider of opts.keystoreProviders) {
+    try {
+      return await provider.newKeystore(opts, apiClient, wallet ?? undefined)
+    } catch (err) {
+      if (err instanceof KeystoreProviderUnavailableError) {
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error('No keystore providers available')
 }

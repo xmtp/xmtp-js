@@ -1,4 +1,3 @@
-import { ConversationV1 } from './../../src/conversations/Conversation'
 import { DecodedMessage, MessageV1 } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import {
@@ -260,7 +259,10 @@ describe('conversation', () => {
         envelopes[0].message as unknown as string
       )
       const decoded = await MessageV1.fromBytes(messageBytes)
-      const decrypted = await decoded.decrypt(alice.legacyKeys)
+      const decrypted = await decoded.decrypt(
+        alice.keystore,
+        alice.publicKeyBundle
+      )
       const encodedContent = proto.EncodedContent.decode(decrypted)
       expect(encodedContent.content).not.toStrictEqual(
         new Uint8Array(111).fill(65)
@@ -309,13 +311,12 @@ describe('conversation', () => {
       const stream = await bobConvo.streamMessages()
       await sleep(100)
       // mallory takes over alice's client
-      const malloryWallet = newWallet()
-      const mallory = await PrivateKeyBundleV1.generate(malloryWallet)
-      const aliceKeys = alice.legacyKeys
-      alice.legacyKeys = mallory
+      const mallory = await newLocalHostClient()
+      const aliceKeystore = alice.keystore
+      alice.keystore = mallory.keystore
       await aliceConvo.send('Hello from Mallory')
       // alice restores control
-      alice.legacyKeys = aliceKeys
+      alice.keystore = aliceKeystore
       await aliceConvo.send('Hello from Alice')
       const result = await stream.next()
       const msg = result.value as DecodedMessage

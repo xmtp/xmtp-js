@@ -3,7 +3,7 @@ import { PrivateKeyBundleV1 } from '../../../src/crypto/PrivateKeyBundle'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
 import NetworkKeyManager from '../../../src/keystore/providers/NetworkKeyManager'
 import { Signer } from '../../../src/types/Signer'
-import { newWallet, sleep, wrapAsLedgerWallet } from '../../helpers'
+import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '../../helpers'
 
 describe('NetworkKeyManager', () => {
   let wallet: Signer
@@ -12,6 +12,36 @@ describe('NetworkKeyManager', () => {
   beforeEach(async () => {
     wallet = newWallet()
     persistence = new TopicPersistence(new ApiClient(ApiUrls['local']))
+  })
+
+  it('round trips', async () => {
+    const manager = new NetworkKeyManager(wallet, persistence)
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
+    await manager.storePrivateKeyBundle(bundle)
+    const returnedBundle = await pollFor(
+      async () => {
+        const bundle = await manager.loadPrivateKeyBundle()
+        if (!bundle) {
+          throw new Error('No bundle yet')
+        }
+        return bundle
+      },
+      15000,
+      100
+    )
+
+    expect(returnedBundle).toBeDefined()
+    expect(bundle.identityKey.toBytes()).toEqual(bundle.identityKey.toBytes())
+    expect(bundle.identityKey.publicKey.signature?.ecdsaCompact?.bytes).toEqual(
+      returnedBundle?.identityKey.publicKey.signature?.ecdsaCompact?.bytes
+    )
+    expect(bundle.identityKey.secp256k1).toEqual(
+      returnedBundle?.identityKey.secp256k1
+    )
+    expect(bundle.preKeys).toHaveLength(returnedBundle?.preKeys.length)
+    expect(bundle.preKeys[0].toBytes()).toEqual(
+      returnedBundle?.preKeys[0].toBytes()
+    )
   })
 
   it('encrypts with Ledger and decrypts with Metamask', async () => {

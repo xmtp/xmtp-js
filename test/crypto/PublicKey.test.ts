@@ -5,7 +5,6 @@ import {
   PublicKey,
   SignedPublicKey,
   SignedPrivateKey,
-  UnsignedPublicKey,
   WalletSigner,
   utils,
 } from '../../src/crypto'

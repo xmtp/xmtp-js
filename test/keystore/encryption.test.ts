@@ -1,3 +1,4 @@
+import { Keystore } from '../../src/keystore'
 import { Ciphertext } from '../../src/crypto'
 import { PrivateKeyBundleV1 } from './../../src/crypto/PrivateKeyBundle'
 import { decryptV1, encryptV1 } from '../../src/keystore/encryption'
@@ -5,16 +6,19 @@ import { MessageV1 } from '../../src/Message'
 import { Wallet } from 'ethers'
 import { equalBytes } from '../../src/crypto/utils'
 import { newWallet } from '../helpers'
+import { InMemoryKeystore, InviteStore } from '../../src/keystore'
 
 describe('encryption primitives', () => {
   let aliceKeys: PrivateKeyBundleV1
   let aliceWallet: Wallet
+  let aliceKeystore: Keystore
   let bobKeys: PrivateKeyBundleV1
   let bobWallet: Wallet
 
   beforeEach(async () => {
     aliceWallet = newWallet()
     aliceKeys = await PrivateKeyBundleV1.generate(aliceWallet)
+    aliceKeystore = new InMemoryKeystore(aliceKeys, new InviteStore())
     bobWallet = newWallet()
     bobKeys = await PrivateKeyBundleV1.generate(bobWallet)
   })
@@ -23,10 +27,12 @@ describe('encryption primitives', () => {
     it('should decrypt a valid payload', async () => {
       const messageText = 'Hello, world!'
       const message = new TextEncoder().encode(messageText)
+
       const payload = await MessageV1.encode(
-        aliceKeys,
-        bobKeys.getPublicKeyBundle(),
+        aliceKeystore,
         message,
+        aliceKeys.getPublicKeyBundle(),
+        bobKeys.getPublicKeyBundle(),
         new Date()
       )
 
@@ -53,10 +59,12 @@ describe('encryption primitives', () => {
 
     it('fails to decrypt when wrong keys are used', async () => {
       const message = new TextEncoder().encode('should fail')
+
       const payload = await MessageV1.encode(
-        aliceKeys,
-        bobKeys.getPublicKeyBundle(),
+        aliceKeystore,
         message,
+        aliceKeys.getPublicKeyBundle(),
+        bobKeys.getPublicKeyBundle(),
         new Date()
       )
       const charlieKeys = await PrivateKeyBundleV1.generate(

@@ -1,4 +1,4 @@
-import { keystore, privateKey, publicKey, authn, signature } from '@xmtp/proto'
+import { keystore, publicKey, authn, privateKey, signature } from '@xmtp/proto'
 import { WithoutUndefined } from './utils'
 export interface Keystore {
   // Decrypt a batch of V1 messages

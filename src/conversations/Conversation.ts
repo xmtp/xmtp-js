@@ -6,7 +6,6 @@ import {
   b64Decode,
 } from '../utils'
 import { utils } from 'ethers'
-import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
   ListMessagesOptions,
@@ -14,7 +13,7 @@ import Client, {
   SendOptions,
 } from '../Client'
 import { InvitationContext } from '../Invitation'
-import { MessageV1, MessageV2, decodeContent } from '../Message'
+import { DecodedMessage, MessageV1, MessageV2, decodeContent } from '../Message'
 import {
   messageApi,
   message,
@@ -31,23 +30,10 @@ import {
 import { sha256 } from '../crypto/encryption'
 import { ContentTypeText } from '../codecs/Text'
 import { KeystoreError } from '../keystore'
-import Long from 'long'
-
-const validateKeystoreResponse = (
-  response:
-    | keystore.DecryptResponse_Response
-    | keystore.EncryptResponse_Response
-) => {
-  if (response.error) {
-    throw new KeystoreError(response.error.code, response.error.message)
-  }
-  if (!response.result) {
-    throw new KeystoreError(
-      keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
-      'No result from Keystore'
-    )
-  }
-}
+import {
+  buildDecryptV1Request,
+  validateKeystoreResponse,
+} from '../utils/keystore'
 
 /**
  * Conversation class allows you to view, stream, and send messages to/from a peer address
@@ -189,13 +175,15 @@ export class ConversationV1 {
     )
   }
 
-  private async decryptBatch(
+  async decryptBatch(
     messages: MessageV1[],
     topic: string,
     throwOnError = false
   ): Promise<DecodedMessage[]> {
     const responses = (
-      await this.client.keystore.decryptV1(this.buildDecryptRequest(messages))
+      await this.client.keystore.decryptV1(
+        buildDecryptV1Request(messages, this.client.publicKeyBundle)
+      )
     ).responses
 
     const out: DecodedMessage[] = []
@@ -203,10 +191,10 @@ export class ConversationV1 {
       const result = responses[i]
       const message = messages[i]
       if (result.error) {
-        console.warn('Error decrypting message', result.error)
         if (throwOnError) {
           throw new KeystoreError(result.error?.code, result.error?.message)
         }
+        console.warn('Error decrypting message', result.error)
         continue
       }
 
@@ -240,33 +228,6 @@ export class ConversationV1 {
     return out
   }
 
-  private buildDecryptRequest(
-    messages: MessageV1[]
-  ): keystore.DecryptV1Request {
-    return {
-      requests: messages.map((m: MessageV1) => {
-        const sender = new PublicKeyBundle({
-          identityKey: m.header.sender?.identityKey,
-          preKey: m.header.sender?.preKey,
-        })
-
-        const isSender = this.client.publicKeyBundle.equals(sender)
-
-        return {
-          payload: m.ciphertext,
-          peerKeys: isSender
-            ? new PublicKeyBundle({
-                identityKey: m.header.recipient?.identityKey,
-                preKey: m.header.recipient?.preKey,
-              })
-            : sender,
-          headerBytes: m.headerBytes,
-          isSender,
-        }
-      }),
-    }
-  }
-
   private async buildDecodedMessage(
     message: MessageV1,
     decrypted: Uint8Array,
@@ -294,36 +255,14 @@ export class ConversationV1 {
   ): Promise<MessageV1> {
     const timestamp = options?.timestamp || new Date()
     const payload = await this.client.encodeContent(content, options)
-    const header: message.MessageHeaderV1 = {
-      sender: this.client.publicKeyBundle,
+
+    return MessageV1.encode(
+      this.client.keystore,
+      payload,
+      this.client.publicKeyBundle,
       recipient,
-      timestamp: Long.fromNumber(timestamp.getTime()),
-    }
-    const headerBytes = message.MessageHeaderV1.encode(header).finish()
-    const results = await this.client.keystore.encryptV1({
-      requests: [
-        {
-          recipient,
-          headerBytes,
-          payload,
-        },
-      ],
-    })
-
-    if (!results.responses.length) {
-      throw new Error('No response from Keystore')
-    }
-
-    const response = results.responses[0]
-    validateKeystoreResponse(response)
-
-    const ciphertext = response.result?.encrypted
-    const protoMsg = {
-      v1: { headerBytes, ciphertext },
-      v2: undefined,
-    }
-    const bytes = message.Message.encode(protoMsg).finish()
-    return MessageV1.create(protoMsg, header, bytes)
+      timestamp
+    )
   }
 
   get clientAddress() {
@@ -431,8 +370,12 @@ export class ConversationV2 {
     const digest = await sha256(concat(headerBytes, payload))
     const signed = {
       payload,
-      sender: this.client.keys.getPublicKeyBundle(),
-      signature: await this.client.keys.getCurrentPreKey().sign(digest),
+      sender: this.client.signedPublicKeyBundle,
+      signature: await this.client.keystore.signDigest({
+        digest,
+        prekeyIndex: 0,
+        identityKey: undefined,
+      }),
     }
     const signedBytes = proto.SignedContent.encode(signed).finish()
 
@@ -544,6 +487,8 @@ export class ConversationV2 {
       throw new Error('incomplete signed content')
     }
 
+    await validatePrekeys(signed)
+
     // Verify the signature
     const digest = await sha256(concat(msg.headerBytes, signed.payload))
     if (
@@ -609,3 +554,23 @@ export class ConversationV2 {
 }
 
 export type Conversation = ConversationV1 | ConversationV2
+
+async function validatePrekeys(signed: proto.SignedContent) {
+  // Check that the pre key is signed by the identity key
+  // this is required to chain the prekey-signed message to the identity key
+  // and finally to the user's wallet address
+  const senderPreKey = signed.sender?.preKey
+  if (!senderPreKey || !senderPreKey.signature || !senderPreKey.keyBytes) {
+    throw new Error('missing pre-key or pre-key signature')
+  }
+  const senderIdentityKey = signed.sender?.identityKey
+  if (!senderIdentityKey) {
+    throw new Error('missing identity key in bundle')
+  }
+  const isValidPrekey = await new SignedPublicKey(senderIdentityKey).verifyKey(
+    new SignedPublicKey(senderPreKey)
+  )
+  if (!isValidPrekey) {
+    throw new Error('pre key not signed by identity key')
+  }
+}

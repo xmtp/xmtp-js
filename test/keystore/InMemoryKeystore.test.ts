@@ -113,9 +113,10 @@ describe('InMemoryKeystore', () => {
       const msg = new TextEncoder().encode('Hello, world!')
       const peerKeys = bobKeys.getPublicKeyBundle()
       const message = await MessageV1.encode(
-        aliceKeys,
-        peerKeys,
+        aliceKeystore,
         msg,
+        aliceKeys.getPublicKeyBundle(),
+        peerKeys,
         new Date()
       )
 
@@ -142,9 +143,10 @@ describe('InMemoryKeystore', () => {
       const msg = new TextEncoder().encode('Hello, world!')
       const charlieKeys = await PrivateKeyBundleV1.generate(newWallet())
       const message = await MessageV1.encode(
-        aliceKeys,
-        charlieKeys.getPublicKeyBundle(),
+        bobKeystore,
         msg,
+        bobKeys.getPublicKeyBundle(),
+        charlieKeys.getPublicKeyBundle(),
         new Date()
       )
 
