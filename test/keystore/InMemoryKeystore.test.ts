@@ -15,6 +15,8 @@ import { InvitationV1, SealedInvitation } from '../../src/Invitation'
 import { buildProtoEnvelope, newWallet } from '../helpers'
 import { dateToNs, nsToDate } from '../../src/utils/date'
 import { LocalStoragePersistence } from '../../src/keystore/persistence'
+import Token from '../../src/authn/Token'
+import Long from 'long'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -471,6 +473,27 @@ describe('InMemoryKeystore', () => {
     })
 
     it('works with persistence', async () => {})
+  })
+
+  describe('createAuthToken', () => {
+    it('creates an auth token', async () => {
+      const authToken = new Token(await aliceKeystore.createAuthToken({}))
+      expect(authToken.authDataBytes).toBeDefined()
+      expect(authToken.authData.createdNs).toBeInstanceOf(Long)
+      expect(authToken.authDataSignature).toBeDefined()
+      expect(authToken.identityKey?.secp256k1Uncompressed).toBeDefined()
+      expect(authToken.identityKey?.signature).toBeDefined()
+    })
+
+    it('creates an auth token with a defined time', async () => {
+      const definedTime = new Date(+new Date() - 5000)
+      const token = new Token(
+        await aliceKeystore.createAuthToken({
+          timestampNs: dateToNs(definedTime),
+        })
+      )
+      expect(token.ageMs).toBeGreaterThan(5000)
+    })
   })
 
   describe('getPublicKeyBundle', () => {
