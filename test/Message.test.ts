@@ -41,7 +41,7 @@ describe('Message', function () {
     )
     assert.deepEqual(decrypted, content)
 
-    // // Bob decodes message from Alice
+    // Bob decodes message from Alice
     const msg2 = await MessageV1.fromBytes(msg1.toBytes())
     const msg2Decrypted = await msg2.decrypt(
       bobKeystore,
@@ -68,12 +68,6 @@ describe('Message', function () {
     assert.ok(!msg.error)
     const eveResult = msg.decrypt(eveKeystore, eve.getPublicKeyBundle())
     expect(eveResult).rejects.toThrow(KeystoreError)
-    // expect(eveResult).rejects.toThrow(
-    //   new KeystoreError(
-    //     keystore.ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
-    //     'No matching prekey'
-    //   )
-    // )
   })
 
   it('Message create throws error for sender without wallet', async () => {

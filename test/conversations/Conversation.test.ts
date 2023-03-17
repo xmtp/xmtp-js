@@ -323,7 +323,7 @@ describe('conversation', () => {
       expect(msg.senderAddress).toBe(alice.address)
       expect(msg.content).toBe('Hello from Alice')
       await stream.return()
-      expect(consoleWarn).toBeCalledTimes(2)
+      expect(consoleWarn).toBeCalledTimes(1)
       consoleWarn.mockRestore()
     })
 
