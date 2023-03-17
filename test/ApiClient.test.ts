@@ -5,7 +5,7 @@ import {
 import ApiClient, { GrpcStatus, PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
-import { Authenticator } from '../src/authn'
+import { LocalAuthenticator } from '../src/authn'
 import { PrivateKey } from '../src'
 import { version } from '../package.json'
 import { dateToNs } from '../src/utils'
@@ -152,7 +152,9 @@ describe('Publish', () => {
 
   it('publishes valid messages', async () => {
     // This Authenticator will not actually be used by the mock
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
@@ -203,7 +205,9 @@ describe('Publish authn', () => {
 
   it('retries on invalid message', async () => {
     const publishMock = createAuthErrorPublishMock(1)
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
@@ -218,7 +222,9 @@ describe('Publish authn', () => {
 
   it('gives up after a second auth error', async () => {
     const publishMock = createAuthErrorPublishMock(5)
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
