@@ -1,3 +1,4 @@
+import { randomBytes } from './../../../bench/helpers'
 import { PrivateKeyBundleV1 } from './../../../src/crypto/PrivateKeyBundle'
 import {
   EncryptedPersistence,
@@ -135,6 +136,32 @@ describe('EncryptedPersistence', () => {
 
     expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow(
       'signature validation failed'
+    )
+  })
+
+  it('signed correctly and encrypted incorrectly', async () => {
+    const persistence = new LocalStoragePersistence()
+    const encryptedPersistence = new EncryptedPersistence(
+      persistence,
+      privateKey
+    )
+    const data = getRandomValues(new Uint8Array(64))
+    await encryptedPersistence.setItem(TEST_KEY, data)
+    const encryptedBytes = await persistence.getItem(TEST_KEY)
+    const goodData = SignedEciesCiphertext.fromBytes(encryptedBytes!)
+    // Replace the ephemeralPublicKey with a valid length, but totally garbage, value
+    const badEcies = {
+      ...goodData.ciphertext,
+      ephemeralPublicKey: getRandomValues(new Uint8Array(65)),
+    }
+    const signedBadEcies = await SignedEciesCiphertext.create(
+      badEcies,
+      privateKey
+    )
+    await persistence.setItem(TEST_KEY, signedBadEcies.toBytes())
+
+    expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow(
+      'Bad public key'
     )
   })
 })
