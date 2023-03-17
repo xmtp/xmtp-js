@@ -1,5 +1,5 @@
 import { ConversationV2 } from './../src/conversations/Conversation'
-import { encodeV1Message } from '../src/Message'
+import { MessageV1 } from '../src/Message'
 import { add } from 'benny'
 import { Client, dateToNs } from '../src'
 import { newWallet, newLocalHostClient } from '../test/helpers'
@@ -23,7 +23,7 @@ const encodeV1 = () => {
       // The returned function is the actual benchmark. Everything above is setup
       return async () => {
         const encodedMessage = await alice.encodeContent(message)
-        await encodeV1Message(
+        await MessageV1.encode(
           alice.keystore,
           encodedMessage,
           alice.publicKeyBundle,

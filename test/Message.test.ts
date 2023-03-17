@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { keystore } from '@xmtp/proto'
 import { newWallet } from './helpers'
-import { decryptV1Message, encodeV1Message, MessageV1 } from '../src/Message'
+import { MessageV1 } from '../src/Message'
 import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
 import { bytesToHex } from '../src/crypto/utils'
 import { sha256 } from '../src/crypto/encryption'
@@ -25,7 +25,7 @@ describe('Message', function () {
     const content = new TextEncoder().encode('Yo!')
     const aliceKeystore = new InMemoryKeystore(alice, new InviteStore())
 
-    const msg1 = await encodeV1Message(
+    const msg1 = await MessageV1.encode(
       aliceKeystore,
       content,
       alicePub,
@@ -35,18 +35,16 @@ describe('Message', function () {
 
     assert.equal(msg1.senderAddress, aliceWallet.address)
     assert.equal(msg1.recipientAddress, bobWalletAddress)
-    const decrypted = await decryptV1Message(
+    const decrypted = await msg1.decrypt(
       aliceKeystore,
-      msg1,
       alice.getPublicKeyBundle()
     )
     assert.deepEqual(decrypted, content)
 
-    // // Bob decodes message from Alice
+    // Bob decodes message from Alice
     const msg2 = await MessageV1.fromBytes(msg1.toBytes())
-    const msg2Decrypted = await decryptV1Message(
+    const msg2Decrypted = await msg2.decrypt(
       bobKeystore,
-      msg2,
       bob.getPublicKeyBundle()
     )
     assert.deepEqual(msg2Decrypted, decrypted)
@@ -60,7 +58,7 @@ describe('Message', function () {
     const eve = await PrivateKeyBundleV1.generate(newWallet())
     const aliceKeystore = new InMemoryKeystore(alice, new InviteStore())
     const eveKeystore = new InMemoryKeystore(eve, new InviteStore())
-    const msg = await encodeV1Message(
+    const msg = await MessageV1.encode(
       aliceKeystore,
       new TextEncoder().encode('Hi'),
       alice.getPublicKeyBundle(),
@@ -68,18 +66,8 @@ describe('Message', function () {
       new Date()
     )
     assert.ok(!msg.error)
-    const eveResult = decryptV1Message(
-      eveKeystore,
-      msg,
-      eve.getPublicKeyBundle()
-    )
+    const eveResult = msg.decrypt(eveKeystore, eve.getPublicKeyBundle())
     expect(eveResult).rejects.toThrow(KeystoreError)
-    // expect(eveResult).rejects.toThrow(
-    //   new KeystoreError(
-    //     keystore.ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
-    //     'No matching prekey'
-    //   )
-    // )
   })
 
   it('Message create throws error for sender without wallet', async () => {
@@ -88,7 +76,7 @@ describe('Message', function () {
     const keystore = new InMemoryKeystore(bob, new InviteStore())
 
     expect(
-      encodeV1Message(
+      MessageV1.encode(
         keystore,
         new TextEncoder().encode('hi'),
         alice.getPublicKeyBundle(),
@@ -102,7 +90,7 @@ describe('Message', function () {
     const alice = await PrivateKeyBundleV1.generate(newWallet())
     const bob = await PrivateKeyBundleV1.generate()
     const keystore = new InMemoryKeystore(alice, new InviteStore())
-    const msg = await encodeV1Message(
+    const msg = await MessageV1.encode(
       keystore,
       new TextEncoder().encode('hi'),
       alice.getPublicKeyBundle(),
@@ -118,7 +106,7 @@ describe('Message', function () {
   it('id returns bytes as hex string of sha256 hash', async () => {
     const alice = await PrivateKeyBundleV1.generate(newWallet())
     const keystore = new InMemoryKeystore(alice, new InviteStore())
-    const msg = await encodeV1Message(
+    const msg = await MessageV1.encode(
       keystore,
       new TextEncoder().encode('hi'),
       alice.getPublicKeyBundle(),

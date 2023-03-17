@@ -115,6 +115,23 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
     ).walletSignatureAddress()
   }
 
+  async decrypt(
+    keystore: Keystore,
+    myPublicKeyBundle: PublicKeyBundle
+  ): Promise<Uint8Array> {
+    const responses = (
+      await keystore.decryptV1(buildDecryptV1Request([this], myPublicKeyBundle))
+    ).responses
+
+    if (!responses.length) {
+      throw new Error('No response from Keystore')
+    }
+
+    validateKeystoreResponse(responses[0])
+
+    return responses[0].result?.decrypted as Uint8Array
+  }
+
   static fromBytes(bytes: Uint8Array): Promise<MessageV1> {
     const message = proto.Message.decode(bytes)
     const [headerBytes] = headerBytesAndCiphertext(message)
@@ -142,6 +159,45 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
     }
 
     return MessageV1.create(message, header, bytes)
+  }
+
+  static async encode(
+    keystore: Keystore,
+    payload: Uint8Array,
+    sender: PublicKeyBundle,
+    recipient: PublicKeyBundle,
+    timestamp: Date
+  ): Promise<MessageV1> {
+    const header: proto.MessageHeaderV1 = {
+      sender,
+      recipient,
+      timestamp: Long.fromNumber(timestamp.getTime()),
+    }
+    const headerBytes = proto.MessageHeaderV1.encode(header).finish()
+    const results = await keystore.encryptV1({
+      requests: [
+        {
+          recipient,
+          headerBytes,
+          payload,
+        },
+      ],
+    })
+
+    if (!results.responses.length) {
+      throw new Error('No response from Keystore')
+    }
+
+    const response = results.responses[0]
+    validateKeystoreResponse(response)
+
+    const ciphertext = response.result?.encrypted
+    const protoMsg = {
+      v1: { headerBytes, ciphertext },
+      v2: undefined,
+    }
+    const bytes = proto.Message.encode(protoMsg).finish()
+    return MessageV1.create(protoMsg, header, bytes)
   }
 }
 
@@ -288,63 +344,4 @@ export async function decodeContent(contentBytes: Uint8Array, client: Client) {
   }
 
   return { content, contentType, error }
-}
-
-export async function encodeV1Message(
-  keystore: Keystore,
-  payload: Uint8Array,
-  sender: PublicKeyBundle,
-  recipient: PublicKeyBundle,
-  timestamp: Date
-): Promise<MessageV1> {
-  const header: proto.MessageHeaderV1 = {
-    sender,
-    recipient,
-    timestamp: Long.fromNumber(timestamp.getTime()),
-  }
-  const headerBytes = proto.MessageHeaderV1.encode(header).finish()
-  const results = await keystore.encryptV1({
-    requests: [
-      {
-        recipient,
-        headerBytes,
-        payload,
-      },
-    ],
-  })
-
-  if (!results.responses.length) {
-    throw new Error('No response from Keystore')
-  }
-
-  const response = results.responses[0]
-  validateKeystoreResponse(response)
-
-  const ciphertext = response.result?.encrypted
-  const protoMsg = {
-    v1: { headerBytes, ciphertext },
-    v2: undefined,
-  }
-  const bytes = proto.Message.encode(protoMsg).finish()
-  return MessageV1.create(protoMsg, header, bytes)
-}
-
-export async function decryptV1Message(
-  keystore: Keystore,
-  message: MessageV1,
-  myPublicKeyBundle: PublicKeyBundle
-): Promise<Uint8Array> {
-  const responses = (
-    await keystore.decryptV1(
-      buildDecryptV1Request([message], myPublicKeyBundle)
-    )
-  ).responses
-
-  if (!responses.length) {
-    throw new Error('No response from Keystore')
-  }
-
-  validateKeystoreResponse(responses[0])
-
-  return responses[0].result?.decrypted as Uint8Array
 }

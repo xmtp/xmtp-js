@@ -233,9 +233,8 @@ export default class Conversations {
         if (!newPeer(peerAddress)) {
           return undefined
         }
-        const newConvo = new ConversationV1(this.client, peerAddress, msg.sent)
-        await newConvo.decryptBatch([msg], introTopic, true)
-        return newConvo
+        await msg.decrypt(this.client.keystore, this.client.publicKeyBundle)
+        return new ConversationV1(this.client, peerAddress, msg.sent)
       }
       if (env.contentTopic === inviteTopic) {
         const results = await this.decodeInvites([env], true)
@@ -385,20 +384,8 @@ export default class Conversations {
     const topic = buildUserIntroTopic(this.client.address)
     const messages = await this.client.listEnvelopes(
       [topic],
-      async (env) => {
-        const msg = await MessageV1.fromBytes(
-          b64Decode(env.message as unknown as string)
-        )
-
-        const tmpConvo = new ConversationV1(
-          this.client,
-          this.getPeerAddress(msg),
-          msg.sent
-        )
-        // Decrypt the message to ensure it is valid. Ignore the contents
-        // TODO: Refactor to only require decrypting one message per peer
-        await tmpConvo.decryptBatch([msg], topic, true)
-        return msg
+      (env) => {
+        return MessageV1.fromBytes(b64Decode(env.message as unknown as string))
       },
       opts
     )
@@ -415,7 +402,16 @@ export default class Conversations {
       if (peerAddress) {
         const have = seenPeers.get(peerAddress)
         if (!have || have > message.sent) {
-          seenPeers.set(peerAddress, message.sent)
+          try {
+            // Verify that the message can be decrypted before treating the intro as valid
+            await message.decrypt(
+              this.client.keystore,
+              this.client.publicKeyBundle
+            )
+            seenPeers.set(peerAddress, message.sent)
+          } catch (e) {
+            continue
+          }
         }
       }
     }

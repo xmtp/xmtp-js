@@ -6,7 +6,6 @@ import {
   b64Decode,
 } from '../utils'
 import { utils } from 'ethers'
-import { DecodedMessage, encodeV1Message } from './../Message'
 import Stream from '../Stream'
 import Client, {
   ListMessagesOptions,
@@ -14,7 +13,7 @@ import Client, {
   SendOptions,
 } from '../Client'
 import { InvitationContext } from '../Invitation'
-import { MessageV1, MessageV2, decodeContent } from '../Message'
+import { DecodedMessage, MessageV1, MessageV2, decodeContent } from '../Message'
 import {
   messageApi,
   message,
@@ -192,10 +191,10 @@ export class ConversationV1 {
       const result = responses[i]
       const message = messages[i]
       if (result.error) {
-        console.warn('Error decrypting message', result.error)
         if (throwOnError) {
           throw new KeystoreError(result.error?.code, result.error?.message)
         }
+        console.warn('Error decrypting message', result.error)
         continue
       }
 
@@ -257,7 +256,7 @@ export class ConversationV1 {
     const timestamp = options?.timestamp || new Date()
     const payload = await this.client.encodeContent(content, options)
 
-    return encodeV1Message(
+    return MessageV1.encode(
       this.client.keystore,
       payload,
       this.client.publicKeyBundle,
@@ -488,6 +487,8 @@ export class ConversationV2 {
       throw new Error('incomplete signed content')
     }
 
+    await validatePrekeys(signed)
+
     // Verify the signature
     const digest = await sha256(concat(msg.headerBytes, signed.payload))
     if (
@@ -553,3 +554,23 @@ export class ConversationV2 {
 }
 
 export type Conversation = ConversationV1 | ConversationV2
+
+async function validatePrekeys(signed: proto.SignedContent) {
+  // Check that the pre key is signed by the identity key
+  // this is required to chain the prekey-signed message to the identity key
+  // and finally to the user's wallet address
+  const senderPreKey = signed.sender?.preKey
+  if (!senderPreKey || !senderPreKey.signature || !senderPreKey.keyBytes) {
+    throw new Error('missing pre-key or pre-key signature')
+  }
+  const senderIdentityKey = signed.sender?.identityKey
+  if (!senderIdentityKey) {
+    throw new Error('missing identity key in bundle')
+  }
+  const isValidPrekey = await new SignedPublicKey(senderIdentityKey).verifyKey(
+    new SignedPublicKey(senderPreKey)
+  )
+  if (!isValidPrekey) {
+    throw new Error('pre key not signed by identity key')
+  }
+}
