@@ -12,13 +12,10 @@ export const buildPersistenceFromOptions = async (
   keys: PrivateKeyBundleV1 | PrivateKeyBundleV2
 ) => {
   const address = await keys.identityKey.publicKey.walletSignatureAddress()
-  const prefix = `xmtp/${opts.env}/${address}`
+  const prefix = `xmtp/${opts.env}/${address}/`
 
   return new PrefixedPersistence(
     prefix,
-    new EncryptedPersistence(
-      new LocalStoragePersistence(),
-      keys.identityKey.secp256k1.bytes
-    )
+    new EncryptedPersistence(new LocalStoragePersistence(), keys.identityKey)
   )
 }

@@ -11,6 +11,7 @@ import Signature, { WalletSigner } from './Signature'
 import * as utils from './utils'
 import { encrypt, decrypt } from './encryption'
 import Ciphertext from './Ciphertext'
+import SignedEciesCiphertext from './SignedEciesCiphertext'
 
 export {
   utils,
@@ -29,5 +30,6 @@ export {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
   Signature,
+  SignedEciesCiphertext,
   WalletSigner,
 }
