@@ -124,6 +124,7 @@ class AccountLinkedStaticSignatureV1
 {
   text: Uint8Array
   signature: Signature
+  private _ecdsaCompact: ECDSACompactWithRecovery
 
   constructor(obj: Partial<signature.AccountLinkedStaticSignature_V1>) {
     if (!obj.text || !obj.signature) {
@@ -131,19 +132,31 @@ class AccountLinkedStaticSignatureV1
     }
     this.text = obj.text
     this.signature = new Signature(obj.signature)
+    if (!this.signature.ecdsaCompact) {
+      throw new Error(
+        'Invalid AccountLinkedStaticSignatureV1 does not have ecdsaCompact'
+      )
+    }
+    this._ecdsaCompact = this.signature.ecdsaCompact
+  }
+
+  public get ecdsaCompact(): ECDSACompactWithRecovery {
+    return this._ecdsaCompact
   }
 }
 
 export class AccountLinkedStaticSignature
+  extends AccountLinkedStaticSignatureV1
   implements signature.AccountLinkedStaticSignature
 {
-  v1: AccountLinkedStaticSignatureV1
+  v1: signature.AccountLinkedStaticSignature_V1
 
   constructor(obj: Partial<signature.AccountLinkedStaticSignature>) {
     if (!obj.v1) {
       throw new Error('Invalid AccountLinkedStaticSignature')
     }
-    this.v1 = new AccountLinkedStaticSignatureV1(obj.v1)
+    super(obj.v1)
+    this.v1 = obj.v1
   }
 }
 

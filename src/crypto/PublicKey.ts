@@ -1,8 +1,9 @@
-import { publicKey } from '@xmtp/proto'
+import { publicKey, signature } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature, {
   AccountLinkedRole,
+  AccountLinkedStaticSignature,
   ecdsaSignerKey,
   WalletSigner,
 } from './Signature'
@@ -10,10 +11,6 @@ import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
-import {
-  AccountLinkedStaticSignature,
-  AccountLinkedSIWESignature,
-} from '@xmtp/proto/ts/dist/types/message_contents/signature.pb'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -225,7 +222,7 @@ export class AccountLinkedPublicKeyV1
 {
   keyBytes: Uint8Array
   staticSignature: AccountLinkedStaticSignature | undefined
-  siweSignature: AccountLinkedSIWESignature | undefined
+  siweSignature: signature.AccountLinkedSIWESignature | undefined
 
   constructor(obj: publicKey.AccountLinkedPublicKey_V1) {
     if (!obj.keyBytes) {
@@ -234,11 +231,13 @@ export class AccountLinkedPublicKeyV1
     super(publicKey.UnsignedPublicKey.decode(obj.keyBytes))
     this.keyBytes = obj.keyBytes
     if (obj.staticSignature) {
-      this.staticSignature = obj.staticSignature
-    } else if (obj.siweSignature) {
-      this.siweSignature = obj.siweSignature
+      this.staticSignature = new AccountLinkedStaticSignature(
+        obj.staticSignature
+      )
     } else {
-      throw new Error('Invalid AccountLinkedPublicKeyV1 has no signature')
+      throw new Error(
+        'Unimplemented signature type for AccountLinkedPublicKeyV1'
+      )
     }
   }
 
@@ -254,12 +253,7 @@ export class AccountLinkedPublicKeyV1
           WalletSigner.accountLinkRequestText(this.keyBytes, role)
         )
       )
-      const signature = this.staticSignature?.v1?.signature?.ecdsaCompact
-      if (!signature) {
-        throw new Error(
-          'Static signature has unsupported signature representation'
-        )
-      }
+      const signature = this.staticSignature.ecdsaCompact
       const publicKey = ecdsaSignerKey(digest, signature)
       if (!publicKey) {
         throw new Error('Static signature is not valid for given role')
@@ -299,7 +293,6 @@ export class AccountLinkedPublicKey
   v1: publicKey.AccountLinkedPublicKey_V1
 
   constructor(obj: publicKey.AccountLinkedPublicKey) {
-    // TODO: validation of key
     if (obj.v1) {
       super(obj.v1)
       this.v1 = obj.v1

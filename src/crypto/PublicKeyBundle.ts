@@ -9,7 +9,6 @@ export class SignedPublicKeyBundleV2
   preKey: SignedPublicKey
 
   constructor(bundle: publicKey.SignedPublicKeyBundleV2) {
-    // TODO: validation of bundle
     if (!bundle.accountLinkedKey) {
       throw new Error('SignedPublicKeyBundleV2 missing account linked key')
     }
@@ -20,8 +19,6 @@ export class SignedPublicKeyBundleV2
     this.preKey = new SignedPublicKey(bundle.preKey)
   }
 
-  // TODO:
-  // validate prekey
   public getLinkedAccount(role: AccountLinkedRole) {
     return this.accountLinkedKey.getLinkedAddress(role)
   }

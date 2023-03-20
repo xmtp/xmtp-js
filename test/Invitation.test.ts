@@ -43,7 +43,7 @@ describe('Invitations', () => {
         SealedInvitation.fromBytes(newInvitation.toBytes()).toBytes()
       )
       // Ensure the headers haven't been mangled
-      const v1 = newInvitation.v1
+      const v1 = newInvitation.v1!
       const header = v1.header
       expect(header.sender.equals(alice.getPublicKeyBundle())).toBeTruthy()
       expect(header.recipient.equals(bob.getPublicKeyBundle())).toBeTruthy()
@@ -73,12 +73,13 @@ describe('Invitations', () => {
         invitation,
       })
       expect(
-        sealedInvitationWithWrongSender.v1.getInvitation(alice)
+        sealedInvitationWithWrongSender.v1!.getInvitation(alice)
       ).rejects.toThrow(NoMatchingPreKeyError)
 
       expect(() => {
         const sealedInvite = new SealedInvitation({
           v1: { headerBytes: Uint8Array.from([123]), ciphertext: undefined },
+          v2: undefined,
         })
       }).toThrow()
     })

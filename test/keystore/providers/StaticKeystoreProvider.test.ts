@@ -12,6 +12,7 @@ describe('StaticKeystoreProvider', () => {
     const keyBytes = privateKey.PrivateKeyBundle.encode({
       v1: key,
       v2: undefined,
+      v3: undefined,
     }).finish()
     const provider = new StaticKeystoreProvider()
     const keystore = await provider.newKeystore({
