@@ -1,19 +1,21 @@
+import { randomBytes } from './../../../bench/helpers'
 import { PrivateKeyBundleV1 } from './../../../src/crypto/PrivateKeyBundle'
 import {
   EncryptedPersistence,
   LocalStoragePersistence,
 } from '../../../src/keystore/persistence'
 import { getRandomValues } from '../../../src/crypto/utils'
+import { PrivateKey, SignedEciesCiphertext } from '../../../src/crypto'
 
 const TEST_KEY = 'test-key'
 const TEST_KEY_2 = 'test-key-2'
 
 describe('EncryptedPersistence', () => {
-  let privateKey: Uint8Array
+  let privateKey: PrivateKey
 
   beforeEach(async () => {
     const bundle = await PrivateKeyBundleV1.generate()
-    privateKey = bundle.identityKey.secp256k1.bytes
+    privateKey = bundle.identityKey
   })
 
   it('can encrypt and decrypt a value', async () => {
@@ -69,7 +71,6 @@ describe('EncryptedPersistence', () => {
   })
 
   it('catches garbage values', async () => {
-    const data = getRandomValues(new Uint8Array(128))
     const persistence = new LocalStoragePersistence()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
@@ -82,9 +83,7 @@ describe('EncryptedPersistence', () => {
       new Uint8Array([103, 97, 114, 98, 97, 103, 101])
     )
     // Expect an error if the ciphertext is tampered with
-    await expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow(
-      'Invalid data length'
-    )
+    await expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow()
   })
 
   it('detects bad mac', async () => {
@@ -100,34 +99,69 @@ describe('EncryptedPersistence', () => {
 
     // Read the raw result, change one byte, write it back
     const rawResult = await persistence.getItem(TEST_KEY)!
-    rawResult![7] += 1
-    await persistence.setItem(TEST_KEY, rawResult!)
+    const parsedRawResult = SignedEciesCiphertext.fromBytes(rawResult!)
+    const newCiphertext = {
+      ...parsedRawResult.ciphertext,
+      mac: getRandomValues(new Uint8Array(32)),
+    }
+    const newData = await SignedEciesCiphertext.create(
+      newCiphertext,
+      privateKey
+    )
+    await persistence.setItem(TEST_KEY, newData.toBytes())
 
     // Expect an error if the ciphertext is tampered with
     await expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow(
-      'Bad MAC'
+      'Bad mac'
     )
   })
 
-  it('detects length modified ciphertext', async () => {
-    const data = getRandomValues(new Uint8Array(128))
+  it('detects bad signature', async () => {
     const persistence = new LocalStoragePersistence()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
       privateKey
     )
-
+    const data = getRandomValues(new Uint8Array(64))
     await encryptedPersistence.setItem(TEST_KEY, data)
-    // Read the raw result, change one byte, write it back
-    const rawResult = await persistence.getItem(TEST_KEY)!
-    // Add a byte to the rawResult
-    const newRawResult = new Uint8Array(rawResult!.length + 1)
-    newRawResult.set(rawResult!)
-    await persistence.setItem(TEST_KEY, newRawResult)
+    const encryptedBytes = await persistence.getItem(TEST_KEY)
+    const goodData = SignedEciesCiphertext.fromBytes(encryptedBytes!)
+    const signedBySomeoneElse = await SignedEciesCiphertext.create(
+      goodData.ciphertext,
+      (
+        await PrivateKeyBundleV1.generate()
+      ).identityKey
+    )
+    await persistence.setItem(TEST_KEY, signedBySomeoneElse.toBytes())
 
-    // Expect an error if the ciphertext is tampered with
-    await expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow(
-      'Invalid data length'
+    expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow(
+      'signature validation failed'
+    )
+  })
+
+  it('signed correctly and encrypted incorrectly', async () => {
+    const persistence = new LocalStoragePersistence()
+    const encryptedPersistence = new EncryptedPersistence(
+      persistence,
+      privateKey
+    )
+    const data = getRandomValues(new Uint8Array(64))
+    await encryptedPersistence.setItem(TEST_KEY, data)
+    const encryptedBytes = await persistence.getItem(TEST_KEY)
+    const goodData = SignedEciesCiphertext.fromBytes(encryptedBytes!)
+    // Replace the ephemeralPublicKey with a valid length, but totally garbage, value
+    const badEcies = {
+      ...goodData.ciphertext,
+      ephemeralPublicKey: getRandomValues(new Uint8Array(65)),
+    }
+    const signedBadEcies = await SignedEciesCiphertext.create(
+      badEcies,
+      privateKey
+    )
+    await persistence.setItem(TEST_KEY, signedBadEcies.toBytes())
+
+    expect(encryptedPersistence.getItem(TEST_KEY)).rejects.toThrow(
+      'Bad public key'
     )
   })
 })
