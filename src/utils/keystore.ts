@@ -27,7 +27,7 @@ export const getResultOrThrow = <
     throw new Error('Missing ciphertext')
   }
 
-  if ('decrypted' in response.result && response.result.decrypted) {
+  if ('decrypted' in response.result && !response.result.decrypted) {
     throw new Error('Missing decrypted result')
   }
 
