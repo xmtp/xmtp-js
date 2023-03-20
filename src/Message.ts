@@ -1,4 +1,3 @@
-import { ConversationReference } from './../node_modules/@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb.d'
 import {
   Conversation,
   ConversationV1,
