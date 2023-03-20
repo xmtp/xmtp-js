@@ -4,7 +4,7 @@ import type { TopicData } from './interfaces'
 import { Mutex } from 'async-mutex'
 import { typeSafeTopicMap } from './utils'
 
-const INVITE_KEY = 'invitations:v1'
+const INVITE_KEY = 'invitations/v1'
 
 /**
  * InviteStore holds a simple map of topic -> TopicData and writes to the persistence layer on changes
