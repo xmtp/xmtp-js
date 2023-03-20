@@ -1,16 +1,17 @@
-import { MessageHeaderV1 } from './../node_modules/@xmtp/proto/ts/dist/types/message_contents/message.pb.d'
-import type { Conversation } from './conversations/Conversation'
+import {
+  Conversation,
+  ConversationV1,
+  ConversationV2,
+} from './conversations/Conversation'
 import type Client from './Client'
-import { message as proto, content as protoContent } from '@xmtp/proto'
+import {
+  message as proto,
+  content as protoContent,
+  keystore,
+} from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
-import {
-  PublicKeyBundle,
-  PrivateKeyBundleV1,
-  PublicKey,
-  decrypt,
-  encrypt,
-} from './crypto'
+import { PublicKeyBundle, PublicKey } from './crypto'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 import {
@@ -18,13 +19,10 @@ import {
   ContentTypeId,
   EncodedContent,
 } from './MessageContent'
-import { nsToDate } from './utils'
+import { dateToNs, nsToDate } from './utils'
 import { decompress } from './Compression'
 import { Keystore } from './keystore'
-import {
-  buildDecryptV1Request,
-  validateKeystoreResponse,
-} from './utils/keystore'
+import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
@@ -127,9 +125,9 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
       throw new Error('No response from Keystore')
     }
 
-    validateKeystoreResponse(responses[0])
+    const { decrypted } = getResultOrThrow(responses[0])
 
-    return responses[0].result?.decrypted as Uint8Array
+    return decrypted
   }
 
   static fromBytes(bytes: Uint8Array): Promise<MessageV1> {
@@ -188,10 +186,8 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
       throw new Error('No response from Keystore')
     }
 
-    const response = results.responses[0]
-    validateKeystoreResponse(response)
+    const { encrypted: ciphertext } = getResultOrThrow(results.responses[0])
 
-    const ciphertext = response.result?.encrypted
     const protoMsg = {
       v1: { headerBytes, ciphertext },
       v2: undefined,
@@ -243,6 +239,7 @@ export class DecodedMessage {
   contentType: ContentTypeId
   content: any // eslint-disable-line @typescript-eslint/no-explicit-any
   error?: Error
+  contentBytes: Uint8Array
 
   constructor({
     id,
@@ -250,12 +247,13 @@ export class DecodedMessage {
     senderAddress,
     recipientAddress,
     conversation,
+    contentBytes,
     contentType,
     contentTopic,
     content,
     sent,
     error,
-  }: DecodedMessage) {
+  }: Omit<DecodedMessage, 'toBytes'>) {
     this.id = id
     this.messageVersion = messageVersion
     this.senderAddress = senderAddress
@@ -266,12 +264,86 @@ export class DecodedMessage {
     this.error = error
     this.content = content
     this.contentTopic = contentTopic
+    this.contentBytes = contentBytes
+  }
+
+  toBytes(): Uint8Array {
+    return proto.DecodedMessage.encode({
+      ...this,
+      conversation: {
+        topic: this.conversation.topic,
+        context: this.conversation.context ?? undefined,
+        createdNs: dateToNs(this.conversation.createdAt),
+        peerAddress: this.conversation.peerAddress,
+      },
+      sentNs: dateToNs(this.sent),
+    }).finish()
+  }
+
+  static async fromBytes(
+    data: Uint8Array,
+    client: Client
+  ): Promise<DecodedMessage> {
+    const protoVal = proto.DecodedMessage.decode(data)
+    const messageVersion = protoVal.messageVersion
+
+    if (messageVersion !== 'v1' && messageVersion !== 'v2') {
+      throw new Error('Invalid message version')
+    }
+
+    if (!protoVal.conversation) {
+      throw new Error('No conversation reference found')
+    }
+
+    const { content, contentType, error } = await decodeContent(
+      protoVal.contentBytes,
+      client
+    )
+
+    return new DecodedMessage({
+      ...protoVal,
+      content,
+      contentType,
+      error,
+      messageVersion,
+      sent: nsToDate(protoVal.sentNs),
+      conversation: DecodedMessage.conversationReferenceToConversation(
+        protoVal.conversation,
+        client,
+        messageVersion
+      ),
+    })
+  }
+
+  static conversationReferenceToConversation(
+    reference: keystore.ConversationReference,
+    client: Client,
+    version: DecodedMessage['messageVersion']
+  ): Conversation {
+    if (version === 'v1') {
+      return new ConversationV1(
+        client,
+        reference.peerAddress,
+        nsToDate(reference.createdNs)
+      )
+    }
+    if (version === 'v2') {
+      return new ConversationV2(
+        client,
+        reference.topic,
+        reference.peerAddress,
+        nsToDate(reference.createdNs),
+        reference.context
+      )
+    }
+    throw new Error(`Unknown conversation version ${version}`)
   }
 
   static fromV1Message(
     message: MessageV1,
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
+    contentBytes: Uint8Array,
     contentTopic: string,
     conversation: Conversation,
     error?: Error
@@ -287,6 +359,7 @@ export class DecodedMessage {
       recipientAddress,
       sent,
       content,
+      contentBytes,
       contentType,
       contentTopic,
       conversation,
@@ -299,6 +372,7 @@ export class DecodedMessage {
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
     contentTopic: string,
+    contentBytes: Uint8Array,
     conversation: Conversation,
     senderAddress: string,
     error?: Error
@@ -311,6 +385,7 @@ export class DecodedMessage {
       senderAddress,
       sent,
       content,
+      contentBytes,
       contentType,
       contentTopic,
       conversation,

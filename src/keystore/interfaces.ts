@@ -1,5 +1,6 @@
 import { keystore, publicKey, authn, privateKey, signature } from '@xmtp/proto'
-import { WithoutUndefined } from './utils'
+import { WithoutUndefined } from '../utils/typedefs'
+
 export interface Keystore {
   // Decrypt a batch of V1 messages
   decryptV1(req: keystore.DecryptV1Request): Promise<keystore.DecryptResponse>
