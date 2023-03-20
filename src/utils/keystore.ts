@@ -2,12 +2,17 @@ import { keystore } from '@xmtp/proto'
 import { PublicKeyBundle } from '../crypto/PublicKeyBundle'
 import { KeystoreError } from '../keystore/errors'
 import { MessageV1 } from '../Message'
+import { WithoutUndefined } from './typedefs'
 
-export const validateKeystoreResponse = (
-  response:
+// Validates the Keystore response. Throws on errors or missing fields.
+// Returns a type with all possibly undefined fields required to be defined
+export const getResultOrThrow = <
+  T extends
     | keystore.DecryptResponse_Response
     | keystore.EncryptResponse_Response
-) => {
+>(
+  response: T
+): WithoutUndefined<NonNullable<T['result']>> => {
   if (response.error) {
     throw new KeystoreError(response.error.code, response.error.message)
   }
@@ -17,6 +22,18 @@ export const validateKeystoreResponse = (
       'No result from Keystore'
     )
   }
+
+  if ('encrypted' in response.result && !response.result.encrypted) {
+    throw new Error('Missing ciphertext')
+  }
+
+  if ('decrypted' in response.result && response.result.decrypted) {
+    throw new Error('Missing decrypted result')
+  }
+
+  return response.result as unknown as WithoutUndefined<
+    NonNullable<T['result']>
+  >
 }
 
 export const buildDecryptV1Request = (

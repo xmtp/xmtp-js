@@ -75,7 +75,8 @@ const decodeV2 = () => {
         new Date(),
         undefined
       )
-      const encodedMessage = await convo.encodeMessage(message)
+      const payload = await alice.encodeContent(message)
+      const encodedMessage = await convo.createMessage(payload)
       const messageBytes = encodedMessage.toBytes()
 
       const envelope = {
