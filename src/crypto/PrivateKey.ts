@@ -6,7 +6,12 @@ import Signature, {
   ecdsaSignerKey,
   KeySigner,
 } from './Signature'
-import { PublicKey, SignedPublicKey, UnsignedPublicKey } from './PublicKey'
+import {
+  AccountLinkedPublicKey,
+  PublicKey,
+  SignedPublicKey,
+  UnsignedPublicKey,
+} from './PublicKey'
 import Ciphertext from './Ciphertext'
 import { decrypt, encrypt, sha256 } from './encryption'
 import { equalBytes } from './utils'
@@ -169,6 +174,43 @@ export class SignedPrivateKey
       secp256k1: key.secp256k1,
       publicKey: SignedPublicKey.fromLegacyKey(key.publicKey, signedByWallet),
     })
+  }
+}
+
+export class AccountLinkedPrivateKeyV1
+  implements privateKey.AccountLinkedPrivateKey_V1
+{
+  createdNs: Long // time the key was generated, ns since epoch
+  secp256k1: secp256k1 // eslint-disable-line camelcase
+  publicKey: AccountLinkedPublicKey // caches corresponding PublicKey
+
+  constructor(obj: privateKey.AccountLinkedPrivateKey_V1) {
+    if (!obj.secp256k1) {
+      throw new Error('invalid private key')
+    }
+    secp256k1Check(obj.secp256k1)
+    this.secp256k1 = obj.secp256k1
+    this.createdNs = obj.createdNs
+    if (!obj.publicKey) {
+      throw new Error('missing public key')
+    }
+    this.publicKey = new AccountLinkedPublicKey(obj.publicKey)
+  }
+}
+
+export class AccountLinkedPrivateKey
+  extends AccountLinkedPrivateKeyV1
+  implements privateKey.AccountLinkedPrivateKey
+{
+  v1: privateKey.AccountLinkedPrivateKey_V1 | undefined
+
+  constructor(obj: privateKey.AccountLinkedPrivateKey) {
+    if (obj.v1) {
+      super(obj.v1)
+      this.v1 = obj.v1
+    } else {
+      throw new Error('unsupported version')
+    }
   }
 }
 

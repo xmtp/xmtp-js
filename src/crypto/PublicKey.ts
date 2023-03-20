@@ -1,7 +1,11 @@
 import { publicKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
-import Signature, { WalletSigner } from './Signature'
+import Signature, {
+  AccountLinkedRole,
+  ecdsaSignerKey,
+  WalletSigner,
+} from './Signature'
 import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
@@ -216,6 +220,7 @@ export class SignedPublicKey
 }
 
 export class AccountLinkedPublicKeyV1
+  extends UnsignedPublicKey
   implements publicKey.AccountLinkedPublicKey_V1
 {
   keyBytes: Uint8Array
@@ -226,6 +231,7 @@ export class AccountLinkedPublicKeyV1
     if (!obj.keyBytes) {
       throw new Error('Invalid AccountLinkedPublicKeyV1 has no keyBytes')
     }
+    super(publicKey.UnsignedPublicKey.decode(obj.keyBytes))
     this.keyBytes = obj.keyBytes
     if (obj.staticSignature) {
       this.staticSignature = obj.staticSignature
@@ -237,22 +243,68 @@ export class AccountLinkedPublicKeyV1
   }
 
   // Return bytes of the encoded unsigned key.
-  bytesToSign(): Uint8Array {
+  private bytesToSign(): Uint8Array {
     return this.keyBytes
+  }
+
+  public getLinkedAddress(role: AccountLinkedRole): string {
+    if (this.staticSignature) {
+      const digest = hexToBytes(
+        utils.hashMessage(
+          WalletSigner.accountLinkRequestText(this.keyBytes, role)
+        )
+      )
+      const signature = this.staticSignature?.v1?.signature?.ecdsaCompact
+      if (!signature) {
+        throw new Error(
+          'Static signature has unsupported signature representation'
+        )
+      }
+      const publicKey = ecdsaSignerKey(digest, signature)
+      if (!publicKey) {
+        throw new Error('Static signature is not valid for given role')
+      }
+      return publicKey.getEthereumAddress()
+    } else {
+      throw new Error('SIWE signature not implemented')
+    }
+  }
+
+  // Verify that signature was created from the digest using matching private key.
+  verify(signature: Signature, digest: Uint8Array): boolean {
+    if (!signature.ecdsaCompact) {
+      return false
+    }
+    return secp.verify(
+      signature.ecdsaCompact.bytes,
+      digest,
+      this.secp256k1Uncompressed.bytes
+    )
+  }
+
+  // Verify that the provided public key was signed by matching private key.
+  async verifyKey(pub: PublicKey | SignedPublicKey): Promise<boolean> {
+    if (!pub.signature) {
+      return false
+    }
+    const digest = await sha256(pub.bytesToSign())
+    return this.verify(pub.signature, digest)
   }
 }
 
 export class AccountLinkedPublicKey
+  extends AccountLinkedPublicKeyV1
   implements publicKey.AccountLinkedPublicKey
 {
-  v1: AccountLinkedPublicKeyV1
+  v1: publicKey.AccountLinkedPublicKey_V1
 
   constructor(obj: publicKey.AccountLinkedPublicKey) {
     // TODO: validation of key
     if (obj.v1) {
-      this.v1 = new AccountLinkedPublicKeyV1(obj.v1)
+      super(obj.v1)
+      this.v1 = obj.v1
     } else {
-      throw new Error('Invalid AccountLinkedPublicKey has no version')
+      throw new Error('Unsupported AccountLinkedPublicKey version')
     }
   }
 }

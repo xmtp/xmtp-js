@@ -28,6 +28,7 @@ export default class InMemoryKeystore implements Keystore {
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private inviteStore: InviteStore
   private authenticator: LocalAuthenticator
+  private accountAddress: string | undefined
 
   constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
     this.v1Keys = keys
@@ -219,8 +220,23 @@ export default class InMemoryKeystore implements Keystore {
           return {
             conversation: topicDataToConversationReference(topicData),
           }
-        } else {
-          throw new Error('Invite v2 not implemented')
+        } else if (sealed.v2) {
+          const headerTime = sealed.v2.header.createdNs
+          if (!headerTime.equals(timestampNs)) {
+            throw new Error('envelope and header timestamp mismatch')
+          }
+
+          const invitation = await sealed.v2.getInvitation(this.v2Keys)
+          const selfAddress = await this.getAccountAddress()
+          const topicData = {
+            invitation,
+            createdNs: sealed.v2.header.createdNs,
+            peerAddress: await sealed.v2.header.getPeerAddress(selfAddress),
+          }
+          toAdd.push(topicData)
+          return {
+            conversation: topicDataToConversationReference(topicData),
+          }
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -323,6 +339,11 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async getAccountAddress(): Promise<string> {
-    return this.v2Keys.getPublicKeyBundle().walletSignatureAddress()
+    if (!this.accountAddress) {
+      this.accountAddress = await this.v2Keys
+        .getPublicKeyBundle()
+        .walletSignatureAddress()
+    }
+    return this.accountAddress
   }
 }

@@ -1,5 +1,6 @@
 import { publicKey } from '@xmtp/proto'
 import { AccountLinkedPublicKey, PublicKey, SignedPublicKey } from './PublicKey'
+import { AccountLinkedRole } from './Signature'
 
 export class SignedPublicKeyBundleV2
   implements publicKey.SignedPublicKeyBundleV2
@@ -17,6 +18,12 @@ export class SignedPublicKeyBundleV2
     }
     this.accountLinkedKey = new AccountLinkedPublicKey(bundle.accountLinkedKey)
     this.preKey = new SignedPublicKey(bundle.preKey)
+  }
+
+  // TODO:
+  // validate prekey
+  public getLinkedAccount(role: AccountLinkedRole) {
+    return this.accountLinkedKey.getLinkedAddress(role)
   }
 }
 

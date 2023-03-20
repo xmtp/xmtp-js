@@ -152,12 +152,42 @@ export interface KeySigner {
   signKey(key: UnsignedPublicKey): Promise<SignedPublicKey>
 }
 
+export enum AccountLinkedRole {
+  INBOX_KEY,
+  SEND_KEY,
+}
+
 // A wallet based KeySigner.
 export class WalletSigner implements KeySigner {
   wallet: Signer
 
   constructor(wallet: Signer) {
     this.wallet = wallet
+  }
+
+  private static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
+    switch (role) {
+      case AccountLinkedRole.INBOX_KEY:
+        return 'Create Identity'
+      case AccountLinkedRole.SEND_KEY:
+        return 'Grant Send Permissions'
+    }
+  }
+
+  public static accountLinkRequestText(
+    keyBytes: Uint8Array,
+    role: AccountLinkedRole
+  ): string {
+    // Note that an update to this signature request text will require
+    // addition of backward compatibility for existing signatures
+    // and/or a migration; otherwise clients will fail to verify previously
+    // signed keys.
+    return (
+      `XMTP : ${WalletSigner.accountLinkedRoleRequestText(role)}\n` +
+      `${bytesToHex(keyBytes)}\n` +
+      '\n' +
+      'For more info: https://xmtp.org/signatures/'
+    )
   }
 
   static identitySigRequestText(keyBytes: Uint8Array): string {

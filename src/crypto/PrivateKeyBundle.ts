@@ -1,8 +1,16 @@
 import { privateKey as proto } from '@xmtp/proto'
-import { PrivateKey, SignedPrivateKey } from './PrivateKey'
+import {
+  AccountLinkedPrivateKey,
+  PrivateKey,
+  SignedPrivateKey,
+} from './PrivateKey'
 import { WalletSigner } from './Signature'
 import { PublicKey, SignedPublicKey } from './PublicKey'
-import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
+import {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+  SignedPublicKeyBundleV2,
+} from './PublicKeyBundle'
 import { Signer } from '../types/Signer'
 import { NoMatchingPreKeyError } from './errors'
 
@@ -106,6 +114,38 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     return secret
   }
 
+  // sharedSecret derives a secret from a send key bundle using a variation of X3DH protocol
+  // where the sender's ephemeral key pair is replaced by the sender's pre-key.
+  // @sendKeyBundle is the send key bundle
+  // @myPreKey indicates which of my preKeys should be used to derive the secret
+  // We are always the recipient here, because we do not use send key bundles to send
+  // invites yet.
+  async sharedSecretWithSendKeyBundle(
+    sendKeyBundle: SignedPublicKeyBundleV2,
+    myPreKey: SignedPublicKey
+  ): Promise<Uint8Array> {
+    if (!sendKeyBundle.accountLinkedKey || !sendKeyBundle.preKey) {
+      throw new Error('invalid sendKeyBundle key bundle')
+    }
+    if (
+      !(await sendKeyBundle.accountLinkedKey.verifyKey(sendKeyBundle.preKey))
+    ) {
+      throw new Error('sendKeyBundle preKey signature invalid')
+    }
+    if (!this.identityKey) {
+      throw new Error('missing identity key')
+    }
+    const preKey = this.findPreKey(myPreKey)
+    const dh1 = this.identityKey.sharedSecret(sendKeyBundle.preKey)
+    const dh2 = preKey.sharedSecret(sendKeyBundle.accountLinkedKey)
+    const dh3 = preKey.sharedSecret(sendKeyBundle.preKey)
+    const secret = new Uint8Array(dh1.length + dh2.length + dh3.length)
+    secret.set(dh1, 0)
+    secret.set(dh2, dh1.length)
+    secret.set(dh3, dh1.length + dh2.length)
+    return secret
+  }
+
   encode(): Uint8Array {
     return proto.PrivateKeyBundle.encode({
       v1: undefined,
@@ -137,15 +177,15 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
 }
 
 export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
-  accountLinkedKey: proto.AccountLinkedPrivateKey | undefined
-  preKeys: proto.SignedPrivateKey[]
+  accountLinkedKey: AccountLinkedPrivateKey
+  preKeys: SignedPrivateKey[]
 
   constructor(bundle: proto.PrivateKeyBundleV3) {
     if (!bundle.accountLinkedKey) {
       throw new Error('missing account linked key')
     }
-    this.accountLinkedKey = bundle.accountLinkedKey
-    this.preKeys = bundle.preKeys || []
+    this.accountLinkedKey = new AccountLinkedPrivateKey(bundle.accountLinkedKey)
+    this.preKeys = (bundle.preKeys || []).map((k) => new SignedPrivateKey(k))
   }
 }
 
