@@ -43,3 +43,4 @@ export {
   toNanoString,
   mapPaginatedStream,
 } from './utils'
+export { buildDirectMessageTopic } from './utils'
