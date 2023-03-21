@@ -124,7 +124,7 @@ class AccountLinkedStaticSignatureV1
 {
   text: Uint8Array
   signature: Signature
-  private _ecdsaCompact: ECDSACompactWithRecovery
+  private _walletEcdsaCompact: ECDSACompactWithRecovery
 
   constructor(obj: Partial<signature.AccountLinkedStaticSignature_V1>) {
     if (!obj.text || !obj.signature) {
@@ -132,16 +132,16 @@ class AccountLinkedStaticSignatureV1
     }
     this.text = obj.text
     this.signature = new Signature(obj.signature)
-    if (!this.signature.ecdsaCompact) {
+    if (!this.signature.walletEcdsaCompact) {
       throw new Error(
         'Invalid AccountLinkedStaticSignatureV1 does not have ecdsaCompact'
       )
     }
-    this._ecdsaCompact = this.signature.ecdsaCompact
+    this._walletEcdsaCompact = this.signature.walletEcdsaCompact
   }
 
-  public get ecdsaCompact(): ECDSACompactWithRecovery {
-    return this._ecdsaCompact
+  public get walletEcdsaCompact(): ECDSACompactWithRecovery {
+    return this._walletEcdsaCompact
   }
 }
 
@@ -153,10 +153,22 @@ export class AccountLinkedStaticSignature
 
   constructor(obj: Partial<signature.AccountLinkedStaticSignature>) {
     if (!obj.v1) {
-      throw new Error('Invalid AccountLinkedStaticSignature')
+      throw new Error('Unsupported AccountLinkedStaticSignature version')
     }
     super(obj.v1)
     this.v1 = obj.v1
+  }
+
+  public static create(
+    text: Uint8Array,
+    signature: Signature
+  ): AccountLinkedStaticSignature {
+    return new AccountLinkedStaticSignature({
+      v1: {
+        text,
+        signature,
+      },
+    })
   }
 }
 

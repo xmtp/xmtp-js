@@ -19,7 +19,7 @@ export class SignedPublicKeyBundleV2
     this.preKey = new SignedPublicKey(bundle.preKey)
   }
 
-  public getLinkedAccount(role: AccountLinkedRole) {
+  public getLinkedAddress(role: AccountLinkedRole): string {
     return this.accountLinkedKey.getLinkedAddress(role)
   }
 }

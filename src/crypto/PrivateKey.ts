@@ -2,6 +2,7 @@ import { privateKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature, {
+  AccountLinkedRole,
   ECDSACompactWithRecovery,
   ecdsaSignerKey,
   KeySigner,
@@ -196,6 +197,11 @@ export class AccountLinkedPrivateKeyV1
     }
     this.publicKey = new AccountLinkedPublicKey(obj.publicKey)
   }
+
+  // Does the provided PublicKey correspond to this PrivateKey?
+  public matches(key: AccountLinkedPublicKey): boolean {
+    return this.publicKey.equals(key)
+  }
 }
 
 export class AccountLinkedPrivateKey
@@ -211,6 +217,29 @@ export class AccountLinkedPrivateKey
     } else {
       throw new Error('unsupported version')
     }
+  }
+
+  public static fromLegacyKey(
+    key: SignedPrivateKey,
+    role: AccountLinkedRole
+  ): AccountLinkedPrivateKey {
+    return new AccountLinkedPrivateKey({
+      v1: new AccountLinkedPrivateKeyV1({
+        createdNs: key.createdNs,
+        secp256k1: key.secp256k1,
+        publicKey: AccountLinkedPublicKey.fromLegacyKey(key.publicKey, role),
+      }),
+    })
+  }
+
+  // derive shared secret from peer's PublicKey;
+  // the peer can derive the same secret using their PrivateKey and our PublicKey
+  public sharedSecret(peer: PublicKey | SignedPublicKey): Uint8Array {
+    return secp.getSharedSecret(
+      this.secp256k1.bytes,
+      peer.secp256k1Uncompressed.bytes,
+      false
+    )
   }
 }
 

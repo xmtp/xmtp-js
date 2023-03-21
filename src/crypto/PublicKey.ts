@@ -11,6 +11,7 @@ import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
+import { toUtf8Bytes } from 'ethers/lib/utils'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -248,12 +249,16 @@ export class AccountLinkedPublicKeyV1
 
   public getLinkedAddress(role: AccountLinkedRole): string {
     if (this.staticSignature) {
-      const digest = hexToBytes(
-        utils.hashMessage(
-          WalletSigner.accountLinkRequestText(this.keyBytes, role)
-        )
-      )
-      const signature = this.staticSignature.ecdsaCompact
+      // Decode from UTF-8
+      const signatureText = new TextDecoder().decode(this.staticSignature.text)
+      if (
+        signatureText !==
+        WalletSigner.accountLinkRequestText(this.bytesToSign(), role)
+      ) {
+        throw new Error('Signature text does not match expected text')
+      }
+      const digest = hexToBytes(utils.hashMessage(signatureText))
+      const signature = this.staticSignature.walletEcdsaCompact
       const publicKey = ecdsaSignerKey(digest, signature)
       if (!publicKey) {
         throw new Error('Static signature is not valid for given role')
@@ -299,6 +304,33 @@ export class AccountLinkedPublicKey
     } else {
       throw new Error('Unsupported AccountLinkedPublicKey version')
     }
+  }
+
+  public static fromLegacyKey(
+    legacyKey: SignedPublicKey,
+    role: AccountLinkedRole
+  ): AccountLinkedPublicKey {
+    if (!legacyKey.keyBytes || !legacyKey.signature) {
+      throw new Error('key is not signed')
+    }
+    const textBytes = toUtf8Bytes(
+      WalletSigner.accountLinkRequestText(legacyKey.keyBytes, role)
+    )
+    const staticSignature = AccountLinkedStaticSignature.create(
+      textBytes,
+      legacyKey.signature
+    )
+    const key = new AccountLinkedPublicKey({
+      v1: new AccountLinkedPublicKeyV1({
+        keyBytes: legacyKey.keyBytes,
+        staticSignature,
+        siweSignature: undefined,
+      }),
+    })
+    if (!key.getLinkedAddress(role)) {
+      throw new Error('Legacy key has invalid signature for given role')
+    }
+    return key
   }
 }
 

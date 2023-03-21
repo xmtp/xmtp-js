@@ -2,6 +2,7 @@ import { authn, keystore, privateKey, signature } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
+  PrivateKeyBundleV3,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
 import { PrivateKey, PublicKeyBundle } from '../crypto'
@@ -21,6 +22,7 @@ import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
+import { AccountLinkedRole } from '../crypto/Signature'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
@@ -226,7 +228,12 @@ export default class InMemoryKeystore implements Keystore {
             throw new Error('envelope and header timestamp mismatch')
           }
 
-          const invitation = await sealed.v2.getInvitation(this.v2Keys)
+          const invitation = await sealed.v2.getInvitation(
+            PrivateKeyBundleV3.fromLegacyBundle(
+              this.v2Keys,
+              AccountLinkedRole.INBOX_KEY
+            )
+          )
           const selfAddress = await this.getAccountAddress()
           const topicData = {
             invitation,

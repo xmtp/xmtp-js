@@ -6,7 +6,10 @@ import {
 import { messageApi, invitation, fetcher } from '@xmtp/proto'
 import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt, utils } from './crypto'
-import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
+import {
+  PrivateKeyBundleV2,
+  PrivateKeyBundleV3,
+} from './crypto/PrivateKeyBundle'
 import { dateToNs, buildDirectMessageTopicV2 } from './utils'
 import { AccountLinkedRole } from './crypto/Signature'
 const { b64Decode } = fetcher
@@ -87,10 +90,7 @@ export class SealedInvitationHeaderV2
   private _createdNs: Long
   private _peerAddress: string | undefined
 
-  private constructor({
-    peerHeader,
-    selfHeader,
-  }: invitation.SealedInvitationHeaderV2) {
+  constructor({ peerHeader, selfHeader }: invitation.SealedInvitationHeaderV2) {
     if (peerHeader && selfHeader) {
       throw new Error(
         'SealedInvitationHeaderV2 cannot have both peer and self header'
@@ -129,7 +129,7 @@ export class SealedInvitationHeaderV2
 
   public async getPeerAddress(selfAddress: string): Promise<string> {
     if (this._peerAddress) return this._peerAddress
-    const senderAddress = this.sendKeyBundle.getLinkedAccount(
+    const senderAddress = this.sendKeyBundle.getLinkedAddress(
       AccountLinkedRole.SEND_KEY
     )
     const isSender = senderAddress === selfAddress
@@ -183,16 +183,28 @@ export class SealedInvitationV2 implements invitation.SealedInvitationV2 {
     return this._header
   }
 
-  async getInvitation(viewer: PrivateKeyBundleV2): Promise<InvitationV1> {
+  /**
+   * getInvitation decrypts and returns the InvitationV1 stored in the ciphertext of the Sealed Invitation
+   */
+  async getInvitation(
+    viewerInboxKeyBundle: PrivateKeyBundleV3
+  ): Promise<InvitationV1> {
     // Use cached value if already exists
     if (this._invitation) {
       return this._invitation
     }
-    // The constructors for child classes will validate that this is complete
     const header = this.header
-    const secret = await viewer.sharedSecretWithSendKeyBundle(
+    if (
+      !viewerInboxKeyBundle.accountLinkedKey.matches(
+        header.inboxKeyBundle.accountLinkedKey
+      )
+    ) {
+      throw new Error('Inbox key bundle does not match invite')
+    }
+    const secret = await viewerInboxKeyBundle.sharedSecret(
       header.sendKeyBundle,
-      header.inboxKeyBundle.preKey
+      header.inboxKeyBundle.preKey,
+      true /* isRecipient */
     )
     const decryptedBytes = await decrypt(
       this.ciphertext,
