@@ -47,6 +47,7 @@ type ConversationV1Export = {
   version: 'v1'
   peerAddress: string
   createdAt: string
+  topic: string
 }
 
 type ConversationV2Export = {
@@ -278,6 +279,7 @@ export class ConversationV1 {
       version: 'v1',
       peerAddress: this.peerAddress,
       createdAt: this.createdAt.toISOString(),
+      topic: this.topic
     }
   }
 
@@ -288,7 +290,8 @@ export class ConversationV1 {
     return new ConversationV1(
       client,
       data.peerAddress,
-      new Date(data.createdAt)
+      new Date(data.createdAt),
+      data.topic
     )
   }
 
