@@ -81,7 +81,7 @@ export default class Conversations {
   }
 
   /**
-   * List all conversations with the current wallet found in the network, deduped by peer address
+   * List all conversations with the current wallet found in the network.
    */
   async list(): Promise<Conversation[]> {
     const [v1Convos, v2Convos] = await Promise.all([

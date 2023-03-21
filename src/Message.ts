@@ -307,36 +307,12 @@ export class DecodedMessage {
       error,
       messageVersion,
       sent: nsToDate(protoVal.sentNs),
-      conversation: DecodedMessage.conversationReferenceToConversation(
+      conversation: conversationReferenceToConversation(
         protoVal.conversation,
         client,
         messageVersion
       ),
     })
-  }
-
-  static conversationReferenceToConversation(
-    reference: keystore.ConversationReference,
-    client: Client,
-    version: DecodedMessage['messageVersion']
-  ): Conversation {
-    if (version === 'v1') {
-      return new ConversationV1(
-        client,
-        reference.peerAddress,
-        nsToDate(reference.createdNs)
-      )
-    }
-    if (version === 'v2') {
-      return new ConversationV2(
-        client,
-        reference.topic,
-        reference.peerAddress,
-        nsToDate(reference.createdNs),
-        reference.context
-      )
-    }
-    throw new Error(`Unknown conversation version ${version}`)
   }
 
   static fromV1Message(
@@ -419,4 +395,28 @@ export async function decodeContent(contentBytes: Uint8Array, client: Client) {
   }
 
   return { content, contentType, error }
+}
+
+function conversationReferenceToConversation(
+  reference: keystore.ConversationReference,
+  client: Client,
+  version: DecodedMessage['messageVersion']
+): Conversation {
+  if (version === 'v1') {
+    return new ConversationV1(
+      client,
+      reference.peerAddress,
+      nsToDate(reference.createdNs)
+    )
+  }
+  if (version === 'v2') {
+    return new ConversationV2(
+      client,
+      reference.topic,
+      reference.peerAddress,
+      nsToDate(reference.createdNs),
+      reference.context
+    )
+  }
+  throw new Error(`Unknown conversation version ${version}`)
 }

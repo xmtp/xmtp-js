@@ -8,6 +8,11 @@ import { Keystore } from '../interfaces'
 import InMemoryKeystore from '../InMemoryKeystore'
 import { buildPersistenceFromOptions } from './helpers'
 
+/**
+ * NetworkKeystoreProvider will look on the XMTP network for an `EncryptedPrivateKeyBundle`
+ * on the user's private storage topic. If found, will decrypt the bundle using a wallet
+ * signature and instantiate a Keystore instance using the decrypted value.
+ */
 export default class NetworkKeystoreProvider implements KeystoreProvider {
   async newKeystore(
     opts: KeystoreProviderOptions,
