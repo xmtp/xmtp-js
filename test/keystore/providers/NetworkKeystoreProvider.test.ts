@@ -1,12 +1,7 @@
 import { privateKey } from '@xmtp/proto'
 import { KeystoreProviderUnavailableError } from './../../../src/keystore/providers/errors'
 import ApiClient, { ApiUrls } from '../../../src/ApiClient'
-import {
-  encrypt,
-  PrivateKeyBundleV1,
-  SignedPublicKeyBundle,
-  utils,
-} from '../../../src/crypto'
+import { encrypt, PrivateKeyBundleV1 } from '../../../src/crypto'
 import NetworkKeystoreProvider from '../../../src/keystore/providers/NetworkKeystoreProvider'
 import { Signer } from '../../../src/types/Signer'
 import { newWallet } from '../../helpers'
