@@ -7,8 +7,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./remote-attachment
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -18,7 +16,9 @@ jobs:
         uses: actions/setup-node@v3
       - name: Install dependencies
         run: npm ci
+        working-directory: ./remote-attachment
       - name: Release
+        working-directory: ./remote-attachment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
