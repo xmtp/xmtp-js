@@ -29,11 +29,7 @@ import {
 } from '../crypto'
 import { sha256 } from '../crypto/encryption'
 import { ContentTypeText } from '../codecs/Text'
-import { KeystoreError } from '../keystore'
-import {
-  buildDecryptV1Request,
-  validateKeystoreResponse,
-} from '../utils/keystore'
+import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 
 /**
  * Conversation class allows you to view, stream, and send messages to/from a peer address
@@ -156,7 +152,8 @@ export class ConversationV1 {
       topics = [this.topic]
     }
     const contentType = options?.contentType || ContentTypeText
-    const msg = await this.encodeMessage(content, recipient, options)
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, recipient, options?.timestamp)
 
     await this.client.publishEnvelopes(
       topics.map((topic) => ({
@@ -170,6 +167,7 @@ export class ConversationV1 {
       msg,
       content,
       contentType,
+      payload,
       topics[0], // Just use the first topic for the returned value
       this
     )
@@ -190,38 +188,14 @@ export class ConversationV1 {
     for (let i = 0; i < responses.length; i++) {
       const result = responses[i]
       const message = messages[i]
-      if (result.error) {
-        if (throwOnError) {
-          throw new KeystoreError(result.error?.code, result.error?.message)
-        }
-        console.warn('Error decrypting message', result.error)
-        continue
-      }
-
-      if (!result.result?.decrypted) {
-        console.warn('Error decrypting message', result)
-        if (throwOnError) {
-          throw new KeystoreError(
-            keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
-            'No result returned'
-          )
-        }
-        continue
-      }
-
       try {
-        out.push(
-          await this.buildDecodedMessage(
-            message,
-            result.result.decrypted,
-            topic
-          )
-        )
+        const { decrypted } = getResultOrThrow(result)
+        out.push(await this.buildDecodedMessage(message, decrypted, topic))
       } catch (e) {
-        console.warn('Error decoding content', e)
         if (throwOnError) {
           throw e
         }
+        console.warn('Error decoding content', e)
       }
     }
 
@@ -241,20 +215,20 @@ export class ConversationV1 {
       message,
       content,
       contentType,
+      decrypted,
       topic,
       this,
       error
     )
   }
 
-  private async encodeMessage(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    content: any,
+  private async createMessage(
+    // Payload is expected to be the output of `client.encodeContent`
+    payload: Uint8Array,
     recipient: PublicKeyBundle,
-    options?: SendOptions
+    timestamp?: Date
   ): Promise<MessageV1> {
-    const timestamp = options?.timestamp || new Date()
-    const payload = await this.client.encodeContent(content, options)
+    timestamp = timestamp || new Date()
 
     return MessageV1.encode(
       this.client.keystore,
@@ -336,7 +310,8 @@ export class ConversationV2 {
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
   ): Promise<DecodedMessage> {
-    const msg = await this.encodeMessage(content, options)
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, options?.timestamp)
     await this.client.publishEnvelopes([
       {
         contentTopic: this.topic,
@@ -351,20 +326,20 @@ export class ConversationV2 {
       content,
       contentType,
       this.topic,
+      payload,
       this,
       this.client.address
     )
   }
 
-  async encodeMessage(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    content: any,
-    options?: SendOptions
+  async createMessage(
+    // Payload is expected to have already gone through `client.encodeContent`
+    payload: Uint8Array,
+    timestamp?: Date
   ): Promise<MessageV2> {
-    const payload = await this.client.encodeContent(content, options)
     const header: message.MessageHeaderV2 = {
       topic: this.topic,
-      createdNs: dateToNs(options?.timestamp || new Date()),
+      createdNs: dateToNs(timestamp || new Date()),
     }
     const headerBytes = message.MessageHeaderV2.encode(header).finish()
     const digest = await sha256(concat(headerBytes, payload))
@@ -401,34 +376,15 @@ export class ConversationV2 {
     for (let i = 0; i < responses.length; i++) {
       const result = responses[i]
       const message = messages[i]
-      if (result.error) {
-        console.warn('Error decrypting message', result.error)
-        if (throwOnError) {
-          throw new KeystoreError(result.error?.code, result.error?.message)
-        }
-        continue
-      }
-
-      if (!result.result?.decrypted) {
-        console.warn('Error decrypting message', result)
-        if (throwOnError) {
-          throw new KeystoreError(
-            keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
-            'No result returned'
-          )
-        }
-        continue
-      }
 
       try {
-        out.push(
-          await this.buildDecodedMessage(message, result.result.decrypted)
-        )
+        const { decrypted } = getResultOrThrow(result)
+        out.push(await this.buildDecodedMessage(message, decrypted))
       } catch (e) {
-        console.warn('Error decoding content', e)
         if (throwOnError) {
           throw e
         }
+        console.warn('Error decoding content', e)
       }
     }
 
@@ -465,12 +421,8 @@ export class ConversationV2 {
     if (responses.length !== 1) {
       throw new Error('Invalid response length')
     }
-    validateKeystoreResponse(responses[0])
-    const { result } = responses[0]
-    if (!result?.encrypted) {
-      throw new Error('no result returned')
-    }
-    return result.encrypted
+    const { encrypted } = getResultOrThrow(responses[0])
+    return encrypted
   }
 
   private async buildDecodedMessage(
@@ -515,6 +467,7 @@ export class ConversationV2 {
       content,
       contentType,
       this.topic,
+      signed.payload,
       this,
       senderAddress,
       error
