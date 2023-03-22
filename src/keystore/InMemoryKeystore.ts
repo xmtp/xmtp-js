@@ -238,7 +238,7 @@ export default class InMemoryKeystore implements Keystore {
           const topicData = {
             invitation,
             createdNs: sealed.v2.header.createdNs,
-            peerAddress: await sealed.v2.header.getPeerAddress(selfAddress),
+            peerAddress: sealed.v2.header.getPeerAddress(selfAddress),
           }
           toAdd.push(topicData)
           return {

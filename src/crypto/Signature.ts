@@ -1,11 +1,17 @@
 import { signature } from '@xmtp/proto'
 import Long from 'long'
 import * as secp from '@noble/secp256k1'
-import { PublicKey, UnsignedPublicKey, SignedPublicKey } from './PublicKey'
+import {
+  PublicKey,
+  UnsignedPublicKey,
+  SignedPublicKey,
+  AccountLinkedPublicKey,
+} from './PublicKey'
 import { SignedPrivateKey } from './PrivateKey'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { bytesToHex, equalBytes, hexToBytes } from './utils'
+import { toUtf8Bytes } from 'ethers/lib/utils'
 
 // ECDSA signature with recovery bit.
 export type ECDSACompactWithRecovery = {
@@ -172,6 +178,7 @@ export class AccountLinkedStaticSignature
   }
 }
 
+// Deprecation in progress
 // A signer that can be used to sign public keys.
 export interface KeySigner {
   signKey(key: UnsignedPublicKey): Promise<SignedPublicKey>
@@ -188,31 +195,6 @@ export class WalletSigner implements KeySigner {
 
   constructor(wallet: Signer) {
     this.wallet = wallet
-  }
-
-  private static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
-    switch (role) {
-      case AccountLinkedRole.INBOX_KEY:
-        return 'Create Identity'
-      case AccountLinkedRole.SEND_KEY:
-        return 'Grant Send Permissions'
-    }
-  }
-
-  public static accountLinkRequestText(
-    keyBytes: Uint8Array,
-    role: AccountLinkedRole
-  ): string {
-    // Note that an update to this signature request text will require
-    // addition of backward compatibility for existing signatures
-    // and/or a migration; otherwise clients will fail to verify previously
-    // signed keys.
-    return (
-      `XMTP : ${WalletSigner.accountLinkedRoleRequestText(role)}\n` +
-      `${bytesToHex(keyBytes)}\n` +
-      '\n' +
-      'For more info: https://xmtp.org/signatures/'
-    )
   }
 
   static identitySigRequestText(keyBytes: Uint8Array): string {
@@ -256,5 +238,75 @@ export class WalletSigner implements KeySigner {
       },
     })
     return new SignedPublicKey({ keyBytes, signature })
+  }
+}
+
+export interface AccountLinkSigner {
+  signKeyWithRole(
+    key: UnsignedPublicKey,
+    role: AccountLinkedRole
+  ): Promise<AccountLinkedPublicKey>
+}
+
+export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
+  wallet: Signer
+
+  constructor(wallet: Signer) {
+    this.wallet = wallet
+  }
+
+  private static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
+    switch (role) {
+      case AccountLinkedRole.INBOX_KEY:
+        return 'Create Identity'
+      case AccountLinkedRole.SEND_KEY:
+        return 'Grant Send Permissions'
+    }
+  }
+
+  public static accountLinkRequestText(
+    keyBytes: Uint8Array,
+    role: AccountLinkedRole
+  ): string {
+    // Note that an update to this signature request text will require
+    // addition of backward compatibility for existing signatures
+    // and/or a migration; otherwise clients will fail to verify previously
+    // signed keys.
+    return (
+      `XMTP : ${StaticWalletAccountLinkSigner.accountLinkedRoleRequestText(
+        role
+      )}\n` +
+      `${bytesToHex(keyBytes)}\n` +
+      '\n' +
+      'For more info: https://xmtp.org/signatures/'
+    )
+  }
+
+  public async signKeyWithRole(
+    key: UnsignedPublicKey,
+    role: AccountLinkedRole
+  ): Promise<AccountLinkedPublicKey> {
+    const keyBytes = key.toBytes()
+    const requestTextBytes = toUtf8Bytes(
+      StaticWalletAccountLinkSigner.accountLinkRequestText(keyBytes, role)
+    )
+    const sigString = await this.wallet.signMessage(requestTextBytes)
+    const eSig = utils.splitSignature(sigString)
+    const r = hexToBytes(eSig.r)
+    const s = hexToBytes(eSig.s)
+    const sigBytes = new Uint8Array(64)
+    sigBytes.set(r)
+    sigBytes.set(s, r.length)
+    const signature = new Signature({
+      walletEcdsaCompact: {
+        bytes: sigBytes,
+        recovery: eSig.recoveryParam,
+      },
+    })
+    return AccountLinkedPublicKey.create(
+      keyBytes,
+      AccountLinkedStaticSignature.create(requestTextBytes, signature),
+      undefined /* siweSignature */
+    )
   }
 }

@@ -4,7 +4,11 @@ import {
   PrivateKey,
   SignedPrivateKey,
 } from './PrivateKey'
-import { AccountLinkedRole, WalletSigner } from './Signature'
+import {
+  AccountLinkedRole,
+  StaticWalletAccountLinkSigner,
+  WalletSigner,
+} from './Signature'
 import { PublicKey, SignedPublicKey } from './PublicKey'
 import {
   PublicKeyBundle,
@@ -25,6 +29,24 @@ export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
     }
     this.accountLinkedKey = new AccountLinkedPrivateKey(bundle.accountLinkedKey)
     this.preKeys = (bundle.preKeys || []).map((k) => new SignedPrivateKey(k))
+  }
+
+  // Generate a new key bundle with the preKey signed by the accountLinkedKey.
+  // Sign the accountLinkedKey with the provided wallet as well.
+  static async generate(
+    wallet: Signer,
+    role: AccountLinkedRole
+  ): Promise<PrivateKeyBundleV3> {
+    const accountLinkedKey = await AccountLinkedPrivateKey.generate(
+      new StaticWalletAccountLinkSigner(wallet),
+      role
+    )
+    const bundle = new PrivateKeyBundleV3({
+      accountLinkedKey,
+      preKeys: [],
+    })
+    await bundle.addPreKey()
+    return bundle
   }
 
   public static fromLegacyBundle(
@@ -53,6 +75,13 @@ export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
       })
     }
     return this._publicKeyBundle
+  }
+
+  // Generate a new pre-key to be used as the current pre-key.
+  private async addPreKey(): Promise<void> {
+    this._publicKeyBundle = undefined
+    const preKey = await SignedPrivateKey.generate(this.accountLinkedKey)
+    this.preKeys.unshift(preKey)
   }
 
   // Return the current (latest) pre-key (to be advertised).
