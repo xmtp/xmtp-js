@@ -199,7 +199,7 @@ export class AccountLinkedPrivateKeyV1
     if (
       !equalBytes(
         secp.getPublicKey(this.secp256k1.bytes),
-        this.publicKey.keyBytes
+        this.publicKey.secp256k1Uncompressed.bytes
       )
     ) {
       throw new Error('private key does not match public key')
