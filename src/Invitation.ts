@@ -95,24 +95,27 @@ export class SealedInvitationHeaderV2
       throw new Error(
         'SealedInvitationHeaderV2 cannot have both peer and self header'
       )
-    } else if (!peerHeader && !selfHeader) {
+    }
+    const usedHeader = peerHeader || selfHeader
+    if (!usedHeader) {
       throw new Error('SealedInvitationHeaderV2 missing peer or self header')
     }
-
     this.peerHeader = peerHeader
     this.selfHeader = selfHeader
-    const sendKeyBundle = peerHeader?.sendKeyBundle || selfHeader?.sendKeyBundle
-    const inboxKeyBundle =
-      peerHeader?.inboxKeyBundle || selfHeader?.inboxKeyBundle
-    const createdNs = peerHeader?.createdNs || selfHeader?.createdNs
-    if (!sendKeyBundle || !inboxKeyBundle || !createdNs) {
+    if (
+      !usedHeader.sendKeyBundle ||
+      !usedHeader.inboxKeyBundle ||
+      !usedHeader.createdNs
+    ) {
       throw new Error(
         'SealedInvitationHeaderV2 missing key bundles or creation time'
       )
     }
-    this._sendKeyBundle = new SignedPublicKeyBundleV2(sendKeyBundle)
-    this._inboxKeyBundle = new SignedPublicKeyBundleV2(inboxKeyBundle)
-    this._createdNs = createdNs
+    this._sendKeyBundle = new SignedPublicKeyBundleV2(usedHeader.sendKeyBundle)
+    this._inboxKeyBundle = new SignedPublicKeyBundleV2(
+      usedHeader.inboxKeyBundle
+    )
+    this._createdNs = usedHeader.createdNs
   }
 
   public get createdNs(): Long {
@@ -201,6 +204,9 @@ export class SealedInvitationV2 implements invitation.SealedInvitationV2 {
     ) {
       throw new Error('Inbox key bundle does not match invite')
     }
+    // V2 invitations are sent in pairs, one to the inviter and one to the invitee,
+    // using the respective inbox key bundle of each recipient. Hence when receiving
+    // an invitation, we are always the recipient regardless of who the inviter was.
     const secret = await viewerInboxKeyBundle.sharedSecret(
       header.sendKeyBundle,
       header.inboxKeyBundle.preKey,

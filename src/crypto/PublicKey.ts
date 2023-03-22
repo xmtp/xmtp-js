@@ -249,19 +249,17 @@ export class AccountLinkedPublicKeyV1
 
   public getLinkedAddress(role: AccountLinkedRole): string {
     if (this.staticSignature) {
-      // Decode from UTF-8
-      const signatureText = new TextDecoder().decode(this.staticSignature.text)
-      if (
-        signatureText !==
+      const expectedTextBytes = toUtf8Bytes(
         WalletSigner.accountLinkRequestText(this.bytesToSign(), role)
-      ) {
+      )
+      if (!equalBytes(this.staticSignature.text, expectedTextBytes)) {
         throw new Error('Signature text does not match expected text')
       }
-      const digest = hexToBytes(utils.hashMessage(signatureText))
+      const digest = hexToBytes(utils.hashMessage(this.staticSignature.text))
       const signature = this.staticSignature.walletEcdsaCompact
       const publicKey = ecdsaSignerKey(digest, signature)
       if (!publicKey) {
-        throw new Error('Static signature is not valid for given role')
+        throw new Error('Unable to derive address from signature')
       }
       return publicKey.getEthereumAddress()
     } else {
@@ -327,9 +325,6 @@ export class AccountLinkedPublicKey
         siweSignature: undefined,
       }),
     })
-    if (!key.getLinkedAddress(role)) {
-      throw new Error('Legacy key has invalid signature for given role')
-    }
     return key
   }
 }

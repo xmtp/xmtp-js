@@ -196,6 +196,14 @@ export class AccountLinkedPrivateKeyV1
       throw new Error('missing public key')
     }
     this.publicKey = new AccountLinkedPublicKey(obj.publicKey)
+    if (
+      !equalBytes(
+        secp.getPublicKey(this.secp256k1.bytes),
+        this.publicKey.keyBytes
+      )
+    ) {
+      throw new Error('private key does not match public key')
+    }
   }
 
   // Does the provided PublicKey correspond to this PrivateKey?

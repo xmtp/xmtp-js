@@ -43,7 +43,10 @@ describe('Invitations', () => {
         SealedInvitation.fromBytes(newInvitation.toBytes()).toBytes()
       )
       // Ensure the headers haven't been mangled
-      const v1 = newInvitation.v1!
+      if (!newInvitation.v1) {
+        throw new Error('Unexpected null v1 invitation header')
+      }
+      const v1 = newInvitation.v1
       const header = v1.header
       expect(header.sender.equals(alice.getPublicKeyBundle())).toBeTruthy()
       expect(header.recipient.equals(bob.getPublicKeyBundle())).toBeTruthy()
