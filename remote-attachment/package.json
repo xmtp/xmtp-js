@@ -13,6 +13,8 @@
     "build:esm": "node config/cleanup esm && tsc -p config/tsconfig.esm.json",
     "build:umd": "node config/cleanup umd && webpack --config config/webpack.config.js",
     "build:types": "node config/cleanup types && tsc -p config/tsconfig.types.json",
+    "package": "npm pack",
+    "prepublishOnly": "npm run build",
     "test": "jest"
   },
   "files": [
@@ -25,7 +27,7 @@
     "@xmtp/proto": "^3.15.0",
     "@xmtp/xmtp-js": "^7.12.0"
   },
-   "release": {
+  "release": {
     "branches": [
       "main"
     ]
