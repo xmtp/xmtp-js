@@ -1,4 +1,4 @@
-import ApiClient, { ApiUrls, GrpcStatus, PublishParams } from '../src/ApiClient'
+import ApiClient, { ApiUrls, GrpcStatus } from '../src/ApiClient'
 import { newWallet } from './helpers'
 import { LocalAuthenticator } from '../src/authn'
 import { buildUserPrivateStoreTopic, dateToNs } from '../src/utils'

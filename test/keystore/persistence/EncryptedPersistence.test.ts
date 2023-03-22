@@ -1,4 +1,3 @@
-import { randomBytes } from './../../../bench/helpers'
 import { PrivateKeyBundleV1 } from './../../../src/crypto/PrivateKeyBundle'
 import {
   EncryptedPersistence,

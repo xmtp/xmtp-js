@@ -7,7 +7,7 @@ import {
   newLocalHostClientWithCustomWallet,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
-import Client, { KeyStoreType, ClientOptions } from '../src/Client'
+import Client, { ClientOptions } from '../src/Client'
 import { Compression, getRandomValues, Signer } from '../src'
 import { content as proto } from '@xmtp/proto'
 import { InMemoryKeystore } from '../src/keystore'

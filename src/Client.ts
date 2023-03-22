@@ -52,11 +52,6 @@ export type ListMessagesPaginatedOptions = {
   direction?: messageApi.SortDirection
 }
 
-export enum KeyStoreType {
-  networkTopicStoreV1,
-  static,
-}
-
 // Parameters for the send functions
 export { Compression }
 export type SendOptions = {
@@ -71,33 +66,62 @@ export type XmtpEnv = keyof typeof ApiUrls
 /**
  * Network startup options
  */
-type NetworkOptions = {
-  // Allow for specifying different envs later
+export type NetworkOptions = {
+  /**
+   * Specify which XMTP environment to connect to. (default: `dev`)
+   */
   env: XmtpEnv
-  // apiUrl can be used to override the default URL for the env
+  /**
+   * apiUrl can be used to override the `env` flag and connect to a
+   * specific endpoint
+   */
   apiUrl: string | undefined
-  // app identifier included with client version header
+  /**
+   * identifier that's included with API requests.
+   *
+   * For example, you can use the following format:
+   * `appVersion: APP_NAME + '/' + APP_VERSION`.
+   * Setting this value provides telemetry that shows which apps are
+   * using the XMTP client SDK. This information can help XMTP developers
+   * provide app support, especially around communicating important
+   * SDK updates, including deprecations and required upgrades.
+   */
   appVersion?: string
 }
 
-type ContentOptions = {
-  // Allow configuring codecs for additional content types
+export type ContentOptions = {
+  /**
+   * Allow configuring codecs for additional content types
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecs: ContentCodec<any>[]
 
-  // Set the maximum content size in bytes that is allowed by the Client.
-  // Currently only checked when decompressing compressed content.
+  /**
+   * Set the maximum content size in bytes that is allowed by the Client.
+   * Currently only checked when decompressing compressed content.
+   */
   maxContentSize: number
 }
 
-type KeyStoreOptions = {
-  // Provide an array of KeystoreProviders to limit where the Client will look to
+export type KeyStoreOptions = {
+  /**
+   * Provide an array of KeystoreProviders.
+   * The client will attempt to use each one in sequence until one successfully
+   * returns a Keystore instance
+   */
   keystoreProviders: KeystoreProvider[]
+  /**
+   * Enable the Keystore to persist conversations in the provided storage interface
+   */
   persistConversations: boolean
+  /**
+   * Provide a XMTP PrivateKeyBundle encoded as a Uint8Array.
+   * A bundle can be retried using `Client.getKeys(...)`
+   */
   privateKeyOverride?: Uint8Array
 }
 
-type LegacyOptions = {
+export type LegacyOptions = {
   publishLegacyContact?: boolean
 }
 
@@ -218,6 +242,16 @@ export default class Client {
     return client
   }
 
+  /**
+   * Export the XMTP PrivateKeyBundle from the SDK as a `Uint8Array`.
+   *
+   * This bundle can then be provided as `privateKeyOverride` in a
+   * subsequent call to `Client.create(...)`
+   *
+   * Be very careful with these keys, as they can be used to
+   * impersonate a user on the XMTP network and read the user's
+   * messages.
+   */
   static async getKeys(
     wallet: Signer | null,
     opts?: Partial<ClientOptions>
@@ -445,6 +479,14 @@ export default class Client {
     }
   }
 
+  /**
+   * Low level method for publishing envelopes to the XMTP network with
+   * no pre-processing or encryption applied.
+   *
+   * Primarily used internally
+   *
+   * @param envelopes PublishParams[]
+   */
   async publishEnvelopes(envelopes: PublishParams[]): Promise<void> {
     for (const env of envelopes) {
       this.validateEnvelope(env)
@@ -456,6 +498,10 @@ export default class Client {
     }
   }
 
+  /**
+   * Register a codec to be automatically used for encoding/decoding
+   * messages of the given Content Type
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerCodec(codec: ContentCodec<any>): void {
     const id = codec.contentType
@@ -463,6 +509,10 @@ export default class Client {
     this._codecs.set(key, codec)
   }
 
+  /**
+   * Find a matching codec for a given `ContentTypeId` from the
+   * client's codec registry
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
     const key = `${contentType.authorityId}/${contentType.typeId}`
@@ -476,6 +526,10 @@ export default class Client {
     return codec
   }
 
+  /**
+   * Convert arbitrary content into a serialized `EncodedContent` instance
+   * with the given options
+   */
   async encodeContent(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content: any,
@@ -505,7 +559,13 @@ export default class Client {
     )
   }
 
-  // list stored messages from the specified topic
+  /**
+   * List stored messages from the specified topic.
+   *
+   * A specified mapper function will be applied to each envelope.
+   * If the mapper function throws an error during processing, the
+   * envelope will be discarded.
+   */
   async listEnvelopes<Out>(
     topics: string[],
     mapper: EnvelopeMapper<Out>,
@@ -564,7 +624,9 @@ function createApiClientFromOptions(options: ClientOptions): ApiClient {
   return new ApiClient(apiUrl, { appVersion: options.appVersion })
 }
 
-// retrieve a key bundle from given user's contact topic
+/**
+ * Retrieve a key bundle from given user's contact topic
+ */
 async function getUserContactFromNetwork(
   apiClient: ApiClient,
   peerAddress: string
@@ -586,7 +648,9 @@ async function getUserContactFromNetwork(
   return undefined
 }
 
-// retrieve a list of key bundles given a list of user addresses
+/**
+ * Retrieve a list of key bundles given a list of user addresses
+ */
 async function getUserContactsFromNetwork(
   apiClient: ApiClient,
   peerAddresses: string[]
@@ -629,6 +693,13 @@ async function getUserContactsFromNetwork(
   )
 }
 
+/**
+ * Get the default list of `KeystoreProviders` used in the SDK
+ *
+ * Particularly useful if a developer wants to add their own
+ * provider to the head of the list while falling back to the
+ * default functionality
+ */
 export function defaultKeystoreProviders(): KeystoreProvider[] {
   return [
     // First check to see if a `privateKeyOverride` is provided and use that
@@ -640,7 +711,9 @@ export function defaultKeystoreProviders(): KeystoreProvider[] {
   ]
 }
 
-// Take an array of KeystoreProviders from the options and try them until one succeeds
+/**
+ * Take an array of KeystoreProviders from the options and try them until one succeeds
+ */
 async function bootstrapKeystore(
   opts: ClientOptions,
   apiClient: ApiClient,
