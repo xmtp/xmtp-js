@@ -77,7 +77,14 @@ export type NetworkOptions = {
    */
   apiUrl: string | undefined
   /**
-   * app identifier, which will be included in headers of all API requests
+   * identifier that's included with API requests.
+   *
+   * For example, you can use the following format:
+   * `appVersion: APP_NAME + '/' + APP_VERSION`.
+   * Setting this value provides telemetry that shows which apps are
+   * using the XMTP client SDK. This information can help XMTP developers
+   * provide app support, especially around communicating important
+   * SDK updates, including deprecations and required upgrades.
    */
   appVersion?: string
 }
