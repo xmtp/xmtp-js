@@ -119,9 +119,67 @@ export default class Signature implements signature.Signature {
   }
 }
 
+class AccountLinkedStaticSignatureV1
+  implements signature.AccountLinkedStaticSignature_V1
+{
+  text: Uint8Array
+  signature: Signature
+  private _walletEcdsaCompact: ECDSACompactWithRecovery
+
+  constructor(obj: Partial<signature.AccountLinkedStaticSignature_V1>) {
+    if (!obj.text || !obj.signature) {
+      throw new Error('Invalid AccountLinkedStaticSignatureV1')
+    }
+    this.text = obj.text
+    this.signature = new Signature(obj.signature)
+    if (!this.signature.walletEcdsaCompact) {
+      throw new Error(
+        'Invalid AccountLinkedStaticSignatureV1 does not have ecdsaCompact'
+      )
+    }
+    this._walletEcdsaCompact = this.signature.walletEcdsaCompact
+  }
+
+  public get walletEcdsaCompact(): ECDSACompactWithRecovery {
+    return this._walletEcdsaCompact
+  }
+}
+
+export class AccountLinkedStaticSignature
+  extends AccountLinkedStaticSignatureV1
+  implements signature.AccountLinkedStaticSignature
+{
+  v1: signature.AccountLinkedStaticSignature_V1
+
+  constructor(obj: Partial<signature.AccountLinkedStaticSignature>) {
+    if (!obj.v1) {
+      throw new Error('Unsupported AccountLinkedStaticSignature version')
+    }
+    super(obj.v1)
+    this.v1 = obj.v1
+  }
+
+  public static create(
+    text: Uint8Array,
+    signature: Signature
+  ): AccountLinkedStaticSignature {
+    return new AccountLinkedStaticSignature({
+      v1: {
+        text,
+        signature,
+      },
+    })
+  }
+}
+
 // A signer that can be used to sign public keys.
 export interface KeySigner {
   signKey(key: UnsignedPublicKey): Promise<SignedPublicKey>
+}
+
+export enum AccountLinkedRole {
+  INBOX_KEY,
+  SEND_KEY,
 }
 
 // A wallet based KeySigner.
@@ -130,6 +188,31 @@ export class WalletSigner implements KeySigner {
 
   constructor(wallet: Signer) {
     this.wallet = wallet
+  }
+
+  private static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
+    switch (role) {
+      case AccountLinkedRole.INBOX_KEY:
+        return 'Create Identity'
+      case AccountLinkedRole.SEND_KEY:
+        return 'Grant Send Permissions'
+    }
+  }
+
+  public static accountLinkRequestText(
+    keyBytes: Uint8Array,
+    role: AccountLinkedRole
+  ): string {
+    // Note that an update to this signature request text will require
+    // addition of backward compatibility for existing signatures
+    // and/or a migration; otherwise clients will fail to verify previously
+    // signed keys.
+    return (
+      `XMTP : ${WalletSigner.accountLinkedRoleRequestText(role)}\n` +
+      `${bytesToHex(keyBytes)}\n` +
+      '\n' +
+      'For more info: https://xmtp.org/signatures/'
+    )
   }
 
   static identitySigRequestText(keyBytes: Uint8Array): string {

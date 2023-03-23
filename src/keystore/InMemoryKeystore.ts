@@ -2,6 +2,7 @@ import { authn, keystore, privateKey, signature } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
+  PrivateKeyBundleV3,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
 import { PrivateKey, PublicKeyBundle } from '../crypto'
@@ -21,6 +22,7 @@ import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
+import { AccountLinkedRole } from '../crypto/Signature'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
@@ -28,6 +30,7 @@ export default class InMemoryKeystore implements Keystore {
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private inviteStore: InviteStore
   private authenticator: LocalAuthenticator
+  private accountAddress: string | undefined
 
   constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
     this.v1Keys = keys
@@ -197,27 +200,50 @@ export default class InMemoryKeystore implements Keystore {
       req.requests,
       async ({ payload, timestampNs }) => {
         const sealed = SealedInvitation.fromBytes(payload)
+        if (sealed.v1) {
+          const headerTime = sealed.v1.header.createdNs
+          if (!headerTime.equals(timestampNs)) {
+            throw new Error('envelope and header timestamp mismatch')
+          }
 
-        const headerTime = sealed.v1.header.createdNs
-        if (!headerTime.equals(timestampNs)) {
-          throw new Error('envelope and header timestamp mismatch')
-        }
+          const isSender = sealed.v1.header.sender.equals(
+            this.v2Keys.getPublicKeyBundle()
+          )
 
-        const isSender = sealed.v1.header.sender.equals(
-          this.v2Keys.getPublicKeyBundle()
-        )
+          const invitation = await sealed.v1.getInvitation(this.v2Keys)
+          const topicData = {
+            invitation,
+            createdNs: sealed.v1.header.createdNs,
+            peerAddress: isSender
+              ? await sealed.v1.header.recipient.walletSignatureAddress()
+              : await sealed.v1.header.sender.walletSignatureAddress(),
+          }
+          toAdd.push(topicData)
+          return {
+            conversation: topicDataToConversationReference(topicData),
+          }
+        } else if (sealed.v2) {
+          const headerTime = sealed.v2.header.createdNs
+          if (!headerTime.equals(timestampNs)) {
+            throw new Error('envelope and header timestamp mismatch')
+          }
 
-        const invitation = await sealed.v1.getInvitation(this.v2Keys)
-        const topicData = {
-          invitation,
-          createdNs: sealed.v1.header.createdNs,
-          peerAddress: isSender
-            ? await sealed.v1.header.recipient.walletSignatureAddress()
-            : await sealed.v1.header.sender.walletSignatureAddress(),
-        }
-        toAdd.push(topicData)
-        return {
-          conversation: topicDataToConversationReference(topicData),
+          const invitation = await sealed.v2.getInvitation(
+            PrivateKeyBundleV3.fromLegacyBundle(
+              this.v2Keys,
+              AccountLinkedRole.INBOX_KEY
+            )
+          )
+          const selfAddress = await this.getAccountAddress()
+          const topicData = {
+            invitation,
+            createdNs: sealed.v2.header.createdNs,
+            peerAddress: await sealed.v2.header.getPeerAddress(selfAddress),
+          }
+          toAdd.push(topicData)
+          return {
+            conversation: topicDataToConversationReference(topicData),
+          }
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -320,6 +346,11 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async getAccountAddress(): Promise<string> {
-    return this.v2Keys.getPublicKeyBundle().walletSignatureAddress()
+    if (!this.accountAddress) {
+      this.accountAddress = await this.v2Keys
+        .getPublicKeyBundle()
+        .walletSignatureAddress()
+    }
+    return this.accountAddress
   }
 }

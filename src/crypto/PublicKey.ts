@@ -1,11 +1,17 @@
-import { publicKey } from '@xmtp/proto'
+import { publicKey, signature } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
-import Signature, { WalletSigner } from './Signature'
+import Signature, {
+  AccountLinkedRole,
+  AccountLinkedStaticSignature,
+  ecdsaSignerKey,
+  WalletSigner,
+} from './Signature'
 import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
+import { toUtf8Bytes } from 'ethers/lib/utils'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -208,6 +214,118 @@ export class SignedPublicKey
       keyBytes: legacyKey.bytesToSign(),
       signature,
     })
+  }
+}
+
+export class AccountLinkedPublicKeyV1
+  extends UnsignedPublicKey
+  implements publicKey.AccountLinkedPublicKey_V1
+{
+  keyBytes: Uint8Array
+  staticSignature: AccountLinkedStaticSignature | undefined
+  siweSignature: signature.AccountLinkedSIWESignature | undefined
+
+  constructor(obj: publicKey.AccountLinkedPublicKey_V1) {
+    if (!obj.keyBytes) {
+      throw new Error('Invalid AccountLinkedPublicKeyV1 has no keyBytes')
+    }
+    super(publicKey.UnsignedPublicKey.decode(obj.keyBytes))
+    this.keyBytes = obj.keyBytes
+    if (obj.staticSignature) {
+      this.staticSignature = new AccountLinkedStaticSignature(
+        obj.staticSignature
+      )
+    } else {
+      throw new Error(
+        'Unimplemented signature type for AccountLinkedPublicKeyV1'
+      )
+    }
+  }
+
+  // Return bytes of the encoded unsigned key.
+  private bytesToSign(): Uint8Array {
+    return this.keyBytes
+  }
+
+  public getLinkedAddress(role: AccountLinkedRole): string {
+    if (this.staticSignature) {
+      const expectedTextBytes = toUtf8Bytes(
+        WalletSigner.accountLinkRequestText(this.bytesToSign(), role)
+      )
+      if (!equalBytes(this.staticSignature.text, expectedTextBytes)) {
+        throw new Error('Signature text does not match expected text')
+      }
+      const digest = hexToBytes(utils.hashMessage(this.staticSignature.text))
+      const signature = this.staticSignature.walletEcdsaCompact
+      const publicKey = ecdsaSignerKey(digest, signature)
+      if (!publicKey) {
+        throw new Error('Unable to derive address from signature')
+      }
+      return publicKey.getEthereumAddress()
+    } else {
+      throw new Error('SIWE signature not implemented')
+    }
+  }
+
+  // Verify that signature was created from the digest using matching private key.
+  verify(signature: Signature, digest: Uint8Array): boolean {
+    if (!signature.ecdsaCompact) {
+      return false
+    }
+    return secp.verify(
+      signature.ecdsaCompact.bytes,
+      digest,
+      this.secp256k1Uncompressed.bytes
+    )
+  }
+
+  // Verify that the provided public key was signed by matching private key.
+  async verifyKey(pub: PublicKey | SignedPublicKey): Promise<boolean> {
+    if (!pub.signature) {
+      return false
+    }
+    const digest = await sha256(pub.bytesToSign())
+    return this.verify(pub.signature, digest)
+  }
+}
+
+export class AccountLinkedPublicKey
+  extends AccountLinkedPublicKeyV1
+  implements publicKey.AccountLinkedPublicKey
+{
+  v1: publicKey.AccountLinkedPublicKey_V1
+
+  constructor(obj: publicKey.AccountLinkedPublicKey) {
+    if (obj.v1) {
+      super(obj.v1)
+      this.v1 = obj.v1
+    } else {
+      throw new Error('Unsupported AccountLinkedPublicKey version')
+    }
+  }
+
+  public static fromLegacyKey(
+    legacyKey: SignedPublicKey,
+    role: AccountLinkedRole
+  ): AccountLinkedPublicKey {
+    if (!legacyKey.keyBytes || !legacyKey.signature) {
+      throw new Error('key is not signed')
+    }
+    const textBytes = toUtf8Bytes(
+      WalletSigner.accountLinkRequestText(legacyKey.keyBytes, role)
+    )
+    const staticSignature = AccountLinkedStaticSignature.create(
+      textBytes,
+      legacyKey.signature
+    )
+    const key = new AccountLinkedPublicKey({
+      v1: new AccountLinkedPublicKeyV1({
+        keyBytes: legacyKey.keyBytes,
+        staticSignature,
+        siweSignature: undefined,
+      }),
+    })
+    return key
   }
 }
 
