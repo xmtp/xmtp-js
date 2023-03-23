@@ -147,7 +147,6 @@ describe('skipContactPublishing', () => {
   it('publishes contact when flag is false', async () => {
     const alice = newWallet()
     await Client.create(alice, { skipContactPublishing: false, env: 'local' })
-    await sleep(100)
     expect(
       await Client.canMessage(alice.address, { env: 'local' })
     ).toBeTruthy()
