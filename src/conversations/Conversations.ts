@@ -81,7 +81,7 @@ export default class Conversations {
   }
 
   /**
-   * List all conversations with the current wallet found in the network, deduped by peer address
+   * List all conversations with the current wallet found in the network.
    */
   async list(): Promise<Conversation[]> {
     const [v1Convos, v2Convos] = await Promise.all([
@@ -383,7 +383,7 @@ export default class Conversations {
   ): Promise<Map<string, Date>> {
     const topic = buildUserIntroTopic(this.client.address)
     const messages = await this.client.listEnvelopes(
-      [topic],
+      topic,
       (env) => {
         return MessageV1.fromBytes(b64Decode(env.message as unknown as string))
       },
