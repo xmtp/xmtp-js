@@ -140,13 +140,15 @@ describe('skipContactPublishing', () => {
   it('skips publishing when flag is set to true', async () => {
     const alice = newWallet()
     const client = await newLocalHostClient({ skipContactPublishing: true })
-    expect(await Client.canMessage(alice.address)).toBeFalsy()
+    expect(await Client.canMessage(alice.address, { env: 'local' })).toBeFalsy()
   })
 
   it('publishes contact when flag is false', async () => {
     const alice = newWallet()
     const client = await newLocalHostClient({ skipContactPublishing: false })
-    expect(await Client.canMessage(alice.address)).toBeTruthy()
+    expect(
+      await Client.canMessage(alice.address, { env: 'local' })
+    ).toBeTruthy()
   })
 })
 
