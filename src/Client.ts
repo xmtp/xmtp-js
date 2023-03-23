@@ -87,6 +87,21 @@ export type NetworkOptions = {
    * SDK updates, including deprecations and required upgrades.
    */
   appVersion?: string
+  /**
+   * Skip publishing the user's contact bundle as part of Client startup.
+   *
+   * This flag should be used with caution, as we rely on contact publishing to
+   * let other users know your public key and periodically run migrations on
+   * this data with new SDK versions.
+   *
+   * Your application should have this flag set to `false` at least _some_ of the
+   * time.
+   *
+   * The most common use-case for setting this to `true` is cases where the Client
+   * instance is very short-lived. For example, spinning up a Client to decrypt
+   * a push notification.
+   */
+  skipContactPublishing: boolean
 }
 
 export type ContentOptions = {
@@ -146,6 +161,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
     persistConversations: true,
+    skipContactPublishing: false,
     keystoreProviders: defaultKeystoreProviders(),
   }
   if (opts?.codecs) {
@@ -279,7 +295,9 @@ export default class Client {
       this.registerCodec(codec)
     })
     this._maxContentSize = options.maxContentSize
-    await this.ensureUserContactPublished(options.publishLegacyContact)
+    if (!options.skipContactPublishing) {
+      await this.ensureUserContactPublished(options.publishLegacyContact)
+    }
   }
 
   // gracefully shut down the client

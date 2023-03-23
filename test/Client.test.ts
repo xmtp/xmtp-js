@@ -136,6 +136,20 @@ describe('bootstrapping', () => {
   })
 })
 
+describe('skipContactPublishing', () => {
+  it('skips publishing when flag is set to true', async () => {
+    const alice = newWallet()
+    const client = await newLocalHostClient({ skipContactPublishing: true })
+    expect(await Client.canMessage(alice.address)).toBeFalsy()
+  })
+
+  it('publishes contact when flag is false', async () => {
+    const alice = newWallet()
+    const client = await newLocalHostClient({ skipContactPublishing: false })
+    expect(await Client.canMessage(alice.address)).toBeTruthy()
+  })
+})
+
 describe('encodeContent', () => {
   it('passes deflate compression option through properly', async function () {
     const c = await newLocalHostClient()
