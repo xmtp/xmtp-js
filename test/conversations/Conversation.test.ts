@@ -251,7 +251,7 @@ describe('conversation', () => {
       // Verify that messages are actually compressed
       const envelopes = await alice.apiClient.query(
         {
-          contentTopics: [convo.topic],
+          contentTopic: convo.topic,
         },
         { limit: 1 }
       )

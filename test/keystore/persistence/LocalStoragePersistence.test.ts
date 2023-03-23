@@ -1,6 +1,5 @@
 import LocalStoragePersistence from '../../../src/keystore/persistence/LocalStoragePersistence'
 import { decodePrivateKeyBundle, PrivateKeyBundleV1 } from '../../../src/crypto'
-import { privateKey } from '@xmtp/proto'
 
 describe('Persistence', () => {
   describe('LocalStoragePersistence', () => {

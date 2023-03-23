@@ -32,12 +32,86 @@ import { ContentTypeText } from '../codecs/Text'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 
 /**
- * Conversation class allows you to view, stream, and send messages to/from a peer address
+ * Conversation represents either a V1 or V2 conversation with a common set of methods.
  */
-export class ConversationV1 {
+export interface Conversation {
+  /**
+   * A unique identifier for a conversation. Each conversation is stored on the network on one topic
+   */
+  topic: string
+  /**
+   * The wallet address of the other party in the conversation
+   */
+  peerAddress: string
+  /**
+   * Timestamp the conversation was created at
+   */
+  createdAt: Date
+  /**
+   * Optional field containing the `conversationId` and `metadata` for V2 conversations.
+   * Will always be undefined on V1 conversations
+   */
+  context?: InvitationContext | undefined
+
+  /**
+   * Retrieve messages in this conversation. Default to returning all messages.
+   *
+   * If only a subset is required, results can be narrowed by specifying a start/end
+   * timestamp.
+   *
+   * ```ts
+   * // Get all messages in the past 24 hours
+   * const messages = await conversation.messages({
+   *    startTime: new Date(+new Date() - 86_400)
+   * })
+   * ```
+   */
+  messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]>
+  /**
+   * @deprecated
+   */
+  messagesPaginated(
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<DecodedMessage[]>
+  /**
+   * Takes a XMTP envelope as input and will decrypt and decode it
+   * returning a `DecodedMessage` instance.
+   */
+  decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage>
+  /**
+   * Return a `Stream` of new messages in this conversation.
+   *
+   * Stream instances are async generators and can be used in
+   * `for await` statements.
+   *
+   * ```ts
+   * for await (const message of await conversation.stream()) {
+   *    console.log(message.content)
+   * }
+   * ```
+   */
+  streamMessages(): Promise<Stream<DecodedMessage>>
+  /**
+   * Send a message into the conversation
+   *
+   * ## Example
+   * ```ts
+   * await conversation.send('Hello world') // returns a `DecodedMessage` instance
+   * ```
+   */
+  send(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<DecodedMessage>
+}
+
+/**
+ * ConversationV1 allows you to view, stream, and send messages to/from a peer address
+ */
+export class ConversationV1 implements Conversation {
   peerAddress: string
   createdAt: Date
-  context = null
+  context = undefined
   private client: Client
 
   constructor(client: Client, address: string, createdAt: Date) {
@@ -46,13 +120,21 @@ export class ConversationV1 {
     this.createdAt = createdAt
   }
 
+  get clientAddress() {
+    return this.client.address
+  }
+
+  get topic(): string {
+    return buildDirectMessageTopic(this.peerAddress, this.client.address)
+  }
+
   /**
    * Returns a list of all messages to/from the peerAddress
    */
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
     const topic = buildDirectMessageTopic(this.peerAddress, this.client.address)
     const messages = await this.client.listEnvelopes(
-      [topic],
+      topic,
       this.processEnvelope.bind(this),
       opts
     )
@@ -64,7 +146,7 @@ export class ConversationV1 {
     opts?: ListMessagesPaginatedOptions
   ): AsyncGenerator<DecodedMessage[]> {
     return this.client.listEnvelopesPaginated(
-      [this.topic],
+      this.topic,
       // This won't be performant once we start supporting a remote keystore
       // TODO: Either better batch support or we ditch this under-utilized feature
       this.decodeMessage.bind(this),
@@ -87,10 +169,6 @@ export class ConversationV1 {
       throw new Error('No results')
     }
     return decryptResults[0]
-  }
-
-  get topic(): string {
-    return buildDirectMessageTopic(this.peerAddress, this.client.address)
   }
 
   /**
@@ -126,7 +204,7 @@ export class ConversationV1 {
   }
 
   /**
-   * Send a message into the conversation
+   * Send a message into the conversation.
    */
   async send(
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -222,7 +300,7 @@ export class ConversationV1 {
     )
   }
 
-  private async createMessage(
+  async createMessage(
     // Payload is expected to be the output of `client.encodeContent`
     payload: Uint8Array,
     recipient: PublicKeyBundle,
@@ -238,13 +316,12 @@ export class ConversationV1 {
       timestamp
     )
   }
-
-  get clientAddress() {
-    return this.client.address
-  }
 }
 
-export class ConversationV2 {
+/**
+ * ConversationV2
+ */
+export class ConversationV2 implements Conversation {
   client: Client
   topic: string
   peerAddress: string
@@ -274,7 +351,7 @@ export class ConversationV2 {
    */
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
     const messages = await this.client.listEnvelopes(
-      [this.topic],
+      this.topic,
       this.processEnvelope.bind(this),
       opts
     )
@@ -286,7 +363,7 @@ export class ConversationV2 {
     opts?: ListMessagesPaginatedOptions
   ): AsyncGenerator<DecodedMessage[]> {
     return this.client.listEnvelopesPaginated(
-      [this.topic],
+      this.topic,
       this.decodeMessage.bind(this),
       opts
     )
@@ -505,8 +582,6 @@ export class ConversationV2 {
     return decryptResults[0]
   }
 }
-
-export type Conversation = ConversationV1 | ConversationV2
 
 async function validatePrekeys(signed: proto.SignedContent) {
   // Check that the pre key is signed by the identity key

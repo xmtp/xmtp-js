@@ -1,4 +1,3 @@
-import { Signer } from './../../../src/types/Signer'
 import ApiClient, { ApiUrls } from '../../../src/ApiClient'
 import { newWallet } from '../../helpers'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
