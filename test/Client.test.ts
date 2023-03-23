@@ -140,13 +140,13 @@ describe('bootstrapping', () => {
 describe('skipContactPublishing', () => {
   it('skips publishing when flag is set to true', async () => {
     const alice = newWallet()
-    const client = await newLocalHostClient({ skipContactPublishing: true })
+    await Client.create(alice, { skipContactPublishing: true, env: 'local' })
     expect(await Client.canMessage(alice.address, { env: 'local' })).toBeFalsy()
   })
 
   it('publishes contact when flag is false', async () => {
     const alice = newWallet()
-    await newLocalHostClient({ skipContactPublishing: false })
+    await Client.create(alice, { skipContactPublishing: false, env: 'local' })
     await sleep(100)
     expect(
       await Client.canMessage(alice.address, { env: 'local' })
