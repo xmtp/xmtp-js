@@ -5,6 +5,7 @@ import {
   newDevClient,
   waitForUserContact,
   newLocalHostClientWithCustomWallet,
+  sleep,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
@@ -133,6 +134,22 @@ describe('bootstrapping', () => {
       privateKeyOverride: keys,
     })
     expect(client.address).toEqual(alice.address)
+  })
+})
+
+describe('skipContactPublishing', () => {
+  it('skips publishing when flag is set to true', async () => {
+    const alice = newWallet()
+    await Client.create(alice, { skipContactPublishing: true, env: 'local' })
+    expect(await Client.canMessage(alice.address, { env: 'local' })).toBeFalsy()
+  })
+
+  it('publishes contact when flag is false', async () => {
+    const alice = newWallet()
+    await Client.create(alice, { skipContactPublishing: false, env: 'local' })
+    expect(
+      await Client.canMessage(alice.address, { env: 'local' })
+    ).toBeTruthy()
   })
 })
 
