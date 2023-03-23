@@ -167,6 +167,12 @@ export class SealedInvitationHeaderV2
     if (isSender && this.selfHeader) {
       return this.selfHeader.recipientAddress
     } else if (!isSender && this.peerHeader) {
+      if (
+        this.inboxKeyBundle.getLinkedAddress(AccountLinkedRole.INBOX_KEY) !==
+        selfAddress
+      ) {
+        throw new Error('Self is not part of invitation')
+      }
       return senderAddress
     } else {
       throw new Error('SealedInvitationHeaderV2 has wrong peer or self header')
@@ -449,7 +455,11 @@ export class SealedInvitation implements invitation.SealedInvitation {
    * Create a SealedInvitation with a SealedInvitationV1 payload
    * Will encrypt all contents and validate inputs
    *
-   * @param sender MUST be a send key corresponding to the current viewer
+   * @param sendKeyBundle MUST be a bundle linked to the current viewer
+   * @param inboxKeyBundle a bundle either linked to the current viewer, or to the invitee
+   * @param peerAddress the address of the invitee to whom the invitation is being sent
+   * @param created the time at which the invitation was created
+   * @param invitation the invitation to be sent
    */
   static async createV2({
     sendKeyBundle,

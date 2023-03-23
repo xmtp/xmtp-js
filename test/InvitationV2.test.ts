@@ -60,11 +60,11 @@ describe('Invitations', () => {
   describe('SealedInvitation', () => {
     it.each([
       () => bobInboxBundleV3,
-      // () =>
-      //   PrivateKeyBundleV3.fromLegacyBundle(
-      //     bobInboxBundleV2,
-      //     AccountLinkedRole.INBOX_KEY
-      //   ),
+      () =>
+        PrivateKeyBundleV3.fromLegacyBundle(
+          bobInboxBundleV2,
+          AccountLinkedRole.INBOX_KEY
+        ),
     ])('can generate for others', async (bobInboxBundleFetcher) => {
       const bobInboxBundle = bobInboxBundleFetcher()
       const invitation = createInvitation()
@@ -271,6 +271,23 @@ describe('Invitations', () => {
       ).toBeTruthy()
       expect(header.getPeerAddress(aliceWallet.address)).toEqual(
         bobWallet.address
+      )
+      expect(() => {
+        header.getPeerAddress(bobWallet.address)
+      }).toThrow()
+    })
+
+    it('throws when getting peer address of a header not related to self', async () => {
+      let charlesWallet = newWallet()
+      let charlesInboxBundle = await PrivateKeyBundleV3.generate(
+        charlesWallet,
+        AccountLinkedRole.INBOX_KEY
+      )
+      const header = SealedInvitationHeaderV2.create(
+        aliceSendBundle,
+        charlesInboxBundle.getPublicKeyBundle(),
+        bobWallet.address,
+        new Date('Tue Mar 21 2023 14:43:43 GMT-0700')
       )
       expect(() => {
         header.getPeerAddress(bobWallet.address)

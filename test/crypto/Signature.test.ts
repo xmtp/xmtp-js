@@ -43,7 +43,7 @@ describe('Crypto', function () {
 
 describe('Account Linked Signatures', () => {
   let wallet: Wallet
-  // let accountLinkedPublicKey: AccountLinkedPublicKey
+
   beforeEach(async () => {
     wallet = newWallet()
   })
