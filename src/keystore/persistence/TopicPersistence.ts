@@ -14,7 +14,7 @@ export default class TopicPersistence implements Persistence {
   // Returns the first record in a topic if it is present.
   async getItem(key: string): Promise<Uint8Array | null> {
     for await (const env of this.apiClient.queryIterator(
-      { contentTopics: [this.buildTopic(key)] },
+      { contentTopic: this.buildTopic(key) },
       {
         pageSize: 1,
         direction: messageApi.SortDirection.SORT_DIRECTION_DESCENDING,
