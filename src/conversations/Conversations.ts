@@ -383,7 +383,7 @@ export default class Conversations {
   ): Promise<Map<string, Date>> {
     const topic = buildUserIntroTopic(this.client.address)
     const messages = await this.client.listEnvelopes(
-      [topic],
+      topic,
       (env) => {
         return MessageV1.fromBytes(b64Decode(env.message as unknown as string))
       },

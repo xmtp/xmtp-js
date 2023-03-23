@@ -45,7 +45,7 @@ export type GrpcError = Flatten<Error & { code?: GrpcStatus }>
 export type QueryParams = {
   startTime?: Date
   endTime?: Date
-  contentTopics: string[]
+  contentTopic: string
 }
 
 export type QueryAllOptions = {
@@ -284,10 +284,10 @@ export default class ApiClient {
   // Creates an async generator that will paginate through the Query API until it reaches the end
   // Will yield each page of results as needed
   async *queryIteratePages(
-    { contentTopics, startTime, endTime }: QueryParams,
+    { contentTopic, startTime, endTime }: QueryParams,
     { direction, pageSize = 10 }: QueryStreamOptions
   ): AsyncGenerator<messageApi.Envelope[]> {
-    if (!contentTopics || !contentTopics.length) {
+    if (!contentTopic || !contentTopic.length) {
       throw new Error('Must specify content topics')
     }
 
@@ -303,7 +303,7 @@ export default class ApiClient {
       }
 
       const result = await this._query({
-        contentTopics,
+        contentTopics: [contentTopic],
         startTimeNs,
         endTimeNs,
         pagingInfo,
@@ -339,7 +339,7 @@ export default class ApiClient {
 
       for (const queryParams of queriesInBatch) {
         constructedQueries.push({
-          contentTopics: queryParams.contentTopics,
+          contentTopics: [queryParams.contentTopic],
           startTimeNs: toNanoString(queryParams.startTime),
           endTimeNs: toNanoString(queryParams.endTime),
           pagingInfo: {

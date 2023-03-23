@@ -571,7 +571,7 @@ export default class Client {
 
   listInvitations(opts?: ListMessagesOptions): Promise<messageApi.Envelope[]> {
     return this.listEnvelopes(
-      [buildUserInviteTopic(this.address)],
+      buildUserInviteTopic(this.address),
       async (env) => env,
       opts
     )
@@ -585,7 +585,7 @@ export default class Client {
    * envelope will be discarded.
    */
   async listEnvelopes<Out>(
-    topics: string[],
+    topic: string,
     mapper: EnvelopeMapper<Out>,
     opts?: ListMessagesOptions
   ): Promise<Out[]> {
@@ -595,7 +595,7 @@ export default class Client {
     const { startTime, endTime, limit } = opts
 
     const envelopes = await this.apiClient.query(
-      { contentTopics: topics, startTime, endTime },
+      { contentTopic: topic, startTime, endTime },
       {
         direction:
           opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
@@ -619,14 +619,14 @@ export default class Client {
    * List messages on a given set of content topics, yielding one page at a time
    */
   listEnvelopesPaginated<Out>(
-    contentTopics: string[],
+    contentTopic: string,
     mapper: EnvelopeMapper<Out>,
     opts?: ListMessagesPaginatedOptions
   ): AsyncGenerator<Out[]> {
     return mapPaginatedStream(
       this.apiClient.queryIteratePages(
         {
-          contentTopics,
+          contentTopic,
           startTime: opts?.startTime,
           endTime: opts?.endTime,
         },
@@ -650,7 +650,7 @@ async function getUserContactFromNetwork(
   peerAddress: string
 ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
   const stream = apiClient.queryIterator(
-    { contentTopics: [buildUserContactTopic(peerAddress)] },
+    { contentTopic: buildUserContactTopic(peerAddress) },
     { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
   )
 
@@ -676,7 +676,7 @@ async function getUserContactsFromNetwork(
   const userContactTopics = peerAddresses.map(buildUserContactTopic)
   const topicToEnvelopes = await apiClient.batchQuery(
     userContactTopics.map((topic) => ({
-      contentTopics: [topic],
+      contentTopic: topic,
       pageSize: 5,
       direction: SortDirection.SORT_DIRECTION_DESCENDING,
     }))

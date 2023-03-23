@@ -134,7 +134,7 @@ export class ConversationV1 implements Conversation {
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
     const topic = buildDirectMessageTopic(this.peerAddress, this.client.address)
     const messages = await this.client.listEnvelopes(
-      [topic],
+      topic,
       this.processEnvelope.bind(this),
       opts
     )
@@ -146,7 +146,7 @@ export class ConversationV1 implements Conversation {
     opts?: ListMessagesPaginatedOptions
   ): AsyncGenerator<DecodedMessage[]> {
     return this.client.listEnvelopesPaginated(
-      [this.topic],
+      this.topic,
       // This won't be performant once we start supporting a remote keystore
       // TODO: Either better batch support or we ditch this under-utilized feature
       this.decodeMessage.bind(this),
@@ -351,7 +351,7 @@ export class ConversationV2 implements Conversation {
    */
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
     const messages = await this.client.listEnvelopes(
-      [this.topic],
+      this.topic,
       this.processEnvelope.bind(this),
       opts
     )
@@ -363,7 +363,7 @@ export class ConversationV2 implements Conversation {
     opts?: ListMessagesPaginatedOptions
   ): AsyncGenerator<DecodedMessage[]> {
     return this.client.listEnvelopesPaginated(
-      [this.topic],
+      this.topic,
       this.decodeMessage.bind(this),
       opts
     )
