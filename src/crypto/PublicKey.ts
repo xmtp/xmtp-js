@@ -5,6 +5,7 @@ import Signature, {
   AccountLinkedRole,
   AccountLinkedStaticSignature,
   ecdsaSignerKey,
+  StaticWalletAccountLinkSigner,
   WalletSigner,
 } from './Signature'
 import { equalBytes, hexToBytes } from './utils'
@@ -250,7 +251,10 @@ export class AccountLinkedPublicKeyV1
   public getLinkedAddress(role: AccountLinkedRole): string {
     if (this.staticSignature) {
       const expectedTextBytes = toUtf8Bytes(
-        WalletSigner.accountLinkRequestText(this.bytesToSign(), role)
+        StaticWalletAccountLinkSigner.accountLinkRequestText(
+          this.bytesToSign(),
+          role
+        )
       )
       if (!equalBytes(this.staticSignature.text, expectedTextBytes)) {
         throw new Error('Signature text does not match expected text')
@@ -304,6 +308,20 @@ export class AccountLinkedPublicKey
     }
   }
 
+  public static create(
+    keyBytes: Uint8Array,
+    staticSignature: AccountLinkedStaticSignature | undefined,
+    siweSignature: signature.AccountLinkedSIWESignature | undefined
+  ): AccountLinkedPublicKey {
+    return new AccountLinkedPublicKey({
+      v1: new AccountLinkedPublicKeyV1({
+        keyBytes,
+        staticSignature,
+        siweSignature,
+      }),
+    })
+  }
+
   public static fromLegacyKey(
     legacyKey: SignedPublicKey,
     role: AccountLinkedRole
@@ -312,7 +330,10 @@ export class AccountLinkedPublicKey
       throw new Error('key is not signed')
     }
     const textBytes = toUtf8Bytes(
-      WalletSigner.accountLinkRequestText(legacyKey.keyBytes, role)
+      StaticWalletAccountLinkSigner.accountLinkRequestText(
+        legacyKey.keyBytes,
+        role
+      )
     )
     const staticSignature = AccountLinkedStaticSignature.create(
       textBytes,

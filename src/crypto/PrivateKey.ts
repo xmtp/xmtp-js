@@ -3,6 +3,7 @@ import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature, {
   AccountLinkedRole,
+  AccountLinkSigner,
   ECDSACompactWithRecovery,
   ecdsaSignerKey,
   KeySigner,
@@ -179,7 +180,7 @@ export class SignedPrivateKey
 }
 
 export class AccountLinkedPrivateKeyV1
-  implements privateKey.AccountLinkedPrivateKey_V1
+  implements privateKey.AccountLinkedPrivateKey_V1, KeySigner
 {
   createdNs: Long // time the key was generated, ns since epoch
   secp256k1: secp256k1 // eslint-disable-line camelcase
@@ -206,6 +207,32 @@ export class AccountLinkedPrivateKeyV1
     }
   }
 
+  // Sign provided digest.
+  private async sign(digest: Uint8Array): Promise<Signature> {
+    const [signature, recovery] = await secp.sign(
+      digest,
+      this.secp256k1.bytes,
+      {
+        recovered: true,
+        der: false,
+      }
+    )
+    return new Signature({
+      ecdsaCompact: { bytes: signature, recovery },
+    })
+  }
+
+  // Sign provided public key.
+  public async signKey(pub: UnsignedPublicKey): Promise<SignedPublicKey> {
+    const keyBytes = pub.toBytes()
+    const digest = await sha256(keyBytes)
+    const signature = await this.sign(digest)
+    return new SignedPublicKey({
+      keyBytes,
+      signature,
+    })
+  }
+
   // Does the provided PublicKey correspond to this PrivateKey?
   public matches(key: AccountLinkedPublicKey): boolean {
     return this.publicKey.equals(key)
@@ -225,6 +252,31 @@ export class AccountLinkedPrivateKey
     } else {
       throw new Error('unsupported version')
     }
+  }
+
+  // Create a random key pair signed by the signer.
+  static async generate(
+    signer: AccountLinkSigner,
+    role: AccountLinkedRole
+  ): Promise<AccountLinkedPrivateKey> {
+    const secp256k1 = {
+      bytes: secp.utils.randomPrivateKey(),
+    }
+    const createdNs = Long.fromNumber(new Date().getTime()).mul(1000000)
+    const unsigned = new UnsignedPublicKey({
+      secp256k1Uncompressed: {
+        bytes: secp.getPublicKey(secp256k1.bytes),
+      },
+      createdNs,
+    })
+    const signed = await signer.signKeyWithRole(unsigned, role)
+    return new AccountLinkedPrivateKey({
+      v1: new AccountLinkedPrivateKeyV1({
+        secp256k1,
+        createdNs,
+        publicKey: signed,
+      }),
+    })
   }
 
   public static fromLegacyKey(

@@ -88,7 +88,6 @@ export class SealedInvitationHeaderV2
   private _sendKeyBundle: SignedPublicKeyBundleV2
   private _inboxKeyBundle: SignedPublicKeyBundleV2
   private _createdNs: Long
-  private _peerAddress: string | undefined
 
   constructor({ peerHeader, selfHeader }: invitation.SealedInvitationHeaderV2) {
     if (peerHeader && selfHeader) {
@@ -118,6 +117,36 @@ export class SealedInvitationHeaderV2
     this._createdNs = usedHeader.createdNs
   }
 
+  public static create(
+    sendKeyBundle: PrivateKeyBundleV3,
+    inboxKeyBundle: SignedPublicKeyBundleV2,
+    peerAddress: string,
+    created: Date
+  ): SealedInvitationHeaderV2 {
+    let selfHeader, peerHeader
+    if (
+      sendKeyBundle.getLinkedAddress(AccountLinkedRole.SEND_KEY) ===
+      inboxKeyBundle.getLinkedAddress(AccountLinkedRole.INBOX_KEY)
+    ) {
+      selfHeader = {
+        sendKeyBundle: sendKeyBundle.getPublicKeyBundle(),
+        inboxKeyBundle,
+        createdNs: dateToNs(created),
+        recipientAddress: peerAddress,
+      }
+    } else {
+      peerHeader = {
+        sendKeyBundle: sendKeyBundle.getPublicKeyBundle(),
+        inboxKeyBundle,
+        createdNs: dateToNs(created),
+      }
+    }
+    return new SealedInvitationHeaderV2({
+      peerHeader,
+      selfHeader,
+    })
+  }
+
   public get createdNs(): Long {
     return this._createdNs
   }
@@ -130,20 +159,24 @@ export class SealedInvitationHeaderV2
     return this._inboxKeyBundle
   }
 
-  public async getPeerAddress(selfAddress: string): Promise<string> {
-    if (this._peerAddress) return this._peerAddress
+  public getPeerAddress(selfAddress: string): string {
     const senderAddress = this.sendKeyBundle.getLinkedAddress(
       AccountLinkedRole.SEND_KEY
     )
     const isSender = senderAddress === selfAddress
     if (isSender && this.selfHeader) {
-      this._peerAddress = this.selfHeader.recipientAddress
+      return this.selfHeader.recipientAddress
     } else if (!isSender && this.peerHeader) {
-      this._peerAddress = senderAddress
+      if (
+        this.inboxKeyBundle.getLinkedAddress(AccountLinkedRole.INBOX_KEY) !==
+        selfAddress
+      ) {
+        throw new Error('Self is not part of invitation')
+      }
+      return senderAddress
     } else {
       throw new Error('SealedInvitationHeaderV2 has wrong peer or self header')
     }
-    return this._peerAddress
   }
 
   toBytes(): Uint8Array {
@@ -219,6 +252,14 @@ export class SealedInvitationV2 implements invitation.SealedInvitationV2 {
     )
     this._invitation = InvitationV1.fromBytes(decryptedBytes)
     return this._invitation
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.SealedInvitationV2.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): SealedInvitationV2 {
+    return new SealedInvitationV2(invitation.SealedInvitationV2.decode(bytes))
   }
 }
 
@@ -407,6 +448,51 @@ export class SealedInvitation implements invitation.SealedInvitation {
     return new SealedInvitation({
       v1: { headerBytes, ciphertext },
       v2: undefined,
+    })
+  }
+
+  /**
+   * Create a SealedInvitation with a SealedInvitationV1 payload
+   * Will encrypt all contents and validate inputs
+   *
+   * @param sendKeyBundle MUST be a bundle linked to the current viewer
+   * @param inboxKeyBundle a bundle either linked to the current viewer, or to the invitee
+   * @param peerAddress the address of the invitee to whom the invitation is being sent
+   * @param created the time at which the invitation was created
+   * @param invitation the invitation to be sent
+   */
+  static async createV2({
+    sendKeyBundle,
+    inboxKeyBundle,
+    peerAddress,
+    created,
+    invitation,
+  }: {
+    sendKeyBundle: PrivateKeyBundleV3
+    inboxKeyBundle: SignedPublicKeyBundleV2
+    peerAddress: string
+    created: Date
+    invitation: InvitationV1
+  }): Promise<SealedInvitation> {
+    const headerBytes = SealedInvitationHeaderV2.create(
+      sendKeyBundle,
+      inboxKeyBundle,
+      peerAddress,
+      created
+    ).toBytes()
+
+    const secret = await sendKeyBundle.sharedSecret(
+      inboxKeyBundle,
+      sendKeyBundle.getCurrentPreKey().publicKey,
+      false
+    )
+
+    const invitationBytes = invitation.toBytes()
+    const ciphertext = await encrypt(invitationBytes, secret, headerBytes)
+
+    return new SealedInvitation({
+      v1: undefined,
+      v2: { headerBytes, ciphertext },
     })
   }
 }

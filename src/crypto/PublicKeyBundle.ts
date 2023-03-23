@@ -22,6 +22,13 @@ export class SignedPublicKeyBundleV2
   public getLinkedAddress(role: AccountLinkedRole): string {
     return this.accountLinkedKey.getLinkedAddress(role)
   }
+
+  public equals(other: this): boolean {
+    return (
+      this.accountLinkedKey.equals(other.accountLinkedKey) &&
+      this.preKey.equals(other.preKey)
+    )
+  }
 }
 
 // LEGACY: PublicKeyBundle packages all the keys that a participant should advertise.
