@@ -1,6 +1,7 @@
 import * as assert from 'assert'
 import { Wallet } from 'ethers'
 import { toUtf8Bytes } from 'ethers/lib/utils'
+import { bytesToHex } from '../../src/crypto/utils'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
 import {
   PrivateKeyBundleV2,
@@ -11,6 +12,7 @@ import {
   StaticWalletAccountLinkSigner,
 } from '../../src/crypto/Signature'
 import { newWallet } from '../helpers'
+import { SiweMessage } from 'siwe'
 
 describe('Crypto', function () {
   describe('Signature', function () {
@@ -110,6 +112,37 @@ describe('Account Linked Signatures', () => {
     expect(newBundle.getLinkedAddress(AccountLinkedRole.SEND_KEY)).not.toEqual(
       wallet.address
     )
+  })
+
+  test('Account linked SIWE signatures give wrong address when used for the wrong role with maliciously set text', async () => {
+    const newBundle = await PrivateKeyBundleV3.generateSIWE(
+      wallet,
+      AccountLinkedRole.INBOX_KEY
+    )
+    let key = newBundle.accountLinkedKey.publicKey
+    if (!key.siweSignature) {
+      throw new Error('SIWE signature not set')
+    }
+    // Parse the SIWE message to get the underlying message
+    const text = new TextDecoder().decode(key.siweSignature.text)
+    const siweMessage = new SiweMessage(text)
+    // Swap the role to SEND_KEY
+    if (siweMessage?.resources?.length === 1) {
+      const roleConst =
+        StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
+          AccountLinkedRole.SEND_KEY
+        )
+      siweMessage.resources[0] = `https://xmtp.org/${roleConst}/${bytesToHex(
+        key.keyBytes
+      )}`
+    } else {
+      throw new Error('Expected at one resource')
+    }
+    key.siweSignature.text = toUtf8Bytes(siweMessage.prepareMessage())
+    // Expect this to throw and have "expected address"
+    expect(() => {
+      newBundle.getLinkedAddress(AccountLinkedRole.SEND_KEY)
+    }).toThrow()
   })
 
   test('Old signatures can be converted to account linked inbox key signatures', async () => {

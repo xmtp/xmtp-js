@@ -352,6 +352,35 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
     )
   }
 
+  // Prepare the SIWE text to be signed
+  // NOTE: TODO: must one day include a real domain and a real URI before GA
+  public static accountLinkSIWERequestText(
+    key: UnsignedPublicKey,
+    role: AccountLinkedRole,
+    walletAddress: string
+  ): string {
+    // Create a SIWE message
+    // - statement can contain garbage as long as it contains the role statement for SIWE
+    // - TODO: use the right domain for the consuming app? open question if we even care about cross-app shenanigans
+    // - get the address from the signer
+    // - add the resource string with keybytes
+    const keyBytes = key.toBytes()
+    const roleString =
+      StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
+    const resource = `https://xmtp.org/${roleString}/${bytesToHex(keyBytes)}`
+    const siwe = new SiweMessage({
+      statement: 'TODO REPLACE THIS',
+      address: walletAddress,
+      // TODO: need to change this domain, must be passed down through Client level
+      domain: 'xmtp.org',
+      version: '1',
+      uri: 'https://xmtp.org',
+      chainId: 1,
+      resources: [resource],
+    })
+    return siwe.prepareMessage()
+  }
+
   // NOTE: this will NOT be used in practice, mostly here for demonstration purposes
   // in reality, the SDK consumer will likely use their login SIWE with the role resource
   // and pass it directly down into the client
@@ -360,27 +389,13 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
     role: AccountLinkedRole
   ): Promise<AccountLinkedPublicKey> {
     const keyBytes = key.toBytes()
-    // Create a SIWE message
-    // - statement can contain garbage as long as it contains the role statement for SIWE
-    // - TODO: use the right domain for the consuming app? open question if we even care about cross-app shenanigans
-    // - get the address from the signer
-    // - add the resource string with keybytes
-
-    const roleString =
-      StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
-    const resource = `https://xmtp.org/${roleString}/${bytesToHex(keyBytes)}`
-    const siwe = new SiweMessage({
-      statement: 'TODO REPLACE THIS',
-      address: await this.wallet.getAddress(),
-      // TODO: need to change this domain, must be passed down through Client level
-      domain: 'xmtp.org',
-      version: '1',
-      uri: 'https://xmtp.org',
-      chainId: 1,
-      resources: [resource],
-    })
-
-    const siweMessageBytes = toUtf8Bytes(siwe.prepareMessage())
+    const siweMessageBytes = toUtf8Bytes(
+      StaticWalletAccountLinkSigner.accountLinkSIWERequestText(
+        key,
+        role,
+        await this.wallet.getAddress()
+      )
+    )
     const sigString = await this.wallet.signMessage(siweMessageBytes)
     const eSig = utils.splitSignature(sigString)
     const r = hexToBytes(eSig.r)
