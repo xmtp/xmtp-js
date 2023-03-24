@@ -73,7 +73,8 @@
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
-    "long": "^5.2.0"
+    "long": "^5.2.0",
+    "siwe": "^1.1.6"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
