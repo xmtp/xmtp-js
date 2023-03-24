@@ -178,6 +178,59 @@ export class AccountLinkedStaticSignature
   }
 }
 
+class AccountLinkedSIWESignatureV1
+  implements signature.AccountLinkedSIWESignature_V1
+{
+  text: Uint8Array
+  signature: Signature
+  private _walletEcdsaCompact: ECDSACompactWithRecovery
+
+  constructor(obj: Partial<signature.AccountLinkedStaticSignature_V1>) {
+    if (!obj.text || !obj.signature) {
+      throw new Error('Invalid AccountLinkedSIWESignatureV1')
+    }
+    this.text = obj.text
+    this.signature = new Signature(obj.signature)
+    if (!this.signature.walletEcdsaCompact) {
+      throw new Error(
+        'Invalid AccountLinkedSIWESignatureV1 does not have ecdsaCompact'
+      )
+    }
+    this._walletEcdsaCompact = this.signature.walletEcdsaCompact
+  }
+
+  public get walletEcdsaCompact(): ECDSACompactWithRecovery {
+    return this._walletEcdsaCompact
+  }
+}
+
+export class AccountLinkedSIWESignature
+  extends AccountLinkedSIWESignatureV1
+  implements signature.AccountLinkedSIWESignature
+{
+  v1: signature.AccountLinkedSIWESignature_V1
+
+  constructor(obj: Partial<signature.AccountLinkedSIWESignature>) {
+    if (!obj.v1) {
+      throw new Error('Unsupported AccountLinkedSIWESignature version')
+    }
+    super(obj.v1)
+    this.v1 = obj.v1
+  }
+
+  public static create(
+    text: Uint8Array,
+    signature: Signature
+  ): AccountLinkedSIWESignature {
+    return new AccountLinkedSIWESignature({
+      v1: {
+        text,
+        signature,
+      },
+    })
+  }
+}
+
 // Deprecation in progress
 // A signer that can be used to sign public keys.
 export interface KeySigner {
@@ -255,13 +308,21 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
     this.wallet = wallet
   }
 
-  private static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
+  public static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
     switch (role) {
       case AccountLinkedRole.INBOX_KEY:
         return 'Create Identity'
       case AccountLinkedRole.SEND_KEY:
         return 'Grant Send Permissions'
     }
+  }
+
+  public static accountLinkedSIWERoleRequestText(
+    role: AccountLinkedRole
+  ): string {
+    return `XMTP : ${StaticWalletAccountLinkSigner.accountLinkedRoleRequestText(
+      role
+    )}`
   }
 
   public static accountLinkRequestText(
@@ -279,6 +340,23 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
       `${bytesToHex(keyBytes)}\n` +
       '\n' +
       'For more info: https://xmtp.org/signatures/'
+    )
+  }
+
+  // Like signKeyWithRole this method produces an AccountLinkedPublicKey
+  // but expects the text and signature as parameters since SIWE
+  // happens out of band. This method does not check the signature or text, hence
+  // "unvalidated".
+  public async buildUnvalidatedSIWESignedKeyWithRole(
+    key: UnsignedPublicKey,
+    text: Uint8Array,
+    signature: Signature
+  ): Promise<AccountLinkedPublicKey> {
+    const keyBytes = key.toBytes()
+    return AccountLinkedPublicKey.create(
+      keyBytes,
+      undefined,
+      AccountLinkedSIWESignature.create(text, signature)
     )
   }
 

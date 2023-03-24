@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
+    "@spruceid/siwe-parser": "^2.0.2",
     "@stardazed/streams-polyfill": "^2.4.0",
     "@xmtp/proto": "^3.22.0-beta.1",
     "async-mutex": "^0.4.0",
