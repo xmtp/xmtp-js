@@ -284,11 +284,13 @@ export class AccountLinkedPublicKeyV1
     const roleString =
       StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
     const resourceRegex = new RegExp(
-      `https://xmtp.org/${roleString}/${bytesToHex(this.bytesToSign())}`
+      `https://xmtp.org/siwe/${roleString}/secp256k1/${bytesToHex(
+        this.bytesToSign()
+      )}`
     )
     if (!resources.some((resource) => resourceRegex.test(resource))) {
       throw new Error(
-        'Expected xmtp public key resource (https://xmtp.org/[role]/(keybytes as hex, uncompressed){64})'
+        'Expected xmtp public key resource (https://xmtp.org/siwe/[role]/(keybytes as hex, uncompressed){64})'
       )
     }
 

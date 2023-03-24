@@ -334,6 +334,15 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
     }
   }
 
+  public static accountLinkedSIWEResourceRoleText(
+    keyBytes: Uint8Array,
+    role: AccountLinkedRole
+  ): string {
+    return `https://xmtp.org/siwe/${StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
+      role
+    )}/secp256k1/${bytesToHex(keyBytes)}`
+  }
+
   public static accountLinkRequestText(
     keyBytes: Uint8Array,
     role: AccountLinkedRole
@@ -368,9 +377,11 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
     // - get the address from the signer
     // - add the resource string with keybytes
     const keyBytes = key.toBytes()
-    const roleString =
-      StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
-    const resource = `https://xmtp.org/${roleString}/${bytesToHex(keyBytes)}`
+    const resource =
+      StaticWalletAccountLinkSigner.accountLinkedSIWEResourceRoleText(
+        keyBytes,
+        role
+      )
     const siwe = new SiweMessage({
       statement: 'TODO REPLACE THIS',
       address: walletAddress,

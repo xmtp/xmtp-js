@@ -132,7 +132,7 @@ describe('Account Linked Signatures', () => {
         StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
           AccountLinkedRole.SEND_KEY
         )
-      siweMessage.resources[0] = `https://xmtp.org/${roleConst}/${bytesToHex(
+      siweMessage.resources[0] = `https://xmtp.org/siwe/${roleConst}/secp256k1/${bytesToHex(
         key.keyBytes
       )}`
     } else {
@@ -142,7 +142,7 @@ describe('Account Linked Signatures', () => {
     // Expect this to throw and have "expected address"
     expect(() => {
       newBundle.getLinkedAddress(AccountLinkedRole.SEND_KEY)
-    }).toThrow()
+    }).toThrow(/Expected address.+/)
   })
 
   test('Old signatures can be converted to account linked inbox key signatures', async () => {
