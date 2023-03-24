@@ -354,14 +354,17 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
 
   // Prepare the SIWE text to be signed
   // NOTE: TODO: must one day include a real domain and a real URI before GA
+  // in practice, the SDK consumer will decide this text. We would just provide
+  // the resource string.
   public static accountLinkSIWERequestText(
     key: UnsignedPublicKey,
     role: AccountLinkedRole,
     walletAddress: string
   ): string {
     // Create a SIWE message
-    // - statement can contain garbage as long as it contains the role statement for SIWE
+    // - statement can be anything
     // - TODO: use the right domain for the consuming app? open question if we even care about cross-app shenanigans
+    // - TODO: use the right uri
     // - get the address from the signer
     // - add the resource string with keybytes
     const keyBytes = key.toBytes()
