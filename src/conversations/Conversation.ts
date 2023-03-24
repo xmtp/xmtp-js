@@ -461,7 +461,7 @@ export class ConversationV2 {
       ).responses
     }
     let end = Date.now()
-    console.log('wasm decryptBatch: size/100: ', messages.length, end - start)
+    console.log(`wasm decryptBatch: size/100: ${messages.length} total ${end - start}ms`)
 
     const out: DecodedMessage[] = []
     for (let i = 0; i < responses.length; i++) {
@@ -519,7 +519,7 @@ export class ConversationV2 {
     payload: Uint8Array,
     headerBytes: Uint8Array
   ): Promise<ciphertext.Ciphertext> {
-    const { responses } = await this.client.keystore.encryptV2({
+    let { responses } = await this.client.keystore.encryptV2({
       requests: [
         {
           payload,
@@ -528,6 +528,8 @@ export class ConversationV2 {
         },
       ],
     })
+
+
     if (responses.length !== 1) {
       throw new Error('Invalid response length')
     }
