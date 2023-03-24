@@ -59,7 +59,7 @@ describe('Account Linked Signatures', () => {
   )
 
   test.each([AccountLinkedRole.INBOX_KEY, AccountLinkedRole.SEND_KEY])(
-    'SIWE account linked signatures can be verified',
+    'Account linked SIWE signatures can be verified',
     async (role) => {
       const newBundle = await PrivateKeyBundleV3.generateSIWE(wallet, role)
       expect(newBundle.getLinkedAddress(role)).toEqual(wallet.address)
