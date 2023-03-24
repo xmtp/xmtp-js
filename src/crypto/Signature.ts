@@ -12,6 +12,7 @@ import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { bytesToHex, equalBytes, hexToBytes } from './utils'
 import { toUtf8Bytes } from 'ethers/lib/utils'
+import { SiweMessage } from 'siwe'
 
 // ECDSA signature with recovery bit.
 export type ECDSACompactWithRecovery = {
@@ -295,6 +296,11 @@ export class WalletSigner implements KeySigner {
 }
 
 export interface AccountLinkSigner {
+  signKeyWithRoleSIWE(
+    key: UnsignedPublicKey,
+    role: AccountLinkedRole
+  ): Promise<AccountLinkedPublicKey>
+
   signKeyWithRole(
     key: UnsignedPublicKey,
     role: AccountLinkedRole
@@ -320,9 +326,12 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
   public static accountLinkedSIWERoleRequestText(
     role: AccountLinkedRole
   ): string {
-    return `XMTP : ${StaticWalletAccountLinkSigner.accountLinkedRoleRequestText(
-      role
-    )}`
+    switch (role) {
+      case AccountLinkedRole.INBOX_KEY:
+        return 'AllowAllRead'
+      case AccountLinkedRole.SEND_KEY:
+        return 'GrantSendPermissions'
+    }
   }
 
   public static accountLinkRequestText(
@@ -343,20 +352,52 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
     )
   }
 
-  // Like signKeyWithRole this method produces an AccountLinkedPublicKey
-  // but expects the text and signature as parameters since SIWE
-  // happens out of band. This method does not check the signature or text, hence
-  // "unvalidated".
-  public async buildUnvalidatedSIWESignedKeyWithRole(
+  // NOTE: this will NOT be used in practice, mostly here for demonstration purposes
+  // in reality, the SDK consumer will likely use their login SIWE with the role resource
+  // and pass it directly down into the client
+  public async signKeyWithRoleSIWE(
     key: UnsignedPublicKey,
-    text: Uint8Array,
-    signature: Signature
+    role: AccountLinkedRole
   ): Promise<AccountLinkedPublicKey> {
     const keyBytes = key.toBytes()
+    // Create a SIWE message
+    // - statement can contain garbage as long as it contains the role statement for SIWE
+    // - TODO: use the right domain for the consuming app? open question if we even care about cross-app shenanigans
+    // - get the address from the signer
+    // - add the resource string with keybytes
+
+    const roleString =
+      StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
+    const resource = `https://xmtp.org/${roleString}/${bytesToHex(keyBytes)}`
+    const siwe = new SiweMessage({
+      statement: 'TODO REPLACE THIS',
+      address: await this.wallet.getAddress(),
+      // TODO: need to change this domain, must be passed down through Client level
+      domain: 'xmtp.org',
+      version: '1',
+      uri: 'https://xmtp.org',
+      chainId: 1,
+      resources: [resource],
+    })
+
+    const siweMessageBytes = toUtf8Bytes(siwe.prepareMessage())
+    const sigString = await this.wallet.signMessage(siweMessageBytes)
+    const eSig = utils.splitSignature(sigString)
+    const r = hexToBytes(eSig.r)
+    const s = hexToBytes(eSig.s)
+    const sigBytes = new Uint8Array(64)
+    sigBytes.set(r)
+    sigBytes.set(s, r.length)
+    const signature = new Signature({
+      walletEcdsaCompact: {
+        bytes: sigBytes,
+        recovery: eSig.recoveryParam,
+      },
+    })
     return AccountLinkedPublicKey.create(
       keyBytes,
       undefined,
-      AccountLinkedSIWESignature.create(text, signature)
+      AccountLinkedSIWESignature.create(siweMessageBytes, signature)
     )
   }
 

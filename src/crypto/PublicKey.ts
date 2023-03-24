@@ -14,7 +14,7 @@ import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
 import { toUtf8Bytes } from 'ethers/lib/utils'
-import { ParsedMessage } from '@spruceid/siwe-parser'
+import { SiweMessage } from 'siwe'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -259,12 +259,9 @@ export class AccountLinkedPublicKeyV1
     // The criteria for successful SIWE-signed keys with roles are:
     // 1. The text must be a valid SIWE for the expected domain (TBD)
     // 1b. Check expiry (TBD)
-    // 2. The text ${statement} must contain the desired AccountLinkedRole string
-    //    in the format "[whitespace or boundary]XMTP : ${AccountLinkedRole}[whitespace or boundary]"
-    //    essentially [^\s]+XMTP\s:\s${AccountLinkedRole}[^\s]+$
-    // 3. The resources must contain the "xmtp::secp256k1::(keybytes as hex, uncompressed){64}" with no
+    // 2. The resources must contain the "https://[role]/(keybytes as hex, uncompressed){64}" with no
     //    extraneous characters. We include the curve to prevent reuse across curves.
-    // 4. Check the signature
+    // 3. Check the signature
 
     // Only works if we have a SIWE signature, we might have multiple types which is okay
     if (!this.siweSignature) {
@@ -276,32 +273,26 @@ export class AccountLinkedPublicKeyV1
     // Rule 1: Parse the text as SIWE
     // convert text bytes to a string as utf-8 encoded
     const textUtf8 = new TextDecoder().decode(siweSignature.text)
-    const siwe = new ParsedMessage(textUtf8)
+    const siwe = new SiweMessage(textUtf8)
     // TODO: add this domain check when it makes sense
     // if (siwe.domain !== domain) {
     //   console.log(`Expected domain ${domain} but got ${siwe.domain}`)
     //   return false
     // }
-    // Rule 2: Check the statement
-    const statement = siwe.statement || ''
+    // Rule 2: Check the resources
+    const resources = siwe.resources || []
     const roleString =
       StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
-    const roleRegex = new RegExp(`[\\s\\b]${roleString}[\\s\\b]`)
-    if (!roleRegex.test(statement)) {
-      throw new Error(`Expected ${roleString} in statement`)
-    }
-    // Rule 3: Check the resources
-    const resources = siwe.resources || []
     const resourceRegex = new RegExp(
-      `^xmtp::secp256k1::${bytesToHex(this.keyBytes)}$`
+      `https://xmtp.org/${roleString}/${bytesToHex(this.bytesToSign())}`
     )
     if (!resources.some((resource) => resourceRegex.test(resource))) {
       throw new Error(
-        'Expected xmtp public key resource (xmtp::[keytype]::[hex(keybytes)] not found'
+        'Expected xmtp public key resource (https://xmtp.org/[role]/(keybytes as hex, uncompressed){64})'
       )
     }
 
-    // Finally, check the signature
+    // Rule 3: Finally, check the signature
     const digest = hexToBytes(utils.hashMessage(siweSignature.text))
     const signerKey = ecdsaSignerKey(digest, siweSignature.walletEcdsaCompact)
     if (!signerKey) {

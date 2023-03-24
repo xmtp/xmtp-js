@@ -49,6 +49,25 @@ export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
     return bundle
   }
 
+  // Generate a new key bundle with the preKey signed by the accountLinkedKey.
+  // Sign the accountLinkedKey with the provided wallet as well. Same as above
+  // but uses SIWE format signature text
+  static async generateSIWE(
+    wallet: Signer,
+    role: AccountLinkedRole
+  ): Promise<PrivateKeyBundleV3> {
+    const accountLinkedKey = await AccountLinkedPrivateKey.generateSIWE(
+      new StaticWalletAccountLinkSigner(wallet),
+      role
+    )
+    const bundle = new PrivateKeyBundleV3({
+      accountLinkedKey,
+      preKeys: [],
+    })
+    await bundle.addPreKey()
+    return bundle
+  }
+
   public static fromLegacyBundle(
     bundle: PrivateKeyBundleV2,
     role: AccountLinkedRole
