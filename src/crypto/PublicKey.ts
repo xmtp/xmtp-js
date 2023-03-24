@@ -252,8 +252,8 @@ export class AccountLinkedPublicKeyV1
     return this.keyBytes
   }
 
-  public getSIWELinkedAddressWithoutDomainCheck(
-    expectedAddress: string,
+  // Return the extracted address from the SIWE signature checking role and keys, but not domain
+  private getSIWELinkedAddressWithoutDomainCheck(
     role: AccountLinkedRole
   ): string {
     // The criteria for successful SIWE-signed keys with roles are:
@@ -336,7 +336,7 @@ export class AccountLinkedPublicKeyV1
       }
       return publicKey.getEthereumAddress()
     } else {
-      throw new Error('SIWE signature not implemented')
+      return this.getSIWELinkedAddressWithoutDomainCheck(role)
     }
   }
 
