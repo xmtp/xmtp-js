@@ -67,12 +67,27 @@ describe('Account Linked Signatures', () => {
   test.each([AccountLinkedRole.INBOX_KEY, AccountLinkedRole.SEND_KEY])(
     'Account linked signatures throw when used for the wrong role',
     async (role) => {
-      const newBundle = await PrivateKeyBundleV3.generate(
-        wallet,
-        AccountLinkedRole.INBOX_KEY
-      )
+      const otherRole =
+        role === AccountLinkedRole.INBOX_KEY
+          ? AccountLinkedRole.SEND_KEY
+          : AccountLinkedRole.INBOX_KEY
+      const newBundle = await PrivateKeyBundleV3.generateSIWE(wallet, role)
       expect(() => {
-        newBundle.getLinkedAddress(AccountLinkedRole.SEND_KEY)
+        newBundle.getLinkedAddress(otherRole)
+      }).toThrow()
+    }
+  )
+
+  test.each([AccountLinkedRole.INBOX_KEY, AccountLinkedRole.SEND_KEY])(
+    'Account linked SIWE signatures throw when used for the wrong role',
+    async (role) => {
+      const otherRole =
+        role === AccountLinkedRole.INBOX_KEY
+          ? AccountLinkedRole.SEND_KEY
+          : AccountLinkedRole.INBOX_KEY
+      const newBundle = await PrivateKeyBundleV3.generateSIWE(wallet, role)
+      expect(() => {
+        newBundle.getLinkedAddress(otherRole)
       }).toThrow()
     }
   )
