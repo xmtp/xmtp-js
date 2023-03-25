@@ -279,31 +279,6 @@ export class AccountLinkedPrivateKey
     })
   }
 
-  // Create a random key pair signed by the signer using SIWE signatures
-  static async generateSIWE(
-    signer: AccountLinkSigner,
-    role: AccountLinkedRole
-  ): Promise<AccountLinkedPrivateKey> {
-    const secp256k1 = {
-      bytes: secp.utils.randomPrivateKey(),
-    }
-    const createdNs = Long.fromNumber(new Date().getTime()).mul(1000000)
-    const unsigned = new UnsignedPublicKey({
-      secp256k1Uncompressed: {
-        bytes: secp.getPublicKey(secp256k1.bytes),
-      },
-      createdNs,
-    })
-    const signed = await signer.signKeyWithRoleSIWE(unsigned, role)
-    return new AccountLinkedPrivateKey({
-      v1: new AccountLinkedPrivateKeyV1({
-        secp256k1,
-        createdNs,
-        publicKey: signed,
-      }),
-    })
-  }
-
   public static fromLegacyKey(
     key: SignedPrivateKey,
     role: AccountLinkedRole

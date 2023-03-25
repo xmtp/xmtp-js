@@ -10,6 +10,7 @@ import {
 import {
   AccountLinkedRole,
   StaticWalletAccountLinkSigner,
+  SIWEWalletAccountLinkSigner,
 } from '../../src/crypto/Signature'
 import { newWallet } from '../helpers'
 import { SiweMessage } from 'siwe'
@@ -129,7 +130,7 @@ describe('Account Linked Signatures', () => {
     // Swap the role to SEND_KEY
     if (siweMessage?.resources?.length === 1) {
       const roleConst =
-        StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
+        SIWEWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
           AccountLinkedRole.SEND_KEY
         )
       siweMessage.resources[0] = `https://xmtp.org/siwe/${roleConst}/secp256k1/${bytesToHex(

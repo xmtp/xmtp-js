@@ -7,6 +7,7 @@ import Signature, {
   AccountLinkedSIWESignature,
   ecdsaSignerKey,
   StaticWalletAccountLinkSigner,
+  SIWEWalletAccountLinkSigner,
   WalletSigner,
 } from './Signature'
 import { bytesToHex, equalBytes, hexToBytes } from './utils'
@@ -282,7 +283,7 @@ export class AccountLinkedPublicKeyV1
     // Rule 2: Check the resources
     const resources = siwe.resources || []
     const roleString =
-      StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
+      SIWEWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
 
     const expectedResource = `https://xmtp.org/siwe/${roleString}/secp256k1/${bytesToHex(
       this.bytesToSign()

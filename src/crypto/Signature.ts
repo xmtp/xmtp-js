@@ -296,31 +296,17 @@ export class WalletSigner implements KeySigner {
 }
 
 export interface AccountLinkSigner {
-  signKeyWithRoleSIWE(
-    key: UnsignedPublicKey,
-    role: AccountLinkedRole
-  ): Promise<AccountLinkedPublicKey>
-
   signKeyWithRole(
     key: UnsignedPublicKey,
     role: AccountLinkedRole
   ): Promise<AccountLinkedPublicKey>
 }
 
-export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
+export class SIWEWalletAccountLinkSigner implements AccountLinkSigner {
   wallet: Signer
 
   constructor(wallet: Signer) {
     this.wallet = wallet
-  }
-
-  public static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
-    switch (role) {
-      case AccountLinkedRole.INBOX_KEY:
-        return 'Create Identity'
-      case AccountLinkedRole.SEND_KEY:
-        return 'Grant Send Permissions'
-    }
   }
 
   public static accountLinkedSIWERoleRequestText(
@@ -338,54 +324,32 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
     keyBytes: Uint8Array,
     role: AccountLinkedRole
   ): string {
-    return `https://xmtp.org/siwe/${StaticWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
+    return `https://xmtp.org/siwe/${SIWEWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
       role
     )}/secp256k1/${bytesToHex(keyBytes)}`
   }
 
-  public static accountLinkRequestText(
-    keyBytes: Uint8Array,
-    role: AccountLinkedRole
-  ): string {
-    // Note that an update to this signature request text will require
-    // addition of backward compatibility for existing signatures
-    // and/or a migration; otherwise clients will fail to verify previously
-    // signed keys.
-    return (
-      `XMTP : ${StaticWalletAccountLinkSigner.accountLinkedRoleRequestText(
-        role
-      )}\n` +
-      `${bytesToHex(keyBytes)}\n` +
-      '\n' +
-      'For more info: https://xmtp.org/signatures/'
-    )
-  }
-
-  // Prepare the SIWE text to be signed
-  // NOTE: TODO: must one day include a real domain and a real URI before GA
-  // in practice, the SDK consumer will decide this text. We would just provide
-  // the resource string.
-  public static accountLinkSIWERequestText(
+  // Default SIWE text to be signed, most apps will NOT want to use this.
+  // Most apps will want to include the resource string in their own SIWE to avoid
+  // asking for multiple SIWE signatures.
+  public static defaultAccountLinkSIWERequestText(
     key: UnsignedPublicKey,
     role: AccountLinkedRole,
     walletAddress: string
   ): string {
     // Create a SIWE message
     // - statement can be anything
-    // - TODO: use the right domain for the consuming app? open question if we even care about cross-app shenanigans
-    // - TODO: use the right uri
     // - get the address from the signer
     // - add the resource string with keybytes
     const keyBytes = key.toBytes()
     const resource =
-      StaticWalletAccountLinkSigner.accountLinkedSIWEResourceRoleText(
+      SIWEWalletAccountLinkSigner.accountLinkedSIWEResourceRoleText(
         keyBytes,
         role
       )
     const siwe = new SiweMessage({
-      statement: 'TODO REPLACE THIS',
+      statement: 'XMTP Account Link with Role: ' + role,
       address: walletAddress,
-      // TODO: need to change this domain, must be passed down through Client level
       domain: 'xmtp.org',
       version: '1',
       uri: 'https://xmtp.org',
@@ -398,13 +362,13 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
   // NOTE: this will NOT be used in practice, mostly here for demonstration purposes
   // in reality, the SDK consumer will likely use their login SIWE with the role resource
   // and pass it directly down into the client
-  public async signKeyWithRoleSIWE(
+  public async signKeyWithRole(
     key: UnsignedPublicKey,
     role: AccountLinkedRole
   ): Promise<AccountLinkedPublicKey> {
     const keyBytes = key.toBytes()
     const siweMessageBytes = toUtf8Bytes(
-      StaticWalletAccountLinkSigner.accountLinkSIWERequestText(
+      SIWEWalletAccountLinkSigner.defaultAccountLinkSIWERequestText(
         key,
         role,
         await this.wallet.getAddress()
@@ -427,6 +391,41 @@ export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
       keyBytes,
       undefined,
       AccountLinkedSIWESignature.create(siweMessageBytes, signature)
+    )
+  }
+}
+
+export class StaticWalletAccountLinkSigner implements AccountLinkSigner {
+  wallet: Signer
+
+  constructor(wallet: Signer) {
+    this.wallet = wallet
+  }
+
+  public static accountLinkedRoleRequestText(role: AccountLinkedRole): string {
+    switch (role) {
+      case AccountLinkedRole.INBOX_KEY:
+        return 'Create Identity'
+      case AccountLinkedRole.SEND_KEY:
+        return 'Grant Send Permissions'
+    }
+  }
+
+  public static accountLinkRequestText(
+    keyBytes: Uint8Array,
+    role: AccountLinkedRole
+  ): string {
+    // Note that an update to this signature request text will require
+    // addition of backward compatibility for existing signatures
+    // and/or a migration; otherwise clients will fail to verify previously
+    // signed keys.
+    return (
+      `XMTP : ${StaticWalletAccountLinkSigner.accountLinkedRoleRequestText(
+        role
+      )}\n` +
+      `${bytesToHex(keyBytes)}\n` +
+      '\n' +
+      'For more info: https://xmtp.org/signatures/'
     )
   }
 

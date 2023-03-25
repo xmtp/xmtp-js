@@ -7,6 +7,7 @@ import {
 import {
   AccountLinkedRole,
   StaticWalletAccountLinkSigner,
+  SIWEWalletAccountLinkSigner,
   WalletSigner,
 } from './Signature'
 import { PublicKey, SignedPublicKey } from './PublicKey'
@@ -56,8 +57,8 @@ export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
     wallet: Signer,
     role: AccountLinkedRole
   ): Promise<PrivateKeyBundleV3> {
-    const accountLinkedKey = await AccountLinkedPrivateKey.generateSIWE(
-      new StaticWalletAccountLinkSigner(wallet),
+    const accountLinkedKey = await AccountLinkedPrivateKey.generate(
+      new SIWEWalletAccountLinkSigner(wallet),
       role
     )
     const bundle = new PrivateKeyBundleV3({
