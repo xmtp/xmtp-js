@@ -137,10 +137,10 @@ describe('Account Linked Signatures', () => {
         key.keyBytes
       )}`
     } else {
-      throw new Error('Expected at one resource')
+      throw new Error('Expected at least one resource')
     }
     key.siweSignature.text = toUtf8Bytes(siweMessage.prepareMessage())
-    // Expect this to throw and have "expected address"
+    // Expect this to throw and have "Expected address"
     expect(() => {
       newBundle.getLinkedAddress(AccountLinkedRole.SEND_KEY)
     }).toThrow(/Expected address.+/)
