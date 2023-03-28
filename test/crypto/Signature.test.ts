@@ -1,7 +1,7 @@
 import * as assert from 'assert'
 import { Wallet } from 'ethers'
 import { toUtf8Bytes } from 'ethers/lib/utils'
-import { bytesToHex } from '../../src/crypto/utils'
+import { bytesToBase64 } from '../../src/crypto/utils'
 import { PrivateKeyBundleV1 } from '../../src/crypto'
 import {
   PrivateKeyBundleV2,
@@ -133,7 +133,7 @@ describe('Account Linked Signatures', () => {
         SIWEWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
           AccountLinkedRole.SEND_KEY
         )
-      siweMessage.resources[0] = `https://xmtp.org/siwe/${roleConst}/secp256k1/${bytesToHex(
+      siweMessage.resources[0] = `https://xmtp.org/siwe/${roleConst}/secp256k1/${bytesToBase64(
         key.keyBytes
       )}`
     } else {

@@ -19,6 +19,10 @@ export function hexToBytes(s: string): Uint8Array {
   return bytes
 }
 
+export function bytesToBase64(bytes: Uint8Array): string {
+  return Buffer.from(bytes).toString('base64')
+}
+
 export function equalBytes(b1: Uint8Array, b2: Uint8Array): boolean {
   if (b1.length !== b2.length) {
     return false

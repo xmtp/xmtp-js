@@ -10,7 +10,7 @@ import Signature, {
   SIWEWalletAccountLinkSigner,
   WalletSigner,
 } from './Signature'
-import { bytesToHex, equalBytes, hexToBytes } from './utils'
+import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
@@ -260,8 +260,8 @@ export class AccountLinkedPublicKeyV1
     // The criteria for successful SIWE-signed keys with roles are:
     // 1. The text must be a valid SIWE for the expected domain (TBD)
     // 1b. Check expiry (TBD)
-    // 2. The resources must contain the "https://[role]/(keybytes as hex, uncompressed){64}" with no
-    //    extraneous characters. We include the curve to prevent reuse across curves.
+    // 2. The resources must contain the appropriate resource string as defined in SIWEWalletAccountLinkSigner
+    //    for the role and keybytes
     // 3. Check the signature
 
     // Only works if we have a SIWE signature, we might have multiple types which is okay
@@ -285,12 +285,14 @@ export class AccountLinkedPublicKeyV1
     const roleString =
       SIWEWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
 
-    const expectedResource = `https://xmtp.org/siwe/${roleString}/secp256k1/${bytesToHex(
-      this.bytesToSign()
-    )}`
+    const expectedResource =
+      SIWEWalletAccountLinkSigner.accountLinkedSIWEResourceRoleText(
+        this.bytesToSign(),
+        role
+      )
     if (!resources.includes(expectedResource)) {
       throw new Error(
-        'Expected xmtp public key resource (https://xmtp.org/siwe/[role]/(keybytes as hex, uncompressed){64})'
+        'Did not find expected resource for this key and role in SIWE resources'
       )
     }
 

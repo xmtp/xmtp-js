@@ -10,7 +10,7 @@ import {
 import { SignedPrivateKey } from './PrivateKey'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
-import { bytesToHex, equalBytes, hexToBytes } from './utils'
+import { bytesToBase64, bytesToHex, equalBytes, hexToBytes } from './utils'
 import { toUtf8Bytes } from 'ethers/lib/utils'
 import { SiweMessage } from 'siwe'
 
@@ -326,7 +326,7 @@ export class SIWEWalletAccountLinkSigner implements AccountLinkSigner {
   ): string {
     return `https://xmtp.org/siwe/${SIWEWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(
       role
-    )}/secp256k1/${bytesToHex(keyBytes)}`
+    )}/secp256k1/${bytesToBase64(keyBytes)}`
   }
 
   // Default SIWE text to be signed, most apps will NOT want to use this.
