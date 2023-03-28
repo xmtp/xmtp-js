@@ -1,11 +1,13 @@
-import { publicKey, signature } from '@xmtp/proto'
+import { publicKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature, {
   AccountLinkedRole,
   AccountLinkedStaticSignature,
+  AccountLinkedSIWESignature,
   ecdsaSignerKey,
   StaticWalletAccountLinkSigner,
+  SIWEWalletAccountLinkSigner,
   WalletSigner,
 } from './Signature'
 import { equalBytes, hexToBytes } from './utils'
@@ -13,6 +15,7 @@ import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
 import { toUtf8Bytes } from 'ethers/lib/utils'
+import { SiweMessage } from 'siwe'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -224,7 +227,7 @@ export class AccountLinkedPublicKeyV1
 {
   keyBytes: Uint8Array
   staticSignature: AccountLinkedStaticSignature | undefined
-  siweSignature: signature.AccountLinkedSIWESignature | undefined
+  siweSignature: AccountLinkedSIWESignature | undefined
 
   constructor(obj: publicKey.AccountLinkedPublicKey_V1) {
     if (!obj.keyBytes) {
@@ -236,9 +239,11 @@ export class AccountLinkedPublicKeyV1
       this.staticSignature = new AccountLinkedStaticSignature(
         obj.staticSignature
       )
+    } else if (obj.siweSignature) {
+      this.siweSignature = new AccountLinkedSIWESignature(obj.siweSignature)
     } else {
       throw new Error(
-        'Unimplemented signature type for AccountLinkedPublicKeyV1'
+        'Invalid AccountLinkedPublicKeyV1 has no static or siwe signature'
       )
     }
   }
@@ -246,6 +251,63 @@ export class AccountLinkedPublicKeyV1
   // Return bytes of the encoded unsigned key.
   private bytesToSign(): Uint8Array {
     return this.keyBytes
+  }
+
+  // Return the extracted address from the SIWE signature checking role and keys, but not domain
+  private getSIWELinkedAddressWithoutDomainCheck(
+    role: AccountLinkedRole
+  ): string {
+    // The criteria for successful SIWE-signed keys with roles are:
+    // 1. The text must be a valid SIWE for the expected domain (TBD)
+    // 1b. Check expiry (TBD)
+    // 2. The resources must contain the appropriate resource string as defined in SIWEWalletAccountLinkSigner
+    //    for the role and keybytes
+    // 3. Check the signature
+
+    // Only works if we have a SIWE signature, we might have multiple types which is okay
+    if (!this.siweSignature) {
+      throw new Error('No SIWE signature')
+    }
+    // Assume v1 for now, would need to switch/case on version in the future
+    const siweSignature = this.siweSignature
+
+    // Rule 1: Parse the text as SIWE
+    // convert text bytes to a string as utf-8 encoded
+    const textUtf8 = new TextDecoder().decode(siweSignature.text)
+    const siwe = new SiweMessage(textUtf8)
+    // TODO: add this domain check when it makes sense
+    // if (siwe.domain !== domain) {
+    //   console.log(`Expected domain ${domain} but got ${siwe.domain}`)
+    //   return false
+    // }
+    // Rule 2: Check the resources
+    const resources = siwe.resources || []
+
+    const expectedResource =
+      SIWEWalletAccountLinkSigner.accountLinkedSIWEResourceRoleText(
+        this.bytesToSign(),
+        role
+      )
+    if (!resources.includes(expectedResource)) {
+      throw new Error(
+        'Did not find expected resource for this key and role in SIWE resources'
+      )
+    }
+
+    // Rule 3: Finally, check the signature
+    const digest = hexToBytes(utils.hashMessage(siweSignature.text))
+    const signerKey = ecdsaSignerKey(digest, siweSignature.walletEcdsaCompact)
+    if (!signerKey) {
+      throw new Error('Failed to recover signer key')
+    }
+    const signerAddress = signerKey.getEthereumAddress()
+    if (signerAddress !== siwe.address) {
+      throw new Error(
+        `Expected address ${siwe.address} but got ${signerAddress}`
+      )
+    }
+
+    return signerAddress
   }
 
   public getLinkedAddress(role: AccountLinkedRole): string {
@@ -267,7 +329,7 @@ export class AccountLinkedPublicKeyV1
       }
       return publicKey.getEthereumAddress()
     } else {
-      throw new Error('SIWE signature not implemented')
+      return this.getSIWELinkedAddressWithoutDomainCheck(role)
     }
   }
 
@@ -311,7 +373,7 @@ export class AccountLinkedPublicKey
   public static create(
     keyBytes: Uint8Array,
     staticSignature: AccountLinkedStaticSignature | undefined,
-    siweSignature: signature.AccountLinkedSIWESignature | undefined
+    siweSignature: AccountLinkedSIWESignature | undefined
   ): AccountLinkedPublicKey {
     return new AccountLinkedPublicKey({
       v1: new AccountLinkedPublicKeyV1({

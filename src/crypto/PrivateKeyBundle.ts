@@ -7,6 +7,7 @@ import {
 import {
   AccountLinkedRole,
   StaticWalletAccountLinkSigner,
+  SIWEWalletAccountLinkSigner,
   WalletSigner,
 } from './Signature'
 import { PublicKey, SignedPublicKey } from './PublicKey'
@@ -39,6 +40,27 @@ export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
   ): Promise<PrivateKeyBundleV3> {
     const accountLinkedKey = await AccountLinkedPrivateKey.generate(
       new StaticWalletAccountLinkSigner(wallet),
+      role
+    )
+    const bundle = new PrivateKeyBundleV3({
+      accountLinkedKey,
+      preKeys: [],
+    })
+    await bundle.addPreKey()
+    return bundle
+  }
+
+  // Generate a new key bundle with the preKey signed by the accountLinkedKey.
+  // Sign the accountLinkedKey with the provided wallet as well. Same as above
+  // but uses SIWE format signature text. NOTE: in practice, consumers should
+  // only use this method if they're okay with using a default SIWE rather than
+  // reusing their app-specific login SIWE.
+  static async generateSIWE(
+    wallet: Signer,
+    role: AccountLinkedRole
+  ): Promise<PrivateKeyBundleV3> {
+    const accountLinkedKey = await AccountLinkedPrivateKey.generate(
+      new SIWEWalletAccountLinkSigner(wallet),
       role
     )
     const bundle = new PrivateKeyBundleV3({
