@@ -282,8 +282,6 @@ export class AccountLinkedPublicKeyV1
     // }
     // Rule 2: Check the resources
     const resources = siwe.resources || []
-    const roleString =
-      SIWEWalletAccountLinkSigner.accountLinkedSIWERoleRequestText(role)
 
     const expectedResource =
       SIWEWalletAccountLinkSigner.accountLinkedSIWEResourceRoleText(
