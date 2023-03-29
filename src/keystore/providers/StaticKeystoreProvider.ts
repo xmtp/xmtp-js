@@ -31,9 +31,7 @@ export default class StaticKeystoreProvider implements KeystoreProvider {
 
     return InMemoryKeystore.create(
       bundle,
-      opts.persistConversations
-        ? await buildPersistenceFromOptions(opts, bundle)
-        : undefined
+      await buildPersistenceFromOptions(opts, bundle)
     )
   }
 }

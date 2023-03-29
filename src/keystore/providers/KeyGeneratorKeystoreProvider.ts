@@ -34,9 +34,7 @@ export default class KeyGeneratorKeystoreProvider implements KeystoreProvider {
 
     return InMemoryKeystore.create(
       bundle,
-      opts.persistConversations
-        ? await buildPersistenceFromOptions(opts, bundle)
-        : undefined
+      await buildPersistenceFromOptions(opts, bundle)
     )
   }
 }
