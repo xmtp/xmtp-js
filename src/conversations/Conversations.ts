@@ -115,28 +115,30 @@ export default class Conversations {
    * List all V2 conversations
    */
   private async listV2Conversations(): Promise<Conversation[]> {
-    // Get all conversations already in the KeyStore
-    const existing = await this.getV2ConversationsFromKeystore()
-    const latestConversationTime = existing[existing.length - 1]?.createdAt
+    return this.v2Mutex.runExclusive(async () => {
+      // Get all conversations already in the KeyStore
+      const existing = await this.getV2ConversationsFromKeystore()
+      const latestConversationTime = existing[existing.length - 1]?.createdAt
 
-    // Load all conversations started after the newest conversation found
-    const newConversations = await this.updateV2Conversations(
-      latestConversationTime
-    )
+      // Load all conversations started after the newest conversation found
+      const newConversations = await this.updateV2Conversations(
+        latestConversationTime
+      )
 
-    // Create a Set of all the existing topics to ensure no duplicates are added
-    const existingTopics = new Set(existing.map((c) => c.topic))
-    // Add all new conversations to the existing list
-    for (const convo of newConversations) {
-      if (!existingTopics.has(convo.topic)) {
-        existing.push(convo)
-        existingTopics.add(convo.topic)
+      // Create a Set of all the existing topics to ensure no duplicates are added
+      const existingTopics = new Set(existing.map((c) => c.topic))
+      // Add all new conversations to the existing list
+      for (const convo of newConversations) {
+        if (!existingTopics.has(convo.topic)) {
+          existing.push(convo)
+          existingTopics.add(convo.topic)
+        }
       }
-    }
 
-    // Sort the result set by creation time in ascending order
-    existing.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    return existing
+      // Sort the result set by creation time in ascending order
+      existing.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+      return existing
+    })
   }
 
   private async getV2ConversationsFromKeystore(): Promise<ConversationV2[]> {
