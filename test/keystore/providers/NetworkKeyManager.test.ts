@@ -1,6 +1,8 @@
 import ApiClient, { ApiUrls } from '../../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../../src/crypto/PrivateKeyBundle'
+import PrefixedPersistence from '../../../src/keystore/persistence/PrefixedPersistence'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
+import { buildPersistenceFromOptions } from '../../../src/keystore/providers/helpers'
 import NetworkKeyManager from '../../../src/keystore/providers/NetworkKeyManager'
 import { Signer } from '../../../src/types/Signer'
 import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '../../helpers'
@@ -93,5 +95,20 @@ describe('NetworkKeyManager', () => {
     expect(originalBundle.preKeys[0].toBytes()).toEqual(
       returnedBundle.preKeys[0].toBytes()
     )
+  })
+
+  it('respects the options provided', async () => {
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
+    const shouldBeUndefined = await buildPersistenceFromOptions(
+      { persistConversations: false, env: 'local' },
+      bundle
+    )
+    expect(shouldBeUndefined).toBeUndefined()
+
+    const shouldBeDefined = await buildPersistenceFromOptions(
+      { persistConversations: true, env: 'local' },
+      bundle
+    )
+    expect(shouldBeDefined).toBeInstanceOf(PrefixedPersistence)
   })
 })
