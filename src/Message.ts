@@ -7,7 +7,7 @@ import type Client from './Client'
 import {
   message as proto,
   content as protoContent,
-  keystore,
+  conversationReference,
 } from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
@@ -398,7 +398,7 @@ export async function decodeContent(contentBytes: Uint8Array, client: Client) {
 }
 
 function conversationReferenceToConversation(
-  reference: keystore.ConversationReference,
+  reference: conversationReference.ConversationReference,
   client: Client,
   version: DecodedMessage['messageVersion']
 ): Conversation {

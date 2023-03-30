@@ -1,4 +1,10 @@
-import { authn, keystore, privateKey, signature } from '@xmtp/proto'
+import {
+  authn,
+  keystore,
+  privateKey,
+  signature,
+  conversationReference,
+} from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
@@ -326,7 +332,9 @@ export default class InMemoryKeystore implements Keystore {
     return key.sign(digest)
   }
 
-  async getV2Conversations(): Promise<keystore.ConversationReference[]> {
+  async getV2Conversations(): Promise<
+    conversationReference.ConversationReference[]
+  > {
     const convos = this.inviteStore.topics.map((invite) =>
       topicDataToConversationReference(invite)
     )
