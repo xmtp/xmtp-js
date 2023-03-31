@@ -27,6 +27,7 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
+import SnapKeystoreProvider from './keystore/providers/SnapProvider'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -242,9 +243,9 @@ export default class Client {
     const options = defaultOptions(opts)
     const apiClient = createApiClientFromOptions(options)
     const keystore = await bootstrapKeystore(options, apiClient, wallet)
-    const publicKeyBundle = new PublicKeyBundle(
-      await keystore.getPublicKeyBundle()
-    )
+    const rawBundle = await keystore.getPublicKeyBundle()
+    console.log(rawBundle)
+    const publicKeyBundle = new PublicKeyBundle(rawBundle)
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
@@ -720,6 +721,7 @@ async function getUserContactsFromNetwork(
  */
 export function defaultKeystoreProviders(): KeystoreProvider[] {
   return [
+    new SnapKeystoreProvider(),
     // First check to see if a `privateKeyOverride` is provided and use that
     new StaticKeystoreProvider(),
     // Next check to see if a EncryptedPrivateKeyBundle exists on the network for the wallet

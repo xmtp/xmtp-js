@@ -7,6 +7,8 @@ export {
   SignedPublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   Signature,
   encrypt,
   decrypt,
@@ -46,7 +48,13 @@ export {
   toNanoString,
   mapPaginatedStream,
 } from './utils'
-export { Keystore, InMemoryKeystore, TopicData } from './keystore'
+export {
+  Keystore,
+  InMemoryKeystore,
+  TopicData,
+  SnapKeystore,
+  apiDefs as keystoreApiDefs,
+} from './keystore'
 export {
   KeystoreProvider,
   KeyGeneratorKeystoreProvider,
