@@ -41,12 +41,12 @@ describe('Query', () => {
     jest.clearAllMocks()
   })
 
-  it ('self test xmtpv3', async () => {
-    expect(xmtpv3).toBeDefined();
+  it('self test xmtpv3', async () => {
+    expect(xmtpv3).toBeDefined()
     const res = await xmtpv3.XMTPWasm.initialize().then((xmtp: any) => {
-      return xmtp.getXMTPv3().selfTest();
-    });
-    expect(res).toBe(true);
+      return xmtp.getXMTPv3().selfTest()
+    })
+    expect(res).toBe(true)
   })
 
   it('stops when receiving empty results', async () => {

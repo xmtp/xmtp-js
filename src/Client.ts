@@ -27,8 +27,11 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
+import VoodooManager from './VoodooManager'
 const { Compression } = proto
 const { b64Decode } = fetcher
+
+import xmtpv3 from 'xmtpv3'
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
 // eslint-disable @typescript-eslint/no-explicit-any
@@ -191,12 +194,14 @@ export default class Client {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
+  private _voodooManager: VoodooManager
 
   constructor(
     publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
-    keystore: Keystore
+    keystore: Keystore,
+    voodooManager: VoodooManager
   ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
@@ -212,6 +217,7 @@ export default class Client {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
+    this._voodooManager = voodooManager
   }
 
   /**
@@ -248,11 +254,20 @@ export default class Client {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
+    const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
+    const myVoodoo = xmtpWasm.newVoodooInstance()
+    // Create one other user with address 0x0[x32]
+    const otherVoodoo = xmtpWasm.newVoodooInstance()
+    const voodooManager = new VoodooManager(address, myVoodoo)
+    voodooManager.setContact('0x00000000000000000000000000000000', otherVoodoo)
+
+    // TODO: create voodoo keys
     const client = new Client(
       publicKeyBundle,
       apiClient,
       backupClient,
-      keystore
+      keystore,
+      voodooManager
     )
     await client.init(options)
     return client
@@ -306,21 +321,23 @@ export default class Client {
   }
 
   private async ensureUserContactPublished(legacy = false): Promise<void> {
-    const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
-    if (
-      bundle &&
-      bundle instanceof SignedPublicKeyBundle &&
-      this.signedPublicKeyBundle.equals(bundle)
-    ) {
-      return
-    }
-    // TEMPORARY: publish V1 contact to make sure there is one in the topic
-    // in order to preserve compatibility with pre-v7 clients.
-    // Remove when pre-v7 clients are deprecated
-    await this.publishUserContact(true)
-    if (!legacy) {
-      await this.publishUserContact(legacy)
-    }
+    // TODO (VOODOO): this should do something, but foro now just no-op
+    //    const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
+    //    if (
+    //      bundle &&
+    //      bundle instanceof SignedPublicKeyBundle &&
+    //      this.signedPublicKeyBundle.equals(bundle)
+    //    ) {
+    //      return
+    //    }
+    //    // TEMPORARY: publish V1 contact to make sure there is one in the topic
+    //    // in order to preserve compatibility with pre-v7 clients.
+    //    // Remove when pre-v7 clients are deprecated
+    //    await this.publishUserContact(true)
+    //    if (!legacy) {
+    //      await this.publishUserContact(legacy)
+    //    }
+    return
   }
 
   // PRIVATE: publish the key bundle into the contact topic
@@ -345,6 +362,7 @@ export default class Client {
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
+    // TODO (VOODOO): implement this for voodoo
     peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
     if (existingBundle) {
