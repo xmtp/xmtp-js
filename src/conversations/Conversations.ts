@@ -1,4 +1,4 @@
-import { messageApi, keystore } from '@xmtp/proto'
+import { messageApi, keystore, conversationReference } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { ListMessagesOptions } from './../Client'
@@ -197,7 +197,7 @@ export default class Conversations {
   }
 
   private conversationReferenceToV2(
-    convoRef: keystore.ConversationReference
+    convoRef: conversationReference.ConversationReference
   ): ConversationV2 {
     return new ConversationV2(
       this.client,

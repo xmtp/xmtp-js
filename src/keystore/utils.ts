@@ -1,5 +1,10 @@
 import { TopicData } from './interfaces'
-import { publicKey, keystore, invitation } from '@xmtp/proto'
+import {
+  conversationReference,
+  publicKey,
+  keystore,
+  invitation,
+} from '@xmtp/proto'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import { KeystoreError } from './errors'
 import { WithoutUndefined } from '../utils/typedefs'
@@ -104,7 +109,7 @@ export const topicDataToConversationReference = ({
   invitation,
   createdNs,
   peerAddress,
-}: TopicData): keystore.ConversationReference => ({
+}: TopicData): conversationReference.ConversationReference => ({
   context: invitation.context,
   topic: invitation.topic,
   peerAddress,
