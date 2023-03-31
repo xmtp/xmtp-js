@@ -57,4 +57,5 @@ export {
   EncryptedPersistence,
   LocalStoragePersistence,
   PrefixedPersistence,
+  Persistence,
 } from './keystore/persistence'
