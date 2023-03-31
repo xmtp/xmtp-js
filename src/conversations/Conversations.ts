@@ -433,6 +433,32 @@ export default class Conversations {
       throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
     }
 
+    // Check if it's a Voodoo bundle, must be SignedPublicKeyBundle and have .voodooContact set
+    if (contact instanceof SignedPublicKeyBundle && contact.voodooContact) {
+      // Mark it as a voodoo conversation
+      context = {
+        conversationId: 'voodoo',
+        metadata: {},
+      }
+      // Establish a conversation via this.client.voodooManager
+      return this.v2Mutex.runExclusive(async () => {
+        const existing = await this.getV2ConversationsFromKeystore()
+        const existingMatch = existing.find(matcherFn)
+        if (existingMatch) {
+          return existingMatch
+        }
+        const latestSeen = existing[existing.length - 1]?.createdAt
+        const newItems = await this.updateV2Conversations(latestSeen)
+        const newItemMatch = newItems.find(matcherFn)
+        // If one of those matches, return it to update the cache
+        if (newItemMatch) {
+          return newItemMatch
+        }
+
+        return this.createVoodooConvo(contact as SignedPublicKeyBundle, context)
+      })
+    }
+
     // If this is a V1 conversation continuation
     if (contact instanceof PublicKeyBundle && !context?.conversationId) {
       return new ConversationV1(this.client, peerAddress, new Date())
@@ -490,6 +516,30 @@ export default class Conversations {
 
       return this.createV2Convo(contact as SignedPublicKeyBundle, context)
     })
+  }
+
+  // VOODOO specific conversation code
+  private async createVoodooConvo(
+    recipient: SignedPublicKeyBundle,
+    context?: InvitationContext
+  ): Promise<ConversationV2> {
+    if (!recipient.voodooContact) {
+      throw new Error('Recipient is not a Voodoo contact')
+    }
+    const voodooContact = recipient.voodooContact
+    // Invites and stuff don't matter, just call getOutboundSessionJson
+    // which returns a JSON encoded invite, shove it directly into a test topic
+    const outboundJson = await this.client.voodooManager.getOutboundSessionJson(
+      voodooContact.address,
+      'Welcome to Voodoo!'
+    )
+    return new ConversationV2(
+      this.client,
+      `voodoo-${this.client.address}-${voodooContact.address}`,
+      voodooContact.address,
+      new Date(),
+      context
+    )
   }
 
   private async createV2Convo(

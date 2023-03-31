@@ -1,6 +1,7 @@
 import { publicKey } from '@xmtp/proto'
 import { AccountLinkedPublicKey, PublicKey, SignedPublicKey } from './PublicKey'
 import { AccountLinkedRole } from './Signature'
+import { VoodooContact } from '../VoodooManager'
 
 export class SignedPublicKeyBundleV2
   implements publicKey.SignedPublicKeyBundleV2
@@ -37,6 +38,7 @@ export class SignedPublicKeyBundleV2
 export class SignedPublicKeyBundle implements publicKey.SignedPublicKeyBundle {
   identityKey: SignedPublicKey
   preKey: SignedPublicKey
+  voodooContact?: VoodooContact
 
   constructor(bundle: publicKey.SignedPublicKeyBundle) {
     if (!bundle.identityKey) {

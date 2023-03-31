@@ -27,7 +27,7 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import VoodooManager from './VoodooManager'
+import { default as VoodooManager, VoodooContact } from './VoodooManager'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -174,6 +174,8 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   return { ..._defaultOptions, ...opts } as ClientOptions
 }
 
+const NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
+
 /**
  * Client class initiates connection to the XMTP network.
  * Should be created with `await Client.create(options)`
@@ -184,6 +186,7 @@ export default class Client {
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   publicKeyBundle: PublicKeyBundle
+  voodooManager: VoodooManager
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -194,7 +197,6 @@ export default class Client {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
-  private _voodooManager: VoodooManager
 
   constructor(
     publicKeyBundle: PublicKeyBundle,
@@ -217,7 +219,7 @@ export default class Client {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
-    this._voodooManager = voodooManager
+    this.voodooManager = voodooManager
   }
 
   /**
@@ -259,7 +261,11 @@ export default class Client {
     // Create one other user with address 0x0[x32]
     const otherVoodoo = xmtpWasm.newVoodooInstance()
     const voodooManager = new VoodooManager(address, myVoodoo)
-    voodooManager.setContact('0x00000000000000000000000000000000', otherVoodoo)
+    voodooManager.setContact(NULL_ADDRESS, {
+      address: NULL_ADDRESS,
+      voodooInstance: otherVoodoo,
+    })
+    console.log('voodoo client detected')
 
     // TODO: create voodoo keys
     const client = new Client(
@@ -321,23 +327,22 @@ export default class Client {
   }
 
   private async ensureUserContactPublished(legacy = false): Promise<void> {
-    // TODO (VOODOO): this should do something, but foro now just no-op
-    //    const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
-    //    if (
-    //      bundle &&
-    //      bundle instanceof SignedPublicKeyBundle &&
-    //      this.signedPublicKeyBundle.equals(bundle)
-    //    ) {
-    //      return
-    //    }
-    //    // TEMPORARY: publish V1 contact to make sure there is one in the topic
-    //    // in order to preserve compatibility with pre-v7 clients.
-    //    // Remove when pre-v7 clients are deprecated
-    //    await this.publishUserContact(true)
-    //    if (!legacy) {
-    //      await this.publishUserContact(legacy)
-    //    }
-    return
+    // TODO (VOODOO): this should do something, but currently does nothing for Voodoo contacts
+    const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
+    if (
+      bundle &&
+      bundle instanceof SignedPublicKeyBundle &&
+      this.signedPublicKeyBundle.equals(bundle)
+    ) {
+      return
+    }
+    // TEMPORARY: publish V1 contact to make sure there is one in the topic
+    // in order to preserve compatibility with pre-v7 clients.
+    // Remove when pre-v7 clients are deprecated
+    await this.publishUserContact(true)
+    if (!legacy) {
+      await this.publishUserContact(legacy)
+    }
   }
 
   // PRIVATE: publish the key bundle into the contact topic
@@ -363,6 +368,12 @@ export default class Client {
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
     // TODO (VOODOO): implement this for voodoo
+    if (peerAddress === NULL_ADDRESS) {
+      let myBundle = this.signedPublicKeyBundle
+      // Modify myBundle to add VoodooContact, the other fields don't matter
+      myBundle.voodooContact = this.voodooManager.getContact(NULL_ADDRESS)
+      return myBundle
+    }
     peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
     if (existingBundle) {
@@ -449,6 +460,9 @@ export default class Client {
     peerAddress: string | string[]
   ): Promise<boolean | boolean[]> {
     try {
+      if (peerAddress === NULL_ADDRESS) {
+        return true
+      }
       if (Array.isArray(peerAddress)) {
         const contacts = await this.getUserContacts(peerAddress)
         return contacts.map((contact) => !!contact)
@@ -477,6 +491,9 @@ export default class Client {
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+    if (peerAddress === NULL_ADDRESS) {
+      return true
+    }
 
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
