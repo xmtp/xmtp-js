@@ -9,6 +9,7 @@ import { LocalAuthenticator } from '../src/authn'
 import { PrivateKey } from '../src'
 import { version } from '../package.json'
 import { dateToNs } from '../src/utils'
+import xmtpv3 from 'xmtpv3'
 const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
@@ -38,6 +39,14 @@ jest.mock('../src/authn/LocalAuthenticator', () => {
 describe('Query', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  it ('self test xmtpv3', async () => {
+    expect(xmtpv3).toBeDefined();
+    const res = await xmtpv3.XMTPWasm.initialize().then((xmtp: any) => {
+      return xmtp.getXMTPv3().selfTest();
+    });
+    expect(res).toBe(true);
   })
 
   it('stops when receiving empty results', async () => {
