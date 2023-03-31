@@ -56,11 +56,32 @@ export default class VoodooManager {
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
+    console.log('vooodooInstance', this.voodooInstance)
+    console.log('contactInstance', contactInstance)
     const outbound = await this.voodooInstance.createOutboundSession(
       contactInstance,
       initialMessage
     )
+    console.log('outbound', outbound)
     return outbound
+  }
+
+  // NOTE: this is a test-only method that spoofs another voodoo account
+  // in order to read your own outbound messages
+  async readMessageAsOther(
+    contactAddress: string,
+    inboundJson: string
+  ): Promise<string> {
+    // Get the contact info which is just a handle for now
+    const contactInstance = this.contacts.get(contactAddress)?.voodooInstance
+    if (!contactInstance) {
+      throw new Error(`No contact info for ${contactAddress}`)
+    }
+    const inboundPlaintext = await contactInstance.createInboundSession(
+      this.voodooInstance,
+      inboundJson
+    )
+    return inboundPlaintext
   }
 
   // Get the JSON from creating an inbound session
@@ -73,7 +94,7 @@ export default class VoodooManager {
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const inboundPlaintext = await this.voodooInstance.processInboundSession(
+    const inboundPlaintext = await this.voodooInstance.createInboundSession(
       contactInstance,
       inboundJson
     )

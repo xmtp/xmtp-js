@@ -442,19 +442,6 @@ export default class Conversations {
       }
       // Establish a conversation via this.client.voodooManager
       return this.v2Mutex.runExclusive(async () => {
-        const existing = await this.getV2ConversationsFromKeystore()
-        const existingMatch = existing.find(matcherFn)
-        if (existingMatch) {
-          return existingMatch
-        }
-        const latestSeen = existing[existing.length - 1]?.createdAt
-        const newItems = await this.updateV2Conversations(latestSeen)
-        const newItemMatch = newItems.find(matcherFn)
-        // If one of those matches, return it to update the cache
-        if (newItemMatch) {
-          return newItemMatch
-        }
-
         return this.createVoodooConvo(contact as SignedPublicKeyBundle, context)
       })
     }
@@ -533,13 +520,15 @@ export default class Conversations {
       voodooContact.address,
       'Welcome to Voodoo!'
     )
-    return new ConversationV2(
+    const convov2 = new ConversationV2(
       this.client,
       `voodoo-${this.client.address}-${voodooContact.address}`,
       voodooContact.address,
       new Date(),
       context
     )
+    console.log('createVooodooConvo', convov2)
+    return convov2
   }
 
   private async createV2Convo(

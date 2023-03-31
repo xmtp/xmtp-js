@@ -350,12 +350,42 @@ export class ConversationV2 implements Conversation {
    * Returns a list of all messages to/from the peerAddress
    */
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
+    // Check if this is a voodoo conversation
+    if (this.topic.includes('voodoo')) {
+      // Use the voodoo manager to decrypt
+      // HACK: for now, we just always decrypt assuming we're the recipient (NULL_ADDRESS)
+      // because the model is one way: we send to NULL_ADDRESS, and then read from there
+      // this is useful for now because Vodozemac doesn't allow us to read our own messages easily.
+      const messages = await this.client.listRawVoodoo(this.topic)
+      for (let i = 0; i < messages.length; i++) {
+        const messageBytes = messages[i]
+        // TODO: fix HARDCODED NULL ADDRESS
+        // utf-8 encode messageBytes
+//        console.log('messageString', messageString)
+//        console.log('type of messageString', typeof messageString)
+        // messageString needs to be base64 decoded into bytes, then utf-8 decoded into a string
+//        const messageBytes = Buffer.from(messageString, 'base64')
+        console.log('messageBytes', messageBytes)
+        console.log('type of messageBytes', typeof messageBytes)
+        // typescript thinks messageBytes is Uint8Array, but it's actually a string at this point
+        const stringMessageBytes = messageBytes.toString()
+        console.log('stringMessageBytes', stringMessageBytes)
+        console.log('type of stringMessageBytes', typeof stringMessageBytes)
+        // base64 decode it
+        const decodedMessageBytes = Buffer.from(stringMessageBytes, 'base64')
+        console.log('decodedMessageBytes', decodedMessageBytes)
+        const message = new TextDecoder().decode(decodedMessageBytes)
+        const plaintext = await this.client.voodooManager.readMessageAsOther("0x0000000000000000000000000000000000000000", message)
+        console.log('plaintext', plaintext)
+      }
+      return []
+    }
+
     const messages = await this.client.listEnvelopes(
       this.topic,
       this.processEnvelope.bind(this),
       opts
     )
-
     return this.decryptBatch(messages, false)
   }
 
@@ -387,7 +417,35 @@ export class ConversationV2 implements Conversation {
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
   ): Promise<DecodedMessage> {
+
     const payload = await this.client.encodeContent(content, options)
+
+    // Check if this is a voodoo conversation
+    if (this.topic.includes('voodoo')) {
+      // Use the voodoo manager to encrypt
+      // HACK: for now, we just always decrypt assuming we're the recipient (NULL_ADDRESS)
+      // because the model is one way: we send to NULL_ADDRESS, and then read from there
+      // this is useful for now because Vodozemac doesn't allow us to read our own messages easily.
+      const outboundJson = await this.client.voodooManager.getOutboundSessionJson(
+        this.peerAddress,
+        "testing testing 123"
+      )
+
+      // utf8 encode outboundJson to bytes
+      const outboundBytes = new TextEncoder().encode(outboundJson)
+      await this.client.publishVoodooRaw(this.topic, [outboundBytes])
+
+      throw new Error('Voodoo I cannot forge a V2Message easily so throwing here')
+//      return DecodedMessage.fromV2Message(
+//        msg,
+//        content,
+//        ContentTypeText,
+//        this.topic,
+//        outboundBytes,
+//        this,
+//        this.client.address
+//      )
+    }
     const msg = await this.createMessage(payload, options?.timestamp)
     await this.client.publishEnvelopes([
       {
