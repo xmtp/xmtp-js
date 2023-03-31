@@ -29,7 +29,6 @@ const isFlask = async () => {
 }
 
 const getSnaps = async (): Promise<GetSnapsResponse> => {
-  console.log('Getting snap')
   return (await window.ethereum.request({
     method: 'wallet_getSnaps',
   })) as unknown as GetSnapsResponse
@@ -44,7 +43,7 @@ const getSnap = async (version?: string): Promise<Snap | undefined> => {
         snap.id === defaultSnapOrigin && (!version || snap.version === version)
     )
   } catch (e) {
-    console.log('Failed to obtain installed snap', e)
+    console.warn('Failed to obtain installed snap', e)
     return undefined
   }
 }
@@ -65,7 +64,6 @@ const connectSnap = async (
   snapId: string = defaultSnapOrigin,
   params: Record<'version' | string, unknown> = {}
 ) => {
-  console.log('Connecting snap')
   await window.ethereum.request({
     method: 'wallet_requestSnaps',
     params: {
@@ -80,7 +78,6 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
       throw new KeystoreProviderUnavailableError('Flask not detected')
     }
     const hasSnap = await getSnap()
-    console.log('hasSnap', hasSnap)
     if (!hasSnap) {
       await connectSnap()
     }

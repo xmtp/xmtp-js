@@ -70,7 +70,6 @@ export function SnapKeystore(): Keystore {
     method: T,
     req: Uint8Array | null
   ): Promise<string | string[]> {
-    console.log('Calling method', method)
     const response = await ethereum.request({
       method: 'wallet_invokeSnap',
       params: {
@@ -86,8 +85,6 @@ export function SnapKeystore(): Keystore {
       throw new Error('No response value')
     }
 
-    console.log('Raw response', response)
-
     return (response as any).res as unknown as string | string[]
   }
 
@@ -100,7 +97,6 @@ export function SnapKeystore(): Keystore {
     if (Array.isArray(responseString)) {
       throw new Error('Unexpected array response')
     }
-    console.log('Got a response string', responseString)
     return resDecoder.decode(b64Decode(responseString))
   }
 

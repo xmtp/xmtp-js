@@ -244,7 +244,6 @@ export default class Client {
     const apiClient = createApiClientFromOptions(options)
     const keystore = await bootstrapKeystore(options, apiClient, wallet)
     const rawBundle = await keystore.getPublicKeyBundle()
-    console.log(rawBundle)
     const publicKeyBundle = new PublicKeyBundle(rawBundle)
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
