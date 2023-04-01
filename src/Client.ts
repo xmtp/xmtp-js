@@ -538,7 +538,10 @@ export default class Client {
   /**
    * Low level no validation raw byte publishing for Voodoo debugging
    */
-  async publishVoodooRaw(topic: string, messageBytes: [Uint8Array]): Promise<void> {
+  async publishVoodooRaw(
+    topic: string,
+    messageBytes: [Uint8Array]
+  ): Promise<void> {
     const envelopes = messageBytes.map((bytes) => ({
       contentTopic: topic,
       message: bytes,
