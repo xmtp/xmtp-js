@@ -350,14 +350,17 @@ export class ConversationV2 implements Conversation {
    * Returns a list of all messages to/from the peerAddress
    */
   async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
+    console.log('Messages for topic: ', this.topic)
     // Check if this is a voodoo conversation
     if (this.topic.includes('voodoo')) {
+      console.log('DOING VOODOO MESSAGE PULL')
       // Use the voodoo manager to decrypt
       // HACK: for now, we just always decrypt assuming we're the recipient (NULL_ADDRESS)
       // because the model is one way: we send to NULL_ADDRESS, and then read from there
       // this is useful for now because Vodozemac doesn't allow us to read our own messages easily.
       const messages = await this.client.listRawVoodoo(this.topic)
-      for (let i = 0; i < messages.length; i++) {
+      console.log(messages)
+      for (let i = messages.length - 1; i >= 0; i--) {
         const messageBytes = messages[i]
         // TODO: fix HARDCODED NULL ADDRESS
         // utf-8 encode messageBytes

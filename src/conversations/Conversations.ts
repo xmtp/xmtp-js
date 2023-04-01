@@ -522,7 +522,7 @@ export default class Conversations {
     )
     const convov2 = new ConversationV2(
       this.client,
-      `voodoo-${this.client.address}-${voodooContact.address}`,
+      `voodoo-${this.client.uuid}-${voodooContact.address}`,
       voodooContact.address,
       new Date(),
       context

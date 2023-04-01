@@ -187,6 +187,8 @@ export default class Client {
   contacts: Set<string> // address which we have connected to
   publicKeyBundle: PublicKeyBundle
   voodooManager: VoodooManager
+  // To make this a bit more idempotent, we'll use a UUID to track voodoo topics
+  uuid: string
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -220,6 +222,7 @@ export default class Client {
     this.apiClient = apiClient
     this._backupClient = backupClient
     this.voodooManager = voodooManager
+    this.uuid = `${new Date().getTime()}-${Math.random()}`
   }
 
   /**

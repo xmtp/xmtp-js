@@ -56,8 +56,8 @@ export default class VoodooManager {
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    console.log('vooodooInstance', this.voodooInstance)
-    console.log('contactInstance', contactInstance)
+    console.log('outbound vooodooInstance', this.voodooInstance)
+    console.log('outbound contactInstance', contactInstance)
     const outbound = await this.voodooInstance.createOutboundSession(
       contactInstance,
       initialMessage
@@ -77,11 +77,26 @@ export default class VoodooManager {
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const inboundPlaintext = await contactInstance.createInboundSession(
-      this.voodooInstance,
-      inboundJson
-    )
-    return inboundPlaintext
+    console.log('read as other vooodooInstance', this.voodooInstance)
+    console.log('read as other contactInstance', contactInstance)
+    try {
+      const inboundPlaintext = await contactInstance.createInboundSession(
+        this.voodooInstance,
+        inboundJson
+      )
+      console.log('inboundPlaintext', inboundPlaintext)
+      return inboundPlaintext
+    } catch (e) {
+      console.log('got error', e)
+      // Try the other way around
+      const inboundPlaintext = await this.voodooInstance.createInboundSession(
+        contactInstance,
+        inboundJson
+      )
+      console.log('inboundPlaintext 2nd try', inboundPlaintext)
+      return inboundPlaintext
+    }
+    throw new Error('Could not read message')
   }
 
   // Get the JSON from creating an inbound session
