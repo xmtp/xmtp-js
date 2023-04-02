@@ -67,6 +67,7 @@ export type SendOptions = {
   contentFallback?: string
   compression?: proto.Compression
   timestamp?: Date
+  ephemeral?: boolean
 }
 
 /**

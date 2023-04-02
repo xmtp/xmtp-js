@@ -313,6 +313,10 @@ export class ConversationV1 {
     return decoded
   }
 
+  streamEphemeral(): null {
+    return null
+  }
+
   /**
    * Send a message into the conversation
    */
@@ -483,6 +487,18 @@ export class ConversationV2 {
     )
   }
 
+  ephemeralTopic(): string {
+    return this.topic.replace('/xmtp/0/m', '/xmtp/0/mE')
+  }
+
+  streamEphemeral(): Promise<Stream<DecodedMessage>> {
+    return Stream.create<DecodedMessage>(
+      this.client,
+      [this.ephemeralTopic()],
+      this.decodeMessage.bind(this)
+    )
+  }
+
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
@@ -502,9 +518,17 @@ export class ConversationV2 {
     options?: SendOptions
   ): Promise<DecodedMessage> {
     const msg = await this.encodeMessage(content, options)
+
+    let topic: string
+    if (options?.ephemeral) {
+      topic = this.ephemeralTopic()
+    } else {
+      topic = this.topic
+    }
+
     await this.client.publishEnvelopes([
       {
-        contentTopic: this.topic,
+        contentTopic: topic,
         message: msg.toBytes(),
         timestamp: msg.sent,
       },

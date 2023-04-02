@@ -1,6 +1,6 @@
 import { ConversationV1 } from './../../src/conversations/Conversation'
 import { DecodedMessage, MessageV1 } from './../../src/Message'
-import { buildDirectMessageTopic } from './../../src/utils'
+import { buildDirectMessageTopic, buildDirectMessageTopicV2 } from './../../src/utils'
 import {
   Client,
   Compression,
@@ -107,7 +107,7 @@ describe('conversation', () => {
     it('ignores failed decoding of messages', async () => {
       const consoleWarn = jest
         .spyOn(console, 'warn')
-        .mockImplementation(() => {})
+        .mockImplementation(() => { })
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
@@ -178,6 +178,39 @@ describe('conversation', () => {
       const message = messages[0]
       expect(message.id).toBe(messageID)
       expect(message.content).toBe('sup')
+    })
+
+    it('can send and stream ephemeral topic', async () => {
+      const aliceConversation = await alice.conversations.newConversation(bob.address, {
+        conversationId: "example.com",
+        metadata: {}
+      })
+
+      // Start the stream before sending the message to ensure delivery
+      const stream = await aliceConversation.streamEphemeral()
+
+      if (!stream) {
+        fail("no stream")
+      }
+
+      await sleep(100)
+
+      await aliceConversation.send('hello', { ephemeral: true })
+
+      let result = await stream.next()
+      // expect(result.done).toBeTruthy()
+      const message = result.value
+      expect(message.contentTopic).toBe(
+        aliceConversation.topic.replace('/xmtp/0/m-', '/xmtp/0/mE-')
+      )
+      expect(message.error).toBeUndefined()
+      expect(message.messageVersion).toBe('v2')
+      expect(message.content).toBe('hello')
+      expect(message.senderAddress).toBe(alice.address)
+
+      await sleep(100)
+      expect(await aliceConversation.messages()).toHaveLength(0)
+      await stream.return()
     })
 
     it('allows for sorted listing', async () => {
@@ -340,7 +373,7 @@ describe('conversation', () => {
     it('filters out spoofed messages', async () => {
       const consoleWarn = jest
         .spyOn(console, 'warn')
-        .mockImplementation(() => {})
+        .mockImplementation(() => { })
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       const stream = await bobConvo.streamMessages()
