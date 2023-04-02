@@ -1,6 +1,9 @@
 import { ConversationV1 } from './../../src/conversations/Conversation'
 import { DecodedMessage, MessageV1 } from './../../src/Message'
-import { buildDirectMessageTopic, buildDirectMessageTopicV2 } from './../../src/utils'
+import {
+  buildDirectMessageTopic,
+  buildDirectMessageTopicV2,
+} from './../../src/utils'
 import {
   Client,
   Compression,
@@ -107,7 +110,7 @@ describe('conversation', () => {
     it('ignores failed decoding of messages', async () => {
       const consoleWarn = jest
         .spyOn(console, 'warn')
-        .mockImplementation(() => { })
+        .mockImplementation(() => {})
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
@@ -181,16 +184,19 @@ describe('conversation', () => {
     })
 
     it('can send and stream ephemeral topic', async () => {
-      const aliceConversation = await alice.conversations.newConversation(bob.address, {
-        conversationId: "example.com",
-        metadata: {}
-      })
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address,
+        {
+          conversationId: 'example.com',
+          metadata: {},
+        }
+      )
 
       // Start the stream before sending the message to ensure delivery
       const stream = await aliceConversation.streamEphemeral()
 
       if (!stream) {
-        fail("no stream")
+        fail('no stream')
       }
 
       await sleep(100)
@@ -373,7 +379,7 @@ describe('conversation', () => {
     it('filters out spoofed messages', async () => {
       const consoleWarn = jest
         .spyOn(console, 'warn')
-        .mockImplementation(() => { })
+        .mockImplementation(() => {})
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       const stream = await bobConvo.streamMessages()
