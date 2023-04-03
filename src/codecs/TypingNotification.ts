@@ -16,6 +16,7 @@ export type TypingNotification = {
   isFinished: boolean
 }
 
+// Important: Typing Notifications should only be sent on ephemeral topics.
 export class TypingNotificationCodec
   implements ContentCodec<TypingNotification>
 {
