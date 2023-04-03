@@ -328,7 +328,6 @@ export default class Client {
   }
 
   private async ensureUserContactPublished(legacy = false): Promise<void> {
-    // TODO (VOODOO): this should do something, but currently does nothing for Voodoo contacts
     const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
     if (
       bundle &&
@@ -368,7 +367,6 @@ export default class Client {
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
-    // TODO (VOODOO): implement this for voodoo
     peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
     if (existingBundle) {
@@ -455,7 +453,6 @@ export default class Client {
     peerAddress: string | string[]
   ): Promise<boolean | boolean[]> {
     try {
-      // TODO: STARTINGTASK: If voodooEnabled, do a voodoo-specific lookup here
       if (Array.isArray(peerAddress)) {
         const contacts = await this.getUserContacts(peerAddress)
         return contacts.map((contact) => !!contact)
@@ -484,7 +481,6 @@ export default class Client {
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
-    // TODO: STARTINGTASK: If voodooEnabled, do a voodoo-specific lookup here
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
       // Try to normalize each of the peer addresses
