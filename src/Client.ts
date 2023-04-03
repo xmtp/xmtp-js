@@ -276,7 +276,7 @@ export default class Client {
       await keystore.getPublicKeyBundle()
     )
     const address = publicKeyBundle.walletSignatureAddress()
-    return await VoodooClient.create(address)
+    return await VoodooClient.create(address, apiClient)
   }
 
   /**

@@ -1,5 +1,7 @@
 import xmtpv3 from 'xmtpv3_wasm'
 
+import ApiClient from '../ApiClient'
+
 // TODO: this is a hacky wrapper class for a Voodoo contact,
 // currently represented by the entire contact's VoodooInstance
 // - should be changed to align with VoodooPublicAccount (or whatever)
@@ -29,23 +31,35 @@ export class VoodooContact {
 export default class VoodooClient {
   address: string
   voodooInstance: any
+  apiClient: ApiClient
   // For now contacts are a map of address to VoodooInstance, all local
   contacts: Map<string, VoodooContact> = new Map()
 
-  constructor(address: string, voodooInstance: any) {
+  constructor(address: string, voodooInstance: any, apiClient: ApiClient) {
     this.address = address
     this.voodooInstance = voodooInstance
+    this.apiClient = apiClient
   }
 
-  static async create(address: string): Promise<VoodooClient> {
+  static async create(
+    address: string,
+    apiClient: ApiClient
+  ): Promise<VoodooClient> {
     const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
     // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
     const myVoodoo = xmtpWasm.newVoodooInstance()
-    return new VoodooClient(address, myVoodoo)
+    return new VoodooClient(address, myVoodoo, apiClient)
   }
 
-  setContact(address: string, contactInfo: VoodooContact) {
-    this.contacts.set(address, contactInfo)
+  get contact(): VoodooContact {
+    return {
+      address: this.address,
+      voodooInstance: this.voodooInstance,
+    }
+  }
+
+  setContact(contactInfo: VoodooContact) {
+    this.contacts.set(contactInfo.address, contactInfo)
   }
 
   getContact(address: string): VoodooContact | undefined {
@@ -62,41 +76,15 @@ export default class VoodooClient {
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const outbound = await this.voodooInstance.createOutboundSession(
+    const outboundObject = await this.voodooInstance.createOutboundSession(
       contactInstance,
       initialMessage
     )
-    return outbound
-  }
-
-  // NOTE: this is a test-only method that spoofs another voodoo account
-  // in order to read your own outbound messages
-  async readMessageAsOther(
-    contactAddress: string,
-    inboundJson: string
-  ): Promise<string> {
-    // Get the contact info which is just a handle for now
-    const contactInstance = this.contacts.get(contactAddress)?.voodooInstance
-    if (!contactInstance) {
-      throw new Error(`No contact info for ${contactAddress}`)
-    }
-    try {
-      const inboundPlaintext = await contactInstance.createInboundSession(
-        this.voodooInstance,
-        inboundJson
-      )
-      return inboundPlaintext
-    } catch (e) {
-      console.log('got error', e)
-      // Try the other way around
-      const inboundPlaintext = await this.voodooInstance.createInboundSession(
-        contactInstance,
-        inboundJson
-      )
-      console.log('inboundPlaintext 2nd try', inboundPlaintext)
-      return inboundPlaintext
-    }
-    throw new Error('Could not read message')
+    // outboundTuple should comprise (sessionId, outboundCiphertextJson)
+    // TODO: as temporary measure until we export types in xmtpv3_wasm, just
+    // discard the sessionId for testing
+    const outboundCiphertext = outboundObject.payload
+    return outboundCiphertext
   }
 
   // Get the JSON from creating an inbound session
@@ -109,10 +97,14 @@ export default class VoodooClient {
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const inboundPlaintext = await this.voodooInstance.createInboundSession(
+    const inboundResponse = await this.voodooInstance.createInboundSession(
       contactInstance,
       inboundJson
     )
+    // inboundTuple should comprise (sessionId, inboundPlaintext)
+    // TODO: as temporary measure until we export types in xmtpv3_wasm, just
+    // discard the sessionId for testing
+    const inboundPlaintext = inboundResponse.payload
     return inboundPlaintext
   }
 }
