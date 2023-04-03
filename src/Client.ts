@@ -249,7 +249,6 @@ export default class Client {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
-
     const client = new Client(
       publicKeyBundle,
       apiClient,
@@ -481,6 +480,7 @@ export default class Client {
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
       // Try to normalize each of the peer addresses
