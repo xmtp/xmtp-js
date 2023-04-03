@@ -291,3 +291,13 @@ describe('ClientOptions', () => {
     })
   })
 })
+
+describe('VoodooClient', () => {
+  it('can create a client', async () => {
+    const alice = newWallet()
+    const client = await Client.createVoodoo(alice, { env: 'local' })
+    expect(client).toBeTruthy()
+    // Check that client voodooInstance is truthy
+    expect(client.voodooInstance).toBeTruthy()
+  })
+})
