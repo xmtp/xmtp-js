@@ -1,3 +1,5 @@
+import xmtpv3 from 'xmtpv3'
+
 // TODO: this is a hacky wrapper class for a Voodoo contact,
 // currently represented by the entire contact's VoodooInstance
 // - should be changed to align with VoodooPublicAccount (or whatever)
@@ -13,7 +15,7 @@ export class VoodooContact {
 }
 
 /**
- * Class that manages Voodoo state such as:
+ * Class that acts as a Client stand-in, but with Voodoo logic
  * - sessions
  * - contacts
  * - encoding and decoding messages
@@ -23,7 +25,7 @@ export class VoodooContact {
  * our own reasoning. Client.ts will consume the VoodooManager
  * for now.
  */
-export default class VoodooManager {
+export default class VoodooClient {
   address: string
   voodooInstance: any
   // For now contacts are a map of address to VoodooInstance, all local
@@ -32,6 +34,13 @@ export default class VoodooManager {
   constructor(address: string, voodooInstance: any) {
     this.address = address
     this.voodooInstance = voodooInstance
+  }
+
+  static async create(address: string): Promise<VoodooClient> {
+    const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
+    // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
+    const myVoodoo = xmtpWasm.newVoodooInstance()
+    return new VoodooClient(address, myVoodoo)
   }
 
   setContact(address: string, contactInfo: VoodooContact) {

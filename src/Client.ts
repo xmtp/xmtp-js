@@ -27,11 +27,9 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import { default as VoodooManager, VoodooContact } from './VoodooManager'
+import VoodooClient from './VoodooClient'
 const { Compression } = proto
 const { b64Decode } = fetcher
-
-import xmtpv3 from 'xmtpv3'
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
 // eslint-disable @typescript-eslint/no-explicit-any
@@ -107,10 +105,6 @@ export type NetworkOptions = {
   skipContactPublishing: boolean
 }
 
-export type VoodooOptions = {
-  voodooEnabled: boolean
-}
-
 export type ContentOptions = {
   /**
    * Allow configuring codecs for additional content types
@@ -152,11 +146,7 @@ export type LegacyOptions = {
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
 export type ClientOptions = Flatten<
-  NetworkOptions &
-    KeyStoreOptions &
-    ContentOptions &
-    LegacyOptions &
-    VoodooOptions
+  NetworkOptions & KeyStoreOptions & ContentOptions & LegacyOptions
 >
 
 /**
@@ -172,7 +162,6 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
     persistConversations: true,
-    voodooEnabled: false,
     skipContactPublishing: false,
     keystoreProviders: defaultKeystoreProviders(),
   }
@@ -193,7 +182,6 @@ export default class Client {
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   publicKeyBundle: PublicKeyBundle
-  voodooManager: VoodooManager
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -209,8 +197,7 @@ export default class Client {
     publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
-    keystore: Keystore,
-    voodooManager: VoodooManager
+    keystore: Keystore
   ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
@@ -226,7 +213,6 @@ export default class Client {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
-    this.voodooManager = voodooManager
   }
 
   /**
@@ -263,20 +249,35 @@ export default class Client {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
-    const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
-    // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
-    const myVoodoo = xmtpWasm.newVoodooInstance()
-    const voodooManager = new VoodooManager(address, myVoodoo)
 
     const client = new Client(
       publicKeyBundle,
       apiClient,
       backupClient,
-      keystore,
-      voodooManager
+      keystore
     )
     await client.init(options)
     return client
+  }
+
+  /**
+   * Create and start a Voodoo client associated with a given wallet.
+   *
+   * @param wallet the wallet as a Signer instance
+   * @param opts specify how to to connect to the network
+   */
+  static async createVoodoo(
+    wallet: Signer | null,
+    opts?: Partial<ClientOptions>
+  ): Promise<VoodooClient> {
+    const options = defaultOptions(opts)
+    const apiClient = createApiClientFromOptions(options)
+    const keystore = await bootstrapKeystore(options, apiClient, wallet)
+    const publicKeyBundle = new PublicKeyBundle(
+      await keystore.getPublicKeyBundle()
+    )
+    const address = publicKeyBundle.walletSignatureAddress()
+    return await VoodooClient.create(address)
   }
 
   /**
