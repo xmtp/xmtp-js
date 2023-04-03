@@ -43,6 +43,10 @@ export interface Conversation {
    */
   topic: string
   /**
+   * A unique identifier for ephemeral envelopes for a conversation.
+   */
+  ephemeralTopic: string
+  /**
    * The wallet address of the other party in the conversation
    */
   peerAddress: string
@@ -153,6 +157,13 @@ export class ConversationV1 implements Conversation {
 
   get topic(): string {
     return buildDirectMessageTopic(this.peerAddress, this.client.address)
+  }
+
+  get ephemeralTopic(): string {
+    return buildDirectMessageTopic(
+      this.peerAddress,
+      this.client.address
+    ).replace('/xmtp/0/dm-', '/xmtp/0/dmE-')
   }
 
   /**
@@ -274,7 +285,11 @@ export class ConversationV1 implements Conversation {
   }
 
   streamEphemeral(): Promise<Stream<DecodedMessage>> {
-    throw new Error('ephemeral topics not supported on v1 conversations')
+    return Stream.create<DecodedMessage>(
+      this.client,
+      [this.ephemeralTopic],
+      this.decodeMessage.bind(this)
+    )
   }
 
   /**
@@ -293,11 +308,13 @@ export class ConversationV1 implements Conversation {
       recipient = recipient.toLegacyBundle()
     }
 
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
     if (!this.client.contacts.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
-        this.topic,
+        topic,
       ]
       this.client.contacts.add(this.peerAddress)
     } else {
@@ -443,14 +460,14 @@ export class ConversationV2 implements Conversation {
     )
   }
 
-  ephemeralTopic(): string {
+  get ephemeralTopic(): string {
     return this.topic.replace('/xmtp/0/m', '/xmtp/0/mE')
   }
 
   streamEphemeral(): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
-      [this.ephemeralTopic()],
+      [this.ephemeralTopic],
       this.decodeMessage.bind(this)
     )
   }
@@ -478,7 +495,7 @@ export class ConversationV2 implements Conversation {
 
     let topic: string
     if (options?.ephemeral) {
-      topic = this.ephemeralTopic()
+      topic = this.ephemeralTopic
     } else {
       topic = this.topic
     }
@@ -652,7 +669,7 @@ export class ConversationV2 implements Conversation {
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, options?.timestamp)
 
-    const topic = options?.ephemeral ? this.ephemeralTopic() : this.topic
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
     const env = {
       contentTopic: topic,
