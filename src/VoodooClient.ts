@@ -1,4 +1,4 @@
-import xmtpv3 from 'xmtpv3'
+import xmtpv3 from 'xmtpv3_wasm'
 
 // TODO: this is a hacky wrapper class for a Voodoo contact,
 // currently represented by the entire contact's VoodooInstance
