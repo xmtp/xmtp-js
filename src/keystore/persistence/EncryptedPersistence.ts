@@ -1,68 +1,10 @@
 import { Persistence } from './interface'
-import eccrypto, { Ecies } from 'eccrypto'
-
-const IV_LENGTH = 16
-const EPHEMERAL_PUBLIC_KEY_LENGTH = 65
-const MAC_LENGTH = 32
-const AES_BLOCK_SIZE = 16
-const MIN_DATA_LENGTH =
-  IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH + MAC_LENGTH + AES_BLOCK_SIZE
-
-const assertEciesLengths = (ecies: Ecies): void => {
-  if (ecies.iv.length !== IV_LENGTH) {
-    throw new Error('Invalid iv length')
-  }
-  if (ecies.ephemPublicKey.length !== EPHEMERAL_PUBLIC_KEY_LENGTH) {
-    throw new Error('Invalid ephemPublicKey length')
-  }
-  if (
-    ecies.ciphertext.length < 1 ||
-    ecies.ciphertext.length % AES_BLOCK_SIZE !== 0
-  ) {
-    throw new Error('Invalid ciphertext length')
-  }
-  if (ecies.mac.length !== MAC_LENGTH) {
-    throw new Error('Invalid mac length')
-  }
-}
-
-const serializeEcies = (ecies: Ecies): Uint8Array => {
-  assertEciesLengths(ecies)
-  const { iv, ephemPublicKey, ciphertext, mac } = ecies
-  const result = new Uint8Array(
-    iv.length + ephemPublicKey.length + ciphertext.length + mac.length
-  )
-  result.set(iv, 0)
-  result.set(ephemPublicKey, IV_LENGTH)
-  result.set(ciphertext, IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH)
-  result.set(mac, IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH + ciphertext.length)
-  return result
-}
-
-const deserializeEcies = (data: Uint8Array): Ecies => {
-  if (
-    data.length < MIN_DATA_LENGTH ||
-    (data.length - MIN_DATA_LENGTH) % AES_BLOCK_SIZE !== 0
-  ) {
-    throw new Error('Invalid data length')
-  }
-  const iv = data.slice(0, IV_LENGTH)
-  const ephemPublicKey = data.slice(
-    IV_LENGTH,
-    IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH
-  )
-  const ciphertext = data.slice(
-    IV_LENGTH + EPHEMERAL_PUBLIC_KEY_LENGTH,
-    data.length - MAC_LENGTH
-  )
-  const mac = data.slice(data.length - MAC_LENGTH, data.length)
-  return {
-    iv: Buffer.from(iv),
-    ephemPublicKey: Buffer.from(ephemPublicKey),
-    ciphertext: Buffer.from(ciphertext),
-    mac: Buffer.from(mac),
-  }
-}
+import { Ecies, getPublic, encrypt, decrypt } from '../../crypto/ecies'
+import {
+  PrivateKey,
+  SignedEciesCiphertext,
+  SignedPrivateKey,
+} from '../../crypto'
 
 /**
  * EncryptedPersistence is a Persistence implementation that uses ECIES to encrypt all values
@@ -71,13 +13,18 @@ const deserializeEcies = (data: Uint8Array): Ecies => {
  */
 export default class EncryptedPersistence implements Persistence {
   private persistence: Persistence
-  private privateKey: Buffer
+  private privateKey: PrivateKey | SignedPrivateKey
+  private privateKeyBytes: Buffer
   private publicKey: Buffer
 
-  constructor(persistence: Persistence, privateKey: Uint8Array) {
+  constructor(
+    persistence: Persistence,
+    privateKey: PrivateKey | SignedPrivateKey
+  ) {
     this.persistence = persistence
-    this.privateKey = Buffer.from(privateKey)
-    this.publicKey = eccrypto.getPublic(this.privateKey)
+    this.privateKey = privateKey
+    this.privateKeyBytes = Buffer.from(privateKey.secp256k1.bytes)
+    this.publicKey = getPublic(this.privateKeyBytes)
   }
 
   async getItem(key: string): Promise<Uint8Array | null> {
@@ -94,13 +41,35 @@ export default class EncryptedPersistence implements Persistence {
   }
 
   private async encrypt(value: Uint8Array): Promise<Uint8Array> {
-    const ecies = await eccrypto.encrypt(this.publicKey, Buffer.from(value))
-    return serializeEcies(ecies)
+    const ecies = await encrypt(this.publicKey, Buffer.from(value))
+    return this.serializeEcies(ecies)
   }
 
   private async decrypt(value: Uint8Array): Promise<Uint8Array> {
-    const ecies = deserializeEcies(value)
-    const result = await eccrypto.decrypt(this.privateKey, ecies)
+    const ecies = await this.deserializeEcies(value)
+    const result = await decrypt(this.privateKeyBytes, ecies)
     return Uint8Array.from(result)
+  }
+
+  private async serializeEcies(data: Ecies): Promise<Uint8Array> {
+    // This will create and sign a `SignedEciesCiphertext` payload based on the provided data
+    const protoVal = await SignedEciesCiphertext.create(data, this.privateKey)
+    return protoVal.toBytes()
+  }
+
+  private async deserializeEcies(data: Uint8Array): Promise<Ecies> {
+    const protoVal = SignedEciesCiphertext.fromBytes(data)
+    // Verify the signature upon deserializing
+    if (!(await protoVal.verify(this.privateKey.publicKey))) {
+      throw new Error('signature validation failed')
+    }
+    const ecies = protoVal.ciphertext
+
+    return {
+      ciphertext: Buffer.from(ecies.ciphertext),
+      mac: Buffer.from(ecies.mac),
+      iv: Buffer.from(ecies.iv),
+      ephemeralPublicKey: Buffer.from(ecies.ephemeralPublicKey),
+    }
   }
 }

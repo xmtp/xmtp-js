@@ -16,6 +16,7 @@ describe('Crypto', function () {
     await identityKey.signKey(preKey.publicKey)
     assert.ok(await identityKey.publicKey.verifyKey(preKey.publicKey))
   })
+
   it('encrypts and decrypts payload', async function () {
     const alice = PrivateKey.generate()
     const bob = PrivateKey.generate()
@@ -28,6 +29,7 @@ describe('Crypto', function () {
     const msg2 = new TextDecoder().decode(decrypted2)
     assert.equal(msg2, msg1)
   })
+
   it('detects tampering with encrypted message', async function () {
     const alice = PrivateKey.generate()
     const bob = PrivateKey.generate()
@@ -46,6 +48,7 @@ describe('Crypto', function () {
       expect(e).toBeTruthy()
     }
   })
+
   it('derives public key from signature', async function () {
     const pri = PrivateKey.generate()
     const digest = utils.getRandomValues(new Uint8Array(16))
@@ -59,6 +62,7 @@ describe('Crypto', function () {
       pri.publicKey.secp256k1Uncompressed.bytes
     )
   })
+
   it('encrypts and decrypts payload with key bundles', async function () {
     const alice = await PrivateKeyBundleV1.generate()
     const bob = await PrivateKeyBundleV1.generate()
@@ -75,6 +79,7 @@ describe('Crypto', function () {
     const msg2 = new TextDecoder().decode(decrypted2)
     assert.equal(msg2, msg1)
   })
+
   it('serializes and deserializes keys and signatures', async function () {
     const alice = await PrivateKeyBundleV1.generate()
     const bytes = alice.getPublicKeyBundle().toBytes()

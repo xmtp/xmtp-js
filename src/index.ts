@@ -17,10 +17,13 @@ export { Signer } from './types/Signer'
 export {
   default as Client,
   ClientOptions,
-  KeyStoreType,
   ListMessagesOptions,
   SendOptions,
   Compression,
+  NetworkOptions,
+  ContentOptions,
+  KeyStoreOptions,
+  LegacyOptions,
 } from './Client'
 export { Conversations, Conversation } from './conversations'
 export {
@@ -44,3 +47,16 @@ export {
   mapPaginatedStream,
 } from './utils'
 export { buildDirectMessageTopic, buildDirectMessageTopicV2 } from './utils'
+export { Keystore, InMemoryKeystore, TopicData } from './keystore'
+export {
+  KeystoreProvider,
+  KeyGeneratorKeystoreProvider,
+  NetworkKeystoreProvider,
+  StaticKeystoreProvider,
+} from './keystore/providers'
+export {
+  EncryptedPersistence,
+  LocalStoragePersistence,
+  PrefixedPersistence,
+  Persistence,
+} from './keystore/persistence'

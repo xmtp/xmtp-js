@@ -10,7 +10,6 @@ import {
   buildUserIntroTopic,
   sleep,
 } from '../../src/utils'
-import { Wallet } from 'ethers'
 
 describe('conversations', () => {
   let alice: Client
@@ -282,22 +281,14 @@ describe('conversations', () => {
       expect(aliceConvo.context?.metadata.foo).toBe('bar')
 
       // Ensure alice received an invite
-      const aliceInvites = await alice.listInvitations()
-      expect(aliceInvites).toHaveLength(1)
-      expect(
-        aliceInvites[0].v1.header.sender.equals(alice.keys.getPublicKeyBundle())
-      ).toBeTruthy()
-      expect(
-        aliceInvites[0].v1.header.recipient.equals(
-          bob.keys.getPublicKeyBundle()
-        )
-      ).toBeTruthy()
+      const aliceConvos = await alice.conversations.updateV2Conversations()
+      expect(aliceConvos).toHaveLength(1)
+      expect(aliceConvos[0].topic).toBe(aliceConvo.topic)
 
       // Ensure bob received an invite
-      const bobInvites = await bob.listInvitations()
-      expect(bobInvites).toHaveLength(1)
-      const invite = await bobInvites[0].v1.getInvitation(bob.keys)
-      expect(invite.context?.conversationId).toBe(conversationId)
+      const bobConvos = await bob.conversations.updateV2Conversations()
+      expect(bobConvos).toHaveLength(1)
+      expect(bobConvos[0].topic).toBe(aliceConvo.topic)
     })
 
     it('re-uses same invite when multiple conversations started with the same ID', async () => {
@@ -322,10 +313,9 @@ describe('conversations', () => {
         throw new Error('Not a v2 conversation')
       }
 
-      const aliceInvites = await alice.listInvitations()
-      expect(aliceInvites).toHaveLength(1)
-      const invite = await aliceInvites[0].v1.getInvitation(alice.keys)
-      expect(invite.topic).toBe(aliceConvo1.topic)
+      const aliceConvos = await alice.conversations.updateV2Conversations()
+      expect(aliceConvos).toHaveLength(1)
+      expect(aliceConvos[0].topic).toBe(aliceConvo1.topic)
     })
 
     it('sends multiple invites when different IDs are used', async () => {
@@ -373,50 +363,6 @@ describe('conversations', () => {
 
       const invites = await alice.listInvitations()
       expect(invites).toHaveLength(1)
-    })
-  })
-
-  describe('export', () => {
-    it('exports something JSON serializable', async () => {
-      await Promise.all([
-        alice.conversations
-          .newConversation(bob.address)
-          .then((convo) => convo.send('hello')),
-        alice.conversations.newConversation(bob.address, {
-          conversationId: 'xmtp.org/foo',
-          metadata: {},
-        }),
-      ])
-      await sleep(50)
-
-      const exported = await alice.conversations.export()
-      expect(exported).toHaveLength(2)
-
-      const roundTripped = JSON.parse(JSON.stringify(exported))
-      expect(roundTripped).toHaveLength(2)
-      expect(roundTripped[0].createdAt).toEqual(exported[0].createdAt)
-    })
-
-    it('imports from export', async () => {
-      const wallet = newWallet()
-      const clientA = await Client.create(wallet, { env: 'local' })
-      await Promise.all([
-        clientA.conversations
-          .newConversation(bob.address)
-          .then((convo) => convo.send('hello')),
-        clientA.conversations.newConversation(bob.address, {
-          conversationId: 'xmtp.org/foo',
-          metadata: {},
-        }),
-      ])
-      await sleep(50)
-
-      const exported = await clientA.conversations.export()
-      expect(exported).toHaveLength(2)
-
-      const clientB = await Client.create(wallet, { env: 'local' })
-      const failed = await clientB.conversations.import(exported)
-      expect(failed).toBe(0)
     })
   })
 })

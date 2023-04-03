@@ -1,10 +1,17 @@
 import Long from 'long'
-import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
+import {
+  SignedPublicKeyBundle,
+  SignedPublicKeyBundleV2,
+} from './crypto/PublicKeyBundle'
 import { messageApi, invitation, fetcher } from '@xmtp/proto'
 import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt, utils } from './crypto'
-import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
+import {
+  PrivateKeyBundleV2,
+  PrivateKeyBundleV3,
+} from './crypto/PrivateKeyBundle'
 import { dateToNs, buildDirectMessageTopicV2 } from './utils'
+import { AccountLinkedRole } from './crypto/Signature'
 const { b64Decode } = fetcher
 
 export type InvitationContext = {
@@ -64,6 +71,195 @@ export class InvitationV1 implements invitation.InvitationV1 {
 
   static fromBytes(bytes: Uint8Array): InvitationV1 {
     return new InvitationV1(invitation.InvitationV1.decode(bytes))
+  }
+}
+
+export class SealedInvitationHeaderV2
+  implements invitation.SealedInvitationHeaderV2
+{
+  peerHeader:
+    | invitation.SealedInvitationHeaderV2_PeerInvitationHeader
+    | undefined
+
+  selfHeader:
+    | invitation.SealedInvitationHeaderV2_SelfInvitationHeader
+    | undefined
+
+  private _sendKeyBundle: SignedPublicKeyBundleV2
+  private _inboxKeyBundle: SignedPublicKeyBundleV2
+  private _createdNs: Long
+
+  constructor({ peerHeader, selfHeader }: invitation.SealedInvitationHeaderV2) {
+    if (peerHeader && selfHeader) {
+      throw new Error(
+        'SealedInvitationHeaderV2 cannot have both peer and self header'
+      )
+    }
+    const usedHeader = peerHeader || selfHeader
+    if (!usedHeader) {
+      throw new Error('SealedInvitationHeaderV2 missing peer or self header')
+    }
+    this.peerHeader = peerHeader
+    this.selfHeader = selfHeader
+    if (
+      !usedHeader.sendKeyBundle ||
+      !usedHeader.inboxKeyBundle ||
+      !usedHeader.createdNs
+    ) {
+      throw new Error(
+        'SealedInvitationHeaderV2 missing key bundles or creation time'
+      )
+    }
+    this._sendKeyBundle = new SignedPublicKeyBundleV2(usedHeader.sendKeyBundle)
+    this._inboxKeyBundle = new SignedPublicKeyBundleV2(
+      usedHeader.inboxKeyBundle
+    )
+    this._createdNs = usedHeader.createdNs
+  }
+
+  public static create(
+    sendKeyBundle: PrivateKeyBundleV3,
+    inboxKeyBundle: SignedPublicKeyBundleV2,
+    peerAddress: string,
+    created: Date
+  ): SealedInvitationHeaderV2 {
+    let selfHeader, peerHeader
+    if (
+      sendKeyBundle.getLinkedAddress(AccountLinkedRole.SEND_KEY) ===
+      inboxKeyBundle.getLinkedAddress(AccountLinkedRole.INBOX_KEY)
+    ) {
+      selfHeader = {
+        sendKeyBundle: sendKeyBundle.getPublicKeyBundle(),
+        inboxKeyBundle,
+        createdNs: dateToNs(created),
+        recipientAddress: peerAddress,
+      }
+    } else {
+      peerHeader = {
+        sendKeyBundle: sendKeyBundle.getPublicKeyBundle(),
+        inboxKeyBundle,
+        createdNs: dateToNs(created),
+      }
+    }
+    return new SealedInvitationHeaderV2({
+      peerHeader,
+      selfHeader,
+    })
+  }
+
+  public get createdNs(): Long {
+    return this._createdNs
+  }
+
+  public get sendKeyBundle(): SignedPublicKeyBundleV2 {
+    return this._sendKeyBundle
+  }
+
+  public get inboxKeyBundle(): SignedPublicKeyBundleV2 {
+    return this._inboxKeyBundle
+  }
+
+  public getPeerAddress(selfAddress: string): string {
+    const senderAddress = this.sendKeyBundle.getLinkedAddress(
+      AccountLinkedRole.SEND_KEY
+    )
+    const isSender = senderAddress === selfAddress
+    if (isSender && this.selfHeader) {
+      return this.selfHeader.recipientAddress
+    } else if (!isSender && this.peerHeader) {
+      if (
+        this.inboxKeyBundle.getLinkedAddress(AccountLinkedRole.INBOX_KEY) !==
+        selfAddress
+      ) {
+        throw new Error('Self is not part of invitation')
+      }
+      return senderAddress
+    } else {
+      throw new Error('SealedInvitationHeaderV2 has wrong peer or self header')
+    }
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.SealedInvitationHeaderV2.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): SealedInvitationHeaderV2 {
+    return new SealedInvitationHeaderV2(
+      invitation.SealedInvitationHeaderV2.decode(bytes)
+    )
+  }
+}
+
+export class SealedInvitationV2 implements invitation.SealedInvitationV2 {
+  headerBytes: Uint8Array
+  ciphertext: Ciphertext
+  private _header?: SealedInvitationHeaderV2
+  private _invitation?: InvitationV1
+
+  constructor({ headerBytes, ciphertext }: invitation.SealedInvitationV2) {
+    if (!headerBytes || !headerBytes.length) {
+      throw new Error('Missing header bytes')
+    }
+    if (!ciphertext) {
+      throw new Error('Missing ciphertext')
+    }
+    this.headerBytes = headerBytes
+    this.ciphertext = new Ciphertext(ciphertext)
+  }
+
+  /**
+   * Accessor method for the full header object
+   */
+  get header(): SealedInvitationHeaderV2 {
+    // Use cached value if already exists
+    if (this._header) {
+      return this._header
+    }
+    this._header = SealedInvitationHeaderV2.fromBytes(this.headerBytes)
+    return this._header
+  }
+
+  /**
+   * getInvitation decrypts and returns the InvitationV1 stored in the ciphertext of the Sealed Invitation
+   */
+  async getInvitation(
+    viewerInboxKeyBundle: PrivateKeyBundleV3
+  ): Promise<InvitationV1> {
+    // Use cached value if already exists
+    if (this._invitation) {
+      return this._invitation
+    }
+    const header = this.header
+    if (
+      !viewerInboxKeyBundle.accountLinkedKey.matches(
+        header.inboxKeyBundle.accountLinkedKey
+      )
+    ) {
+      throw new Error('Inbox key bundle does not match invite')
+    }
+    // V2 invitations are sent in pairs, one to the inviter and one to the invitee,
+    // using the respective inbox key bundle of each recipient. Hence when receiving
+    // an invitation, we are always the recipient regardless of who the inviter was.
+    const secret = await viewerInboxKeyBundle.sharedSecret(
+      header.sendKeyBundle,
+      header.inboxKeyBundle.preKey,
+      true /* isRecipient */
+    )
+    const decryptedBytes = await decrypt(
+      this.ciphertext,
+      secret,
+      this.headerBytes
+    )
+    this._invitation = InvitationV1.fromBytes(decryptedBytes)
+    return this._invitation
+  }
+
+  toBytes(): Uint8Array {
+    return invitation.SealedInvitationV2.encode(this).finish()
+  }
+
+  static fromBytes(bytes: Uint8Array): SealedInvitationV2 {
+    return new SealedInvitationV2(invitation.SealedInvitationV2.decode(bytes))
   }
 }
 
@@ -180,13 +376,17 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
  * Wrapper class for SealedInvitationV1 and any future iterations of SealedInvitation
  */
 export class SealedInvitation implements invitation.SealedInvitation {
-  v1: SealedInvitationV1
+  v1: SealedInvitationV1 | undefined
+  v2: SealedInvitationV2 | undefined
 
-  constructor({ v1 }: invitation.SealedInvitation) {
-    if (!v1) {
-      throw new Error('Missing v1 invitation')
+  constructor({ v1, v2 }: invitation.SealedInvitation) {
+    if (v2) {
+      this.v2 = new SealedInvitationV2(v2)
+    } else if (v1) {
+      this.v1 = new SealedInvitationV1(v1)
+    } else {
+      throw new Error('Missing v1 or v2 invitation')
     }
-    this.v1 = new SealedInvitationV1(v1)
   }
 
   toBytes(): Uint8Array {
@@ -207,8 +407,9 @@ export class SealedInvitation implements invitation.SealedInvitation {
       b64Decode(env.message as unknown as string)
     )
     const envelopeTime = Long.fromString(env.timestampNs)
-    const headerTime = sealed.v1.header.createdNs
-    if (!headerTime.equals(envelopeTime)) {
+    const headerTime =
+      sealed.v2?.header.createdNs || sealed.v1?.header.createdNs
+    if (!headerTime || !headerTime.equals(envelopeTime)) {
       throw new Error('envelope and header timestamp mistmatch')
     }
     return sealed
@@ -244,6 +445,54 @@ export class SealedInvitation implements invitation.SealedInvitation {
     const invitationBytes = invitation.toBytes()
     const ciphertext = await encrypt(invitationBytes, secret, headerBytes)
 
-    return new SealedInvitation({ v1: { headerBytes, ciphertext } })
+    return new SealedInvitation({
+      v1: { headerBytes, ciphertext },
+      v2: undefined,
+    })
+  }
+
+  /**
+   * Create a SealedInvitation with a SealedInvitationV1 payload
+   * Will encrypt all contents and validate inputs
+   *
+   * @param sendKeyBundle MUST be a bundle linked to the current viewer
+   * @param inboxKeyBundle a bundle either linked to the current viewer, or to the invitee
+   * @param peerAddress the address of the invitee to whom the invitation is being sent
+   * @param created the time at which the invitation was created
+   * @param invitation the invitation to be sent
+   */
+  static async createV2({
+    sendKeyBundle,
+    inboxKeyBundle,
+    peerAddress,
+    created,
+    invitation,
+  }: {
+    sendKeyBundle: PrivateKeyBundleV3
+    inboxKeyBundle: SignedPublicKeyBundleV2
+    peerAddress: string
+    created: Date
+    invitation: InvitationV1
+  }): Promise<SealedInvitation> {
+    const headerBytes = SealedInvitationHeaderV2.create(
+      sendKeyBundle,
+      inboxKeyBundle,
+      peerAddress,
+      created
+    ).toBytes()
+
+    const secret = await sendKeyBundle.sharedSecret(
+      inboxKeyBundle,
+      sendKeyBundle.getCurrentPreKey().publicKey,
+      false
+    )
+
+    const invitationBytes = invitation.toBytes()
+    const ciphertext = await encrypt(invitationBytes, secret, headerBytes)
+
+    return new SealedInvitation({
+      v1: undefined,
+      v2: { headerBytes, ciphertext },
+    })
   }
 }

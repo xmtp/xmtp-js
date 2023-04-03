@@ -1,16 +1,17 @@
-import type { Conversation } from './conversations/Conversation'
+import {
+  Conversation,
+  ConversationV1,
+  ConversationV2,
+} from './conversations/Conversation'
 import type Client from './Client'
-import { message as proto, content as protoContent } from '@xmtp/proto'
+import {
+  message as proto,
+  content as protoContent,
+  conversationReference,
+} from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
-import {
-  PublicKeyBundle,
-  PrivateKeyBundleV1,
-  PublicKey,
-  SignedPublicKeyBundle,
-  decrypt,
-  encrypt,
-} from './crypto'
+import { PublicKeyBundle, PublicKey } from './crypto'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 import {
@@ -18,8 +19,10 @@ import {
   ContentTypeId,
   EncodedContent,
 } from './MessageContent'
-import { nsToDate } from './utils'
+import { dateToNs, nsToDate } from './utils'
 import { decompress } from './Compression'
+import { Keystore } from './keystore'
+import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
@@ -110,32 +113,21 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
     ).walletSignatureAddress()
   }
 
-  // encrypt and serialize the message
-  static async encode(
-    sender: PrivateKeyBundleV1,
-    recipient: PublicKeyBundle,
-    message: Uint8Array,
-    timestamp: Date
-  ): Promise<MessageV1> {
-    const secret = await sender.sharedSecret(
-      recipient,
-      sender.getCurrentPreKey().publicKey,
-      false
-    )
-    // eslint-disable-next-line camelcase
-    const header: proto.MessageHeaderV1 = {
-      sender: sender.getPublicKeyBundle(),
-      recipient,
-      timestamp: Long.fromNumber(timestamp.getTime()),
+  async decrypt(
+    keystore: Keystore,
+    myPublicKeyBundle: PublicKeyBundle
+  ): Promise<Uint8Array> {
+    const responses = (
+      await keystore.decryptV1(buildDecryptV1Request([this], myPublicKeyBundle))
+    ).responses
+
+    if (!responses.length) {
+      throw new Error('No response from Keystore')
     }
-    const headerBytes = proto.MessageHeaderV1.encode(header).finish()
-    const ciphertext = await encrypt(message, secret, headerBytes)
-    const protoMsg = {
-      v1: { headerBytes, ciphertext },
-      v2: undefined,
-    }
-    const bytes = proto.Message.encode(protoMsg).finish()
-    return MessageV1.create(protoMsg, header, bytes)
+
+    const { decrypted } = getResultOrThrow(responses[0])
+
+    return decrypted
   }
 
   static fromBytes(bytes: Uint8Array): Promise<MessageV1> {
@@ -167,75 +159,66 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
     return MessageV1.create(message, header, bytes)
   }
 
-  async decrypt(viewer: PrivateKeyBundleV1) {
-    const header = this.header
-    // This should never happen if the message was created through the fromBytes function
-    // But needed for type safety
-    if (
-      !header.recipient?.identityKey ||
-      !header.sender?.identityKey ||
-      !header.recipient.preKey ||
-      !header.sender.preKey
-    ) {
-      throw new Error('Missing headers')
+  static async encode(
+    keystore: Keystore,
+    payload: Uint8Array,
+    sender: PublicKeyBundle,
+    recipient: PublicKeyBundle,
+    timestamp: Date
+  ): Promise<MessageV1> {
+    const header: proto.MessageHeaderV1 = {
+      sender,
+      recipient,
+      timestamp: Long.fromNumber(timestamp.getTime()),
     }
-    const recipient = new PublicKeyBundle({
-      identityKey: new PublicKey(header.recipient.identityKey),
-      preKey: new PublicKey(header.recipient.preKey),
-    })
-    const sender = new PublicKeyBundle({
-      identityKey: new PublicKey(header.sender.identityKey),
-      preKey: new PublicKey(header.sender.preKey),
+    const headerBytes = proto.MessageHeaderV1.encode(header).finish()
+    const results = await keystore.encryptV1({
+      requests: [
+        {
+          recipient,
+          headerBytes,
+          payload,
+        },
+      ],
     })
 
-    let secret: Uint8Array
-    if (viewer.identityKey.matches(sender.identityKey)) {
-      // viewer is the sender
-      secret = await viewer.sharedSecret(recipient, sender.preKey, false)
-    } else {
-      // viewer is the recipient
-      secret = await viewer.sharedSecret(sender, recipient.preKey, true)
+    if (!results.responses.length) {
+      throw new Error('No response from Keystore')
     }
 
-    return decrypt(this.ciphertext, secret, this.headerBytes)
+    const { encrypted: ciphertext } = getResultOrThrow(results.responses[0])
+
+    const protoMsg = {
+      v1: { headerBytes, ciphertext },
+      v2: undefined,
+    }
+    const bytes = proto.Message.encode(protoMsg).finish()
+    return MessageV1.create(protoMsg, header, bytes)
   }
 }
 
 export class MessageV2 extends MessageBase implements proto.MessageV2 {
   senderAddress: string | undefined
   private header: proto.MessageHeaderV2 // eslint-disable-line camelcase
-  private signed?: protoContent.SignedContent
 
   constructor(
     id: string,
     bytes: Uint8Array,
     obj: proto.Message,
-    header: proto.MessageHeaderV2,
-    signed: protoContent.SignedContent,
-    // wallet address derived from the signature of the message sender
-    senderAddress: string
+    header: proto.MessageHeaderV2
   ) {
     super(id, bytes, obj)
     this.header = header
-    this.signed = signed
-    this.senderAddress = senderAddress
   }
 
   static async create(
     obj: proto.Message,
     header: proto.MessageHeaderV2,
-    signed: protoContent.SignedContent,
     bytes: Uint8Array
   ): Promise<MessageV2> {
     const id = bytesToHex(await sha256(bytes))
-    if (!signed.sender) {
-      throw new Error('missing message sender')
-    }
-    const senderAddress = await new SignedPublicKeyBundle(
-      signed.sender
-    ).walletSignatureAddress()
 
-    return new MessageV2(id, bytes, obj, header, signed, senderAddress)
+    return new MessageV2(id, bytes, obj, header)
   }
 
   get sent(): Date {
@@ -256,6 +239,7 @@ export class DecodedMessage {
   contentType: ContentTypeId
   content: any // eslint-disable-line @typescript-eslint/no-explicit-any
   error?: Error
+  contentBytes: Uint8Array
 
   constructor({
     id,
@@ -263,12 +247,13 @@ export class DecodedMessage {
     senderAddress,
     recipientAddress,
     conversation,
+    contentBytes,
     contentType,
     contentTopic,
     content,
     sent,
     error,
-  }: DecodedMessage) {
+  }: Omit<DecodedMessage, 'toBytes'>) {
     this.id = id
     this.messageVersion = messageVersion
     this.senderAddress = senderAddress
@@ -279,12 +264,62 @@ export class DecodedMessage {
     this.error = error
     this.content = content
     this.contentTopic = contentTopic
+    this.contentBytes = contentBytes
+  }
+
+  toBytes(): Uint8Array {
+    return proto.DecodedMessage.encode({
+      ...this,
+      conversation: {
+        topic: this.conversation.topic,
+        context: this.conversation.context ?? undefined,
+        createdNs: dateToNs(this.conversation.createdAt),
+        peerAddress: this.conversation.peerAddress,
+      },
+      sentNs: dateToNs(this.sent),
+    }).finish()
+  }
+
+  static async fromBytes(
+    data: Uint8Array,
+    client: Client
+  ): Promise<DecodedMessage> {
+    const protoVal = proto.DecodedMessage.decode(data)
+    const messageVersion = protoVal.messageVersion
+
+    if (messageVersion !== 'v1' && messageVersion !== 'v2') {
+      throw new Error('Invalid message version')
+    }
+
+    if (!protoVal.conversation) {
+      throw new Error('No conversation reference found')
+    }
+
+    const { content, contentType, error } = await decodeContent(
+      protoVal.contentBytes,
+      client
+    )
+
+    return new DecodedMessage({
+      ...protoVal,
+      content,
+      contentType,
+      error,
+      messageVersion,
+      sent: nsToDate(protoVal.sentNs),
+      conversation: conversationReferenceToConversation(
+        protoVal.conversation,
+        client,
+        messageVersion
+      ),
+    })
   }
 
   static fromV1Message(
     message: MessageV1,
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
+    contentBytes: Uint8Array,
     contentTopic: string,
     conversation: Conversation,
     error?: Error
@@ -300,6 +335,7 @@ export class DecodedMessage {
       recipientAddress,
       sent,
       content,
+      contentBytes,
       contentType,
       contentTopic,
       conversation,
@@ -312,13 +348,12 @@ export class DecodedMessage {
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     contentType: ContentTypeId,
     contentTopic: string,
+    contentBytes: Uint8Array,
     conversation: Conversation,
+    senderAddress: string,
     error?: Error
   ): DecodedMessage {
-    const { id, senderAddress, sent } = message
-    if (!senderAddress) {
-      throw new Error('Sender address is required')
-    }
+    const { id, sent } = message
 
     return new DecodedMessage({
       id,
@@ -326,6 +361,7 @@ export class DecodedMessage {
       senderAddress,
       sent,
       content,
+      contentBytes,
       contentType,
       contentTopic,
       conversation,
@@ -359,4 +395,28 @@ export async function decodeContent(contentBytes: Uint8Array, client: Client) {
   }
 
   return { content, contentType, error }
+}
+
+function conversationReferenceToConversation(
+  reference: conversationReference.ConversationReference,
+  client: Client,
+  version: DecodedMessage['messageVersion']
+): Conversation {
+  if (version === 'v1') {
+    return new ConversationV1(
+      client,
+      reference.peerAddress,
+      nsToDate(reference.createdNs)
+    )
+  }
+  if (version === 'v2') {
+    return new ConversationV2(
+      client,
+      reference.topic,
+      reference.peerAddress,
+      nsToDate(reference.createdNs),
+      reference.context
+    )
+  }
+  throw new Error(`Unknown conversation version ${version}`)
 }

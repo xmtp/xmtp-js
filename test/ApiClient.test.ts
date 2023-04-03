@@ -5,7 +5,7 @@ import {
 import ApiClient, { GrpcStatus, PublishParams } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
-import { Authenticator } from '../src/authn'
+import { LocalAuthenticator } from '../src/authn'
 import { PrivateKey } from '../src'
 import { version } from '../package.json'
 import { dateToNs } from '../src/utils'
@@ -29,7 +29,7 @@ const mockGetToken = jest.fn().mockReturnValue(
     age: 10,
   })
 )
-jest.mock('../src/authn/Authenticator', () => {
+jest.mock('../src/authn/LocalAuthenticator', () => {
   return jest.fn().mockImplementation(() => {
     return { createToken: mockGetToken }
   })
@@ -42,7 +42,7 @@ describe('Query', () => {
 
   it('stops when receiving empty results', async () => {
     const apiMock = createQueryMock([], 1)
-    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopic: CONTENT_TOPIC }, {})
     expect(result).toHaveLength(0)
     expect(apiMock).toHaveBeenCalledTimes(1)
     const expectedReq: messageApi.QueryRequest = {
@@ -64,7 +64,7 @@ describe('Query', () => {
   it('stops when limit is used', async () => {
     const apiMock = createQueryMock([createEnvelope()], 3)
     const result = await client.query(
-      { contentTopics: [CONTENT_TOPIC] },
+      { contentTopic: CONTENT_TOPIC },
       { limit: 2 }
     )
     expect(result).toHaveLength(2)
@@ -73,14 +73,14 @@ describe('Query', () => {
 
   it('stops when receiving some results and a null cursor', async () => {
     const apiMock = createQueryMock([createEnvelope()], 1)
-    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopic: CONTENT_TOPIC }, {})
     expect(result).toHaveLength(1)
     expect(apiMock).toHaveBeenCalledTimes(1)
   })
 
   it('gets multiple pages of results', async () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 2)
-    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopic: CONTENT_TOPIC }, {})
     expect(result).toHaveLength(4)
     expect(apiMock).toHaveBeenCalledTimes(2)
   })
@@ -89,7 +89,7 @@ describe('Query', () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 1)
     let count = 0
     for await (const _envelope of client.queryIterator(
-      { contentTopics: ['foo'] },
+      { contentTopic: 'foo' },
       { pageSize: 5 }
     )) {
       count++
@@ -116,7 +116,7 @@ describe('Query', () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 2)
     let count = 0
     for await (const _envelope of client.queryIterator(
-      { contentTopics: [CONTENT_TOPIC] },
+      { contentTopic: CONTENT_TOPIC },
       { pageSize: 5 }
     )) {
       count++
@@ -152,7 +152,9 @@ describe('Publish', () => {
 
   it('publishes valid messages', async () => {
     // This Authenticator will not actually be used by the mock
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
@@ -203,7 +205,9 @@ describe('Publish authn', () => {
 
   it('retries on invalid message', async () => {
     const publishMock = createAuthErrorPublishMock(1)
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
@@ -218,7 +222,9 @@ describe('Publish authn', () => {
 
   it('gives up after a second auth error', async () => {
     const publishMock = createAuthErrorPublishMock(5)
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {

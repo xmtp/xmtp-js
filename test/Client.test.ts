@@ -5,11 +5,18 @@ import {
   newDevClient,
   waitForUserContact,
   newLocalHostClientWithCustomWallet,
+  sleep,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
-import Client, { KeyStoreType, ClientOptions } from '../src/Client'
-import { Compression } from '../src'
+import Client, { ClientOptions } from '../src/Client'
+import { Compression, getRandomValues, Signer } from '../src'
 import { content as proto } from '@xmtp/proto'
+import { InMemoryKeystore } from '../src/keystore'
+import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
+import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
+import { PrivateKeyBundleV1 } from '../src/crypto'
+import { Wallet } from 'ethers'
+import { NetworkKeystoreProvider } from '../src/keystore/providers'
 
 type TestCase = {
   name: string
@@ -37,27 +44,24 @@ describe('Client', () => {
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
       let alice: Client, bob: Client
-      beforeAll(async () => {
+
+      beforeEach(async () => {
         alice = await testCase.newClient({ publishLegacyContact: true })
         bob = await testCase.newClient({ publishLegacyContact: true })
         await waitForUserContact(alice, alice)
         await waitForUserContact(bob, bob)
       })
-      afterAll(async () => {
-        if (alice) await alice.close()
-        if (bob) await bob.close()
-      })
 
       it('user contacts published', async () => {
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.publicKeyBundle, alicePublic)
         const bobPublic = await bob.getUserContact(bob.address)
-        assert.deepEqual(bob.legacyKeys.getPublicKeyBundle(), bobPublic)
+        assert.deepEqual(bob.publicKeyBundle, bobPublic)
       })
 
       it('user contacts are filtered to valid contacts', async () => {
         // publish bob's keys to alice's contact topic
-        const bobPublic = bob.legacyKeys.getPublicKeyBundle()
+        const bobPublic = bob.publicKeyBundle
         await alice.publishEnvelopes([
           {
             message: bobPublic.toBytes(),
@@ -65,7 +69,7 @@ describe('Client', () => {
           },
         ])
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.publicKeyBundle, alicePublic)
       })
 
       it('Check address can be sent to', async () => {
@@ -79,6 +83,73 @@ describe('Client', () => {
         assert.equal(lower, true)
       })
     })
+  })
+})
+
+describe('bootstrapping', () => {
+  let alice: Wallet
+
+  beforeEach(async () => {
+    alice = newWallet()
+  })
+
+  it('can bootstrap with a new wallet and persist the private key bundle', async () => {
+    const client = await Client.create(alice, { env: 'local' })
+    const manager = new NetworkKeyManager(
+      alice,
+      new TopicPersistence(client.apiClient)
+    )
+    const loadedBundle = await manager.loadPrivateKeyBundle()
+    expect(loadedBundle).toBeInstanceOf(PrivateKeyBundleV1)
+    expect(
+      loadedBundle?.identityKey.publicKey.walletSignatureAddress()
+    ).toEqual(alice.address)
+  })
+
+  it('fails to load if no valid keystore provider is available', async () => {
+    expect(
+      Client.create(alice, { env: 'local', keystoreProviders: [] })
+    ).rejects.toThrow('No keystore providers available')
+  })
+
+  it('is able to bootstrap from the network', async () => {
+    const opts: Partial<ClientOptions> = { env: 'local' }
+    // Create with the default keystore providers to ensure bootstrapping
+    const firstClient = await Client.create(alice, opts)
+
+    const secondClient = await Client.create(alice, {
+      ...opts,
+      keystoreProviders: [new NetworkKeystoreProvider()],
+    })
+    expect(secondClient).toBeInstanceOf(Client)
+    expect(secondClient.address).toEqual(firstClient.address)
+  })
+
+  it('is able to bootstrap from a predefined private key', async () => {
+    const opts: Partial<ClientOptions> = { env: 'local' }
+    const keys = await Client.getKeys(alice, opts)
+
+    const client = await Client.create(null, {
+      ...opts,
+      privateKeyOverride: keys,
+    })
+    expect(client.address).toEqual(alice.address)
+  })
+})
+
+describe('skipContactPublishing', () => {
+  it('skips publishing when flag is set to true', async () => {
+    const alice = newWallet()
+    await Client.create(alice, { skipContactPublishing: true, env: 'local' })
+    expect(await Client.canMessage(alice.address, { env: 'local' })).toBeFalsy()
+  })
+
+  it('publishes contact when flag is false', async () => {
+    const alice = newWallet()
+    await Client.create(alice, { skipContactPublishing: false, env: 'local' })
+    expect(
+      await Client.canMessage(alice.address, { env: 'local' })
+    ).toBeTruthy()
   })
 })
 
@@ -215,7 +286,7 @@ describe('ClientOptions', () => {
 
     it('Partial specification', async () => {
       const c = await testCase.newClient({
-        keyStoreType: KeyStoreType.networkTopicStoreV1,
+        persistConversations: true,
       })
     })
   })
