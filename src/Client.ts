@@ -59,6 +59,7 @@ export type SendOptions = {
   contentFallback?: string
   compression?: proto.Compression
   timestamp?: Date
+  ephemeral?: boolean
 }
 
 export type XmtpEnv = keyof typeof ApiUrls

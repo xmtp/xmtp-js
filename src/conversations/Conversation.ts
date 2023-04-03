@@ -27,9 +27,12 @@ import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '../crypto'
+import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
-import { ContentTypeText } from '../codecs/Text'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
+import { ContentTypeText } from '../codecs/Text'
+
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
@@ -39,6 +42,10 @@ export interface Conversation {
    * A unique identifier for a conversation. Each conversation is stored on the network on one topic
    */
   topic: string
+  /**
+   * A unique identifier for ephemeral envelopes for a conversation.
+   */
+  ephemeralTopic: string
   /**
    * The wallet address of the other party in the conversation
    */
@@ -103,6 +110,30 @@ export interface Conversation {
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
   ): Promise<DecodedMessage>
+
+  /**
+   * Return a `PreparedMessage` that has contains the message ID
+   * of the message that will be sent.
+   */
+  prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage>
+
+  /**
+   * Return a `Stream` of new ephemeral messages from this conversation's
+   * ephemeral topic.
+   *
+   * Stream instances are async generators and can be used in
+   * `for await` statements.
+   *
+   * ```ts
+   * for await (const message of await conversation.streamEphemeral()) {
+   *    console.log(message.content)
+   * }
+   * ```
+   */
+  streamEphemeral(): Promise<Stream<DecodedMessage>>
 }
 
 /**
@@ -126,6 +157,13 @@ export class ConversationV1 implements Conversation {
 
   get topic(): string {
     return buildDirectMessageTopic(this.peerAddress, this.client.address)
+  }
+
+  get ephemeralTopic(): string {
+    return buildDirectMessageTopic(
+      this.peerAddress,
+      this.client.address
+    ).replace('/xmtp/0/dm-', '/xmtp/0/dmE-')
   }
 
   /**
@@ -171,6 +209,49 @@ export class ConversationV1 implements Conversation {
     return decryptResults[0]
   }
 
+  async prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage> {
+    let topics: string[]
+    let recipient = await this.client.getUserContact(this.peerAddress)
+    if (!recipient) {
+      throw new Error(`recipient ${this.peerAddress} is not registered`)
+    }
+    if (!(recipient instanceof PublicKeyBundle)) {
+      recipient = recipient.toLegacyBundle()
+    }
+
+    if (!this.client.contacts.has(this.peerAddress)) {
+      topics = [
+        buildUserIntroTopic(this.peerAddress),
+        buildUserIntroTopic(this.client.address),
+        this.topic,
+      ]
+      this.client.contacts.add(this.peerAddress)
+    } else {
+      topics = [this.topic]
+    }
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, recipient, options?.timestamp)
+
+    const env = {
+      contentTopic: this.topic,
+      message: msg.toBytes(),
+      timestamp: msg.sent,
+    }
+
+    return new PreparedMessage(env, async () => {
+      await this.client.publishEnvelopes(
+        topics.map((topic) => ({
+          contentTopic: topic,
+          message: msg.toBytes(),
+          timestamp: msg.sent,
+        }))
+      )
+    })
+  }
+
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
@@ -203,6 +284,14 @@ export class ConversationV1 implements Conversation {
     return decoded
   }
 
+  streamEphemeral(): Promise<Stream<DecodedMessage>> {
+    return Stream.create<DecodedMessage>(
+      this.client,
+      [this.ephemeralTopic],
+      this.decodeMessage.bind(this)
+    )
+  }
+
   /**
    * Send a message into the conversation.
    */
@@ -219,11 +308,13 @@ export class ConversationV1 implements Conversation {
       recipient = recipient.toLegacyBundle()
     }
 
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
     if (!this.client.contacts.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
-        this.topic,
+        topic,
       ]
       this.client.contacts.add(this.peerAddress)
     } else {
@@ -369,6 +460,18 @@ export class ConversationV2 implements Conversation {
     )
   }
 
+  get ephemeralTopic(): string {
+    return this.topic.replace('/xmtp/0/m', '/xmtp/0/mE')
+  }
+
+  streamEphemeral(): Promise<Stream<DecodedMessage>> {
+    return Stream.create<DecodedMessage>(
+      this.client,
+      [this.ephemeralTopic],
+      this.decodeMessage.bind(this)
+    )
+  }
+
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
@@ -389,9 +492,17 @@ export class ConversationV2 implements Conversation {
   ): Promise<DecodedMessage> {
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, options?.timestamp)
+
+    let topic: string
+    if (options?.ephemeral) {
+      topic = this.ephemeralTopic
+    } else {
+      topic = this.topic
+    }
+
     await this.client.publishEnvelopes([
       {
-        contentTopic: this.topic,
+        contentTopic: topic,
         message: msg.toBytes(),
         timestamp: msg.sent,
       },
@@ -549,6 +660,32 @@ export class ConversationV2 implements Conversation {
       senderAddress,
       error
     )
+  }
+
+  async prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage> {
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, options?.timestamp)
+
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
+    const env = {
+      contentTopic: topic,
+      message: msg.toBytes(),
+      timestamp: msg.sent,
+    }
+
+    return new PreparedMessage(env, async () => {
+      await this.client.publishEnvelopes([
+        {
+          contentTopic: this.topic,
+          message: msg.toBytes(),
+          timestamp: msg.sent,
+        },
+      ])
+    })
   }
 
   async processEnvelope(env: messageApi.Envelope): Promise<MessageV2> {

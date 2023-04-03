@@ -46,6 +46,7 @@ export {
   toNanoString,
   mapPaginatedStream,
 } from './utils'
+export { buildDirectMessageTopic, buildDirectMessageTopicV2 } from './utils'
 export { Keystore, InMemoryKeystore, TopicData } from './keystore'
 export {
   KeystoreProvider,

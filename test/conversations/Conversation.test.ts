@@ -1,5 +1,8 @@
 import { DecodedMessage, MessageV1 } from './../../src/Message'
-import { buildDirectMessageTopic } from './../../src/utils'
+import {
+  buildDirectMessageTopic,
+  buildDirectMessageTopicV2,
+} from './../../src/utils'
 import {
   Client,
   Compression,
@@ -140,6 +143,109 @@ describe('conversation', () => {
       expect(messages[0].content).toBe('hey me')
       expect(messages[0].senderAddress).toBe(alice.address)
       expect(messages[0].recipientAddress).toBe(alice.address)
+    })
+
+    it('can send a prepared message v1', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+
+      const preparedMessage = await aliceConversation.prepareMessage('1')
+      const messageID = await preparedMessage.messageID()
+
+      await preparedMessage.send()
+
+      const messages = await aliceConversation.messages()
+      const message = messages[0]
+      expect(message.id).toBe(messageID)
+    })
+
+    it('can send a prepared message v2', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address,
+        {
+          conversationId: 'example.com',
+          metadata: {},
+        }
+      )
+
+      const preparedMessage = await aliceConversation.prepareMessage('sup')
+      const messageID = await preparedMessage.messageID()
+
+      await preparedMessage.send()
+
+      const messages = await aliceConversation.messages()
+      const message = messages[0]
+      expect(message.id).toBe(messageID)
+      expect(message.content).toBe('sup')
+    })
+
+    it('can send and stream ephemeral topic v1', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+
+      // Start the stream before sending the message to ensure delivery
+      const stream = await aliceConversation.streamEphemeral()
+
+      if (!stream) {
+        fail('no stream')
+      }
+
+      await sleep(100)
+
+      await aliceConversation.send('hello', { ephemeral: true })
+      await sleep(100)
+
+      let result = await stream.next()
+      const message = result.value
+
+      expect(message.error).toBeUndefined()
+      expect(message.messageVersion).toBe('v1')
+      expect(message.content).toBe('hello')
+      expect(message.senderAddress).toBe(alice.address)
+
+      await sleep(100)
+
+      // The message should not be persisted
+      expect(await aliceConversation.messages()).toHaveLength(0)
+      await stream.return()
+    })
+
+    it('can send and stream ephemeral topic v2', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address,
+        {
+          conversationId: 'example.com',
+          metadata: {},
+        }
+      )
+
+      // Start the stream before sending the message to ensure delivery
+      const stream = await aliceConversation.streamEphemeral()
+
+      if (!stream) {
+        fail('no stream')
+      }
+
+      await sleep(100)
+
+      await aliceConversation.send('hello', { ephemeral: true })
+      await sleep(100)
+
+      let result = await stream.next()
+      const message = result.value
+
+      expect(message.error).toBeUndefined()
+      expect(message.messageVersion).toBe('v2')
+      expect(message.content).toBe('hello')
+      expect(message.senderAddress).toBe(alice.address)
+
+      await sleep(100)
+
+      // The message should not be persisted
+      expect(await aliceConversation.messages()).toHaveLength(0)
+      await stream.return()
     })
 
     it('allows for sorted listing', async () => {
