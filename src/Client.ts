@@ -27,8 +27,11 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
+import { default as VoodooManager, VoodooContact } from './VoodooManager'
 const { Compression } = proto
 const { b64Decode } = fetcher
+
+import xmtpv3 from 'xmtpv3'
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
 // eslint-disable @typescript-eslint/no-explicit-any
@@ -104,6 +107,10 @@ export type NetworkOptions = {
   skipContactPublishing: boolean
 }
 
+export type VoodooOptions = {
+  voodooEnabled: boolean
+}
+
 export type ContentOptions = {
   /**
    * Allow configuring codecs for additional content types
@@ -145,7 +152,11 @@ export type LegacyOptions = {
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
 export type ClientOptions = Flatten<
-  NetworkOptions & KeyStoreOptions & ContentOptions & LegacyOptions
+  NetworkOptions &
+    KeyStoreOptions &
+    ContentOptions &
+    LegacyOptions &
+    VoodooOptions
 >
 
 /**
@@ -161,6 +172,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
     persistConversations: true,
+    voodooEnabled: false,
     skipContactPublishing: false,
     keystoreProviders: defaultKeystoreProviders(),
   }
@@ -181,6 +193,7 @@ export default class Client {
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   publicKeyBundle: PublicKeyBundle
+  voodooManager: VoodooManager
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -196,7 +209,8 @@ export default class Client {
     publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
-    keystore: Keystore
+    keystore: Keystore,
+    voodooManager: VoodooManager
   ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
@@ -212,6 +226,7 @@ export default class Client {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
+    this.voodooManager = voodooManager
   }
 
   /**
@@ -248,11 +263,17 @@ export default class Client {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
+    const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
+    // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
+    const myVoodoo = xmtpWasm.newVoodooInstance()
+    const voodooManager = new VoodooManager(address, myVoodoo)
+
     const client = new Client(
       publicKeyBundle,
       apiClient,
       backupClient,
-      keystore
+      keystore,
+      voodooManager
     )
     await client.init(options)
     return client
@@ -306,6 +327,7 @@ export default class Client {
   }
 
   private async ensureUserContactPublished(legacy = false): Promise<void> {
+    // TODO (VOODOO): this should do something, but currently does nothing for Voodoo contacts
     const bundle = await getUserContactFromNetwork(this.apiClient, this.address)
     if (
       bundle &&
@@ -345,6 +367,7 @@ export default class Client {
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
+    // TODO (VOODOO): implement this for voodoo
     peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
     if (existingBundle) {
@@ -431,6 +454,7 @@ export default class Client {
     peerAddress: string | string[]
   ): Promise<boolean | boolean[]> {
     try {
+      // TODO: STARTINGTASK: If voodooEnabled, do a voodoo-specific lookup here
       if (Array.isArray(peerAddress)) {
         const contacts = await this.getUserContacts(peerAddress)
         return contacts.map((contact) => !!contact)
@@ -459,7 +483,7 @@ export default class Client {
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
-
+    // TODO: STARTINGTASK: If voodooEnabled, do a voodoo-specific lookup here
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
       // Try to normalize each of the peer addresses
@@ -494,6 +518,25 @@ export default class Client {
 
     if (!bytes || !bytes.length) {
       throw new Error('Cannot publish empty message')
+    }
+  }
+
+  /**
+   * Low level no validation raw byte publishing for Voodoo debugging
+   */
+  async publishVoodooRaw(
+    topic: string,
+    messageBytes: [Uint8Array]
+  ): Promise<void> {
+    const envelopes = messageBytes.map((bytes) => ({
+      contentTopic: topic,
+      message: bytes,
+      timestamp: new Date(),
+    }))
+    try {
+      await this.apiClient.publish(envelopes)
+    } catch (err) {
+      console.log(err)
     }
   }
 
@@ -575,6 +618,27 @@ export default class Client {
       async (env) => env,
       opts
     )
+  }
+
+  /**
+   * List raw message bytes of envelopes stored on a specific topic
+   *
+   * Useful for Voodoo testing
+   */
+  async listRawVoodoo(topic: string): Promise<Uint8Array[]> {
+    const envelopes = await this.apiClient.query(
+      { contentTopic: topic },
+      {
+        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        limit: 100,
+      }
+    )
+    const results: Uint8Array[] = []
+    for (const env of envelopes) {
+      if (!env.message) continue
+      results.push(env.message)
+    }
+    return results
   }
 
   /**

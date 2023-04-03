@@ -10,7 +10,8 @@
   "scripts": {
     "prebench": "npm run build:cjs",
     "bench": "node dist/cjs/bench/index.js",
-    "build": "npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:types",
+    "prebuild": "npm install ../libxmtp/bindings/wasm",
+    "build": "npm run build:cjs && npm run build:esm && npm run build:umd && npm run build:types && npm run package",
     "build:cjs": "node tools/cleanup cjs && tsc -p config/tsconfig.cjs.json",
     "build:esm": "node tools/cleanup esm && tsc -p config/tsconfig.esm.json",
     "build:umd": "node tools/cleanup umd && webpack --config config/webpack.config.js",
@@ -72,8 +73,10 @@
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
+    "libxmtp": "file:../libxmtp/bindings/wasm",
     "long": "^5.2.0",
-    "siwe": "^2.1.3"
+    "siwe": "^2.1.3",
+    "xmtpv3": "file:../libxmtp/bindings/wasm"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
