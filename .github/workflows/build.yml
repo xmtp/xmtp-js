@@ -6,7 +6,7 @@ on:
   pull_request:
 # Needed to get Rust wasm-pack to install correctly with cargo
 env:
-  CARGO_NET_GIT_FETCH_WITH_CLI=true
+  CARGO_NET_GIT_FETCH_WITH_CLI: true
 jobs:
   build:
     name: Build
