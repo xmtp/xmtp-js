@@ -27,7 +27,7 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import VoodooClient from './VoodooClient'
+import VoodooClient from './voodoo/VoodooClient'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
