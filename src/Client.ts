@@ -522,25 +522,6 @@ export default class Client {
   }
 
   /**
-   * Low level no validation raw byte publishing for Voodoo debugging
-   */
-  async publishVoodooRaw(
-    topic: string,
-    messageBytes: [Uint8Array]
-  ): Promise<void> {
-    const envelopes = messageBytes.map((bytes) => ({
-      contentTopic: topic,
-      message: bytes,
-      timestamp: new Date(),
-    }))
-    try {
-      await this.apiClient.publish(envelopes)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
-  /**
    * Low level method for publishing envelopes to the XMTP network with
    * no pre-processing or encryption applied.
    *
@@ -618,27 +599,6 @@ export default class Client {
       async (env) => env,
       opts
     )
-  }
-
-  /**
-   * List raw message bytes of envelopes stored on a specific topic
-   *
-   * Useful for Voodoo testing
-   */
-  async listRawVoodoo(topic: string): Promise<Uint8Array[]> {
-    const envelopes = await this.apiClient.query(
-      { contentTopic: topic },
-      {
-        direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
-        limit: 100,
-      }
-    )
-    const results: Uint8Array[] = []
-    for (const env of envelopes) {
-      if (!env.message) continue
-      results.push(env.message)
-    }
-    return results
   }
 
   /**
