@@ -6,6 +6,7 @@ import xmtpv3 from 'xmtpv3'
 // it ends up being named in Rust
 export class VoodooContact {
   address: string
+  // TODO: Replace this `any` by exporting appropriate type from xmtpv3 WASM binding package
   voodooInstance: any
 
   constructor(address: string, voodooInstance: any) {
