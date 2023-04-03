@@ -190,7 +190,7 @@ describe('conversation', () => {
       )
 
       // Start the stream before sending the message to ensure delivery
-      const stream = await aliceConversation.streamMessages()
+      const stream = await aliceConversation.streamEphemeral()
 
       if (!stream) {
         fail('no stream')
