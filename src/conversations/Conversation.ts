@@ -34,23 +34,6 @@ import { ContentTypeText } from '../codecs/Text'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-type ConversationV1Export = {
-  version: 'v1'
-  peerAddress: string
-  createdAt: string
-}
-
-type ConversationV2Export = {
-  version: 'v2'
-  topic: string
-  keyMaterial: string
-  createdAt: string
-  peerAddress: string
-  context: InvitationContext | undefined
-}
-
-export type ConversationExport = ConversationV1Export | ConversationV2Export
-
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
  */
