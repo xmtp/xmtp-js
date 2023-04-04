@@ -1,8 +1,3 @@
-import {
-  ListMessagesOptions,
-  ListMessagesPaginatedOptions,
-  SendOptions,
-} from '../../Client'
 import VoodooClient, { VoodooMessage } from '../VoodooClient'
 import Stream from '../../Stream'
 import { messageApi } from '@xmtp/proto'
@@ -105,10 +100,6 @@ export default class VoodooConversation {
     }
     this._messages.push(sentMessage)
     return sentMessage
-  }
-
-  decodeMessage(env: messageApi.Envelope): Promise<VoodooMessage> {
-    throw new Error('Method not implemented.')
   }
 
   // passthrough for now

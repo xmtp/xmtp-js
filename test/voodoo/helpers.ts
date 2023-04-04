@@ -1,4 +1,3 @@
-import { Wallet } from 'ethers'
 import { ClientOptions, Client } from '../../src'
 import VoodooClient, { VoodooContact } from '../../src/voodoo/VoodooClient'
 import { pollFor, newWallet } from '../helpers'

@@ -1,9 +1,6 @@
 import xmtpv3 from 'xmtpv3_wasm'
 
-import {
-  buildVoodooUserContactTopic,
-  buildVoodooUserInviteTopic,
-} from './utils'
+import { buildVoodooUserContactTopic } from './utils'
 import { EnvelopeMapper } from '../utils'
 import ApiClient, { PublishParams, SortDirection } from '../ApiClient'
 import { ListMessagesOptions } from '../Client'
