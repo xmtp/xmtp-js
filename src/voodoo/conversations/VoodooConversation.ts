@@ -53,10 +53,10 @@ export default class VoodooConversation {
     // by accelerating the ratchet and storing skipped message keys in a buffer
     const decryptedMessages = await newMessages.map(async (m) => {
       // Decode the envelope
-      const olmJson = await this.client.decodeEnvelope(m)
+      const encryptedVoodooMessage = await this.client.decodeEnvelope(m)
       const decryptedMessage = await this.client.decryptMessage(
         this.sessionId,
-        olmJson
+        encryptedVoodooMessage
       )
       if (decryptedMessage) {
         return decryptedMessage
@@ -79,15 +79,22 @@ export default class VoodooConversation {
   }
 
   async send(content: string, opts?: SendOptions): Promise<VoodooMessage> {
-    const message = this.client.createVoodooMessage(content)
-    const olmJson = await this.client.encryptMessage(this.sessionId, message)
+    const encryptedVoodooMessage = await this.client.encryptMessage(
+      this.sessionId,
+      content
+    )
     await this.client.publishEnvelopes([
       {
         contentTopic: this.topic,
-        message: Buffer.from(olmJson),
+        message: Buffer.from(JSON.stringify(encryptedVoodooMessage)),
       },
     ])
-    return message
+    return {
+      senderAddress: encryptedVoodooMessage.senderAddress,
+      sessionId: encryptedVoodooMessage.sessionId,
+      timestamp: encryptedVoodooMessage.timestamp,
+      plaintext: content,
+    }
   }
 
   decodeMessage(env: messageApi.Envelope): Promise<VoodooMessage> {

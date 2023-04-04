@@ -1,6 +1,10 @@
 import { messageApi } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
-import VoodooClient, { VoodooContact } from '../VoodooClient'
+import VoodooClient, {
+  VoodooContact,
+  EncryptedVoodooMessage,
+  VoodooMessage,
+} from '../VoodooClient'
 import VoodooConversation from './VoodooConversation'
 import { utils } from '../../crypto'
 
@@ -44,25 +48,27 @@ export default class VoodooConversations {
   async processInvite(
     env: messageApi.Envelope
   ): Promise<VoodooConversation | undefined> {
-    // TODO: Check if we have a conversation for this peer already, may need
-    // to add additional metadata to our message body
+    const encryptedInvite: EncryptedVoodooMessage =
+      await this.client.decodeEnvelope(env)
+    const peerAddress = encryptedInvite.senderAddress
+    // Check if we have a session for this peer
+    if (this.conversations.has(peerAddress)) {
+      // Return undefined so nothing is added to the map
+      return
+    }
 
-    // Get env.message and call this.client.decodeEnvelope on it to get a raw string
-    // in this case, this is JSON encoded pickled Olm PreKey message
-    const olmJson = await this.client.decodeEnvelope(env)
-    // Try to process as inbound
-    const inboundSessionResult = await this.client.processInboundSessionJson(
-      this.client.address,
-      olmJson
-    )
-    if (inboundSessionResult) {
-      const { sessionId, message } = inboundSessionResult
+    const decryptedInvite: VoodooMessage =
+      await this.client.processVoodooInvite(
+        this.client.address,
+        encryptedInvite
+      )
+    if (decryptedInvite) {
       const conversation = new VoodooConversation(
         this.client,
-        sessionId,
-        message.content, // the content of the prekey message is the new convo topic
-        message.senderAddress,
-        message.timestamp
+        decryptedInvite.sessionId,
+        decryptedInvite.plaintext, // the plaintext of the invite message is the new convo topic
+        decryptedInvite.senderAddress,
+        decryptedInvite.timestamp
       )
       return conversation
     }
@@ -124,12 +130,13 @@ export default class VoodooConversations {
     )
 
     // Create an outbound session with { sessionId: string, paylaod: string (encoded Olm PreKey Message) }
-    const outboundObject = await this.client.getOutboundSessionJson(
-      recipient.address,
-      generatedSessionTopic
-    )
+    const encryptedInvite: EncryptedVoodooMessage =
+      await this.client.newVoodooInvite(
+        recipient.address,
+        generatedSessionTopic
+      )
 
-    if (!outboundObject) {
+    if (!encryptedInvite) {
       throw new Error('Could not create outbound session')
     }
 
@@ -140,14 +147,15 @@ export default class VoodooConversations {
     await this.client.publishEnvelopes([
       {
         contentTopic: buildVoodooUserInviteTopic(peerAddress),
-        message: Buffer.from(outboundObject.prekeyMessage),
+        // The entire message is the encrypted invite
+        message: Buffer.from(JSON.stringify(encryptedInvite)),
         timestamp,
       },
     ])
 
     const convo = new VoodooConversation(
       this.client,
-      outboundObject.sessionId,
+      encryptedInvite.sessionId,
       generatedSessionTopic,
       peerAddress,
       timestamp

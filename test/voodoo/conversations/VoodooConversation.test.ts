@@ -44,6 +44,8 @@ describe('conversation', () => {
       }
 
       // Check that invite is processed by bob
+      const bcs = await bob.conversations.list()
+      expect(bcs).toHaveLength(1)
     })
 
     /*

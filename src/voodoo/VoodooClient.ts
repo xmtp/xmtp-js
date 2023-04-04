@@ -27,29 +27,30 @@ export class VoodooContact {
   }
 }
 
-// Very simple message object
-export type VoodooMessage = {
+// Very simple message object which acts as the message type for all Voodoo envelopes
+export type EncryptedVoodooMessage = {
+  // Plaintext fields
   senderAddress: string
   timestamp: Date
-  content: string
+  // SessionId may be dropped in the future
+  sessionId: string
+  // Ciphertext fields
+  ciphertext: string
+}
+
+export type VoodooMessage = {
+  // All plaintext fields
+  senderAddress: string
+  timestamp: Date
+  plaintext: string
+  // SessionId may be dropped in the future
+  sessionId: string
 }
 
 // TODO: currently mirrored from xmtpv3.ts - should be exported from there
 export type SessionResult = {
   sessionId: string
   payload: string
-}
-
-export type OutboundSessionResult = {
-  sessionId: string
-  // This is a pickled Olm PreKeyMessage
-  prekeyMessage: string
-}
-
-// On the inbound side, we can convert the payload into a VoodooMessage
-export type InboundSessionResult = {
-  sessionId: string
-  message: VoodooMessage
 }
 
 /**
@@ -102,96 +103,86 @@ export default class VoodooClient {
     }
   }
 
-  // Just returns a VoodooMessage for now, as an intermediate step before
-  // going to JSON -> utf8-encoded bytes
-  createVoodooMessage(content: string): VoodooMessage {
-    return {
-      senderAddress: this.address,
-      timestamp: new Date(),
-      content,
-    }
-  }
-
-  async encodeVoodooMessageToString(message: VoodooMessage): Promise<string> {
-    const json = JSON.stringify(message)
-    return json
-  }
-
-  async decodeVoodooMessageFromString(json: string): Promise<VoodooMessage> {
-    const message = JSON.parse(json)
-    return message
-  }
-
-  // Get the JSON from creating an outbound session with a contact
-  async getOutboundSessionJson(
+  // Create new Voodoo invite
+  async newVoodooInvite(
     contactAddress: string,
-    initialPlaintext: string
-  ): Promise<OutboundSessionResult> {
+    topic: string
+  ): Promise<EncryptedVoodooMessage> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-
-    const initialMessage = this.createVoodooMessage(initialPlaintext)
-
-    const messageJson = await this.encodeVoodooMessageToString(initialMessage)
 
     const outboundSessionResult: SessionResult =
       await this.voodooInstance.createOutboundSession(
         contactInstance.voodooInstance,
-        messageJson
+        topic
       )
     return {
+      senderAddress: this.address,
+      ciphertext: outboundSessionResult.payload,
       sessionId: outboundSessionResult.sessionId,
-      prekeyMessage: outboundSessionResult.payload,
+      timestamp: new Date(),
     }
   }
 
   // Get the JSON from creating an inbound session
-  async processInboundSessionJson(
+  async processVoodooInvite(
     contactAddress: string,
-    inboundJson: string
-  ): Promise<InboundSessionResult> {
+    encryptedInvite: EncryptedVoodooMessage
+  ): Promise<VoodooMessage> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const inboundSessionRawPayload: SessionResult =
+    // Need to decode inboundEncryptedVoodooMessageJson
+    const inboundSessionResult: SessionResult =
       await this.voodooInstance.createInboundSession(
         contactInstance.voodooInstance,
-        inboundJson
+        encryptedInvite.ciphertext
       )
+
     return {
-      sessionId: inboundSessionRawPayload.sessionId,
-      message: await this.decodeVoodooMessageFromString(
-        inboundSessionRawPayload.payload
-      ),
+      sessionId: inboundSessionResult.sessionId,
+      senderAddress: contactAddress,
+      timestamp: encryptedInvite.timestamp,
+      plaintext: inboundSessionResult.payload,
     }
   }
 
   async decryptMessage(
     sessionId: string,
-    ciphertext: string
+    message: EncryptedVoodooMessage
   ): Promise<VoodooMessage> {
+    // Decode the message
     const plaintext = await this.voodooInstance.decryptMessage(
       sessionId,
-      ciphertext
+      message.ciphertext
     )
-    return await this.decodeVoodooMessageFromString(plaintext)
+    return {
+      senderAddress: message.senderAddress,
+      timestamp: message.timestamp,
+      plaintext,
+      sessionId,
+    }
   }
 
   async encryptMessage(
     sessionId: string,
-    message: VoodooMessage
-  ): Promise<string> {
-    const messageJson = await this.encodeVoodooMessageToString(message)
+    plaintext: string
+  ): Promise<EncryptedVoodooMessage> {
     const ciphertext = await this.voodooInstance.encryptMessage(
       sessionId,
-      messageJson
+      plaintext
     )
-    return ciphertext
+    return {
+      senderAddress: this.address,
+      timestamp: new Date(),
+      sessionId,
+      ciphertext,
+    }
   }
 
   // == Start Client.ts methods ==
@@ -248,7 +239,18 @@ export default class VoodooClient {
   }
 
   // This takes an Envelope fresh from a topic and decodes it into JSON string (Olm Pickle)
-  async decodeEnvelope(env: messageApi.Envelope): Promise<string> {
+  async decodeEnvelope(
+    env: messageApi.Envelope
+  ): Promise<EncryptedVoodooMessage> {
+    if (!env.message) {
+      throw new Error('No message in envelope')
+    }
+    const bytes = env.message
+    const jsonAsUtf8Bytes = b64Decode(bytes.toString())
+    return JSON.parse(new TextDecoder().decode(jsonAsUtf8Bytes))
+  }
+
+  async decodeEnvelopeRaw(env: messageApi.Envelope): Promise<string> {
     if (!env.message) {
       throw new Error('No message in envelope')
     }
@@ -275,7 +277,7 @@ export default class VoodooClient {
       }
       // TODO: need to use more than just the public JSON, need to define a proto or class
       // that includes a signature etc
-      const voodooPublicJson = await this.decodeEnvelope(env)
+      const voodooPublicJson = await this.decodeEnvelopeRaw(env)
 
       // TODO: do validation here of the address signature
       const voodooInstance =
