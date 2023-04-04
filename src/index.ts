@@ -34,6 +34,11 @@ export {
 } from './MessageContent'
 export { TextCodec, ContentTypeText } from './codecs/Text'
 export {
+  TypingNotification,
+  TypingNotificationCodec,
+  ContentTypeTypingNotification,
+} from './codecs/TypingNotification'
+export {
   Composite,
   CompositeCodec,
   ContentTypeComposite,
