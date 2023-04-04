@@ -4,7 +4,7 @@ import {
   buildVoodooUserContactTopic,
   buildVoodooUserInviteTopic,
 } from './utils'
-import ApiClient, { SortDirection } from '../ApiClient'
+import ApiClient, { PublishParams, SortDirection } from '../ApiClient'
 import { fetcher } from '@xmtp/proto'
 const { b64Decode } = fetcher
 
@@ -38,11 +38,14 @@ export default class VoodooClient {
   address: string
   voodooInstance: any
   apiClient: ApiClient
-  // For now contacts are a map of address to VoodooInstance, all local
-  contacts: Map<string, VoodooContact> = new Map()
   wasm: xmtpv3.XMTPWasm
 
-  constructor(address: string, voodooInstance: any, apiClient: ApiClient, wasm: xmtpv3.XMTPWasm) {
+  constructor(
+    address: string,
+    voodooInstance: any,
+    apiClient: ApiClient,
+    wasm: xmtpv3.XMTPWasm
+  ) {
     this.address = address
     this.voodooInstance = voodooInstance
     this.apiClient = apiClient
@@ -56,7 +59,9 @@ export default class VoodooClient {
     const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
     // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
     const myVoodoo = xmtpWasm.newVoodooInstance()
-    return new VoodooClient(address, myVoodoo, apiClient, xmtpWasm)
+    const client = new VoodooClient(address, myVoodoo, apiClient, xmtpWasm)
+    await client.ensureUserContactPublished()
+    return client
   }
 
   get contact(): VoodooContact {
@@ -66,26 +71,18 @@ export default class VoodooClient {
     }
   }
 
-  setContact(contactInfo: VoodooContact) {
-    this.contacts.set(contactInfo.address, contactInfo)
-  }
-
-  getContact(address: string): VoodooContact | undefined {
-    return this.contacts.get(address)
-  }
-
   // Get the JSON from creating an outbound session with a contact
   async getOutboundSessionJson(
     contactAddress: string,
     initialMessage: string
   ): Promise<string> {
     // Get the contact info which is just a handle for now
-    const contactInstance = this.contacts.get(contactAddress)?.voodooInstance
+    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
     const outboundObject = await this.voodooInstance.createOutboundSession(
-      contactInstance,
+      contactInstance.voodooInstance,
       initialMessage
     )
     // outboundTuple should comprise (sessionId, outboundCiphertextJson)
@@ -101,12 +98,12 @@ export default class VoodooClient {
     inboundJson: string
   ): Promise<string> {
     // Get the contact info which is just a handle for now
-    const contactInstance = this.contacts.get(contactAddress)?.voodooInstance
+    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
     const inboundResponse = await this.voodooInstance.createInboundSession(
-      contactInstance,
+      contactInstance.voodooInstance,
       inboundJson
     )
     // inboundTuple should comprise (sessionId, inboundPlaintext)
@@ -116,15 +113,67 @@ export default class VoodooClient {
     return inboundPlaintext
   }
 
+  // == Start Client.ts methods ==
+  private validateEnvelope(env: PublishParams): void {
+    const bytes = env.message
+    if (!env.contentTopic) {
+      throw new Error('Missing content topic')
+    }
+
+    if (!bytes || !bytes.length) {
+      throw new Error('Cannot publish empty message')
+    }
+  }
+
+  /**
+   * Low level method for publishing envelopes to the XMTP network with
+   * no pre-processing or encryption applied.
+   *
+   * Primarily used internally
+   *
+   * @param envelopes PublishParams[]
+   */
+  async publishEnvelopes(envelopes: PublishParams[]): Promise<void> {
+    for (const env of envelopes) {
+      this.validateEnvelope(env)
+    }
+    try {
+      await this.apiClient.publish(envelopes)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  private async ensureUserContactPublished(): Promise<void> {
+    const bundle = await this.getUserContactFromNetwork(this.address)
+    // TODO: validate the bundle, not just check for presence
+    if (bundle) {
+      return
+    }
+    await this.publishUserContact()
+  }
+
+  // PRIVATE: publish the key bundle into the contact topic
+  // left public for testing purposes
+  async publishUserContact(): Promise<void> {
+    // Get the public json as bytes
+    const bytes = Buffer.from(this.voodooInstance.toPublicJSON())
+    await this.publishEnvelopes([
+      {
+        contentTopic: buildVoodooUserContactTopic(this.address),
+        message: bytes,
+      },
+    ])
+  }
+
   /**
    * Retrieve a voodoo public identity from given user's contact topic
    * TODO: needs to be reworked as part of public/private key split
    */
   async getUserContactFromNetwork(
-    apiClient: ApiClient,
     peerAddress: string
   ): Promise<VoodooContact | undefined> {
-    const stream = apiClient.queryIterator(
+    const stream = this.apiClient.queryIterator(
       { contentTopic: buildVoodooUserContactTopic(peerAddress) },
       { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
     )
