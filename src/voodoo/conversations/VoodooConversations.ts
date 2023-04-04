@@ -1,5 +1,5 @@
 import { Mutex } from 'async-mutex'
-import { default as VoodooClient, VoodooContact } from '../VoodooClient'
+import VoodooClient, { VoodooContact } from '../VoodooClient'
 import VoodooConversation from './VoodooConversation'
 import { utils } from '../../crypto'
 
@@ -31,7 +31,7 @@ export default class VoodooConversations {
    * Creates a new VoodooConversation for the given address. Will throw an error if the peer is not found in the XMTP network
    */
   async newConversation(peerAddress: string): Promise<VoodooConversation> {
-    let contact = await this.client.getUserContactFromNetwork(peerAddress)
+    const contact = await this.client.getUserContactFromNetwork(peerAddress)
     if (!contact) {
       throw new Error(
         `Voodoo recipient ${peerAddress} is not on the XMTP network`
@@ -84,7 +84,7 @@ export default class VoodooConversations {
 
     // Create an outbound session with { sessionId: string, paylaod: string (encoded Olm PreKey Message) }
     const outboundObject = await this.client.getOutboundSessionJson(
-      recipient.voodooInstance,
+      recipient.address,
       generatedSessionTopic
     )
 
@@ -93,7 +93,7 @@ export default class VoodooConversations {
     }
 
     // TODO: should derive this from wallet signature
-    const peerAddress = await recipient.address
+    const peerAddress = recipient.address
 
     // Only publish to the peer's inbox, store the conversation locally
     await this.client.publishEnvelopes([

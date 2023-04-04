@@ -3,7 +3,7 @@ import {
   ListMessagesPaginatedOptions,
   SendOptions,
 } from '../../Client'
-import { default as VoodooClient, VoodooMessage } from '../VoodooClient'
+import VoodooClient, { VoodooMessage } from '../VoodooClient'
 import Stream from '../../Stream'
 import { messageApi } from '@xmtp/proto'
 

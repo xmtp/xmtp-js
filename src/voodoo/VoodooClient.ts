@@ -8,9 +8,9 @@ import { EnvelopeMapper } from '../utils'
 import ApiClient, { PublishParams, SortDirection } from '../ApiClient'
 import { ListMessagesOptions } from '../Client'
 import { messageApi, fetcher } from '@xmtp/proto'
-const { b64Decode } = fetcher
 
 import { VoodooConversations } from './conversations'
+const { b64Decode } = fetcher
 
 // TODO: this is a hacky wrapper class for a Voodoo contact,
 // currently represented by the entire contact's VoodooInstance

@@ -1,9 +1,6 @@
 import { Wallet } from 'ethers'
 import { ClientOptions, Client } from '../../src'
-import {
-  default as VoodooClient,
-  VoodooContact,
-} from '../../src/voodoo/VoodooClient'
+import VoodooClient, { VoodooContact } from '../../src/voodoo/VoodooClient'
 import { pollFor, newWallet } from '../helpers'
 import assert from 'assert'
 
