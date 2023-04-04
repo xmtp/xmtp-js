@@ -42,6 +42,8 @@ describe('conversation', () => {
       if (!(ac instanceof VoodooConversation)) {
         fail()
       }
+
+      // Check that invite is processed by bob
     })
 
     /*

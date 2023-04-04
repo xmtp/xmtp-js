@@ -1,3 +1,4 @@
+import { messageApi } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import VoodooClient, { VoodooContact } from '../VoodooClient'
 import VoodooConversation from './VoodooConversation'
@@ -11,19 +12,59 @@ import {
 export default class VoodooConversations {
   private client: VoodooClient
   private conversations: Map<string, VoodooConversation> = new Map()
-  private v2Mutex: Mutex
+  private convoMutex: Mutex
 
   constructor(client: VoodooClient) {
     this.client = client
-    this.v2Mutex = new Mutex()
+    this.convoMutex = new Mutex()
   }
 
   async list(): Promise<VoodooConversation[]> {
-    const release = await this.v2Mutex.acquire()
+    const release = await this.convoMutex.acquire()
     try {
+      // Check for new conversations in our invite topic
+      const inviteTopic = buildVoodooUserInviteTopic(this.client.address)
+      const newConvosFromInvites = await this.client.listEnvelopes(
+        inviteTopic,
+        this.processInvite.bind(this)
+      )
+
+      for (const convo of newConvosFromInvites) {
+        if (convo) {
+          this.conversations.set(convo.peerAddress, convo)
+        }
+      }
       return Array.from(this.conversations.values())
     } finally {
       release()
+    }
+  }
+
+  // Must be locked by convoMutex
+  async processInvite(
+    env: messageApi.Envelope
+  ): Promise<VoodooConversation | undefined> {
+    // TODO: Check if we have a conversation for this peer already, may need
+    // to add additional metadata to our message body
+
+    // Get env.message and call this.client.decodeEnvelope on it to get a raw string
+    // in this case, this is JSON encoded pickled Olm PreKey message
+    const olmJson = await this.client.decodeEnvelope(env)
+    // Try to process as inbound
+    const inboundSessionResult = await this.client.processInboundSessionJson(
+      this.client.address,
+      olmJson
+    )
+    if (inboundSessionResult) {
+      const { sessionId, message } = inboundSessionResult
+      const conversation = new VoodooConversation(
+        this.client,
+        sessionId,
+        message.content, // the content of the prekey message is the new convo topic
+        message.senderAddress,
+        message.timestamp
+      )
+      return conversation
     }
   }
 
@@ -47,7 +88,7 @@ export default class VoodooConversations {
     const matcherFn = (convo: VoodooConversation) =>
       convo.peerAddress === peerAddress
 
-    return this.v2Mutex.runExclusive(async () => {
+    return this.convoMutex.runExclusive(async () => {
       const existing = Array.from(this.conversations.values())
       const existingMatch = existing.find(matcherFn)
       if (existingMatch) {
