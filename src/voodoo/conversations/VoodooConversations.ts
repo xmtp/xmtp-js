@@ -105,7 +105,6 @@ export default class VoodooConversations {
     })
   }
 
-  // TODO: We need to rename outbound/inbound into invites of some sort
   // Currently, we generate a random topic for the session, and send an Olm PreKey Message
   // where the encrypted ciphertext is just the random topic. This is the "invite" message.
   // The recipient processes the Olm PreKey Message and gets the random topic, and then
