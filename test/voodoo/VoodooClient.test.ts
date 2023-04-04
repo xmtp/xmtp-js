@@ -10,25 +10,34 @@ describe('VoodooClient', () => {
     // Check that client voodooInstance is truthy
     expect(client.voodooInstance).toBeTruthy()
   })
-  it('can do a roundtrip', async () => {
+  it('can publish contact bundle and get it back', async () => {
+    const alice = newWallet()
+    // Client creation should publish the contact bundle
+    const aliceClient = await Client.createVoodoo(alice, { env: 'local' })
+
+    // Should get the contact bundle
+    const aliceContactBundle = await aliceClient.getUserContactFromNetwork(
+      alice.address
+    )
+    expect(aliceContactBundle).toBeTruthy()
+  })
+  it('can do a roundtrip with published contact bundles', async () => {
     const alice = newWallet()
     const bob = newWallet()
     const aliceClient = await Client.createVoodoo(alice, { env: 'local' })
     const bobClient = await Client.createVoodoo(bob, { env: 'local' })
 
-    aliceClient.setContact(bobClient.contact)
-    bobClient.setContact(aliceClient.contact)
-
     const aliceMessage = 'Hello Bob'
     // Have alice send a message to bob, starting the session and also encrypting it
     const outboundJson = await aliceClient.getOutboundSessionJson(
-      bobClient.contact.address,
+      // The VoodooContact is looked up from a topic
+      bob.address,
       aliceMessage
     )
 
     // Have bob receive the initial message, starting the session and also decrypting it
     const bobInboundPlaintext = await bobClient.processInboundSessionJson(
-      aliceClient.contact.address,
+      alice.address,
       outboundJson
     )
 
