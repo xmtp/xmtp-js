@@ -1,5 +1,7 @@
 import { utils } from 'ethers'
-import { buildContentTopic } from '../utils'
+
+export const buildContentTopic = (name: string): string =>
+  `/xmtp/1/${name}/proto`
 
 // == Voodoo demo topics ==
 export const buildVoodooUserContactTopic = (walletAddr: string): string => {
