@@ -48,14 +48,16 @@ export default class VoodooConversations {
       convo.peerAddress === peerAddress
 
     return this.v2Mutex.runExclusive(async () => {
-      const existing = await this.list()
+      const existing = Array.from(this.conversations.values())
       const existingMatch = existing.find(matcherFn)
       if (existingMatch) {
         return existingMatch
       }
 
       // Create a new VoodooConversation
-      return this.createConvo(contact as VoodooContact)
+      const convo = await this.createConvo(contact as VoodooContact)
+      this.conversations.set(peerAddress, convo)
+      return convo
     })
   }
 
@@ -81,7 +83,7 @@ export default class VoodooConversations {
     )
 
     // Create an outbound session with { sessionId: string, paylaod: string (encoded Olm PreKey Message) }
-    const outboundObject = this.client.voodooInstance.getOutboundSessionJson(
+    const outboundObject = await this.client.getOutboundSessionJson(
       recipient.voodooInstance,
       generatedSessionTopic
     )
@@ -97,7 +99,7 @@ export default class VoodooConversations {
     await this.client.publishEnvelopes([
       {
         contentTopic: buildVoodooUserInviteTopic(peerAddress),
-        message: Buffer.from(outboundObject.payload),
+        message: Buffer.from(outboundObject.prekeyMessage),
         timestamp,
       },
     ])
@@ -109,13 +111,6 @@ export default class VoodooConversations {
       peerAddress,
       timestamp
     )
-    // Acquire mutex and set conversation
-    const release = await this.v2Mutex.acquire()
-    try {
-      this.conversations.set(peerAddress, convo)
-    } finally {
-      release()
-    }
     return convo
   }
 }

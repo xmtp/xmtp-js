@@ -35,19 +35,22 @@ describe('VoodooClient', () => {
     // }
     const alicePlaintext = 'Hello Bob'
     // Have alice send a message to bob, starting the session and also encrypting it
-    const outboundJson = await aliceClient.getOutboundSessionJson(
+    const outboundSessionResult = await aliceClient.getOutboundSessionJson(
       // The VoodooContact is looked up from a topic
       bob.address,
       alicePlaintext
     )
 
     // Have bob receive the initial message, starting the session and also decrypting it
-    const bobInboundMessage = await bobClient.processInboundSessionJson(
+    const bobInboundSessionResult = await bobClient.processInboundSessionJson(
       alice.address,
-      outboundJson
+      outboundSessionResult.prekeyMessage
     )
 
-    expect(bobInboundMessage.content).toEqual(alicePlaintext)
-    expect(bobInboundMessage.senderAddress).toEqual(alice.address)
+    expect(bobInboundSessionResult.sessionId).toEqual(
+      outboundSessionResult.sessionId
+    )
+    expect(bobInboundSessionResult.message.content).toEqual(alicePlaintext)
+    expect(bobInboundSessionResult.message.senderAddress).toEqual(alice.address)
   })
 })

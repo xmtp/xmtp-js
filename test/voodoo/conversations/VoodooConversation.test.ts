@@ -10,6 +10,10 @@ import {
   VoodooContact,
   default as VoodooClient,
 } from '../../../src/voodoo/VoodooClient'
+import {
+  VoodooConversation,
+  VoodooConversations,
+} from '../../../src/voodoo/conversations'
 import { SortDirection } from '../../../src/ApiClient'
 import { sleep } from '../../../src/utils'
 import { newLocalHostVoodooClient, waitForUserContact } from '../helpers'
@@ -33,13 +37,14 @@ describe('conversation', () => {
       expect(await alice.getUserContactFromNetwork(bob.address)).toBeInstanceOf(
         VoodooContact
       )
+
+      const ac = await alice.conversations.newConversation(bob.address)
+      if (!(ac instanceof VoodooConversation)) {
+        fail()
+      }
     })
 
     /*
-      const ac = await alice.conversations.newConversation(bob.address)
-      if (!(ac instanceof ConversationV2)) {
-        fail()
-      }
       const as = await ac.streamMessages()
       await sleep(100)
 

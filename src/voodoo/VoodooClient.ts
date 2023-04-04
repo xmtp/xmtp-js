@@ -28,16 +28,28 @@ export class VoodooContact {
 }
 
 // Very simple message object
-export class VoodooMessage {
+export type VoodooMessage = {
   senderAddress: string
   timestamp: Date
   content: string
+}
 
-  constructor(senderAddress: string, timestamp: Date, content: string) {
-    this.senderAddress = senderAddress
-    this.timestamp = timestamp
-    this.content = content
-  }
+// TODO: currently mirrored from xmtpv3.ts - should be exported from there
+export type SessionResult = {
+  sessionId: string
+  payload: string
+}
+
+export type OutboundSessionResult = {
+  sessionId: string
+  // This is a pickled Olm PreKeyMessage
+  prekeyMessage: string
+}
+
+// On the inbound side, we can convert the payload into a VoodooMessage
+export type InboundSessionResult = {
+  sessionId: string
+  message: VoodooMessage
 }
 
 /**
@@ -114,7 +126,7 @@ export default class VoodooClient {
   async getOutboundSessionJson(
     contactAddress: string,
     initialPlaintext: string
-  ): Promise<string> {
+  ): Promise<OutboundSessionResult> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
@@ -125,36 +137,38 @@ export default class VoodooClient {
 
     const messageJson = await this.encodeVoodooMessageToString(initialMessage)
 
-    const outboundObject = await this.voodooInstance.createOutboundSession(
-      contactInstance.voodooInstance,
-      messageJson
-    )
-    // outboundTuple should comprise (sessionId, outboundCiphertextJson)
-    // TODO: as temporary measure until we export types in xmtpv3_wasm, just
-    // discard the sessionId for testing
-    const outboundCiphertext = outboundObject.payload
-    return outboundCiphertext
+    const outboundSessionResult: SessionResult =
+      await this.voodooInstance.createOutboundSession(
+        contactInstance.voodooInstance,
+        messageJson
+      )
+    return {
+      sessionId: outboundSessionResult.sessionId,
+      prekeyMessage: outboundSessionResult.payload,
+    }
   }
 
   // Get the JSON from creating an inbound session
   async processInboundSessionJson(
     contactAddress: string,
     inboundJson: string
-  ): Promise<VoodooMessage> {
+  ): Promise<InboundSessionResult> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const inboundResponse = await this.voodooInstance.createInboundSession(
-      contactInstance.voodooInstance,
-      inboundJson
-    )
-    // inboundTuple should comprise (sessionId, inboundPlaintext)
-    // TODO: as temporary measure until we export types in xmtpv3_wasm, just
-    // discard the sessionId for testing
-    const inboundPlaintext = inboundResponse.payload
-    return await this.decodeVoodooMessageFromString(inboundPlaintext)
+    const inboundSessionRawPayload: SessionResult =
+      await this.voodooInstance.createInboundSession(
+        contactInstance.voodooInstance,
+        inboundJson
+      )
+    return {
+      sessionId: inboundSessionRawPayload.sessionId,
+      message: await this.decodeVoodooMessageFromString(
+        inboundSessionRawPayload.payload
+      ),
+    }
   }
 
   async decryptMessage(
