@@ -31,7 +31,7 @@ export class VoodooContact {
 export type EncryptedVoodooMessage = {
   // Plaintext fields
   senderAddress: string
-  timestamp: Date
+  timestamp: number
   // SessionId may be dropped in the future
   sessionId: string
   // Ciphertext fields
@@ -41,7 +41,7 @@ export type EncryptedVoodooMessage = {
 export type VoodooMessage = {
   // All plaintext fields
   senderAddress: string
-  timestamp: Date
+  timestamp: number
   plaintext: string
   // SessionId may be dropped in the future
   sessionId: string
@@ -123,7 +123,7 @@ export default class VoodooClient {
       senderAddress: this.address,
       ciphertext: outboundSessionResult.payload,
       sessionId: outboundSessionResult.sessionId,
-      timestamp: new Date(),
+      timestamp: new Date().getTime(),
     }
   }
 
@@ -179,7 +179,7 @@ export default class VoodooClient {
     )
     return {
       senderAddress: this.address,
-      timestamp: new Date(),
+      timestamp: new Date().getTime(),
       sessionId,
       ciphertext,
     }

@@ -12,7 +12,7 @@ export default class VoodooConversation {
   // Vodozemac session ID
   sessionId: string
   topic: string
-  createdAt: Date
+  createdAt: number
   private client: VoodooClient
   _messages: VoodooMessage[] = []
 
@@ -21,7 +21,7 @@ export default class VoodooConversation {
     sessionId: string,
     topic: string,
     peerAddress: string,
-    createdAt: Date
+    createdAt: number
   ) {
     this.client = client
     this.sessionId = sessionId
@@ -38,28 +38,32 @@ export default class VoodooConversation {
   // decrypt already decrypted messages since ratchet state has progressed
   // so we must check if we have new messages, then combine them with the existing
   // this.messages list
-  async messages(opts?: ListMessagesOptions): Promise<VoodooMessage[]> {
+  async messages(): Promise<VoodooMessage[]> {
     // Check for new messages
     const newMessages = await this.client.listEnvelopes(
       this.topic,
-      this.processEnvelope.bind(this),
-      opts
+      this.processEnvelope.bind(this)
     )
 
     // Try decrypting them via this.client
     // TODO: for now, we just drop everything that doesn't decrypt correctly
-    // append the remaining messages to this.messages
+    // this can happen because we cannot decrypt our own messages anyways.
+    // Append the remaining messages to this.messages.
     // NOTE: Vodozemac can tolerate something like 2000 messages out-of-order
     // by accelerating the ratchet and storing skipped message keys in a buffer
     const decryptedMessages = await newMessages.map(async (m) => {
-      // Decode the envelope
-      const encryptedVoodooMessage = await this.client.decodeEnvelope(m)
-      const decryptedMessage = await this.client.decryptMessage(
-        this.sessionId,
-        encryptedVoodooMessage
-      )
-      if (decryptedMessage) {
-        return decryptedMessage
+      try {
+        // Decode the envelope
+        const encryptedVoodooMessage = await this.client.decodeEnvelope(m)
+        const decryptedMessage = await this.client.decryptMessage(
+          this.sessionId,
+          encryptedVoodooMessage
+        )
+        if (decryptedMessage) {
+          return decryptedMessage
+        }
+      } catch (e) {
+        console.log('Failed to decrypt message', e)
       }
     })
 
@@ -71,6 +75,10 @@ export default class VoodooConversation {
         this._messages.push(m)
       }
     }
+    // Sort all messages
+    this._messages.sort((a: VoodooMessage, b: VoodooMessage) => {
+      return a.timestamp - b.timestamp
+    })
     return this._messages
   }
 
@@ -78,7 +86,7 @@ export default class VoodooConversation {
     throw new Error('Method not implemented.')
   }
 
-  async send(content: string, opts?: SendOptions): Promise<VoodooMessage> {
+  async send(content: string): Promise<VoodooMessage> {
     const encryptedVoodooMessage = await this.client.encryptMessage(
       this.sessionId,
       content
@@ -89,12 +97,14 @@ export default class VoodooConversation {
         message: Buffer.from(JSON.stringify(encryptedVoodooMessage)),
       },
     ])
-    return {
+    const sentMessage = {
       senderAddress: encryptedVoodooMessage.senderAddress,
       sessionId: encryptedVoodooMessage.sessionId,
       timestamp: encryptedVoodooMessage.timestamp,
       plaintext: content,
     }
+    this._messages.push(sentMessage)
+    return sentMessage
   }
 
   decodeMessage(env: messageApi.Envelope): Promise<VoodooMessage> {

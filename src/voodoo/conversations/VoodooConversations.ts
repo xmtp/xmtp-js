@@ -58,10 +58,7 @@ export default class VoodooConversations {
     }
 
     const decryptedInvite: VoodooMessage =
-      await this.client.processVoodooInvite(
-        this.client.address,
-        encryptedInvite
-      )
+      await this.client.processVoodooInvite(peerAddress, encryptedInvite)
     if (decryptedInvite) {
       const conversation = new VoodooConversation(
         this.client,
@@ -116,7 +113,7 @@ export default class VoodooConversations {
   private async createConvo(
     recipient: VoodooContact
   ): Promise<VoodooConversation> {
-    const timestamp = new Date()
+    const timestamp = new Date().getTime()
 
     // Generate the random topic for the session and set it as the first
     // plaintext message sent
@@ -149,7 +146,8 @@ export default class VoodooConversations {
         contentTopic: buildVoodooUserInviteTopic(peerAddress),
         // The entire message is the encrypted invite
         message: Buffer.from(JSON.stringify(encryptedInvite)),
-        timestamp,
+        // Date from timestamp
+        timestamp: new Date(timestamp),
       },
     ])
 
