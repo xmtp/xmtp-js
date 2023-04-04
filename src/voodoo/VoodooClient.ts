@@ -1,6 +1,12 @@
 import xmtpv3 from 'xmtpv3_wasm'
 
-import ApiClient from '../ApiClient'
+import {
+  buildVoodooUserContactTopic,
+  buildVoodooUserInviteTopic,
+} from './utils'
+import ApiClient, { SortDirection } from '../ApiClient'
+import { fetcher } from '@xmtp/proto'
+const { b64Decode } = fetcher
 
 // TODO: this is a hacky wrapper class for a Voodoo contact,
 // currently represented by the entire contact's VoodooInstance
@@ -34,11 +40,13 @@ export default class VoodooClient {
   apiClient: ApiClient
   // For now contacts are a map of address to VoodooInstance, all local
   contacts: Map<string, VoodooContact> = new Map()
+  wasm: xmtpv3.XMTPWasm
 
-  constructor(address: string, voodooInstance: any, apiClient: ApiClient) {
+  constructor(address: string, voodooInstance: any, apiClient: ApiClient, wasm: xmtpv3.XMTPWasm) {
     this.address = address
     this.voodooInstance = voodooInstance
     this.apiClient = apiClient
+    this.wasm = wasm
   }
 
   static async create(
@@ -48,7 +56,7 @@ export default class VoodooClient {
     const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
     // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
     const myVoodoo = xmtpWasm.newVoodooInstance()
-    return new VoodooClient(address, myVoodoo, apiClient)
+    return new VoodooClient(address, myVoodoo, apiClient, xmtpWasm)
   }
 
   get contact(): VoodooContact {
@@ -106,5 +114,35 @@ export default class VoodooClient {
     // discard the sessionId for testing
     const inboundPlaintext = inboundResponse.payload
     return inboundPlaintext
+  }
+
+  /**
+   * Retrieve a voodoo public identity from given user's contact topic
+   * TODO: needs to be reworked as part of public/private key split
+   */
+  async getUserContactFromNetwork(
+    apiClient: ApiClient,
+    peerAddress: string
+  ): Promise<VoodooContact | undefined> {
+    const stream = apiClient.queryIterator(
+      { contentTopic: buildVoodooUserContactTopic(peerAddress) },
+      { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+    )
+
+    for await (const env of stream) {
+      if (!env.message) {
+        continue
+      }
+      // TODO: need to use more than just the public JSON, need to define a proto or class
+      // that includes a signature etc
+      const voodooPublicJson = b64Decode(env.message.toString())
+
+      // TODO: do validation here of the address signature
+      const voodooInstance = this.wasm.addOrGetPublicAccountFromJSON(
+        new TextDecoder().decode(voodooPublicJson)
+      )
+      return new VoodooContact(peerAddress, voodooInstance)
+    }
+    return undefined
   }
 }
