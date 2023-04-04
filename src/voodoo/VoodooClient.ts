@@ -4,9 +4,13 @@ import {
   buildVoodooUserContactTopic,
   buildVoodooUserInviteTopic,
 } from './utils'
+import { EnvelopeMapper } from '../utils'
 import ApiClient, { PublishParams, SortDirection } from '../ApiClient'
-import { fetcher } from '@xmtp/proto'
+import { ListMessagesOptions } from '../Client'
+import { messageApi, fetcher } from '@xmtp/proto'
 const { b64Decode } = fetcher
+
+import { VoodooConversations } from './conversations'
 
 // TODO: this is a hacky wrapper class for a Voodoo contact,
 // currently represented by the entire contact's VoodooInstance
@@ -52,6 +56,7 @@ export default class VoodooClient {
   voodooInstance: any
   apiClient: ApiClient
   wasm: xmtpv3.XMTPWasm
+  conversations: VoodooConversations
 
   constructor(
     address: string,
@@ -63,6 +68,7 @@ export default class VoodooClient {
     this.voodooInstance = voodooInstance
     this.apiClient = apiClient
     this.wasm = wasm
+    this.conversations = new VoodooConversations(this)
   }
 
   static async create(
@@ -151,6 +157,29 @@ export default class VoodooClient {
     return await this.decodeVoodooMessageFromString(inboundPlaintext)
   }
 
+  async decryptMessage(
+    sessionId: string,
+    ciphertext: string
+  ): Promise<VoodooMessage> {
+    const plaintext = await this.voodooInstance.decryptMessage(
+      sessionId,
+      ciphertext
+    )
+    return await this.decodeVoodooMessageFromString(plaintext)
+  }
+
+  async encryptMessage(
+    sessionId: string,
+    message: VoodooMessage
+  ): Promise<string> {
+    const messageJson = await this.encodeVoodooMessageToString(message)
+    const ciphertext = await this.voodooInstance.encryptMessage(
+      sessionId,
+      messageJson
+    )
+    return ciphertext
+  }
+
   // == Start Client.ts methods ==
   private validateEnvelope(env: PublishParams): void {
     const bytes = env.message
@@ -204,6 +233,16 @@ export default class VoodooClient {
     ])
   }
 
+  // This takes an Envelope fresh from a topic and decodes it into JSON string (Olm Pickle)
+  async decodeEnvelope(env: messageApi.Envelope): Promise<string> {
+    if (!env.message) {
+      throw new Error('No message in envelope')
+    }
+    const bytes = env.message
+    const jsonAsUtf8Bytes = b64Decode(bytes.toString())
+    return new TextDecoder().decode(jsonAsUtf8Bytes)
+  }
+
   /**
    * Retrieve a voodoo public identity from given user's contact topic
    * TODO: needs to be reworked as part of public/private key split
@@ -222,14 +261,51 @@ export default class VoodooClient {
       }
       // TODO: need to use more than just the public JSON, need to define a proto or class
       // that includes a signature etc
-      const voodooPublicJson = b64Decode(env.message.toString())
+      const voodooPublicJson = await this.decodeEnvelope(env)
 
       // TODO: do validation here of the address signature
-      const voodooInstance = this.wasm.addOrGetPublicAccountFromJSON(
-        new TextDecoder().decode(voodooPublicJson)
-      )
+      const voodooInstance =
+        this.wasm.addOrGetPublicAccountFromJSON(voodooPublicJson)
       return new VoodooContact(peerAddress, voodooInstance)
     }
     return undefined
+  }
+
+  /**
+   * List stored messages from the specified topic.
+   *
+   * A specified mapper function will be applied to each envelope.
+   * If the mapper function throws an error during processing, the
+   * envelope will be discarded.
+   */
+  async listEnvelopes<Out>(
+    topic: string,
+    mapper: EnvelopeMapper<Out>,
+    opts?: ListMessagesOptions
+  ): Promise<Out[]> {
+    if (!opts) {
+      opts = {}
+    }
+    const { startTime, endTime, limit } = opts
+
+    const envelopes = await this.apiClient.query(
+      { contentTopic: topic, startTime, endTime },
+      {
+        direction:
+          opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        limit,
+      }
+    )
+    const results: Out[] = []
+    for (const env of envelopes) {
+      if (!env.message) continue
+      try {
+        const res = await mapper(env)
+        results.push(res)
+      } catch (e) {
+        console.warn('Error in listEnvelopes mapper', e)
+      }
+    }
+    return results
   }
 }

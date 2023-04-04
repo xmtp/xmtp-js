@@ -3,24 +3,18 @@ import {
   ListMessagesPaginatedOptions,
   SendOptions,
 } from '../../Client'
-import { VoodooClient } from '../VoodooClient'
-import { Conversation } from '../../conversations/Conversation'
+import { default as VoodooClient, VoodooMessage } from '../VoodooClient'
 import Stream from '../../Stream'
+import { messageApi } from '@xmtp/proto'
 
-export class VoodooMessage {
-  senderAddress: string
-  timestamp: Date
-  content: string
-}
-
-export class VoodooConversation implements Conversation {
+export default class VoodooConversation {
   peerAddress: string
   // Vodozemac session ID
   sessionId: string
   topic: string
   createdAt: Date
   private client: VoodooClient
-  messages: VoodooMessage[] = []
+  _messages: VoodooMessage[] = []
 
   constructor(
     client: VoodooClient,
@@ -44,7 +38,7 @@ export class VoodooConversation implements Conversation {
   // decrypt already decrypted messages since ratchet state has progressed
   // so we must check if we have new messages, then combine them with the existing
   // this.messages list
-  async messages(opts?: ListMessageOptions): Promise<VoodooMessage[]> {
+  async messages(opts?: ListMessagesOptions): Promise<VoodooMessage[]> {
     // Check for new messages
     const newMessages = await this.client.listEnvelopes(
       this.topic,
@@ -57,19 +51,27 @@ export class VoodooConversation implements Conversation {
     // append the remaining messages to this.messages
     // NOTE: Vodozemac can tolerate something like 2000 messages out-of-order
     // by accelerating the ratchet and storing skipped message keys in a buffer
-    const decryptedMessages = newMessages.map((m) => {
-      const decrypted = this.client.decryptMessage(m)
-      if (decrypted) {
-        return {
-          senderAddress: m.senderAddress,
-          timestamp: m.timestamp,
-          content: decrypted,
-        }
+    const decryptedMessages = await newMessages.map(async (m) => {
+      // Decode the envelope
+      const olmJson = await this.client.decodeEnvelope(m)
+      const decryptedMessage = await this.client.decryptMessage(
+        this.sessionId,
+        olmJson
+      )
+      if (decryptedMessage) {
+        return decryptedMessage
       }
     })
 
-    this.messages = this.messages.concat(decryptedMessages.filter((m) => m))
-    return this.messages
+    // Wait for all promises in decryptedMessages to resolve
+    const results = await Promise.all(decryptedMessages)
+
+    for (const m of results) {
+      if (m) {
+        this._messages.push(m)
+      }
+    }
+    return this._messages
   }
 
   streamMessages(): Promise<Stream<VoodooMessage>> {
@@ -77,18 +79,25 @@ export class VoodooConversation implements Conversation {
   }
 
   async send(content: string, opts?: SendOptions): Promise<VoodooMessage> {
-    // Encrypt the message
-    const envelope = await this.client.sendEnvelope(this.topic, content, opts)
-    const decrypted = this.client.decryptMessage(envelope)
-    if (!decrypted) {
-      throw new Error('Could not decrypt message')
-    }
-    const message = {
-      senderAddress: envelope.senderAddress,
-      timestamp: envelope.timestamp,
-      content: decrypted,
-    }
-    this.messages.push(message)
+    const message = this.client.createVoodooMessage(content)
+    const olmJson = await this.client.encryptMessage(this.sessionId, message)
+    await this.client.publishEnvelopes([
+      {
+        contentTopic: this.topic,
+        message: Buffer.from(olmJson),
+      },
+    ])
     return message
+  }
+
+  decodeMessage(env: messageApi.Envelope): Promise<VoodooMessage> {
+    throw new Error('Method not implemented.')
+  }
+
+  // passthrough for now
+  async processEnvelope(
+    env: messageApi.Envelope
+  ): Promise<messageApi.Envelope> {
+    return env
   }
 }

@@ -1,5 +1,6 @@
-import VoodooClient from '../voodoo/Client'
-import VoodooConversation from '../voodoo/VoodooConversation'
+import { Mutex } from 'async-mutex'
+import VoodooClient from '../VoodooClient'
+import VoodooConversation from './VoodooConversation'
 
 export default class VoodooConversations {
   private client: VoodooClient
@@ -9,5 +10,14 @@ export default class VoodooConversations {
   constructor(client: VoodooClient) {
     this.client = client
     this.v2Mutex = new Mutex()
+  }
+
+  async list(): Promise<VoodooConversation[]> {
+    const release = await this.v2Mutex.acquire()
+    try {
+      return Array.from(this.conversations.values())
+    } finally {
+      release()
+    }
   }
 }
