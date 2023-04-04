@@ -27,20 +27,27 @@ describe('VoodooClient', () => {
     const aliceClient = await Client.createVoodoo(alice, { env: 'local' })
     const bobClient = await Client.createVoodoo(bob, { env: 'local' })
 
-    const aliceMessage = 'Hello Bob'
+    // This gets encoded into a simple VoodooMessage message object
+    // {
+    //   senderAddress: alice.address,
+    //   timestamp: Date.now(),
+    //   content: alicePlaintext,
+    // }
+    const alicePlaintext = 'Hello Bob'
     // Have alice send a message to bob, starting the session and also encrypting it
     const outboundJson = await aliceClient.getOutboundSessionJson(
       // The VoodooContact is looked up from a topic
       bob.address,
-      aliceMessage
+      alicePlaintext
     )
 
     // Have bob receive the initial message, starting the session and also decrypting it
-    const bobInboundPlaintext = await bobClient.processInboundSessionJson(
+    const bobInboundMessage = await bobClient.processInboundSessionJson(
       alice.address,
       outboundJson
     )
 
-    expect(bobInboundPlaintext).toEqual(aliceMessage)
+    expect(bobInboundMessage.content).toEqual(alicePlaintext)
+    expect(bobInboundMessage.senderAddress).toEqual(alice.address)
   })
 })

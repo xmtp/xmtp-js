@@ -23,6 +23,19 @@ export class VoodooContact {
   }
 }
 
+// Very simple message object
+export class VoodooMessage {
+  senderAddress: string
+  timestamp: Date
+  content: string
+
+  constructor(senderAddress: string, timestamp: Date, content: string) {
+    this.senderAddress = senderAddress
+    this.timestamp = timestamp
+    this.content = content
+  }
+}
+
 /**
  * Class that acts as a Client stand-in, but with Voodoo logic
  * - sessions
@@ -71,19 +84,44 @@ export default class VoodooClient {
     }
   }
 
+  // Just returns a VoodooMessage for now, as an intermediate step before
+  // going to JSON -> utf8-encoded bytes
+  createVoodooMessage(content: string): VoodooMessage {
+    return {
+      senderAddress: this.address,
+      timestamp: new Date(),
+      content,
+    }
+  }
+
+  async encodeVoodooMessageToString(message: VoodooMessage): Promise<string> {
+    const json = JSON.stringify(message)
+    return json
+  }
+
+  async decodeVoodooMessageFromString(json: string): Promise<VoodooMessage> {
+    const message = JSON.parse(json)
+    return message
+  }
+
   // Get the JSON from creating an outbound session with a contact
   async getOutboundSessionJson(
     contactAddress: string,
-    initialMessage: string
+    initialPlaintext: string
   ): Promise<string> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
+
+    const initialMessage = this.createVoodooMessage(initialPlaintext)
+
+    const messageJson = await this.encodeVoodooMessageToString(initialMessage)
+
     const outboundObject = await this.voodooInstance.createOutboundSession(
       contactInstance.voodooInstance,
-      initialMessage
+      messageJson
     )
     // outboundTuple should comprise (sessionId, outboundCiphertextJson)
     // TODO: as temporary measure until we export types in xmtpv3_wasm, just
@@ -96,7 +134,7 @@ export default class VoodooClient {
   async processInboundSessionJson(
     contactAddress: string,
     inboundJson: string
-  ): Promise<string> {
+  ): Promise<VoodooMessage> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
@@ -110,7 +148,7 @@ export default class VoodooClient {
     // TODO: as temporary measure until we export types in xmtpv3_wasm, just
     // discard the sessionId for testing
     const inboundPlaintext = inboundResponse.payload
-    return inboundPlaintext
+    return await this.decodeVoodooMessageFromString(inboundPlaintext)
   }
 
   // == Start Client.ts methods ==
