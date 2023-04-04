@@ -27,6 +27,7 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
+import VoodooClient from './voodoo/VoodooClient'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -256,6 +257,26 @@ export default class Client {
     )
     await client.init(options)
     return client
+  }
+
+  /**
+   * Create and start a Voodoo client associated with a given wallet.
+   *
+   * @param wallet the wallet as a Signer instance
+   * @param opts specify how to to connect to the network
+   */
+  static async createVoodoo(
+    wallet: Signer | null,
+    opts?: Partial<ClientOptions>
+  ): Promise<VoodooClient> {
+    const options = defaultOptions(opts)
+    const apiClient = createApiClientFromOptions(options)
+    const keystore = await bootstrapKeystore(options, apiClient, wallet)
+    const publicKeyBundle = new PublicKeyBundle(
+      await keystore.getPublicKeyBundle()
+    )
+    const address = publicKeyBundle.walletSignatureAddress()
+    return await VoodooClient.create(address, apiClient)
   }
 
   /**
