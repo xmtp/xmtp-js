@@ -33,6 +33,7 @@ export default class VoodooConversations {
         this.processInvite.bind(this)
       )
 
+      // TODO: this will need to be updated to handle conversationId's
       for (const convo of newConvosFromInvites) {
         if (convo) {
           this.conversations.set(convo.peerAddress, convo)

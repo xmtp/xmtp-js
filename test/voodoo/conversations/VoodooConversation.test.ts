@@ -30,7 +30,7 @@ describe('conversation', () => {
       await waitForUserContact(bob, bob)
     })
 
-    it('v2 conversation', async () => {
+    it('v3 conversation', async () => {
       expect(await bob.getUserContactFromNetwork(alice.address)).toBeInstanceOf(
         VoodooContact
       )
