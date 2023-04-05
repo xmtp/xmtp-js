@@ -70,16 +70,21 @@ describe('conversation', () => {
 
       // Check that they show up in both inboxes
       const ams2 = await ac.messages()
-      expect(ams2).toHaveLength(3)
-      expect(ams2[0].plaintext).toBe('hi')
-      expect(ams2[1].plaintext).toBe('hi back')
-      expect(ams2[2].plaintext).toBe('hi back to you too')
-
       const bms2 = await bc.messages()
+
+      expect(ams2).toHaveLength(3)
       expect(bms2).toHaveLength(3)
-      expect(bms2[0].plaintext).toBe('hi')
-      expect(bms2[1].plaintext).toBe('hi back')
-      expect(bms2[2].plaintext).toBe('hi back to you too')
+
+      const expected_plaintexts = ['hi', 'hi back', 'hi back to you too']
+      const expected_senders = [alice.address, bob.address, alice.address]
+
+      for (let i = 0; i < 3; i++) {
+        expect(ams2[i].plaintext).toBe(expected_plaintexts[i])
+        expect(ams2[i].plaintext).toBe(bms2[i].plaintext)
+
+        expect(ams2[i].senderAddress).toBe(expected_senders[i])
+        expect(ams2[i].senderAddress).toBe(bms2[i].senderAddress)
+      }
     })
   })
 })
