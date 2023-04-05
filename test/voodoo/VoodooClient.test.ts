@@ -1,6 +1,10 @@
 import assert from 'assert'
 import { newWallet } from '../helpers'
 import Client from '../../src/Client'
+import {
+  VoodooMessage,
+  EncryptedVoodooMessage,
+} from '../../src/voodoo/VoodooClient'
 
 describe('VoodooClient', () => {
   it('can create a client', async () => {
@@ -27,20 +31,29 @@ describe('VoodooClient', () => {
     const aliceClient = await Client.createVoodoo(alice, { env: 'local' })
     const bobClient = await Client.createVoodoo(bob, { env: 'local' })
 
-    const aliceMessage = 'Hello Bob'
+    // This gets encoded into a simple VoodooMessage message object
+    // {
+    //   senderAddress: alice.address,
+    //   timestamp: Date.now(),
+    //   content: alicePlaintext,
+    // }
+    const aliceTopic = 'this_is_a_topic'
     // Have alice send a message to bob, starting the session and also encrypting it
-    const outboundJson = await aliceClient.getOutboundSessionJson(
-      // The VoodooContact is looked up from a topic
-      bob.address,
-      aliceMessage
-    )
+    const encryptedInvite: EncryptedVoodooMessage =
+      await aliceClient.newVoodooInvite(
+        // The VoodooContact is looked up from a topic
+        bob.address,
+        aliceTopic
+      )
 
     // Have bob receive the initial message, starting the session and also decrypting it
-    const bobInboundPlaintext = await bobClient.processInboundSessionJson(
+    const decryptedInvite: VoodooMessage = await bobClient.processVoodooInvite(
       alice.address,
-      outboundJson
+      encryptedInvite
     )
 
-    expect(bobInboundPlaintext).toEqual(aliceMessage)
+    expect(decryptedInvite.sessionId).toEqual(encryptedInvite.sessionId)
+    expect(decryptedInvite.plaintext).toEqual(aliceTopic)
+    expect(decryptedInvite.senderAddress).toEqual(alice.address)
   })
 })

@@ -14,6 +14,10 @@ export const buildVoodooUserInviteTopic = (walletAddr: string): string => {
   return buildContentTopic(`voodoo-invite-${utils.getAddress(walletAddr)}`)
 }
 
+export const buildVoodooDirectMessageTopic = (randomString: string): string => {
+  return buildContentTopic(`m-${randomString}`)
+}
+
 export const buildVoodooUserPrivateStoreTopic = (
   addrPrefixedKey: string
 ): string => {

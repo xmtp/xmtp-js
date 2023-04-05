@@ -1,11 +1,12 @@
 import xmtpv3 from 'xmtpv3_wasm'
 
-import {
-  buildVoodooUserContactTopic,
-  buildVoodooUserInviteTopic,
-} from './utils'
+import { buildVoodooUserContactTopic } from './utils'
+import { EnvelopeMapper } from '../utils'
 import ApiClient, { PublishParams, SortDirection } from '../ApiClient'
-import { fetcher } from '@xmtp/proto'
+import { ListMessagesOptions } from '../Client'
+import { messageApi, fetcher } from '@xmtp/proto'
+
+import { VoodooConversations } from './conversations'
 const { b64Decode } = fetcher
 
 // TODO: this is a hacky wrapper class for a Voodoo contact,
@@ -21,6 +22,32 @@ export class VoodooContact {
     this.address = address
     this.voodooInstance = voodooInstance
   }
+}
+
+// Very simple message object which acts as the message type for all Voodoo envelopes
+export type EncryptedVoodooMessage = {
+  // Plaintext fields
+  senderAddress: string
+  timestamp: number
+  // SessionId may be dropped in the future
+  sessionId: string
+  // Ciphertext fields
+  ciphertext: string
+}
+
+export type VoodooMessage = {
+  // All plaintext fields
+  senderAddress: string
+  timestamp: number
+  plaintext: string
+  // SessionId may be dropped in the future
+  sessionId: string
+}
+
+// TODO: currently mirrored from xmtpv3.ts - should be exported from there
+export type SessionResult = {
+  sessionId: string
+  payload: string
 }
 
 /**
@@ -39,6 +66,7 @@ export default class VoodooClient {
   voodooInstance: any
   apiClient: ApiClient
   wasm: xmtpv3.XMTPWasm
+  conversations: VoodooConversations
 
   constructor(
     address: string,
@@ -50,6 +78,7 @@ export default class VoodooClient {
     this.voodooInstance = voodooInstance
     this.apiClient = apiClient
     this.wasm = wasm
+    this.conversations = new VoodooConversations(this)
   }
 
   static async create(
@@ -71,46 +100,86 @@ export default class VoodooClient {
     }
   }
 
-  // Get the JSON from creating an outbound session with a contact
-  async getOutboundSessionJson(
+  // Create new Voodoo invite
+  async newVoodooInvite(
     contactAddress: string,
-    initialMessage: string
-  ): Promise<string> {
+    topic: string
+  ): Promise<EncryptedVoodooMessage> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const outboundObject = await this.voodooInstance.createOutboundSession(
-      contactInstance.voodooInstance,
-      initialMessage
-    )
-    // outboundTuple should comprise (sessionId, outboundCiphertextJson)
-    // TODO: as temporary measure until we export types in xmtpv3_wasm, just
-    // discard the sessionId for testing
-    const outboundCiphertext = outboundObject.payload
-    return outboundCiphertext
+
+    const outboundSessionResult: SessionResult =
+      await this.voodooInstance.createOutboundSession(
+        contactInstance.voodooInstance,
+        topic
+      )
+    return {
+      senderAddress: this.address,
+      ciphertext: outboundSessionResult.payload,
+      sessionId: outboundSessionResult.sessionId,
+      timestamp: new Date().getTime(),
+    }
   }
 
   // Get the JSON from creating an inbound session
-  async processInboundSessionJson(
+  async processVoodooInvite(
     contactAddress: string,
-    inboundJson: string
-  ): Promise<string> {
+    encryptedInvite: EncryptedVoodooMessage
+  ): Promise<VoodooMessage> {
     // Get the contact info which is just a handle for now
     const contactInstance = await this.getUserContactFromNetwork(contactAddress)
     if (!contactInstance) {
       throw new Error(`No contact info for ${contactAddress}`)
     }
-    const inboundResponse = await this.voodooInstance.createInboundSession(
-      contactInstance.voodooInstance,
-      inboundJson
+    // Need to decode inboundEncryptedVoodooMessageJson
+    const inboundSessionResult: SessionResult =
+      await this.voodooInstance.createInboundSession(
+        contactInstance.voodooInstance,
+        encryptedInvite.ciphertext
+      )
+
+    return {
+      sessionId: inboundSessionResult.sessionId,
+      senderAddress: contactAddress,
+      timestamp: encryptedInvite.timestamp,
+      plaintext: inboundSessionResult.payload,
+    }
+  }
+
+  async decryptMessage(
+    sessionId: string,
+    message: EncryptedVoodooMessage
+  ): Promise<VoodooMessage> {
+    // Decode the message
+    const plaintext = await this.voodooInstance.decryptMessage(
+      sessionId,
+      message.ciphertext
     )
-    // inboundTuple should comprise (sessionId, inboundPlaintext)
-    // TODO: as temporary measure until we export types in xmtpv3_wasm, just
-    // discard the sessionId for testing
-    const inboundPlaintext = inboundResponse.payload
-    return inboundPlaintext
+    return {
+      senderAddress: message.senderAddress,
+      timestamp: message.timestamp,
+      plaintext,
+      sessionId,
+    }
+  }
+
+  async encryptMessage(
+    sessionId: string,
+    plaintext: string
+  ): Promise<EncryptedVoodooMessage> {
+    const ciphertext = await this.voodooInstance.encryptMessage(
+      sessionId,
+      plaintext
+    )
+    return {
+      senderAddress: this.address,
+      timestamp: new Date().getTime(),
+      sessionId,
+      ciphertext,
+    }
   }
 
   // == Start Client.ts methods ==
@@ -166,6 +235,27 @@ export default class VoodooClient {
     ])
   }
 
+  // This takes an Envelope fresh from a topic and decodes it into JSON string (Olm Pickle)
+  async decodeEnvelope(
+    env: messageApi.Envelope
+  ): Promise<EncryptedVoodooMessage> {
+    if (!env.message) {
+      throw new Error('No message in envelope')
+    }
+    const bytes = env.message
+    const jsonAsUtf8Bytes = b64Decode(bytes.toString())
+    return JSON.parse(new TextDecoder().decode(jsonAsUtf8Bytes))
+  }
+
+  async decodeEnvelopeRaw(env: messageApi.Envelope): Promise<string> {
+    if (!env.message) {
+      throw new Error('No message in envelope')
+    }
+    const bytes = env.message
+    const jsonAsUtf8Bytes = b64Decode(bytes.toString())
+    return new TextDecoder().decode(jsonAsUtf8Bytes)
+  }
+
   /**
    * Retrieve a voodoo public identity from given user's contact topic
    * TODO: needs to be reworked as part of public/private key split
@@ -184,14 +274,51 @@ export default class VoodooClient {
       }
       // TODO: need to use more than just the public JSON, need to define a proto or class
       // that includes a signature etc
-      const voodooPublicJson = b64Decode(env.message.toString())
+      const voodooPublicJson = await this.decodeEnvelopeRaw(env)
 
       // TODO: do validation here of the address signature
-      const voodooInstance = this.wasm.addOrGetPublicAccountFromJSON(
-        new TextDecoder().decode(voodooPublicJson)
-      )
+      const voodooInstance =
+        this.wasm.addOrGetPublicAccountFromJSON(voodooPublicJson)
       return new VoodooContact(peerAddress, voodooInstance)
     }
     return undefined
+  }
+
+  /**
+   * List stored messages from the specified topic.
+   *
+   * A specified mapper function will be applied to each envelope.
+   * If the mapper function throws an error during processing, the
+   * envelope will be discarded.
+   */
+  async listEnvelopes<Out>(
+    topic: string,
+    mapper: EnvelopeMapper<Out>,
+    opts?: ListMessagesOptions
+  ): Promise<Out[]> {
+    if (!opts) {
+      opts = {}
+    }
+    const { startTime, endTime, limit } = opts
+
+    const envelopes = await this.apiClient.query(
+      { contentTopic: topic, startTime, endTime },
+      {
+        direction:
+          opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+        limit,
+      }
+    )
+    const results: Out[] = []
+    for (const env of envelopes) {
+      if (!env.message) continue
+      try {
+        const res = await mapper(env)
+        results.push(res)
+      } catch (e) {
+        console.warn('Error in listEnvelopes mapper', e)
+      }
+    }
+    return results
   }
 }
