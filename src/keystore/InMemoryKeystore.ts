@@ -23,10 +23,14 @@ import {
   getKeyMaterial,
   topicDataToConversationReference,
 } from './utils'
-import { nsToDate } from '../utils'
+import { nsToDate, buildDirectMessageTopicV2 } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
+import { sha256 } from 'ethers/lib/utils'
+import { hmacSha256Sign } from '../crypto/ecies'
+import { KDFSaltSize } from '../crypto/Ciphertext'
+import { hkdf, crypto } from '../crypto/encryption'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
@@ -248,9 +252,43 @@ export default class InMemoryKeystore implements Keystore {
           'missing recipient'
         )
       }
-      const invitation = InvitationV1.createRandom(req.context)
+      // const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
       const recipient = toSignedPublicKeyBundle(req.recipient)
+
+      const secret = await this.v2Keys.sharedSecret(
+        recipient,
+        this.v2Keys.getCurrentPreKey().publicKey,
+        false
+      )
+
+      const msg = new TextEncoder().encode(
+        JSON.stringify({
+          conversationId: req.context?.conversationId || '',
+          participants: [
+            this.accountAddress,
+            await recipient.walletSignatureAddress(),
+          ].sort(),
+        })
+      )
+
+      const topic = sha256(
+        await hmacSha256Sign(Buffer.from(secret), Buffer.from(msg))
+      )
+
+      const salt = getRandomValues(new Uint8Array(KDFSaltSize))
+      const derivedKey = await hkdf(secret, salt, true)
+
+      const keyMaterial = new Uint8Array(
+        await crypto.subtle.exportKey('raw', derivedKey)
+      )
+
+      const invitation = new InvitationV1({
+        topic: buildDirectMessageTopicV2(topic),
+        aes256GcmHkdfSha256: { keyMaterial },
+        context: req.context,
+      })
+
       const sealed = await SealedInvitation.createV1({
         sender: this.v2Keys,
         recipient,

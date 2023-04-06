@@ -88,7 +88,7 @@ function getAes(
 const aesCbcEncrypt = getAes('encrypt')
 const aesCbcDecrypt = getAes('decrypt')
 
-async function hmacSha256Sign(key: Buffer, msg: Buffer) {
+export async function hmacSha256Sign(key: Buffer, msg: Buffer) {
   const newKey = await subtle.importKey(
     'raw',
     key,

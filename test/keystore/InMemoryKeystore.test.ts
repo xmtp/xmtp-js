@@ -457,7 +457,13 @@ describe('InMemoryKeystore', () => {
       const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
 
       await Promise.all(
-        shuffled.map((createdAt) => {
+        shuffled.map(async (createdAt) => {
+          let keys = await PrivateKeyBundleV1.generate(newWallet())
+
+          const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+            keys.getPublicKeyBundle()
+          )
+
           return aliceKeystore.createInvite({
             recipient,
             createdNs: dateToNs(createdAt),
