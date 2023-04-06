@@ -46,16 +46,18 @@ export default class VoodooConversation {
     // Append the remaining messages to this.messages.
     // NOTE: Vodozemac can tolerate something like 2000 messages out-of-order
     // by accelerating the ratchet and storing skipped message keys in a buffer
-    const decryptedMessages = await newMessages.map(async (m) => {
+    const decryptedMessages = newMessages.map(async (m) => {
       try {
         // Decode the envelope
         const encryptedVoodooMessage = await this.client.decodeEnvelope(m)
-        const decryptedMessage = await this.client.decryptMessage(
-          this.sessionId,
-          encryptedVoodooMessage
-        )
-        if (decryptedMessage) {
-          return decryptedMessage
+        if (encryptedVoodooMessage.senderAddress !== this.clientAddress) {
+          const decryptedMessage = await this.client.decryptMessage(
+            this.sessionId,
+            encryptedVoodooMessage
+          )
+          if (decryptedMessage) {
+            return decryptedMessage
+          }
         }
       } catch (e) {
         console.log('Failed to decrypt message', e)
