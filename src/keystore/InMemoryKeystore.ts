@@ -262,18 +262,16 @@ export default class InMemoryKeystore implements Keystore {
         false
       )
 
-      const msg = new TextEncoder().encode(
-        JSON.stringify({
-          conversationId: req.context?.conversationId || '',
-          participants: [
-            this.accountAddress,
-            await recipient.walletSignatureAddress(),
-          ].sort(),
-        })
-      )
+      const msgString =
+        (req.context?.conversationId || '') +
+        [this.accountAddress, await recipient.walletSignatureAddress()]
+          .sort()
+          .join()
+
+      const msgBytes = new TextEncoder().encode(msgString)
 
       const topic = sha256(
-        await hmacSha256Sign(Buffer.from(secret), Buffer.from(msg))
+        await hmacSha256Sign(Buffer.from(secret), Buffer.from(msgBytes))
       )
 
       const salt = getRandomValues(new Uint8Array(KDFSaltSize))
