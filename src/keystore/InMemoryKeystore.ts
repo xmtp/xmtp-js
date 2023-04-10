@@ -361,4 +361,10 @@ export default class InMemoryKeystore implements Keystore {
     }
     return this.accountAddress
   }
+
+  // This method is not defined as part of the standard Keystore API, but is available
+  // on the InMemoryKeystore to support legacy use-cases.
+  lookupTopic(topic: string) {
+    return this.inviteStore.lookup(topic)
+  }
 }

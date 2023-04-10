@@ -518,4 +518,32 @@ describe('InMemoryKeystore', () => {
       expect(aliceAddress).toEqual(returnedAddress)
     })
   })
+
+  describe('lookupTopic', () => {
+    it('looks up a topic that exists', async () => {
+      const { created, sealed, invite } = await buildInvite()
+
+      const sealedBytes = sealed.toBytes()
+      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
+
+      const {
+        responses: [aliceResponse],
+      } = await aliceKeystore.saveInvites({
+        requests: [envelope],
+      })
+      if (aliceResponse.error) {
+        throw aliceResponse
+      }
+
+      const lookupResult = aliceKeystore.lookupTopic(invite.topic)
+      expect(lookupResult?.invitation.aes256GcmHkdfSha256?.keyMaterial).toEqual(
+        invite.aes256GcmHkdfSha256.keyMaterial
+      )
+    })
+
+    it('returns undefined for non-existent topic', async () => {
+      const lookupResult = aliceKeystore.lookupTopic('foo')
+      expect(lookupResult).toBeUndefined()
+    })
+  })
 })
