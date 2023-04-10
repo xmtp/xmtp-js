@@ -3,6 +3,7 @@ import {
   buildDirectMessageTopic,
   dateToNs,
   nsToDate,
+  toNanoString,
 } from '../utils'
 import { utils } from 'ethers'
 import { DecodedMessage } from './../Message'
@@ -242,13 +243,13 @@ export class ConversationV1 {
     } else {
       topics = [this.topic]
     }
-    const contentType = options?.contentType || ContentTypeText
+
     const msg = await this.encodeMessage(content, recipient, options)
 
-    const env = {
+    const env: Envelope = {
       contentTopic: this.topic,
       message: msg.toBytes(),
-      timestamp: msg.sent,
+      timestampNs: toNanoString(msg.sent),
     }
 
     return new PreparedMessage(env, async () => {
@@ -631,10 +632,10 @@ export class ConversationV2 {
   ): Promise<PreparedMessage> {
     const msg = await this.encodeMessage(content, options)
 
-    const env = {
+    const env: Envelope = {
       contentTopic: this.topic,
       message: msg.toBytes(),
-      timestamp: msg.sent,
+      timestampNs: toNanoString(msg.sent),
     }
 
     return new PreparedMessage(env, async () => {
