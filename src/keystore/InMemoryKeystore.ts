@@ -255,7 +255,6 @@ export default class InMemoryKeystore implements Keystore {
           'missing recipient'
         )
       }
-      // const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
       const recipient = toSignedPublicKeyBundle(req.recipient)
 
