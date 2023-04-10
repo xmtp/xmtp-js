@@ -33,6 +33,9 @@ import { KDFSaltSize } from '../crypto/Ciphertext'
 import { hkdf, crypto } from '../crypto/encryption'
 const { ErrorCode } = keystore
 
+// Constant 32 byte salt
+const inviteSalt = new TextEncoder().encode('This is my salt for your invite.')
+
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
@@ -274,8 +277,7 @@ export default class InMemoryKeystore implements Keystore {
         await hmacSha256Sign(Buffer.from(secret), Buffer.from(msgBytes))
       )
 
-      const salt = getRandomValues(new Uint8Array(KDFSaltSize))
-      const derivedKey = await hkdf(secret, salt, true)
+      const derivedKey = await hkdf(secret, inviteSalt, true)
 
       const keyMaterial = new Uint8Array(
         await crypto.subtle.exportKey('raw', derivedKey)
