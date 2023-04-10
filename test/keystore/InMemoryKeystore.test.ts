@@ -444,9 +444,6 @@ describe('InMemoryKeystore', () => {
 
   describe('getV2Conversations', () => {
     it('correctly sorts conversations', async () => {
-      const recipient = SignedPublicKeyBundle.fromLegacyBundle(
-        bobKeys.getPublicKeyBundle()
-      )
       const baseTime = new Date()
       const timestamps = Array.from(
         { length: 25 },
@@ -479,6 +476,39 @@ describe('InMemoryKeystore', () => {
         expect(convos[i].createdNs.greaterThanOrEqual(lastCreated)).toBeTruthy()
         lastCreated = convos[i].createdNs
       }
+    })
+
+    it('uses deterministic topic', async () => {
+      const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+        bobKeys.getPublicKeyBundle()
+      )
+      const baseTime = new Date()
+      const timestamps = Array.from(
+        { length: 25 },
+        (_, i) => new Date(baseTime.getTime() + i)
+      )
+
+      // Shuffle the order they go into the store
+      const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
+
+      await Promise.all(
+        shuffled.map(async (createdAt) => {
+          return aliceKeystore.createInvite({
+            recipient,
+            createdNs: dateToNs(createdAt),
+            context: undefined,
+          })
+        })
+      )
+
+      const convos = await aliceKeystore.getV2Conversations()
+
+      // Ensure all the convos have the same topic
+      expect(
+        convos.filter((value, index, array) => {
+          return array.indexOf(value) === index
+        })
+      ).toHaveLength(1)
     })
 
     it('works with persistence', async () => {})
