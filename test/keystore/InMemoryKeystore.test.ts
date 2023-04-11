@@ -17,6 +17,7 @@ import { dateToNs, nsToDate } from '../../src/utils/date'
 import { LocalStoragePersistence } from '../../src/keystore/persistence'
 import Token from '../../src/authn/Token'
 import Long from 'long'
+import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -491,24 +492,29 @@ describe('InMemoryKeystore', () => {
       // Shuffle the order they go into the store
       const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
 
+      const responses: CreateInviteResponse[] = []
       await Promise.all(
         shuffled.map(async (createdAt) => {
-          return aliceKeystore.createInvite({
+          const response = await aliceKeystore.createInvite({
             recipient,
             createdNs: dateToNs(createdAt),
             context: undefined,
           })
+
+          responses.push(response)
+
+          return response
         })
       )
 
-      const convos = await aliceKeystore.getV2Conversations()
+      const firstResponse: CreateInviteResponse = responses[0]
+      const topicName = firstResponse.conversation!.topic
 
-      // Ensure all the convos have the same topic
       expect(
-        convos.filter((value, index, array) => {
-          return array.indexOf(value) === index
+        responses.filter((response, index, array) => {
+          return response.conversation!.topic === topicName
         })
-      ).toHaveLength(1)
+      ).toHaveLength(25)
     })
 
     it('works with persistence', async () => {})
