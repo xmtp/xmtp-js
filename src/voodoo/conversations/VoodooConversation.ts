@@ -1,4 +1,5 @@
-import VoodooClient, { VoodooMessage } from '../VoodooClient'
+import VoodooClient from '../VoodooClient'
+import { VoodooMessage } from '../types'
 import Stream from '../../Stream'
 import { messageApi } from '@xmtp/proto'
 

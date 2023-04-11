@@ -1,5 +1,6 @@
 import { ClientOptions, Client } from '../../src'
-import VoodooClient, { VoodooContact } from '../../src/voodoo/VoodooClient'
+import VoodooClient from '../../src/voodoo/VoodooClient'
+import { VoodooContact } from '../../src/voodoo/types'
 import { pollFor, newWallet } from '../helpers'
 import assert from 'assert'
 

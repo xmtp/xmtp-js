@@ -7,9 +7,9 @@ import {
   ContentTypeText,
 } from '../../../src'
 import {
-  VoodooContact,
   default as VoodooClient,
 } from '../../../src/voodoo/VoodooClient'
+import { VoodooContact } from '../../../src/voodoo/types'
 import {
   VoodooConversation,
   VoodooConversations,

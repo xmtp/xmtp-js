@@ -4,7 +4,7 @@ import Client from '../../src/Client'
 import {
   VoodooMessage,
   EncryptedVoodooMessage,
-} from '../../src/voodoo/VoodooClient'
+} from '../../src/voodoo/types'
 
 describe('VoodooClient', () => {
   it('can create a client', async () => {
