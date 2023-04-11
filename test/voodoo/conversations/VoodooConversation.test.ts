@@ -133,31 +133,18 @@ describe('conversation', () => {
         expect(bms[0].plaintext).toBe('hi')
       }
 
-      /*
-      // Blast a few more messages from both sides
-      await bc.send('hi back')
-      await sleep(100)
-      await ac.send('hi back to you too')
-      await sleep(100)
-
-      // Check that they show up in both inboxes
-      const ams2 = await ac.messages()
-      const bms2 = await bc.messages()
-
-      expect(ams2).toHaveLength(3)
-      expect(bms2).toHaveLength(3)
-
-      const expected_plaintexts = ['hi', 'hi back', 'hi back to you too']
-      const expected_senders = [alice.address, bob.address, alice.address]
-
-      for (let i = 0; i < 3; i++) {
-        expect(ams2[i].plaintext).toBe(expected_plaintexts[i])
-        expect(ams2[i].plaintext).toBe(bms2[i].plaintext)
-
-        expect(ams2[i].senderAddress).toBe(expected_senders[i])
-        expect(ams2[i].senderAddress).toBe(bms2[i].senderAddress)
+      // Send a message from each bob with bob index
+      for (const [i, bc] of bobConvos.entries()) {
+        await bc.send('hi back: ' + i)
+        await sleep(100)
       }
-      */
+
+      // Expect Alice to have 6 messages
+      const ams2 = await ac.messages()
+      expect(ams2).toHaveLength(6)
+      for (let i = 1; i < 6; i++) {
+        expect(ams2[i].plaintext).toBe('hi back: ' + (i - 1))
+      }
     })
   })
 })
