@@ -25,15 +25,13 @@ describe('conversation', () => {
   let bob: VoodooClient
 
   describe('voodoo', () => {
-    beforeEach(async () => {
+    /*
+    it('v3 conversation', async () => {
       alice = await newLocalHostVoodooClient()
       bob = await newLocalHostVoodooClient()
       await waitForUserContact(alice, alice)
       await waitForUserContact(bob, bob)
-    })
 
-    /*
-    it('v3 conversation', async () => {
       expect(await bob.getUserContactFromNetwork(alice.address)).toBeInstanceOf(
         VoodooContact
       )
@@ -92,15 +90,14 @@ describe('conversation', () => {
     */
 
     it('1 to N fanout', async () => {
+      // Setup alice
+      alice = await newLocalHostVoodooClient()
+      await waitForUserContact(alice, alice)
       // Create 5 bob clients
       const allBobs = await multipleLocalHostVoodooClients(5)
-      expect(await bob.getUserContactFromNetwork(alice.address)).toBeInstanceOf(
-        VoodooContact
-      )
-      expect(await alice.getUserContactFromNetwork(bob.address)).toBeInstanceOf(
-        VoodooContact
-      )
-
+      expect(
+        await alice.getUserContactFromNetwork(alice.address)
+      ).toBeInstanceOf(VoodooContact)
       // Wait for all of the bobs to have published their contact bundles
       for (const b of allBobs) {
         await waitForUserContact(alice, b)

@@ -57,7 +57,7 @@ export default class VoodooClient {
     apiClient: ApiClient
   ): Promise<VoodooClient> {
     const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
-    // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
+    // TODO: STARTINGTASK: this just creates unused voodoo keys that hang out in memory ephemerally
     const myVoodoo = xmtpWasm.newVoodooInstance()
     const client = new VoodooClient(address, myVoodoo, apiClient, xmtpWasm)
     await client.ensureUserContactPublished()
@@ -71,17 +71,11 @@ export default class VoodooClient {
     }
   }
 
-  // Create new Voodoo invite
-  async newVoodooInvite(
-    contactAddress: string,
+  // Create a new Voodoo invite (vmac outbound session with plaintext = topic) for a contact
+  async newVoodooInviteForContact(
+    contactInstance: VoodooContact,
     topic: string
   ): Promise<EncryptedVoodooMessage> {
-    // Get the contact info which is just a handle for now
-    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
-    if (!contactInstance) {
-      throw new Error(`No contact info for ${contactAddress}`)
-    }
-
     const outboundSessionResult: SessionResult =
       await this.voodooInstance.createOutboundSession(
         contactInstance.voodooInstance,
@@ -93,6 +87,20 @@ export default class VoodooClient {
       sessionId: outboundSessionResult.sessionId,
       timestamp: new Date().getTime(),
     }
+  }
+
+  // Create new Voodoo invite with lookup
+  // NOTE: deprecated for NxN fanout
+  async newVoodooInvite(
+    contactAddress: string,
+    topic: string
+  ): Promise<EncryptedVoodooMessage> {
+    // Get the contact info which is just a handle for now
+    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
+    if (!contactInstance) {
+      throw new Error(`No contact info for ${contactAddress}`)
+    }
+    return this.newVoodooInviteForContact(contactInstance, topic)
   }
 
   // Get the JSON from creating an inbound session

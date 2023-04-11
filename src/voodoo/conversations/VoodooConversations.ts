@@ -155,7 +155,10 @@ export default class VoodooConversations {
 
     // Create an outbound session with { sessionId: string, paylaod: string (encoded Olm PreKey Message) }
     const encryptedInvite: EncryptedVoodooMessage =
-      await this.client.newVoodooInvite(peerAddress, generatedSessionTopic)
+      await this.client.newVoodooInviteForContact(
+        contact,
+        generatedSessionTopic
+      )
 
     if (!encryptedInvite) {
       throw new Error('Could not create outbound session')
