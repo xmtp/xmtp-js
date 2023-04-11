@@ -3,19 +3,6 @@ import { VoodooMessage, VoodooMultiBundle, VoodooMultiSession } from '../types'
 import Stream from '../../Stream'
 import { messageApi } from '@xmtp/proto'
 
-// export type VoodooMultiSession = {
-//   // The address of the user
-//   address: string
-//   // Keep the multi bundle around for convenience
-//   multiBundle: VoodooMultiBundle
-//   // Session ids in the same order as the contacts
-//   sessionIds: string[]
-//   // Messages per session, so map sessionId to list of messages
-//   messages: Map<string, VoodooMessage[]>
-//   // Topics per session
-//   topics: string[]
-// }
-
 export default class VoodooConversation {
   peerAddress: string
   createdAt: number
