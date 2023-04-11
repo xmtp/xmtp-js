@@ -9,7 +9,7 @@ import {
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
-import { Compression, getRandomValues, Signer } from '../src'
+import { Compression, Signer } from '../src'
 import { content as proto } from '@xmtp/proto'
 import { InMemoryKeystore } from '../src/keystore'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'

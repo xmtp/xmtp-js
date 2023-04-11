@@ -28,13 +28,7 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
     fallback: {
-      assert: false,
       crypto: false,
-      stream: false,
-      constants: false,
-      fs: false,
-      path: false,
-      util: false,
     },
   },
 }

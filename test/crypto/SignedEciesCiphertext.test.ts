@@ -1,7 +1,8 @@
 import { PrivateKeyBundleV1, SignedEciesCiphertext } from '../../src/crypto'
 import { newWallet } from '../helpers'
 import { encrypt, decrypt, getPublic } from '../../src/crypto/ecies'
-import { equalBytes, getRandomValues } from '../../src/crypto/utils'
+import { equalBytes } from '../../src/crypto/utils'
+import crypto from '../../src/crypto/crypto'
 
 describe('SignedEciesCiphertext', () => {
   let bundle: PrivateKeyBundleV1
@@ -53,7 +54,7 @@ describe('SignedEciesCiphertext', () => {
       Buffer.from(rawData)
     )
 
-    const badInput = getRandomValues(new Uint8Array(11))
+    const badInput = crypto.getRandomValues(new Uint8Array(11))
 
     expect(
       SignedEciesCiphertext.create(

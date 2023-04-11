@@ -1,3 +1,4 @@
+import crypto from '../src/crypto/crypto'
 import { InvitationV1 } from './../src/Invitation'
 import { PrivateKeyBundleV2 } from './../src/crypto/PrivateKeyBundle'
 import {
@@ -6,7 +7,6 @@ import {
   SealedInvitationHeaderV1,
 } from '../src/Invitation'
 import { newWallet } from './helpers'
-import { crypto } from '../src/crypto/encryption'
 import Long from 'long'
 import Ciphertext from '../src/crypto/Ciphertext'
 import { NoMatchingPreKeyError } from '../src/crypto/errors'
