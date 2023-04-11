@@ -29,8 +29,7 @@ import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
 import { sha256 } from 'ethers/lib/utils'
 import { hmacSha256Sign } from '../crypto/ecies'
-import { KDFSaltSize } from '../crypto/Ciphertext'
-import { hkdf, crypto } from '../crypto/encryption'
+import crypto from '../crypto/crypto'
 const { ErrorCode } = keystore
 
 // Constant 32 byte salt
