@@ -111,4 +111,12 @@ describe('NetworkKeyManager', () => {
     )
     expect(shouldBeDefined).toBeInstanceOf(PrefixedPersistence)
   })
+
+  it('calls notifier on store', async () => {
+    const mockNotifier = jest.fn()
+    const manager = new NetworkKeyManager(wallet, persistence, mockNotifier)
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
+    await manager.storePrivateKeyBundle(bundle)
+    expect(mockNotifier).toHaveBeenCalledTimes(1)
+  })
 })

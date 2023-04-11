@@ -63,6 +63,7 @@ export type SendOptions = {
 }
 
 export type XmtpEnv = keyof typeof ApiUrls
+export type PreEventNotifier = () => Promise<void>
 
 /**
  * Network startup options
@@ -141,12 +142,35 @@ export type LegacyOptions = {
   publishLegacyContact?: boolean
 }
 
+export type PreEventNotifierOptions = {
+  /**
+   * preCreateIdentityNotifier will be called immediately before a Create Identity
+   * wallet signature is requested from the user.
+   *
+   * The provided function must return a Promise and will be awaited, allowing the
+   * developer to update the UI or insert a required delay before requesting a signature.
+   */
+  preCreateIdentityNotifier?: PreEventNotifier
+  /**
+   * preEnableIdentityNotifier will be called immediately before an Enable Identity
+   * wallet signature is requested from the user.
+   *
+   * The provided function must return a Promise and will be awaited, allowing the
+   * developer to update the UI or insert a required delay before requesting a signature.
+   */
+  preEnableIdentityNotifier?: PreEventNotifier
+}
+
 /**
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
 export type ClientOptions = Flatten<
-  NetworkOptions & KeyStoreOptions & ContentOptions & LegacyOptions
+  NetworkOptions &
+    KeyStoreOptions &
+    ContentOptions &
+    LegacyOptions &
+    PreEventNotifierOptions
 >
 
 /**

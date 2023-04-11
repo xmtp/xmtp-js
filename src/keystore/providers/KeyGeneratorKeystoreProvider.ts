@@ -25,6 +25,9 @@ export default class KeyGeneratorKeystoreProvider implements KeystoreProvider {
         'Wallet required to generate new keys'
       )
     }
+    if (opts.preCreateIdentityNotifier) {
+      await opts.preCreateIdentityNotifier()
+    }
     const bundle = await PrivateKeyBundleV1.generate(wallet)
     const manager = new NetworkKeyManager(
       wallet,

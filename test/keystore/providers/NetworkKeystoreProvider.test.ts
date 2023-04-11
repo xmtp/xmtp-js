@@ -79,4 +79,21 @@ describe('NetworkKeystoreProvider', () => {
     )
     expect(keystore).toBeDefined()
   })
+
+  it('correctly calls notifier on load', async () => {
+    const manager = new NetworkKeyManager(
+      wallet,
+      new TopicPersistence(apiClient)
+    )
+    await manager.storePrivateKeyBundle(bundle)
+
+    const provider = new NetworkKeystoreProvider()
+    const mockNotifier = jest.fn()
+    await provider.newKeystore(
+      { ...testProviderOptions(), preEnableIdentityNotifier: mockNotifier },
+      apiClient,
+      wallet
+    )
+    expect(mockNotifier).toHaveBeenCalledTimes(1)
+  })
 })
