@@ -239,7 +239,7 @@ export default class VoodooClient {
     )
 
     // Get a list of all valid contacts
-    let listContacts: VoodooContact[] = []
+    const listContacts: VoodooContact[] = []
 
     for await (const env of stream) {
       if (!env.message) {

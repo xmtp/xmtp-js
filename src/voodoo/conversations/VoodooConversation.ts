@@ -1,29 +1,50 @@
 import VoodooClient from '../VoodooClient'
-import { VoodooMessage } from '../types'
+import { VoodooMessage, VoodooMultiBundle, VoodooMultiSession } from '../types'
 import Stream from '../../Stream'
 import { messageApi } from '@xmtp/proto'
 
+// export type VoodooMultiSession = {
+//   // The address of the user
+//   address: string
+//   // Keep the multi bundle around for convenience
+//   multiBundle: VoodooMultiBundle
+//   // Session ids in the same order as the contacts
+//   sessionIds: string[]
+//   // Messages per session, so map sessionId to list of messages
+//   messages: Map<string, VoodooMessage[]>
+//   // Topics per session
+//   topics: string[]
+// }
+
 export default class VoodooConversation {
   peerAddress: string
-  // Vodozemac session ID
-  sessionId: string
-  topic: string
   createdAt: number
+  multiSession: VoodooMultiSession
   private client: VoodooClient
-  _messages: VoodooMessage[] = []
 
   constructor(
     client: VoodooClient,
-    sessionId: string,
-    topic: string,
     peerAddress: string,
-    createdAt: number
+    createdAt: number,
+    multibundle: VoodooMultiBundle,
+    sessionIds: string[],
+    topics: string[]
   ) {
     this.client = client
-    this.sessionId = sessionId
-    this.topic = topic
     this.peerAddress = peerAddress
     this.createdAt = createdAt
+    const messages = new Map<string, VoodooMessage[]>()
+    sessionIds.forEach((sessionId) => {
+      messages.set(sessionId, [])
+    })
+    this.multiSession = {
+      address: multibundle.address,
+      multiBundle: multibundle,
+      sessionIds,
+      messages,
+      myMessages: [],
+      topics,
+    }
   }
 
   get clientAddress(): string {
@@ -34,10 +55,13 @@ export default class VoodooConversation {
   // decrypt already decrypted messages since ratchet state has progressed
   // so we must check if we have new messages, then combine them with the existing
   // this.messages list
-  async messages(): Promise<VoodooMessage[]> {
+  private async messagesPerSession(
+    topic: string,
+    sessionId: string
+  ): Promise<VoodooMessage[]> {
     // Check for new messages
     const newMessages = await this.client.listEnvelopes(
-      this.topic,
+      topic,
       this.processEnvelope.bind(this)
     )
 
@@ -52,7 +76,7 @@ export default class VoodooConversation {
         // Decode the envelope
         const encryptedVoodooMessage = await this.client.decodeEnvelope(m)
         const decryptedMessage = await this.client.decryptMessage(
-          this.sessionId,
+          sessionId,
           encryptedVoodooMessage
         )
         if (decryptedMessage) {
@@ -66,30 +90,62 @@ export default class VoodooConversation {
     // Wait for all promises in decryptedMessages to resolve
     const results = await Promise.all(decryptedMessages)
 
+    let messages = this.multiSession.messages.get(sessionId)
+    if (!messages) {
+      messages = []
+    }
+
     for (const m of results) {
       if (m) {
-        this._messages.push(m)
+        messages.push(m)
       }
     }
     // Sort all messages
-    this._messages.sort((a: VoodooMessage, b: VoodooMessage) => {
+    messages.sort((a: VoodooMessage, b: VoodooMessage) => {
       return a.timestamp - b.timestamp
     })
-    return this._messages
+    this.multiSession.messages.set(sessionId, messages)
+    return messages
+  }
+
+  // Provides an aggregated and sorted list of messages for all of the device sessions
+  async messages(): Promise<VoodooMessage[]> {
+    // Go through and call messagesPerSession for each session
+    let allMessages: VoodooMessage[] = []
+    for (let i = 0; i < this.multiSession.sessionIds.length; i++) {
+      const sessionId = this.multiSession.sessionIds[i]
+      const topic = this.multiSession.topics[i]
+      const messages = await this.messagesPerSession(topic, sessionId)
+      allMessages = allMessages.concat(messages)
+    }
+
+    // Add in myMessages
+    allMessages = allMessages.concat(this.multiSession.myMessages)
+
+    // Sort allMessages
+    allMessages.sort((a: VoodooMessage, b: VoodooMessage) => {
+      return a.timestamp - b.timestamp
+    })
+    return allMessages
   }
 
   streamMessages(): Promise<Stream<VoodooMessage>> {
     throw new Error('Method not implemented.')
   }
 
-  async send(content: string): Promise<VoodooMessage> {
+  // TODO: we should unify on same timestamp for all messages, can rework encryptMessage for this later
+  private async sendToSession(
+    topic: string,
+    sessionId: string,
+    content: string
+  ): Promise<VoodooMessage> {
     const encryptedVoodooMessage = await this.client.encryptMessage(
-      this.sessionId,
+      sessionId,
       content
     )
     await this.client.publishEnvelopes([
       {
-        contentTopic: this.topic,
+        contentTopic: topic,
         message: Buffer.from(JSON.stringify(encryptedVoodooMessage)),
       },
     ])
@@ -99,7 +155,23 @@ export default class VoodooConversation {
       timestamp: encryptedVoodooMessage.timestamp,
       plaintext: content,
     }
-    this._messages.push(sentMessage)
+    return sentMessage
+  }
+
+  // Uses sendToSession on all sessions, appends sent messages to this.multiSession.myMessages
+  async send(content: string): Promise<VoodooMessage> {
+    // Go through and call sendToSession for each session
+    let sentMessage: VoodooMessage | undefined
+    for (let i = 0; i < this.multiSession.sessionIds.length; i++) {
+      const sessionId = this.multiSession.sessionIds[i]
+      const topic = this.multiSession.topics[i]
+      sentMessage = await this.sendToSession(topic, sessionId, content)
+    }
+    if (!sentMessage) {
+      throw new Error('Failed to send message')
+    }
+    // Only push the message once
+    this.multiSession.myMessages.push(sentMessage)
     return sentMessage
   }
 
