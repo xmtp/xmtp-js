@@ -289,9 +289,9 @@ export default class InMemoryKeystore implements Keystore {
 
       const msgBytes = new TextEncoder().encode(msgString)
 
-      const topic = sha256(
+      const topic = (
         await hmacSha256Sign(Buffer.from(secret), Buffer.from(msgBytes))
-      )
+      ).toString()
 
       const infoString = [
         '0', // sequence number
