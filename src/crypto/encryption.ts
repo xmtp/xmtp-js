@@ -73,8 +73,7 @@ function aesGcmParams(
 // Returns crypto.CryptoKey suitable for the encrypt/decrypt API
 export async function hkdf(
   secret: Uint8Array,
-  salt: Uint8Array,
-  extractable = false
+  salt: Uint8Array
 ): Promise<CryptoKey> {
   const key = await crypto.subtle.importKey('raw', secret, 'HKDF', false, [
     'deriveKey',
@@ -83,7 +82,7 @@ export async function hkdf(
     { name: 'HKDF', hash: 'SHA-256', salt, info: hkdfNoInfo },
     key,
     { name: 'AES-GCM', length: 256 },
-    extractable,
+    false,
     ['encrypt', 'decrypt']
   )
 }

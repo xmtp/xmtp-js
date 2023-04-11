@@ -36,6 +36,22 @@ const { ErrorCode } = keystore
 // Constant 32 byte salt
 const inviteSalt = new TextEncoder().encode('This is my salt for your invite.')
 
+async function deriveKey(
+  secret: Uint8Array,
+  info: Uint8Array
+): Promise<CryptoKey> {
+  const key = await crypto.subtle.importKey('raw', secret, 'HKDF', false, [
+    'deriveKey',
+  ])
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: inviteSalt, info },
+    key,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  )
+}
+
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
@@ -264,11 +280,13 @@ export default class InMemoryKeystore implements Keystore {
         false
       )
 
+      const sortedAddresses = [
+        this.accountAddress,
+        await recipient.walletSignatureAddress(),
+      ].sort()
+
       const msgString =
-        (req.context?.conversationId || '') +
-        [this.accountAddress, await recipient.walletSignatureAddress()]
-          .sort()
-          .join()
+        (req.context?.conversationId || '') + sortedAddresses.join()
 
       const msgBytes = new TextEncoder().encode(msgString)
 
@@ -276,7 +294,12 @@ export default class InMemoryKeystore implements Keystore {
         await hmacSha256Sign(Buffer.from(secret), Buffer.from(msgBytes))
       )
 
-      const derivedKey = await hkdf(secret, inviteSalt, true)
+      const infoString = [
+        '0', // sequence number
+        ...sortedAddresses,
+      ].join('|')
+      const info = new TextEncoder().encode(infoString)
+      const derivedKey = await deriveKey(secret, info)
 
       const keyMaterial = new Uint8Array(
         await crypto.subtle.exportKey('raw', derivedKey)
