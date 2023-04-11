@@ -31,6 +31,11 @@ export default class VoodooConversations {
     try {
       // Check for new conversations in our invite topic
       const inviteTopic = buildVoodooUserInviteTopic(this.client.address)
+      const rawInvites = await this.client.listEnvelopes(
+        inviteTopic,
+        async (e) => e
+      )
+      console.log('Got raw invites', rawInvites)
       const sessionsFromInvites = await this.client.listEnvelopes(
         inviteTopic,
         this.processInvite.bind(this)
@@ -82,26 +87,33 @@ export default class VoodooConversations {
   async processInvite(
     env: messageApi.Envelope
   ): Promise<OneToOneSession | undefined> {
+    console.log(`Processing invite envelope: ${env}`)
     const encryptedInvite: EncryptedVoodooMessage =
       await this.client.decodeEnvelope(env)
     const peerAddress = encryptedInvite.senderAddress
     // Check if we have a session for this peer
     if (this.conversations.has(peerAddress)) {
       // Return undefined so nothing is added to the map
+      console.log(`Already have a conversation with ${peerAddress}`)
       return
     }
 
-    const decryptedInvite: VoodooMessage =
-      await this.client.processVoodooInvite(peerAddress, encryptedInvite)
-    if (decryptedInvite) {
-      return {
-        senderAddress: decryptedInvite.senderAddress,
-        recipientAddress: this.client.address,
-        sessionId: decryptedInvite.sessionId,
-        // the plaintext of the invite message is the new convo topic
-        topic: decryptedInvite.plaintext,
-        timestamp: decryptedInvite.timestamp,
+    try {
+      const decryptedInvite: VoodooMessage =
+        await this.client.processVoodooInvite(peerAddress, encryptedInvite)
+      if (decryptedInvite) {
+        console.log(`Decrypted invite from ${peerAddress}`)
+        return {
+          senderAddress: decryptedInvite.senderAddress,
+          recipientAddress: this.client.address,
+          sessionId: decryptedInvite.sessionId,
+          // the plaintext of the invite message is the new convo topic
+          topic: decryptedInvite.plaintext,
+          timestamp: decryptedInvite.timestamp,
+        }
       }
+    } catch (e) {
+      console.log(`Error processing invite from ${peerAddress}: ${e}`)
     }
   }
 

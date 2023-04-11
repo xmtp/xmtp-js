@@ -13,6 +13,18 @@ export const newLocalHostVoodooClient = (
     ...opts,
   })
 
+// Used to simulate multiple clients with the same wallet
+export const multipleLocalHostVoodooClients = async (
+  n: number,
+  opts?: Partial<ClientOptions>
+): Promise<VoodooClient[]> => {
+  const wallet = newWallet()
+  return Client.createVoodooMulti(n, newWallet(), {
+    env: 'local',
+    ...opts,
+  })
+}
+
 export async function waitForUserContact(
   c1: VoodooClient,
   c2: VoodooClient

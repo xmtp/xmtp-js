@@ -186,8 +186,12 @@ export default class VoodooClient {
 
   private async ensureUserContactPublished(): Promise<void> {
     const bundle = await this.getUserContactFromNetwork(this.address)
-    // TODO: validate the bundle, not just check for presence
-    if (bundle) {
+    // NOTE: other devices for this wallet could have published bundles, this is expected
+    // TODO: we only avoid republishing our own bundle if the account is the same
+    if (!!bundle && bundle.voodooInstance === this.voodooInstance) {
+      console.log('Bundle account: ', bundle.voodooInstance)
+      console.log('This account: ', this.voodooInstance)
+      console.log('Skipping publishing user contact')
       return
     }
     await this.publishUserContact()
@@ -254,6 +258,7 @@ export default class VoodooClient {
         this.wasm.addOrGetPublicAccountFromJSON(voodooPublicJson)
       listContacts.push(new VoodooContact(peerAddress, voodooInstance))
     }
+    console.log(`Found ${listContacts.length} contacts for ${peerAddress}`)
     return {
       address: peerAddress,
       contacts: listContacts,
