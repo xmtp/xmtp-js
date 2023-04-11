@@ -7,7 +7,12 @@ import { ListMessagesOptions } from '../Client'
 import { messageApi, fetcher } from '@xmtp/proto'
 
 import { VoodooConversations } from './conversations'
-import { VoodooContact, EncryptedVoodooMessage, VoodooMessage } from './types'
+import {
+  VoodooContact,
+  EncryptedVoodooMessage,
+  VoodooMessage,
+  VoodooMultiBundle,
+} from './types'
 const { b64Decode } = fetcher
 
 // TODO: currently mirrored from xmtpv3.ts - should be exported from there
@@ -220,6 +225,40 @@ export default class VoodooClient {
     const bytes = env.message
     const jsonAsUtf8Bytes = b64Decode(bytes.toString())
     return new TextDecoder().decode(jsonAsUtf8Bytes)
+  }
+
+  /**
+   * Retrieves all the user contact bundles for a given peer address
+   */
+  async getUserContactMultiBundle(
+    peerAddress: string
+  ): Promise<VoodooMultiBundle | undefined> {
+    const stream = this.apiClient.queryIterator(
+      { contentTopic: buildVoodooUserContactTopic(peerAddress) },
+      { pageSize: 25, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+    )
+
+    // Get a list of all valid contacts
+    let listContacts: VoodooContact[] = []
+
+    for await (const env of stream) {
+      if (!env.message) {
+        continue
+      }
+      // TODO: need to use more than just the public JSON, need to define a proto or class
+      // that includes a signature etc
+      const voodooPublicJson = await this.decodeEnvelopeRaw(env)
+
+      // TODO: do validation here of the address signature
+      const voodooInstance =
+        this.wasm.addOrGetPublicAccountFromJSON(voodooPublicJson)
+      listContacts.push(new VoodooContact(peerAddress, voodooInstance))
+    }
+    return {
+      address: peerAddress,
+      contacts: listContacts,
+      timestamp: new Date().getTime(),
+    }
   }
 
   /**

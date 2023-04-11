@@ -6,9 +6,7 @@ import {
   ContentTypeId,
   ContentTypeText,
 } from '../../../src'
-import {
-  default as VoodooClient,
-} from '../../../src/voodoo/VoodooClient'
+import { default as VoodooClient } from '../../../src/voodoo/VoodooClient'
 import { VoodooContact } from '../../../src/voodoo/types'
 import {
   VoodooConversation,

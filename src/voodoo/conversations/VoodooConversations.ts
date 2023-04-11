@@ -1,11 +1,7 @@
 import { messageApi } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import VoodooClient from '../VoodooClient'
-import {
-  VoodooContact,
-  EncryptedVoodooMessage,
-  VoodooMessage,
-} from '../types'
+import { VoodooContact, EncryptedVoodooMessage, VoodooMessage } from '../types'
 import VoodooConversation from './VoodooConversation'
 import { utils } from '../../crypto'
 

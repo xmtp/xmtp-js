@@ -1,10 +1,7 @@
 import assert from 'assert'
 import { newWallet } from '../helpers'
 import Client from '../../src/Client'
-import {
-  VoodooMessage,
-  EncryptedVoodooMessage,
-} from '../../src/voodoo/types'
+import { VoodooMessage, EncryptedVoodooMessage } from '../../src/voodoo/types'
 
 describe('VoodooClient', () => {
   it('can create a client', async () => {
