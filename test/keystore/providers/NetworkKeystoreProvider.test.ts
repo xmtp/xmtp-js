@@ -90,7 +90,7 @@ describe('NetworkKeystoreProvider', () => {
     const provider = new NetworkKeystoreProvider()
     const mockNotifier = jest.fn()
     await provider.newKeystore(
-      { ...testProviderOptions(), preEnableIdentityNotifier: mockNotifier },
+      { ...testProviderOptions(), preEnableIdentityCallback: mockNotifier },
       apiClient,
       wallet
     )

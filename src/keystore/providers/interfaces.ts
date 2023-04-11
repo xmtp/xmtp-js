@@ -1,4 +1,4 @@
-import type { XmtpEnv, PreEventNotifierOptions } from '../../Client'
+import type { XmtpEnv, PreEventCallbackOptions } from '../../Client'
 import type ApiClient from '../../ApiClient'
 import type { Signer } from '../../types/Signer'
 import type { Keystore } from '../interfaces'
@@ -7,7 +7,7 @@ export type KeystoreProviderOptions = {
   env: XmtpEnv
   persistConversations: boolean
   privateKeyOverride?: Uint8Array
-} & PreEventNotifierOptions
+} & PreEventCallbackOptions
 
 /**
  * A Keystore Provider is responsible for either creating a Keystore instance or throwing a KeystoreUnavailableError

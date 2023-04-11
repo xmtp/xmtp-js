@@ -26,7 +26,7 @@ export default class NetworkKeystoreProvider implements KeystoreProvider {
     const loader = new NetworkKeyLoader(
       wallet,
       new TopicPersistence(apiClient),
-      opts.preEnableIdentityNotifier
+      opts.preEnableIdentityCallback
     )
     const keys = await loader.loadPrivateKeyBundle()
     if (!keys) {

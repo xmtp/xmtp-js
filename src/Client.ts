@@ -63,7 +63,7 @@ export type SendOptions = {
 }
 
 export type XmtpEnv = keyof typeof ApiUrls
-export type PreEventNotifier = () => Promise<void>
+export type PreEventCallback = () => Promise<void>
 
 /**
  * Network startup options
@@ -142,23 +142,23 @@ export type LegacyOptions = {
   publishLegacyContact?: boolean
 }
 
-export type PreEventNotifierOptions = {
+export type PreEventCallbackOptions = {
   /**
-   * preCreateIdentityNotifier will be called immediately before a Create Identity
+   * preCreateIdentityCallback will be called immediately before a Create Identity
    * wallet signature is requested from the user.
    *
    * The provided function must return a Promise and will be awaited, allowing the
    * developer to update the UI or insert a required delay before requesting a signature.
    */
-  preCreateIdentityNotifier?: PreEventNotifier
+  preCreateIdentityCallback?: PreEventCallback
   /**
-   * preEnableIdentityNotifier will be called immediately before an Enable Identity
+   * preEnableIdentityCallback will be called immediately before an Enable Identity
    * wallet signature is requested from the user.
    *
    * The provided function must return a Promise and will be awaited, allowing the
    * developer to update the UI or insert a required delay before requesting a signature.
    */
-  preEnableIdentityNotifier?: PreEventNotifier
+  preEnableIdentityCallback?: PreEventCallback
 }
 
 /**
@@ -170,7 +170,7 @@ export type ClientOptions = Flatten<
     KeyStoreOptions &
     ContentOptions &
     LegacyOptions &
-    PreEventNotifierOptions
+    PreEventCallbackOptions
 >
 
 /**

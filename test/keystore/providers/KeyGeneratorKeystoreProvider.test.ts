@@ -35,15 +35,15 @@ describe('KeyGeneratorKeystoreProvider', () => {
     expect(prom).rejects.toThrow(KeystoreProviderUnavailableError)
   })
 
-  it('calls preCreateIdentityNotifier when supplied', async () => {
+  it('calls preCreateIdentityCallback when supplied', async () => {
     const provider = new KeyGeneratorKeystoreProvider()
-    const preCreateIdentityNotifier = jest.fn()
+    const preCreateIdentityCallback = jest.fn()
     const keystore = await provider.newKeystore(
-      { ...testProviderOptions(), preCreateIdentityNotifier },
+      { ...testProviderOptions(), preCreateIdentityCallback },
       apiClient,
       wallet
     )
     expect(keystore).toBeDefined()
-    expect(preCreateIdentityNotifier).toHaveBeenCalledTimes(1)
+    expect(preCreateIdentityCallback).toHaveBeenCalledTimes(1)
   })
 })
