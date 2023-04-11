@@ -25,7 +25,6 @@ describe('conversation', () => {
   let bob: VoodooClient
 
   describe('voodoo', () => {
-    /*
     it('v3 conversation', async () => {
       alice = await newLocalHostVoodooClient()
       bob = await newLocalHostVoodooClient()
@@ -87,7 +86,6 @@ describe('conversation', () => {
         expect(ams2[i].senderAddress).toBe(bms2[i].senderAddress)
       }
     })
-    */
 
     it('1 to N fanout', async () => {
       // Setup alice
@@ -115,7 +113,6 @@ describe('conversation', () => {
 
       // Check that invite is processed by bob
       for (const b of allBobs) {
-        console.log(b)
         const bcs = await b.conversations.list()
         expect(bcs).toHaveLength(1)
         bobConvos.push(bcs[0])

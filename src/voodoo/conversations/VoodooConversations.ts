@@ -35,7 +35,6 @@ export default class VoodooConversations {
         inviteTopic,
         async (e) => e
       )
-      console.log('Got raw invites', rawInvites)
       const sessionsFromInvites = await this.client.listEnvelopes(
         inviteTopic,
         this.processInvite.bind(this)
@@ -87,7 +86,6 @@ export default class VoodooConversations {
   async processInvite(
     env: messageApi.Envelope
   ): Promise<OneToOneSession | undefined> {
-    console.log(`Processing invite envelope: ${env}`)
     const encryptedInvite: EncryptedVoodooMessage =
       await this.client.decodeEnvelope(env)
     const peerAddress = encryptedInvite.senderAddress
@@ -102,7 +100,6 @@ export default class VoodooConversations {
       const decryptedInvite: VoodooMessage =
         await this.client.processVoodooInvite(peerAddress, encryptedInvite)
       if (decryptedInvite) {
-        console.log(`Decrypted invite from ${peerAddress}`)
         return {
           senderAddress: decryptedInvite.senderAddress,
           recipientAddress: this.client.address,
@@ -113,7 +110,7 @@ export default class VoodooConversations {
         }
       }
     } catch (e) {
-      console.log(`Error processing invite from ${peerAddress}: ${e}`)
+      // TODO: can log this, but this is expected since only the invite for our device will decrypt correctly
     }
   }
 
