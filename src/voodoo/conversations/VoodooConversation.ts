@@ -3,6 +3,13 @@ import { VoodooMessage, VoodooMultiBundle, VoodooMultiSession } from '../types'
 import Stream from '../../Stream'
 import { messageApi } from '@xmtp/proto'
 
+/**
+ * This class represents a conversation between two users.
+ * It needs to manage various 1:1 messaging sessions between devices that
+ * comprise this conversation.
+ * - 1:1s between my current VoodooInstance and my other ones (on other devices possibly)
+ * - 1:1s between my current VoodooInstance and my peer's VoodooInstances
+ */
 export default class VoodooConversation {
   peerAddress: string
   createdAt: number
@@ -13,7 +20,8 @@ export default class VoodooConversation {
     client: VoodooClient,
     peerAddress: string,
     createdAt: number,
-    multibundle: VoodooMultiBundle,
+    myMultiBundle: VoodooMultiBundle,
+    otherMultiBundle: VoodooMultiBundle,
     sessionIds: string[],
     topics: string[]
   ) {
@@ -25,13 +33,34 @@ export default class VoodooConversation {
       messages.set(sessionId, [])
     })
     this.multiSession = {
-      address: multibundle.address,
-      multiBundle: multibundle,
+      otherAddress: peerAddress,
+      myMultiBundle,
+      otherMultiBundle,
+      establishedContacts: [],
       sessionIds,
       messages,
       myMessages: [],
       topics,
     }
+  }
+
+  // Helper function to get a new empty conversation
+  static newEmptyConversation(
+    client: VoodooClient,
+    myMultiBundle: VoodooMultiBundle,
+    otherMultiBundle: VoodooMultiBundle,
+    peerAddress: string
+  ): VoodooConversation {
+    const createdAt = Date.now()
+    return new VoodooConversation(
+      client,
+      peerAddress,
+      createdAt,
+      myMultiBundle,
+      otherMultiBundle,
+      [],
+      []
+    )
   }
 
   get clientAddress(): string {

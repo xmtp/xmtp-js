@@ -24,6 +24,15 @@ export type EncryptedVoodooMessage = {
   ciphertext: string
 }
 
+// The object to be JSON-serialized to form the body(plaintext) of the invite
+export type VoodooInvite = {
+  topic: string
+  // Addresses of the two wallets in the conversation
+  // not necessarily the two voodoo instances in a single 1:1 session
+  // e.g. Me1 sending my messages in convo to Me2
+  participantAddresses: string[]
+}
+
 export type VoodooMessage = {
   // All plaintext fields
   senderAddress: string
@@ -50,8 +59,8 @@ export type VoodooMultiBundle = {
 // Helpful wrapper for wrapping a single one-to-one session, which
 // later can be composed into a VoodooMultiSession
 export type OneToOneSession = {
-  senderAddress: string
-  recipientAddress: string
+  // The two addresses participating in the higher level conversation
+  participantAddresses: string[]
   sessionId: string
   topic: string
   timestamp: number
@@ -62,9 +71,11 @@ export type OneToOneSession = {
 // Contains all the information needed to send a message to a user
 export type VoodooMultiSession = {
   // The address of the user
-  address: string
+  otherAddress: string
+  myMultiBundle: VoodooMultiBundle
+  otherMultiBundle: VoodooMultiBundle
   // Keep the multi bundle around for convenience
-  multiBundle: VoodooMultiBundle
+  establishedContacts: VoodooContact[]
   // Session ids in the same order as the contacts
   sessionIds: string[]
   // Messages per session, so map sessionId to list of messages

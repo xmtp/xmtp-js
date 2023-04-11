@@ -12,6 +12,7 @@ import {
   EncryptedVoodooMessage,
   VoodooMessage,
   VoodooMultiBundle,
+  VoodooInvite,
 } from './types'
 const { b64Decode } = fetcher
 
@@ -74,12 +75,17 @@ export default class VoodooClient {
   // Create a new Voodoo invite (vmac outbound session with plaintext = topic) for a contact
   async newVoodooInviteForContact(
     contactInstance: VoodooContact,
+    otherUserAddress: string,
     topic: string
   ): Promise<EncryptedVoodooMessage> {
     const outboundSessionResult: SessionResult =
       await this.voodooInstance.createOutboundSession(
         contactInstance.voodooInstance,
-        topic
+        // This is a VoodooInvite object
+        JSON.stringify({
+          topic,
+          participantAddresses: [this.address, otherUserAddress],
+        })
       )
     return {
       senderAddress: this.address,
@@ -89,30 +95,32 @@ export default class VoodooClient {
     }
   }
 
-  // Create new Voodoo invite with lookup
-  // NOTE: deprecated for NxN fanout
-  async newVoodooInvite(
-    contactAddress: string,
-    topic: string
-  ): Promise<EncryptedVoodooMessage> {
-    // Get the contact info which is just a handle for now
-    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
-    if (!contactInstance) {
-      throw new Error(`No contact info for ${contactAddress}`)
+  // Try all contacts until we find one that works, then return it
+  // along with the decrypted VoodooInvite
+  async processVoodooInviteGuessContact(
+    possibleContacts: VoodooContact[],
+    encryptedInvite: EncryptedVoodooMessage
+  ): Promise<[VoodooContact, VoodooMessage]> {
+    // TODO: this can be optimized for sure
+    // Try all contacts
+    for (const contactInstance of possibleContacts) {
+      try {
+        const invite = await this.processVoodooInviteForContact(
+          contactInstance,
+          encryptedInvite
+        )
+        return [contactInstance, invite]
+      } catch (err) {
+        console.warn(`Error processing invite for contact`, err)
+      }
     }
-    return this.newVoodooInviteForContact(contactInstance, topic)
+    throw new Error(`No contacts could decrypt invite`)
   }
 
-  // Get the JSON from creating an inbound session
-  async processVoodooInvite(
-    contactAddress: string,
+  private async processVoodooInviteForContact(
+    contactInstance: VoodooContact,
     encryptedInvite: EncryptedVoodooMessage
   ): Promise<VoodooMessage> {
-    // Get the contact info which is just a handle for now
-    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
-    if (!contactInstance) {
-      throw new Error(`No contact info for ${contactAddress}`)
-    }
     // Need to decode inboundEncryptedVoodooMessageJson
     const inboundSessionResult: SessionResult =
       await this.voodooInstance.createInboundSession(
@@ -122,10 +130,24 @@ export default class VoodooClient {
 
     return {
       sessionId: inboundSessionResult.sessionId,
-      senderAddress: contactAddress,
+      senderAddress: contactInstance.address,
       timestamp: encryptedInvite.timestamp,
       plaintext: inboundSessionResult.payload,
     }
+  }
+
+  // Get the JSON from creating an inbound session
+  // DEPRECATED: no longer valid in NxN, need to get multibundle first
+  async processVoodooInvite(
+    contactAddress: string,
+    encryptedInvite: EncryptedVoodooMessage
+  ): Promise<VoodooMessage> {
+    // Get the contact info which is just a handle for now
+    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
+    if (!contactInstance) {
+      throw new Error(`No contact info for ${contactAddress}`)
+    }
+    return this.processVoodooInviteForContact(contactInstance, encryptedInvite)
   }
 
   async decryptMessage(
