@@ -27,7 +27,6 @@ import { nsToDate, buildDirectMessageTopicV2 } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
-import { sha256 } from 'ethers/lib/utils'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 const { ErrorCode } = keystore
