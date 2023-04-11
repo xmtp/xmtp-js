@@ -71,10 +71,7 @@ function aesGcmParams(
 
 // Derive AES-256-GCM key from a shared secret and salt.
 // Returns crypto.CryptoKey suitable for the encrypt/decrypt API
-export async function hkdf(
-  secret: Uint8Array,
-  salt: Uint8Array
-): Promise<CryptoKey> {
+async function hkdf(secret: Uint8Array, salt: Uint8Array): Promise<CryptoKey> {
   const key = await crypto.subtle.importKey('raw', secret, 'HKDF', false, [
     'deriveKey',
   ])
