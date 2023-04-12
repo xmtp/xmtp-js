@@ -310,7 +310,6 @@ export default class VoodooClient {
     return {
       address: peerAddress,
       contacts: listContacts,
-      timestamp: new Date().getTime(),
     }
   }
 

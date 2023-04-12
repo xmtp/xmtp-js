@@ -57,8 +57,6 @@ export type VoodooMultiBundle = {
   address: string
   // The bundles for each device
   contacts: VoodooContact[]
-  // Last refreshed timestamp
-  timestamp: number
 }
 
 // Helpful wrapper for wrapping a single one-to-one session, which
