@@ -187,5 +187,101 @@ describe('conversation', () => {
         expect(bms[0].plaintext).toBe('hi')
       }
     })
+
+    it('test nxn fanout', async () => {
+      // Create 5 alice clients
+      const allAlices = await multipleLocalHostVoodooClients(5)
+      // Create 5 bob clients
+      const allBobs = await multipleLocalHostVoodooClients(5)
+
+      const aliceAddress = allAlices[0].address
+      const bobAddress = allBobs[0].address
+
+      // Have alice 3 start a conversation with bob
+      const ac = await allAlices[3].conversations.newConversation(bobAddress)
+
+      // Now have alice 3 send a single message
+      await ac.send('hi')
+      await sleep(100)
+
+      // Check all alices and all bobs have 1 conversation and 1 message
+      for (const a of allAlices) {
+        const acs = await a.conversations.list()
+        expect(acs).toHaveLength(1)
+        const ac = acs[0]
+        const ams = await ac.messages()
+        expect(ams).toHaveLength(1)
+        expect(ams[0].plaintext).toBe('hi')
+        expect(ams[0].senderAddress).toBe(aliceAddress)
+      }
+      for (const b of allBobs) {
+        const bcs = await b.conversations.list()
+        expect(bcs).toHaveLength(1)
+        const bc = bcs[0]
+        const bms = await bc.messages()
+        expect(bms).toHaveLength(1)
+        expect(bms[0].plaintext).toBe('hi')
+        expect(bms[0].senderAddress).toBe(aliceAddress)
+      }
+
+      // Now have bob 4 send two messages back, then bob 2 send one message back
+      const bob5convos = await allBobs[4].conversations.list()
+      const bob5convo = bob5convos[0]
+      await bob5convo.send('hi back 1')
+      await sleep(100)
+      await bob5convo.send('hi back 2')
+      await sleep(100)
+
+      const bob2convos = await allBobs[2].conversations.list()
+      const bob2convo = bob2convos[0]
+      await bob2convo.send('hi back 3')
+      await sleep(100)
+
+      // Now have alice 2 send a message
+      const alice2convos = await allAlices[2].conversations.list()
+      const alice2convo = alice2convos[0]
+      await alice2convo.send('final high from alice')
+      await sleep(100)
+
+      // Assert that everyone has the same message history
+      const expected_plaintexts = [
+        'hi',
+        'hi back 1',
+        'hi back 2',
+        'hi back 3',
+        'final high from alice',
+      ]
+      const expected_senders = [
+        aliceAddress,
+        bobAddress,
+        bobAddress,
+        bobAddress,
+        aliceAddress,
+      ]
+      for (const a of allAlices) {
+        const acs = await a.conversations.list()
+        expect(acs).toHaveLength(1)
+        const ac = acs[0]
+        const ams = await ac.messages()
+        console.log(a)
+        console.log(ac)
+        expect(ams).toHaveLength(5)
+        for (let i = 0; i < 5; i++) {
+          expect(ams[i].plaintext).toBe(expected_plaintexts[i])
+          expect(ams[i].senderAddress).toBe(expected_senders[i])
+        }
+      }
+      for (const b of allBobs) {
+        const bcs = await b.conversations.list()
+        expect(bcs).toHaveLength(1)
+        const bc = bcs[0]
+        const bms = await bc.messages()
+        expect(bms).toHaveLength(5)
+        for (let i = 0; i < 5; i++) {
+          expect(bms[i].plaintext).toBe(expected_plaintexts[i])
+          expect(bms[i].senderAddress).toBe(expected_senders[i])
+        }
+      }
+    })
   })
 })

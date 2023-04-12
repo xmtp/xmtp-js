@@ -46,8 +46,8 @@ export default class VoodooConversations {
       for (const env of rawInvites) {
         const encryptedInvite: EncryptedVoodooMessage =
           await this.client.decodeEnvelope(env)
-        const peerAddress = encryptedInvite.senderAddress
-        peers.add(peerAddress)
+        const envelopeSenderAddress = encryptedInvite.senderAddress
+        peers.add(envelopeSenderAddress)
       }
 
       console.log(`Found ${peers.size} peers`)
@@ -69,13 +69,14 @@ export default class VoodooConversations {
       // obtained by looking up the multibundle per peer
       const sessionsFromInvites: OneToOneSession[] = []
       const sessionContacts: VoodooContact[] = []
+      // Decrypt all invites
       for (const env of rawInvites) {
         const encryptedInvite: EncryptedVoodooMessage =
           await this.client.decodeEnvelope(env)
-        const peerAddress = encryptedInvite.senderAddress
-        const multibundle = peerToMultiBundle.get(peerAddress)
+        const envelopeSenderAddress = encryptedInvite.senderAddress
+        const multibundle = peerToMultiBundle.get(envelopeSenderAddress)
         if (!multibundle) {
-          console.log(`Could not get multibundle for ${peerAddress}`)
+          console.log(`Could not get multibundle for ${envelopeSenderAddress}`)
           continue
         }
         const contacts: VoodooContact[] = multibundle.contacts
@@ -100,35 +101,61 @@ export default class VoodooConversations {
             sessionsFromInvites.push(session)
             sessionContacts.push(deducedContact)
             console.log(
-              `Processed invite from ${peerAddress} with session ${session.sessionId} and deduced contact ${deducedContact.address}`
+              `Processed invite from ${envelopeSenderAddress} with session ${session.sessionId} and deduced contact ${deducedContact.address}`
             )
           }
         } catch (e) {
           // Too noisy to log since we expect failures
-          console.log(`Could not process invite from ${peerAddress}: ${e}`)
+          console.log(
+            `Could not process invite from ${envelopeSenderAddress}: ${e}`
+          )
         }
       }
 
-      // Aggregate these one-to-one sessions into a map of lists keyed by peerAddress
+      // REMEMBER: envelopeSenderAddress at this point is who sent the invite, not necessarily who the
+      // conversation is intended for e.g. my device A sends an invite to device B, but the
+      // intent is for a conversation with Bob's device. So we need to determine who this
+      // conversation is intended for by looking at the participants in the invite.
+      //
+      // Aggregate these one-to-one sessions into a map of lists keyed by convoOtherAddress
       // keeping the order the same between the two lists
-      const sessionsByPeer = new Map<string, OneToOneSession[]>()
-      const contactsByPeer = new Map<string, VoodooContact[]>()
+      const sessionsByOtherAddress = new Map<string, OneToOneSession[]>()
+      const contactsByOtherAddress = new Map<string, VoodooContact[]>()
       for (let i = 0; i < sessionsFromInvites.length; i++) {
         const session = sessionsFromInvites[i]
         const contact = sessionContacts[i]
         if (!session || !contact) {
           continue
         }
-        const peerAddress = contact.address
-        if (!sessionsByPeer.has(peerAddress)) {
-          sessionsByPeer.set(peerAddress, [])
-          contactsByPeer.set(peerAddress, [])
+        // Find the otherAddress by looking at session participantAddresses
+        const participantAddresses = session.participantAddresses
+        // Check if my address is in there
+        const myAddressIndex = participantAddresses.indexOf(this.client.address)
+        if (myAddressIndex === -1) {
+          console.log(
+            `Could not find my address ${this.client.address} in participantAddresses ${participantAddresses}`
+          )
+          continue
         }
-        sessionsByPeer.get(peerAddress)?.push(session)
-        contactsByPeer.get(peerAddress)?.push(contact)
+        // If so, then the other address is the other participant
+        const otherAddressIndex = myAddressIndex === 0 ? 1 : 0
+        const otherAddress = participantAddresses[otherAddressIndex]
+        if (!otherAddress) {
+          console.log(
+            `Could not find other address in participantAddresses ${participantAddresses}`
+          )
+          continue
+        }
+
+        if (!sessionsByOtherAddress.has(otherAddress)) {
+          sessionsByOtherAddress.set(otherAddress, [])
+          contactsByOtherAddress.set(otherAddress, [])
+        }
+        sessionsByOtherAddress.get(otherAddress)?.push(session)
+        contactsByOtherAddress.get(otherAddress)?.push(contact)
       }
-      console.log(`Found ${sessionsByPeer.size} peers with sessions`)
-      console.log(`Found ${contactsByPeer.size} peers with contacts`)
+      console.log(`Found ${sessionsByOtherAddress.size} peers with sessions`)
+      console.log(`Found ${contactsByOtherAddress.size} peers with contacts`)
 
       // For each of these peer addresses, check if we have a conversation for it.
       // If not, then create a new empty VoodooConversation
@@ -137,20 +164,20 @@ export default class VoodooConversations {
 
       // For each of these peer addresses, skip if we already have a conversation for it
       // otherwise we need to resolve the multibundle and construct a new conversation
-      for (const [peerAddress, sessions] of sessionsByPeer) {
-        let convo = this.conversations.get(peerAddress)
+      for (const [otherAddress, sessions] of sessionsByOtherAddress) {
+        let convo = this.conversations.get(otherAddress)
         if (!convo) {
           // Get my multibundle, get other multibundle
           const myMultiBundle = await this.client.getUserContactMultiBundle(
             this.client.address
           )
           const otherMultiBundle = await this.client.getUserContactMultiBundle(
-            peerAddress
+            otherAddress
           )
           if (!myMultiBundle || !otherMultiBundle) {
             console.log(this.conversations)
             console.log(
-              `Could not get multibundle for ${peerAddress} or ${this.client.address}`
+              `Could not get multibundle for ${otherAddress} or ${this.client.address}`
             )
             continue
           }
@@ -159,13 +186,13 @@ export default class VoodooConversations {
             this.client,
             myMultiBundle,
             otherMultiBundle,
-            peerAddress
+            otherAddress
           )
         }
-        console.log(`conversation for ${peerAddress} is ${convo}`)
-        const contacts = contactsByPeer.get(peerAddress)
+        console.log(`conversation for ${otherAddress} is ${convo}`)
+        const contacts = contactsByOtherAddress.get(otherAddress)
         if (!contacts || !sessions) {
-          console.log(`Could not get contacts or sessions for ${peerAddress}`)
+          console.log(`Could not get contacts or sessions for ${otherAddress}`)
           continue
         }
         // Add any new invite sessions to the conversation
@@ -182,16 +209,16 @@ export default class VoodooConversations {
             convo.multiSession.establishedContacts.push(contact)
           }
         }
-        this.conversations.set(peerAddress, convo)
+        this.conversations.set(otherAddress, convo)
       }
 
       // Finally, update all conversations and send out invites as necessary
       for (const convo of this.conversations.values()) {
         const myMultiBundle = peerToMultiBundle.get(this.client.address)
-        const otherMultiBundle = peerToMultiBundle.get(convo.peerAddress)
+        const otherMultiBundle = peerToMultiBundle.get(convo.otherAddress)
         if (!myMultiBundle || !otherMultiBundle) {
           console.log(
-            `Could not get multibundle for ${convo.peerAddress} or ${this.client.address}`
+            `Could not get multibundle for ${convo.otherAddress} or ${this.client.address}`
           )
           continue
         }
@@ -202,7 +229,7 @@ export default class VoodooConversations {
             otherMultiBundle
           )
         if (updatedConvo) {
-          this.conversations.set(convo.peerAddress, updatedConvo)
+          this.conversations.set(convo.otherAddress, updatedConvo)
         }
       }
       return Array.from(this.conversations.values())
@@ -272,9 +299,9 @@ export default class VoodooConversations {
    * Creates a new VoodooConversation for a peerAddress by creating newSingleSessions for each VoodooContact found.
    * And aggregating all the topics/sessionIds into a single VoodooConversation.
    */
-  async newConversation(peerAddress: string): Promise<VoodooConversation> {
+  async newConversation(otherAddress: string): Promise<VoodooConversation> {
     const otherMultiBundle = await this.client.getUserContactMultiBundle(
-      peerAddress
+      otherAddress
     )
     if (
       !otherMultiBundle ||
@@ -282,7 +309,7 @@ export default class VoodooConversations {
       otherMultiBundle.contacts.length === 0
     ) {
       throw new Error(
-        `Voodoo recipient ${peerAddress} is not on the XMTP network`
+        `Voodoo recipient ${otherAddress} is not on the XMTP network`
       )
     }
 
@@ -299,7 +326,7 @@ export default class VoodooConversations {
 
     // TODO: add more context eventually
     const matcherFn = (convo: VoodooConversation) =>
-      convo.peerAddress === peerAddress
+      convo.otherAddress === otherAddress
 
     // TODO: should we move some of this logic outside runExclusive? doing so
     // could cause a race where the whole slew of duplicate invites are emitted
@@ -314,7 +341,7 @@ export default class VoodooConversations {
         // Create an initial conversation that is empty
         convo = new VoodooConversation(
           this.client,
-          peerAddress,
+          otherAddress,
           new Date().getTime(),
           myMultiBundle,
           otherMultiBundle,
@@ -327,7 +354,7 @@ export default class VoodooConversations {
         myMultiBundle,
         otherMultiBundle
       )
-      this.conversations.set(peerAddress, updatedConvo)
+      this.conversations.set(otherAddress, updatedConvo)
       return convo
     })
   }
@@ -362,7 +389,7 @@ export default class VoodooConversations {
       ) {
         continue
       }
-      const session = await this.newSingleSession(convo.peerAddress, contact)
+      const session = await this.newSingleSession(convo.otherAddress, contact)
       sessions.push(session)
       newContacts.push(contact)
     }

@@ -11,14 +11,14 @@ import { messageApi } from '@xmtp/proto'
  * - 1:1s between my current VoodooInstance and my peer's VoodooInstances
  */
 export default class VoodooConversation {
-  peerAddress: string
+  otherAddress: string
   createdAt: number
   multiSession: VoodooMultiSession
   private client: VoodooClient
 
   constructor(
     client: VoodooClient,
-    peerAddress: string,
+    otherAddress: string,
     createdAt: number,
     myMultiBundle: VoodooMultiBundle,
     otherMultiBundle: VoodooMultiBundle,
@@ -26,14 +26,14 @@ export default class VoodooConversation {
     topics: string[]
   ) {
     this.client = client
-    this.peerAddress = peerAddress
+    this.otherAddress = otherAddress
     this.createdAt = createdAt
     const messages = new Map<string, VoodooMessage[]>()
     sessionIds.forEach((sessionId) => {
       messages.set(sessionId, [])
     })
     this.multiSession = {
-      otherAddress: peerAddress,
+      otherAddress: otherAddress,
       myMultiBundle,
       otherMultiBundle,
       establishedContacts: [],
@@ -49,12 +49,12 @@ export default class VoodooConversation {
     client: VoodooClient,
     myMultiBundle: VoodooMultiBundle,
     otherMultiBundle: VoodooMultiBundle,
-    peerAddress: string
+    otherAddress: string
   ): VoodooConversation {
     const createdAt = Date.now()
     return new VoodooConversation(
       client,
-      peerAddress,
+      otherAddress,
       createdAt,
       myMultiBundle,
       otherMultiBundle,
