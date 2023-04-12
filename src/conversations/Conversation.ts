@@ -39,6 +39,10 @@ import { ContentTypeText } from '../codecs/Text'
  */
 export interface Conversation {
   /**
+   * The wallet address connected to the client
+   */
+  clientAddress: string
+  /**
    * A unique identifier for a conversation. Each conversation is stored on the network on one topic
    */
   topic: string
