@@ -23,6 +23,23 @@ import {
  * comprise this conversation.
  * - 1:1s between my current VoodooInstance and my other ones (on other devices possibly)
  * - 1:1s between my current VoodooInstance and my peer's VoodooInstances
+ *
+ * The VoodooMultiSession object holds most of this state, but some invariants are only captured
+ * in code.
+ * - A VoodooConversation only adds more 1:1 sessions upon sending a message. This is just a design
+ *   choice to avoid churn i.e. if B receives an invite from A, and sends per-device invites back to all of B and A devices.
+ *   This could happen all at once for all online devices causing a bit of a thundering herd problem.
+ * - A VoodooConversation only sends to one given session per contact. Even though multiple sessions may exist between
+ *   two contacts e.g. if both devices send invites to each other at the same time
+ * - sessionIds, topics, and establishedContacts are all in the same order
+ * - Messages sent by this specific VoodooInstance are stored in myMessages
+ * - Messages sent by other VoodooInstances are stored in the messages map in the VoodooMultiSession
+ * - When compiling all messages, all sessions must be checked and messages sorted appropriately after combining with
+ *   myMessages
+ *
+ * NOTE: One major gap is the lack of invite-refreshing when receiving. Right now this is handled by VoodooConversations.list()
+ * but should be handled by the VoodooConversation itself. The tricky bit is that we end up needing to pull all invites
+ * across all possible conversations, rearranging and filtering, etc.
  */
 export default class VoodooConversation {
   otherAddress: string
