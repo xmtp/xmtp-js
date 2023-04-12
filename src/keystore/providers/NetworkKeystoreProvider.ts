@@ -23,7 +23,11 @@ export default class NetworkKeystoreProvider implements KeystoreProvider {
       throw new KeystoreProviderUnavailableError('No wallet provided')
     }
 
-    const loader = new NetworkKeyLoader(wallet, new TopicPersistence(apiClient))
+    const loader = new NetworkKeyLoader(
+      wallet,
+      new TopicPersistence(apiClient),
+      opts.preEnableIdentityCallback
+    )
     const keys = await loader.loadPrivateKeyBundle()
     if (!keys) {
       throw new KeystoreProviderUnavailableError('No keys found')

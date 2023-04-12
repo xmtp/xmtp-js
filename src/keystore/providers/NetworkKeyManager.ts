@@ -7,6 +7,7 @@ import {
   encrypt,
   PrivateKeyBundleV2,
 } from '../../crypto'
+import type { PreEventCallback } from '../../Client'
 import { LocalAuthenticator } from '../../authn'
 import { bytesToHex, getRandomValues, hexToBytes } from '../../crypto/utils'
 import Ciphertext from '../../crypto/Ciphertext'
@@ -21,10 +22,16 @@ const KEY_BUNDLE_NAME = 'key_bundle'
 export default class NetworkKeyManager {
   private persistence: TopicPersistence
   private signer: Signer
+  private preEnableIdentityCallback?: PreEventCallback
 
-  constructor(signer: Signer, persistence: TopicPersistence) {
+  constructor(
+    signer: Signer,
+    persistence: TopicPersistence,
+    preEnableIdentityCallback?: PreEventCallback
+  ) {
     this.signer = signer
     this.persistence = persistence
+    this.preEnableIdentityCallback = preEnableIdentityCallback
   }
 
   private async getStorageAddress(name: string): Promise<string> {
@@ -80,7 +87,9 @@ export default class NetworkKeyManager {
     const wPreKey = getRandomValues(new Uint8Array(32))
     const input = storageSigRequestText(wPreKey)
     const walletAddr = await wallet.getAddress()
-
+    if (this.preEnableIdentityCallback) {
+      await this.preEnableIdentityCallback()
+    }
     let sig = await wallet.signMessage(input)
 
     // Check that the signature is correct, was created using the expected
@@ -122,6 +131,9 @@ export default class NetworkKeyManager {
       throw new Error('missing bundle ciphertext')
     }
 
+    if (this.preEnableIdentityCallback) {
+      await this.preEnableIdentityCallback()
+    }
     const secret = hexToBytes(
       await wallet.signMessage(storageSigRequestText(eBundle.walletPreKey))
     )
