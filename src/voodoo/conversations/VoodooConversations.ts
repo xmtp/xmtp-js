@@ -49,7 +49,7 @@ export default class VoodooConversations {
         const envelopeSenderAddress = encryptedInvite.senderAddress
         peers.add(envelopeSenderAddress)
       }
-      // Peers add self too
+      // Add self to peers too
       peers.add(this.client.address)
 
       console.log(`Found ${peers.size} peers`)
@@ -396,8 +396,13 @@ export default class VoodooConversations {
         continue
       }
       // Check if we already have a session with this contact
+      // Merge newContacts and establishedContacts
+      const allContacts = [
+        ...convo.multiSession.establishedContacts,
+        ...newContacts,
+      ]
       if (
-        convo.multiSession.establishedContacts.find(
+        allContacts.find(
           (c: VoodooContact) => c.voodooInstance === contact.voodooInstance
         )
       ) {

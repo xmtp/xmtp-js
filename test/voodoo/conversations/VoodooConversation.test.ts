@@ -273,6 +273,13 @@ describe('conversation', () => {
         const ams = await ac.messages()
         console.log(a)
         console.log(ac)
+        // Print all handles from ac.multiSession.establishedContacts
+        console.log(
+          ac.multiSession.establishedContacts.map((c) => c.voodooInstance.handle).join(', ')
+        )
+        console.log(
+          ac.multiSession.establishedContacts.map((c) => c.address).join(', ')
+        )
         expect(ams).toHaveLength(5)
         for (let i = 0; i < 5; i++) {
           expect(ams[i].plaintext).toBe(expected_plaintexts[i])
