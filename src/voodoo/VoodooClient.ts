@@ -231,11 +231,16 @@ export default class VoodooClient {
   }
 
   private async ensureUserContactPublished(): Promise<void> {
-    const bundle = await this.getUserContactFromNetwork(this.address)
+    // Check the multibundle, see if our contact is in there
+    const multibundle = await this.getUserContactMultiBundle(this.address)
     // NOTE: other devices for this wallet could have published bundles, this is expected
     // TODO: we only avoid republishing our own bundle if the account is the same
-    if (!!bundle && bundle.voodooInstance === this.voodooInstance) {
-      return
+    if (multibundle) {
+      for (const contact of multibundle.contacts) {
+        if (this.contactInstanceIsMe(contact)) {
+          return
+        }
+      }
     }
     await this.publishUserContact()
   }
