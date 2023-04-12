@@ -177,7 +177,6 @@ describe('conversation', () => {
       expect(ams).toHaveLength(1)
       expect(ams[0].plaintext).toBe('hi')
 
-      /*
       // All bobs should also have one conversation and one message
       for (const b of allBobs) {
         const bcs = await b.conversations.list()
@@ -187,7 +186,6 @@ describe('conversation', () => {
         expect(bms).toHaveLength(1)
         expect(bms[0].plaintext).toBe('hi')
       }
-      */
     })
   })
 })

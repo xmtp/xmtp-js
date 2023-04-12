@@ -130,6 +130,10 @@ export default class VoodooClient {
     // Try all contacts
     for (const contactInstance of possibleContacts) {
       try {
+        if (this.contactInstanceIsMe(contactInstance)) {
+          continue
+        }
+        console.log(`Trying contact`, contactInstance, 'self?', this.contact)
         const invite = await this.processVoodooInviteForContact(
           contactInstance,
           encryptedInvite

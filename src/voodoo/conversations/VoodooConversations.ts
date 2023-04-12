@@ -148,8 +148,9 @@ export default class VoodooConversations {
             peerAddress
           )
           if (!myMultiBundle || !otherMultiBundle) {
+            console.log(this.conversations)
             console.log(
-              `Could not get multibundle for ${peerAddress} or myself`
+              `Could not get multibundle for ${peerAddress} or ${this.client.address}`
             )
             continue
           }
@@ -190,7 +191,7 @@ export default class VoodooConversations {
         const otherMultiBundle = peerToMultiBundle.get(convo.peerAddress)
         if (!myMultiBundle || !otherMultiBundle) {
           console.log(
-            `Could not get multibundle for ${convo.peerAddress} or myself`
+            `Could not get multibundle for ${convo.peerAddress} or ${this.client.address}`
           )
           continue
         }
