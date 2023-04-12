@@ -236,20 +236,21 @@ describe('conversation', () => {
       const bob5convos = await allBobs[4].conversations.list()
       const bob5convo = bob5convos[0]
       await bob5convo.send('hi back 1')
-      await sleep(100)
+      await sleep(500)
       await bob5convo.send('hi back 2')
-      await sleep(100)
+      await sleep(500)
 
       const bob2convos = await allBobs[2].conversations.list()
       const bob2convo = bob2convos[0]
       await bob2convo.send('hi back 3')
-      await sleep(100)
+      await sleep(500)
 
       // Now have alice 2 send a message
       const alice2convos = await allAlices[2].conversations.list()
       const alice2convo = alice2convos[0]
+      console.log('ALICE 2 SAYING HI')
       await alice2convo.send('final high from alice')
-      await sleep(100)
+      await sleep(500)
 
       // Assert that everyone has the same message history
       const expected_plaintexts = [
@@ -266,8 +267,10 @@ describe('conversation', () => {
         bobAddress,
         aliceAddress,
       ]
+
       for (const a of allAlices) {
         const acs = await a.conversations.list()
+        await sleep(100)
         expect(acs).toHaveLength(1)
         const ac = acs[0]
         const ams = await ac.messages()
@@ -275,7 +278,9 @@ describe('conversation', () => {
         console.log(ac)
         // Print all handles from ac.multiSession.establishedContacts
         console.log(
-          ac.multiSession.establishedContacts.map((c) => c.voodooInstance.handle).join(', ')
+          ac.multiSession.establishedContacts
+            .map((c) => c.voodooInstance.handle)
+            .join(', ')
         )
         console.log(
           ac.multiSession.establishedContacts.map((c) => c.address).join(', ')
@@ -288,9 +293,21 @@ describe('conversation', () => {
       }
       for (const b of allBobs) {
         const bcs = await b.conversations.list()
+        await sleep(100)
         expect(bcs).toHaveLength(1)
         const bc = bcs[0]
         const bms = await bc.messages()
+        console.log(b)
+        console.log(bc)
+        // Print all handles from ac.multiSession.establishedContacts
+        console.log(
+          bc.multiSession.establishedContacts
+            .map((c) => c.voodooInstance.handle)
+            .join(', ')
+        )
+        console.log(
+          bc.multiSession.establishedContacts.map((c) => c.address).join(', ')
+        )
         expect(bms).toHaveLength(5)
         for (let i = 0; i < 5; i++) {
           expect(bms[i].plaintext).toBe(expected_plaintexts[i])

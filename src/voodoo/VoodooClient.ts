@@ -291,7 +291,7 @@ export default class VoodooClient {
   ): Promise<VoodooMultiBundle | undefined> {
     const stream = this.apiClient.queryIterator(
       { contentTopic: buildVoodooUserContactTopic(peerAddress) },
-      { pageSize: 25, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+      { pageSize: 100, direction: SortDirection.SORT_DIRECTION_DESCENDING }
     )
 
     // Get a list of all valid contacts

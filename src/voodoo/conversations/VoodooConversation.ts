@@ -1,5 +1,12 @@
 import VoodooClient from '../VoodooClient'
-import { EncryptedVoodooMessage, VoodooMessage, VoodooMultiBundle, VoodooMultiSession, VoodooContact, OneToOneSession } from '../types'
+import {
+  EncryptedVoodooMessage,
+  VoodooMessage,
+  VoodooMultiBundle,
+  VoodooMultiSession,
+  VoodooContact,
+  OneToOneSession,
+} from '../types'
 import Stream from '../../Stream'
 import { messageApi } from '@xmtp/proto'
 
@@ -132,31 +139,18 @@ export default class VoodooConversation {
   }
 
   // Provides an aggregated and sorted list of messages for all of the device sessions
-  // NOTE: need to filter out repeated VoodooContacts otherwise we get duplicates
-  // this can occur if two devices both send 1:1 invites to each other in parallel
+  // NOTE: we may have duplicate sessions per peer contact device, but we subscribe
+  // to the idea that each message only gets sent once per receiving device. This
+  // invariant is enforced on send. If we have two sessions for the same contact,
+  // we just send to the first one
   async messages(): Promise<VoodooMessage[]> {
     // Go through and call messagesPerSession for each session
     let allMessages: VoodooMessage[] = []
-    let alreadyAddedContacts: VoodooContact[] = []
     for (let i = 0; i < this.multiSession.sessionIds.length; i++) {
-      const contact = this.multiSession.establishedContacts[i]
-      let alreadyAdded = false
-      for (let j = 0; j < alreadyAddedContacts.length; j++) {
-        if (alreadyAddedContacts[j].equals(contact)) {
-          alreadyAdded = true
-          break
-        }
-      }
-      console.log(alreadyAddedContacts)
-      if (alreadyAdded) {
-        console.log('Already added contact, skipping')
-        continue
-      }
       const sessionId = this.multiSession.sessionIds[i]
       const topic = this.multiSession.topics[i]
       const messages = await this.messagesPerSession(topic, sessionId)
       allMessages = allMessages.concat(messages)
-      alreadyAddedContacts.push(contact)
     }
 
     // Add in myMessages
@@ -199,15 +193,29 @@ export default class VoodooConversation {
   }
 
   // Uses sendToSession on all sessions, appends sent messages to this.multiSession.myMessages
+  // NOTE: important that we only ever send to one session per contact device. Multiple
+  // can exist, for example if that device sends an invite to us, but we just sent one to them.
   async send(content: string): Promise<VoodooMessage> {
     // Before sending, try updateConversationAndSendInvitesIfNeeded
-    await this.updateConversationAndSendInvitesIfNeeded(this.multiSession.myMultiBundle, this.multiSession.otherMultiBundle)
+    await this.updateConversationAndSendInvitesIfNeeded(
+      this.multiSession.myMultiBundle,
+      this.multiSession.otherMultiBundle
+    )
+
+    console.log(this)
 
     // Go through and call sendToSession for each session
     let sentMessage: VoodooMessage | undefined
+    const alreadyMessagedContacts: VoodooContact[] = []
     for (let i = 0; i < this.multiSession.sessionIds.length; i++) {
+      const contact = this.multiSession.establishedContacts[i]
+      if (alreadyMessagedContacts.filter((c) => c.equals(contact)).length > 0) {
+        continue
+      }
+      alreadyMessagedContacts.push(contact)
       const sessionId = this.multiSession.sessionIds[i]
       const topic = this.multiSession.topics[i]
+      console.log('Sending to session', sessionId, topic)
       sentMessage = await this.sendToSession(topic, sessionId, content)
     }
     if (!sentMessage) {
@@ -309,11 +317,7 @@ export default class VoodooConversation {
         ...this.multiSession.establishedContacts,
         ...newContacts,
       ]
-      if (
-        allContacts.find(
-          (c: VoodooContact) => c.equals(contact)
-        )
-      ) {
+      if (allContacts.find((c: VoodooContact) => c.equals(contact))) {
         continue
       }
       const session = await this.newSingleSession(this.otherAddress, contact)
@@ -333,6 +337,8 @@ export default class VoodooConversation {
 
     // Need to publish all of the encryptedInvites
     await this.client.publishEnvelopes(encryptedInviteEnvelopes)
+
+    console.log('SENT INVITES TO', newContacts)
 
     // Add the sessions, topics, and establishedContacts to the existing VoodooConversation.multiSession
     this.multiSession.establishedContacts.push(...newContacts)

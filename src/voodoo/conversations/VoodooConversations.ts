@@ -205,19 +205,7 @@ export default class VoodooConversations {
           if (this.client.contactInstanceIsMe(contact)) {
             continue
           }
-          // Check that we don't already have this contact
-          let hasContact = false
-          for (const existingContact of convo.multiSession
-            .establishedContacts) {
-            if (existingContact.equals(contact)) {
-              hasContact = true
-              break
-            }
-          }
-          if (
-            !hasContact &&
-            !convo.multiSession.sessionIds.includes(session.sessionId)
-          ) {
+          if (!convo.multiSession.sessionIds.includes(session.sessionId)) {
             convo.multiSession.sessionIds.push(session.sessionId)
             convo.multiSession.topics.push(session.topic)
             convo.multiSession.establishedContacts.push(contact)
