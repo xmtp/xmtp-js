@@ -92,14 +92,6 @@ export default class VoodooClient {
     otherUserAddress: string,
     topic: string
   ): Promise<EncryptedVoodooMessage> {
-    console.log(
-      'Creating new Voodoo invite for contact',
-      contactInstance,
-      otherUserAddress,
-      topic
-    )
-    console.log('my voodoo instance', this.voodooInstance)
-    console.log('equals?', this.contactInstanceIsMe(contactInstance))
     const outboundSessionResult: SessionResult =
       await this.voodooInstance.createOutboundSession(
         contactInstance.voodooInstance,

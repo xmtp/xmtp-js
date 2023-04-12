@@ -37,8 +37,6 @@ export default class VoodooConversations {
         async (e) => e
       )
 
-      console.log(`Found ${rawInvites.length} invites`)
-
       // Go through all invites and obtain a list of peers we have conversations with
       // some of these invites will be for ourselves which is expected. We'll
       // extract the participants from the invite after decryption
@@ -52,8 +50,6 @@ export default class VoodooConversations {
       // Add self to peers too
       peers.add(this.client.address)
 
-      console.log(`Found ${peers.size} peers`)
-
       // Create a map of peer to multibundle via this.client.getUserContactMultiBundle
       const peerToMultiBundle = new Map<string, VoodooMultiBundle>()
       for (const peer of peers) {
@@ -64,8 +60,6 @@ export default class VoodooConversations {
         }
         peerToMultiBundle.set(peer, multibundle)
       }
-
-      console.log(`Found ${peerToMultiBundle.size} multibundles`)
 
       // Now we can go through each invite and attempt to process with a list of Contacts
       // obtained by looking up the multibundle per peer
@@ -102,9 +96,6 @@ export default class VoodooConversations {
             }
             sessionsFromInvites.push(session)
             sessionContacts.push(deducedContact)
-            console.log(
-              `Processed invite from ${envelopeSenderAddress} with session ${session.sessionId} and deduced contact ${deducedContact.address}`
-            )
           }
         } catch (e) {
           // Too noisy to log since we expect failures
@@ -156,8 +147,6 @@ export default class VoodooConversations {
         sessionsByOtherAddress.get(otherAddress)?.push(session)
         contactsByOtherAddress.get(otherAddress)?.push(contact)
       }
-      console.log(`Found ${sessionsByOtherAddress.size} peers with sessions`)
-      console.log(`Found ${contactsByOtherAddress.size} peers with contacts`)
 
       // For each of these peer addresses, check if we have a conversation for it.
       // If not, then create a new empty VoodooConversation
@@ -177,10 +166,6 @@ export default class VoodooConversations {
             otherAddress
           )
           if (!myMultiBundle || !otherMultiBundle) {
-            console.log(this.conversations)
-            console.log(
-              `Could not get multibundle in session aggregation for ${otherAddress} or ${this.client.address}`
-            )
             continue
           }
           // Construct a new conversation
@@ -191,7 +176,6 @@ export default class VoodooConversations {
             otherAddress
           )
         }
-        console.log(`conversation for ${otherAddress} is ${convo}`)
         const contacts = contactsByOtherAddress.get(otherAddress)
         if (!contacts || !sessions) {
           console.log(`Could not get contacts or sessions for ${otherAddress}`)

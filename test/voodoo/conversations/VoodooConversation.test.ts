@@ -248,7 +248,6 @@ describe('conversation', () => {
       // Now have alice 2 send a message
       const alice2convos = await allAlices[2].conversations.list()
       const alice2convo = alice2convos[0]
-      console.log('ALICE 2 SAYING HI')
       await alice2convo.send('final high from alice')
       await sleep(500)
 
@@ -270,21 +269,9 @@ describe('conversation', () => {
 
       for (const a of allAlices) {
         const acs = await a.conversations.list()
-        await sleep(100)
         expect(acs).toHaveLength(1)
         const ac = acs[0]
         const ams = await ac.messages()
-        console.log(a)
-        console.log(ac)
-        // Print all handles from ac.multiSession.establishedContacts
-        console.log(
-          ac.multiSession.establishedContacts
-            .map((c) => c.voodooInstance.handle)
-            .join(', ')
-        )
-        console.log(
-          ac.multiSession.establishedContacts.map((c) => c.address).join(', ')
-        )
         expect(ams).toHaveLength(5)
         for (let i = 0; i < 5; i++) {
           expect(ams[i].plaintext).toBe(expected_plaintexts[i])
@@ -293,21 +280,9 @@ describe('conversation', () => {
       }
       for (const b of allBobs) {
         const bcs = await b.conversations.list()
-        await sleep(100)
         expect(bcs).toHaveLength(1)
         const bc = bcs[0]
         const bms = await bc.messages()
-        console.log(b)
-        console.log(bc)
-        // Print all handles from ac.multiSession.establishedContacts
-        console.log(
-          bc.multiSession.establishedContacts
-            .map((c) => c.voodooInstance.handle)
-            .join(', ')
-        )
-        console.log(
-          bc.multiSession.establishedContacts.map((c) => c.address).join(', ')
-        )
         expect(bms).toHaveLength(5)
         for (let i = 0; i < 5; i++) {
           expect(bms[i].plaintext).toBe(expected_plaintexts[i])

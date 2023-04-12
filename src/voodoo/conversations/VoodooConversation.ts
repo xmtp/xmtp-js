@@ -143,6 +143,9 @@ export default class VoodooConversation {
   // to the idea that each message only gets sent once per receiving device. This
   // invariant is enforced on send. If we have two sessions for the same contact,
   // we just send to the first one
+  // TODO: this only returns a complete list of messages if VoodooConversations.list()
+  // has been called first. That method adds any sessionIds we missed from invites that
+  // have been added. Ideally, this should happen each time we call messages() or something.
   async messages(): Promise<VoodooMessage[]> {
     // Go through and call messagesPerSession for each session
     let allMessages: VoodooMessage[] = []
@@ -202,8 +205,6 @@ export default class VoodooConversation {
       this.multiSession.otherMultiBundle
     )
 
-    console.log(this)
-
     // Go through and call sendToSession for each session
     let sentMessage: VoodooMessage | undefined
     const alreadyMessagedContacts: VoodooContact[] = []
@@ -215,7 +216,6 @@ export default class VoodooConversation {
       alreadyMessagedContacts.push(contact)
       const sessionId = this.multiSession.sessionIds[i]
       const topic = this.multiSession.topics[i]
-      console.log('Sending to session', sessionId, topic)
       sentMessage = await this.sendToSession(topic, sessionId, content)
     }
     if (!sentMessage) {
@@ -337,8 +337,6 @@ export default class VoodooConversation {
 
     // Need to publish all of the encryptedInvites
     await this.client.publishEnvelopes(encryptedInviteEnvelopes)
-
-    console.log('SENT INVITES TO', newContacts)
 
     // Add the sessions, topics, and establishedContacts to the existing VoodooConversation.multiSession
     this.multiSession.establishedContacts.push(...newContacts)
