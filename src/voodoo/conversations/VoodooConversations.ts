@@ -4,17 +4,14 @@ import VoodooClient from '../VoodooClient'
 import {
   VoodooContact,
   EncryptedVoodooMessage,
-  VoodooMessage,
   VoodooMultiBundle,
   OneToOneSession,
   VoodooInvite,
 } from '../types'
 import VoodooConversation from './VoodooConversation'
-import { utils } from '../../crypto'
 
 import {
   buildVoodooUserInviteTopic,
-  buildVoodooDirectMessageTopic,
 } from '../utils'
 
 export default class VoodooConversations {
@@ -208,6 +205,9 @@ export default class VoodooConversations {
    * And aggregating all the topics/sessionIds into a single VoodooConversation.
    */
   async newConversation(otherAddress: string): Promise<VoodooConversation> {
+    // Call a list first to refresh conversations that might be incoming
+    await this.list()
+
     const otherMultiBundle = await this.client.getUserContactMultiBundle(
       otherAddress
     )

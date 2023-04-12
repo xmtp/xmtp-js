@@ -12,7 +12,6 @@ import {
   EncryptedVoodooMessage,
   VoodooMessage,
   VoodooMultiBundle,
-  VoodooInvite,
 } from './types'
 const { b64Decode } = fetcher
 

@@ -290,5 +290,55 @@ describe('conversation', () => {
         }
       }
     })
+
+    it('test newConversation for everyone', async () => {
+      // Create 5 alice clients
+      const allAlices = await multipleLocalHostVoodooClients(5)
+      // Create 5 bob clients
+      const allBobs = await multipleLocalHostVoodooClients(5)
+
+      // Assert all have published their contact bundles
+      for (const a of allAlices) {
+        await waitForUserContact(a, a)
+      }
+      for (const b of allBobs) {
+        await waitForUserContact(b, b)
+      }
+
+      const aliceAddress = allAlices[0].address
+      const bobAddress = allBobs[0].address
+
+      // Have alice 1 start a conversation with bob
+      const ac = await allAlices[1].conversations.newConversation(bobAddress)
+
+      // Now have alice 1 send a couple messages
+      await ac.send('1')
+      await sleep(100)
+      await ac.send('2')
+      await sleep(100)
+
+      // For all bobs and alices, try to start a new conversation with the other party
+      // and assert that the conversation is the same as the one alice 1 started
+      // and that the messages are the same
+      // and that the messages are in the same order
+      for (const a of allAlices) {
+        const ac = await a.conversations.newConversation(bobAddress)
+        const ams = await ac.messages()
+        expect(ams).toHaveLength(2)
+        expect(ams[0].plaintext).toBe('1')
+        expect(ams[1].plaintext).toBe('2')
+        expect(ams[0].senderAddress).toBe(aliceAddress)
+        expect(ams[1].senderAddress).toBe(aliceAddress)
+      }
+      for (const b of allBobs) {
+        const bc = await b.conversations.newConversation(aliceAddress)
+        const bms = await bc.messages()
+        expect(bms).toHaveLength(2)
+        expect(bms[0].plaintext).toBe('1')
+        expect(bms[1].plaintext).toBe('2')
+        expect(bms[0].senderAddress).toBe(aliceAddress)
+        expect(bms[1].senderAddress).toBe(aliceAddress)
+      }
+    })
   })
 })

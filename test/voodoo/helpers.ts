@@ -18,7 +18,6 @@ export const multipleLocalHostVoodooClients = async (
   n: number,
   opts?: Partial<ClientOptions>
 ): Promise<VoodooClient[]> => {
-  const wallet = newWallet()
   return Client.createVoodooMulti(n, newWallet(), {
     env: 'local',
     ...opts,
