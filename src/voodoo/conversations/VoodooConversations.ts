@@ -209,7 +209,7 @@ export default class VoodooConversations {
           let hasContact = false
           for (const existingContact of convo.multiSession
             .establishedContacts) {
-            if (existingContact.voodooInstance === contact.voodooInstance) {
+            if (existingContact.equals(contact)) {
               hasContact = true
               break
             }
@@ -225,87 +225,9 @@ export default class VoodooConversations {
         }
         this.conversations.set(otherAddress, convo)
       }
-
-      // Finally, update all conversations and send out invites as necessary
-      for (const convo of this.conversations.values()) {
-        const myMultiBundle = peerToMultiBundle.get(this.client.address)
-        const otherMultiBundle = peerToMultiBundle.get(convo.otherAddress)
-        if (!myMultiBundle || !otherMultiBundle) {
-          console.log(
-            `Could not get multibundle in session update for ${convo.otherAddress} or ${this.client.address}`
-          )
-          continue
-        }
-        const updatedConvo =
-          await this.updateConversationAndSendInvitesIfNeeded(
-            convo,
-            myMultiBundle,
-            otherMultiBundle
-          )
-        if (updatedConvo) {
-          this.conversations.set(convo.otherAddress, updatedConvo)
-        }
-      }
       return Array.from(this.conversations.values())
     } finally {
       release()
-    }
-  }
-
-  /**
-   * Creates a new single OneToOneSession for the given contact. Does not publish the invite envelope.
-   *
-   * NOTE: we have to very explicit about what this session is. It's a session between two VoodooInstances,
-   * but the two addresses participating could be the same. So otherAddress is only used as the
-   * payload of the invite, but the invite is encrypted for contact and delivered to the contact.address
-   *
-   * Currently, we generate a random topic for the session, and send an Olm PreKey Message
-   * where the encrypted ciphertext is just the random topic. This is the "invite" message.
-   * The recipient processes the Olm PreKey Message and gets the random topic, and then
-   * creates their own VoodooConversation from the derived session and the included topic.
-   */
-  private async newSingleSession(
-    // the otherAddress is the wallet address of the other party in the conversation, not necessarily
-    // the other party of this session e.g. Me1 sending my messages in convo to Me2
-    otherAddress: string,
-    contact: VoodooContact
-  ): Promise<OneToOneSession> {
-    // Better be a VoodooContact type
-    if (!contact.voodooInstance) {
-      throw new Error(`Voodoo recipient is not a Voodoo contact`)
-    }
-
-    const timestamp = new Date().getTime()
-
-    // Generate the random topic for the session and set it as the first
-    // plaintext message sent
-    const generatedSessionTopic = buildVoodooDirectMessageTopic(
-      Buffer.from(utils.getRandomValues(new Uint8Array(32)))
-        .toString('base64')
-        .replace(/=*$/g, '')
-        // Replace slashes with dashes so that the topic is still easily split by /
-        // We do not treat this as needing to be valid Base64 anywhere
-        .replace('/', '-')
-    )
-
-    // Create an outbound session with { sessionId: string, paylaod: string (encoded Olm PreKey Message) }
-    const encryptedInvite: EncryptedVoodooMessage =
-      await this.client.newVoodooInviteForContact(
-        contact,
-        otherAddress,
-        generatedSessionTopic
-      )
-
-    if (!encryptedInvite) {
-      throw new Error('Could not create outbound session')
-    }
-    return {
-      participantAddresses: [this.client.address, otherAddress],
-      envelopeReceiverAddress: contact.address,
-      sessionId: encryptedInvite.sessionId,
-      topic: generatedSessionTopic,
-      encryptedInvite,
-      timestamp,
     }
   }
 
@@ -363,73 +285,12 @@ export default class VoodooConversations {
           []
         )
       }
-      const updatedConvo = await this.updateConversationAndSendInvitesIfNeeded(
-        convo,
+      const updatedConvo = await convo.updateConversationAndSendInvitesIfNeeded(
         myMultiBundle,
         otherMultiBundle
       )
       this.conversations.set(otherAddress, updatedConvo)
       return convo
     })
-  }
-
-  // Given a VoodooConversation, check to make sure that all of the instances in my multibundle
-  // and the other's multibundle are stored in the VoodooConversation
-  async updateConversationAndSendInvitesIfNeeded(
-    convo: VoodooConversation,
-    myMultiBundle: VoodooMultiBundle,
-    otherMultiBundle: VoodooMultiBundle
-  ): Promise<VoodooConversation> {
-    // Look at sessions with myself
-    const sessions: OneToOneSession[] = []
-    const newContacts: VoodooContact[] = []
-    // Combine all the contacts from my multibundle and the other's multibundle
-    const allContacts = [
-      ...myMultiBundle.contacts,
-      ...otherMultiBundle.contacts,
-    ]
-    // We know which contact corresponds to self and other because we have both multibundles stored
-    // in the coversation
-    for (const contact of allContacts) {
-      // Skip if this is the same contact as myself
-      if (this.client.contactInstanceIsMe(contact)) {
-        continue
-      }
-      // Check if we already have a session with this contact
-      // Merge newContacts and establishedContacts
-      const allContacts = [
-        ...convo.multiSession.establishedContacts,
-        ...newContacts,
-      ]
-      if (
-        allContacts.find(
-          (c: VoodooContact) => c.voodooInstance === contact.voodooInstance
-        )
-      ) {
-        continue
-      }
-      const session = await this.newSingleSession(convo.otherAddress, contact)
-      sessions.push(session)
-      newContacts.push(contact)
-    }
-
-    const sessionIds = sessions.map((s) => s.sessionId)
-    const topics = sessions.map((s) => s.topic)
-    const encryptedInviteEnvelopes = sessions
-      .map((s) => ({
-        contentTopic: buildVoodooUserInviteTopic(s.envelopeReceiverAddress),
-        message: Buffer.from(JSON.stringify(s.encryptedInvite)),
-        timestamp: new Date(s.timestamp),
-      }))
-      .filter((e) => e !== undefined)
-
-    // Need to publish all of the encryptedInvites
-    await this.client.publishEnvelopes(encryptedInviteEnvelopes)
-
-    // Add the sessions, topics, and establishedContacts to the existing VoodooConversation.multiSession
-    convo.multiSession.establishedContacts.push(...newContacts)
-    convo.multiSession.sessionIds.push(...sessionIds)
-    convo.multiSession.topics.push(...topics)
-    return convo
   }
 }
