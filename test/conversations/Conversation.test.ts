@@ -1,8 +1,5 @@
 import { DecodedMessage, MessageV1 } from './../../src/Message'
-import {
-  buildDirectMessageTopic,
-  // buildDirectMessageTopicV2,
-} from './../../src/utils'
+import { buildDirectMessageTopic } from './../../src/utils'
 import {
   Client,
   Compression,
