@@ -10,9 +10,7 @@ import {
 } from '../types'
 import VoodooConversation from './VoodooConversation'
 
-import {
-  buildVoodooUserInviteTopic,
-} from '../utils'
+import { buildVoodooUserInviteTopic } from '../utils'
 
 export default class VoodooConversations {
   private client: VoodooClient
@@ -34,6 +32,9 @@ export default class VoodooConversations {
         async (e) => e
       )
 
+      // TODO: instead of one shared invite topic, should we do per-address-pairing invite topics?
+      // Seems easier but sacrifices privacy.
+      //
       // Go through all invites and obtain a list of peers we have conversations with
       // some of these invites will be for ourselves which is expected. We'll
       // extract the participants from the invite after decryption
