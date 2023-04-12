@@ -87,7 +87,6 @@ describe('conversation', () => {
       }
     })
 
-    /*
     it('1 to N fanout', async () => {
       // Setup alice
       alice = await newLocalHostVoodooClient()
@@ -147,6 +146,5 @@ describe('conversation', () => {
         expect(ams2[i].plaintext).toBe('hi back: ' + (i - 1))
       }
     })
-    */
   })
 })
