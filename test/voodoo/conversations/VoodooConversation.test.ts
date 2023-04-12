@@ -49,7 +49,6 @@ describe('conversation', () => {
 
       const bc = bcs[0]
 
-      /*
       // Alice sends a message
       await ac.send('hi')
       // This should show up in alice's inbox
@@ -86,7 +85,6 @@ describe('conversation', () => {
         expect(ams2[i].senderAddress).toBe(expected_senders[i])
         expect(ams2[i].senderAddress).toBe(bms2[i].senderAddress)
       }
-      */
     })
 
     /*

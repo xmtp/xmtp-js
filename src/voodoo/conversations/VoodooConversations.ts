@@ -37,6 +37,8 @@ export default class VoodooConversations {
         async (e) => e
       )
 
+      console.log(`Found ${rawInvites.length} invites`)
+
       // Go through all invites and obtain a list of peers we have conversations with
       // some of these invites will be for ourselves which is expected. We'll
       // extract the participants from the invite after decryption
@@ -48,6 +50,8 @@ export default class VoodooConversations {
         peers.add(peerAddress)
       }
 
+      console.log(`Found ${peers.size} peers`)
+
       // Create a map of peer to multibundle via this.client.getUserContactMultiBundle
       const peerToMultiBundle = new Map<string, VoodooMultiBundle>()
       for (const peer of peers) {
@@ -58,6 +62,8 @@ export default class VoodooConversations {
         }
         peerToMultiBundle.set(peer, multibundle)
       }
+
+      console.log(`Found ${peerToMultiBundle.size} multibundles`)
 
       // Now we can go through each invite and attempt to process with a list of Contacts
       // obtained by looking up the multibundle per peer
@@ -92,10 +98,11 @@ export default class VoodooConversations {
             }
             sessionsFromInvites.push(session)
             sessionContacts.push(deducedContact)
+            console.log(`Processed invite from ${peerAddress} with session ${session.sessionId} and deduced contact ${deducedContact.address}`)
           }
         } catch (e) {
           // Too noisy to log since we expect failures
-          // console.log(`Could not process invite from ${peerAddress}: ${e}`)
+          console.log(`Could not process invite from ${peerAddress}: ${e}`)
         }
       }
 
@@ -117,6 +124,8 @@ export default class VoodooConversations {
         sessionsByPeer.get(peerAddress)?.push(session)
         contactsByPeer.get(peerAddress)?.push(contact)
       }
+      console.log(`Found ${sessionsByPeer.size} peers with sessions`)
+      console.log(`Found ${contactsByPeer.size} peers with contacts`)
 
       // For each of these peer addresses, check if we have a conversation for it.
       // If not, then create a new empty VoodooConversation
@@ -149,6 +158,7 @@ export default class VoodooConversations {
             peerAddress
           )
         }
+        console.log(`conversation for ${peerAddress} is ${convo}`)
         const contacts = contactsByPeer.get(peerAddress)
         if (!contacts || !sessions) {
           console.log(`Could not get contacts or sessions for ${peerAddress}`)
@@ -168,6 +178,7 @@ export default class VoodooConversations {
             convo.multiSession.establishedContacts.push(contact)
           }
         }
+        this.conversations.set(peerAddress, convo)
       }
 
       // Finally, update all conversations and send out invites as necessary
