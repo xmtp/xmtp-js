@@ -377,7 +377,38 @@ describe('conversation', () => {
         const aliceConvo = aliceConvos[0]
         const bobConvo = bobConvos[0]
         await aliceConvo.send(plaintexts[i])
+        await sleep(50)
         await bobConvo.send(plaintexts[i])
+        await sleep(50)
+      }
+
+      // Check that all alices and bobs have the same messages in the same order
+      for (const a of allAlices) {
+        const acs = await a.conversations.list()
+        expect(acs).toHaveLength(1)
+        const ac = acs[0]
+        const ams = await ac.messages()
+        expect(ams).toHaveLength(20)
+        for (let i = 0; i < 20; i++) {
+          expect(ams[i].plaintext).toBe(plaintexts[Math.floor(i / 2)])
+          expect(ams[i].senderAddress).toBe(
+            i % 2 === 0 ? aliceAddress : bobAddress
+          )
+        }
+      }
+
+      for (const b of allBobs) {
+        const bcs = await b.conversations.list()
+        expect(bcs).toHaveLength(1)
+        const bc = bcs[0]
+        const bms = await bc.messages()
+        expect(bms).toHaveLength(20)
+        for (let i = 0; i < 20; i++) {
+          expect(bms[i].plaintext).toBe(plaintexts[Math.floor(i / 2)])
+          expect(bms[i].senderAddress).toBe(
+            i % 2 === 0 ? aliceAddress : bobAddress
+          )
+        }
       }
     })
   })
