@@ -73,10 +73,11 @@ describe('VoodooClient', () => {
     )
     expect(aliceContactBundle).toBeTruthy()
     await sleep(100)
-    aliceClient.publishUserContact()
-    aliceClient.publishUserContact()
-    aliceClient.publishUserContact()
-    aliceClient.publishUserContact()
+    aliceClient.ensureUserContactPublished()
+    aliceClient.ensureUserContactPublished()
+    aliceClient.ensureUserContactPublished()
+    aliceClient.ensureUserContactPublished()
+    await sleep(100)
     const multibundle = await aliceClient.getUserContactMultiBundle(
       alice.address
     )

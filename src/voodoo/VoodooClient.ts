@@ -231,7 +231,8 @@ export default class VoodooClient {
     }
   }
 
-  private async ensureUserContactPublished(): Promise<void> {
+  // PRIVATE: left open for testing purposes
+  async ensureUserContactPublished(): Promise<void> {
     // Check the multibundle, see if our contact is in there
     const multibundle = await this.getUserContactMultiBundle(this.address)
     // NOTE: other devices for this wallet could have published bundles, this is expected
