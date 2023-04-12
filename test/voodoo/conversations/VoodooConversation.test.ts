@@ -340,5 +340,45 @@ describe('conversation', () => {
         expect(bms[1].senderAddress).toBe(aliceAddress)
       }
     })
+
+    it('test NxN conversations with 5 clients more randomly', async () => {
+      // Create 5 alice clients
+      const allAlices = await multipleLocalHostVoodooClients(5)
+      // Create 5 bob clients
+      const allBobs = await multipleLocalHostVoodooClients(5)
+
+      // Assert all have published their contact bundles
+      for (const a of allAlices) {
+        await waitForUserContact(a, a)
+      }
+      for (const b of allBobs) {
+        await waitForUserContact(b, b)
+      }
+
+      const aliceAddress = allAlices[0].address
+      const bobAddress = allBobs[0].address
+
+      // Have alice 1 start a conversation and bob 1 start a conversation with no wait
+      const alice1convo = await allAlices[1].conversations.newConversation(
+        bobAddress
+      )
+      const bob1convo = await allBobs[1].conversations.newConversation(
+        aliceAddress
+      )
+
+      const plaintexts = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+
+      // Pick random alices and bobs and have them send messages
+      for (let i = 0; i < 10; i++) {
+        const alice = allAlices[Math.floor(Math.random() * allAlices.length)]
+        const bob = allBobs[Math.floor(Math.random() * allBobs.length)]
+        const aliceConvos = await alice.conversations.list()
+        const bobConvos = await bob.conversations.list()
+        const aliceConvo = aliceConvos[0]
+        const bobConvo = bobConvos[0]
+        await aliceConvo.send(plaintexts[i])
+        await bobConvo.send(plaintexts[i])
+      }
+    })
   })
 })

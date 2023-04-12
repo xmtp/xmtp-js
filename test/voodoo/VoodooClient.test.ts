@@ -6,6 +6,7 @@ import {
   EncryptedVoodooMessage,
   VoodooInvite,
 } from '../../src/voodoo/types'
+import { sleep } from '../../src/utils'
 
 describe('VoodooClient', () => {
   it('can create a client', async () => {
@@ -71,6 +72,10 @@ describe('VoodooClient', () => {
       alice.address
     )
     expect(aliceContactBundle).toBeTruthy()
+    await sleep(100)
+    aliceClient.publishUserContact()
+    aliceClient.publishUserContact()
+    aliceClient.publishUserContact()
     aliceClient.publishUserContact()
     const multibundle = await aliceClient.getUserContactMultiBundle(
       alice.address
