@@ -83,12 +83,26 @@ export default class VoodooClient {
     return this.newVoodooInviteForContact(contactInstance, peerAddress, topic)
   }
 
+  // TODO: terrible abstraction for equality
+  contactInstanceIsMe(contact: VoodooContact): boolean {
+    // Check if this.voodooInstance.handle is the same as contact.voodooInstance.handle
+    return this.voodooInstance.handle === contact.voodooInstance.handle
+  }
+
   // Create a new Voodoo invite (vmac outbound session with plaintext = topic) for a contact
   async newVoodooInviteForContact(
     contactInstance: VoodooContact,
     otherUserAddress: string,
     topic: string
   ): Promise<EncryptedVoodooMessage> {
+    console.log(
+      'Creating new Voodoo invite for contact',
+      contactInstance,
+      otherUserAddress,
+      topic
+    )
+    console.log('my voodoo instance', this.voodooInstance)
+    console.log('equals?', this.contactInstanceIsMe(contactInstance))
     const outboundSessionResult: SessionResult =
       await this.voodooInstance.createOutboundSession(
         contactInstance.voodooInstance,

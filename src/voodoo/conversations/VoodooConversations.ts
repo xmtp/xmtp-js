@@ -158,6 +158,10 @@ export default class VoodooConversations {
         for (let i = 0; i < sessions.length; i++) {
           const session = sessions[i]
           const contact = contacts[i]
+          // Cannot open a session with ourselves
+          if (this.client.contactInstanceIsMe(contact)) {
+            continue
+          }
           if (!convo.multiSession.sessionIds.includes(session.sessionId)) {
             convo.multiSession.sessionIds.push(session.sessionId)
             convo.multiSession.topics.push(session.topic)
@@ -329,6 +333,10 @@ export default class VoodooConversations {
     // We know which contact corresponds to self and other because we have both multibundles stored
     // in the coversation
     for (const contact of allContacts) {
+      // Skip if this is the same contact as myself
+      if (this.client.contactInstanceIsMe(contact)) {
+        continue
+      }
       // Check if we already have a session with this contact
       if (
         convo.multiSession.establishedContacts.find(
