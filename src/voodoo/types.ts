@@ -34,7 +34,9 @@ export type VoodooInvite = {
   topic: string
   // Addresses of the two wallets in the conversation
   // not necessarily the two voodoo instances in a single 1:1 session
-  // e.g. Me1 sending my messages in convo to Me2
+  // e.g. Me1 forwarding my messages in convo with You1 but to Me2
+  // participants would be [addr(me), addr(you)] but the 1:1 session
+  // is between Me1 and Me2
   participantAddresses: string[]
 }
 
