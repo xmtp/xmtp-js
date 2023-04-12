@@ -72,6 +72,17 @@ export default class VoodooClient {
     }
   }
 
+  async newVoodooInvite(
+    peerAddress: string,
+    topic: string
+  ): Promise<EncryptedVoodooMessage> {
+    const contactInstance = await this.getUserContactFromNetwork(peerAddress)
+    if (!contactInstance) {
+      throw new Error('No contact found for address')
+    }
+    return this.newVoodooInviteForContact(contactInstance, peerAddress, topic)
+  }
+
   // Create a new Voodoo invite (vmac outbound session with plaintext = topic) for a contact
   async newVoodooInviteForContact(
     contactInstance: VoodooContact,
