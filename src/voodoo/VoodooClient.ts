@@ -66,10 +66,7 @@ export default class VoodooClient {
   }
 
   get contact(): VoodooContact {
-    return {
-      address: this.address,
-      voodooInstance: this.voodooInstance,
-    }
+    return new VoodooContact(this.address, this.voodooInstance)
   }
 
   async newVoodooInvite(
@@ -83,9 +80,9 @@ export default class VoodooClient {
     return this.newVoodooInviteForContact(contactInstance, peerAddress, topic)
   }
 
-  // TODO: terrible abstraction for equality
+  // TODO: terrible abstraction for equality, uses handles currently
   contactInstanceIsMe(contact: VoodooContact): boolean {
-    // Check if this.voodooInstance.handle is the same as contact.voodooInstance.handle
+    // Check if this.voodooInstance is the same as contact.voodooInstance
     return this.voodooInstance.handle === contact.voodooInstance.handle
   }
 
@@ -133,7 +130,6 @@ export default class VoodooClient {
         if (this.contactInstanceIsMe(contactInstance)) {
           continue
         }
-        console.log(`Trying contact`, contactInstance, 'self?', this.contact)
         const invite = await this.processVoodooInviteForContact(
           contactInstance,
           encryptedInvite

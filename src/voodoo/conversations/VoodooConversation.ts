@@ -33,7 +33,7 @@ export default class VoodooConversation {
       messages.set(sessionId, [])
     })
     this.multiSession = {
-      otherAddress: otherAddress,
+      otherAddress,
       myMultiBundle,
       otherMultiBundle,
       establishedContacts: [],

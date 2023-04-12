@@ -49,6 +49,8 @@ export default class VoodooConversations {
         const envelopeSenderAddress = encryptedInvite.senderAddress
         peers.add(envelopeSenderAddress)
       }
+      // Peers add self too
+      peers.add(this.client.address)
 
       console.log(`Found ${peers.size} peers`)
 
@@ -177,7 +179,7 @@ export default class VoodooConversations {
           if (!myMultiBundle || !otherMultiBundle) {
             console.log(this.conversations)
             console.log(
-              `Could not get multibundle for ${otherAddress} or ${this.client.address}`
+              `Could not get multibundle in session aggregation for ${otherAddress} or ${this.client.address}`
             )
             continue
           }
@@ -203,7 +205,19 @@ export default class VoodooConversations {
           if (this.client.contactInstanceIsMe(contact)) {
             continue
           }
-          if (!convo.multiSession.sessionIds.includes(session.sessionId)) {
+          // Check that we don't already have this contact
+          let hasContact = false
+          for (const existingContact of convo.multiSession
+            .establishedContacts) {
+            if (existingContact.voodooInstance === contact.voodooInstance) {
+              hasContact = true
+              break
+            }
+          }
+          if (
+            !hasContact &&
+            !convo.multiSession.sessionIds.includes(session.sessionId)
+          ) {
             convo.multiSession.sessionIds.push(session.sessionId)
             convo.multiSession.topics.push(session.topic)
             convo.multiSession.establishedContacts.push(contact)
@@ -218,7 +232,7 @@ export default class VoodooConversations {
         const otherMultiBundle = peerToMultiBundle.get(convo.otherAddress)
         if (!myMultiBundle || !otherMultiBundle) {
           console.log(
-            `Could not get multibundle for ${convo.otherAddress} or ${this.client.address}`
+            `Could not get multibundle in session update for ${convo.otherAddress} or ${this.client.address}`
           )
           continue
         }

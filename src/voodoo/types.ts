@@ -11,6 +11,11 @@ export class VoodooContact {
     this.address = address
     this.voodooInstance = voodooInstance
   }
+
+  // Is equal, check voodooInstance.handle
+  equals(other: VoodooContact): boolean {
+    return this.voodooInstance.handle === other.voodooInstance.handle
+  }
 }
 
 // Very simple message object which acts as the message type for all Voodoo envelopes

@@ -194,6 +194,14 @@ describe('conversation', () => {
       // Create 5 bob clients
       const allBobs = await multipleLocalHostVoodooClients(5)
 
+      // Assert all have published their contact bundles
+      for (const a of allAlices) {
+        await waitForUserContact(a, a)
+      }
+      for (const b of allBobs) {
+        await waitForUserContact(b, b)
+      }
+
       const aliceAddress = allAlices[0].address
       const bobAddress = allBobs[0].address
 
