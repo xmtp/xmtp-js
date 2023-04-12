@@ -236,20 +236,20 @@ describe('conversation', () => {
       const bob5convos = await allBobs[4].conversations.list()
       const bob5convo = bob5convos[0]
       await bob5convo.send('hi back 1')
-      await sleep(500)
+      await sleep(100)
       await bob5convo.send('hi back 2')
-      await sleep(500)
+      await sleep(100)
 
       const bob2convos = await allBobs[2].conversations.list()
       const bob2convo = bob2convos[0]
       await bob2convo.send('hi back 3')
-      await sleep(500)
+      await sleep(100)
 
       // Now have alice 2 send a message
       const alice2convos = await allAlices[2].conversations.list()
       const alice2convo = alice2convos[0]
       await alice2convo.send('final high from alice')
-      await sleep(500)
+      await sleep(100)
 
       // Assert that everyone has the same message history
       const expected_plaintexts = [

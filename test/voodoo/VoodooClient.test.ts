@@ -62,4 +62,20 @@ describe('VoodooClient', () => {
     expect(invite.participantAddresses).toContain(alice.address)
     expect(invite.participantAddresses).toContain(bob.address)
   })
+
+  it('does not republish contact bundle if it already exists', async () => {
+    const alice = newWallet()
+    const aliceClient = await Client.createVoodoo(alice, { env: 'local' })
+    // Should get the contact bundle
+    const aliceContactBundle = await aliceClient.getUserContactFromNetwork(
+      alice.address
+    )
+    expect(aliceContactBundle).toBeTruthy()
+    aliceClient.publishUserContact()
+    const multibundle = await aliceClient.getUserContactMultiBundle(
+      alice.address
+    )
+    expect(multibundle).toBeTruthy()
+    expect(multibundle?.contacts.length).toEqual(1)
+  })
 })

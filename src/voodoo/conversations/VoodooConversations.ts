@@ -97,9 +97,9 @@ export default class VoodooConversations {
           }
         } catch (e) {
           // Too noisy to log since we expect failures
-          console.log(
-            `Could not process invite from ${envelopeSenderAddress}: ${e}`
-          )
+          // console.log(
+          //   `Could not process invite from ${envelopeSenderAddress}: ${e}`
+          // )
         }
       }
 

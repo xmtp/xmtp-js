@@ -127,7 +127,8 @@ export default class VoodooClient {
         )
         return [contactInstance, invite]
       } catch (err) {
-        console.warn(`Error processing invite for contact`, err)
+        // NOTE: expect many errors here, so don't log
+        // console.warn(`Error processing invite for contact`, err)
       }
     }
     throw new Error(`No contacts could decrypt invite`)
