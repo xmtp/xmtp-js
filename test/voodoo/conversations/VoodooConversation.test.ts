@@ -6,31 +6,31 @@ import {
   ContentTypeId,
   ContentTypeText,
 } from '../../../src'
-import {
-  VoodooContact,
-  default as VoodooClient,
-} from '../../../src/voodoo/VoodooClient'
+import { default as VoodooClient } from '../../../src/voodoo/VoodooClient'
+import { VoodooContact } from '../../../src/voodoo/types'
 import {
   VoodooConversation,
   VoodooConversations,
 } from '../../../src/voodoo/conversations'
 import { SortDirection } from '../../../src/ApiClient'
 import { sleep } from '../../../src/utils'
-import { newLocalHostVoodooClient, waitForUserContact } from '../helpers'
+import {
+  multipleLocalHostVoodooClients,
+  newLocalHostVoodooClient,
+  waitForUserContact,
+} from '../helpers'
 
 describe('conversation', () => {
   let alice: VoodooClient
   let bob: VoodooClient
 
   describe('voodoo', () => {
-    beforeEach(async () => {
+    it('v3 conversation', async () => {
       alice = await newLocalHostVoodooClient()
       bob = await newLocalHostVoodooClient()
       await waitForUserContact(alice, alice)
       await waitForUserContact(bob, bob)
-    })
 
-    it('v3 conversation', async () => {
       expect(await bob.getUserContactFromNetwork(alice.address)).toBeInstanceOf(
         VoodooContact
       )
@@ -84,6 +84,66 @@ describe('conversation', () => {
 
         expect(ams2[i].senderAddress).toBe(expected_senders[i])
         expect(ams2[i].senderAddress).toBe(bms2[i].senderAddress)
+      }
+    })
+
+    it('1 to N fanout', async () => {
+      // Setup alice
+      alice = await newLocalHostVoodooClient()
+      await waitForUserContact(alice, alice)
+      // Create 5 bob clients
+      const allBobs = await multipleLocalHostVoodooClients(5)
+      expect(
+        await alice.getUserContactFromNetwork(alice.address)
+      ).toBeInstanceOf(VoodooContact)
+      // Wait for all of the bobs to have published their contact bundles
+      for (const b of allBobs) {
+        await waitForUserContact(alice, b)
+      }
+
+      const bobOne = allBobs[0]
+
+      // This should create 5 invites
+      const ac = await alice.conversations.newConversation(bobOne.address)
+      if (!(ac instanceof VoodooConversation)) {
+        fail()
+      }
+
+      let bobConvos = []
+
+      // Check that invite is processed by bob
+      for (const b of allBobs) {
+        const bcs = await b.conversations.list()
+        expect(bcs).toHaveLength(1)
+        bobConvos.push(bcs[0])
+      }
+
+      // Alice sends a message
+      await ac.send('hi')
+      // This should show up in alice's inbox
+      const ams = await ac.messages()
+      expect(ams).toHaveLength(1)
+      expect(ams[0].plaintext).toBe('hi')
+      await sleep(100)
+
+      // It should also show up in all Bob's inboxes
+      for (const bc of bobConvos) {
+        const bms = await bc.messages()
+        expect(bms).toHaveLength(1)
+        expect(bms[0].plaintext).toBe('hi')
+      }
+
+      // Send a message from each bob with bob index
+      for (const [i, bc] of bobConvos.entries()) {
+        await bc.send('hi back: ' + i)
+        await sleep(100)
+      }
+
+      // Expect Alice to have 6 messages
+      const ams2 = await ac.messages()
+      expect(ams2).toHaveLength(6)
+      for (let i = 1; i < 6; i++) {
+        expect(ams2[i].plaintext).toBe('hi back: ' + (i - 1))
       }
     })
   })

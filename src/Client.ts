@@ -280,6 +280,28 @@ export default class Client {
   }
 
   /**
+   * Create multiple voodoo clients that share everything but the voodoo instance
+   */
+  static async createVoodooMulti(
+    numClients: number,
+    wallet: Signer | null,
+    opts?: Partial<ClientOptions>
+  ): Promise<VoodooClient[]> {
+    const options = defaultOptions(opts)
+    const apiClient = createApiClientFromOptions(options)
+    const keystore = await bootstrapKeystore(options, apiClient, wallet)
+    const publicKeyBundle = new PublicKeyBundle(
+      await keystore.getPublicKeyBundle()
+    )
+    const address = publicKeyBundle.walletSignatureAddress()
+    const clients = []
+    for (let i = 0; i < numClients; i++) {
+      clients.push(await VoodooClient.create(address, apiClient))
+    }
+    return clients
+  }
+
+  /**
    * Export the XMTP PrivateKeyBundle from the SDK as a `Uint8Array`.
    *
    * This bundle can then be provided as `privateKeyOverride` in a

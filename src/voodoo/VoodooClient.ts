@@ -7,45 +7,16 @@ import { ListMessagesOptions } from '../Client'
 import { messageApi, fetcher } from '@xmtp/proto'
 
 import { VoodooConversations } from './conversations'
+import {
+  VoodooContact,
+  EncryptedVoodooMessage,
+  VoodooMessage,
+  VoodooMultiBundle,
+} from './types'
 const { b64Decode } = fetcher
 
-// TODO: this is a hacky wrapper class for a Voodoo contact,
-// currently represented by the entire contact's VoodooInstance
-// - should be changed to align with VoodooPublicAccount (or whatever)
-// it ends up being named in Rust
-export class VoodooContact {
-  address: string
-  // TODO: Replace this `any` by exporting appropriate type from xmtpv3 WASM binding package
-  voodooInstance: any
-
-  constructor(address: string, voodooInstance: any) {
-    this.address = address
-    this.voodooInstance = voodooInstance
-  }
-}
-
-// Very simple message object which acts as the message type for all Voodoo envelopes
-export type EncryptedVoodooMessage = {
-  // Plaintext fields
-  senderAddress: string
-  timestamp: number
-  // SessionId may be dropped in the future
-  sessionId: string
-  // Ciphertext fields
-  ciphertext: string
-}
-
-export type VoodooMessage = {
-  // All plaintext fields
-  senderAddress: string
-  timestamp: number
-  plaintext: string
-  // SessionId may be dropped in the future
-  sessionId: string
-}
-
 // TODO: currently mirrored from xmtpv3.ts - should be exported from there
-export type SessionResult = {
+type SessionResult = {
   sessionId: string
   payload: string
 }
@@ -86,7 +57,7 @@ export default class VoodooClient {
     apiClient: ApiClient
   ): Promise<VoodooClient> {
     const xmtpWasm = await xmtpv3.XMTPWasm.initialize()
-    // TODO: STARTINGTASK: this just creates unused voodoo keys that go nowhere
+    // TODO: STARTINGTASK: this just creates unused voodoo keys that hang out in memory ephemerally
     const myVoodoo = xmtpWasm.newVoodooInstance()
     const client = new VoodooClient(address, myVoodoo, apiClient, xmtpWasm)
     await client.ensureUserContactPublished()
@@ -100,17 +71,11 @@ export default class VoodooClient {
     }
   }
 
-  // Create new Voodoo invite
-  async newVoodooInvite(
-    contactAddress: string,
+  // Create a new Voodoo invite (vmac outbound session with plaintext = topic) for a contact
+  async newVoodooInviteForContact(
+    contactInstance: VoodooContact,
     topic: string
   ): Promise<EncryptedVoodooMessage> {
-    // Get the contact info which is just a handle for now
-    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
-    if (!contactInstance) {
-      throw new Error(`No contact info for ${contactAddress}`)
-    }
-
     const outboundSessionResult: SessionResult =
       await this.voodooInstance.createOutboundSession(
         contactInstance.voodooInstance,
@@ -122,6 +87,20 @@ export default class VoodooClient {
       sessionId: outboundSessionResult.sessionId,
       timestamp: new Date().getTime(),
     }
+  }
+
+  // Create new Voodoo invite with lookup
+  // NOTE: deprecated for NxN fanout
+  async newVoodooInvite(
+    contactAddress: string,
+    topic: string
+  ): Promise<EncryptedVoodooMessage> {
+    // Get the contact info which is just a handle for now
+    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
+    if (!contactInstance) {
+      throw new Error(`No contact info for ${contactAddress}`)
+    }
+    return this.newVoodooInviteForContact(contactInstance, topic)
   }
 
   // Get the JSON from creating an inbound session
@@ -215,8 +194,9 @@ export default class VoodooClient {
 
   private async ensureUserContactPublished(): Promise<void> {
     const bundle = await this.getUserContactFromNetwork(this.address)
-    // TODO: validate the bundle, not just check for presence
-    if (bundle) {
+    // NOTE: other devices for this wallet could have published bundles, this is expected
+    // TODO: we only avoid republishing our own bundle if the account is the same
+    if (!!bundle && bundle.voodooInstance === this.voodooInstance) {
       return
     }
     await this.publishUserContact()
@@ -254,6 +234,40 @@ export default class VoodooClient {
     const bytes = env.message
     const jsonAsUtf8Bytes = b64Decode(bytes.toString())
     return new TextDecoder().decode(jsonAsUtf8Bytes)
+  }
+
+  /**
+   * Retrieves all the user contact bundles for a given peer address
+   */
+  async getUserContactMultiBundle(
+    peerAddress: string
+  ): Promise<VoodooMultiBundle | undefined> {
+    const stream = this.apiClient.queryIterator(
+      { contentTopic: buildVoodooUserContactTopic(peerAddress) },
+      { pageSize: 25, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+    )
+
+    // Get a list of all valid contacts
+    const listContacts: VoodooContact[] = []
+
+    for await (const env of stream) {
+      if (!env.message) {
+        continue
+      }
+      // TODO: need to use more than just the public JSON, need to define a proto or class
+      // that includes a signature etc
+      const voodooPublicJson = await this.decodeEnvelopeRaw(env)
+
+      // TODO: do validation here of the address signature
+      const voodooInstance =
+        this.wasm.addOrGetPublicAccountFromJSON(voodooPublicJson)
+      listContacts.push(new VoodooContact(peerAddress, voodooInstance))
+    }
+    return {
+      address: peerAddress,
+      contacts: listContacts,
+      timestamp: new Date().getTime(),
+    }
   }
 
   /**

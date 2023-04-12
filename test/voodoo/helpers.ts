@@ -1,5 +1,6 @@
 import { ClientOptions, Client } from '../../src'
-import VoodooClient, { VoodooContact } from '../../src/voodoo/VoodooClient'
+import VoodooClient from '../../src/voodoo/VoodooClient'
+import { VoodooContact } from '../../src/voodoo/types'
 import { pollFor, newWallet } from '../helpers'
 import assert from 'assert'
 
@@ -11,6 +12,18 @@ export const newLocalHostVoodooClient = (
     env: 'local',
     ...opts,
   })
+
+// Used to simulate multiple clients with the same wallet
+export const multipleLocalHostVoodooClients = async (
+  n: number,
+  opts?: Partial<ClientOptions>
+): Promise<VoodooClient[]> => {
+  const wallet = newWallet()
+  return Client.createVoodooMulti(n, newWallet(), {
+    env: 'local',
+    ...opts,
+  })
+}
 
 export async function waitForUserContact(
   c1: VoodooClient,
