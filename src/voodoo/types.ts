@@ -61,6 +61,7 @@ export type VoodooMultiBundle = {
 export type OneToOneSession = {
   // The two addresses participating in the higher level conversation
   participantAddresses: string[]
+  envelopeReceiverAddress: string
   sessionId: string
   topic: string
   timestamp: number

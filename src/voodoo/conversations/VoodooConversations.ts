@@ -92,13 +92,16 @@ export default class VoodooConversations {
             const session = {
               participantAddresses: invite.participantAddresses,
               sessionId: decryptedInvite.sessionId,
+              envelopeReceiverAddress: deducedContact.address,
               // the plaintext of the invite message is the new convo topic
               topic: invite.topic,
               timestamp: decryptedInvite.timestamp,
             }
             sessionsFromInvites.push(session)
             sessionContacts.push(deducedContact)
-            console.log(`Processed invite from ${peerAddress} with session ${session.sessionId} and deduced contact ${deducedContact.address}`)
+            console.log(
+              `Processed invite from ${peerAddress} with session ${session.sessionId} and deduced contact ${deducedContact.address}`
+            )
           }
         } catch (e) {
           // Too noisy to log since we expect failures
@@ -211,7 +214,8 @@ export default class VoodooConversations {
    * Creates a new single OneToOneSession for the given contact. Does not publish the invite envelope.
    *
    * NOTE: we have to very explicit about what this session is. It's a session between two VoodooInstances,
-   * but the two addresses participating could be the same.
+   * but the two addresses participating could be the same. So otherAddress is only used as the
+   * payload of the invite, but the invite is encrypted for contact and delivered to the contact.address
    *
    * Currently, we generate a random topic for the session, and send an Olm PreKey Message
    * where the encrypted ciphertext is just the random topic. This is the "invite" message.
@@ -255,6 +259,7 @@ export default class VoodooConversations {
     }
     return {
       participantAddresses: [this.client.address, otherAddress],
+      envelopeReceiverAddress: contact.address,
       sessionId: encryptedInvite.sessionId,
       topic: generatedSessionTopic,
       encryptedInvite,
@@ -365,7 +370,7 @@ export default class VoodooConversations {
     const topics = sessions.map((s) => s.topic)
     const encryptedInviteEnvelopes = sessions
       .map((s) => ({
-        contentTopic: buildVoodooUserInviteTopic(convo.peerAddress),
+        contentTopic: buildVoodooUserInviteTopic(s.envelopeReceiverAddress),
         message: Buffer.from(JSON.stringify(s.encryptedInvite)),
         timestamp: new Date(s.timestamp),
       }))

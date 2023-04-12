@@ -146,5 +146,48 @@ describe('conversation', () => {
         expect(ams2[i].plaintext).toBe('hi back: ' + (i - 1))
       }
     })
+
+    it('confirm self fanout', async () => {
+      // Setup alice
+      alice = await newLocalHostVoodooClient()
+      await waitForUserContact(alice, alice)
+      // Create 5 bob clients
+      const allBobs = await multipleLocalHostVoodooClients(5)
+      expect(
+        await alice.getUserContactFromNetwork(alice.address)
+      ).toBeInstanceOf(VoodooContact)
+      // Wait for all of the bobs to have published their contact bundles
+      for (const b of allBobs) {
+        await waitForUserContact(alice, b)
+      }
+
+      const bobOne = allBobs[0]
+      // Have bobOne start a conversation with alice
+      const bc = await bobOne.conversations.newConversation(alice.address)
+
+      // Now send a message
+      await bc.send('hi')
+      await sleep(100)
+
+      // Alice should have one conversation and one message
+      const acs = await alice.conversations.list()
+      expect(acs).toHaveLength(1)
+      const ac = acs[0]
+      const ams = await ac.messages()
+      expect(ams).toHaveLength(1)
+      expect(ams[0].plaintext).toBe('hi')
+
+      /*
+      // All bobs should also have one conversation and one message
+      for (const b of allBobs) {
+        const bcs = await b.conversations.list()
+        expect(bcs).toHaveLength(1)
+        const bc = bcs[0]
+        const bms = await bc.messages()
+        expect(bms).toHaveLength(1)
+        expect(bms[0].plaintext).toBe('hi')
+      }
+      */
+    })
   })
 })
