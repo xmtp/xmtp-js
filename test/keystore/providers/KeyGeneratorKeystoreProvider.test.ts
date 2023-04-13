@@ -57,5 +57,5 @@ describe('KeyGeneratorKeystoreProvider', () => {
     )
     expect(keystore).toBeDefined()
     expect(preEnableIdentityCallback).toHaveBeenCalledTimes(1)
-  }
+  })
 })
