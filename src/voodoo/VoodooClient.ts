@@ -65,21 +65,40 @@ export default class VoodooClient {
   }
 
   get contact(): VoodooContact {
-    return {
-      address: this.address,
-      voodooInstance: this.voodooInstance,
+    return new VoodooContact(this.address, this.voodooInstance)
+  }
+
+  async newVoodooInvite(
+    peerAddress: string,
+    topic: string
+  ): Promise<EncryptedVoodooMessage> {
+    const contactInstance = await this.getUserContactFromNetwork(peerAddress)
+    if (!contactInstance) {
+      throw new Error('No contact found for address')
     }
+    return this.newVoodooInviteForContact(contactInstance, peerAddress, topic)
+  }
+
+  // TODO: terrible abstraction for equality, uses handles currently
+  contactInstanceIsMe(contact: VoodooContact): boolean {
+    // Check if this.voodooInstance is the same as contact.voodooInstance
+    return this.voodooInstance.handle === contact.voodooInstance.handle
   }
 
   // Create a new Voodoo invite (vmac outbound session with plaintext = topic) for a contact
   async newVoodooInviteForContact(
     contactInstance: VoodooContact,
+    otherUserAddress: string,
     topic: string
   ): Promise<EncryptedVoodooMessage> {
     const outboundSessionResult: SessionResult =
       await this.voodooInstance.createOutboundSession(
         contactInstance.voodooInstance,
-        topic
+        // This is a VoodooInvite object
+        JSON.stringify({
+          topic,
+          participantAddresses: [this.address, otherUserAddress],
+        })
       )
     return {
       senderAddress: this.address,
@@ -89,30 +108,36 @@ export default class VoodooClient {
     }
   }
 
-  // Create new Voodoo invite with lookup
-  // NOTE: deprecated for NxN fanout
-  async newVoodooInvite(
-    contactAddress: string,
-    topic: string
-  ): Promise<EncryptedVoodooMessage> {
-    // Get the contact info which is just a handle for now
-    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
-    if (!contactInstance) {
-      throw new Error(`No contact info for ${contactAddress}`)
+  // Try all contacts until we find one that works, then return it
+  // along with the decrypted VoodooInvite
+  async processVoodooInviteGuessContact(
+    possibleContacts: VoodooContact[],
+    encryptedInvite: EncryptedVoodooMessage
+  ): Promise<[VoodooContact, VoodooMessage]> {
+    // TODO: this can be optimized for sure
+    // Try all contacts
+    for (const contactInstance of possibleContacts) {
+      try {
+        if (this.contactInstanceIsMe(contactInstance)) {
+          continue
+        }
+        const invite = await this.processVoodooInviteForContact(
+          contactInstance,
+          encryptedInvite
+        )
+        return [contactInstance, invite]
+      } catch (err) {
+        // NOTE: expect many errors here, so don't log
+        // console.warn(`Error processing invite for contact`, err)
+      }
     }
-    return this.newVoodooInviteForContact(contactInstance, topic)
+    throw new Error(`No contacts could decrypt invite`)
   }
 
-  // Get the JSON from creating an inbound session
-  async processVoodooInvite(
-    contactAddress: string,
+  private async processVoodooInviteForContact(
+    contactInstance: VoodooContact,
     encryptedInvite: EncryptedVoodooMessage
   ): Promise<VoodooMessage> {
-    // Get the contact info which is just a handle for now
-    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
-    if (!contactInstance) {
-      throw new Error(`No contact info for ${contactAddress}`)
-    }
     // Need to decode inboundEncryptedVoodooMessageJson
     const inboundSessionResult: SessionResult =
       await this.voodooInstance.createInboundSession(
@@ -122,10 +147,24 @@ export default class VoodooClient {
 
     return {
       sessionId: inboundSessionResult.sessionId,
-      senderAddress: contactAddress,
+      senderAddress: contactInstance.address,
       timestamp: encryptedInvite.timestamp,
       plaintext: inboundSessionResult.payload,
     }
+  }
+
+  // Get the JSON from creating an inbound session
+  // DEPRECATED: no longer valid in NxN, need to get multibundle first
+  async processVoodooInvite(
+    contactAddress: string,
+    encryptedInvite: EncryptedVoodooMessage
+  ): Promise<VoodooMessage> {
+    // Get the contact info which is just a handle for now
+    const contactInstance = await this.getUserContactFromNetwork(contactAddress)
+    if (!contactInstance) {
+      throw new Error(`No contact info for ${contactAddress}`)
+    }
+    return this.processVoodooInviteForContact(contactInstance, encryptedInvite)
   }
 
   async decryptMessage(
@@ -192,12 +231,18 @@ export default class VoodooClient {
     }
   }
 
-  private async ensureUserContactPublished(): Promise<void> {
-    const bundle = await this.getUserContactFromNetwork(this.address)
+  // PRIVATE: left open for testing purposes
+  async ensureUserContactPublished(): Promise<void> {
+    // Check the multibundle, see if our contact is in there
+    const multibundle = await this.getUserContactMultiBundle(this.address)
     // NOTE: other devices for this wallet could have published bundles, this is expected
     // TODO: we only avoid republishing our own bundle if the account is the same
-    if (!!bundle && bundle.voodooInstance === this.voodooInstance) {
-      return
+    if (multibundle) {
+      for (const contact of multibundle.contacts) {
+        if (this.contactInstanceIsMe(contact)) {
+          return
+        }
+      }
     }
     await this.publishUserContact()
   }
@@ -244,7 +289,7 @@ export default class VoodooClient {
   ): Promise<VoodooMultiBundle | undefined> {
     const stream = this.apiClient.queryIterator(
       { contentTopic: buildVoodooUserContactTopic(peerAddress) },
-      { pageSize: 25, direction: SortDirection.SORT_DIRECTION_DESCENDING }
+      { pageSize: 100, direction: SortDirection.SORT_DIRECTION_DESCENDING }
     )
 
     // Get a list of all valid contacts
@@ -266,7 +311,6 @@ export default class VoodooClient {
     return {
       address: peerAddress,
       contacts: listContacts,
-      timestamp: new Date().getTime(),
     }
   }
 

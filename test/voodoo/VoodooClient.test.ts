@@ -1,7 +1,12 @@
 import assert from 'assert'
 import { newWallet } from '../helpers'
 import Client from '../../src/Client'
-import { VoodooMessage, EncryptedVoodooMessage } from '../../src/voodoo/types'
+import {
+  VoodooMessage,
+  EncryptedVoodooMessage,
+  VoodooInvite,
+} from '../../src/voodoo/types'
+import { sleep } from '../../src/utils'
 
 describe('VoodooClient', () => {
   it('can create a client', async () => {
@@ -49,8 +54,34 @@ describe('VoodooClient', () => {
       encryptedInvite
     )
 
+    // Need to parse decryptedInvite.plaintext into a VoodooInvite via JSON deserialization
+    const invite: VoodooInvite = JSON.parse(decryptedInvite.plaintext)
+
     expect(decryptedInvite.sessionId).toEqual(encryptedInvite.sessionId)
-    expect(decryptedInvite.plaintext).toEqual(aliceTopic)
+    expect(invite.topic).toEqual(aliceTopic)
     expect(decryptedInvite.senderAddress).toEqual(alice.address)
+    expect(invite.participantAddresses).toContain(alice.address)
+    expect(invite.participantAddresses).toContain(bob.address)
+  })
+
+  it('does not republish contact bundle if it already exists', async () => {
+    const alice = newWallet()
+    const aliceClient = await Client.createVoodoo(alice, { env: 'local' })
+    // Should get the contact bundle
+    const aliceContactBundle = await aliceClient.getUserContactFromNetwork(
+      alice.address
+    )
+    expect(aliceContactBundle).toBeTruthy()
+    await sleep(100)
+    aliceClient.ensureUserContactPublished()
+    aliceClient.ensureUserContactPublished()
+    aliceClient.ensureUserContactPublished()
+    aliceClient.ensureUserContactPublished()
+    await sleep(100)
+    const multibundle = await aliceClient.getUserContactMultiBundle(
+      alice.address
+    )
+    expect(multibundle).toBeTruthy()
+    expect(multibundle?.contacts.length).toEqual(1)
   })
 })

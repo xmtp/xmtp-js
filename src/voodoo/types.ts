@@ -11,6 +11,11 @@ export class VoodooContact {
     this.address = address
     this.voodooInstance = voodooInstance
   }
+
+  // Is equal, check voodooInstance.handle
+  equals(other: VoodooContact): boolean {
+    return this.voodooInstance.handle === other.voodooInstance.handle
+  }
 }
 
 // Very simple message object which acts as the message type for all Voodoo envelopes
@@ -22,6 +27,17 @@ export type EncryptedVoodooMessage = {
   sessionId: string
   // Ciphertext fields
   ciphertext: string
+}
+
+// The object to be JSON-serialized to form the body(plaintext) of the invite
+export type VoodooInvite = {
+  topic: string
+  // Addresses of the two wallets in the conversation
+  // not necessarily the two voodoo instances in a single 1:1 session
+  // e.g. Me1 forwarding my messages in convo with You1 but to Me2
+  // participants would be [addr(me), addr(you)] but the 1:1 session
+  // is between Me1 and Me2
+  participantAddresses: string[]
 }
 
 export type VoodooMessage = {
@@ -43,15 +59,14 @@ export type VoodooMultiBundle = {
   address: string
   // The bundles for each device
   contacts: VoodooContact[]
-  // Last refreshed timestamp
-  timestamp: number
 }
 
 // Helpful wrapper for wrapping a single one-to-one session, which
 // later can be composed into a VoodooMultiSession
 export type OneToOneSession = {
-  senderAddress: string
-  recipientAddress: string
+  // The two addresses participating in the higher level conversation
+  participantAddresses: string[]
+  envelopeReceiverAddress: string
   sessionId: string
   topic: string
   timestamp: number
@@ -62,9 +77,11 @@ export type OneToOneSession = {
 // Contains all the information needed to send a message to a user
 export type VoodooMultiSession = {
   // The address of the user
-  address: string
+  otherAddress: string
+  myMultiBundle: VoodooMultiBundle
+  otherMultiBundle: VoodooMultiBundle
   // Keep the multi bundle around for convenience
-  multiBundle: VoodooMultiBundle
+  establishedContacts: VoodooContact[]
   // Session ids in the same order as the contacts
   sessionIds: string[]
   // Messages per session, so map sessionId to list of messages
