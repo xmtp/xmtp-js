@@ -1,30 +1,37 @@
-import { Store } from './Store'
 import { utils } from 'ethers'
-import { Signer } from '../types/Signer'
+import { Signer } from '../../types/Signer'
 import {
   PrivateKeyBundleV1,
   decodePrivateKeyBundle,
   decrypt,
   encrypt,
-} from '../crypto'
-import { KeyStore } from './KeyStore'
-import { Authenticator } from '../authn'
-import { bytesToHex, getRandomValues, hexToBytes } from '../crypto/utils'
-import Ciphertext from '../crypto/Ciphertext'
+  PrivateKeyBundleV2,
+} from '../../crypto'
+import type { PreEventCallback } from '../../Client'
+import { LocalAuthenticator } from '../../authn'
+import { bytesToHex, getRandomValues, hexToBytes } from '../../crypto/utils'
+import Ciphertext from '../../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
+import TopicPersistence from '../persistence/TopicPersistence'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
  * EncryptedKeyStore wraps Store to enable encryption of private key bundles
  * using a wallet signature.
  */
-export default class EncryptedKeyStore implements KeyStore {
-  private store: Store
+export default class NetworkKeyManager {
+  private persistence: TopicPersistence
   private signer: Signer
+  private preEnableIdentityCallback?: PreEventCallback
 
-  constructor(signer: Signer, store: Store) {
+  constructor(
+    signer: Signer,
+    persistence: TopicPersistence,
+    preEnableIdentityCallback?: PreEventCallback
+  ) {
     this.signer = signer
-    this.store = store
+    this.persistence = persistence
+    this.preEnableIdentityCallback = preEnableIdentityCallback
   }
 
   private async getStorageAddress(name: string): Promise<string> {
@@ -37,7 +44,7 @@ export default class EncryptedKeyStore implements KeyStore {
 
   // Retrieve a private key bundle for the active wallet address in the signer
   async loadPrivateKeyBundle(): Promise<PrivateKeyBundleV1 | null> {
-    const storageBuffer = await this.store.get(
+    const storageBuffer = await this.persistence.getItem(
       await this.getStorageAddress(KEY_BUNDLE_NAME)
     )
     if (!storageBuffer) {
@@ -61,10 +68,13 @@ export default class EncryptedKeyStore implements KeyStore {
     const keyAddress = await this.getStorageAddress(KEY_BUNDLE_NAME)
     const encodedBundle = await this.toEncryptedBytes(bundle, this.signer)
     // We need to setup the Authenticator so that the underlying store can publish messages without error
-    if (typeof this.store.setAuthenticator === 'function') {
-      this.store.setAuthenticator(new Authenticator(bundle.identityKey))
+    if (typeof this.persistence.setAuthenticator === 'function') {
+      this.persistence.setAuthenticator(
+        new LocalAuthenticator(bundle.identityKey)
+      )
     }
-    await this.store.set(keyAddress, Buffer.from(encodedBundle))
+
+    await this.persistence.setItem(keyAddress, encodedBundle)
   }
 
   // encrypts/serializes the bundle for storage
@@ -77,7 +87,9 @@ export default class EncryptedKeyStore implements KeyStore {
     const wPreKey = getRandomValues(new Uint8Array(32))
     const input = storageSigRequestText(wPreKey)
     const walletAddr = await wallet.getAddress()
-
+    if (this.preEnableIdentityCallback) {
+      await this.preEnableIdentityCallback()
+    }
     let sig = await wallet.signMessage(input)
 
     // Check that the signature is correct, was created using the expected
@@ -119,6 +131,9 @@ export default class EncryptedKeyStore implements KeyStore {
       throw new Error('missing bundle ciphertext')
     }
 
+    if (this.preEnableIdentityCallback) {
+      await this.preEnableIdentityCallback()
+    }
     const secret = hexToBytes(
       await wallet.signMessage(storageSigRequestText(eBundle.walletPreKey))
     )
@@ -180,7 +195,10 @@ function getEncryptedBundle(
 function getPrivateBundle(bytes: Uint8Array): [PrivateKeyBundleV1, boolean] {
   try {
     // TODO: add support for V2
-    const b = decodePrivateKeyBundle(bytes) as PrivateKeyBundleV1
+    const b = decodePrivateKeyBundle(bytes)
+    if (b instanceof PrivateKeyBundleV2) {
+      throw new Error('V2 bundles not supported yet')
+    }
     return [b, false]
   } catch (e) {
     // Adds a default fallback for older versions of the proto

@@ -1,0 +1,122 @@
+import ApiClient, { ApiUrls } from '../../../src/ApiClient'
+import { PrivateKeyBundleV1 } from '../../../src/crypto/PrivateKeyBundle'
+import PrefixedPersistence from '../../../src/keystore/persistence/PrefixedPersistence'
+import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
+import { buildPersistenceFromOptions } from '../../../src/keystore/providers/helpers'
+import NetworkKeyManager from '../../../src/keystore/providers/NetworkKeyManager'
+import { Signer } from '../../../src/types/Signer'
+import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '../../helpers'
+
+describe('NetworkKeyManager', () => {
+  let wallet: Signer
+  let persistence: TopicPersistence
+
+  beforeEach(async () => {
+    wallet = newWallet()
+    persistence = new TopicPersistence(new ApiClient(ApiUrls['local']))
+  })
+
+  it('round trips', async () => {
+    const manager = new NetworkKeyManager(wallet, persistence)
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
+    await manager.storePrivateKeyBundle(bundle)
+    const returnedBundle = await pollFor(
+      async () => {
+        const bundle = await manager.loadPrivateKeyBundle()
+        if (!bundle) {
+          throw new Error('No bundle yet')
+        }
+        return bundle
+      },
+      15000,
+      100
+    )
+
+    expect(returnedBundle).toBeDefined()
+    expect(bundle.identityKey.toBytes()).toEqual(bundle.identityKey.toBytes())
+    expect(bundle.identityKey.publicKey.signature?.ecdsaCompact?.bytes).toEqual(
+      returnedBundle?.identityKey.publicKey.signature?.ecdsaCompact?.bytes
+    )
+    expect(bundle.identityKey.secp256k1).toEqual(
+      returnedBundle?.identityKey.secp256k1
+    )
+    expect(bundle.preKeys).toHaveLength(returnedBundle?.preKeys.length)
+    expect(bundle.preKeys[0].toBytes()).toEqual(
+      returnedBundle?.preKeys[0].toBytes()
+    )
+  })
+
+  it('encrypts with Ledger and decrypts with Metamask', async () => {
+    const wallet = newWallet()
+    const ledgerLikeWallet = wrapAsLedgerWallet(wallet)
+    const secureLedgerStore = new NetworkKeyManager(
+      ledgerLikeWallet,
+      persistence
+    )
+    const secureNormalStore = new NetworkKeyManager(wallet, persistence)
+    const originalBundle = await PrivateKeyBundleV1.generate(ledgerLikeWallet)
+
+    await secureLedgerStore.storePrivateKeyBundle(originalBundle)
+    await sleep(100)
+    const returnedBundle = await secureNormalStore.loadPrivateKeyBundle()
+    if (!returnedBundle) {
+      throw new Error('No bundle returned')
+    }
+
+    expect(returnedBundle).toBeDefined()
+    expect(originalBundle.identityKey.toBytes()).toEqual(
+      returnedBundle.identityKey.toBytes()
+    )
+    expect(originalBundle.preKeys).toHaveLength(returnedBundle.preKeys.length)
+    expect(originalBundle.preKeys[0].toBytes()).toEqual(
+      returnedBundle.preKeys[0].toBytes()
+    )
+  })
+
+  it('encrypts with Metamask and decrypts with Ledger', async () => {
+    const wallet = newWallet()
+    const ledgerLikeWallet = wrapAsLedgerWallet(wallet)
+    const ledgerManager = new NetworkKeyManager(ledgerLikeWallet, persistence)
+    const normalManager = new NetworkKeyManager(wallet, persistence)
+    const originalBundle = await PrivateKeyBundleV1.generate(wallet)
+
+    await normalManager.storePrivateKeyBundle(originalBundle)
+    await sleep(100)
+    const returnedBundle = await ledgerManager.loadPrivateKeyBundle()
+    if (!returnedBundle) {
+      throw new Error('No bundle returned')
+    }
+
+    expect(returnedBundle).toBeDefined()
+    expect(originalBundle.identityKey.toBytes()).toEqual(
+      returnedBundle.identityKey.toBytes()
+    )
+    expect(originalBundle.preKeys).toHaveLength(returnedBundle.preKeys.length)
+    expect(originalBundle.preKeys[0].toBytes()).toEqual(
+      returnedBundle.preKeys[0].toBytes()
+    )
+  })
+
+  it('respects the options provided', async () => {
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
+    const shouldBeUndefined = await buildPersistenceFromOptions(
+      { persistConversations: false, env: 'local' },
+      bundle
+    )
+    expect(shouldBeUndefined).toBeUndefined()
+
+    const shouldBeDefined = await buildPersistenceFromOptions(
+      { persistConversations: true, env: 'local' },
+      bundle
+    )
+    expect(shouldBeDefined).toBeInstanceOf(PrefixedPersistence)
+  })
+
+  it('calls notifier on store', async () => {
+    const mockNotifier = jest.fn()
+    const manager = new NetworkKeyManager(wallet, persistence, mockNotifier)
+    const bundle = await PrivateKeyBundleV1.generate(wallet)
+    await manager.storePrivateKeyBundle(bundle)
+    expect(mockNotifier).toHaveBeenCalledTimes(1)
+  })
+})

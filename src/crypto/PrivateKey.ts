@@ -2,11 +2,18 @@ import { privateKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature, {
+  AccountLinkedRole,
+  AccountLinkSigner,
   ECDSACompactWithRecovery,
   ecdsaSignerKey,
   KeySigner,
 } from './Signature'
-import { PublicKey, SignedPublicKey, UnsignedPublicKey } from './PublicKey'
+import {
+  AccountLinkedPublicKey,
+  PublicKey,
+  SignedPublicKey,
+  UnsignedPublicKey,
+} from './PublicKey'
 import Ciphertext from './Ciphertext'
 import { decrypt, encrypt, sha256 } from './encryption'
 import { equalBytes } from './utils'
@@ -169,6 +176,130 @@ export class SignedPrivateKey
       secp256k1: key.secp256k1,
       publicKey: SignedPublicKey.fromLegacyKey(key.publicKey, signedByWallet),
     })
+  }
+}
+
+export class AccountLinkedPrivateKeyV1
+  implements privateKey.AccountLinkedPrivateKey_V1, KeySigner
+{
+  createdNs: Long // time the key was generated, ns since epoch
+  secp256k1: secp256k1 // eslint-disable-line camelcase
+  publicKey: AccountLinkedPublicKey // caches corresponding PublicKey
+
+  constructor(obj: privateKey.AccountLinkedPrivateKey_V1) {
+    if (!obj.secp256k1) {
+      throw new Error('invalid private key')
+    }
+    secp256k1Check(obj.secp256k1)
+    this.secp256k1 = obj.secp256k1
+    this.createdNs = obj.createdNs
+    if (!obj.publicKey) {
+      throw new Error('missing public key')
+    }
+    this.publicKey = new AccountLinkedPublicKey(obj.publicKey)
+    if (
+      !equalBytes(
+        secp.getPublicKey(this.secp256k1.bytes),
+        this.publicKey.secp256k1Uncompressed.bytes
+      )
+    ) {
+      throw new Error('private key does not match public key')
+    }
+  }
+
+  // Sign provided digest.
+  private async sign(digest: Uint8Array): Promise<Signature> {
+    const [signature, recovery] = await secp.sign(
+      digest,
+      this.secp256k1.bytes,
+      {
+        recovered: true,
+        der: false,
+      }
+    )
+    return new Signature({
+      ecdsaCompact: { bytes: signature, recovery },
+    })
+  }
+
+  // Sign provided public key.
+  public async signKey(pub: UnsignedPublicKey): Promise<SignedPublicKey> {
+    const keyBytes = pub.toBytes()
+    const digest = await sha256(keyBytes)
+    const signature = await this.sign(digest)
+    return new SignedPublicKey({
+      keyBytes,
+      signature,
+    })
+  }
+
+  // Does the provided PublicKey correspond to this PrivateKey?
+  public matches(key: AccountLinkedPublicKey): boolean {
+    return this.publicKey.equals(key)
+  }
+}
+
+export class AccountLinkedPrivateKey
+  extends AccountLinkedPrivateKeyV1
+  implements privateKey.AccountLinkedPrivateKey
+{
+  v1: privateKey.AccountLinkedPrivateKey_V1 | undefined
+
+  constructor(obj: privateKey.AccountLinkedPrivateKey) {
+    if (obj.v1) {
+      super(obj.v1)
+      this.v1 = obj.v1
+    } else {
+      throw new Error('unsupported version')
+    }
+  }
+
+  // Create a random key pair signed by the signer.
+  static async generate(
+    signer: AccountLinkSigner,
+    role: AccountLinkedRole
+  ): Promise<AccountLinkedPrivateKey> {
+    const secp256k1 = {
+      bytes: secp.utils.randomPrivateKey(),
+    }
+    const createdNs = Long.fromNumber(new Date().getTime()).mul(1000000)
+    const unsigned = new UnsignedPublicKey({
+      secp256k1Uncompressed: {
+        bytes: secp.getPublicKey(secp256k1.bytes),
+      },
+      createdNs,
+    })
+    const signed = await signer.signKeyWithRole(unsigned, role)
+    return new AccountLinkedPrivateKey({
+      v1: new AccountLinkedPrivateKeyV1({
+        secp256k1,
+        createdNs,
+        publicKey: signed,
+      }),
+    })
+  }
+
+  public static fromLegacyKey(
+    key: SignedPrivateKey,
+    role: AccountLinkedRole
+  ): AccountLinkedPrivateKey {
+    return new AccountLinkedPrivateKey({
+      v1: new AccountLinkedPrivateKeyV1({
+        createdNs: key.createdNs,
+        secp256k1: key.secp256k1,
+        publicKey: AccountLinkedPublicKey.fromLegacyKey(key.publicKey, role),
+      }),
+    })
+  }
+
+  // derive shared secret from peer's PublicKey;
+  // the peer can derive the same secret using their PrivateKey and our PublicKey
+  public sharedSecret(peer: PublicKey | SignedPublicKey): Uint8Array {
+    return secp.getSharedSecret(
+      this.secp256k1.bytes,
+      peer.secp256k1Uncompressed.bytes,
+      false
+    )
   }
 }
 

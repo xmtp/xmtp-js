@@ -1,7 +1,37 @@
 import { publicKey } from '@xmtp/proto'
-import { PublicKey, SignedPublicKey } from './PublicKey'
+import { AccountLinkedPublicKey, PublicKey, SignedPublicKey } from './PublicKey'
+import { AccountLinkedRole } from './Signature'
 
-// PublicKeyBundle packages all the keys that a participant should advertise.
+export class SignedPublicKeyBundleV2
+  implements publicKey.SignedPublicKeyBundleV2
+{
+  accountLinkedKey: AccountLinkedPublicKey
+  preKey: SignedPublicKey
+
+  constructor(bundle: publicKey.SignedPublicKeyBundleV2) {
+    if (!bundle.accountLinkedKey) {
+      throw new Error('SignedPublicKeyBundleV2 missing account linked key')
+    }
+    if (!bundle.preKey) {
+      throw new Error('SignedPublicKeyBundleV2 missing pre-key')
+    }
+    this.accountLinkedKey = new AccountLinkedPublicKey(bundle.accountLinkedKey)
+    this.preKey = new SignedPublicKey(bundle.preKey)
+  }
+
+  public getLinkedAddress(role: AccountLinkedRole): string {
+    return this.accountLinkedKey.getLinkedAddress(role)
+  }
+
+  public equals(other: this): boolean {
+    return (
+      this.accountLinkedKey.equals(other.accountLinkedKey) &&
+      this.preKey.equals(other.preKey)
+    )
+  }
+}
+
+// LEGACY: PublicKeyBundle packages all the keys that a participant should advertise.
 // The PreKey must be signed by the IdentityKey.
 // The IdentityKey must be signed by the wallet to authenticate it.
 export class SignedPublicKeyBundle implements publicKey.SignedPublicKeyBundle {

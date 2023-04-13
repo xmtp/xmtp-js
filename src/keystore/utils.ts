@@ -1,7 +1,13 @@
 import { TopicData } from './interfaces'
-import { publicKey, keystore, invitation } from '@xmtp/proto'
+import {
+  conversationReference,
+  publicKey,
+  keystore,
+  invitation,
+} from '@xmtp/proto'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import { KeystoreError } from './errors'
+import { WithoutUndefined } from '../utils/typedefs'
 
 export const convertError = (
   e: Error,
@@ -59,8 +65,6 @@ export const toSignedPublicKeyBundle = (
   return new SignedPublicKeyBundle(bundle)
 }
 
-export type WithoutUndefined<T> = { [P in keyof T]: NonNullable<T[P]> }
-
 // Takes object and returns true if none of the `objectFields` are null or undefined and none of the `arrayFields` are empty
 export const validateObject = <T>(
   obj: T,
@@ -104,9 +108,11 @@ export const getKeyMaterial = (
 export const topicDataToConversationReference = ({
   invitation,
   createdNs,
-}: TopicData): keystore.ConversationReference => ({
+  peerAddress,
+}: TopicData): conversationReference.ConversationReference => ({
   context: invitation.context,
   topic: invitation.topic,
+  peerAddress,
   createdNs,
 })
 

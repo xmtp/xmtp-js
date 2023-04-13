@@ -1,10 +1,17 @@
-import { keystore } from '@xmtp/proto'
+import {
+  authn,
+  keystore,
+  privateKey,
+  signature,
+  conversationReference,
+} from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
+  PrivateKeyBundleV3,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
-import { SignedPublicKeyBundle } from '../crypto'
+import { PrivateKey, PublicKeyBundle } from '../crypto'
 import { Keystore, TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
@@ -20,17 +27,22 @@ import {
 import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
+import LocalAuthenticator from '../authn/LocalAuthenticator'
+import { AccountLinkedRole } from '../crypto/Signature'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private inviteStore: InviteStore
+  private authenticator: LocalAuthenticator
+  private accountAddress: string | undefined
 
   constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.inviteStore = inviteStore
+    this.authenticator = new LocalAuthenticator(keys.identityKey)
   }
 
   static async create(keys: PrivateKeyBundleV1, persistence?: Persistence) {
@@ -138,6 +150,14 @@ export default class InMemoryKeystore implements Keystore {
     })
   }
 
+  async createAuthToken({
+    timestampNs,
+  }: keystore.CreateAuthTokenRequest): Promise<authn.Token> {
+    return this.authenticator.createToken(
+      timestampNs ? nsToDate(timestampNs) : undefined
+    )
+  }
+
   async encryptV2(
     req: keystore.EncryptV2Request
   ): Promise<keystore.EncryptResponse> {
@@ -186,17 +206,50 @@ export default class InMemoryKeystore implements Keystore {
       req.requests,
       async ({ payload, timestampNs }) => {
         const sealed = SealedInvitation.fromBytes(payload)
+        if (sealed.v1) {
+          const headerTime = sealed.v1.header.createdNs
+          if (!headerTime.equals(timestampNs)) {
+            throw new Error('envelope and header timestamp mismatch')
+          }
 
-        const headerTime = sealed.v1.header.createdNs
-        if (!headerTime.equals(timestampNs)) {
-          throw new Error('envelope and header timestamp mismatch')
-        }
+          const isSender = sealed.v1.header.sender.equals(
+            this.v2Keys.getPublicKeyBundle()
+          )
 
-        const invitation = await sealed.v1.getInvitation(this.v2Keys)
-        const topicData = { invitation, createdNs: sealed.v1.header.createdNs }
-        toAdd.push(topicData)
-        return {
-          conversation: topicDataToConversationReference(topicData),
+          const invitation = await sealed.v1.getInvitation(this.v2Keys)
+          const topicData = {
+            invitation,
+            createdNs: sealed.v1.header.createdNs,
+            peerAddress: isSender
+              ? await sealed.v1.header.recipient.walletSignatureAddress()
+              : await sealed.v1.header.sender.walletSignatureAddress(),
+          }
+          toAdd.push(topicData)
+          return {
+            conversation: topicDataToConversationReference(topicData),
+          }
+        } else if (sealed.v2) {
+          const headerTime = sealed.v2.header.createdNs
+          if (!headerTime.equals(timestampNs)) {
+            throw new Error('envelope and header timestamp mismatch')
+          }
+
+          const invitation = await sealed.v2.getInvitation(
+            PrivateKeyBundleV3.fromLegacyBundle(
+              this.v2Keys,
+              AccountLinkedRole.INBOX_KEY
+            )
+          )
+          const selfAddress = await this.getAccountAddress()
+          const topicData = {
+            invitation,
+            createdNs: sealed.v2.header.createdNs,
+            peerAddress: sealed.v2.header.getPeerAddress(selfAddress),
+          }
+          toAdd.push(topicData)
+          return {
+            conversation: topicDataToConversationReference(topicData),
+          }
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -221,13 +274,18 @@ export default class InMemoryKeystore implements Keystore {
       }
       const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
+      const recipient = toSignedPublicKeyBundle(req.recipient)
       const sealed = await SealedInvitation.createV1({
         sender: this.v2Keys,
-        recipient: toSignedPublicKeyBundle(req.recipient),
+        recipient,
         created,
         invitation,
       })
-      const topicData = { invitation, createdNs: req.createdNs }
+      const topicData = {
+        invitation,
+        createdNs: req.createdNs,
+        peerAddress: await recipient.walletSignatureAddress(),
+      }
       await this.inviteStore.add([topicData])
 
       return keystore.CreateInviteResponse.fromPartial({
@@ -239,20 +297,74 @@ export default class InMemoryKeystore implements Keystore {
     }
   }
 
-  async getV2Conversations(): Promise<keystore.ConversationReference[]> {
+  async signDigest(
+    req: keystore.SignDigestRequest
+  ): Promise<signature.Signature> {
+    if (!validateObject(req, ['digest'], [])) {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        'missing required field'
+      )
+    }
+
+    const { digest, identityKey, prekeyIndex } = req
+    let key: PrivateKey
+    if (identityKey) {
+      key = this.v1Keys.identityKey
+    } else if (
+      typeof prekeyIndex !== 'undefined' &&
+      Number.isInteger(prekeyIndex)
+    ) {
+      key = this.v1Keys.preKeys[prekeyIndex]
+      if (!key) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
+          'no prekey found'
+        )
+      }
+    } else {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        'must specifify identityKey or prekeyIndex'
+      )
+    }
+
+    return key.sign(digest)
+  }
+
+  async getV2Conversations(): Promise<
+    conversationReference.ConversationReference[]
+  > {
     const convos = this.inviteStore.topics.map((invite) =>
       topicDataToConversationReference(invite)
     )
 
-    convos.sort((a, b) => a.createdNs.sub(b.createdNs).toNumber())
+    convos.sort((a, b) =>
+      a.createdNs.div(1_000_000).sub(b.createdNs.div(1_000_000)).toNumber()
+    )
     return convos
   }
 
-  async getPublicKeyBundle(): Promise<SignedPublicKeyBundle> {
-    return this.v2Keys.getPublicKeyBundle()
+  async getPublicKeyBundle(): Promise<PublicKeyBundle> {
+    return this.v1Keys.getPublicKeyBundle()
+  }
+
+  async getPrivateKeyBundle(): Promise<privateKey.PrivateKeyBundleV1> {
+    return this.v1Keys
   }
 
   async getAccountAddress(): Promise<string> {
-    return this.v2Keys.getPublicKeyBundle().walletSignatureAddress()
+    if (!this.accountAddress) {
+      this.accountAddress = await this.v2Keys
+        .getPublicKeyBundle()
+        .walletSignatureAddress()
+    }
+    return this.accountAddress
+  }
+
+  // This method is not defined as part of the standard Keystore API, but is available
+  // on the InMemoryKeystore to support legacy use-cases.
+  lookupTopic(topic: string) {
+    return this.inviteStore.lookup(topic)
   }
 }
