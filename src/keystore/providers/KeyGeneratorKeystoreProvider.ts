@@ -31,7 +31,8 @@ export default class KeyGeneratorKeystoreProvider implements KeystoreProvider {
     const bundle = await PrivateKeyBundleV1.generate(wallet)
     const manager = new NetworkKeyManager(
       wallet,
-      new TopicPersistence(apiClient)
+      new TopicPersistence(apiClient),
+      opts.preEnableIdentityCallback
     )
     await manager.storePrivateKeyBundle(bundle)
 

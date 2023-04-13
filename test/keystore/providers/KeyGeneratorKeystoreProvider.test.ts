@@ -46,4 +46,16 @@ describe('KeyGeneratorKeystoreProvider', () => {
     expect(keystore).toBeDefined()
     expect(preCreateIdentityCallback).toHaveBeenCalledTimes(1)
   })
+
+  it('calls preEnableIdentityCallback when supplied', async () => {
+    const provider = new KeyGeneratorKeystoreProvider()
+    const preEnableIdentityCallback = jest.fn()
+    const keystore = await provider.newKeystore(
+      { ...testProviderOptions(), preEnableIdentityCallback },
+      apiClient,
+      wallet
+    )
+    expect(keystore).toBeDefined()
+    expect(preEnableIdentityCallback).toHaveBeenCalledTimes(1)
+  }
 })
