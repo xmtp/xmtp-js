@@ -16,9 +16,9 @@ module.exports = class JsdomTestEnvironment extends Environment {
       this.global.setImmediate = setImmediate
       this.global.clearImmediate = clearImmediate
     }
-    if (typeof this.global.crypto === 'undefined') {
-      this.global.crypto = require('crypto').webcrypto
-    }
+    // if (typeof this.global.crypto === 'undefined') {
+    //   this.global.crypto = require('crypto').webcrypto
+    // }
 
     // https://github.com/facebook/jest/issues/9983
     this.global.Uint8Array = Uint8Array
