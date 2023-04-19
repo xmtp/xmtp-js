@@ -28,7 +28,7 @@ describe('Compression', function () {
   it('compresses and decompresses', async function () {
     const uncompressed = new Uint8Array(55).fill(42)
     const compressed = new Uint8Array([
-      120, 1, 211, 210, 34, 11, 0, 0, 252, 223, 9, 7,
+      120, 156, 211, 210, 34, 11, 0, 0, 252, 223, 9, 7,
     ])
     let content = {
       type: ContentTypeText,

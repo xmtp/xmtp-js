@@ -1,5 +1,6 @@
 import { utils } from 'ethers'
 import { Signer } from '../../types/Signer'
+import crypto from '../../crypto/crypto'
 import {
   PrivateKeyBundleV1,
   decodePrivateKeyBundle,
@@ -9,7 +10,7 @@ import {
 } from '../../crypto'
 import type { PreEventCallback } from '../../Client'
 import { LocalAuthenticator } from '../../authn'
-import { bytesToHex, getRandomValues, hexToBytes } from '../../crypto/utils'
+import { bytesToHex, hexToBytes } from '../../crypto/utils'
 import Ciphertext from '../../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
 import TopicPersistence from '../persistence/TopicPersistence'
@@ -84,7 +85,7 @@ export default class NetworkKeyManager {
   ): Promise<Uint8Array> {
     // serialize the contents
     const bytes = bundle.encode()
-    const wPreKey = getRandomValues(new Uint8Array(32))
+    const wPreKey = crypto.getRandomValues(new Uint8Array(32))
     const input = storageSigRequestText(wPreKey)
     const walletAddr = await wallet.getAddress()
     if (this.preEnableIdentityCallback) {

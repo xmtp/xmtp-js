@@ -1,15 +1,15 @@
+import crypto from '../../src/crypto/crypto'
 import { InviteStore, TopicData } from '../../src/keystore'
 import { LocalStoragePersistence } from '../../src/keystore/persistence'
-import { getRandomValues } from '../../src/crypto/utils'
 import { dateToNs } from '../../src/utils'
 
 const buildTopicData = (): TopicData => ({
   createdNs: dateToNs(new Date()).toUnsigned(),
-  peerAddress: getRandomValues(new Uint8Array(42)).toString(),
+  peerAddress: crypto.getRandomValues(new Uint8Array(42)).toString(),
   invitation: {
-    topic: getRandomValues(new Uint8Array(32)).toString(),
+    topic: crypto.getRandomValues(new Uint8Array(32)).toString(),
     aes256GcmHkdfSha256: {
-      keyMaterial: getRandomValues(new Uint8Array(32)),
+      keyMaterial: crypto.getRandomValues(new Uint8Array(32)),
     },
     context: {
       conversationId: 'foo',
