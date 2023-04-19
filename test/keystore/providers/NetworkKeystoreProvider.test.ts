@@ -10,8 +10,9 @@ import NetworkKeyManager, {
   storageSigRequestText,
 } from '../../../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { getRandomValues, hexToBytes } from '../../../src/crypto/utils'
+import { hexToBytes } from '../../../src/crypto/utils'
 import { LocalAuthenticator } from '../../../src/authn'
+import crypto from '../../../src/crypto/crypto'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
@@ -52,7 +53,7 @@ describe('NetworkKeystoreProvider', () => {
   it('properly handles legacy keys', async () => {
     // Create a legacy EncryptedPrivateKeyBundleV1 and store it on the node
     const bytes = bundle.encode()
-    const wPreKey = getRandomValues(new Uint8Array(32))
+    const wPreKey = crypto.getRandomValues(new Uint8Array(32))
     const input = storageSigRequestText(wPreKey)
     const walletAddr = await wallet.getAddress()
 

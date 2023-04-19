@@ -1,9 +1,9 @@
+import crypto from '../../../src/crypto/crypto'
 import { PrivateKeyBundleV1 } from './../../../src/crypto/PrivateKeyBundle'
 import {
   EncryptedPersistence,
   LocalStoragePersistence,
 } from '../../../src/keystore/persistence'
-import { getRandomValues } from '../../../src/crypto/utils'
 import { PrivateKey, SignedEciesCiphertext } from '../../../src/crypto'
 
 const TEST_KEY = 'test-key'
@@ -18,7 +18,7 @@ describe('EncryptedPersistence', () => {
   })
 
   it('can encrypt and decrypt a value', async () => {
-    const data = getRandomValues(new Uint8Array(128))
+    const data = crypto.getRandomValues(new Uint8Array(128))
     const persistence = new LocalStoragePersistence()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
@@ -35,9 +35,9 @@ describe('EncryptedPersistence', () => {
 
   it('works with arbitrarily sized inputs', async () => {
     const inputs = [
-      getRandomValues(new Uint8Array(32)),
-      getRandomValues(new Uint8Array(128)),
-      getRandomValues(new Uint8Array(1024)),
+      crypto.getRandomValues(new Uint8Array(32)),
+      crypto.getRandomValues(new Uint8Array(128)),
+      crypto.getRandomValues(new Uint8Array(1024)),
     ]
     for (const input of inputs) {
       const encryptedPersistence = new EncryptedPersistence(
@@ -52,7 +52,7 @@ describe('EncryptedPersistence', () => {
   })
 
   it('uses random values to encrypt repeatedly', async () => {
-    const data = getRandomValues(new Uint8Array(128))
+    const data = crypto.getRandomValues(new Uint8Array(128))
     const persistence = new LocalStoragePersistence()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
@@ -86,7 +86,7 @@ describe('EncryptedPersistence', () => {
   })
 
   it('detects bad mac', async () => {
-    const data = getRandomValues(new Uint8Array(128))
+    const data = crypto.getRandomValues(new Uint8Array(128))
     const persistence = new LocalStoragePersistence()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
@@ -101,7 +101,7 @@ describe('EncryptedPersistence', () => {
     const parsedRawResult = SignedEciesCiphertext.fromBytes(rawResult!)
     const newCiphertext = {
       ...parsedRawResult.ciphertext,
-      mac: getRandomValues(new Uint8Array(32)),
+      mac: crypto.getRandomValues(new Uint8Array(32)),
     }
     const newData = await SignedEciesCiphertext.create(
       newCiphertext,
@@ -121,7 +121,7 @@ describe('EncryptedPersistence', () => {
       persistence,
       privateKey
     )
-    const data = getRandomValues(new Uint8Array(64))
+    const data = crypto.getRandomValues(new Uint8Array(64))
     await encryptedPersistence.setItem(TEST_KEY, data)
     const encryptedBytes = await persistence.getItem(TEST_KEY)
     const goodData = SignedEciesCiphertext.fromBytes(encryptedBytes!)
@@ -144,14 +144,14 @@ describe('EncryptedPersistence', () => {
       persistence,
       privateKey
     )
-    const data = getRandomValues(new Uint8Array(64))
+    const data = crypto.getRandomValues(new Uint8Array(64))
     await encryptedPersistence.setItem(TEST_KEY, data)
     const encryptedBytes = await persistence.getItem(TEST_KEY)
     const goodData = SignedEciesCiphertext.fromBytes(encryptedBytes!)
     // Replace the ephemeralPublicKey with a valid length, but totally garbage, value
     const badEcies = {
       ...goodData.ciphertext,
-      ephemeralPublicKey: getRandomValues(new Uint8Array(65)),
+      ephemeralPublicKey: crypto.getRandomValues(new Uint8Array(65)),
     }
     const signedBadEcies = await SignedEciesCiphertext.create(
       badEcies,
