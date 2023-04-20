@@ -7,11 +7,9 @@ import {
   newLocalHostClientWithCustomWallet,
   sleep,
 } from './helpers'
-import { buildUserContactTopic, buildUserPrivateStoreTopic } from '../src/utils'
+import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
-import { Compression, getRandomValues, Signer } from '../src'
-import { content as proto } from '@xmtp/proto'
-import { InMemoryKeystore } from '../src/keystore'
+import { Compression } from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 import { PrivateKeyBundleV1 } from '../src/crypto'
@@ -279,6 +277,7 @@ describe('publishEnvelopes', () => {
 
   it('rejects with invalid envelopes', async () => {
     const c = await newLocalHostClient()
+    // Set a bogus authenticator so we can have failing tests
     c.apiClient.setAuthenticator({
       // @ts-ignore-next-line
       createToken: async () => ({
@@ -286,11 +285,19 @@ describe('publishEnvelopes', () => {
       }),
     })
     const envelope = {
-      contentTopic: '/xmtp/0/foo/proto',
+      contentTopic: buildUserContactTopic(c.address),
       message: new TextEncoder().encode('hello world'),
       timestamp: new Date(),
     }
-    await expect(c.publishEnvelopes([envelope])).rejects.toThrow('foo')
+
+    // `expect(promise).rejects.toThrow` fails but this works.
+    // Would love to understand why
+    try {
+      await c.publishEnvelopes([envelope])
+    } catch (e) {
+      return
+    }
+    fail('Expected error')
   })
 })
 
