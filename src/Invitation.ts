@@ -4,8 +4,9 @@ import {
   SignedPublicKeyBundleV2,
 } from './crypto/PublicKeyBundle'
 import { messageApi, invitation, fetcher } from '@xmtp/proto'
+import crypto from './crypto/crypto'
 import Ciphertext from './crypto/Ciphertext'
-import { decrypt, encrypt, utils } from './crypto'
+import { decrypt, encrypt } from './crypto'
 import {
   PrivateKeyBundleV2,
   PrivateKeyBundleV3,
@@ -49,14 +50,14 @@ export class InvitationV1 implements invitation.InvitationV1 {
 
   static createRandom(context?: invitation.InvitationV1_Context): InvitationV1 {
     const topic = buildDirectMessageTopicV2(
-      Buffer.from(utils.getRandomValues(new Uint8Array(32)))
+      Buffer.from(crypto.getRandomValues(new Uint8Array(32)))
         .toString('base64')
         .replace(/=*$/g, '')
         // Replace slashes with dashes so that the topic is still easily split by /
         // We do not treat this as needing to be valid Base64 anywhere
         .replace('/', '-')
     )
-    const keyMaterial = utils.getRandomValues(new Uint8Array(32))
+    const keyMaterial = crypto.getRandomValues(new Uint8Array(32))
 
     return new InvitationV1({
       topic,

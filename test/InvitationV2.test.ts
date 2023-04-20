@@ -9,7 +9,7 @@ import {
   PrivateKeyBundleV3,
 } from '../src/crypto/PrivateKeyBundle'
 import { newWallet } from './helpers'
-import { crypto } from '../src/crypto/encryption'
+import crypto from '../src/crypto/crypto'
 import Ciphertext from '../src/crypto/Ciphertext'
 import { AccountLinkedRole } from '../src/crypto/Signature'
 import { Wallet } from '@ethersproject/wallet'

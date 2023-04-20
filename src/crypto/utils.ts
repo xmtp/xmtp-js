@@ -1,9 +1,4 @@
 import * as secp from '@noble/secp256k1'
-import { crypto } from './encryption'
-
-export function getRandomValues<T extends ArrayBufferView | null>(array: T): T {
-  return crypto.getRandomValues(array)
-}
 
 export const bytesToHex = secp.utils.bytesToHex
 

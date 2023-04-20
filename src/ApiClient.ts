@@ -3,7 +3,7 @@ import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import { retry, sleep, toNanoString } from './utils'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
-import { version } from '../package.json'
+import packageJson from '../package.json'
 import { XMTP_DEV_WARNING } from './constants'
 import { Flatten } from './utils/typedefs'
 export const { MessageApi, SortDirection } = messageApi
@@ -117,7 +117,7 @@ export default class ApiClient {
     this.pathPrefix = pathPrefix
     this.maxRetries = opts?.maxRetries || 5
     this.appVersion = opts?.appVersion
-    this.version = 'xmtp-js/' + version
+    this.version = 'xmtp-js/' + packageJson.version
 
     if (pathPrefix === ApiUrls.dev) {
       console.info(XMTP_DEV_WARNING)

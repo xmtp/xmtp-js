@@ -7,7 +7,7 @@ import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
 import { LocalAuthenticator } from '../src/authn'
 import { PrivateKey } from '../src'
-import { version } from '../package.json'
+import packageJson from '../package.json'
 import { dateToNs } from '../src/utils'
 const { MessageApi } = messageApi
 
@@ -56,7 +56,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
   })
@@ -107,7 +107,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
   })
@@ -135,7 +135,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
   })
@@ -179,7 +179,7 @@ describe('Publish', () => {
       mode: 'cors',
       headers: new Headers({
         Authorization: `Bearer ${AUTH_TOKEN}`,
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
         'X-App-Version': 'test/0.0.0',
       }),
     })
@@ -259,7 +259,7 @@ describe('Subscribe', () => {
       signal: expect.anything(),
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
     await unsubscribeFn()
@@ -303,7 +303,7 @@ describe('Subscribe', () => {
       signal: expect.anything(),
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
     consoleInfo.mockRestore()
@@ -348,7 +348,7 @@ describe('Subscribe', () => {
       signal: expect.anything(),
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
     consoleInfo.mockRestore()
