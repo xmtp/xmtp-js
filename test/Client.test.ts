@@ -7,7 +7,7 @@ import {
   newLocalHostClientWithCustomWallet,
   sleep,
 } from './helpers'
-import { buildUserContactTopic } from '../src/utils'
+import { buildUserContactTopic, buildUserPrivateStoreTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
 import { Compression, getRandomValues, Signer } from '../src'
 import { content as proto } from '@xmtp/proto'
@@ -263,6 +263,34 @@ describe('canMessageMultipleBatches', () => {
         Array.from({ length: 5 }, () => false)
       )
     )
+  })
+})
+
+describe('publishEnvelopes', () => {
+  it('can send a valid envelope', async () => {
+    const c = await newLocalHostClient()
+    const envelope = {
+      contentTopic: '/xmtp/0/foo/proto',
+      message: new TextEncoder().encode('hello world'),
+      timestamp: new Date(),
+    }
+    await c.publishEnvelopes([envelope])
+  })
+
+  it('rejects with invalid envelopes', async () => {
+    const c = await newLocalHostClient()
+    c.apiClient.setAuthenticator({
+      // @ts-ignore-next-line
+      createToken: async () => ({
+        toBase64: () => 'derp!',
+      }),
+    })
+    const envelope = {
+      contentTopic: '/xmtp/0/foo/proto',
+      message: new TextEncoder().encode('hello world'),
+      timestamp: new Date(),
+    }
+    await expect(c.publishEnvelopes([envelope])).rejects.toThrow('foo')
   })
 })
 
