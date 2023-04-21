@@ -190,7 +190,7 @@ export default class ApiClient {
     } catch (e: any) {
       // Try at most 2X. If refreshing the auth token doesn't work the first time, it won't work the second time
       if (isNotAuthError(e) || attemptNumber >= 1) {
-        throw e
+        throw new Error(e)
       }
       await this.authCache?.refresh()
       return this._publish(req, attemptNumber + 1)

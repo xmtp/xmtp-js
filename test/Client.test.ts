@@ -290,14 +290,7 @@ describe('publishEnvelopes', () => {
       timestamp: new Date(),
     }
 
-    // `expect(promise).rejects.toThrow` fails but this works.
-    // Would love to understand why
-    try {
-      await c.publishEnvelopes([envelope])
-    } catch (e) {
-      return
-    }
-    fail('Expected error')
+    expect(c.publishEnvelopes([envelope])).rejects.toThrow()
   })
 })
 
