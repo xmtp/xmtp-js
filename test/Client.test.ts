@@ -277,7 +277,7 @@ describe('publishEnvelopes', () => {
 
   it('rejects with invalid envelopes', async () => {
     const c = await newLocalHostClient()
-    // Set a bogus authenticator so we can have failing tests
+    // Set a bogus authenticator so we can have failing publishes
     c.apiClient.setAuthenticator({
       // @ts-ignore-next-line
       createToken: async () => ({
