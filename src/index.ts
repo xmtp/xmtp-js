@@ -3,6 +3,7 @@ export {
   Ciphertext,
   PublicKey,
   PublicKeyBundle,
+  PrivateKeyBundleV1,
   SignedPublicKey,
   SignedPublicKeyBundle,
   PrivateKey,
@@ -62,5 +63,7 @@ export {
   EncryptedPersistence,
   LocalStoragePersistence,
   PrefixedPersistence,
+  TopicPersistence,
   Persistence,
 } from './keystore/persistence'
+export { default as ApiClient } from './ApiClient'
