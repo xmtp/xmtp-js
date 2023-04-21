@@ -53,9 +53,8 @@ describe('e2e tests', () => {
               message: new Uint8Array(5),
             },
           ])
-        ).rejects.toEqual({
+        ).rejects.toMatchObject({
           code: GrpcStatus.PERMISSION_DENIED,
-          details: [],
           message: 'publishing to restricted topic',
         })
       })

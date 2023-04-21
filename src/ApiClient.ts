@@ -40,7 +40,18 @@ export enum GrpcStatus {
   UNAUTHENTICATED,
 }
 
-export type GrpcError = Flatten<Error & { code?: GrpcStatus }>
+export class GrpcError extends Error {
+  code: GrpcStatus
+
+  constructor(message: string, code: GrpcStatus) {
+    super(message)
+    this.code = code
+  }
+
+  static fromObject(err: { code: GrpcStatus; message: string }): GrpcError {
+    return new GrpcError(err.message, err.code)
+  }
+}
 
 export type QueryParams = {
   startTime?: Date
@@ -92,15 +103,15 @@ const isAbortError = (err?: Error): boolean => {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isAuthError = (err?: GrpcError): boolean => {
-  if (err && err.code === ERR_CODE_UNAUTHENTICATED) {
+const isAuthError = (err?: GrpcError | Error): boolean => {
+  if (err && 'code' in err && err.code === ERR_CODE_UNAUTHENTICATED) {
     return true
   }
   return false
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isNotAuthError = (err?: GrpcError): boolean => !isAuthError(err)
+const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
 
 /**
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
@@ -125,22 +136,27 @@ export default class ApiClient {
   }
 
   // Raw method for querying the API
-  private _query(
+  private async _query(
     req: messageApi.QueryRequest
   ): ReturnType<typeof MessageApi.Query> {
-    return retry(
-      MessageApi.Query,
-      [
-        req,
-        {
-          pathPrefix: this.pathPrefix,
-          mode: 'cors',
-          headers: this.headers(),
-        },
-      ],
-      this.maxRetries,
-      RETRY_SLEEP_TIME
-    )
+    try {
+      return await retry(
+        MessageApi.Query,
+        [
+          req,
+          {
+            pathPrefix: this.pathPrefix,
+            mode: 'cors',
+            headers: this.headers(),
+          },
+        ],
+        this.maxRetries,
+        RETRY_SLEEP_TIME
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      throw GrpcError.fromObject(e)
+    }
   }
 
   // Raw method for batch-querying the API
@@ -190,7 +206,7 @@ export default class ApiClient {
     } catch (e: any) {
       // Try at most 2X. If refreshing the auth token doesn't work the first time, it won't work the second time
       if (isNotAuthError(e) || attemptNumber >= 1) {
-        throw new Error(e)
+        throw GrpcError.fromObject(e)
       }
       await this.authCache?.refresh()
       return this._publish(req, attemptNumber + 1)
