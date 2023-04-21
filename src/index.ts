@@ -11,7 +11,6 @@ export {
   encrypt,
   decrypt,
 } from './crypto'
-export { getRandomValues } from './crypto/utils'
 export { default as Stream } from './Stream'
 export { Signer } from './types/Signer'
 export {

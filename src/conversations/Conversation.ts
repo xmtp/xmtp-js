@@ -4,6 +4,7 @@ import {
   dateToNs,
   concat,
   b64Decode,
+  toNanoString,
 } from '../utils'
 import { utils } from 'ethers'
 import Stream from '../Stream'
@@ -239,10 +240,10 @@ export class ConversationV1 implements Conversation {
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, recipient, options?.timestamp)
 
-    const env = {
+    const env: messageApi.Envelope = {
       contentTopic: this.topic,
       message: msg.toBytes(),
-      timestamp: msg.sent,
+      timestampNs: toNanoString(msg.sent),
     }
 
     return new PreparedMessage(env, async () => {
@@ -675,10 +676,10 @@ export class ConversationV2 implements Conversation {
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
-    const env = {
+    const env: messageApi.Envelope = {
       contentTopic: topic,
       message: msg.toBytes(),
-      timestamp: msg.sent,
+      timestampNs: toNanoString(msg.sent),
     }
 
     return new PreparedMessage(env, async () => {

@@ -1,9 +1,9 @@
 // This file is taken from `bitchan/eccrypto` and ported to TS. All references to `nodeCrypto` have been replaced with `browserCrypto`
 import { ec as EC } from 'elliptic'
-import { crypto as browserCrypto } from './encryption'
+import crypto from './crypto'
 const ec = new EC('secp256k1')
 
-const subtle = browserCrypto.subtle
+const subtle = crypto.subtle
 
 const EC_GROUP_ORDER = Buffer.from(
   'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141',
@@ -52,7 +52,7 @@ function equalConstTime(b1: Buffer, b2: Buffer) {
 
 function randomBytes(size: number): Buffer {
   const arr = new Uint8Array(size)
-  browserCrypto.getRandomValues(arr)
+  crypto.getRandomValues(arr)
   return Buffer.from(arr)
 }
 
