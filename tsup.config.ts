@@ -5,6 +5,8 @@ import { Plugin } from 'esbuild'
 export default defineConfig((options) => {
   const esbuildPlugins: Plugin[] = []
 
+  // for the browser bundle, replace `crypto` import with an object that
+  // returns the browser's built-in crypto library
   if (options.platform === 'browser') {
     esbuildPlugins.push(
       externalGlobal.externalGlobalPlugin({
