@@ -1,4 +1,10 @@
-export { Message, DecodedMessage, decodeContent } from './Message'
+export {
+  Message,
+  DecodedMessage,
+  decodeContent,
+  MessageV1,
+  MessageV2,
+} from './Message'
 export {
   Ciphertext,
   PublicKey,
@@ -26,6 +32,7 @@ export {
 } from './Client'
 export { Conversations, Conversation } from './conversations'
 export {
+  CodecRegistry,
   ContentTypeId,
   ContentCodec,
   EncodedContent,
@@ -49,8 +56,14 @@ export {
   fromNanoString,
   toNanoString,
   mapPaginatedStream,
+  buildContentTopic,
+  buildDirectMessageTopic,
+  buildDirectMessageTopicV2,
+  buildUserContactTopic,
+  buildUserIntroTopic,
+  buildUserInviteTopic,
+  buildUserPrivateStoreTopic,
 } from './utils'
-export { buildDirectMessageTopic, buildDirectMessageTopicV2 } from './utils'
 export { Keystore, InMemoryKeystore, TopicData } from './keystore'
 export {
   KeystoreProvider,
@@ -64,3 +77,5 @@ export {
   PrefixedPersistence,
   Persistence,
 } from './keystore/persistence'
+export { InvitationContext, SealedInvitation } from './Invitation'
+export { decodeContactBundle } from './ContactBundle'
