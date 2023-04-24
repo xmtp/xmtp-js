@@ -118,11 +118,19 @@ export default class Conversations {
     return this.v2Mutex.runExclusive(async () => {
       // Get all conversations already in the KeyStore
       const existing = await this.getV2ConversationsFromKeystore()
-      const latestConversationTime = existing[existing.length - 1]?.createdAt
+      const latestConversation = existing.reduce(
+        (memo: ConversationV2 | undefined, curr: ConversationV2) => {
+          if (!memo || +curr.createdAt > +memo.createdAt) {
+            return curr
+          }
+          return memo
+        },
+        undefined
+      )
 
       // Load all conversations started after the newest conversation found
       const newConversations = await this.updateV2Conversations(
-        latestConversationTime
+        latestConversation?.createdAt
       )
 
       // Create a Set of all the existing topics to ensure no duplicates are added
