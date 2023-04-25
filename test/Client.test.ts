@@ -9,9 +9,7 @@ import {
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
-import { Compression, Signer } from '../src'
-import { content as proto } from '@xmtp/proto'
-import { InMemoryKeystore } from '../src/keystore'
+import { Compression } from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 import { PrivateKeyBundleV1 } from '../src/crypto'
@@ -263,6 +261,36 @@ describe('canMessageMultipleBatches', () => {
         Array.from({ length: 5 }, () => false)
       )
     )
+  })
+})
+
+describe('publishEnvelopes', () => {
+  it('can send a valid envelope', async () => {
+    const c = await newLocalHostClient()
+    const envelope = {
+      contentTopic: '/xmtp/0/foo/proto',
+      message: new TextEncoder().encode('hello world'),
+      timestamp: new Date(),
+    }
+    await c.publishEnvelopes([envelope])
+  })
+
+  it('rejects with invalid envelopes', async () => {
+    const c = await newLocalHostClient()
+    // Set a bogus authenticator so we can have failing publishes
+    c.apiClient.setAuthenticator({
+      // @ts-ignore-next-line
+      createToken: async () => ({
+        toBase64: () => 'derp!',
+      }),
+    })
+    const envelope = {
+      contentTopic: buildUserContactTopic(c.address),
+      message: new TextEncoder().encode('hello world'),
+      timestamp: new Date(),
+    }
+
+    expect(c.publishEnvelopes([envelope])).rejects.toThrow()
   })
 })
 

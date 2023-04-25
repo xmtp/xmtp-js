@@ -534,11 +534,8 @@ export default class Client {
     for (const env of envelopes) {
       this.validateEnvelope(env)
     }
-    try {
-      await this.apiClient.publish(envelopes)
-    } catch (err) {
-      console.log(err)
-    }
+
+    await this.apiClient.publish(envelopes)
   }
 
   /**
