@@ -682,8 +682,13 @@ async function getUserContactFromNetwork(
   for await (const env of stream) {
     if (!env.message) continue
     const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
+    let address: string | undefined
+    try {
+      address = await keyBundle?.walletSignatureAddress()
+    } catch (e) {
+      address = undefined
+    }
 
-    const address = await keyBundle?.walletSignatureAddress()
     if (address === peerAddress) {
       return keyBundle
     }
