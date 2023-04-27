@@ -27,7 +27,6 @@ import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
-import { AccountLinkedRole } from '../crypto/Signature'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
