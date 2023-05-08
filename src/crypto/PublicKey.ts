@@ -225,7 +225,18 @@ export class PublicKey
       secp256k1Uncompressed: obj.secp256k1Uncompressed,
     })
     if (obj.signature) {
-      this.signature = new Signature(obj.signature)
+      // Handle a case where Flutter was publishing signatures with walletEcdsaCompact
+      // instead of ecdsaCompact for v1 keys.
+      if (!obj.signature.ecdsaCompact && obj.signature.walletEcdsaCompact) {
+        this.signature = new Signature({
+          ecdsaCompact: {
+            bytes: obj.signature.walletEcdsaCompact.bytes,
+            recovery: obj.signature.walletEcdsaCompact.recovery,
+          },
+        })
+      } else {
+        this.signature = new Signature(obj.signature)
+      }
     }
   }
 
