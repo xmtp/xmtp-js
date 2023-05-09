@@ -1,6 +1,6 @@
 import { PrivateKeyBundleV1, SignedEciesCiphertext } from '../../src/crypto'
 import { newWallet } from '../helpers'
-import { encrypt, decrypt, getPublic } from '../../src/crypto/ecies'
+import { encrypt, getPublic } from '../../src/crypto/ecies'
 import { equalBytes } from '../../src/crypto/utils'
 import crypto from '../../src/crypto/crypto'
 

@@ -1,21 +1,11 @@
 import { publicKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
-import Signature, {
-  AccountLinkedRole,
-  AccountLinkedStaticSignature,
-  AccountLinkedSIWESignature,
-  ecdsaSignerKey,
-  StaticWalletAccountLinkSigner,
-  SIWEWalletAccountLinkSigner,
-  WalletSigner,
-} from './Signature'
+import Signature, { WalletSigner } from './Signature'
 import { equalBytes, hexToBytes } from './utils'
 import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
-import { toUtf8Bytes } from 'ethers/lib/utils'
-import { SiweMessage } from 'siwe'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -221,197 +211,6 @@ export class SignedPublicKey
   }
 }
 
-export class AccountLinkedPublicKeyV1
-  extends UnsignedPublicKey
-  implements publicKey.AccountLinkedPublicKey_V1
-{
-  keyBytes: Uint8Array
-  staticSignature: AccountLinkedStaticSignature | undefined
-  siweSignature: AccountLinkedSIWESignature | undefined
-
-  constructor(obj: publicKey.AccountLinkedPublicKey_V1) {
-    if (!obj.keyBytes) {
-      throw new Error('Invalid AccountLinkedPublicKeyV1 has no keyBytes')
-    }
-    super(publicKey.UnsignedPublicKey.decode(obj.keyBytes))
-    this.keyBytes = obj.keyBytes
-    if (obj.staticSignature) {
-      this.staticSignature = new AccountLinkedStaticSignature(
-        obj.staticSignature
-      )
-    } else if (obj.siweSignature) {
-      this.siweSignature = new AccountLinkedSIWESignature(obj.siweSignature)
-    } else {
-      throw new Error(
-        'Invalid AccountLinkedPublicKeyV1 has no static or siwe signature'
-      )
-    }
-  }
-
-  // Return bytes of the encoded unsigned key.
-  private bytesToSign(): Uint8Array {
-    return this.keyBytes
-  }
-
-  // Return the extracted address from the SIWE signature checking role and keys, but not domain
-  private getSIWELinkedAddressWithoutDomainCheck(
-    role: AccountLinkedRole
-  ): string {
-    // The criteria for successful SIWE-signed keys with roles are:
-    // 1. The text must be a valid SIWE for the expected domain (TBD)
-    // 1b. Check expiry (TBD)
-    // 2. The resources must contain the appropriate resource string as defined in SIWEWalletAccountLinkSigner
-    //    for the role and keybytes
-    // 3. Check the signature
-
-    // Only works if we have a SIWE signature, we might have multiple types which is okay
-    if (!this.siweSignature) {
-      throw new Error('No SIWE signature')
-    }
-    // Assume v1 for now, would need to switch/case on version in the future
-    const siweSignature = this.siweSignature
-
-    // Rule 1: Parse the text as SIWE
-    // convert text bytes to a string as utf-8 encoded
-    const textUtf8 = new TextDecoder().decode(siweSignature.text)
-    const siwe = new SiweMessage(textUtf8)
-    // TODO: add this domain check when it makes sense
-    // if (siwe.domain !== domain) {
-    //   console.log(`Expected domain ${domain} but got ${siwe.domain}`)
-    //   return false
-    // }
-    // Rule 2: Check the resources
-    const resources = siwe.resources || []
-
-    const expectedResource =
-      SIWEWalletAccountLinkSigner.accountLinkedSIWEResourceRoleText(
-        this.bytesToSign(),
-        role
-      )
-    if (!resources.includes(expectedResource)) {
-      throw new Error(
-        'Did not find expected resource for this key and role in SIWE resources'
-      )
-    }
-
-    // Rule 3: Finally, check the signature
-    const digest = hexToBytes(utils.hashMessage(siweSignature.text))
-    const signerKey = ecdsaSignerKey(digest, siweSignature.walletEcdsaCompact)
-    if (!signerKey) {
-      throw new Error('Failed to recover signer key')
-    }
-    const signerAddress = signerKey.getEthereumAddress()
-    if (signerAddress !== siwe.address) {
-      throw new Error(
-        `Expected address ${siwe.address} but got ${signerAddress}`
-      )
-    }
-
-    return signerAddress
-  }
-
-  public getLinkedAddress(role: AccountLinkedRole): string {
-    if (this.staticSignature) {
-      const expectedTextBytes = toUtf8Bytes(
-        StaticWalletAccountLinkSigner.accountLinkRequestText(
-          this.bytesToSign(),
-          role
-        )
-      )
-      if (!equalBytes(this.staticSignature.text, expectedTextBytes)) {
-        throw new Error('Signature text does not match expected text')
-      }
-      const digest = hexToBytes(utils.hashMessage(this.staticSignature.text))
-      const signature = this.staticSignature.walletEcdsaCompact
-      const publicKey = ecdsaSignerKey(digest, signature)
-      if (!publicKey) {
-        throw new Error('Unable to derive address from signature')
-      }
-      return publicKey.getEthereumAddress()
-    } else {
-      return this.getSIWELinkedAddressWithoutDomainCheck(role)
-    }
-  }
-
-  // Verify that signature was created from the digest using matching private key.
-  verify(signature: Signature, digest: Uint8Array): boolean {
-    if (!signature.ecdsaCompact) {
-      return false
-    }
-    return secp.verify(
-      signature.ecdsaCompact.bytes,
-      digest,
-      this.secp256k1Uncompressed.bytes
-    )
-  }
-
-  // Verify that the provided public key was signed by matching private key.
-  async verifyKey(pub: PublicKey | SignedPublicKey): Promise<boolean> {
-    if (!pub.signature) {
-      return false
-    }
-    const digest = await sha256(pub.bytesToSign())
-    return this.verify(pub.signature, digest)
-  }
-}
-
-export class AccountLinkedPublicKey
-  extends AccountLinkedPublicKeyV1
-  implements publicKey.AccountLinkedPublicKey
-{
-  v1: publicKey.AccountLinkedPublicKey_V1
-
-  constructor(obj: publicKey.AccountLinkedPublicKey) {
-    if (obj.v1) {
-      super(obj.v1)
-      this.v1 = obj.v1
-    } else {
-      throw new Error('Unsupported AccountLinkedPublicKey version')
-    }
-  }
-
-  public static create(
-    keyBytes: Uint8Array,
-    staticSignature: AccountLinkedStaticSignature | undefined,
-    siweSignature: AccountLinkedSIWESignature | undefined
-  ): AccountLinkedPublicKey {
-    return new AccountLinkedPublicKey({
-      v1: new AccountLinkedPublicKeyV1({
-        keyBytes,
-        staticSignature,
-        siweSignature,
-      }),
-    })
-  }
-
-  public static fromLegacyKey(
-    legacyKey: SignedPublicKey,
-    role: AccountLinkedRole
-  ): AccountLinkedPublicKey {
-    if (!legacyKey.keyBytes || !legacyKey.signature) {
-      throw new Error('key is not signed')
-    }
-    const textBytes = toUtf8Bytes(
-      StaticWalletAccountLinkSigner.accountLinkRequestText(
-        legacyKey.keyBytes,
-        role
-      )
-    )
-    const staticSignature = AccountLinkedStaticSignature.create(
-      textBytes,
-      legacyKey.signature
-    )
-    const key = new AccountLinkedPublicKey({
-      v1: new AccountLinkedPublicKeyV1({
-        keyBytes: legacyKey.keyBytes,
-        staticSignature,
-        siweSignature: undefined,
-      }),
-    })
-    return key
-  }
-}
-
 // LEGACY: PublicKey optionally signed with another trusted key pair or a wallet.
 // PublicKeys can be generated through PrivateKey.generate()
 export class PublicKey
@@ -426,7 +225,18 @@ export class PublicKey
       secp256k1Uncompressed: obj.secp256k1Uncompressed,
     })
     if (obj.signature) {
-      this.signature = new Signature(obj.signature)
+      // Handle a case where Flutter was publishing signatures with walletEcdsaCompact
+      // instead of ecdsaCompact for v1 keys.
+      if (!obj.signature.ecdsaCompact && obj.signature.walletEcdsaCompact) {
+        this.signature = new Signature({
+          ecdsaCompact: {
+            bytes: obj.signature.walletEcdsaCompact.bytes,
+            recovery: obj.signature.walletEcdsaCompact.recovery,
+          },
+        })
+      } else {
+        this.signature = new Signature(obj.signature)
+      }
     }
   }
 

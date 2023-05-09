@@ -1,174 +1,10 @@
 import { privateKey as proto } from '@xmtp/proto'
-import {
-  AccountLinkedPrivateKey,
-  PrivateKey,
-  SignedPrivateKey,
-} from './PrivateKey'
-import {
-  AccountLinkedRole,
-  StaticWalletAccountLinkSigner,
-  SIWEWalletAccountLinkSigner,
-  WalletSigner,
-} from './Signature'
+import { PrivateKey, SignedPrivateKey } from './PrivateKey'
+import { WalletSigner } from './Signature'
 import { PublicKey, SignedPublicKey } from './PublicKey'
-import {
-  PublicKeyBundle,
-  SignedPublicKeyBundle,
-  SignedPublicKeyBundleV2,
-} from './PublicKeyBundle'
+import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
 import { Signer } from '../types/Signer'
 import { NoMatchingPreKeyError } from './errors'
-
-export class PrivateKeyBundleV3 implements proto.PrivateKeyBundleV3 {
-  accountLinkedKey: AccountLinkedPrivateKey
-  preKeys: SignedPrivateKey[]
-  private _publicKeyBundle: SignedPublicKeyBundleV2 | undefined
-
-  constructor(bundle: proto.PrivateKeyBundleV3) {
-    if (!bundle.accountLinkedKey) {
-      throw new Error('missing account linked key')
-    }
-    this.accountLinkedKey = new AccountLinkedPrivateKey(bundle.accountLinkedKey)
-    this.preKeys = (bundle.preKeys || []).map((k) => new SignedPrivateKey(k))
-  }
-
-  // Generate a new key bundle with the preKey signed by the accountLinkedKey.
-  // Sign the accountLinkedKey with the provided wallet as well.
-  static async generate(
-    wallet: Signer,
-    role: AccountLinkedRole
-  ): Promise<PrivateKeyBundleV3> {
-    const accountLinkedKey = await AccountLinkedPrivateKey.generate(
-      new StaticWalletAccountLinkSigner(wallet),
-      role
-    )
-    const bundle = new PrivateKeyBundleV3({
-      accountLinkedKey,
-      preKeys: [],
-    })
-    await bundle.addPreKey()
-    return bundle
-  }
-
-  // Generate a new key bundle with the preKey signed by the accountLinkedKey.
-  // Sign the accountLinkedKey with the provided wallet as well. Same as above
-  // but uses SIWE format signature text. NOTE: in practice, consumers should
-  // only use this method if they're okay with using a default SIWE rather than
-  // reusing their app-specific login SIWE.
-  static async generateSIWE(
-    wallet: Signer,
-    role: AccountLinkedRole
-  ): Promise<PrivateKeyBundleV3> {
-    const accountLinkedKey = await AccountLinkedPrivateKey.generate(
-      new SIWEWalletAccountLinkSigner(wallet),
-      role
-    )
-    const bundle = new PrivateKeyBundleV3({
-      accountLinkedKey,
-      preKeys: [],
-    })
-    await bundle.addPreKey()
-    return bundle
-  }
-
-  public static fromLegacyBundle(
-    bundle: PrivateKeyBundleV2,
-    role: AccountLinkedRole
-  ): PrivateKeyBundleV3 {
-    return new PrivateKeyBundleV3({
-      accountLinkedKey: AccountLinkedPrivateKey.fromLegacyKey(
-        bundle.identityKey,
-        role
-      ),
-      preKeys: bundle.preKeys,
-    })
-  }
-
-  public getLinkedAddress(role: AccountLinkedRole): string {
-    return this.accountLinkedKey.publicKey.getLinkedAddress(role)
-  }
-
-  // Return a key bundle with the current pre-key.
-  public getPublicKeyBundle(): SignedPublicKeyBundleV2 {
-    if (!this._publicKeyBundle) {
-      this._publicKeyBundle = new SignedPublicKeyBundleV2({
-        accountLinkedKey: this.accountLinkedKey.publicKey,
-        preKey: this.getCurrentPreKey().publicKey,
-      })
-    }
-    return this._publicKeyBundle
-  }
-
-  // Generate a new pre-key to be used as the current pre-key.
-  private async addPreKey(): Promise<void> {
-    this._publicKeyBundle = undefined
-    const preKey = await SignedPrivateKey.generate(this.accountLinkedKey)
-    this.preKeys.unshift(preKey)
-  }
-
-  // Return the current (latest) pre-key (to be advertised).
-  public getCurrentPreKey(): SignedPrivateKey {
-    return this.preKeys[0]
-  }
-
-  // Find pre-key matching the provided public key.
-  private findPreKey(which: SignedPublicKey): SignedPrivateKey {
-    const preKey = this.preKeys.find((key) => key.matches(which))
-    if (!preKey) {
-      throw new NoMatchingPreKeyError(which)
-    }
-    return preKey
-  }
-
-  // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
-  // where the sender's ephemeral key pair is replaced by the sender's pre-key.
-  // @peer is the peer's public key bundle
-  // @myPreKey indicates which of my preKeys should be used to derive the secret
-  // @recipient indicates if this is the sending or receiving side.
-  public async sharedSecret(
-    peer: SignedPublicKeyBundleV2,
-    myPreKey: SignedPublicKey,
-    isRecipient: boolean
-  ): Promise<Uint8Array> {
-    if (!peer.accountLinkedKey || !peer.preKey) {
-      throw new Error('invalid peer key bundle')
-    }
-    if (!(await peer.accountLinkedKey.verifyKey(peer.preKey))) {
-      throw new Error('peer preKey signature invalid')
-    }
-    if (!this.accountLinkedKey) {
-      throw new Error('missing account linked key')
-    }
-    let dh1: Uint8Array, dh2: Uint8Array, preKey: SignedPrivateKey
-    if (isRecipient) {
-      if (
-        !this.getLinkedAddress(AccountLinkedRole.INBOX_KEY) ||
-        !peer.getLinkedAddress(AccountLinkedRole.SEND_KEY)
-      ) {
-        throw new Error('bundles have invalid roles')
-      }
-      preKey = this.findPreKey(myPreKey)
-      dh1 = preKey.sharedSecret(peer.accountLinkedKey)
-      dh2 = this.accountLinkedKey.sharedSecret(peer.preKey)
-    } else {
-      if (
-        !this.getLinkedAddress(AccountLinkedRole.SEND_KEY) ||
-        !peer.getLinkedAddress(AccountLinkedRole.INBOX_KEY)
-      ) {
-        throw new Error('bundles have invalid roles')
-      }
-      preKey = this.findPreKey(myPreKey)
-      dh1 = this.accountLinkedKey.sharedSecret(peer.preKey)
-      dh2 = preKey.sharedSecret(peer.accountLinkedKey)
-    }
-    const dh3 = preKey.sharedSecret(peer.preKey)
-    const secret = new Uint8Array(dh1.length + dh2.length + dh3.length)
-    secret.set(dh1, 0)
-    secret.set(dh2, dh1.length)
-    secret.set(dh3, dh1.length + dh2.length)
-    return secret
-  }
-}
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.
 // This bundle must not be shared with anyone, although will have to be persisted
@@ -274,7 +110,6 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     return proto.PrivateKeyBundle.encode({
       v1: undefined,
       v2: this,
-      v3: undefined,
     }).finish()
   }
 
@@ -406,7 +241,6 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
     return proto.PrivateKeyBundle.encode({
       v1: this,
       v2: undefined,
-      v3: undefined,
     }).finish()
   }
 }

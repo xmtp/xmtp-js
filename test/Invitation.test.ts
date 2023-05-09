@@ -82,7 +82,6 @@ describe('Invitations', () => {
       expect(() => {
         const sealedInvite = new SealedInvitation({
           v1: { headerBytes: Uint8Array.from([123]), ciphertext: undefined },
-          v2: undefined,
         })
       }).toThrow()
     })

@@ -467,8 +467,11 @@ describe('InMemoryKeystore', () => {
       )
 
       const convos = await aliceKeystore.getV2Conversations()
+      let lastCreated = Long.fromNumber(0)
       for (let i = 0; i < convos.length; i++) {
         expect(convos[i].createdNs.equals(dateToNs(timestamps[i]))).toBeTruthy()
+        expect(convos[i].createdNs.greaterThanOrEqual(lastCreated)).toBeTruthy()
+        lastCreated = convos[i].createdNs
       }
     })
 

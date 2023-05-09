@@ -8,7 +8,6 @@ import {
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
-  PrivateKeyBundleV3,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
 import { PrivateKey, PublicKeyBundle } from '../crypto'
@@ -28,7 +27,6 @@ import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
-import { AccountLinkedRole } from '../crypto/Signature'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
@@ -223,28 +221,6 @@ export default class InMemoryKeystore implements Keystore {
             peerAddress: isSender
               ? await sealed.v1.header.recipient.walletSignatureAddress()
               : await sealed.v1.header.sender.walletSignatureAddress(),
-          }
-          toAdd.push(topicData)
-          return {
-            conversation: topicDataToConversationReference(topicData),
-          }
-        } else if (sealed.v2) {
-          const headerTime = sealed.v2.header.createdNs
-          if (!headerTime.equals(timestampNs)) {
-            throw new Error('envelope and header timestamp mismatch')
-          }
-
-          const invitation = await sealed.v2.getInvitation(
-            PrivateKeyBundleV3.fromLegacyBundle(
-              this.v2Keys,
-              AccountLinkedRole.INBOX_KEY
-            )
-          )
-          const selfAddress = await this.getAccountAddress()
-          const topicData = {
-            invitation,
-            createdNs: sealed.v2.header.createdNs,
-            peerAddress: sealed.v2.header.getPeerAddress(selfAddress),
           }
           toAdd.push(topicData)
           return {
