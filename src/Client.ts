@@ -534,11 +534,8 @@ export default class Client {
     for (const env of envelopes) {
       this.validateEnvelope(env)
     }
-    try {
-      await this.apiClient.publish(envelopes)
-    } catch (err) {
-      console.log(err)
-    }
+
+    await this.apiClient.publish(envelopes)
   }
 
   /**
@@ -682,8 +679,13 @@ async function getUserContactFromNetwork(
   for await (const env of stream) {
     if (!env.message) continue
     const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
+    let address: string | undefined
+    try {
+      address = await keyBundle?.walletSignatureAddress()
+    } catch (e) {
+      address = undefined
+    }
 
-    const address = await keyBundle?.walletSignatureAddress()
     if (address === peerAddress) {
       return keyBundle
     }

@@ -2,7 +2,11 @@ import {
   InitReq,
   NotifyStreamEntityArrival,
 } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import ApiClient, { GrpcStatus, PublishParams } from '../src/ApiClient'
+import ApiClient, {
+  GrpcError,
+  GrpcStatus,
+  PublishParams,
+} from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
 import { LocalAuthenticator } from '../src/authn'
@@ -234,7 +238,7 @@ describe('Publish authn', () => {
     }
 
     const prom = publishClient.publish([msg])
-    expect(prom).rejects.toEqual({ code: GrpcStatus.UNAUTHENTICATED })
+    expect(prom).rejects.toMatchObject({ code: GrpcStatus.UNAUTHENTICATED })
     expect(publishMock).toHaveBeenCalledTimes(2)
   })
 })
@@ -397,9 +401,10 @@ function createAuthErrorPublishMock(rejectTimes = 1) {
     .mockImplementation(async (): Promise<messageApi.PublishResponse> => {
       if (numRejections < rejectTimes) {
         numRejections++
-        throw {
+        throw GrpcError.fromObject({
           code: 16,
-        }
+          message: 'UNAUTHENTICATED',
+        })
       }
 
       return {}

@@ -81,12 +81,11 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
-    "@xmtp/proto": "^3.24.0-beta.2",
+    "@xmtp/proto": "^3.24.0",
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
-    "long": "^5.2.0",
-    "siwe": "^2.1.3"
+    "long": "^5.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
