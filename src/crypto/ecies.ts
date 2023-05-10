@@ -1,6 +1,11 @@
 // This file is taken from `bitchan/eccrypto` and ported to TS. All references to `nodeCrypto` have been replaced with `browserCrypto`
-import { ec as EC } from 'elliptic'
+/**
+ * `elliptic` is a CommonJS module and has issues with named imports
+ * DO NOT CHANGE THIS TO A NAMED IMPORT
+ */
+import elliptic from 'elliptic'
 import crypto from './crypto'
+const EC = elliptic.ec
 const ec = new EC('secp256k1')
 
 const subtle = crypto.subtle
