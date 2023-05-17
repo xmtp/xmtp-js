@@ -320,7 +320,56 @@ for (const conversation of myAppConversations) {
 }
 ```
 
-#### Handle different types of content
+### Send a broadcast message
+
+You can send a broadcast message (1:many message or announcement) with XMTP. The recipient sees the message as a DM from the sending wallet address.
+
+1. Use the bulk query `canMessage` method to identify the wallet addresses that are activated on the XMTP network.
+2. Send the message to all of the activated wallet addresses.
+
+For example:
+
+```js
+const ethers = require('ethers')
+const { Client } = require('@xmtp/xmtp-js')
+
+//Rate limits
+//1k publish request /5 minutes / IP
+//publish request would be Client.create() , send() and newConversation()
+//10k of any request type / 5 mins / IP
+
+async function main() {
+  //Create a random wallet for example purposes. On the frontend you should replace it with the user's wallet (metamask, rainbow, etc)
+  const wallet = ethers.Wallet.createRandom()
+  //Initialize the xmtp client
+  const xmtp = await Client.create(wallet)
+  console.log('Broadcasting from: ', xmtp.address)
+
+  //In this example we are going to broadcast to the GM_BOT wallet (already activated) and a random wallet (not activated)
+  const GM_BOT = '0x937C0d4a6294cdfa575de17382c7076b579DC176'
+  const test = ethers.Wallet.createRandom()
+  const broadcasts_array = [GM_BOT, test.address]
+
+  //Querying the activation status of the wallets
+  const broadcasts_canMessage = await Client.canMessage(broadcasts_array)
+  for (let i = 0; i < broadcasts_array.length; i++) {
+    //Checking the activation status of each wallet
+    const wallet = broadcasts_array[i]
+    const canMessage = broadcasts_canMessage[i]
+    console.log(wallet, canMessage)
+    if (broadcasts_canMessage[i]) {
+      //If activated, start
+      const conversation = await xmtp.conversations.newConversation(wallet)
+      // Send a message
+      const sent = await conversation.send('gm')
+      console.log(sent.sent)
+    }
+  }
+}
+main()
+```
+
+### Handle different types of content
 
 All send functions support `SendOptions` as an optional parameter. The `contentType` option allows specifying different types of content than the default simple string standard content type, which is identified with content type identifier `ContentTypeText`.
 
@@ -355,7 +404,7 @@ To learn more about how to build a custom content type, see [Build a custom cont
 
 Custom codecs and content types may be proposed as interoperable standards through XRCs. To learn about the custom content type proposal process, see [XIP-5](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-5-message-content-types.md).
 
-#### Compression
+### Compression
 
 Message content can be optionally compressed using the `compression` option. The value of the option is the name of the compression algorithm to use. Currently supported are `gzip` and `deflate`. Compression is applied to the bytes produced by the content codec.
 
@@ -369,7 +418,7 @@ conversation.send('#'.repeat(1000), {
 })
 ```
 
-#### Manually handle private key storage
+### Manually handle private key storage
 
 The SDK will handle key storage for the user by encrypting the private key bundle using a signature generated from the wallet, and storing the encrypted payload on the XMTP network. This can be awkward for some server-side applications, where you may only want to give the application access to the XMTP keys but not your wallet keys. Mobile applications may also want to store keys in a secure enclave rather than rely on decrypting the remote keys on the network each time the application starts up.
 
@@ -385,7 +434,7 @@ const client = await Client.create(null, { privateKeyOverride: keys })
 
 The keys returned by `getKeys` should be treated with the utmost care as compromise of these keys will allow an attacker to impersonate the user on the XMTP network. Ensure these keys are stored somewhere secure and encrypted.
 
-#### Cache conversations
+### Cache conversations
 
 When running in a browser, conversations are cached in `LocalStorage` by default. Running `client.conversations.list()` will update that cache and persist the results to the browsers `LocalStorage`. The data stored in `LocalStorage` is encrypted and signed using the Keystore's identity key so that attackers cannot read the sensitive contents or tamper with them.
 
