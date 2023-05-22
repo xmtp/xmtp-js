@@ -43,6 +43,20 @@ export interface Keystore {
     req: keystore.CreateInviteRequest
   ): Promise<keystore.CreateInviteResponse>
   /**
+   * Create multiple sealed/encrypted invites and store the Topic keys in the Keystore for later use.
+   * The returned invite payload must be sent to the network for the other party to be able to communicate.
+   */
+  createInvites(
+    req: keystore.CreateInvitesRequest
+  ): Promise<keystore.CreateInviteResponse[]>
+  /**
+   * Create a sealed/encrypted invite for the given topic and store the Topic keys in the Keystore for later use.
+   * The returned invite payload must be sent to the network for the other party to be able to communicate.
+   */
+  createInviteFromTopic(
+    req: keystore.CreateInviteFromTopicRequest
+  ): Promise<keystore.CreateInviteResponse>
+  /**
    * Create an XMTP auth token to be used as a header on XMTP API requests
    */
   createAuthToken(req: keystore.CreateAuthTokenRequest): Promise<authn.Token>

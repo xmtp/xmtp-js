@@ -482,7 +482,7 @@ describe('InMemoryKeystore', () => {
     it('creates an auth token', async () => {
       const authToken = new Token(await aliceKeystore.createAuthToken({}))
       expect(authToken.authDataBytes).toBeDefined()
-      expect(authToken.authData.createdNs).toBeInstanceOf(Long)
+      expect(Long.isLong(authToken.authData.createdNs)).toBe(true)
       expect(authToken.authDataSignature).toBeDefined()
       expect(authToken.identityKey?.secp256k1Uncompressed).toBeDefined()
       expect(authToken.identityKey?.signature).toBeDefined()

@@ -10,7 +10,7 @@ import {
   PrivateKeyBundleV2,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
-import { PrivateKey, PublicKeyBundle } from '../crypto'
+import { PrivateKey, PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import { Keystore, TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
@@ -27,6 +27,9 @@ import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
+import Long from 'long'
+import { Wallet } from 'ethers'
+import Client from '../Client'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
@@ -251,26 +254,137 @@ export default class InMemoryKeystore implements Keystore {
       const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
       const recipient = toSignedPublicKeyBundle(req.recipient)
-      const sealed = await SealedInvitation.createV1({
-        sender: this.v2Keys,
+
+      return await this.makeInvite(
+        this.v2Keys,
         recipient,
         created,
-        invitation,
-      })
-      const topicData = {
-        invitation,
-        createdNs: req.createdNs,
-        peerAddress: await recipient.walletSignatureAddress(),
-      }
-      await this.inviteStore.add([topicData])
-
-      return keystore.CreateInviteResponse.fromPartial({
-        conversation: topicDataToConversationReference(topicData),
-        payload: sealed.toBytes(),
-      })
+        req.createdNs,
+        invitation
+      )
     } catch (e) {
       throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
     }
+  }
+
+  async createInvites(
+    req: keystore.CreateInvitesRequest
+  ): Promise<keystore.CreateInviteResponse[]> {
+    try {
+      if (!validateObject(req, ['recipients'], [])) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing recipients'
+        )
+      }
+
+      // Register an address on the network for the group
+      const sharedWallet = Wallet.createRandom()
+      const sharedClient = await Client.create(sharedWallet)
+      const sharedPrivateKeyBundle =
+        await sharedClient.keystore.getPrivateKeyBundle()
+
+      if (!sharedPrivateKeyBundle) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing private key bundle'
+        )
+      }
+
+      const invitation = InvitationV1.createRandom(req.context)
+      const created = nsToDate(req.createdNs)
+      const recipients = req.recipients.map(toSignedPublicKeyBundle)
+
+      return Promise.all(
+        recipients.map(async (recipient) => {
+          return await this.makeInvite(
+            PrivateKeyBundleV2.fromLegacyBundle(
+              new PrivateKeyBundleV1(sharedPrivateKeyBundle)
+            ),
+            recipient,
+            created,
+            req.createdNs,
+            invitation
+          )
+        })
+      )
+    } catch (e) {
+      throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
+    }
+  }
+
+  async createInviteFromTopic(
+    req: keystore.CreateInviteFromTopicRequest
+  ): Promise<keystore.CreateInviteResponse> {
+    try {
+      if (!validateObject(req, ['contentTopic'], [])) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing topic'
+        )
+      }
+
+      const topicData = this.inviteStore.lookup(req.contentTopic)
+      if (!topicData) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing topic data'
+        )
+      }
+
+      const invitation = new InvitationV1({
+        context: topicData.invitation.context,
+        topic: req.contentTopic,
+        aes256GcmHkdfSha256: topicData.invitation.aes256GcmHkdfSha256,
+      })
+
+      const created = nsToDate(req.createdNs)
+      const recipient = toSignedPublicKeyBundle(req.recipient)
+
+      return await this.makeInvite(
+        this.v2Keys,
+        recipient,
+        created,
+        req.createdNs,
+        invitation
+      )
+    } catch (e) {
+      throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
+    }
+  }
+
+  private async makeInvite(
+    senderKeys: PrivateKeyBundleV2,
+    recipient: SignedPublicKeyBundle,
+    created: Date,
+    createdNs: Long,
+    invitation: InvitationV1
+  ): Promise<keystore.CreateInviteResponse> {
+    const sealed = await SealedInvitation.createV1({
+      sender: senderKeys,
+      recipient,
+      created,
+      invitation,
+    })
+
+    const conversation = topicDataToConversationReference({
+      invitation,
+      createdNs,
+      peerAddress: await recipient.walletSignatureAddress(),
+    })
+
+    const topicData = {
+      invitation,
+      createdNs,
+      peerAddress: await recipient.walletSignatureAddress(),
+    }
+
+    await this.inviteStore.add([topicData])
+
+    return keystore.CreateInviteResponse.fromPartial({
+      conversation,
+      payload: sealed.toBytes(),
+    })
   }
 
   async signDigest(

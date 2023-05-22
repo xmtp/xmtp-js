@@ -31,6 +31,7 @@ export {
   LegacyOptions,
 } from './Client'
 export { Conversations, Conversation } from './conversations'
+export { GroupConversation } from './conversations/GroupConversation'
 export {
   CodecRegistry,
   ContentTypeId,

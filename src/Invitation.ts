@@ -6,11 +6,13 @@ import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt } from './crypto'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
 import { dateToNs, buildDirectMessageTopicV2 } from './utils'
+import { InvitationV1_GroupContext } from '@xmtp/proto/ts/dist/types/message_contents/invitation.pb' // eslint-disable-line camelcase
 const { b64Decode } = fetcher
 
 export type InvitationContext = {
   conversationId: string
   metadata: { [k: string]: string }
+  groupContext?: InvitationV1_GroupContext // eslint-disable-line camelcase
 }
 
 /**

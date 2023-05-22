@@ -17,6 +17,8 @@ import {
 import { PublicKeyBundle } from '../crypto'
 import { SortDirection } from '../ApiClient'
 import Long from 'long'
+import { toSignedPublicKeyBundle } from '../keystore/utils'
+import { GroupConversation } from './GroupConversation'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
@@ -182,7 +184,15 @@ export default class Conversations {
     const out: ConversationV2[] = []
     for (const response of responses) {
       try {
-        const convo = this.saveInviteResponseToConversation(response)
+        let convo = this.saveInviteResponseToConversation(response)
+
+        if (convo.context?.groupContext?.initialMembers) {
+          convo = GroupConversation.from(
+            convo,
+            convo.context?.groupContext?.initialMembers
+          )
+        }
+
         out.push(convo)
       } catch (e) {
         console.warn('Error saving invite response to conversation: ', e)
@@ -427,6 +437,67 @@ export default class Conversations {
     }
 
     return seenPeers
+  }
+
+  async newGroupConversation(
+    context: InvitationContext
+  ): Promise<GroupConversation> {
+    const timestamp = new Date()
+
+    const initialMembers = context.groupContext?.initialMembers
+
+    if (!initialMembers) {
+      throw new Error('No initial members provided')
+    }
+
+    const members = await Promise.all(
+      initialMembers.map(async (member) => {
+        let contact = await this.client.getUserContact(member)
+        if (!contact) {
+          throw new Error(`Recipient ${member} is not on the XMTP network`)
+        }
+
+        // Coerce the contact into a V2 bundle
+        if (contact instanceof PublicKeyBundle) {
+          contact = SignedPublicKeyBundle.fromLegacyBundle(contact)
+        }
+
+        return toSignedPublicKeyBundle(contact)
+      })
+    )
+
+    const inviteResponses = await this.client.keystore.createInvites({
+      recipients: members,
+      context,
+      createdNs: dateToNs(timestamp),
+    })
+
+    const envelopes = inviteResponses.map((response) => {
+      if (!response.conversation) {
+        throw new Error(
+          'no conversation for response: ' + JSON.stringify(response)
+        )
+      }
+
+      return {
+        contentTopic: buildUserInviteTopic(response.conversation?.peerAddress),
+        message: response.payload,
+        timestamp,
+      }
+    })
+
+    await this.client.publishEnvelopes(envelopes)
+
+    const conversation = inviteResponses[0].conversation
+
+    if (!conversation) {
+      throw new Error('no conversation for response')
+    }
+
+    return GroupConversation.from(
+      this.conversationReferenceToV2(conversation),
+      initialMembers
+    )
   }
 
   /**
