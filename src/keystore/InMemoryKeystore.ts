@@ -23,7 +23,7 @@ import {
   getKeyMaterial,
   topicDataToConversationReference,
 } from './utils'
-import { nsToDate } from '../utils'
+import { dateToNs, nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
@@ -278,19 +278,6 @@ export default class InMemoryKeystore implements Keystore {
         )
       }
 
-      // Register an address on the network for the group
-      const sharedWallet = Wallet.createRandom()
-      const sharedClient = await Client.create(sharedWallet)
-      const sharedPrivateKeyBundle =
-        await sharedClient.keystore.getPrivateKeyBundle()
-
-      if (!sharedPrivateKeyBundle) {
-        throw new KeystoreError(
-          ErrorCode.ERROR_CODE_INVALID_INPUT,
-          'missing private key bundle'
-        )
-      }
-
       const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
       const recipients = req.recipients.map(toSignedPublicKeyBundle)
@@ -298,9 +285,7 @@ export default class InMemoryKeystore implements Keystore {
       return Promise.all(
         recipients.map(async (recipient) => {
           return await this.makeInvite(
-            PrivateKeyBundleV2.fromLegacyBundle(
-              new PrivateKeyBundleV1(sharedPrivateKeyBundle)
-            ),
+            this.v2Keys,
             recipient,
             created,
             req.createdNs,
@@ -324,6 +309,13 @@ export default class InMemoryKeystore implements Keystore {
         )
       }
 
+      if (!validateObject(req, ['createdNs'], [])) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing createdNs'
+        )
+      }
+
       const topicData = this.inviteStore.lookup(req.contentTopic)
       if (!topicData) {
         throw new KeystoreError(
@@ -338,13 +330,14 @@ export default class InMemoryKeystore implements Keystore {
         aes256GcmHkdfSha256: topicData.invitation.aes256GcmHkdfSha256,
       })
 
-      const created = nsToDate(topicData.createdNs)
       const recipient = toSignedPublicKeyBundle(req.recipient)
+
+      topicData.createdNs = req.createdNs
 
       return await this.makeInvite(
         this.v2Keys,
         recipient,
-        created,
+        nsToDate(req.createdNs),
         topicData.createdNs,
         invitation
       )

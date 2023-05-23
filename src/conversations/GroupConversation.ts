@@ -65,7 +65,6 @@ export class GroupConversation extends ConversationV2 implements Conversation {
     const recipient = toSignedPublicKeyBundle(contact)
 
     const inviteResponse = await this.client.keystore.createInviteFromTopic({
-      context: this.context,
       contentTopic: this.topic,
       recipient,
       createdNs: dateToNs(timestamp),
