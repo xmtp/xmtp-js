@@ -517,6 +517,47 @@ describe('InMemoryKeystore', () => {
       ).toHaveLength(25)
     })
 
+    it('uses deterministic topic w/ conversation ID', async () => {
+      const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+        bobKeys.getPublicKeyBundle()
+      )
+      const baseTime = new Date()
+      const timestamps = Array.from(
+        { length: 25 },
+        (_, i) => new Date(baseTime.getTime() + i)
+      )
+
+      // Shuffle the order they go into the store
+      const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
+
+      const responses: CreateInviteResponse[] = []
+      await Promise.all(
+        shuffled.map(async (createdAt) => {
+          const response = await aliceKeystore.createInvite({
+            recipient,
+            createdNs: dateToNs(createdAt),
+            context: {
+              conversationId: 'test',
+              metadata: {},
+            },
+          })
+
+          responses.push(response)
+
+          return response
+        })
+      )
+
+      const firstResponse: CreateInviteResponse = responses[0]
+      const topicName = firstResponse.conversation!.topic
+
+      expect(
+        responses.filter((response, index, array) => {
+          return response.conversation!.topic === topicName
+        })
+      ).toHaveLength(25)
+    })
+
     it('works with persistence', async () => {})
   })
 
