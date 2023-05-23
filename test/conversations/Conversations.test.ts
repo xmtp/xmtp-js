@@ -10,6 +10,8 @@ import {
   buildUserIntroTopic,
   sleep,
 } from '../../src/utils'
+import { InvitationV1 } from '../../src/Invitation'
+import { InvitationV1_Context } from '@xmtp/proto/ts/dist/types/message_contents/invitation.pb'
 
 describe('conversations', () => {
   let alice: Client
@@ -365,6 +367,26 @@ describe('conversations', () => {
       await sleep(50)
 
       const invites = await alice.listInvitations()
+      expect(invites).toHaveLength(1)
+    })
+  })
+
+  describe('newGroupConversation', () => {
+    it('sends invites to recipients', async () => {
+      const context = {
+        conversationId: '',
+        metadata: {
+          groupID: 'the-group-id',
+          initialMembers: [alice.address, charlie.address].join(','),
+        },
+      }
+
+      await bob.conversations.newGroupConversation(context)
+
+      let invites = await alice.listInvitations()
+      expect(invites).toHaveLength(1)
+
+      invites = await charlie.listInvitations()
       expect(invites).toHaveLength(1)
     })
   })
