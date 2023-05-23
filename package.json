@@ -81,6 +81,7 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
+    "@xmtp/proto": "^3.25.0",
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
