@@ -23,13 +23,11 @@ import {
   getKeyMaterial,
   topicDataToConversationReference,
 } from './utils'
-import { dateToNs, nsToDate } from '../utils'
+import { nsToDate } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
 import Long from 'long'
-import { Wallet } from 'ethers'
-import Client from '../Client'
 const { ErrorCode } = keystore
 
 export default class InMemoryKeystore implements Keystore {
