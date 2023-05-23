@@ -338,14 +338,14 @@ export default class InMemoryKeystore implements Keystore {
         aes256GcmHkdfSha256: topicData.invitation.aes256GcmHkdfSha256,
       })
 
-      const created = nsToDate(req.createdNs)
+      const created = nsToDate(topicData.createdNs)
       const recipient = toSignedPublicKeyBundle(req.recipient)
 
       return await this.makeInvite(
         this.v2Keys,
         recipient,
         created,
-        req.createdNs,
+        topicData.createdNs,
         invitation
       )
     } catch (e) {

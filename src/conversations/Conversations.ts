@@ -186,11 +186,10 @@ export default class Conversations {
       try {
         let convo = this.saveInviteResponseToConversation(response)
 
-        if (convo.context?.groupContext?.initialMembers) {
-          convo = GroupConversation.from(
-            convo,
-            convo.context?.groupContext?.initialMembers
-          )
+        const initialMembers = convo.context?.metadata.initialMembers.split(',')
+
+        if (initialMembers) {
+          convo = GroupConversation.from(convo, initialMembers)
         }
 
         out.push(convo)
@@ -444,7 +443,7 @@ export default class Conversations {
   ): Promise<GroupConversation> {
     const timestamp = new Date()
 
-    const initialMembers = context.groupContext?.initialMembers
+    const initialMembers = context.metadata.initialMembers?.split(',')
 
     if (!initialMembers) {
       throw new Error('No initial members provided')
