@@ -314,13 +314,15 @@ export default class InMemoryKeystore implements Keystore {
         )
       }
 
-      const topicData = this.inviteStore.lookup(req.contentTopic)
+      let topicData = this.inviteStore.lookup(req.contentTopic)
       if (!topicData) {
         throw new KeystoreError(
           ErrorCode.ERROR_CODE_INVALID_INPUT,
           'missing topic data'
         )
       }
+
+      topicData = { ...topicData }
 
       const invitation = new InvitationV1({
         context: topicData.invitation.context,
