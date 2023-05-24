@@ -19,6 +19,7 @@ import { SortDirection } from '../ApiClient'
 import Long from 'long'
 import { toSignedPublicKeyBundle } from '../keystore/utils'
 import { GroupConversation } from './GroupConversation'
+import { bytesToHex } from '../crypto/utils'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
@@ -439,16 +440,21 @@ export default class Conversations {
   }
 
   async newGroupConversation(
-    context: InvitationContext
+    initialMembers: string[]
   ): Promise<GroupConversation> {
-    const timestamp = new Date()
-
-    const initialMembers = context.metadata.initialMembers?.split(',')
-
-    if (!initialMembers) {
+    if (initialMembers.length === 0) {
       throw new Error('No initial members provided')
     }
 
+    const groupID = bytesToHex(crypto.getRandomValues(new Uint8Array(32)))
+    const context = {
+      conversationId: `xmtp.org/groups/${groupID}`,
+      metadata: {
+        initialMembers: initialMembers.join(','),
+      },
+    }
+
+    const timestamp = new Date()
     const members = await Promise.all(
       initialMembers.map(async (member) => {
         let contact = await this.client.getUserContact(member)

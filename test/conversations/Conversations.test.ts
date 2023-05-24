@@ -373,14 +373,10 @@ describe('conversations', () => {
 
   describe('newGroupConversation', () => {
     it('sends invites to recipients', async () => {
-      const context = {
-        conversationId: 'xmtp.org/groups/the-group-id',
-        metadata: {
-          initialMembers: [alice.address, charlie.address].join(','),
-        },
-      }
-
-      await bob.conversations.newGroupConversation(context)
+      await bob.conversations.newGroupConversation([
+        alice.address,
+        charlie.address,
+      ])
 
       let invites = await alice.listInvitations()
       expect(invites).toHaveLength(1)
