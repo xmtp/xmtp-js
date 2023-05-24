@@ -374,9 +374,8 @@ describe('conversations', () => {
   describe('newGroupConversation', () => {
     it('sends invites to recipients', async () => {
       const context = {
-        conversationId: '',
+        conversationId: 'xmtp.org/groups/the-group-id',
         metadata: {
-          groupID: 'the-group-id',
           initialMembers: [alice.address, charlie.address].join(','),
         },
       }
