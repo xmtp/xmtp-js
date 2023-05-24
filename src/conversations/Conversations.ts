@@ -454,6 +454,9 @@ export default class Conversations {
       },
     }
 
+    initialMembers.push(this.client.address)
+    initialMembers = [...new Set(initialMembers)]
+
     const timestamp = new Date()
     const members = await Promise.all(
       initialMembers.map(async (member) => {
