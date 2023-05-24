@@ -188,7 +188,7 @@ export default class Conversations {
 
         const initialMembers = convo.context?.metadata.initialMembers.split(',')
 
-        if (initialMembers) {
+        if (initialMembers && initialMembers.length > 0) {
           convo = GroupConversation.from(convo, initialMembers)
         }
 
