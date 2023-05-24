@@ -31,8 +31,9 @@ import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 const { ErrorCode } = keystore
 
-// Constant 32 byte salt
-const inviteSalt = new TextEncoder().encode('This is my salt for your invite.')
+// Constant, 32 byte salt
+// DO NOT CHANGE
+const INVITE_SALT = new TextEncoder().encode('__XMTP__INVITATION__SALT__XMTP__')
 
 async function deriveKey(
   secret: Uint8Array,
@@ -42,7 +43,7 @@ async function deriveKey(
     'deriveKey',
   ])
   return crypto.subtle.deriveKey(
-    { name: 'HKDF', hash: 'SHA-256', salt: inviteSalt, info },
+    { name: 'HKDF', hash: 'SHA-256', salt: INVITE_SALT, info },
     key,
     { name: 'AES-GCM', length: 256 },
     true,
