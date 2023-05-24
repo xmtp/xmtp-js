@@ -17,6 +17,7 @@ import { dateToNs, nsToDate } from '../../src/utils/date'
 import { LocalStoragePersistence } from '../../src/keystore/persistence'
 import Token from '../../src/authn/Token'
 import Long from 'long'
+import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -444,9 +445,6 @@ describe('InMemoryKeystore', () => {
 
   describe('getV2Conversations', () => {
     it('correctly sorts conversations', async () => {
-      const recipient = SignedPublicKeyBundle.fromLegacyBundle(
-        bobKeys.getPublicKeyBundle()
-      )
       const baseTime = new Date()
       const timestamps = Array.from(
         { length: 25 },
@@ -457,7 +455,13 @@ describe('InMemoryKeystore', () => {
       const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
 
       await Promise.all(
-        shuffled.map((createdAt) => {
+        shuffled.map(async (createdAt) => {
+          let keys = await PrivateKeyBundleV1.generate(newWallet())
+
+          const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+            keys.getPublicKeyBundle()
+          )
+
           return aliceKeystore.createInvite({
             recipient,
             createdNs: dateToNs(createdAt),
@@ -473,6 +477,85 @@ describe('InMemoryKeystore', () => {
         expect(convos[i].createdNs.greaterThanOrEqual(lastCreated)).toBeTruthy()
         lastCreated = convos[i].createdNs
       }
+    })
+
+    it('uses deterministic topic', async () => {
+      const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+        bobKeys.getPublicKeyBundle()
+      )
+      const baseTime = new Date()
+      const timestamps = Array.from(
+        { length: 25 },
+        (_, i) => new Date(baseTime.getTime() + i)
+      )
+
+      // Shuffle the order they go into the store
+      const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
+
+      const responses: CreateInviteResponse[] = []
+      await Promise.all(
+        shuffled.map(async (createdAt) => {
+          const response = await aliceKeystore.createInvite({
+            recipient,
+            createdNs: dateToNs(createdAt),
+            context: undefined,
+          })
+
+          responses.push(response)
+
+          return response
+        })
+      )
+
+      const firstResponse: CreateInviteResponse = responses[0]
+      const topicName = firstResponse.conversation!.topic
+
+      expect(
+        responses.filter((response, index, array) => {
+          return response.conversation!.topic === topicName
+        })
+      ).toHaveLength(25)
+    })
+
+    it('uses deterministic topic w/ conversation ID', async () => {
+      const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+        bobKeys.getPublicKeyBundle()
+      )
+      const baseTime = new Date()
+      const timestamps = Array.from(
+        { length: 25 },
+        (_, i) => new Date(baseTime.getTime() + i)
+      )
+
+      // Shuffle the order they go into the store
+      const shuffled = [...timestamps].sort(() => Math.random() - 0.5)
+
+      const responses: CreateInviteResponse[] = []
+      await Promise.all(
+        shuffled.map(async (createdAt) => {
+          const response = await aliceKeystore.createInvite({
+            recipient,
+            createdNs: dateToNs(createdAt),
+            context: {
+              conversationId: 'test',
+              metadata: {},
+            },
+          })
+
+          responses.push(response)
+
+          return response
+        })
+      )
+
+      const firstResponse: CreateInviteResponse = responses[0]
+      const topicName = firstResponse.conversation!.topic
+
+      expect(
+        responses.filter((response, index, array) => {
+          return response.conversation!.topic === topicName
+        })
+      ).toHaveLength(25)
     })
 
     it('works with persistence', async () => {})

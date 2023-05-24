@@ -23,12 +23,34 @@ import {
   getKeyMaterial,
   topicDataToConversationReference,
 } from './utils'
-import { nsToDate } from '../utils'
+import { nsToDate, buildDirectMessageTopicV2 } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
 import Long from 'long'
+import { hmacSha256Sign } from '../crypto/ecies'
+import crypto from '../crypto/crypto'
 const { ErrorCode } = keystore
+
+// Constant, 32 byte salt
+// DO NOT CHANGE
+const INVITE_SALT = new TextEncoder().encode('__XMTP__INVITATION__SALT__XMTP__')
+
+async function deriveKey(
+  secret: Uint8Array,
+  info: Uint8Array
+): Promise<CryptoKey> {
+  const key = await crypto.subtle.importKey('raw', secret, 'HKDF', false, [
+    'deriveKey',
+  ])
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: INVITE_SALT, info },
+    key,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  )
+}
 
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
@@ -249,9 +271,45 @@ export default class InMemoryKeystore implements Keystore {
           'missing recipient'
         )
       }
-      const invitation = InvitationV1.createRandom(req.context)
       const created = nsToDate(req.createdNs)
       const recipient = toSignedPublicKeyBundle(req.recipient)
+
+      const secret = await this.v2Keys.sharedSecret(
+        recipient,
+        this.v2Keys.getCurrentPreKey().publicKey,
+        false
+      )
+
+      const sortedAddresses = [
+        this.accountAddress,
+        await recipient.walletSignatureAddress(),
+      ].sort()
+
+      const msgString =
+        (req.context?.conversationId || '') + sortedAddresses.join()
+
+      const msgBytes = new TextEncoder().encode(msgString)
+
+      const topic = (
+        await hmacSha256Sign(Buffer.from(secret), Buffer.from(msgBytes))
+      ).toString()
+
+      const infoString = [
+        '0', // sequence number
+        ...sortedAddresses,
+      ].join('|')
+      const info = new TextEncoder().encode(infoString)
+      const derivedKey = await deriveKey(secret, info)
+
+      const keyMaterial = new Uint8Array(
+        await crypto.subtle.exportKey('raw', derivedKey)
+      )
+
+      const invitation = new InvitationV1({
+        topic: buildDirectMessageTopicV2(topic),
+        aes256GcmHkdfSha256: { keyMaterial },
+        context: req.context,
+      })
 
       return await this.makeInvite(
         this.v2Keys,
