@@ -77,9 +77,7 @@ export class GroupConversation extends ConversationV2 implements Conversation {
     }
 
     const envelope = {
-      contentTopic: buildUserInviteTopic(
-        inviteResponse.conversation?.peerAddress
-      ),
+      contentTopic: buildUserInviteTopic(newMemberAddress),
       message: inviteResponse.payload,
       timestamp,
     }
