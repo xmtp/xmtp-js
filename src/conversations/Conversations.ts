@@ -442,6 +442,10 @@ export default class Conversations {
   async newGroupConversation(
     initialMembers: string[]
   ): Promise<GroupConversation> {
+    initialMembers = [...new Set(initialMembers)].filter(
+      (address) => address !== this.client.address
+    )
+
     if (initialMembers.length === 0) {
       throw new Error('No initial members provided')
     }
@@ -453,9 +457,6 @@ export default class Conversations {
         initialMembers: initialMembers.join(','),
       },
     }
-
-    initialMembers.push(this.client.address)
-    initialMembers = [...new Set(initialMembers)]
 
     const timestamp = new Date()
     const members = await Promise.all(
@@ -494,7 +495,19 @@ export default class Conversations {
       }
     })
 
-    await this.client.publishEnvelopes(envelopes)
+    // Copy one of the invites to use for the creator. We do this to avoid having
+    // to self Diffie-Hellman which is problematic, security wise.
+    //
+    // This approach works because sealed invitation decrypting is sender/recipient
+    // agnostic.
+    //
+    // See https://github.com/xmtp/xmtp-js/blob/829257c10947618c34a66aa3857ca3557d4b52b6/src/Invitation.ts#L148-L160
+    const creatorEnvelope = { ...envelopes[0] }
+    creatorEnvelope.contentTopic = buildUserInviteTopic(this.client.address)
+
+    const envelopesToPublish = [creatorEnvelope, ...envelopes]
+
+    await this.client.publishEnvelopes(envelopesToPublish)
 
     const conversation = inviteResponses[0].conversation
 

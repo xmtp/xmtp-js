@@ -383,6 +383,9 @@ describe('conversations', () => {
 
       invites = await charlie.listInvitations()
       expect(invites).toHaveLength(1)
+
+      invites = await bob.listInvitations()
+      expect(invites).toHaveLength(1)
     })
   })
 })
