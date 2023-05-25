@@ -209,6 +209,11 @@ describe('GroupChat', () => {
 
     expect(bobGroupChat.members.length).toBe(4)
     expect(bobGroupChat.members[3]).toBe(carol.address)
+
+    await bobConversation!.send('hey carol')
+
+    const carolMessages = await messages(aliceConversation.topic, carol)
+    expect(carolMessages[carolMessages.length - 1].content).toBe('hey carol')
   })
 
   it('can be rebuilt', async () => {
