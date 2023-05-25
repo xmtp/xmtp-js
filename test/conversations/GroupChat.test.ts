@@ -5,20 +5,24 @@ describe('GroupChat', () => {
   let alice: Client
   let bob: Client
   let charlie: Client
+  let carol: Client
 
   beforeEach(async () => {
     alice = await newLocalHostClient({ publishLegacyContact: true })
     bob = await newLocalHostClient({ publishLegacyContact: true })
     charlie = await newLocalHostClient({ publishLegacyContact: true })
+    carol = await newLocalHostClient({ publishLegacyContact: true })
     await waitForUserContact(alice, alice)
     await waitForUserContact(bob, bob)
     await waitForUserContact(charlie, charlie)
+    await waitForUserContact(carol, carol)
   })
 
   afterEach(async () => {
     if (alice) await alice.close()
     if (bob) await bob.close()
     if (charlie) await charlie.close()
+    if (carol) await carol.close()
   })
 
   async function conversationFromTopic(
@@ -180,6 +184,31 @@ describe('GroupChat', () => {
       charlieConversation
     )
     expect(charlieGroupChat.nicknameFor('alice')).toBe('alice')
+  })
+
+  it('can add members', async () => {
+    GroupChat.registerCodecs(alice)
+    GroupChat.registerCodecs(bob)
+    GroupChat.registerCodecs(charlie)
+
+    const aliceConversation = await GroupChat.start(alice, [
+      bob.address,
+      charlie.address,
+    ])
+
+    const groupChat = await GroupChat.fromConversation(alice, aliceConversation)
+    await groupChat.addMember(carol.address)
+
+    const bobConversation = await conversationFromTopic(
+      aliceConversation.topic,
+      bob
+    )
+
+    const bobGroupChat = await GroupChat.fromConversation(bob, bobConversation!)
+    await bobGroupChat.rebuild()
+
+    expect(bobGroupChat.members.length).toBe(4)
+    expect(bobGroupChat.members[3]).toBe(carol.address)
   })
 
   it('can be rebuilt', async () => {
