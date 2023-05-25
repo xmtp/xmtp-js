@@ -162,13 +162,4 @@ export class GroupChat {
     const conversation = GroupConversation.from(this.conversation, this.members)
     await conversation.addMember(newMemberAddress)
   }
-
-  static async start(
-    creatorClient: Client,
-    initialMembers: string[]
-  ): Promise<Conversation> {
-    return await creatorClient.conversations.newGroupConversation(
-      initialMembers
-    )
-  }
 }

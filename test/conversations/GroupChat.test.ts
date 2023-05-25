@@ -55,7 +55,7 @@ describe('GroupChat', () => {
     GroupChat.registerCodecs(bob)
     GroupChat.registerCodecs(charlie)
 
-    const aliceConversation = await GroupChat.start(alice, [
+    const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
       charlie.address,
     ])
@@ -79,7 +79,7 @@ describe('GroupChat', () => {
     GroupChat.registerCodecs(bob)
     GroupChat.registerCodecs(charlie)
 
-    const aliceConversation = await GroupChat.start(alice, [
+    const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
       charlie.address,
     ])
@@ -121,7 +121,7 @@ describe('GroupChat', () => {
     GroupChat.registerCodecs(bob)
     GroupChat.registerCodecs(charlie)
 
-    const aliceConversation = await GroupChat.start(alice, [
+    const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
       charlie.address,
     ])
@@ -156,7 +156,7 @@ describe('GroupChat', () => {
     GroupChat.registerCodecs(bob)
     GroupChat.registerCodecs(charlie)
 
-    const aliceConversation = await GroupChat.start(alice, [
+    const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
       charlie.address,
     ])
@@ -191,7 +191,7 @@ describe('GroupChat', () => {
     GroupChat.registerCodecs(bob)
     GroupChat.registerCodecs(charlie)
 
-    const aliceConversation = await GroupChat.start(alice, [
+    const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
       charlie.address,
     ])
@@ -221,7 +221,7 @@ describe('GroupChat', () => {
     GroupChat.registerCodecs(bob)
     GroupChat.registerCodecs(charlie)
 
-    const aliceConversation = await GroupChat.start(alice, [
+    const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
       charlie.address,
     ])
@@ -247,7 +247,7 @@ describe('GroupChat', () => {
     GroupChat.registerCodecs(bob)
     GroupChat.registerCodecs(charlie)
 
-    const aliceConversation = await GroupChat.start(alice, [
+    const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
       charlie.address,
     ])
