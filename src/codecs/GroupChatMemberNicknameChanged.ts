@@ -2,7 +2,7 @@ import { ContentCodec, ContentTypeId, EncodedContent } from '../index'
 
 export const ContentTypeGroupChatMemberNicknameChanged: ContentTypeId = {
   typeId: 'groupChatMemberNicknameChanged',
-  authorityId: 'pat.xmtp.com',
+  authorityId: 'xmtp.org',
   versionMajor: 1,
   versionMinor: 0,
   sameAs(id) {
