@@ -454,7 +454,9 @@ export default class Conversations {
     const context = {
       conversationId: `xmtp.org/groups/${groupID}`,
       metadata: {
-        initialMembers: initialMembers.join(','),
+        initialMembers: [this.client.address, ...new Set(initialMembers)].join(
+          ','
+        ),
       },
     }
 
