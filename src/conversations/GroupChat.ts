@@ -14,27 +14,15 @@ import {
   GroupChatTitleChanged,
   GroupChatTitleChangedCodec,
 } from '../codecs/GroupChatTitleChanged'
-import {
-  ContentTypeGroupChatMemberNicknameChanged,
-  GroupChatMemberNicknameChanged,
-  GroupChatMemberNicknameChangedCodec,
-} from '../codecs/GroupChatMemberNicknameChanged'
 
 type RebuildOptions = {
   since: Date
 }
 
 export class GroupChat {
-  static contentTypes = [
-    ContentTypeGroupChatMemberAdded,
-    GroupChatTitleChangedCodec,
-    ContentTypeGroupChatMemberNicknameChanged,
-  ]
-
   static codecs = [
     new GroupChatMemberAddedCodec(),
     new GroupChatTitleChangedCodec(),
-    new GroupChatMemberNicknameChangedCodec(),
   ]
 
   static registerCodecs(client: Client) {
@@ -48,7 +36,6 @@ export class GroupChat {
   conversation: Conversation
   _members: string[] = []
   _memberConversation: Conversation | undefined
-  _nicknames: { [member: string]: string } = {}
 
   get members(): string[] {
     return [...new Set(this._members)]
@@ -99,36 +86,8 @@ export class GroupChat {
       } else if (message.contentType.sameAs(ContentTypeGroupChatTitleChanged)) {
         const groupChatTitleChanged = message.content as GroupChatTitleChanged
         this.title = groupChatTitleChanged.newTitle
-      } else if (
-        message.contentType.sameAs(ContentTypeGroupChatMemberNicknameChanged)
-      ) {
-        const nicknameChange = message.content as GroupChatMemberNicknameChanged
-        this._nicknames[message.senderAddress] = nicknameChange.newNickname
       }
     }
-  }
-
-  get memberNickname(): string {
-    return this._nicknames[this.memberClient.address] || ''
-  }
-
-  nicknameFor(address: string): string {
-    return this._nicknames[address] || address
-  }
-
-  async changeNickname(newNickname: string) {
-    const oldNickname =
-      this.memberNickname === ''
-        ? this.memberClient.address
-        : this.memberNickname
-    const nicknameChange: GroupChatMemberNicknameChanged = {
-      newNickname,
-    }
-
-    await this.conversation.send(nicknameChange, {
-      contentType: ContentTypeGroupChatMemberNicknameChanged,
-      contentFallback: `${oldNickname} changed their nickname to ${newNickname}`,
-    })
   }
 
   async changeTitle(newTitle: string) {
@@ -139,9 +98,7 @@ export class GroupChat {
 
     await this.conversation.send(titleChange, {
       contentType: ContentTypeGroupChatTitleChanged,
-      contentFallback: `${this.nicknameFor(
-        this.memberClient.address
-      )} changed the group title to ${newTitle}`,
+      contentFallback: `${this.memberClient.address} changed the group title to ${newTitle}`,
     })
   }
 
@@ -152,9 +109,7 @@ export class GroupChat {
 
     await this.conversation.send(memberAdded, {
       contentType: ContentTypeGroupChatMemberAdded,
-      contentFallback: `${this.nicknameFor(
-        this.memberClient.address
-      )} added ${newMemberAddress} to the group`,
+      contentFallback: `${this.memberClient.address} added ${newMemberAddress} to the group`,
     })
 
     this._members.push(newMemberAddress)

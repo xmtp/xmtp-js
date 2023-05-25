@@ -151,41 +151,6 @@ describe('GroupChat', () => {
     expect(charlieGroupChat.title).toBe('the fun group')
   })
 
-  it('members can have nicknames', async () => {
-    GroupChat.registerCodecs(alice)
-    GroupChat.registerCodecs(bob)
-    GroupChat.registerCodecs(charlie)
-
-    const aliceConversation = await alice.conversations.newGroupConversation([
-      bob.address,
-      charlie.address,
-    ])
-
-    const aliceGroupChat = new GroupChat(alice, aliceConversation)
-    expect(aliceGroupChat.title).toBe('')
-
-    await aliceGroupChat.changeNickname('alice')
-
-    const bobConversation = (await conversationFromTopic(
-      aliceConversation.topic,
-      bob
-    ))!
-
-    const bobGroupChat = await GroupChat.fromConversation(bob, bobConversation)
-    expect(bobGroupChat.nicknameFor(alice.address)).toBe('alice')
-
-    const charlieConversation = (await conversationFromTopic(
-      aliceConversation.topic,
-      charlie
-    ))!
-
-    const charlieGroupChat = await GroupChat.fromConversation(
-      charlie,
-      charlieConversation
-    )
-    expect(charlieGroupChat.nicknameFor('alice')).toBe('alice')
-  })
-
   it('can add members', async () => {
     GroupChat.registerCodecs(alice)
     GroupChat.registerCodecs(bob)
@@ -229,17 +194,17 @@ describe('GroupChat', () => {
     const aliceGroupChat = new GroupChat(alice, aliceConversation)
     expect(aliceGroupChat.title).toBe('')
 
-    await aliceGroupChat.changeNickname('alice')
+    await aliceGroupChat.addMember(carol.address)
     await aliceGroupChat.changeTitle('the fun group')
 
     const unbuiltGroupChat = new GroupChat(alice, aliceConversation)
     expect(unbuiltGroupChat.title).toBe('')
-    expect(unbuiltGroupChat.nicknameFor(alice.address)).toBe(alice.address)
+    expect(unbuiltGroupChat.members.length).toBe(0)
 
     await unbuiltGroupChat.rebuild()
 
     expect(unbuiltGroupChat.title).toBe('the fun group')
-    expect(unbuiltGroupChat.nicknameFor(alice.address)).toBe('alice')
+    expect(unbuiltGroupChat.members.length).toBe(4)
   })
 
   it('can be rebuilt partially', async () => {
@@ -255,7 +220,7 @@ describe('GroupChat', () => {
     const aliceGroupChat = new GroupChat(alice, aliceConversation)
     expect(aliceGroupChat.title).toBe('')
 
-    await aliceGroupChat.changeNickname('alice')
+    await aliceGroupChat.addMember(carol.address)
 
     await sleep(1000)
     const date = new Date()
@@ -265,13 +230,12 @@ describe('GroupChat', () => {
 
     const unbuiltGroupChat = new GroupChat(alice, aliceConversation)
     expect(unbuiltGroupChat.title).toBe('')
-    expect(unbuiltGroupChat.nicknameFor(alice.address)).toBe(alice.address)
 
     await unbuiltGroupChat.rebuild({ since: date })
 
     // We should only get the second update because the first one happened before
     // our `since`
     expect(unbuiltGroupChat.title).toBe('the fun group')
-    expect(unbuiltGroupChat.nicknameFor(alice.address)).toBe(alice.address)
+    expect(unbuiltGroupChat.members.length).toBe(3)
   })
 })

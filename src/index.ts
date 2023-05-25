@@ -86,10 +86,6 @@ export {
   GroupChatMemberAddedCodec,
 } from './codecs/GroupChatMemberAdded'
 export {
-  GroupChatMemberNicknameChanged,
-  GroupChatMemberNicknameChangedCodec,
-} from './codecs/GroupChatMemberNicknameChanged'
-export {
   GroupChatTitleChanged,
   GroupChatTitleChangedCodec,
 } from './codecs/GroupChatTitleChanged'
