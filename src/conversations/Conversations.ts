@@ -185,15 +185,7 @@ export default class Conversations {
     const out: ConversationV2[] = []
     for (const response of responses) {
       try {
-        let convo = this.saveInviteResponseToConversation(response)
-
-        const initialMembers = convo.context?.metadata.initialMembers.split(',')
-
-        if (initialMembers && initialMembers.length > 0) {
-          convo = GroupConversation.from(convo, initialMembers)
-        }
-
-        out.push(convo)
+        out.push(this.saveInviteResponseToConversation(response))
       } catch (e) {
         console.warn('Error saving invite response to conversation: ', e)
         if (shouldThrow) {
@@ -454,7 +446,9 @@ export default class Conversations {
     const context = {
       conversationId: `xmtp.org/groups/${groupID}`,
       metadata: {
-        initialMembers: initialMembers.join(','),
+        initialMembers: [this.client.address, ...new Set(initialMembers)].join(
+          ','
+        ),
       },
     }
 
