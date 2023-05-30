@@ -107,14 +107,14 @@ export class GroupChat {
       member: newMemberAddress,
     }
 
-    await this.conversation.send(memberAdded, {
-      contentType: ContentTypeGroupChatMemberAdded,
-      contentFallback: `${this.memberClient.address} added ${newMemberAddress} to the group`,
-    })
-
     this._members.push(newMemberAddress)
 
     const conversation = GroupConversation.from(this.conversation, this.members)
     await conversation.addMember(newMemberAddress)
+
+    await this.conversation.send(memberAdded, {
+      contentType: ContentTypeGroupChatMemberAdded,
+      contentFallback: `${this.memberClient.address} added ${newMemberAddress} to the group`,
+    })
   }
 }
