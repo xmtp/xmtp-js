@@ -21,6 +21,7 @@ import Long from 'long'
 import { toSignedPublicKeyBundle } from '../keystore/utils'
 import { GroupConversation } from './GroupConversation'
 import { bytesToHex } from '../crypto/utils'
+import crypto from '../crypto/crypto'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
@@ -478,7 +479,7 @@ export default class Conversations {
     const context = {
       conversationId: `xmtp.org/groups/${groupID}`,
       metadata: {
-        initialMembers: [this.client.address, ...new Set(initialMembers)].join(
+        initialMembers: [...new Set(initialMembers.concat(this.client.address))].join(
           ','
         ),
       },
