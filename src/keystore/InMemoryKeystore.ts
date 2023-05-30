@@ -486,6 +486,19 @@ export default class InMemoryKeystore implements Keystore {
     return convos
   }
 
+  async getGroupConversations(): Promise<
+    conversationReference.ConversationReference[]
+  > {
+    const convos = this.inviteStore.topics.map((invite) =>
+      topicDataToConversationReference(invite)
+    )
+
+    convos.sort((a, b) =>
+      a.createdNs.div(1_000_000).sub(b.createdNs.div(1_000_000)).toNumber()
+    )
+    return convos
+  }
+
   async getPublicKeyBundle(): Promise<PublicKeyBundle> {
     return this.v1Keys.getPublicKeyBundle()
   }

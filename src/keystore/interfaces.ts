@@ -69,6 +69,12 @@ export interface Keystore {
    */
   getV2Conversations(): Promise<conversationReference.ConversationReference[]>
   /**
+   * Get a list of group conversations
+   */
+  getGroupConversations(): Promise<
+    conversationReference.ConversationReference[]
+  >
+  /**
    * Get the `PublicKeyBundle` associated with the Keystore's private keys
    */
   getPublicKeyBundle(): Promise<publicKey.PublicKeyBundle>

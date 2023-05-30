@@ -51,9 +51,9 @@ describe('GroupChat', () => {
   }
 
   it('can be started', async () => {
-    GroupChat.registerCodecs(alice)
-    GroupChat.registerCodecs(bob)
-    GroupChat.registerCodecs(charlie)
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+    charlie.enableGroupChat()
 
     const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
@@ -75,9 +75,9 @@ describe('GroupChat', () => {
   })
 
   it('lets people chat', async () => {
-    GroupChat.registerCodecs(alice)
-    GroupChat.registerCodecs(bob)
-    GroupChat.registerCodecs(charlie)
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+    charlie.enableGroupChat()
 
     const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
@@ -117,9 +117,9 @@ describe('GroupChat', () => {
   })
 
   it('can have a title', async () => {
-    GroupChat.registerCodecs(alice)
-    GroupChat.registerCodecs(bob)
-    GroupChat.registerCodecs(charlie)
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+    charlie.enableGroupChat()
 
     const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
@@ -152,9 +152,9 @@ describe('GroupChat', () => {
   })
 
   it('can add members', async () => {
-    GroupChat.registerCodecs(alice)
-    GroupChat.registerCodecs(bob)
-    GroupChat.registerCodecs(charlie)
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+    charlie.enableGroupChat()
 
     const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
@@ -182,9 +182,9 @@ describe('GroupChat', () => {
   })
 
   it('can be rebuilt', async () => {
-    GroupChat.registerCodecs(alice)
-    GroupChat.registerCodecs(bob)
-    GroupChat.registerCodecs(charlie)
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+    charlie.enableGroupChat()
 
     const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
@@ -208,9 +208,9 @@ describe('GroupChat', () => {
   })
 
   it('can be rebuilt partially', async () => {
-    GroupChat.registerCodecs(alice)
-    GroupChat.registerCodecs(bob)
-    GroupChat.registerCodecs(charlie)
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+    charlie.enableGroupChat()
 
     const aliceConversation = await alice.conversations.newGroupConversation([
       bob.address,
