@@ -28,7 +28,7 @@ export const buildUserIntroTopic = (walletAddr: string): string => {
 }
 
 export const buildUserGroupInviteTopic = (walletAddr: string): string => {
-  return buildContentTopic(`group-invite-${utils.getAddress(walletAddr)}`)
+  return buildContentTopic(`groupInvite-${utils.getAddress(walletAddr)}`)
 }
 
 export const buildUserInviteTopic = (walletAddr: string): string => {
