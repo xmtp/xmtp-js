@@ -25,6 +25,10 @@ export class GroupChatMemberAddedCodec
   contentType = ContentTypeGroupChatMemberAdded
 
   encode(content: GroupChatMemberAdded): EncodedContent {
+    if (content.member.length !== 42) {
+      throw new Error('Invalid member address')
+    }
+
     return {
       type: ContentTypeGroupChatMemberAdded,
       parameters: {},

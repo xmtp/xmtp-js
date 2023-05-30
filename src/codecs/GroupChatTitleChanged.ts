@@ -29,6 +29,10 @@ export class GroupChatTitleChangedCodec
   contentType = ContentTypeGroupChatTitleChanged
 
   encode(content: GroupChatTitleChanged): EncodedContent {
+    if (content.newTitle.length === 0) {
+      throw new Error('Invalid newTitle')
+    }
+
     return {
       type: ContentTypeGroupChatTitleChanged,
       parameters: {},
