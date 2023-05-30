@@ -92,7 +92,6 @@ export class GroupChat {
 
   async changeTitle(newTitle: string) {
     const titleChange: GroupChatTitleChanged = {
-      oldTitle: this.title,
       newTitle,
     }
 

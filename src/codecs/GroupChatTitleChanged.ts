@@ -16,11 +16,7 @@ export const ContentTypeGroupChatTitleChanged: ContentTypeId = {
 }
 
 export type GroupChatTitleChanged = {
-  // The new title
   newTitle: string
-
-  // The old title
-  oldTitle: string
 }
 
 export class GroupChatTitleChangedCodec
