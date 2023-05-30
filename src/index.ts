@@ -80,3 +80,12 @@ export {
 } from './keystore/persistence'
 export { InvitationContext, SealedInvitation } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'
+export { GroupChat } from './conversations/GroupChat'
+export {
+  GroupChatMemberAdded,
+  GroupChatMemberAddedCodec,
+} from './codecs/GroupChatMemberAdded'
+export {
+  GroupChatTitleChanged,
+  GroupChatTitleChangedCodec,
+} from './codecs/GroupChatTitleChanged'

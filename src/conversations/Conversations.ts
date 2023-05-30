@@ -9,6 +9,7 @@ import Stream from '../Stream'
 import Client from '../Client'
 import {
   b64Decode,
+  buildUserGroupInviteTopic,
   buildUserIntroTopic,
   buildUserInviteTopic,
   dateToNs,
@@ -121,7 +122,14 @@ export default class Conversations {
   private async listV2Conversations(): Promise<Conversation[]> {
     return this.v2Mutex.runExclusive(async () => {
       // Get all conversations already in the KeyStore
-      const existing = await this.getV2ConversationsFromKeystore()
+      let existing = await this.getV2ConversationsFromKeystore()
+
+      if (this.client.isGroupChatEnabled) {
+        existing = existing.concat(
+          await this.getGroupConversationsFromKeystore()
+        )
+      }
+
       const latestConversation = existing.reduce(
         (memo: ConversationV2 | undefined, curr: ConversationV2) => {
           if (!memo || +curr.createdAt > +memo.createdAt) {
@@ -133,9 +141,15 @@ export default class Conversations {
       )
 
       // Load all conversations started after the newest conversation found
-      const newConversations = await this.updateV2Conversations(
+      let newConversations = await this.updateV2Conversations(
         latestConversation?.createdAt
       )
+
+      if (this.client.isGroupChatEnabled) {
+        newConversations = newConversations.concat(
+          await this.updateGroupConversations(latestConversation?.createdAt)
+        )
+      }
 
       // Create a Set of all the existing topics to ensure no duplicates are added
       const existingTopics = new Set(existing.map((c) => c.topic))
@@ -162,6 +176,24 @@ export default class Conversations {
   // Called in listV2Conversations and in newConversation
   async updateV2Conversations(startTime?: Date): Promise<ConversationV2[]> {
     const envelopes = await this.client.listInvitations({
+      startTime: startTime
+        ? new Date(+startTime - CLOCK_SKEW_OFFSET_MS)
+        : undefined,
+      direction: SortDirection.SORT_DIRECTION_ASCENDING,
+    })
+
+    return this.decodeInvites(envelopes)
+  }
+
+  private async getGroupConversationsFromKeystore(): Promise<ConversationV2[]> {
+    return (await this.client.keystore.getGroupConversations()).map(
+      this.conversationReferenceToV2.bind(this)
+    )
+  }
+
+  // Called in listV2Conversations and in newConversation
+  async updateGroupConversations(startTime?: Date): Promise<ConversationV2[]> {
+    const envelopes = await this.client.listGroupInvitations({
       startTime: startTime
         ? new Date(+startTime - CLOCK_SKEW_OFFSET_MS)
         : undefined,
@@ -447,7 +479,7 @@ export default class Conversations {
     const context = {
       conversationId: `xmtp.org/groups/${groupID}`,
       metadata: {
-        initialMembers: [this.client.address, ...new Set(initialMembers)].join(
+        initialMembers: [...new Set(initialMembers.concat(this.client.address))].join(
           ','
         ),
       },
@@ -484,7 +516,9 @@ export default class Conversations {
       }
 
       return {
-        contentTopic: buildUserInviteTopic(response.conversation?.peerAddress),
+        contentTopic: buildUserGroupInviteTopic(
+          response.conversation?.peerAddress
+        ),
         message: response.payload,
         timestamp,
       }
@@ -498,7 +532,9 @@ export default class Conversations {
     //
     // See https://github.com/xmtp/xmtp-js/blob/829257c10947618c34a66aa3857ca3557d4b52b6/src/Invitation.ts#L148-L160
     const creatorEnvelope = { ...envelopes[0] }
-    creatorEnvelope.contentTopic = buildUserInviteTopic(this.client.address)
+    creatorEnvelope.contentTopic = buildUserGroupInviteTopic(
+      this.client.address
+    )
 
     const envelopesToPublish = [creatorEnvelope, ...envelopes]
 

@@ -27,6 +27,10 @@ export const buildUserIntroTopic = (walletAddr: string): string => {
   return buildContentTopic(`intro-${utils.getAddress(walletAddr)}`)
 }
 
+export const buildUserGroupInviteTopic = (walletAddr: string): string => {
+  return buildContentTopic(`groupInvite-${utils.getAddress(walletAddr)}`)
+}
+
 export const buildUserInviteTopic = (walletAddr: string): string => {
   // EIP55 normalize the address case.
   return buildContentTopic(`invite-${utils.getAddress(walletAddr)}`)

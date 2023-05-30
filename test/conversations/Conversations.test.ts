@@ -378,13 +378,13 @@ describe('conversations', () => {
         charlie.address,
       ])
 
-      let invites = await alice.listInvitations()
+      let invites = await alice.listGroupInvitations()
       expect(invites).toHaveLength(1)
 
-      invites = await charlie.listInvitations()
+      invites = await charlie.listGroupInvitations()
       expect(invites).toHaveLength(1)
 
-      invites = await bob.listInvitations()
+      invites = await bob.listGroupInvitations()
       expect(invites).toHaveLength(1)
     })
   })
