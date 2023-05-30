@@ -38,6 +38,12 @@ export class GroupChatMemberAddedCodec
 
   decode(encodedContent: EncodedContent): GroupChatMemberAdded {
     const json = new TextDecoder().decode(encodedContent.content)
-    return JSON.parse(json)
+    const result = JSON.parse(json)
+
+    if (result.member.length !== 42) {
+      throw new Error('Invalid member address')
+    }
+
+    return result
   }
 }

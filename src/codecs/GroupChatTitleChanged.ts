@@ -38,6 +38,12 @@ export class GroupChatTitleChangedCodec
 
   decode(encodedContent: EncodedContent): GroupChatTitleChanged {
     const json = new TextDecoder().decode(encodedContent.content)
-    return JSON.parse(json)
+    const result = JSON.parse(json)
+
+    if (result.newTitle.length === 0 || result.newTitle.length > 256) {
+      throw new Error('Invalid newTitle')
+    }
+
+    return result
   }
 }
