@@ -10,6 +10,8 @@ import {
   buildUserIntroTopic,
   sleep,
 } from '../../src/utils'
+import { InvitationV1 } from '../../src/Invitation'
+import { InvitationV1_Context } from '@xmtp/proto/ts/dist/types/message_contents/invitation.pb'
 
 describe('conversations', () => {
   let alice: Client
@@ -71,6 +73,52 @@ describe('conversations', () => {
 
       const aliceConversations3 = await alice.conversations.list()
       expect(aliceConversations3).toHaveLength(2)
+    })
+
+    it('loads group chats when group chat is enabled after first load', async () => {
+      const aliceConversations1 = await alice.conversations.list()
+      expect(aliceConversations1).toHaveLength(0)
+      alice.enableGroupChat()
+
+      const groupConvo = await alice.conversations.newGroupConversation([
+        bob.address,
+      ])
+      await sleep(100)
+      const bobConversations = await bob.conversations.list()
+
+      // Group Chat isn't enabled for this client so we're not checking the group chat
+      // topic. As a result this should be empty.
+      expect(bobConversations).toHaveLength(0)
+
+      // Make sure bob doesn't have group chat enabled
+      expect(bob.isGroupChatEnabled).toBeFalsy()
+      // Make sure creating a group chat from a client without it enabled fails
+      expect(
+        bob.conversations.newGroupConversation([
+          '0x0000000000000000000000000000000000000000',
+        ])
+      ).rejects.toThrow('Group chat is not enabled for client')
+
+      // Create a 1:1 convo for bob
+      const conversation = await bob.conversations.newConversation(
+        alice.address,
+        {
+          conversationId: 'foo',
+          metadata: {},
+        }
+      )
+      await sleep(100)
+      const bobConversations2 = await bob.conversations.list()
+      expect(bobConversations2).toHaveLength(1)
+      expect(bobConversations2[0].topic).toBe(conversation.topic)
+
+      // Enable group chat for bob
+      bob.enableGroupChat()
+
+      // Make sure group chat loads for bob
+      const bobConversations3 = await bob.conversations.list()
+      expect(bobConversations3).toHaveLength(2)
+      expect(bobConversations3[0].topic).toBe(groupConvo.topic)
     })
 
     it('caches results and updates the latestSeen date', async () => {
@@ -365,6 +413,26 @@ describe('conversations', () => {
       await sleep(50)
 
       const invites = await alice.listInvitations()
+      expect(invites).toHaveLength(1)
+    })
+  })
+
+  describe('newGroupConversation', () => {
+    it('sends invites to recipients', async () => {
+      bob.enableGroupChat()
+
+      await bob.conversations.newGroupConversation([
+        alice.address,
+        charlie.address,
+      ])
+
+      let invites = await alice.listGroupInvitations()
+      expect(invites).toHaveLength(1)
+
+      invites = await charlie.listGroupInvitations()
+      expect(invites).toHaveLength(1)
+
+      invites = await bob.listGroupInvitations()
       expect(invites).toHaveLength(1)
     })
   })

@@ -510,6 +510,8 @@ describe('InMemoryKeystore', () => {
       const firstResponse: CreateInviteResponse = responses[0]
       const topicName = firstResponse.conversation!.topic
 
+      expect(topicName).toMatch(/^[\x00-\x7F]+$/)
+
       expect(
         responses.filter((response, index, array) => {
           return response.conversation!.topic === topicName
@@ -565,7 +567,7 @@ describe('InMemoryKeystore', () => {
     it('creates an auth token', async () => {
       const authToken = new Token(await aliceKeystore.createAuthToken({}))
       expect(authToken.authDataBytes).toBeDefined()
-      expect(authToken.authData.createdNs).toBeInstanceOf(Long)
+      expect(Long.isLong(authToken.authData.createdNs)).toBe(true)
       expect(authToken.authDataSignature).toBeDefined()
       expect(authToken.identityKey?.secp256k1Uncompressed).toBeDefined()
       expect(authToken.identityKey?.signature).toBeDefined()

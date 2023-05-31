@@ -10,7 +10,7 @@ import {
   PrivateKeyBundleV2,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
-import { PrivateKey, PublicKeyBundle } from '../crypto'
+import { PrivateKey, PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import { Keystore, TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
@@ -27,8 +27,10 @@ import { nsToDate, buildDirectMessageTopicV2 } from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
+import Long from 'long'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
+import { bytesToHex } from '../crypto/utils'
 const { ErrorCode } = keystore
 
 // Constant, 32 byte salt
@@ -289,9 +291,9 @@ export default class InMemoryKeystore implements Keystore {
 
       const msgBytes = new TextEncoder().encode(msgString)
 
-      const topic = (
+      const topic = bytesToHex(
         await hmacSha256Sign(Buffer.from(secret), Buffer.from(msgBytes))
-      ).toString()
+      )
 
       const infoString = [
         '0', // sequence number
@@ -310,26 +312,131 @@ export default class InMemoryKeystore implements Keystore {
         context: req.context,
       })
 
-      const sealed = await SealedInvitation.createV1({
-        sender: this.v2Keys,
+      return await this.makeInvite(
+        this.v2Keys,
         recipient,
         created,
-        invitation,
-      })
-      const topicData = {
-        invitation,
-        createdNs: req.createdNs,
-        peerAddress: await recipient.walletSignatureAddress(),
-      }
-      await this.inviteStore.add([topicData])
-
-      return keystore.CreateInviteResponse.fromPartial({
-        conversation: topicDataToConversationReference(topicData),
-        payload: sealed.toBytes(),
-      })
+        req.createdNs,
+        invitation
+      )
     } catch (e) {
       throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
     }
+  }
+
+  async createInvites(
+    req: keystore.CreateInvitesRequest
+  ): Promise<keystore.CreateInviteResponse[]> {
+    try {
+      if (!validateObject(req, ['recipients'], [])) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing recipients'
+        )
+      }
+
+      const invitation = InvitationV1.createRandom(req.context)
+      const created = nsToDate(req.createdNs)
+      const recipients = req.recipients.map(toSignedPublicKeyBundle)
+
+      return Promise.all(
+        recipients.map(async (recipient) => {
+          return await this.makeInvite(
+            this.v2Keys,
+            recipient,
+            created,
+            req.createdNs,
+            invitation
+          )
+        })
+      )
+    } catch (e) {
+      throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
+    }
+  }
+
+  async createInviteFromTopic(
+    req: keystore.CreateInviteFromTopicRequest
+  ): Promise<keystore.CreateInviteResponse> {
+    try {
+      if (!validateObject(req, ['contentTopic'], [])) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing topic'
+        )
+      }
+
+      if (!validateObject(req, ['createdNs'], [])) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing createdNs'
+        )
+      }
+
+      let topicData = this.inviteStore.lookup(req.contentTopic)
+      if (!topicData) {
+        throw new KeystoreError(
+          ErrorCode.ERROR_CODE_INVALID_INPUT,
+          'missing topic data'
+        )
+      }
+
+      topicData = { ...topicData }
+
+      const invitation = new InvitationV1({
+        context: topicData.invitation.context,
+        topic: req.contentTopic,
+        aes256GcmHkdfSha256: topicData.invitation.aes256GcmHkdfSha256,
+      })
+
+      const recipient = toSignedPublicKeyBundle(req.recipient)
+
+      topicData.createdNs = req.createdNs
+
+      return await this.makeInvite(
+        this.v2Keys,
+        recipient,
+        nsToDate(req.createdNs),
+        topicData.createdNs,
+        invitation
+      )
+    } catch (e) {
+      throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
+    }
+  }
+
+  private async makeInvite(
+    senderKeys: PrivateKeyBundleV2,
+    recipient: SignedPublicKeyBundle,
+    created: Date,
+    createdNs: Long,
+    invitation: InvitationV1
+  ): Promise<keystore.CreateInviteResponse> {
+    const sealed = await SealedInvitation.createV1({
+      sender: senderKeys,
+      recipient,
+      created,
+      invitation,
+    })
+
+    const conversation = topicDataToConversationReference({
+      invitation,
+      createdNs,
+      peerAddress: await recipient.walletSignatureAddress(),
+    })
+
+    const topicData = {
+      invitation,
+      createdNs,
+      peerAddress: await recipient.walletSignatureAddress(),
+    }
+
+    await this.inviteStore.add([topicData])
+
+    return keystore.CreateInviteResponse.fromPartial({
+      conversation,
+      payload: sealed.toBytes(),
+    })
   }
 
   async signDigest(
@@ -371,6 +478,19 @@ export default class InMemoryKeystore implements Keystore {
     conversationReference.ConversationReference[]
   > {
     const convos = this.inviteStore.topics.map((invite) =>
+      topicDataToConversationReference(invite)
+    )
+
+    convos.sort((a, b) =>
+      a.createdNs.div(1_000_000).sub(b.createdNs.div(1_000_000)).toNumber()
+    )
+    return convos
+  }
+
+  async getGroupConversations(): Promise<
+    conversationReference.ConversationReference[]
+  > {
+    const convos = this.inviteStore.groupTopics.map((invite) =>
       topicDataToConversationReference(invite)
     )
 

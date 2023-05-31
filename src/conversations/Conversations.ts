@@ -9,6 +9,7 @@ import Stream from '../Stream'
 import Client from '../Client'
 import {
   b64Decode,
+  buildUserGroupInviteTopic,
   buildUserIntroTopic,
   buildUserInviteTopic,
   dateToNs,
@@ -17,6 +18,10 @@ import {
 import { PublicKeyBundle } from '../crypto'
 import { SortDirection } from '../ApiClient'
 import Long from 'long'
+import { toSignedPublicKeyBundle } from '../keystore/utils'
+import { GroupConversation } from './GroupConversation'
+import { bytesToHex } from '../crypto/utils'
+import crypto from '../crypto/crypto'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
@@ -118,6 +123,7 @@ export default class Conversations {
     return this.v2Mutex.runExclusive(async () => {
       // Get all conversations already in the KeyStore
       const existing = await this.getV2ConversationsFromKeystore()
+
       const latestConversation = existing.reduce(
         (memo: ConversationV2 | undefined, curr: ConversationV2) => {
           if (!memo || +curr.createdAt > +memo.createdAt) {
@@ -129,9 +135,29 @@ export default class Conversations {
       )
 
       // Load all conversations started after the newest conversation found
-      const newConversations = await this.updateV2Conversations(
+      let newConversations = await this.updateV2Conversations(
         latestConversation?.createdAt
       )
+
+      if (this.client.isGroupChatEnabled) {
+        const groupConversations =
+          await this.getGroupConversationsFromKeystore()
+        const latestGroupConversation = groupConversations.reduce(
+          (memo: ConversationV2 | undefined, curr: ConversationV2) => {
+            if (!memo || +curr.createdAt > +memo.createdAt) {
+              return curr
+            }
+            return memo
+          },
+          undefined
+        )
+
+        newConversations = newConversations.concat(
+          await this.updateGroupConversations(
+            latestGroupConversation?.createdAt
+          )
+        )
+      }
 
       // Create a Set of all the existing topics to ensure no duplicates are added
       const existingTopics = new Set(existing.map((c) => c.topic))
@@ -167,6 +193,24 @@ export default class Conversations {
     return this.decodeInvites(envelopes)
   }
 
+  private async getGroupConversationsFromKeystore(): Promise<ConversationV2[]> {
+    return (await this.client.keystore.getGroupConversations()).map(
+      this.conversationReferenceToV2.bind(this)
+    )
+  }
+
+  // Called in listV2Conversations and in newConversation
+  async updateGroupConversations(startTime?: Date): Promise<ConversationV2[]> {
+    const envelopes = await this.client.listGroupInvitations({
+      startTime: startTime
+        ? new Date(+startTime - CLOCK_SKEW_OFFSET_MS)
+        : undefined,
+      direction: SortDirection.SORT_DIRECTION_ASCENDING,
+    })
+
+    return this.decodeInvites(envelopes)
+  }
+
   private async decodeInvites(
     envelopes: messageApi.Envelope[],
     shouldThrow = false
@@ -182,8 +226,7 @@ export default class Conversations {
     const out: ConversationV2[] = []
     for (const response of responses) {
       try {
-        const convo = this.saveInviteResponseToConversation(response)
-        out.push(convo)
+        out.push(this.saveInviteResponseToConversation(response))
       } catch (e) {
         console.warn('Error saving invite response to conversation: ', e)
         if (shouldThrow) {
@@ -427,6 +470,98 @@ export default class Conversations {
     }
 
     return seenPeers
+  }
+
+  async newGroupConversation(
+    initialMembers: string[]
+  ): Promise<GroupConversation> {
+    if (!this.client.isGroupChatEnabled) {
+      throw new Error('Group chat is not enabled for client')
+    }
+
+    initialMembers = [...new Set(initialMembers)].filter(
+      (address) => address !== this.client.address
+    )
+
+    if (initialMembers.length === 0) {
+      throw new Error('No initial members provided')
+    }
+
+    const groupID = bytesToHex(crypto.getRandomValues(new Uint8Array(32)))
+    const context = {
+      conversationId: `xmtp.org/groups/${groupID}`,
+      metadata: {
+        initialMembers: [
+          ...new Set(initialMembers.concat(this.client.address)),
+        ].join(','),
+      },
+    }
+
+    const timestamp = new Date()
+    const members = await Promise.all(
+      initialMembers.map(async (member) => {
+        let contact = await this.client.getUserContact(member)
+        if (!contact) {
+          throw new Error(`Recipient ${member} is not on the XMTP network`)
+        }
+
+        // Coerce the contact into a V2 bundle
+        if (contact instanceof PublicKeyBundle) {
+          contact = SignedPublicKeyBundle.fromLegacyBundle(contact)
+        }
+
+        return toSignedPublicKeyBundle(contact)
+      })
+    )
+
+    const inviteResponses = await this.client.keystore.createInvites({
+      recipients: members,
+      context,
+      createdNs: dateToNs(timestamp),
+    })
+
+    const envelopes = inviteResponses.map((response) => {
+      if (!response.conversation) {
+        throw new Error(
+          'no conversation for response: ' + JSON.stringify(response)
+        )
+      }
+
+      return {
+        contentTopic: buildUserGroupInviteTopic(
+          response.conversation?.peerAddress
+        ),
+        message: response.payload,
+        timestamp,
+      }
+    })
+
+    // Copy one of the invites to use for the creator. We do this to avoid having
+    // to self Diffie-Hellman which is problematic, security wise.
+    //
+    // This approach works because sealed invitation decrypting is sender/recipient
+    // agnostic.
+    //
+    // See https://github.com/xmtp/xmtp-js/blob/829257c10947618c34a66aa3857ca3557d4b52b6/src/Invitation.ts#L148-L160
+    const creatorEnvelope = { ...envelopes[0] }
+    creatorEnvelope.contentTopic = buildUserGroupInviteTopic(
+      this.client.address
+    )
+
+    const envelopesToPublish = [creatorEnvelope, ...envelopes]
+
+    await this.client.publishEnvelopes(envelopesToPublish)
+
+    const conversation = inviteResponses[0].conversation
+
+    if (!conversation) {
+      throw new Error('no conversation for response')
+    }
+
+    return GroupConversation.from(
+      this.conversationReferenceToV2(conversation),
+      initialMembers
+    )
   }
 
   /**
