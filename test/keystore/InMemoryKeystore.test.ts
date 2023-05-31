@@ -510,6 +510,8 @@ describe('InMemoryKeystore', () => {
       const firstResponse: CreateInviteResponse = responses[0]
       const topicName = firstResponse.conversation!.topic
 
+      expect(topicName).toMatch(/^[\x00-\x7F]+$/)
+
       expect(
         responses.filter((response, index, array) => {
           return response.conversation!.topic === topicName
