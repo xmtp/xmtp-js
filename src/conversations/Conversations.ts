@@ -122,13 +122,7 @@ export default class Conversations {
   private async listV2Conversations(): Promise<Conversation[]> {
     return this.v2Mutex.runExclusive(async () => {
       // Get all conversations already in the KeyStore
-      let existing = await this.getV2ConversationsFromKeystore()
-
-      if (this.client.isGroupChatEnabled) {
-        existing = existing.concat(
-          await this.getGroupConversationsFromKeystore()
-        )
-      }
+      const existing = await this.getV2ConversationsFromKeystore()
 
       const latestConversation = existing.reduce(
         (memo: ConversationV2 | undefined, curr: ConversationV2) => {
@@ -146,8 +140,22 @@ export default class Conversations {
       )
 
       if (this.client.isGroupChatEnabled) {
+        const groupConversations =
+          await this.getGroupConversationsFromKeystore()
+        const latestGroupConversation = groupConversations.reduce(
+          (memo: ConversationV2 | undefined, curr: ConversationV2) => {
+            if (!memo || +curr.createdAt > +memo.createdAt) {
+              return curr
+            }
+            return memo
+          },
+          undefined
+        )
+
         newConversations = newConversations.concat(
-          await this.updateGroupConversations(latestConversation?.createdAt)
+          await this.updateGroupConversations(
+            latestGroupConversation?.createdAt
+          )
         )
       }
 
@@ -467,6 +475,10 @@ export default class Conversations {
   async newGroupConversation(
     initialMembers: string[]
   ): Promise<GroupConversation> {
+    if (!this.client.isGroupChatEnabled) {
+      throw new Error('Group chat is not enabled for client')
+    }
+
     initialMembers = [...new Set(initialMembers)].filter(
       (address) => address !== this.client.address
     )

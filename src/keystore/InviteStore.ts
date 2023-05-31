@@ -60,6 +60,13 @@ export default class InviteStore {
     })
   }
 
+  get groupTopics(): TopicData[] {
+    return this.topics.filter(
+      (topic) =>
+        topic.invitation.context?.metadata?.initialMembers !== undefined
+    )
+  }
+
   get topics(): TopicData[] {
     return [...this.topicMap.values()]
   }

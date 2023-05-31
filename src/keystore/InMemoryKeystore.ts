@@ -489,7 +489,7 @@ export default class InMemoryKeystore implements Keystore {
   async getGroupConversations(): Promise<
     conversationReference.ConversationReference[]
   > {
-    const convos = this.inviteStore.topics.map((invite) =>
+    const convos = this.inviteStore.groupTopics.map((invite) =>
       topicDataToConversationReference(invite)
     )
 

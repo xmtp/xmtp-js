@@ -75,6 +75,63 @@ describe('conversations', () => {
       expect(aliceConversations3).toHaveLength(2)
     })
 
+    it('loads group chats when group chat is enabled after first load', async () => {
+      const aliceConversations1 = await alice.conversations.list()
+      expect(aliceConversations1).toHaveLength(0)
+      alice.enableGroupChat()
+
+      const groupConvo = await alice.conversations.newGroupConversation([
+        bob.address,
+      ])
+      await sleep(100)
+      const bobConversations = await bob.conversations.list()
+
+      // Group Chat isn't enabled for this client so we're not checking the group chat
+      // topic. As a result this should be empty.
+      expect(bobConversations).toHaveLength(0)
+
+      // Make sure bob doesn't have group chat enabled
+      expect(bob.isGroupChatEnabled).toBeFalsy()
+      // Make sure creating a group chat from a client without it enabled fails
+      expect(
+        bob.conversations.newGroupConversation([
+          '0x0000000000000000000000000000000000000000',
+        ])
+      ).rejects.toThrow('Group chat is not enabled for client')
+
+      // Create a 1:1 convo for bob
+      const conversation = await bob.conversations.newConversation(
+        alice.address,
+        {
+          conversationId: 'foo',
+          metadata: {},
+        }
+      )
+      await sleep(100)
+      const bobConversations2 = await bob.conversations.list()
+      expect(bobConversations2).toHaveLength(1)
+      expect(bobConversations2[0].topic).toBe(conversation.topic)
+
+      // Enable group chat for bob
+      bob.enableGroupChat()
+
+      // Make sure group chat loads for bob
+      const bobConversations3 = await bob.conversations.list()
+      expect(bobConversations3).toHaveLength(2)
+      expect(bobConversations3[0].topic).toBe(groupConvo.topic)
+
+      // await alice.conversations.newConversation(bob.address, {
+      //   conversationId: 'bar',
+      //   metadata: {},
+      // })
+      // await sleep(100)
+      // const fromKeystore = await alice.keystore.getV2Conversations()
+      // expect(fromKeystore[1].context?.conversationId).toBe('bar')
+
+      // const aliceConversations3 = await alice.conversations.list()
+      // expect(aliceConversations3).toHaveLength(2)
+    })
+
     it('caches results and updates the latestSeen date', async () => {
       const cache = new ConversationCache()
       const convoDate = new Date()
@@ -373,6 +430,8 @@ describe('conversations', () => {
 
   describe('newGroupConversation', () => {
     it('sends invites to recipients', async () => {
+      bob.enableGroupChat()
+
       await bob.conversations.newGroupConversation([
         alice.address,
         charlie.address,
