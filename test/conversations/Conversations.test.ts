@@ -119,17 +119,6 @@ describe('conversations', () => {
       const bobConversations3 = await bob.conversations.list()
       expect(bobConversations3).toHaveLength(2)
       expect(bobConversations3[0].topic).toBe(groupConvo.topic)
-
-      // await alice.conversations.newConversation(bob.address, {
-      //   conversationId: 'bar',
-      //   metadata: {},
-      // })
-      // await sleep(100)
-      // const fromKeystore = await alice.keystore.getV2Conversations()
-      // expect(fromKeystore[1].context?.conversationId).toBe('bar')
-
-      // const aliceConversations3 = await alice.conversations.list()
-      // expect(aliceConversations3).toHaveLength(2)
     })
 
     it('caches results and updates the latestSeen date', async () => {
