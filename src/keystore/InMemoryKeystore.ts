@@ -29,6 +29,7 @@ import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
+import { bytesToHex } from '../crypto/utils'
 const { ErrorCode } = keystore
 
 // Constant, 32 byte salt
@@ -289,9 +290,9 @@ export default class InMemoryKeystore implements Keystore {
 
       const msgBytes = new TextEncoder().encode(msgString)
 
-      const topic = (
+      const topic = bytesToHex(
         await hmacSha256Sign(Buffer.from(secret), Buffer.from(msgBytes))
-      ).toString()
+      )
 
       const infoString = [
         '0', // sequence number
