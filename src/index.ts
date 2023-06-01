@@ -84,8 +84,10 @@ export { GroupChat } from './conversations/GroupChat'
 export {
   GroupChatMemberAdded,
   GroupChatMemberAddedCodec,
+  ContentTypeGroupChatMemberAdded,
 } from './codecs/GroupChatMemberAdded'
 export {
   GroupChatTitleChanged,
   GroupChatTitleChangedCodec,
+  ContentTypeGroupChatTitleChanged,
 } from './codecs/GroupChatTitleChanged'
