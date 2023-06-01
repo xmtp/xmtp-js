@@ -287,6 +287,38 @@ describe('conversations', () => {
     await stream.return(undefined)
   })
 
+  it('streams all conversation messages from group conversations', async () => {
+    alice.enableGroupChat()
+    charlie.enableGroupChat()
+
+    const aliceCharlie = await alice.conversations.newGroupConversation([
+      charlie.address,
+    ])
+    const bobAlice = await bob.conversations.newConversation(alice.address)
+
+    const stream = await alice.conversations.streamAllMessages()
+    await aliceCharlie.send('gm alice -charlie')
+
+    let numMessages = 0
+    for await (const message of stream) {
+      numMessages++
+      if (numMessages == 1) {
+        expect(message.content).toBe('gm alice -charlie')
+        await bobAlice.send('gm alice -bob')
+      }
+      if (numMessages == 2) {
+        expect(message.content).toBe('gm alice -bob')
+        await aliceCharlie.send('gm charlie -alice')
+      }
+      if (numMessages == 3) {
+        expect(message.content).toBe('gm charlie -alice')
+        break
+      }
+    }
+    expect(numMessages).toBe(3)
+    await stream.return(undefined)
+  })
+
   it('dedupes conversations when multiple messages are in the introduction topic', async () => {
     const aliceConversation = await alice.conversations.newConversation(
       bob.address

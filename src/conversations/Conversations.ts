@@ -331,7 +331,14 @@ export default class Conversations {
   async streamAllMessages(): Promise<AsyncGenerator<DecodedMessage>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
+    const groupInviteTopic = buildUserGroupInviteTopic(this.client.address)
+
     const topics = new Set<string>([introTopic, inviteTopic])
+
+    if (this.client.isGroupChatEnabled) {
+      topics.add(groupInviteTopic)
+    }
+
     const convoMap = new Map<string, Conversation>()
 
     for (const conversation of await this.list()) {
