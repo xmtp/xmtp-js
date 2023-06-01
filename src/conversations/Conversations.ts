@@ -143,7 +143,7 @@ export default class Conversations {
         const groupConversations =
           await this.getGroupConversationsFromKeystore()
         const latestGroupConversation = groupConversations.reduce(
-          (memo: ConversationV2 | undefined, curr: ConversationV2) => {
+          (memo: GroupConversation | undefined, curr: GroupConversation) => {
             if (!memo || +curr.createdAt > +memo.createdAt) {
               return curr
             }
@@ -193,14 +193,18 @@ export default class Conversations {
     return this.decodeInvites(envelopes)
   }
 
-  private async getGroupConversationsFromKeystore(): Promise<ConversationV2[]> {
-    return (await this.client.keystore.getGroupConversations()).map(
-      this.conversationReferenceToV2.bind(this)
-    )
+  private async getGroupConversationsFromKeystore(): Promise<
+    GroupConversation[]
+  > {
+    return (await this.client.keystore.getGroupConversations()).map((ref) => {
+      return GroupConversation.from(this.conversationReferenceToV2(ref))
+    })
   }
 
   // Called in listV2Conversations and in newConversation
-  async updateGroupConversations(startTime?: Date): Promise<ConversationV2[]> {
+  async updateGroupConversations(
+    startTime?: Date
+  ): Promise<GroupConversation[]> {
     const envelopes = await this.client.listGroupInvitations({
       startTime: startTime
         ? new Date(+startTime - CLOCK_SKEW_OFFSET_MS)
@@ -208,7 +212,9 @@ export default class Conversations {
       direction: SortDirection.SORT_DIRECTION_ASCENDING,
     })
 
-    return this.decodeInvites(envelopes)
+    return (await this.decodeInvites(envelopes)).map((conversation) =>
+      GroupConversation.from(conversation)
+    )
   }
 
   private async decodeInvites(
@@ -558,10 +564,7 @@ export default class Conversations {
       throw new Error('no conversation for response')
     }
 
-    return GroupConversation.from(
-      this.conversationReferenceToV2(conversation),
-      initialMembers
-    )
+    return GroupConversation.from(this.conversationReferenceToV2(conversation))
   }
 
   /**

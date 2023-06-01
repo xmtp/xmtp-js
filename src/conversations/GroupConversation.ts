@@ -11,6 +11,7 @@ export class GroupConversation extends ConversationV2 implements Conversation {
   topic: string
   createdAt: Date
   memberAddresses: string[] = []
+  isGroup = true
 
   constructor(
     client: Client,
@@ -31,10 +32,19 @@ export class GroupConversation extends ConversationV2 implements Conversation {
 
   static from(
     conversation: Conversation,
-    memberAddresses: string[]
+    members?: string[]
   ): GroupConversation {
     if (!(conversation instanceof ConversationV2)) {
       throw new Error('Conversation is not a V2 conversation')
+    }
+
+    const memberAddresses =
+      members ||
+      conversation.context?.metadata?.initialMembers?.split(',') ||
+      []
+
+    if (memberAddresses.length === 0) {
+      throw new Error('Conversation has no member addresses')
     }
 
     return new GroupConversation(

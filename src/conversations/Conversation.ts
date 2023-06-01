@@ -59,6 +59,12 @@ export interface Conversation {
    * Timestamp the conversation was created at
    */
   createdAt: Date
+
+  /**
+   * Is this conversation a group chat
+   */
+  isGroup: boolean
+
   /**
    * Optional field containing the `conversationId` and `metadata` for V2 conversations.
    * Will always be undefined on V1 conversations
@@ -148,6 +154,7 @@ export class ConversationV1 implements Conversation {
   peerAddress: string
   createdAt: Date
   context = undefined
+  isGroup = false
   private client: Client
 
   constructor(client: Client, address: string, createdAt: Date) {
@@ -423,6 +430,7 @@ export class ConversationV2 implements Conversation {
   peerAddress: string
   createdAt: Date
   context?: InvitationContext
+  isGroup = false
 
   constructor(
     client: Client,
