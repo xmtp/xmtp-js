@@ -185,6 +185,33 @@ describe('conversations', () => {
     await stream.return()
   })
 
+  it('streams group conversations', async () => {
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+
+    const stream = await alice.conversations.stream()
+
+    // make sure it works with 1:1 convo
+    await alice.conversations.newConversation(bob.address, {
+      conversationId: 'foo',
+      metadata: {},
+    })
+
+    const conversation = await alice.conversations.newGroupConversation([
+      bob.address,
+    ])
+    await conversation.send('hi bob')
+
+    let numConversations = 0
+    for await (const conversation of stream) {
+      numConversations++
+      expect(conversation.peerAddress).toBe(bob.address)
+      if (numConversations == 2) break
+    }
+    expect(numConversations).toBe(2)
+    await stream.return()
+  })
+
   it('streams all conversation messages from empty state', async () => {
     const aliceCharlie = await alice.conversations.newConversation(
       charlie.address
