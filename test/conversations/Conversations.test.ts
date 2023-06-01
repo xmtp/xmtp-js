@@ -119,6 +119,7 @@ describe('conversations', () => {
       const bobConversations3 = await bob.conversations.list()
       expect(bobConversations3).toHaveLength(2)
       expect(bobConversations3[0].topic).toBe(groupConvo.topic)
+      expect(bobConversations3[0].isGroup).toBe(true)
     })
 
     it('caches results and updates the latestSeen date', async () => {
