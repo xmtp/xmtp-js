@@ -438,6 +438,120 @@ const clientWithNoCache = await Client.create(wallet, {
 })
 ```
 
+## Group Chat (beta beta beta)
+
+### How it works
+
+First, you must enable group chat for your Client:
+
+```ts
+const creatorClient = await Client.create(yourSigner)
+creatorClient.enableGroupChat()
+```
+
+Doing this does a couple things:
+
+- The client will be able to create group conversations
+- Group conversations will be present in `client.conversations.list()`
+- The client will understand GroupChat codecs such as `GroupChatMemberAdded` and `GroupChatTitleChanged`
+
+### Creating a group
+
+The creator of the group creates a group using `newGroupConversation` with member addresses.
+
+```ts
+const memberAddresses = [
+  '0x194c31cAe1418D5256E8c58e0d08Aee1046C6Ed0',
+  '0x937C0d4a6294cdfa575de17382c7076b579DC176',
+]
+const groupConversation =
+  creatorClient.conversations.newGroupConversation(memberAddresses)
+```
+
+Assuming the other members of the group chat have clients with group chat enabled,
+they'll see the new conversation in their conversation list.
+
+### Sending a message
+
+Messages are sent to group conversations the same way they're sent to 1:1 conversations:
+
+```ts
+await groupConversation.send('hello everyone')
+```
+
+### Loading group conversations
+
+When you have enabled group chat for a Client, group conversations will be returned in
+`conversations.list()`.
+
+```ts
+const conversations = await creatorClient.conversations.list()
+const conversation = conversations[0]
+
+console.log(conversation.isGroup) // => true when it's a group conversation
+```
+
+### Changing the group title
+
+A member can send a message with the `GroupChatTitleChanged` content type to indicate a title change:
+
+```ts
+import { ContentTypeGroupChatTitleChanged } from '@xmtp/xmtp-js'
+import type { GroupChatTitleChanged } from '@xmtp/xmtp-js'
+
+const
+```
+
+### The `GroupChat` class
+
+To use richer features of group chat like group titles and member lists, you can use
+the `GroupChat` class.
+
+```ts
+const conversations = await creatorClient.conversations.list()
+const conversation = conversations[0] // assume this conversation is a group conversation
+
+const groupChat = new GroupChat(creatorClient, conversation)
+```
+
+The `GroupChat` class keeps track of group state such as group title and the member list.
+It can also be used to change those things.
+
+#### Group titles
+
+To change the title of a group, you can call `changeTitle` on a `GroupChat` instance:
+
+```ts
+await groupChat.changeTitle('The fun group')
+```
+
+This will send a message with content type `GroupChatTitleChanged` to the group that clients
+can display as well as use to update the title of the group chat on their end.
+
+#### Adding a member to the group
+
+To add a member to the group, you can call `addMember` on a `GroupChat` instance:
+
+```ts
+await groupChat.addMember('0x194c31cAe1418D5256E8c58e0d08Aee1046C6Ed0')
+```
+
+This will send an invitation to the recipient address as well as a `GroupChatMemberAdded` message
+that clients can display as well as use to update their member lists.
+
+#### Rebuilding group state
+
+You can call `rebuild()` on an instance of `GroupChat` to replay all
+messages in the conversation to rebuild group state such as titles and members.
+
+```ts
+const rebuiltAt = new Date()
+await groupChat.rebuild()
+
+// You can pass a date to rebuild to only rebuild state since that time
+await groupChat.rebuild({ since: rebuiltAt })
+```
+
 ## 🏗 Breaking revisions
 
 Because `xmtp-js` is in active development, you should expect breaking revisions that might require you to adopt the latest SDK release to enable your app to continue working as expected.
