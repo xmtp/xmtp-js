@@ -438,26 +438,33 @@ const clientWithNoCache = await Client.create(wallet, {
 })
 ```
 
-## Group Chat (beta beta beta)
+## Group chat
 
-### How it works
+![Status](https://img.shields.io/badge/Feature_Status-Pre--Preview-red)
 
-First, you must enable group chat for your Client:
+> **Important:**  
+> This feature is in **Pre-Preview** status and ready for you to start experimenting with. We do **not** recommend using Pre-Preview features in production apps. Software in this status will change as we iterate based on feedback.
+
+Use the information in this section to **experiment** with providing group chat in your app.
+
+### Enable group chat for your Client
+
+The first step is to enable group chat for your Client:
 
 ```ts
 const creatorClient = await Client.create(yourSigner)
 creatorClient.enableGroupChat()
 ```
 
-Doing this does a couple things:
+This enables the following capabilities required to provide group chat:
 
-- The client will be able to create group conversations
-- Group conversations will be present in `client.conversations.list()`
+- The client will be able to create group chats
+- Group chats will be present in `client.conversations.list()`
 - The client will understand GroupChat codecs such as `GroupChatMemberAdded` and `GroupChatTitleChanged`
 
-### Creating a group
+### Create a group chat
 
-The creator of the group creates a group using `newGroupConversation` with member addresses.
+Enable a user to create a group chat using `newGroupConversation` and adding member addresses to it:
 
 ```ts
 const memberAddresses = [
@@ -468,21 +475,19 @@ const groupConversation =
   creatorClient.conversations.newGroupConversation(memberAddresses)
 ```
 
-Assuming the other members of the group chat have clients with group chat enabled,
-they'll see the new conversation in their conversation list.
+Assuming the other members of the group chat have clients with group chat enabled, they'll see the new group chat in their conversation list.
 
-### Sending a message
+### Send a message to a group chat
 
-Messages are sent to group conversations the same way they're sent to 1:1 conversations:
+Enable a user to send a message to a group chat the same way you send messages to a 1:1 conversation:
 
 ```ts
 await groupConversation.send('hello everyone')
 ```
 
-### Loading group conversations
+### Load group chats
 
-When you have enabled group chat for a Client, group conversations will be returned in
-`conversations.list()`.
+When you enabled group chat for your Client, you enabled group chats to be returned in `conversations.list()`:
 
 ```ts
 const conversations = await creatorClient.conversations.list()
@@ -491,9 +496,9 @@ const conversation = conversations[0]
 console.log(conversation.isGroup) // => true when it's a group conversation
 ```
 
-### Changing the group title
+### Change the group chat title
 
-A member can send a message with the `GroupChatTitleChanged` content type to indicate a title change:
+Enable a member of a group chat to change the group chat title by sending a message with the `GroupChatTitleChanged` content type:
 
 ```ts
 import { ContentTypeGroupChatTitleChanged } from '@xmtp/xmtp-js'
@@ -502,10 +507,9 @@ import type { GroupChatTitleChanged } from '@xmtp/xmtp-js'
 const
 ```
 
-### The `GroupChat` class
+### Manage group state with the `GroupChat` class
 
-To use richer features of group chat like group titles and member lists, you can use
-the `GroupChat` class.
+Use the `GroupChat` class to keep track of group state, such as the group title and member list:
 
 ```ts
 const conversations = await creatorClient.conversations.list()
@@ -514,35 +518,31 @@ const conversation = conversations[0] // assume this conversation is a group con
 const groupChat = new GroupChat(creatorClient, conversation)
 ```
 
-The `GroupChat` class keeps track of group state such as group title and the member list.
-It can also be used to change those things.
+You can also use the `GroupChat` class to change the group chat title and member list.
 
-#### Group titles
+#### Change a group chat title
 
-To change the title of a group, you can call `changeTitle` on a `GroupChat` instance:
+To change a group chat title, call `changeTitle` on a `GroupChat` instance:
 
 ```ts
 await groupChat.changeTitle('The fun group')
 ```
 
-This will send a message with content type `GroupChatTitleChanged` to the group that clients
-can display as well as use to update the title of the group chat on their end.
+This sends a message with the `GroupChatTitleChanged` content type to the group chat that clients can display. Clients can also use the message to update the group chat title on their end.
 
-#### Adding a member to the group
+#### Add a group chat member
 
-To add a member to the group, you can call `addMember` on a `GroupChat` instance:
+To add a group chat member, call `addMember` on a `GroupChat` instance:
 
 ```ts
 await groupChat.addMember('0x194c31cAe1418D5256E8c58e0d08Aee1046C6Ed0')
 ```
 
-This will send an invitation to the recipient address as well as a `GroupChatMemberAdded` message
-that clients can display as well as use to update their member lists.
+This sends an invitation to the recipient address. It also send a `GroupChatMemberAdded` message that clients can display and use to update their gorup chat member lists.
 
-#### Rebuilding group state
+#### Rebuild the group state
 
-You can call `rebuild()` on an instance of `GroupChat` to replay all
-messages in the conversation to rebuild group state such as titles and members.
+To rebuild the group state by replaying all messages in a group chat, such as group titles and members, call `rebuild()` on an instance of `GroupChat`:
 
 ```ts
 const rebuiltAt = new Date()
