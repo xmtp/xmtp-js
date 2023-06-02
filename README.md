@@ -447,6 +447,11 @@ const clientWithNoCache = await Client.create(wallet, {
 
 Use the information in this section to **experiment** with providing group chat in your app.
 
+This section refers to both `GroupConversation` and `GroupChat`:
+
+- `GroupConversation` is similar to `ConversationV1` or `ConversationV2` provided by the SDK. These conversations are just a way to send and receive messages.
+- `GroupChat` is a wrapper around `GroupConversation` that knows about things like group chat titles, keeping the group chat member list in sync, and basically handling any richer features beyond just sending and receiving messages.
+
 ### Enable group chat for your Client
 
 The first step is to enable group chat for your Client:
@@ -456,11 +461,11 @@ const creatorClient = await Client.create(yourSigner)
 creatorClient.enableGroupChat()
 ```
 
-This enables the following capabilities required to provide group chat:
+This enables the following capabilities required for group chat:
 
 - The client will be able to create group chats
 - Group chats will be present in `client.conversations.list()`
-- The client will understand GroupChat codecs such as `GroupChatMemberAdded` and `GroupChatTitleChanged`
+- The client will understand group chat codecs such as `GroupChatMemberAdded` and `GroupChatTitleChanged`
 
 ### Create a group chat
 
@@ -475,7 +480,7 @@ const groupConversation =
   creatorClient.conversations.newGroupConversation(memberAddresses)
 ```
 
-Assuming the other members of the group chat have clients with group chat enabled, they'll see the new group chat in their conversation list.
+Assuming the other members of the group chat have clients with group chat enabled, they'll see the group chat in their conversation list.
 
 ### Send a message to a group chat
 
@@ -496,7 +501,7 @@ const conversation = conversations[0]
 console.log(conversation.isGroup) // => true when it's a group conversation
 ```
 
-### Change the group chat title
+### Enable a member to change the group chat title
 
 Enable a member of a group chat to change the group chat title by sending a message with the `GroupChatTitleChanged` content type:
 
@@ -509,7 +514,7 @@ const
 
 ### Manage group state with the `GroupChat` class
 
-Use the `GroupChat` class to keep track of group state, such as the group title and member list:
+Use the `GroupChat` class to keep track of group state, such as the group chat title and member list:
 
 ```ts
 const conversations = await creatorClient.conversations.list()
@@ -538,11 +543,11 @@ To add a group chat member, call `addMember` on a `GroupChat` instance:
 await groupChat.addMember('0x194c31cAe1418D5256E8c58e0d08Aee1046C6Ed0')
 ```
 
-This sends an invitation to the recipient address. It also send a `GroupChatMemberAdded` message that clients can display and use to update their gorup chat member lists.
+This sends an invitation to the recipient address. It also sends a `GroupChatMemberAdded` message to the group chat that clients can display and use to update their group chat member lists.
 
 #### Rebuild the group state
 
-To rebuild the group state by replaying all messages in a group chat, such as group titles and members, call `rebuild()` on an instance of `GroupChat`:
+To rebuild the group state by replaying all messages in a group chat, call `rebuild()` on an instance of `GroupChat`:
 
 ```ts
 const rebuiltAt = new Date()
@@ -551,6 +556,10 @@ await groupChat.rebuild()
 // You can pass a date to rebuild to only rebuild state since that time
 await groupChat.rebuild({ since: rebuiltAt })
 ```
+
+For example, you'd do this the first time you load the group chat to make sure everything is up to date.
+
+Group state update messages, like `GroupChatTitleChanged` and `GroupChatMemberAdded`, are sent alongside the actual messages sent by group members. This means that to load the current group state, you must traverse the entire group chat history at least once. This is one of the reasons why persisting messages locally is a performance best practice.
 
 ## 🏗 Breaking revisions
 
