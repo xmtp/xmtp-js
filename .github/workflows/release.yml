@@ -12,6 +12,7 @@ jobs:
       id-token: write
       contents: write
       statuses: write
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
