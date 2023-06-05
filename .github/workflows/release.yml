@@ -4,6 +4,10 @@ on:
     branches:
       - main
       - beta
+
+permissions:
+  contents: read
+
 jobs:
   release:
     name: Release
@@ -11,7 +15,7 @@ jobs:
     permissions:
       id-token: write
       contents: write
-      statuses: write
+      pull-requests: write
       issues: write
     steps:
       - name: Checkout
