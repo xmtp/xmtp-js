@@ -21,6 +21,7 @@ jobs:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
       - name: Use latest NPM
+        # Ensure we are using the latest version of NPM to get support for provenance
         run: npm i -g npm
       - name: Install dependencies
         run: npm ci
