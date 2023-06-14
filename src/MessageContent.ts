@@ -24,9 +24,9 @@ export class ContentTypeId {
 }
 
 // Represents proto.EncodedContent
-export interface EncodedContent {
+export type EncodedContent<Parameters = Record<string, string>> = {
   type: ContentTypeId
-  parameters: Record<string, string>
+  parameters: Parameters
   fallback?: string
   compression?: number
   content: Uint8Array
