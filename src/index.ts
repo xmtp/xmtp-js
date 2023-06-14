@@ -46,6 +46,12 @@ export {
   ContentTypeTypingNotification,
 } from './codecs/TypingNotification'
 export {
+  Reaction,
+  ReactionCodec,
+  ReactionParameters,
+  ContentTypeReaction,
+} from './codecs/Reaction'
+export {
   Composite,
   CompositeCodec,
   ContentTypeComposite,
