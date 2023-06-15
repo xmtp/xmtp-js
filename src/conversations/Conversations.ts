@@ -274,6 +274,7 @@ export default class Conversations {
     const seenPeers: Set<string> = new Set()
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
+    const groupInviteTopic = buildUserGroupInviteTopic(this.client.address)
 
     const newPeer = (peerAddress: string): boolean => {
       // Check if we have seen the peer already in this stream
@@ -301,12 +302,26 @@ export default class Conversations {
           return results[0]
         }
       }
+      if (env.contentTopic === groupInviteTopic) {
+        const results = await this.decodeInvites([env], true)
+        if (results.length) {
+          const result = results[0]
+          result.isGroup = true
+          return result
+        }
+      }
       throw new Error('unrecognized invite topic')
+    }
+
+    const topics = [introTopic, inviteTopic]
+
+    if (this.client.isGroupChatEnabled) {
+      topics.push(groupInviteTopic)
     }
 
     return Stream.create<Conversation>(
       this.client,
-      [inviteTopic, introTopic],
+      topics,
       decodeConversation.bind(this)
     )
   }
