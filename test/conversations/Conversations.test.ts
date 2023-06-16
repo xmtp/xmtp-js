@@ -185,6 +185,33 @@ describe('conversations', () => {
     await stream.return()
   })
 
+  it('streams group conversations', async () => {
+    alice.enableGroupChat()
+    bob.enableGroupChat()
+
+    const stream = await alice.conversations.stream()
+
+    // make sure it works with 1:1 convo
+    await alice.conversations.newConversation(bob.address, {
+      conversationId: 'foo',
+      metadata: {},
+    })
+
+    const conversation = await alice.conversations.newGroupConversation([
+      bob.address,
+    ])
+    await conversation.send('hi bob')
+
+    let numConversations = 0
+    for await (const conversation of stream) {
+      numConversations++
+      expect(conversation.peerAddress).toBe(bob.address)
+      if (numConversations == 2) break
+    }
+    expect(numConversations).toBe(2)
+    await stream.return()
+  })
+
   it('streams all conversation messages from empty state', async () => {
     const aliceCharlie = await alice.conversations.newConversation(
       charlie.address
@@ -257,6 +284,38 @@ describe('conversations', () => {
     await aliceBobV2Bar.send('bar')
     const message4 = await stream.next()
     expect(message4.value.content).toBe('bar')
+    await stream.return(undefined)
+  })
+
+  it('streams all conversation messages from group conversations', async () => {
+    alice.enableGroupChat()
+    charlie.enableGroupChat()
+
+    const aliceCharlie = await alice.conversations.newGroupConversation([
+      charlie.address,
+    ])
+    const bobAlice = await bob.conversations.newConversation(alice.address)
+
+    const stream = await alice.conversations.streamAllMessages()
+    await aliceCharlie.send('gm alice -charlie')
+
+    let numMessages = 0
+    for await (const message of stream) {
+      numMessages++
+      if (numMessages == 1) {
+        expect(message.content).toBe('gm alice -charlie')
+        await bobAlice.send('gm alice -bob')
+      }
+      if (numMessages == 2) {
+        expect(message.content).toBe('gm alice -bob')
+        await aliceCharlie.send('gm charlie -alice')
+      }
+      if (numMessages == 3) {
+        expect(message.content).toBe('gm charlie -alice')
+        break
+      }
+    }
+    expect(numMessages).toBe(3)
     await stream.return(undefined)
   })
 

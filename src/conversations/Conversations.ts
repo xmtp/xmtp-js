@@ -296,7 +296,10 @@ export default class Conversations {
         await msg.decrypt(this.client.keystore, this.client.publicKeyBundle)
         return new ConversationV1(this.client, peerAddress, msg.sent)
       }
-      if (env.contentTopic === inviteTopic) {
+      if (
+        env.contentTopic === inviteTopic ||
+        env.contentTopic === groupInviteTopic
+      ) {
         const results = await this.decodeInvites([env], true)
         if (results.length) {
           return results[0]
@@ -336,7 +339,14 @@ export default class Conversations {
   async streamAllMessages(): Promise<AsyncGenerator<DecodedMessage>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
+    const groupInviteTopic = buildUserGroupInviteTopic(this.client.address)
+
     const topics = new Set<string>([introTopic, inviteTopic])
+
+    if (this.client.isGroupChatEnabled) {
+      topics.add(groupInviteTopic)
+    }
+
     const convoMap = new Map<string, Conversation>()
 
     for (const conversation of await this.list()) {
