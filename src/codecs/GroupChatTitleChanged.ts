@@ -1,4 +1,4 @@
-import { ContentCodec, ContentTypeId, EncodedContent } from '../index'
+import { ContentTypeId, ContentCodec, EncodedContent } from '../MessageContent'
 
 export const ContentTypeGroupChatTitleChanged = new ContentTypeId({
   typeId: 'groupChatTitleChanged',
