@@ -305,6 +305,14 @@ export default class Conversations {
           return results[0]
         }
       }
+      if (env.contentTopic === groupInviteTopic) {
+        const results = await this.decodeInvites([env], true)
+        if (results.length) {
+          const result = results[0]
+          result.isGroup = true
+          return result
+        }
+      }
       throw new Error('unrecognized invite topic')
     }
 
