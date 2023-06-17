@@ -1,25 +1,47 @@
 name: Release
+
 on:
   push:
     branches:
       - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   release:
+    # permissions:
+    #   contents: write #  to create release (changesets/action)
+    #   issues: write # to post issue comments (changesets/action)
+    #   pull-requests: write #  to create pull request (changesets/action)
     name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
+          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+          cache: "yarn"
+
+      - name: Install Yarn v3
+        run: |
+          corepack enable
+          corepack prepare yarn@3.4.1 --activate
+
       - name: Install dependencies
-        run: npm ci
-        working-directory: ./remote-attachment
-      - name: Release
-        working-directory: ./remote-attachment
+        run: yarn
+
+      - name: Publish
+        uses: changesets/action@v1
+        with:
+          title: "release: version packages"
+          commit: "release: version packages"
+          publish: yarn publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
