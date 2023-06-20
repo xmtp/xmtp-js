@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+corepack enable
+corepack prepare yarn@3.4.1 --activate

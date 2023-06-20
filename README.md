@@ -13,7 +13,7 @@ To learn more about the contents of this repository, see this README and the REA
 ## Requirements
 
 - Node 18+
-- Yarn v3+ is required only when working with this repo. See [Yarn Installation](https://yarnpkg.com/getting-started/install).
+- Yarn v3+ is required only when working with this repo. See [Yarn Installation](https://yarnpkg.com/getting-started/install), or run the `setup-yarn` script in the `/dev` directory.
 
 ## Running tests
 
