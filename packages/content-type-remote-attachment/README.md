@@ -164,7 +164,7 @@ img.src = objectURL;
 img.title = attachment.filename;
 ```
 
-To learn more, see [Some new content types](https://xmtp.org/blog/attachments-and-remote-attachments).
+To learn more, see [Introducing remote media attachments](https://xmtp.org/blog/attachments-and-remote-attachments).
 
 ## Developing
 
