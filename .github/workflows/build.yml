@@ -1,0 +1,73 @@
+name: Build
+
+on: [pull_request]
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+          cache: "yarn"
+      - name: Install Yarn v3
+        run: |
+          corepack enable
+          corepack prepare yarn@3.4.1 --activate
+      - name: Install dependencies
+        run: yarn
+      - name: Check code format
+        run: yarn format:check
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+          cache: "yarn"
+      - name: Install Yarn v3
+        run: |
+          corepack enable
+          corepack prepare yarn@3.4.1 --activate
+      - name: Install dependencies
+        run: yarn
+      - name: Lint
+        run: yarn lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+          cache: "yarn"
+      - name: Install Yarn v3
+        run: |
+          corepack enable
+          corepack prepare yarn@3.4.1 --activate
+      - name: Start docker container
+        run: ./dev/up
+      - name: Install dependencies
+        run: yarn
+      - name: Run tests
+        run: yarn test
+      - name: Stop docker container
+        run: ./dev/down
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+          cache: "yarn"
+      - name: Install Yarn v3
+        run: |
+          corepack enable
+          corepack prepare yarn@3.4.1 --activate
+      - name: Install dependencies
+        run: yarn
+      - name: Check types
+        run: yarn typecheck
