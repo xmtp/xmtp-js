@@ -17,7 +17,7 @@ To learn more about the contents of this repository, see this README and the REA
 
 ## Running tests
 
-Before running unit tests, a required Docker container must be started. To do so, run `yarn test:setup`. Run `yarn test:teardown` to stop the Docker container.
+Before running unit tests, a required Docker container must be started. To do so, start Docker and run `yarn test:setup`. Run `yarn test:teardown` to stop the Docker container.
 
 ## Useful commands
 
