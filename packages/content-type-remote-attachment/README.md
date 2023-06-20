@@ -1,4 +1,4 @@
-# Remote Attachment Content Type
+# Remote attachment content type
 
 This package provides an XMTP content type to support sending file attachments that are stored off network.
 
