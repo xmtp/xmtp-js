@@ -22,6 +22,12 @@ Because XMTP messages can only be up to 1MB in size, we need to store the attach
 
 End-to-end encryption must apply not only to XMTP messages, but to message attachments as well. For this reason, we need to encrypt the attachment before we store it.
 
+### Install the package
+
+```bash
+npm i xmtp-content-type-remote-attachment
+```
+
 ### Create an attachment object
 
 ```tsx
@@ -30,6 +36,18 @@ const attachment: Attachment = {
   mimeType: "image/png",
   data: [the PNG data]
 }
+```
+
+### Create a preview attachment object
+
+Once you have the attachment object created, you can also create a preview for what to show in a message input before sending:
+
+```tsx
+URL.createObjectURL(
+              new Blob([Buffer.from(somePNGData)], {
+                type: attachment.mimeType,
+              }),
+            ),
 ```
 
 ### Encrypt the attachment

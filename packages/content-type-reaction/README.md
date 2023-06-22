@@ -2,17 +2,21 @@
 
 This package provides an XMTP content type to support reactions to messages.
 
-### What’s a reaction?
+## What’s a reaction?
 
-A reaction is a way to respond to messages.
+A reaction is a quick and often emoji-based way to respond to a message. Reactions are usually limited to a predefined set of emojis or symbols provided by the messaging app.
 
-Reactions are repesented as objects with the following keys:
+## Why reactions?
+
+Providing message reactions in your app enables users to easily express a general sentiment or emotion toward a message. It also provides a handy way to acknowledge a message or show a particular emotional reaction without engaging in a detailed response.
+
+## Create a reaction
+
+With XMTP, reactions are represented as objects with the following keys:
 
 - `reference`: The message ID for the message that is being reacted to
 - `action`: The action of the reaction (`added` or `removed`)
 - `content`: A string representation of a reaction (e.g. `smile`) to be interpreted by clients
-
-### Create a reaction
 
 ```tsx
 const reaction: Reaction = {
@@ -22,7 +26,7 @@ const reaction: Reaction = {
 };
 ```
 
-### Send a reaction
+## Send a reaction
 
 Now that you have a reaction, you can send it:
 
@@ -35,7 +39,7 @@ await conversation.messages.send(reaction, {
 
 Note that we’re using `contentFallback` to enable clients that don't support these content types to still display something. For cases where clients *do* support these types, they can use the content fallback as alt text for accessibility purposes.
 
-### Receive a reaction
+## Receive a reaction
 
 Now that you can send a reaction, you need a way to receive a reaction. For example:
 
@@ -52,9 +56,9 @@ if (!message.contentType.sameAs(ContentTypeReaction)) {
 const reaction: Reaction = message.content;
 ```
 
-### Display the reaction
+## Display the reaction
 
-Generally, reactions should be interpreted as emoji. So, `smile` would translate to :smile: in UI clients. That being said, how you ultimately choose to render a reaction is up to you.
+Generally, reactions should be interpreted as emoji. So, `smile` would translate to :smile: in UI clients. That being said, how you ultimately choose to render a reaction in your app is up to you.
 
 ## Developing
 
