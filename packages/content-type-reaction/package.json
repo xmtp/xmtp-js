@@ -1,7 +1,7 @@
 {
-  "name": "@xmtp/content-type-remote-attachment",
-  "version": "1.0.7",
-  "description": "An XMTP content type to support sending file attachments that are stored off network",
+  "name": "@xmtp/content-type-reaction",
+  "version": "1.0.0",
+  "description": "An XMTP content type to support reactions to messages",
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
   "repository": {
     "type": "git",
     "url": "git@github.com:xmtp/xmtp-js-content-types.git",
-    "directory": "packages/content-type-remote-attachment"
+    "directory": "packages/content-type-reaction"
   },
   "homepage": "https://github.com/xmtp/xmtp-js-content-types",
   "bugs": {
@@ -70,8 +70,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@noble/secp256k1": "^1.7.1",
-    "@xmtp/proto": "^3.25.0",
     "@xmtp/xmtp-js": "^9.1.7"
   },
   "devDependencies": {
