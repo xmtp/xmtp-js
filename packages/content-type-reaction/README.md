@@ -4,17 +4,13 @@ This package provides an XMTP content type to support reactions to messages.
 
 ### What’s a reaction?
 
-A reaction is ....
+A reaction is a way to respond to messages.
 
 Reactions are repesented as objects with the following keys:
 
 - `reference`: The message ID for the message that is being reacted to
 - `action`: The action of the reaction (`added` or `removed`)
 - `content`: A string representation of a reaction (e.g. `smile`) to be interpreted by clients
-
-### Why reactions?
-
-...
 
 ### Create a reaction
 
