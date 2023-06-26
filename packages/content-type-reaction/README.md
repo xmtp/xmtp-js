@@ -10,6 +10,19 @@ A reaction is a quick and often emoji-based way to respond to a message. Reactio
 
 Providing message reactions in your app enables users to easily express a general sentiment or emotion toward a message. It also provides a handy way to acknowledge a message or show a particular emotional reaction without engaging in a detailed response.
 
+## Install the package
+
+```bash
+# npm
+npm i @xmtp/content-type-reaction
+
+# yarn
+yarn add @xmtp/content-type-reaction
+
+# pnpm
+pnpm i @xmtp/content-type-reaction
+```
+
 ## Create a reaction
 
 With XMTP, reactions are represented as objects with the following keys:
