@@ -440,10 +440,10 @@ const clientWithNoCache = await Client.create(wallet, {
 
 ## Group chat
 
-![Status](https://img.shields.io/badge/Feature_Status-Pre--Preview-red)
+![Status](https://img.shields.io/badge/Feature_Status-Alpha-red)
 
 > **Important:**  
-> This feature is in **Pre-Preview** status and ready for you to start experimenting with. We do **not** recommend using Pre-Preview features in production apps. Software in this status will change as we iterate based on feedback.
+> This feature is in **alpha** status and ready for you to start experimenting with. We do **not** recommend using alpha features in production apps. Software in this status will change as we iterate based on feedback.
 
 Use the information in this section to **experiment** with providing group chat in your app.
 
