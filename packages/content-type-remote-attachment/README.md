@@ -1,28 +1,37 @@
 # Remote attachment content type
 
-This package provides an XMTP content type to support sending file attachments that are stored off network.
+The [remote-attachment](https://github.com/xmtp/xmtp-js-content-types/tree/main/remote-attachment) package provides an XMTP content type to support sending file attachments that are stored off-network. Use it to enable your app to send and receive message attachments.
 
-## Send a remote attachment
-
-Use the [remote-attachment](https://github.com/xmtp/xmtp-js-content-types/tree/main/remote-attachment) package to enable your app to send and receive message attachments.
-
-### What’s an attachment?
+## What’s an attachment?
 
 Attachments are files. More specifically, attachments are objects that have:
 
 - `filename` Most files have names, at least the most common file types.
-- `mimeType` What kind of file is it? You can often assume this from the file extension, but it's nice to have a specific field for it. [Here's a list of common mime types.](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types)
-- `data` What is this file's data? Most files have data. If the file doesn't have data then it's probably not the most interesting thing to send.
+- `mimeType` What kind of file is it? You can often assume this from the file extension, but it's nice to have a specific field for it. [Here's a list of common mime types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types).
+- `data` What is this file's data? Most files have data. If the file doesn't have data, then it's probably not the most interesting thing to send.
 
-### Why remote attachments?
+## Why remote attachments?
 
 Because XMTP messages can only be up to 1MB in size, we need to store the attachment somewhere other than the XMTP network. In other words, we need to store it in a remote location.
 
-### What about encryption?
+## What about encryption?
 
 End-to-end encryption must apply not only to XMTP messages, but to message attachments as well. For this reason, we need to encrypt the attachment before we store it.
 
-### Create an attachment object
+## Install the package
+
+```bash
+# npm
+npm i @xmtp/content-type-remote-attachment
+
+# yarn
+yarn add @xmtp/content-type-remote-attachment
+
+# pnpm
+pnpm i @xmtp/content-type-remote-attachment
+```
+
+## Create an attachment object
 
 ```tsx
 const attachment: Attachment = {
@@ -32,7 +41,19 @@ const attachment: Attachment = {
 }
 ```
 
-### Encrypt the attachment
+## Create a preview attachment object
+
+Once you have the attachment object created, you can also create a preview for what to show in a message input before sending:
+
+```tsx
+URL.createObjectURL(
+  new Blob([Buffer.from(somePNGData)], {
+    type: attachment.mimeType,
+  }),
+),
+```
+
+## Encrypt the attachment
 
 Use the `RemoteAttachmentCodec.encodeEncrypted` to encrypt the attachment:
 
@@ -50,7 +71,7 @@ const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
 );
 ```
 
-### Upload the encrypted attachment
+## Upload the encrypted attachment
 
 Upload the encrypted attachment anywhere where it will be accessible via an HTTPS GET request. For example, you can use web3.storage:
 
@@ -66,7 +87,7 @@ const url = `https://${cid}.ipfs.w3s.link/XMTPEncryptedContent`;
 
 _([Upload](https://github.com/xmtp-labs/xmtp-inbox-web/blob/5b45e05efbe0b0f49c17d66d7547be2c13a51eab/hooks/useSendMessage.ts#L15-L33) is a small class that implements Web3Storage's `Filelike` interface for uploading)_
 
-### Create a remote attachment
+## Create a remote attachment
 
 Now that you have a `url`, you can create a `RemoteAttachment`.
 
@@ -99,7 +120,7 @@ const remoteAttachment: RemoteAttachment = {
 };
 ```
 
-### Send a remote attachment
+## Send a remote attachment
 
 Now that you have a remote attachment, you can send it:
 
@@ -112,7 +133,7 @@ await conversation.messages.send(remoteAttachment, {
 
 Note that we’re using `contentFallback` to enable clients that don't support these content types to still display something. For cases where clients *do* support these types, they can use the content fallback as alt text for accessibility purposes.
 
-### Receive a remote attachment
+## Receive a remote attachment
 
 Now that you can send a remote attachment, you need a way to receive a remote attachment. For example:
 
@@ -129,7 +150,7 @@ if (!message.contentType.sameAs(ContentTypeRemoteAttachment)) {
 const remoteAttachment: RemoteAttachment = message.content;
 ```
 
-### Download, decrypt, and decode the attachment
+## Download, decrypt, and decode the attachment
 
 Now that you can receive a remote attachment, you need to download, decrypt, and decode it so your app can display it. For example:
 
@@ -148,7 +169,7 @@ attachment.mimeType; // => "image/png",
 attachment.data; // => [the PNG data]
 ```
 
-### Display the attachment
+## Display the attachment
 
 Display the attachment in your app as you please. For example, you can display it as an image:
 
