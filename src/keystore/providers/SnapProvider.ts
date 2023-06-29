@@ -16,6 +16,12 @@ import NetworkKeystoreProvider from './NetworkKeystoreProvider'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 
+/**
+ * The Snap keystore provider will:
+ * 1. Check if the user is capable of using Snaps
+ * 2. Check if the user has already setup the Snap with the appropriate keys
+ * 3. If not, will get keys from the network or create new keys and store them in the Snap
+ */
 export default class SnapKeystoreProvider implements KeystoreProvider {
   async newKeystore(
     opts: KeystoreProviderOptions,
@@ -54,6 +60,8 @@ async function getBundle(
   apiClient: ApiClient,
   wallet: Signer
 ): Promise<PrivateKeyBundleV1> {
+  // I really don't love using other providers inside a provider. Feels like too much indirection
+  // TODO: Refactor keystore providers to better support the weird Snap flow
   const networkProvider = new NetworkKeystoreProvider()
   try {
     const tmpKeystore = await networkProvider.newKeystore(
