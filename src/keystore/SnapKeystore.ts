@@ -8,21 +8,28 @@ import {
   signature,
 } from '@xmtp/proto'
 import { Reader, Writer } from 'protobufjs/minimal'
-const { b64Encode, b64Decode } = fetcher
-const ethereum = window.ethereum
+import { snapRPC, snapRequest } from './snapHelpers'
 
 type Codec<T> = {
   decode(input: Reader | Uint8Array, length?: number): T
   encode(message: T, writer?: Writer): Writer
 }
-type ApiDefs = {
-  [k: string]: {
-    req: Codec<any> | null
-    res: Codec<any>
-  }
+
+export type SnapRPC<Req, Res> = {
+  req: Codec<Req> | null
+  res: Codec<Res>
 }
 
-export const defaultSnapOrigin = `local:http://localhost:8080`
+type ApiDefs = {
+  [k: string]: SnapRPC<any, any>
+}
+
+async function getResponse<T extends keyof Keystore>(
+  method: T,
+  req: Uint8Array | null
+): Promise<typeof apiDefs[T]['res']> {
+  return snapRPC(method, apiDefs[method], req)
+}
 
 export const apiDefs: ApiDefs = {
   decryptV1: {
@@ -64,23 +71,24 @@ export const apiDefs: ApiDefs = {
 } as const
 
 export function SnapKeystore(): Keystore {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generatedMethods: any = {}
 
   for (const [method, apiDef] of Object.entries(apiDefs)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     generatedMethods[method] = async (req: any) => {
       if (!apiDef.req) {
-        return getResponse(method as keyof Keystore, null, apiDef.res)
+        return getResponse(method as keyof Keystore, null)
       }
 
-      const reqBytes = apiDef.req.encode(req).finish()
-      return getResponse(method as keyof Keystore, reqBytes, apiDef.res)
+      return getResponse(method as keyof Keystore, req)
     }
   }
 
   return {
     ...generatedMethods,
     async getV2Conversations() {
-      const rawResponse = await ethereumRequest('getV2Conversations', null)
+      const rawResponse = await snapRequest('getV2Conversations', null)
       if (Array.isArray(rawResponse)) {
         return rawResponse.map((r) =>
           conversationReference.ConversationReference.decode(
@@ -90,45 +98,11 @@ export function SnapKeystore(): Keystore {
       }
     },
     async getAccountAddress() {
-      const rawResponse = await ethereumRequest('getAccountAddress', null)
+      const rawResponse = await snapRequest('getAccountAddress', null)
       if (Array.isArray(rawResponse)) {
         throw new Error('Unexpected array response')
       }
       return rawResponse
     },
   }
-}
-
-async function ethereumRequest<T extends keyof Keystore>(
-  method: T,
-  req: Uint8Array | null
-): Promise<string | string[]> {
-  const response = await ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method,
-        params: { req: req ? b64Encode(req, 0, req.length) : null },
-      },
-    },
-  })
-
-  if (!response || typeof response !== 'object') {
-    throw new Error('No response value')
-  }
-
-  return (response as any).res as unknown as string | string[]
-}
-
-async function getResponse<T extends keyof Keystore>(
-  method: T,
-  req: Uint8Array | null,
-  resDecoder: typeof apiDefs[T]['res']
-): Promise<typeof apiDefs[T]['res']> {
-  const responseString = await ethereumRequest(method, req)
-  if (Array.isArray(responseString)) {
-    throw new Error('Unexpected array response')
-  }
-  return resDecoder.decode(b64Decode(responseString))
 }
