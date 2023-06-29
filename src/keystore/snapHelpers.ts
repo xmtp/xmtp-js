@@ -1,10 +1,14 @@
 import { fetcher, keystore as keystoreProto } from '@xmtp/proto'
 import type { SnapRPC } from './SnapKeystore'
 import { b64Decode } from '../utils/bytes'
+import { KeystoreError } from './errors'
+import { PrivateKeyBundleV1 } from '../crypto'
 const {
+  GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus,
+  InitKeystoreRequest,
+  InitKeystoreResponse,
   GetKeystoreStatusRequest,
   GetKeystoreStatusResponse,
-  GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus,
 } = keystoreProto
 
 const { b64Encode } = fetcher
@@ -129,4 +133,17 @@ export async function getWalletStatus(walletAddress: string) {
   }
 
   return response.status
+}
+
+const initKeystoreCodec = {
+  req: InitKeystoreRequest,
+  res: InitKeystoreResponse,
+}
+export async function initSnap(bundle: PrivateKeyBundleV1) {
+  const response = await snapRPC('initKeystore', initKeystoreCodec, {
+    v1: bundle,
+  })
+  if (response.error) {
+    throw new KeystoreError(response.error.code, response.error.message)
+  }
 }
