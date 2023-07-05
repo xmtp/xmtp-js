@@ -79,6 +79,7 @@ export {
   KeyGeneratorKeystoreProvider,
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
+  SnapProvider,
 } from './keystore/providers'
 export {
   EncryptedPersistence,
