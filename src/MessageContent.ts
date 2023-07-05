@@ -18,6 +18,18 @@ export class ContentTypeId {
     return `${this.authorityId}/${this.typeId}:${this.versionMajor}.${this.versionMinor}`
   }
 
+  static fromString(contentTypeString: string): ContentTypeId {
+    const [idString, versionString] = contentTypeString.split(':')
+    const [authorityId, typeId] = idString.split('/')
+    const [major, minor] = versionString.split('.')
+    return new ContentTypeId({
+      authorityId,
+      typeId,
+      versionMajor: Number(major),
+      versionMinor: Number(minor),
+    })
+  }
+
   sameAs(id: ContentTypeId): boolean {
     return this.authorityId === id.authorityId && this.typeId === id.typeId
   }
