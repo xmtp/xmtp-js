@@ -76,6 +76,10 @@
       {
         "name": "beta",
         "prerelease": true
+      },
+      {
+        "name": "snap",
+        "prerelease": true
       }
     ]
   },
