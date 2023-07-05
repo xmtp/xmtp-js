@@ -68,7 +68,12 @@ export {
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
 } from './utils'
-export { Keystore, InMemoryKeystore, TopicData } from './keystore'
+export {
+  Keystore,
+  InMemoryKeystore,
+  TopicData,
+  keystoreApiDefs,
+} from './keystore'
 export {
   KeystoreProvider,
   KeyGeneratorKeystoreProvider,

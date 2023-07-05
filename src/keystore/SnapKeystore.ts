@@ -1,15 +1,14 @@
 import { Keystore } from './interfaces'
-import {
-  fetcher,
-  conversationReference,
-  keystore,
-  authn,
-  publicKey,
-  signature,
-} from '@xmtp/proto'
+import { keystore, authn, publicKey, signature } from '@xmtp/proto'
 import { Reader, Writer } from 'protobufjs/minimal'
-import { SnapMeta, snapRPC, snapRequest } from './snapHelpers'
+import { SnapMeta, snapRPC } from './snapHelpers'
 import type { XmtpEnv } from '../Client'
+const {
+  CreateInviteFromTopicRequest,
+  CreateInvitesRequest,
+  CreateInvitesResponse,
+  GetV2ConversationsResponse,
+} = keystore
 
 type Codec<T> = {
   decode(input: Reader | Uint8Array, length?: number): T
@@ -69,6 +68,22 @@ export const apiDefs: ApiDefs = {
   getPublicKeyBundle: {
     req: null,
     res: publicKey.PublicKeyBundle,
+  },
+  getV2Conversations: {
+    req: null,
+    res: GetV2ConversationsResponse,
+  },
+  getGroupConversations: {
+    req: null,
+    res: GetV2ConversationsResponse,
+  },
+  createInvites: {
+    req: CreateInvitesRequest,
+    res: CreateInvitesResponse,
+  },
+  createInviteFromTopic: {
+    req: CreateInviteFromTopicRequest,
+    res: CreateInvitesResponse,
   },
 } as const
 

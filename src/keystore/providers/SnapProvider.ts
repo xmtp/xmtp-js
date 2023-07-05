@@ -9,14 +9,14 @@ import {
   initSnap,
   isFlask,
 } from '../snapHelpers'
-import { GetKeystoreStatusResponse_KeystoreStatus as KeystoreStatus } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
+import { keystore } from '@xmtp/proto'
 import { Signer } from '../../types/Signer'
 import ApiClient from '../../ApiClient'
 import NetworkKeystoreProvider from './NetworkKeystoreProvider'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 import type { XmtpEnv } from '../../Client'
-
+const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
 /**
  * The Snap keystore provider will:
  * 1. Check if the user is capable of using Snaps
