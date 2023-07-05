@@ -11,7 +11,7 @@ describe("ReplyContentType", () => {
     expect(ContentTypeReply.versionMinor).toBe(0);
   });
 
-  it("can send a reaction", async () => {
+  it("can send a reply", async () => {
     const aliceWallet = Wallet.createRandom();
     const aliceClient = await Client.create(aliceWallet, { env: "local" });
     aliceClient.registerCodec(new ReplyCodec());
@@ -28,12 +28,12 @@ describe("ReplyContentType", () => {
 
     const originalMessage = await conversation.send("test");
 
-    const reaction: Reply = {
+    const reply: Reply = {
       content: "LGTM",
       reference: originalMessage.id,
     };
 
-    await conversation.send(reaction, { contentType: ContentTypeReply });
+    await conversation.send(reply, { contentType: ContentTypeReply });
 
     const bobConversation = await bobClient.conversations.newConversation(
       aliceWallet.address,
@@ -42,8 +42,8 @@ describe("ReplyContentType", () => {
 
     expect(messages.length).toBe(2);
 
-    const reactionMessage = messages[1];
-    const messageContent = reactionMessage.content as Reply;
+    const replyMessage = messages[1];
+    const messageContent = replyMessage.content as Reply;
     expect(messageContent.content).toBe("LGTM");
     expect(messageContent.reference).toBe(originalMessage.id);
   });
