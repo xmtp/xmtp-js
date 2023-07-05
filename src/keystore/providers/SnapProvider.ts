@@ -26,22 +26,26 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
   async newKeystore(
     opts: KeystoreProviderOptions,
     apiClient: ApiClient,
-    wallet: Signer
+    wallet?: Signer
   ): Promise<Keystore> {
     if (!isFlask()) {
       throw new KeystoreProviderUnavailableError('Flask not detected')
     }
+    if (!wallet) {
+      throw new KeystoreProviderUnavailableError('No wallet provided')
+    }
+    const walletAddress = await wallet.getAddress()
     const hasSnap = await getSnap()
     if (!hasSnap) {
       await connectSnap()
     }
 
-    if (!(await checkSnapLoaded(await wallet.getAddress()))) {
+    if (!(await checkSnapLoaded(walletAddress))) {
       const bundle = await getBundle(opts, apiClient, wallet)
       await initSnap(bundle)
     }
 
-    return SnapKeystore()
+    return SnapKeystore(walletAddress)
   }
 }
 

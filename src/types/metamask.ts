@@ -9,4 +9,8 @@ declare global {
   interface Window {
     ethereum: MetaMaskInpageProvider
   }
+
+  interface globalThis {
+    ethereum: MetaMaskInpageProvider
+  }
 }

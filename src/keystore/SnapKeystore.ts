@@ -26,9 +26,10 @@ type ApiDefs = {
 
 async function getResponse<T extends keyof Keystore>(
   method: T,
-  req: Uint8Array | null
+  req: Uint8Array | null,
+  walletAddress: string
 ): Promise<typeof apiDefs[T]['res']> {
-  return snapRPC(method, apiDefs[method], req)
+  return snapRPC(method, apiDefs[method], req, walletAddress)
 }
 
 export const apiDefs: ApiDefs = {
@@ -70,7 +71,7 @@ export const apiDefs: ApiDefs = {
   },
 } as const
 
-export function SnapKeystore(): Keystore {
+export function SnapKeystore(walletAddress: string): Keystore {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generatedMethods: any = {}
 
@@ -78,31 +79,18 @@ export function SnapKeystore(): Keystore {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     generatedMethods[method] = async (req: any) => {
       if (!apiDef.req) {
-        return getResponse(method as keyof Keystore, null)
+        return getResponse(method as keyof Keystore, null, walletAddress)
       }
 
-      return getResponse(method as keyof Keystore, req)
+      return getResponse(method as keyof Keystore, req, walletAddress)
     }
   }
 
   return {
     ...generatedMethods,
-    async getV2Conversations() {
-      const rawResponse = await snapRequest('getV2Conversations', null)
-      if (Array.isArray(rawResponse)) {
-        return rawResponse.map((r) =>
-          conversationReference.ConversationReference.decode(
-            fetcher.b64Decode(r)
-          )
-        )
-      }
-    },
+    // Don't bother calling the keystore, since we already have the wallet address
     async getAccountAddress() {
-      const rawResponse = await snapRequest('getAccountAddress', null)
-      if (Array.isArray(rawResponse)) {
-        throw new Error('Unexpected array response')
-      }
-      return rawResponse
+      return walletAddress
     },
   }
 }

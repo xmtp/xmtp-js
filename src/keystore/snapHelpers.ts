@@ -3,6 +3,7 @@ import type { SnapRPC } from './SnapKeystore'
 import { b64Decode } from '../utils/bytes'
 import { KeystoreError } from './errors'
 import { PrivateKeyBundleV1 } from '../crypto'
+import { getEthereum } from '../utils/ethereum'
 const {
   GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus,
   InitKeystoreRequest,
@@ -13,14 +14,14 @@ const {
 
 const { b64Encode } = fetcher
 
-const ethereum = window.ethereum
 // TODO: Replace with npm package once released
 export const defaultSnapOrigin = `local:http://localhost:8080`
 
 export async function snapRPC<Req, Res>(
   method: string,
   codecs: SnapRPC<Req, Res>,
-  req: Req
+  req: Req,
+  walletAddress: string
 ): Promise<Res> {
   let reqParam = null
   if (codecs.req) {
@@ -28,7 +29,7 @@ export async function snapRPC<Req, Res>(
     reqParam = b64Encode(reqBytes, 0, reqBytes.length)
   }
 
-  const responseString = await snapRequest(method, reqParam)
+  const responseString = await snapRequest(method, reqParam, walletAddress)
   if (Array.isArray(responseString)) {
     throw new Error('Unexpected array response')
   }
@@ -38,15 +39,16 @@ export async function snapRPC<Req, Res>(
 
 export async function snapRequest(
   method: string,
-  req: string | null
+  req: string | null,
+  walletAddress: string
 ): Promise<string> {
-  const response = await ethereum.request({
+  const response = await getEthereum().request({
     method: 'wallet_invokeSnap',
     params: {
       snapId: defaultSnapOrigin,
       request: {
         method,
-        params: { req },
+        params: { req, walletAddress },
       },
     },
   })
@@ -70,20 +72,20 @@ export type GetSnapsResponse = Record<string, Snap>
 
 export async function isFlask() {
   try {
+    const ethereum = getEthereum()
     const clientVersion = await ethereum?.request({
       method: 'web3_clientVersion',
     })
-
     const isFlaskDetected = (clientVersion as string[])?.includes('flask')
 
     return Boolean(ethereum && isFlaskDetected)
-  } catch {
+  } catch (e) {
     return false
   }
 }
 
 export async function getSnaps(): Promise<GetSnapsResponse> {
-  return (await ethereum.request({
+  return (await getEthereum()?.request({
     method: 'wallet_getSnaps',
   })) as unknown as GetSnapsResponse
 }
@@ -106,7 +108,7 @@ export async function connectSnap(
   snapId: string = defaultSnapOrigin,
   params: Record<'version' | string, unknown> = {}
 ) {
-  await ethereum.request({
+  await getEthereum()?.request({
     method: 'wallet_requestSnaps',
     params: {
       [snapId]: params,
@@ -119,9 +121,14 @@ const getWalletStatusCodec = {
   res: GetKeystoreStatusResponse,
 }
 export async function getWalletStatus(walletAddress: string) {
-  const response = await snapRPC('getKeystoreStatus', getWalletStatusCodec, {
-    walletAddress,
-  })
+  const response = await snapRPC(
+    'getKeystoreStatus',
+    getWalletStatusCodec,
+    {
+      walletAddress,
+    },
+    walletAddress
+  )
 
   if (
     [
@@ -140,9 +147,15 @@ const initKeystoreCodec = {
   res: InitKeystoreResponse,
 }
 export async function initSnap(bundle: PrivateKeyBundleV1) {
-  const response = await snapRPC('initKeystore', initKeystoreCodec, {
-    v1: bundle,
-  })
+  const walletAddress = bundle.identityKey.publicKey.walletSignatureAddress()
+  const response = await snapRPC(
+    'initKeystore',
+    initKeystoreCodec,
+    {
+      v1: bundle,
+    },
+    walletAddress
+  )
   if (response.error) {
     throw new KeystoreError(response.error.code, response.error.message)
   }
