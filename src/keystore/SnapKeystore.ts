@@ -8,7 +8,8 @@ import {
   signature,
 } from '@xmtp/proto'
 import { Reader, Writer } from 'protobufjs/minimal'
-import { snapRPC, snapRequest } from './snapHelpers'
+import { SnapMeta, snapRPC, snapRequest } from './snapHelpers'
+import type { XmtpEnv } from '../Client'
 
 type Codec<T> = {
   decode(input: Reader | Uint8Array, length?: number): T
@@ -27,9 +28,9 @@ type ApiDefs = {
 async function getResponse<T extends keyof Keystore>(
   method: T,
   req: Uint8Array | null,
-  walletAddress: string
+  meta: SnapMeta
 ): Promise<typeof apiDefs[T]['res']> {
-  return snapRPC(method, apiDefs[method], req, walletAddress)
+  return snapRPC(method, apiDefs[method], req, meta)
 }
 
 export const apiDefs: ApiDefs = {
@@ -71,18 +72,23 @@ export const apiDefs: ApiDefs = {
   },
 } as const
 
-export function SnapKeystore(walletAddress: string): Keystore {
+export function SnapKeystore(walletAddress: string, env: XmtpEnv): Keystore {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generatedMethods: any = {}
+
+  const snapMeta: SnapMeta = {
+    walletAddress,
+    env,
+  }
 
   for (const [method, apiDef] of Object.entries(apiDefs)) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     generatedMethods[method] = async (req: any) => {
       if (!apiDef.req) {
-        return getResponse(method as keyof Keystore, null, walletAddress)
+        return getResponse(method as keyof Keystore, null, snapMeta)
       }
 
-      return getResponse(method as keyof Keystore, req, walletAddress)
+      return getResponse(method as keyof Keystore, req, snapMeta)
     }
   }
 

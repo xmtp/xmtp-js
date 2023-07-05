@@ -15,6 +15,7 @@ import ApiClient from '../../ApiClient'
 import NetworkKeystoreProvider from './NetworkKeystoreProvider'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
+import type { XmtpEnv } from '../../Client'
 
 /**
  * The Snap keystore provider will:
@@ -35,17 +36,18 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
       throw new KeystoreProviderUnavailableError('No wallet provided')
     }
     const walletAddress = await wallet.getAddress()
+    const env = opts.env
     const hasSnap = await getSnap()
     if (!hasSnap) {
       await connectSnap()
     }
 
-    if (!(await checkSnapLoaded(walletAddress))) {
+    if (!(await checkSnapLoaded(walletAddress, env))) {
       const bundle = await getBundle(opts, apiClient, wallet)
-      await initSnap(bundle)
+      await initSnap(bundle, env)
     }
 
-    return SnapKeystore(walletAddress)
+    return SnapKeystore(walletAddress, env)
   }
 }
 
@@ -82,8 +84,8 @@ async function getBundle(
   }
 }
 
-async function checkSnapLoaded(walletAddress: string) {
-  const status = await getWalletStatus(walletAddress)
+async function checkSnapLoaded(walletAddress: string, env: XmtpEnv) {
+  const status = await getWalletStatus({ walletAddress, env })
   if (status === KeystoreStatus.KEYSTORE_STATUS_INITIALIZED) {
     return true
   }

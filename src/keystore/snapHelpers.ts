@@ -4,6 +4,7 @@ import { b64Decode } from '../utils/bytes'
 import { KeystoreError } from './errors'
 import { PrivateKeyBundleV1 } from '../crypto'
 import { getEthereum } from '../utils/ethereum'
+import type { XmtpEnv } from '../Client'
 const {
   GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus,
   InitKeystoreRequest,
@@ -17,11 +18,16 @@ const { b64Encode } = fetcher
 // TODO: Replace with npm package once released
 export const defaultSnapOrigin = `local:http://localhost:8080`
 
+export type SnapMeta = {
+  walletAddress: string
+  env: XmtpEnv
+}
+
 export async function snapRPC<Req, Res>(
   method: string,
   codecs: SnapRPC<Req, Res>,
   req: Req,
-  walletAddress: string
+  meta: SnapMeta
 ): Promise<Res> {
   let reqParam = null
   if (codecs.req) {
@@ -29,7 +35,7 @@ export async function snapRPC<Req, Res>(
     reqParam = b64Encode(reqBytes, 0, reqBytes.length)
   }
 
-  const responseString = await snapRequest(method, reqParam, walletAddress)
+  const responseString = await snapRequest(method, reqParam, meta)
   if (Array.isArray(responseString)) {
     throw new Error('Unexpected array response')
   }
@@ -40,7 +46,7 @@ export async function snapRPC<Req, Res>(
 export async function snapRequest(
   method: string,
   req: string | null,
-  walletAddress: string
+  meta: SnapMeta
 ): Promise<string> {
   const response = await getEthereum().request({
     method: 'wallet_invokeSnap',
@@ -48,7 +54,7 @@ export async function snapRequest(
       snapId: defaultSnapOrigin,
       request: {
         method,
-        params: { req, walletAddress },
+        params: { req, meta },
       },
     },
   })
@@ -120,14 +126,14 @@ const getWalletStatusCodec = {
   req: GetKeystoreStatusRequest,
   res: GetKeystoreStatusResponse,
 }
-export async function getWalletStatus(walletAddress: string) {
+export async function getWalletStatus(meta: SnapMeta) {
   const response = await snapRPC(
     'getKeystoreStatus',
     getWalletStatusCodec,
     {
-      walletAddress,
+      walletAddress: meta.walletAddress,
     },
-    walletAddress
+    meta
   )
 
   if (
@@ -146,7 +152,7 @@ const initKeystoreCodec = {
   req: InitKeystoreRequest,
   res: InitKeystoreResponse,
 }
-export async function initSnap(bundle: PrivateKeyBundleV1) {
+export async function initSnap(bundle: PrivateKeyBundleV1, env: XmtpEnv) {
   const walletAddress = bundle.identityKey.publicKey.walletSignatureAddress()
   const response = await snapRPC(
     'initKeystore',
@@ -154,7 +160,7 @@ export async function initSnap(bundle: PrivateKeyBundleV1) {
     {
       v1: bundle,
     },
-    walletAddress
+    { walletAddress, env }
   )
   if (response.error) {
     throw new KeystoreError(response.error.code, response.error.message)

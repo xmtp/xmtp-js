@@ -37,6 +37,7 @@ describe('snapHelpers', () => {
   it('can check wallet status', async () => {
     const method = 'getKeystoreStatus'
     const walletAddress = '0xfoo'
+    const env = 'dev'
     const resBytes = GetKeystoreStatusResponse.encode({
       status: KeystoreStatus.KEYSTORE_STATUS_INITIALIZED,
     }).finish()
@@ -45,7 +46,7 @@ describe('snapHelpers', () => {
       res: b64Encode(resBytes, 0, resBytes.length),
     })
 
-    const status = await getWalletStatus(walletAddress)
+    const status = await getWalletStatus({ walletAddress, env })
     expect(status).toBe(KeystoreStatus.KEYSTORE_STATUS_INITIALIZED)
     const expectedRequest = GetKeystoreStatusRequest.encode({
       walletAddress,
@@ -59,7 +60,7 @@ describe('snapHelpers', () => {
           method,
           params: {
             req: b64Encode(expectedRequest, 0, expectedRequest.length),
-            walletAddress,
+            meta: { walletAddress, env },
           },
         },
       },
