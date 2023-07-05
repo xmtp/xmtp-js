@@ -13,6 +13,8 @@ export {
   SignedPublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   Signature,
   encrypt,
   decrypt,
@@ -29,6 +31,7 @@ export {
   ContentOptions,
   KeyStoreOptions,
   LegacyOptions,
+  XmtpEnv,
 } from './Client'
 export { Conversations, Conversation } from './conversations'
 export { GroupConversation } from './conversations/GroupConversation'
@@ -65,7 +68,12 @@ export {
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
 } from './utils'
-export { Keystore, InMemoryKeystore, TopicData } from './keystore'
+export {
+  Keystore,
+  InMemoryKeystore,
+  TopicData,
+  keystoreApiDefs,
+} from './keystore'
 export {
   KeystoreProvider,
   KeyGeneratorKeystoreProvider,

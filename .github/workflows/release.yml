@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - beta
+      - snap
 jobs:
   release:
     name: Release

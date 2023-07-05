@@ -76,12 +76,16 @@
       {
         "name": "beta",
         "prerelease": true
+      },
+      {
+        "name": "snap",
+        "prerelease": true
       }
     ]
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
-    "@xmtp/proto": "^3.25.0",
+    "@xmtp/proto": "^3.26.0",
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
@@ -90,6 +94,7 @@
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
+    "@metamask/providers": "^11.1.0",
     "@types/benchmark": "^2.1.2",
     "@types/bl": "^5.0.2",
     "@types/callback-to-async-iterator": "^1.1.4",

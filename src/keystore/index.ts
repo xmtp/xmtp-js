@@ -1,5 +1,6 @@
 export { default as InMemoryKeystore } from './InMemoryKeystore'
 export { default as InviteStore } from './InviteStore'
+export { SnapKeystore, apiDefs as keystoreApiDefs } from './SnapKeystore'
 export * from './encryption'
 export * from './errors'
 export * from './interfaces'
