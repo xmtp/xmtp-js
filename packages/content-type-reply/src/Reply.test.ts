@@ -1,5 +1,10 @@
 import { Wallet } from "ethers";
-import { Client } from "@xmtp/xmtp-js";
+import { Client, ContentTypeText } from "@xmtp/xmtp-js";
+import type { Attachment } from "@xmtp/content-type-remote-attachment";
+import {
+  AttachmentCodec,
+  ContentTypeAttachment,
+} from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, ReplyCodec } from "./Reply";
 import type { Reply } from "./Reply";
 
@@ -11,7 +16,7 @@ describe("ReplyContentType", () => {
     expect(ContentTypeReply.versionMinor).toBe(0);
   });
 
-  it("can send a reply", async () => {
+  it("can send a text reply", async () => {
     const aliceWallet = Wallet.createRandom();
     const aliceClient = await Client.create(aliceWallet, { env: "local" });
     aliceClient.registerCodec(new ReplyCodec());
@@ -30,6 +35,7 @@ describe("ReplyContentType", () => {
 
     const reply: Reply = {
       content: "LGTM",
+      contentType: ContentTypeText,
       reference: originalMessage.id,
     };
 
@@ -45,6 +51,57 @@ describe("ReplyContentType", () => {
     const replyMessage = messages[1];
     const messageContent = replyMessage.content as Reply;
     expect(messageContent.content).toBe("LGTM");
+    expect(messageContent.reference).toBe(originalMessage.id);
+  });
+
+  it("can send an attachment reply", async () => {
+    const aliceWallet = Wallet.createRandom();
+    const aliceClient = await Client.create(aliceWallet, { env: "local" });
+    aliceClient.registerCodec(new ReplyCodec());
+    aliceClient.registerCodec(new AttachmentCodec());
+    await aliceClient.publishUserContact();
+
+    const bobWallet = Wallet.createRandom();
+    const bobClient = await Client.create(bobWallet, { env: "local" });
+    bobClient.registerCodec(new ReplyCodec());
+    bobClient.registerCodec(new AttachmentCodec());
+    await bobClient.publishUserContact();
+
+    const conversation = await aliceClient.conversations.newConversation(
+      bobWallet.address,
+    );
+
+    const originalMessage = await conversation.send("test");
+
+    const attachment: Attachment = {
+      filename: "test.png",
+      mimeType: "image/png",
+      data: Uint8Array.from([5, 4, 3, 2, 1]),
+    };
+
+    const reply: Reply = {
+      content: attachment,
+      contentType: ContentTypeAttachment,
+      reference: originalMessage.id,
+    };
+
+    await conversation.send(reply, { contentType: ContentTypeReply });
+
+    const bobConversation = await bobClient.conversations.newConversation(
+      aliceWallet.address,
+    );
+    const messages = await bobConversation.messages();
+
+    expect(messages.length).toBe(2);
+
+    const replyMessage = messages[1];
+    const messageContent = replyMessage.content as Reply;
+    expect(ContentTypeAttachment.sameAs(messageContent.contentType)).toBe(true);
+    expect(messageContent.content).toEqual({
+      filename: "test.png",
+      mimeType: "image/png",
+      data: Uint8Array.from([5, 4, 3, 2, 1]),
+    });
     expect(messageContent.reference).toBe(originalMessage.id);
   });
 });

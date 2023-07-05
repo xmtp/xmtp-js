@@ -70,10 +70,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xmtp/xmtp-js": "^9.1.7"
+    "@xmtp/proto": "^3.26.0",
+    "@xmtp/xmtp-js": "^9.2.0"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",
+    "@xmtp/content-type-remote-attachment": "workspace:*",
     "buffer": "^6.0.3",
     "esbuild": "^0.18.2",
     "esbuild-plugin-external-global": "^1.0.1",
@@ -89,6 +91,6 @@
     "vitest": "^0.32.2"
   },
   "peerDependencies": {
-    "@xmtp/xmtp-js": "^9.1.7"
+    "@xmtp/xmtp-js": "^9.2.0"
   }
 }

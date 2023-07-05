@@ -1,5 +1,10 @@
 import { ContentTypeId } from "@xmtp/xmtp-js";
-import type { ContentCodec, EncodedContent } from "@xmtp/xmtp-js";
+import type {
+  CodecRegistry,
+  ContentCodec,
+  EncodedContent,
+} from "@xmtp/xmtp-js";
+import { composite as proto } from "@xmtp/proto";
 
 export const ContentTypeReply = new ContentTypeId({
   authorityId: "xmtp.org",
@@ -16,11 +21,15 @@ export type Reply = {
   /**
    * The content of the reply
    */
-  content: string;
+  content: any;
+  /**
+   * The content type of the reply
+   */
+  contentType: ContentTypeId;
 };
 
 export type ReplyParameters = Pick<Reply, "reference"> & {
-  encoding: "UTF-8";
+  contentType: string;
 };
 
 export class ReplyCodec implements ContentCodec<Reply> {
@@ -28,25 +37,57 @@ export class ReplyCodec implements ContentCodec<Reply> {
     return ContentTypeReply;
   }
 
-  encode(content: Reply): EncodedContent<ReplyParameters> {
+  encode(
+    content: Reply,
+    codecs: CodecRegistry,
+  ): EncodedContent<ReplyParameters> {
+    const codec = codecs.codecFor(content.contentType);
+    if (!codec) {
+      throw new Error(
+        `missing codec for content type "${content.contentType.toString()}"`,
+      );
+    }
+
+    const bytes = proto.Composite.encode({
+      parts: [
+        {
+          part: codec.encode(content.content, codecs),
+          composite: undefined,
+        },
+      ],
+    }).finish();
+
     return {
       type: ContentTypeReply,
       parameters: {
-        encoding: "UTF-8",
+        contentType: content.contentType.toString(),
         reference: content.reference,
       },
-      content: new TextEncoder().encode(content.content),
+      content: bytes,
     };
   }
 
-  decode(content: EncodedContent<ReplyParameters>): Reply {
-    const { encoding } = content.parameters;
-    if (encoding && encoding !== "UTF-8") {
-      throw new Error(`unrecognized encoding ${encoding as string}`);
+  decode(
+    content: EncodedContent<ReplyParameters>,
+    codecs: CodecRegistry,
+  ): Reply {
+    const composite = proto.Composite.decode(content.content);
+    const contentType = ContentTypeId.fromString(
+      content.parameters.contentType,
+    );
+
+    const codec = codecs.codecFor(contentType);
+    if (!codec) {
+      throw new Error(
+        `missing codec for content type "${content.parameters.contentType}"`,
+      );
     }
+
     return {
       reference: content.parameters.reference,
-      content: new TextDecoder().decode(content.content),
+      contentType,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      content: codec.decode(composite.parts[0].part as EncodedContent, codecs),
     };
   }
 }
