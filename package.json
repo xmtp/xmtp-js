@@ -36,7 +36,8 @@
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "typecheck": "tsc"
   },
   "publishConfig": {
     "access": "public",
