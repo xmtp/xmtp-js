@@ -29,6 +29,7 @@ export async function snapRPC<Req, Res>(
   req: Req,
   meta: SnapMeta
 ): Promise<Res> {
+  console.log(`Doing request to ${method} with req: ${JSON.stringify(req)}`)
   let reqParam = null
   if (codecs.req) {
     const reqBytes = codecs.req.encode(req).finish()
