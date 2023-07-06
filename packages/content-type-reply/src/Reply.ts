@@ -4,7 +4,7 @@ import type {
   ContentCodec,
   EncodedContent,
 } from "@xmtp/xmtp-js";
-import { composite as proto } from "@xmtp/proto";
+import { content as proto } from "@xmtp/proto";
 
 export const ContentTypeReply = new ContentTypeId({
   authorityId: "xmtp.org",
@@ -48,14 +48,8 @@ export class ReplyCodec implements ContentCodec<Reply> {
       );
     }
 
-    const bytes = proto.Composite.encode({
-      parts: [
-        {
-          part: codec.encode(content.content, codecs),
-          composite: undefined,
-        },
-      ],
-    }).finish();
+    const encodedContent = codec.encode(content.content, codecs);
+    const bytes = proto.EncodedContent.encode(encodedContent).finish();
 
     return {
       type: ContentTypeReply,
@@ -71,7 +65,7 @@ export class ReplyCodec implements ContentCodec<Reply> {
     content: EncodedContent<ReplyParameters>,
     codecs: CodecRegistry,
   ): Reply {
-    const composite = proto.Composite.decode(content.content);
+    const decodedContent = proto.EncodedContent.decode(content.content);
     const contentType = ContentTypeId.fromString(
       content.parameters.contentType,
     );
@@ -87,7 +81,7 @@ export class ReplyCodec implements ContentCodec<Reply> {
       reference: content.parameters.reference,
       contentType,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      content: codec.decode(composite.parts[0].part as EncodedContent, codecs),
+      content: codec.decode(decodedContent as EncodedContent, codecs),
     };
   }
 }
