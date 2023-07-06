@@ -49,13 +49,17 @@ export async function snapRequest(
   req: string | null,
   meta: SnapMeta
 ): Promise<string> {
+  const params: any = { meta }
+  if (req) {
+    params['req'] = req
+  }
   const response = await getEthereum().request({
     method: 'wallet_invokeSnap',
     params: {
       snapId: defaultSnapOrigin,
       request: {
         method,
-        params: { req, meta },
+        params,
       },
     },
   })
