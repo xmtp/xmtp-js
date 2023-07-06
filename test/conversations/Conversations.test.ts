@@ -68,7 +68,8 @@ describe('conversations', () => {
         metadata: {},
       })
       await sleep(100)
-      const fromKeystore = await alice.keystore.getV2Conversations()
+      const fromKeystore = (await alice.keystore.getV2Conversations())
+        .conversations
       expect(fromKeystore[1].context?.conversationId).toBe('bar')
 
       const aliceConversations3 = await alice.conversations.list()

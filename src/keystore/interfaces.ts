@@ -67,7 +67,7 @@ export interface Keystore {
   /**
    * Get a list of V2 conversations
    */
-  getV2Conversations(): Promise<conversationReference.ConversationReference[]>
+  getV2Conversations(): Promise<keystore.GetV2ConversationsResponse>
   /**
    * Get a list of group conversations
    */

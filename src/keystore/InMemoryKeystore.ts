@@ -31,6 +31,7 @@ import Long from 'long'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
+import { GetV2ConversationsResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 const { ErrorCode } = keystore
 
 // Constant, 32 byte salt
@@ -474,9 +475,7 @@ export default class InMemoryKeystore implements Keystore {
     return key.sign(digest)
   }
 
-  async getV2Conversations(): Promise<
-    conversationReference.ConversationReference[]
-  > {
+  async getV2Conversations(): Promise<keystore.GetV2ConversationsResponse> {
     const convos = this.inviteStore.topics.map((invite) =>
       topicDataToConversationReference(invite)
     )
@@ -484,7 +483,9 @@ export default class InMemoryKeystore implements Keystore {
     convos.sort((a, b) =>
       a.createdNs.div(1_000_000).sub(b.createdNs.div(1_000_000)).toNumber()
     )
-    return convos
+    return keystore.GetV2ConversationsResponse.fromPartial({
+      conversations: convos,
+    })
   }
 
   async getGroupConversations(): Promise<

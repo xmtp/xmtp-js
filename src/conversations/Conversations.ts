@@ -176,7 +176,7 @@ export default class Conversations {
   }
 
   private async getV2ConversationsFromKeystore(): Promise<ConversationV2[]> {
-    return (await this.client.keystore.getV2Conversations()).map(
+    return (await this.client.keystore.getV2Conversations()).conversations.map(
       this.conversationReferenceToV2.bind(this)
     )
   }
