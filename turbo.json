@@ -30,6 +30,10 @@
     "test": {
       "outputs": []
     },
+    "@xmtp/content-type-reply#test": {
+      "dependsOn": ["@xmtp/content-type-remote-attachment#build"],
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^generate:types"],
       "outputs": []
