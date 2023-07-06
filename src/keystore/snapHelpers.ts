@@ -1,5 +1,5 @@
 import { fetcher, keystore as keystoreProto } from '@xmtp/proto'
-import type { SnapRPC } from './SnapKeystore'
+import type { RPC } from './rpcDefinitions'
 import { b64Decode } from '../utils/bytes'
 import { KeystoreError } from './errors'
 import { PrivateKeyBundleV1 } from '../crypto'
@@ -25,7 +25,7 @@ export type SnapMeta = {
 
 export async function snapRPC<Req, Res>(
   method: string,
-  codecs: SnapRPC<Req, Res>,
+  codecs: RPC<Req, Res>,
   req: Req,
   meta: SnapMeta
 ): Promise<Res> {
