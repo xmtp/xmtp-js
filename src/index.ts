@@ -23,6 +23,7 @@ export { default as Stream } from './Stream'
 export { Signer } from './types/Signer'
 export {
   default as Client,
+  defaultKeystoreProviders,
   ClientOptions,
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
