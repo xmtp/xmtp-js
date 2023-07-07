@@ -47,7 +47,54 @@ describe('Crypto', function () {
       assert.equal(actual, expected)
       assert.ok(true)
     })
+
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      expect(bundle.validatePublicKeys()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV1.generate(newWallet())
+      bundle.preKeys[0].publicKey = otherBundle.preKeys[0].publicKey
+      expect(bundle.validatePublicKeys()).toBe(false)
+    })
   })
+
+  describe('PrivateKey', () => {
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      expect(bundle.identityKey.validatePublicKey()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV1.generate(newWallet())
+      bundle.identityKey.publicKey = otherBundle.identityKey.publicKey
+      expect(bundle.identityKey.validatePublicKey()).toBe(false)
+    })
+  })
+
+  describe('SignedPrivateKey', () => {
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV2.generate(wallet)
+      expect(bundle.identityKey.validatePublicKey()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV2.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV2.generate(newWallet())
+      bundle.identityKey.publicKey = otherBundle.identityKey.publicKey
+      expect(bundle.identityKey.validatePublicKey()).toBe(false)
+    })
+  })
+
   describe('SignedPublicKeyBundle', () => {
     it('legacy roundtrip', async function () {
       const wallet = newWallet()
