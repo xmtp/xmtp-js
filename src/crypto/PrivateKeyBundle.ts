@@ -113,6 +113,14 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     }).finish()
   }
 
+  validatePublicKeys(): boolean {
+    if (!this.identityKey.validatePublicKey()) {
+      return false
+    }
+
+    return this.preKeys.every((key) => key.validatePublicKey())
+  }
+
   equals(other: this): boolean {
     if (this.preKeys.length !== other.preKeys.length) {
       return false
