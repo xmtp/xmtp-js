@@ -25,6 +25,7 @@ export {
   default as Client,
   ClientOptions,
   ListMessagesOptions,
+  ListMessagesPaginatedOptions,
   SendOptions,
   Compression,
   NetworkOptions,

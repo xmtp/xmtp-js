@@ -31,7 +31,6 @@ import Long from 'long'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
-import { GetV2ConversationsResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 const { ErrorCode } = keystore
 
 // Constant, 32 byte salt

@@ -9,7 +9,7 @@ import {
 } from '../../src'
 import { SortDirection } from '../../src/ApiClient'
 import { sleep } from '../../src/utils'
-import { newLocalHostClient, newWallet, waitForUserContact } from '../helpers'
+import { newLocalHostClient, waitForUserContact } from '../helpers'
 import { PrivateKey, SignedPublicKeyBundle } from '../../src/crypto'
 import { ConversationV2 } from '../../src/conversations/Conversation'
 import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
@@ -127,15 +127,10 @@ describe('conversation', () => {
       consoleWarn.mockRestore()
     })
 
-    it('works for messaging yourself', async () => {
-      const convo = await alice.conversations.newConversation(alice.address)
-      await convo.send('hey me')
-
-      const messages = await convo.messages()
-      expect(messages).toHaveLength(1)
-      expect(messages[0].content).toBe('hey me')
-      expect(messages[0].senderAddress).toBe(alice.address)
-      expect(messages[0].recipientAddress).toBe(alice.address)
+    it('does not allow self messaging', async () => {
+      expect(
+        alice.conversations.newConversation(alice.address)
+      ).rejects.toThrow('self messaging not supported')
     })
 
     it('can send a prepared message v1', async () => {
