@@ -47,6 +47,20 @@ describe('Crypto', function () {
       assert.equal(actual, expected)
       assert.ok(true)
     })
+
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      expect(bundle.validatePublicKeys()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV1.generate(newWallet())
+      bundle.preKeys[0].publicKey = otherBundle.preKeys[0].publicKey
+      expect(bundle.validatePublicKeys()).toBe(false)
+    })
   })
 
   describe('PrivateKey', () => {
