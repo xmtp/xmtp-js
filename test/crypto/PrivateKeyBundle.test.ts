@@ -65,6 +65,22 @@ describe('Crypto', function () {
     })
   })
 
+  describe('SignedPrivateKey', () => {
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV2.generate(wallet)
+      expect(bundle.identityKey.validatePublicKey()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV2.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV2.generate(newWallet())
+      bundle.identityKey.publicKey = otherBundle.identityKey.publicKey
+      expect(bundle.identityKey.validatePublicKey()).toBe(false)
+    })
+  })
+
   describe('SignedPublicKeyBundle', () => {
     it('legacy roundtrip', async function () {
       const wallet = newWallet()

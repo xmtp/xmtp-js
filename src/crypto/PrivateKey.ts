@@ -155,6 +155,14 @@ export class SignedPrivateKey
     return privateKey.SignedPrivateKey.encode(this).finish()
   }
 
+  validatePublicKey(): boolean {
+    const generatedPublicKey = secp.getPublicKey(this.secp256k1.bytes)
+    return equalBytes(
+      generatedPublicKey,
+      this.publicKey.secp256k1Uncompressed.bytes
+    )
+  }
+
   // Decode key from bytes.
   static fromBytes(bytes: Uint8Array): SignedPrivateKey {
     return new SignedPrivateKey(privateKey.SignedPrivateKey.decode(bytes))
