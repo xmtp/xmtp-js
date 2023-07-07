@@ -18,6 +18,7 @@ export type RPC<Req, Res> = {
 }
 
 type ApiDefs = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [k: string]: RPC<any, any>
 }
 
