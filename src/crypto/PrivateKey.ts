@@ -273,6 +273,14 @@ export class PrivateKey implements privateKey.PrivateKey {
     return this.publicKey.equals(key)
   }
 
+  validatePublicKey(): boolean {
+    const generatedPublicKey = secp.getPublicKey(this.secp256k1.bytes)
+    return equalBytes(
+      generatedPublicKey,
+      this.publicKey.secp256k1Uncompressed.bytes
+    )
+  }
+
   // Encode this key into bytes.
   toBytes(): Uint8Array {
     return privateKey.PrivateKey.encode(this).finish()
