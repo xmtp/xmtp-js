@@ -1,6 +1,6 @@
-import { fetcher, keystore as keystoreProto } from '@xmtp/proto'
+import { keystore as keystoreProto } from '@xmtp/proto'
 import type { RPC } from './rpcDefinitions'
-import { b64Decode } from '../utils/bytes'
+import { b64Decode, b64Encode } from '../utils/bytes'
 import { KeystoreError } from './errors'
 import { PrivateKeyBundleV1 } from '../crypto'
 import { getEthereum } from '../utils/ethereum'
@@ -13,8 +13,6 @@ const {
   GetKeystoreStatusResponse,
 } = keystoreProto
 
-const { b64Encode } = fetcher
-
 // TODO: Replace with npm package once released
 export const defaultSnapOrigin = `local:http://localhost:8080`
 
@@ -23,13 +21,18 @@ export type SnapMeta = {
   env: XmtpEnv
 }
 
+type SnapParams = {
+  meta: SnapMeta
+  req?: string
+}
+
 export async function snapRPC<Req, Res>(
   method: string,
   codecs: RPC<Req, Res>,
   req: Req,
   meta: SnapMeta
 ): Promise<Res> {
-  console.log(`Doing request to ${method} with req: ${JSON.stringify(req)}`)
+  console.log(`Doing request to ${method} with params: ${JSON.stringify(req)}`)
   let reqParam = null
   if (codecs.req) {
     const reqBytes = codecs.req.encode(req).finish()
@@ -49,9 +52,9 @@ export async function snapRequest(
   req: string | null,
   meta: SnapMeta
 ): Promise<string> {
-  const params: any = { meta }
-  if (req) {
-    params['req'] = req
+  const params: SnapParams = { meta }
+  if (typeof req === 'string') {
+    params.req = req
   }
   const response = await getEthereum().request({
     method: 'wallet_invokeSnap',
