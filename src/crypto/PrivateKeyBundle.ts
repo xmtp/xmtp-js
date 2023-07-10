@@ -113,6 +113,14 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     }).finish()
   }
 
+  validatePublicKeys(): boolean {
+    if (!this.identityKey.validatePublicKey()) {
+      return false
+    }
+
+    return this.preKeys.every((key) => key.validatePublicKey())
+  }
+
   equals(other: this): boolean {
     if (this.preKeys.length !== other.preKeys.length) {
       return false
@@ -198,6 +206,14 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
       })
     }
     return this._publicKeyBundle
+  }
+
+  validatePublicKeys(): boolean {
+    if (!this.identityKey.validatePublicKey()) {
+      return false
+    }
+
+    return this.preKeys.every((key) => key.validatePublicKey())
   }
 
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
