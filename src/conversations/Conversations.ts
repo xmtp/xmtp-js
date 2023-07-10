@@ -604,6 +604,10 @@ export default class Conversations {
       throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
     }
 
+    if (peerAddress === this.client.address) {
+      throw new Error('self messaging not supported')
+    }
+
     // If this is a V1 conversation continuation
     if (contact instanceof PublicKeyBundle && !context?.conversationId) {
       return new ConversationV1(this.client, peerAddress, new Date())
