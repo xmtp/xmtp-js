@@ -50,7 +50,8 @@ await conversation.messages.send(reaction, {
 });
 ```
 
-Note that we’re using `contentFallback` to enable clients that don't support these content types to still display something. For cases where clients *do* support these types, they can use the content fallback as alt text for accessibility purposes.
+> **Note**
+> Use `contentFallback` to enable clients that don't support these content types to still display some useful context. For cases where clients *do* support these types, they can use the content fallback as alt text for accessibility purposes.
 
 ## Receive a reaction
 
