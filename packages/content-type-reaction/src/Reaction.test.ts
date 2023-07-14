@@ -32,6 +32,7 @@ describe("ReactionContentType", () => {
       action: "added",
       content: "smile",
       reference: originalMessage.id,
+      schema: "shortcode",
     };
 
     await conversation.send(reaction, { contentType: ContentTypeReaction });
@@ -48,5 +49,6 @@ describe("ReactionContentType", () => {
     expect(messageContent.action).toBe("added");
     expect(messageContent.content).toBe("smile");
     expect(messageContent.reference).toBe(originalMessage.id);
+    expect(messageContent.schema).toBe("shortcode");
   });
 });
