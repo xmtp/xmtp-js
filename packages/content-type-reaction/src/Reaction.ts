@@ -21,9 +21,16 @@ export type Reaction = {
    * The content of the reaction
    */
   content: string;
+  /**
+   * The schema of the content to provide guidance on how to display it
+   */
+  schema: "unicode" | "shortcode" | "custom";
 };
 
-export type ReactionParameters = Pick<Reaction, "action" | "reference"> & {
+export type ReactionParameters = Pick<
+  Reaction,
+  "action" | "reference" | "schema"
+> & {
   encoding: "UTF-8";
 };
 
@@ -39,6 +46,7 @@ export class ReactionCodec implements ContentCodec<Reaction> {
         encoding: "UTF-8",
         action: content.action,
         reference: content.reference,
+        schema: content.schema,
       },
       content: new TextEncoder().encode(content.content),
     };
@@ -52,6 +60,7 @@ export class ReactionCodec implements ContentCodec<Reaction> {
     return {
       action: content.parameters.action,
       reference: content.parameters.reference,
+      schema: content.parameters.schema,
       content: new TextDecoder().decode(content.content),
     };
   }
