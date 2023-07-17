@@ -86,6 +86,13 @@ for await (const message of await conversation.streamMessages()) {
 
 Currently, network nodes are configured to rate limit high-volume publishing from clients. A rate-limited client can expect to receive a 429 status code response from a node. Rate limits can change at any time in the interest of maintaining network health.
 
+### Use local storage
+
+> **Important**  
+> If you are building a production-grade app, be sure to use an architecture that includes a local cache backed by an XMTP SDK.
+
+To learn more, see [Use a local cache](https://xmtp.org/docs/tutorials/performance#use-a-local-cache).
+
 ### Create a client
 
 A client is created with `Client.create(wallet: Signer): Promise<Client>` that requires passing in a connected wallet that implements the [Signer](src/types/Signer.ts) interface. The client will request a wallet signature in two cases:
@@ -93,7 +100,7 @@ A client is created with `Client.create(wallet: Signer): Promise<Client>` that r
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the client is started (including the very first time).
 
-> **Important**
+> **Important**  
 > The client connects to the XMTP `dev` environment by default. [Use `ClientOptions`](#configure-the-client) to change this and other parameters of the network connection.
 
 ```ts
@@ -149,7 +156,7 @@ These conversations include all conversations for a user **regardless of which a
 
 You can also listen for new conversations being started in real-time. This will allow applications to display incoming messages from new contacts.
 
-> **Warning**
+> **Warning**  
 > This stream will continue infinitely. To end the stream you can either break from the loop, or call `await stream.return()`.
 
 ```ts
@@ -245,7 +252,7 @@ for await (const message of await conversation.streamMessages()) {
 
 To listen for any new messages from _all_ conversations, use `conversations.streamAllMessages()`.
 
-> **Note**
+> **Note**  
 > There is a chance this stream can miss messages if multiple new conversations are received in the time it takes to update the stream to include a new conversation.
 
 ```ts
@@ -278,8 +285,7 @@ const isOnProdNetwork = await Client.canMessage(
 
 You can send a broadcast message (1:many message or announcement) with XMTP. The recipient sees the message as a DM from the sending wallet address.
 
-> **Note**  
-> If your app stores a signature to read and send XMTP messages on behalf of a user, be sure to let users know. As a best practice, your app should also provide a way for a user to delete their signature. For example disclosure text and UI patterns, see [Disclose signature storage](https://xmtp.org/docs/tutorials/broadcast#disclose-signature-storage).
+For important information about sending broadcast messages, see [Best practices for broadcast messages](https://xmtp.org/docs/tutorials/broadcast#best-practices-for-broadcast-messages).
 
 1. Use the bulk query `canMessage` method to identify the wallet addresses that are activated on the XMTP network.
 2. Send the message to all of the activated wallet addresses.
@@ -341,6 +347,11 @@ conversation.send(3.14, {
 })
 ```
 
+As shown in the example above, you must provide a `contentFallback` value. Use it to provide an alt text-like description of the original content. Providing a `contentFallback` value enables clients that don't support the content type to still display something meaningful.
+
+> **Caution**  
+> If you don't provide a `contentFallback` value, clients that don't support the content type will display an empty message. This results in a poor user experience and breaks interoperability.
+
 Additional codecs can be configured through the `ClientOptions` parameter of `Client.create`. The `codecs` option is a list of codec instances that should be added to the default set of codecs (currently only the `TextCodec`). If a codec is added for a content type that is already in the default set, it will replace the original codec.
 
 ```ts
@@ -357,7 +368,7 @@ Custom codecs and content types may be proposed as interoperable standards throu
 
 Message content can be optionally compressed using the `compression` option. The value of the option is the name of the compression algorithm to use. Currently supported are `gzip` and `deflate`. Compression is applied to the bytes produced by the content codec.
 
-Content will be decompressed transparently on the receiving end. Note that `Client` enforces maximum content size. The default limit can be overridden through the `ClientOptions`. Consequently a message that would expand beyond that limit on the receiving end will fail to decode.
+Content will be decompressed transparently on the receiving end. Note that `Client` enforces maximum content size. The default limit can be overridden through the `ClientOptions`. Consequently, a message that would expand beyond that limit on the receiving end will fail to decode.
 
 ```ts
 import { Compression } from '@xmtp/xmtp-js'
@@ -385,7 +396,7 @@ The keys returned by `getKeys` should be treated with the utmost care as comprom
 
 ### Cache conversations
 
-When running in a browser, conversations are cached in `LocalStorage` by default. Running `client.conversations.list()` will update that cache and persist the results to the browsers `LocalStorage`. The data stored in `LocalStorage` is encrypted and signed using the Keystore's identity key so that attackers cannot read the sensitive contents or tamper with them.
+When running in a browser, conversations are cached in `LocalStorage` by default. Running `client.conversations.list()` will update that cache and persist the results to the browser's `LocalStorage`. The data stored in `LocalStorage` is encrypted and signed using the Keystore's identity key so that attackers cannot read the sensitive contents or tamper with them.
 
 To disable this behavior, set the `persistConversations` client option to `false`.
 
@@ -408,11 +419,11 @@ Older versions of the SDK will eventually be deprecated, which means:
 1. The network will not support and eventually actively reject connections from clients using deprecated versions.
 2. Bugs will not be fixed in deprecated versions.
 
-Following table shows the deprecation schedule.
+The following table provides the deprecation schedule.
 
 | Announced  | Effective  | Minimum Version | Rationale                                                                                                         |
 | ---------- | ---------- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 2022-08-18 | 2022-11-08 | v6.0.0          | XMTP network will stop supporting the Waku/libp2p based client interface in favor of the new GRPC based interface |
+| 2022-08-18 | 2022-11-08 | v6.0.0          | XMTP network will stop supporting the Waku/libp2p-based client interface in favor of the new gRPC-based interface |
 
 Issues and PRs are welcome in accordance with our [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
 
@@ -423,7 +434,8 @@ XMTP provides both `production` and `dev` network environments to support the de
 The `production` and `dev` networks are completely separate and not interchangeable.
 For example, for a given blockchain account address, its XMTP identity on `dev` network is completely distinct from its XMTP identity on the `production` network, as are the messages associated with these identities. In addition, XMTP identities and messages created on the `dev` network can't be accessed from or moved to the `production` network, and vice versa.
 
-**Important:** When you [create a client](#create-a-client), it connects to the XMTP `dev` environment by default. To learn how to use the `env` parameter to set your client's network environment, see [Configure the client](#configure-the-client).
+> **Important**  
+> When you [create a client](#create-a-client), it connects to the XMTP `dev` environment by default. To learn how to use the `env` parameter to set your client's network environment, see [Configure the client](#configure-the-client).
 
 The `env` parameter accepts one of three valid values: `dev`, `production`, or `local`. Here are some best practices for when to use each environment:
 
