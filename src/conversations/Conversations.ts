@@ -196,7 +196,9 @@ export default class Conversations {
   private async getGroupConversationsFromKeystore(): Promise<
     GroupConversation[]
   > {
-    return (await this.client.keystore.getGroupConversations()).map((ref) => {
+    return (
+      await this.client.keystore.getGroupConversations()
+    ).conversations.map((ref) => {
       return GroupConversation.from(this.conversationReferenceToV2(ref))
     })
   }

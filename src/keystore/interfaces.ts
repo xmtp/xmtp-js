@@ -1,11 +1,4 @@
-import {
-  conversationReference,
-  keystore,
-  publicKey,
-  authn,
-  privateKey,
-  signature,
-} from '@xmtp/proto'
+import { keystore, publicKey, authn, privateKey, signature } from '@xmtp/proto'
 import { WithoutUndefined } from '../utils/typedefs'
 
 /**
@@ -71,9 +64,7 @@ export interface Keystore {
   /**
    * Get a list of group conversations
    */
-  getGroupConversations(): Promise<
-    conversationReference.ConversationReference[]
-  >
+  getGroupConversations(): Promise<keystore.GetV2ConversationsResponse>
   /**
    * Get the `PublicKeyBundle` associated with the Keystore's private keys
    */
