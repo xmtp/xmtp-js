@@ -9,7 +9,7 @@ import { dateToNs, buildDirectMessageTopicV2 } from './utils'
 const { b64Decode } = fetcher
 
 export type InvitationContext = {
-  conversationId: string | null
+  conversationId: string
   metadata: { [k: string]: string }
 }
 
