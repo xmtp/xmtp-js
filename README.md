@@ -17,9 +17,9 @@ Build with `xmtp-js` to provide messaging between blockchain wallet addresses, d
 
 To learn more about XMTP and get answers to frequently asked questions, see the [XMTP documentation](https://xmtp.org/docs).
 
-## Quickstart and example apps built with `xmtp-js`
+## Playground and example apps built with `xmtp-js`
 
-- Use the [XMTP React quickstart app](https://github.com/xmtp/xmtp-quickstart-react) as a tool to start building an app with XMTP. This basic messaging app has an intentionally unopinionated UI to help make it easier for you to build with.
+- Use the [XMTP React playground app](https://github.com/xmtp/xmtp-react-playground) as a tool to start building an app with XMTP. This basic messaging app has an intentionally unopinionated UI to help make it easier for you to build with.
 
 - Use the [XMTP Inbox Web example app](https://github.com/xmtp-labs/xmtp-inbox-web) as a reference implementation to understand how to implement features following developer and user experience best practices.
 
