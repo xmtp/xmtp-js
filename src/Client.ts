@@ -27,7 +27,6 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import { ReadReceiptCodec } from './codecs/ReadReceipt'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -184,7 +183,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     privateKeyOverride: undefined,
     env: 'dev',
     apiUrl: undefined,
-    codecs: [new TextCodec(), new ReadReceiptCodec()],
+    codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
     persistConversations: true,
     skipContactPublishing: false,
