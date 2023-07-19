@@ -1747,7 +1747,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-remote-attachment@workspace:packages/content-type-remote-attachment":
+"@xmtp/content-type-remote-attachment@workspace:*, @xmtp/content-type-remote-attachment@workspace:packages/content-type-remote-attachment":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:packages/content-type-remote-attachment"
   dependencies:
@@ -1778,6 +1778,7 @@ __metadata:
   resolution: "@xmtp/content-type-reply@workspace:packages/content-type-reply"
   dependencies:
     "@types/node": ^18.14.2
+    "@xmtp/content-type-remote-attachment": "workspace:*"
     "@xmtp/proto": ^3.26.0
     "@xmtp/xmtp-js": ^9.2.0
     buffer: ^6.0.3
