@@ -2,6 +2,9 @@
 
 This package provides an XMTP content type to support reactions to messages.
 
+> **Open for feedback**  
+> You are welcome to provide feedback on this implementation by commenting on the [Reaction Content Type XIP](https://github.com/xmtp/XIPs/pull/23) (XMTP Improvement Proposal).
+
 ## What’s a reaction?
 
 A reaction is a quick and often emoji-based way to respond to a message. Reactions are usually limited to a predefined set of emojis or symbols provided by the messaging app.
