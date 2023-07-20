@@ -453,8 +453,9 @@ describe('conversation', () => {
         'unknown content type xmtp.test/public-key:1.0'
       )
       expect(bobMessage1.contentType).toBeTruthy()
-      expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
-      expect(bobMessage1.content).toBe('this is a public key')
+      expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
+      expect(bobMessage1.content).toBeUndefined()
+      expect(bobMessage1.contentFallback).toBe('this is a public key')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
@@ -689,8 +690,9 @@ describe('conversation', () => {
         'unknown content type xmtp.test/public-key:1.0'
       )
       expect(bobMessage1.contentType).toBeTruthy()
-      expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
-      expect(bobMessage1.content).toBe('this is a public key')
+      expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
+      expect(bobMessage1.content).toBeUndefined()
+      expect(bobMessage1.contentFallback).toBe('this is a public key')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())

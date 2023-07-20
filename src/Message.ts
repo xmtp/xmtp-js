@@ -240,6 +240,7 @@ export class DecodedMessage {
   content: any // eslint-disable-line @typescript-eslint/no-explicit-any
   error?: Error
   contentBytes: Uint8Array
+  contentFallback?: string
 
   constructor({
     id,
@@ -253,6 +254,7 @@ export class DecodedMessage {
     content,
     sent,
     error,
+    contentFallback,
   }: Omit<DecodedMessage, 'toBytes'>) {
     this.id = id
     this.messageVersion = messageVersion
@@ -265,6 +267,7 @@ export class DecodedMessage {
     this.content = content
     this.contentTopic = contentTopic
     this.contentBytes = contentBytes
+    this.contentFallback = contentFallback
   }
 
   toBytes(): Uint8Array {
@@ -295,10 +298,8 @@ export class DecodedMessage {
       throw new Error('No conversation reference found')
     }
 
-    const { content, contentType, error } = await decodeContent(
-      protoVal.contentBytes,
-      client
-    )
+    const { content, contentType, error, contentFallback } =
+      await decodeContent(protoVal.contentBytes, client)
 
     return new DecodedMessage({
       ...protoVal,
@@ -312,6 +313,7 @@ export class DecodedMessage {
         client,
         messageVersion
       ),
+      contentFallback,
     })
   }
 
@@ -322,7 +324,8 @@ export class DecodedMessage {
     contentBytes: Uint8Array,
     contentTopic: string,
     conversation: Conversation,
-    error?: Error
+    error?: Error,
+    contentFallback?: string
   ): DecodedMessage {
     const { id, senderAddress, recipientAddress, sent } = message
     if (!senderAddress) {
@@ -340,6 +343,7 @@ export class DecodedMessage {
       contentTopic,
       conversation,
       error,
+      contentFallback,
     })
   }
 
@@ -351,7 +355,8 @@ export class DecodedMessage {
     contentBytes: Uint8Array,
     conversation: Conversation,
     senderAddress: string,
-    error?: Error
+    error?: Error,
+    contentFallback?: string
   ): DecodedMessage {
     const { id, sent } = message
 
@@ -366,6 +371,7 @@ export class DecodedMessage {
       contentTopic,
       conversation,
       error,
+      contentFallback,
     })
   }
 }
@@ -378,7 +384,7 @@ export async function decodeContent(contentBytes: Uint8Array, client: Client) {
   }
 
   let content: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  let contentType = new ContentTypeId(encodedContent.type)
+  const contentType = new ContentTypeId(encodedContent.type)
   let error: Error | undefined
 
   await decompress(encodedContent, 1000)
@@ -388,13 +394,14 @@ export async function decodeContent(contentBytes: Uint8Array, client: Client) {
     content = codec.decode(encodedContent as EncodedContent, client)
   } else {
     error = new Error('unknown content type ' + contentType)
-    if (encodedContent.fallback) {
-      content = encodedContent.fallback
-      contentType = ContentTypeFallback
-    }
   }
 
-  return { content, contentType, error }
+  return {
+    content,
+    contentType,
+    error,
+    contentFallback: encodedContent.fallback,
+  }
 }
 
 function conversationReferenceToConversation(
