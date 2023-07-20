@@ -2,6 +2,9 @@
 
 This package provides an XMTP content type to support direct replies to messages.
 
+> **Open for feedback**  
+> You are welcome to provide feedback on this implementation by commenting on the [Reply Content Type XIP](https://github.com/xmtp/XIPs/pull/22) (XMTP Improvement Proposal).
+
 ## What’s a reply?
 
 A reply action is a way to respond directly to a specific message in a conversation. Instead of sending a new message, users can select and reply to a particular message.

@@ -2,6 +2,9 @@
 
 The [remote-attachment](https://github.com/xmtp/xmtp-js-content-types/tree/main/remote-attachment) package provides an XMTP content type to support sending file attachments that are stored off-network. Use it to enable your app to send and receive message attachments.
 
+> **Open for feedback**  
+> You are welcome to provide feedback on this implementation by commenting on the [Remote Attachment Content Type XIP](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-17-remote-attachment-content-type-proposal.md) (XMTP Improvement Proposal).
+
 ## What’s an attachment?
 
 Attachments are files. More specifically, attachments are objects that have:

@@ -8,7 +8,9 @@ To learn more about the contents of this repository, see this README and the REA
 
 ### Packages
 
-- [`content-type-remote-attachment`](packages/content-type-remote-attachment): This package provides a remote attachment content type.
+- [`content-type-remote-attachment`](packages/content-type-remote-attachment)
+- [`content-type-reaction`](packages/content-type-reaction)
+- [`content-type-reply`](packages/content-type-reply)
 
 ## Requirements
 
