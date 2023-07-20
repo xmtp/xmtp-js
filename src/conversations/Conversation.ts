@@ -381,10 +381,9 @@ export class ConversationV1 implements Conversation {
     decrypted: Uint8Array,
     topic: string
   ): Promise<DecodedMessage> {
-    const { content, contentType, error } = await decodeContent(
-      decrypted,
-      this.client
-    )
+    const { content, contentType, error, contentFallback } =
+      await decodeContent(decrypted, this.client)
+
     return DecodedMessage.fromV1Message(
       message,
       content,
@@ -392,7 +391,8 @@ export class ConversationV1 implements Conversation {
       decrypted,
       topic,
       this,
-      error
+      error,
+      contentFallback
     )
   }
 
@@ -650,10 +650,8 @@ export class ConversationV2 implements Conversation {
       signed.sender
     ).walletSignatureAddress()
 
-    const { content, contentType, error } = await decodeContent(
-      signed.payload,
-      this.client
-    )
+    const { content, contentType, error, contentFallback } =
+      await decodeContent(signed.payload, this.client)
 
     return DecodedMessage.fromV2Message(
       msg,
@@ -663,7 +661,8 @@ export class ConversationV2 implements Conversation {
       signed.payload,
       this,
       senderAddress,
-      error
+      error,
+      contentFallback
     )
   }
 
