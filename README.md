@@ -58,6 +58,87 @@ webpack: (config, { isServer }) => {
 }
 ```
 
+#### Troubleshooting
+
+If you get into issues with `Buffer` and `polyfills` check out our fix below:
+
+1. Install buffer dependency
+
+```bash
+npm i buffer
+```
+
+2. Create a new file `polyfills.js` in the root of your project
+
+```tsx
+import { Buffer } from "buffer";
+
+window.Buffer = window.Buffer ?? Buffer;
+```
+
+3. Import it into your main file on the first line
+
+- ReacJS: `index.js` or `index.tsx`
+- VueJS: `main.js`
+- NuxtJS: `app.vue`
+
+```tsx
+import "./polyfills";
+```
+
+4. Update config files
+
+- Webpack: `vue.config.js` or `webpack.config.js`:
+
+```jsx
+const webpack = require("webpack");
+
+module.exports = {
+  configureWebpack: {
+    plugins: [
+      new webpack.ProvidePlugin({
+        Buffer: ["buffer", "Buffer"],
+      }),
+    ],
+  },
+  transpileDependencies: true,
+};
+```
+
+- Vite: `vite.config.js`:
+
+```jsx
+import { defineConfig } from "vite";
+import { Buffer } from "buffer";
+
+export default defineConfig({
+  /**/
+  define: {
+    global: {
+      Buffer: Buffer,
+    },
+  },
+  /**/
+});
+```
+
+- NuxtJS: `nuxt.config.js`:
+
+```tsx
+export default {
+  build: {
+    extend(config, { isClient }) {
+      if (isClient) {
+        config.node = {
+          Buffer: true,
+        };
+      }
+    },
+  },
+};
+```
+
+
 ## Usage
 
 The [XMTP message API](https://xmtp.org/docs/concepts/architectural-overview#network-layer) revolves around a network client that allows retrieving and sending messages to other network participants. A client must be connected to a wallet on startup. If this is the very first time the client is created, the client will generate a [key bundle](https://xmtp.org/docs/concepts/key-generation-and-usage) that is used to [encrypt and authenticate messages](https://xmtp.org/docs/concepts/invitation-and-message-encryption). The key bundle persists encrypted in the network using a [wallet signature](https://xmtp.org/docs/concepts/account-signatures). The public side of the key bundle is also regularly advertised on the network to allow parties to establish shared encryption keys. All this happens transparently, without requiring any additional code.
