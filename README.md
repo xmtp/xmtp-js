@@ -35,6 +35,10 @@ npm install @xmtp/xmtp-js
 
 Additional configuration is required in React environments due to the removal of polyfills from Webpack 5.
 
+## Troubleshoot
+
+If you get into issues with Buffer and polyfills check out our [fix below](https://xmtp.org/docs/developer-quickstart#troubleshooting)
+
 ### Create React App
 
 Use `react-scripts` prior to version `5.0.0`. For example:
