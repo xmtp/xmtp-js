@@ -49,6 +49,47 @@ describe('conversations', () => {
       expect(bobConversations[0].peerAddress).toBe(alice.address)
     })
 
+    it('lists conversations from cache', async () => {
+      const aliceConversations = await alice.conversations.list()
+      expect(aliceConversations).toHaveLength(0)
+
+      const aliceConversationsFromCache =
+        await alice.conversations.listFromCache()
+      expect(aliceConversationsFromCache).toHaveLength(0)
+
+      const bobConversationsFromCache = await bob.conversations.listFromCache()
+      expect(bobConversationsFromCache).toHaveLength(0)
+
+      const aliceToBob = await alice.conversations.newConversation(bob.address)
+      await aliceToBob.send('gm')
+      await sleep(100)
+
+      expect(await alice.conversations.listFromCache()).toHaveLength(0)
+      expect(await bob.conversations.listFromCache()).toHaveLength(0)
+
+      const aliceConversationsAfterMessage = await alice.conversations.list()
+      expect(aliceConversationsAfterMessage).toHaveLength(1)
+      expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
+
+      const aliceConversationsFromCacheAfterMessage =
+        await alice.conversations.listFromCache()
+      expect(aliceConversationsFromCacheAfterMessage).toHaveLength(1)
+      expect(aliceConversationsFromCacheAfterMessage[0].peerAddress).toBe(
+        bob.address
+      )
+
+      const bobConversations = await bob.conversations.list()
+      expect(bobConversations).toHaveLength(1)
+      expect(bobConversations[0].peerAddress).toBe(alice.address)
+
+      const bobConversationsFromCacheAfterMessage =
+        await bob.conversations.listFromCache()
+      expect(bobConversationsFromCacheAfterMessage).toHaveLength(1)
+      expect(bobConversationsFromCacheAfterMessage[0].peerAddress).toBe(
+        alice.address
+      )
+    })
+
     it('resumes list with cache after new conversation is created', async () => {
       const aliceConversations1 = await alice.conversations.list()
       expect(aliceConversations1).toHaveLength(0)

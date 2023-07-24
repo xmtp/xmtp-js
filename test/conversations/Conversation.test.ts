@@ -31,9 +31,12 @@ describe('conversation', () => {
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
+      expect(aliceConversation.conversationVersion).toBe('v1')
+
       const bobConversation = await bob.conversations.newConversation(
         alice.address
       )
+      expect(bobConversation.conversationVersion).toBe('v1')
 
       const startingMessages = await aliceConversation.messages()
       expect(startingMessages).toHaveLength(0)
@@ -499,6 +502,7 @@ describe('conversation', () => {
       )
 
       const ac = await alice.conversations.newConversation(bob.address)
+      expect(ac.conversationVersion).toBe('v2')
       if (!(ac instanceof ConversationV2)) {
         fail()
       }
@@ -508,6 +512,7 @@ describe('conversation', () => {
       const bcs = await bob.conversations.list()
       expect(bcs).toHaveLength(1)
       const bc = bcs[0]
+      expect(bc.conversationVersion).toBe('v2')
       if (!(bc instanceof ConversationV2)) {
         fail()
       }

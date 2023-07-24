@@ -31,7 +31,12 @@ export {
   KeyStoreOptions,
   LegacyOptions,
 } from './Client'
-export { Conversations, Conversation } from './conversations'
+export {
+  Conversations,
+  Conversation,
+  ConversationV1,
+  ConversationV2,
+} from './conversations'
 export {
   CodecRegistry,
   ContentTypeId,

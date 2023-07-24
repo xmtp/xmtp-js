@@ -39,6 +39,7 @@ import { ContentTypeText } from '../codecs/Text'
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
  */
 export interface Conversation {
+  conversationVersion: 'v1' | 'v2'
   /**
    * The wallet address connected to the client
    */
@@ -145,6 +146,7 @@ export interface Conversation {
  * ConversationV1 allows you to view, stream, and send messages to/from a peer address
  */
 export class ConversationV1 implements Conversation {
+  conversationVersion = 'v1' as const
   peerAddress: string
   createdAt: Date
   context = undefined
@@ -418,6 +420,7 @@ export class ConversationV1 implements Conversation {
  * ConversationV2
  */
 export class ConversationV2 implements Conversation {
+  conversationVersion = 'v2' as const
   client: Client
   topic: string
   peerAddress: string

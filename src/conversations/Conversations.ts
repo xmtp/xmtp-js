@@ -64,6 +64,10 @@ export class ConversationCache {
 
     return [...this.conversations]
   }
+
+  list() {
+    return [...this.conversations]
+  }
 }
 
 /**
@@ -89,6 +93,19 @@ export default class Conversations {
       this.listV2Conversations(),
     ])
 
+    const conversations = v1Convos.concat(v2Convos)
+
+    conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    return conversations
+  }
+
+  /**
+   * List all conversations stored in the client cache, which may not include
+   * conversations on the network.
+   */
+  async listFromCache(): Promise<Conversation[]> {
+    const v1Convos = this.v1Cache.list()
+    const v2Convos = await this.getV2ConversationsFromKeystore()
     const conversations = v1Convos.concat(v2Convos)
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
