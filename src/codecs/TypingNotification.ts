@@ -47,4 +47,9 @@ export class TypingNotificationCodec
       isFinished,
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fallback(content: TypingNotification): string | undefined {
+    return undefined
+  }
 }
