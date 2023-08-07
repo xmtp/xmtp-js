@@ -53,7 +53,6 @@ export type ListMessagesPaginatedOptions = {
 }
 
 // Parameters for the send functions
-export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
   contentFallback?: string
@@ -61,6 +60,8 @@ export type SendOptions = {
   timestamp?: Date
   ephemeral?: boolean
 }
+
+export { Compression }
 
 export type XmtpEnv = keyof typeof ApiUrls
 export type PreEventCallback = () => Promise<void>
