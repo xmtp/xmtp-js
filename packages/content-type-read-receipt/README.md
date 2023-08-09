@@ -29,7 +29,7 @@ pnpm i @xmtp/content-type-read-receipt
 
 With XMTP, read receipts are represented as objects with the following keys:
 
-- `timestamp`: The timestamp the read receipt was sent
+- `timestamp`: The timestamp the read receipt was sent, in ISO 8601 format
 
 ```tsx
 const readReceipt: ReadReceipt = {
@@ -74,7 +74,7 @@ While this is a per-app decision, we do recommend having this as a toggle in you
 
 ## Playground Implementation
 
-In our playground implementation, we store our read receipts in IndexDB in its own table, separate from regular messages.
+In our playground implementation, we store our read receipts in IndexedDB in its own table, separate from regular messages.
 
 We send a read receipt when a user opens a conversation only if the most recent message was from the other party, and there is no read receipt after that last message timestamp in the read receipts table. Our decision to do this for the last message instead of for all received messages had to do with not wanting to potentially double the # of messages by sending read receipts for every single message.
 
