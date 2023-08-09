@@ -240,6 +240,10 @@ export default class ApiClient {
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)
           }
+
+          if (onConnectionLost) {
+            onConnectionLost()
+          }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           if (isAbortError(err) || abortController.signal.aborted) {
@@ -249,11 +253,13 @@ export default class ApiClient {
             'Stream connection closed. Resubscribing',
             err.toString()
           )
-          if (onConnectionLost) {
-            onConnectionLost()
-          }
+
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)
+          }
+
+          if (onConnectionLost) {
+            onConnectionLost()
           }
         }
       }
