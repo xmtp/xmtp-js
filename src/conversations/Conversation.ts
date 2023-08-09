@@ -1,3 +1,4 @@
+import { OnConnectionLostCallback } from './../ApiClient'
 import {
   buildUserIntroTopic,
   buildDirectMessageTopic,
@@ -32,6 +33,7 @@ import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
+import { OnceBlockable } from 'ethers/lib/utils'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -262,11 +264,15 @@ export class ConversationV1 implements Conversation {
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<DecodedMessage>> {
+  streamMessages(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
-      async (env: messageApi.Envelope) => this.decodeMessage(env)
+      async (env: messageApi.Envelope) => this.decodeMessage(env),
+      undefined,
+      onConnectionLost
     )
   }
 
@@ -291,11 +297,15 @@ export class ConversationV1 implements Conversation {
     return decoded
   }
 
-  streamEphemeral(): Promise<Stream<DecodedMessage>> {
+  streamEphemeral(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.ephemeralTopic],
-      this.decodeMessage.bind(this)
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
@@ -472,22 +482,30 @@ export class ConversationV2 implements Conversation {
     return this.topic.replace('/xmtp/0/m', '/xmtp/0/mE')
   }
 
-  streamEphemeral(): Promise<Stream<DecodedMessage>> {
+  streamEphemeral(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.ephemeralTopic],
-      this.decodeMessage.bind(this)
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<DecodedMessage>> {
+  streamMessages(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
-      this.decodeMessage.bind(this)
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
