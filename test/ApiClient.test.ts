@@ -295,10 +295,15 @@ describe('Subscribe', () => {
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
     }
+    let numDisconnects = 0
+    let onDisconnect = () => {
+      numDisconnects++
+    }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    const unsubscribeFn = client.subscribe(req, cb)
+    const unsubscribeFn = client.subscribe(req, cb, onDisconnect)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
+    expect(numDisconnects).toBe(1)
     // Resubscribing triggers an info log
     expect(consoleInfo).toBeCalledTimes(1)
     expect(subscribeMock).toBeCalledTimes(2)
