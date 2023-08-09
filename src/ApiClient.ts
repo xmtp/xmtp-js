@@ -241,9 +241,7 @@ export default class ApiClient {
             await sleep(1000)
           }
 
-          if (onConnectionLost) {
-            onConnectionLost()
-          }
+          onConnectionLost?.()
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           if (isAbortError(err) || abortController.signal.aborted) {
@@ -258,9 +256,7 @@ export default class ApiClient {
             await sleep(1000)
           }
 
-          if (onConnectionLost) {
-            onConnectionLost()
-          }
+          onConnectionLost?.()
         }
       }
     }
