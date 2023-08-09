@@ -2,15 +2,18 @@
 
 This package provides an XMTP content type to support read receipts to messages.
 
+> **Open for feedback**  
+> You are welcome to provide feedback on this implementation by commenting on the [Read Receipts content type proposal](https://github.com/xmtp/XIPs/pull/27).
+
 ## What’s a read receipt?
 
-A read receipt is a message sent to confirm that a previously sent message has been read by the recipient. With XMTP, read receipts are special messages with the ReadReceipt content type. They contain a timestamp of when the original message was read.
+A read receipt is a message sent to confirm that a previously sent message has been read by the recipient. With XMTP, read receipts are special messages with the `ReadReceipt` content type. They contain a timestamp of when the original message was read.
 
-When someone receives a message on an app with read receipts enabled, their XMTP client can send a read receipt when they open that message.
+When someone receives a message using an app with read receipts enabled, their XMTP client can send a read receipt when they open that message.
 
 ## Why read receipts?
 
-Read receipts give the sender confirmation that the recipient has read their message. This avoids uncertainty on whether a message was seen, without needing to rely on responses.
+Read receipts give the sender confirmation that the recipient has read their message. This avoids uncertainty about whether a message was seen, without needing to rely on a manual response.
 
 ## Install the package
 
@@ -68,19 +71,19 @@ if (message.contentType.sameAs(ContentTypeReadReceipt)) {
 
 Generally, read receipts should be displayed under the message it's associated with, and can include a timestamp or no timestamp. Ultimately, how you choose to display read receipts is completely up to you.
 
-## UX Notes
+## UX best practices
 
-While this is a per-app decision, we do recommend having this as a toggle in your app so users can also opt-out should they choose not to send read receipts to messages from their recipients.
+While this is a per-app decision, the best practice is to provide users with the option to opt out of sending read receipts. If a user opts out, when they read a message, a read receipt will not be sent to the sender of the message.
 
-## Playground Implementation
+## Playground implementation
 
-In our playground implementation, we store our read receipts in IndexedDB in its own table, separate from regular messages.
+In the XMTP React playground implementation, read receipts are stored in IndexedDB in their own table, separate from regular messages.
 
-We send a read receipt when a user opens a conversation only if the most recent message was from the other party, and there is no read receipt after that last message timestamp in the read receipts table. Our decision to do this for the last message instead of for all received messages had to do with not wanting to potentially double the # of messages by sending read receipts for every single message.
+A read receipt is sent when a user opens a conversation only if the most recent message was from the other party, and there is no read receipt after that last message timestamp in the read receipts table. The decision to do this for the last message instead of for all received messages has to do with not wanting to potentially double the number of messages by sending read receipts for every single message.
 
-You can view that playground implementation here: https://github.com/xmtp/xmtp-react-playground
+To try it out, see the [XMTP React playground](https://github.com/xmtp/xmtp-react-playground).
 
-We show a read receipt if the most recent message was from the other party and a read receipt for that message exists.
+A read receipt is shown if the most recent message was from the other party and a read receipt for that message exists.
 
 ## Developing
 
