@@ -240,7 +240,7 @@ export default class Conversations {
    * Does not dedupe any other previously seen conversations
    */
   async stream(
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<Stream<Conversation>> {
     const seenPeers: Set<string> = new Set()
     const introTopic = buildUserIntroTopic(this.client.address)
@@ -280,7 +280,7 @@ export default class Conversations {
       [inviteTopic, introTopic],
       decodeConversation.bind(this),
       undefined,
-      onConnectionLostCallback
+      onConnectionLost
     )
   }
 
@@ -292,7 +292,7 @@ export default class Conversations {
    *
    */
   async streamAllMessages(
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<AsyncGenerator<DecodedMessage>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
@@ -394,7 +394,7 @@ export default class Conversations {
       Array.from(topics.values()),
       decodeMessage,
       contentTopicUpdater,
-      onConnectionLostCallback
+      onConnectionLost
     )
 
     return (async function* generate() {

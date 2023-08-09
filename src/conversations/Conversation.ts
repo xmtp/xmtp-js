@@ -265,14 +265,14 @@ export class ConversationV1 implements Conversation {
    * Returns a Stream of any new messages to/from the peerAddress
    */
   streamMessages(
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
       async (env: messageApi.Envelope) => this.decodeMessage(env),
       undefined,
-      onConnectionLostCallback
+      onConnectionLost
     )
   }
 
@@ -298,14 +298,14 @@ export class ConversationV1 implements Conversation {
   }
 
   streamEphemeral(
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.ephemeralTopic],
       this.decodeMessage.bind(this),
       undefined,
-      onConnectionLostCallback
+      onConnectionLost
     )
   }
 
@@ -483,14 +483,14 @@ export class ConversationV2 implements Conversation {
   }
 
   streamEphemeral(
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.ephemeralTopic],
       this.decodeMessage.bind(this),
       undefined,
-      onConnectionLostCallback
+      onConnectionLost
     )
   }
 
@@ -498,14 +498,14 @@ export class ConversationV2 implements Conversation {
    * Returns a Stream of any new messages to/from the peerAddress
    */
   streamMessages(
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
       this.decodeMessage.bind(this),
       undefined,
-      onConnectionLostCallback
+      onConnectionLost
     )
   }
 

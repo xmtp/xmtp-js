@@ -25,21 +25,21 @@ export default class Stream<T> {
 
   unsubscribeFn?: UnsubscribeFn
 
-  onConnectionLostCallback?: OnConnectionLostCallback
+  onConnectionLost?: OnConnectionLostCallback
 
   constructor(
     client: Client,
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ) {
     this.messages = []
     this.resolvers = []
     this.topics = topics
     this.client = client
     this.callback = this.newMessageCallback(decoder, contentTopicUpdater)
-    this.onConnectionLostCallback = onConnectionLostCallback
+    this.onConnectionLost = onConnectionLost
   }
 
   // returns new closure to handle incoming messages
@@ -92,7 +92,7 @@ export default class Stream<T> {
         if (!this.callback) return
         await this?.callback(env)
       },
-      this.onConnectionLostCallback
+      this.onConnectionLost
     )
   }
 
@@ -101,14 +101,14 @@ export default class Stream<T> {
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
-    onConnectionLostCallback?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<Stream<T>> {
     const stream = new Stream(
       client,
       topics,
       decoder,
       contentTopicUpdater,
-      onConnectionLostCallback
+      onConnectionLost
     )
     await stream.start()
     return stream
@@ -169,7 +169,7 @@ export default class Stream<T> {
         if (!this.callback) return
         await this?.callback(env)
       },
-      this.onConnectionLostCallback
+      this.onConnectionLost
     )
   }
 }
