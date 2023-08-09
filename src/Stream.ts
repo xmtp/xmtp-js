@@ -1,4 +1,4 @@
-import { UnsubscribeFn } from './ApiClient'
+import { OnConnectionLostCallback, UnsubscribeFn } from './ApiClient'
 import Client from './Client'
 import { messageApi } from '@xmtp/proto'
 
@@ -25,17 +25,21 @@ export default class Stream<T> {
 
   unsubscribeFn?: UnsubscribeFn
 
+  onConnectionLostCallback?: OnConnectionLostCallback
+
   constructor(
     client: Client,
     topics: string[],
     decoder: MessageDecoder<T>,
-    contentTopicUpdater?: ContentTopicUpdater<T>
+    contentTopicUpdater?: ContentTopicUpdater<T>,
+    onConnectionLostCallback?: OnConnectionLostCallback
   ) {
     this.messages = []
     this.resolvers = []
     this.topics = topics
     this.client = client
     this.callback = this.newMessageCallback(decoder, contentTopicUpdater)
+    this.onConnectionLostCallback = onConnectionLostCallback
   }
 
   // returns new closure to handle incoming messages
@@ -87,7 +91,8 @@ export default class Stream<T> {
       async (env: messageApi.Envelope) => {
         if (!this.callback) return
         await this?.callback(env)
-      }
+      },
+      this.onConnectionLostCallback
     )
   }
 
@@ -95,9 +100,16 @@ export default class Stream<T> {
     client: Client,
     topics: string[],
     decoder: MessageDecoder<T>,
-    contentTopicUpdater?: ContentTopicUpdater<T>
+    contentTopicUpdater?: ContentTopicUpdater<T>,
+    onConnectionLostCallback?: OnConnectionLostCallback
   ): Promise<Stream<T>> {
-    const stream = new Stream(client, topics, decoder, contentTopicUpdater)
+    const stream = new Stream(
+      client,
+      topics,
+      decoder,
+      contentTopicUpdater,
+      onConnectionLostCallback
+    )
     await stream.start()
     return stream
   }
@@ -156,7 +168,8 @@ export default class Stream<T> {
       async (env: messageApi.Envelope) => {
         if (!this.callback) return
         await this?.callback(env)
-      }
+      },
+      this.onConnectionLostCallback
     )
   }
 }

@@ -1,3 +1,4 @@
+import { OnConnectionLostCallback } from './../ApiClient'
 import { messageApi, keystore, conversationReference } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
@@ -238,7 +239,9 @@ export default class Conversations {
    * Will dedupe to not return the same conversation twice in the same stream.
    * Does not dedupe any other previously seen conversations
    */
-  async stream(): Promise<Stream<Conversation>> {
+  async stream(
+    onConnectionLostCallback?: OnConnectionLostCallback
+  ): Promise<Stream<Conversation>> {
     const seenPeers: Set<string> = new Set()
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
@@ -275,7 +278,9 @@ export default class Conversations {
     return Stream.create<Conversation>(
       this.client,
       [inviteTopic, introTopic],
-      decodeConversation.bind(this)
+      decodeConversation.bind(this),
+      undefined,
+      onConnectionLostCallback
     )
   }
 
@@ -286,7 +291,9 @@ export default class Conversations {
    * Callers should be aware the first messages in a newly created conversation are picked up on a best effort basis and there are other potential race conditions which may cause some newly created conversations to be missed.
    *
    */
-  async streamAllMessages(): Promise<AsyncGenerator<DecodedMessage>> {
+  async streamAllMessages(
+    onConnectionLostCallback?: OnConnectionLostCallback
+  ): Promise<AsyncGenerator<DecodedMessage>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
     const topics = new Set<string>([introTopic, inviteTopic])
@@ -386,7 +393,8 @@ export default class Conversations {
       this.client,
       Array.from(topics.values()),
       decodeMessage,
-      contentTopicUpdater
+      contentTopicUpdater,
+      onConnectionLostCallback
     )
 
     return (async function* generate() {

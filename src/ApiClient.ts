@@ -92,6 +92,8 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 
 export type UnsubscribeFn = () => Promise<void>
 
+export type OnConnectionLostCallback = () => void
+
 const isAbortError = (err?: Error): boolean => {
   if (!err) {
     return false
@@ -216,7 +218,8 @@ export default class ApiClient {
   // Raw method for subscribing
   private _subscribe(
     req: messageApi.SubscribeRequest,
-    cb: NotifyStreamEntityArrival<messageApi.Envelope>
+    cb: NotifyStreamEntityArrival<messageApi.Envelope>,
+    onConnectionLost?: OnConnectionLostCallback
   ): UnsubscribeFn {
     const abortController = new AbortController()
 
@@ -246,6 +249,9 @@ export default class ApiClient {
             'Stream connection closed. Resubscribing',
             err.toString()
           )
+          if (onConnectionLost) {
+            onConnectionLost()
+          }
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)
           }
@@ -428,13 +434,14 @@ export default class ApiClient {
   // Returns an unsubscribe function that can be used to end the subscription
   subscribe(
     params: SubscribeParams,
-    callback: SubscribeCallback
+    callback: SubscribeCallback,
+    onConnectionLost?: OnConnectionLostCallback
   ): UnsubscribeFn {
     if (!params.contentTopics.length) {
       throw new Error('Must provide list of contentTopics to subscribe to')
     }
 
-    return this._subscribe(params, callback)
+    return this._subscribe(params, callback, onConnectionLost)
   }
 
   private getToken(): Promise<string> {
