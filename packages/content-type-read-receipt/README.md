@@ -3,7 +3,7 @@
 This package provides an XMTP content type to support read receipts to messages.
 
 > **Open for feedback**  
-> You are welcome to provide feedback on this implementation by commenting on the [Read Receipts content type proposal](https://github.com/xmtp/XIPs/pull/27).
+> You are welcome to provide feedback on this implementation by commenting on the [Read Receipts content type proposal](https://github.com/orgs/xmtp/discussions/43).
 
 ## What’s a read receipt?
 
