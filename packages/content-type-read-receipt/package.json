@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-read-receipt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An XMTP content type to support read receipts",
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
