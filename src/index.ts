@@ -1,3 +1,4 @@
+import { Authenticator } from './authn/interfaces'
 export {
   Message,
   DecodedMessage,
@@ -55,7 +56,21 @@ export {
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
-export { ApiUrls, SortDirection } from './ApiClient'
+export {
+  ApiUrls,
+  SortDirection,
+  IApiClient,
+  QueryParams,
+  QueryAllOptions,
+  QueryStreamOptions,
+  Query,
+  PublishParams,
+  SubscribeParams,
+  SubscribeCallback,
+  UnsubscribeFn,
+  OnConnectionLostCallback,
+} from './ApiClient'
+export { Authenticator, AuthCache } from './authn'
 export {
   nsToDate,
   dateToNs,

@@ -115,11 +115,37 @@ const isAuthError = (err?: GrpcError | Error): boolean => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
 
+export interface IApiClient {
+  query(
+    params: QueryParams,
+    options: QueryAllOptions
+  ): Promise<messageApi.Envelope[]>
+  queryIterator(
+    params: QueryParams,
+    options: QueryStreamOptions
+  ): AsyncGenerator<messageApi.Envelope>
+  queryIteratePages(
+    params: QueryParams,
+    options: QueryStreamOptions
+  ): AsyncGenerator<messageApi.Envelope[]>
+  subscribe(
+    params: SubscribeParams,
+    callback: SubscribeCallback,
+    onConnectionLost?: OnConnectionLostCallback
+  ): UnsubscribeFn
+  publish(messages: PublishParams[]): ReturnType<typeof MessageApi.Publish>
+  batchQuery(queries: Query[]): Promise<messageApi.Envelope[][]>
+  setAuthenticator(
+    authenticator: Authenticator,
+    cacheExpirySeconds?: number
+  ): void
+}
+
 /**
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
  * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
  */
-export default class ApiClient {
+export default class ApiClient implements IApiClient {
   pathPrefix: string
   maxRetries: number
   private authCache?: AuthCache

@@ -14,7 +14,12 @@ import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
 import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
+import ApiClient, {
+  ApiUrls,
+  IApiClient,
+  PublishParams,
+  SortDirection,
+} from './ApiClient'
 import { KeystoreAuthenticator } from './authn'
 import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
@@ -105,6 +110,8 @@ export type NetworkOptions = {
    * a push notification.
    */
   skipContactPublishing: boolean
+
+  apiClientFactory: (options: NetworkOptions) => IApiClient
 }
 
 export type ContentOptions = {
@@ -189,6 +196,8 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     persistConversations: true,
     skipContactPublishing: false,
     keystoreProviders: defaultKeystoreProviders(),
+    apiClientFactory: (options: NetworkOptions) =>
+      createApiClientFromOptions(options),
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
@@ -204,7 +213,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
 export default class Client {
   address: string
   keystore: Keystore
-  apiClient: ApiClient
+  apiClient: IApiClient
   contacts: Set<string> // address which we have connected to
   publicKeyBundle: PublicKeyBundle
   private knownPublicKeyBundles: Map<
@@ -220,7 +229,7 @@ export default class Client {
 
   constructor(
     publicKeyBundle: PublicKeyBundle,
-    apiClient: ApiClient,
+    apiClient: IApiClient,
     backupClient: BackupClient,
     keystore: Keystore
   ) {
@@ -266,7 +275,7 @@ export default class Client {
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
-    const apiClient = createApiClientFromOptions(options)
+    const apiClient = options.apiClientFactory(options)
     const keystore = await bootstrapKeystore(options, apiClient, wallet)
     const publicKeyBundle = new PublicKeyBundle(
       await keystore.getPublicKeyBundle()
@@ -660,7 +669,7 @@ export default class Client {
   }
 }
 
-function createApiClientFromOptions(options: ClientOptions): ApiClient {
+function createApiClientFromOptions(options: NetworkOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
   return new ApiClient(apiUrl, { appVersion: options.appVersion })
 }
@@ -669,7 +678,7 @@ function createApiClientFromOptions(options: ClientOptions): ApiClient {
  * Retrieve a key bundle from given user's contact topic
  */
 async function getUserContactFromNetwork(
-  apiClient: ApiClient,
+  apiClient: IApiClient,
   peerAddress: string
 ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
   const stream = apiClient.queryIterator(
@@ -698,7 +707,7 @@ async function getUserContactFromNetwork(
  * Retrieve a list of key bundles given a list of user addresses
  */
 async function getUserContactsFromNetwork(
-  apiClient: ApiClient,
+  apiClient: IApiClient,
   peerAddresses: string[]
 ): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
   const userContactTopics = peerAddresses.map(buildUserContactTopic)
@@ -762,7 +771,7 @@ export function defaultKeystoreProviders(): KeystoreProvider[] {
  */
 async function bootstrapKeystore(
   opts: ClientOptions,
-  apiClient: ApiClient,
+  apiClient: IApiClient,
   wallet: Signer | null
 ): Promise<Keystore> {
   for (const provider of opts.keystoreProviders) {

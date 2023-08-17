@@ -1,5 +1,5 @@
 import { Signer } from './../../types/Signer'
-import ApiClient from '../../ApiClient'
+import type { IApiClient } from '../../ApiClient'
 import { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
 import NetworkKeyLoader from './NetworkKeyManager'
 import { KeystoreProviderUnavailableError } from './errors'
@@ -16,7 +16,7 @@ import { buildPersistenceFromOptions } from './helpers'
 export default class NetworkKeystoreProvider implements KeystoreProvider {
   async newKeystore(
     opts: KeystoreProviderOptions,
-    apiClient: ApiClient,
+    apiClient: IApiClient,
     wallet?: Signer
   ): Promise<Keystore> {
     if (!wallet) {

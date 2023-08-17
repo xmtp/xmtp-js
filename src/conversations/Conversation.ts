@@ -33,7 +33,6 @@ import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
-import { OnceBlockable } from 'ethers/lib/utils'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
