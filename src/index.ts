@@ -14,6 +14,8 @@ export {
   SignedPublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   Signature,
   encrypt,
   decrypt,
