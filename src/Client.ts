@@ -32,6 +32,7 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
+import { LocalStoragePersistence, Persistence } from './keystore/persistence'
 const { Compression } = proto
 const { b64Decode } = fetcher
 
@@ -144,6 +145,17 @@ export type KeyStoreOptions = {
    * A bundle can be retried using `Client.getKeys(...)`
    */
   privateKeyOverride?: Uint8Array
+
+  /**
+   * Override the base persistence provider.
+   * Defaults to LocalStoragePersistence, which is fine for most implementations
+   */
+  basePersistence: Persistence
+  /**
+   * Whether or not the persistence provider should encrypt the values.
+   * Only disable if you are using a secure datastore that already has encryption
+   */
+  disablePersistenceEncryption: boolean
 }
 
 export type LegacyOptions = {
@@ -195,10 +207,13 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     maxContentSize: MaxContentSize,
     persistConversations: true,
     skipContactPublishing: false,
+    basePersistence: new LocalStoragePersistence(),
+    disablePersistenceEncryption: false,
     keystoreProviders: defaultKeystoreProviders(),
     apiClientFactory: (options: NetworkOptions) =>
       createApiClientFromOptions(options),
   }
+
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
   }

@@ -1,10 +1,6 @@
 import { PrivateKeyBundleV2 } from './../../crypto/PrivateKeyBundle'
 import { PrivateKeyBundleV1 } from '../../crypto/PrivateKeyBundle'
-import {
-  EncryptedPersistence,
-  LocalStoragePersistence,
-  PrefixedPersistence,
-} from '../persistence'
+import { EncryptedPersistence, PrefixedPersistence } from '../persistence'
 import { KeystoreProviderOptions } from './interfaces'
 
 export const buildPersistenceFromOptions = async (
@@ -16,9 +12,13 @@ export const buildPersistenceFromOptions = async (
   }
   const address = await keys.identityKey.publicKey.walletSignatureAddress()
   const prefix = `xmtp/${opts.env}/${address}/`
+  const basePersistence = opts.basePersistence
+  const shouldEncrypt = !opts.disablePersistenceEncryption
 
   return new PrefixedPersistence(
     prefix,
-    new EncryptedPersistence(new LocalStoragePersistence(), keys.identityKey)
+    shouldEncrypt
+      ? new EncryptedPersistence(basePersistence, keys.identityKey)
+      : basePersistence
   )
 }
