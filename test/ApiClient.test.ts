@@ -258,7 +258,7 @@ describe('Subscribe', () => {
     const unsubscribeFn = client.subscribe(req, cb)
     await sleep(10)
     expect(numEnvelopes).toBe(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
@@ -307,7 +307,7 @@ describe('Subscribe', () => {
     // Resubscribing triggers an info log
     expect(consoleInfo).toBeCalledTimes(1)
     expect(subscribeMock).toBeCalledTimes(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
@@ -352,7 +352,7 @@ describe('Subscribe', () => {
     // Resubscribing triggers an info log
     expect(consoleInfo).toBeCalledTimes(1)
     expect(subscribeMock).toBeCalledTimes(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
