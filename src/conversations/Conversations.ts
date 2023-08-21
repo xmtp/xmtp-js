@@ -9,7 +9,6 @@ import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
 import {
-  b64Decode,
   buildUserIntroTopic,
   buildUserInviteTopic,
   dateToNs,
@@ -191,7 +190,7 @@ export default class Conversations {
   ): Promise<ConversationV2[]> {
     const { responses } = await this.client.keystore.saveInvites({
       requests: envelopes.map((env) => ({
-        payload: b64Decode(env.message as unknown as string),
+        payload: env.message as Uint8Array,
         timestampNs: Long.fromString(env.timestampNs as string),
         contentTopic: env.contentTopic as string,
       })),
@@ -257,8 +256,10 @@ export default class Conversations {
 
     const decodeConversation = async (env: messageApi.Envelope) => {
       if (env.contentTopic === introTopic) {
-        const messageBytes = b64Decode(env.message as unknown as string)
-        const msg = await MessageV1.fromBytes(messageBytes)
+        if (!env.message) {
+          throw new Error('empty envelope')
+        }
+        const msg = await MessageV1.fromBytes(env.message)
         const peerAddress = this.getPeerAddress(msg)
         if (!newPeer(peerAddress)) {
           return undefined
@@ -308,13 +309,12 @@ export default class Conversations {
       env: messageApi.Envelope
     ): Promise<Conversation | DecodedMessage | null> => {
       const contentTopic = env.contentTopic
-      if (!contentTopic) {
+      if (!contentTopic || !env.message) {
         return null
       }
 
       if (contentTopic === introTopic) {
-        const messageBytes = b64Decode(env.message as unknown as string)
-        const msg = await MessageV1.fromBytes(messageBytes)
+        const msg = await MessageV1.fromBytes(env.message)
         if (!messageHasHeaders(msg)) {
           return null
         }
@@ -420,7 +420,10 @@ export default class Conversations {
     const messages = await this.client.listEnvelopes(
       topic,
       (env) => {
-        return MessageV1.fromBytes(b64Decode(env.message as unknown as string))
+        if (!env.message) {
+          throw new Error('empty envelope')
+        }
+        return MessageV1.fromBytes(env.message)
       },
       opts
     )

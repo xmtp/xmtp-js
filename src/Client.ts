@@ -12,7 +12,7 @@ import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
-import { content as proto, messageApi, fetcher } from '@xmtp/proto'
+import { content as proto, messageApi } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import HttpApiClient, {
   ApiUrls,
@@ -33,7 +33,6 @@ import {
   StaticKeystoreProvider,
 } from './keystore/providers'
 const { Compression } = proto
-const { b64Decode } = fetcher
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
 // eslint-disable @typescript-eslint/no-explicit-any
@@ -687,7 +686,7 @@ async function getUserContactFromNetwork(
 
   for await (const env of stream) {
     if (!env.message) continue
-    const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
+    const keyBundle = decodeContactBundle(env.message)
     let address: string | undefined
     try {
       address = await keyBundle?.walletSignatureAddress()
@@ -729,9 +728,7 @@ async function getUserContactsFromNetwork(
       for (const env of envelopes) {
         if (!env.message) continue
         try {
-          const keyBundle = decodeContactBundle(
-            b64Decode(env.message.toString())
-          )
+          const keyBundle = decodeContactBundle(env.message)
           const signingAddress = await keyBundle?.walletSignatureAddress()
           if (address === signingAddress) {
             return keyBundle
