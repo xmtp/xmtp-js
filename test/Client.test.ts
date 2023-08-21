@@ -8,7 +8,7 @@ import {
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
-import { Compression, HttpApiClient, PublishParams } from '../src'
+import { ApiUrls, Compression, HttpApiClient, PublishParams } from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 import { PrivateKeyBundleV1 } from '../src/crypto'
@@ -330,7 +330,7 @@ describe('ClientOptions', () => {
 
       const c = newLocalHostClient({
         apiClientFactory: (opts) => {
-          return new CustomApiClient('foo')
+          return new CustomApiClient(ApiUrls.local)
         },
       })
       expect(c).rejects.toThrow(expectedError)
