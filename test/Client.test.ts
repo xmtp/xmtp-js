@@ -5,16 +5,16 @@ import {
   newDevClient,
   waitForUserContact,
   newLocalHostClientWithCustomWallet,
-  sleep,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
-import { Compression } from '../src'
+import { Compression, HttpApiClient, PublishParams } from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 import { PrivateKeyBundleV1 } from '../src/crypto'
 import { Wallet } from 'ethers'
 import { NetworkKeystoreProvider } from '../src/keystore/providers'
+import { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
 
 type TestCase = {
   name: string
@@ -316,6 +316,24 @@ describe('ClientOptions', () => {
       const c = await testCase.newClient({
         persistConversations: true,
       })
+    })
+  })
+
+  describe('Pluggable API client', () => {
+    it('allows you to specify a custom API client factory', async () => {
+      const expectedError = new Error('CustomApiClient')
+      class CustomApiClient extends HttpApiClient {
+        publish(messages: PublishParams[]): Promise<PublishResponse> {
+          return Promise.reject(expectedError)
+        }
+      }
+
+      const c = newLocalHostClient({
+        apiClientFactory: (opts) => {
+          return new CustomApiClient('foo')
+        },
+      })
+      expect(c).rejects.toThrow(expectedError)
     })
   })
 })

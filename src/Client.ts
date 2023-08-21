@@ -196,8 +196,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     persistConversations: true,
     skipContactPublishing: false,
     keystoreProviders: defaultKeystoreProviders(),
-    apiClientFactory: (options: NetworkOptions) =>
-      createHttpApiClientFromOptions(options),
+    apiClientFactory: createHttpApiClientFromOptions,
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
