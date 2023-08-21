@@ -14,9 +14,9 @@ import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
 import { content as proto, messageApi, fetcher } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import ApiClient, {
+import HttpApiClient, {
   ApiUrls,
-  IApiClient,
+  ApiClient,
   PublishParams,
   SortDirection,
 } from './ApiClient'
@@ -111,7 +111,7 @@ export type NetworkOptions = {
    */
   skipContactPublishing: boolean
 
-  apiClientFactory: (options: NetworkOptions) => IApiClient
+  apiClientFactory: (options: NetworkOptions) => ApiClient
 }
 
 export type ContentOptions = {
@@ -197,7 +197,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     skipContactPublishing: false,
     keystoreProviders: defaultKeystoreProviders(),
     apiClientFactory: (options: NetworkOptions) =>
-      createApiClientFromOptions(options),
+      createHttpApiClientFromOptions(options),
   }
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
@@ -213,7 +213,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
 export default class Client {
   address: string
   keystore: Keystore
-  apiClient: IApiClient
+  apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   publicKeyBundle: PublicKeyBundle
   private knownPublicKeyBundles: Map<
@@ -229,7 +229,7 @@ export default class Client {
 
   constructor(
     publicKeyBundle: PublicKeyBundle,
-    apiClient: IApiClient,
+    apiClient: ApiClient,
     backupClient: BackupClient,
     keystore: Keystore
   ) {
@@ -494,6 +494,9 @@ export default class Client {
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+    const apiClient = new HttpApiClient(apiUrl, {
+      appVersion: opts?.appVersion,
+    })
 
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
@@ -504,7 +507,7 @@ export default class Client {
       // The getUserContactsFromNetwork will return false instead of throwing
       // on invalid envelopes
       const contacts = await getUserContactsFromNetwork(
-        new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
+        apiClient,
         normalizedPeerAddresses
       )
       return contacts.map((contact) => !!contact)
@@ -514,10 +517,7 @@ export default class Client {
     } catch (e) {
       return false
     }
-    const keyBundle = await getUserContactFromNetwork(
-      new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
-      peerAddress
-    )
+    const keyBundle = await getUserContactFromNetwork(apiClient, peerAddress)
     return keyBundle !== undefined
   }
 
@@ -669,16 +669,16 @@ export default class Client {
   }
 }
 
-function createApiClientFromOptions(options: NetworkOptions): ApiClient {
+function createHttpApiClientFromOptions(options: NetworkOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
-  return new ApiClient(apiUrl, { appVersion: options.appVersion })
+  return new HttpApiClient(apiUrl, { appVersion: options.appVersion })
 }
 
 /**
  * Retrieve a key bundle from given user's contact topic
  */
 async function getUserContactFromNetwork(
-  apiClient: IApiClient,
+  apiClient: ApiClient,
   peerAddress: string
 ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
   const stream = apiClient.queryIterator(
@@ -707,7 +707,7 @@ async function getUserContactFromNetwork(
  * Retrieve a list of key bundles given a list of user addresses
  */
 async function getUserContactsFromNetwork(
-  apiClient: IApiClient,
+  apiClient: ApiClient,
   peerAddresses: string[]
 ): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
   const userContactTopics = peerAddresses.map(buildUserContactTopic)
@@ -771,7 +771,7 @@ export function defaultKeystoreProviders(): KeystoreProvider[] {
  */
 async function bootstrapKeystore(
   opts: ClientOptions,
-  apiClient: IApiClient,
+  apiClient: ApiClient,
   wallet: Signer | null
 ): Promise<Keystore> {
   for (const provider of opts.keystoreProviders) {

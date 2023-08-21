@@ -1,7 +1,7 @@
 import type { XmtpEnv, PreEventCallbackOptions } from '../../Client'
 import type { Signer } from '../../types/Signer'
 import type { Keystore } from '../interfaces'
-import type { IApiClient } from '../../ApiClient'
+import type { ApiClient } from '../../ApiClient'
 
 export type KeystoreProviderOptions = {
   env: XmtpEnv
@@ -16,7 +16,7 @@ export type KeystoreProviderOptions = {
 export interface KeystoreProvider {
   newKeystore(
     opts: KeystoreProviderOptions,
-    apiClient: IApiClient,
+    apiClient: ApiClient,
     wallet?: Signer
   ): Promise<Keystore>
 }

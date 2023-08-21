@@ -115,7 +115,7 @@ const isAuthError = (err?: GrpcError | Error): boolean => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
 
-export interface IApiClient {
+export interface ApiClient {
   query(
     params: QueryParams,
     options: QueryAllOptions
@@ -145,7 +145,7 @@ export interface IApiClient {
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
  * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
  */
-export default class ApiClient implements IApiClient {
+export default class HttpApiClient implements ApiClient {
   pathPrefix: string
   maxRetries: number
   private authCache?: AuthCache

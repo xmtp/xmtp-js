@@ -59,9 +59,10 @@ export {
   ContentTypeComposite,
 } from './codecs/Composite'
 export {
+  default as HttpApiClient,
   ApiUrls,
   SortDirection,
-  IApiClient,
+  ApiClient,
   QueryParams,
   QueryAllOptions,
   QueryStreamOptions,
