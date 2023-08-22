@@ -1,4 +1,3 @@
-import { Authenticator } from './authn/interfaces'
 export {
   Message,
   DecodedMessage,
@@ -73,10 +72,11 @@ export {
   UnsubscribeFn,
   OnConnectionLostCallback,
 } from './ApiClient'
-export { Authenticator, AuthCache } from './authn'
+export { Authenticator, AuthCache, LocalAuthenticator } from './authn'
 export {
   nsToDate,
   dateToNs,
+  retry,
   fromNanoString,
   toNanoString,
   mapPaginatedStream,
