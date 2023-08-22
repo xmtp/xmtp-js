@@ -37,7 +37,7 @@ Additional configuration is required in React environments due to the removal of
 
 ## Troubleshoot
 
-If you get into issues with Buffer and polyfills check out our [fix below](https://xmtp.org/docs/developer-quickstart#troubleshooting)
+If you get into issues with Buffer and polyfills check out our [fix below](https://xmtp.org/docs/developer-quickstart#troubleshooting).
 
 ### Create React App
 
@@ -95,17 +95,17 @@ Currently, network nodes are configured to rate limit high-volume publishing fro
 > **Important**  
 > If you are building a production-grade app, be sure to use an architecture that includes a local cache backed by an XMTP SDK.
 
-To learn more, see [Use a local cache](https://xmtp.org/docs/tutorials/performance#use-a-local-cache).
+To learn more, see [Use local-first architecture](https://xmtp.org/docs/build/local-first).
 
 ### Create a client
 
-A client is created with `Client.create(wallet: Signer): Promise<Client>` that requires passing in a connected wallet that implements the [Signer](src/types/Signer.ts) interface. The client will request a wallet signature in two cases:
+A client is created with `Client.create(wallet: Signer): Promise<Client>` that requires passing in a connected wallet that implements the [Signer](https://github.com/xmtp/xmtp-js/blob/main/src/types/Signer.ts) interface. The client will request a wallet signature in two cases:
 
 1. To sign the newly generated key bundle. This happens only the very first time when key bundle is not found in storage.
 2. To sign a random salt used to encrypt the key bundle in storage. This happens every time the client is started (including the very first time).
 
 > **Important**  
-> The client connects to the XMTP `dev` environment by default. [Use `ClientOptions`](#configure-the-client) to change this and other parameters of the network connection.
+> The client connects to the XMTP `dev` environment by default. [Use `ClientOptions`](https://github.com/xmtp/xmtp-js/blob/main/README.md#configure-the-client) to change this and other parameters of the network connection.
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
@@ -120,7 +120,7 @@ The client's network connection and key storage method can be configured with th
 | Parameter                 | Default                                                                           | Description                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | appVersion                | `undefined`                                                                       | Add a client app version identifier that's included with API requests.<br/>For example, you can use the following format: `appVersion: APP_NAME + '/' + APP_VERSION`.<br/>Setting this value provides telemetry that shows which apps are using the XMTP client SDK. This information can help XMTP developers provide app support, especially around communicating important SDK updates, including deprecations and required upgrades. |
-| env                       | `dev`                                                                             | Connect to the specified XMTP network environment. Valid values include `dev`, `production`, or `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](#xmtp-production-and-dev-network-environments).                                                                                                                                                             |
+| env                       | `dev`                                                                             | Connect to the specified XMTP network environment. Valid values include `dev`, `production`, or `local`. For important details about working with these environments, see [XMTP `production` and `dev` network environments](https://github.com/xmtp/xmtp-js/blob/main/README.md#xmtp-production-and-dev-network-environments).                                                                                                          |
 | apiUrl                    | `undefined`                                                                       | Manually specify an API URL to use. If specified, value of `env` will be ignored.                                                                                                                                                                                                                                                                                                                                                        |
 | keystoreProviders         | `[StaticKeystoreProvider, NetworkKeystoreProvider, KeyGeneratorKeystoreProvider]` | Override the default behaviour of how the client creates a Keystore with a custom provider. This can be used to get the user's private keys from a different storage mechanism.                                                                                                                                                                                                                                                          |
 | persistConversations      | `true`                                                                            | Maintain a cache of previously seen V2 conversations in the storage provider (defaults to `LocalStorage`).                                                                                                                                                                                                                                                                                                                               |
@@ -186,7 +186,7 @@ const newConversation = await xmtp.conversations.newConversation(
 
 #### Send messages
 
-To be able to send a message, the recipient must have already started their client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. The message payload can be a plain string, but other types of content can be supported through the use of `SendOptions` (see [Different types of content](#handle-different-types-of-content) for more details)
+To be able to send a message, the recipient must have already started their client at least once and consequently advertised their key bundle on the network. Messages are addressed using wallet addresses. The message payload can be a plain string, but other types of content can be supported through the use of `SendOptions` (see [Handle different types of content](https://github.com/xmtp/xmtp-js/blob/main/README.md#handle-different-types-of-content) for more details)
 
 ```ts
 const conversation = await xmtp.conversations.newConversation(
@@ -208,26 +208,6 @@ for (const conversation of await xmtp.conversations.list()) {
     endTime: new Date(),
   }
   const messagesInConversation = await conversation.messages(opts)
-}
-```
-
-#### List messages in a conversation with pagination
-
-It may be helpful to retrieve and process the messages in a conversation page by page. You can do this by calling `conversation.messagesPaginated()` which will return an [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) yielding one page of results at a time. `conversation.messages()` uses this under the hood internally to gather all messages.
-
-```ts
-const conversation = await xmtp.conversations.newConversation(
-  '0x3F11b27F323b62B159D2642964fa27C46C841897'
-)
-
-for await (const page of conversation.messagesPaginated({ pageSize: 25 })) {
-  for (const msg of page) {
-    // Breaking from the outer loop will stop the client from requesting any further pages
-    if (msg.content === 'gm') {
-      return
-    }
-    console.log(msg.content)
-  }
 }
 ```
 
@@ -364,7 +344,7 @@ import { CompositeCodec } from '@xmtp/xmtp-js'
 const xmtp = Client.create(wallet, { codecs: [new CompositeCodec()] })
 ```
 
-To learn more about how to build a custom content type, see [Build a custom content type](https://xmtp.org/docs/concepts/content-types#build-a-custom-content-type).
+To learn more about how to build a custom content type, see [Build a custom content type](https://xmtp.org/docs/content-types/introduction#create-custom-content-types).
 
 Custom codecs and content types may be proposed as interoperable standards through XRCs. To learn about the custom content type proposal process, see [XIP-5](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-5-message-content-types.md).
 
@@ -410,7 +390,7 @@ const clientWithNoCache = await Client.create(wallet, {
 })
 ```
 
-## 🏗 Breaking revisions
+## Breaking revisions
 
 Because `xmtp-js` is in active development, you should expect breaking revisions that might require you to adopt the latest SDK release to enable your app to continue working as expected.
 
@@ -439,7 +419,7 @@ The `production` and `dev` networks are completely separate and not interchangea
 For example, for a given blockchain account address, its XMTP identity on `dev` network is completely distinct from its XMTP identity on the `production` network, as are the messages associated with these identities. In addition, XMTP identities and messages created on the `dev` network can't be accessed from or moved to the `production` network, and vice versa.
 
 > **Important**  
-> When you [create a client](#create-a-client), it connects to the XMTP `dev` environment by default. To learn how to use the `env` parameter to set your client's network environment, see [Configure the client](#configure-the-client).
+> When you [create a client](https://github.com/xmtp/xmtp-js/blob/main/README.md#create-a-client), it connects to the XMTP `dev` environment by default. To learn how to use the `env` parameter to set your client's network environment, see [Configure the client](https://github.com/xmtp/xmtp-js/blob/main/README.md#configure-the-client).
 
 The `env` parameter accepts one of three valid values: `dev`, `production`, or `local`. Here are some best practices for when to use each environment:
 
