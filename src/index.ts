@@ -1,4 +1,3 @@
-import { Authenticator } from './authn/interfaces'
 export {
   Message,
   DecodedMessage,
