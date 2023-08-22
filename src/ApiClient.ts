@@ -1,6 +1,6 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import { retry, sleep, toNanoString } from './utils'
+import { b64Decode, retry, sleep, toNanoString } from './utils'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
 import packageJson from '../package.json'
@@ -115,7 +115,7 @@ const isAuthError = (err?: GrpcError | Error): boolean => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
 
-export interface IApiClient {
+export interface ApiClient {
   query(
     params: QueryParams,
     options: QueryAllOptions
@@ -141,11 +141,21 @@ export interface IApiClient {
   ): void
 }
 
+const normalizeEnvelope = (env: messageApi.Envelope): messageApi.Envelope => {
+  if (!env.message || !env.message.length) {
+    return env
+  }
+  if (typeof env.message === 'string') {
+    env.message = b64Decode(env.message)
+  }
+  return env
+}
+
 /**
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
  * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
  */
-export default class ApiClient implements IApiClient {
+export default class HttpApiClient implements ApiClient {
   pathPrefix: string
   maxRetries: number
   private authCache?: AuthCache
@@ -360,7 +370,7 @@ export default class ApiClient implements IApiClient {
       })
 
       if (result.envelopes?.length) {
-        yield result.envelopes
+        yield result.envelopes.map(normalizeEnvelope)
       } else {
         return
       }
@@ -421,7 +431,7 @@ export default class ApiClient implements IApiClient {
       }
       for (const queryResponse of batchResponse.responses) {
         if (queryResponse.envelopes) {
-          allEnvelopes.push(queryResponse.envelopes)
+          allEnvelopes.push(queryResponse.envelopes.map(normalizeEnvelope))
         } else {
           // If no envelopes provided, then add an empty list
           allEnvelopes.push([])
@@ -469,7 +479,11 @@ export default class ApiClient implements IApiClient {
       throw new Error('Must provide list of contentTopics to subscribe to')
     }
 
-    return this._subscribe(params, callback, onConnectionLost)
+    return this._subscribe(
+      params,
+      (env) => callback(normalizeEnvelope(env)),
+      onConnectionLost
+    )
   }
 
   private getToken(): Promise<string> {

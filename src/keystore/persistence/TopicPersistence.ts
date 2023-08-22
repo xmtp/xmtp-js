@@ -1,13 +1,12 @@
 import { messageApi } from '@xmtp/proto'
-import type { IApiClient } from '../../ApiClient'
+import type { ApiClient } from '../../ApiClient'
 import { Authenticator } from '../../authn'
-import { b64Decode } from '../../utils/bytes'
 import { buildUserPrivateStoreTopic } from '../../utils/topic'
 import { Persistence } from './interface'
 
 export default class TopicPersistence implements Persistence {
-  apiClient: IApiClient
-  constructor(apiClient: IApiClient) {
+  apiClient: ApiClient
+  constructor(apiClient: ApiClient) {
     this.apiClient = apiClient
   }
 
@@ -22,8 +21,7 @@ export default class TopicPersistence implements Persistence {
     )) {
       if (!env.message) continue
       try {
-        const bytes = b64Decode(env.message.toString())
-        return Uint8Array.from(bytes)
+        return Uint8Array.from(env.message)
       } catch (e) {
         console.log(e)
       }
