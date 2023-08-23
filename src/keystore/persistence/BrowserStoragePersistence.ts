@@ -1,13 +1,16 @@
 import { Persistence } from './interface'
-import LocalStoragePonyfill from './LocalStoragePonyfill'
 
-export default class LocalStoragePersistence implements Persistence {
+export default class BrowserStoragePersistence implements Persistence {
   storage: Storage
-  constructor() {
-    this.storage =
-      typeof localStorage !== 'undefined'
-        ? localStorage
-        : new LocalStoragePonyfill()
+  constructor(storage: Storage) {
+    this.storage = storage
+  }
+
+  static create(): BrowserStoragePersistence {
+    if (typeof localStorage === 'undefined') {
+      throw new Error('Missing LocalStorage. Use ephemeralPersistence instead')
+    }
+    return new BrowserStoragePersistence(localStorage)
   }
 
   async getItem(key: string): Promise<Uint8Array | null> {

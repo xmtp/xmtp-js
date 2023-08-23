@@ -1,11 +1,11 @@
 import {
-  LocalStoragePersistence,
+  InMemoryPersistence,
   PrefixedPersistence,
 } from '../../../src/keystore/persistence'
 
 describe('PrefixedPersistence', () => {
   it('correctly adds a prefix to keys', async () => {
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const prefixedPersistence = new PrefixedPersistence('foo', persistence)
     await prefixedPersistence.setItem('bar', new Uint8Array([1, 2, 3]))
 

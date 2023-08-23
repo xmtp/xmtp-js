@@ -1,10 +1,10 @@
-import { LocalStoragePersistence } from '../../../src'
+import { InMemoryPersistence } from '../../../src'
 import { KeystoreProviderOptions } from '../../../src/keystore/providers'
 
 export const testProviderOptions = ({
   privateKeyOverride = undefined,
   persistConversations = false,
-  basePersistence = new LocalStoragePersistence(),
+  basePersistence = InMemoryPersistence.create(),
   env = 'local' as const,
 }: Partial<KeystoreProviderOptions>) => ({
   env,

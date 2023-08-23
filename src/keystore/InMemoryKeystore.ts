@@ -30,6 +30,8 @@ import LocalAuthenticator from '../authn/LocalAuthenticator'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
+import Long from 'long'
+import { SetRefreshJobResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 const { ErrorCode } = keystore
 
 // Constant, 32 byte salt
@@ -58,16 +60,26 @@ export default class InMemoryKeystore implements Keystore {
   private inviteStore: InviteStore
   private authenticator: LocalAuthenticator
   private accountAddress: string | undefined
+  private jobStatePersistence: Persistence
 
-  constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
+  constructor(
+    keys: PrivateKeyBundleV1,
+    inviteStore: InviteStore,
+    persistence: Persistence
+  ) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.inviteStore = inviteStore
     this.authenticator = new LocalAuthenticator(keys.identityKey)
+    this.jobStatePersistence = persistence
   }
 
-  static async create(keys: PrivateKeyBundleV1, persistence?: Persistence) {
-    return new InMemoryKeystore(keys, await InviteStore.create(persistence))
+  static async create(keys: PrivateKeyBundleV1, persistence: Persistence) {
+    return new InMemoryKeystore(
+      keys,
+      await InviteStore.create(persistence),
+      persistence
+    )
   }
 
   async decryptV1(
@@ -396,6 +408,53 @@ export default class InMemoryKeystore implements Keystore {
         .walletSignatureAddress()
     }
     return this.accountAddress
+  }
+
+  async getRefreshJob({
+    jobType,
+  }: keystore.GetRefreshJobRequest): Promise<keystore.GetRefreshJobResponse> {
+    if (jobType === keystore.JobType.JOB_TYPE_UNSPECIFIED) {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        'invalid job type'
+      )
+    }
+
+    const lastRunTime = await this.getLastRunTime(jobType)
+
+    return keystore.GetRefreshJobResponse.fromPartial({
+      lastRunNs: lastRunTime || Long.fromNumber(0),
+    })
+  }
+
+  async setRefreshJob({
+    jobType,
+    lastRunNs,
+  }: keystore.SetRefeshJobRequest): Promise<SetRefreshJobResponse> {
+    const key = await this.buildJobStorageKey(jobType)
+    await this.jobStatePersistence.setItem(
+      key,
+      Uint8Array.from(lastRunNs.toBytes())
+    )
+
+    return {}
+  }
+
+  private buildJobStorageKey(jobType: keystore.JobType): string {
+    return `refreshJob/${jobType.toString()}`
+  }
+
+  private async getLastRunTime(
+    jobType: keystore.JobType
+  ): Promise<Long | undefined> {
+    const bytes = await this.jobStatePersistence.getItem(
+      this.buildJobStorageKey(jobType)
+    )
+    if (!bytes || !bytes.length) {
+      return
+    }
+
+    return Long.fromBytes([...bytes])
   }
 
   // This method is not defined as part of the standard Keystore API, but is available

@@ -98,7 +98,8 @@ export {
 } from './keystore/providers'
 export {
   EncryptedPersistence,
-  LocalStoragePersistence,
+  BrowserStoragePersistence,
+  InMemoryPersistence,
   PrefixedPersistence,
   Persistence,
 } from './keystore/persistence'

@@ -33,7 +33,8 @@ import {
   StaticKeystoreProvider,
 } from './keystore/providers'
 import {
-  LocalStoragePersistence,
+  BrowserStoragePersistence,
+  InMemoryPersistence,
   Persistence,
   PrefixedPersistence,
 } from './keystore/persistence'
@@ -210,7 +211,10 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     maxContentSize: MaxContentSize,
     persistConversations: true,
     skipContactPublishing: false,
-    basePersistence: new LocalStoragePersistence(),
+    basePersistence:
+      typeof localStorage === 'undefined'
+        ? InMemoryPersistence.create()
+        : BrowserStoragePersistence.create(),
     disablePersistenceEncryption: false,
     keystoreProviders: defaultKeystoreProviders(),
     apiClientFactory: createHttpApiClientFromOptions,

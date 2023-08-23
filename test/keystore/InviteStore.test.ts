@@ -1,6 +1,6 @@
 import crypto from '../../src/crypto/crypto'
 import { InviteStore, TopicData } from '../../src/keystore'
-import { LocalStoragePersistence } from '../../src/keystore/persistence'
+import { InMemoryPersistence } from '../../src/keystore/persistence'
 import { dateToNs } from '../../src/utils'
 
 const buildTopicData = (): TopicData => ({
@@ -30,7 +30,7 @@ describe('InviteStore', () => {
   })
 
   it('can add and retrieve invites with persistence', async () => {
-    const store = await InviteStore.create(new LocalStoragePersistence())
+    const store = await InviteStore.create(InMemoryPersistence.create())
     const topicData = buildTopicData()
     await store.add([topicData])
 
@@ -45,7 +45,7 @@ describe('InviteStore', () => {
   })
 
   it('persists data between instances', async () => {
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const store = await InviteStore.create(persistence)
     const topicData = buildTopicData()
     await store.add([topicData])
