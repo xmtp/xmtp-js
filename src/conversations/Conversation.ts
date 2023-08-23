@@ -4,7 +4,6 @@ import {
   buildDirectMessageTopic,
   dateToNs,
   concat,
-  b64Decode,
   toNanoString,
 } from '../utils'
 import { utils } from 'ethers'
@@ -33,7 +32,6 @@ import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
-import { OnceBlockable } from 'ethers/lib/utils'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -280,8 +278,10 @@ export class ConversationV1 implements Conversation {
     message,
     contentTopic,
   }: messageApi.Envelope): Promise<MessageV1> {
-    const messageBytes = b64Decode(message as unknown as string)
-    const decoded = await MessageV1.fromBytes(messageBytes)
+    if (!message || !message.length) {
+      throw new Error('empty envelope')
+    }
+    const decoded = await MessageV1.fromBytes(message)
     const { senderAddress, recipientAddress } = decoded
 
     // Filter for topics
@@ -717,8 +717,7 @@ export class ConversationV2 implements Conversation {
     if (!env.message || !env.contentTopic) {
       throw new Error('empty envelope')
     }
-    const messageBytes = b64Decode(env.message.toString())
-    const msg = message.Message.decode(messageBytes)
+    const msg = message.Message.decode(env.message)
 
     if (!msg.v2) {
       throw new Error('unknown message version')
@@ -729,7 +728,7 @@ export class ConversationV2 implements Conversation {
       throw new Error('topic mismatch')
     }
 
-    return MessageV2.create(msg, header, messageBytes)
+    return MessageV2.create(msg, header, env.message)
   }
 
   async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {

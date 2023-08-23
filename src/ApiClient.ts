@@ -1,6 +1,6 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import { retry, sleep, toNanoString } from './utils'
+import { b64Decode, retry, sleep, toNanoString } from './utils'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
 import packageJson from '../package.json'
@@ -92,6 +92,13 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 
 export type UnsubscribeFn = () => Promise<void>
 
+export type UpdateContentTopics = (topics: string[]) => Promise<void>
+
+export type SubscriptionManager = {
+  unsubscribe: UnsubscribeFn
+  updateContentTopics?: UpdateContentTopics
+}
+
 export type OnConnectionLostCallback = () => void
 
 const isAbortError = (err?: Error): boolean => {
@@ -115,11 +122,47 @@ const isAuthError = (err?: GrpcError | Error): boolean => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
 
+export interface ApiClient {
+  query(
+    params: QueryParams,
+    options: QueryAllOptions
+  ): Promise<messageApi.Envelope[]>
+  queryIterator(
+    params: QueryParams,
+    options: QueryStreamOptions
+  ): AsyncGenerator<messageApi.Envelope>
+  queryIteratePages(
+    params: QueryParams,
+    options: QueryStreamOptions
+  ): AsyncGenerator<messageApi.Envelope[]>
+  subscribe(
+    params: SubscribeParams,
+    callback: SubscribeCallback,
+    onConnectionLost?: OnConnectionLostCallback
+  ): SubscriptionManager
+  publish(messages: PublishParams[]): ReturnType<typeof MessageApi.Publish>
+  batchQuery(queries: Query[]): Promise<messageApi.Envelope[][]>
+  setAuthenticator(
+    authenticator: Authenticator,
+    cacheExpirySeconds?: number
+  ): void
+}
+
+const normalizeEnvelope = (env: messageApi.Envelope): messageApi.Envelope => {
+  if (!env.message || !env.message.length) {
+    return env
+  }
+  if (typeof env.message === 'string') {
+    env.message = b64Decode(env.message)
+  }
+  return env
+}
+
 /**
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
  * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
  */
-export default class ApiClient {
+export default class HttpApiClient implements ApiClient {
   pathPrefix: string
   maxRetries: number
   private authCache?: AuthCache
@@ -220,7 +263,7 @@ export default class ApiClient {
     req: messageApi.SubscribeRequest,
     cb: NotifyStreamEntityArrival<messageApi.Envelope>,
     onConnectionLost?: OnConnectionLostCallback
-  ): UnsubscribeFn {
+  ): SubscriptionManager {
     const abortController = new AbortController()
 
     const doSubscribe = async () => {
@@ -262,8 +305,10 @@ export default class ApiClient {
     }
     doSubscribe()
 
-    return async () => {
-      abortController?.abort()
+    return {
+      unsubscribe: async () => {
+        abortController?.abort()
+      },
     }
   }
 
@@ -334,7 +379,7 @@ export default class ApiClient {
       })
 
       if (result.envelopes?.length) {
-        yield result.envelopes
+        yield result.envelopes.map(normalizeEnvelope)
       } else {
         return
       }
@@ -395,7 +440,7 @@ export default class ApiClient {
       }
       for (const queryResponse of batchResponse.responses) {
         if (queryResponse.envelopes) {
-          allEnvelopes.push(queryResponse.envelopes)
+          allEnvelopes.push(queryResponse.envelopes.map(normalizeEnvelope))
         } else {
           // If no envelopes provided, then add an empty list
           allEnvelopes.push([])
@@ -438,12 +483,16 @@ export default class ApiClient {
     params: SubscribeParams,
     callback: SubscribeCallback,
     onConnectionLost?: OnConnectionLostCallback
-  ): UnsubscribeFn {
+  ): SubscriptionManager {
     if (!params.contentTopics.length) {
       throw new Error('Must provide list of contentTopics to subscribe to')
     }
 
-    return this._subscribe(params, callback, onConnectionLost)
+    return this._subscribe(
+      params,
+      (env) => callback(normalizeEnvelope(env)),
+      onConnectionLost
+    )
   }
 
   private getToken(): Promise<string> {

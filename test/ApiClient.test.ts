@@ -255,10 +255,10 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    const unsubscribeFn = client.subscribe(req, cb)
+    const subscriptionManager = client.subscribe(req, cb)
     await sleep(10)
     expect(numEnvelopes).toBe(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
@@ -266,7 +266,7 @@ describe('Subscribe', () => {
         'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
-    await unsubscribeFn()
+    await subscriptionManager.unsubscribe()
   })
 
   it('should resubscribe on error', async () => {
@@ -300,14 +300,14 @@ describe('Subscribe', () => {
       numDisconnects++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    const unsubscribeFn = client.subscribe(req, cb, onDisconnect)
+    const subscriptionManager = client.subscribe(req, cb, onDisconnect)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
     expect(numDisconnects).toBe(1)
     // Resubscribing triggers an info log
     expect(consoleInfo).toBeCalledTimes(1)
     expect(subscribeMock).toBeCalledTimes(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
@@ -316,7 +316,7 @@ describe('Subscribe', () => {
       }),
     })
     consoleInfo.mockRestore()
-    await unsubscribeFn()
+    await subscriptionManager.unsubscribe()
   })
 
   it('should resubscribe on completion', async () => {
@@ -346,13 +346,13 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    const unsubscribeFn = client.subscribe(req, cb)
+    const subscriptionManager = client.subscribe(req, cb)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
     // Resubscribing triggers an info log
     expect(consoleInfo).toBeCalledTimes(1)
     expect(subscribeMock).toBeCalledTimes(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
@@ -361,7 +361,7 @@ describe('Subscribe', () => {
       }),
     })
     consoleInfo.mockRestore()
-    await unsubscribeFn()
+    await subscriptionManager.unsubscribe()
   })
 
   it('throws when no content topics returned', async () => {
