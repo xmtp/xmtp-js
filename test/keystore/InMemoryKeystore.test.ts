@@ -692,4 +692,64 @@ describe('InMemoryKeystore', () => {
       expect(lookupResult).toBeUndefined()
     })
   })
+
+  describe('getRefreshJob/setRefreshJob', () => {
+    it('returns 0 value when empty', async () => {
+      const job = await aliceKeystore.getRefreshJob(
+        keystore.GetRefreshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+        })
+      )
+      expect(job.lastRunNs.equals(Long.fromNumber(0))).toBeTruthy()
+    })
+
+    it('returns a value when set', async () => {
+      const lastRunNs = dateToNs(new Date())
+      await aliceKeystore.setRefreshJob(
+        keystore.SetRefeshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+          lastRunNs,
+        })
+      )
+
+      const result = await aliceKeystore.getRefreshJob(
+        keystore.GetRefreshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+        })
+      )
+      expect(result.lastRunNs.equals(lastRunNs)).toBeTruthy()
+
+      const otherJob = await aliceKeystore.getRefreshJob(
+        keystore.GetRefreshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V2,
+        })
+      )
+      expect(otherJob.lastRunNs.equals(Long.fromNumber(0))).toBeTruthy()
+    })
+
+    it('overwrites a value when set', async () => {
+      const lastRunNs = dateToNs(new Date())
+      await aliceKeystore.setRefreshJob(
+        keystore.SetRefeshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+          lastRunNs: Long.fromNumber(5),
+        })
+      )
+      await aliceKeystore.setRefreshJob(
+        keystore.SetRefeshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+          lastRunNs,
+        })
+      )
+      expect(
+        (
+          await aliceKeystore.getRefreshJob(
+            keystore.GetRefreshJobRequest.fromPartial({
+              jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+            })
+          )
+        ).lastRunNs.equals(lastRunNs)
+      ).toBeTruthy()
+    })
+  })
 })
