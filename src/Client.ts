@@ -32,11 +32,7 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import {
-  LocalStoragePersistence,
-  Persistence,
-  PrefixedPersistence,
-} from './keystore/persistence'
+import { LocalStoragePersistence, Persistence } from './keystore/persistence'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
