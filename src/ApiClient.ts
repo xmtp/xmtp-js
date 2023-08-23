@@ -92,6 +92,13 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 
 export type UnsubscribeFn = () => Promise<void>
 
+export type UpdateContentTopics = (topics: string[]) => Promise<void>
+
+export type SubscriptionManager = {
+  unsubscribe: UnsubscribeFn
+  updateContentTopics?: UpdateContentTopics
+}
+
 export type OnConnectionLostCallback = () => void
 
 const isAbortError = (err?: Error): boolean => {
@@ -132,7 +139,7 @@ export interface ApiClient {
     params: SubscribeParams,
     callback: SubscribeCallback,
     onConnectionLost?: OnConnectionLostCallback
-  ): UnsubscribeFn
+  ): SubscriptionManager
   publish(messages: PublishParams[]): ReturnType<typeof MessageApi.Publish>
   batchQuery(queries: Query[]): Promise<messageApi.Envelope[][]>
   setAuthenticator(
@@ -256,7 +263,7 @@ export default class HttpApiClient implements ApiClient {
     req: messageApi.SubscribeRequest,
     cb: NotifyStreamEntityArrival<messageApi.Envelope>,
     onConnectionLost?: OnConnectionLostCallback
-  ): UnsubscribeFn {
+  ): SubscriptionManager {
     const abortController = new AbortController()
 
     const doSubscribe = async () => {
@@ -298,8 +305,10 @@ export default class HttpApiClient implements ApiClient {
     }
     doSubscribe()
 
-    return async () => {
-      abortController?.abort()
+    return {
+      unsubscribe: async () => {
+        abortController?.abort()
+      },
     }
   }
 
@@ -474,7 +483,7 @@ export default class HttpApiClient implements ApiClient {
     params: SubscribeParams,
     callback: SubscribeCallback,
     onConnectionLost?: OnConnectionLostCallback
-  ): UnsubscribeFn {
+  ): SubscriptionManager {
     if (!params.contentTopics.length) {
       throw new Error('Must provide list of contentTopics to subscribe to')
     }

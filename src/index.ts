@@ -67,6 +67,7 @@ export {
   QueryStreamOptions,
   Query,
   PublishParams,
+  SubscriptionManager,
   SubscribeParams,
   SubscribeCallback,
   UnsubscribeFn,
