@@ -10,12 +10,12 @@ const INVITE_KEY = 'invitations/v1'
  * InviteStore holds a simple map of topic -> TopicData and writes to the persistence layer on changes
  */
 export default class InviteStore {
-  private persistence?: Persistence
+  private persistence: Persistence
   private mutex: Mutex
   private topicMap: Map<string, TopicData>
 
   constructor(
-    persistence?: Persistence,
+    persistence: Persistence,
     initialData: Map<string, TopicData> = new Map()
   ) {
     this.persistence = persistence
@@ -23,20 +23,15 @@ export default class InviteStore {
     this.topicMap = initialData
   }
 
-  static async create(persistence?: Persistence): Promise<InviteStore> {
-    if (persistence) {
-      const rawData = await persistence.getItem(INVITE_KEY)
-      if (rawData) {
-        try {
-          const inviteMap = typeSafeTopicMap(keystore.TopicMap.decode(rawData))
-          // Create an InviteStore with data preloaded
-          return new InviteStore(
-            persistence,
-            new Map(Object.entries(inviteMap))
-          )
-        } catch (e) {
-          console.warn(`Error loading invites from store: ${e}`)
-        }
+  static async create(persistence: Persistence): Promise<InviteStore> {
+    const rawData = await persistence.getItem(INVITE_KEY)
+    if (rawData) {
+      try {
+        const inviteMap = typeSafeTopicMap(keystore.TopicMap.decode(rawData))
+        // Create an InviteStore with data preloaded
+        return new InviteStore(persistence, new Map(Object.entries(inviteMap)))
+      } catch (e) {
+        console.warn(`Error loading invites from store: ${e}`)
       }
     }
     return new InviteStore(persistence)

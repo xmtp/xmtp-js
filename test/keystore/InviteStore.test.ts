@@ -20,7 +20,7 @@ const buildTopicData = (): TopicData => ({
 
 describe('InviteStore', () => {
   it('can add and retrieve invites without persistence', async () => {
-    const store = await InviteStore.create()
+    const store = await InviteStore.create(InMemoryPersistence.create())
     const topicData = buildTopicData()
     await store.add([topicData])
 
@@ -39,7 +39,7 @@ describe('InviteStore', () => {
   })
 
   it('returns undefined when no match exists', async () => {
-    const store = await InviteStore.create()
+    const store = await InviteStore.create(InMemoryPersistence.create())
     const result = store.lookup('foo')
     expect(result).toBeUndefined()
   })
