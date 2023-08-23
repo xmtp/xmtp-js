@@ -32,7 +32,11 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import { LocalStoragePersistence, Persistence } from './keystore/persistence'
+import {
+  LocalStoragePersistence,
+  Persistence,
+  PrefixedPersistence,
+} from './keystore/persistence'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -229,6 +233,7 @@ export default class Client {
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
   publicKeyBundle: PublicKeyBundle
+  persistence: Persistence
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
@@ -244,7 +249,8 @@ export default class Client {
     publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
-    keystore: Keystore
+    keystore: Keystore,
+    persistence: Persistence
   ) {
     this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
@@ -255,6 +261,7 @@ export default class Client {
     this.keystore = keystore
     this.publicKeyBundle = publicKeyBundle
     this.address = publicKeyBundle.walletSignatureAddress()
+    this.persistence = persistence
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
@@ -296,11 +303,16 @@ export default class Client {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
+    const persistence = new PrefixedPersistence(
+      `xmtp/${options.env}/${address}/`,
+      options.basePersistence
+    )
     const client = new Client(
       publicKeyBundle,
       apiClient,
       backupClient,
-      keystore
+      keystore,
+      persistence
     )
     await client.init(options)
     return client
