@@ -23,7 +23,11 @@ import {
   getKeyMaterial,
   topicDataToConversationReference,
 } from './utils'
-import { nsToDate, buildDirectMessageTopicV2 } from '../utils'
+import {
+  nsToDate,
+  buildDirectMessageTopicV2,
+  buildDirectMessageTopic,
+} from '../utils'
 import InviteStore from './InviteStore'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
@@ -32,6 +36,7 @@ import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
 import Long from 'long'
 import { SetRefreshJobResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
+import LegacyStore from './LegacyStore'
 const { ErrorCode } = keystore
 
 // Constant, 32 byte salt
@@ -58,6 +63,7 @@ export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private inviteStore: InviteStore
+  private v1Store: LegacyStore
   private authenticator: LocalAuthenticator
   private accountAddress: string | undefined
   private jobStatePersistence: Persistence
@@ -65,11 +71,13 @@ export default class InMemoryKeystore implements Keystore {
   constructor(
     keys: PrivateKeyBundleV1,
     inviteStore: InviteStore,
+    v1Store: LegacyStore,
     persistence: Persistence
   ) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.inviteStore = inviteStore
+    this.v1Store = v1Store
     this.authenticator = new LocalAuthenticator(keys.identityKey)
     this.jobStatePersistence = persistence
   }
@@ -78,8 +86,13 @@ export default class InMemoryKeystore implements Keystore {
     return new InMemoryKeystore(
       keys,
       await InviteStore.create(persistence),
+      await LegacyStore.create(persistence),
       persistence
     )
+  }
+
+  get walletAddress(): string {
+    return this.v1Keys.identityKey.publicKey.walletSignatureAddress()
   }
 
   async decryptV1(
@@ -378,6 +391,31 @@ export default class InMemoryKeystore implements Keystore {
     }
 
     return key.sign(digest)
+  }
+
+  async saveV1Conversations({
+    conversations,
+  }: keystore.SaveV1ConversationsRequest): Promise<keystore.SaveV1ConversationsResponse> {
+    await this.v1Store.add(
+      conversations.map((convo) => ({
+        peerAddress: convo.peerAddress,
+        createdNs: convo.createdNs,
+        invitation: undefined,
+      }))
+    )
+
+    return {}
+  }
+
+  async getV1Conversations(): Promise<keystore.GetConversationsResponse> {
+    const convos = this.v1Store.entries.map((reference) => ({
+      peerAddress: reference.peerAddress,
+      createdNs: reference.createdNs,
+      topic: buildDirectMessageTopic(reference.peerAddress, this.walletAddress),
+      context: undefined,
+    }))
+
+    return { conversations: convos }
   }
 
   async getV2Conversations(): Promise<

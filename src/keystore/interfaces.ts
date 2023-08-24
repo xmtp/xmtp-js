@@ -63,6 +63,16 @@ export interface Keystore {
     req: keystore.SetRefeshJobRequest
   ): Promise<keystore.SetRefreshJobResponse>
   /**
+   * Save V1 Conversations
+   */
+  saveV1Conversations(
+    req: keystore.SaveV1ConversationsRequest
+  ): Promise<keystore.SaveV1ConversationsResponse>
+  /**
+   * Get a list of V1 conversations
+   */
+  getV1Conversations(): Promise<keystore.GetConversationsResponse>
+  /**
    * Get a list of V2 conversations
    */
   getV2Conversations(): Promise<conversationReference.ConversationReference[]>

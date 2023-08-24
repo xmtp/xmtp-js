@@ -36,7 +36,6 @@ import {
   BrowserStoragePersistence,
   InMemoryPersistence,
   Persistence,
-  PrefixedPersistence,
 } from './keystore/persistence'
 const { Compression } = proto
 
@@ -243,7 +242,7 @@ export default class Client {
   > // addresses and key bundles that we have witnessed
 
   private _backupClient: BackupClient
-  private _conversations: Conversations
+  private readonly _conversations: Conversations
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number

@@ -136,5 +136,13 @@ export const typeSafeTopicMap = (
   return out
 }
 
+export const topicDataToMap = (topicMap: keystore.TopicMap) => {
+  const out = new Map<string, keystore.TopicMap_TopicData>()
+  for (const [k, v] of Object.entries(topicMap.topics)) {
+    out.set(k, v)
+  }
+  return out
+}
+
 export const buildPersistenceKey = (env: XmtpEnv, walletAddress: string) =>
   `xmtp/${env}/${walletAddress}/`
