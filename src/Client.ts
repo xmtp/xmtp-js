@@ -36,7 +36,6 @@ import {
   BrowserStoragePersistence,
   InMemoryPersistence,
   Persistence,
-  PrefixedPersistence,
 } from './keystore/persistence'
 const { Compression } = proto
 
