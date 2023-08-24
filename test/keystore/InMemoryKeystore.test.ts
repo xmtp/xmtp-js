@@ -682,9 +682,9 @@ describe('InMemoryKeystore', () => {
       }
 
       const lookupResult = aliceKeystore.lookupTopic(invite.topic)
-      expect(lookupResult?.invitation.aes256GcmHkdfSha256?.keyMaterial).toEqual(
-        invite.aes256GcmHkdfSha256.keyMaterial
-      )
+      expect(
+        lookupResult?.invitation?.aes256GcmHkdfSha256?.keyMaterial
+      ).toEqual(invite.aes256GcmHkdfSha256.keyMaterial)
     })
 
     it('returns undefined for non-existent topic', async () => {
