@@ -117,53 +117,6 @@ describe('conversations', () => {
       expect(aliceConversations3).toHaveLength(2)
     })
 
-    it('loads group chats when group chat is enabled after first load', async () => {
-      const aliceConversations1 = await alice.conversations.list()
-      expect(aliceConversations1).toHaveLength(0)
-      alice.enableGroupChat()
-
-      const groupConvo = await alice.conversations.newGroupConversation([
-        bob.address,
-      ])
-      await sleep(100)
-      const bobConversations = await bob.conversations.list()
-
-      // Group Chat isn't enabled for this client so we're not checking the group chat
-      // topic. As a result this should be empty.
-      expect(bobConversations).toHaveLength(0)
-
-      // Make sure bob doesn't have group chat enabled
-      expect(bob.isGroupChatEnabled).toBeFalsy()
-      // Make sure creating a group chat from a client without it enabled fails
-      expect(
-        bob.conversations.newGroupConversation([
-          '0x0000000000000000000000000000000000000000',
-        ])
-      ).rejects.toThrow('Group chat is not enabled for client')
-
-      // Create a 1:1 convo for bob
-      const conversation = await bob.conversations.newConversation(
-        alice.address,
-        {
-          conversationId: 'foo',
-          metadata: {},
-        }
-      )
-      await sleep(100)
-      const bobConversations2 = await bob.conversations.list()
-      expect(bobConversations2).toHaveLength(1)
-      expect(bobConversations2[0].topic).toBe(conversation.topic)
-
-      // Enable group chat for bob
-      bob.enableGroupChat()
-
-      // Make sure group chat loads for bob
-      const bobConversations3 = await bob.conversations.list()
-      expect(bobConversations3).toHaveLength(2)
-      expect(bobConversations3[0].topic).toBe(groupConvo.topic)
-      expect(bobConversations3[0].isGroup).toBe(true)
-    })
-
     it('caches results and updates the latestSeen date', async () => {
       const cache = new ConversationCache()
       const convoDate = new Date()
@@ -224,33 +177,6 @@ describe('conversations', () => {
       break
     }
     expect(numConversations).toBe(1)
-    await stream.return()
-  })
-
-  it('streams group conversations', async () => {
-    alice.enableGroupChat()
-    bob.enableGroupChat()
-
-    const stream = await alice.conversations.stream()
-
-    // make sure it works with 1:1 convo
-    await alice.conversations.newConversation(bob.address, {
-      conversationId: 'foo',
-      metadata: {},
-    })
-
-    const conversation = await alice.conversations.newGroupConversation([
-      bob.address,
-    ])
-    await conversation.send('hi bob')
-
-    let numConversations = 0
-    for await (const conversation of stream) {
-      numConversations++
-      expect(conversation.peerAddress).toBe(bob.address)
-      if (numConversations == 2) break
-    }
-    expect(numConversations).toBe(2)
     await stream.return()
   })
 
@@ -326,38 +252,6 @@ describe('conversations', () => {
     await aliceBobV2Bar.send('bar')
     const message4 = await stream.next()
     expect(message4.value.content).toBe('bar')
-    await stream.return(undefined)
-  })
-
-  it('streams all conversation messages from group conversations', async () => {
-    alice.enableGroupChat()
-    charlie.enableGroupChat()
-
-    const aliceCharlie = await alice.conversations.newGroupConversation([
-      charlie.address,
-    ])
-    const bobAlice = await bob.conversations.newConversation(alice.address)
-
-    const stream = await alice.conversations.streamAllMessages()
-    await aliceCharlie.send('gm alice -charlie')
-
-    let numMessages = 0
-    for await (const message of stream) {
-      numMessages++
-      if (numMessages == 1) {
-        expect(message.content).toBe('gm alice -charlie')
-        await bobAlice.send('gm alice -bob')
-      }
-      if (numMessages == 2) {
-        expect(message.content).toBe('gm alice -bob')
-        await aliceCharlie.send('gm charlie -alice')
-      }
-      if (numMessages == 3) {
-        expect(message.content).toBe('gm charlie -alice')
-        break
-      }
-    }
-    expect(numMessages).toBe(3)
     await stream.return(undefined)
   })
 
@@ -515,26 +409,6 @@ describe('conversations', () => {
       await sleep(50)
 
       const invites = await alice.listInvitations()
-      expect(invites).toHaveLength(1)
-    })
-  })
-
-  describe('newGroupConversation', () => {
-    it('sends invites to recipients', async () => {
-      bob.enableGroupChat()
-
-      await bob.conversations.newGroupConversation([
-        alice.address,
-        charlie.address,
-      ])
-
-      let invites = await alice.listGroupInvitations()
-      expect(invites).toHaveLength(1)
-
-      invites = await charlie.listGroupInvitations()
-      expect(invites).toHaveLength(1)
-
-      invites = await bob.listGroupInvitations()
       expect(invites).toHaveLength(1)
     })
   })

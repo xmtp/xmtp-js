@@ -5,7 +5,6 @@ import {
   mapPaginatedStream,
   EnvelopeMapper,
   buildUserInviteTopic,
-  buildUserGroupInviteTopic,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
@@ -240,7 +239,6 @@ export default class Client {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
-  private _isGroupChatEnabled = false
 
   constructor(
     publicKeyBundle: PublicKeyBundle,
@@ -262,10 +260,6 @@ export default class Client {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
-  }
-
-  get isGroupChatEnabled(): boolean {
-    return this._isGroupChatEnabled
   }
 
   /**
@@ -352,11 +346,6 @@ export default class Client {
     if (!options.skipContactPublishing) {
       await this.ensureUserContactPublished(options.publishLegacyContact)
     }
-  }
-
-  enableGroupChat() {
-    GroupChat.registerCodecs(this)
-    this._isGroupChatEnabled = true
   }
 
   // gracefully shut down the client
@@ -628,16 +617,6 @@ export default class Client {
   listInvitations(opts?: ListMessagesOptions): Promise<messageApi.Envelope[]> {
     return this.listEnvelopes(
       buildUserInviteTopic(this.address),
-      async (env) => env,
-      opts
-    )
-  }
-
-  listGroupInvitations(
-    opts?: ListMessagesOptions
-  ): Promise<messageApi.Envelope[]> {
-    return this.listEnvelopes(
-      buildUserGroupInviteTopic(this.address),
       async (env) => env,
       opts
     )

@@ -50,11 +50,6 @@ export {
 } from './MessageContent'
 export { TextCodec, ContentTypeText } from './codecs/Text'
 export {
-  TypingNotification,
-  TypingNotificationCodec,
-  ContentTypeTypingNotification,
-} from './codecs/TypingNotification'
-export {
   Composite,
   CompositeCodec,
   ContentTypeComposite,
@@ -112,14 +107,3 @@ export {
 } from './keystore/persistence'
 export { InvitationContext, SealedInvitation } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'
-export { GroupChat } from './conversations/GroupChat'
-export {
-  GroupChatMemberAdded,
-  GroupChatMemberAddedCodec,
-  ContentTypeGroupChatMemberAdded,
-} from './codecs/GroupChatMemberAdded'
-export {
-  GroupChatTitleChanged,
-  GroupChatTitleChangedCodec,
-  ContentTypeGroupChatTitleChanged,
-} from './codecs/GroupChatTitleChanged'
