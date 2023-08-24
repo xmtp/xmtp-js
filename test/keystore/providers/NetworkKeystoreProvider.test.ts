@@ -28,7 +28,7 @@ describe('NetworkKeystoreProvider', () => {
   it('fails gracefully when no keys are found', async () => {
     const provider = new NetworkKeystoreProvider()
     expect(
-      provider.newKeystore(testProviderOptions(), apiClient, wallet)
+      provider.newKeystore(testProviderOptions({}), apiClient, wallet)
     ).rejects.toThrow(KeystoreProviderUnavailableError)
   })
 
@@ -41,7 +41,7 @@ describe('NetworkKeystoreProvider', () => {
 
     const provider = new NetworkKeystoreProvider()
     const keystore = await provider.newKeystore(
-      testProviderOptions(),
+      testProviderOptions({}),
       apiClient,
       wallet
     )
@@ -74,7 +74,7 @@ describe('NetworkKeystoreProvider', () => {
     // Now try and load it
     const provider = new NetworkKeystoreProvider()
     const keystore = await provider.newKeystore(
-      testProviderOptions(),
+      testProviderOptions({}),
       apiClient,
       wallet
     )
@@ -91,7 +91,7 @@ describe('NetworkKeystoreProvider', () => {
     const provider = new NetworkKeystoreProvider()
     const mockNotifier = jest.fn()
     await provider.newKeystore(
-      { ...testProviderOptions(), preEnableIdentityCallback: mockNotifier },
+      { ...testProviderOptions({}), preEnableIdentityCallback: mockNotifier },
       apiClient,
       wallet
     )

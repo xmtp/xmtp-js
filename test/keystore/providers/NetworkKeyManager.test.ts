@@ -6,6 +6,7 @@ import { buildPersistenceFromOptions } from '../../../src/keystore/providers/hel
 import NetworkKeyManager from '../../../src/keystore/providers/NetworkKeyManager'
 import { Signer } from '../../../src/types/Signer'
 import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '../../helpers'
+import { testProviderOptions } from './helpers'
 
 describe('NetworkKeyManager', () => {
   let wallet: Signer
@@ -100,13 +101,13 @@ describe('NetworkKeyManager', () => {
   it('respects the options provided', async () => {
     const bundle = await PrivateKeyBundleV1.generate(wallet)
     const shouldBeUndefined = await buildPersistenceFromOptions(
-      { persistConversations: false, env: 'local' },
+      testProviderOptions({ persistConversations: false }),
       bundle
     )
     expect(shouldBeUndefined).toBeUndefined()
 
     const shouldBeDefined = await buildPersistenceFromOptions(
-      { persistConversations: true, env: 'local' },
+      testProviderOptions({ persistConversations: true }),
       bundle
     )
     expect(shouldBeDefined).toBeInstanceOf(PrefixedPersistence)

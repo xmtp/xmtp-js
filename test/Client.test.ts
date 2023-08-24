@@ -8,7 +8,13 @@ import {
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
-import { ApiUrls, Compression, HttpApiClient, PublishParams } from '../src'
+import {
+  ApiUrls,
+  Compression,
+  HttpApiClient,
+  LocalStoragePersistence,
+  PublishParams,
+} from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 import { PrivateKeyBundleV1 } from '../src/crypto'
@@ -334,6 +340,21 @@ describe('ClientOptions', () => {
         },
       })
       expect(c).rejects.toThrow(expectedError)
+    })
+  })
+
+  describe('pluggable persistence', () => {
+    it('allows for an override of the persistence engine', async () => {
+      class MyNewPersistence extends LocalStoragePersistence {
+        async getItem(key: string): Promise<Uint8Array | null> {
+          throw new Error('MyNewPersistence')
+        }
+      }
+
+      const c = newLocalHostClient({
+        basePersistence: new MyNewPersistence(),
+      })
+      expect(c).rejects.toThrow('MyNewPersistence')
     })
   })
 })
