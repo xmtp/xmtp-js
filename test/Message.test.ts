@@ -241,7 +241,8 @@ describe('Message', function () {
         bobClient
       )
       expect(bobRestoredMessage.error).toBeTruthy()
-      expect(bobRestoredMessage.content).toEqual(fallback)
+      expect(bobRestoredMessage.content).toBeUndefined()
+      expect(bobRestoredMessage.contentFallback).toEqual(fallback)
     })
   })
 })

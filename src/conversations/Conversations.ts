@@ -1,3 +1,4 @@
+import { OnConnectionLostCallback } from './../ApiClient'
 import { messageApi, keystore, conversationReference } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
@@ -8,8 +9,6 @@ import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
 import {
-  b64Decode,
-  buildUserGroupInviteTopic,
   buildUserIntroTopic,
   buildUserInviteTopic,
   dateToNs,
@@ -69,6 +68,10 @@ export class ConversationCache {
 
     return [...this.conversations]
   }
+
+  list() {
+    return [...this.conversations]
+  }
 }
 
 /**
@@ -94,6 +97,19 @@ export default class Conversations {
       this.listV2Conversations(),
     ])
 
+    const conversations = v1Convos.concat(v2Convos)
+
+    conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    return conversations
+  }
+
+  /**
+   * List all conversations stored in the client cache, which may not include
+   * conversations on the network.
+   */
+  async listFromCache(): Promise<Conversation[]> {
+    const v1Convos = this.v1Cache.list()
+    const v2Convos = await this.getV2ConversationsFromKeystore()
     const conversations = v1Convos.concat(v2Convos)
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
@@ -225,7 +241,7 @@ export default class Conversations {
   ): Promise<ConversationV2[]> {
     const { responses } = await this.client.keystore.saveInvites({
       requests: envelopes.map((env) => ({
-        payload: b64Decode(env.message as unknown as string),
+        payload: env.message as Uint8Array,
         timestampNs: Long.fromString(env.timestampNs as string),
         contentTopic: env.contentTopic as string,
       })),
@@ -272,7 +288,9 @@ export default class Conversations {
    * Will dedupe to not return the same conversation twice in the same stream.
    * Does not dedupe any other previously seen conversations
    */
-  async stream(): Promise<Stream<Conversation>> {
+  async stream(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<Conversation>> {
     const seenPeers: Set<string> = new Set()
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
@@ -289,8 +307,10 @@ export default class Conversations {
 
     const decodeConversation = async (env: messageApi.Envelope) => {
       if (env.contentTopic === introTopic) {
-        const messageBytes = b64Decode(env.message as unknown as string)
-        const msg = await MessageV1.fromBytes(messageBytes)
+        if (!env.message) {
+          throw new Error('empty envelope')
+        }
+        const msg = await MessageV1.fromBytes(env.message)
         const peerAddress = this.getPeerAddress(msg)
         if (!newPeer(peerAddress)) {
           return undefined
@@ -320,14 +340,12 @@ export default class Conversations {
 
     const topics = [introTopic, inviteTopic]
 
-    if (this.client.isGroupChatEnabled) {
-      topics.push(groupInviteTopic)
-    }
-
     return Stream.create<Conversation>(
       this.client,
       topics,
-      decodeConversation.bind(this)
+      decodeConversation.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
@@ -338,7 +356,9 @@ export default class Conversations {
    * Callers should be aware the first messages in a newly created conversation are picked up on a best effort basis and there are other potential race conditions which may cause some newly created conversations to be missed.
    *
    */
-  async streamAllMessages(): Promise<AsyncGenerator<DecodedMessage>> {
+  async streamAllMessages(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<AsyncGenerator<DecodedMessage>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
     const groupInviteTopic = buildUserGroupInviteTopic(this.client.address)
@@ -360,13 +380,12 @@ export default class Conversations {
       env: messageApi.Envelope
     ): Promise<Conversation | DecodedMessage | null> => {
       const contentTopic = env.contentTopic
-      if (!contentTopic) {
+      if (!contentTopic || !env.message) {
         return null
       }
 
       if (contentTopic === introTopic) {
-        const messageBytes = b64Decode(env.message as unknown as string)
-        const msg = await MessageV1.fromBytes(messageBytes)
+        const msg = await MessageV1.fromBytes(env.message)
         if (!messageHasHeaders(msg)) {
           return null
         }
@@ -445,7 +464,8 @@ export default class Conversations {
       this.client,
       Array.from(topics.values()),
       decodeMessage,
-      contentTopicUpdater
+      contentTopicUpdater,
+      onConnectionLost
     )
 
     return (async function* generate() {
@@ -471,7 +491,10 @@ export default class Conversations {
     const messages = await this.client.listEnvelopes(
       topic,
       (env) => {
-        return MessageV1.fromBytes(b64Decode(env.message as unknown as string))
+        if (!env.message) {
+          throw new Error('empty envelope')
+        }
+        return MessageV1.fromBytes(env.message)
       },
       opts
     )

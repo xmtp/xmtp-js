@@ -1,12 +1,15 @@
 import type { XmtpEnv, PreEventCallbackOptions } from '../../Client'
-import type ApiClient from '../../ApiClient'
 import type { Signer } from '../../types/Signer'
 import type { Keystore } from '../interfaces'
+import type { ApiClient } from '../../ApiClient'
+import { Persistence } from '../persistence'
 
 export type KeystoreProviderOptions = {
   env: XmtpEnv
   persistConversations: boolean
   privateKeyOverride?: Uint8Array
+  basePersistence: Persistence
+  disablePersistenceEncryption: boolean
 } & PreEventCallbackOptions
 
 /**

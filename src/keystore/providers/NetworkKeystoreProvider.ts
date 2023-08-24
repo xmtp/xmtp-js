@@ -1,5 +1,5 @@
 import { Signer } from './../../types/Signer'
-import ApiClient from '../../ApiClient'
+import type { ApiClient } from '../../ApiClient'
 import { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
 import NetworkKeyLoader from './NetworkKeyManager'
 import { KeystoreProviderUnavailableError } from './errors'

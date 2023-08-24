@@ -13,9 +13,14 @@ import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import { ContentTypeId, ContentCodec } from './MessageContent'
 import { compress } from './Compression'
-import { content as proto, messageApi, fetcher } from '@xmtp/proto'
+import { content as proto, messageApi } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
+import HttpApiClient, {
+  ApiUrls,
+  ApiClient,
+  PublishParams,
+  SortDirection,
+} from './ApiClient'
 import { KeystoreAuthenticator } from './authn'
 import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
@@ -28,9 +33,8 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import { GroupChat } from './conversations/GroupChat'
+import { LocalStoragePersistence, Persistence } from './keystore/persistence'
 const { Compression } = proto
-const { b64Decode } = fetcher
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
 // eslint-disable @typescript-eslint/no-explicit-any
@@ -55,7 +59,6 @@ export type ListMessagesPaginatedOptions = {
 }
 
 // Parameters for the send functions
-export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
   contentFallback?: string
@@ -63,6 +66,8 @@ export type SendOptions = {
   timestamp?: Date
   ephemeral?: boolean
 }
+
+export { Compression }
 
 export type XmtpEnv = keyof typeof ApiUrls
 export type PreEventCallback = () => Promise<void>
@@ -106,6 +111,8 @@ export type NetworkOptions = {
    * a push notification.
    */
   skipContactPublishing: boolean
+
+  apiClientFactory: (options: NetworkOptions) => ApiClient
 }
 
 export type ContentOptions = {
@@ -138,6 +145,17 @@ export type KeyStoreOptions = {
    * A bundle can be retried using `Client.getKeys(...)`
    */
   privateKeyOverride?: Uint8Array
+
+  /**
+   * Override the base persistence provider.
+   * Defaults to LocalStoragePersistence, which is fine for most implementations
+   */
+  basePersistence: Persistence
+  /**
+   * Whether or not the persistence provider should encrypt the values.
+   * Only disable if you are using a secure datastore that already has encryption
+   */
+  disablePersistenceEncryption: boolean
 }
 
 export type LegacyOptions = {
@@ -189,8 +207,12 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     maxContentSize: MaxContentSize,
     persistConversations: true,
     skipContactPublishing: false,
+    basePersistence: new LocalStoragePersistence(),
+    disablePersistenceEncryption: false,
     keystoreProviders: defaultKeystoreProviders(),
+    apiClientFactory: createHttpApiClientFromOptions,
   }
+
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
   }
@@ -272,7 +294,7 @@ export default class Client {
     opts?: Partial<ClientOptions>
   ): Promise<Client> {
     const options = defaultOptions(opts)
-    const apiClient = createApiClientFromOptions(options)
+    const apiClient = options.apiClientFactory(options)
     const keystore = await bootstrapKeystore(options, apiClient, wallet)
     const publicKeyBundle = new PublicKeyBundle(
       await keystore.getPublicKeyBundle()
@@ -496,6 +518,9 @@ export default class Client {
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+    const apiClient = new HttpApiClient(apiUrl, {
+      appVersion: opts?.appVersion,
+    })
 
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
@@ -506,7 +531,7 @@ export default class Client {
       // The getUserContactsFromNetwork will return false instead of throwing
       // on invalid envelopes
       const contacts = await getUserContactsFromNetwork(
-        new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
+        apiClient,
         normalizedPeerAddresses
       )
       return contacts.map((contact) => !!contact)
@@ -516,10 +541,7 @@ export default class Client {
     } catch (e) {
       return false
     }
-    const keyBundle = await getUserContactFromNetwork(
-      new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
-      peerAddress
-    )
+    const keyBundle = await getUserContactFromNetwork(apiClient, peerAddress)
     return keyBundle !== undefined
   }
 
@@ -681,9 +703,9 @@ export default class Client {
   }
 }
 
-function createApiClientFromOptions(options: ClientOptions): ApiClient {
+function createHttpApiClientFromOptions(options: NetworkOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
-  return new ApiClient(apiUrl, { appVersion: options.appVersion })
+  return new HttpApiClient(apiUrl, { appVersion: options.appVersion })
 }
 
 /**
@@ -700,7 +722,7 @@ async function getUserContactFromNetwork(
 
   for await (const env of stream) {
     if (!env.message) continue
-    const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
+    const keyBundle = decodeContactBundle(env.message)
     let address: string | undefined
     try {
       address = await keyBundle?.walletSignatureAddress()
@@ -742,9 +764,7 @@ async function getUserContactsFromNetwork(
       for (const env of envelopes) {
         if (!env.message) continue
         try {
-          const keyBundle = decodeContactBundle(
-            b64Decode(env.message.toString())
-          )
+          const keyBundle = decodeContactBundle(env.message)
           const signingAddress = await keyBundle?.walletSignatureAddress()
           if (address === signingAddress) {
             return keyBundle

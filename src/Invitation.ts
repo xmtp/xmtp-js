@@ -1,12 +1,11 @@
 import Long from 'long'
 import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
-import { messageApi, invitation, fetcher } from '@xmtp/proto'
+import { messageApi, invitation } from '@xmtp/proto'
 import crypto from './crypto/crypto'
 import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt } from './crypto'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
 import { dateToNs, buildDirectMessageTopicV2 } from './utils'
-const { b64Decode } = fetcher
 
 export type InvitationContext = {
   conversationId: string
@@ -205,9 +204,7 @@ export class SealedInvitation implements invitation.SealedInvitation {
     if (!env.message || !env.timestampNs) {
       throw new Error('invalid invitation envelope')
     }
-    const sealed = SealedInvitation.fromBytes(
-      b64Decode(env.message as unknown as string)
-    )
+    const sealed = SealedInvitation.fromBytes(env.message)
     const envelopeTime = Long.fromString(env.timestampNs)
     const headerTime = sealed.v1?.header.createdNs
     if (!headerTime || !headerTime.equals(envelopeTime)) {

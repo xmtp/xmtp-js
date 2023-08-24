@@ -31,9 +31,12 @@ describe('conversation', () => {
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
+      expect(aliceConversation.conversationVersion).toBe('v1')
+
       const bobConversation = await bob.conversations.newConversation(
         alice.address
       )
+      expect(bobConversation.conversationVersion).toBe('v1')
 
       const startingMessages = await aliceConversation.messages()
       expect(startingMessages).toHaveLength(0)
@@ -349,9 +352,7 @@ describe('conversation', () => {
         },
         { limit: 1 }
       )
-      const messageBytes = fetcher.b64Decode(
-        envelopes[0].message as unknown as string
-      )
+      const messageBytes = envelopes[0].message as Uint8Array
       const decoded = await MessageV1.fromBytes(messageBytes)
       const decrypted = await decoded.decrypt(
         alice.keystore,
@@ -453,8 +454,9 @@ describe('conversation', () => {
         'unknown content type xmtp.test/public-key:1.0'
       )
       expect(bobMessage1.contentType).toBeTruthy()
-      expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
-      expect(bobMessage1.content).toBe('this is a public key')
+      expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
+      expect(bobMessage1.content).toBeUndefined()
+      expect(bobMessage1.contentFallback).toBe('this is a public key')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
@@ -498,6 +500,7 @@ describe('conversation', () => {
       )
 
       const ac = await alice.conversations.newConversation(bob.address)
+      expect(ac.conversationVersion).toBe('v2')
       if (!(ac instanceof ConversationV2)) {
         fail()
       }
@@ -507,6 +510,7 @@ describe('conversation', () => {
       const bcs = await bob.conversations.list()
       expect(bcs).toHaveLength(1)
       const bc = bcs[0]
+      expect(bc.conversationVersion).toBe('v2')
       if (!(bc instanceof ConversationV2)) {
         fail()
       }
@@ -689,8 +693,9 @@ describe('conversation', () => {
         'unknown content type xmtp.test/public-key:1.0'
       )
       expect(bobMessage1.contentType).toBeTruthy()
-      expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
-      expect(bobMessage1.content).toBe('this is a public key')
+      expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
+      expect(bobMessage1.content).toBeUndefined()
+      expect(bobMessage1.contentFallback).toBe('this is a public key')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())

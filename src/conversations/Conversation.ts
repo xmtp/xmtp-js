@@ -1,9 +1,9 @@
+import { OnConnectionLostCallback } from './../ApiClient'
 import {
   buildUserIntroTopic,
   buildDirectMessageTopic,
   dateToNs,
   concat,
-  b64Decode,
   toNanoString,
 } from '../utils'
 import { utils } from 'ethers'
@@ -39,6 +39,7 @@ import { ContentTypeText } from '../codecs/Text'
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
  */
 export interface Conversation {
+  conversationVersion: 'v1' | 'v2'
   /**
    * The wallet address connected to the client
    */
@@ -151,6 +152,7 @@ export interface Conversation {
  * ConversationV1 allows you to view, stream, and send messages to/from a peer address
  */
 export class ConversationV1 implements Conversation {
+  conversationVersion = 'v1' as const
   peerAddress: string
   createdAt: Date
   context = undefined
@@ -267,11 +269,15 @@ export class ConversationV1 implements Conversation {
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<DecodedMessage>> {
+  streamMessages(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
-      async (env: messageApi.Envelope) => this.decodeMessage(env)
+      async (env: messageApi.Envelope) => this.decodeMessage(env),
+      undefined,
+      onConnectionLost
     )
   }
 
@@ -279,8 +285,10 @@ export class ConversationV1 implements Conversation {
     message,
     contentTopic,
   }: messageApi.Envelope): Promise<MessageV1> {
-    const messageBytes = b64Decode(message as unknown as string)
-    const decoded = await MessageV1.fromBytes(messageBytes)
+    if (!message || !message.length) {
+      throw new Error('empty envelope')
+    }
+    const decoded = await MessageV1.fromBytes(message)
     const { senderAddress, recipientAddress } = decoded
 
     // Filter for topics
@@ -296,11 +304,15 @@ export class ConversationV1 implements Conversation {
     return decoded
   }
 
-  streamEphemeral(): Promise<Stream<DecodedMessage>> {
+  streamEphemeral(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.ephemeralTopic],
-      this.decodeMessage.bind(this)
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
@@ -388,10 +400,9 @@ export class ConversationV1 implements Conversation {
     decrypted: Uint8Array,
     topic: string
   ): Promise<DecodedMessage> {
-    const { content, contentType, error } = await decodeContent(
-      decrypted,
-      this.client
-    )
+    const { content, contentType, error, contentFallback } =
+      await decodeContent(decrypted, this.client)
+
     return DecodedMessage.fromV1Message(
       message,
       content,
@@ -399,7 +410,8 @@ export class ConversationV1 implements Conversation {
       decrypted,
       topic,
       this,
-      error
+      error,
+      contentFallback
     )
   }
 
@@ -425,6 +437,7 @@ export class ConversationV1 implements Conversation {
  * ConversationV2
  */
 export class ConversationV2 implements Conversation {
+  conversationVersion = 'v2' as const
   client: Client
   topic: string
   peerAddress: string
@@ -477,22 +490,30 @@ export class ConversationV2 implements Conversation {
     return this.topic.replace('/xmtp/0/m', '/xmtp/0/mE')
   }
 
-  streamEphemeral(): Promise<Stream<DecodedMessage>> {
+  streamEphemeral(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.ephemeralTopic],
-      this.decodeMessage.bind(this)
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<DecodedMessage>> {
+  streamMessages(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage>> {
     return Stream.create<DecodedMessage>(
       this.client,
       [this.topic],
-      this.decodeMessage.bind(this)
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
@@ -658,10 +679,8 @@ export class ConversationV2 implements Conversation {
       signed.sender
     ).walletSignatureAddress()
 
-    const { content, contentType, error } = await decodeContent(
-      signed.payload,
-      this.client
-    )
+    const { content, contentType, error, contentFallback } =
+      await decodeContent(signed.payload, this.client)
 
     return DecodedMessage.fromV2Message(
       msg,
@@ -671,7 +690,8 @@ export class ConversationV2 implements Conversation {
       signed.payload,
       this,
       senderAddress,
-      error
+      error,
+      contentFallback
     )
   }
 
@@ -705,8 +725,7 @@ export class ConversationV2 implements Conversation {
     if (!env.message || !env.contentTopic) {
       throw new Error('empty envelope')
     }
-    const messageBytes = b64Decode(env.message.toString())
-    const msg = message.Message.decode(messageBytes)
+    const msg = message.Message.decode(env.message)
 
     if (!msg.v2) {
       throw new Error('unknown message version')
@@ -717,7 +736,7 @@ export class ConversationV2 implements Conversation {
       throw new Error('topic mismatch')
     }
 
-    return MessageV2.create(msg, header, messageBytes)
+    return MessageV2.create(msg, header, env.message)
   }
 
   async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {

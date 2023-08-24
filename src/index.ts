@@ -35,8 +35,12 @@ export {
   LegacyOptions,
   XmtpEnv,
 } from './Client'
-export { Conversations, Conversation } from './conversations'
-export { GroupConversation } from './conversations/GroupConversation'
+export {
+  Conversations,
+  Conversation,
+  ConversationV1,
+  ConversationV2,
+} from './conversations'
 export {
   CodecRegistry,
   ContentTypeId,
@@ -55,10 +59,27 @@ export {
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
-export { ApiUrls, SortDirection } from './ApiClient'
+export {
+  default as HttpApiClient,
+  ApiUrls,
+  SortDirection,
+  ApiClient,
+  QueryParams,
+  QueryAllOptions,
+  QueryStreamOptions,
+  Query,
+  PublishParams,
+  SubscriptionManager,
+  SubscribeParams,
+  SubscribeCallback,
+  UnsubscribeFn,
+  OnConnectionLostCallback,
+} from './ApiClient'
+export { Authenticator, AuthCache, LocalAuthenticator } from './authn'
 export {
   nsToDate,
   dateToNs,
+  retry,
   fromNanoString,
   toNanoString,
   mapPaginatedStream,
