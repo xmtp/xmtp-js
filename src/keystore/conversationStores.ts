@@ -2,7 +2,7 @@ import Long from 'long'
 import { keystore, invitation } from '@xmtp/proto'
 import { Persistence } from './persistence/interface'
 import { Mutex } from 'async-mutex'
-import { isCompleteTopicData, topicDataToMap, typeSafeTopicMap } from './utils'
+import { isCompleteTopicData, topicDataToMap } from './utils'
 import { numberToUint8Array, uint8ArrayToNumber } from '../utils'
 
 export type AddRequest = {
@@ -45,11 +45,7 @@ export class V2Store {
     const persistenceKey = INVITE_STORAGE_KEY
 
     const v2Store = new V2Store(persistence, persistenceKey)
-    try {
-      await v2Store.refresh()
-    } catch (e) {
-      console.error('Error refreshing store', e)
-    }
+    await v2Store.refresh()
     return v2Store
   }
 
@@ -142,11 +138,7 @@ export class V1Store extends V2Store {
   static async create(persistence: Persistence): Promise<V1Store> {
     const persistenceKey = V1_STORAGE_KEY
     const v1Store = new V1Store(persistence, persistenceKey)
-    try {
-      await v1Store.refresh()
-    } catch (e) {
-      console.error('Error refreshing store', e)
-    }
+    await v1Store.refresh()
 
     return v1Store
   }

@@ -121,18 +121,6 @@ export const isCompleteTopicData = (
   obj: keystore.TopicMap_TopicData
 ): obj is TopicData => !!obj.invitation
 
-export const typeSafeTopicMap = (
-  topicMap: keystore.TopicMap
-): Map<string, keystore.TopicMap_TopicData> => {
-  const out = new Map<string, keystore.TopicMap_TopicData>()
-  for (const [topic, topicData] of Object.entries(topicMap.topics)) {
-    if (isCompleteTopicData(topicData)) {
-      out.set(topic, topicData)
-    }
-  }
-  return out
-}
-
 export const topicDataToMap = (topicMap: keystore.TopicMap) => {
   const out = new Map<string, keystore.TopicMap_TopicData>()
   for (const [k, v] of Object.entries(topicMap.topics)) {

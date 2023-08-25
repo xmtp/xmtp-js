@@ -82,6 +82,26 @@ describe('V2Store', () => {
     expect(store2.topics).toHaveLength(2)
     expect(await store2.getRevision()).toBe(2)
   })
+
+  it('correctly handles revisions', async () => {
+    const persistence = InMemoryPersistence.create()
+    const store = await V2Store.create(persistence)
+    for (let i = 0; i < 10; i++) {
+      await store.add([buildAddRequest()])
+      expect(await store.getRevision()).toBe(i + 1)
+    }
+    const newStore = await V2Store.create(persistence)
+    expect(await newStore.getRevision()).toBe(10)
+  })
+
+  it('omits bad data', async () => {
+    const store = await V2Store.create(InMemoryPersistence.create())
+    const revision = await store.getRevision()
+    const topicData = { ...buildAddRequest(), invitation: undefined }
+    await store.add([topicData])
+    expect(await store.getRevision()).toBe(revision)
+    expect(await store.topics).toHaveLength(0)
+  })
 })
 
 describe('v1Store', () => {
@@ -127,6 +147,7 @@ describe('v1Store', () => {
     expect(store2.topics).toHaveLength(0)
     await store2.add([buildAddRequest()])
     expect(store2.topics).toHaveLength(2)
+    expect(await store1.getRevision()).toBe(2)
     expect(await store2.getRevision()).toBe(2)
   })
 })
