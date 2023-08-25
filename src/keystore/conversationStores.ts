@@ -3,6 +3,7 @@ import { keystore, invitation } from '@xmtp/proto'
 import { Persistence } from './persistence/interface'
 import { Mutex } from 'async-mutex'
 import { isCompleteTopicData, topicDataToMap, typeSafeTopicMap } from './utils'
+import { numberToUint8Array, uint8ArrayToNumber } from '../utils'
 
 export type AddRequest = {
   topic: string
@@ -22,6 +23,7 @@ export class V2Store {
   private readonly persistenceKey: string
   private readonly mutex: Mutex
   private readonly topicMap: Map<string, keystore.TopicMap_TopicData>
+  private revision: number
 
   constructor(
     persistence: Persistence,
@@ -30,23 +32,25 @@ export class V2Store {
   ) {
     this.persistenceKey = persistenceKey
     this.persistence = persistence
+    this.revision = 0
     this.mutex = new Mutex()
     this.topicMap = initialData
   }
 
+  get revisionKey(): string {
+    return this.persistenceKey + '/revision'
+  }
+
   static async create(persistence: Persistence): Promise<V2Store> {
     const persistenceKey = INVITE_STORAGE_KEY
-    const rawData = await persistence.getItem(persistenceKey)
-    if (rawData) {
-      try {
-        const inviteMap = typeSafeTopicMap(keystore.TopicMap.decode(rawData))
-        // Create an InviteStore with data preloaded
-        return new V2Store(persistence, persistenceKey, inviteMap)
-      } catch (e) {
-        console.warn(`Error loading invites from store: ${e}`)
-      }
+
+    const v2Store = new V2Store(persistence, persistenceKey)
+    try {
+      await v2Store.refresh()
+    } catch (e) {
+      console.error('Error refreshing store', e)
     }
-    return new V2Store(persistence, persistenceKey)
+    return v2Store
   }
 
   protected validate(topicData: AddRequest): boolean {
@@ -57,8 +61,47 @@ export class V2Store {
     )
   }
 
+  async refresh() {
+    const currentRevision = await this.getRevision()
+    if (currentRevision > this.revision) {
+      for (const [topic, data] of await this.loadFromPersistence()) {
+        this.topicMap.set(topic, data)
+      }
+    }
+    this.revision = currentRevision
+  }
+
+  async getRevision(): Promise<number> {
+    const data = await this.persistence.getItem(this.revisionKey)
+    if (!data) {
+      return 0
+    }
+    return uint8ArrayToNumber(data)
+  }
+
+  async setRevision(number: number) {
+    await this.persistence.setItem(this.revisionKey, numberToUint8Array(number))
+  }
+
+  async loadFromPersistence(): Promise<
+    Map<string, keystore.TopicMap_TopicData>
+  > {
+    const rawData = await this.persistence.getItem(this.persistenceKey)
+    if (!rawData) {
+      return new Map()
+    }
+    return topicDataToMap(keystore.TopicMap.decode(rawData))
+  }
+
+  async store() {
+    await this.persistence.setItem(this.persistenceKey, this.toBytes())
+    this.revision++
+    await this.setRevision(this.revision)
+  }
+
   async add(topicData: AddRequest[]): Promise<void> {
     await this.mutex.runExclusive(async () => {
+      await this.refresh()
       let isDirty = false
       for (const row of topicData) {
         if (!this.validate(row)) {
@@ -75,7 +118,7 @@ export class V2Store {
       }
       // Only write to persistence once, and only if we have added new invites
       if (isDirty) {
-        await this.persistence.setItem(this.persistenceKey, this.toBytes())
+        await this.store()
       }
     })
   }
@@ -98,17 +141,14 @@ export class V2Store {
 export class V1Store extends V2Store {
   static async create(persistence: Persistence): Promise<V1Store> {
     const persistenceKey = V1_STORAGE_KEY
-    const rawData = await persistence.getItem(persistenceKey)
-    if (rawData) {
-      try {
-        const inviteMap = topicDataToMap(keystore.TopicMap.decode(rawData))
-        // Create an InviteStore with data preloaded
-        return new V1Store(persistence, persistenceKey, inviteMap)
-      } catch (e) {
-        console.warn(`Error loading invites from store: ${e}`)
-      }
+    const v1Store = new V1Store(persistence, persistenceKey)
+    try {
+      await v1Store.refresh()
+    } catch (e) {
+      console.error('Error refreshing store', e)
     }
-    return new V1Store(persistence, persistenceKey)
+
+    return v1Store
   }
 
   protected override validate(topicData: AddRequest) {

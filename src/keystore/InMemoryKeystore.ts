@@ -35,7 +35,6 @@ import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
 import Long from 'long'
-import { SetRefreshJobResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 
 const { ErrorCode } = keystore
 
@@ -467,7 +466,7 @@ export default class InMemoryKeystore implements Keystore {
   async setRefreshJob({
     jobType,
     lastRunNs,
-  }: keystore.SetRefeshJobRequest): Promise<SetRefreshJobResponse> {
+  }: keystore.SetRefeshJobRequest): Promise<keystore.SetRefreshJobResponse> {
     const key = await this.buildJobStorageKey(jobType)
     await this.jobStatePersistence.setItem(
       key,

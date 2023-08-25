@@ -69,6 +69,19 @@ describe('V2Store', () => {
     const result2 = store2.lookup(topicData.topic)
     expect(result2).toEqual(result)
   })
+
+  it('handles concurrent access', async () => {
+    const persistence = InMemoryPersistence.create()
+    const store1 = await V2Store.create(persistence)
+    const store2 = await V2Store.create(persistence)
+    // Add an item to store 1
+    await store1.add([buildAddRequest()])
+    expect(store1.topics).toHaveLength(1)
+    expect(store2.topics).toHaveLength(0)
+    await store2.add([buildAddRequest()])
+    expect(store2.topics).toHaveLength(2)
+    expect(await store2.getRevision()).toBe(2)
+  })
 })
 
 describe('v1Store', () => {
@@ -102,5 +115,18 @@ describe('v1Store', () => {
     const store2 = await V1Store.create(persistence)
     const valuesFromSecondStore = store2.topics
     expect(valuesFromFirstStore).toEqual(valuesFromSecondStore)
+  })
+
+  it('handles concurrent access', async () => {
+    const persistence = InMemoryPersistence.create()
+    const store1 = await V2Store.create(persistence)
+    const store2 = await V2Store.create(persistence)
+    // Add an item to store 1
+    await store1.add([buildAddRequest()])
+    expect(store1.topics).toHaveLength(1)
+    expect(store2.topics).toHaveLength(0)
+    await store2.add([buildAddRequest()])
+    expect(store2.topics).toHaveLength(2)
+    expect(await store2.getRevision()).toBe(2)
   })
 })

@@ -2,7 +2,7 @@ import {
   ConversationV1,
   ConversationV2,
 } from './../../src/conversations/Conversation'
-import { newLocalHostClient, newWallet, waitForUserContact } from './../helpers'
+import { newLocalHostClient, waitForUserContact } from './../helpers'
 import { Client } from '../../src'
 import {
   buildDirectMessageTopic,
