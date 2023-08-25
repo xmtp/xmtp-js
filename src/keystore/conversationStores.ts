@@ -105,7 +105,7 @@ export class V2Store {
       let isDirty = false
       for (const row of topicData) {
         if (!this.validate(row)) {
-          console.warn('Invalid topic data', row)
+          console.warn('Invalid topic data', row.topic)
           continue
         }
         const { topic, ...data } = row
