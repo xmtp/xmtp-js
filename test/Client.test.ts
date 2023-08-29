@@ -340,7 +340,7 @@ describe('ClientOptions', () => {
           return new CustomApiClient(ApiUrls.local)
         },
       })
-      expect(c).rejects.toThrow(expectedError)
+      await expect(c).rejects.toThrow(expectedError)
     })
   })
 
@@ -355,7 +355,7 @@ describe('ClientOptions', () => {
       const c = newLocalHostClient({
         basePersistence: new MyNewPersistence(new LocalStoragePonyfill()),
       })
-      expect(c).rejects.toThrow('MyNewPersistence')
+      await expect(c).rejects.toThrow('MyNewPersistence')
     })
   })
 })
