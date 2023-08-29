@@ -1,6 +1,5 @@
 import { OnConnectionLostCallback } from './../ApiClient'
 import { messageApi, keystore, conversationReference } from '@xmtp/proto'
-import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { ListMessagesOptions } from './../Client'
 import { InvitationContext } from './../Invitation'
@@ -9,6 +8,7 @@ import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
 import Client from '../Client'
 import {
+  buildDirectMessageTopic,
   buildUserIntroTopic,
   buildUserInviteTopic,
   dateToNs,
@@ -17,6 +17,7 @@ import {
 import { PublicKeyBundle } from '../crypto'
 import { SortDirection } from '../ApiClient'
 import Long from 'long'
+import JobRunner from './JobRunner'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
@@ -24,64 +25,18 @@ const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
 }
 
-type CacheLoader = (args: {
-  latestSeen: Date | undefined
-  existing: Conversation[]
-}) => Promise<Conversation[]>
-
-export class ConversationCache {
-  private conversations: Conversation[]
-  private mutex: Mutex
-  private latestSeen?: Date
-  private seenTopics: Set<string>
-
-  constructor() {
-    this.conversations = []
-    this.mutex = new Mutex()
-    this.seenTopics = new Set()
-  }
-
-  async load(loader: CacheLoader) {
-    const release = await this.mutex.acquire()
-    try {
-      const newConvos = await loader({
-        latestSeen: this.latestSeen,
-        existing: this.conversations,
-      })
-      for (const convo of newConvos) {
-        if (!this.seenTopics.has(convo.topic)) {
-          this.seenTopics.add(convo.topic)
-          this.conversations.push(convo)
-          if (!this.latestSeen || convo.createdAt > this.latestSeen) {
-            this.latestSeen = convo.createdAt
-          }
-        }
-      }
-      // No catch block so that errors still bubble
-    } finally {
-      release()
-    }
-
-    return [...this.conversations]
-  }
-
-  list() {
-    return [...this.conversations]
-  }
-}
-
 /**
  * Conversations allows you to view ongoing 1:1 messaging sessions with another wallet
  */
 export default class Conversations {
   private client: Client
-  private v1Cache: ConversationCache
-  private v2Mutex: Mutex
+  private v1JobRunner: JobRunner
+  private v2JobRunner: JobRunner
 
   constructor(client: Client) {
     this.client = client
-    this.v1Cache = new ConversationCache()
-    this.v2Mutex = new Mutex()
+    this.v1JobRunner = new JobRunner('v1', client.keystore)
+    this.v2JobRunner = new JobRunner('v2', client.keystore)
   }
 
   /**
@@ -104,8 +59,10 @@ export default class Conversations {
    * conversations on the network.
    */
   async listFromCache(): Promise<Conversation[]> {
-    const v1Convos = this.v1Cache.list()
-    const v2Convos = await this.getV2ConversationsFromKeystore()
+    const [v1Convos, v2Convos]: Conversation[][] = await Promise.all([
+      this.getV1ConversationsFromKeystore(),
+      this.getV2ConversationsFromKeystore(),
+    ])
     const conversations = v1Convos.concat(v2Convos)
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
@@ -113,7 +70,7 @@ export default class Conversations {
   }
 
   private async listV1Conversations(): Promise<Conversation[]> {
-    return this.v1Cache.load(async ({ latestSeen }) => {
+    return this.v1JobRunner.run(async (latestSeen) => {
       const seenPeers = await this.getIntroductionPeers({
         startTime: latestSeen
           ? new Date(+latestSeen - CLOCK_SKEW_OFFSET_MS)
@@ -121,10 +78,20 @@ export default class Conversations {
         direction: SortDirection.SORT_DIRECTION_ASCENDING,
       })
 
-      return Array.from(seenPeers).map(
-        ([peerAddress, sent]) =>
-          new ConversationV1(this.client, peerAddress, sent)
-      )
+      await this.client.keystore.saveV1Conversations({
+        conversations: Array.from(seenPeers).map(
+          ([peerAddress, createdAt]) => ({
+            peerAddress,
+            createdNs: dateToNs(createdAt),
+            topic: buildDirectMessageTopic(peerAddress, this.client.address),
+            context: undefined,
+          })
+        ),
+      })
+
+      return (
+        await this.client.keystore.getV1Conversations()
+      ).conversations.map(this.conversationReferenceToV1.bind(this))
     })
   }
 
@@ -132,23 +99,11 @@ export default class Conversations {
    * List all V2 conversations
    */
   private async listV2Conversations(): Promise<Conversation[]> {
-    return this.v2Mutex.runExclusive(async () => {
+    return this.v2JobRunner.run(async (lastRun) => {
       // Get all conversations already in the KeyStore
       const existing = await this.getV2ConversationsFromKeystore()
-      const latestConversation = existing.reduce(
-        (memo: ConversationV2 | undefined, curr: ConversationV2) => {
-          if (!memo || +curr.createdAt > +memo.createdAt) {
-            return curr
-          }
-          return memo
-        },
-        undefined
-      )
-
       // Load all conversations started after the newest conversation found
-      const newConversations = await this.updateV2Conversations(
-        latestConversation?.createdAt
-      )
+      const newConversations = await this.updateV2Conversations(lastRun)
 
       // Create a Set of all the existing topics to ensure no duplicates are added
       const existingTopics = new Set(existing.map((c) => c.topic))
@@ -169,6 +124,12 @@ export default class Conversations {
   private async getV2ConversationsFromKeystore(): Promise<ConversationV2[]> {
     return (await this.client.keystore.getV2Conversations()).map(
       this.conversationReferenceToV2.bind(this)
+    )
+  }
+
+  private async getV1ConversationsFromKeystore(): Promise<ConversationV1[]> {
+    return (await this.client.keystore.getV1Conversations()).conversations.map(
+      this.conversationReferenceToV1.bind(this)
     )
   }
 
@@ -230,6 +191,16 @@ export default class Conversations {
       convoRef.peerAddress,
       nsToDate(convoRef.createdNs),
       convoRef.context
+    )
+  }
+
+  private conversationReferenceToV1(
+    convoRef: conversationReference.ConversationReference
+  ): ConversationV1 {
+    return new ConversationV1(
+      this.client,
+      convoRef.peerAddress,
+      nsToDate(convoRef.createdNs)
     )
   }
 
@@ -514,14 +485,14 @@ export default class Conversations {
       convo.peerAddress === peerAddress &&
       isMatchingContext(context, convo.context ?? undefined)
 
-    return this.v2Mutex.runExclusive(async () => {
-      const existing = await this.getV2ConversationsFromKeystore()
-      const existingMatch = existing.find(matcherFn)
-      if (existingMatch) {
-        return existingMatch
-      }
-      const latestSeen = existing[existing.length - 1]?.createdAt
-      const newItems = await this.updateV2Conversations(latestSeen)
+    const existing = await this.getV2ConversationsFromKeystore()
+    const existingMatch = existing.find(matcherFn)
+    if (existingMatch) {
+      return existingMatch
+    }
+
+    return this.v2JobRunner.run(async (lastRun) => {
+      const newItems = await this.updateV2Conversations(lastRun)
       const newItemMatch = newItems.find(matcherFn)
       // If one of those matches, return it to update the cache
       if (newItemMatch) {

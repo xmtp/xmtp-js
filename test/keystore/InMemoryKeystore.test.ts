@@ -208,7 +208,7 @@ describe('InMemoryKeystore', () => {
 
     it('throws if an invalid recipient is included', async () => {
       const createdNs = dateToNs(new Date())
-      expect(async () => {
+      await expect(async () => {
         await aliceKeystore.createInvite({
           recipient: {} as any,
           createdNs,
@@ -428,7 +428,7 @@ describe('InMemoryKeystore', () => {
 
     it('rejects signing with an invalid prekey index', async () => {
       const digest = randomBytes(32)
-      expect(
+      await expect(
         aliceKeystore.signDigest({
           digest,
           identityKey: false,
@@ -682,9 +682,9 @@ describe('InMemoryKeystore', () => {
       }
 
       const lookupResult = aliceKeystore.lookupTopic(invite.topic)
-      expect(lookupResult?.invitation.aes256GcmHkdfSha256?.keyMaterial).toEqual(
-        invite.aes256GcmHkdfSha256.keyMaterial
-      )
+      expect(
+        lookupResult?.invitation?.aes256GcmHkdfSha256?.keyMaterial
+      ).toEqual(invite.aes256GcmHkdfSha256.keyMaterial)
     })
 
     it('returns undefined for non-existent topic', async () => {

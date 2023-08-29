@@ -106,7 +106,7 @@ export const getKeyMaterial = (
   return invite.aes256GcmHkdfSha256.keyMaterial
 }
 
-export const topicDataToConversationReference = ({
+export const topicDataToV2ConversationReference = ({
   invitation,
   createdNs,
   peerAddress,
@@ -121,17 +121,10 @@ export const isCompleteTopicData = (
   obj: keystore.TopicMap_TopicData
 ): obj is TopicData => !!obj.invitation
 
-export const typeSafeTopicMap = (
-  topicMap: keystore.TopicMap
-): { [k: string]: TopicData } => {
-  const out: { [k: string]: TopicData } = {}
-  for (const [topic, topicData] of Object.entries(topicMap.topics)) {
-    if (isCompleteTopicData(topicData)) {
-      out[topic] = topicData
-    } else {
-      // This should only happen if bad data somehow snuck through validation
-      console.warn('Invitation missing from topic data')
-    }
+export const topicDataToMap = (topicMap: keystore.TopicMap) => {
+  const out = new Map<string, keystore.TopicMap_TopicData>()
+  for (const [k, v] of Object.entries(topicMap.topics)) {
+    out.set(k, v)
   }
   return out
 }
