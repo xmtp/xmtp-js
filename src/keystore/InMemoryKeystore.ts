@@ -1,10 +1,10 @@
-import { authn, keystore, privateKey, signature, conversationReference } from '@xmtp/proto'
+import { authn, keystore, privateKey, signature } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
-import { PrivateKey, PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
+import { PrivateKey, PublicKeyBundle } from '../crypto'
 import { Keystore, TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
@@ -329,12 +329,20 @@ export default class InMemoryKeystore implements Keystore {
         context: req.context,
       })
 
+      const sealed = await SealedInvitation.createV1({
+        sender: this.v2Keys,
+        recipient,
+        created,
+        invitation,
+      })
+
       const topicData = {
         invitation,
         topic: invitation.topic,
         createdNs: req.createdNs,
         peerAddress: await recipient.walletSignatureAddress(),
       }
+
       await this.v2Store.add([topicData])
 
       return keystore.CreateInviteResponse.fromPartial({
@@ -404,9 +412,7 @@ export default class InMemoryKeystore implements Keystore {
     return { conversations: convos }
   }
 
-  async getV2Conversations(): Promise<
-    keystore.GetConversationsResponse
-  > {
+  async getV2Conversations(): Promise<keystore.GetConversationsResponse> {
     const convos = this.v2Store.topics.map((invite) =>
       topicDataToV2ConversationReference(invite as TopicData)
     )

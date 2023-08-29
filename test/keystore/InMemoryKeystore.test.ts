@@ -234,14 +234,14 @@ describe('InMemoryKeystore', () => {
       if (firstResult.error) {
         throw firstResult.error
       }
-      
+
       expect(
         nsToDate(firstResult.result!.conversation!.createdNs).getTime()
       ).toEqual(created.getTime())
       expect(firstResult.result!.conversation!.topic).toEqual(invite.topic)
       expect(firstResult.result!.conversation?.context).toBeUndefined()
 
-      const conversations = await keystore.getV2Conversations()
+      const conversations = (await keystore.getV2Conversations()).conversations
       expect(conversations).toHaveLength(1)
       expect(conversations[0].topic).toBe(invite.topic)
     })

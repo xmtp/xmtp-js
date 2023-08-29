@@ -17,9 +17,6 @@ import {
 import { PublicKeyBundle } from '../crypto'
 import { SortDirection } from '../ApiClient'
 import Long from 'long'
-import { toSignedPublicKeyBundle } from '../keystore/utils'
-import { bytesToHex } from '../crypto/utils'
-import crypto from '../crypto/crypto'
 import JobRunner from './JobRunner'
 
 const CLOCK_SKEW_OFFSET_MS = 10000

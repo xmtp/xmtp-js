@@ -1,11 +1,6 @@
 import { keystore, authn, publicKey, signature } from '@xmtp/proto'
 import { Reader, Writer } from 'protobufjs/minimal'
-const {
-  CreateInviteFromTopicRequest,
-  CreateInvitesRequest,
-  CreateInvitesResponse,
-  GetV2ConversationsResponse,
-} = keystore
+const { GetConversationsResponse } = keystore
 
 type Codec<T> = {
   decode(input: Reader | Uint8Array, length?: number): T
@@ -61,18 +56,6 @@ export const apiDefs: ApiDefs = {
   },
   getV2Conversations: {
     req: null,
-    res: GetV2ConversationsResponse,
-  },
-  getGroupConversations: {
-    req: null,
-    res: GetV2ConversationsResponse,
-  },
-  createInvites: {
-    req: CreateInvitesRequest,
-    res: CreateInvitesResponse,
-  },
-  createInviteFromTopic: {
-    req: CreateInviteFromTopicRequest,
-    res: CreateInvitesResponse,
+    res: keystore.GetConversationsResponse,
   },
 } as const
