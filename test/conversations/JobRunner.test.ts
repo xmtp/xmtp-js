@@ -62,4 +62,23 @@ describe('JobRunner', () => {
     const v3Runner = new JobRunner('v3', keystore)
     expect(v3Runner.run(async () => {})).rejects.toThrow('unknown job type: v3')
   })
+
+  it('returns the value from the callback', async () => {
+    const v1Runner = new JobRunner('v1', keystore)
+
+    const result = await v1Runner.run(async () => {
+      return 'foo'
+    })
+    expect(result).toBe('foo')
+  })
+
+  it('bubbles up errors from the callback', async () => {
+    const v1Runner = new JobRunner('v1', keystore)
+
+    await expect(
+      v1Runner.run(async () => {
+        throw new Error('foo')
+      })
+    ).rejects.toThrow('foo')
+  })
 })
