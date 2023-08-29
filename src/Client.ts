@@ -5,6 +5,7 @@ import {
   mapPaginatedStream,
   EnvelopeMapper,
   buildUserInviteTopic,
+  isBrowser,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
@@ -32,7 +33,11 @@ import {
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
-import { LocalStoragePersistence, Persistence } from './keystore/persistence'
+import {
+  BrowserStoragePersistence,
+  InMemoryPersistence,
+  Persistence,
+} from './keystore/persistence'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -206,7 +211,9 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     maxContentSize: MaxContentSize,
     persistConversations: true,
     skipContactPublishing: false,
-    basePersistence: new LocalStoragePersistence(),
+    basePersistence: isBrowser()
+      ? BrowserStoragePersistence.create()
+      : InMemoryPersistence.create(),
     disablePersistenceEncryption: false,
     keystoreProviders: defaultKeystoreProviders(),
     apiClientFactory: createHttpApiClientFromOptions,
@@ -235,7 +242,7 @@ export default class Client {
   > // addresses and key bundles that we have witnessed
 
   private _backupClient: BackupClient
-  private _conversations: Conversations
+  private readonly _conversations: Conversations
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number

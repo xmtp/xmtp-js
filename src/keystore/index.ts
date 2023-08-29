@@ -1,7 +1,7 @@
 export { default as InMemoryKeystore } from './InMemoryKeystore'
-export { default as InviteStore } from './InviteStore'
 export { SnapKeystore } from './SnapKeystore'
 export { apiDefs as keystoreApiDefs } from './rpcDefinitions'
+export { V1Store, V2Store } from './conversationStores'
 export * from './encryption'
 export * from './errors'
 export * from './interfaces'

@@ -12,7 +12,7 @@ import {
   ApiUrls,
   Compression,
   HttpApiClient,
-  LocalStoragePersistence,
+  InMemoryPersistence,
   PublishParams,
 } from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
@@ -21,6 +21,7 @@ import { PrivateKeyBundleV1 } from '../src/crypto'
 import { Wallet } from 'ethers'
 import { NetworkKeystoreProvider } from '../src/keystore/providers'
 import { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
+import LocalStoragePonyfill from '../src/keystore/persistence/LocalStoragePonyfill'
 
 type TestCase = {
   name: string
@@ -339,22 +340,22 @@ describe('ClientOptions', () => {
           return new CustomApiClient(ApiUrls.local)
         },
       })
-      expect(c).rejects.toThrow(expectedError)
+      await expect(c).rejects.toThrow(expectedError)
     })
   })
 
   describe('pluggable persistence', () => {
     it('allows for an override of the persistence engine', async () => {
-      class MyNewPersistence extends LocalStoragePersistence {
-        async getItem(key: string): Promise<Uint8Array | null> {
-          throw new Error('MyNewPersistence')
+      class MyNewPersistence extends InMemoryPersistence {
+        getItem(key: string): Promise<Uint8Array | null> {
+          return Promise.reject(new Error('MyNewPersistence'))
         }
       }
 
       const c = newLocalHostClient({
-        basePersistence: new MyNewPersistence(),
+        basePersistence: new MyNewPersistence(new LocalStoragePonyfill()),
       })
-      expect(c).rejects.toThrow('MyNewPersistence')
+      await expect(c).rejects.toThrow('MyNewPersistence')
     })
   })
 })

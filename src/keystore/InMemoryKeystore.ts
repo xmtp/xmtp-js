@@ -1,4 +1,4 @@
-import { authn, keystore, privateKey, signature } from '@xmtp/proto'
+import { authn, keystore, privateKey, signature, conversationReference } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
@@ -15,16 +15,21 @@ import {
   toSignedPublicKeyBundle,
   validateObject,
   getKeyMaterial,
-  topicDataToConversationReference,
+  topicDataToV2ConversationReference,
 } from './utils'
-import { nsToDate, buildDirectMessageTopicV2 } from '../utils'
-import InviteStore from './InviteStore'
+import {
+  nsToDate,
+  buildDirectMessageTopicV2,
+  buildDirectMessageTopic,
+} from '../utils'
+import { AddRequest, V1Store, V2Store } from './conversationStores'
 import { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
-import Long from 'long'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
+import Long from 'long'
+
 const { ErrorCode } = keystore
 
 // Constant, 32 byte salt
@@ -50,19 +55,37 @@ async function deriveKey(
 export default class InMemoryKeystore implements Keystore {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
-  private inviteStore: InviteStore
+  private v1Store: V1Store
+  private v2Store: V2Store
   private authenticator: LocalAuthenticator
   private accountAddress: string | undefined
+  private jobStatePersistence: Persistence
 
-  constructor(keys: PrivateKeyBundleV1, inviteStore: InviteStore) {
+  constructor(
+    keys: PrivateKeyBundleV1,
+    v1Store: V1Store,
+    v2Store: V2Store,
+    persistence: Persistence
+  ) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
-    this.inviteStore = inviteStore
+    this.v1Store = v1Store
+    this.v2Store = v2Store
     this.authenticator = new LocalAuthenticator(keys.identityKey)
+    this.jobStatePersistence = persistence
   }
 
-  static async create(keys: PrivateKeyBundleV1, persistence?: Persistence) {
-    return new InMemoryKeystore(keys, await InviteStore.create(persistence))
+  static async create(keys: PrivateKeyBundleV1, persistence: Persistence) {
+    return new InMemoryKeystore(
+      keys,
+      await V1Store.create(persistence),
+      await V2Store.create(persistence),
+      persistence
+    )
+  }
+
+  get walletAddress(): string {
+    return this.v1Keys.identityKey.publicKey.walletSignatureAddress()
   }
 
   async decryptV1(
@@ -110,7 +133,7 @@ export default class InMemoryKeystore implements Keystore {
         }
 
         const { payload, headerBytes, contentTopic } = req
-        const topicData = this.inviteStore.lookup(contentTopic)
+        const topicData = this.v2Store.lookup(contentTopic)
         if (!topicData) {
           // This is the wrong error type. Will add to the proto repo later
           throw new KeystoreError(
@@ -189,7 +212,7 @@ export default class InMemoryKeystore implements Keystore {
 
         const { payload, headerBytes, contentTopic } = req
 
-        const topicData = this.inviteStore.lookup(contentTopic)
+        const topicData = this.v2Store.lookup(contentTopic)
         if (!topicData) {
           throw new KeystoreError(
             ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
@@ -216,7 +239,7 @@ export default class InMemoryKeystore implements Keystore {
   async saveInvites(
     req: keystore.SaveInvitesRequest
   ): Promise<keystore.SaveInvitesResponse> {
-    const toAdd: TopicData[] = []
+    const toAdd: AddRequest[] = []
 
     const responses = await mapAndConvertErrors(
       req.requests,
@@ -240,16 +263,16 @@ export default class InMemoryKeystore implements Keystore {
               ? await sealed.v1.header.recipient.walletSignatureAddress()
               : await sealed.v1.header.sender.walletSignatureAddress(),
           }
-          toAdd.push(topicData)
+          toAdd.push({ ...topicData, topic: invitation.topic })
           return {
-            conversation: topicDataToConversationReference(topicData),
+            conversation: topicDataToV2ConversationReference(topicData),
           }
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
     )
 
-    await this.inviteStore.add(toAdd)
+    await this.v2Store.add(toAdd)
 
     return keystore.SaveInvitesResponse.fromPartial({
       responses,
@@ -306,50 +329,21 @@ export default class InMemoryKeystore implements Keystore {
         context: req.context,
       })
 
-      return await this.makeInvite(
-        this.v2Keys,
-        recipient,
-        created,
-        req.createdNs,
-        invitation
-      )
+      const topicData = {
+        invitation,
+        topic: invitation.topic,
+        createdNs: req.createdNs,
+        peerAddress: await recipient.walletSignatureAddress(),
+      }
+      await this.v2Store.add([topicData])
+
+      return keystore.CreateInviteResponse.fromPartial({
+        conversation: topicDataToV2ConversationReference(topicData),
+        payload: sealed.toBytes(),
+      })
     } catch (e) {
       throw convertError(e as Error, ErrorCode.ERROR_CODE_INVALID_INPUT)
     }
-  }
-
-  private async makeInvite(
-    senderKeys: PrivateKeyBundleV2,
-    recipient: SignedPublicKeyBundle,
-    created: Date,
-    createdNs: Long,
-    invitation: InvitationV1
-  ): Promise<keystore.CreateInviteResponse> {
-    const sealed = await SealedInvitation.createV1({
-      sender: senderKeys,
-      recipient,
-      created,
-      invitation,
-    })
-
-    const conversation = topicDataToConversationReference({
-      invitation,
-      createdNs,
-      peerAddress: await recipient.walletSignatureAddress(),
-    })
-
-    const topicData = {
-      invitation,
-      createdNs,
-      peerAddress: await recipient.walletSignatureAddress(),
-    }
-
-    await this.inviteStore.add([topicData])
-
-    return keystore.CreateInviteResponse.fromPartial({
-      conversation,
-      payload: sealed.toBytes(),
-    })
   }
 
   async signDigest(
@@ -387,14 +381,40 @@ export default class InMemoryKeystore implements Keystore {
     return key.sign(digest)
   }
 
-  async getV2Conversations(): Promise<keystore.GetConversationsResponse> {
-    const convos = this.inviteStore.topics.map((invite) =>
-      topicDataToConversationReference(invite)
+  async saveV1Conversations({
+    conversations,
+  }: keystore.SaveV1ConversationsRequest): Promise<keystore.SaveV1ConversationsResponse> {
+    await this.v1Store.add(
+      conversations.map((convo) => ({
+        topic: buildDirectMessageTopic(convo.peerAddress, this.walletAddress),
+        peerAddress: convo.peerAddress,
+        createdNs: convo.createdNs,
+        invitation: undefined,
+      }))
+    )
+
+    return {}
+  }
+
+  async getV1Conversations(): Promise<keystore.GetConversationsResponse> {
+    const convos = this.v1Store.topics.map(
+      this.topicDataToV1ConversationReference.bind(this)
+    )
+
+    return { conversations: convos }
+  }
+
+  async getV2Conversations(): Promise<
+    keystore.GetConversationsResponse
+  > {
+    const convos = this.v2Store.topics.map((invite) =>
+      topicDataToV2ConversationReference(invite as TopicData)
     )
 
     convos.sort((a, b) =>
       a.createdNs.div(1_000_000).sub(b.createdNs.div(1_000_000)).toNumber()
     )
+
     return keystore.GetConversationsResponse.fromPartial({
       conversations: convos,
     })
@@ -417,9 +437,67 @@ export default class InMemoryKeystore implements Keystore {
     return this.accountAddress
   }
 
+  async getRefreshJob({
+    jobType,
+  }: keystore.GetRefreshJobRequest): Promise<keystore.GetRefreshJobResponse> {
+    if (jobType === keystore.JobType.JOB_TYPE_UNSPECIFIED) {
+      throw new KeystoreError(
+        ErrorCode.ERROR_CODE_INVALID_INPUT,
+        'invalid job type'
+      )
+    }
+
+    const lastRunTime = await this.getLastRunTime(jobType)
+
+    return keystore.GetRefreshJobResponse.fromPartial({
+      lastRunNs: lastRunTime || Long.fromNumber(0),
+    })
+  }
+
+  async setRefreshJob({
+    jobType,
+    lastRunNs,
+  }: keystore.SetRefeshJobRequest): Promise<keystore.SetRefreshJobResponse> {
+    const key = await this.buildJobStorageKey(jobType)
+    await this.jobStatePersistence.setItem(
+      key,
+      Uint8Array.from(lastRunNs.toBytes())
+    )
+
+    return {}
+  }
+
+  private topicDataToV1ConversationReference(
+    data: keystore.TopicMap_TopicData
+  ) {
+    return {
+      peerAddress: data.peerAddress,
+      createdNs: data.createdNs,
+      topic: buildDirectMessageTopic(data.peerAddress, this.walletAddress),
+      context: undefined,
+    }
+  }
+
+  private buildJobStorageKey(jobType: keystore.JobType): string {
+    return `refreshJob/${jobType.toString()}`
+  }
+
+  private async getLastRunTime(
+    jobType: keystore.JobType
+  ): Promise<Long | undefined> {
+    const bytes = await this.jobStatePersistence.getItem(
+      this.buildJobStorageKey(jobType)
+    )
+    if (!bytes || !bytes.length) {
+      return
+    }
+
+    return Long.fromBytes([...bytes])
+  }
+
   // This method is not defined as part of the standard Keystore API, but is available
   // on the InMemoryKeystore to support legacy use-cases.
   lookupTopic(topic: string) {
-    return this.inviteStore.lookup(topic)
+    return this.v2Store.lookup(topic)
   }
 }
