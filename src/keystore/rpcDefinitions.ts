@@ -1,6 +1,5 @@
 import { keystore, authn, publicKey, signature } from '@xmtp/proto'
 import { Reader, Writer } from 'protobufjs/minimal'
-const { GetConversationsResponse } = keystore
 
 type Codec<T> = {
   decode(input: Reader | Uint8Array, length?: number): T
@@ -54,8 +53,24 @@ export const apiDefs: ApiDefs = {
     req: null,
     res: publicKey.PublicKeyBundle,
   },
+  saveV1Conversations: {
+    req: keystore.SaveV1ConversationsRequest,
+    res: keystore.SaveV1ConversationsResponse,
+  },
+  getV1Conversations: {
+    req: null,
+    res: keystore.GetConversationsResponse,
+  },
   getV2Conversations: {
     req: null,
     res: keystore.GetConversationsResponse,
+  },
+  getRefreshJob: {
+    req: keystore.GetRefreshJobRequest,
+    res: keystore.GetRefreshJobResponse,
+  },
+  setRefreshJob: {
+    req: keystore.SetRefeshJobRequest,
+    res: keystore.SetRefreshJobResponse,
   },
 } as const
