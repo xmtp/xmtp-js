@@ -5,6 +5,7 @@ import {
   mapPaginatedStream,
   EnvelopeMapper,
   buildUserInviteTopic,
+  isBrowser,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
@@ -210,10 +211,9 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     maxContentSize: MaxContentSize,
     persistConversations: true,
     skipContactPublishing: false,
-    basePersistence:
-      typeof localStorage === 'undefined'
-        ? InMemoryPersistence.create()
-        : BrowserStoragePersistence.create(),
+    basePersistence: isBrowser()
+      ? BrowserStoragePersistence.create()
+      : InMemoryPersistence.create(),
     disablePersistenceEncryption: false,
     keystoreProviders: defaultKeystoreProviders(),
     apiClientFactory: createHttpApiClientFromOptions,
