@@ -6,8 +6,8 @@ import {
   connectSnap,
   getSnap,
   getWalletStatus,
+  hasMetamaskWithSnaps,
   initSnap,
-  isFlask,
 } from '../snapHelpers'
 import { keystore } from '@xmtp/proto'
 import { Signer } from '../../types/Signer'
@@ -29,22 +29,24 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
     apiClient: ApiClient,
     wallet?: Signer
   ): Promise<Keystore> {
-    console.log('Starting Snap Keystore provider')
-    if (!isFlask()) {
-      throw new KeystoreProviderUnavailableError('Flask not detected')
-    }
     if (!wallet) {
       throw new KeystoreProviderUnavailableError('No wallet provided')
     }
+
+    if (!hasMetamaskWithSnaps()) {
+      throw new KeystoreProviderUnavailableError(
+        'MetaMask with Snaps not detected'
+      )
+    }
+
     const walletAddress = await wallet.getAddress()
     const env = opts.env
     const hasSnap = await getSnap()
+
     if (!hasSnap) {
-      console.log('Connecting snap')
       await connectSnap()
     }
 
-    console.log('Checking if snap is loaded')
     if (!(await checkSnapLoaded(walletAddress, env))) {
       const bundle = await getBundle(opts, apiClient, wallet)
       await initSnap(bundle, env)

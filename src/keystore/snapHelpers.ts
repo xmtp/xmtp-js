@@ -97,6 +97,50 @@ export async function isFlask() {
   }
 }
 
+// If a browser has multiple providers, but one of them supports MetaMask flask
+// this function will ensure that Flask is being used and return true.
+// Designed to be resistant to provider clobbering by Phantom and CBW
+// Inspired by https://github.com/Montoya/snap-connect-test/blob/main/index.html
+export async function hasMetamaskWithSnaps() {
+  if ('detected' in window.ethereum) {
+    for (const provider of window.ethereum.detected) {
+      try {
+        // Detect snaps support
+        await provider.request({
+          method: 'wallet_getSnaps',
+        })
+        // enforces MetaMask as provider
+        window.ethereum.setProvider(provider)
+
+        return true
+      } catch {
+        // no-op
+      }
+    }
+  }
+
+  if ('providers' in window.ethereum) {
+    for (const provider of window.ethereum.providers) {
+      try {
+        // Detect snaps support
+        await provider.request({
+          method: 'wallet_getSnaps',
+        })
+
+        window.ethereum = provider
+
+        return true
+      } catch {
+        // no-op
+      }
+    }
+
+    return false
+  }
+
+  return window.ethereum
+}
+
 export async function getSnaps(): Promise<GetSnapsResponse> {
   return (await getEthereum()?.request({
     method: 'wallet_getSnaps',
