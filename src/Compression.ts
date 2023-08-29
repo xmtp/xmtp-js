@@ -34,7 +34,7 @@ export async function compress(encoded: proto.EncodedContent): Promise<void> {
   encoded.content = sink.bytes
 }
 
-function compressionIdFromCode(code: proto.Compression): string {
+function compressionIdFromCode(code: proto.Compression) {
   if (code === proto.Compression.COMPRESSION_GZIP) {
     return 'gzip'
   }

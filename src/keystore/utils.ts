@@ -8,6 +8,7 @@ import {
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import { KeystoreError } from './errors'
 import { WithoutUndefined } from '../utils/typedefs'
+import { XmtpEnv } from '../Client'
 
 export const convertError = (
   e: Error,
@@ -134,3 +135,6 @@ export const typeSafeTopicMap = (
   }
   return out
 }
+
+export const buildPersistenceKey = (env: XmtpEnv, walletAddress: string) =>
+  `xmtp/${env}/${walletAddress}/`

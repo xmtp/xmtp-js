@@ -1,12 +1,12 @@
-import LocalStoragePersistence from '../../../src/keystore/persistence/LocalStoragePersistence'
+import { InMemoryPersistence } from '../../../src/keystore/persistence'
 import { decodePrivateKeyBundle, PrivateKeyBundleV1 } from '../../../src/crypto'
 
 describe('Persistence', () => {
   describe('LocalStoragePersistence', () => {
-    let persistence: LocalStoragePersistence
+    let persistence: InMemoryPersistence
     const key = 'test'
     beforeEach(async () => {
-      persistence = new LocalStoragePersistence()
+      persistence = InMemoryPersistence.create()
     })
 
     it('can store and retrieve proto objects', async () => {

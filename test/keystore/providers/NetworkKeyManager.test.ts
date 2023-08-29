@@ -1,6 +1,6 @@
+import { BrowserStoragePersistence, PrefixedPersistence } from '../../../src'
 import ApiClient, { ApiUrls } from '../../../src/ApiClient'
 import { PrivateKeyBundleV1 } from '../../../src/crypto/PrivateKeyBundle'
-import PrefixedPersistence from '../../../src/keystore/persistence/PrefixedPersistence'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
 import { buildPersistenceFromOptions } from '../../../src/keystore/providers/helpers'
 import NetworkKeyManager from '../../../src/keystore/providers/NetworkKeyManager'
@@ -100,17 +100,23 @@ describe('NetworkKeyManager', () => {
 
   it('respects the options provided', async () => {
     const bundle = await PrivateKeyBundleV1.generate(wallet)
-    const shouldBeUndefined = await buildPersistenceFromOptions(
-      testProviderOptions({ persistConversations: false }),
+    const shouldBePrefixed = await buildPersistenceFromOptions(
+      testProviderOptions({
+        disablePersistenceEncryption: true,
+        persistConversations: false,
+      }),
       bundle
     )
-    expect(shouldBeUndefined).toBeUndefined()
+    expect(shouldBePrefixed).toBeInstanceOf(BrowserStoragePersistence)
 
-    const shouldBeDefined = await buildPersistenceFromOptions(
-      testProviderOptions({ persistConversations: true }),
+    const shouldBeEncrypted = await buildPersistenceFromOptions(
+      testProviderOptions({
+        disablePersistenceEncryption: false,
+        persistConversations: true,
+      }),
       bundle
     )
-    expect(shouldBeDefined).toBeInstanceOf(PrefixedPersistence)
+    expect(shouldBeEncrypted).toBeInstanceOf(PrefixedPersistence)
   })
 
   it('calls notifier on store', async () => {

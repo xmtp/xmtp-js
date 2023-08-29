@@ -51,6 +51,18 @@ export interface Keystore {
    */
   signDigest(req: keystore.SignDigestRequest): Promise<signature.Signature>
   /**
+   * Get a refresh job from the persistence
+   */
+  getRefreshJob(
+    req: keystore.GetRefreshJobRequest
+  ): Promise<keystore.GetRefreshJobResponse>
+  /**
+   * Sets the time of a refresh job
+   */
+  setRefreshJob(
+    req: keystore.SetRefeshJobRequest
+  ): Promise<keystore.SetRefreshJobResponse>
+  /**
    * Get a list of V2 conversations
    */
   getV2Conversations(): Promise<conversationReference.ConversationReference[]>
