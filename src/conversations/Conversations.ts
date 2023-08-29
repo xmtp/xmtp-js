@@ -1,6 +1,5 @@
 import { OnConnectionLostCallback } from './../ApiClient'
 import { messageApi, keystore, conversationReference } from '@xmtp/proto'
-import { Mutex } from 'async-mutex'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
 import { ListMessagesOptions } from './../Client'
 import { InvitationContext } from './../Invitation'
