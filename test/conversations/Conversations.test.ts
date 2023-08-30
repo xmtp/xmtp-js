@@ -9,8 +9,6 @@ import {
   buildUserIntroTopic,
   sleep,
 } from '../../src/utils'
-import { InvitationV1 } from '../../src/Invitation'
-import { InvitationV1_Context } from '@xmtp/proto/ts/dist/types/message_contents/invitation.pb'
 
 describe('conversations', () => {
   let alice: Client
