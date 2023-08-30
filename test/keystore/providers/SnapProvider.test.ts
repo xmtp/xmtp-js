@@ -77,6 +77,7 @@ describe('SnapProvider', () => {
 
     await provider.newKeystore(options, apiClient, wallet)
     expect(connectSnap as jest.Mock).not.toHaveBeenCalled()
+    expect(initSnap as jest.Mock).not.toHaveBeenCalled()
   })
 
   it('initializes the snap if it is not already initialized', async () => {
