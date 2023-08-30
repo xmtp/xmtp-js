@@ -60,6 +60,7 @@ export interface Conversation {
    * Timestamp the conversation was created at
    */
   createdAt: Date
+
   /**
    * Optional field containing the `conversationId` and `metadata` for V2 conversations.
    * Will always be undefined on V1 conversations
