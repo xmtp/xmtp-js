@@ -122,7 +122,7 @@ export default class Conversations {
   }
 
   private async getV2ConversationsFromKeystore(): Promise<ConversationV2[]> {
-    return (await this.client.keystore.getV2Conversations()).map(
+    return (await this.client.keystore.getV2Conversations()).conversations.map(
       this.conversationReferenceToV2.bind(this)
     )
   }
@@ -160,8 +160,7 @@ export default class Conversations {
     const out: ConversationV2[] = []
     for (const response of responses) {
       try {
-        const convo = this.saveInviteResponseToConversation(response)
-        out.push(convo)
+        out.push(this.saveInviteResponseToConversation(response))
       } catch (e) {
         console.warn('Error saving invite response to conversation: ', e)
         if (shouldThrow) {
@@ -244,12 +243,15 @@ export default class Conversations {
           return results[0]
         }
       }
+
       throw new Error('unrecognized invite topic')
     }
 
+    const topics = [introTopic, inviteTopic]
+
     return Stream.create<Conversation>(
       this.client,
-      [inviteTopic, introTopic],
+      topics,
       decodeConversation.bind(this),
       undefined,
       onConnectionLost
@@ -268,7 +270,9 @@ export default class Conversations {
   ): Promise<AsyncGenerator<DecodedMessage>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
+
     const topics = new Set<string>([introTopic, inviteTopic])
+
     const convoMap = new Map<string, Conversation>()
 
     for (const conversation of await this.list()) {

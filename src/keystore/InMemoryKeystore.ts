@@ -1,10 +1,4 @@
-import {
-  authn,
-  keystore,
-  privateKey,
-  signature,
-  conversationReference,
-} from '@xmtp/proto'
+import { authn, keystore, privateKey, signature } from '@xmtp/proto'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
@@ -341,12 +335,14 @@ export default class InMemoryKeystore implements Keystore {
         created,
         invitation,
       })
+
       const topicData = {
         invitation,
         topic: invitation.topic,
         createdNs: req.createdNs,
         peerAddress: await recipient.walletSignatureAddress(),
       }
+
       await this.v2Store.add([topicData])
 
       return keystore.CreateInviteResponse.fromPartial({
@@ -416,9 +412,7 @@ export default class InMemoryKeystore implements Keystore {
     return { conversations: convos }
   }
 
-  async getV2Conversations(): Promise<
-    conversationReference.ConversationReference[]
-  > {
+  async getV2Conversations(): Promise<keystore.GetConversationsResponse> {
     const convos = this.v2Store.topics.map((invite) =>
       topicDataToV2ConversationReference(invite as TopicData)
     )
@@ -426,7 +420,10 @@ export default class InMemoryKeystore implements Keystore {
     convos.sort((a, b) =>
       a.createdNs.div(1_000_000).sub(b.createdNs.div(1_000_000)).toNumber()
     )
-    return convos
+
+    return keystore.GetConversationsResponse.fromPartial({
+      conversations: convos,
+    })
   }
 
   async getPublicKeyBundle(): Promise<PublicKeyBundle> {

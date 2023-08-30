@@ -234,13 +234,14 @@ describe('InMemoryKeystore', () => {
       if (firstResult.error) {
         throw firstResult.error
       }
+
       expect(
         nsToDate(firstResult.result!.conversation!.createdNs).getTime()
       ).toEqual(created.getTime())
       expect(firstResult.result!.conversation!.topic).toEqual(invite.topic)
       expect(firstResult.result!.conversation?.context).toBeUndefined()
 
-      const conversations = await keystore.getV2Conversations()
+      const conversations = (await keystore.getV2Conversations()).conversations
       expect(conversations).toHaveLength(1)
       expect(conversations[0].topic).toBe(invite.topic)
     })
@@ -260,7 +261,8 @@ describe('InMemoryKeystore', () => {
         throw aliceResponse
       }
 
-      const aliceConversations = await aliceKeystore.getV2Conversations()
+      const aliceConversations = (await aliceKeystore.getV2Conversations())
+        .conversations
       expect(aliceConversations).toHaveLength(1)
 
       const {
@@ -270,7 +272,8 @@ describe('InMemoryKeystore', () => {
         throw bobResponse
       }
 
-      const bobConversations = await bobKeystore.getV2Conversations()
+      const bobConversations = (await bobKeystore.getV2Conversations())
+        .conversations
       expect(bobConversations).toHaveLength(1)
     })
 
@@ -470,7 +473,7 @@ describe('InMemoryKeystore', () => {
         })
       )
 
-      const convos = await aliceKeystore.getV2Conversations()
+      const convos = (await aliceKeystore.getV2Conversations()).conversations
       let lastCreated = Long.fromNumber(0)
       for (let i = 0; i < convos.length; i++) {
         expect(convos[i].createdNs.equals(dateToNs(timestamps[i]))).toBeTruthy()
@@ -625,7 +628,7 @@ describe('InMemoryKeystore', () => {
     it('creates an auth token', async () => {
       const authToken = new Token(await aliceKeystore.createAuthToken({}))
       expect(authToken.authDataBytes).toBeDefined()
-      expect(Long.isLong(authToken.authData.createdNs)).toBeTruthy()
+      expect(Long.isLong(authToken.authData.createdNs)).toBe(true)
       expect(authToken.authDataSignature).toBeDefined()
       expect(authToken.identityKey?.secp256k1Uncompressed).toBeDefined()
       expect(authToken.identityKey?.signature).toBeDefined()
