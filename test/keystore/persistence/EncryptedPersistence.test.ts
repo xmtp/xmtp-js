@@ -2,7 +2,7 @@ import crypto from '../../../src/crypto/crypto'
 import { PrivateKeyBundleV1 } from './../../../src/crypto/PrivateKeyBundle'
 import {
   EncryptedPersistence,
-  LocalStoragePersistence,
+  InMemoryPersistence,
 } from '../../../src/keystore/persistence'
 import { PrivateKey, SignedEciesCiphertext } from '../../../src/crypto'
 
@@ -19,7 +19,7 @@ describe('EncryptedPersistence', () => {
 
   it('can encrypt and decrypt a value', async () => {
     const data = crypto.getRandomValues(new Uint8Array(128))
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
       privateKey
@@ -41,7 +41,7 @@ describe('EncryptedPersistence', () => {
     ]
     for (const input of inputs) {
       const encryptedPersistence = new EncryptedPersistence(
-        new LocalStoragePersistence(),
+        InMemoryPersistence.create(),
         privateKey
       )
 
@@ -53,7 +53,7 @@ describe('EncryptedPersistence', () => {
 
   it('uses random values to encrypt repeatedly', async () => {
     const data = crypto.getRandomValues(new Uint8Array(128))
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
       privateKey
@@ -70,7 +70,7 @@ describe('EncryptedPersistence', () => {
   })
 
   it('catches garbage values', async () => {
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
       privateKey
@@ -87,7 +87,7 @@ describe('EncryptedPersistence', () => {
 
   it('detects bad mac', async () => {
     const data = crypto.getRandomValues(new Uint8Array(128))
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
       privateKey
@@ -116,7 +116,7 @@ describe('EncryptedPersistence', () => {
   })
 
   it('detects bad signature', async () => {
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
       privateKey
@@ -139,7 +139,7 @@ describe('EncryptedPersistence', () => {
   })
 
   it('signed correctly and encrypted incorrectly', async () => {
-    const persistence = new LocalStoragePersistence()
+    const persistence = InMemoryPersistence.create()
     const encryptedPersistence = new EncryptedPersistence(
       persistence,
       privateKey

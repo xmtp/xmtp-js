@@ -13,6 +13,8 @@ export {
   SignedPublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   Signature,
   encrypt,
   decrypt,
@@ -55,10 +57,27 @@ export {
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
-export { ApiUrls, SortDirection } from './ApiClient'
+export {
+  default as HttpApiClient,
+  ApiUrls,
+  SortDirection,
+  ApiClient,
+  QueryParams,
+  QueryAllOptions,
+  QueryStreamOptions,
+  Query,
+  PublishParams,
+  SubscriptionManager,
+  SubscribeParams,
+  SubscribeCallback,
+  UnsubscribeFn,
+  OnConnectionLostCallback,
+} from './ApiClient'
+export { Authenticator, AuthCache, LocalAuthenticator } from './authn'
 export {
   nsToDate,
   dateToNs,
+  retry,
   fromNanoString,
   toNanoString,
   mapPaginatedStream,
@@ -79,7 +98,8 @@ export {
 } from './keystore/providers'
 export {
   EncryptedPersistence,
-  LocalStoragePersistence,
+  BrowserStoragePersistence,
+  InMemoryPersistence,
   PrefixedPersistence,
   Persistence,
 } from './keystore/persistence'

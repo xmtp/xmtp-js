@@ -1,4 +1,8 @@
-import { UnsubscribeFn } from './ApiClient'
+import {
+  OnConnectionLostCallback,
+  SubscriptionManager,
+  UnsubscribeFn,
+} from './ApiClient'
 import Client from './Client'
 import { messageApi } from '@xmtp/proto'
 
@@ -23,19 +27,23 @@ export default class Stream<T> {
   // if callback is undefined the stream is closed
   callback: ((env: messageApi.Envelope) => Promise<void>) | undefined
 
-  unsubscribeFn?: UnsubscribeFn
+  subscriptionManager?: SubscriptionManager
+
+  onConnectionLost?: OnConnectionLostCallback
 
   constructor(
     client: Client,
     topics: string[],
     decoder: MessageDecoder<T>,
-    contentTopicUpdater?: ContentTopicUpdater<T>
+    contentTopicUpdater?: ContentTopicUpdater<T>,
+    onConnectionLost?: OnConnectionLostCallback
   ) {
     this.messages = []
     this.resolvers = []
     this.topics = topics
     this.client = client
     this.callback = this.newMessageCallback(decoder, contentTopicUpdater)
+    this.onConnectionLost = onConnectionLost
   }
 
   // returns new closure to handle incoming messages
@@ -80,14 +88,15 @@ export default class Stream<T> {
       throw new Error('Missing callback for stream')
     }
 
-    this.unsubscribeFn = this.client.apiClient.subscribe(
+    this.subscriptionManager = this.client.apiClient.subscribe(
       {
         contentTopics: this.topics,
       },
       async (env: messageApi.Envelope) => {
         if (!this.callback) return
         await this?.callback(env)
-      }
+      },
+      this.onConnectionLost
     )
   }
 
@@ -95,9 +104,16 @@ export default class Stream<T> {
     client: Client,
     topics: string[],
     decoder: MessageDecoder<T>,
-    contentTopicUpdater?: ContentTopicUpdater<T>
+    contentTopicUpdater?: ContentTopicUpdater<T>,
+    onConnectionLost?: OnConnectionLostCallback
   ): Promise<Stream<T>> {
-    const stream = new Stream(client, topics, decoder, contentTopicUpdater)
+    const stream = new Stream(
+      client,
+      topics,
+      decoder,
+      contentTopicUpdater,
+      onConnectionLost
+    )
     await stream.start()
     return stream
   }
@@ -112,8 +128,8 @@ export default class Stream<T> {
   // https://tc39.es/ecma262/#table-iterator-interface-optional-properties
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
-    if (this.unsubscribeFn) {
-      await this.unsubscribeFn()
+    if (this.subscriptionManager) {
+      await this.subscriptionManager.unsubscribe()
     }
     if (!this.callback) {
       return { value: undefined, done: true }
@@ -144,19 +160,25 @@ export default class Stream<T> {
 
   // Unsubscribe from the existing content topics and resubscribe to the given topics.
   private async resubscribeToTopics(topics: string[]): Promise<void> {
-    if (!this.callback || !this.unsubscribeFn) {
+    if (!this.callback || !this.subscriptionManager) {
       throw new Error('Missing callback for stream')
     }
-    await this.unsubscribeFn()
+
+    if (typeof this.subscriptionManager?.updateContentTopics === 'function') {
+      return this.subscriptionManager.updateContentTopics(topics)
+    }
+
+    await this.subscriptionManager.unsubscribe()
     this.topics = topics
-    this.unsubscribeFn = this.client.apiClient.subscribe(
+    this.subscriptionManager = this.client.apiClient.subscribe(
       {
         contentTopics: this.topics,
       },
       async (env: messageApi.Envelope) => {
         if (!this.callback) return
         await this?.callback(env)
-      }
+      },
+      this.onConnectionLost
     )
   }
 }

@@ -18,7 +18,7 @@ describe('KeyGeneratorKeystoreProvider', () => {
   it('creates a key when wallet supplied', async () => {
     const provider = new KeyGeneratorKeystoreProvider()
     const keystore = await provider.newKeystore(
-      testProviderOptions(),
+      testProviderOptions({}),
       apiClient,
       wallet
     )
@@ -28,7 +28,7 @@ describe('KeyGeneratorKeystoreProvider', () => {
   it('throws KeystoreProviderUnavailableError when no wallet supplied', async () => {
     const provider = new KeyGeneratorKeystoreProvider()
     const prom = provider.newKeystore(
-      testProviderOptions(),
+      testProviderOptions({}),
       apiClient,
       undefined
     )
@@ -39,7 +39,7 @@ describe('KeyGeneratorKeystoreProvider', () => {
     const provider = new KeyGeneratorKeystoreProvider()
     const preCreateIdentityCallback = jest.fn()
     const keystore = await provider.newKeystore(
-      { ...testProviderOptions(), preCreateIdentityCallback },
+      { ...testProviderOptions({}), preCreateIdentityCallback },
       apiClient,
       wallet
     )
@@ -51,7 +51,7 @@ describe('KeyGeneratorKeystoreProvider', () => {
     const provider = new KeyGeneratorKeystoreProvider()
     const preEnableIdentityCallback = jest.fn()
     const keystore = await provider.newKeystore(
-      { ...testProviderOptions(), preEnableIdentityCallback },
+      { ...testProviderOptions({}), preEnableIdentityCallback },
       apiClient,
       wallet
     )

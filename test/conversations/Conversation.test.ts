@@ -352,9 +352,7 @@ describe('conversation', () => {
         },
         { limit: 1 }
       )
-      const messageBytes = fetcher.b64Decode(
-        envelopes[0].message as unknown as string
-      )
+      const messageBytes = envelopes[0].message as Uint8Array
       const decoded = await MessageV1.fromBytes(messageBytes)
       const decrypted = await decoded.decrypt(
         alice.keystore,
