@@ -17,6 +17,7 @@ import { PrivateKeyBundleV1 } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 import type { XmtpEnv } from '../../Client'
 const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
+
 /**
  * The Snap keystore provider will:
  * 1. Check if the user is capable of using Snaps

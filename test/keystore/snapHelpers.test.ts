@@ -1,7 +1,7 @@
 import {
   defaultSnapOrigin,
   getWalletStatus,
-  isFlask,
+  hasMetamaskWithSnaps,
 } from '../../src/keystore/snapHelpers'
 import { keystore } from '@xmtp/proto'
 import { b64Encode } from '../../src/utils'
@@ -16,9 +16,14 @@ const mockRequest = jest.fn()
 jest.mock('../../src/utils/ethereum', () => {
   return {
     __esModule: true,
-    getEthereum: jest.fn(() => ({
-      request: mockRequest,
-    })),
+    getEthereum: jest.fn(() => {
+      const ethereum: any = {
+        request: mockRequest,
+      }
+      ethereum.providers = [ethereum]
+      ethereum.detected = [ethereum]
+      return ethereum
+    }),
   }
 })
 
@@ -30,8 +35,15 @@ describe('snapHelpers', () => {
   it('can check if the user has Flask installed', async () => {
     mockRequest.mockResolvedValue(['flask'])
 
-    expect(await isFlask()).toBe(true)
+    expect(await hasMetamaskWithSnaps()).toBe(true)
     expect(mockRequest).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns false when the user does not have flask installed', async () => {
+    mockRequest.mockRejectedValue(new Error('foo'))
+
+    expect(await hasMetamaskWithSnaps()).toBe(false)
+    expect(mockRequest).toHaveBeenCalledTimes(2)
   })
 
   it('can check wallet status', async () => {

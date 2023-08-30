@@ -83,37 +83,24 @@ export type Snap = {
 
 export type GetSnapsResponse = Record<string, Snap>
 
-export async function isFlask() {
-  try {
-    const ethereum = getEthereum()
-    const clientVersion = await ethereum?.request({
-      method: 'web3_clientVersion',
-    })
-    const isFlaskDetected = (clientVersion as string[])?.includes('flask')
-
-    return Boolean(ethereum && isFlaskDetected)
-  } catch (e) {
-    return false
-  }
-}
-
 // If a browser has multiple providers, but one of them supports MetaMask flask
 // this function will ensure that Flask is being used and return true.
 // Designed to be resistant to provider clobbering by Phantom and CBW
 // Inspired by https://github.com/Montoya/snap-connect-test/blob/main/index.html
 export async function hasMetamaskWithSnaps() {
+  const ethereum = getEthereum()
   if (
-    typeof window.ethereum?.detected !== 'undefined' &&
-    Array.isArray(window.ethereum.detected)
+    typeof ethereum?.detected !== 'undefined' &&
+    Array.isArray(ethereum.detected)
   ) {
-    for (const provider of window.ethereum.detected) {
+    for (const provider of ethereum.detected) {
       try {
         // Detect snaps support
         await provider.request({
           method: 'wallet_getSnaps',
         })
         // enforces MetaMask as provider
-        window.ethereum?.setProvider?.(provider)
+        ethereum?.setProvider?.(provider)
 
         return true
       } catch {
@@ -123,10 +110,10 @@ export async function hasMetamaskWithSnaps() {
   }
 
   if (
-    typeof window.ethereum?.providers !== 'undefined' &&
-    Array.isArray(window.ethereum.providers)
+    typeof ethereum?.providers !== 'undefined' &&
+    Array.isArray(ethereum.providers)
   ) {
-    for (const provider of window.ethereum.providers) {
+    for (const provider of ethereum.providers) {
       try {
         // Detect snaps support
         await provider.request({
@@ -140,11 +127,9 @@ export async function hasMetamaskWithSnaps() {
         // no-op
       }
     }
-
-    return false
   }
 
-  return window.ethereum
+  return false
 }
 
 export async function getSnaps(): Promise<GetSnapsResponse> {
