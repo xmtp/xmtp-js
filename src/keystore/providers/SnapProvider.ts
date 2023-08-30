@@ -11,7 +11,7 @@ import {
 } from '../snapHelpers'
 import { keystore } from '@xmtp/proto'
 import { Signer } from '../../types/Signer'
-import ApiClient from '../../ApiClient'
+import { ApiClient } from '../../ApiClient'
 import NetworkKeystoreProvider from './NetworkKeystoreProvider'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
@@ -34,7 +34,7 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
       throw new KeystoreProviderUnavailableError('No wallet provided')
     }
 
-    if (!hasMetamaskWithSnaps()) {
+    if (!(await hasMetamaskWithSnaps())) {
       throw new KeystoreProviderUnavailableError(
         'MetaMask with Snaps not detected'
       )
@@ -43,7 +43,6 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
     const walletAddress = await wallet.getAddress()
     const env = opts.env
     const hasSnap = await getSnap()
-
     if (!hasSnap) {
       await connectSnap()
     }
