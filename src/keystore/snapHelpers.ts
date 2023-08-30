@@ -102,7 +102,10 @@ export async function isFlask() {
 // Designed to be resistant to provider clobbering by Phantom and CBW
 // Inspired by https://github.com/Montoya/snap-connect-test/blob/main/index.html
 export async function hasMetamaskWithSnaps() {
-  if ('detected' in window.ethereum) {
+  if (
+    typeof window.ethereum?.detected !== 'undefined' &&
+    Array.isArray(window.ethereum.detected)
+  ) {
     for (const provider of window.ethereum.detected) {
       try {
         // Detect snaps support
@@ -110,7 +113,7 @@ export async function hasMetamaskWithSnaps() {
           method: 'wallet_getSnaps',
         })
         // enforces MetaMask as provider
-        window.ethereum.setProvider(provider)
+        window.ethereum?.setProvider?.(provider)
 
         return true
       } catch {
@@ -119,7 +122,10 @@ export async function hasMetamaskWithSnaps() {
     }
   }
 
-  if ('providers' in window.ethereum) {
+  if (
+    typeof window.ethereum?.providers !== 'undefined' &&
+    Array.isArray(window.ethereum.providers)
+  ) {
     for (const provider of window.ethereum.providers) {
       try {
         // Detect snaps support
