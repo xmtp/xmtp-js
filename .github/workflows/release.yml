@@ -6,7 +6,6 @@ on:
       - beta
 permissions:
   contents: read
-
 jobs:
   release:
     name: Release
