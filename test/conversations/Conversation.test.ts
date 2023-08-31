@@ -1,19 +1,13 @@
 import { DecodedMessage, MessageV1 } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
-import {
-  Client,
-  Compression,
-  ContentTypeFallback,
-  ContentTypeId,
-  ContentTypeText,
-} from '../../src'
+import { Client, Compression, ContentTypeId, ContentTypeText } from '../../src'
 import { SortDirection } from '../../src/ApiClient'
 import { sleep } from '../../src/utils'
 import { newLocalHostClient, waitForUserContact } from '../helpers'
 import { PrivateKey, SignedPublicKeyBundle } from '../../src/crypto'
 import { ConversationV2 } from '../../src/conversations/Conversation'
 import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
-import { content as proto, fetcher } from '@xmtp/proto'
+import { content as proto } from '@xmtp/proto'
 
 describe('conversation', () => {
   let alice: Client

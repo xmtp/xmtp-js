@@ -1,5 +1,5 @@
 import crypto from '../../src/crypto/crypto'
-import { V2Store, TopicData } from '../../src/keystore'
+import { V2Store } from '../../src/keystore'
 import { AddRequest, V1Store } from '../../src/keystore/conversationStores'
 import { InMemoryPersistence } from '../../src/keystore/persistence'
 import { dateToNs } from '../../src/utils'

@@ -1,4 +1,4 @@
-import ApiClient from '../../ApiClient'
+import { ApiClient } from '../../ApiClient'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import InMemoryKeystore from '../InMemoryKeystore'
 import TopicPersistence from '../persistence/TopicPersistence'

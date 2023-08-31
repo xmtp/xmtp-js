@@ -23,6 +23,7 @@ export { default as Stream } from './Stream'
 export { Signer } from './types/Signer'
 export {
   default as Client,
+  defaultKeystoreProviders,
   ClientOptions,
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
@@ -32,6 +33,7 @@ export {
   ContentOptions,
   KeyStoreOptions,
   LegacyOptions,
+  XmtpEnv,
 } from './Client'
 export {
   Conversations,
@@ -47,11 +49,6 @@ export {
   ContentTypeFallback,
 } from './MessageContent'
 export { TextCodec, ContentTypeText } from './codecs/Text'
-export {
-  TypingNotification,
-  TypingNotificationCodec,
-  ContentTypeTypingNotification,
-} from './codecs/TypingNotification'
 export {
   Composite,
   CompositeCodec,
@@ -89,12 +86,18 @@ export {
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
 } from './utils'
-export { Keystore, InMemoryKeystore, TopicData } from './keystore'
+export {
+  Keystore,
+  InMemoryKeystore,
+  TopicData,
+  keystoreApiDefs,
+} from './keystore'
 export {
   KeystoreProvider,
   KeyGeneratorKeystoreProvider,
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
+  SnapProvider,
 } from './keystore/providers'
 export {
   EncryptedPersistence,
