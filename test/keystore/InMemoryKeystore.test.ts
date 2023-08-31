@@ -616,7 +616,39 @@ describe('InMemoryKeystore', () => {
       ).toHaveLength(25)
     })
 
-    it('works with persistence', async () => {})
+    it('creates deterministic topics bidirectionally', async () => {
+      const aliceInvite = await aliceKeystore.createInvite({
+        recipient: SignedPublicKeyBundle.fromLegacyBundle(
+          bobKeys.getPublicKeyBundle()
+        ),
+        createdNs: dateToNs(new Date()),
+        context: undefined,
+      })
+      const bobInvite = await bobKeystore.createInvite({
+        recipient: SignedPublicKeyBundle.fromLegacyBundle(
+          aliceKeys.getPublicKeyBundle()
+        ),
+        createdNs: dateToNs(new Date()),
+        context: undefined,
+      })
+      expect(
+        await aliceKeys.sharedSecret(
+          bobKeys.getPublicKeyBundle(),
+          aliceKeys.getCurrentPreKey().publicKey,
+          false
+        )
+      ).toEqual(
+        await bobKeys.sharedSecret(
+          aliceKeys.getPublicKeyBundle(),
+          bobKeys.getCurrentPreKey().publicKey,
+          true
+        )
+      )
+
+      expect(aliceInvite.conversation!.topic).toEqual(
+        bobInvite.conversation!.topic
+      )
+    })
   })
 
   describe('createAuthToken', () => {

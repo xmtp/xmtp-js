@@ -273,17 +273,16 @@ export default class InMemoryKeystore implements Keystore {
       }
       const created = nsToDate(req.createdNs)
       const recipient = toSignedPublicKeyBundle(req.recipient)
+      const myAddress = await this.getAccountAddress()
+      const theirAddress = await recipient.walletSignatureAddress()
 
       const secret = await this.v2Keys.sharedSecret(
         recipient,
         this.v2Keys.getCurrentPreKey().publicKey,
-        false
+        myAddress > theirAddress
       )
 
-      const sortedAddresses = [
-        this.accountAddress,
-        await recipient.walletSignatureAddress(),
-      ].sort()
+      const sortedAddresses = [myAddress, theirAddress].sort()
 
       const msgString =
         (req.context?.conversationId || '') + sortedAddresses.join()
