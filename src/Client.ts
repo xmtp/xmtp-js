@@ -65,7 +65,6 @@ export type ListMessagesPaginatedOptions = {
 // Parameters for the send functions
 export type SendOptions = {
   contentType?: ContentTypeId
-  contentFallback?: string
   compression?: proto.Compression
   timestamp?: Date
   ephemeral?: boolean
@@ -611,8 +610,10 @@ export default class Client {
       throw new Error('unknown content type ' + contentType)
     }
     const encoded = codec.encode(content, this)
-    if (options?.contentFallback) {
-      encoded.fallback = options.contentFallback
+
+    const fallback = codec.fallback(content)
+    if (fallback) {
+      encoded.fallback = fallback
     }
     if (typeof options?.compression === 'number') {
       encoded.compression = options.compression

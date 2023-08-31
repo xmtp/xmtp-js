@@ -57,6 +57,7 @@ export interface ContentCodec<T> {
   contentType: ContentTypeId
   encode(content: T, registry: CodecRegistry): EncodedContent
   decode(content: EncodedContent, registry: CodecRegistry): T
+  fallback(content: T): string | undefined
 }
 
 // xmtp.org/fallback
