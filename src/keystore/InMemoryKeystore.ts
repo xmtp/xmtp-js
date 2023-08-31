@@ -279,7 +279,7 @@ export default class InMemoryKeystore implements Keystore {
       const secret = await this.v2Keys.sharedSecret(
         recipient,
         this.v2Keys.getCurrentPreKey().publicKey,
-        myAddress > theirAddress
+        myAddress < theirAddress
       )
 
       const sortedAddresses = [myAddress, theirAddress].sort()
