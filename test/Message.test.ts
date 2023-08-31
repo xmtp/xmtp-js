@@ -239,7 +239,6 @@ describe('Message', function () {
       const fallback = 'publickey bundle'
       const sentMessage = await convo.send(msg, {
         contentType: ContentTypeTestKey,
-        contentFallback: fallback,
       })
       expect(sentMessage.contentType).toEqual(ContentTypeTestKey)
 

@@ -434,7 +434,6 @@ describe('conversation', () => {
       alice.registerCodec(new TestKeyCodec())
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
-        contentFallback: 'this is a public key',
       })
 
       const aliceResult1 = await aliceStream.next()
@@ -450,7 +449,7 @@ describe('conversation', () => {
       expect(bobMessage1.contentType).toBeTruthy()
       expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
       expect(bobMessage1.content).toBeUndefined()
-      expect(bobMessage1.contentFallback).toBe('this is a public key')
+      expect(bobMessage1.contentFallback).toBe('publickey bundle')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
@@ -673,7 +672,6 @@ describe('conversation', () => {
       alice.registerCodec(new TestKeyCodec())
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
-        contentFallback: 'this is a public key',
       })
 
       const aliceResult1 = await aliceStream.next()
@@ -689,7 +687,7 @@ describe('conversation', () => {
       expect(bobMessage1.contentType).toBeTruthy()
       expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
       expect(bobMessage1.content).toBeUndefined()
-      expect(bobMessage1.contentFallback).toBe('this is a public key')
+      expect(bobMessage1.contentFallback).toBe('publickey bundle')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())

@@ -1,4 +1,9 @@
-import { ContentTypeId, ContentCodec, EncodedContent } from '../MessageContent'
+import {
+  ContentTypeId,
+  ContentCodec,
+  EncodedContent,
+  CodecRegistry,
+} from '../MessageContent'
 
 // xmtp.org/text
 //
@@ -33,5 +38,10 @@ export class TextCodec implements ContentCodec<string> {
       throw new Error(`unrecognized encoding ${encoding}`)
     }
     return new TextDecoder().decode(content.content)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fallback(content: string): string | undefined {
+    return undefined
   }
 }
