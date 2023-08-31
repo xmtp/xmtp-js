@@ -39,4 +39,8 @@ export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
       timestamp,
     };
   }
+
+  fallback(content: ReadReceipt): string | undefined {
+    return undefined;
+  }
 }

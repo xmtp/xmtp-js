@@ -37,4 +37,8 @@ export class AttachmentCodec implements ContentCodec<Attachment> {
       data: content.content,
     };
   }
+
+  fallback(content: Attachment): string | undefined {
+    return "Error: Sorry, this app cannot display attachments";
+  }
 }
