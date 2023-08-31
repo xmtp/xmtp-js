@@ -559,13 +559,15 @@ describe('InMemoryKeystore', () => {
           )
         ).v1!
       )
+      bobKeystore = await InMemoryKeystore.create(bobKeys)
+
       expect(await aliceKeystore.getAccountAddress()).toEqual(
         '0xF56d1F3b1290204441Cb3843C2Cac1C2f5AEd690'
       ) // alice
       expect(bobKeys.getPublicKeyBundle().walletSignatureAddress()).toEqual(
         '0x3De402A325323Bb97f00cE3ad5bFAc96A11F9A34'
       ) // bob
-      const response = await aliceKeystore.createInvite({
+      const aliceInvite = await aliceKeystore.createInvite({
         recipient: SignedPublicKeyBundle.fromLegacyBundle(
           bobKeys.getPublicKeyBundle()
         ),
@@ -575,7 +577,21 @@ describe('InMemoryKeystore', () => {
           metadata: {},
         },
       })
-      expect(response.conversation!.topic).toEqual(
+      expect(aliceInvite.conversation!.topic).toEqual(
+        '/xmtp/0/m-4b52be1e8567d72d0bc407debe2d3c7fca2ae93a47e58c3f9b5c5068aff80ec5/proto'
+      )
+
+      const bobInvite = await bobKeystore.createInvite({
+        recipient: SignedPublicKeyBundle.fromLegacyBundle(
+          aliceKeys.getPublicKeyBundle()
+        ),
+        createdNs: dateToNs(new Date()),
+        context: {
+          conversationId: 'test',
+          metadata: {},
+        },
+      })
+      expect(bobInvite.conversation!.topic).toEqual(
         '/xmtp/0/m-4b52be1e8567d72d0bc407debe2d3c7fca2ae93a47e58c3f9b5c5068aff80ec5/proto'
       )
     })
@@ -621,7 +637,39 @@ describe('InMemoryKeystore', () => {
       ).toHaveLength(25)
     })
 
-    it('works with persistence', async () => {})
+    it('creates deterministic topics bidirectionally', async () => {
+      const aliceInvite = await aliceKeystore.createInvite({
+        recipient: SignedPublicKeyBundle.fromLegacyBundle(
+          bobKeys.getPublicKeyBundle()
+        ),
+        createdNs: dateToNs(new Date()),
+        context: undefined,
+      })
+      const bobInvite = await bobKeystore.createInvite({
+        recipient: SignedPublicKeyBundle.fromLegacyBundle(
+          aliceKeys.getPublicKeyBundle()
+        ),
+        createdNs: dateToNs(new Date()),
+        context: undefined,
+      })
+      expect(
+        await aliceKeys.sharedSecret(
+          bobKeys.getPublicKeyBundle(),
+          aliceKeys.getCurrentPreKey().publicKey,
+          false
+        )
+      ).toEqual(
+        await bobKeys.sharedSecret(
+          aliceKeys.getPublicKeyBundle(),
+          bobKeys.getCurrentPreKey().publicKey,
+          true
+        )
+      )
+
+      expect(aliceInvite.conversation!.topic).toEqual(
+        bobInvite.conversation!.topic
+      )
+    })
   })
 
   describe('createAuthToken', () => {
