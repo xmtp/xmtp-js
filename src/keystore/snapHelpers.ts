@@ -89,6 +89,17 @@ export type GetSnapsResponse = Record<string, Snap>
 // Inspired by https://github.com/Montoya/snap-connect-test/blob/main/index.html
 export async function hasMetamaskWithSnaps() {
   const ethereum = getEthereum()
+  // Naive way of detecting snaps support
+  if (ethereum?.isMetaMask) {
+    try {
+      await ethereum.request({
+        method: 'wallet_getSnaps',
+      })
+      return true
+    } catch {
+      // no-op
+    }
+  }
   if (
     typeof ethereum?.detected !== 'undefined' &&
     Array.isArray(ethereum.detected)
