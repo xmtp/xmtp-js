@@ -559,7 +559,10 @@ describe('InMemoryKeystore', () => {
           )
         ).v1!
       )
-      bobKeystore = await InMemoryKeystore.create(bobKeys)
+      bobKeystore = await InMemoryKeystore.create(
+        bobKeys,
+        InMemoryPersistence.create()
+      )
 
       expect(await aliceKeystore.getAccountAddress()).toEqual(
         '0xF56d1F3b1290204441Cb3843C2Cac1C2f5AEd690'
