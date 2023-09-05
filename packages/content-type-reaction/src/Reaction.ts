@@ -50,12 +50,12 @@ export class ReactionCodec implements ContentCodec<Reaction> {
     };
   }
 
-  decode(content: EncodedContent): Reaction {
-    let text = new TextDecoder().decode(content.content);
+  decode(encodedContent: EncodedContent): Reaction {
+    const decodedContent = new TextDecoder().decode(encodedContent.content);
 
     // First try to decode it in the canonical form.
     try {
-      const reaction = JSON.parse(text);
+      const reaction = JSON.parse(decodedContent) as Reaction;
       const { action, reference, schema, content } = reaction;
       return { action, reference, schema, content };
     } catch (e) {
@@ -63,16 +63,12 @@ export class ReactionCodec implements ContentCodec<Reaction> {
     }
 
     // If that fails, try to decode it in the legacy form.
-    let parameters = content.parameters as LegacyReactionParameters;
-    const { encoding } = parameters;
-    if (encoding && encoding !== "UTF-8") {
-      throw new Error(`unrecognized encoding ${encoding as string}`);
-    }
+    const parameters = encodedContent.parameters as LegacyReactionParameters;
     return {
       action: parameters.action,
       reference: parameters.reference,
       schema: parameters.schema,
-      content: text,
+      content: decodedContent,
     };
   }
 }

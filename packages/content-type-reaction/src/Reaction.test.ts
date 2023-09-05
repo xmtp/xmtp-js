@@ -11,11 +11,11 @@ describe("ReactionContentType", () => {
     expect(ContentTypeReaction.versionMinor).toBe(0);
   });
 
-  it("supports canonical and legacy form", async () => {
-    let codec = new ReactionCodec();
+  it("supports canonical and legacy form", () => {
+    const codec = new ReactionCodec();
 
     // This is how clients send reactions now.
-    let canonicalEncoded = {
+    const canonicalEncoded = {
       type: ContentTypeReaction,
       content: new TextEncoder().encode(
         JSON.stringify({
@@ -29,7 +29,7 @@ describe("ReactionContentType", () => {
 
     // Previously, some clients sent reactions like this.
     // So we test here to make sure we can still decode them.
-    let legacyEncoded = {
+    const legacyEncoded = {
       type: ContentTypeReaction,
       parameters: {
         action: "added",
@@ -39,8 +39,10 @@ describe("ReactionContentType", () => {
       content: new TextEncoder().encode("smile"),
     };
 
-    let canonical = codec.decode(canonicalEncoded as any);
-    let legacy = codec.decode(legacyEncoded as any);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const canonical = codec.decode(canonicalEncoded as any);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const legacy = codec.decode(legacyEncoded as any);
     expect(canonical.action).toBe("added");
     expect(legacy.action).toBe("added");
     expect(canonical.content).toBe("smile");
