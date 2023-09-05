@@ -11,6 +11,46 @@ describe("ReactionContentType", () => {
     expect(ContentTypeReaction.versionMinor).toBe(0);
   });
 
+  it("supports canonical and legacy form", async () => {
+    let codec = new ReactionCodec();
+
+    // This is how clients send reactions now.
+    let canonicalEncoded = {
+      type: ContentTypeReaction,
+      content: new TextEncoder().encode(
+        JSON.stringify({
+          action: "added",
+          content: "smile",
+          reference: "abc123",
+          schema: "shortcode",
+        }),
+      ),
+    };
+
+    // Previously, some clients sent reactions like this.
+    // So we test here to make sure we can still decode them.
+    let legacyEncoded = {
+      type: ContentTypeReaction,
+      parameters: {
+        action: "added",
+        reference: "abc123",
+        schema: "shortcode",
+      },
+      content: new TextEncoder().encode("smile"),
+    };
+
+    let canonical = codec.decode(canonicalEncoded as any);
+    let legacy = codec.decode(legacyEncoded as any);
+    expect(canonical.action).toBe("added");
+    expect(legacy.action).toBe("added");
+    expect(canonical.content).toBe("smile");
+    expect(legacy.content).toBe("smile");
+    expect(canonical.reference).toBe("abc123");
+    expect(legacy.reference).toBe("abc123");
+    expect(canonical.schema).toBe("shortcode");
+    expect(legacy.schema).toBe("shortcode");
+  });
+
   it("can send a reaction", async () => {
     const aliceWallet = Wallet.createRandom();
     const aliceClient = await Client.create(aliceWallet, { env: "local" });
