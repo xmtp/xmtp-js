@@ -54,7 +54,10 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
     const env = opts.env
     const hasSnap = await getSnap(this.snapId, this.snapVersion)
     if (!hasSnap) {
-      await connectSnap(this.snapId)
+      await connectSnap(
+        this.snapId,
+        this.snapVersion ? { version: this.snapVersion } : {}
+      )
     }
 
     if (!(await checkSnapLoaded(walletAddress, env, this.snapId))) {
