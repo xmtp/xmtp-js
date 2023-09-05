@@ -16,7 +16,10 @@ import NetworkKeystoreProvider from './NetworkKeystoreProvider'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 import type { XmtpEnv } from '../../Client'
+import { semverGreaterThan } from '../../utils/semver'
 const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
+
+export const SNAP_LOCAL_ORIGIN = 'local:http://localhost:8080'
 
 /**
  * The Snap keystore provider will:
@@ -25,6 +28,14 @@ const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
  * 3. If not, will get keys from the network or create new keys and store them in the Snap
  */
 export default class SnapKeystoreProvider implements KeystoreProvider {
+  snapId: string
+  snapVersion?: string
+
+  constructor(snapId = SNAP_LOCAL_ORIGIN, snapVersion?: string) {
+    this.snapId = snapId
+    this.snapVersion = snapVersion
+  }
+
   async newKeystore(
     opts: KeystoreProviderOptions,
     apiClient: ApiClient,
@@ -42,17 +53,20 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
 
     const walletAddress = await wallet.getAddress()
     const env = opts.env
-    const hasSnap = await getSnap()
-    if (!hasSnap) {
-      await connectSnap()
+    const hasSnap = await getSnap(this.snapId, this.snapVersion)
+    if (!hasSnap || semverGreaterThan(this.snapVersion, hasSnap.version)) {
+      await connectSnap(
+        this.snapId,
+        this.snapVersion ? { version: this.snapVersion } : {}
+      )
     }
 
-    if (!(await checkSnapLoaded(walletAddress, env))) {
+    if (!(await checkSnapLoaded(walletAddress, env, this.snapId))) {
       const bundle = await getBundle(opts, apiClient, wallet)
-      await initSnap(bundle, env)
+      await initSnap(bundle, env, this.snapId)
     }
 
-    return SnapKeystore(walletAddress, env)
+    return SnapKeystore(walletAddress, env, this.snapId)
   }
 }
 
@@ -89,8 +103,12 @@ async function getBundle(
   }
 }
 
-async function checkSnapLoaded(walletAddress: string, env: XmtpEnv) {
-  const status = await getWalletStatus({ walletAddress, env })
+async function checkSnapLoaded(
+  walletAddress: string,
+  env: XmtpEnv,
+  snapId: string
+) {
+  const status = await getWalletStatus({ walletAddress, env }, snapId)
   if (status === KeystoreStatus.KEYSTORE_STATUS_INITIALIZED) {
     return true
   }

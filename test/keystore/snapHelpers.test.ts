@@ -1,10 +1,10 @@
 import {
-  defaultSnapOrigin,
   getWalletStatus,
   hasMetamaskWithSnaps,
 } from '../../src/keystore/snapHelpers'
 import { keystore } from '@xmtp/proto'
 import { b64Encode } from '../../src/utils'
+import { SNAP_LOCAL_ORIGIN } from '../../src/keystore/providers/SnapProvider'
 const {
   GetKeystoreStatusRequest,
   GetKeystoreStatusResponse,
@@ -58,7 +58,10 @@ describe('snapHelpers', () => {
       res: b64Encode(resBytes, 0, resBytes.length),
     })
 
-    const status = await getWalletStatus({ walletAddress, env })
+    const status = await getWalletStatus(
+      { walletAddress, env },
+      SNAP_LOCAL_ORIGIN
+    )
     expect(status).toBe(KeystoreStatus.KEYSTORE_STATUS_INITIALIZED)
     const expectedRequest = GetKeystoreStatusRequest.encode({
       walletAddress,
@@ -67,7 +70,7 @@ describe('snapHelpers', () => {
     expect(mockRequest).toHaveBeenCalledWith({
       method: 'wallet_invokeSnap',
       params: {
-        snapId: defaultSnapOrigin,
+        snapId: SNAP_LOCAL_ORIGIN,
         request: {
           method,
           params: {
