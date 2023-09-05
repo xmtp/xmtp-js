@@ -16,6 +16,7 @@ import NetworkKeystoreProvider from './NetworkKeystoreProvider'
 import { PrivateKeyBundleV1 } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 import type { XmtpEnv } from '../../Client'
+import { semverGreaterThan } from '../../utils/semver'
 const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
 
 export const SNAP_LOCAL_ORIGIN = 'local:http://localhost:8080'
@@ -53,7 +54,7 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
     const walletAddress = await wallet.getAddress()
     const env = opts.env
     const hasSnap = await getSnap(this.snapId, this.snapVersion)
-    if (!hasSnap) {
+    if (!hasSnap || semverGreaterThan(this.snapVersion, hasSnap.version)) {
       await connectSnap(
         this.snapId,
         this.snapVersion ? { version: this.snapVersion } : {}

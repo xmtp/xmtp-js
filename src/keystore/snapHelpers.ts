@@ -5,6 +5,7 @@ import { KeystoreError } from './errors'
 import { PrivateKeyBundleV1 } from '../crypto'
 import { getEthereum } from '../utils/ethereum'
 import type { XmtpEnv } from '../Client'
+import { isSameMajorVersion } from '../utils/semver'
 const {
   GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus,
   InitKeystoreRequest,
@@ -156,7 +157,9 @@ export async function getSnap(
     const snaps = await getSnaps()
 
     return Object.values(snaps).find(
-      (snap) => snap.id === snapId && (!version || snap.version === version)
+      (snap) =>
+        snap.id === snapId &&
+        (!version || isSameMajorVersion(snap.version, version))
     )
   } catch (e) {
     console.warn('Failed to obtain installed snap', e)
