@@ -18,6 +18,8 @@ import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 import type { XmtpEnv } from '../../Client'
 const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
 
+export const SNAP_LOCAL_ORIGIN = 'local:http://localhost:8080'
+
 /**
  * The Snap keystore provider will:
  * 1. Check if the user is capable of using Snaps
@@ -25,6 +27,14 @@ const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
  * 3. If not, will get keys from the network or create new keys and store them in the Snap
  */
 export default class SnapKeystoreProvider implements KeystoreProvider {
+  snapId: string
+  snapVersion?: string
+
+  constructor(snapId = SNAP_LOCAL_ORIGIN, snapVersion?: string) {
+    this.snapId = snapId
+    this.snapVersion = snapVersion
+  }
+
   async newKeystore(
     opts: KeystoreProviderOptions,
     apiClient: ApiClient,
@@ -42,17 +52,17 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
 
     const walletAddress = await wallet.getAddress()
     const env = opts.env
-    const hasSnap = await getSnap()
+    const hasSnap = await getSnap(this.snapId, this.snapVersion)
     if (!hasSnap) {
-      await connectSnap()
+      await connectSnap(this.snapId)
     }
 
-    if (!(await checkSnapLoaded(walletAddress, env))) {
+    if (!(await checkSnapLoaded(walletAddress, env, this.snapId))) {
       const bundle = await getBundle(opts, apiClient, wallet)
-      await initSnap(bundle, env)
+      await initSnap(bundle, env, this.snapId)
     }
 
-    return SnapKeystore(walletAddress, env)
+    return SnapKeystore(walletAddress, env, this.snapId)
   }
 }
 
@@ -89,8 +99,12 @@ async function getBundle(
   }
 }
 
-async function checkSnapLoaded(walletAddress: string, env: XmtpEnv) {
-  const status = await getWalletStatus({ walletAddress, env })
+async function checkSnapLoaded(
+  walletAddress: string,
+  env: XmtpEnv,
+  snapId: string
+) {
+  const status = await getWalletStatus({ walletAddress, env }, snapId)
   if (status === KeystoreStatus.KEYSTORE_STATUS_INITIALIZED) {
     return true
   }

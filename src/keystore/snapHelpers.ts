@@ -13,9 +13,6 @@ const {
   GetKeystoreStatusResponse,
 } = keystoreProto
 
-// TODO: Replace with npm package once released
-export const defaultSnapOrigin = `local:http://localhost:8080`
-
 export type SnapMeta = {
   walletAddress: string
   env: XmtpEnv
@@ -30,7 +27,8 @@ export async function snapRPC<Req, Res>(
   method: string,
   codecs: RPC<Req, Res>,
   req: Req,
-  meta: SnapMeta
+  meta: SnapMeta,
+  snapId: string
 ): Promise<Res> {
   let reqParam = null
   if (codecs.req) {
@@ -38,7 +36,7 @@ export async function snapRPC<Req, Res>(
     reqParam = b64Encode(reqBytes, 0, reqBytes.length)
   }
 
-  const responseString = await snapRequest(method, reqParam, meta)
+  const responseString = await snapRequest(method, reqParam, meta, snapId)
   if (Array.isArray(responseString)) {
     throw new Error('Unexpected array response')
   }
@@ -49,7 +47,8 @@ export async function snapRPC<Req, Res>(
 export async function snapRequest(
   method: string,
   req: string | null,
-  meta: SnapMeta
+  meta: SnapMeta,
+  snapId: string
 ): Promise<string> {
   const params: SnapParams = { meta }
   if (typeof req === 'string') {
@@ -58,7 +57,7 @@ export async function snapRequest(
   const response = await getEthereum().request({
     method: 'wallet_invokeSnap',
     params: {
-      snapId: defaultSnapOrigin,
+      snapId,
       request: {
         method,
         params,
@@ -149,13 +148,15 @@ export async function getSnaps(): Promise<GetSnapsResponse> {
   })) as unknown as GetSnapsResponse
 }
 
-export async function getSnap(version?: string): Promise<Snap | undefined> {
+export async function getSnap(
+  snapId: string,
+  version?: string
+): Promise<Snap | undefined> {
   try {
     const snaps = await getSnaps()
 
     return Object.values(snaps).find(
-      (snap) =>
-        snap.id === defaultSnapOrigin && (!version || snap.version === version)
+      (snap) => snap.id === snapId && (!version || snap.version === version)
     )
   } catch (e) {
     console.warn('Failed to obtain installed snap', e)
@@ -164,7 +165,7 @@ export async function getSnap(version?: string): Promise<Snap | undefined> {
 }
 
 export async function connectSnap(
-  snapId: string = defaultSnapOrigin,
+  snapId: string,
   params: Record<'version' | string, unknown> = {}
 ) {
   await getEthereum()?.request({
@@ -179,14 +180,15 @@ const getWalletStatusCodec = {
   req: GetKeystoreStatusRequest,
   res: GetKeystoreStatusResponse,
 }
-export async function getWalletStatus(meta: SnapMeta) {
+export async function getWalletStatus(meta: SnapMeta, snapId: string) {
   const response = await snapRPC(
     'getKeystoreStatus',
     getWalletStatusCodec,
     {
       walletAddress: meta.walletAddress,
     },
-    meta
+    meta,
+    snapId
   )
 
   if (
@@ -205,7 +207,11 @@ const initKeystoreCodec = {
   req: InitKeystoreRequest,
   res: InitKeystoreResponse,
 }
-export async function initSnap(bundle: PrivateKeyBundleV1, env: XmtpEnv) {
+export async function initSnap(
+  bundle: PrivateKeyBundleV1,
+  env: XmtpEnv,
+  snapId: string
+) {
   const walletAddress = bundle.identityKey.publicKey.walletSignatureAddress()
   const response = await snapRPC(
     'initKeystore',
@@ -213,7 +219,8 @@ export async function initSnap(bundle: PrivateKeyBundleV1, env: XmtpEnv) {
     {
       v1: bundle,
     },
-    { walletAddress, env }
+    { walletAddress, env },
+    snapId
   )
   if (response.error) {
     throw new KeystoreError(response.error.code, response.error.message)

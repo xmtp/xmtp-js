@@ -6,12 +6,17 @@ import { apiDefs } from './rpcDefinitions'
 async function getResponse<T extends keyof Keystore>(
   method: T,
   req: Uint8Array | null,
-  meta: SnapMeta
+  meta: SnapMeta,
+  snapId: string
 ): Promise<typeof apiDefs[T]['res']> {
-  return snapRPC(method, apiDefs[method], req, meta)
+  return snapRPC(method, apiDefs[method], req, meta, snapId)
 }
 
-export function SnapKeystore(walletAddress: string, env: XmtpEnv): Keystore {
+export function SnapKeystore(
+  walletAddress: string,
+  env: XmtpEnv,
+  snapId: string
+): Keystore {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generatedMethods: any = {}
 
@@ -24,10 +29,10 @@ export function SnapKeystore(walletAddress: string, env: XmtpEnv): Keystore {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     generatedMethods[method] = async (req: any) => {
       if (!apiDef.req) {
-        return getResponse(method as keyof Keystore, null, snapMeta)
+        return getResponse(method as keyof Keystore, null, snapMeta, snapId)
       }
 
-      return getResponse(method as keyof Keystore, req, snapMeta)
+      return getResponse(method as keyof Keystore, req, snapMeta, snapId)
     }
   }
 
