@@ -27,7 +27,7 @@ export type Reaction = {
   schema: "unicode" | "shortcode" | "custom";
 };
 
-export type ReactionParameters = Pick<
+type LegacyReactionParameters = Pick<
   Reaction,
   "action" | "reference" | "schema"
 > & {
@@ -39,29 +39,36 @@ export class ReactionCodec implements ContentCodec<Reaction> {
     return ContentTypeReaction;
   }
 
-  encode(content: Reaction): EncodedContent<ReactionParameters> {
+  encode(reaction: Reaction): EncodedContent {
+    const { action, reference, schema, content } = reaction;
     return {
       type: ContentTypeReaction,
-      parameters: {
-        encoding: "UTF-8",
-        action: content.action,
-        reference: content.reference,
-        schema: content.schema,
-      },
-      content: new TextEncoder().encode(content.content),
+      parameters: {},
+      content: new TextEncoder().encode(
+        JSON.stringify({ action, reference, schema, content }),
+      ),
     };
   }
 
-  decode(content: EncodedContent<ReactionParameters>): Reaction {
-    const { encoding } = content.parameters;
-    if (encoding && encoding !== "UTF-8") {
-      throw new Error(`unrecognized encoding ${encoding as string}`);
+  decode(encodedContent: EncodedContent): Reaction {
+    const decodedContent = new TextDecoder().decode(encodedContent.content);
+
+    // First try to decode it in the canonical form.
+    try {
+      const reaction = JSON.parse(decodedContent) as Reaction;
+      const { action, reference, schema, content } = reaction;
+      return { action, reference, schema, content };
+    } catch (e) {
+      // ignore, fall through to legacy decoding
     }
+
+    // If that fails, try to decode it in the legacy form.
+    const parameters = encodedContent.parameters as LegacyReactionParameters;
     return {
-      action: content.parameters.action,
-      reference: content.parameters.reference,
-      schema: content.parameters.schema,
-      content: new TextDecoder().decode(content.content),
+      action: parameters.action,
+      reference: parameters.reference,
+      schema: parameters.schema,
+      content: decodedContent,
     };
   }
 }
