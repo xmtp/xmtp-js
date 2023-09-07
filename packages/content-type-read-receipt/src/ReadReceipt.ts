@@ -40,7 +40,7 @@ export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
     };
   }
 
-  fallback(content: ReadReceipt): string | undefined {
+  fallback(): string | undefined {
     return undefined;
   }
 }

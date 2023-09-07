@@ -162,7 +162,7 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
     };
   }
 
-  fallback(content: RemoteAttachment): string | undefined {
+  fallback(): string | undefined {
     return "Error: Sorry, this app cannot display attachments";
   }
 }

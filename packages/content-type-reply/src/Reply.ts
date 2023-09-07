@@ -85,7 +85,7 @@ export class ReplyCodec implements ContentCodec<Reply> {
     };
   }
 
-  fallback(content: Reply): string | undefined {
+  fallback(): string | undefined {
     return "Error: Sorry, this app cannot display quote replies";
   }
 }

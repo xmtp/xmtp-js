@@ -65,7 +65,7 @@ export class ReactionCodec implements ContentCodec<Reaction> {
     };
   }
 
-  fallback(content: Reaction): string | undefined {
+  fallback(): string | undefined {
     return "Error: Sorry, this app cannot display reactions";
   }
 }
