@@ -1,5 +1,11 @@
 # @xmtp/content-type-reply
 
+## 1.1.1
+
+### Patch Changes
+
+- [#21](https://github.com/xmtp/xmtp-js-content-types/pull/21) [`ae4fcda`](https://github.com/xmtp/xmtp-js-content-types/commit/ae4fcdaa68ea5b1f4430d14f02f73231e194fd57) Thanks [@dmccartney](https://github.com/dmccartney)! - Gets the nested type of a reply from the deserialized EncodedContent instead of inspecting the parameter map
+
 ## 1.1.0
 
 ### Minor Changes
