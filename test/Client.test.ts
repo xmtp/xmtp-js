@@ -28,6 +28,22 @@ type TestCase = {
   newClient: (opts?: Partial<ClientOptions>) => Promise<Client>
 }
 
+const mockEthRequest = jest.fn()
+jest.mock('../src/utils/ethereum', () => {
+  return {
+    __esModule: true,
+    getEthereum: jest.fn(() => {
+      const ethereum: any = {
+        request: mockEthRequest,
+      }
+      ethereum.providers = [ethereum]
+      ethereum.detected = [ethereum]
+      ethereum.isMetaMask = true
+      return ethereum
+    }),
+  }
+})
+
 describe('Client', () => {
   const tests: TestCase[] = [
     {
@@ -356,6 +372,20 @@ describe('ClientOptions', () => {
         basePersistence: new MyNewPersistence(new LocalStoragePonyfill()),
       })
       await expect(c).rejects.toThrow('MyNewPersistence')
+    })
+  })
+
+  describe('canGetKeys', () => {
+    it('returns true if the useSnaps flag is false', async () => {
+      mockEthRequest.mockRejectedValue(new Error('foo'))
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(false)
+    })
+
+    it('returns false if the user has a Snaps capable browser and snaps are enabled', async () => {
+      mockEthRequest.mockResolvedValue([])
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(true)
     })
   })
 })

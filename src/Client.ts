@@ -31,6 +31,7 @@ import {
   KeystoreProvider,
   KeystoreProviderUnavailableError,
   NetworkKeystoreProvider,
+  SnapProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
 import {
@@ -38,6 +39,8 @@ import {
   InMemoryPersistence,
   Persistence,
 } from './keystore/persistence'
+import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
+import { version as snapVersion, package as snapPackage } from './snapInfo.json'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -159,6 +162,10 @@ export type KeyStoreOptions = {
    * Only disable if you are using a secure datastore that already has encryption
    */
   disablePersistenceEncryption: boolean
+  /**
+   * A single option to allow Metamask Snaps to be used as a keystore provider
+   */
+  useSnaps: boolean
 }
 
 export type LegacyOptions = {
@@ -210,6 +217,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     maxContentSize: MaxContentSize,
     persistConversations: true,
     skipContactPublishing: false,
+    useSnaps: false,
     basePersistence: isBrowser()
       ? BrowserStoragePersistence.create()
       : InMemoryPersistence.create(),
@@ -220,6 +228,13 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
 
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
+  }
+
+  if (opts?.useSnaps) {
+    opts.keystoreProviders = [
+      new SnapProvider(`npm:${snapPackage}`, snapVersion),
+      ..._defaultOptions.keystoreProviders,
+    ]
   }
 
   return { ..._defaultOptions, ...opts } as ClientOptions
@@ -329,6 +344,15 @@ export default class Client {
     const client = await Client.create(wallet, opts)
     const keys = await client.keystore.getPrivateKeyBundle()
     return new PrivateKeyBundleV1(keys).encode()
+  }
+
+  /**
+   * Tells the caller whether `getKeys` will work for them or throw
+   * Right now, this is only true if the user has Metamask with Snaps
+   * and has enabled the `useSnaps` option
+   */
+  static isSnapsReady() {
+    return hasMetamaskWithSnaps()
   }
 
   private static async setupBackupClient(
