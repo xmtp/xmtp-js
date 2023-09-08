@@ -377,16 +377,15 @@ describe('ClientOptions', () => {
 
   describe('canGetKeys', () => {
     it('returns true if the useSnaps flag is false', async () => {
-      const canGetKeys = await Client.canGetKeys(newWallet(), {})
-      expect(canGetKeys).toBe(true)
+      mockEthRequest.mockRejectedValue(new Error('foo'))
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(false)
     })
 
     it('returns false if the user has a Snaps capable browser and snaps are enabled', async () => {
       mockEthRequest.mockResolvedValue([])
-      const canGetKeys = await Client.canGetKeys(newWallet(), {
-        useSnaps: true,
-      })
-      expect(canGetKeys).toBe(false)
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(true)
     })
   })
 })

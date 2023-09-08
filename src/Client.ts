@@ -351,17 +351,8 @@ export default class Client {
    * Right now, this is only true if the user has Metamask with Snaps
    * and has enabled the `useSnaps` option
    */
-  static async canGetKeys(
-    wallet: Signer | null,
-    opts?: Partial<ClientOptions>
-  ) {
-    if (!defaultOptions(opts).useSnaps) {
-      return true
-    }
-
-    const isSnapCompatible = await hasMetamaskWithSnaps()
-
-    return !isSnapCompatible
+  static isSnapsReady() {
+    return hasMetamaskWithSnaps()
   }
 
   private static async setupBackupClient(
