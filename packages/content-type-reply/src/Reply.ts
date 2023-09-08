@@ -28,19 +28,12 @@ export type Reply = {
   contentType: ContentTypeId;
 };
 
-export type ReplyParameters = Pick<Reply, "reference"> & {
-  contentType: string;
-};
-
 export class ReplyCodec implements ContentCodec<Reply> {
   get contentType(): ContentTypeId {
     return ContentTypeReply;
   }
 
-  encode(
-    content: Reply,
-    codecs: CodecRegistry,
-  ): EncodedContent<ReplyParameters> {
+  encode(content: Reply, codecs: CodecRegistry): EncodedContent {
     const codec = codecs.codecFor(content.contentType);
     if (!codec) {
       throw new Error(
@@ -54,6 +47,7 @@ export class ReplyCodec implements ContentCodec<Reply> {
     return {
       type: ContentTypeReply,
       parameters: {
+        // TODO: cut when we're certain no one is looking for "contentType" here.
         contentType: content.contentType.toString(),
         reference: content.reference,
       },
@@ -61,19 +55,16 @@ export class ReplyCodec implements ContentCodec<Reply> {
     };
   }
 
-  decode(
-    content: EncodedContent<ReplyParameters>,
-    codecs: CodecRegistry,
-  ): Reply {
+  decode(content: EncodedContent, codecs: CodecRegistry): Reply {
     const decodedContent = proto.EncodedContent.decode(content.content);
-    const contentType = ContentTypeId.fromString(
-      content.parameters.contentType,
-    );
-
+    if (!decodedContent.type) {
+      throw new Error("missing content type");
+    }
+    const contentType = new ContentTypeId(decodedContent.type);
     const codec = codecs.codecFor(contentType);
     if (!codec) {
       throw new Error(
-        `missing codec for content type "${content.parameters.contentType}"`,
+        `missing codec for content type "${contentType.toString()}"`,
       );
     }
 
