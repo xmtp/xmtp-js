@@ -13,7 +13,7 @@ import { keystore } from '@xmtp/proto'
 import { Signer } from '../../types/Signer'
 import { ApiClient } from '../../ApiClient'
 import NetworkKeystoreProvider from './NetworkKeystoreProvider'
-import { PrivateKeyBundleV1 } from '../../crypto'
+import { PrivateKeyBundleV1, decodePrivateKeyBundle } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 import type { XmtpEnv } from '../../Client'
 import { semverGreaterThan } from '../../utils/semver'
@@ -62,7 +62,7 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
     }
 
     if (!(await checkSnapLoaded(walletAddress, env, this.snapId))) {
-      const bundle = await getBundle(opts, apiClient, wallet)
+      const bundle = await bundleFromOptions(opts, apiClient, wallet)
       await initSnap(bundle, env, this.snapId)
     }
 
@@ -80,7 +80,27 @@ async function createBundle(
   return new PrivateKeyBundleV1(await tmpKeystore.getPrivateKeyBundle())
 }
 
-async function getBundle(
+async function bundleFromOptions(
+  opts: KeystoreProviderOptions,
+  apiClient: ApiClient,
+  wallet?: Signer
+) {
+  if (opts.privateKeyOverride) {
+    const bundle = decodePrivateKeyBundle(opts.privateKeyOverride)
+    if (!(bundle instanceof PrivateKeyBundleV1)) {
+      throw new Error('Unsupported private key bundle version')
+    }
+    return bundle
+  }
+
+  if (!wallet) {
+    throw new Error('No privateKeyOverride or wallet')
+  }
+
+  return getOrCreateBundle(opts, apiClient, wallet)
+}
+
+async function getOrCreateBundle(
   opts: KeystoreProviderOptions,
   apiClient: ApiClient,
   wallet: Signer
