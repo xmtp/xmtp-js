@@ -80,6 +80,6 @@ export class ReactionCodec implements ContentCodec<Reaction> {
         return `Removed “${content.content}” from an earlier message`;
       default:
         return undefined;
-    }  
+    }
   }
 }

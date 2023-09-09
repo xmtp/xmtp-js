@@ -82,5 +82,6 @@ export class ReplyCodec implements ContentCodec<Reply> {
       reply = content.content;
       return `Replied with “${reply}” to an earlier message`;
     }
+    return "Replied to an earlier message";
   }
 }
