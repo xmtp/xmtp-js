@@ -40,6 +40,7 @@ export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   fallback(content: ReadReceipt): string | undefined {
     return undefined;
   }
