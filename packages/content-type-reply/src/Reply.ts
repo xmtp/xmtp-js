@@ -77,6 +77,6 @@ export class ReplyCodec implements ContentCodec<Reply> {
   }
 
   fallback(content: Reply): string | undefined {
-    return `Replied with “${content.content}” to an earlier message`;
+    return `Replied with “${content.content.toString()}” to an earlier message`;
   }
 }
