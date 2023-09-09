@@ -81,8 +81,6 @@ export class ReplyCodec implements ContentCodec<Reply> {
     if (typeof content.content === "string") {
       reply = content.content;
       return `Replied with “${reply}” to an earlier message`;
-    } else {
-      return "Replied to an earlier message";
     }
   }
 }
