@@ -129,6 +129,10 @@ The client's network connection and key storage method can be configured with th
 | maxContentSize            | `100M`                                                                            | Maximum message content size in bytes.                                                                                                                                                                                                                                                                                                                                                                                                   |
 | preCreateIdentityCallback | `undefined`                                                                       | `preCreateIdentityCallback` is a function that will be called immediately before a [Create Identity wallet signature](https://xmtp.org/docs/concepts/account-signatures#sign-to-create-an-xmtp-identity) is requested from the user.                                                                                                                                                                                                     |
 | preEnableIdentityCallback | `undefined`                                                                       | `preEnableIdentityCallback` is a function that will be called immediately before an [Enable Identity wallet signature](https://xmtp.org/docs/concepts/account-signatures#sign-to-enable-an-xmtp-identity) is requested from the user.                                                                                                                                                                                                    |
+| useSnaps                  | `false`                                                                           | Enabling the `useSnaps` flag will allow the client to attempt to connect to the "Sign in with XMTP" MetaMask Snap as part of client creation. It is safe to enable this flag even if you do not know whether the user has an appropriate MetaMask version enabled. If no compatible version of MetaMask is found, client creation will proceed as if this flag was set to `false`. Read more about Snaps [here](#interacting-with-snaps) |
+| basePersistence           | `InMemoryPersistence` (Node.js) or `LocalStoragePersistence` (browser)            | A persistence provider used by the Keystore to persist its cache of conversations and metadata. Ignored in cases where the `useSnaps` is enabled and the user has a Snaps compatible browser                                                                                                                                                                                                                                             |
+| basePersistence           | `InMemoryPersistence` (Node.js) or `LocalStoragePersistence` (browser)            | A persistence provider used by the Keystore to persist its cache of conversations and metadata. Ignored in cases where the `useSnaps` is enabled and the user has a Snaps compatible browser                                                                                                                                                                                                                                             |
+| apiClientFactory          | `HttpApiClient`                                                                   | Override the function used to create an API client for the XMTP network. If you are running `xmtp-js` on a server, you will want to import [`@xmtp/grpc-api-client`](https://github.com/xmtp/bot-kit-pro) and set this option to `GrpcApiClient.fromOptions` for better performance and reliability                                                                                                                                      |
 
 ### Conversations
 
@@ -389,6 +393,14 @@ const clientWithNoCache = await Client.create(wallet, {
   persistConversations: false,
 })
 ```
+
+### Interacting with Snaps
+
+If the user has a compatible version of MetaMask installed in their browser, and the `useSnaps` `ClientCreateOption` is set to `true`, the SDK will attempt to install and connect to the ["Sign In With XMTP" Snap](https://github.com/xmtp/snap) as part of client creation. If successful, all crytographic operations will happen inside the secure context of the Snap instead of the main browser thread. This offers greater security and a smoother sign-in experience.
+
+In cases where the Snap is being used, `Client.getKeys()` will fail, as the client application has no access to the private key material when used with Snaps.
+
+In future versions of `xmtp-js`, this flag will be set with a default of `true`.
 
 ## Breaking revisions
 
