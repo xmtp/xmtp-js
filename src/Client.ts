@@ -865,20 +865,3 @@ async function bootstrapKeystore(
 }
 
 export type ClientReturnType<C> = C extends Client<infer T> ? T : never
-
-// async function stronglyTypedClient() {
-//   const c = await Client.create(null, {
-//     codecs: [new CompositeCodec(), new TextCodec()],
-//   })
-
-//   const convos = await c.conversations.list()
-//   convos[0].send('hello')
-//   convos[0].send(123)
-
-//   for await (const msg of await convos[0].streamMessages()) {
-//     // Let's see what content type this is?
-//     //
-//     //
-//     console.log(msg.content)
-//   }
-// }
