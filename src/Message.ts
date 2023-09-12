@@ -230,7 +230,7 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
 
 export type Message = MessageV1 | MessageV2
 
-export class DecodedMessage<T> {
+export class DecodedMessage<T = unknown> {
   id: string
   messageVersion: 'v1' | 'v2'
   senderAddress: string

@@ -246,6 +246,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  * Client class initiates connection to the XMTP network.
  * Should be created with `await Client.create(options)`
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default class Client<T = any> {
   address: string
   keystore: Keystore
@@ -319,7 +320,7 @@ export default class Client<T = any> {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
-    const client = new Client<ExtractDecodedType<[...U, TextCodec][number]>>(
+    const client = new Client(
       publicKeyBundle,
       apiClient,
       backupClient,
