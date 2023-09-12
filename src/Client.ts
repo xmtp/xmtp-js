@@ -41,7 +41,6 @@ import {
 } from './keystore/persistence'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { version as snapVersion, package as snapPackage } from './snapInfo.json'
-import { CompositeCodec } from './codecs/Composite'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
