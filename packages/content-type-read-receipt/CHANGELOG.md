@@ -1,5 +1,11 @@
 # @xmtp/content-type-read-receipt
 
+## 1.1.1
+
+### Patch Changes
+
+- [#30](https://github.com/xmtp/xmtp-js-content-types/pull/30) [`41fe976`](https://github.com/xmtp/xmtp-js-content-types/commit/41fe976c009af8daa415e29b6820166675a8c77b) Thanks [@nplasterer](https://github.com/nplasterer)! - fix: update the copy for the default fallbacks
+
 ## 1.1.0
 
 ### Minor Changes
