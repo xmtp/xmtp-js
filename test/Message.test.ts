@@ -248,6 +248,9 @@ describe('Message', function () {
         sentMessageBytes,
         aliceClient
       )
+      if (typeof aliceRestoredMessage.content === 'string') {
+        throw new Error('Expected content to be a PublicKeyBundle')
+      }
       expect(
         equalBytes(
           aliceRestoredMessage.content?.secp256k1Uncompressed.bytes,

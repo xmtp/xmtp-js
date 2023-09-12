@@ -11,8 +11,8 @@ import { utils } from 'ethers'
 import { Signer } from './types/Signer'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
-import { ContentTypeId, ContentCodec } from './MessageContent'
-import { compress } from './Compression'
+import { ContentTypeId, ContentCodec, EncodedContent } from './MessageContent'
+import { compress, decompress } from './Compression'
 import { content as proto, messageApi } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import HttpApiClient, {
@@ -41,6 +41,7 @@ import {
 } from './keystore/persistence'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { version as snapVersion, package as snapPackage } from './snapInfo.json'
+import { CompositeCodec } from './codecs/Composite'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -203,6 +204,8 @@ export type ClientOptions = Flatten<
     PreEventCallbackOptions
 >
 
+export type ExtractDecodedType<C> = C extends ContentCodec<infer T> ? T : never
+
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
  *
@@ -244,7 +247,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  * Client class initiates connection to the XMTP network.
  * Should be created with `await Client.create(options)`
  */
-export default class Client {
+export default class Client<T = any> {
   address: string
   keystore: Keystore
   apiClient: ApiClient
@@ -256,7 +259,7 @@ export default class Client {
   > // addresses and key bundles that we have witnessed
 
   private _backupClient: BackupClient
-  private readonly _conversations: Conversations
+  private readonly _conversations: Conversations<T>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
@@ -286,7 +289,7 @@ export default class Client {
   /**
    * @type {Conversations}
    */
-  get conversations(): Conversations {
+  get conversations(): Conversations<T> {
     return this._conversations
   }
 
@@ -304,10 +307,10 @@ export default class Client {
    * @param wallet the wallet as a Signer instance
    * @param opts specify how to to connect to the network
    */
-  static async create(
+  static async create<U extends ContentCodec<any>[]>(
     wallet: Signer | null,
-    opts?: Partial<ClientOptions>
-  ): Promise<Client> {
+    opts?: Partial<ClientOptions> & { codecs?: U }
+  ): Promise<Client<ExtractDecodedType<[...U, TextCodec][number]>>> {
     const options = defaultOptions(opts)
     const apiClient = options.apiClientFactory(options)
     const keystore = await bootstrapKeystore(options, apiClient, wallet)
@@ -317,7 +320,7 @@ export default class Client {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
-    const client = new Client(
+    const client = new Client<ExtractDecodedType<[...U, TextCodec][number]>>(
       publicKeyBundle,
       apiClient,
       backupClient,
@@ -337,9 +340,9 @@ export default class Client {
    * impersonate a user on the XMTP network and read the user's
    * messages.
    */
-  static async getKeys(
+  static async getKeys<U>(
     wallet: Signer | null,
-    opts?: Partial<ClientOptions>
+    opts?: Partial<ClientOptions> & { codecs?: U }
   ): Promise<Uint8Array> {
     const client = await Client.create(wallet, opts)
     const keys = await client.keystore.getPrivateKeyBundle()
@@ -623,11 +626,7 @@ export default class Client {
    * Convert arbitrary content into a serialized `EncodedContent` instance
    * with the given options
    */
-  async encodeContent(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    content: any,
-    options?: SendOptions
-  ): Promise<Uint8Array> {
+  async encodeContent(content: T, options?: SendOptions): Promise<Uint8Array> {
     const contentType = options?.contentType || ContentTypeText
     const codec = this.codecFor(contentType)
     if (!codec) {
@@ -644,6 +643,39 @@ export default class Client {
     }
     await compress(encoded)
     return proto.EncodedContent.encode(encoded).finish()
+  }
+
+  async decodeContent(contentBytes: Uint8Array): Promise<{
+    content: T
+    contentType: ContentTypeId
+    error?: Error
+    contentFallback?: string
+  }> {
+    const encodedContent = proto.EncodedContent.decode(contentBytes)
+
+    if (!encodedContent.type) {
+      throw new Error('missing content type')
+    }
+
+    let content: any // eslint-disable-line @typescript-eslint/no-explicit-any
+    const contentType = new ContentTypeId(encodedContent.type)
+    let error: Error | undefined
+
+    await decompress(encodedContent, 1000)
+
+    const codec = this.codecFor(contentType)
+    if (codec) {
+      content = codec.decode(encodedContent as EncodedContent, this)
+    } else {
+      error = new Error('unknown content type ' + contentType)
+    }
+
+    return {
+      content,
+      contentType,
+      error,
+      contentFallback: encodedContent.fallback,
+    }
   }
 
   listInvitations(opts?: ListMessagesOptions): Promise<messageApi.Envelope[]> {
@@ -713,6 +745,8 @@ export default class Client {
     )
   }
 }
+
+export type AnyClient = Client<ContentCodec<any>[]>
 
 function createHttpApiClientFromOptions(options: NetworkOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
@@ -829,3 +863,22 @@ async function bootstrapKeystore(
   }
   throw new Error('No keystore providers available')
 }
+
+export type ClientReturnType<C> = C extends Client<infer T> ? T : never
+
+// async function stronglyTypedClient() {
+//   const c = await Client.create(null, {
+//     codecs: [new CompositeCodec(), new TextCodec()],
+//   })
+
+//   const convos = await c.conversations.list()
+//   convos[0].send('hello')
+//   convos[0].send(123)
+
+//   for await (const msg of await convos[0].streamMessages()) {
+//     // Let's see what content type this is?
+//     //
+//     //
+//     console.log(msg.content)
+//   }
+// }

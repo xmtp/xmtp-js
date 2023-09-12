@@ -25,7 +25,7 @@ import LocalStoragePonyfill from '../src/keystore/persistence/LocalStoragePonyfi
 
 type TestCase = {
   name: string
-  newClient: (opts?: Partial<ClientOptions>) => Promise<Client>
+  newClient: (opts?: Partial<ClientOptions>) => Promise<Client<any>>
 }
 
 const mockEthRequest = jest.fn()
