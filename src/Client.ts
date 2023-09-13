@@ -307,6 +307,8 @@ export default class Client<T = any> {
    * @param wallet the wallet as a Signer instance
    * @param opts specify how to to connect to the network
    */
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async create<U extends ContentCodec<any>[]>(
     wallet: Signer | null,
     opts?: Partial<ClientOptions> & { codecs?: U }
@@ -745,8 +747,6 @@ export default class Client<T = any> {
     )
   }
 }
-
-export type AnyClient = Client<ContentCodec<any>[]>
 
 function createHttpApiClientFromOptions(options: NetworkOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
