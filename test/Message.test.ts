@@ -248,7 +248,10 @@ describe('Message', function () {
         sentMessageBytes,
         aliceClient
       )
-      if (typeof aliceRestoredMessage.content === 'string') {
+      if (
+        typeof aliceRestoredMessage.content === 'string' ||
+        !aliceRestoredMessage.content
+      ) {
         throw new Error('Expected content to be a PublicKeyBundle')
       }
       expect(

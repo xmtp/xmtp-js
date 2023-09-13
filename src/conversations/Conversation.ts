@@ -112,7 +112,10 @@ export interface Conversation<T = any> {
    * await conversation.send('Hello world') // returns a `DecodedMessage` instance
    * ```
    */
-  send(content: T, options?: SendOptions): Promise<DecodedMessage<T>>
+  send(
+    content: Exclude<T, undefined>,
+    options?: SendOptions
+  ): Promise<DecodedMessage<T>>
 
   /**
    * Return a `PreparedMessage` that has contains the message ID
@@ -309,7 +312,10 @@ export class ConversationV1<T> implements Conversation<T> {
   /**
    * Send a message into the conversation.
    */
-  async send(content: T, options?: SendOptions): Promise<DecodedMessage<T>> {
+  async send(
+    content: Exclude<T, undefined>,
+    options?: SendOptions
+  ): Promise<DecodedMessage<T>> {
     let topics: string[]
     let recipient = await this.client.getUserContact(this.peerAddress)
     if (!recipient) {
@@ -506,7 +512,10 @@ export class ConversationV2<T> implements Conversation<T> {
   /**
    * Send a message into the conversation
    */
-  async send(content: T, options?: SendOptions): Promise<DecodedMessage<T>> {
+  async send(
+    content: Exclude<T, undefined>,
+    options?: SendOptions
+  ): Promise<DecodedMessage<T>> {
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, options?.timestamp)
 

@@ -311,7 +311,9 @@ export default class Client<T = any> {
   static async create<U extends ContentCodec<any>[] = []>(
     wallet: Signer | null,
     opts?: Partial<ClientOptions> & { codecs?: U }
-  ): Promise<Client<ExtractDecodedType<[...U, TextCodec][number]>>> {
+  ): Promise<
+    Client<ExtractDecodedType<[...U, TextCodec][number]> | undefined>
+  > {
     const options = defaultOptions(opts)
     const apiClient = options.apiClientFactory(options)
     const keystore = await bootstrapKeystore(options, apiClient, wallet)
@@ -321,12 +323,9 @@ export default class Client<T = any> {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
-    const client = new Client<ExtractDecodedType<[...U, TextCodec][number]>>(
-      publicKeyBundle,
-      apiClient,
-      backupClient,
-      keystore
-    )
+    const client = new Client<
+      ExtractDecodedType<[...U, TextCodec][number]> | undefined
+    >(publicKeyBundle, apiClient, backupClient, keystore)
     await client.init(options)
     return client
   }
