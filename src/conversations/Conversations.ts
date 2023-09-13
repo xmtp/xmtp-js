@@ -381,7 +381,7 @@ export default class Conversations<T = any> {
       onConnectionLost
     )
 
-    return (async function* generate() {
+    const gen = (async function* generate() {
       for await (const val of str) {
         if (val instanceof DecodedMessage) {
           yield val
@@ -395,6 +395,16 @@ export default class Conversations<T = any> {
         }
       }
     })()
+
+    // Overwrite the generator's return method to close the underlying stream
+    // Generators by default need to wait until the next yield to return.
+    // In this case, that's only when the next message arrives...which could be a long time
+    gen.return = async () => {
+      await str?.return()
+      return { value: undefined, done: true }
+    }
+
+    return gen
   }
 
   private async getIntroductionPeers(
