@@ -16,9 +16,10 @@ export type ContentTopicUpdater<M> = (msg: M) => string[] | undefined
  * Stream implements an Asynchronous Iterable over messages received from a topic.
  * As such can be used with constructs like for-await-of, yield*, array destructing, etc.
  */
-export default class Stream<T> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default class Stream<T, ClientType = any> {
   topics: string[]
-  client: Client
+  client: Client<ClientType>
   // queue of incoming Waku messages
   messages: T[]
   // queue of already pending Promises
@@ -32,7 +33,7 @@ export default class Stream<T> {
   onConnectionLost?: OnConnectionLostCallback
 
   constructor(
-    client: Client,
+    client: Client<ClientType>,
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
@@ -100,13 +101,13 @@ export default class Stream<T> {
     )
   }
 
-  static async create<T>(
-    client: Client,
+  static async create<T, ClientType = string>(
+    client: Client<ClientType>,
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<T>> {
+  ): Promise<Stream<T, ClientType>> {
     const stream = new Stream(
       client,
       topics,

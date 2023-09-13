@@ -4,23 +4,14 @@ import {
   ConversationV2,
 } from './conversations/Conversation'
 import type Client from './Client'
-import {
-  message as proto,
-  content as protoContent,
-  conversationReference,
-} from '@xmtp/proto'
+import { message as proto, conversationReference } from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
 import { PublicKeyBundle, PublicKey } from './crypto'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
-import {
-  ContentTypeFallback,
-  ContentTypeId,
-  EncodedContent,
-} from './MessageContent'
+import { ContentTypeId } from './MessageContent'
 import { dateToNs, nsToDate } from './utils'
-import { decompress } from './Compression'
 import { Keystore } from './keystore'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
 
@@ -228,16 +219,17 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
 
 export type Message = MessageV1 | MessageV2
 
-export class DecodedMessage {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export class DecodedMessage<ContentTypes = any> {
   id: string
   messageVersion: 'v1' | 'v2'
   senderAddress: string
   recipientAddress?: string
   sent: Date
   contentTopic: string
-  conversation: Conversation
+  conversation: Conversation<ContentTypes>
   contentType: ContentTypeId
-  content: any // eslint-disable-line @typescript-eslint/no-explicit-any
+  content: ContentTypes
   error?: Error
   contentBytes: Uint8Array
   contentFallback?: string
@@ -255,7 +247,7 @@ export class DecodedMessage {
     sent,
     error,
     contentFallback,
-  }: Omit<DecodedMessage, 'toBytes'>) {
+  }: Omit<DecodedMessage<ContentTypes>, 'toBytes'>) {
     this.id = id
     this.messageVersion = messageVersion
     this.senderAddress = senderAddress
@@ -283,10 +275,10 @@ export class DecodedMessage {
     }).finish()
   }
 
-  static async fromBytes(
+  static async fromBytes<ContentTypes>(
     data: Uint8Array,
-    client: Client
-  ): Promise<DecodedMessage> {
+    client: Client<ContentTypes>
+  ): Promise<DecodedMessage<ContentTypes>> {
     const protoVal = proto.DecodedMessage.decode(data)
     const messageVersion = protoVal.messageVersion
 
@@ -299,7 +291,7 @@ export class DecodedMessage {
     }
 
     const { content, contentType, error, contentFallback } =
-      await decodeContent(protoVal.contentBytes, client)
+      await client.decodeContent(protoVal.contentBytes)
 
     return new DecodedMessage({
       ...protoVal,
@@ -317,16 +309,16 @@ export class DecodedMessage {
     })
   }
 
-  static fromV1Message(
+  static fromV1Message<ContentTypes>(
     message: MessageV1,
-    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: ContentTypes,
     contentType: ContentTypeId,
     contentBytes: Uint8Array,
     contentTopic: string,
-    conversation: Conversation,
+    conversation: Conversation<ContentTypes>,
     error?: Error,
     contentFallback?: string
-  ): DecodedMessage {
+  ): DecodedMessage<ContentTypes> {
     const { id, senderAddress, recipientAddress, sent } = message
     if (!senderAddress) {
       throw new Error('Sender address is required')
@@ -347,17 +339,17 @@ export class DecodedMessage {
     })
   }
 
-  static fromV2Message(
+  static fromV2Message<ContentTypes>(
     message: MessageV2,
-    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: ContentTypes,
     contentType: ContentTypeId,
     contentTopic: string,
     contentBytes: Uint8Array,
-    conversation: Conversation,
+    conversation: Conversation<ContentTypes>,
     senderAddress: string,
     error?: Error,
     contentFallback?: string
-  ): DecodedMessage {
+  ): DecodedMessage<ContentTypes> {
     const { id, sent } = message
 
     return new DecodedMessage({
@@ -376,39 +368,11 @@ export class DecodedMessage {
   }
 }
 
-export async function decodeContent(contentBytes: Uint8Array, client: Client) {
-  const encodedContent = protoContent.EncodedContent.decode(contentBytes)
-
-  if (!encodedContent.type) {
-    throw new Error('missing content type')
-  }
-
-  let content: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  const contentType = new ContentTypeId(encodedContent.type)
-  let error: Error | undefined
-
-  await decompress(encodedContent, 1000)
-
-  const codec = client.codecFor(contentType)
-  if (codec) {
-    content = codec.decode(encodedContent as EncodedContent, client)
-  } else {
-    error = new Error('unknown content type ' + contentType)
-  }
-
-  return {
-    content,
-    contentType,
-    error,
-    contentFallback: encodedContent.fallback,
-  }
-}
-
-function conversationReferenceToConversation(
+function conversationReferenceToConversation<ContentTypes>(
   reference: conversationReference.ConversationReference,
-  client: Client,
+  client: Client<ContentTypes>,
   version: DecodedMessage['messageVersion']
-): Conversation {
+): Conversation<ContentTypes> {
   if (version === 'v1') {
     return new ConversationV1(
       client,
@@ -426,4 +390,11 @@ function conversationReferenceToConversation(
     )
   }
   throw new Error(`Unknown conversation version ${version}`)
+}
+
+export function decodeContent<ContentTypes>(
+  contentBytes: Uint8Array,
+  client: Client<ContentTypes>
+) {
+  return client.decodeContent(contentBytes)
 }

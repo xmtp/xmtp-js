@@ -28,12 +28,13 @@ const messageHasHeaders = (msg: MessageV1): boolean => {
 /**
  * Conversations allows you to view ongoing 1:1 messaging sessions with another wallet
  */
-export default class Conversations {
-  private client: Client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default class Conversations<ContentTypes = any> {
+  private client: Client<ContentTypes>
   private v1JobRunner: JobRunner
   private v2JobRunner: JobRunner
 
-  constructor(client: Client) {
+  constructor(client: Client<ContentTypes>) {
     this.client = client
     this.v1JobRunner = new JobRunner('v1', client.keystore)
     this.v2JobRunner = new JobRunner('v2', client.keystore)
@@ -42,7 +43,7 @@ export default class Conversations {
   /**
    * List all conversations with the current wallet found in the network.
    */
-  async list(): Promise<Conversation[]> {
+  async list(): Promise<Conversation<ContentTypes>[]> {
     const [v1Convos, v2Convos] = await Promise.all([
       this.listV1Conversations(),
       this.listV2Conversations(),
@@ -58,18 +59,19 @@ export default class Conversations {
    * List all conversations stored in the client cache, which may not include
    * conversations on the network.
    */
-  async listFromCache(): Promise<Conversation[]> {
-    const [v1Convos, v2Convos]: Conversation[][] = await Promise.all([
-      this.getV1ConversationsFromKeystore(),
-      this.getV2ConversationsFromKeystore(),
-    ])
+  async listFromCache(): Promise<Conversation<ContentTypes>[]> {
+    const [v1Convos, v2Convos]: Conversation<ContentTypes>[][] =
+      await Promise.all([
+        this.getV1ConversationsFromKeystore(),
+        this.getV2ConversationsFromKeystore(),
+      ])
     const conversations = v1Convos.concat(v2Convos)
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
     return conversations
   }
 
-  private async listV1Conversations(): Promise<Conversation[]> {
+  private async listV1Conversations(): Promise<Conversation<ContentTypes>[]> {
     return this.v1JobRunner.run(async (latestSeen) => {
       const seenPeers = await this.getIntroductionPeers({
         startTime: latestSeen
@@ -98,7 +100,7 @@ export default class Conversations {
   /**
    * List all V2 conversations
    */
-  private async listV2Conversations(): Promise<Conversation[]> {
+  private async listV2Conversations(): Promise<Conversation<ContentTypes>[]> {
     return this.v2JobRunner.run(async (lastRun) => {
       // Get all conversations already in the KeyStore
       const existing = await this.getV2ConversationsFromKeystore()
@@ -121,20 +123,26 @@ export default class Conversations {
     })
   }
 
-  private async getV2ConversationsFromKeystore(): Promise<ConversationV2[]> {
+  private async getV2ConversationsFromKeystore(): Promise<
+    ConversationV2<ContentTypes>[]
+  > {
     return (await this.client.keystore.getV2Conversations()).conversations.map(
       this.conversationReferenceToV2.bind(this)
     )
   }
 
-  private async getV1ConversationsFromKeystore(): Promise<ConversationV1[]> {
+  private async getV1ConversationsFromKeystore(): Promise<
+    ConversationV1<ContentTypes>[]
+  > {
     return (await this.client.keystore.getV1Conversations()).conversations.map(
       this.conversationReferenceToV1.bind(this)
     )
   }
 
   // Called in listV2Conversations and in newConversation
-  async updateV2Conversations(startTime?: Date): Promise<ConversationV2[]> {
+  async updateV2Conversations(
+    startTime?: Date
+  ): Promise<ConversationV2<ContentTypes>[]> {
     const envelopes = await this.client.listInvitations({
       startTime: startTime
         ? new Date(+startTime - CLOCK_SKEW_OFFSET_MS)
@@ -148,7 +156,7 @@ export default class Conversations {
   private async decodeInvites(
     envelopes: messageApi.Envelope[],
     shouldThrow = false
-  ): Promise<ConversationV2[]> {
+  ): Promise<ConversationV2<ContentTypes>[]> {
     const { responses } = await this.client.keystore.saveInvites({
       requests: envelopes.map((env) => ({
         payload: env.message as Uint8Array,
@@ -157,7 +165,7 @@ export default class Conversations {
       })),
     })
 
-    const out: ConversationV2[] = []
+    const out: ConversationV2<ContentTypes>[] = []
     for (const response of responses) {
       try {
         out.push(this.saveInviteResponseToConversation(response))
@@ -174,7 +182,7 @@ export default class Conversations {
   private saveInviteResponseToConversation({
     result,
     error,
-  }: keystore.SaveInvitesResponse_Response): ConversationV2 {
+  }: keystore.SaveInvitesResponse_Response): ConversationV2<ContentTypes> {
     if (error || !result || !result.conversation) {
       throw new Error(`Error from keystore: ${error?.code} ${error?.message}}`)
     }
@@ -183,7 +191,7 @@ export default class Conversations {
 
   private conversationReferenceToV2(
     convoRef: conversationReference.ConversationReference
-  ): ConversationV2 {
+  ): ConversationV2<ContentTypes> {
     return new ConversationV2(
       this.client,
       convoRef.topic,
@@ -195,7 +203,7 @@ export default class Conversations {
 
   private conversationReferenceToV1(
     convoRef: conversationReference.ConversationReference
-  ): ConversationV1 {
+  ): ConversationV1<ContentTypes> {
     return new ConversationV1(
       this.client,
       convoRef.peerAddress,
@@ -210,7 +218,7 @@ export default class Conversations {
    */
   async stream(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<Conversation>> {
+  ): Promise<Stream<Conversation<ContentTypes>, ContentTypes>> {
     const seenPeers: Set<string> = new Set()
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
@@ -249,7 +257,7 @@ export default class Conversations {
 
     const topics = [introTopic, inviteTopic]
 
-    return Stream.create<Conversation>(
+    return Stream.create<Conversation<ContentTypes>, ContentTypes>(
       this.client,
       topics,
       decodeConversation.bind(this),
@@ -267,13 +275,13 @@ export default class Conversations {
    */
   async streamAllMessages(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<AsyncGenerator<DecodedMessage>> {
+  ): Promise<AsyncGenerator<DecodedMessage<ContentTypes>>> {
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
 
     const topics = new Set<string>([introTopic, inviteTopic])
 
-    const convoMap = new Map<string, Conversation>()
+    const convoMap = new Map<string, Conversation<ContentTypes>>()
 
     for (const conversation of await this.list()) {
       topics.add(conversation.topic)
@@ -282,7 +290,9 @@ export default class Conversations {
 
     const decodeMessage = async (
       env: messageApi.Envelope
-    ): Promise<Conversation | DecodedMessage | null> => {
+    ): Promise<
+      Conversation<ContentTypes> | DecodedMessage<ContentTypes> | null
+    > => {
       const contentTopic = env.contentTopic
       if (!contentTopic || !env.message) {
         return null
@@ -331,7 +341,10 @@ export default class Conversations {
       throw new Error('Unknown topic')
     }
 
-    const addConvo = (topic: string, conversation: Conversation): boolean => {
+    const addConvo = (
+      topic: string,
+      conversation: Conversation<ContentTypes>
+    ): boolean => {
       if (topics.has(topic)) {
         return false
       }
@@ -340,7 +353,9 @@ export default class Conversations {
       return true
     }
 
-    const contentTopicUpdater = (msg: Conversation | DecodedMessage | null) => {
+    const contentTopicUpdater = (
+      msg: Conversation<ContentTypes> | DecodedMessage<ContentTypes> | null
+    ) => {
       // If we have a V1 message from the introTopic, store the conversation in our mapping
       if (msg instanceof DecodedMessage && msg.contentTopic === introTopic) {
         const convo = new ConversationV1(
@@ -364,7 +379,10 @@ export default class Conversations {
       return undefined
     }
 
-    const str = await Stream.create<DecodedMessage | Conversation | null>(
+    const str = await Stream.create<
+      DecodedMessage<ContentTypes> | Conversation<ContentTypes> | null,
+      ContentTypes
+    >(
       this.client,
       Array.from(topics.values()),
       decodeMessage,
@@ -391,6 +409,8 @@ export default class Conversations {
     // Generators by default need to wait until the next yield to return.
     // In this case, that's only when the next message arrives...which could be a long time
     gen.return = async () => {
+      // Returning the stream will cause the iteration to end inside the generator
+      // The generator will then return on its own
       await str?.return()
       return { value: undefined, done: true }
     }
@@ -448,7 +468,7 @@ export default class Conversations {
   async newConversation(
     peerAddress: string,
     context?: InvitationContext
-  ): Promise<Conversation> {
+  ): Promise<Conversation<ContentTypes>> {
     let contact = await this.client.getUserContact(peerAddress)
     if (!contact) {
       throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
@@ -495,7 +515,7 @@ export default class Conversations {
     }
 
     // Define a function for matching V2 conversations
-    const matcherFn = (convo: Conversation) =>
+    const matcherFn = (convo: Conversation<ContentTypes>) =>
       convo.peerAddress === peerAddress &&
       isMatchingContext(context, convo.context ?? undefined)
 
@@ -520,7 +540,7 @@ export default class Conversations {
   private async createV2Convo(
     recipient: SignedPublicKeyBundle,
     context?: InvitationContext
-  ): Promise<ConversationV2> {
+  ): Promise<ConversationV2<ContentTypes>> {
     const timestamp = new Date()
     const { payload, conversation } = await this.client.keystore.createInvite({
       recipient,

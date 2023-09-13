@@ -10,8 +10,8 @@ import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
 import { content as proto } from '@xmtp/proto'
 
 describe('conversation', () => {
-  let alice: Client
-  let bob: Client
+  let alice: Client<string>
+  let bob: Client<string>
 
   describe('v1', () => {
     beforeEach(async () => {
@@ -80,7 +80,7 @@ describe('conversation', () => {
       expect(messageIds.size).toBe(10)
 
       // Test sorting
-      let lastMessage: DecodedMessage | undefined = undefined
+      let lastMessage: DecodedMessage<any> | undefined = undefined
       for await (const page of aliceConversation.messagesPaginated({
         direction: SortDirection.SORT_DIRECTION_DESCENDING,
       })) {
@@ -408,7 +408,7 @@ describe('conversation', () => {
       alice.keystore = aliceKeystore
       await aliceConvo.send('Hello from Alice')
       const result = await stream.next()
-      const msg = result.value as DecodedMessage
+      const msg = result.value
       expect(msg.senderAddress).toBe(alice.address)
       expect(msg.content).toBe('Hello from Alice')
       await stream.return()
@@ -425,6 +425,7 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       await expect(
+        // @ts-expect-error
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -432,16 +433,17 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
 
       const aliceResult1 = await aliceStream.next()
-      const aliceMessage1 = aliceResult1.value as DecodedMessage
+      const aliceMessage1 = aliceResult1.value
       expect(aliceMessage1.content).toEqual(key)
 
       const bobResult1 = await bobStream.next()
-      const bobMessage1 = bobResult1.value as DecodedMessage
+      const bobMessage1 = bobResult1.value
       expect(bobMessage1).toBeTruthy()
       expect(bobMessage1.error?.message).toBe(
         'unknown content type xmtp.test/public-key:1.0'
@@ -453,11 +455,12 @@ describe('conversation', () => {
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
       const bobResult2 = await bobStream.next()
-      const bobMessage2 = bobResult2.value as DecodedMessage
+      const bobMessage2 = bobResult2.value
       expect(bobMessage2.contentType).toBeTruthy()
       expect(bobMessage2.contentType.sameAs(ContentTypeTestKey)).toBeTruthy()
       expect(key.equals(bobMessage2.content)).toBeTruthy()
@@ -467,6 +470,7 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
+      // @ts-expect-error
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )
@@ -603,7 +607,7 @@ describe('conversation', () => {
       )
       await sleep(100)
 
-      const firstMessageFromStream: DecodedMessage = (await stream.next()).value
+      const firstMessageFromStream = (await stream.next()).value
       expect(firstMessageFromStream.messageVersion).toBe('v2')
       expect(firstMessageFromStream.content).toBe('foo')
       expect(firstMessageFromStream.conversation.context?.conversationId).toBe(
@@ -663,6 +667,7 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       expect(
+        // @ts-expect-error
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -670,16 +675,17 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
 
       const aliceResult1 = await aliceStream.next()
-      const aliceMessage1 = aliceResult1.value as DecodedMessage
+      const aliceMessage1 = aliceResult1.value
       expect(aliceMessage1.content).toEqual(key)
 
       const bobResult1 = await bobStream.next()
-      const bobMessage1 = bobResult1.value as DecodedMessage
+      const bobMessage1 = bobResult1.value
       expect(bobMessage1).toBeTruthy()
       expect(bobMessage1.error?.message).toBe(
         'unknown content type xmtp.test/public-key:1.0'
@@ -691,11 +697,12 @@ describe('conversation', () => {
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
       const bobResult2 = await bobStream.next()
-      const bobMessage2 = bobResult2.value as DecodedMessage
+      const bobMessage2 = bobResult2.value
       expect(bobMessage2.contentType).toBeTruthy()
       expect(bobMessage2.contentType.sameAs(ContentTypeTestKey)).toBeTruthy()
       expect(key.equals(bobMessage2.content)).toBeTruthy()
@@ -705,6 +712,7 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
+      // @ts-expect-error
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )

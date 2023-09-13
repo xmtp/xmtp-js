@@ -1,9 +1,9 @@
 export {
   Message,
   DecodedMessage,
-  decodeContent,
   MessageV1,
   MessageV2,
+  decodeContent,
 } from './Message'
 export {
   Ciphertext,
@@ -108,3 +108,7 @@ export {
 } from './keystore/persistence'
 export { InvitationContext, SealedInvitation } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'
+export type {
+  GetMessageContentTypeFromClient,
+  ExtractDecodedType,
+} from './types/client'
