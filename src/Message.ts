@@ -391,3 +391,7 @@ function conversationReferenceToConversation<T>(
   }
   throw new Error(`Unknown conversation version ${version}`)
 }
+
+export function decodeContent<T>(contentBytes: Uint8Array, client: Client<T>) {
+  return client.decodeContent(contentBytes)
+}

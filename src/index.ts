@@ -1,4 +1,10 @@
-export { Message, DecodedMessage, MessageV1, MessageV2 } from './Message'
+export {
+  Message,
+  DecodedMessage,
+  MessageV1,
+  MessageV2,
+  decodeContent,
+} from './Message'
 export {
   Ciphertext,
   PublicKey,
