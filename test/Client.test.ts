@@ -201,7 +201,9 @@ describe('encodeContent', () => {
 
 describe('canMessage', () => {
   it('can confirm a user is on the network statically', async () => {
-    const registeredClient = await newLocalHostClient()
+    const registeredClient = await newLocalHostClient({
+      codecs: [new TextCodec()],
+    })
     await waitForUserContact(registeredClient, registeredClient)
     const canMessageRegisteredClient = await Client.canMessage(
       registeredClient.address,
