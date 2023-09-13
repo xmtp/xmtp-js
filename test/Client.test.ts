@@ -10,10 +10,13 @@ import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
 import {
   ApiUrls,
+  CompositeCodec,
   Compression,
+  ContentTypeText,
   HttpApiClient,
   InMemoryPersistence,
   PublishParams,
+  TextCodec,
 } from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
@@ -339,6 +342,40 @@ describe('ClientOptions', () => {
       const c = await testCase.newClient({
         persistConversations: true,
       })
+    })
+  })
+
+  describe('custom codecs', () => {
+    it('gives type errors when you use the wrong types', async () => {
+      const client = await Client.create(newWallet())
+      const other = await newLocalHostClient()
+      const convo = await client.conversations.newConversation(other.address)
+      expect(convo).toBeTruthy()
+      try {
+        // Add ts-expect-error so that if we break the type casting someone will notice
+        // @ts-expect-error
+        await convo.send(123)
+        const messages = await convo.messages()
+        for (const message of messages) {
+          // Strings don't have this kind of method
+          // @ts-expect-error
+          message.toFixed()
+        }
+      } catch (e) {
+        return
+      }
+      fail()
+    })
+
+    it('allows you to use custom content types', async () => {
+      const client = await Client.create(newWallet(), {
+        codecs: [new CompositeCodec()],
+      })
+      const other = await newLocalHostClient()
+      const convo = await client.conversations.newConversation(other.address)
+      expect(convo).toBeTruthy()
+      // This will have a type error if the codecs field isn't being respected
+      await convo.send({ parts: [{ type: ContentTypeText, content: 'foo' }] })
     })
   })
 

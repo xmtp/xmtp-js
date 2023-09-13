@@ -308,8 +308,7 @@ export default class Client<T = any> {
    * @param opts specify how to to connect to the network
    */
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async create<U extends ContentCodec<any>[]>(
+  static async create<U extends ContentCodec<any>[] = []>(
     wallet: Signer | null,
     opts?: Partial<ClientOptions> & { codecs?: U }
   ): Promise<Client<ExtractDecodedType<[...U, TextCodec][number]>>> {
@@ -322,7 +321,7 @@ export default class Client<T = any> {
     const address = publicKeyBundle.walletSignatureAddress()
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
-    const client = new Client(
+    const client = new Client<ExtractDecodedType<[...U, TextCodec][number]>>(
       publicKeyBundle,
       apiClient,
       backupClient,

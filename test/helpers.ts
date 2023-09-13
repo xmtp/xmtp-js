@@ -157,9 +157,7 @@ export class CodecRegistry {
 
 // client running against local node running on the host,
 // see github.com/xmtp/xmtp-node-go/scripts/xmtp-js.sh
-export const newLocalHostClient = (
-  opts?: Partial<ClientOptions>
-): Promise<Client> =>
+export const newLocalHostClient = (opts?: Partial<ClientOptions>) =>
   Client.create(newWallet(), {
     env: 'local',
     ...opts,
@@ -169,14 +167,14 @@ export const newLocalHostClient = (
 // with a non-ethers wallet
 export const newLocalHostClientWithCustomWallet = (
   opts?: Partial<ClientOptions>
-): Promise<Client> =>
+) =>
   Client.create(newCustomWallet(), {
     env: 'local',
     ...opts,
   })
 
 // client running against the dev cluster in AWS
-export const newDevClient = (opts?: Partial<ClientOptions>): Promise<Client> =>
+export const newDevClient = (opts?: Partial<ClientOptions>) =>
   Client.create(newWallet(), {
     env: 'dev',
     ...opts,
