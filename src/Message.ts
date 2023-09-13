@@ -220,6 +220,7 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
 
 export type Message = MessageV1 | MessageV2
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class DecodedMessage<T = any> {
   id: string
   messageVersion: 'v1' | 'v2'
