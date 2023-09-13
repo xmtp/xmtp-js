@@ -10,8 +10,8 @@ import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
 import { content as proto } from '@xmtp/proto'
 
 describe('conversation', () => {
-  let alice: Client
-  let bob: Client
+  let alice: Client<string>
+  let bob: Client<string>
 
   describe('v1', () => {
     beforeEach(async () => {
@@ -425,6 +425,7 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       await expect(
+        // @ts-expect-error
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -432,6 +433,7 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -453,6 +455,7 @@ describe('conversation', () => {
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -467,6 +470,7 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
+      // @ts-expect-error
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )
@@ -663,6 +667,7 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       expect(
+        // @ts-expect-error
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -670,6 +675,7 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -691,6 +697,7 @@ describe('conversation', () => {
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -705,6 +712,7 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
+      // @ts-expect-error
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )

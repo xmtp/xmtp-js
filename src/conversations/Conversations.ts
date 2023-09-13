@@ -210,7 +210,7 @@ export default class Conversations<T> {
    */
   async stream(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<Conversation<T>>> {
+  ): Promise<Stream<Conversation<T>, T>> {
     const seenPeers: Set<string> = new Set()
     const introTopic = buildUserIntroTopic(this.client.address)
     const inviteTopic = buildUserInviteTopic(this.client.address)
@@ -249,7 +249,7 @@ export default class Conversations<T> {
 
     const topics = [introTopic, inviteTopic]
 
-    return Stream.create<Conversation<T>>(
+    return Stream.create<Conversation<T>, T>(
       this.client,
       topics,
       decodeConversation.bind(this),
@@ -369,7 +369,10 @@ export default class Conversations<T> {
       return undefined
     }
 
-    const str = await Stream.create<DecodedMessage<T> | Conversation<T> | null>(
+    const str = await Stream.create<
+      DecodedMessage<T> | Conversation<T> | null,
+      T
+    >(
       this.client,
       Array.from(topics.values()),
       decodeMessage,

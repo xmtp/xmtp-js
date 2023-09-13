@@ -14,7 +14,7 @@ import { ContentTypeId } from './MessageContent'
 import { dateToNs, nsToDate } from './utils'
 import { Keystore } from './keystore'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
-import { ClientReturnType } from './Client'
+import { GetMessageContentTypeFromClient } from './types/client'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
@@ -279,7 +279,7 @@ export class DecodedMessage<T = any> {
   static async fromBytes<T>(
     data: Uint8Array,
     client: Client<T>
-  ): Promise<DecodedMessage<ClientReturnType<typeof client>>> {
+  ): Promise<DecodedMessage<T>> {
     const protoVal = proto.DecodedMessage.decode(data)
     const messageVersion = protoVal.messageVersion
 
@@ -342,7 +342,7 @@ export class DecodedMessage<T = any> {
 
   static fromV2Message<T>(
     message: MessageV2,
-    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: T,
     contentType: ContentTypeId,
     contentTopic: string,
     contentBytes: Uint8Array,
@@ -372,7 +372,7 @@ export class DecodedMessage<T = any> {
 function conversationReferenceToConversation<T>(
   reference: conversationReference.ConversationReference,
   client: Client<T>,
-  version: DecodedMessage<ClientReturnType<typeof client>>['messageVersion']
+  version: DecodedMessage['messageVersion']
 ): Conversation<T> {
   if (version === 'v1') {
     return new ConversationV1(

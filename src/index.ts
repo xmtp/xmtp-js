@@ -108,3 +108,7 @@ export {
 } from './keystore/persistence'
 export { InvitationContext, SealedInvitation } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'
+export type {
+  GetMessageContentTypeFromClient,
+  ExtractDecodedType,
+} from './types/client'

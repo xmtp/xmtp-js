@@ -102,7 +102,7 @@ export interface Conversation<T> {
    * }
    * ```
    */
-  streamMessages(): Promise<Stream<DecodedMessage<T>>>
+  streamMessages(): Promise<Stream<DecodedMessage<T>, T>>
   /**
    * Send a message into the conversation
    *
@@ -135,7 +135,7 @@ export interface Conversation<T> {
    * }
    * ```
    */
-  streamEphemeral(): Promise<Stream<DecodedMessage<T>>>
+  streamEphemeral(): Promise<Stream<DecodedMessage<T>, T>>
 }
 
 /**
@@ -260,8 +260,8 @@ export class ConversationV1<T> implements Conversation<T> {
    */
   streamMessages(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>>> {
-    return Stream.create<DecodedMessage<T>>(
+  ): Promise<Stream<DecodedMessage<T>, T>> {
+    return Stream.create<DecodedMessage<T>, T>(
       this.client,
       [this.topic],
       async (env: messageApi.Envelope) => this.decodeMessage(env),
@@ -295,8 +295,8 @@ export class ConversationV1<T> implements Conversation<T> {
 
   streamEphemeral(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>>> {
-    return Stream.create<DecodedMessage<T>>(
+  ): Promise<Stream<DecodedMessage<T>, T>> {
+    return Stream.create<DecodedMessage<T>, T>(
       this.client,
       [this.ephemeralTopic],
       this.decodeMessage.bind(this),
@@ -477,8 +477,8 @@ export class ConversationV2<T> implements Conversation<T> {
 
   streamEphemeral(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>>> {
-    return Stream.create<DecodedMessage<T>>(
+  ): Promise<Stream<DecodedMessage<T>, T>> {
+    return Stream.create<DecodedMessage<T>, T>(
       this.client,
       [this.ephemeralTopic],
       this.decodeMessage.bind(this),
@@ -492,8 +492,8 @@ export class ConversationV2<T> implements Conversation<T> {
    */
   streamMessages(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>>> {
-    return Stream.create<DecodedMessage<T>>(
+  ): Promise<Stream<DecodedMessage<T>, T>> {
+    return Stream.create<DecodedMessage<T>, T>(
       this.client,
       [this.topic],
       this.decodeMessage.bind(this),

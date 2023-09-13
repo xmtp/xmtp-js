@@ -347,8 +347,8 @@ describe('ClientOptions', () => {
 
   describe('custom codecs', () => {
     it('gives type errors when you use the wrong types', async () => {
-      const client = await Client.create(newWallet())
-      const other = await Client.create(newWallet())
+      const client = await Client.create(newWallet(), { env: 'local' })
+      const other = await Client.create(newWallet(), { env: 'local' })
       const convo = await client.conversations.newConversation(other.address)
       expect(convo).toBeTruthy()
       try {

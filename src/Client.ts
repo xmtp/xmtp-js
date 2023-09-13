@@ -41,6 +41,7 @@ import {
 } from './keystore/persistence'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { version as snapVersion, package as snapPackage } from './snapInfo.json'
+import { ExtractDecodedType } from './types/client'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -203,8 +204,6 @@ export type ClientOptions = Flatten<
     PreEventCallbackOptions
 >
 
-export type ExtractDecodedType<C> = C extends ContentCodec<infer T> ? T : never
-
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
  *
@@ -308,6 +307,7 @@ export default class Client<T = any> {
    * @param opts specify how to to connect to the network
    */
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async create<U extends ContentCodec<any>[] = []>(
     wallet: Signer | null,
     opts?: Partial<ClientOptions> & { codecs?: U }
@@ -600,10 +600,13 @@ export default class Client<T = any> {
    * messages of the given Content Type
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  registerCodec(codec: ContentCodec<any>): void {
+  registerCodec<Codec extends ContentCodec<any>>(
+    codec: Codec
+  ): Client<T | ExtractDecodedType<Codec>> {
     const id = codec.contentType
     const key = `${id.authorityId}/${id.typeId}`
     this._codecs.set(key, codec)
+    return this
   }
 
   /**
@@ -862,5 +865,3 @@ async function bootstrapKeystore(
   }
   throw new Error('No keystore providers available')
 }
-
-export type ClientReturnType<C> = C extends Client<infer T> ? T : never
