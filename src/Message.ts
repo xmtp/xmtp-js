@@ -221,16 +221,16 @@ export class MessageV2 extends MessageBase implements proto.MessageV2 {
 export type Message = MessageV1 | MessageV2
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class DecodedMessage<T = any> {
+export class DecodedMessage<ContentTypes = any> {
   id: string
   messageVersion: 'v1' | 'v2'
   senderAddress: string
   recipientAddress?: string
   sent: Date
   contentTopic: string
-  conversation: Conversation<T>
+  conversation: Conversation<ContentTypes>
   contentType: ContentTypeId
-  content: T // eslint-disable-line @typescript-eslint/no-explicit-any
+  content: ContentTypes
   error?: Error
   contentBytes: Uint8Array
   contentFallback?: string
@@ -248,7 +248,7 @@ export class DecodedMessage<T = any> {
     sent,
     error,
     contentFallback,
-  }: Omit<DecodedMessage<T>, 'toBytes'>) {
+  }: Omit<DecodedMessage<ContentTypes>, 'toBytes'>) {
     this.id = id
     this.messageVersion = messageVersion
     this.senderAddress = senderAddress
@@ -276,10 +276,10 @@ export class DecodedMessage<T = any> {
     }).finish()
   }
 
-  static async fromBytes<T>(
+  static async fromBytes<ContentTypes>(
     data: Uint8Array,
-    client: Client<T>
-  ): Promise<DecodedMessage<T>> {
+    client: Client<ContentTypes>
+  ): Promise<DecodedMessage<ContentTypes>> {
     const protoVal = proto.DecodedMessage.decode(data)
     const messageVersion = protoVal.messageVersion
 
@@ -310,16 +310,16 @@ export class DecodedMessage<T = any> {
     })
   }
 
-  static fromV1Message<T>(
+  static fromV1Message<ContentTypes>(
     message: MessageV1,
-    content: T, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: ContentTypes,
     contentType: ContentTypeId,
     contentBytes: Uint8Array,
     contentTopic: string,
-    conversation: Conversation<T>,
+    conversation: Conversation<ContentTypes>,
     error?: Error,
     contentFallback?: string
-  ): DecodedMessage<typeof content> {
+  ): DecodedMessage<ContentTypes> {
     const { id, senderAddress, recipientAddress, sent } = message
     if (!senderAddress) {
       throw new Error('Sender address is required')
@@ -340,17 +340,17 @@ export class DecodedMessage<T = any> {
     })
   }
 
-  static fromV2Message<T>(
+  static fromV2Message<ContentTypes>(
     message: MessageV2,
-    content: T,
+    content: ContentTypes,
     contentType: ContentTypeId,
     contentTopic: string,
     contentBytes: Uint8Array,
-    conversation: Conversation<T>,
+    conversation: Conversation<ContentTypes>,
     senderAddress: string,
     error?: Error,
     contentFallback?: string
-  ): DecodedMessage<typeof content> {
+  ): DecodedMessage<ContentTypes> {
     const { id, sent } = message
 
     return new DecodedMessage({
@@ -369,11 +369,11 @@ export class DecodedMessage<T = any> {
   }
 }
 
-function conversationReferenceToConversation<T>(
+function conversationReferenceToConversation<ContentTypes>(
   reference: conversationReference.ConversationReference,
-  client: Client<T>,
+  client: Client<ContentTypes>,
   version: DecodedMessage['messageVersion']
-): Conversation<T> {
+): Conversation<ContentTypes> {
   if (version === 'v1') {
     return new ConversationV1(
       client,
@@ -393,6 +393,9 @@ function conversationReferenceToConversation<T>(
   throw new Error(`Unknown conversation version ${version}`)
 }
 
-export function decodeContent<T>(contentBytes: Uint8Array, client: Client<T>) {
+export function decodeContent<ContentTypes>(
+  contentBytes: Uint8Array,
+  client: Client<ContentTypes>
+) {
   return client.decodeContent(contentBytes)
 }

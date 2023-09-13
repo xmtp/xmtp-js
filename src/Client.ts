@@ -246,7 +246,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  * Should be created with `await Client.create(options)`
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default class Client<T = any> {
+export default class Client<ContentTypes = any> {
   address: string
   keystore: Keystore
   apiClient: ApiClient
@@ -258,7 +258,7 @@ export default class Client<T = any> {
   > // addresses and key bundles that we have witnessed
 
   private _backupClient: BackupClient
-  private readonly _conversations: Conversations<T>
+  private readonly _conversations: Conversations<ContentTypes>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
@@ -288,7 +288,7 @@ export default class Client<T = any> {
   /**
    * @type {Conversations}
    */
-  get conversations(): Conversations<T> {
+  get conversations(): Conversations<ContentTypes> {
     return this._conversations
   }
 
@@ -308,11 +308,13 @@ export default class Client<T = any> {
    */
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async create<U extends ContentCodec<any>[] = []>(
+  static async create<ContentCodecs extends ContentCodec<any>[] = []>(
     wallet: Signer | null,
-    opts?: Partial<ClientOptions> & { codecs?: U }
+    opts?: Partial<ClientOptions> & { codecs?: ContentCodecs }
   ): Promise<
-    Client<ExtractDecodedType<[...U, TextCodec][number]> | undefined>
+    Client<
+      ExtractDecodedType<[...ContentCodecs, TextCodec][number]> | undefined
+    >
   > {
     const options = defaultOptions(opts)
     const apiClient = options.apiClientFactory(options)
@@ -324,7 +326,7 @@ export default class Client<T = any> {
     apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
     const backupClient = await Client.setupBackupClient(address, options.env)
     const client = new Client<
-      ExtractDecodedType<[...U, TextCodec][number]> | undefined
+      ExtractDecodedType<[...ContentCodecs, TextCodec][number]> | undefined
     >(publicKeyBundle, apiClient, backupClient, keystore)
     await client.init(options)
     return client
@@ -601,7 +603,7 @@ export default class Client<T = any> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerCodec<Codec extends ContentCodec<any>>(
     codec: Codec
-  ): Client<T | ExtractDecodedType<Codec>> {
+  ): Client<ContentTypes | ExtractDecodedType<Codec>> {
     const id = codec.contentType
     const key = `${id.authorityId}/${id.typeId}`
     this._codecs.set(key, codec)
@@ -629,7 +631,10 @@ export default class Client<T = any> {
    * Convert arbitrary content into a serialized `EncodedContent` instance
    * with the given options
    */
-  async encodeContent(content: T, options?: SendOptions): Promise<Uint8Array> {
+  async encodeContent(
+    content: ContentTypes,
+    options?: SendOptions
+  ): Promise<Uint8Array> {
     const contentType = options?.contentType || ContentTypeText
     const codec = this.codecFor(contentType)
     if (!codec) {
@@ -649,7 +654,7 @@ export default class Client<T = any> {
   }
 
   async decodeContent(contentBytes: Uint8Array): Promise<{
-    content: T
+    content: ContentTypes
     contentType: ContentTypeId
     error?: Error
     contentFallback?: string

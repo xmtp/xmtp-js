@@ -37,7 +37,7 @@ import { ContentTypeText } from '../codecs/Text'
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface Conversation<T = any> {
+export interface Conversation<ContentTypes = any> {
   conversationVersion: 'v1' | 'v2'
   /**
    * The wallet address connected to the client
@@ -79,18 +79,18 @@ export interface Conversation<T = any> {
    * })
    * ```
    */
-  messages(opts?: ListMessagesOptions): Promise<DecodedMessage<T>[]>
+  messages(opts?: ListMessagesOptions): Promise<DecodedMessage<ContentTypes>[]>
   /**
    * @deprecated
    */
   messagesPaginated(
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<DecodedMessage<T>[]>
+  ): AsyncGenerator<DecodedMessage<ContentTypes>[]>
   /**
    * Takes a XMTP envelope as input and will decrypt and decode it
    * returning a `DecodedMessage` instance.
    */
-  decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage<T>>
+  decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage<ContentTypes>>
   /**
    * Return a `Stream` of new messages in this conversation.
    *
@@ -103,7 +103,7 @@ export interface Conversation<T = any> {
    * }
    * ```
    */
-  streamMessages(): Promise<Stream<DecodedMessage<T>, T>>
+  streamMessages(): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>>
   /**
    * Send a message into the conversation
    *
@@ -113,9 +113,9 @@ export interface Conversation<T = any> {
    * ```
    */
   send(
-    content: Exclude<T, undefined>,
+    content: Exclude<ContentTypes, undefined>,
     options?: SendOptions
-  ): Promise<DecodedMessage<T>>
+  ): Promise<DecodedMessage<ContentTypes>>
 
   /**
    * Return a `PreparedMessage` that has contains the message ID
@@ -139,20 +139,22 @@ export interface Conversation<T = any> {
    * }
    * ```
    */
-  streamEphemeral(): Promise<Stream<DecodedMessage<T>, T>>
+  streamEphemeral(): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>>
 }
 
 /**
  * ConversationV1 allows you to view, stream, and send messages to/from a peer address
  */
-export class ConversationV1<T> implements Conversation<T> {
+export class ConversationV1<ContentTypes>
+  implements Conversation<ContentTypes>
+{
   conversationVersion = 'v1' as const
   peerAddress: string
   createdAt: Date
   context = undefined
-  private client: Client<T>
+  private client: Client<ContentTypes>
 
-  constructor(client: Client<T>, address: string, createdAt: Date) {
+  constructor(client: Client<ContentTypes>, address: string, createdAt: Date) {
     this.peerAddress = utils.getAddress(address)
     this.client = client
     this.createdAt = createdAt
@@ -176,7 +178,9 @@ export class ConversationV1<T> implements Conversation<T> {
   /**
    * Returns a list of all messages to/from the peerAddress
    */
-  async messages(opts?: ListMessagesOptions): Promise<DecodedMessage<T>[]> {
+  async messages(
+    opts?: ListMessagesOptions
+  ): Promise<DecodedMessage<ContentTypes>[]> {
     const topic = buildDirectMessageTopic(this.peerAddress, this.client.address)
     const messages = await this.client.listEnvelopes(
       topic,
@@ -189,7 +193,7 @@ export class ConversationV1<T> implements Conversation<T> {
 
   messagesPaginated(
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<DecodedMessage<T>[]> {
+  ): AsyncGenerator<DecodedMessage<ContentTypes>[]> {
     return this.client.listEnvelopesPaginated(
       this.topic,
       // This won't be performant once we start supporting a remote keystore
@@ -200,7 +204,9 @@ export class ConversationV1<T> implements Conversation<T> {
   }
 
   // decodeMessage takes an envelope and either returns a `DecodedMessage` or throws if an error occurs
-  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage<T>> {
+  async decodeMessage(
+    env: messageApi.Envelope
+  ): Promise<DecodedMessage<ContentTypes>> {
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
     }
@@ -264,8 +270,8 @@ export class ConversationV1<T> implements Conversation<T> {
    */
   streamMessages(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>, T>> {
-    return Stream.create<DecodedMessage<T>, T>(
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
       this.client,
       [this.topic],
       async (env: messageApi.Envelope) => this.decodeMessage(env),
@@ -299,8 +305,8 @@ export class ConversationV1<T> implements Conversation<T> {
 
   streamEphemeral(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>, T>> {
-    return Stream.create<DecodedMessage<T>, T>(
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
       this.client,
       [this.ephemeralTopic],
       this.decodeMessage.bind(this),
@@ -313,9 +319,9 @@ export class ConversationV1<T> implements Conversation<T> {
    * Send a message into the conversation.
    */
   async send(
-    content: Exclude<T, undefined>,
+    content: Exclude<ContentTypes, undefined>,
     options?: SendOptions
-  ): Promise<DecodedMessage<T>> {
+  ): Promise<DecodedMessage<ContentTypes>> {
     let topics: string[]
     let recipient = await this.client.getUserContact(this.peerAddress)
     if (!recipient) {
@@ -363,14 +369,14 @@ export class ConversationV1<T> implements Conversation<T> {
     messages: MessageV1[],
     topic: string,
     throwOnError = false
-  ): Promise<DecodedMessage<T>[]> {
+  ): Promise<DecodedMessage<ContentTypes>[]> {
     const responses = (
       await this.client.keystore.decryptV1(
         buildDecryptV1Request(messages, this.client.publicKeyBundle)
       )
     ).responses
 
-    const out: DecodedMessage<T>[] = []
+    const out: DecodedMessage<ContentTypes>[] = []
     for (let i = 0; i < responses.length; i++) {
       const result = responses[i]
       const message = messages[i]
@@ -392,7 +398,7 @@ export class ConversationV1<T> implements Conversation<T> {
     message: MessageV1,
     decrypted: Uint8Array,
     topic: string
-  ): Promise<DecodedMessage<T>> {
+  ): Promise<DecodedMessage<ContentTypes>> {
     const { content, contentType, error, contentFallback } =
       await this.client.decodeContent(decrypted)
 
@@ -429,16 +435,18 @@ export class ConversationV1<T> implements Conversation<T> {
 /**
  * ConversationV2
  */
-export class ConversationV2<T> implements Conversation<T> {
+export class ConversationV2<ContentTypes>
+  implements Conversation<ContentTypes>
+{
   conversationVersion = 'v2' as const
-  client: Client<T>
+  client: Client<ContentTypes>
   topic: string
   peerAddress: string
   createdAt: Date
   context?: InvitationContext
 
   constructor(
-    client: Client<T>,
+    client: Client<ContentTypes>,
     topic: string,
     peerAddress: string,
     createdAt: Date,
@@ -458,7 +466,9 @@ export class ConversationV2<T> implements Conversation<T> {
   /**
    * Returns a list of all messages to/from the peerAddress
    */
-  async messages(opts?: ListMessagesOptions): Promise<DecodedMessage<T>[]> {
+  async messages(
+    opts?: ListMessagesOptions
+  ): Promise<DecodedMessage<ContentTypes>[]> {
     const messages = await this.client.listEnvelopes(
       this.topic,
       this.processEnvelope.bind(this),
@@ -470,7 +480,7 @@ export class ConversationV2<T> implements Conversation<T> {
 
   messagesPaginated(
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<DecodedMessage<T>[]> {
+  ): AsyncGenerator<DecodedMessage<ContentTypes>[]> {
     return this.client.listEnvelopesPaginated(
       this.topic,
       this.decodeMessage.bind(this),
@@ -484,8 +494,8 @@ export class ConversationV2<T> implements Conversation<T> {
 
   streamEphemeral(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>, T>> {
-    return Stream.create<DecodedMessage<T>, T>(
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
       this.client,
       [this.ephemeralTopic],
       this.decodeMessage.bind(this),
@@ -499,8 +509,8 @@ export class ConversationV2<T> implements Conversation<T> {
    */
   streamMessages(
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<DecodedMessage<T>, T>> {
-    return Stream.create<DecodedMessage<T>, T>(
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
       this.client,
       [this.topic],
       this.decodeMessage.bind(this),
@@ -513,9 +523,9 @@ export class ConversationV2<T> implements Conversation<T> {
    * Send a message into the conversation
    */
   async send(
-    content: Exclude<T, undefined>,
+    content: Exclude<ContentTypes, undefined>,
     options?: SendOptions
-  ): Promise<DecodedMessage<T>> {
+  ): Promise<DecodedMessage<ContentTypes>> {
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, options?.timestamp)
 
@@ -581,12 +591,12 @@ export class ConversationV2<T> implements Conversation<T> {
   private async decryptBatch(
     messages: MessageV2[],
     throwOnError = false
-  ): Promise<DecodedMessage<T>[]> {
+  ): Promise<DecodedMessage<ContentTypes>[]> {
     const responses = (
       await this.client.keystore.decryptV2(this.buildDecryptRequest(messages))
     ).responses
 
-    const out: DecodedMessage<T>[] = []
+    const out: DecodedMessage<ContentTypes>[] = []
     for (let i = 0; i < responses.length; i++) {
       const result = responses[i]
       const message = messages[i]
@@ -642,7 +652,7 @@ export class ConversationV2<T> implements Conversation<T> {
   private async buildDecodedMessage(
     msg: MessageV2,
     decrypted: Uint8Array
-  ): Promise<DecodedMessage<T>> {
+  ): Promise<DecodedMessage<ContentTypes>> {
     // Decode the decrypted bytes into SignedContent
     const signed = proto.SignedContent.decode(decrypted)
     if (
@@ -731,7 +741,9 @@ export class ConversationV2<T> implements Conversation<T> {
     return MessageV2.create(msg, header, env.message)
   }
 
-  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage<T>> {
+  async decodeMessage(
+    env: messageApi.Envelope
+  ): Promise<DecodedMessage<ContentTypes>> {
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
     }
