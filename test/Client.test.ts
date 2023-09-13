@@ -348,7 +348,7 @@ describe('ClientOptions', () => {
   describe('custom codecs', () => {
     it('gives type errors when you use the wrong types', async () => {
       const client = await Client.create(newWallet())
-      const other = await newLocalHostClient()
+      const other = await Client.create(newWallet())
       const convo = await client.conversations.newConversation(other.address)
       expect(convo).toBeTruthy()
       try {
@@ -371,7 +371,7 @@ describe('ClientOptions', () => {
       const client = await Client.create(newWallet(), {
         codecs: [new CompositeCodec()],
       })
-      const other = await newLocalHostClient()
+      const other = await Client.create(newWallet())
       const convo = await client.conversations.newConversation(other.address)
       expect(convo).toBeTruthy()
       // This will have a type error if the codecs field isn't being respected
