@@ -14,7 +14,6 @@ import { ContentTypeId } from './MessageContent'
 import { dateToNs, nsToDate } from './utils'
 import { Keystore } from './keystore'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
-import { GetMessageContentTypeFromClient } from './types/client'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
