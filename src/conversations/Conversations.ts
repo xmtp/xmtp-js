@@ -28,7 +28,8 @@ const messageHasHeaders = (msg: MessageV1): boolean => {
 /**
  * Conversations allows you to view ongoing 1:1 messaging sessions with another wallet
  */
-export default class Conversations<T> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default class Conversations<T = any> {
   private client: Client<T>
   private v1JobRunner: JobRunner
   private v2JobRunner: JobRunner

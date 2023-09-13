@@ -36,7 +36,8 @@ import { ContentTypeText } from '../codecs/Text'
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
  */
-export interface Conversation<T> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface Conversation<T = any> {
   conversationVersion: 'v1' | 'v2'
   /**
    * The wallet address connected to the client
