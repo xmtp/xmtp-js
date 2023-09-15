@@ -17,7 +17,7 @@ const encodeV1 = () => {
       const alice = await Client.create(newWallet(), { env: 'local' })
       const bobKeys = (await newPrivateKeyBundle()).getPublicKeyBundle()
 
-      const message = randomBytes(size)
+      const message = randomBytes(size).toString()
       const timestamp = new Date()
 
       // The returned function is the actual benchmark. Everything above is setup

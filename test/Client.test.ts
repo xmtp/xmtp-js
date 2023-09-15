@@ -5,21 +5,47 @@ import {
   newDevClient,
   waitForUserContact,
   newLocalHostClientWithCustomWallet,
-  sleep,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
-import { Compression } from '../src'
+import {
+  ApiUrls,
+  CompositeCodec,
+  Compression,
+  ContentTypeText,
+  HttpApiClient,
+  InMemoryPersistence,
+  PublishParams,
+  TextCodec,
+} from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 import { PrivateKeyBundleV1 } from '../src/crypto'
 import { Wallet } from 'ethers'
 import { NetworkKeystoreProvider } from '../src/keystore/providers'
+import { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
+import LocalStoragePonyfill from '../src/keystore/persistence/LocalStoragePonyfill'
 
 type TestCase = {
   name: string
-  newClient: (opts?: Partial<ClientOptions>) => Promise<Client>
+  newClient: (opts?: Partial<ClientOptions>) => Promise<Client<any>>
 }
+
+const mockEthRequest = jest.fn()
+jest.mock('../src/utils/ethereum', () => {
+  return {
+    __esModule: true,
+    getEthereum: jest.fn(() => {
+      const ethereum: any = {
+        request: mockEthRequest,
+      }
+      ethereum.providers = [ethereum]
+      ethereum.detected = [ethereum]
+      ethereum.isMetaMask = true
+      return ethereum
+    }),
+  }
+})
 
 describe('Client', () => {
   const tests: TestCase[] = [
@@ -175,7 +201,9 @@ describe('encodeContent', () => {
 
 describe('canMessage', () => {
   it('can confirm a user is on the network statically', async () => {
-    const registeredClient = await newLocalHostClient()
+    const registeredClient = await newLocalHostClient({
+      codecs: [new TextCodec()],
+    })
     await waitForUserContact(registeredClient, registeredClient)
     const canMessageRegisteredClient = await Client.canMessage(
       registeredClient.address,
@@ -316,6 +344,87 @@ describe('ClientOptions', () => {
       const c = await testCase.newClient({
         persistConversations: true,
       })
+    })
+  })
+
+  describe('custom codecs', () => {
+    it('gives type errors when you use the wrong types', async () => {
+      const client = await Client.create(newWallet(), { env: 'local' })
+      const other = await Client.create(newWallet(), { env: 'local' })
+      const convo = await client.conversations.newConversation(other.address)
+      expect(convo).toBeTruthy()
+      try {
+        // Add ts-expect-error so that if we break the type casting someone will notice
+        // @ts-expect-error
+        await convo.send(123)
+        const messages = await convo.messages()
+        for (const message of messages) {
+          // Strings don't have this kind of method
+          // @ts-expect-error
+          message.toFixed()
+        }
+      } catch (e) {
+        return
+      }
+      fail()
+    })
+
+    it('allows you to use custom content types', async () => {
+      const client = await Client.create(newWallet(), {
+        codecs: [new CompositeCodec()],
+      })
+      const other = await Client.create(newWallet())
+      const convo = await client.conversations.newConversation(other.address)
+      expect(convo).toBeTruthy()
+      // This will have a type error if the codecs field isn't being respected
+      await convo.send({ parts: [{ type: ContentTypeText, content: 'foo' }] })
+    })
+  })
+
+  describe('Pluggable API client', () => {
+    it('allows you to specify a custom API client factory', async () => {
+      const expectedError = new Error('CustomApiClient')
+      class CustomApiClient extends HttpApiClient {
+        publish(messages: PublishParams[]): Promise<PublishResponse> {
+          return Promise.reject(expectedError)
+        }
+      }
+
+      const c = newLocalHostClient({
+        apiClientFactory: (opts) => {
+          return new CustomApiClient(ApiUrls.local)
+        },
+      })
+      await expect(c).rejects.toThrow(expectedError)
+    })
+  })
+
+  describe('pluggable persistence', () => {
+    it('allows for an override of the persistence engine', async () => {
+      class MyNewPersistence extends InMemoryPersistence {
+        getItem(key: string): Promise<Uint8Array | null> {
+          return Promise.reject(new Error('MyNewPersistence'))
+        }
+      }
+
+      const c = newLocalHostClient({
+        basePersistence: new MyNewPersistence(new LocalStoragePonyfill()),
+      })
+      await expect(c).rejects.toThrow('MyNewPersistence')
+    })
+  })
+
+  describe('canGetKeys', () => {
+    it('returns true if the useSnaps flag is false', async () => {
+      mockEthRequest.mockRejectedValue(new Error('foo'))
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(false)
+    })
+
+    it('returns false if the user has a Snaps capable browser and snaps are enabled', async () => {
+      mockEthRequest.mockResolvedValue([])
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(true)
     })
   })
 })

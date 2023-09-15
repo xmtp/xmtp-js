@@ -14,7 +14,7 @@ import { equalBytes } from '../../src/crypto/utils'
 import { InvitationV1, SealedInvitation } from '../../src/Invitation'
 import { buildProtoEnvelope, newWallet } from '../helpers'
 import { dateToNs, nsToDate } from '../../src/utils/date'
-import { LocalStoragePersistence } from '../../src/keystore/persistence'
+import { InMemoryPersistence } from '../../src/keystore/persistence'
 import Token from '../../src/authn/Token'
 import Long from 'long'
 import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
@@ -23,19 +23,20 @@ import { ethers } from 'ethers'
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
   let aliceKeystore: InMemoryKeystore
-  let aliceKeystoreWithPersistence: InMemoryKeystore
   let bobKeys: PrivateKeyBundleV1
   let bobKeystore: InMemoryKeystore
 
   beforeEach(async () => {
     aliceKeys = await PrivateKeyBundleV1.generate(newWallet())
-    aliceKeystore = await InMemoryKeystore.create(aliceKeys)
-    aliceKeystoreWithPersistence = await InMemoryKeystore.create(
+    aliceKeystore = await InMemoryKeystore.create(
       aliceKeys,
-      new LocalStoragePersistence()
+      InMemoryPersistence.create()
     )
     bobKeys = await PrivateKeyBundleV1.generate(newWallet())
-    bobKeystore = await InMemoryKeystore.create(bobKeys)
+    bobKeystore = await InMemoryKeystore.create(
+      bobKeys,
+      InMemoryPersistence.create()
+    )
   })
 
   const buildInvite = async (context?: InvitationContext) => {
@@ -207,7 +208,7 @@ describe('InMemoryKeystore', () => {
 
     it('throws if an invalid recipient is included', async () => {
       const createdNs = dateToNs(new Date())
-      expect(async () => {
+      await expect(async () => {
         await aliceKeystore.createInvite({
           recipient: {} as any,
           createdNs,
@@ -219,30 +220,30 @@ describe('InMemoryKeystore', () => {
 
   describe('saveInvites', () => {
     it('can save a batch of valid envelopes', async () => {
-      for (const keystore of [aliceKeystore, aliceKeystoreWithPersistence]) {
-        const { invite, created, sealed } = await buildInvite()
+      const keystore = aliceKeystore
+      const { invite, created, sealed } = await buildInvite()
 
-        const sealedBytes = sealed.toBytes()
-        const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
-        const { responses } = await keystore.saveInvites({
-          requests: [envelope],
-        })
+      const sealedBytes = sealed.toBytes()
+      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
+      const { responses } = await keystore.saveInvites({
+        requests: [envelope],
+      })
 
-        expect(responses).toHaveLength(1)
-        const firstResult = responses[0]
-        if (firstResult.error) {
-          throw firstResult.error
-        }
-        expect(
-          nsToDate(firstResult.result!.conversation!.createdNs).getTime()
-        ).toEqual(created.getTime())
-        expect(firstResult.result!.conversation!.topic).toEqual(invite.topic)
-        expect(firstResult.result!.conversation?.context).toBeUndefined()
-
-        const conversations = await keystore.getV2Conversations()
-        expect(conversations).toHaveLength(1)
-        expect(conversations[0].topic).toBe(invite.topic)
+      expect(responses).toHaveLength(1)
+      const firstResult = responses[0]
+      if (firstResult.error) {
+        throw firstResult.error
       }
+
+      expect(
+        nsToDate(firstResult.result!.conversation!.createdNs).getTime()
+      ).toEqual(created.getTime())
+      expect(firstResult.result!.conversation!.topic).toEqual(invite.topic)
+      expect(firstResult.result!.conversation?.context).toBeUndefined()
+
+      const conversations = (await keystore.getV2Conversations()).conversations
+      expect(conversations).toHaveLength(1)
+      expect(conversations[0].topic).toBe(invite.topic)
     })
 
     it('can save received invites', async () => {
@@ -260,7 +261,8 @@ describe('InMemoryKeystore', () => {
         throw aliceResponse
       }
 
-      const aliceConversations = await aliceKeystore.getV2Conversations()
+      const aliceConversations = (await aliceKeystore.getV2Conversations())
+        .conversations
       expect(aliceConversations).toHaveLength(1)
 
       const {
@@ -270,7 +272,8 @@ describe('InMemoryKeystore', () => {
         throw bobResponse
       }
 
-      const bobConversations = await bobKeystore.getV2Conversations()
+      const bobConversations = (await bobKeystore.getV2Conversations())
+        .conversations
       expect(bobConversations).toHaveLength(1)
     })
 
@@ -313,34 +316,33 @@ describe('InMemoryKeystore', () => {
 
   describe('encryptV2/decryptV2', () => {
     it('encrypts using a saved envelope', async () => {
-      for (const keystore of [aliceKeystore, aliceKeystoreWithPersistence]) {
-        const { invite, created, sealed } = await buildInvite()
+      const keystore = aliceKeystore
+      const { invite, created, sealed } = await buildInvite()
 
-        const sealedBytes = sealed.toBytes()
-        const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
-        await keystore.saveInvites({ requests: [envelope] })
+      const sealedBytes = sealed.toBytes()
+      const envelope = buildProtoEnvelope(sealedBytes, 'foo', created)
+      await keystore.saveInvites({ requests: [envelope] })
 
-        const payload = new TextEncoder().encode('Hello, world!')
-        const headerBytes = new Uint8Array(10)
+      const payload = new TextEncoder().encode('Hello, world!')
+      const headerBytes = new Uint8Array(10)
 
-        const {
-          responses: [encrypted],
-        } = await keystore.encryptV2({
-          requests: [
-            {
-              contentTopic: invite.topic,
-              payload,
-              headerBytes,
-            },
-          ],
-        })
+      const {
+        responses: [encrypted],
+      } = await keystore.encryptV2({
+        requests: [
+          {
+            contentTopic: invite.topic,
+            payload,
+            headerBytes,
+          },
+        ],
+      })
 
-        if (encrypted.error) {
-          throw encrypted
-        }
-
-        expect(encrypted.result?.encrypted).toBeTruthy()
+      if (encrypted.error) {
+        throw encrypted
       }
+
+      expect(encrypted.result?.encrypted).toBeTruthy()
     })
 
     it('round trips using a created invite', async () => {
@@ -429,7 +431,7 @@ describe('InMemoryKeystore', () => {
 
     it('rejects signing with an invalid prekey index', async () => {
       const digest = randomBytes(32)
-      expect(
+      await expect(
         aliceKeystore.signDigest({
           digest,
           identityKey: false,
@@ -471,7 +473,7 @@ describe('InMemoryKeystore', () => {
         })
       )
 
-      const convos = await aliceKeystore.getV2Conversations()
+      const convos = (await aliceKeystore.getV2Conversations()).conversations
       let lastCreated = Long.fromNumber(0)
       for (let i = 0; i < convos.length; i++) {
         expect(convos[i].createdNs.equals(dateToNs(timestamps[i]))).toBeTruthy()
@@ -537,7 +539,10 @@ describe('InMemoryKeystore', () => {
           )
         ).v1!
       )
-      aliceKeystore = await InMemoryKeystore.create(aliceKeys)
+      aliceKeystore = await InMemoryKeystore.create(
+        aliceKeys,
+        InMemoryPersistence.create()
+      )
       bobKeys = new PrivateKeyBundleV1(
         privateKey.PrivateKeyBundle.decode(
           ethers.utils.arrayify(
@@ -554,7 +559,10 @@ describe('InMemoryKeystore', () => {
           )
         ).v1!
       )
-      bobKeystore = await InMemoryKeystore.create(bobKeys)
+      bobKeystore = await InMemoryKeystore.create(
+        bobKeys,
+        InMemoryPersistence.create()
+      )
 
       expect(await aliceKeystore.getAccountAddress()).toEqual(
         '0xF56d1F3b1290204441Cb3843C2Cac1C2f5AEd690'
@@ -671,7 +679,7 @@ describe('InMemoryKeystore', () => {
     it('creates an auth token', async () => {
       const authToken = new Token(await aliceKeystore.createAuthToken({}))
       expect(authToken.authDataBytes).toBeDefined()
-      expect(authToken.authData.createdNs).toBeInstanceOf(Long)
+      expect(Long.isLong(authToken.authData.createdNs)).toBe(true)
       expect(authToken.authDataSignature).toBeDefined()
       expect(authToken.identityKey?.secp256k1Uncompressed).toBeDefined()
       expect(authToken.identityKey?.signature).toBeDefined()
@@ -728,14 +736,74 @@ describe('InMemoryKeystore', () => {
       }
 
       const lookupResult = aliceKeystore.lookupTopic(invite.topic)
-      expect(lookupResult?.invitation.aes256GcmHkdfSha256?.keyMaterial).toEqual(
-        invite.aes256GcmHkdfSha256.keyMaterial
-      )
+      expect(
+        lookupResult?.invitation?.aes256GcmHkdfSha256?.keyMaterial
+      ).toEqual(invite.aes256GcmHkdfSha256.keyMaterial)
     })
 
     it('returns undefined for non-existent topic', async () => {
       const lookupResult = aliceKeystore.lookupTopic('foo')
       expect(lookupResult).toBeUndefined()
+    })
+  })
+
+  describe('getRefreshJob/setRefreshJob', () => {
+    it('returns 0 value when empty', async () => {
+      const job = await aliceKeystore.getRefreshJob(
+        keystore.GetRefreshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+        })
+      )
+      expect(job.lastRunNs.equals(Long.fromNumber(0))).toBeTruthy()
+    })
+
+    it('returns a value when set', async () => {
+      const lastRunNs = dateToNs(new Date())
+      await aliceKeystore.setRefreshJob(
+        keystore.SetRefeshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+          lastRunNs,
+        })
+      )
+
+      const result = await aliceKeystore.getRefreshJob(
+        keystore.GetRefreshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+        })
+      )
+      expect(result.lastRunNs.equals(lastRunNs)).toBeTruthy()
+
+      const otherJob = await aliceKeystore.getRefreshJob(
+        keystore.GetRefreshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V2,
+        })
+      )
+      expect(otherJob.lastRunNs.equals(Long.fromNumber(0))).toBeTruthy()
+    })
+
+    it('overwrites a value when set', async () => {
+      const lastRunNs = dateToNs(new Date())
+      await aliceKeystore.setRefreshJob(
+        keystore.SetRefeshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+          lastRunNs: Long.fromNumber(5),
+        })
+      )
+      await aliceKeystore.setRefreshJob(
+        keystore.SetRefeshJobRequest.fromPartial({
+          jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+          lastRunNs,
+        })
+      )
+      expect(
+        (
+          await aliceKeystore.getRefreshJob(
+            keystore.GetRefreshJobRequest.fromPartial({
+              jobType: keystore.JobType.JOB_TYPE_REFRESH_V1,
+            })
+          )
+        ).lastRunNs.equals(lastRunNs)
+      ).toBeTruthy()
     })
   })
 })

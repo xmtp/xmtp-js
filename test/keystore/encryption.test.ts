@@ -6,7 +6,8 @@ import { MessageV1 } from '../../src/Message'
 import { Wallet } from 'ethers'
 import { equalBytes } from '../../src/crypto/utils'
 import { newWallet } from '../helpers'
-import { InMemoryKeystore, InviteStore } from '../../src/keystore'
+import { InMemoryKeystore } from '../../src/keystore'
+import { InMemoryPersistence } from '../../src'
 
 describe('encryption primitives', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -18,7 +19,10 @@ describe('encryption primitives', () => {
   beforeEach(async () => {
     aliceWallet = newWallet()
     aliceKeys = await PrivateKeyBundleV1.generate(aliceWallet)
-    aliceKeystore = new InMemoryKeystore(aliceKeys, new InviteStore())
+    aliceKeystore = await InMemoryKeystore.create(
+      aliceKeys,
+      InMemoryPersistence.create()
+    )
     bobWallet = newWallet()
     bobKeys = await PrivateKeyBundleV1.generate(bobWallet)
   })

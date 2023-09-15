@@ -5,8 +5,8 @@ import { MessageV1, DecodedMessage } from '../src/Message'
 import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
 import { bytesToHex, equalBytes } from '../src/crypto/utils'
 import { sha256 } from '../src/crypto/encryption'
-import { InMemoryKeystore, InviteStore, KeystoreError } from '../src/keystore'
-import { Client, ContentTypeText } from '../src'
+import { InMemoryKeystore, KeystoreError } from '../src/keystore'
+import { Client, ContentTypeText, InMemoryPersistence } from '../src'
 import { Wallet } from 'ethers'
 import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
 
@@ -31,10 +31,16 @@ describe('Message', function () {
     const bobWalletAddress = bob
       .getPublicKeyBundle()
       .identityKey.walletSignatureAddress()
-    const bobKeystore = new InMemoryKeystore(bob, new InviteStore())
+    const bobKeystore = await InMemoryKeystore.create(
+      bob,
+      InMemoryPersistence.create()
+    )
     // Alice encodes message for Bob
     const content = new TextEncoder().encode('Yo!')
-    const aliceKeystore = new InMemoryKeystore(alice, new InviteStore())
+    const aliceKeystore = await InMemoryKeystore.create(
+      alice,
+      InMemoryPersistence.create()
+    )
 
     const msg1 = await MessageV1.encode(
       aliceKeystore,
@@ -65,8 +71,14 @@ describe('Message', function () {
 
   it('undecodable returns with undefined decrypted value', async () => {
     const eve = await PrivateKeyBundleV1.generate(newWallet())
-    const aliceKeystore = new InMemoryKeystore(alice, new InviteStore())
-    const eveKeystore = new InMemoryKeystore(eve, new InviteStore())
+    const aliceKeystore = await InMemoryKeystore.create(
+      alice,
+      InMemoryPersistence.create()
+    )
+    const eveKeystore = await InMemoryKeystore.create(
+      eve,
+      InMemoryPersistence.create()
+    )
     const msg = await MessageV1.encode(
       aliceKeystore,
       new TextEncoder().encode('Hi'),
@@ -81,7 +93,10 @@ describe('Message', function () {
 
   it('Message create throws error for sender without wallet', async () => {
     const amal = await PrivateKeyBundleV1.generate()
-    const keystore = new InMemoryKeystore(bob, new InviteStore())
+    const keystore = await InMemoryKeystore.create(
+      bob,
+      InMemoryPersistence.create()
+    )
 
     expect(
       MessageV1.encode(
@@ -96,7 +111,10 @@ describe('Message', function () {
 
   it('recipientAddress throws error without wallet', async () => {
     const charlie = await PrivateKeyBundleV1.generate()
-    const keystore = new InMemoryKeystore(alice, new InviteStore())
+    const keystore = await InMemoryKeystore.create(
+      alice,
+      InMemoryPersistence.create()
+    )
     const msg = await MessageV1.encode(
       keystore,
       new TextEncoder().encode('hi'),
@@ -111,7 +129,10 @@ describe('Message', function () {
   })
 
   it('id returns bytes as hex string of sha256 hash', async () => {
-    const keystore = new InMemoryKeystore(alice, new InviteStore())
+    const keystore = await InMemoryKeystore.create(
+      alice,
+      InMemoryPersistence.create()
+    )
     const msg = await MessageV1.encode(
       keystore,
       new TextEncoder().encode('hi'),
@@ -218,7 +239,6 @@ describe('Message', function () {
       const fallback = 'publickey bundle'
       const sentMessage = await convo.send(msg, {
         contentType: ContentTypeTestKey,
-        contentFallback: fallback,
       })
       expect(sentMessage.contentType).toEqual(ContentTypeTestKey)
 
@@ -228,6 +248,12 @@ describe('Message', function () {
         sentMessageBytes,
         aliceClient
       )
+      if (
+        typeof aliceRestoredMessage.content === 'string' ||
+        !aliceRestoredMessage.content
+      ) {
+        throw new Error('Expected content to be a PublicKeyBundle')
+      }
       expect(
         equalBytes(
           aliceRestoredMessage.content?.secp256k1Uncompressed.bytes,

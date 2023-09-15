@@ -2,8 +2,7 @@ import {
   ConversationV1,
   ConversationV2,
 } from './../../src/conversations/Conversation'
-import { ConversationCache } from '../../src/conversations/Conversations'
-import { newLocalHostClient, newWallet, waitForUserContact } from './../helpers'
+import { newLocalHostClient } from './../helpers'
 import { Client } from '../../src'
 import {
   buildDirectMessageTopic,
@@ -20,9 +19,6 @@ describe('conversations', () => {
     alice = await newLocalHostClient({ publishLegacyContact: true })
     bob = await newLocalHostClient({ publishLegacyContact: true })
     charlie = await newLocalHostClient({ publishLegacyContact: true })
-    await waitForUserContact(alice, alice)
-    await waitForUserContact(bob, bob)
-    await waitForUserContact(charlie, charlie)
   })
 
   afterEach(async () => {
@@ -38,7 +34,6 @@ describe('conversations', () => {
 
       const aliceToBob = await alice.conversations.newConversation(bob.address)
       await aliceToBob.send('gm')
-      await sleep(100)
 
       const aliceConversationsAfterMessage = await alice.conversations.list()
       expect(aliceConversationsAfterMessage).toHaveLength(1)
@@ -98,7 +93,6 @@ describe('conversations', () => {
         conversationId: 'foo',
         metadata: {},
       })
-      await sleep(100)
       const aliceConversations2 = await alice.conversations.list()
       expect(aliceConversations2).toHaveLength(1)
 
@@ -106,59 +100,12 @@ describe('conversations', () => {
         conversationId: 'bar',
         metadata: {},
       })
-      await sleep(100)
-      const fromKeystore = await alice.keystore.getV2Conversations()
+      const fromKeystore = (await alice.keystore.getV2Conversations())
+        .conversations
       expect(fromKeystore[1].context?.conversationId).toBe('bar')
 
       const aliceConversations3 = await alice.conversations.list()
       expect(aliceConversations3).toHaveLength(2)
-    })
-
-    it('caches results and updates the latestSeen date', async () => {
-      const cache = new ConversationCache()
-      const convoDate = new Date()
-      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
-
-      const results = await cache.load(async () => {
-        return [firstConvo]
-      })
-      expect(results[0]).toBe(firstConvo)
-
-      // Should dedupe repeated result
-      const results2 = await cache.load(async ({ latestSeen }) => {
-        expect(latestSeen).toBe(convoDate)
-        return [firstConvo]
-      })
-
-      expect(results2).toHaveLength(1)
-    })
-
-    it('bubbles up errors in loader', async () => {
-      const cache = new ConversationCache()
-      await expect(
-        cache.load(async () => {
-          throw new Error('test')
-        })
-      ).rejects.toThrow('test')
-    })
-
-    it('waits for one request to finish before the second one starts', async () => {
-      const cache = new ConversationCache()
-      const convoDate = new Date()
-      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
-      const promise1 = cache.load(async ({ latestSeen }) => {
-        expect(latestSeen).toBeUndefined()
-        return [firstConvo]
-      })
-
-      const promise2 = cache.load(async ({ latestSeen }) => {
-        expect(latestSeen).toBe(convoDate)
-        return []
-      })
-
-      const [result1, result2] = await Promise.all([promise1, promise2])
-      expect(result1).toHaveLength(1)
-      expect(result2).toHaveLength(1)
     })
   })
 
@@ -217,10 +164,9 @@ describe('conversations', () => {
       conversationId: 'xmtp.org/foo',
       metadata: {},
     })
-    await sleep(100)
 
     const stream = await alice.conversations.streamAllMessages()
-    await sleep(100)
+    await sleep(50)
 
     await aliceBobV1.send('V1')
     const message1 = await stream.next()
@@ -263,7 +209,6 @@ describe('conversations', () => {
       aliceConversation.send('gm'),
       bobConversation.send('gm'),
     ])
-    await sleep(100)
 
     const [aliceConversationsList, bobConversationList] = await Promise.all([
       alice.conversations.list(),
@@ -271,6 +216,40 @@ describe('conversations', () => {
     ])
     expect(aliceConversationsList).toHaveLength(1)
     expect(bobConversationList).toHaveLength(1)
+  })
+
+  it('handles a mix of streaming and listing conversations', async () => {
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/1',
+      metadata: {},
+    })
+    const aliceStream = await alice.conversations.stream()
+    await sleep(50)
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/2',
+      metadata: {},
+    })
+    // Ensure the result has been received
+    await aliceStream.next()
+    // Expect that even though a new conversation was found while streaming the first conversation is still returned
+    expect(await alice.conversations.list()).toHaveLength(2)
+    await aliceStream.return()
+
+    // Do it again to make sure the cache is updated with an existing timestamp
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/3',
+      metadata: {},
+    })
+    const aliceStream2 = await alice.conversations.stream()
+    await sleep(50)
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/4',
+      metadata: {},
+    })
+    await aliceStream2.next()
+
+    expect(await alice.conversations.list()).toHaveLength(4)
+    await aliceStream2.return()
   })
 
   describe('newConversation', () => {
@@ -288,13 +267,11 @@ describe('conversations', () => {
       expect(aliceConvo instanceof ConversationV1).toBeTruthy()
       await bob.publishUserContact(false)
       alice.forgetContact(bob.address)
-      await sleep(100)
 
       const aliceConvo2 = await alice.conversations.newConversation(bob.address)
       expect(aliceConvo2 instanceof ConversationV1).toBeTruthy()
       await aliceConvo2.send('hi')
 
-      await sleep(100)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       expect(bobConvo instanceof ConversationV1).toBeTruthy()
       const messages = await bobConvo.messages()
@@ -306,7 +283,6 @@ describe('conversations', () => {
     it('creates a new V2 conversation when no existing convo and V2 bundle', async () => {
       await bob.publishUserContact(false)
       alice.forgetContact(bob.address)
-      await sleep(100)
 
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       expect(aliceConvo instanceof ConversationV2).toBeTruthy()
@@ -369,13 +345,11 @@ describe('conversations', () => {
         bob.address,
         { conversationId: conversationId1, metadata: {} }
       )
-      await sleep(100)
 
       const aliceConvo2 = await alice.conversations.newConversation(
         bob.address,
         { conversationId: conversationId2, metadata: {} }
       )
-      await sleep(100)
 
       if (
         !(aliceConvo1 instanceof ConversationV2) ||

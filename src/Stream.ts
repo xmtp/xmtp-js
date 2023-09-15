@@ -1,4 +1,8 @@
-import { OnConnectionLostCallback, UnsubscribeFn } from './ApiClient'
+import {
+  OnConnectionLostCallback,
+  SubscriptionManager,
+  UnsubscribeFn,
+} from './ApiClient'
 import Client from './Client'
 import { messageApi } from '@xmtp/proto'
 
@@ -12,9 +16,10 @@ export type ContentTopicUpdater<M> = (msg: M) => string[] | undefined
  * Stream implements an Asynchronous Iterable over messages received from a topic.
  * As such can be used with constructs like for-await-of, yield*, array destructing, etc.
  */
-export default class Stream<T> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default class Stream<T, ClientType = any> {
   topics: string[]
-  client: Client
+  client: Client<ClientType>
   // queue of incoming Waku messages
   messages: T[]
   // queue of already pending Promises
@@ -23,12 +28,12 @@ export default class Stream<T> {
   // if callback is undefined the stream is closed
   callback: ((env: messageApi.Envelope) => Promise<void>) | undefined
 
-  unsubscribeFn?: UnsubscribeFn
+  subscriptionManager?: SubscriptionManager
 
   onConnectionLost?: OnConnectionLostCallback
 
   constructor(
-    client: Client,
+    client: Client<ClientType>,
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
@@ -84,7 +89,7 @@ export default class Stream<T> {
       throw new Error('Missing callback for stream')
     }
 
-    this.unsubscribeFn = this.client.apiClient.subscribe(
+    this.subscriptionManager = this.client.apiClient.subscribe(
       {
         contentTopics: this.topics,
       },
@@ -96,13 +101,13 @@ export default class Stream<T> {
     )
   }
 
-  static async create<T>(
-    client: Client,
+  static async create<T, ClientType = string>(
+    client: Client<ClientType>,
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
     onConnectionLost?: OnConnectionLostCallback
-  ): Promise<Stream<T>> {
+  ): Promise<Stream<T, ClientType>> {
     const stream = new Stream(
       client,
       topics,
@@ -124,8 +129,8 @@ export default class Stream<T> {
   // https://tc39.es/ecma262/#table-iterator-interface-optional-properties
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
-    if (this.unsubscribeFn) {
-      await this.unsubscribeFn()
+    if (this.subscriptionManager) {
+      await this.subscriptionManager.unsubscribe()
     }
     if (!this.callback) {
       return { value: undefined, done: true }
@@ -156,12 +161,17 @@ export default class Stream<T> {
 
   // Unsubscribe from the existing content topics and resubscribe to the given topics.
   private async resubscribeToTopics(topics: string[]): Promise<void> {
-    if (!this.callback || !this.unsubscribeFn) {
+    if (!this.callback || !this.subscriptionManager) {
       throw new Error('Missing callback for stream')
     }
-    await this.unsubscribeFn()
+
+    if (typeof this.subscriptionManager?.updateContentTopics === 'function') {
+      return this.subscriptionManager.updateContentTopics(topics)
+    }
+
+    await this.subscriptionManager.unsubscribe()
     this.topics = topics
-    this.unsubscribeFn = this.client.apiClient.subscribe(
+    this.subscriptionManager = this.client.apiClient.subscribe(
       {
         contentTopics: this.topics,
       },

@@ -1,9 +1,9 @@
 export {
   Message,
   DecodedMessage,
-  decodeContent,
   MessageV1,
   MessageV2,
+  decodeContent,
 } from './Message'
 export {
   Ciphertext,
@@ -13,6 +13,8 @@ export {
   SignedPublicKeyBundle,
   PrivateKey,
   PrivateKeyBundle,
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
   Signature,
   encrypt,
   decrypt,
@@ -21,6 +23,7 @@ export { default as Stream } from './Stream'
 export { Signer } from './types/Signer'
 export {
   default as Client,
+  defaultKeystoreProviders,
   ClientOptions,
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
@@ -30,6 +33,7 @@ export {
   ContentOptions,
   KeyStoreOptions,
   LegacyOptions,
+  XmtpEnv,
 } from './Client'
 export {
   Conversations,
@@ -46,19 +50,31 @@ export {
 } from './MessageContent'
 export { TextCodec, ContentTypeText } from './codecs/Text'
 export {
-  TypingNotification,
-  TypingNotificationCodec,
-  ContentTypeTypingNotification,
-} from './codecs/TypingNotification'
-export {
   Composite,
   CompositeCodec,
   ContentTypeComposite,
 } from './codecs/Composite'
-export { ApiUrls, SortDirection } from './ApiClient'
+export {
+  default as HttpApiClient,
+  ApiUrls,
+  SortDirection,
+  ApiClient,
+  QueryParams,
+  QueryAllOptions,
+  QueryStreamOptions,
+  Query,
+  PublishParams,
+  SubscriptionManager,
+  SubscribeParams,
+  SubscribeCallback,
+  UnsubscribeFn,
+  OnConnectionLostCallback,
+} from './ApiClient'
+export { Authenticator, AuthCache, LocalAuthenticator } from './authn'
 export {
   nsToDate,
   dateToNs,
+  retry,
   fromNanoString,
   toNanoString,
   mapPaginatedStream,
@@ -70,18 +86,29 @@ export {
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
 } from './utils'
-export { Keystore, InMemoryKeystore, TopicData } from './keystore'
+export {
+  Keystore,
+  InMemoryKeystore,
+  TopicData,
+  keystoreApiDefs,
+} from './keystore'
 export {
   KeystoreProvider,
   KeyGeneratorKeystoreProvider,
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
+  SnapProvider,
 } from './keystore/providers'
 export {
   EncryptedPersistence,
-  LocalStoragePersistence,
+  BrowserStoragePersistence,
+  InMemoryPersistence,
   PrefixedPersistence,
   Persistence,
 } from './keystore/persistence'
 export { InvitationContext, SealedInvitation } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'
+export type {
+  GetMessageContentTypeFromClient,
+  ExtractDecodedType,
+} from './types/client'

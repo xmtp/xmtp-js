@@ -1,11 +1,4 @@
-import {
-  conversationReference,
-  keystore,
-  publicKey,
-  authn,
-  privateKey,
-  signature,
-} from '@xmtp/proto'
+import { keystore, publicKey, authn, privateKey, signature } from '@xmtp/proto'
 import { WithoutUndefined } from '../utils/typedefs'
 
 /**
@@ -51,9 +44,31 @@ export interface Keystore {
    */
   signDigest(req: keystore.SignDigestRequest): Promise<signature.Signature>
   /**
+   * Get a refresh job from the persistence
+   */
+  getRefreshJob(
+    req: keystore.GetRefreshJobRequest
+  ): Promise<keystore.GetRefreshJobResponse>
+  /**
+   * Sets the time of a refresh job
+   */
+  setRefreshJob(
+    req: keystore.SetRefeshJobRequest
+  ): Promise<keystore.SetRefreshJobResponse>
+  /**
+   * Save V1 Conversations
+   */
+  saveV1Conversations(
+    req: keystore.SaveV1ConversationsRequest
+  ): Promise<keystore.SaveV1ConversationsResponse>
+  /**
+   * Get a list of V1 conversations
+   */
+  getV1Conversations(): Promise<keystore.GetConversationsResponse>
+  /**
    * Get a list of V2 conversations
    */
-  getV2Conversations(): Promise<conversationReference.ConversationReference[]>
+  getV2Conversations(): Promise<keystore.GetConversationsResponse>
   /**
    * Get the `PublicKeyBundle` associated with the Keystore's private keys
    */

@@ -107,4 +107,9 @@ export class CompositeCodec implements ContentCodec<Composite> {
     }
     return { parts }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fallback(content: Composite): string | undefined {
+    return undefined
+  }
 }
