@@ -1,5 +1,11 @@
 # @xmtp/content-type-read-receipt
 
+## 1.1.2
+
+### Patch Changes
+
+- [#32](https://github.com/xmtp/xmtp-js-content-types/pull/32) [`39265e9`](https://github.com/xmtp/xmtp-js-content-types/commit/39265e9ea9e4182ce50175b1f3933e292499a576) Thanks [@nplasterer](https://github.com/nplasterer)! - fix: remove timestamp from the read receipt content type
+
 ## 1.1.1
 
 ### Patch Changes
