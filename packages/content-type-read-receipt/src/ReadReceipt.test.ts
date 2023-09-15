@@ -44,7 +44,7 @@ describe("ReadReceiptContentType", () => {
     expect(messages.length).toBe(1);
 
     const readReceiptMessage = messages[0];
-    const messageContent = readReceiptMessage.content as ReadReceipt;
-    expect(messageContent.timestamp).toBe(dateString);
+    const messageContent = readReceiptMessage.contentType;
+    expect(messageContent.typeId).toBe("readReceipt");
   });
 });
