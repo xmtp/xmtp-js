@@ -26,11 +26,7 @@ describe("ReadReceiptContentType", () => {
       bobWallet.address,
     );
 
-    const dateString = new Date().toISOString();
-
-    const readReceipt: ReadReceipt = {
-      timestamp: dateString,
-    };
+    const readReceipt: ReadReceipt = {};
 
     await conversation.send(readReceipt, {
       contentType: ContentTypeReadReceipt,
@@ -44,7 +40,7 @@ describe("ReadReceiptContentType", () => {
     expect(messages.length).toBe(1);
 
     const readReceiptMessage = messages[0];
-    const messageContent = readReceiptMessage.content as ReadReceipt;
-    expect(messageContent.timestamp).toBe(dateString);
+    const messageContent = readReceiptMessage.contentType;
+    expect(messageContent.typeId).toBe("readReceipt");
   });
 });
