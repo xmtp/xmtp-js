@@ -352,9 +352,7 @@ export default class Client<ContentTypes = any> {
   }
 
   /**
-   * Tells the caller whether `getKeys` will work for them or throw
-   * Right now, this is only true if the user has Metamask with Snaps
-   * and has enabled the `useSnaps` option
+   * Tells the caller whether the browser has a Snaps-compatible version of MetaMask installed
    */
   static isSnapsReady() {
     return hasMetamaskWithSnaps()
