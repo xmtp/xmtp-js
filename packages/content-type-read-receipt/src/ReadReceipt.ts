@@ -8,7 +8,7 @@ export const ContentTypeReadReceipt = new ContentTypeId({
   versionMinor: 0,
 });
 
-export type ReadReceipt = object;
+export type ReadReceipt = Record<string, never>;
 
 export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
   get contentType(): ContentTypeId {
