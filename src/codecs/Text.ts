@@ -1,9 +1,4 @@
-import {
-  ContentTypeId,
-  ContentCodec,
-  EncodedContent,
-  CodecRegistry,
-} from '../MessageContent'
+import { ContentTypeId, ContentCodec, EncodedContent } from '../MessageContent'
 
 // xmtp.org/text
 //
