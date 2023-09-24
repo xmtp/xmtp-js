@@ -448,6 +448,24 @@ describe('ClientOptions', () => {
       expect(c.address).toEqual(account.address)
     })
 
+    it('creates an identical client between viem and ethers', async () => {
+      const randomWallet = Wallet.createRandom()
+      const privateKey = randomWallet.privateKey
+      const account = privateKeyToAccount(privateKey as `0x${string}`)
+      const walletClient = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http(),
+      })
+
+      const viemClient = await Client.create(walletClient)
+      const ethersClient = await Client.create(randomWallet)
+      expect(viemClient.address).toEqual(ethersClient.address)
+      expect(
+        viemClient.publicKeyBundle.equals(ethersClient.publicKeyBundle)
+      ).toBe(true)
+    })
+
     it('fails if you use a viem WalletClient without an account', async () => {
       const walletClient = createWalletClient({
         chain: mainnet,
