@@ -9,11 +9,14 @@ export function getSigner(wallet: Signer | WalletClient | null): Signer | null {
   if (isWalletClient(wallet)) {
     return convertWalletClientToSigner(wallet)
   }
+  if (!(typeof wallet.getAddress !== 'function')) {
+    throw new Error('Unknown wallet type')
+  }
   return wallet
 }
 
 function isWalletClient(wallet: Signer | WalletClient): wallet is WalletClient {
-  return 'type' in wallet && wallet.type === 'WalletClient'
+  return 'type' in wallet && wallet.type === 'walletClient'
 }
 
 // Borrowed from https://wagmi.sh/react/ethers-adapters

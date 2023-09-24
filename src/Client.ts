@@ -208,7 +208,6 @@ export type ClientOptions = Flatten<
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
- *
  * @param opts additional options to override the default settings
  */
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
@@ -304,7 +303,6 @@ export default class Client<ContentTypes = any> {
 
   /**
    * Create and start a client associated with given wallet.
-   *
    * @param wallet the wallet as a Signer instance
    * @param opts specify how to to connect to the network
    */
@@ -321,6 +319,7 @@ export default class Client<ContentTypes = any> {
     const signer = getSigner(wallet)
     const options = defaultOptions(opts)
     const apiClient = options.apiClientFactory(options)
+    console.log(signer)
     const keystore = await bootstrapKeystore(options, apiClient, signer)
     const publicKeyBundle = new PublicKeyBundle(
       await keystore.getPublicKeyBundle()
@@ -586,7 +585,6 @@ export default class Client<ContentTypes = any> {
    * no pre-processing or encryption applied.
    *
    * Primarily used internally
-   *
    * @param envelopes PublishParams[]
    */
   async publishEnvelopes(envelopes: PublishParams[]): Promise<void> {
