@@ -4,7 +4,6 @@ import { content as proto } from '@xmtp/proto'
 //
 // Compression
 //
-
 export async function decompress(
   encoded: proto.EncodedContent,
   maxSize: number

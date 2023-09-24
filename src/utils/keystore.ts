@@ -9,7 +9,7 @@ import { WithoutUndefined } from './typedefs'
 export const getResultOrThrow = <
   T extends
     | keystore.DecryptResponse_Response
-    | keystore.EncryptResponse_Response
+    | keystore.EncryptResponse_Response,
 >(
   response: T
 ): WithoutUndefined<NonNullable<T['result']>> => {

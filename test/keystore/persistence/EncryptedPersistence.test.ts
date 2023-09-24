@@ -127,9 +127,7 @@ describe('EncryptedPersistence', () => {
     const goodData = SignedEciesCiphertext.fromBytes(encryptedBytes!)
     const signedBySomeoneElse = await SignedEciesCiphertext.create(
       goodData.ciphertext,
-      (
-        await PrivateKeyBundleV1.generate()
-      ).identityKey
+      (await PrivateKeyBundleV1.generate()).identityKey
     )
     await persistence.setItem(TEST_KEY, signedBySomeoneElse.toBytes())
 
