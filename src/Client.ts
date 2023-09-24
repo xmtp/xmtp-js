@@ -319,7 +319,6 @@ export default class Client<ContentTypes = any> {
     const signer = getSigner(wallet)
     const options = defaultOptions(opts)
     const apiClient = options.apiClientFactory(options)
-    console.log(signer)
     const keystore = await bootstrapKeystore(options, apiClient, signer)
     const publicKeyBundle = new PublicKeyBundle(
       await keystore.getPublicKeyBundle()
