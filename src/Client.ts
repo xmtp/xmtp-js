@@ -43,7 +43,7 @@ import {
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { version as snapVersion, package as snapPackage } from './snapInfo.json'
 import { ExtractDecodedType } from './types/client'
-import { WalletClient } from 'viem'
+import type { WalletClient } from 'viem'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
