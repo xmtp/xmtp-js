@@ -6,6 +6,7 @@ import {
   EnvelopeMapper,
   buildUserInviteTopic,
   isBrowser,
+  getSigner,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
@@ -42,6 +43,7 @@ import {
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { version as snapVersion, package as snapPackage } from './snapInfo.json'
 import { ExtractDecodedType } from './types/client'
+import type { WalletClient } from 'viem'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -206,7 +208,6 @@ export type ClientOptions = Flatten<
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
- *
  * @param opts additional options to override the default settings
  */
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
@@ -302,23 +303,23 @@ export default class Client<ContentTypes = any> {
 
   /**
    * Create and start a client associated with given wallet.
-   *
    * @param wallet the wallet as a Signer instance
    * @param opts specify how to to connect to the network
    */
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async create<ContentCodecs extends ContentCodec<any>[] = []>(
-    wallet: Signer | null,
+    wallet: Signer | WalletClient | null,
     opts?: Partial<ClientOptions> & { codecs?: ContentCodecs }
   ): Promise<
     Client<
       ExtractDecodedType<[...ContentCodecs, TextCodec][number]> | undefined
     >
   > {
+    const signer = getSigner(wallet)
     const options = defaultOptions(opts)
     const apiClient = options.apiClientFactory(options)
-    const keystore = await bootstrapKeystore(options, apiClient, wallet)
+    const keystore = await bootstrapKeystore(options, apiClient, signer)
     const publicKeyBundle = new PublicKeyBundle(
       await keystore.getPublicKeyBundle()
     )
@@ -343,10 +344,10 @@ export default class Client<ContentTypes = any> {
    * messages.
    */
   static async getKeys<U>(
-    wallet: Signer | null,
+    wallet: Signer | WalletClient | null,
     opts?: Partial<ClientOptions> & { codecs?: U }
   ): Promise<Uint8Array> {
-    const client = await Client.create(wallet, opts)
+    const client = await Client.create(getSigner(wallet), opts)
     const keys = await client.keystore.getPrivateKeyBundle()
     return new PrivateKeyBundleV1(keys).encode()
   }
@@ -583,7 +584,6 @@ export default class Client<ContentTypes = any> {
    * no pre-processing or encryption applied.
    *
    * Primarily used internally
-   *
    * @param envelopes PublishParams[]
    */
   async publishEnvelopes(envelopes: PublishParams[]): Promise<void> {

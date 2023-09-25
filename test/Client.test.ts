@@ -25,6 +25,10 @@ import { Wallet } from 'ethers'
 import { NetworkKeystoreProvider } from '../src/keystore/providers'
 import { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
 import LocalStoragePonyfill from '../src/keystore/persistence/LocalStoragePonyfill'
+import { createWalletClient, http } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
+import { mainnet } from 'viem/chains'
+import { generatePrivateKey } from 'viem/accounts'
 
 type TestCase = {
   name: string
@@ -425,6 +429,52 @@ describe('ClientOptions', () => {
       mockEthRequest.mockResolvedValue([])
       const isSnapsReady = await Client.isSnapsReady()
       expect(isSnapsReady).toBe(true)
+    })
+  })
+
+  describe('viem', () => {
+    it('allows you to use a viem WalletClient', async () => {
+      const privateKey = generatePrivateKey()
+      const account = privateKeyToAccount(privateKey)
+
+      const walletClient = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http(),
+      })
+
+      const c = await Client.create(walletClient)
+      expect(c).toBeDefined()
+      expect(c.address).toEqual(account.address)
+    })
+
+    it('creates an identical client between viem and ethers', async () => {
+      const randomWallet = Wallet.createRandom()
+      const privateKey = randomWallet.privateKey
+      const account = privateKeyToAccount(privateKey as `0x${string}`)
+      const walletClient = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http(),
+      })
+
+      const viemClient = await Client.create(walletClient)
+      const ethersClient = await Client.create(randomWallet)
+      expect(viemClient.address).toEqual(ethersClient.address)
+      expect(
+        viemClient.publicKeyBundle.equals(ethersClient.publicKeyBundle)
+      ).toBe(true)
+    })
+
+    it('fails if you use a viem WalletClient without an account', async () => {
+      const walletClient = createWalletClient({
+        chain: mainnet,
+        transport: http(),
+      })
+
+      await expect(Client.create(walletClient)).rejects.toThrow(
+        'WalletClient is not configured'
+      )
     })
   })
 })

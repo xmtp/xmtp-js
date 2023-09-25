@@ -8,7 +8,7 @@ async function getResponse<T extends keyof Keystore>(
   req: Uint8Array | null,
   meta: SnapMeta,
   snapId: string
-): Promise<typeof apiDefs[T]['res']> {
+): Promise<(typeof apiDefs)[T]['res']> {
   return snapRPC(method, apiDefs[method], req, meta, snapId)
 }
 

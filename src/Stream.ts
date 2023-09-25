@@ -1,8 +1,4 @@
-import {
-  OnConnectionLostCallback,
-  SubscriptionManager,
-  UnsubscribeFn,
-} from './ApiClient'
+import { OnConnectionLostCallback, SubscriptionManager } from './ApiClient'
 import Client from './Client'
 import { messageApi } from '@xmtp/proto'
 
