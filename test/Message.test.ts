@@ -9,6 +9,9 @@ import { InMemoryKeystore, KeystoreError } from '../src/keystore'
 import { Client, ContentTypeText, InMemoryPersistence } from '../src'
 import { Wallet } from 'ethers'
 import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { createWalletClient, http } from 'viem'
+import { mainnet } from 'viem/chains'
 
 describe('Message', function () {
   let aliceWallet: Wallet
@@ -196,6 +199,47 @@ describe('Message', function () {
       })
 
       const bobClient = await Client.create(bobWallet, {
+        env: 'local',
+        privateKeyOverride: bob.encode(),
+      })
+
+      const convo = await aliceClient.conversations.newConversation(
+        bobClient.address
+      )
+      const text = 'hi bob'
+      const sentMessage = await convo.send(text)
+
+      const sentMessageBytes = sentMessage.toBytes()
+      expect(sentMessageBytes).toBeDefined()
+
+      const restoredDecodedMessage = await DecodedMessage.fromBytes(
+        sentMessageBytes,
+        aliceClient
+      )
+      expect(restoredDecodedMessage.toBytes()).toEqual(sentMessageBytes)
+      expect(restoredDecodedMessage.content).toEqual(text)
+      expect(restoredDecodedMessage).toEqual(sentMessage)
+    })
+
+    it('round trips V2 text messages with viem', async () => {
+      const aliceWalletClient = createWalletClient({
+        account: privateKeyToAccount(generatePrivateKey()),
+        chain: mainnet,
+        transport: http(),
+      })
+
+      const aliceClient = await Client.create(aliceWalletClient, {
+        env: 'local',
+        privateKeyOverride: alice.encode(),
+      })
+
+      const bobWalletClient = createWalletClient({
+        account: privateKeyToAccount(generatePrivateKey()),
+        chain: mainnet,
+        transport: http(),
+      })
+
+      const bobClient = await Client.create(bobWalletClient, {
         env: 'local',
         privateKeyOverride: bob.encode(),
       })
