@@ -28,9 +28,10 @@ export function convertWalletClientToSigner(
 
   return {
     getAddress: async () => account.address,
-    signMessage: async (message: string) => {
-      const signature = await walletClient.signMessage({ message, account })
-      return signature
-    },
+    signMessage: async (message: string | Uint8Array) =>
+      walletClient.signMessage({
+        message: typeof message === 'string' ? message : { raw: message },
+        account,
+      }),
   }
 }
