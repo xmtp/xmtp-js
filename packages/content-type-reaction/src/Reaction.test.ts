@@ -55,13 +55,17 @@ describe("ReactionContentType", () => {
 
   it("can send a reaction", async () => {
     const aliceWallet = Wallet.createRandom();
-    const aliceClient = await Client.create(aliceWallet, { env: "local" });
-    aliceClient.registerCodec(new ReactionCodec());
+    const aliceClient = await Client.create(aliceWallet, {
+      codecs: [new ReactionCodec()],
+      env: "local",
+    });
     await aliceClient.publishUserContact();
 
     const bobWallet = Wallet.createRandom();
-    const bobClient = await Client.create(bobWallet, { env: "local" });
-    bobClient.registerCodec(new ReactionCodec());
+    const bobClient = await Client.create(bobWallet, {
+      codecs: [new ReactionCodec()],
+      env: "local",
+    });
     await bobClient.publishUserContact();
 
     const conversation = await aliceClient.conversations.newConversation(

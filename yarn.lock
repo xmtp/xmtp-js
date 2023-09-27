@@ -1703,7 +1703,7 @@ __metadata:
   resolution: "@xmtp/content-type-reaction@workspace:packages/content-type-reaction"
   dependencies:
     "@types/node": ^18.14.2
-    "@xmtp/xmtp-js": ^9.1.7
+    "@xmtp/xmtp-js": ^11.1.1
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1718,7 +1718,7 @@ __metadata:
     vite: ^4.3.9
     vitest: ^0.32.2
   peerDependencies:
-    "@xmtp/xmtp-js": ^9.1.7
+    "@xmtp/xmtp-js": ^11.1.1
   languageName: unknown
   linkType: soft
 
@@ -1728,7 +1728,7 @@ __metadata:
   dependencies:
     "@types/node": ^18.14.2
     "@xmtp/proto": ^3.26.0
-    "@xmtp/xmtp-js": ^9.2.0
+    "@xmtp/xmtp-js": ^11.1.1
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1743,7 +1743,7 @@ __metadata:
     vite: ^4.3.9
     vitest: ^0.32.2
   peerDependencies:
-    "@xmtp/xmtp-js": ^9.2.0
+    "@xmtp/xmtp-js": ^11.1.1
   languageName: unknown
   linkType: soft
 
@@ -1753,8 +1753,8 @@ __metadata:
   dependencies:
     "@noble/secp256k1": ^1.7.1
     "@types/node": ^18.14.2
-    "@xmtp/proto": ^3.25.0
-    "@xmtp/xmtp-js": ^9.1.7
+    "@xmtp/proto": ^3.27.0
+    "@xmtp/xmtp-js": ^11.1.1
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1769,7 +1769,7 @@ __metadata:
     vite: ^4.3.9
     vitest: ^0.32.2
   peerDependencies:
-    "@xmtp/xmtp-js": ^9.1.7
+    "@xmtp/xmtp-js": ^11.1.1
   languageName: unknown
   linkType: soft
 
@@ -1780,7 +1780,7 @@ __metadata:
     "@types/node": ^18.14.2
     "@xmtp/content-type-remote-attachment": "workspace:*"
     "@xmtp/proto": ^3.26.0
-    "@xmtp/xmtp-js": ^9.2.0
+    "@xmtp/xmtp-js": ^11.1.1
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1795,21 +1795,9 @@ __metadata:
     vite: ^4.3.9
     vitest: ^0.32.2
   peerDependencies:
-    "@xmtp/xmtp-js": ^9.2.0
+    "@xmtp/xmtp-js": ^11.1.1
   languageName: unknown
   linkType: soft
-
-"@xmtp/proto@npm:^3.24.0, @xmtp/proto@npm:^3.25.0":
-  version: 3.25.0
-  resolution: "@xmtp/proto@npm:3.25.0"
-  dependencies:
-    long: ^5.2.0
-    protobufjs: ^7.0.0
-    rxjs: ^7.8.0
-    undici: ^5.8.1
-  checksum: 9673abcbe5b53252d12216bd24743c1176e4c7578c0214333668009fa1ef98dd9a422c388122096d5a175fc886651b87107d35d7cb836e6d647c9923b290fd77
-  languageName: node
-  linkType: hard
 
 "@xmtp/proto@npm:^3.26.0":
   version: 3.26.0
@@ -1820,6 +1808,30 @@ __metadata:
     rxjs: ^7.8.0
     undici: ^5.8.1
   checksum: 2d29c5fdcaa3332577fac20a65a7ca837e937b8aab5c6bb2f20a198e5d07c9d76b534676fcc98b5375ef00f5f9f54f858d55524b3da40b8fe1db4225e1c4fdd7
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:^3.27.0":
+  version: 3.27.0
+  resolution: "@xmtp/proto@npm:3.27.0"
+  dependencies:
+    long: ^5.2.0
+    protobufjs: ^7.0.0
+    rxjs: ^7.8.0
+    undici: ^5.8.1
+  checksum: 99d2c2cc90de4cb1d125a88bbd9434ab3a7db6b0709687ffc7d9665a2a2acd1f7c88b05b24281f75e2a11ae36b89350f51fb466cac6c30547a3201bc229dfb1a
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:^3.28.0-beta.1":
+  version: 3.28.0-beta.1
+  resolution: "@xmtp/proto@npm:3.28.0-beta.1"
+  dependencies:
+    long: ^5.2.0
+    protobufjs: ^7.0.0
+    rxjs: ^7.8.0
+    undici: ^5.8.1
+  checksum: d222356318e72359bf54aea0fb967c3beeac94c82649c2e9c8cdb0a5a01ecf5c1264af1f1a4d2eeffb0d8b05561f0e3ee9b1ee44fa5742edfb0e1b288af8b96d
   languageName: node
   linkType: hard
 
@@ -1837,31 +1849,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/xmtp-js@npm:^9.1.7":
-  version: 9.1.7
-  resolution: "@xmtp/xmtp-js@npm:9.1.7"
+"@xmtp/xmtp-js@npm:^11.1.1":
+  version: 11.1.1
+  resolution: "@xmtp/xmtp-js@npm:11.1.1"
   dependencies:
     "@noble/secp256k1": ^1.5.2
-    "@xmtp/proto": ^3.24.0
+    "@xmtp/proto": ^3.28.0-beta.1
     async-mutex: ^0.4.0
     elliptic: ^6.5.4
     ethers: ^5.5.3
     long: ^5.2.0
-  checksum: ee782dfd94cca74dcdea41e6c98b19195734b871eba3040ec670b2dda4af272ee6f77d79ad5e70b9f0aa1c15a2c4684266af02faea413c315c8dfd8761955cd7
-  languageName: node
-  linkType: hard
-
-"@xmtp/xmtp-js@npm:^9.2.0":
-  version: 9.2.0
-  resolution: "@xmtp/xmtp-js@npm:9.2.0"
-  dependencies:
-    "@noble/secp256k1": ^1.5.2
-    "@xmtp/proto": ^3.24.0
-    async-mutex: ^0.4.0
-    elliptic: ^6.5.4
-    ethers: ^5.5.3
-    long: ^5.2.0
-  checksum: a2f1c4061bd2c5325bd0ebcc59c0b72b30995f04f4838ea5caa3901f46f616862b26f61a1b9a21cb5933d0ad6a8ca56fde86df4256678aa7a6f1309caf04d42d
+  checksum: 208c5606c1d207d8141867067708b872a495cad27ca3327f0797479ac76f3e6c5d2c163bf6c2416cf7b06a33bcb3e00ee51077d902236339e4387bc2113bfa90
   languageName: node
   linkType: hard
 
