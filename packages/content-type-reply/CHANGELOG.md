@@ -4,8 +4,8 @@
 
 ### Patch Changes
 
-- [#34](https://github.com/xmtp/xmtp-js-content-types/pull/34) [`cd7f70e`](https://github.com/xmtp/xmtp-js-content-types/commit/cd7f70ef7476b9915f25c963536a5836192d004a) Thanks [@rygine](https://github.com/rygine)! - \* Upgrade to JS SDK v11
-  - Update client initialization for tests to use `codecs` option for proper types
+- Upgrade to JS SDK v11
+- Update client initialization for tests to use `codecs` option for proper types
 
 ## 1.1.2
 
