@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-remote-attachment",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "An XMTP content type to support sending file attachments that are stored off network",
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
