@@ -12,13 +12,17 @@ test("content type exists", () => {
 
 test("can send an attachment", async () => {
   const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, { env: "local" });
-  aliceClient.registerCodec(new AttachmentCodec());
+  const aliceClient = await Client.create(aliceWallet, {
+    codecs: [new AttachmentCodec()],
+    env: "local",
+  });
   await aliceClient.publishUserContact();
 
   const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, { env: "local" });
-  bobClient.registerCodec(new AttachmentCodec());
+  const bobClient = await Client.create(bobWallet, {
+    codecs: [new AttachmentCodec()],
+    env: "local",
+  });
   await bobClient.publishUserContact();
 
   const conversation = await aliceClient.conversations.newConversation(

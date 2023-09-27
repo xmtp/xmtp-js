@@ -71,8 +71,8 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@xmtp/proto": "^3.25.0",
-    "@xmtp/xmtp-js": "^9.1.7"
+    "@xmtp/proto": "^3.27.0",
+    "@xmtp/xmtp-js": "^11.1.1"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",
@@ -91,6 +91,6 @@
     "vitest": "^0.32.2"
   },
   "peerDependencies": {
-    "@xmtp/xmtp-js": "^9.1.7"
+    "@xmtp/xmtp-js": "^11.1.1"
   }
 }

@@ -13,13 +13,17 @@ describe("ReadReceiptContentType", () => {
 
   it("can send a read receipt", async () => {
     const aliceWallet = Wallet.createRandom();
-    const aliceClient = await Client.create(aliceWallet, { env: "local" });
-    aliceClient.registerCodec(new ReadReceiptCodec());
+    const aliceClient = await Client.create(aliceWallet, {
+      codecs: [new ReadReceiptCodec()],
+      env: "local",
+    });
     await aliceClient.publishUserContact();
 
     const bobWallet = Wallet.createRandom();
-    const bobClient = await Client.create(bobWallet, { env: "local" });
-    bobClient.registerCodec(new ReadReceiptCodec());
+    const bobClient = await Client.create(bobWallet, {
+      codecs: [new ReadReceiptCodec()],
+      env: "local",
+    });
     await bobClient.publishUserContact();
 
     const conversation = await aliceClient.conversations.newConversation(

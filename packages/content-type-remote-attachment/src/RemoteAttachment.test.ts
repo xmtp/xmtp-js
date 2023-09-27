@@ -17,15 +17,17 @@ test("content type exists", () => {
 
 test("can create a remote attachment", async () => {
   const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, { env: "local" });
-  aliceClient.registerCodec(new AttachmentCodec());
-  aliceClient.registerCodec(new RemoteAttachmentCodec());
+  const aliceClient = await Client.create(aliceWallet, {
+    codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
+    env: "local",
+  });
   await aliceClient.publishUserContact();
 
   const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, { env: "local" });
-  bobClient.registerCodec(new AttachmentCodec());
-  bobClient.registerCodec(new RemoteAttachmentCodec());
+  const bobClient = await Client.create(bobWallet, {
+    codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
+    env: "local",
+  });
   await bobClient.publishUserContact();
 
   const conversation = await aliceClient.conversations.newConversation(
@@ -92,15 +94,17 @@ test("can create a remote attachment", async () => {
 
 test("fails if url is not https", async () => {
   const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, { env: "local" });
-  aliceClient.registerCodec(new AttachmentCodec());
-  aliceClient.registerCodec(new RemoteAttachmentCodec());
+  const aliceClient = await Client.create(aliceWallet, {
+    codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
+    env: "local",
+  });
   await aliceClient.publishUserContact();
 
   const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, { env: "local" });
-  bobClient.registerCodec(new AttachmentCodec());
-  bobClient.registerCodec(new RemoteAttachmentCodec());
+  const bobClient = await Client.create(bobWallet, {
+    codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
+    env: "local",
+  });
   await bobClient.publishUserContact();
 
   const conversation = await aliceClient.conversations.newConversation(
@@ -137,15 +141,17 @@ test("fails if url is not https", async () => {
 
 test("fails if content digest does not match", async () => {
   const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, { env: "local" });
-  aliceClient.registerCodec(new AttachmentCodec());
-  aliceClient.registerCodec(new RemoteAttachmentCodec());
+  const aliceClient = await Client.create(aliceWallet, {
+    codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
+    env: "local",
+  });
   await aliceClient.publishUserContact();
 
   const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, { env: "local" });
-  bobClient.registerCodec(new AttachmentCodec());
-  bobClient.registerCodec(new RemoteAttachmentCodec());
+  const bobClient = await Client.create(bobWallet, {
+    codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
+    env: "local",
+  });
   await bobClient.publishUserContact();
 
   const conversation = await aliceClient.conversations.newConversation(

@@ -18,13 +18,17 @@ describe("ReplyContentType", () => {
 
   it("can send a text reply", async () => {
     const aliceWallet = Wallet.createRandom();
-    const aliceClient = await Client.create(aliceWallet, { env: "local" });
-    aliceClient.registerCodec(new ReplyCodec());
+    const aliceClient = await Client.create(aliceWallet, {
+      codecs: [new ReplyCodec()],
+      env: "local",
+    });
     await aliceClient.publishUserContact();
 
     const bobWallet = Wallet.createRandom();
-    const bobClient = await Client.create(bobWallet, { env: "local" });
-    bobClient.registerCodec(new ReplyCodec());
+    const bobClient = await Client.create(bobWallet, {
+      codecs: [new ReplyCodec()],
+      env: "local",
+    });
     await bobClient.publishUserContact();
 
     const conversation = await aliceClient.conversations.newConversation(
@@ -56,15 +60,17 @@ describe("ReplyContentType", () => {
 
   it("can send an attachment reply", async () => {
     const aliceWallet = Wallet.createRandom();
-    const aliceClient = await Client.create(aliceWallet, { env: "local" });
-    aliceClient.registerCodec(new ReplyCodec());
-    aliceClient.registerCodec(new AttachmentCodec());
+    const aliceClient = await Client.create(aliceWallet, {
+      codecs: [new ReplyCodec(), new AttachmentCodec()],
+      env: "local",
+    });
     await aliceClient.publishUserContact();
 
     const bobWallet = Wallet.createRandom();
-    const bobClient = await Client.create(bobWallet, { env: "local" });
-    bobClient.registerCodec(new ReplyCodec());
-    bobClient.registerCodec(new AttachmentCodec());
+    const bobClient = await Client.create(bobWallet, {
+      codecs: [new ReplyCodec(), new AttachmentCodec()],
+      env: "local",
+    });
     await bobClient.publishUserContact();
 
     const conversation = await aliceClient.conversations.newConversation(
