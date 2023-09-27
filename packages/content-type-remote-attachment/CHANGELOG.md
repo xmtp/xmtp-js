@@ -1,5 +1,12 @@
 # @xmtp/content-type-remote-attachment
 
+## 1.1.2
+
+### Patch Changes
+
+- Upgrade to JS SDK v11
+- Update client initialization for tests to use `codecs` option for proper types
+
 ## 1.1.1
 
 ### Patch Changes
