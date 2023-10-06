@@ -84,7 +84,8 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
-    "@xmtp/proto": "^3.29.0",
+    "@xmtp/ecies-bindings-wasm": "^0.1.5",
+    "@xmtp/proto": "^3.28.0-beta.1",
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
