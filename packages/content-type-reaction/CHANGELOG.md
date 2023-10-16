@@ -1,5 +1,12 @@
 # @xmtp/content-type-reaction
 
+## 1.1.3
+
+### Patch Changes
+
+- Upgraded `@xmtp/proto` package
+- Upgraded `@xmtp/xmtp-js` package
+
 ## 1.1.2
 
 ### Patch Changes
