@@ -1,5 +1,11 @@
 # @xmtp/content-type-reply
 
+## 1.1.4
+
+### Patch Changes
+
+- [#36](https://github.com/xmtp/xmtp-js-content-types/pull/36) [`91b2fdc`](https://github.com/xmtp/xmtp-js-content-types/commit/91b2fdc4cb0a357a4331bf32faa77ecc83bdf5cc) Thanks [@neekolas](https://github.com/neekolas)! - Update @xmtp/proto to latest version
+
 ## 1.1.3
 
 ### Patch Changes
