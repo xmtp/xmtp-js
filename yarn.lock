@@ -1727,7 +1727,7 @@ __metadata:
   resolution: "@xmtp/content-type-read-receipt@workspace:packages/content-type-read-receipt"
   dependencies:
     "@types/node": ^18.14.2
-    "@xmtp/proto": ^3.26.0
+    "@xmtp/proto": ^3.28.0
     "@xmtp/xmtp-js": ^11.1.1
     buffer: ^6.0.3
     esbuild: ^0.18.2
@@ -1753,7 +1753,7 @@ __metadata:
   dependencies:
     "@noble/secp256k1": ^1.7.1
     "@types/node": ^18.14.2
-    "@xmtp/proto": ^3.27.0
+    "@xmtp/proto": ^3.28.0
     "@xmtp/xmtp-js": ^11.1.1
     buffer: ^6.0.3
     esbuild: ^0.18.2
@@ -1779,7 +1779,7 @@ __metadata:
   dependencies:
     "@types/node": ^18.14.2
     "@xmtp/content-type-remote-attachment": "workspace:*"
-    "@xmtp/proto": ^3.26.0
+    "@xmtp/proto": ^3.28.0
     "@xmtp/xmtp-js": ^11.1.1
     buffer: ^6.0.3
     esbuild: ^0.18.2
@@ -1799,27 +1799,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:^3.26.0":
-  version: 3.26.0
-  resolution: "@xmtp/proto@npm:3.26.0"
+"@xmtp/proto@npm:^3.28.0":
+  version: 3.28.0
+  resolution: "@xmtp/proto@npm:3.28.0"
   dependencies:
     long: ^5.2.0
     protobufjs: ^7.0.0
     rxjs: ^7.8.0
     undici: ^5.8.1
-  checksum: 2d29c5fdcaa3332577fac20a65a7ca837e937b8aab5c6bb2f20a198e5d07c9d76b534676fcc98b5375ef00f5f9f54f858d55524b3da40b8fe1db4225e1c4fdd7
-  languageName: node
-  linkType: hard
-
-"@xmtp/proto@npm:^3.27.0":
-  version: 3.27.0
-  resolution: "@xmtp/proto@npm:3.27.0"
-  dependencies:
-    long: ^5.2.0
-    protobufjs: ^7.0.0
-    rxjs: ^7.8.0
-    undici: ^5.8.1
-  checksum: 99d2c2cc90de4cb1d125a88bbd9434ab3a7db6b0709687ffc7d9665a2a2acd1f7c88b05b24281f75e2a11ae36b89350f51fb466cac6c30547a3201bc229dfb1a
+  checksum: 517016070568082ac8d6bfb1ebd51980b4119c2d05700b00b71b7af7be642cf798aa74e94a234ae692ff857ccd1505270685a7d826e5ee6b1fbb83e8167864d1
   languageName: node
   linkType: hard
 
