@@ -4,8 +4,8 @@
 
 ### Patch Changes
 
-- [#38](https://github.com/xmtp/xmtp-js-content-types/pull/38) [`893f723`](https://github.com/xmtp/xmtp-js-content-types/commit/893f723ca1b1aad06a109dbdd98e0dcd94c695bf) Thanks [@rygine](https://github.com/rygine)! - - Upgraded `@xmtp/proto` package
-  - Upgraded `@xmtp/xmtp-js` package
+- Upgraded `@xmtp/proto` package
+- Upgraded `@xmtp/xmtp-js` package
 
 ## 1.1.2
 
