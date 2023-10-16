@@ -70,7 +70,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xmtp/xmtp-js": "^11.1.1"
+    "@xmtp/xmtp-js": "^11.1.2"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",

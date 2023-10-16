@@ -1703,7 +1703,7 @@ __metadata:
   resolution: "@xmtp/content-type-reaction@workspace:packages/content-type-reaction"
   dependencies:
     "@types/node": ^18.14.2
-    "@xmtp/xmtp-js": ^11.1.1
+    "@xmtp/xmtp-js": ^11.1.2
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1728,7 +1728,7 @@ __metadata:
   dependencies:
     "@types/node": ^18.14.2
     "@xmtp/proto": ^3.29.0
-    "@xmtp/xmtp-js": ^11.1.1
+    "@xmtp/xmtp-js": ^11.1.2
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1754,7 +1754,7 @@ __metadata:
     "@noble/secp256k1": ^1.7.1
     "@types/node": ^18.14.2
     "@xmtp/proto": ^3.29.0
-    "@xmtp/xmtp-js": ^11.1.1
+    "@xmtp/xmtp-js": ^11.1.2
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1780,7 +1780,7 @@ __metadata:
     "@types/node": ^18.14.2
     "@xmtp/content-type-remote-attachment": "workspace:*"
     "@xmtp/proto": ^3.29.0
-    "@xmtp/xmtp-js": ^11.1.1
+    "@xmtp/xmtp-js": ^11.1.2
     buffer: ^6.0.3
     esbuild: ^0.18.2
     esbuild-plugin-external-global: ^1.0.1
@@ -1798,18 +1798,6 @@ __metadata:
     "@xmtp/xmtp-js": ^11.1.1
   languageName: unknown
   linkType: soft
-
-"@xmtp/proto@npm:^3.28.0-beta.1":
-  version: 3.28.0-beta.1
-  resolution: "@xmtp/proto@npm:3.28.0-beta.1"
-  dependencies:
-    long: ^5.2.0
-    protobufjs: ^7.0.0
-    rxjs: ^7.8.0
-    undici: ^5.8.1
-  checksum: d222356318e72359bf54aea0fb967c3beeac94c82649c2e9c8cdb0a5a01ecf5c1264af1f1a4d2eeffb0d8b05561f0e3ee9b1ee44fa5742edfb0e1b288af8b96d
-  languageName: node
-  linkType: hard
 
 "@xmtp/proto@npm:^3.29.0":
   version: 3.29.0
@@ -1837,17 +1825,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/xmtp-js@npm:^11.1.1":
-  version: 11.1.1
-  resolution: "@xmtp/xmtp-js@npm:11.1.1"
+"@xmtp/xmtp-js@npm:^11.1.2":
+  version: 11.1.2
+  resolution: "@xmtp/xmtp-js@npm:11.1.2"
   dependencies:
     "@noble/secp256k1": ^1.5.2
-    "@xmtp/proto": ^3.28.0-beta.1
+    "@xmtp/proto": ^3.29.0
     async-mutex: ^0.4.0
     elliptic: ^6.5.4
     ethers: ^5.5.3
     long: ^5.2.0
-  checksum: 208c5606c1d207d8141867067708b872a495cad27ca3327f0797479ac76f3e6c5d2c163bf6c2416cf7b06a33bcb3e00ee51077d902236339e4387bc2113bfa90
+  checksum: c578915c2d2cb05f4ab585d7e6cee9a6e18a16698f7d44bb8f48dbbde25f7a3dd428873b4d4ba66673b408970b36d480eef99ad1736ea27a620c92e158fe9841
   languageName: node
   linkType: hard
 
