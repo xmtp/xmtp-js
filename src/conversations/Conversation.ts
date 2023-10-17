@@ -235,22 +235,25 @@ export class ConversationV1<ContentTypes>
       recipient = recipient.toLegacyBundle()
     }
 
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
     if (!this.client.contacts.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
-        this.topic,
+        topic,
       ]
       this.client.contacts.add(this.peerAddress)
     } else {
-      topics = [this.topic]
+      topics = [topic]
     }
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, recipient, options?.timestamp)
+    const msgBytes = msg.toBytes()
 
     const env: messageApi.Envelope = {
-      contentTopic: this.topic,
-      message: msg.toBytes(),
+      contentTopic: topic,
+      message: msgBytes,
       timestampNs: toNanoString(msg.sent),
     }
 
@@ -258,9 +261,18 @@ export class ConversationV1<ContentTypes>
       await this.client.publishEnvelopes(
         topics.map((topic) => ({
           contentTopic: topic,
-          message: msg.toBytes(),
+          message: msgBytes,
           timestamp: msg.sent,
         }))
+      )
+
+      return DecodedMessage.fromV1Message(
+        msg,
+        content,
+        options?.contentType || ContentTypeText,
+        payload,
+        topic,
+        this
       )
     })
   }
@@ -341,7 +353,7 @@ export class ConversationV1<ContentTypes>
       ]
       this.client.contacts.add(this.peerAddress)
     } else {
-      topics = [this.topic]
+      topics = [topic]
     }
     const contentType = options?.contentType || ContentTypeText
     const payload = await this.client.encodeContent(content, options)
@@ -360,7 +372,7 @@ export class ConversationV1<ContentTypes>
       content,
       contentType,
       payload,
-      topics[0], // Just use the first topic for the returned value
+      topic,
       this
     )
   }
@@ -529,12 +541,7 @@ export class ConversationV2<ContentTypes>
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, options?.timestamp)
 
-    let topic: string
-    if (options?.ephemeral) {
-      topic = this.ephemeralTopic
-    } else {
-      topic = this.topic
-    }
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
     await this.client.publishEnvelopes([
       {
@@ -549,7 +556,7 @@ export class ConversationV2<ContentTypes>
       msg,
       content,
       contentType,
-      this.topic,
+      topic,
       payload,
       this,
       this.client.address
@@ -703,23 +710,34 @@ export class ConversationV2<ContentTypes>
   ): Promise<PreparedMessage> {
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, options?.timestamp)
+    const msgBytes = msg.toBytes()
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
     const env: messageApi.Envelope = {
       contentTopic: topic,
-      message: msg.toBytes(),
+      message: msgBytes,
       timestampNs: toNanoString(msg.sent),
     }
 
     return new PreparedMessage(env, async () => {
       await this.client.publishEnvelopes([
         {
-          contentTopic: this.topic,
-          message: msg.toBytes(),
+          contentTopic: topic,
+          message: msgBytes,
           timestamp: msg.sent,
         },
       ])
+
+      return DecodedMessage.fromV2Message(
+        msg,
+        content,
+        options?.contentType || ContentTypeText,
+        topic,
+        payload,
+        this,
+        this.client.address
+      )
     })
   }
 
