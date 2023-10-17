@@ -247,10 +247,11 @@ export class ConversationV1<ContentTypes>
     }
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, recipient, options?.timestamp)
+    const msgBytes = msg.toBytes()
 
     const env: messageApi.Envelope = {
       contentTopic: this.topic,
-      message: msg.toBytes(),
+      message: msgBytes,
       timestampNs: toNanoString(msg.sent),
     }
 
@@ -258,9 +259,18 @@ export class ConversationV1<ContentTypes>
       await this.client.publishEnvelopes(
         topics.map((topic) => ({
           contentTopic: topic,
-          message: msg.toBytes(),
+          message: msgBytes,
           timestamp: msg.sent,
         }))
+      )
+
+      return DecodedMessage.fromV1Message(
+        msg,
+        content,
+        options?.contentType || ContentTypeText,
+        payload,
+        topics[0],
+        this
       )
     })
   }
@@ -703,12 +713,13 @@ export class ConversationV2<ContentTypes>
   ): Promise<PreparedMessage> {
     const payload = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, options?.timestamp)
+    const msgBytes = msg.toBytes()
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
     const env: messageApi.Envelope = {
       contentTopic: topic,
-      message: msg.toBytes(),
+      message: msgBytes,
       timestampNs: toNanoString(msg.sent),
     }
 
@@ -716,10 +727,20 @@ export class ConversationV2<ContentTypes>
       await this.client.publishEnvelopes([
         {
           contentTopic: this.topic,
-          message: msg.toBytes(),
+          message: msgBytes,
           timestamp: msg.sent,
         },
       ])
+
+      return DecodedMessage.fromV2Message(
+        msg,
+        content,
+        options?.contentType || ContentTypeText,
+        topic,
+        payload,
+        this,
+        this.client.address
+      )
     })
   }
 

@@ -138,11 +138,13 @@ describe('conversation', () => {
       const preparedMessage = await aliceConversation.prepareMessage('1')
       const messageID = await preparedMessage.messageID()
 
-      await preparedMessage.send()
+      const sentMessage = await preparedMessage.send()
 
       const messages = await aliceConversation.messages()
       const message = messages[0]
       expect(message.id).toBe(messageID)
+      expect(sentMessage.id).toBe(messageID)
+      expect(sentMessage.messageVersion).toBe('v1')
     })
 
     it('can send a prepared message v2', async () => {
@@ -157,12 +159,14 @@ describe('conversation', () => {
       const preparedMessage = await aliceConversation.prepareMessage('sup')
       const messageID = await preparedMessage.messageID()
 
-      await preparedMessage.send()
+      const sentMessage = await preparedMessage.send()
 
       const messages = await aliceConversation.messages()
       const message = messages[0]
       expect(message.id).toBe(messageID)
       expect(message.content).toBe('sup')
+      expect(sentMessage.id).toBe(messageID)
+      expect(sentMessage.messageVersion).toBe('v2')
     })
 
     it('can send and stream ephemeral topic v1', async () => {
