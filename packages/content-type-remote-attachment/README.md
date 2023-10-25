@@ -1,5 +1,7 @@
 # Remote attachment content type
 
+![Status](https://img.shields.io/badge/Content_type_status-Standards--track-yellow) ![Status](https://img.shields.io/badge/Reference_implementation_status-Stable-brightgreen)
+
 The [remote-attachment](https://github.com/xmtp/xmtp-js-content-types/tree/main/remote-attachment) package provides an XMTP content type to support sending file attachments that are stored off-network. Use it to enable your app to send and receive message attachments.
 
 > **Open for feedback**  
@@ -130,11 +132,11 @@ Now that you have a remote attachment, you can send it:
 ```tsx
 await conversation.messages.send(remoteAttachment, {
   contentType: ContentTypeRemoteAttachment,
-  contentFallback: "a screenshot of 1MB of text",
 });
 ```
 
-Note that we’re using `contentFallback` to enable clients that don't support these content types to still display something. For cases where clients *do* support these types, they can use the content fallback as alt text for accessibility purposes.
+> **Note**  
+> `contentFallback` text is provided by the codec and gives clients that _don't_ support a content type the option to display some useful context. For cases where clients *do* support the content type, they can use the content fallback as alt text for accessibility purposes.
 
 ## Receive a remote attachment
 

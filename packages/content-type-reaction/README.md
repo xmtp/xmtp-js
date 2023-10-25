@@ -1,5 +1,7 @@
 # Reaction content type
 
+![Status](https://img.shields.io/badge/Content_type_status-Standards--track-yellow) ![Status](https://img.shields.io/badge/Reference_implementation_status-Beta-yellow)
+
 This package provides an XMTP content type to support reactions to messages.
 
 > **Open for feedback**  
@@ -49,12 +51,11 @@ Now that you have a reaction, you can send it:
 ```tsx
 await conversation.messages.send(reaction, {
   contentType: ContentTypeReaction,
-  contentFallback: `[Reaction] ${client.address} reacted to ${someMessage.content} with:\n\n${reaction.content}`,
 });
 ```
 
-> **Note**
-> Use `contentFallback` to enable clients that don't support these content types to still display some useful context. For cases where clients *do* support these types, they can use the content fallback as alt text for accessibility purposes.
+> **Note**  
+> `contentFallback` text is provided by the codec and gives clients that _don't_ support a content type the option to display some useful context. For cases where clients *do* support the content type, they can use the content fallback as alt text for accessibility purposes.
 
 ## Receive a reaction
 
