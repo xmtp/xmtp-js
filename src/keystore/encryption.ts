@@ -5,6 +5,12 @@ import {
   decrypt,
 } from '../crypto'
 import { ciphertext } from '@xmtp/proto'
+import {
+  // eslint-disable-next-line camelcase
+  ecies_decrypt_k256_sha3_256,
+  // eslint-disable-next-line camelcase
+  ecies_encrypt_k256_sha3_256,
+} from '@xmtp/ecies-bindings-wasm'
 
 export const decryptV1 = async (
   myKeys: PrivateKeyBundleV1,
@@ -48,3 +54,19 @@ export const encryptV2 = (
   secret: Uint8Array,
   headerBytes: Uint8Array
 ) => encrypt(payload, secret, headerBytes)
+
+export async function selfEncrypt(
+  publicKey: Uint8Array,
+  privateKey: Uint8Array,
+  payload: Uint8Array
+) {
+  return ecies_encrypt_k256_sha3_256(publicKey, privateKey, payload)
+}
+
+export async function selfDecrypt(
+  publicKey: Uint8Array,
+  privateKey: Uint8Array,
+  payload: Uint8Array
+) {
+  return ecies_decrypt_k256_sha3_256(publicKey, privateKey, payload)
+}

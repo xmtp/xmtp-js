@@ -29,6 +29,9 @@ import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
 import Long from 'long'
+import { selfDecrypt, selfEncrypt } from '../keystore/encryption'
+// eslint-disable-next-line camelcase
+import { generate_private_preferences_topic } from '@xmtp/ecies-bindings-wasm'
 
 const { ErrorCode } = keystore
 
@@ -195,6 +198,76 @@ export default class InMemoryKeystore implements Keystore {
     return this.authenticator.createToken(
       timestampNs ? nsToDate(timestampNs) : undefined
     )
+  }
+
+  async selfEncrypt(
+    req: keystore.SelfEncryptRequest
+  ): Promise<keystore.SelfEncryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
+      async (req) => {
+        const { payload } = req
+
+        if (!payload) {
+          throw new KeystoreError(
+            ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'Missing field payload'
+          )
+        }
+
+        const publicKey =
+          this.v1Keys.getPublicKeyBundle().preKey.secp256k1Uncompressed.bytes
+        const privateKey = this.v1Keys.identityKey.secp256k1.bytes
+
+        return {
+          encrypted: await selfEncrypt(publicKey, privateKey, payload),
+        }
+      },
+      ErrorCode.ERROR_CODE_INVALID_INPUT
+    )
+
+    return keystore.SelfEncryptResponse.fromPartial({
+      responses,
+    })
+  }
+
+  async selfDecrypt(
+    req: keystore.SelfDecryptRequest
+  ): Promise<keystore.DecryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
+      async (req) => {
+        const { payload } = req
+
+        if (!payload) {
+          throw new KeystoreError(
+            ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'Missing field payload'
+          )
+        }
+
+        const publicKey =
+          this.v1Keys.getPublicKeyBundle().preKey.secp256k1Uncompressed.bytes
+        const privateKey = this.v1Keys.identityKey.secp256k1.bytes
+
+        return {
+          decrypted: await selfDecrypt(publicKey, privateKey, payload),
+        }
+      },
+      ErrorCode.ERROR_CODE_INVALID_INPUT
+    )
+
+    return keystore.DecryptResponse.fromPartial({
+      responses,
+    })
+  }
+
+  async getPrivatePreferencesTopicIdentifier(): Promise<keystore.GetPrivatePreferencesTopicIdentifierResponse> {
+    const privateKey = this.v1Keys.identityKey.secp256k1.bytes
+    const identifier = generate_private_preferences_topic(privateKey).toString()
+    return keystore.GetPrivatePreferencesTopicIdentifierResponse.fromPartial({
+      identifier,
+    })
   }
 
   async encryptV2(

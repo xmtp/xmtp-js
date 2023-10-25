@@ -237,13 +237,13 @@ export class ConversationV1<ContentTypes>
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
-    if (!this.client.contacts.has(this.peerAddress)) {
+    if (!this.client.contacts.addresses.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
         topic,
       ]
-      this.client.contacts.add(this.peerAddress)
+      this.client.contacts.addresses.add(this.peerAddress)
     } else {
       topics = [topic]
     }
@@ -345,13 +345,13 @@ export class ConversationV1<ContentTypes>
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
-    if (!this.client.contacts.has(this.peerAddress)) {
+    if (!this.client.contacts.addresses.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
         topic,
       ]
-      this.client.contacts.add(this.peerAddress)
+      this.client.contacts.addresses.add(this.peerAddress)
     } else {
       topics = [topic]
     }
@@ -473,6 +473,26 @@ export class ConversationV2<ContentTypes>
 
   get clientAddress() {
     return this.client.address
+  }
+
+  async allow() {
+    await this.client.contacts.allow([this.peerAddress])
+  }
+
+  async block() {
+    await this.client.contacts.block([this.peerAddress])
+  }
+
+  get isAllowed() {
+    return this.client.contacts.isAllowed(this.peerAddress)
+  }
+
+  get isBlocked() {
+    return this.client.contacts.isBlocked(this.peerAddress)
+  }
+
+  get allowState() {
+    return this.client.contacts.allowState(this.peerAddress)
   }
 
   /**
