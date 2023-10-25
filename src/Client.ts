@@ -779,7 +779,7 @@ async function getUserContactFromNetwork(
       address = undefined
     }
 
-    if (address === peerAddress) {
+    if (address?.toLowerCase() === peerAddress.toLowerCase()) {
       return keyBundle
     }
   }
@@ -815,7 +815,7 @@ async function getUserContactsFromNetwork(
         try {
           const keyBundle = decodeContactBundle(env.message)
           const signingAddress = await keyBundle?.walletSignatureAddress()
-          if (address === signingAddress) {
+          if (address.toLowerCase() === signingAddress.toLowerCase()) {
             return keyBundle
           } else {
             console.info('Received contact bundle with incorrect address')
