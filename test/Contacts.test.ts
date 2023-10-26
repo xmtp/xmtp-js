@@ -87,6 +87,18 @@ describe('Contacts', () => {
   it('should retrieve consent state', async () => {
     await aliceClient.contacts.block([bob.address])
     await aliceClient.contacts.allow([carol.address])
+    await aliceClient.contacts.allow([bob.address])
+    await aliceClient.contacts.block([carol.address])
+    await aliceClient.contacts.block([bob.address])
+    await aliceClient.contacts.allow([carol.address])
+
+    expect(aliceClient.contacts.consentState(bob.address)).toBe('blocked')
+    expect(aliceClient.contacts.isAllowed(bob.address)).toBe(false)
+    expect(aliceClient.contacts.isBlocked(bob.address)).toBe(true)
+
+    expect(aliceClient.contacts.consentState(carol.address)).toBe('allowed')
+    expect(aliceClient.contacts.isAllowed(carol.address)).toBe(true)
+    expect(aliceClient.contacts.isBlocked(carol.address)).toBe(false)
 
     aliceClient = await Client.create(alice, {
       env: 'local',
