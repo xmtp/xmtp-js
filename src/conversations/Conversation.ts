@@ -491,8 +491,8 @@ export class ConversationV2<ContentTypes>
     return this.client.contacts.isBlocked(this.peerAddress)
   }
 
-  get allowState() {
-    return this.client.contacts.allowState(this.peerAddress)
+  get consentState() {
+    return this.client.contacts.consentState(this.peerAddress)
   }
 
   /**

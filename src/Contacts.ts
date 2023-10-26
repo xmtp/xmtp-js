@@ -2,19 +2,19 @@ import Client from './Client'
 import { privatePreferences } from '@xmtp/proto'
 import { EnvelopeWithMessage, buildUserPrivatePreferencesTopic } from './utils'
 
-export type AllowListPermissionType = 'allow' | 'block' | 'unknown'
+export type ConsentState = 'allowed' | 'blocked' | 'unknown'
 
-export type AllowListEntryType = 'address'
+export type ConsentListEntryType = 'address'
 
-export class AllowListEntry {
+export class ConsentListEntry {
   value: string
-  entryType: AllowListEntryType
-  permissionType: AllowListPermissionType
+  entryType: ConsentListEntryType
+  permissionType: ConsentState
 
   constructor(
     value: string,
-    entryType: AllowListEntryType,
-    permissionType: AllowListPermissionType
+    entryType: ConsentListEntryType,
+    permissionType: ConsentState
   ) {
     this.value = value
     this.entryType = entryType
@@ -27,34 +27,34 @@ export class AllowListEntry {
 
   static fromAddress(
     address: string,
-    permissionType: AllowListPermissionType = 'unknown'
-  ): AllowListEntry {
-    return new AllowListEntry(address, 'address', permissionType)
+    permissionType: ConsentState = 'unknown'
+  ): ConsentListEntry {
+    return new ConsentListEntry(address, 'address', permissionType)
   }
 }
 
-export class AllowList {
-  entries: Map<string, AllowListPermissionType>
+export class ConsentList {
+  entries: Map<string, ConsentState>
   static _identifier: string
 
   constructor() {
-    this.entries = new Map<string, AllowListPermissionType>()
+    this.entries = new Map<string, ConsentState>()
   }
 
   allow(address: string) {
-    const entry = AllowListEntry.fromAddress(address, 'allow')
-    this.entries.set(entry.key, 'allow')
+    const entry = ConsentListEntry.fromAddress(address, 'allowed')
+    this.entries.set(entry.key, 'allowed')
     return entry
   }
 
   block(address: string) {
-    const entry = AllowListEntry.fromAddress(address, 'block')
-    this.entries.set(entry.key, 'block')
+    const entry = ConsentListEntry.fromAddress(address, 'blocked')
+    this.entries.set(entry.key, 'blocked')
     return entry
   }
 
   state(address: string) {
-    const entry = AllowListEntry.fromAddress(address)
+    const entry = ConsentListEntry.fromAddress(address)
     return this.entries.get(entry.key) ?? 'unknown'
   }
 
@@ -67,8 +67,8 @@ export class AllowList {
     return this._identifier
   }
 
-  static async load(client: Client): Promise<AllowList> {
-    const allowList = new AllowList()
+  static async load(client: Client): Promise<ConsentList> {
+    const consentList = new ConsentList()
     const identifier = await this.getIdentifier(client)
     const contentTopic = buildUserPrivatePreferencesTopic(identifier)
 
@@ -95,17 +95,17 @@ export class AllowList {
 
     actions.forEach((action) => {
       action.allow?.walletAddresses.forEach((address) => {
-        allowList.allow(address)
+        consentList.allow(address)
       })
       action.block?.walletAddresses.forEach((address) => {
-        allowList.block(address)
+        consentList.block(address)
       })
     })
 
-    return allowList
+    return consentList
   }
 
-  static async publish(entries: AllowListEntry[], client: Client) {
+  static async publish(entries: ConsentListEntry[], client: Client) {
     const identifier = await this.getIdentifier(client)
 
     // encoded actions
@@ -113,13 +113,13 @@ export class AllowList {
       if (entry.entryType === 'address') {
         const action: privatePreferences.PrivatePreferencesAction = {
           allow:
-            entry.permissionType === 'allow'
+            entry.permissionType === 'allowed'
               ? {
                   walletAddresses: [entry.value],
                 }
               : undefined,
           block:
-            entry.permissionType === 'block'
+            entry.permissionType === 'blocked'
               ? {
                   walletAddresses: [entry.value],
                 }
@@ -132,10 +132,8 @@ export class AllowList {
       return result
     }, [] as Uint8Array[])
 
-    const payloads = actions.map((action) => ({ payload: action }))
-
     const { responses } = await client.keystore.selfEncrypt({
-      requests: payloads,
+      requests: actions.map((action) => ({ payload: action })),
     })
 
     // encrypted messages
@@ -164,46 +162,46 @@ export class Contacts {
    * Addresses that the client has connected to
    */
   addresses: Set<string>
-  allowList: AllowList
+  consentList: ConsentList
   client: Client
 
   constructor(client: Client) {
     this.addresses = new Set<string>()
-    this.allowList = new AllowList()
+    this.consentList = new ConsentList()
     this.client = client
   }
 
-  async refreshAllowList() {
-    if (this.client._enableAllowList) {
-      this.allowList = await AllowList.load(this.client)
+  async refreshConsentList() {
+    if (this.client._enableConsentList) {
+      this.consentList = await ConsentList.load(this.client)
     }
   }
 
   isAllowed(address: string) {
-    return this.allowList.state(address) === 'allow'
+    return this.consentList.state(address) === 'allowed'
   }
 
   isBlocked(address: string) {
-    return this.allowList.state(address) === 'block'
+    return this.consentList.state(address) === 'blocked'
   }
 
-  allowState(address: string) {
-    return this.allowList.state(address)
+  consentState(address: string) {
+    return this.consentList.state(address)
   }
 
   async allow(addresses: string[]) {
-    if (this.client._enableAllowList) {
-      await AllowList.publish(
-        addresses.map((address) => this.allowList.allow(address)),
+    if (this.client._enableConsentList) {
+      await ConsentList.publish(
+        addresses.map((address) => this.consentList.allow(address)),
         this.client
       )
     }
   }
 
   async block(addresses: string[]) {
-    if (this.client._enableAllowList) {
-      await AllowList.publish(
-        addresses.map((address) => this.allowList.block(address)),
+    if (this.client._enableConsentList) {
+      await ConsentList.publish(
+        addresses.map((address) => this.consentList.block(address)),
         this.client
       )
     }

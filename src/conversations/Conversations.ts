@@ -50,7 +50,7 @@ export default class Conversations<ContentTypes = any> {
     ])
 
     // fetch allow list if enabled
-    this.client.contacts.refreshAllowList()
+    this.client.contacts.refreshConsentList()
 
     const conversations = v1Convos.concat(v2Convos)
 
@@ -571,7 +571,7 @@ export default class Conversations<ContentTypes = any> {
     ])
 
     // add peer address to allow list
-    if (this.client._enableAllowList) {
+    if (this.client._enableConsentList) {
       this.client.contacts.allow([peerAddress])
     }
 
