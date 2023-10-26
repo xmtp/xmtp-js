@@ -3,6 +3,7 @@ import {
   encrypt,
   PrivateKeyBundleV1,
   decrypt,
+  PrivateKey,
 } from '../crypto'
 import { ciphertext } from '@xmtp/proto'
 import {
@@ -56,17 +57,19 @@ export const encryptV2 = (
 ) => encrypt(payload, secret, headerBytes)
 
 export async function selfEncrypt(
-  publicKey: Uint8Array,
-  privateKey: Uint8Array,
+  identityKey: PrivateKey,
   payload: Uint8Array
 ) {
+  const publicKey = identityKey.publicKey.secp256k1Uncompressed.bytes
+  const privateKey = identityKey.secp256k1.bytes
   return ecies_encrypt_k256_sha3_256(publicKey, privateKey, payload)
 }
 
 export async function selfDecrypt(
-  publicKey: Uint8Array,
-  privateKey: Uint8Array,
+  identityKey: PrivateKey,
   payload: Uint8Array
 ) {
+  const publicKey = identityKey.publicKey.secp256k1Uncompressed.bytes
+  const privateKey = identityKey.secp256k1.bytes
   return ecies_decrypt_k256_sha3_256(publicKey, privateKey, payload)
 }

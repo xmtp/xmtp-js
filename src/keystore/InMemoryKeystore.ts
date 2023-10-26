@@ -215,12 +215,8 @@ export default class InMemoryKeystore implements Keystore {
           )
         }
 
-        const publicKey =
-          this.v1Keys.getPublicKeyBundle().preKey.secp256k1Uncompressed.bytes
-        const privateKey = this.v1Keys.identityKey.secp256k1.bytes
-
         return {
-          encrypted: await selfEncrypt(publicKey, privateKey, payload),
+          encrypted: await selfEncrypt(this.v1Keys.identityKey, payload),
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -246,12 +242,8 @@ export default class InMemoryKeystore implements Keystore {
           )
         }
 
-        const publicKey =
-          this.v1Keys.getPublicKeyBundle().preKey.secp256k1Uncompressed.bytes
-        const privateKey = this.v1Keys.identityKey.secp256k1.bytes
-
         return {
-          decrypted: await selfDecrypt(publicKey, privateKey, payload),
+          decrypted: await selfDecrypt(this.v1Keys.identityKey, payload),
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
