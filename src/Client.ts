@@ -7,6 +7,8 @@ import {
   buildUserInviteTopic,
   isBrowser,
   getSigner,
+  EnvelopeMapperWithMessage,
+  EnvelopeWithMessage,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
@@ -711,7 +713,7 @@ export default class Client<ContentTypes = any> {
    */
   async listEnvelopes<Out>(
     topic: string,
-    mapper: EnvelopeMapper<Out>,
+    mapper: EnvelopeMapperWithMessage<Out>,
     opts?: ListMessagesOptions
   ): Promise<Out[]> {
     if (!opts) {
@@ -731,7 +733,7 @@ export default class Client<ContentTypes = any> {
     for (const env of envelopes) {
       if (!env.message) continue
       try {
-        const res = await mapper(env)
+        const res = await mapper(env as EnvelopeWithMessage)
         results.push(res)
       } catch (e) {
         console.warn('Error in listEnvelopes mapper', e)

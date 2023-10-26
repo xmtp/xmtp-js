@@ -1,8 +1,6 @@
-import { Envelope } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
 import Client from './Client'
 import { privatePreferences } from '@xmtp/proto'
-import { buildUserPrivatePreferencesTopic } from './utils'
-import { PublishParams } from './ApiClient'
+import { EnvelopeWithMessage, buildUserPrivatePreferencesTopic } from './utils'
 
 export type AllowListPermissionType = 'allow' | 'block' | 'unknown'
 
@@ -72,31 +70,34 @@ export class AllowList {
   static async load(client: Client): Promise<AllowList> {
     const allowList = new AllowList()
     const identifier = await this.getIdentifier(client)
-    const envelopes = (
-      await client.listEnvelopes(
-        buildUserPrivatePreferencesTopic(identifier),
-        async ({ message }: Envelope) => {
-          if (message) {
-            const result = await client.keystore.selfDecrypt({
-              requests: [{ payload: message }],
-            })
-            const payload = result.responses[0].result?.decrypted
-            if (payload) {
-              return privatePreferences.PrivatePreferencesAction.decode(payload)
-            }
-          }
-          return undefined
-        }
-      )
-    ).filter(
-      (envelope) => envelope !== undefined
-    ) as privatePreferences.PrivatePreferencesAction[]
+    const contentTopic = buildUserPrivatePreferencesTopic(identifier)
 
-    envelopes.forEach((envelope) => {
-      envelope.allow?.walletAddresses.forEach((address) => {
+    const messages = await client.listEnvelopes(
+      contentTopic,
+      async ({ message }: EnvelopeWithMessage) => message
+    )
+
+    // decrypt messages
+    const { responses } = await client.keystore.selfDecrypt({
+      requests: messages.map((message) => ({ payload: message })),
+    })
+
+    // decoded actions
+    const actions = responses.reduce((result, response) => {
+      return response.result?.decrypted
+        ? result.concat(
+            privatePreferences.PrivatePreferencesAction.decode(
+              response.result.decrypted
+            )
+          )
+        : result
+    }, [] as privatePreferences.PrivatePreferencesAction[])
+
+    actions.forEach((action) => {
+      action.allow?.walletAddresses.forEach((address) => {
         allowList.allow(address)
       })
-      envelope.block?.walletAddresses.forEach((address) => {
+      action.block?.walletAddresses.forEach((address) => {
         allowList.block(address)
       })
     })
@@ -107,45 +108,52 @@ export class AllowList {
   static async publish(entries: AllowListEntry[], client: Client) {
     const identifier = await this.getIdentifier(client)
 
-    // TODO: preserve order
-    const rawEnvelopes = await Promise.all(
-      entries.map(async (entry) => {
-        if (entry.entryType === 'address') {
-          const action: privatePreferences.PrivatePreferencesAction = {
-            allow:
-              entry.permissionType === 'allow'
-                ? {
-                    walletAddresses: [entry.value],
-                  }
-                : undefined,
-            block:
-              entry.permissionType === 'block'
-                ? {
-                    walletAddresses: [entry.value],
-                  }
-                : undefined,
-          }
-          const payload =
-            privatePreferences.PrivatePreferencesAction.encode(action).finish()
-          const result = await client.keystore.selfEncrypt({
-            requests: [{ payload }],
-          })
-          const message = result.responses[0].result?.encrypted
-          if (message) {
-            return {
-              contentTopic: buildUserPrivatePreferencesTopic(identifier),
-              message,
-              timestamp: new Date(),
-            }
-          }
+    // encoded actions
+    const actions = entries.reduce((result, entry) => {
+      if (entry.entryType === 'address') {
+        const action: privatePreferences.PrivatePreferencesAction = {
+          allow:
+            entry.permissionType === 'allow'
+              ? {
+                  walletAddresses: [entry.value],
+                }
+              : undefined,
+          block:
+            entry.permissionType === 'block'
+              ? {
+                  walletAddresses: [entry.value],
+                }
+              : undefined,
         }
-        return undefined
-      })
-    )
+        return result.concat(
+          privatePreferences.PrivatePreferencesAction.encode(action).finish()
+        )
+      }
+      return result
+    }, [] as Uint8Array[])
 
-    const envelopes = rawEnvelopes.filter(
-      (envelope) => envelope !== undefined
-    ) as PublishParams[]
+    const payloads = actions.map((action) => ({ payload: action }))
+
+    const { responses } = await client.keystore.selfEncrypt({
+      requests: payloads,
+    })
+
+    // encrypted messages
+    const messages = responses.reduce((result, response) => {
+      return response.result?.encrypted
+        ? result.concat(response.result?.encrypted)
+        : result
+    }, [] as Uint8Array[])
+
+    const contentTopic = buildUserPrivatePreferencesTopic(identifier)
+    const timestamp = new Date()
+
+    // envelopes to publish
+    const envelopes = messages.map((message) => ({
+      contentTopic,
+      message,
+      timestamp,
+    }))
 
     await client.publishEnvelopes(envelopes)
   }
