@@ -32,6 +32,7 @@ import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
+import { ConsentState } from '../Contacts'
 
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
@@ -65,6 +66,28 @@ export interface Conversation<ContentTypes = any> {
    * Will always be undefined on V1 conversations
    */
   context?: InvitationContext | undefined
+
+  /**
+   * Add conversation peer address to allow list
+   */
+  allow(): Promise<void>
+  /**
+   * Add conversation peer address to block list
+   */
+  block(): Promise<void>
+
+  /**
+   * Returns true if conversation peer address is on the allow list
+   */
+  isAllowed: boolean
+  /**
+   * Returns true if conversation peer address is on the block list
+   */
+  isBlocked: boolean
+  /**
+   * Returns the consent state of the conversation peer address
+   */
+  consentState: ConsentState
 
   /**
    * Retrieve messages in this conversation. Default to returning all messages.
@@ -162,6 +185,26 @@ export class ConversationV1<ContentTypes>
 
   get clientAddress() {
     return this.client.address
+  }
+
+  async allow() {
+    await this.client.contacts.allow([this.peerAddress])
+  }
+
+  async block() {
+    await this.client.contacts.block([this.peerAddress])
+  }
+
+  get isAllowed() {
+    return this.client.contacts.isAllowed(this.peerAddress)
+  }
+
+  get isBlocked() {
+    return this.client.contacts.isBlocked(this.peerAddress)
+  }
+
+  get consentState() {
+    return this.client.contacts.consentState(this.peerAddress)
   }
 
   get topic(): string {
