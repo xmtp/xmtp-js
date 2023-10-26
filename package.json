@@ -31,7 +31,7 @@
     "updateSnapVersion": "npm view @xmtp/snap --json | jq '{\"version\": .version, \"package\": .name}' > ./src/snapInfo.json",
     "test:setup": "./dev/up",
     "test:teardown": "./dev/down",
-    "test": "npm run test:node",
+    "test": "npm run test:node --",
     "test:node": "jest --no-cache --env='node' --testTimeout=30000",
     "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.cjs' --testTimeout=30000",
     "test:cov": "jest --coverage --no-cache --runInBand",

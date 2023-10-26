@@ -360,7 +360,8 @@ export default class Conversations<ContentTypes = any> {
       if (msg instanceof DecodedMessage && msg.contentTopic === introTopic) {
         const convo = new ConversationV1(
           this.client,
-          msg.recipientAddress === this.client.address
+          msg.recipientAddress?.toLowerCase() ===
+          this.client.address.toLowerCase()
             ? (msg.senderAddress as string)
             : (msg.recipientAddress as string),
           msg.sent
@@ -474,7 +475,7 @@ export default class Conversations<ContentTypes = any> {
       throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
     }
 
-    if (peerAddress === this.client.address) {
+    if (peerAddress.toLowerCase() === this.client.address.toLowerCase()) {
       throw new Error('self messaging not supported')
     }
 
@@ -487,7 +488,7 @@ export default class Conversations<ContentTypes = any> {
     if (!context?.conversationId) {
       const v1Convos = await this.listV1Conversations()
       const matchingConvo = v1Convos.find(
-        (convo) => convo.peerAddress === peerAddress
+        (convo) => convo.peerAddress.toLowerCase() === peerAddress.toLowerCase()
       )
       // If intro already exists, return V1 conversation
       // if both peers have V1 compatible key bundles
@@ -516,7 +517,7 @@ export default class Conversations<ContentTypes = any> {
 
     // Define a function for matching V2 conversations
     const matcherFn = (convo: Conversation<ContentTypes>) =>
-      convo.peerAddress === peerAddress &&
+      convo.peerAddress.toLowerCase() === peerAddress.toLowerCase() &&
       isMatchingContext(context, convo.context ?? undefined)
 
     const existing = await this.getV2ConversationsFromKeystore()
@@ -571,7 +572,8 @@ export default class Conversations<ContentTypes = any> {
 
   private getPeerAddress(message: MessageV1): string {
     const peerAddress =
-      message.recipientAddress === this.client.address
+      message.recipientAddress?.toLowerCase() ===
+      this.client.address.toLowerCase()
         ? message.senderAddress
         : message.recipientAddress
 

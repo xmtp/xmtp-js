@@ -1,12 +1,16 @@
 import { Envelope } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
+import { DecodedMessage } from './Message'
 
 export class PreparedMessage {
   messageEnvelope: Envelope
-  onSend: () => Promise<void>
+  onSend: () => Promise<DecodedMessage>
 
-  constructor(messageEnvelope: Envelope, onSend: () => Promise<void>) {
+  constructor(
+    messageEnvelope: Envelope,
+    onSend: () => Promise<DecodedMessage>
+  ) {
     this.messageEnvelope = messageEnvelope
     this.onSend = onSend
   }
@@ -20,6 +24,6 @@ export class PreparedMessage {
   }
 
   async send() {
-    await this.onSend()
+    return this.onSend()
   }
 }
