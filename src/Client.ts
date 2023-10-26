@@ -7,6 +7,8 @@ import {
   buildUserInviteTopic,
   isBrowser,
   getSigner,
+  EnvelopeMapperWithMessage,
+  EnvelopeWithMessage,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
@@ -44,6 +46,7 @@ import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { version as snapVersion, package as snapPackage } from './snapInfo.json'
 import { ExtractDecodedType } from './types/client'
 import type { WalletClient } from 'viem'
+import { Contacts } from './Contacts'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -194,6 +197,10 @@ export type PreEventCallbackOptions = {
   preEnableIdentityCallback?: PreEventCallback
 }
 
+export type ConsentListOptions = {
+  enableConsentList: boolean
+}
+
 /**
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
@@ -203,7 +210,8 @@ export type ClientOptions = Flatten<
     KeyStoreOptions &
     ContentOptions &
     LegacyOptions &
-    PreEventCallbackOptions
+    PreEventCallbackOptions &
+    ConsentListOptions
 >
 
 /**
@@ -226,6 +234,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     disablePersistenceEncryption: false,
     keystoreProviders: defaultKeystoreProviders(),
     apiClientFactory: createHttpApiClientFromOptions,
+    enableConsentList: false,
   }
 
   if (opts?.codecs) {
@@ -251,7 +260,7 @@ export default class Client<ContentTypes = any> {
   address: string
   keystore: Keystore
   apiClient: ApiClient
-  contacts: Set<string> // address which we have connected to
+  contacts: Contacts
   publicKeyBundle: PublicKeyBundle
   private knownPublicKeyBundles: Map<
     string,
@@ -263,14 +272,16 @@ export default class Client<ContentTypes = any> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
+  readonly _enableConsentList: boolean
 
   constructor(
     publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
-    keystore: Keystore
+    keystore: Keystore,
+    enableConsentList: boolean = false
   ) {
-    this.contacts = new Set<string>()
+    this.contacts = new Contacts(this)
     this.knownPublicKeyBundles = new Map<
       string,
       PublicKeyBundle | SignedPublicKeyBundle
@@ -284,6 +295,7 @@ export default class Client<ContentTypes = any> {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
+    this._enableConsentList = enableConsentList
   }
 
   /**
@@ -328,7 +340,13 @@ export default class Client<ContentTypes = any> {
     const backupClient = await Client.setupBackupClient(address, options.env)
     const client = new Client<
       ExtractDecodedType<[...ContentCodecs, TextCodec][number]> | undefined
-    >(publicKeyBundle, apiClient, backupClient, keystore)
+    >(
+      publicKeyBundle,
+      apiClient,
+      backupClient,
+      keystore,
+      opts?.enableConsentList
+    )
     await client.init(options)
     return client
   }
@@ -701,7 +719,7 @@ export default class Client<ContentTypes = any> {
    */
   async listEnvelopes<Out>(
     topic: string,
-    mapper: EnvelopeMapper<Out>,
+    mapper: EnvelopeMapperWithMessage<Out>,
     opts?: ListMessagesOptions
   ): Promise<Out[]> {
     if (!opts) {
@@ -721,7 +739,7 @@ export default class Client<ContentTypes = any> {
     for (const env of envelopes) {
       if (!env.message) continue
       try {
-        const res = await mapper(env)
+        const res = await mapper(env as EnvelopeWithMessage)
         results.push(res)
       } catch (e) {
         console.warn('Error in listEnvelopes mapper', e)

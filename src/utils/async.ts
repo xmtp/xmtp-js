@@ -1,4 +1,5 @@
 import { messageApi } from '@xmtp/proto'
+import { Flatten } from './typedefs'
 
 export type IsRetryable = (err?: Error) => boolean
 
@@ -48,6 +49,13 @@ export async function retry<T extends (...arg0: any[]) => any>(
     return retry(fn, args, maxRetries, sleepTime, isRetryableFn, currRetry + 1)
   }
 }
+
+export type EnvelopeWithMessage = Flatten<
+  messageApi.Envelope & Required<Pick<messageApi.Envelope, 'message'>>
+>
+export type EnvelopeMapperWithMessage<Out> = (
+  env: EnvelopeWithMessage
+) => Promise<Out>
 
 export type EnvelopeMapper<Out> = (env: messageApi.Envelope) => Promise<Out>
 

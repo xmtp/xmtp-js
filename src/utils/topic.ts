@@ -31,7 +31,11 @@ export const buildUserInviteTopic = (walletAddr: string): string => {
   // EIP55 normalize the address case.
   return buildContentTopic(`invite-${utils.getAddress(walletAddr)}`)
 }
+
 export const buildUserPrivateStoreTopic = (addrPrefixedKey: string): string => {
   // e.g. "0x1111111111222222222233333333334444444444/key_bundle"
   return buildContentTopic(`privatestore-${addrPrefixedKey}`)
 }
+
+export const buildUserPrivatePreferencesTopic = (identifier: string) =>
+  buildContentTopic(`pppp-${identifier}`)

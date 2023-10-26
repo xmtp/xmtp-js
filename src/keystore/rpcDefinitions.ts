@@ -73,4 +73,16 @@ export const apiDefs: ApiDefs = {
     req: keystore.SetRefeshJobRequest,
     res: keystore.SetRefreshJobResponse,
   },
+  selfEncrypt: {
+    req: keystore.SelfEncryptRequest,
+    res: keystore.SelfEncryptResponse,
+  },
+  selfDecrypt: {
+    req: keystore.SelfDecryptRequest,
+    res: keystore.DecryptResponse,
+  },
+  getPrivatePreferencesTopicIdentifier: {
+    req: null,
+    res: keystore.GetPrivatePreferencesTopicIdentifierResponse,
+  },
 } as const
