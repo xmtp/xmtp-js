@@ -162,7 +162,7 @@ export class Contacts {
    * Addresses that the client has connected to
    */
   addresses: Set<string>
-  consentList: ConsentList
+  private consentList: ConsentList
   client: Client
 
   constructor(client: Client) {
