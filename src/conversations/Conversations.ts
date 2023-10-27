@@ -571,7 +571,7 @@ export default class Conversations<ContentTypes = any> {
     ])
 
     // add peer address to allow list
-    if (this.client._enableConsentList) {
+    if (this.client.consentEnabled) {
       this.client.contacts.allow([peerAddress])
     }
 
