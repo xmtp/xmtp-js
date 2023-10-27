@@ -49,9 +49,6 @@ export default class Conversations<ContentTypes = any> {
       this.listV2Conversations(),
     ])
 
-    // fetch allow list if enabled
-    this.client.contacts.refreshConsentList()
-
     const conversations = v1Convos.concat(v2Convos)
 
     conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
@@ -571,9 +568,7 @@ export default class Conversations<ContentTypes = any> {
     ])
 
     // add peer address to allow list
-    if (this.client.consentEnabled) {
-      this.client.contacts.allow([peerAddress])
-    }
+    this.client.contacts.allow([peerAddress])
 
     return this.conversationReferenceToV2(conversation)
   }

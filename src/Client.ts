@@ -197,10 +197,6 @@ export type PreEventCallbackOptions = {
   preEnableIdentityCallback?: PreEventCallback
 }
 
-export type ConsentOptions = {
-  enableConsent: boolean
-}
-
 /**
  * Aggregate type for client options. Optional properties are used when the default value is calculated on invocation, and are computed
  * as needed by each function. All other defaults are specified in defaultOptions.
@@ -210,8 +206,7 @@ export type ClientOptions = Flatten<
     KeyStoreOptions &
     ContentOptions &
     LegacyOptions &
-    PreEventCallbackOptions &
-    ConsentOptions
+    PreEventCallbackOptions
 >
 
 /**
@@ -234,7 +229,6 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
     disablePersistenceEncryption: false,
     keystoreProviders: defaultKeystoreProviders(),
     apiClientFactory: createHttpApiClientFromOptions,
-    enableConsent: false,
   }
 
   if (opts?.codecs) {
@@ -272,14 +266,12 @@ export default class Client<ContentTypes = any> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
-  readonly consentEnabled: boolean
 
   constructor(
     publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
-    keystore: Keystore,
-    enableConsent: boolean = false
+    keystore: Keystore
   ) {
     this.contacts = new Contacts(this)
     this.knownPublicKeyBundles = new Map<
@@ -295,7 +287,6 @@ export default class Client<ContentTypes = any> {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
-    this.consentEnabled = enableConsent
   }
 
   /**
@@ -340,7 +331,7 @@ export default class Client<ContentTypes = any> {
     const backupClient = await Client.setupBackupClient(address, options.env)
     const client = new Client<
       ExtractDecodedType<[...ContentCodecs, TextCodec][number]> | undefined
-    >(publicKeyBundle, apiClient, backupClient, keystore, opts?.enableConsent)
+    >(publicKeyBundle, apiClient, backupClient, keystore)
     await client.init(options)
     return client
   }

@@ -175,9 +175,7 @@ export class Contacts {
   }
 
   async refreshConsentList(startTime?: Date) {
-    if (this.client.consentEnabled) {
-      this.consentList = await ConsentList.load(this.client, startTime)
-    }
+    this.consentList = await ConsentList.load(this.client, startTime)
   }
 
   isAllowed(address: string) {
@@ -193,20 +191,16 @@ export class Contacts {
   }
 
   async allow(addresses: string[]) {
-    if (this.client.consentEnabled) {
-      await ConsentList.publish(
-        addresses.map((address) => this.consentList.allow(address)),
-        this.client
-      )
-    }
+    await ConsentList.publish(
+      addresses.map((address) => this.consentList.allow(address)),
+      this.client
+    )
   }
 
   async block(addresses: string[]) {
-    if (this.client.consentEnabled) {
-      await ConsentList.publish(
-        addresses.map((address) => this.consentList.block(address)),
-        this.client
-      )
-    }
+    await ConsentList.publish(
+      addresses.map((address) => this.consentList.block(address)),
+      this.client
+    )
   }
 }
