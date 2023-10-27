@@ -14,15 +14,12 @@ describe('Contacts', () => {
   beforeEach(async () => {
     aliceClient = await Client.create(alice, {
       env: 'local',
-      enableConsentList: true,
     })
     bobClient = await Client.create(bob, {
       env: 'local',
-      enableConsentList: true,
     })
     carolClient = await Client.create(carol, {
       env: 'local',
-      enableConsentList: true,
     })
   })
 
@@ -102,7 +99,6 @@ describe('Contacts', () => {
 
     aliceClient = await Client.create(alice, {
       env: 'local',
-      enableConsentList: true,
     })
 
     expect(aliceClient.contacts.consentState(bob.address)).toBe('unknown')

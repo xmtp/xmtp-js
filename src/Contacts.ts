@@ -67,14 +67,17 @@ export class ConsentList {
     return this._identifier
   }
 
-  static async load(client: Client): Promise<ConsentList> {
+  static async load(client: Client, startTime?: Date): Promise<ConsentList> {
     const consentList = new ConsentList()
     const identifier = await this.getIdentifier(client)
     const contentTopic = buildUserPrivatePreferencesTopic(identifier)
 
     const messages = await client.listEnvelopes(
       contentTopic,
-      async ({ message }: EnvelopeWithMessage) => message
+      async ({ message }: EnvelopeWithMessage) => message,
+      {
+        startTime,
+      }
     )
 
     // decrypt messages
@@ -171,10 +174,8 @@ export class Contacts {
     this.client = client
   }
 
-  async refreshConsentList() {
-    if (this.client._enableConsentList) {
-      this.consentList = await ConsentList.load(this.client)
-    }
+  async refreshConsentList(startTime?: Date) {
+    this.consentList = await ConsentList.load(this.client, startTime)
   }
 
   isAllowed(address: string) {
@@ -190,20 +191,16 @@ export class Contacts {
   }
 
   async allow(addresses: string[]) {
-    if (this.client._enableConsentList) {
-      await ConsentList.publish(
-        addresses.map((address) => this.consentList.allow(address)),
-        this.client
-      )
-    }
+    await ConsentList.publish(
+      addresses.map((address) => this.consentList.allow(address)),
+      this.client
+    )
   }
 
   async block(addresses: string[]) {
-    if (this.client._enableConsentList) {
-      await ConsentList.publish(
-        addresses.map((address) => this.consentList.block(address)),
-        this.client
-      )
-    }
+    await ConsentList.publish(
+      addresses.map((address) => this.consentList.block(address)),
+      this.client
+    )
   }
 }

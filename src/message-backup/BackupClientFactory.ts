@@ -10,12 +10,11 @@ import TopicStoreBackupClient from './TopicStoreBackupClient'
  * Creates a backup client of the correct provider type (e.g. xmtp backup, no backup, etc).
  * Uses an existing user preference from the backend if it exists, else prompts for a new
  * one using the `providerSelector`
- *
  * @param walletAddress The public address of the user's wallet
  * @param selectBackupProvider A callback for determining the provider to use, in the event there is no
  * existing user preference. The app can define the policy to use here (e.g. prompt the user,
  * or default to a certain provider type).
- * @returns A backup client of the correct type
+ * @returns {Promise<BackupClient>} A backup client of the correct type
  */
 export async function createBackupClient(
   walletAddress: string,
