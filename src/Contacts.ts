@@ -34,11 +34,13 @@ export class ConsentListEntry {
 }
 
 export class ConsentList {
+  client: Client
   entries: Map<string, ConsentState>
-  static _identifier: string
+  private _identifier: string | undefined
 
-  constructor() {
+  constructor(client: Client) {
     this.entries = new Map<string, ConsentState>()
+    this.client = client
   }
 
   allow(address: string) {
@@ -58,21 +60,25 @@ export class ConsentList {
     return this.entries.get(entry.key) ?? 'unknown'
   }
 
-  static async getIdentifier(client: Client): Promise<string> {
+  async getIdentifier(): Promise<string> {
     if (!this._identifier) {
       const { identifier } =
-        await client.keystore.getPrivatePreferencesTopicIdentifier()
+        await this.client.keystore.getPrivatePreferencesTopicIdentifier()
       this._identifier = identifier
     }
     return this._identifier
   }
 
-  static async load(client: Client, startTime?: Date): Promise<ConsentList> {
-    const consentList = new ConsentList()
-    const identifier = await this.getIdentifier(client)
+  async load(startTime?: Date) {
+    // no startTime, all entries will be fetched
+    if (!startTime) {
+      // clear existing entries
+      this.entries.clear()
+    }
+    const identifier = await this.getIdentifier()
     const contentTopic = buildUserPrivatePreferencesTopic(identifier)
 
-    const messages = await client.listEnvelopes(
+    const messages = await this.client.listEnvelopes(
       contentTopic,
       async ({ message }: EnvelopeWithMessage) => message,
       {
@@ -81,7 +87,7 @@ export class ConsentList {
     )
 
     // decrypt messages
-    const { responses } = await client.keystore.selfDecrypt({
+    const { responses } = await this.client.keystore.selfDecrypt({
       requests: messages.map((message) => ({ payload: message })),
     })
 
@@ -96,23 +102,23 @@ export class ConsentList {
         : result
     }, [] as privatePreferences.PrivatePreferencesAction[])
 
+    // update consent list entries
     actions.forEach((action) => {
       action.allow?.walletAddresses.forEach((address) => {
-        consentList.allow(address)
+        this.allow(address)
       })
       action.block?.walletAddresses.forEach((address) => {
-        consentList.block(address)
+        this.block(address)
       })
     })
-
-    return consentList
   }
 
-  static async publish(entries: ConsentListEntry[], client: Client) {
-    const identifier = await this.getIdentifier(client)
+  async publish(entries: ConsentListEntry[]) {
+    const identifier = await this.getIdentifier()
 
     // encoded actions
     const actions = entries.reduce((result, entry) => {
+      // only handle address entries for now
       if (entry.entryType === 'address') {
         const action: privatePreferences.PrivatePreferencesAction = {
           allow:
@@ -135,7 +141,7 @@ export class ConsentList {
       return result
     }, [] as Uint8Array[])
 
-    const { responses } = await client.keystore.selfEncrypt({
+    const { responses } = await this.client.keystore.selfEncrypt({
       requests: actions.map((action) => ({ payload: action })),
     })
 
@@ -156,7 +162,7 @@ export class ConsentList {
       timestamp,
     }))
 
-    await client.publishEnvelopes(envelopes)
+    await this.client.publishEnvelopes(envelopes)
   }
 }
 
@@ -165,17 +171,29 @@ export class Contacts {
    * Addresses that the client has connected to
    */
   addresses: Set<string>
-  private consentList: ConsentList
+  /**
+   * XMTP client
+   */
   client: Client
+  /**
+   * The last time the consent list was synced
+   */
+  lastSyncedAt?: Date
+  private consentList: ConsentList
 
   constructor(client: Client) {
     this.addresses = new Set<string>()
-    this.consentList = new ConsentList()
+    this.consentList = new ConsentList(client)
     this.client = client
   }
 
-  async refreshConsentList(startTime?: Date) {
-    this.consentList = await ConsentList.load(this.client, startTime)
+  async loadConsentList(startTime?: Date) {
+    this.lastSyncedAt = new Date()
+    await this.consentList.load(startTime)
+  }
+
+  async refreshConsentList() {
+    await this.loadConsentList()
   }
 
   isAllowed(address: string) {
@@ -191,16 +209,14 @@ export class Contacts {
   }
 
   async allow(addresses: string[]) {
-    await ConsentList.publish(
-      addresses.map((address) => this.consentList.allow(address)),
-      this.client
+    await this.consentList.publish(
+      addresses.map((address) => this.consentList.allow(address))
     )
   }
 
   async block(addresses: string[]) {
-    await ConsentList.publish(
-      addresses.map((address) => this.consentList.block(address)),
-      this.client
+    await this.consentList.publish(
+      addresses.map((address) => this.consentList.block(address))
     )
   }
 }
