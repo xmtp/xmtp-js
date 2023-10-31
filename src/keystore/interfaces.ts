@@ -81,6 +81,22 @@ export interface Keystore {
    * Get the account address of the wallet used to create the Keystore
    */
   getAccountAddress(): Promise<string>
+  /**
+   * Encrypt a batch of messages to yourself
+   */
+  selfEncrypt(
+    req: keystore.SelfEncryptRequest
+  ): Promise<keystore.SelfEncryptResponse>
+  /**
+   * Decrypt a batch of messages to yourself
+   */
+  selfDecrypt(
+    req: keystore.SelfDecryptRequest
+  ): Promise<keystore.DecryptResponse>
+  /**
+   * Get the private preferences topic identifier
+   */
+  getPrivatePreferencesTopicIdentifier(): Promise<keystore.GetPrivatePreferencesTopicIdentifierResponse>
 }
 
 export type TopicData = WithoutUndefined<keystore.TopicMap_TopicData>
