@@ -568,7 +568,7 @@ export default class Conversations<ContentTypes = any> {
     ])
 
     // add peer address to allow list
-    this.client.contacts.allow([peerAddress])
+    await this.client.contacts.allow([peerAddress])
 
     return this.conversationReferenceToV2(conversation)
   }
