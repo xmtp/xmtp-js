@@ -162,7 +162,13 @@ export class ConsentList {
       timestamp,
     }))
 
+    // publish entries
     await this.client.publishEnvelopes(envelopes)
+
+    // update local entries after publishing
+    entries.forEach((entry) => {
+      this.entries.set(entry.key, entry.permissionType)
+    })
   }
 }
 
@@ -210,13 +216,17 @@ export class Contacts {
 
   async allow(addresses: string[]) {
     await this.consentList.publish(
-      addresses.map((address) => this.consentList.allow(address))
+      addresses.map((address) =>
+        ConsentListEntry.fromAddress(address, 'allowed')
+      )
     )
   }
 
   async block(addresses: string[]) {
     await this.consentList.publish(
-      addresses.map((address) => this.consentList.block(address))
+      addresses.map((address) =>
+        ConsentListEntry.fromAddress(address, 'blocked')
+      )
     )
   }
 }
