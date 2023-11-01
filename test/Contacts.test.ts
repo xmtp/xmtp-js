@@ -55,6 +55,27 @@ describe('Contacts', () => {
     expect(conversation.consentState).toBe('allowed')
   })
 
+  it('should allow an address when a conversation has an unknown consent state and a message is sent into it', async () => {
+    await aliceClient.conversations.newConversation(carol.address)
+
+    expect(carolClient.contacts.consentState(alice.address)).toBe('unknown')
+    expect(carolClient.contacts.isAllowed(carol.address)).toBe(false)
+    expect(carolClient.contacts.isDenied(carol.address)).toBe(false)
+
+    const carolConversation = await carolClient.conversations.newConversation(
+      alice.address
+    )
+    expect(carolConversation.consentState).toBe('unknown')
+    expect(carolConversation.isAllowed).toBe(false)
+    expect(carolConversation.isDenied).toBe(false)
+
+    await carolConversation.send('gm')
+
+    expect(carolConversation.consentState).toBe('allowed')
+    expect(carolConversation.isAllowed).toBe(true)
+    expect(carolConversation.isDenied).toBe(false)
+  })
+
   it('should allow or deny an address from a conversation', async () => {
     const conversation = await aliceClient.conversations.newConversation(
       carol.address
