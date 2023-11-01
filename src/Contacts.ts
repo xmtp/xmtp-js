@@ -6,7 +6,7 @@ import {
   fromNanoString,
 } from './utils'
 
-export type ConsentState = 'allowed' | 'blocked' | 'unknown'
+export type ConsentState = 'allowed' | 'denied' | 'unknown'
 
 export type ConsentListEntryType = 'address'
 
@@ -54,9 +54,9 @@ export class ConsentList {
     return entry
   }
 
-  block(address: string) {
-    const entry = ConsentListEntry.fromAddress(address, 'blocked')
-    this.entries.set(entry.key, 'blocked')
+  deny(address: string) {
+    const entry = ConsentListEntry.fromAddress(address, 'denied')
+    this.entries.set(entry.key, 'denied')
     return entry
   }
 
@@ -120,7 +120,7 @@ export class ConsentList {
         this.allow(address)
       })
       action.block?.walletAddresses.forEach((address) => {
-        this.block(address)
+        this.deny(address)
       })
     })
 
@@ -144,7 +144,7 @@ export class ConsentList {
                 }
               : undefined,
           block:
-            entry.permissionType === 'blocked'
+            entry.permissionType === 'denied'
               ? {
                   walletAddresses: [entry.value],
                 }
@@ -229,8 +229,8 @@ export class Contacts {
       if (entry.permissionType === 'allowed') {
         this.consentList.allow(entry.value)
       }
-      if (entry.permissionType === 'blocked') {
-        this.consentList.block(entry.value)
+      if (entry.permissionType === 'denied') {
+        this.consentList.deny(entry.value)
       }
     })
   }
@@ -239,8 +239,8 @@ export class Contacts {
     return this.consentList.state(address) === 'allowed'
   }
 
-  isBlocked(address: string) {
-    return this.consentList.state(address) === 'blocked'
+  isDenied(address: string) {
+    return this.consentList.state(address) === 'denied'
   }
 
   consentState(address: string) {
@@ -255,10 +255,10 @@ export class Contacts {
     )
   }
 
-  async block(addresses: string[]) {
+  async deny(addresses: string[]) {
     await this.consentList.publish(
       addresses.map((address) =>
-        ConsentListEntry.fromAddress(address, 'blocked')
+        ConsentListEntry.fromAddress(address, 'denied')
       )
     )
   }
