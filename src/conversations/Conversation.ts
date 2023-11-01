@@ -410,6 +410,13 @@ export class ConversationV1<ContentTypes>
       }))
     )
 
+    // if the conversation consent state is unknown, we assume the user has
+    // consented to the conversation by sending a message into it
+    if (this.consentState === 'unknown') {
+      // add conversation to the allow list
+      await this.allow()
+    }
+
     return DecodedMessage.fromV1Message(
       msg,
       content,
@@ -614,6 +621,13 @@ export class ConversationV2<ContentTypes>
       },
     ])
     const contentType = options?.contentType || ContentTypeText
+
+    // if the conversation consent state is unknown, we assume the user has
+    // consented to the conversation by sending a message into it
+    if (this.consentState === 'unknown') {
+      // add conversation to the allow list
+      await this.allow()
+    }
 
     return DecodedMessage.fromV2Message(
       msg,
