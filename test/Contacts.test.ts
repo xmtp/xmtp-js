@@ -29,16 +29,16 @@ describe('Contacts', () => {
     expect(Array.from(aliceClient.contacts.addresses.keys()).length).toBe(0)
   })
 
-  it('should allow and block addresses', async () => {
+  it('should allow and deny addresses', async () => {
     await aliceClient.contacts.allow([bob.address])
     expect(aliceClient.contacts.consentState(bob.address)).toBe('allowed')
     expect(aliceClient.contacts.isAllowed(bob.address)).toBe(true)
-    expect(aliceClient.contacts.isBlocked(bob.address)).toBe(false)
+    expect(aliceClient.contacts.isDenied(bob.address)).toBe(false)
 
-    await aliceClient.contacts.block([bob.address])
-    expect(aliceClient.contacts.consentState(bob.address)).toBe('blocked')
+    await aliceClient.contacts.deny([bob.address])
+    expect(aliceClient.contacts.consentState(bob.address)).toBe('denied')
     expect(aliceClient.contacts.isAllowed(bob.address)).toBe(false)
-    expect(aliceClient.contacts.isBlocked(bob.address)).toBe(true)
+    expect(aliceClient.contacts.isDenied(bob.address)).toBe(true)
   })
 
   it('should allow an address when a conversation is started', async () => {
@@ -48,54 +48,75 @@ describe('Contacts', () => {
 
     expect(aliceClient.contacts.consentState(carol.address)).toBe('allowed')
     expect(aliceClient.contacts.isAllowed(carol.address)).toBe(true)
-    expect(aliceClient.contacts.isBlocked(carol.address)).toBe(false)
+    expect(aliceClient.contacts.isDenied(carol.address)).toBe(false)
 
     expect(conversation.isAllowed).toBe(true)
-    expect(conversation.isBlocked).toBe(false)
+    expect(conversation.isDenied).toBe(false)
     expect(conversation.consentState).toBe('allowed')
   })
 
-  it('should allow or block an address from a conversation', async () => {
+  it('should allow an address when a conversation has an unknown consent state and a message is sent into it', async () => {
+    await aliceClient.conversations.newConversation(carol.address)
+
+    expect(carolClient.contacts.consentState(alice.address)).toBe('unknown')
+    expect(carolClient.contacts.isAllowed(carol.address)).toBe(false)
+    expect(carolClient.contacts.isDenied(carol.address)).toBe(false)
+
+    const carolConversation = await carolClient.conversations.newConversation(
+      alice.address
+    )
+    expect(carolConversation.consentState).toBe('unknown')
+    expect(carolConversation.isAllowed).toBe(false)
+    expect(carolConversation.isDenied).toBe(false)
+
+    await carolConversation.send('gm')
+
+    expect(carolConversation.consentState).toBe('allowed')
+    expect(carolConversation.isAllowed).toBe(true)
+    expect(carolConversation.isDenied).toBe(false)
+  })
+
+  it('should allow or deny an address from a conversation', async () => {
     const conversation = await aliceClient.conversations.newConversation(
       carol.address
     )
 
-    await conversation.block()
+    await conversation.deny()
 
-    expect(aliceClient.contacts.consentState(carol.address)).toBe('blocked')
+    expect(aliceClient.contacts.consentState(carol.address)).toBe('denied')
     expect(aliceClient.contacts.isAllowed(carol.address)).toBe(false)
-    expect(aliceClient.contacts.isBlocked(carol.address)).toBe(true)
+    expect(aliceClient.contacts.isDenied(carol.address)).toBe(true)
 
     expect(conversation.isAllowed).toBe(false)
-    expect(conversation.isBlocked).toBe(true)
-    expect(conversation.consentState).toBe('blocked')
+    expect(conversation.isDenied).toBe(true)
+    expect(conversation.consentState).toBe('denied')
 
     await conversation.allow()
 
     expect(aliceClient.contacts.consentState(carol.address)).toBe('allowed')
     expect(aliceClient.contacts.isAllowed(carol.address)).toBe(true)
-    expect(aliceClient.contacts.isBlocked(carol.address)).toBe(false)
+    expect(aliceClient.contacts.isDenied(carol.address)).toBe(false)
 
     expect(conversation.isAllowed).toBe(true)
-    expect(conversation.isBlocked).toBe(false)
+    expect(conversation.isDenied).toBe(false)
     expect(conversation.consentState).toBe('allowed')
   })
 
   it('should retrieve consent state', async () => {
-    await aliceClient.contacts.block([bob.address])
+    await aliceClient.contacts.deny([bob.address])
     await aliceClient.contacts.allow([carol.address])
     await aliceClient.contacts.allow([bob.address])
-    await aliceClient.contacts.block([carol.address])
-    await aliceClient.contacts.block([bob.address])
+    await aliceClient.contacts.deny([carol.address])
+    await aliceClient.contacts.deny([bob.address])
     await aliceClient.contacts.allow([carol.address])
 
-    expect(aliceClient.contacts.consentState(bob.address)).toBe('blocked')
+    expect(aliceClient.contacts.consentState(bob.address)).toBe('denied')
     expect(aliceClient.contacts.isAllowed(bob.address)).toBe(false)
-    expect(aliceClient.contacts.isBlocked(bob.address)).toBe(true)
+    expect(aliceClient.contacts.isDenied(bob.address)).toBe(true)
 
     expect(aliceClient.contacts.consentState(carol.address)).toBe('allowed')
     expect(aliceClient.contacts.isAllowed(carol.address)).toBe(true)
-    expect(aliceClient.contacts.isBlocked(carol.address)).toBe(false)
+    expect(aliceClient.contacts.isDenied(carol.address)).toBe(false)
 
     aliceClient = await Client.create(alice, {
       env: 'local',
@@ -106,12 +127,12 @@ describe('Contacts', () => {
 
     await aliceClient.contacts.refreshConsentList()
 
-    expect(aliceClient.contacts.consentState(bob.address)).toBe('blocked')
+    expect(aliceClient.contacts.consentState(bob.address)).toBe('denied')
     expect(aliceClient.contacts.isAllowed(bob.address)).toBe(false)
-    expect(aliceClient.contacts.isBlocked(bob.address)).toBe(true)
+    expect(aliceClient.contacts.isDenied(bob.address)).toBe(true)
 
     expect(aliceClient.contacts.consentState(carol.address)).toBe('allowed')
     expect(aliceClient.contacts.isAllowed(carol.address)).toBe(true)
-    expect(aliceClient.contacts.isBlocked(carol.address)).toBe(false)
+    expect(aliceClient.contacts.isDenied(carol.address)).toBe(false)
   })
 })

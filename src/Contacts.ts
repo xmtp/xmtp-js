@@ -1,8 +1,12 @@
 import Client from './Client'
 import { privatePreferences } from '@xmtp/proto'
-import { EnvelopeWithMessage, buildUserPrivatePreferencesTopic } from './utils'
+import {
+  EnvelopeWithMessage,
+  buildUserPrivatePreferencesTopic,
+  fromNanoString,
+} from './utils'
 
-export type ConsentState = 'allowed' | 'blocked' | 'unknown'
+export type ConsentState = 'allowed' | 'denied' | 'unknown'
 
 export type ConsentListEntryType = 'address'
 
@@ -36,6 +40,7 @@ export class ConsentListEntry {
 export class ConsentList {
   client: Client
   entries: Map<string, ConsentState>
+  lastEntryTimestamp?: Date
   private _identifier: string | undefined
 
   constructor(client: Client) {
@@ -49,9 +54,9 @@ export class ConsentList {
     return entry
   }
 
-  block(address: string) {
-    const entry = ConsentListEntry.fromAddress(address, 'blocked')
-    this.entries.set(entry.key, 'blocked')
+  deny(address: string) {
+    const entry = ConsentListEntry.fromAddress(address, 'denied')
+    this.entries.set(entry.key, 'denied')
     return entry
   }
 
@@ -78,9 +83,16 @@ export class ConsentList {
     const identifier = await this.getIdentifier()
     const contentTopic = buildUserPrivatePreferencesTopic(identifier)
 
+    let lastTimestampNs: string | undefined
+
     const messages = await this.client.listEnvelopes(
       contentTopic,
-      async ({ message }: EnvelopeWithMessage) => message,
+      async ({ message, timestampNs }: EnvelopeWithMessage) => {
+        if (timestampNs) {
+          lastTimestampNs = timestampNs
+        }
+        return message
+      },
       {
         startTime,
       }
@@ -108,9 +120,13 @@ export class ConsentList {
         this.allow(address)
       })
       action.block?.walletAddresses.forEach((address) => {
-        this.block(address)
+        this.deny(address)
       })
     })
+
+    if (lastTimestampNs) {
+      this.lastEntryTimestamp = fromNanoString(lastTimestampNs)
+    }
   }
 
   async publish(entries: ConsentListEntry[]) {
@@ -128,7 +144,7 @@ export class ConsentList {
                 }
               : undefined,
           block:
-            entry.permissionType === 'blocked'
+            entry.permissionType === 'denied'
               ? {
                   walletAddresses: [entry.value],
                 }
@@ -181,10 +197,6 @@ export class Contacts {
    * XMTP client
    */
   client: Client
-  /**
-   * The last time the consent list was synced
-   */
-  lastSyncedAt?: Date
   private consentList: ConsentList
 
   constructor(client: Client) {
@@ -194,7 +206,6 @@ export class Contacts {
   }
 
   async loadConsentList(startTime?: Date) {
-    this.lastSyncedAt = new Date()
     await this.consentList.load(startTime)
   }
 
@@ -202,12 +213,34 @@ export class Contacts {
     await this.loadConsentList()
   }
 
+  /**
+   * The timestamp of the last entry in the consent list
+   */
+  get lastSyncedAt() {
+    return this.consentList.lastEntryTimestamp
+  }
+
+  setConsentListEntries(entries: ConsentListEntry[]) {
+    if (!entries.length) {
+      return
+    }
+    this.consentList.entries.clear()
+    entries.forEach((entry) => {
+      if (entry.permissionType === 'allowed') {
+        this.consentList.allow(entry.value)
+      }
+      if (entry.permissionType === 'denied') {
+        this.consentList.deny(entry.value)
+      }
+    })
+  }
+
   isAllowed(address: string) {
     return this.consentList.state(address) === 'allowed'
   }
 
-  isBlocked(address: string) {
-    return this.consentList.state(address) === 'blocked'
+  isDenied(address: string) {
+    return this.consentList.state(address) === 'denied'
   }
 
   consentState(address: string) {
@@ -222,10 +255,10 @@ export class Contacts {
     )
   }
 
-  async block(addresses: string[]) {
+  async deny(addresses: string[]) {
     await this.consentList.publish(
       addresses.map((address) =>
-        ConsentListEntry.fromAddress(address, 'blocked')
+        ConsentListEntry.fromAddress(address, 'denied')
       )
     )
   }

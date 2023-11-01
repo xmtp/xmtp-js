@@ -72,18 +72,18 @@ export interface Conversation<ContentTypes = any> {
    */
   allow(): Promise<void>
   /**
-   * Add conversation peer address to block list
+   * Add conversation peer address to deny list
    */
-  block(): Promise<void>
+  deny(): Promise<void>
 
   /**
    * Returns true if conversation peer address is on the allow list
    */
   isAllowed: boolean
   /**
-   * Returns true if conversation peer address is on the block list
+   * Returns true if conversation peer address is on the deny list
    */
-  isBlocked: boolean
+  isDenied: boolean
   /**
    * Returns the consent state of the conversation peer address
    */
@@ -191,16 +191,16 @@ export class ConversationV1<ContentTypes>
     await this.client.contacts.allow([this.peerAddress])
   }
 
-  async block() {
-    await this.client.contacts.block([this.peerAddress])
+  async deny() {
+    await this.client.contacts.deny([this.peerAddress])
   }
 
   get isAllowed() {
     return this.client.contacts.isAllowed(this.peerAddress)
   }
 
-  get isBlocked() {
-    return this.client.contacts.isBlocked(this.peerAddress)
+  get isDenied() {
+    return this.client.contacts.isDenied(this.peerAddress)
   }
 
   get consentState() {
@@ -410,6 +410,13 @@ export class ConversationV1<ContentTypes>
       }))
     )
 
+    // if the conversation consent state is unknown, we assume the user has
+    // consented to the conversation by sending a message into it
+    if (this.consentState === 'unknown') {
+      // add conversation to the allow list
+      await this.allow()
+    }
+
     return DecodedMessage.fromV1Message(
       msg,
       content,
@@ -522,16 +529,16 @@ export class ConversationV2<ContentTypes>
     await this.client.contacts.allow([this.peerAddress])
   }
 
-  async block() {
-    await this.client.contacts.block([this.peerAddress])
+  async deny() {
+    await this.client.contacts.deny([this.peerAddress])
   }
 
   get isAllowed() {
     return this.client.contacts.isAllowed(this.peerAddress)
   }
 
-  get isBlocked() {
-    return this.client.contacts.isBlocked(this.peerAddress)
+  get isDenied() {
+    return this.client.contacts.isDenied(this.peerAddress)
   }
 
   get consentState() {
@@ -614,6 +621,13 @@ export class ConversationV2<ContentTypes>
       },
     ])
     const contentType = options?.contentType || ContentTypeText
+
+    // if the conversation consent state is unknown, we assume the user has
+    // consented to the conversation by sending a message into it
+    if (this.consentState === 'unknown') {
+      // add conversation to the allow list
+      await this.allow()
+    }
 
     return DecodedMessage.fromV2Message(
       msg,

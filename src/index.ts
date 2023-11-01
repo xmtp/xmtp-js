@@ -113,3 +113,4 @@ export type {
   ExtractDecodedType,
 } from './types/client'
 export type { ConsentState, ConsentListEntryType } from './Contacts'
+export { ConsentListEntry } from './Contacts'
