@@ -268,6 +268,18 @@ const isOnProdNetwork = await Client.canMessage(
 )
 ```
 
+### Request and respect user consent
+
+![Feature status](https://img.shields.io/badge/Feature_status-Alpha-orange)
+
+The user consent feature enables your app to request and respect user consent preferences. With this feature, a blockchain account address registered on the XMTP network can have one of three consent preference values:
+
+- Unknown
+- Allowed
+- Denied
+
+To learn more, see [Request and respect user consent](https://xmtp.org/docs/build/user-consent).
+
 ### Send a broadcast message
 
 You can send a broadcast message (1:many message or announcement) with XMTP. The recipient sees the message as a DM from the sending wallet address.
