@@ -1,6 +1,10 @@
 import Client from './Client'
 import { privatePreferences } from '@xmtp/proto'
-import { EnvelopeWithMessage, buildUserPrivatePreferencesTopic } from './utils'
+import {
+  EnvelopeWithMessage,
+  buildUserPrivatePreferencesTopic,
+  fromNanoString,
+} from './utils'
 
 export type ConsentState = 'allowed' | 'blocked' | 'unknown'
 
@@ -36,6 +40,7 @@ export class ConsentListEntry {
 export class ConsentList {
   client: Client
   entries: Map<string, ConsentState>
+  lastEntryTimestamp?: Date
   private _identifier: string | undefined
 
   constructor(client: Client) {
@@ -78,9 +83,16 @@ export class ConsentList {
     const identifier = await this.getIdentifier()
     const contentTopic = buildUserPrivatePreferencesTopic(identifier)
 
+    let lastTimestampNs: string | undefined
+
     const messages = await this.client.listEnvelopes(
       contentTopic,
-      async ({ message }: EnvelopeWithMessage) => message,
+      async ({ message, timestampNs }: EnvelopeWithMessage) => {
+        if (timestampNs) {
+          lastTimestampNs = timestampNs
+        }
+        return message
+      },
       {
         startTime,
       }
@@ -111,6 +123,10 @@ export class ConsentList {
         this.block(address)
       })
     })
+
+    if (lastTimestampNs) {
+      this.lastEntryTimestamp = fromNanoString(lastTimestampNs)
+    }
   }
 
   async publish(entries: ConsentListEntry[]) {
@@ -181,10 +197,6 @@ export class Contacts {
    * XMTP client
    */
   client: Client
-  /**
-   * The last time the consent list was synced
-   */
-  lastSyncedAt?: Date
   private consentList: ConsentList
 
   constructor(client: Client) {
@@ -194,12 +206,33 @@ export class Contacts {
   }
 
   async loadConsentList(startTime?: Date) {
-    this.lastSyncedAt = new Date()
     await this.consentList.load(startTime)
   }
 
   async refreshConsentList() {
     await this.loadConsentList()
+  }
+
+  /**
+   * The timestamp of the last entry in the consent list
+   */
+  get lastSyncedAt() {
+    return this.consentList.lastEntryTimestamp
+  }
+
+  setConsentListEntries(entries: ConsentListEntry[]) {
+    if (!entries.length) {
+      return
+    }
+    this.consentList.entries.clear()
+    entries.forEach((entry) => {
+      if (entry.permissionType === 'allowed') {
+        this.consentList.allow(entry.value)
+      }
+      if (entry.permissionType === 'blocked') {
+        this.consentList.block(entry.value)
+      }
+    })
   }
 
   isAllowed(address: string) {
