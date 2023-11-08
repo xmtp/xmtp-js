@@ -5,6 +5,8 @@ import {
   buildUserPrivatePreferencesTopic,
   fromNanoString,
 } from './utils'
+import Stream from './Stream'
+import { OnConnectionLostCallback } from './ApiClient'
 
 export type ConsentState = 'allowed' | 'denied' | 'unknown'
 
@@ -74,6 +76,67 @@ export class ConsentList {
     return this._identifier
   }
 
+  async decodeMessages(messages: Uint8Array[]) {
+    // decrypt messages
+    const { responses } = await this.client.keystore.selfDecrypt({
+      requests: messages.map((message) => ({ payload: message })),
+    })
+
+    // decoded actions
+    const actions = responses.reduce((result, response) => {
+      return response.result?.decrypted
+        ? result.concat(
+            privatePreferences.PrivatePreferencesAction.decode(
+              response.result.decrypted
+            )
+          )
+        : result
+    }, [] as privatePreferences.PrivatePreferencesAction[])
+
+    return actions
+  }
+
+  processActions(
+    actions: privatePreferences.PrivatePreferencesAction[],
+    lastTimestampNs?: string
+  ) {
+    actions.forEach((action) => {
+      action.allow?.walletAddresses.forEach((address) => {
+        this.allow(address)
+      })
+      action.block?.walletAddresses.forEach((address) => {
+        this.deny(address)
+      })
+    })
+
+    if (lastTimestampNs) {
+      this.lastEntryTimestamp = fromNanoString(lastTimestampNs)
+    }
+  }
+
+  async stream(onConnectionLost?: OnConnectionLostCallback) {
+    const identifier = await this.getIdentifier()
+    const contentTopic = buildUserPrivatePreferencesTopic(identifier)
+
+    return Stream.create<privatePreferences.PrivatePreferencesAction>(
+      this.client,
+      [contentTopic],
+      async (envelope) => {
+        if (!envelope.message) {
+          return undefined
+        }
+        const actions = await this.decodeMessages([envelope.message])
+
+        // update consent list
+        this.processActions(actions, envelope.timestampNs)
+
+        return actions[0]
+      },
+      undefined,
+      onConnectionLost
+    )
+  }
+
   async load(startTime?: Date) {
     // no startTime, all entries will be fetched
     if (!startTime) {
@@ -98,35 +161,10 @@ export class ConsentList {
       }
     )
 
-    // decrypt messages
-    const { responses } = await this.client.keystore.selfDecrypt({
-      requests: messages.map((message) => ({ payload: message })),
-    })
+    const actions = await this.decodeMessages(messages)
 
-    // decoded actions
-    const actions = responses.reduce((result, response) => {
-      return response.result?.decrypted
-        ? result.concat(
-            privatePreferences.PrivatePreferencesAction.decode(
-              response.result.decrypted
-            )
-          )
-        : result
-    }, [] as privatePreferences.PrivatePreferencesAction[])
-
-    // update consent list entries
-    actions.forEach((action) => {
-      action.allow?.walletAddresses.forEach((address) => {
-        this.allow(address)
-      })
-      action.block?.walletAddresses.forEach((address) => {
-        this.deny(address)
-      })
-    })
-
-    if (lastTimestampNs) {
-      this.lastEntryTimestamp = fromNanoString(lastTimestampNs)
-    }
+    // update consent list
+    this.processActions(actions, lastTimestampNs)
   }
 
   async publish(entries: ConsentListEntry[]) {
@@ -211,6 +249,10 @@ export class Contacts {
 
   async refreshConsentList() {
     await this.loadConsentList()
+  }
+
+  async streamConsentList(onConnectionLost?: OnConnectionLostCallback) {
+    return this.consentList.stream(onConnectionLost)
   }
 
   /**
