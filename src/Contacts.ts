@@ -10,6 +10,9 @@ export type ConsentState = 'allowed' | 'denied' | 'unknown'
 
 export type ConsentListEntryType = 'address'
 
+export type PrivatePreferencesAction =
+  privatePreferences.PrivatePreferencesAction
+
 export class ConsentListEntry {
   value: string
   entryType: ConsentListEntryType
@@ -112,7 +115,7 @@ export class ConsentList {
             )
           )
         : result
-    }, [] as privatePreferences.PrivatePreferencesAction[])
+    }, [] as PrivatePreferencesAction[])
 
     // update consent list entries
     actions.forEach((action) => {
@@ -136,7 +139,7 @@ export class ConsentList {
     const actions = entries.reduce((result, entry) => {
       // only handle address entries for now
       if (entry.entryType === 'address') {
-        const action: privatePreferences.PrivatePreferencesAction = {
+        const action: PrivatePreferencesAction = {
           allow:
             entry.permissionType === 'allowed'
               ? {
