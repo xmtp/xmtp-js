@@ -273,7 +273,6 @@ export default class Client<ContentTypes = any> {
     backupClient: BackupClient,
     keystore: Keystore
   ) {
-    this.contacts = new Contacts(this)
     this.knownPublicKeyBundles = new Map<
       string,
       PublicKeyBundle | SignedPublicKeyBundle
@@ -287,6 +286,7 @@ export default class Client<ContentTypes = any> {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
+    this.contacts = new Contacts(this)
   }
 
   /**
