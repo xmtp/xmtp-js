@@ -283,7 +283,7 @@ export class Contacts {
     if (!entries.length) {
       return
     }
-    this.consentList.entries.clear()
+    this.consentList.reset()
     entries.forEach((entry) => {
       if (entry.permissionType === 'allowed') {
         this.consentList.allow(entry.value)
