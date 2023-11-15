@@ -19,8 +19,6 @@ import { SortDirection } from '../ApiClient'
 import Long from 'long'
 import JobRunner from './JobRunner'
 
-const CLOCK_SKEW_OFFSET_MS = 10000
-
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
 }
@@ -74,9 +72,7 @@ export default class Conversations<ContentTypes = any> {
   private async listV1Conversations(): Promise<Conversation<ContentTypes>[]> {
     return this.v1JobRunner.run(async (latestSeen) => {
       const seenPeers = await this.getIntroductionPeers({
-        startTime: latestSeen
-          ? new Date(+latestSeen - CLOCK_SKEW_OFFSET_MS)
-          : undefined,
+        startTime: latestSeen,
         direction: SortDirection.SORT_DIRECTION_ASCENDING,
       })
 
@@ -144,9 +140,7 @@ export default class Conversations<ContentTypes = any> {
     startTime?: Date
   ): Promise<ConversationV2<ContentTypes>[]> {
     const envelopes = await this.client.listInvitations({
-      startTime: startTime
-        ? new Date(+startTime - CLOCK_SKEW_OFFSET_MS)
-        : undefined,
+      startTime,
       direction: SortDirection.SORT_DIRECTION_ASCENDING,
     })
 

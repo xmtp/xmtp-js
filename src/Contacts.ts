@@ -7,6 +7,7 @@ import {
 } from './utils'
 import Stream from './Stream'
 import { OnConnectionLostCallback } from './ApiClient'
+import JobRunner from './conversations/JobRunner'
 
 export type ConsentState = 'allowed' | 'denied' | 'unknown'
 
@@ -103,18 +104,21 @@ export class ConsentList {
     actions: privatePreferences.PrivatePreferencesAction[],
     lastTimestampNs?: string
   ) {
+    const entries: ConsentListEntry[] = []
     actions.forEach((action) => {
       action.allow?.walletAddresses.forEach((address) => {
-        this.allow(address)
+        entries.push(this.allow(address))
       })
       action.block?.walletAddresses.forEach((address) => {
-        this.deny(address)
+        entries.push(this.deny(address))
       })
     })
 
     if (lastTimestampNs) {
       this.lastEntryTimestamp = fromNanoString(lastTimestampNs)
     }
+
+    return entries
   }
 
   async stream(onConnectionLost?: OnConnectionLostCallback) {
@@ -140,12 +144,12 @@ export class ConsentList {
     )
   }
 
+  reset() {
+    // clear existing entries
+    this.entries.clear()
+  }
+
   async load(startTime?: Date) {
-    // no startTime, all entries will be fetched
-    if (!startTime) {
-      // clear existing entries
-      this.entries.clear()
-    }
     const identifier = await this.getIdentifier()
     const contentTopic = buildUserPrivatePreferencesTopic(identifier)
 
@@ -167,7 +171,7 @@ export class ConsentList {
     const actions = await this.decodeMessages(messages)
 
     // update consent list
-    this.processActions(actions, lastTimestampNs)
+    return this.processActions(actions, lastTimestampNs)
   }
 
   async publish(entries: ConsentListEntry[]) {
@@ -239,19 +243,29 @@ export class Contacts {
    */
   client: Client
   private consentList: ConsentList
+  private jobRunner: JobRunner
 
   constructor(client: Client) {
     this.addresses = new Set<string>()
     this.consentList = new ConsentList(client)
     this.client = client
+    this.jobRunner = new JobRunner('pppp', client.keystore)
   }
 
   async loadConsentList(startTime?: Date) {
-    await this.consentList.load(startTime)
+    return this.jobRunner.run(async (lastRun) => {
+      // allow for override of startTime
+      return this.consentList.load(startTime ?? lastRun)
+    })
   }
 
   async refreshConsentList() {
-    await this.loadConsentList()
+    // clear existing consent list
+    this.consentList.reset()
+    // reset last run time to the epoch
+    await this.jobRunner.resetLastRunTime()
+    // reload the consent list
+    return this.loadConsentList()
   }
 
   async streamConsentList(onConnectionLost?: OnConnectionLostCallback) {
@@ -261,7 +275,7 @@ export class Contacts {
   /**
    * The timestamp of the last entry in the consent list
    */
-  get lastSyncedAt() {
+  get lastConsentListEntryTimestamp() {
     return this.consentList.lastEntryTimestamp
   }
 
@@ -269,7 +283,7 @@ export class Contacts {
     if (!entries.length) {
       return
     }
-    this.consentList.entries.clear()
+    this.consentList.reset()
     entries.forEach((entry) => {
       if (entry.permissionType === 'allowed') {
         this.consentList.allow(entry.value)

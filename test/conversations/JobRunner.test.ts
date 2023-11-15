@@ -81,4 +81,23 @@ describe('JobRunner', () => {
       })
     ).rejects.toThrow('foo')
   })
+
+  it('resets the last run time', async () => {
+    const ppppRunner = new JobRunner('pppp', keystore)
+    await ppppRunner.run(async () => {})
+
+    const { lastRunNs: ppppLastRunNs } = await keystore.getRefreshJob({
+      jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
+    })
+
+    expect(ppppLastRunNs.gt(0)).toBeTruthy()
+
+    await ppppRunner.resetLastRunTime()
+
+    const { lastRunNs: ppppLastRunNs2 } = await keystore.getRefreshJob({
+      jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
+    })
+
+    expect(ppppLastRunNs2.eq(0)).toBeTruthy()
+  })
 })
