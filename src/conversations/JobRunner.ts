@@ -4,7 +4,9 @@ import { Keystore } from '../keystore'
 import Long from 'long'
 import { dateToNs, nsToDate } from '../utils'
 
-type JobType = 'v1' | 'v2'
+const CLOCK_SKEW_OFFSET_MS = 10000
+
+type JobType = 'v1' | 'v2' | 'pppp'
 
 type UpdateJob<T> = (lastRun: Date | undefined) => Promise<T>
 
@@ -12,6 +14,7 @@ export default class JobRunner {
   readonly jobType: JobType
   readonly mutex: Mutex
   readonly keystore: Keystore
+  disableOffset: boolean = false
 
   constructor(jobType: JobType, keystore: Keystore) {
     this.jobType = jobType
@@ -27,9 +30,22 @@ export default class JobRunner {
     return this.mutex.runExclusive(async () => {
       const lastRun = await this.getLastRunTime()
       const startTime = new Date()
-      const result = await callback(lastRun)
+      const result = await callback(
+        lastRun
+          ? !this.disableOffset
+            ? new Date(lastRun.getTime() - CLOCK_SKEW_OFFSET_MS)
+            : lastRun
+          : undefined
+      )
       await this.setLastRunTime(startTime)
       return result
+    })
+  }
+
+  async resetLastRunTime() {
+    await this.keystore.setRefreshJob({
+      jobType: this.protoJobType,
+      lastRunNs: dateToNs(new Date(0)),
     })
   }
 
@@ -53,10 +69,11 @@ export default class JobRunner {
   }
 }
 
-function getProtoJobType(jobType: 'v1' | 'v2'): keystore.JobType {
+function getProtoJobType(jobType: JobType): keystore.JobType {
   const protoJobType = {
     v1: keystore.JobType.JOB_TYPE_REFRESH_V1,
     v2: keystore.JobType.JOB_TYPE_REFRESH_V2,
+    pppp: keystore.JobType.JOB_TYPE_REFRESH_PPPP,
   }[jobType]
 
   if (!protoJobType) {
