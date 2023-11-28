@@ -290,10 +290,7 @@ export default class HttpApiClient implements ApiClient {
           if (isAbortError(err) || abortController.signal.aborted) {
             return
           }
-          console.info(
-            'Stream connection closed. Resubscribing',
-            err.toString()
-          )
+          console.info('Stream connection closed. Resubscribing')
 
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)
