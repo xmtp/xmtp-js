@@ -1,37 +1,50 @@
-import {
-  PublicKeyBundle,
-  SignedPublicKeyBundle,
-  PrivateKeyBundleV1,
-  PrivateKeyBundleV2,
-  Signature,
-} from './crypto'
+import { PrivateKeyBundleV1 } from './crypto/PrivateKeyBundle'
+import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
 import {
   buildUserContactTopic,
   mapPaginatedStream,
   EnvelopeMapper,
   buildUserInviteTopic,
+  isBrowser,
+  getSigner,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
-import {
-  EncryptedKeyStore,
-  KeyStore,
-  PrivateTopicStore,
-  StaticKeyStore,
-} from './store'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
-import { ContentTypeId, ContentCodec } from './MessageContent'
-import { compress } from './Compression'
-import { content as proto, messageApi, fetcher } from '@xmtp/proto'
+import { ContentTypeId, ContentCodec, EncodedContent } from './MessageContent'
+import { compress, decompress } from './Compression'
+import { content as proto, messageApi } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import ApiClient, { ApiUrls, PublishParams, SortDirection } from './ApiClient'
-import { Authenticator } from './authn'
-import { SealedInvitation } from './Invitation'
+import HttpApiClient, {
+  ApiUrls,
+  ApiClient,
+  PublishParams,
+  SortDirection,
+} from './ApiClient'
+import { KeystoreAuthenticator } from './authn'
 import { Flatten } from './utils/typedefs'
-import { InMemoryKeystore, Keystore } from './keystore'
+import BackupClient, { BackupType } from './message-backup/BackupClient'
+import { createBackupClient } from './message-backup/BackupClientFactory'
+import { Keystore } from './keystore'
+import {
+  KeyGeneratorKeystoreProvider,
+  KeystoreProvider,
+  KeystoreProviderUnavailableError,
+  NetworkKeystoreProvider,
+  SnapProvider,
+  StaticKeystoreProvider,
+} from './keystore/providers'
+import {
+  BrowserStoragePersistence,
+  InMemoryPersistence,
+  Persistence,
+} from './keystore/persistence'
+import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
+import { version as snapVersion, package as snapPackage } from './snapInfo.json'
+import { ExtractDecodedType } from './types/client'
+import type { WalletClient } from 'viem'
 const { Compression } = proto
-const { b64Decode } = fetcher
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
 // eslint-disable @typescript-eslint/no-explicit-any
@@ -55,50 +68,130 @@ export type ListMessagesPaginatedOptions = {
   direction?: messageApi.SortDirection
 }
 
-export enum KeyStoreType {
-  networkTopicStoreV1,
-  static,
-}
-
 // Parameters for the send functions
-export { Compression }
 export type SendOptions = {
   contentType?: ContentTypeId
-  contentFallback?: string
   compression?: proto.Compression
   timestamp?: Date
+  ephemeral?: boolean
 }
+
+export { Compression }
+
+export type XmtpEnv = keyof typeof ApiUrls
+export type PreEventCallback = () => Promise<void>
 
 /**
  * Network startup options
  */
-type NetworkOptions = {
-  // Allow for specifying different envs later
-  env: keyof typeof ApiUrls
-  // apiUrl can be used to override the default URL for the env
+export type NetworkOptions = {
+  /**
+   * Specify which XMTP environment to connect to. (default: `dev`)
+   */
+  env: XmtpEnv
+  /**
+   * apiUrl can be used to override the `env` flag and connect to a
+   * specific endpoint
+   */
   apiUrl: string | undefined
-  // app identifier included with client version header
+  /**
+   * identifier that's included with API requests.
+   *
+   * For example, you can use the following format:
+   * `appVersion: APP_NAME + '/' + APP_VERSION`.
+   * Setting this value provides telemetry that shows which apps are
+   * using the XMTP client SDK. This information can help XMTP developers
+   * provide app support, especially around communicating important
+   * SDK updates, including deprecations and required upgrades.
+   */
   appVersion?: string
+  /**
+   * Skip publishing the user's contact bundle as part of Client startup.
+   *
+   * This flag should be used with caution, as we rely on contact publishing to
+   * let other users know your public key and periodically run migrations on
+   * this data with new SDK versions.
+   *
+   * Your application should have this flag set to `false` at least _some_ of the
+   * time.
+   *
+   * The most common use-case for setting this to `true` is cases where the Client
+   * instance is very short-lived. For example, spinning up a Client to decrypt
+   * a push notification.
+   */
+  skipContactPublishing: boolean
+
+  apiClientFactory: (options: NetworkOptions) => ApiClient
 }
 
-type ContentOptions = {
-  // Allow configuring codecs for additional content types
+export type ContentOptions = {
+  /**
+   * Allow configuring codecs for additional content types
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecs: ContentCodec<any>[]
 
-  // Set the maximum content size in bytes that is allowed by the Client.
-  // Currently only checked when decompressing compressed content.
+  /**
+   * Set the maximum content size in bytes that is allowed by the Client.
+   * Currently only checked when decompressing compressed content.
+   */
   maxContentSize: number
 }
 
-type KeyStoreOptions = {
-  /** Specify the keyStore which should be used for loading or saving privateKeyBundles */
-  keyStoreType: KeyStoreType
+export type KeyStoreOptions = {
+  /**
+   * Provide an array of KeystoreProviders.
+   * The client will attempt to use each one in sequence until one successfully
+   * returns a Keystore instance
+   */
+  keystoreProviders: KeystoreProvider[]
+  /**
+   * Enable the Keystore to persist conversations in the provided storage interface
+   */
+  persistConversations: boolean
+  /**
+   * Provide a XMTP PrivateKeyBundle encoded as a Uint8Array.
+   * A bundle can be retried using `Client.getKeys(...)`
+   */
   privateKeyOverride?: Uint8Array
+
+  /**
+   * Override the base persistence provider.
+   * Defaults to LocalStoragePersistence, which is fine for most implementations
+   */
+  basePersistence: Persistence
+  /**
+   * Whether or not the persistence provider should encrypt the values.
+   * Only disable if you are using a secure datastore that already has encryption
+   */
+  disablePersistenceEncryption: boolean
+  /**
+   * A single option to allow Metamask Snaps to be used as a keystore provider
+   */
+  useSnaps: boolean
 }
 
-type LegacyOptions = {
+export type LegacyOptions = {
   publishLegacyContact?: boolean
+}
+
+export type PreEventCallbackOptions = {
+  /**
+   * preCreateIdentityCallback will be called immediately before a Create Identity
+   * wallet signature is requested from the user.
+   *
+   * The provided function must return a Promise and will be awaited, allowing the
+   * developer to update the UI or insert a required delay before requesting a signature.
+   */
+  preCreateIdentityCallback?: PreEventCallback
+  /**
+   * preEnableIdentityCallback will be called immediately before an Enable Identity
+   * wallet signature is requested from the user.
+   *
+   * The provided function must return a Promise and will be awaited, allowing the
+   * developer to update the UI or insert a required delay before requesting a signature.
+   */
+  preEnableIdentityCallback?: PreEventCallback
 }
 
 /**
@@ -106,29 +199,46 @@ type LegacyOptions = {
  * as needed by each function. All other defaults are specified in defaultOptions.
  */
 export type ClientOptions = Flatten<
-  NetworkOptions & KeyStoreOptions & ContentOptions & LegacyOptions
+  NetworkOptions &
+    KeyStoreOptions &
+    ContentOptions &
+    LegacyOptions &
+    PreEventCallbackOptions
 >
 
 /**
  * Provide a default client configuration. These settings can be used on their own, or as a starting point for custom configurations
- *
  * @param opts additional options to override the default settings
  */
 export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
   const _defaultOptions: ClientOptions = {
-    keyStoreType: KeyStoreType.networkTopicStoreV1,
     privateKeyOverride: undefined,
     env: 'dev',
     apiUrl: undefined,
     codecs: [new TextCodec()],
     maxContentSize: MaxContentSize,
+    persistConversations: true,
+    skipContactPublishing: false,
+    useSnaps: false,
+    basePersistence: isBrowser()
+      ? BrowserStoragePersistence.create()
+      : InMemoryPersistence.create(),
+    disablePersistenceEncryption: false,
+    keystoreProviders: defaultKeystoreProviders(),
+    apiClientFactory: createHttpApiClientFromOptions,
   }
+
   if (opts?.codecs) {
     opts.codecs = _defaultOptions.codecs.concat(opts.codecs)
   }
-  if (opts?.privateKeyOverride && !opts?.keyStoreType) {
-    opts.keyStoreType = KeyStoreType.static
+
+  if (opts?.useSnaps) {
+    opts.keystoreProviders = [
+      new SnapProvider(`npm:${snapPackage}`, snapVersion),
+      ..._defaultOptions.keystoreProviders,
+    ]
   }
+
   return { ..._defaultOptions, ...opts } as ClientOptions
 }
 
@@ -136,26 +246,28 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
  * Client class initiates connection to the XMTP network.
  * Should be created with `await Client.create(options)`
  */
-export default class Client {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default class Client<ContentTypes = any> {
   address: string
-  legacyKeys: PrivateKeyBundleV1
-  keys: PrivateKeyBundleV2
   keystore: Keystore
   apiClient: ApiClient
   contacts: Set<string> // address which we have connected to
+  publicKeyBundle: PublicKeyBundle
   private knownPublicKeyBundles: Map<
     string,
     PublicKeyBundle | SignedPublicKeyBundle
   > // addresses and key bundles that we have witnessed
 
-  private _conversations: Conversations
+  private _backupClient: BackupClient
+  private readonly _conversations: Conversations<ContentTypes>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>
   private _maxContentSize: number
 
   constructor(
-    keys: PrivateKeyBundleV1,
+    publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
+    backupClient: BackupClient,
     keystore: Keystore
   ) {
     this.contacts = new Set<string>()
@@ -164,54 +276,100 @@ export default class Client {
       PublicKeyBundle | SignedPublicKeyBundle
     >()
     // TODO: Remove keys and legacyKeys
-    this.legacyKeys = keys
-    this.keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.keystore = keystore
-    this.address = keys.identityKey.publicKey.walletSignatureAddress()
+    this.publicKeyBundle = publicKeyBundle
+    this.address = publicKeyBundle.walletSignatureAddress()
     this._conversations = new Conversations(this)
     this._codecs = new Map()
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
+    this._backupClient = backupClient
   }
 
   /**
    * @type {Conversations}
    */
-  get conversations(): Conversations {
+  get conversations(): Conversations<ContentTypes> {
     return this._conversations
   }
 
-  get publicKeyBundle(): PublicKeyBundle {
-    return this.legacyKeys.getPublicKeyBundle()
+  get backupType(): BackupType {
+    return this._backupClient.backupType
+  }
+
+  get signedPublicKeyBundle(): SignedPublicKeyBundle {
+    return SignedPublicKeyBundle.fromLegacyBundle(this.publicKeyBundle)
   }
 
   /**
    * Create and start a client associated with given wallet.
-   *
    * @param wallet the wallet as a Signer instance
    * @param opts specify how to to connect to the network
    */
-  static async create(
-    wallet: Signer | null,
-    opts?: Partial<ClientOptions>
-  ): Promise<Client> {
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static async create<ContentCodecs extends ContentCodec<any>[] = []>(
+    wallet: Signer | WalletClient | null,
+    opts?: Partial<ClientOptions> & { codecs?: ContentCodecs }
+  ): Promise<
+    Client<
+      ExtractDecodedType<[...ContentCodecs, TextCodec][number]> | undefined
+    >
+  > {
+    const signer = getSigner(wallet)
     const options = defaultOptions(opts)
-    const apiClient = createApiClientFromOptions(options)
-    const keys = await loadOrCreateKeysFromOptions(options, wallet, apiClient)
-    // TODO: Properly bootstrap the keystore and replace `loadOrCreateKeysFromOptions`
-    const keystore = new InMemoryKeystore(keys)
-    apiClient.setAuthenticator(new Authenticator(keys.identityKey))
-    const client = new Client(keys, apiClient, keystore)
+    const apiClient = options.apiClientFactory(options)
+    const keystore = await bootstrapKeystore(options, apiClient, signer)
+    const publicKeyBundle = new PublicKeyBundle(
+      await keystore.getPublicKeyBundle()
+    )
+    const address = publicKeyBundle.walletSignatureAddress()
+    apiClient.setAuthenticator(new KeystoreAuthenticator(keystore))
+    const backupClient = await Client.setupBackupClient(address, options.env)
+    const client = new Client<
+      ExtractDecodedType<[...ContentCodecs, TextCodec][number]> | undefined
+    >(publicKeyBundle, apiClient, backupClient, keystore)
     await client.init(options)
     return client
   }
 
-  static async getKeys(
-    wallet: Signer | null,
-    opts?: Partial<ClientOptions>
+  /**
+   * Export the XMTP PrivateKeyBundle from the SDK as a `Uint8Array`.
+   *
+   * This bundle can then be provided as `privateKeyOverride` in a
+   * subsequent call to `Client.create(...)`
+   *
+   * Be very careful with these keys, as they can be used to
+   * impersonate a user on the XMTP network and read the user's
+   * messages.
+   */
+  static async getKeys<U>(
+    wallet: Signer | WalletClient | null,
+    opts?: Partial<ClientOptions> & { codecs?: U }
   ): Promise<Uint8Array> {
-    const client = await Client.create(wallet, opts)
-    return client.legacyKeys.encode()
+    const client = await Client.create(getSigner(wallet), opts)
+    const keys = await client.keystore.getPrivateKeyBundle()
+    return new PrivateKeyBundleV1(keys).encode()
+  }
+
+  /**
+   * Tells the caller whether the browser has a Snaps-compatible version of MetaMask installed
+   */
+  static isSnapsReady() {
+    return hasMetamaskWithSnaps()
+  }
+
+  private static async setupBackupClient(
+    walletAddress: string,
+    env: keyof typeof ApiUrls
+  ): Promise<BackupClient> {
+    // Hard-code the provider to use for now
+    const selectBackupProvider = async () => {
+      return Promise.resolve({
+        type: env === 'local' ? BackupType.xmtpTopicStore : BackupType.none,
+      })
+    }
+    return createBackupClient(walletAddress, selectBackupProvider)
   }
 
   private async init(options: ClientOptions): Promise<void> {
@@ -219,7 +377,9 @@ export default class Client {
       this.registerCodec(codec)
     })
     this._maxContentSize = options.maxContentSize
-    await this.ensureUserContactPublished(options.publishLegacyContact)
+    if (!options.skipContactPublishing) {
+      await this.ensureUserContactPublished(options.publishLegacyContact)
+    }
   }
 
   // gracefully shut down the client
@@ -232,27 +392,27 @@ export default class Client {
     if (
       bundle &&
       bundle instanceof SignedPublicKeyBundle &&
-      this.keys.getPublicKeyBundle().equals(bundle)
+      this.signedPublicKeyBundle.equals(bundle)
     ) {
       return
     }
     // TEMPORARY: publish V1 contact to make sure there is one in the topic
     // in order to preserve compatibility with pre-v7 clients.
     // Remove when pre-v7 clients are deprecated
-    this.publishUserContact(true)
+    await this.publishUserContact(true)
     if (!legacy) {
-      this.publishUserContact(legacy)
+      await this.publishUserContact(legacy)
     }
   }
 
   // PRIVATE: publish the key bundle into the contact topic
   // left public for testing purposes
   async publishUserContact(legacy = false): Promise<void> {
-    const keys = legacy ? this.legacyKeys : this.keys
+    const bundle = legacy ? this.publicKeyBundle : this.signedPublicKeyBundle
     await this.publishEnvelopes([
       {
         contentTopic: buildUserContactTopic(this.address),
-        message: encodeContactBundle(keys.getPublicKeyBundle()),
+        message: encodeContactBundle(bundle),
       },
     ])
   }
@@ -381,6 +541,9 @@ export default class Client {
     opts?: Partial<NetworkOptions>
   ): Promise<boolean | boolean[]> {
     const apiUrl = opts?.apiUrl || ApiUrls[opts?.env || 'dev']
+    const apiClient = new HttpApiClient(apiUrl, {
+      appVersion: opts?.appVersion,
+    })
 
     if (Array.isArray(peerAddress)) {
       const rawPeerAddresses: string[] = peerAddress
@@ -391,7 +554,7 @@ export default class Client {
       // The getUserContactsFromNetwork will return false instead of throwing
       // on invalid envelopes
       const contacts = await getUserContactsFromNetwork(
-        new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
+        apiClient,
         normalizedPeerAddresses
       )
       return contacts.map((contact) => !!contact)
@@ -401,10 +564,7 @@ export default class Client {
     } catch (e) {
       return false
     }
-    const keyBundle = await getUserContactFromNetwork(
-      new ApiClient(apiUrl, { appVersion: opts?.appVersion }),
-      peerAddress
-    )
+    const keyBundle = await getUserContactFromNetwork(apiClient, peerAddress)
     return keyBundle !== undefined
   }
 
@@ -419,24 +579,39 @@ export default class Client {
     }
   }
 
+  /**
+   * Low level method for publishing envelopes to the XMTP network with
+   * no pre-processing or encryption applied.
+   *
+   * Primarily used internally
+   * @param envelopes PublishParams[]
+   */
   async publishEnvelopes(envelopes: PublishParams[]): Promise<void> {
     for (const env of envelopes) {
       this.validateEnvelope(env)
     }
-    try {
-      await this.apiClient.publish(envelopes)
-    } catch (err) {
-      console.log(err)
-    }
+
+    await this.apiClient.publish(envelopes)
   }
 
+  /**
+   * Register a codec to be automatically used for encoding/decoding
+   * messages of the given Content Type
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  registerCodec(codec: ContentCodec<any>): void {
+  registerCodec<Codec extends ContentCodec<any>>(
+    codec: Codec
+  ): Client<ContentTypes | ExtractDecodedType<Codec>> {
     const id = codec.contentType
     const key = `${id.authorityId}/${id.typeId}`
     this._codecs.set(key, codec)
+    return this
   }
 
+  /**
+   * Find a matching codec for a given `ContentTypeId` from the
+   * client's codec registry
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
     const key = `${contentType.authorityId}/${contentType.typeId}`
@@ -450,9 +625,12 @@ export default class Client {
     return codec
   }
 
+  /**
+   * Convert arbitrary content into a serialized `EncodedContent` instance
+   * with the given options
+   */
   async encodeContent(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    content: any,
+    content: ContentTypes,
     options?: SendOptions
   ): Promise<Uint8Array> {
     const contentType = options?.contentType || ContentTypeText
@@ -461,8 +639,10 @@ export default class Client {
       throw new Error('unknown content type ' + contentType)
     }
     const encoded = codec.encode(content, this)
-    if (options?.contentFallback) {
-      encoded.fallback = options.contentFallback
+
+    const fallback = codec.fallback(content)
+    if (fallback) {
+      encoded.fallback = fallback
     }
     if (typeof options?.compression === 'number') {
       encoded.compression = options.compression
@@ -471,17 +651,56 @@ export default class Client {
     return proto.EncodedContent.encode(encoded).finish()
   }
 
-  listInvitations(opts?: ListMessagesOptions): Promise<SealedInvitation[]> {
+  async decodeContent(contentBytes: Uint8Array): Promise<{
+    content: ContentTypes
+    contentType: ContentTypeId
+    error?: Error
+    contentFallback?: string
+  }> {
+    const encodedContent = proto.EncodedContent.decode(contentBytes)
+
+    if (!encodedContent.type) {
+      throw new Error('missing content type')
+    }
+
+    let content: any // eslint-disable-line @typescript-eslint/no-explicit-any
+    const contentType = new ContentTypeId(encodedContent.type)
+    let error: Error | undefined
+
+    await decompress(encodedContent, 1000)
+
+    const codec = this.codecFor(contentType)
+    if (codec) {
+      content = codec.decode(encodedContent as EncodedContent, this)
+    } else {
+      error = new Error('unknown content type ' + contentType)
+    }
+
+    return {
+      content,
+      contentType,
+      error,
+      contentFallback: encodedContent.fallback,
+    }
+  }
+
+  listInvitations(opts?: ListMessagesOptions): Promise<messageApi.Envelope[]> {
     return this.listEnvelopes(
-      [buildUserInviteTopic(this.address)],
-      SealedInvitation.fromEnvelope,
+      buildUserInviteTopic(this.address),
+      async (env) => env,
       opts
     )
   }
 
-  // list stored messages from the specified topic
+  /**
+   * List stored messages from the specified topic.
+   *
+   * A specified mapper function will be applied to each envelope.
+   * If the mapper function throws an error during processing, the
+   * envelope will be discarded.
+   */
   async listEnvelopes<Out>(
-    topics: string[],
+    topic: string,
     mapper: EnvelopeMapper<Out>,
     opts?: ListMessagesOptions
   ): Promise<Out[]> {
@@ -491,7 +710,7 @@ export default class Client {
     const { startTime, endTime, limit } = opts
 
     const envelopes = await this.apiClient.query(
-      { contentTopics: topics, startTime, endTime },
+      { contentTopic: topic, startTime, endTime },
       {
         direction:
           opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
@@ -515,14 +734,14 @@ export default class Client {
    * List messages on a given set of content topics, yielding one page at a time
    */
   listEnvelopesPaginated<Out>(
-    contentTopics: string[],
+    contentTopic: string,
     mapper: EnvelopeMapper<Out>,
     opts?: ListMessagesPaginatedOptions
   ): AsyncGenerator<Out[]> {
     return mapPaginatedStream(
       this.apiClient.queryIteratePages(
         {
-          contentTopics,
+          contentTopic,
           startTime: opts?.startTime,
           endTime: opts?.endTime,
         },
@@ -531,106 +750,45 @@ export default class Client {
       mapper
     )
   }
-
-  async signBytes(bytes: Uint8Array): Promise<Signature> {
-    return this.keys.identityKey.sign(bytes)
-  }
 }
 
-function createKeyStoreFromConfig(
-  opts: KeyStoreOptions,
-  wallet: Signer | null,
-  apiClient: ApiClient
-): KeyStore {
-  switch (opts.keyStoreType) {
-    case KeyStoreType.networkTopicStoreV1:
-      if (!wallet) {
-        throw new Error('Must provide a wallet for networkTopicStore')
-      }
-      return createNetworkPrivateKeyStore(wallet, apiClient)
-
-    case KeyStoreType.static:
-      if (!opts.privateKeyOverride) {
-        throw new Error('Must provide a privateKeyOverride to use static store')
-      }
-
-      return createStaticStore(opts.privateKeyOverride)
-  }
-}
-
-// Create Encrypted store which uses the Network to store KeyBundles
-function createNetworkPrivateKeyStore(
-  wallet: Signer,
-  apiClient: ApiClient
-): EncryptedKeyStore {
-  return new EncryptedKeyStore(wallet, new PrivateTopicStore(apiClient))
-}
-
-function createStaticStore(privateKeyOverride: Uint8Array): KeyStore {
-  return new StaticKeyStore(privateKeyOverride)
-}
-
-// attempt to load pre-existing key bundle from storage,
-// otherwise create new key-bundle, store it and return it
-async function loadOrCreateKeysFromStore(
-  wallet: Signer | null,
-  store: KeyStore
-): Promise<PrivateKeyBundleV1> {
-  let keys = await store.loadPrivateKeyBundle()
-  if (keys) {
-    return keys
-  }
-  if (!wallet) {
-    throw new Error('No wallet found')
-  }
-  keys = await PrivateKeyBundleV1.generate(wallet)
-  await store.storePrivateKeyBundle(keys)
-  return keys
-}
-
-async function loadOrCreateKeysFromOptions(
-  options: ClientOptions,
-  wallet: Signer | null,
-  apiClient: ApiClient
-) {
-  if (!options.privateKeyOverride && !wallet) {
-    throw new Error(
-      'Must provide either a Signer or specify privateKeyOverride'
-    )
-  }
-
-  const keyStore = createKeyStoreFromConfig(options, wallet, apiClient)
-  return loadOrCreateKeysFromStore(wallet, keyStore)
-}
-
-function createApiClientFromOptions(options: ClientOptions): ApiClient {
+function createHttpApiClientFromOptions(options: NetworkOptions): ApiClient {
   const apiUrl = options.apiUrl || ApiUrls[options.env]
-  return new ApiClient(apiUrl, { appVersion: options.appVersion })
+  return new HttpApiClient(apiUrl, { appVersion: options.appVersion })
 }
 
-// retrieve a key bundle from given user's contact topic
+/**
+ * Retrieve a key bundle from given user's contact topic
+ */
 async function getUserContactFromNetwork(
   apiClient: ApiClient,
   peerAddress: string
 ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
   const stream = apiClient.queryIterator(
-    { contentTopics: [buildUserContactTopic(peerAddress)] },
+    { contentTopic: buildUserContactTopic(peerAddress) },
     { pageSize: 5, direction: SortDirection.SORT_DIRECTION_DESCENDING }
   )
 
   for await (const env of stream) {
     if (!env.message) continue
-    const keyBundle = decodeContactBundle(b64Decode(env.message.toString()))
+    const keyBundle = decodeContactBundle(env.message)
+    let address: string | undefined
+    try {
+      address = await keyBundle?.walletSignatureAddress()
+    } catch (e) {
+      address = undefined
+    }
 
-    const address = await keyBundle?.walletSignatureAddress()
-    if (address === peerAddress) {
+    if (address?.toLowerCase() === peerAddress.toLowerCase()) {
       return keyBundle
     }
   }
   return undefined
 }
 
-// retrieve a list of key bundles given a list of user addresses
+/**
+ * Retrieve a list of key bundles given a list of user addresses
+ */
 async function getUserContactsFromNetwork(
   apiClient: ApiClient,
   peerAddresses: string[]
@@ -638,7 +796,7 @@ async function getUserContactsFromNetwork(
   const userContactTopics = peerAddresses.map(buildUserContactTopic)
   const topicToEnvelopes = await apiClient.batchQuery(
     userContactTopics.map((topic) => ({
-      contentTopics: [topic],
+      contentTopic: topic,
       pageSize: 5,
       direction: SortDirection.SORT_DIRECTION_DESCENDING,
     }))
@@ -655,11 +813,9 @@ async function getUserContactsFromNetwork(
       for (const env of envelopes) {
         if (!env.message) continue
         try {
-          const keyBundle = decodeContactBundle(
-            b64Decode(env.message.toString())
-          )
+          const keyBundle = decodeContactBundle(env.message)
           const signingAddress = await keyBundle?.walletSignatureAddress()
-          if (address === signingAddress) {
+          if (address.toLowerCase() === signingAddress.toLowerCase()) {
             return keyBundle
           } else {
             console.info('Received contact bundle with incorrect address')
@@ -671,4 +827,43 @@ async function getUserContactsFromNetwork(
       return undefined
     })
   )
+}
+
+/**
+ * Get the default list of `KeystoreProviders` used in the SDK
+ *
+ * Particularly useful if a developer wants to add their own
+ * provider to the head of the list while falling back to the
+ * default functionality
+ */
+export function defaultKeystoreProviders(): KeystoreProvider[] {
+  return [
+    // First check to see if a `privateKeyOverride` is provided and use that
+    new StaticKeystoreProvider(),
+    // Next check to see if a EncryptedPrivateKeyBundle exists on the network for the wallet
+    new NetworkKeystoreProvider(),
+    // If the first two failed with `KeystoreProviderUnavailableError`, then generate a new key and write it to the network
+    new KeyGeneratorKeystoreProvider(),
+  ]
+}
+
+/**
+ * Take an array of KeystoreProviders from the options and try them until one succeeds
+ */
+async function bootstrapKeystore(
+  opts: ClientOptions,
+  apiClient: ApiClient,
+  wallet: Signer | null
+): Promise<Keystore> {
+  for (const provider of opts.keystoreProviders) {
+    try {
+      return await provider.newKeystore(opts, apiClient, wallet ?? undefined)
+    } catch (err) {
+      if (err instanceof KeystoreProviderUnavailableError) {
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error('No keystore providers available')
 }

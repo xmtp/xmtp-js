@@ -6,14 +6,10 @@ import {
   PrivateKeyBundleV2,
   SignedPublicKeyBundle,
 } from '../../src/crypto'
-import {
-  EncryptedKeyStore,
-  PrivateTopicStore,
-  storageSigRequestText,
-} from '../../src/store'
 import { hexToBytes } from '../../src/crypto/utils'
 import { newWallet, sleep } from '../helpers'
 import ApiClient, { ApiUrls } from '../../src/ApiClient'
+import { storageSigRequestText } from '../../src/keystore/providers/NetworkKeyManager'
 
 describe('Crypto', function () {
   describe('PrivateKeyBundle', function () {
@@ -30,42 +26,6 @@ describe('Crypto', function () {
         bundle
           .getPublicKeyBundle()
           .equals((bundle2 as PrivateKeyBundleV2).getPublicKeyBundle())
-      )
-    })
-    it('encrypts private key bundle for storage using a wallet', async function () {
-      const wallet = newWallet()
-      // generate key bundle
-      const bob = await PrivateKeyBundleV1.generate(wallet)
-      // encrypt and serialize the bundle for storage
-      const store = new EncryptedKeyStore(
-        wallet,
-        new PrivateTopicStore(new ApiClient(ApiUrls['local']))
-      )
-      const bytes = await store.storePrivateKeyBundle(bob)
-      await sleep(100)
-      // decrypt and decode the bundle from storage
-      const bobDecoded = await store.loadPrivateKeyBundle()
-
-      assert.ok(bobDecoded)
-      assert.ok(bob.identityKey)
-      assert.ok(bobDecoded.identityKey)
-      assert.ok(bob.identityKey.publicKey.signature)
-      assert.ok(bobDecoded.identityKey.publicKey.signature)
-      assert.deepEqual(
-        bob.identityKey.publicKey.signature?.ecdsaCompact?.bytes,
-        bobDecoded.identityKey.publicKey.signature?.ecdsaCompact?.bytes
-      )
-      assert.ok(bob.identityKey.secp256k1)
-      assert.ok(bobDecoded.identityKey.secp256k1)
-      assert.deepEqual(
-        bob.identityKey.secp256k1.bytes,
-        bobDecoded.identityKey.secp256k1.bytes
-      )
-      assert.ok(bob.preKeys[0].secp256k1)
-      assert.ok(bobDecoded.preKeys[0].secp256k1)
-      assert.deepEqual(
-        bob.preKeys[0].secp256k1.bytes,
-        bobDecoded.preKeys[0].secp256k1.bytes
       )
     })
 
@@ -87,7 +47,54 @@ describe('Crypto', function () {
       assert.equal(actual, expected)
       assert.ok(true)
     })
+
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      expect(bundle.validatePublicKeys()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV1.generate(newWallet())
+      bundle.preKeys[0].publicKey = otherBundle.preKeys[0].publicKey
+      expect(bundle.validatePublicKeys()).toBe(false)
+    })
   })
+
+  describe('PrivateKey', () => {
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      expect(bundle.identityKey.validatePublicKey()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV1.generate(newWallet())
+      bundle.identityKey.publicKey = otherBundle.identityKey.publicKey
+      expect(bundle.identityKey.validatePublicKey()).toBe(false)
+    })
+  })
+
+  describe('SignedPrivateKey', () => {
+    it('validates true for valid keys', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV2.generate(wallet)
+      expect(bundle.identityKey.validatePublicKey()).toBe(true)
+    })
+
+    it('fails validation when private key does not match public key', async () => {
+      const wallet = newWallet()
+      const bundle = await PrivateKeyBundleV2.generate(wallet)
+      const otherBundle = await PrivateKeyBundleV2.generate(newWallet())
+      bundle.identityKey.publicKey = otherBundle.identityKey.publicKey
+      expect(bundle.identityKey.validatePublicKey()).toBe(false)
+    })
+  })
+
   describe('SignedPublicKeyBundle', () => {
     it('legacy roundtrip', async function () {
       const wallet = newWallet()

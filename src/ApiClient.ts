@@ -1,9 +1,9 @@
 import { messageApi } from '@xmtp/proto'
 import { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import { retry, sleep, toNanoString } from './utils'
+import { b64Decode, retry, sleep, toNanoString } from './utils'
 import AuthCache from './authn/AuthCache'
 import { Authenticator } from './authn'
-import { version } from '../package.json'
+import packageJson from '../package.json'
 import { XMTP_DEV_WARNING } from './constants'
 import { Flatten } from './utils/typedefs'
 export const { MessageApi, SortDirection } = messageApi
@@ -40,12 +40,23 @@ export enum GrpcStatus {
   UNAUTHENTICATED,
 }
 
-export type GrpcError = Flatten<Error & { code?: GrpcStatus }>
+export class GrpcError extends Error {
+  code: GrpcStatus
+
+  constructor(message: string, code: GrpcStatus) {
+    super(message)
+    this.code = code
+  }
+
+  static fromObject(err: { code: GrpcStatus; message: string }): GrpcError {
+    return new GrpcError(err.message, err.code)
+  }
+}
 
 export type QueryParams = {
   startTime?: Date
   endTime?: Date
-  contentTopics: string[]
+  contentTopic: string
 }
 
 export type QueryAllOptions = {
@@ -81,6 +92,15 @@ export type SubscribeCallback = NotifyStreamEntityArrival<messageApi.Envelope>
 
 export type UnsubscribeFn = () => Promise<void>
 
+export type UpdateContentTopics = (topics: string[]) => Promise<void>
+
+export type SubscriptionManager = {
+  unsubscribe: UnsubscribeFn
+  updateContentTopics?: UpdateContentTopics
+}
+
+export type OnConnectionLostCallback = () => void
+
 const isAbortError = (err?: Error): boolean => {
   if (!err) {
     return false
@@ -91,20 +111,56 @@ const isAbortError = (err?: Error): boolean => {
   return false
 }
 
-const isAuthError = (err?: GrpcError): boolean => {
-  if (err && err.code === ERR_CODE_UNAUTHENTICATED) {
+const isAuthError = (err?: GrpcError | Error): boolean => {
+  if (err && 'code' in err && err.code === ERR_CODE_UNAUTHENTICATED) {
     return true
   }
   return false
 }
 
-const isNotAuthError = (err?: GrpcError): boolean => !isAuthError(err)
+const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
+
+export interface ApiClient {
+  query(
+    params: QueryParams,
+    options: QueryAllOptions
+  ): Promise<messageApi.Envelope[]>
+  queryIterator(
+    params: QueryParams,
+    options: QueryStreamOptions
+  ): AsyncGenerator<messageApi.Envelope>
+  queryIteratePages(
+    params: QueryParams,
+    options: QueryStreamOptions
+  ): AsyncGenerator<messageApi.Envelope[]>
+  subscribe(
+    params: SubscribeParams,
+    callback: SubscribeCallback,
+    onConnectionLost?: OnConnectionLostCallback
+  ): SubscriptionManager
+  publish(messages: PublishParams[]): ReturnType<typeof MessageApi.Publish>
+  batchQuery(queries: Query[]): Promise<messageApi.Envelope[][]>
+  setAuthenticator(
+    authenticator: Authenticator,
+    cacheExpirySeconds?: number
+  ): void
+}
+
+const normalizeEnvelope = (env: messageApi.Envelope): messageApi.Envelope => {
+  if (!env.message || !env.message.length) {
+    return env
+  }
+  if (typeof env.message === 'string') {
+    env.message = b64Decode(env.message)
+  }
+  return env
+}
 
 /**
  * ApiClient provides a wrapper for calling the GRPC Gateway generated code.
  * It adds some helpers for dealing with paginated data and automatically retries idempotent calls
  */
-export default class ApiClient {
+export default class HttpApiClient implements ApiClient {
   pathPrefix: string
   maxRetries: number
   private authCache?: AuthCache
@@ -115,7 +171,7 @@ export default class ApiClient {
     this.pathPrefix = pathPrefix
     this.maxRetries = opts?.maxRetries || 5
     this.appVersion = opts?.appVersion
-    this.version = 'xmtp-js/' + version
+    this.version = 'xmtp-js/' + packageJson.version
 
     if (pathPrefix === ApiUrls.dev) {
       console.info(XMTP_DEV_WARNING)
@@ -123,22 +179,27 @@ export default class ApiClient {
   }
 
   // Raw method for querying the API
-  private _query(
+  private async _query(
     req: messageApi.QueryRequest
   ): ReturnType<typeof MessageApi.Query> {
-    return retry(
-      MessageApi.Query,
-      [
-        req,
-        {
-          pathPrefix: this.pathPrefix,
-          mode: 'cors',
-          headers: this.headers(),
-        },
-      ],
-      this.maxRetries,
-      RETRY_SLEEP_TIME
-    )
+    try {
+      return await retry(
+        MessageApi.Query,
+        [
+          req,
+          {
+            pathPrefix: this.pathPrefix,
+            mode: 'cors',
+            headers: this.headers(),
+          },
+        ],
+        this.maxRetries,
+        RETRY_SLEEP_TIME
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      throw GrpcError.fromObject(e)
+    }
   }
 
   // Raw method for batch-querying the API
@@ -188,7 +249,7 @@ export default class ApiClient {
     } catch (e: any) {
       // Try at most 2X. If refreshing the auth token doesn't work the first time, it won't work the second time
       if (isNotAuthError(e) || attemptNumber >= 1) {
-        throw e
+        throw GrpcError.fromObject(e)
       }
       await this.authCache?.refresh()
       return this._publish(req, attemptNumber + 1)
@@ -198,8 +259,9 @@ export default class ApiClient {
   // Raw method for subscribing
   private _subscribe(
     req: messageApi.SubscribeRequest,
-    cb: NotifyStreamEntityArrival<messageApi.Envelope>
-  ): UnsubscribeFn {
+    cb: NotifyStreamEntityArrival<messageApi.Envelope>,
+    onConnectionLost?: OnConnectionLostCallback
+  ): SubscriptionManager {
     const abortController = new AbortController()
 
     const doSubscribe = async () => {
@@ -219,25 +281,29 @@ export default class ApiClient {
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)
           }
+
+          onConnectionLost?.()
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           if (isAbortError(err) || abortController.signal.aborted) {
             return
           }
-          console.info(
-            'Stream connection closed. Resubscribing',
-            err.toString()
-          )
+          console.info('Stream connection closed. Resubscribing')
+
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)
           }
+
+          onConnectionLost?.()
         }
       }
     }
     doSubscribe()
 
-    return async () => {
-      abortController?.abort()
+    return {
+      unsubscribe: async () => {
+        abortController?.abort()
+      },
     }
   }
 
@@ -282,10 +348,10 @@ export default class ApiClient {
   // Creates an async generator that will paginate through the Query API until it reaches the end
   // Will yield each page of results as needed
   async *queryIteratePages(
-    { contentTopics, startTime, endTime }: QueryParams,
+    { contentTopic, startTime, endTime }: QueryParams,
     { direction, pageSize = 10 }: QueryStreamOptions
   ): AsyncGenerator<messageApi.Envelope[]> {
-    if (!contentTopics || !contentTopics.length) {
+    if (!contentTopic || !contentTopic.length) {
       throw new Error('Must specify content topics')
     }
 
@@ -301,14 +367,14 @@ export default class ApiClient {
       }
 
       const result = await this._query({
-        contentTopics,
+        contentTopics: [contentTopic],
         startTimeNs,
         endTimeNs,
         pagingInfo,
       })
 
       if (result.envelopes?.length) {
-        yield result.envelopes
+        yield result.envelopes.map(normalizeEnvelope)
       } else {
         return
       }
@@ -337,7 +403,7 @@ export default class ApiClient {
 
       for (const queryParams of queriesInBatch) {
         constructedQueries.push({
-          contentTopics: queryParams.contentTopics,
+          contentTopics: [queryParams.contentTopic],
           startTimeNs: toNanoString(queryParams.startTime),
           endTimeNs: toNanoString(queryParams.endTime),
           pagingInfo: {
@@ -369,7 +435,7 @@ export default class ApiClient {
       }
       for (const queryResponse of batchResponse.responses) {
         if (queryResponse.envelopes) {
-          allEnvelopes.push(queryResponse.envelopes)
+          allEnvelopes.push(queryResponse.envelopes.map(normalizeEnvelope))
         } else {
           // If no envelopes provided, then add an empty list
           allEnvelopes.push([])
@@ -410,13 +476,18 @@ export default class ApiClient {
   // Returns an unsubscribe function that can be used to end the subscription
   subscribe(
     params: SubscribeParams,
-    callback: SubscribeCallback
-  ): UnsubscribeFn {
+    callback: SubscribeCallback,
+    onConnectionLost?: OnConnectionLostCallback
+  ): SubscriptionManager {
     if (!params.contentTopics.length) {
       throw new Error('Must provide list of contentTopics to subscribe to')
     }
 
-    return this._subscribe(params, callback)
+    return this._subscribe(
+      params,
+      (env) => callback(normalizeEnvelope(env)),
+      onConnectionLost
+    )
   }
 
   private getToken(): Promise<string> {

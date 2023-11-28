@@ -1,28 +1,17 @@
-import { ConversationV1 } from './../../src/conversations/Conversation'
 import { DecodedMessage, MessageV1 } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
-import {
-  Client,
-  Compression,
-  ContentTypeFallback,
-  ContentTypeId,
-  ContentTypeText,
-} from '../../src'
+import { Client, Compression, ContentTypeId, ContentTypeText } from '../../src'
 import { SortDirection } from '../../src/ApiClient'
 import { sleep } from '../../src/utils'
-import { newLocalHostClient, newWallet, waitForUserContact } from '../helpers'
-import {
-  PrivateKey,
-  PrivateKeyBundleV1,
-  SignedPublicKeyBundle,
-} from '../../src/crypto'
+import { newLocalHostClient, waitForUserContact } from '../helpers'
+import { PrivateKey, SignedPublicKeyBundle } from '../../src/crypto'
 import { ConversationV2 } from '../../src/conversations/Conversation'
 import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
-import { messageApi, message, content as proto, fetcher } from '@xmtp/proto'
+import { content as proto } from '@xmtp/proto'
 
 describe('conversation', () => {
-  let alice: Client
-  let bob: Client
+  let alice: Client<string>
+  let bob: Client<string>
 
   describe('v1', () => {
     beforeEach(async () => {
@@ -36,9 +25,12 @@ describe('conversation', () => {
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
+      expect(aliceConversation.conversationVersion).toBe('v1')
+
       const bobConversation = await bob.conversations.newConversation(
         alice.address
       )
+      expect(bobConversation.conversationVersion).toBe('v1')
 
       const startingMessages = await aliceConversation.messages()
       expect(startingMessages).toHaveLength(0)
@@ -88,7 +80,7 @@ describe('conversation', () => {
       expect(messageIds.size).toBe(10)
 
       // Test sorting
-      let lastMessage: DecodedMessage | undefined = undefined
+      let lastMessage: DecodedMessage<any> | undefined = undefined
       for await (const page of aliceConversation.messagesPaginated({
         direction: SortDirection.SORT_DIRECTION_DESCENDING,
       })) {
@@ -132,15 +124,120 @@ describe('conversation', () => {
       consoleWarn.mockRestore()
     })
 
-    it('works for messaging yourself', async () => {
-      const convo = await alice.conversations.newConversation(alice.address)
-      await convo.send('hey me')
+    it('does not allow self messaging', async () => {
+      expect(
+        alice.conversations.newConversation(alice.address)
+      ).rejects.toThrow('self messaging not supported')
+      expect(
+        alice.conversations.newConversation(alice.address.toLowerCase())
+      ).rejects.toThrow('self messaging not supported')
+    })
 
-      const messages = await convo.messages()
-      expect(messages).toHaveLength(1)
-      expect(messages[0].content).toBe('hey me')
-      expect(messages[0].senderAddress).toBe(alice.address)
-      expect(messages[0].recipientAddress).toBe(alice.address)
+    it('can send a prepared message v1', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+
+      const preparedMessage = await aliceConversation.prepareMessage('1')
+      const messageID = await preparedMessage.messageID()
+
+      const sentMessage = await preparedMessage.send()
+
+      const messages = await aliceConversation.messages()
+      const message = messages[0]
+      expect(message.id).toBe(messageID)
+      expect(sentMessage.id).toBe(messageID)
+      expect(sentMessage.messageVersion).toBe('v1')
+    })
+
+    it('can send a prepared message v2', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address,
+        {
+          conversationId: 'example.com',
+          metadata: {},
+        }
+      )
+
+      const preparedMessage = await aliceConversation.prepareMessage('sup')
+      const messageID = await preparedMessage.messageID()
+
+      const sentMessage = await preparedMessage.send()
+
+      const messages = await aliceConversation.messages()
+      const message = messages[0]
+      expect(message.id).toBe(messageID)
+      expect(message.content).toBe('sup')
+      expect(sentMessage.id).toBe(messageID)
+      expect(sentMessage.messageVersion).toBe('v2')
+    })
+
+    it('can send and stream ephemeral topic v1', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address
+      )
+
+      // Start the stream before sending the message to ensure delivery
+      const stream = await aliceConversation.streamEphemeral()
+
+      if (!stream) {
+        fail('no stream')
+      }
+
+      await sleep(100)
+
+      await aliceConversation.send('hello', { ephemeral: true })
+      await sleep(100)
+
+      let result = await stream.next()
+      const message = result.value
+
+      expect(message.error).toBeUndefined()
+      expect(message.messageVersion).toBe('v1')
+      expect(message.content).toBe('hello')
+      expect(message.senderAddress).toBe(alice.address)
+
+      await sleep(100)
+
+      // The message should not be persisted
+      expect(await aliceConversation.messages()).toHaveLength(0)
+      await stream.return()
+    })
+
+    it('can send and stream ephemeral topic v2', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address,
+        {
+          conversationId: 'example.com',
+          metadata: {},
+        }
+      )
+
+      // Start the stream before sending the message to ensure delivery
+      const stream = await aliceConversation.streamEphemeral()
+
+      if (!stream) {
+        fail('no stream')
+      }
+
+      await sleep(100)
+
+      await aliceConversation.send('hello', { ephemeral: true })
+      await sleep(100)
+
+      let result = await stream.next()
+      const message = result.value
+
+      expect(message.error).toBeUndefined()
+      expect(message.messageVersion).toBe('v2')
+      expect(message.content).toBe('hello')
+      expect(message.senderAddress).toBe(alice.address)
+
+      await sleep(100)
+
+      // The message should not be persisted
+      expect(await aliceConversation.messages()).toHaveLength(0)
+      await stream.return()
     })
 
     it('allows for sorted listing', async () => {
@@ -252,15 +349,16 @@ describe('conversation', () => {
       // Verify that messages are actually compressed
       const envelopes = await alice.apiClient.query(
         {
-          contentTopics: [convo.topic],
+          contentTopic: convo.topic,
         },
         { limit: 1 }
       )
-      const messageBytes = fetcher.b64Decode(
-        envelopes[0].message as unknown as string
-      )
+      const messageBytes = envelopes[0].message as Uint8Array
       const decoded = await MessageV1.fromBytes(messageBytes)
-      const decrypted = await decoded.decrypt(alice.legacyKeys)
+      const decrypted = await decoded.decrypt(
+        alice.keystore,
+        alice.publicKeyBundle
+      )
       const encodedContent = proto.EncodedContent.decode(decrypted)
       expect(encodedContent.content).not.toStrictEqual(
         new Uint8Array(111).fill(65)
@@ -309,16 +407,15 @@ describe('conversation', () => {
       const stream = await bobConvo.streamMessages()
       await sleep(100)
       // mallory takes over alice's client
-      const malloryWallet = newWallet()
-      const mallory = await PrivateKeyBundleV1.generate(malloryWallet)
-      const aliceKeys = alice.legacyKeys
-      alice.legacyKeys = mallory
+      const mallory = await newLocalHostClient()
+      const aliceKeystore = alice.keystore
+      alice.keystore = mallory.keystore
       await aliceConvo.send('Hello from Mallory')
       // alice restores control
-      alice.legacyKeys = aliceKeys
+      alice.keystore = aliceKeystore
       await aliceConvo.send('Hello from Alice')
       const result = await stream.next()
-      const msg = result.value as DecodedMessage
+      const msg = result.value
       expect(msg.senderAddress).toBe(alice.address)
       expect(msg.content).toBe('Hello from Alice')
       await stream.return()
@@ -335,6 +432,7 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       await expect(
+        // @ts-expect-error
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -342,32 +440,34 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
-        contentFallback: 'this is a public key',
       })
 
       const aliceResult1 = await aliceStream.next()
-      const aliceMessage1 = aliceResult1.value as DecodedMessage
+      const aliceMessage1 = aliceResult1.value
       expect(aliceMessage1.content).toEqual(key)
 
       const bobResult1 = await bobStream.next()
-      const bobMessage1 = bobResult1.value as DecodedMessage
+      const bobMessage1 = bobResult1.value
       expect(bobMessage1).toBeTruthy()
       expect(bobMessage1.error?.message).toBe(
         'unknown content type xmtp.test/public-key:1.0'
       )
       expect(bobMessage1.contentType).toBeTruthy()
-      expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
-      expect(bobMessage1.content).toBe('this is a public key')
+      expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
+      expect(bobMessage1.content).toBeUndefined()
+      expect(bobMessage1.contentFallback).toBe('publickey bundle')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
       const bobResult2 = await bobStream.next()
-      const bobMessage2 = bobResult2.value as DecodedMessage
+      const bobMessage2 = bobResult2.value
       expect(bobMessage2.contentType).toBeTruthy()
       expect(bobMessage2.contentType.sameAs(ContentTypeTestKey)).toBeTruthy()
       expect(key.equals(bobMessage2.content)).toBeTruthy()
@@ -377,38 +477,13 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
+      // @ts-expect-error
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )
 
       await bobStream.return()
       await aliceStream.return()
-    })
-
-    it('exports', async () => {
-      const convo = await alice.conversations.newConversation(bob.address)
-      const exported = convo.export()
-
-      expect(exported.peerAddress).toBe(bob.address)
-      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
-      expect(exported.version).toBe('v1')
-    })
-
-    it('imports', async () => {
-      const convo = await alice.conversations.newConversation(bob.address)
-      const exported = convo.export()
-
-      if (exported.version !== 'v1') {
-        fail()
-      }
-      const imported = ConversationV1.fromExport(alice, exported)
-      expect(imported.createdAt).toEqual(convo.createdAt)
-      await imported.send('hello')
-      await sleep(50)
-
-      const results = await convo.messages()
-      expect(results).toHaveLength(1)
-      expect(results[0].content).toBe('hello')
     })
   })
 
@@ -429,6 +504,7 @@ describe('conversation', () => {
       )
 
       const ac = await alice.conversations.newConversation(bob.address)
+      expect(ac.conversationVersion).toBe('v2')
       if (!(ac instanceof ConversationV2)) {
         fail()
       }
@@ -438,11 +514,11 @@ describe('conversation', () => {
       const bcs = await bob.conversations.list()
       expect(bcs).toHaveLength(1)
       const bc = bcs[0]
+      expect(bc.conversationVersion).toBe('v2')
       if (!(bc instanceof ConversationV2)) {
         fail()
       }
       expect(bc.topic).toBe(ac.topic)
-      expect(bc.export().keyMaterial).toEqual(ac.export().keyMaterial)
       const bs = await bc.streamMessages()
       await sleep(100)
 
@@ -456,6 +532,35 @@ describe('conversation', () => {
       await bs.return()
       await as.return()
     })
+
+    // it('rejects spoofed contact bundles', async () => {
+    //   // Generated via exporting 1) conversationV2Export and 2) pre-crafted envelope with swapped contact bundles
+    //   const topic =
+    //     '/xmtp/0/m-Gdb7oj5nNdfZ3MJFLAcS4WTABgr6al1hePy6JV1-QUE/proto'
+    //   const envelopeMessage = Buffer.from(
+    //     'Er0ECkcIwNruhKLgkKUXEjsveG10cC8wL20tR2RiN29qNW5OZGZaM01KRkxBY1M0V1RBQmdyNmFsMWhlUHk2SlYxLVFVRS9wcm90bxLxAwruAwognstLoG6LWgiBRsWuBOt+tYNJz+CqCj9zq6hYymLoak8SDFsVSy+cVAII0/r3sxq7A/GCOrVtKH6J+4ggfUuI5lDkFPJ8G5DHlysCfRyFMcQDIG/2SFUqSILAlpTNbeTC9eSI2hUjcnlpH9+ncFcBu8StGfmilVGfiADru2fGdThiQ+VYturqLIJQXCHO2DkvbbUOg9xI66E4Hj41R9vE8yRGeZ/eRGRLRm06HftwSQgzAYf2AukbvjNx/k+xCMqti49Qtv9AjzxVnwttLiA/9O+GDcOsiB1RQzbZZzaDjQ/nLDTF6K4vKI4rS9QwzTJqnoCdp0SbMZFf+KVZpq3VWnMGkMxLW5Fr6gMvKny1e1LAtUJSIclI/1xPXu5nsKd4IyzGb2ZQFXFQ/BVL9Z4CeOZTsjZLGTOGS75xzzGHDtKohcl79+0lgIhAuSWSLDa2+o2OYT0fAjChp+qqxXcisAyrD5FB6c9spXKfoDZsqMV/bnCg3+udIuNtk7zBk7jdTDMkofEtE3hyIm8d3ycmxKYOakDPqeo+Nk1hQ0ogxI8Z7cEoS2ovi9+rGBMwREzltUkTVR3BKvgV2EOADxxTWo7y8WRwWxQ+O6mYPACsiFNqjX5Nvah5lRjihphQldJfyVOG8Rgf4UwkFxmI'
+    //   )
+    //   const convoExport = {
+    //     version: 'v2' as const,
+    //     topic: '/xmtp/0/m-Gdb7oj5nNdfZ3MJFLAcS4WTABgr6al1hePy6JV1-QUE/proto',
+    //     keyMaterial: 'R0BBM5OPftNEuavH/991IKyJ1UqsgdEG4SrdxlIG2ZY=',
+    //     peerAddress: '0x2f25e33D7146602Ec08D43c1D6B1b65fc151A677',
+    //     createdAt: '2023-03-07T22:18:07.553Z',
+    //     context: { conversationId: 'xmtp.org/foo', metadata: {} },
+    //   }
+
+    //   // Create a ConversationV2 from export (client here shouldn't matter)
+    //   const convo = ConversationV2.fromExport(alice, convoExport)
+
+    //   // Feed in a message directly into "decodeMessage" and assert that it throws
+    //   // and look for "pre key not signed" in the error message
+    //   expect(
+    //     convo.decodeMessage({
+    //       contentTopic: topic,
+    //       message: envelopeMessage,
+    //     })
+    //   ).rejects.toThrow('pre key not signed by identity key')
+    // })
 
     it('can send compressed v2 messages', async () => {
       const convo = await alice.conversations.newConversation(bob.address, {
@@ -509,7 +614,7 @@ describe('conversation', () => {
       )
       await sleep(100)
 
-      const firstMessageFromStream: DecodedMessage = (await stream.next()).value
+      const firstMessageFromStream = (await stream.next()).value
       expect(firstMessageFromStream.messageVersion).toBe('v2')
       expect(firstMessageFromStream.content).toBe('foo')
       expect(firstMessageFromStream.conversation.context?.conversationId).toBe(
@@ -569,6 +674,7 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       expect(
+        // @ts-expect-error
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -576,32 +682,34 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
-        contentFallback: 'this is a public key',
       })
 
       const aliceResult1 = await aliceStream.next()
-      const aliceMessage1 = aliceResult1.value as DecodedMessage
+      const aliceMessage1 = aliceResult1.value
       expect(aliceMessage1.content).toEqual(key)
 
       const bobResult1 = await bobStream.next()
-      const bobMessage1 = bobResult1.value as DecodedMessage
+      const bobMessage1 = bobResult1.value
       expect(bobMessage1).toBeTruthy()
       expect(bobMessage1.error?.message).toBe(
         'unknown content type xmtp.test/public-key:1.0'
       )
       expect(bobMessage1.contentType).toBeTruthy()
-      expect(bobMessage1.contentType.sameAs(ContentTypeFallback))
-      expect(bobMessage1.content).toBe('this is a public key')
+      expect(bobMessage1.contentType.sameAs(ContentTypeTestKey))
+      expect(bobMessage1.content).toBeUndefined()
+      expect(bobMessage1.contentFallback).toBe('publickey bundle')
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
+      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
       const bobResult2 = await bobStream.next()
-      const bobMessage2 = bobResult2.value as DecodedMessage
+      const bobMessage2 = bobResult2.value
       expect(bobMessage2.contentType).toBeTruthy()
       expect(bobMessage2.contentType.sameAs(ContentTypeTestKey)).toBeTruthy()
       expect(key.equals(bobMessage2.content)).toBeTruthy()
@@ -611,53 +719,13 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
+      // @ts-expect-error
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )
 
       await bobStream.return()
       await aliceStream.return()
-    })
-
-    it('exports', async () => {
-      const conversationId = 'xmtp.org/foo'
-      const convo = await alice.conversations.newConversation(bob.address, {
-        conversationId,
-        metadata: {},
-      })
-      const exported = convo.export()
-
-      if (exported.version !== 'v2') {
-        fail()
-      }
-      expect(exported.peerAddress).toBe(bob.address)
-      expect(exported.createdAt).toBe(convo.createdAt.toISOString())
-      expect(exported.context?.conversationId).toBe(conversationId)
-      expect(exported.keyMaterial).toBeTruthy()
-      expect(exported.topic).toBe(convo.topic)
-    })
-
-    it('imports', async () => {
-      const conversationId = 'xmtp.org/foo'
-      const convo = await alice.conversations.newConversation(bob.address, {
-        conversationId,
-        metadata: {},
-      })
-      const exported = convo.export()
-
-      if (exported.version !== 'v2') {
-        fail()
-      }
-
-      const imported = ConversationV2.fromExport(alice, exported)
-      expect(imported.createdAt).toEqual(convo.createdAt)
-      await imported.send('hello')
-      await sleep(50)
-
-      // Get messages from original conversation
-      const results = await convo.messages()
-      expect(results).toHaveLength(1)
-      expect(results[0].content).toBe('hello')
     })
   })
 })

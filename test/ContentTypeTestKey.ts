@@ -24,4 +24,9 @@ export class TestKeyCodec implements ContentCodec<PublicKey> {
   decode(content: EncodedContent): PublicKey {
     return new PublicKey(publicKey.PublicKey.decode(content.content))
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fallback(content: PublicKey): string | undefined {
+    return 'publickey bundle'
+  }
 }

@@ -1,11 +1,11 @@
 import Long from 'long'
 import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
-import { messageApi, invitation, fetcher } from '@xmtp/proto'
+import { messageApi, invitation } from '@xmtp/proto'
+import crypto from './crypto/crypto'
 import Ciphertext from './crypto/Ciphertext'
-import { decrypt, encrypt, utils } from './crypto'
+import { decrypt, encrypt } from './crypto'
 import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
 import { dateToNs, buildDirectMessageTopicV2 } from './utils'
-const { b64Decode } = fetcher
 
 export type InvitationContext = {
   conversationId: string
@@ -42,14 +42,14 @@ export class InvitationV1 implements invitation.InvitationV1 {
 
   static createRandom(context?: invitation.InvitationV1_Context): InvitationV1 {
     const topic = buildDirectMessageTopicV2(
-      Buffer.from(utils.getRandomValues(new Uint8Array(32)))
+      Buffer.from(crypto.getRandomValues(new Uint8Array(32)))
         .toString('base64')
         .replace(/=*$/g, '')
         // Replace slashes with dashes so that the topic is still easily split by /
         // We do not treat this as needing to be valid Base64 anywhere
         .replace('/', '-')
     )
-    const keyMaterial = utils.getRandomValues(new Uint8Array(32))
+    const keyMaterial = crypto.getRandomValues(new Uint8Array(32))
 
     return new InvitationV1({
       topic,
@@ -180,13 +180,14 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
  * Wrapper class for SealedInvitationV1 and any future iterations of SealedInvitation
  */
 export class SealedInvitation implements invitation.SealedInvitation {
-  v1: SealedInvitationV1
+  v1: SealedInvitationV1 | undefined
 
   constructor({ v1 }: invitation.SealedInvitation) {
-    if (!v1) {
-      throw new Error('Missing v1 invitation')
+    if (v1) {
+      this.v1 = new SealedInvitationV1(v1)
+    } else {
+      throw new Error('Missing v1 or v2 invitation')
     }
-    this.v1 = new SealedInvitationV1(v1)
   }
 
   toBytes(): Uint8Array {
@@ -203,12 +204,10 @@ export class SealedInvitation implements invitation.SealedInvitation {
     if (!env.message || !env.timestampNs) {
       throw new Error('invalid invitation envelope')
     }
-    const sealed = SealedInvitation.fromBytes(
-      b64Decode(env.message as unknown as string)
-    )
+    const sealed = SealedInvitation.fromBytes(env.message)
     const envelopeTime = Long.fromString(env.timestampNs)
-    const headerTime = sealed.v1.header.createdNs
-    if (!headerTime.equals(envelopeTime)) {
+    const headerTime = sealed.v1?.header.createdNs
+    if (!headerTime || !headerTime.equals(envelopeTime)) {
       throw new Error('envelope and header timestamp mistmatch')
     }
     return sealed
@@ -244,6 +243,8 @@ export class SealedInvitation implements invitation.SealedInvitation {
     const invitationBytes = invitation.toBytes()
     const ciphertext = await encrypt(invitationBytes, secret, headerBytes)
 
-    return new SealedInvitation({ v1: { headerBytes, ciphertext } })
+    return new SealedInvitation({
+      v1: { headerBytes, ciphertext },
+    })
   }
 }

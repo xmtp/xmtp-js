@@ -1,7 +1,7 @@
 import { publicKey } from '@xmtp/proto'
 import { PublicKey, SignedPublicKey } from './PublicKey'
 
-// PublicKeyBundle packages all the keys that a participant should advertise.
+// LEGACY: PublicKeyBundle packages all the keys that a participant should advertise.
 // The PreKey must be signed by the IdentityKey.
 // The IdentityKey must be signed by the wallet to authenticate it.
 export class SignedPublicKeyBundle implements publicKey.SignedPublicKeyBundle {

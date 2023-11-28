@@ -1,13 +1,13 @@
+import { decodePrivateKeyBundle } from './../src/crypto/PrivateKeyBundle'
 import { ApiUrls } from './../src/ApiClient'
 import { newWallet, sleep } from './helpers'
 import Client, { defaultOptions } from '../src/Client'
 import { Signer } from '../src/types/Signer'
-import {
-  EncryptedKeyStore,
-  PrivateTopicStore,
-  StaticKeyStore,
-} from '../src/store'
 import ApiClient from '../src/ApiClient'
+import { PublicKeyBundle } from '../src/crypto/PublicKeyBundle'
+import { KeyGeneratorKeystoreProvider } from '../src/keystore/providers'
+import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
+import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 
 describe('Key Generation', () => {
   let wallet: Signer
@@ -24,7 +24,11 @@ describe('Key Generation', () => {
       ...opts,
       privateKeyOverride: keys,
     })
-    expect(client.legacyKeys.encode()).toEqual(keys)
+    expect(
+      (
+        decodePrivateKeyBundle(keys).getPublicKeyBundle() as PublicKeyBundle
+      ).equals(client.publicKeyBundle)
+    ).toBeTruthy()
   })
 
   // Make sure that the keys are being saved to the network upon generation
@@ -33,17 +37,17 @@ describe('Key Generation', () => {
       env: 'local' as keyof typeof ApiUrls,
     })
     const keys = await Client.getKeys(wallet, opts)
-    const staticStore = new StaticKeyStore(keys)
-    const bundle = await staticStore.loadPrivateKeyBundle()
-    const apiClient = new ApiClient(ApiUrls[opts.env])
-    const store = new EncryptedKeyStore(
+    const manager = new NetworkKeyManager(
       wallet,
-      new PrivateTopicStore(apiClient)
+      new TopicPersistence(new ApiClient(ApiUrls['local']))
     )
-    await sleep(500)
 
-    expect((await store.loadPrivateKeyBundle())?.identityKey.toBytes()).toEqual(
-      bundle.identityKey.toBytes()
-    )
+    expect(
+      (await manager.loadPrivateKeyBundle())
+        ?.getPublicKeyBundle()
+        .equals(
+          decodePrivateKeyBundle(keys).getPublicKeyBundle() as PublicKeyBundle
+        )
+    ).toBeTruthy()
   })
 })

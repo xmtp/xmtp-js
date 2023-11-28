@@ -2,15 +2,13 @@ import {
   ConversationV1,
   ConversationV2,
 } from './../../src/conversations/Conversation'
-import { ConversationCache } from '../../src/conversations/Conversations'
-import { newLocalHostClient, newWallet, waitForUserContact } from './../helpers'
+import { newLocalHostClient } from './../helpers'
 import { Client } from '../../src'
 import {
   buildDirectMessageTopic,
   buildUserIntroTopic,
   sleep,
 } from '../../src/utils'
-import { Wallet } from 'ethers'
 
 describe('conversations', () => {
   let alice: Client
@@ -21,9 +19,6 @@ describe('conversations', () => {
     alice = await newLocalHostClient({ publishLegacyContact: true })
     bob = await newLocalHostClient({ publishLegacyContact: true })
     charlie = await newLocalHostClient({ publishLegacyContact: true })
-    await waitForUserContact(alice, alice)
-    await waitForUserContact(bob, bob)
-    await waitForUserContact(charlie, charlie)
   })
 
   afterEach(async () => {
@@ -39,7 +34,6 @@ describe('conversations', () => {
 
       const aliceToBob = await alice.conversations.newConversation(bob.address)
       await aliceToBob.send('gm')
-      await sleep(100)
 
       const aliceConversationsAfterMessage = await alice.conversations.list()
       expect(aliceConversationsAfterMessage).toHaveLength(1)
@@ -50,6 +44,47 @@ describe('conversations', () => {
       expect(bobConversations[0].peerAddress).toBe(alice.address)
     })
 
+    it('lists conversations from cache', async () => {
+      const aliceConversations = await alice.conversations.list()
+      expect(aliceConversations).toHaveLength(0)
+
+      const aliceConversationsFromCache =
+        await alice.conversations.listFromCache()
+      expect(aliceConversationsFromCache).toHaveLength(0)
+
+      const bobConversationsFromCache = await bob.conversations.listFromCache()
+      expect(bobConversationsFromCache).toHaveLength(0)
+
+      const aliceToBob = await alice.conversations.newConversation(bob.address)
+      await aliceToBob.send('gm')
+      await sleep(100)
+
+      expect(await alice.conversations.listFromCache()).toHaveLength(0)
+      expect(await bob.conversations.listFromCache()).toHaveLength(0)
+
+      const aliceConversationsAfterMessage = await alice.conversations.list()
+      expect(aliceConversationsAfterMessage).toHaveLength(1)
+      expect(aliceConversationsAfterMessage[0].peerAddress).toBe(bob.address)
+
+      const aliceConversationsFromCacheAfterMessage =
+        await alice.conversations.listFromCache()
+      expect(aliceConversationsFromCacheAfterMessage).toHaveLength(1)
+      expect(aliceConversationsFromCacheAfterMessage[0].peerAddress).toBe(
+        bob.address
+      )
+
+      const bobConversations = await bob.conversations.list()
+      expect(bobConversations).toHaveLength(1)
+      expect(bobConversations[0].peerAddress).toBe(alice.address)
+
+      const bobConversationsFromCacheAfterMessage =
+        await bob.conversations.listFromCache()
+      expect(bobConversationsFromCacheAfterMessage).toHaveLength(1)
+      expect(bobConversationsFromCacheAfterMessage[0].peerAddress).toBe(
+        alice.address
+      )
+    })
+
     it('resumes list with cache after new conversation is created', async () => {
       const aliceConversations1 = await alice.conversations.list()
       expect(aliceConversations1).toHaveLength(0)
@@ -58,7 +93,6 @@ describe('conversations', () => {
         conversationId: 'foo',
         metadata: {},
       })
-      await sleep(100)
       const aliceConversations2 = await alice.conversations.list()
       expect(aliceConversations2).toHaveLength(1)
 
@@ -66,56 +100,12 @@ describe('conversations', () => {
         conversationId: 'bar',
         metadata: {},
       })
-      await sleep(100)
+      const fromKeystore = (await alice.keystore.getV2Conversations())
+        .conversations
+      expect(fromKeystore[1].context?.conversationId).toBe('bar')
+
       const aliceConversations3 = await alice.conversations.list()
       expect(aliceConversations3).toHaveLength(2)
-    })
-
-    it('caches results and updates the latestSeen date', async () => {
-      const cache = new ConversationCache()
-      const convoDate = new Date()
-      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
-
-      const results = await cache.load(async () => {
-        return [firstConvo]
-      })
-      expect(results[0]).toBe(firstConvo)
-
-      // Should dedupe repeated result
-      const results2 = await cache.load(async ({ latestSeen }) => {
-        expect(latestSeen).toBe(convoDate)
-        return [firstConvo]
-      })
-
-      expect(results2).toHaveLength(1)
-    })
-
-    it('bubbles up errors in loader', async () => {
-      const cache = new ConversationCache()
-      await expect(
-        cache.load(async () => {
-          throw new Error('test')
-        })
-      ).rejects.toThrow('test')
-    })
-
-    it('waits for one request to finish before the second one starts', async () => {
-      const cache = new ConversationCache()
-      const convoDate = new Date()
-      const firstConvo = new ConversationV1(alice, bob.address, convoDate)
-      const promise1 = cache.load(async ({ latestSeen }) => {
-        expect(latestSeen).toBeUndefined()
-        return [firstConvo]
-      })
-
-      const promise2 = cache.load(async ({ latestSeen }) => {
-        expect(latestSeen).toBe(convoDate)
-        return []
-      })
-
-      const [result1, result2] = await Promise.all([promise1, promise2])
-      expect(result1).toHaveLength(1)
-      expect(result2).toHaveLength(1)
     })
   })
 
@@ -174,10 +164,9 @@ describe('conversations', () => {
       conversationId: 'xmtp.org/foo',
       metadata: {},
     })
-    await sleep(100)
 
     const stream = await alice.conversations.streamAllMessages()
-    await sleep(100)
+    await sleep(50)
 
     await aliceBobV1.send('V1')
     const message1 = await stream.next()
@@ -220,7 +209,6 @@ describe('conversations', () => {
       aliceConversation.send('gm'),
       bobConversation.send('gm'),
     ])
-    await sleep(100)
 
     const [aliceConversationsList, bobConversationList] = await Promise.all([
       alice.conversations.list(),
@@ -228,6 +216,40 @@ describe('conversations', () => {
     ])
     expect(aliceConversationsList).toHaveLength(1)
     expect(bobConversationList).toHaveLength(1)
+  })
+
+  it('handles a mix of streaming and listing conversations', async () => {
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/1',
+      metadata: {},
+    })
+    const aliceStream = await alice.conversations.stream()
+    await sleep(50)
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/2',
+      metadata: {},
+    })
+    // Ensure the result has been received
+    await aliceStream.next()
+    // Expect that even though a new conversation was found while streaming the first conversation is still returned
+    expect(await alice.conversations.list()).toHaveLength(2)
+    await aliceStream.return()
+
+    // Do it again to make sure the cache is updated with an existing timestamp
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/3',
+      metadata: {},
+    })
+    const aliceStream2 = await alice.conversations.stream()
+    await sleep(50)
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/4',
+      metadata: {},
+    })
+    await aliceStream2.next()
+
+    expect(await alice.conversations.list()).toHaveLength(4)
+    await aliceStream2.return()
   })
 
   describe('newConversation', () => {
@@ -239,19 +261,30 @@ describe('conversations', () => {
       expect(bobConvo instanceof ConversationV1).toBeTruthy()
     })
 
+    it('does not create a duplicate conversation with an address case mismatch', async () => {
+      const convo1 = await alice.conversations.newConversation(bob.address)
+      await convo1.send('gm')
+      const convos = await alice.conversations.list()
+      expect(convos).toHaveLength(1)
+      const convo2 = await alice.conversations.newConversation(
+        bob.address.toLowerCase()
+      )
+      await convo2.send('gm')
+      const convos2 = await alice.conversations.list()
+      expect(convos2).toHaveLength(1)
+    })
+
     it('continues to use v1 conversation even after upgrading bundle', async () => {
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       await aliceConvo.send('gm')
       expect(aliceConvo instanceof ConversationV1).toBeTruthy()
       await bob.publishUserContact(false)
       alice.forgetContact(bob.address)
-      await sleep(100)
 
       const aliceConvo2 = await alice.conversations.newConversation(bob.address)
       expect(aliceConvo2 instanceof ConversationV1).toBeTruthy()
       await aliceConvo2.send('hi')
 
-      await sleep(100)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       expect(bobConvo instanceof ConversationV1).toBeTruthy()
       const messages = await bobConvo.messages()
@@ -263,7 +296,6 @@ describe('conversations', () => {
     it('creates a new V2 conversation when no existing convo and V2 bundle', async () => {
       await bob.publishUserContact(false)
       alice.forgetContact(bob.address)
-      await sleep(100)
 
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       expect(aliceConvo instanceof ConversationV2).toBeTruthy()
@@ -282,22 +314,14 @@ describe('conversations', () => {
       expect(aliceConvo.context?.metadata.foo).toBe('bar')
 
       // Ensure alice received an invite
-      const aliceInvites = await alice.listInvitations()
-      expect(aliceInvites).toHaveLength(1)
-      expect(
-        aliceInvites[0].v1.header.sender.equals(alice.keys.getPublicKeyBundle())
-      ).toBeTruthy()
-      expect(
-        aliceInvites[0].v1.header.recipient.equals(
-          bob.keys.getPublicKeyBundle()
-        )
-      ).toBeTruthy()
+      const aliceConvos = await alice.conversations.updateV2Conversations()
+      expect(aliceConvos).toHaveLength(1)
+      expect(aliceConvos[0].topic).toBe(aliceConvo.topic)
 
       // Ensure bob received an invite
-      const bobInvites = await bob.listInvitations()
-      expect(bobInvites).toHaveLength(1)
-      const invite = await bobInvites[0].v1.getInvitation(bob.keys)
-      expect(invite.context?.conversationId).toBe(conversationId)
+      const bobConvos = await bob.conversations.updateV2Conversations()
+      expect(bobConvos).toHaveLength(1)
+      expect(bobConvos[0].topic).toBe(aliceConvo.topic)
     })
 
     it('re-uses same invite when multiple conversations started with the same ID', async () => {
@@ -322,10 +346,9 @@ describe('conversations', () => {
         throw new Error('Not a v2 conversation')
       }
 
-      const aliceInvites = await alice.listInvitations()
-      expect(aliceInvites).toHaveLength(1)
-      const invite = await aliceInvites[0].v1.getInvitation(alice.keys)
-      expect(invite.topic).toBe(aliceConvo1.topic)
+      const aliceConvos = await alice.conversations.updateV2Conversations()
+      expect(aliceConvos).toHaveLength(1)
+      expect(aliceConvos[0].topic).toBe(aliceConvo1.topic)
     })
 
     it('sends multiple invites when different IDs are used', async () => {
@@ -335,13 +358,11 @@ describe('conversations', () => {
         bob.address,
         { conversationId: conversationId1, metadata: {} }
       )
-      await sleep(100)
 
       const aliceConvo2 = await alice.conversations.newConversation(
         bob.address,
         { conversationId: conversationId2, metadata: {} }
       )
-      await sleep(100)
 
       if (
         !(aliceConvo1 instanceof ConversationV2) ||
@@ -373,50 +394,6 @@ describe('conversations', () => {
 
       const invites = await alice.listInvitations()
       expect(invites).toHaveLength(1)
-    })
-  })
-
-  describe('export', () => {
-    it('exports something JSON serializable', async () => {
-      await Promise.all([
-        alice.conversations
-          .newConversation(bob.address)
-          .then((convo) => convo.send('hello')),
-        alice.conversations.newConversation(bob.address, {
-          conversationId: 'xmtp.org/foo',
-          metadata: {},
-        }),
-      ])
-      await sleep(50)
-
-      const exported = await alice.conversations.export()
-      expect(exported).toHaveLength(2)
-
-      const roundTripped = JSON.parse(JSON.stringify(exported))
-      expect(roundTripped).toHaveLength(2)
-      expect(roundTripped[0].createdAt).toEqual(exported[0].createdAt)
-    })
-
-    it('imports from export', async () => {
-      const wallet = newWallet()
-      const clientA = await Client.create(wallet, { env: 'local' })
-      await Promise.all([
-        clientA.conversations
-          .newConversation(bob.address)
-          .then((convo) => convo.send('hello')),
-        clientA.conversations.newConversation(bob.address, {
-          conversationId: 'xmtp.org/foo',
-          metadata: {},
-        }),
-      ])
-      await sleep(50)
-
-      const exported = await clientA.conversations.export()
-      expect(exported).toHaveLength(2)
-
-      const clientB = await Client.create(wallet, { env: 'local' })
-      const failed = await clientB.conversations.import(exported)
-      expect(failed).toBe(0)
     })
   })
 })

@@ -1,0 +1,5 @@
+export * from './interface'
+export { default as BrowserStoragePersistence } from './BrowserStoragePersistence'
+export { default as InMemoryPersistence } from './InMemoryPersistence'
+export { default as PrefixedPersistence } from './PrefixedPersistence'
+export { default as EncryptedPersistence } from './EncryptedPersistence'

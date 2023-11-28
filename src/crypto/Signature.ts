@@ -83,14 +83,22 @@ export default class Signature implements signature.Signature {
   // LEGACY: Return the public key that validates this signature given the provided digest.
   // Return undefined if the signature is malformed.
   getPublicKey(digest: Uint8Array): PublicKey | undefined {
-    if (!this.ecdsaCompact) {
-      throw new Error('invalid signature')
+    let bytes: Uint8Array | undefined
+    if (this.ecdsaCompact) {
+      bytes = secp.recoverPublicKey(
+        digest,
+        this.ecdsaCompact.bytes,
+        this.ecdsaCompact.recovery
+      )
+    } else if (this.walletEcdsaCompact) {
+      bytes = secp.recoverPublicKey(
+        digest,
+        this.walletEcdsaCompact.bytes,
+        this.walletEcdsaCompact.recovery
+      )
+    } else {
+      throw new Error('invalid v1 signature')
     }
-    const bytes = secp.recoverPublicKey(
-      digest,
-      this.ecdsaCompact.bytes,
-      this.ecdsaCompact.recovery
-    )
     return bytes
       ? new PublicKey({
           secp256k1Uncompressed: { bytes },
@@ -119,9 +127,15 @@ export default class Signature implements signature.Signature {
   }
 }
 
+// Deprecation in progress
 // A signer that can be used to sign public keys.
 export interface KeySigner {
   signKey(key: UnsignedPublicKey): Promise<SignedPublicKey>
+}
+
+export enum AccountLinkedRole {
+  INBOX_KEY,
+  SEND_KEY,
 }
 
 // A wallet based KeySigner.

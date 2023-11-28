@@ -5,9 +5,9 @@ import {
   PublicKey,
   SignedPublicKey,
   SignedPrivateKey,
-  UnsignedPublicKey,
   WalletSigner,
   utils,
+  Signature,
 } from '../../src/crypto'
 import { Wallet } from 'ethers'
 import { hexToBytes, equalBytes } from '../../src/crypto/utils'
@@ -107,6 +107,33 @@ describe('Crypto', function () {
       const address = alice.publicKey.walletSignatureAddress()
       assert.equal(address, wallet.address)
     })
+
+    it('derives address from public key with malformed v1 signature', async function () {
+      // create a wallet using a generated key
+      const alice = PrivateKey.generate()
+      assert.ok(alice.secp256k1)
+      const wallet = new Wallet(alice.secp256k1.bytes)
+      // sanity check that we agree with the wallet about the address
+      assert.ok(wallet.address, alice.publicKey.getEthereumAddress())
+      // sign the public key using the wallet
+      await alice.publicKey.signWithWallet(wallet)
+      assert.ok(alice.publicKey.signature?.ecdsaCompact)
+
+      // distort the v1 signature to only have a walletEcdsaCompact signature
+      alice.publicKey.signature = new Signature({
+        walletEcdsaCompact: {
+          bytes: alice.publicKey.signature.ecdsaCompact.bytes,
+          recovery: alice.publicKey.signature.ecdsaCompact.recovery,
+        },
+      })
+      // create a new public key with the malformed signature
+      const publicKey = new PublicKey(alice.publicKey)
+      // validate the key signature and return wallet address
+      assert.ok(publicKey.signature?.ecdsaCompact)
+      const address = publicKey.walletSignatureAddress()
+      assert.equal(address, wallet.address)
+    })
+
     it('converts legacy keys to new keys', async function () {
       // Key signed by a wallet
       const wallet = newWallet()

@@ -1,3 +1,4 @@
+import crypto from '../src/crypto/crypto'
 import { InvitationV1 } from './../src/Invitation'
 import { PrivateKeyBundleV2 } from './../src/crypto/PrivateKeyBundle'
 import {
@@ -6,7 +7,6 @@ import {
   SealedInvitationHeaderV1,
 } from '../src/Invitation'
 import { newWallet } from './helpers'
-import { crypto } from '../src/crypto/encryption'
 import Long from 'long'
 import Ciphertext from '../src/crypto/Ciphertext'
 import { NoMatchingPreKeyError } from '../src/crypto/errors'
@@ -43,6 +43,9 @@ describe('Invitations', () => {
         SealedInvitation.fromBytes(newInvitation.toBytes()).toBytes()
       )
       // Ensure the headers haven't been mangled
+      if (!newInvitation.v1) {
+        throw new Error('Unexpected null v1 invitation header')
+      }
       const v1 = newInvitation.v1
       const header = v1.header
       expect(header.sender.equals(alice.getPublicKeyBundle())).toBeTruthy()
@@ -73,7 +76,7 @@ describe('Invitations', () => {
         invitation,
       })
       expect(
-        sealedInvitationWithWrongSender.v1.getInvitation(alice)
+        sealedInvitationWithWrongSender.v1!.getInvitation(alice)
       ).rejects.toThrow(NoMatchingPreKeyError)
 
       expect(() => {

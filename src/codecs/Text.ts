@@ -34,4 +34,9 @@ export class TextCodec implements ContentCodec<string> {
     }
     return new TextDecoder().decode(content.content)
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fallback(content: string): string | undefined {
+    return undefined
+  }
 }

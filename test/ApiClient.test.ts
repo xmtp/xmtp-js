@@ -2,12 +2,16 @@ import {
   InitReq,
   NotifyStreamEntityArrival,
 } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import ApiClient, { GrpcStatus, PublishParams } from '../src/ApiClient'
+import ApiClient, {
+  GrpcError,
+  GrpcStatus,
+  PublishParams,
+} from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
-import { Authenticator } from '../src/authn'
+import { LocalAuthenticator } from '../src/authn'
 import { PrivateKey } from '../src'
-import { version } from '../package.json'
+import packageJson from '../package.json'
 import { dateToNs } from '../src/utils'
 const { MessageApi } = messageApi
 
@@ -29,7 +33,7 @@ const mockGetToken = jest.fn().mockReturnValue(
     age: 10,
   })
 )
-jest.mock('../src/authn/Authenticator', () => {
+jest.mock('../src/authn/LocalAuthenticator', () => {
   return jest.fn().mockImplementation(() => {
     return { createToken: mockGetToken }
   })
@@ -42,7 +46,7 @@ describe('Query', () => {
 
   it('stops when receiving empty results', async () => {
     const apiMock = createQueryMock([], 1)
-    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopic: CONTENT_TOPIC }, {})
     expect(result).toHaveLength(0)
     expect(apiMock).toHaveBeenCalledTimes(1)
     const expectedReq: messageApi.QueryRequest = {
@@ -56,7 +60,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
   })
@@ -64,7 +68,7 @@ describe('Query', () => {
   it('stops when limit is used', async () => {
     const apiMock = createQueryMock([createEnvelope()], 3)
     const result = await client.query(
-      { contentTopics: [CONTENT_TOPIC] },
+      { contentTopic: CONTENT_TOPIC },
       { limit: 2 }
     )
     expect(result).toHaveLength(2)
@@ -73,14 +77,14 @@ describe('Query', () => {
 
   it('stops when receiving some results and a null cursor', async () => {
     const apiMock = createQueryMock([createEnvelope()], 1)
-    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopic: CONTENT_TOPIC }, {})
     expect(result).toHaveLength(1)
     expect(apiMock).toHaveBeenCalledTimes(1)
   })
 
   it('gets multiple pages of results', async () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 2)
-    const result = await client.query({ contentTopics: [CONTENT_TOPIC] }, {})
+    const result = await client.query({ contentTopic: CONTENT_TOPIC }, {})
     expect(result).toHaveLength(4)
     expect(apiMock).toHaveBeenCalledTimes(2)
   })
@@ -89,7 +93,7 @@ describe('Query', () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 1)
     let count = 0
     for await (const _envelope of client.queryIterator(
-      { contentTopics: ['foo'] },
+      { contentTopic: 'foo' },
       { pageSize: 5 }
     )) {
       count++
@@ -107,7 +111,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
   })
@@ -116,7 +120,7 @@ describe('Query', () => {
     const apiMock = createQueryMock([createEnvelope(), createEnvelope()], 2)
     let count = 0
     for await (const _envelope of client.queryIterator(
-      { contentTopics: [CONTENT_TOPIC] },
+      { contentTopic: CONTENT_TOPIC },
       { pageSize: 5 }
     )) {
       count++
@@ -135,7 +139,7 @@ describe('Query', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
   })
@@ -152,7 +156,9 @@ describe('Publish', () => {
 
   it('publishes valid messages', async () => {
     // This Authenticator will not actually be used by the mock
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
@@ -177,7 +183,7 @@ describe('Publish', () => {
       mode: 'cors',
       headers: new Headers({
         Authorization: `Bearer ${AUTH_TOKEN}`,
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
         'X-App-Version': 'test/0.0.0',
       }),
     })
@@ -203,7 +209,9 @@ describe('Publish authn', () => {
 
   it('retries on invalid message', async () => {
     const publishMock = createAuthErrorPublishMock(1)
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
@@ -218,7 +226,9 @@ describe('Publish authn', () => {
 
   it('gives up after a second auth error', async () => {
     const publishMock = createAuthErrorPublishMock(5)
-    publishClient.setAuthenticator(new Authenticator(PrivateKey.generate()))
+    publishClient.setAuthenticator(
+      new LocalAuthenticator(PrivateKey.generate())
+    )
 
     const now = new Date()
     const msg: PublishParams = {
@@ -228,7 +238,7 @@ describe('Publish authn', () => {
     }
 
     const prom = publishClient.publish([msg])
-    expect(prom).rejects.toEqual({ code: GrpcStatus.UNAUTHENTICATED })
+    expect(prom).rejects.toMatchObject({ code: GrpcStatus.UNAUTHENTICATED })
     expect(publishMock).toHaveBeenCalledTimes(2)
   })
 })
@@ -245,18 +255,18 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    const unsubscribeFn = client.subscribe(req, cb)
+    const subscriptionManager = client.subscribe(req, cb)
     await sleep(10)
     expect(numEnvelopes).toBe(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
-    await unsubscribeFn()
+    await subscriptionManager.unsubscribe()
   })
 
   it('should resubscribe on error', async () => {
@@ -285,23 +295,28 @@ describe('Subscribe', () => {
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
     }
+    let numDisconnects = 0
+    let onDisconnect = () => {
+      numDisconnects++
+    }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    const unsubscribeFn = client.subscribe(req, cb)
+    const subscriptionManager = client.subscribe(req, cb, onDisconnect)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
+    expect(numDisconnects).toBe(1)
     // Resubscribing triggers an info log
     expect(consoleInfo).toBeCalledTimes(1)
     expect(subscribeMock).toBeCalledTimes(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
     consoleInfo.mockRestore()
-    await unsubscribeFn()
+    await subscriptionManager.unsubscribe()
   })
 
   it('should resubscribe on completion', async () => {
@@ -331,22 +346,22 @@ describe('Subscribe', () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
-    const unsubscribeFn = client.subscribe(req, cb)
+    const subscriptionManager = client.subscribe(req, cb)
     await sleep(1200)
     expect(numEnvelopes).toBe(2)
     // Resubscribing triggers an info log
     expect(consoleInfo).toBeCalledTimes(1)
     expect(subscribeMock).toBeCalledTimes(2)
-    expect(subscribeMock).toBeCalledWith(req, cb, {
+    expect(subscribeMock).toBeCalledWith(req, expect.anything(), {
       pathPrefix: PATH_PREFIX,
       signal: expect.anything(),
       mode: 'cors',
       headers: new Headers({
-        'X-Client-Version': 'xmtp-js/' + version,
+        'X-Client-Version': 'xmtp-js/' + packageJson.version,
       }),
     })
     consoleInfo.mockRestore()
-    await unsubscribeFn()
+    await subscriptionManager.unsubscribe()
   })
 
   it('throws when no content topics returned', async () => {
@@ -391,9 +406,10 @@ function createAuthErrorPublishMock(rejectTimes = 1) {
     .mockImplementation(async (): Promise<messageApi.PublishResponse> => {
       if (numRejections < rejectTimes) {
         numRejections++
-        throw {
+        throw GrpcError.fromObject({
           code: 16,
-        }
+          message: 'UNAUTHENTICATED',
+        })
       }
 
       return {}

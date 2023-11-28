@@ -1,9 +1,4 @@
 import * as secp from '@noble/secp256k1'
-import { crypto } from './encryption'
-
-export function getRandomValues<T extends ArrayBufferView | null>(array: T): T {
-  return crypto.getRandomValues(array)
-}
 
 export const bytesToHex = secp.utils.bytesToHex
 
@@ -17,6 +12,10 @@ export function hexToBytes(s: string): Uint8Array {
     bytes[i] = Number.parseInt(s.slice(j, j + 2), 16)
   }
   return bytes
+}
+
+export function bytesToBase64(bytes: Uint8Array): string {
+  return Buffer.from(bytes).toString('base64')
 }
 
 export function equalBytes(b1: Uint8Array, b2: Uint8Array): boolean {

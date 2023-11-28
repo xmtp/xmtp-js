@@ -18,15 +18,27 @@ export class ContentTypeId {
     return `${this.authorityId}/${this.typeId}:${this.versionMajor}.${this.versionMinor}`
   }
 
+  static fromString(contentTypeString: string): ContentTypeId {
+    const [idString, versionString] = contentTypeString.split(':')
+    const [authorityId, typeId] = idString.split('/')
+    const [major, minor] = versionString.split('.')
+    return new ContentTypeId({
+      authorityId,
+      typeId,
+      versionMajor: Number(major),
+      versionMinor: Number(minor),
+    })
+  }
+
   sameAs(id: ContentTypeId): boolean {
     return this.authorityId === id.authorityId && this.typeId === id.typeId
   }
 }
 
 // Represents proto.EncodedContent
-export interface EncodedContent {
+export interface EncodedContent<Parameters = Record<string, string>> {
   type: ContentTypeId
-  parameters: Record<string, string>
+  parameters: Parameters
   fallback?: string
   compression?: number
   content: Uint8Array
@@ -45,6 +57,7 @@ export interface ContentCodec<T> {
   contentType: ContentTypeId
   encode(content: T, registry: CodecRegistry): EncodedContent
   decode(content: EncodedContent, registry: CodecRegistry): T
+  fallback(content: T): string | undefined
 }
 
 // xmtp.org/fallback

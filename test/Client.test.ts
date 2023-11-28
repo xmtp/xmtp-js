@@ -7,14 +7,49 @@ import {
   newLocalHostClientWithCustomWallet,
 } from './helpers'
 import { buildUserContactTopic } from '../src/utils'
-import Client, { KeyStoreType, ClientOptions } from '../src/Client'
-import { Compression } from '../src'
-import { content as proto } from '@xmtp/proto'
+import Client, { ClientOptions } from '../src/Client'
+import {
+  ApiUrls,
+  CompositeCodec,
+  Compression,
+  ContentTypeText,
+  HttpApiClient,
+  InMemoryPersistence,
+  PublishParams,
+  TextCodec,
+} from '../src'
+import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
+import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
+import { PrivateKeyBundleV1 } from '../src/crypto'
+import { Wallet } from 'ethers'
+import { NetworkKeystoreProvider } from '../src/keystore/providers'
+import { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
+import LocalStoragePonyfill from '../src/keystore/persistence/LocalStoragePonyfill'
+import { createWalletClient, http } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
+import { mainnet } from 'viem/chains'
+import { generatePrivateKey } from 'viem/accounts'
 
 type TestCase = {
   name: string
-  newClient: (opts?: Partial<ClientOptions>) => Promise<Client>
+  newClient: (opts?: Partial<ClientOptions>) => Promise<Client<any>>
 }
+
+const mockEthRequest = jest.fn()
+jest.mock('../src/utils/ethereum', () => {
+  return {
+    __esModule: true,
+    getEthereum: jest.fn(() => {
+      const ethereum: any = {
+        request: mockEthRequest,
+      }
+      ethereum.providers = [ethereum]
+      ethereum.detected = [ethereum]
+      ethereum.isMetaMask = true
+      return ethereum
+    }),
+  }
+})
 
 describe('Client', () => {
   const tests: TestCase[] = [
@@ -37,27 +72,24 @@ describe('Client', () => {
   tests.forEach((testCase) => {
     describe(testCase.name, () => {
       let alice: Client, bob: Client
-      beforeAll(async () => {
+
+      beforeEach(async () => {
         alice = await testCase.newClient({ publishLegacyContact: true })
         bob = await testCase.newClient({ publishLegacyContact: true })
         await waitForUserContact(alice, alice)
         await waitForUserContact(bob, bob)
       })
-      afterAll(async () => {
-        if (alice) await alice.close()
-        if (bob) await bob.close()
-      })
 
       it('user contacts published', async () => {
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.publicKeyBundle, alicePublic)
         const bobPublic = await bob.getUserContact(bob.address)
-        assert.deepEqual(bob.legacyKeys.getPublicKeyBundle(), bobPublic)
+        assert.deepEqual(bob.publicKeyBundle, bobPublic)
       })
 
       it('user contacts are filtered to valid contacts', async () => {
         // publish bob's keys to alice's contact topic
-        const bobPublic = bob.legacyKeys.getPublicKeyBundle()
+        const bobPublic = bob.publicKeyBundle
         await alice.publishEnvelopes([
           {
             message: bobPublic.toBytes(),
@@ -65,7 +97,7 @@ describe('Client', () => {
           },
         ])
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.legacyKeys.getPublicKeyBundle(), alicePublic)
+        assert.deepEqual(alice.publicKeyBundle, alicePublic)
       })
 
       it('Check address can be sent to', async () => {
@@ -82,6 +114,73 @@ describe('Client', () => {
   })
 })
 
+describe('bootstrapping', () => {
+  let alice: Wallet
+
+  beforeEach(async () => {
+    alice = newWallet()
+  })
+
+  it('can bootstrap with a new wallet and persist the private key bundle', async () => {
+    const client = await Client.create(alice, { env: 'local' })
+    const manager = new NetworkKeyManager(
+      alice,
+      new TopicPersistence(client.apiClient)
+    )
+    const loadedBundle = await manager.loadPrivateKeyBundle()
+    expect(loadedBundle).toBeInstanceOf(PrivateKeyBundleV1)
+    expect(
+      loadedBundle?.identityKey.publicKey.walletSignatureAddress()
+    ).toEqual(alice.address)
+  })
+
+  it('fails to load if no valid keystore provider is available', async () => {
+    expect(
+      Client.create(alice, { env: 'local', keystoreProviders: [] })
+    ).rejects.toThrow('No keystore providers available')
+  })
+
+  it('is able to bootstrap from the network', async () => {
+    const opts: Partial<ClientOptions> = { env: 'local' }
+    // Create with the default keystore providers to ensure bootstrapping
+    const firstClient = await Client.create(alice, opts)
+
+    const secondClient = await Client.create(alice, {
+      ...opts,
+      keystoreProviders: [new NetworkKeystoreProvider()],
+    })
+    expect(secondClient).toBeInstanceOf(Client)
+    expect(secondClient.address).toEqual(firstClient.address)
+  })
+
+  it('is able to bootstrap from a predefined private key', async () => {
+    const opts: Partial<ClientOptions> = { env: 'local' }
+    const keys = await Client.getKeys(alice, opts)
+
+    const client = await Client.create(null, {
+      ...opts,
+      privateKeyOverride: keys,
+    })
+    expect(client.address).toEqual(alice.address)
+  })
+})
+
+describe('skipContactPublishing', () => {
+  it('skips publishing when flag is set to true', async () => {
+    const alice = newWallet()
+    await Client.create(alice, { skipContactPublishing: true, env: 'local' })
+    expect(await Client.canMessage(alice.address, { env: 'local' })).toBeFalsy()
+  })
+
+  it('publishes contact when flag is false', async () => {
+    const alice = newWallet()
+    await Client.create(alice, { skipContactPublishing: false, env: 'local' })
+    expect(
+      await Client.canMessage(alice.address, { env: 'local' })
+    ).toBeTruthy()
+  })
+})
+
 describe('encodeContent', () => {
   it('passes deflate compression option through properly', async function () {
     const c = await newLocalHostClient()
@@ -91,10 +190,10 @@ describe('encodeContent', () => {
     const compressed = Uint8Array.from([
       10, 18, 10, 8, 120, 109, 116, 112, 46, 111, 114, 103, 18, 4, 116, 101,
       120, 116, 24, 1, 18, 17, 10, 8, 101, 110, 99, 111, 100, 105, 110, 103, 18,
-      5, 85, 84, 70, 45, 56, 40, 0, 34, 45, 120, 1, 51, 52, 48, 209, 49, 52, 48,
-      4, 98, 11, 8, 54, 52, 212, 49, 54, 2, 82, 150, 96, 166, 161, 161, 9, 84,
-      202, 0, 44, 60, 170, 122, 84, 245, 168, 106, 218, 171, 6, 0, 139, 43, 173,
-      229,
+      5, 85, 84, 70, 45, 56, 40, 0, 34, 45, 120, 156, 51, 52, 48, 209, 49, 52,
+      48, 4, 98, 11, 8, 54, 52, 212, 49, 54, 2, 82, 150, 96, 166, 161, 161, 9,
+      84, 202, 0, 44, 60, 170, 122, 84, 245, 168, 106, 218, 171, 6, 0, 139, 43,
+      173, 229,
     ])
 
     const payload = await c.encodeContent(uncompressed, {
@@ -106,7 +205,9 @@ describe('encodeContent', () => {
 
 describe('canMessage', () => {
   it('can confirm a user is on the network statically', async () => {
-    const registeredClient = await newLocalHostClient()
+    const registeredClient = await newLocalHostClient({
+      codecs: [new TextCodec()],
+    })
     await waitForUserContact(registeredClient, registeredClient)
     const canMessageRegisteredClient = await Client.canMessage(
       registeredClient.address,
@@ -195,6 +296,36 @@ describe('canMessageMultipleBatches', () => {
   })
 })
 
+describe('publishEnvelopes', () => {
+  it('can send a valid envelope', async () => {
+    const c = await newLocalHostClient()
+    const envelope = {
+      contentTopic: '/xmtp/0/foo/proto',
+      message: new TextEncoder().encode('hello world'),
+      timestamp: new Date(),
+    }
+    await c.publishEnvelopes([envelope])
+  })
+
+  it('rejects with invalid envelopes', async () => {
+    const c = await newLocalHostClient()
+    // Set a bogus authenticator so we can have failing publishes
+    c.apiClient.setAuthenticator({
+      // @ts-ignore-next-line
+      createToken: async () => ({
+        toBase64: () => 'derp!',
+      }),
+    })
+    const envelope = {
+      contentTopic: buildUserContactTopic(c.address),
+      message: new TextEncoder().encode('hello world'),
+      timestamp: new Date(),
+    }
+
+    expect(c.publishEnvelopes([envelope])).rejects.toThrow()
+  })
+})
+
 describe('ClientOptions', () => {
   const tests = [
     {
@@ -215,8 +346,135 @@ describe('ClientOptions', () => {
 
     it('Partial specification', async () => {
       const c = await testCase.newClient({
-        keyStoreType: KeyStoreType.networkTopicStoreV1,
+        persistConversations: true,
       })
+    })
+  })
+
+  describe('custom codecs', () => {
+    it('gives type errors when you use the wrong types', async () => {
+      const client = await Client.create(newWallet(), { env: 'local' })
+      const other = await Client.create(newWallet(), { env: 'local' })
+      const convo = await client.conversations.newConversation(other.address)
+      expect(convo).toBeTruthy()
+      try {
+        // Add ts-expect-error so that if we break the type casting someone will notice
+        // @ts-expect-error
+        await convo.send(123)
+        const messages = await convo.messages()
+        for (const message of messages) {
+          // Strings don't have this kind of method
+          // @ts-expect-error
+          message.toFixed()
+        }
+      } catch (e) {
+        return
+      }
+      fail()
+    })
+
+    it('allows you to use custom content types', async () => {
+      const client = await Client.create(newWallet(), {
+        codecs: [new CompositeCodec()],
+      })
+      const other = await Client.create(newWallet())
+      const convo = await client.conversations.newConversation(other.address)
+      expect(convo).toBeTruthy()
+      // This will have a type error if the codecs field isn't being respected
+      await convo.send({ parts: [{ type: ContentTypeText, content: 'foo' }] })
+    })
+  })
+
+  describe('Pluggable API client', () => {
+    it('allows you to specify a custom API client factory', async () => {
+      const expectedError = new Error('CustomApiClient')
+      class CustomApiClient extends HttpApiClient {
+        publish(messages: PublishParams[]): Promise<PublishResponse> {
+          return Promise.reject(expectedError)
+        }
+      }
+
+      const c = newLocalHostClient({
+        apiClientFactory: (opts) => {
+          return new CustomApiClient(ApiUrls.local)
+        },
+      })
+      await expect(c).rejects.toThrow(expectedError)
+    })
+  })
+
+  describe('pluggable persistence', () => {
+    it('allows for an override of the persistence engine', async () => {
+      class MyNewPersistence extends InMemoryPersistence {
+        getItem(key: string): Promise<Uint8Array | null> {
+          return Promise.reject(new Error('MyNewPersistence'))
+        }
+      }
+
+      const c = newLocalHostClient({
+        basePersistence: new MyNewPersistence(new LocalStoragePonyfill()),
+      })
+      await expect(c).rejects.toThrow('MyNewPersistence')
+    })
+  })
+
+  describe('canGetKeys', () => {
+    it('returns true if the useSnaps flag is false', async () => {
+      mockEthRequest.mockRejectedValue(new Error('foo'))
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(false)
+    })
+
+    it('returns false if the user has a Snaps capable browser and snaps are enabled', async () => {
+      mockEthRequest.mockResolvedValue([])
+      const isSnapsReady = await Client.isSnapsReady()
+      expect(isSnapsReady).toBe(true)
+    })
+  })
+
+  describe('viem', () => {
+    it('allows you to use a viem WalletClient', async () => {
+      const privateKey = generatePrivateKey()
+      const account = privateKeyToAccount(privateKey)
+
+      const walletClient = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http(),
+      })
+
+      const c = await Client.create(walletClient)
+      expect(c).toBeDefined()
+      expect(c.address).toEqual(account.address)
+    })
+
+    it('creates an identical client between viem and ethers', async () => {
+      const randomWallet = Wallet.createRandom()
+      const privateKey = randomWallet.privateKey
+      const account = privateKeyToAccount(privateKey as `0x${string}`)
+      const walletClient = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http(),
+      })
+
+      const viemClient = await Client.create(walletClient)
+      const ethersClient = await Client.create(randomWallet)
+      expect(viemClient.address).toEqual(ethersClient.address)
+      expect(
+        viemClient.publicKeyBundle.equals(ethersClient.publicKeyBundle)
+      ).toBe(true)
+    })
+
+    it('fails if you use a viem WalletClient without an account', async () => {
+      const walletClient = createWalletClient({
+        chain: mainnet,
+        transport: http(),
+      })
+
+      await expect(Client.create(walletClient)).rejects.toThrow(
+        'WalletClient is not configured'
+      )
     })
   })
 })

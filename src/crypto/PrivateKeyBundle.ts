@@ -107,7 +107,18 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
   }
 
   encode(): Uint8Array {
-    return proto.PrivateKeyBundle.encode({ v1: undefined, v2: this }).finish()
+    return proto.PrivateKeyBundle.encode({
+      v1: undefined,
+      v2: this,
+    }).finish()
+  }
+
+  validatePublicKeys(): boolean {
+    if (!this.identityKey.validatePublicKey()) {
+      return false
+    }
+
+    return this.preKeys.every((key) => key.validatePublicKey())
   }
 
   equals(other: this): boolean {
@@ -197,6 +208,14 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
     return this._publicKeyBundle
   }
 
+  validatePublicKeys(): boolean {
+    if (!this.identityKey.validatePublicKey()) {
+      return false
+    }
+
+    return this.preKeys.every((key) => key.validatePublicKey())
+  }
+
   // sharedSecret derives a secret from peer's key bundles using a variation of X3DH protocol
   // where the sender's ephemeral key pair is replaced by the sender's pre-key.
   // @peer is the peer's public key bundle
@@ -235,7 +254,10 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
   }
 
   encode(): Uint8Array {
-    return proto.PrivateKeyBundle.encode({ v1: this, v2: undefined }).finish()
+    return proto.PrivateKeyBundle.encode({
+      v1: this,
+      v2: undefined,
+    }).finish()
   }
 }
 

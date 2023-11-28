@@ -1,194 +1,201 @@
+import { OnConnectionLostCallback } from './../ApiClient'
 import {
   buildUserIntroTopic,
   buildDirectMessageTopic,
   dateToNs,
-  nsToDate,
+  concat,
+  toNanoString,
 } from '../utils'
 import { utils } from 'ethers'
-import { DecodedMessage } from './../Message'
 import Stream from '../Stream'
 import Client, {
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
   SendOptions,
 } from '../Client'
-import {
-  InvitationContext,
-  InvitationV1,
-  SealedInvitationHeaderV1,
-} from '../Invitation'
-import { MessageV1, MessageV2, decodeContent } from '../Message'
+import { InvitationContext } from '../Invitation'
+import { DecodedMessage, MessageV1, MessageV2 } from '../Message'
 import {
   messageApi,
   message,
   content as proto,
-  fetcher,
   keystore,
+  ciphertext,
 } from '@xmtp/proto'
 import {
-  encrypt,
-  decrypt,
   SignedPublicKey,
   Signature,
   PublicKeyBundle,
+  SignedPublicKeyBundle,
 } from '../crypto'
-import Ciphertext from '../crypto/Ciphertext'
+import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
+import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
-import { KeystoreError } from '../keystore'
-import Long from 'long'
-const { b64Decode } = fetcher
-
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
-type ConversationV1Export = {
-  version: 'v1'
-  peerAddress: string
-  createdAt: string
-}
-
-type ConversationV2Export = {
-  version: 'v2'
-  topic: string
-  keyMaterial: string
-  createdAt: string
-  peerAddress: string
-  context: InvitationContext | undefined
-}
-
-export type ConversationExport = ConversationV1Export | ConversationV2Export
 
 /**
- * Conversation class allows you to view, stream, and send messages to/from a peer address
+ * Conversation represents either a V1 or V2 conversation with a common set of methods.
  */
-export class ConversationV1 {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface Conversation<ContentTypes = any> {
+  conversationVersion: 'v1' | 'v2'
+  /**
+   * The wallet address connected to the client
+   */
+  clientAddress: string
+  /**
+   * A unique identifier for a conversation. Each conversation is stored on the network on one topic
+   */
+  topic: string
+  /**
+   * A unique identifier for ephemeral envelopes for a conversation.
+   */
+  ephemeralTopic: string
+  /**
+   * The wallet address of the other party in the conversation
+   */
+  peerAddress: string
+  /**
+   * Timestamp the conversation was created at
+   */
+  createdAt: Date
+
+  /**
+   * Optional field containing the `conversationId` and `metadata` for V2 conversations.
+   * Will always be undefined on V1 conversations
+   */
+  context?: InvitationContext | undefined
+
+  /**
+   * Retrieve messages in this conversation. Default to returning all messages.
+   *
+   * If only a subset is required, results can be narrowed by specifying a start/end
+   * timestamp.
+   *
+   * ```ts
+   * // Get all messages in the past 24 hours
+   * const messages = await conversation.messages({
+   *    startTime: new Date(+new Date() - 86_400)
+   * })
+   * ```
+   */
+  messages(opts?: ListMessagesOptions): Promise<DecodedMessage<ContentTypes>[]>
+  /**
+   * @deprecated
+   */
+  messagesPaginated(
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<DecodedMessage<ContentTypes>[]>
+  /**
+   * Takes a XMTP envelope as input and will decrypt and decode it
+   * returning a `DecodedMessage` instance.
+   */
+  decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage<ContentTypes>>
+  /**
+   * Return a `Stream` of new messages in this conversation.
+   *
+   * Stream instances are async generators and can be used in
+   * `for await` statements.
+   *
+   * ```ts
+   * for await (const message of await conversation.stream()) {
+   *    console.log(message.content)
+   * }
+   * ```
+   */
+  streamMessages(): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>>
+  /**
+   * Send a message into the conversation
+   *
+   * ## Example
+   * ```ts
+   * await conversation.send('Hello world') // returns a `DecodedMessage` instance
+   * ```
+   */
+  send(
+    content: Exclude<ContentTypes, undefined>,
+    options?: SendOptions
+  ): Promise<DecodedMessage<ContentTypes>>
+
+  /**
+   * Return a `PreparedMessage` that has contains the message ID
+   * of the message that will be sent.
+   */
+  prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage>
+
+  /**
+   * Return a `Stream` of new ephemeral messages from this conversation's
+   * ephemeral topic.
+   *
+   * Stream instances are async generators and can be used in
+   * `for await` statements.
+   *
+   * ```ts
+   * for await (const message of await conversation.streamEphemeral()) {
+   *    console.log(message.content)
+   * }
+   * ```
+   */
+  streamEphemeral(): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>>
+}
+
+/**
+ * ConversationV1 allows you to view, stream, and send messages to/from a peer address
+ */
+export class ConversationV1<ContentTypes>
+  implements Conversation<ContentTypes>
+{
+  conversationVersion = 'v1' as const
   peerAddress: string
   createdAt: Date
-  context = null
-  private client: Client
+  context = undefined
+  private client: Client<ContentTypes>
 
-  constructor(client: Client, address: string, createdAt: Date) {
+  constructor(client: Client<ContentTypes>, address: string, createdAt: Date) {
     this.peerAddress = utils.getAddress(address)
     this.client = client
     this.createdAt = createdAt
   }
 
+  get clientAddress() {
+    return this.client.address
+  }
+
+  get topic(): string {
+    return buildDirectMessageTopic(this.peerAddress, this.client.address)
+  }
+
+  get ephemeralTopic(): string {
+    return buildDirectMessageTopic(
+      this.peerAddress,
+      this.client.address
+    ).replace('/xmtp/0/dm-', '/xmtp/0/dmE-')
+  }
+
   /**
    * Returns a list of all messages to/from the peerAddress
    */
-  async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
+  async messages(
+    opts?: ListMessagesOptions
+  ): Promise<DecodedMessage<ContentTypes>[]> {
     const topic = buildDirectMessageTopic(this.peerAddress, this.client.address)
     const messages = await this.client.listEnvelopes(
-      [topic],
-      this.decodeEnvelope.bind(this),
+      topic,
+      this.processEnvelope.bind(this),
       opts
     )
 
     return this.decryptBatch(messages, topic, false)
   }
 
-  async decryptBatch(
-    messages: MessageV1[],
-    topic: string,
-    throwOnError = false
-  ): Promise<DecodedMessage[]> {
-    const responses = (
-      await this.client.keystore.decryptV1(this.buildDecryptRequest(messages))
-    ).responses
-
-    const out: DecodedMessage[] = []
-    for (let i = 0; i < responses.length; i++) {
-      const result = responses[i]
-      const message = messages[i]
-      if (result.error) {
-        console.warn('Error decrypting message', result.error)
-        if (throwOnError) {
-          throw new KeystoreError(result.error?.code, result.error?.message)
-        }
-        continue
-      }
-
-      if (!result.result?.decrypted) {
-        console.warn('Error decrypting message', result)
-        if (throwOnError) {
-          throw new KeystoreError(
-            keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
-            'No result returned'
-          )
-        }
-        continue
-      }
-
-      try {
-        out.push(
-          await this.buildDecodedMessage(
-            message,
-            result.result.decrypted,
-            topic
-          )
-        )
-      } catch (e) {
-        console.warn('Error decoding content', e)
-        if (throwOnError) {
-          throw e
-        }
-      }
-    }
-
-    return out
-  }
-
-  private buildDecryptRequest(
-    messages: MessageV1[]
-  ): keystore.DecryptV1Request {
-    return {
-      requests: messages.map((m: MessageV1) => {
-        const sender = new PublicKeyBundle({
-          identityKey: m.header.sender?.identityKey,
-          preKey: m.header.sender?.preKey,
-        })
-
-        const isSender = this.client.publicKeyBundle.equals(sender)
-
-        return {
-          payload: m.ciphertext,
-          peerKeys: isSender
-            ? new PublicKeyBundle({
-                identityKey: m.header.recipient?.identityKey,
-                preKey: m.header.recipient?.preKey,
-              })
-            : sender,
-          headerBytes: m.headerBytes,
-          isSender,
-        }
-      }),
-    }
-  }
-
-  private async buildDecodedMessage(
-    message: MessageV1,
-    decrypted: Uint8Array,
-    topic: string
-  ): Promise<DecodedMessage> {
-    const { content, contentType, error } = await decodeContent(
-      decrypted,
-      this.client
-    )
-    return DecodedMessage.fromV1Message(
-      message,
-      content,
-      contentType,
-      topic,
-      this,
-      error
-    )
-  }
-
   messagesPaginated(
     opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<DecodedMessage[]> {
+  ): AsyncGenerator<DecodedMessage<ContentTypes>[]> {
     return this.client.listEnvelopesPaginated(
-      [this.topic],
+      this.topic,
       // This won't be performant once we start supporting a remote keystore
       // TODO: Either better batch support or we ditch this under-utilized feature
       this.decodeMessage.bind(this),
@@ -197,11 +204,13 @@ export class ConversationV1 {
   }
 
   // decodeMessage takes an envelope and either returns a `DecodedMessage` or throws if an error occurs
-  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
+  async decodeMessage(
+    env: messageApi.Envelope
+  ): Promise<DecodedMessage<ContentTypes>> {
     if (!env.contentTopic) {
       throw new Error('Missing content topic')
     }
-    const msg = await this.decodeEnvelope(env)
+    const msg = await this.processEnvelope(env)
     const decryptResults = await this.decryptBatch(
       [msg],
       env.contentTopic,
@@ -213,46 +222,84 @@ export class ConversationV1 {
     return decryptResults[0]
   }
 
-  get topic(): string {
-    return buildDirectMessageTopic(this.peerAddress, this.client.address)
+  async prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage> {
+    let topics: string[]
+    let recipient = await this.client.getUserContact(this.peerAddress)
+    if (!recipient) {
+      throw new Error(`recipient ${this.peerAddress} is not registered`)
+    }
+    if (!(recipient instanceof PublicKeyBundle)) {
+      recipient = recipient.toLegacyBundle()
+    }
+
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
+    if (!this.client.contacts.has(this.peerAddress)) {
+      topics = [
+        buildUserIntroTopic(this.peerAddress),
+        buildUserIntroTopic(this.client.address),
+        topic,
+      ]
+      this.client.contacts.add(this.peerAddress)
+    } else {
+      topics = [topic]
+    }
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, recipient, options?.timestamp)
+    const msgBytes = msg.toBytes()
+
+    const env: messageApi.Envelope = {
+      contentTopic: topic,
+      message: msgBytes,
+      timestampNs: toNanoString(msg.sent),
+    }
+
+    return new PreparedMessage(env, async () => {
+      await this.client.publishEnvelopes(
+        topics.map((topic) => ({
+          contentTopic: topic,
+          message: msgBytes,
+          timestamp: msg.sent,
+        }))
+      )
+
+      return DecodedMessage.fromV1Message(
+        msg,
+        content,
+        options?.contentType || ContentTypeText,
+        payload,
+        topic,
+        this
+      )
+    })
   }
 
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<DecodedMessage>> {
-    return Stream.create<DecodedMessage>(
+  streamMessages(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
       this.client,
       [this.topic],
-      async (env: messageApi.Envelope) => this.decodeMessage(env)
+      async (env: messageApi.Envelope) => this.decodeMessage(env),
+      undefined,
+      onConnectionLost
     )
   }
 
-  export(): ConversationV1Export {
-    return {
-      version: 'v1',
-      peerAddress: this.peerAddress,
-      createdAt: this.createdAt.toISOString(),
-    }
-  }
-
-  static fromExport(
-    client: Client,
-    data: ConversationV1Export
-  ): ConversationV1 {
-    return new ConversationV1(
-      client,
-      data.peerAddress,
-      new Date(data.createdAt)
-    )
-  }
-
-  async decodeEnvelope({
+  async processEnvelope({
     message,
     contentTopic,
   }: messageApi.Envelope): Promise<MessageV1> {
-    const messageBytes = fetcher.b64Decode(message as unknown as string)
-    const decoded = await MessageV1.fromBytes(messageBytes)
+    if (!message || !message.length) {
+      throw new Error('empty envelope')
+    }
+    const decoded = await MessageV1.fromBytes(message)
     const { senderAddress, recipientAddress } = decoded
 
     // Filter for topics
@@ -268,13 +315,25 @@ export class ConversationV1 {
     return decoded
   }
 
+  streamEphemeral(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
+      this.client,
+      [this.ephemeralTopic],
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
+    )
+  }
+
   /**
-   * Send a message into the conversation
+   * Send a message into the conversation.
    */
   async send(
-    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: Exclude<ContentTypes, undefined>,
     options?: SendOptions
-  ): Promise<DecodedMessage> {
+  ): Promise<DecodedMessage<ContentTypes>> {
     let topics: string[]
     let recipient = await this.client.getUserContact(this.peerAddress)
     if (!recipient) {
@@ -284,18 +343,21 @@ export class ConversationV1 {
       recipient = recipient.toLegacyBundle()
     }
 
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
     if (!this.client.contacts.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
-        this.topic,
+        topic,
       ]
       this.client.contacts.add(this.peerAddress)
     } else {
-      topics = [this.topic]
+      topics = [topic]
     }
     const contentType = options?.contentType || ContentTypeText
-    const msg = await this.encodeMessage(content, recipient, options)
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, recipient, options?.timestamp)
 
     await this.client.publishEnvelopes(
       topics.map((topic) => ({
@@ -309,143 +371,163 @@ export class ConversationV1 {
       msg,
       content,
       contentType,
-      topics[0], // Just use the first topic for the returned value
+      payload,
+      topic,
       this
     )
   }
 
-  private async encodeMessage(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    content: any,
-    recipient: PublicKeyBundle,
-    options?: SendOptions
-  ): Promise<MessageV1> {
-    const timestamp = options?.timestamp || new Date()
-    const payload = await this.client.encodeContent(content, options)
-    const header: message.MessageHeaderV1 = {
-      sender: this.client.publicKeyBundle,
-      recipient,
-      timestamp: Long.fromNumber(timestamp.getTime()),
-    }
-    const headerBytes = message.MessageHeaderV1.encode(header).finish()
-    const results = await this.client.keystore.encryptV1({
-      requests: [
-        {
-          recipient,
-          headerBytes,
-          payload,
-        },
-      ],
-    })
-
-    if (!results.responses.length) {
-      throw new Error('No response from Keystore')
-    }
-
-    const response = results.responses[0]
-    this.validateKeystoreResponse(response)
-
-    const ciphertext = response.result?.encrypted
-    const protoMsg = {
-      v1: { headerBytes, ciphertext },
-      v2: undefined,
-    }
-    const bytes = message.Message.encode(protoMsg).finish()
-    return MessageV1.create(protoMsg, header, bytes)
-  }
-
-  private validateKeystoreResponse(
-    response:
-      | keystore.DecryptResponse_Response
-      | keystore.EncryptResponse_Response
-  ) {
-    if (response.error) {
-      throw new KeystoreError(response.error.code, response.error.message)
-    }
-    if (!response.result) {
-      throw new KeystoreError(
-        keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
-        'No result from Keystore'
+  async decryptBatch(
+    messages: MessageV1[],
+    topic: string,
+    throwOnError = false
+  ): Promise<DecodedMessage<ContentTypes>[]> {
+    const responses = (
+      await this.client.keystore.decryptV1(
+        buildDecryptV1Request(messages, this.client.publicKeyBundle)
       )
+    ).responses
+
+    const out: DecodedMessage<ContentTypes>[] = []
+    for (let i = 0; i < responses.length; i++) {
+      const result = responses[i]
+      const message = messages[i]
+      try {
+        const { decrypted } = getResultOrThrow(result)
+        out.push(await this.buildDecodedMessage(message, decrypted, topic))
+      } catch (e) {
+        if (throwOnError) {
+          throw e
+        }
+        console.warn('Error decoding content', e)
+      }
     }
+
+    return out
   }
 
-  get clientAddress() {
-    return this.client.address
+  private async buildDecodedMessage(
+    message: MessageV1,
+    decrypted: Uint8Array,
+    topic: string
+  ): Promise<DecodedMessage<ContentTypes>> {
+    const { content, contentType, error, contentFallback } =
+      await this.client.decodeContent(decrypted)
+
+    return DecodedMessage.fromV1Message(
+      message,
+      content,
+      contentType,
+      decrypted,
+      topic,
+      this,
+      error,
+      contentFallback
+    )
+  }
+
+  async createMessage(
+    // Payload is expected to be the output of `client.encodeContent`
+    payload: Uint8Array,
+    recipient: PublicKeyBundle,
+    timestamp?: Date
+  ): Promise<MessageV1> {
+    timestamp = timestamp || new Date()
+
+    return MessageV1.encode(
+      this.client.keystore,
+      payload,
+      this.client.publicKeyBundle,
+      recipient,
+      timestamp
+    )
   }
 }
 
-export class ConversationV2 {
+/**
+ * ConversationV2
+ */
+export class ConversationV2<ContentTypes>
+  implements Conversation<ContentTypes>
+{
+  conversationVersion = 'v2' as const
+  client: Client<ContentTypes>
   topic: string
-  private keyMaterial: Uint8Array // MUST be kept secret
-  context?: InvitationContext
-  private client: Client
-  createdAt: Date
   peerAddress: string
+  createdAt: Date
+  context?: InvitationContext
 
   constructor(
-    client: Client,
+    client: Client<ContentTypes>,
     topic: string,
-    keyMaterial: Uint8Array,
     peerAddress: string,
     createdAt: Date,
     context: InvitationContext | undefined
   ) {
     this.topic = topic
-    this.keyMaterial = keyMaterial
     this.createdAt = createdAt
     this.context = context
     this.client = client
     this.peerAddress = peerAddress
   }
 
-  static async create(
-    client: Client,
-    invitation: InvitationV1,
-    header: SealedInvitationHeaderV1
-  ): Promise<ConversationV2> {
-    const myKeys = client.keys.getPublicKeyBundle()
-    const peer = myKeys.equals(header.sender) ? header.recipient : header.sender
-    const peerAddress = utils.getAddress(await peer.walletSignatureAddress())
-    return new ConversationV2(
-      client,
-      invitation.topic,
-      invitation.aes256GcmHkdfSha256.keyMaterial,
-      peerAddress,
-      nsToDate(header.createdNs),
-      invitation.context
-    )
+  get clientAddress() {
+    return this.client.address
   }
 
   /**
    * Returns a list of all messages to/from the peerAddress
    */
-  async messages(opts?: ListMessagesOptions): Promise<DecodedMessage[]> {
-    return this.client.listEnvelopes(
-      [this.topic],
+  async messages(
+    opts?: ListMessagesOptions
+  ): Promise<DecodedMessage<ContentTypes>[]> {
+    const messages = await this.client.listEnvelopes(
+      this.topic,
+      this.processEnvelope.bind(this),
+      opts
+    )
+
+    return this.decryptBatch(messages, false)
+  }
+
+  messagesPaginated(
+    opts?: ListMessagesPaginatedOptions
+  ): AsyncGenerator<DecodedMessage<ContentTypes>[]> {
+    return this.client.listEnvelopesPaginated(
+      this.topic,
       this.decodeMessage.bind(this),
       opts
     )
   }
 
-  messagesPaginated(
-    opts?: ListMessagesPaginatedOptions
-  ): AsyncGenerator<DecodedMessage[]> {
-    return this.client.listEnvelopesPaginated(
-      [this.topic],
+  get ephemeralTopic(): string {
+    return this.topic.replace('/xmtp/0/m', '/xmtp/0/mE')
+  }
+
+  streamEphemeral(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
+      this.client,
+      [this.ephemeralTopic],
       this.decodeMessage.bind(this),
-      opts
+      undefined,
+      onConnectionLost
     )
   }
 
   /**
    * Returns a Stream of any new messages to/from the peerAddress
    */
-  streamMessages(): Promise<Stream<DecodedMessage>> {
-    return Stream.create<DecodedMessage>(
+  streamMessages(
+    onConnectionLost?: OnConnectionLostCallback
+  ): Promise<Stream<DecodedMessage<ContentTypes>, ContentTypes>> {
+    return Stream.create<DecodedMessage<ContentTypes>, ContentTypes>(
       this.client,
       [this.topic],
-      this.decodeMessage.bind(this)
+      this.decodeMessage.bind(this),
+      undefined,
+      onConnectionLost
     )
   }
 
@@ -453,13 +535,17 @@ export class ConversationV2 {
    * Send a message into the conversation
    */
   async send(
-    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    content: Exclude<ContentTypes, undefined>,
     options?: SendOptions
-  ): Promise<DecodedMessage> {
-    const msg = await this.encodeMessage(content, options)
+  ): Promise<DecodedMessage<ContentTypes>> {
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, options?.timestamp)
+
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
     await this.client.publishEnvelopes([
       {
-        contentTopic: this.topic,
+        contentTopic: topic,
         message: msg.toBytes(),
         timestamp: msg.sent,
       },
@@ -470,64 +556,111 @@ export class ConversationV2 {
       msg,
       content,
       contentType,
-      this.topic,
-      this
+      topic,
+      payload,
+      this,
+      this.client.address
     )
   }
 
-  get clientAddress() {
-    return this.client.address
-  }
-
-  async encodeMessage(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    content: any,
-    options?: SendOptions
+  async createMessage(
+    // Payload is expected to have already gone through `client.encodeContent`
+    payload: Uint8Array,
+    timestamp?: Date
   ): Promise<MessageV2> {
-    const payload = await this.client.encodeContent(content, options)
     const header: message.MessageHeaderV2 = {
       topic: this.topic,
-      createdNs: dateToNs(options?.timestamp || new Date()),
+      createdNs: dateToNs(timestamp || new Date()),
     }
     const headerBytes = message.MessageHeaderV2.encode(header).finish()
     const digest = await sha256(concat(headerBytes, payload))
     const signed = {
       payload,
-      sender: this.client.keys.getPublicKeyBundle(),
-      signature: await this.client.keys.getCurrentPreKey().sign(digest),
+      sender: this.client.signedPublicKeyBundle,
+      signature: await this.client.keystore.signDigest({
+        digest,
+        prekeyIndex: 0,
+        identityKey: undefined,
+      }),
     }
     const signedBytes = proto.SignedContent.encode(signed).finish()
-    const ciphertext = await encrypt(signedBytes, this.keyMaterial, headerBytes)
+
+    const ciphertext = await this.encryptMessage(signedBytes, headerBytes)
     const protoMsg = {
       v1: undefined,
       v2: { headerBytes, ciphertext },
     }
     const bytes = message.Message.encode(protoMsg).finish()
-    return MessageV2.create(protoMsg, header, signed, bytes)
+
+    return MessageV2.create(protoMsg, header, bytes)
   }
 
-  async decodeMessage(env: messageApi.Envelope): Promise<DecodedMessage> {
-    if (!env.message || !env.contentTopic) {
-      throw new Error('empty envelope')
+  private async decryptBatch(
+    messages: MessageV2[],
+    throwOnError = false
+  ): Promise<DecodedMessage<ContentTypes>[]> {
+    const responses = (
+      await this.client.keystore.decryptV2(this.buildDecryptRequest(messages))
+    ).responses
+
+    const out: DecodedMessage<ContentTypes>[] = []
+    for (let i = 0; i < responses.length; i++) {
+      const result = responses[i]
+      const message = messages[i]
+
+      try {
+        const { decrypted } = getResultOrThrow(result)
+        out.push(await this.buildDecodedMessage(message, decrypted))
+      } catch (e) {
+        if (throwOnError) {
+          throw e
+        }
+        console.warn('Error decoding content', e)
+      }
     }
-    const messageBytes = b64Decode(env.message.toString())
-    const msg = message.Message.decode(messageBytes)
-    if (!msg.v2) {
-      throw new Error('unknown message version')
+
+    return out
+  }
+
+  private buildDecryptRequest(
+    messages: message.MessageV2[]
+  ): keystore.DecryptV2Request {
+    return {
+      requests: messages.map((m) => {
+        return {
+          payload: m.ciphertext,
+          headerBytes: m.headerBytes,
+          contentTopic: this.topic,
+        }
+      }),
     }
-    const msgv2 = msg.v2
-    const header = message.MessageHeaderV2.decode(msgv2.headerBytes)
-    if (header.topic !== this.topic) {
-      throw new Error('topic mismatch')
+  }
+
+  private async encryptMessage(
+    payload: Uint8Array,
+    headerBytes: Uint8Array
+  ): Promise<ciphertext.Ciphertext> {
+    const { responses } = await this.client.keystore.encryptV2({
+      requests: [
+        {
+          payload,
+          headerBytes,
+          contentTopic: this.topic,
+        },
+      ],
+    })
+    if (responses.length !== 1) {
+      throw new Error('Invalid response length')
     }
-    if (!msgv2.ciphertext) {
-      throw new Error('missing ciphertext')
-    }
-    const decrypted = await decrypt(
-      new Ciphertext(msgv2.ciphertext),
-      this.keyMaterial,
-      msgv2.headerBytes
-    )
+    const { encrypted } = getResultOrThrow(responses[0])
+    return encrypted
+  }
+
+  private async buildDecodedMessage(
+    msg: MessageV2,
+    decrypted: Uint8Array
+  ): Promise<DecodedMessage<ContentTypes>> {
+    // Decode the decrypted bytes into SignedContent
     const signed = proto.SignedContent.decode(decrypted)
     if (
       !signed.sender?.identityKey ||
@@ -537,7 +670,10 @@ export class ConversationV2 {
       throw new Error('incomplete signed content')
     }
 
-    const digest = await sha256(concat(msgv2.headerBytes, signed.payload))
+    await validatePrekeys(signed)
+
+    // Verify the signature
+    const digest = await sha256(concat(msg.headerBytes, signed.payload))
     if (
       !new SignedPublicKey(signed.sender?.preKey).verify(
         new Signature(signed.signature),
@@ -546,53 +682,114 @@ export class ConversationV2 {
     ) {
       throw new Error('invalid signature')
     }
-    const messageV2 = await MessageV2.create(msg, header, signed, messageBytes)
-    const { content, contentType, error } = await decodeContent(
-      signed.payload,
-      this.client
-    )
+
+    // Derive the sender address from the valid signature
+    const senderAddress = await new SignedPublicKeyBundle(
+      signed.sender
+    ).walletSignatureAddress()
+
+    const { content, contentType, error, contentFallback } =
+      await this.client.decodeContent(signed.payload)
 
     return DecodedMessage.fromV2Message(
-      messageV2,
+      msg,
       content,
       contentType,
-      env.contentTopic,
+      this.topic,
+      signed.payload,
       this,
-      error
+      senderAddress,
+      error,
+      contentFallback
     )
   }
 
-  export(): ConversationV2Export {
-    return {
-      version: 'v2',
-      topic: this.topic,
-      keyMaterial: Buffer.from(this.keyMaterial).toString('base64'),
-      peerAddress: this.peerAddress,
-      createdAt: this.createdAt.toISOString(),
-      context: this.context,
+  async prepareMessage(
+    content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    options?: SendOptions
+  ): Promise<PreparedMessage> {
+    const payload = await this.client.encodeContent(content, options)
+    const msg = await this.createMessage(payload, options?.timestamp)
+    const msgBytes = msg.toBytes()
+
+    const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
+
+    const env: messageApi.Envelope = {
+      contentTopic: topic,
+      message: msgBytes,
+      timestampNs: toNanoString(msg.sent),
     }
+
+    return new PreparedMessage(env, async () => {
+      await this.client.publishEnvelopes([
+        {
+          contentTopic: topic,
+          message: msgBytes,
+          timestamp: msg.sent,
+        },
+      ])
+
+      return DecodedMessage.fromV2Message(
+        msg,
+        content,
+        options?.contentType || ContentTypeText,
+        topic,
+        payload,
+        this,
+        this.client.address
+      )
+    })
   }
 
-  static fromExport(
-    client: Client,
-    data: ConversationV2Export
-  ): ConversationV2 {
-    return new ConversationV2(
-      client,
-      data.topic,
-      Buffer.from(data.keyMaterial, 'base64'),
-      data.peerAddress,
-      new Date(data.createdAt),
-      data.context
-    )
+  async processEnvelope(env: messageApi.Envelope): Promise<MessageV2> {
+    if (!env.message || !env.contentTopic) {
+      throw new Error('empty envelope')
+    }
+    const msg = message.Message.decode(env.message)
+
+    if (!msg.v2) {
+      throw new Error('unknown message version')
+    }
+
+    const header = message.MessageHeaderV2.decode(msg.v2.headerBytes)
+    if (header.topic !== this.topic) {
+      throw new Error('topic mismatch')
+    }
+
+    return MessageV2.create(msg, header, env.message)
+  }
+
+  async decodeMessage(
+    env: messageApi.Envelope
+  ): Promise<DecodedMessage<ContentTypes>> {
+    if (!env.contentTopic) {
+      throw new Error('Missing content topic')
+    }
+    const msg = await this.processEnvelope(env)
+    const decryptResults = await this.decryptBatch([msg], true)
+    if (!decryptResults.length) {
+      throw new Error('No results')
+    }
+    return decryptResults[0]
   }
 }
 
-export type Conversation = ConversationV1 | ConversationV2
-
-function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
-  const ab = new Uint8Array(a.length + b.length)
-  ab.set(a)
-  ab.set(b, a.length)
-  return ab
+async function validatePrekeys(signed: proto.SignedContent) {
+  // Check that the pre key is signed by the identity key
+  // this is required to chain the prekey-signed message to the identity key
+  // and finally to the user's wallet address
+  const senderPreKey = signed.sender?.preKey
+  if (!senderPreKey || !senderPreKey.signature || !senderPreKey.keyBytes) {
+    throw new Error('missing pre-key or pre-key signature')
+  }
+  const senderIdentityKey = signed.sender?.identityKey
+  if (!senderIdentityKey) {
+    throw new Error('missing identity key in bundle')
+  }
+  const isValidPrekey = await new SignedPublicKey(senderIdentityKey).verifyKey(
+    new SignedPublicKey(senderPreKey)
+  )
+  if (!isValidPrekey) {
+    throw new Error('pre key not signed by identity key')
+  }
 }
