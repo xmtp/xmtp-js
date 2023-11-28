@@ -261,6 +261,19 @@ describe('conversations', () => {
       expect(bobConvo instanceof ConversationV1).toBeTruthy()
     })
 
+    it('does not create a duplicate conversation with an address case mismatch', async () => {
+      const convo1 = await alice.conversations.newConversation(bob.address)
+      await convo1.send('gm')
+      const convos = await alice.conversations.list()
+      expect(convos).toHaveLength(1)
+      const convo2 = await alice.conversations.newConversation(
+        bob.address.toLowerCase()
+      )
+      await convo2.send('gm')
+      const convos2 = await alice.conversations.list()
+      expect(convos2).toHaveLength(1)
+    })
+
     it('continues to use v1 conversation even after upgrading bundle', async () => {
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       await aliceConvo.send('gm')

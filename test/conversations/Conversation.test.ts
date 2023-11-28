@@ -128,6 +128,9 @@ describe('conversation', () => {
       expect(
         alice.conversations.newConversation(alice.address)
       ).rejects.toThrow('self messaging not supported')
+      expect(
+        alice.conversations.newConversation(alice.address.toLowerCase())
+      ).rejects.toThrow('self messaging not supported')
     })
 
     it('can send a prepared message v1', async () => {
