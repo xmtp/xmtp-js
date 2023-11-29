@@ -1,4 +1,9 @@
-import { buildContentTopic, isValidTopic } from '../../src/utils/topic'
+import {
+  buildContentTopic,
+  buildDirectMessageTopicV2,
+  isValidTopic,
+} from '../../src/utils/topic'
+import crypto from '../../src/crypto/crypto'
 
 describe('topic utils', () => {
   describe('isValidTopic', () => {
@@ -21,6 +26,23 @@ describe('topic utils', () => {
       expect(isValidTopic(buildContentTopic(String.fromCharCode(23)))).toBe(
         false
       )
+    })
+
+    it('validates random topics correctly', () => {
+      const topics = Array.from({ length: 100 }).map(() =>
+        buildDirectMessageTopicV2(
+          Buffer.from(crypto.getRandomValues(new Uint8Array(32)))
+            .toString('base64')
+            .replace(/=*$/g, '')
+            // Replace slashes with dashes so that the topic is still easily split by /
+            // We do not treat this as needing to be valid Base64 anywhere
+            .replace('/', '-')
+        )
+      )
+
+      topics.forEach((topic) => {
+        expect(isValidTopic(topic)).toBe(true)
+      })
     })
   })
 })
