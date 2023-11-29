@@ -12,6 +12,7 @@ import {
   buildUserIntroTopic,
   buildUserInviteTopic,
   dateToNs,
+  isValidTopic,
   nsToDate,
 } from '../utils'
 import { PublicKeyBundle } from '../crypto'
@@ -23,21 +24,6 @@ const CLOCK_SKEW_OFFSET_MS = 10000
 
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
-}
-
-// validate that a topic only contains ASCII characters
-const isValidTopic = (topic: string): boolean => {
-  // eslint-disable-next-line no-control-regex
-  const regex = /^[\x00-\x7F]+$/
-  const index = topic.indexOf('0/')
-  if (index !== -1) {
-    const unwrappedTopic = topic.substring(
-      index + 2,
-      topic.lastIndexOf('/proto')
-    )
-    return regex.test(unwrappedTopic)
-  }
-  return false
 }
 
 /**
