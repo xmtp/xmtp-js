@@ -111,7 +111,6 @@ const isAbortError = (err?: Error): boolean => {
   return false
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isAuthError = (err?: GrpcError | Error): boolean => {
   if (err && 'code' in err && err.code === ERR_CODE_UNAUTHENTICATED) {
     return true
@@ -119,7 +118,6 @@ const isAuthError = (err?: GrpcError | Error): boolean => {
   return false
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
 
 export interface ApiClient {
