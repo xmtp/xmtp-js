@@ -36,10 +36,10 @@ export const buildUserPrivateStoreTopic = (addrPrefixedKey: string): string => {
   return buildContentTopic(`privatestore-${addrPrefixedKey}`)
 }
 
-// validate that a topic only contains ASCII characters
+// validate that a topic only contains ASCII characters 33-127
 export const isValidTopic = (topic: string): boolean => {
   // eslint-disable-next-line no-control-regex
-  const regex = /^[\x00-\x7F]+$/
+  const regex = /^[\x21-\x7F]+$/
   const index = topic.indexOf('0/')
   if (index !== -1) {
     const unwrappedTopic = topic.substring(
