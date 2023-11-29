@@ -43,7 +43,9 @@ If you run into issues with Buffer and polyfills, see this [solution](https://xm
 
 ### BigInt polyfill
 
-Some older browsers do not support `BigInt` (see [compatibility list](https://caniuse.com/bigint)). Unfortunately, the way this SDK uses `BigInt` is incompatible with polyfills. To ensure that a polyfill is not added to your application bundle, update your [browserslist](https://github.com/browserslist/browserslist) configuration to exclude browsers that don't support `BigInt`.
+This SDK uses `BigInt` in a way that's incompatible with polyfills. To ensure that a polyfill isn't added to your application bundle, update your [browserslist](https://github.com/browserslist/browserslist) configuration to exclude browsers that don't support `BigInt`.
+
+For the list of browsers that don't support `BigInt`, see this [compatibility list](https://caniuse.com/bigint).
 
 ## Usage
 
