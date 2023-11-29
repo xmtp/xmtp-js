@@ -39,7 +39,7 @@ Additional configuration is required in React environments due to the removal of
 
 ### Buffer polyfill
 
-If you get into issues with Buffer and polyfills check out our [solutions](https://xmtp.org/docs/faq#why-my-app-is-failing-saying-buffer-is-not-found).
+If you run into issues with Buffer and polyfills, see this [solution](https://xmtp.org/docs/faq#why-my-app-is-failing-saying-buffer-is-not-found).
 
 ### BigInt polyfill
 
