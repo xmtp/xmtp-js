@@ -36,7 +36,7 @@ describe('topic utils', () => {
             .replace(/=*$/g, '')
             // Replace slashes with dashes so that the topic is still easily split by /
             // We do not treat this as needing to be valid Base64 anywhere
-            .replace('/', '-')
+            .replace(/\//g, '-')
         )
       )
 
