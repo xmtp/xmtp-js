@@ -111,7 +111,6 @@ const isAbortError = (err?: Error): boolean => {
   return false
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isAuthError = (err?: GrpcError | Error): boolean => {
   if (err && 'code' in err && err.code === ERR_CODE_UNAUTHENTICATED) {
     return true
@@ -119,7 +118,6 @@ const isAuthError = (err?: GrpcError | Error): boolean => {
   return false
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isNotAuthError = (err?: Error): boolean => !isAuthError(err)
 
 export interface ApiClient {
@@ -290,10 +288,7 @@ export default class HttpApiClient implements ApiClient {
           if (isAbortError(err) || abortController.signal.aborted) {
             return
           }
-          console.info(
-            'Stream connection closed. Resubscribing',
-            err.toString()
-          )
+          console.info('Stream connection closed. Resubscribing')
 
           if (new Date().getTime() - startTime < 1000) {
             await sleep(1000)

@@ -39,3 +39,18 @@ export const buildUserPrivateStoreTopic = (addrPrefixedKey: string): string => {
 
 export const buildUserPrivatePreferencesTopic = (identifier: string) =>
   buildContentTopic(`user-preferences-${identifier}`)
+
+// validate that a topic only contains ASCII characters 33-127
+export const isValidTopic = (topic: string): boolean => {
+  // eslint-disable-next-line no-control-regex
+  const regex = /^[\x21-\x7F]+$/
+  const index = topic.indexOf('0/')
+  if (index !== -1) {
+    const unwrappedTopic = topic.substring(
+      index + 2,
+      topic.lastIndexOf('/proto')
+    )
+    return regex.test(unwrappedTopic)
+  }
+  return false
+}

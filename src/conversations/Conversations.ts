@@ -12,6 +12,7 @@ import {
   buildUserIntroTopic,
   buildUserInviteTopic,
   dateToNs,
+  isValidTopic,
   nsToDate,
 } from '../utils'
 import { PublicKeyBundle } from '../crypto'
@@ -77,14 +78,14 @@ export default class Conversations<ContentTypes = any> {
       })
 
       await this.client.keystore.saveV1Conversations({
-        conversations: Array.from(seenPeers).map(
-          ([peerAddress, createdAt]) => ({
+        conversations: Array.from(seenPeers)
+          .map(([peerAddress, createdAt]) => ({
             peerAddress,
             createdNs: dateToNs(createdAt),
             topic: buildDirectMessageTopic(peerAddress, this.client.address),
             context: undefined,
-          })
-        ),
+          }))
+          .filter((c) => isValidTopic(c.topic)),
       })
 
       return (
@@ -152,11 +153,13 @@ export default class Conversations<ContentTypes = any> {
     shouldThrow = false
   ): Promise<ConversationV2<ContentTypes>[]> {
     const { responses } = await this.client.keystore.saveInvites({
-      requests: envelopes.map((env) => ({
-        payload: env.message as Uint8Array,
-        timestampNs: Long.fromString(env.timestampNs as string),
-        contentTopic: env.contentTopic as string,
-      })),
+      requests: envelopes
+        .map((env) => ({
+          payload: env.message as Uint8Array,
+          timestampNs: Long.fromString(env.timestampNs as string),
+          contentTopic: env.contentTopic as string,
+        }))
+        .filter((req) => isValidTopic(req.contentTopic)),
     })
 
     const out: ConversationV2<ContentTypes>[] = []
