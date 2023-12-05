@@ -31,7 +31,7 @@ import { bytesToHex } from '../crypto/utils'
 import Long from 'long'
 import { selfDecrypt, selfEncrypt } from '../keystore/encryption'
 // eslint-disable-next-line camelcase
-import { generate_private_preferences_topic } from '@xmtp/ecies-bindings-wasm'
+import { generate_private_preferences_topic } from '@xmtp/user-preferences-bindings-wasm'
 
 const { ErrorCode } = keystore
 
