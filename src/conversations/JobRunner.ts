@@ -6,7 +6,7 @@ import { dateToNs, nsToDate } from '../utils'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
-type JobType = 'v1' | 'v2' | 'pppp'
+type JobType = 'v1' | 'v2' | 'user-preferences'
 
 type UpdateJob<T> = (lastRun: Date | undefined) => Promise<T>
 
@@ -73,7 +73,7 @@ function getProtoJobType(jobType: JobType): keystore.JobType {
   const protoJobType = {
     v1: keystore.JobType.JOB_TYPE_REFRESH_V1,
     v2: keystore.JobType.JOB_TYPE_REFRESH_V2,
-    pppp: keystore.JobType.JOB_TYPE_REFRESH_PPPP,
+    'user-preferences': keystore.JobType.JOB_TYPE_REFRESH_PPPP,
   }[jobType]
 
   if (!protoJobType) {

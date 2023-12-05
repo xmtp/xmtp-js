@@ -38,4 +38,4 @@ export const buildUserPrivateStoreTopic = (addrPrefixedKey: string): string => {
 }
 
 export const buildUserPrivatePreferencesTopic = (identifier: string) =>
-  buildContentTopic(`pppp-${identifier}`)
+  buildContentTopic(`user-preferences-${identifier}`)

@@ -83,21 +83,23 @@ describe('JobRunner', () => {
   })
 
   it('resets the last run time', async () => {
-    const ppppRunner = new JobRunner('pppp', keystore)
-    await ppppRunner.run(async () => {})
+    const userPreferencesRunner = new JobRunner('user-preferences', keystore)
+    await userPreferencesRunner.run(async () => {})
 
-    const { lastRunNs: ppppLastRunNs } = await keystore.getRefreshJob({
-      jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
-    })
+    const { lastRunNs: userPreferencesLastRunNs } =
+      await keystore.getRefreshJob({
+        jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
+      })
 
-    expect(ppppLastRunNs.gt(0)).toBeTruthy()
+    expect(userPreferencesLastRunNs.gt(0)).toBeTruthy()
 
-    await ppppRunner.resetLastRunTime()
+    await userPreferencesRunner.resetLastRunTime()
 
-    const { lastRunNs: ppppLastRunNs2 } = await keystore.getRefreshJob({
-      jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
-    })
+    const { lastRunNs: userPreferencesLastRunNs2 } =
+      await keystore.getRefreshJob({
+        jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
+      })
 
-    expect(ppppLastRunNs2.eq(0)).toBeTruthy()
+    expect(userPreferencesLastRunNs2.eq(0)).toBeTruthy()
   })
 })
