@@ -37,30 +37,15 @@ Additional configuration is required in React environments due to the removal of
 
 ## Troubleshoot
 
-If you get into issues with Buffer and polyfills check out our [fix below](https://xmtp.org/docs/developer-quickstart#troubleshooting).
+### Buffer polyfill
 
-### Create React App
+If you run into issues with Buffer and polyfills, see this [solution](https://xmtp.org/docs/faq#why-my-app-is-failing-saying-buffer-is-not-found).
 
-Use `react-scripts` prior to version `5.0.0`. For example:
+### BigInt polyfill
 
-```bash
-npx create-react-app my-app --scripts-version 4.0.2
-```
+This SDK uses `BigInt` in a way that's incompatible with polyfills. To ensure that a polyfill isn't added to your application bundle, update your [browserslist](https://github.com/browserslist/browserslist) configuration to exclude browsers that don't support `BigInt`.
 
-Or downgrade after creating your app.
-
-### Next.js
-
-In `next.config.js`:
-
-```js
-webpack: (config, { isServer }) => {
-  if (!isServer) {
-    config.resolve.fallback.fs = false
-  }
-  return config
-}
-```
+For the list of browsers that don't support `BigInt`, see this [compatibility list](https://caniuse.com/bigint).
 
 ## Usage
 
