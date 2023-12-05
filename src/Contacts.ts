@@ -249,7 +249,7 @@ export class Contacts {
     this.addresses = new Set<string>()
     this.consentList = new ConsentList(client)
     this.client = client
-    this.jobRunner = new JobRunner('pppp', client.keystore)
+    this.jobRunner = new JobRunner('user-preferences', client.keystore)
   }
 
   async loadConsentList(startTime?: Date) {
