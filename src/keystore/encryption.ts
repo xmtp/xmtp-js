@@ -8,10 +8,10 @@ import {
 import { ciphertext } from '@xmtp/proto'
 import {
   // eslint-disable-next-line camelcase
-  ecies_decrypt_k256_sha3_256,
+  user_preferences_decrypt,
   // eslint-disable-next-line camelcase
-  ecies_encrypt_k256_sha3_256,
-} from '@xmtp/ecies-bindings-wasm'
+  user_preferences_encrypt,
+} from '@xmtp/user-preferences-bindings-wasm'
 
 export const decryptV1 = async (
   myKeys: PrivateKeyBundleV1,
@@ -62,7 +62,7 @@ export async function selfEncrypt(
 ) {
   const publicKey = identityKey.publicKey.secp256k1Uncompressed.bytes
   const privateKey = identityKey.secp256k1.bytes
-  return ecies_encrypt_k256_sha3_256(publicKey, privateKey, payload)
+  return user_preferences_encrypt(publicKey, privateKey, payload)
 }
 
 export async function selfDecrypt(
@@ -71,5 +71,5 @@ export async function selfDecrypt(
 ) {
   const publicKey = identityKey.publicKey.secp256k1Uncompressed.bytes
   const privateKey = identityKey.secp256k1.bytes
-  return ecies_decrypt_k256_sha3_256(publicKey, privateKey, payload)
+  return user_preferences_decrypt(publicKey, privateKey, payload)
 }
