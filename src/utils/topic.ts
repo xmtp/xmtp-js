@@ -38,7 +38,7 @@ export const buildUserPrivateStoreTopic = (addrPrefixedKey: string): string => {
 }
 
 export const buildUserPrivatePreferencesTopic = (identifier: string) =>
-  buildContentTopic(`user-preferences-${identifier}`)
+  buildContentTopic(`userpreferences-${identifier}`)
 
 // validate that a topic only contains ASCII characters 33-127
 export const isValidTopic = (topic: string): boolean => {
