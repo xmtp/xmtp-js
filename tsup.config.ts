@@ -1,16 +1,17 @@
 import { defineConfig } from 'tsup'
-import externalGlobal from 'esbuild-plugin-external-global'
+import { resolveExtensionsPlugin } from './build/esbuild-plugin-resolve-extensions/index.ts'
 import { Plugin } from 'esbuild'
 
 export default defineConfig((options) => {
   const esbuildPlugins: Plugin[] = []
 
-  // for the browser bundle, replace `crypto` import with an object that
-  // returns the browser's built-in crypto library
+  // for browsers, replace imports if there's a file with the same name
+  // but with a .web extension
+  // i.e. crypto.ts -> crypto.web.ts
   if (options.platform === 'browser') {
     esbuildPlugins.push(
-      externalGlobal.externalGlobalPlugin({
-        crypto: '{ webcrypto: window.crypto }',
+      resolveExtensionsPlugin({
+        extensions: ['.web'],
       })
     )
   }
