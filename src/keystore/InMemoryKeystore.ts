@@ -29,9 +29,11 @@ import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
 import Long from 'long'
-import { selfDecrypt, selfEncrypt } from '../keystore/encryption'
-// eslint-disable-next-line camelcase
-import { generate_private_preferences_topic } from '@xmtp/user-preferences-bindings-wasm'
+import {
+  userPreferencesDecrypt,
+  userPreferencesEncrypt,
+  generateUserPreferencesTopic,
+} from '../crypto/selfEncryption'
 
 const { ErrorCode } = keystore
 
@@ -216,7 +218,10 @@ export default class InMemoryKeystore implements Keystore {
         }
 
         return {
-          encrypted: await selfEncrypt(this.v1Keys.identityKey, payload),
+          encrypted: await userPreferencesEncrypt(
+            this.v1Keys.identityKey,
+            payload
+          ),
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -243,7 +248,10 @@ export default class InMemoryKeystore implements Keystore {
         }
 
         return {
-          decrypted: await selfDecrypt(this.v1Keys.identityKey, payload),
+          decrypted: await userPreferencesDecrypt(
+            this.v1Keys.identityKey,
+            payload
+          ),
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -255,8 +263,9 @@ export default class InMemoryKeystore implements Keystore {
   }
 
   async getPrivatePreferencesTopicIdentifier(): Promise<keystore.GetPrivatePreferencesTopicIdentifierResponse> {
-    const privateKey = this.v1Keys.identityKey.secp256k1.bytes
-    const identifier = generate_private_preferences_topic(privateKey).toString()
+    const identifier = await generateUserPreferencesTopic(
+      this.v1Keys.identityKey
+    )
     return keystore.GetPrivatePreferencesTopicIdentifierResponse.fromPartial({
       identifier,
     })
