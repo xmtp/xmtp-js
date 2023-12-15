@@ -33,7 +33,7 @@
     "test:teardown": "./dev/down",
     "test": "npm run test:node --",
     "test:node": "jest --no-cache --env='node' --testTimeout=30000",
-    "test:jsdom": "echo \"Temporarily disabled\" && exit 0",
+    "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.cjs' --testTimeout=30000",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
@@ -85,7 +85,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
     "@xmtp/proto": "^3.34.0",
-    "@xmtp/user-preferences-bindings-wasm": "^0.3.0",
+    "@xmtp/user-preferences-bindings-wasm": "^0.3.1",
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
