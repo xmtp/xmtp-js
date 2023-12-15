@@ -33,7 +33,7 @@
     "test:teardown": "./dev/down",
     "test": "npm run test:node --",
     "test:node": "jest --no-cache --env='node' --testTimeout=30000",
-    "test:jsdom": "echo \"Temporarily disabled\" && exit 0",
+    "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.cjs' --testTimeout=30000",
     "test:cov": "jest --coverage --no-cache --runInBand",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
