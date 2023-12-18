@@ -37,7 +37,7 @@ describe("ScreenEffectContentType", () => {
     const originalMessage = await conversation.send("test");
 
     const screenEffect: ScreenEffect = {
-      messageId: "123",
+      messageId: originalMessage.id,
       effectType: EffectType.SNOW,
     };
 
@@ -54,7 +54,8 @@ describe("ScreenEffectContentType", () => {
 
     const screenEffectMessage = messages[1];
     const messageContent = screenEffectMessage.content as ScreenEffect;
-    expect(messageContent.messageId).toBe("123");
+
+    expect(messageContent.messageId).toBe(originalMessage.id);
     expect(messageContent.effectType).toBe(EffectType.SNOW);
   });
 });
