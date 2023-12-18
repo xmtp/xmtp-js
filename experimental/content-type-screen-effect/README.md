@@ -23,13 +23,12 @@ yarn add @xmtp/experimental-content-type-screen-effect
 pnpm i @xmtp/experimental-content-type-screen-effect
 ```
 
-## Create a screen effect 
+## Create a screen effect
 
 Screen effects are represented as objects with the following keys:
 
 - `messageId`: The message id for the message that the screen effect is being sent with
 - `effectType`: The type of effect (currently `SNOW` or `RAIN`)
-
 
 ```tsx
 const screenEffect: ScreenEffect = {
@@ -60,16 +59,16 @@ Now that you can send a screen effect, you need a way to receive it. For example
 const message: DecodedMessage = await loadLastMessage();
 
 if (message.contentType.sameAs(ContentTypeScreenEffect)) {
-  // We've got a reaction.
+  // We've got a screen effect.
   const screenEffect: ScreenEffect = message.content;
 }
-
-
 ```
 
 ## Display the screen effect
 
-Generally, reactions should be interpreted as emoji. So, `smile` would translate to :smile: in UI clients. That being said, how you ultimately choose to render a reaction in your app is up to you.
+Generally, screen effects sent with snow or rain are displayed as a visual effect. For example, a snow effect might be displayed as snow falling down the page for a short period of time.
+
+It is important to note that these are not intended to be displayed every time a message is loaded; for that reason, apps using screen effects must track the effects that have already been run so as to not re-run effects on every page refresh.
 
 ## Developing
 
