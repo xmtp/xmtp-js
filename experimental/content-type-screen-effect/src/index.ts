@@ -1,2 +1,2 @@
-export { ReactionCodec, ContentTypeReaction } from "./ScreenEffect";
-export type { Reaction } from "./ScreenEffect";
+export { ScreenEffectCodec, ContentTypeScreenEffect } from "./ScreenEffect";
+export type { ScreenEffect } from "./ScreenEffect";
