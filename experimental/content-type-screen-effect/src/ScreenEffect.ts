@@ -1,14 +1,13 @@
 import { ContentTypeId } from "@xmtp/xmtp-js";
 import type { ContentCodec, EncodedContent } from "@xmtp/xmtp-js";
 
-
 export enum EffectType {
   SNOW = "SNOW",
   RAIN = "RAIN",
 }
 
 export const ContentTypeScreenEffect = new ContentTypeId({
-  authorityId: "xmtp.chat",
+  authorityId: "xmtp.org",
   typeId: "screenEffect",
   versionMajor: 1,
   versionMinor: 0,
@@ -23,7 +22,6 @@ export type ScreenEffectParameters = Pick<
   ScreenEffect,
   "messageId" | "effectType"
 >;
-
 
 export class ScreenEffectCodec
   implements ContentCodec<ScreenEffect | undefined>

@@ -48,7 +48,7 @@ await conversation.messages.send(screenEffect, {
 ```
 
 > **Note**  
-> `contentFallback` text is provided by the codec and is set to to undefined, ensuring that clients that _don't_ support this content type are not required to render anything in their app.
+> `contentFallback` text is provided by the codec and is set to undefined, ensuring that clients that _don't_ support this content type are not required to render anything in their app.
 
 ## Receive a screen effect
 
