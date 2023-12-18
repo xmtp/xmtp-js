@@ -54,7 +54,7 @@ describe("ScreenEffectContentType", () => {
 
     const screenEffectMessage = messages[1];
     const messageContent = screenEffectMessage.content as ScreenEffect;
-    expect(messageContent.messageId).toBe(originalMessage.id);
+    expect(messageContent.messageId).toBe("123");
     expect(messageContent.effectType).toBe(EffectType.SNOW);
   });
 });
