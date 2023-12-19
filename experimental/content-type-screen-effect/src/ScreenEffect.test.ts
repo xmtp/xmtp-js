@@ -1,10 +1,6 @@
 import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
-import {
-  ContentTypeScreenEffect,
-  EffectType,
-  ScreenEffectCodec,
-} from "./ScreenEffect";
+import { ContentTypeScreenEffect, ScreenEffectCodec } from "./ScreenEffect";
 import type { ScreenEffect } from "./ScreenEffect";
 
 describe("ScreenEffectContentType", () => {
@@ -38,7 +34,7 @@ describe("ScreenEffectContentType", () => {
 
     const screenEffect: ScreenEffect = {
       messageId: originalMessage.id,
-      effectType: EffectType.SNOW,
+      effectType: "SNOW",
     };
 
     await conversation.send(screenEffect, {
@@ -56,6 +52,6 @@ describe("ScreenEffectContentType", () => {
     const messageContent = screenEffectMessage.content as ScreenEffect;
 
     expect(messageContent.messageId).toBe(originalMessage.id);
-    expect(messageContent.effectType).toBe(EffectType.SNOW);
+    expect(messageContent.effectType).toBe("SNOW");
   });
 });
