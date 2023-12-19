@@ -28,7 +28,7 @@ pnpm i @xmtp/experimental-content-type-screen-effect
 Screen effects are represented as objects with the following keys:
 
 - `messageId`: The message id for the message that the screen effect is being sent with
-- `effectType`: The type of effect (currently `SNOW` or `RAIN`)
+- `effectType`: The type of effect (currently `SNOW` or `RAIN`, feel free to add additional effects via a PR)
 
 ```tsx
 const screenEffect: ScreenEffect = {
