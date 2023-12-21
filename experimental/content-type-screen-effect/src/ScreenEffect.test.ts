@@ -5,7 +5,7 @@ import type { ScreenEffect } from "./ScreenEffect";
 
 describe("ScreenEffectContentType", () => {
   it("has the right content type", () => {
-    expect(ContentTypeScreenEffect.authorityId).toBe("xmtp.org");
+    expect(ContentTypeScreenEffect.authorityId).toBe("experimental.xmtp.org");
     expect(ContentTypeScreenEffect.typeId).toBe("screenEffect");
     expect(ContentTypeScreenEffect.versionMajor).toBe(1);
     expect(ContentTypeScreenEffect.versionMinor).toBe(0);
