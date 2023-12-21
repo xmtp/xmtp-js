@@ -4,7 +4,7 @@ import type { ContentCodec, EncodedContent } from "@xmtp/xmtp-js";
 export type EffectType = "SNOW" | "RAIN";
 
 export const ContentTypeScreenEffect = new ContentTypeId({
-  authorityId: "xmtp.org",
+  authorityId: "experimental.xmtp.org",
   typeId: "screenEffect",
   versionMajor: 1,
   versionMinor: 0,
