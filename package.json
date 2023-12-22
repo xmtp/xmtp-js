@@ -13,15 +13,37 @@
       "browser": "./dist/web/index.js",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./node": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./node/esm": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node/cjs": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs"
+    },
+    "./browser": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/web/index.js"
+    },
+    "./browser/bundler": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/bundler/index.js"
     }
   },
   "scripts": {
     "prebench": "npm run build:bench",
     "bench": "node dist/bench/index.cjs",
-    "build": "npm run clean:dist && npm run build:node && npm run build:web",
+    "build": "npm run clean:dist && npm run build:node && npm run build:web && npm run build:bundler",
     "build:bench": "tsup --out-dir dist/bench --entry.0 bench/index.ts --format cjs",
     "build:node": "tsup",
     "build:web": "tsup --platform browser --target esnext",
+    "build:bundler": "tsup --config tsup.bundler.config.ts",
     "build:docs": "rimraf docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc --excludePrivate --readme tmp/README.md src/index.ts",
     "clean": "npm run clean:dist && npm run clean:proto",
     "clean:dist": "rimraf dist",
