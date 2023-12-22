@@ -9,8 +9,6 @@ import init, {
   user_preferences_decrypt,
   // eslint-disable-next-line camelcase
   user_preferences_encrypt,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
 } from '@xmtp/user-preferences-bindings-wasm/web'
 import { PrivateKey } from './PrivateKey'
 
