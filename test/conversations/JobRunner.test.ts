@@ -81,4 +81,25 @@ describe('JobRunner', () => {
       })
     ).rejects.toThrow('foo')
   })
+
+  it('resets the last run time', async () => {
+    const userPreferencesRunner = new JobRunner('user-preferences', keystore)
+    await userPreferencesRunner.run(async () => {})
+
+    const { lastRunNs: userPreferencesLastRunNs } =
+      await keystore.getRefreshJob({
+        jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
+      })
+
+    expect(userPreferencesLastRunNs.gt(0)).toBeTruthy()
+
+    await userPreferencesRunner.resetLastRunTime()
+
+    const { lastRunNs: userPreferencesLastRunNs2 } =
+      await keystore.getRefreshJob({
+        jobType: keystoreProto.JobType.JOB_TYPE_REFRESH_PPPP,
+      })
+
+    expect(userPreferencesLastRunNs2.eq(0)).toBeTruthy()
+  })
 })

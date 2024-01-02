@@ -13,15 +13,37 @@
       "browser": "./dist/web/index.js",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./node": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./node/esm": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node/cjs": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs"
+    },
+    "./browser": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/web/index.js"
+    },
+    "./browser/bundler": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/bundler/index.js"
     }
   },
   "scripts": {
     "prebench": "npm run build:bench",
     "bench": "node dist/bench/index.cjs",
-    "build": "npm run clean:dist && npm run build:node && npm run build:web",
+    "build": "npm run clean:dist && npm run build:node && npm run build:web && npm run build:bundler",
     "build:bench": "tsup --out-dir dist/bench --entry.0 bench/index.ts --format cjs",
     "build:node": "tsup",
     "build:web": "tsup --platform browser --target esnext",
+    "build:bundler": "tsup --config tsup.bundler.config.ts",
     "build:docs": "rimraf docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc --excludePrivate --readme tmp/README.md src/index.ts",
     "clean": "npm run clean:dist && npm run clean:proto",
     "clean:dist": "rimraf dist",
@@ -84,7 +106,8 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.5.2",
-    "@xmtp/proto": "^3.29.0",
+    "@xmtp/proto": "^3.34.0",
+    "@xmtp/user-preferences-bindings-wasm": "^0.3.4",
     "async-mutex": "^0.4.0",
     "elliptic": "^6.5.4",
     "ethers": "^5.5.3",
@@ -105,7 +128,6 @@
     "benny": "^3.7.1",
     "dd-trace": "^2.12.2",
     "esbuild": "^0.17.16",
-    "esbuild-plugin-external-global": "^1.0.1",
     "eslint": "^8.50.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-standard": "^17.1.0",
@@ -114,6 +136,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
+    "find-up": "^7.0.0",
     "husky": "^7.0.4",
     "jest": "^29.6.0",
     "jest-environment-jsdom": "^28.1.3",

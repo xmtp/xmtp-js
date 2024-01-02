@@ -7,6 +7,8 @@ import {
   buildUserInviteTopic,
   isBrowser,
   getSigner,
+  EnvelopeMapperWithMessage,
+  EnvelopeWithMessage,
 } from './utils'
 import { utils } from 'ethers'
 import { Signer } from './types/Signer'
@@ -44,6 +46,7 @@ import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { version as snapVersion, package as snapPackage } from './snapInfo.json'
 import { ExtractDecodedType } from './types/client'
 import type { WalletClient } from 'viem'
+import { Contacts } from './Contacts'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -251,7 +254,7 @@ export default class Client<ContentTypes = any> {
   address: string
   keystore: Keystore
   apiClient: ApiClient
-  contacts: Set<string> // address which we have connected to
+  contacts: Contacts
   publicKeyBundle: PublicKeyBundle
   private knownPublicKeyBundles: Map<
     string,
@@ -270,7 +273,6 @@ export default class Client<ContentTypes = any> {
     backupClient: BackupClient,
     keystore: Keystore
   ) {
-    this.contacts = new Set<string>()
     this.knownPublicKeyBundles = new Map<
       string,
       PublicKeyBundle | SignedPublicKeyBundle
@@ -284,6 +286,7 @@ export default class Client<ContentTypes = any> {
     this._maxContentSize = MaxContentSize
     this.apiClient = apiClient
     this._backupClient = backupClient
+    this.contacts = new Contacts(this)
   }
 
   /**
@@ -701,7 +704,7 @@ export default class Client<ContentTypes = any> {
    */
   async listEnvelopes<Out>(
     topic: string,
-    mapper: EnvelopeMapper<Out>,
+    mapper: EnvelopeMapperWithMessage<Out>,
     opts?: ListMessagesOptions
   ): Promise<Out[]> {
     if (!opts) {
@@ -721,7 +724,7 @@ export default class Client<ContentTypes = any> {
     for (const env of envelopes) {
       if (!env.message) continue
       try {
-        const res = await mapper(env)
+        const res = await mapper(env as EnvelopeWithMessage)
         results.push(res)
       } catch (e) {
         console.warn('Error in listEnvelopes mapper', e)

@@ -29,6 +29,11 @@ import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
 import { bytesToHex } from '../crypto/utils'
 import Long from 'long'
+import {
+  userPreferencesDecrypt,
+  userPreferencesEncrypt,
+  generateUserPreferencesTopic,
+} from '../crypto/selfEncryption'
 
 const { ErrorCode } = keystore
 
@@ -195,6 +200,75 @@ export default class InMemoryKeystore implements Keystore {
     return this.authenticator.createToken(
       timestampNs ? nsToDate(timestampNs) : undefined
     )
+  }
+
+  async selfEncrypt(
+    req: keystore.SelfEncryptRequest
+  ): Promise<keystore.SelfEncryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
+      async (req) => {
+        const { payload } = req
+
+        if (!payload) {
+          throw new KeystoreError(
+            ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'Missing field payload'
+          )
+        }
+
+        return {
+          encrypted: await userPreferencesEncrypt(
+            this.v1Keys.identityKey,
+            payload
+          ),
+        }
+      },
+      ErrorCode.ERROR_CODE_INVALID_INPUT
+    )
+
+    return keystore.SelfEncryptResponse.fromPartial({
+      responses,
+    })
+  }
+
+  async selfDecrypt(
+    req: keystore.SelfDecryptRequest
+  ): Promise<keystore.DecryptResponse> {
+    const responses = await mapAndConvertErrors(
+      req.requests,
+      async (req) => {
+        const { payload } = req
+
+        if (!payload) {
+          throw new KeystoreError(
+            ErrorCode.ERROR_CODE_INVALID_INPUT,
+            'Missing field payload'
+          )
+        }
+
+        return {
+          decrypted: await userPreferencesDecrypt(
+            this.v1Keys.identityKey,
+            payload
+          ),
+        }
+      },
+      ErrorCode.ERROR_CODE_INVALID_INPUT
+    )
+
+    return keystore.DecryptResponse.fromPartial({
+      responses,
+    })
+  }
+
+  async getPrivatePreferencesTopicIdentifier(): Promise<keystore.GetPrivatePreferencesTopicIdentifierResponse> {
+    const identifier = await generateUserPreferencesTopic(
+      this.v1Keys.identityKey
+    )
+    return keystore.GetPrivatePreferencesTopicIdentifierResponse.fromPartial({
+      identifier,
+    })
   }
 
   async encryptV2(

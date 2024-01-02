@@ -32,6 +32,7 @@ import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
+import { ConsentState } from '../Contacts'
 
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
@@ -65,6 +66,28 @@ export interface Conversation<ContentTypes = any> {
    * Will always be undefined on V1 conversations
    */
   context?: InvitationContext | undefined
+
+  /**
+   * Add conversation peer address to allow list
+   */
+  allow(): Promise<void>
+  /**
+   * Add conversation peer address to deny list
+   */
+  deny(): Promise<void>
+
+  /**
+   * Returns true if conversation peer address is on the allow list
+   */
+  isAllowed: boolean
+  /**
+   * Returns true if conversation peer address is on the deny list
+   */
+  isDenied: boolean
+  /**
+   * Returns the consent state of the conversation peer address
+   */
+  consentState: ConsentState
 
   /**
    * Retrieve messages in this conversation. Default to returning all messages.
@@ -164,6 +187,26 @@ export class ConversationV1<ContentTypes>
     return this.client.address
   }
 
+  async allow() {
+    await this.client.contacts.allow([this.peerAddress])
+  }
+
+  async deny() {
+    await this.client.contacts.deny([this.peerAddress])
+  }
+
+  get isAllowed() {
+    return this.client.contacts.isAllowed(this.peerAddress)
+  }
+
+  get isDenied() {
+    return this.client.contacts.isDenied(this.peerAddress)
+  }
+
+  get consentState() {
+    return this.client.contacts.consentState(this.peerAddress)
+  }
+
   get topic(): string {
     return buildDirectMessageTopic(this.peerAddress, this.client.address)
   }
@@ -237,13 +280,13 @@ export class ConversationV1<ContentTypes>
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
-    if (!this.client.contacts.has(this.peerAddress)) {
+    if (!this.client.contacts.addresses.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
         topic,
       ]
-      this.client.contacts.add(this.peerAddress)
+      this.client.contacts.addresses.add(this.peerAddress)
     } else {
       topics = [topic]
     }
@@ -345,13 +388,13 @@ export class ConversationV1<ContentTypes>
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
-    if (!this.client.contacts.has(this.peerAddress)) {
+    if (!this.client.contacts.addresses.has(this.peerAddress)) {
       topics = [
         buildUserIntroTopic(this.peerAddress),
         buildUserIntroTopic(this.client.address),
         topic,
       ]
-      this.client.contacts.add(this.peerAddress)
+      this.client.contacts.addresses.add(this.peerAddress)
     } else {
       topics = [topic]
     }
@@ -366,6 +409,13 @@ export class ConversationV1<ContentTypes>
         timestamp: msg.sent,
       }))
     )
+
+    // if the conversation consent state is unknown, we assume the user has
+    // consented to the conversation by sending a message into it
+    if (this.consentState === 'unknown') {
+      // add conversation to the allow list
+      await this.allow()
+    }
 
     return DecodedMessage.fromV1Message(
       msg,
@@ -475,6 +525,26 @@ export class ConversationV2<ContentTypes>
     return this.client.address
   }
 
+  async allow() {
+    await this.client.contacts.allow([this.peerAddress])
+  }
+
+  async deny() {
+    await this.client.contacts.deny([this.peerAddress])
+  }
+
+  get isAllowed() {
+    return this.client.contacts.isAllowed(this.peerAddress)
+  }
+
+  get isDenied() {
+    return this.client.contacts.isDenied(this.peerAddress)
+  }
+
+  get consentState() {
+    return this.client.contacts.consentState(this.peerAddress)
+  }
+
   /**
    * Returns a list of all messages to/from the peerAddress
    */
@@ -551,6 +621,13 @@ export class ConversationV2<ContentTypes>
       },
     ])
     const contentType = options?.contentType || ContentTypeText
+
+    // if the conversation consent state is unknown, we assume the user has
+    // consented to the conversation by sending a message into it
+    if (this.consentState === 'unknown') {
+      // add conversation to the allow list
+      await this.allow()
+    }
 
     return DecodedMessage.fromV2Message(
       msg,

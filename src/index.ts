@@ -112,3 +112,9 @@ export type {
   GetMessageContentTypeFromClient,
   ExtractDecodedType,
 } from './types/client'
+export type {
+  ConsentState,
+  ConsentListEntryType,
+  PrivatePreferencesAction,
+} from './Contacts'
+export { ConsentListEntry } from './Contacts'
