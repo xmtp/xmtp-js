@@ -1,4 +1,4 @@
-# Read receipt content type
+# Transaction reference content type
 
 ![Status](https://img.shields.io/badge/Content_type_status-Standards--track-yellow) ![Status](https://img.shields.io/badge/Reference_implementation_status-Beta-yellow)
 
@@ -9,11 +9,11 @@ This package provides an XMTP content type to support on-chain transaction refer
 
 ## What’s a transaction reference?
 
-TODO
+It is a reference to an on-chain transaction sent as a message. This content type facilitates sharing transaction hashes or IDs, thereby providing a direct link to on-chain activities.
 
 ## Why transaction references?
 
-TODO
+Transaction references serve to display transaction details, facilitating the sharing of on-chain activities, such as token transfers, between users.
 
 ## Install the package
 
@@ -30,19 +30,70 @@ pnpm i @xmtp/content-type-transaction-reference
 
 ## Create a transaction reference
 
-TODO
+With XMTP, a transaction reference is represented as an object with the following keys:
+
+```tsx
+const transactionReference: TransactionReference = {
+  /**
+   * Optional namespace for the networkId
+   */
+  namespace: "eip155";
+  /**
+   * The networkId for the transaction, in decimal or hexidecimal format
+   */
+  networkId: 1;
+  /**
+   * The transaction hash
+   */
+  reference: "0x123...abc";
+  /**
+   * Optional metadata object
+   */
+  metadata: {
+    transactionType: "transfer",
+    currency: "USDC",
+    amount: 100000, // Amount in the smallest units. With 6 decimals, this represents 1 USDC (100000/10^6)
+    decimals: 6, // Specifies that the currency uses 6 decimal places
+    fromAddress: "0x456...def",
+    toAddress: "0x789...ghi"
+  };
+};
+```
 
 ## Send a transaction reference
 
-TODO
+Once you have a transaction reference, you can send it as part of your conversation:
+
+```tsx
+await conversation.messages.send(transactionReference, {
+  contentType: ContentTypeTransactionReference,
+});
+```
 
 ## Receive a transaction reference
 
-TODO
+To receive and process a transaction reference:
+
+```tsx
+// Assume `loadLastMessage` is a thing you have
+const message: DecodedMessage = await loadLastMessage();
+
+if (!message.contentType.sameAs(ContentTypeTransactionReference)) {
+  // Handle non-transaction reference message
+  return;
+}
+
+const transactionRef: TransactionReference = message.content;
+// Process the transaction reference here
+```
 
 ## Display the transaction reference
 
-TODO
+Displaying a transaction reference typically involves rendering details such as the transaction hash, network ID, and any relevant metadata. The exact UI representation can vary based on your application's design, you might want to fetch on-chain data before showing them to the user.
+
+## Note on Metadata
+
+The optional metadata within a transaction reference, such as transaction type, currency, amount, and addresses, are provided for informational purposes only. These details should not be solely relied upon for verifying transaction specifics. Developers are responsible for ensuring the accuracy of transaction data, either by directing users to the appropriate block explorer or by fetching and displaying verified transaction data from the blockchain.
 
 ## Developing
 
