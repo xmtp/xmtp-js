@@ -52,7 +52,7 @@ const transactionReference: TransactionReference = {
   metadata: {
     transactionType: "transfer",
     currency: "USDC",
-    amount: 100000, // Amount in the smallest units. With 6 decimals, this represents 1 USDC (100000/10^6)
+    amount: 100000, // In integer format, this represents 1 USDC (100000/10^6)
     decimals: 6, // Specifies that the currency uses 6 decimal places
     fromAddress: "0x456...def",
     toAddress: "0x789...ghi"

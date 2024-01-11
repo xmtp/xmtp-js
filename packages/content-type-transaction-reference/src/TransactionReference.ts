@@ -28,6 +28,7 @@ export type TransactionReference = {
     transactionType: string;
     currency: string;
     amount: number;
+    decimals: number,
     fromAddress: string;
     toAddress: string;
   };
