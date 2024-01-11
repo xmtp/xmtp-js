@@ -10,7 +10,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "browser": "./dist/web/index.js",
+      "browser": "./dist/browser/index.js",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
