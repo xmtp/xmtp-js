@@ -11,5 +11,5 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", "bench/**/*"]
+  "include": ["src/**/*", "bench/**/*", "build/**/*"]
 }

@@ -125,3 +125,6 @@ tmp/
 
 # Benchmark results
 bench/results
+
+# rollup build plugin output
+build/rollup-plugin-resolve-extensions/index.js
