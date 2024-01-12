@@ -35,6 +35,7 @@ import {
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
 import type { KeystoreInterface } from '..'
+import { generateHmacSignature } from '../crypto/encryption'
 
 const { ErrorCode } = keystore
 
@@ -295,10 +296,14 @@ export default class InMemoryKeystore implements KeystoreInterface {
           )
         }
 
+        const keyMaterial = getKeyMaterial(topicData.invitation)
+        const ciphertext = await encryptV2(payload, keyMaterial, headerBytes)
+
         return {
-          encrypted: await encryptV2(
-            payload,
-            getKeyMaterial(topicData.invitation),
+          encrypted: ciphertext,
+          senderHmac: await generateHmacSignature(
+            keyMaterial,
+            new TextEncoder().encode(contentTopic),
             headerBytes
           ),
         }
