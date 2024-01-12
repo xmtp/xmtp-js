@@ -15,13 +15,7 @@ import Client, {
 } from '../Client'
 import { InvitationContext } from '../Invitation'
 import { DecodedMessage, MessageV1, MessageV2 } from '../Message'
-import {
-  messageApi,
-  message,
-  content as proto,
-  keystore,
-  ciphertext,
-} from '@xmtp/proto'
+import { messageApi, message, content as proto, keystore } from '@xmtp/proto'
 import {
   SignedPublicKey,
   Signature,
@@ -662,14 +656,17 @@ export class ConversationV2<ContentTypes>
     }
     const signedBytes = proto.SignedContent.encode(signed).finish()
 
-    const ciphertext = await this.encryptMessage(signedBytes, headerBytes)
+    const { encrypted: ciphertext, senderHmac } = await this.encryptMessage(
+      signedBytes,
+      headerBytes
+    )
     const protoMsg = {
       v1: undefined,
-      v2: { headerBytes, ciphertext },
+      v2: { headerBytes, ciphertext, senderHmac },
     }
     const bytes = message.Message.encode(protoMsg).finish()
 
-    return MessageV2.create(protoMsg, header, bytes)
+    return MessageV2.create(protoMsg, header, bytes, senderHmac)
   }
 
   private async decryptBatch(
@@ -713,10 +710,7 @@ export class ConversationV2<ContentTypes>
     }
   }
 
-  private async encryptMessage(
-    payload: Uint8Array,
-    headerBytes: Uint8Array
-  ): Promise<ciphertext.Ciphertext> {
+  private async encryptMessage(payload: Uint8Array, headerBytes: Uint8Array) {
     const { responses } = await this.client.keystore.encryptV2({
       requests: [
         {
@@ -729,8 +723,8 @@ export class ConversationV2<ContentTypes>
     if (responses.length !== 1) {
       throw new Error('Invalid response length')
     }
-    const { encrypted } = getResultOrThrow(responses[0])
-    return encrypted
+    const { encrypted, senderHmac } = getResultOrThrow(responses[0])
+    return { encrypted, senderHmac }
   }
 
   private async buildDecodedMessage(
@@ -833,7 +827,7 @@ export class ConversationV2<ContentTypes>
       throw new Error('topic mismatch')
     }
 
-    return MessageV2.create(msg, header, env.message)
+    return MessageV2.create(msg, header, env.message, msg.v2.senderHmac)
   }
 
   async decodeMessage(
