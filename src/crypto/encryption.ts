@@ -83,3 +83,36 @@ async function hkdf(secret: Uint8Array, salt: Uint8Array): Promise<CryptoKey> {
     ['encrypt', 'decrypt']
   )
 }
+
+async function hkdfHmacKey(
+  secret: Uint8Array,
+  salt: Uint8Array
+): Promise<CryptoKey> {
+  const key = await crypto.subtle.importKey('raw', secret, 'HKDF', false, [
+    'deriveKey',
+  ])
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt, info: hkdfNoInfo },
+    key,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 },
+    false,
+    ['sign', 'verify']
+  )
+}
+
+async function generateHmac(
+  key: CryptoKey,
+  message: Uint8Array
+): Promise<Uint8Array> {
+  const signed = await crypto.subtle.sign('HMAC', key, message)
+  return new Uint8Array(signed)
+}
+
+export async function generateHmacSignature(
+  secret: Uint8Array,
+  salt: Uint8Array,
+  message: Uint8Array
+): Promise<Uint8Array> {
+  const key = await hkdfHmacKey(secret, salt)
+  return generateHmac(key, message)
+}
