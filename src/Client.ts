@@ -43,7 +43,7 @@ import {
   Persistence,
 } from './keystore/persistence'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
-import { version as snapVersion, package as snapPackage } from './snapInfo.json'
+import { packageName, version } from './snapInfo.json'
 import { ExtractDecodedType } from './types/client'
 import type { WalletClient } from 'viem'
 import { Contacts } from './Contacts'
@@ -237,7 +237,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
 
   if (opts?.useSnaps) {
     opts.keystoreProviders = [
-      new SnapProvider(`npm:${snapPackage}`, snapVersion),
+      new SnapProvider(`npm:${packageName}`, version),
       ..._defaultOptions.keystoreProviders,
     ]
   }

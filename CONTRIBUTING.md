@@ -1,32 +1,48 @@
 # Contributing
 
-If you're seeing this document, you are an early contributor to the development and success of XMTP. We welcome your questions, feedback, suggestions, and code contributions.
+Thank you for considering contributing to this repo! Community contributions like yours are key to the development and adoption of XMTP. Your questions, feedback, suggestions, and code contributions are welcome!
 
 ## ❔ Questions
 
-Have a question? We welcome you to ask it in [Q&A discussions](https://github.com/orgs/xmtp/discussions/categories/q-a).
+Have a question about how to build with XMTP? Ask your question and learn with the community in the [XMTP Community Forums](https://community.xmtp.org/).
 
 ## 🐞 Bugs
 
-Bugs should be reported as GitHub Issues. Please confirm there isn't already an open issue and include detailed steps to reproduce.
+Report a bug using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues).
 
 ## ✨ Feature Requests
 
-These should also be submitted as GitHub Issues. Again, please confirm there isn't already an open issue. Let us know what use cases this feature would unlock so that we can investigate and prioritize.
+Request a feature using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues).
 
 ## 🔀 Pull Requests
 
-PRs are encouraged, but we suggest starting with a Feature Request to temperature-check first. If the PR would involve a major change to the protocol, it should be fleshed out as an [XMTP Improvement Proposal](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-0-purpose-process.md) before work begins.
+PRs are encouraged, but consider starting with a feature request to temperature-check first. If the PR involves a major change to the protocol, the work should be fleshed out as an [XMTP Improvement Proposal](https://community.xmtp.org/t/xip-0-xip-purpose-process-guidelines/475) before work begins.
+
+After a pull request is submitted, a single approval is required to merge it.
 
 ## 🔧 Developing
 
+### Prerequisites
+
+#### Node
+
+Please make sure you have a compatible version as specified in `package.json`. We recommend using a Node version manager such as [nvm](https://github.com/nvm-sh/nvm) or [nodenv](https://github.com/nodenv/nodenv).
+
+### Useful commands
+
+- `npm install`: Installs all dependencies
+- `npm run bench`: Run the benchmarking suite
+- `npm run build`: Builds all SDK packages
+- `npm test`: Run the unit test suite
+- `npm run test:setup`: Start a local development node using Docker (only needs to be run once)
+- `npm run lint`: Lint with ESLint
+- `npm run typecheck`: Typecheck with `tsc`
+
 ### Testing and validation
 
-Please add unit tests for your feature, and ensure that all unit tests are passing before submitting a pull request. All test commands are described in `package.json` and executed via `npm run <command>`. Note that the unit tests require a backend node to be running locally - the `test:setup` step can be run a single time to start the node in the background, and `test` can be run as many times as desired afterwards.
+Please add unit tests when appropriate and ensure that all unit tests are passing before submitting a pull request. Note that some unit tests require a backend node to be running locally. The `test:setup` command can be run a single time to start the node in the background using Docker.
 
-Manual validation requires setting up a client app such as the [example app](https://github.com/xmtp/example-chat-react). Once you have cloned and run the example app, it will use a published npm version of `xmtp-js` by default. You can point it to your local `xmtp-js` repository by running `npm i file:~/path/to/xmtp-js` from the `example-chat-react` directory, which will update its `package.json`. Once the example app is running, any further changes you make to `xmtp-js` will be reflected in the app after you run `npm build` in the `xmtp-js` directory and then reload the app.
-
-After a pull request is submitted, a single approval is required to merge it.
+Manual validation requires setting up a client app such as the [example app](https://github.com/xmtp/example-chat-react). Once you have cloned and run the example app, it will use a published npm version of `xmtp-js` by default. You can point it to your local `xmtp-js` repository by running `npm i file:~/path/to/xmtp-js` from the `example-chat-react` directory, which will update its `package.json`. Once the example app is running, any further changes you make to `xmtp-js` will be reflected in the app after you run `npm run build` in the `xmtp-js` directory and then reload the app.
 
 ### Auto-releasing and commit conventions
 
@@ -53,18 +69,4 @@ If your commit messages are not to your liking, it is permitted to rewrite the h
 ```
 [push]
 	default = simple
-```
-
-### Prerequisites
-
-#### Node
-
-Please make sure you have a Node version compatible with that specified in the root `.nvmrc` file. We recommend using `nvm` to manage local node versions - find install instructions appropriate for your system [here](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-#### Buf
-
-You will need to install [Buf](https://buf.build/) in your environment in order to `npm build` this package from source.
-
-```bash
-brew install bufbuild/buf/buf
 ```
