@@ -40,4 +40,8 @@ export class TextCodec implements ContentCodec<string> {
   fallback(content: string): string | undefined {
     return undefined
   }
+
+  shouldPush() {
+    return true
+  }
 }
