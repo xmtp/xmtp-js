@@ -104,6 +104,11 @@ export interface Keystore {
    * Get the private preferences topic identifier
    */
   getPrivatePreferencesTopicIdentifier(): Promise<keystore.GetPrivatePreferencesTopicIdentifierResponse>
+  /**
+   * Returns the conversation HMAC keys for the current, previous, and next
+   * 30 day periods since the epoch
+   */
+  getV2ConversationHmacKeys(): Promise<keystore.GetConversationHmacKeysResponse>
 }
 
 export type TopicData = WithoutUndefined<keystore.TopicMap_TopicData>
