@@ -35,7 +35,7 @@ import {
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
 import type { KeystoreInterface } from '..'
-import { generateHmacSignature } from '../crypto/encryption'
+import { generateHmacSignature, hkdfHmacKey } from '../crypto/encryption'
 
 const { ErrorCode } = keystore
 
@@ -298,14 +298,19 @@ export default class InMemoryKeystore implements KeystoreInterface {
 
         const keyMaterial = getKeyMaterial(topicData.invitation)
         const ciphertext = await encryptV2(payload, keyMaterial, headerBytes)
+        const thirtyDayPeriodsSinceEpoch = Math.floor(
+          Date.now() / 1000 / 60 / 60 / 24 / 30
+        )
+        const salt = `${thirtyDayPeriodsSinceEpoch}-${this.accountAddress}`
+        const hmac = await generateHmacSignature(
+          keyMaterial,
+          new TextEncoder().encode(salt),
+          headerBytes
+        )
 
         return {
           encrypted: ciphertext,
-          senderHmac: await generateHmacSignature(
-            keyMaterial,
-            new TextEncoder().encode(contentTopic),
-            headerBytes
-          ),
+          senderHmac: hmac,
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -584,5 +589,45 @@ export default class InMemoryKeystore implements KeystoreInterface {
   // on the InMemoryKeystore to support legacy use-cases.
   lookupTopic(topic: string) {
     return this.v2Store.lookup(topic)
+  }
+
+  async getV2ConversationHmacKeys(): Promise<keystore.GetConversationHmacKeysResponse> {
+    const thirtyDayPeriodsSinceEpoch = Math.floor(
+      Date.now() / 1000 / 60 / 60 / 24 / 30
+    )
+
+    const hmacKeys: keystore.GetConversationHmacKeysResponse['hmacKeys'] = {}
+
+    this.v2Store.topics.forEach(async (topicData) => {
+      if (topicData.invitation?.topic) {
+        const keyMaterial = getKeyMaterial(topicData.invitation)
+        const values = await Promise.all(
+          [
+            thirtyDayPeriodsSinceEpoch - 1,
+            thirtyDayPeriodsSinceEpoch,
+            thirtyDayPeriodsSinceEpoch + 1,
+          ].map(async (value) => {
+            const salt = `${value}-${this.accountAddress}`
+            const hmacKey = await hkdfHmacKey(
+              keyMaterial,
+              new TextEncoder().encode(salt)
+            )
+            return {
+              thirtyDayPeriodsSinceEpoch: value,
+              // convert CryptoKey to Uint8Array to match the proto
+              hmacKey: new Uint8Array(
+                await crypto.subtle.exportKey('raw', hmacKey)
+              ),
+            }
+          })
+        )
+
+        hmacKeys[topicData.invitation.topic] = {
+          values,
+        }
+      }
+    })
+
+    return { hmacKeys }
   }
 }

@@ -199,6 +199,10 @@ export const apiDefs = {
     req: null,
     res: keystore.GetPrivatePreferencesTopicIdentifierResponse,
   },
+  getV2ConversationHmacKeys: {
+    req: null,
+    res: keystore.GetConversationHmacKeysResponse,
+  },
 }
 
 export type KeystoreApiDefs = typeof apiDefs
