@@ -84,7 +84,7 @@ async function hkdf(secret: Uint8Array, salt: Uint8Array): Promise<CryptoKey> {
   )
 }
 
-async function hkdfHmacKey(
+export async function hkdfHmacKey(
   secret: Uint8Array,
   salt: Uint8Array
 ): Promise<CryptoKey> {
