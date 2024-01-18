@@ -95,7 +95,7 @@ export async function hkdfHmacKey(
     { name: 'HKDF', hash: 'SHA-256', salt, info: hkdfNoInfo },
     key,
     { name: 'HMAC', hash: 'SHA-256', length: 256 },
-    false,
+    true,
     ['sign', 'verify']
   )
 }
