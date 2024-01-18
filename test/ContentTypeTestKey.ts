@@ -30,4 +30,8 @@ export class TestKeyCodec implements ContentCodec<PublicKey> {
   fallback(content: PublicKey): string | undefined {
     return 'publickey bundle'
   }
+
+  shouldPush() {
+    return false
+  }
 }
