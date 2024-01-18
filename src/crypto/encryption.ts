@@ -100,7 +100,7 @@ export async function hkdfHmacKey(
   )
 }
 
-async function generateHmac(
+async function generateHmacWithKey(
   key: CryptoKey,
   message: Uint8Array
 ): Promise<Uint8Array> {
@@ -108,11 +108,11 @@ async function generateHmac(
   return new Uint8Array(signed)
 }
 
-export async function generateHmacSignature(
+export async function generateHmac(
   secret: Uint8Array,
   salt: Uint8Array,
   message: Uint8Array
 ): Promise<Uint8Array> {
   const key = await hkdfHmacKey(secret, salt)
-  return generateHmac(key, message)
+  return generateHmacWithKey(key, message)
 }
