@@ -20,6 +20,13 @@ import Long from 'long'
 import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 import { assert } from 'vitest'
 import { toBytes } from 'viem'
+import { getKeyMaterial } from '../../src/keystore/utils'
+import {
+  generateHmac,
+  hkdfHmacKey,
+  importHmacKey,
+  validateHmac,
+} from '../../src/crypto/encryption'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -395,6 +402,54 @@ describe('InMemoryKeystore', () => {
       }
 
       expect(equalBytes(payload, decrypted.result!.decrypted)).toBeTruthy()
+    })
+
+    it('generates a valid sender HMAC', async () => {
+      const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+        bobKeys.getPublicKeyBundle()
+      )
+      const createdNs = dateToNs(new Date())
+      const response = await aliceKeystore.createInvite({
+        recipient,
+        createdNs,
+        context: undefined,
+      })
+
+      const payload = new TextEncoder().encode('Hello, world!')
+      const headerBytes = new Uint8Array(10)
+
+      const {
+        responses: [encrypted],
+      } = await aliceKeystore.encryptV2({
+        requests: [
+          {
+            contentTopic: response.conversation!.topic,
+            payload,
+            headerBytes,
+          },
+        ],
+      })
+
+      if (encrypted.error) {
+        throw encrypted.error
+      }
+
+      const thirtyDayPeriodsSinceEpoch = Math.floor(
+        Date.now() / 1000 / 60 / 60 / 24 / 30
+      )
+      const topicData = aliceKeystore.lookupTopic(response.conversation!.topic)
+      const keyMaterial = getKeyMaterial(topicData!.invitation)
+      const hmacKey = await hkdfHmacKey(
+        keyMaterial,
+        new TextEncoder().encode(
+          `${thirtyDayPeriodsSinceEpoch}-${aliceKeystore.walletAddress}`
+        )
+      )
+
+      expect(encrypted.result?.senderHmac).toBeTruthy()
+      expect(
+        await validateHmac(hmacKey, encrypted.result!.senderHmac, headerBytes)
+      ).toBeTruthy()
     })
   })
 
@@ -805,6 +860,108 @@ describe('InMemoryKeystore', () => {
           )
         ).lastRunNs.equals(lastRunNs)
       ).toBeTruthy()
+    })
+  })
+
+  describe('getV2ConversationHmacKeys', () => {
+    it('returns conversation HMAC keys', async () => {
+      const baseTime = new Date()
+      const timestamps = Array.from(
+        { length: 5 },
+        (_, i) => new Date(baseTime.getTime() + i)
+      )
+
+      const invites = await Promise.all(
+        [...timestamps].map(async (createdAt) => {
+          let keys = await PrivateKeyBundleV1.generate(newWallet())
+
+          const recipient = SignedPublicKeyBundle.fromLegacyBundle(
+            keys.getPublicKeyBundle()
+          )
+
+          return aliceKeystore.createInvite({
+            recipient,
+            createdNs: dateToNs(createdAt),
+            context: undefined,
+          })
+        })
+      )
+
+      const thirtyDayPeriodsSinceEpoch = Math.floor(
+        Date.now() / 1000 / 60 / 60 / 24 / 30
+      )
+
+      const periods = [
+        thirtyDayPeriodsSinceEpoch - 1,
+        thirtyDayPeriodsSinceEpoch,
+        thirtyDayPeriodsSinceEpoch + 1,
+      ]
+
+      const { hmacKeys } = await aliceKeystore.getV2ConversationHmacKeys()
+
+      const topics = Object.keys(hmacKeys)
+      invites.forEach((invite) => {
+        expect(topics.includes(invite.conversation!.topic)).toBeTruthy()
+      })
+
+      const topicHmacs: {
+        [topic: string]: Uint8Array
+      } = {}
+      const headerBytes = new Uint8Array(10)
+
+      await Promise.all(
+        invites.map(async (invite) => {
+          const topic = invite.conversation!.topic
+          const payload = new TextEncoder().encode('Hello, world!')
+
+          const {
+            responses: [encrypted],
+          } = await aliceKeystore.encryptV2({
+            requests: [
+              {
+                contentTopic: topic,
+                payload,
+                headerBytes,
+              },
+            ],
+          })
+
+          if (encrypted.error) {
+            throw encrypted.error
+          }
+
+          const topicData = aliceKeystore.lookupTopic(topic)
+          const keyMaterial = getKeyMaterial(topicData!.invitation)
+          const salt = `${thirtyDayPeriodsSinceEpoch}-${aliceKeystore.walletAddress}`
+          const hmac = await generateHmac(
+            keyMaterial,
+            new TextEncoder().encode(salt),
+            headerBytes
+          )
+
+          topicHmacs[topic] = hmac
+        })
+      )
+
+      await Promise.all(
+        Object.keys(hmacKeys).map(async (topic) => {
+          const hmacData = hmacKeys[topic]
+
+          await Promise.all(
+            hmacData.values.map(
+              async ({ hmacKey, thirtyDayPeriodsSinceEpoch }, idx) => {
+                expect(thirtyDayPeriodsSinceEpoch).toBe(periods[idx])
+                const valid = await validateHmac(
+                  await importHmacKey(hmacKey),
+                  topicHmacs[topic],
+                  headerBytes
+                )
+                expect(valid).toBe(idx === 1 ? true : false)
+              }
+            )
+          )
+        })
+      )
     })
   })
 })
