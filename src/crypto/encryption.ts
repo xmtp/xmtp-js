@@ -116,3 +116,26 @@ export async function generateHmac(
   const key = await hkdfHmacKey(secret, salt)
   return generateHmacWithKey(key, message)
 }
+
+export async function validateHmac(
+  key: CryptoKey,
+  signature: Uint8Array,
+  message: Uint8Array
+): Promise<boolean> {
+  return await crypto.subtle.verify('HMAC', key, signature, message)
+}
+
+export async function exportHmacKey(key: CryptoKey): Promise<Uint8Array> {
+  const exported = await crypto.subtle.exportKey('raw', key)
+  return new Uint8Array(exported)
+}
+
+export async function importHmacKey(key: Uint8Array): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    'raw',
+    key,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 },
+    true,
+    ['sign', 'verify']
+  )
+}
