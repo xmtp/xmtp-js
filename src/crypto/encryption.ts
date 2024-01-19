@@ -100,24 +100,17 @@ export async function hkdfHmacKey(
   )
 }
 
-async function generateHmacWithKey(
-  key: CryptoKey,
-  message: Uint8Array
-): Promise<Uint8Array> {
-  const signed = await crypto.subtle.sign('HMAC', key, message)
-  return new Uint8Array(signed)
-}
-
-export async function generateHmac(
+export async function generateHmacSignature(
   secret: Uint8Array,
   salt: Uint8Array,
   message: Uint8Array
 ): Promise<Uint8Array> {
   const key = await hkdfHmacKey(secret, salt)
-  return generateHmacWithKey(key, message)
+  const signed = await crypto.subtle.sign('HMAC', key, message)
+  return new Uint8Array(signed)
 }
 
-export async function validateHmac(
+export async function verifyHmacSignature(
   key: CryptoKey,
   signature: Uint8Array,
   message: Uint8Array

@@ -21,10 +21,10 @@ import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/
 import { ethers } from 'ethers'
 import { getKeyMaterial } from '../../src/keystore/utils'
 import {
-  generateHmac,
+  generateHmacSignature,
   hkdfHmacKey,
   importHmacKey,
-  validateHmac,
+  verifyHmacSignature,
 } from '../../src/crypto/encryption'
 
 describe('InMemoryKeystore', () => {
@@ -447,7 +447,11 @@ describe('InMemoryKeystore', () => {
 
       expect(encrypted.result?.senderHmac).toBeTruthy()
       expect(
-        await validateHmac(hmacKey, encrypted.result!.senderHmac, headerBytes)
+        await verifyHmacSignature(
+          hmacKey,
+          encrypted.result!.senderHmac,
+          headerBytes
+        )
       ).toBeTruthy()
     })
   })
@@ -932,7 +936,7 @@ describe('InMemoryKeystore', () => {
           const topicData = aliceKeystore.lookupTopic(topic)
           const keyMaterial = getKeyMaterial(topicData!.invitation)
           const salt = `${thirtyDayPeriodsSinceEpoch}-${aliceKeystore.walletAddress}`
-          const hmac = await generateHmac(
+          const hmac = await generateHmacSignature(
             keyMaterial,
             new TextEncoder().encode(salt),
             headerBytes
@@ -950,7 +954,7 @@ describe('InMemoryKeystore', () => {
             hmacData.values.map(
               async ({ hmacKey, thirtyDayPeriodsSinceEpoch }, idx) => {
                 expect(thirtyDayPeriodsSinceEpoch).toBe(periods[idx])
-                const valid = await validateHmac(
+                const valid = await verifyHmacSignature(
                   await importHmacKey(hmacKey),
                   topicHmacs[topic],
                   headerBytes

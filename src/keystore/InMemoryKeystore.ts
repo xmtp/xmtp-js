@@ -35,7 +35,11 @@ import {
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
 import { KeystoreInterface } from '..'
-import { exportHmacKey, generateHmac, hkdfHmacKey } from '../crypto/encryption'
+import {
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+} from '../crypto/encryption'
 
 const { ErrorCode } = keystore
 
@@ -302,7 +306,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
           Date.now() / 1000 / 60 / 60 / 24 / 30
         )
         const salt = `${thirtyDayPeriodsSinceEpoch}-${this.accountAddress}`
-        const hmac = await generateHmac(
+        const hmac = await generateHmacSignature(
           keyMaterial,
           new TextEncoder().encode(salt),
           headerBytes
