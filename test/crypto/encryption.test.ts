@@ -2,8 +2,8 @@ import {
   importHmacKey,
   exportHmacKey,
   hkdfHmacKey,
-  validateHmac,
-  generateHmac,
+  verifyHmacSignature,
+  generateHmacSignature,
 } from '../../src/crypto/encryption'
 import crypto from '../../src/crypto/crypto'
 
@@ -12,9 +12,9 @@ describe('HMAC encryption', () => {
     const secret = crypto.getRandomValues(new Uint8Array(32))
     const salt = crypto.getRandomValues(new Uint8Array(32))
     const message = crypto.getRandomValues(new Uint8Array(32))
-    const hmac = await generateHmac(secret, salt, message)
+    const hmac = await generateHmacSignature(secret, salt, message)
     const key = await hkdfHmacKey(secret, salt)
-    const valid = await validateHmac(key, hmac, message)
+    const valid = await verifyHmacSignature(key, hmac, message)
     expect(valid).toBe(true)
   })
 
@@ -22,11 +22,11 @@ describe('HMAC encryption', () => {
     const secret = crypto.getRandomValues(new Uint8Array(32))
     const salt = crypto.getRandomValues(new Uint8Array(32))
     const message = crypto.getRandomValues(new Uint8Array(32))
-    const hmac = await generateHmac(secret, salt, message)
+    const hmac = await generateHmacSignature(secret, salt, message)
     const key = await hkdfHmacKey(secret, salt)
     const exportedKey = await exportHmacKey(key)
     const importedKey = await importHmacKey(exportedKey)
-    const valid = await validateHmac(importedKey, hmac, message)
+    const valid = await verifyHmacSignature(importedKey, hmac, message)
     expect(valid).toBe(true)
   })
 
@@ -34,9 +34,9 @@ describe('HMAC encryption', () => {
     const secret = crypto.getRandomValues(new Uint8Array(32))
     const salt = crypto.getRandomValues(new Uint8Array(32))
     const message = crypto.getRandomValues(new Uint8Array(32))
-    const hmac = await generateHmac(secret, salt, message)
+    const hmac = await generateHmacSignature(secret, salt, message)
     const key = await hkdfHmacKey(secret, salt)
-    const valid = await validateHmac(
+    const valid = await verifyHmacSignature(
       key,
       hmac,
       crypto.getRandomValues(new Uint8Array(32))
@@ -48,8 +48,8 @@ describe('HMAC encryption', () => {
     const secret = crypto.getRandomValues(new Uint8Array(32))
     const salt = crypto.getRandomValues(new Uint8Array(32))
     const message = crypto.getRandomValues(new Uint8Array(32))
-    const hmac = await generateHmac(secret, salt, message)
-    const valid = await validateHmac(
+    const hmac = await generateHmacSignature(secret, salt, message)
+    const valid = await verifyHmacSignature(
       await hkdfHmacKey(
         crypto.getRandomValues(new Uint8Array(32)),
         crypto.getRandomValues(new Uint8Array(32))
