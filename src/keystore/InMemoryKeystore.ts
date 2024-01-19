@@ -35,7 +35,7 @@ import {
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
 import type { KeystoreInterface } from '..'
-import { generateHmac, hkdfHmacKey } from '../crypto/encryption'
+import { exportHmacKey, generateHmac, hkdfHmacKey } from '../crypto/encryption'
 
 const { ErrorCode } = keystore
 
@@ -598,35 +598,35 @@ export default class InMemoryKeystore implements KeystoreInterface {
 
     const hmacKeys: keystore.GetConversationHmacKeysResponse['hmacKeys'] = {}
 
-    this.v2Store.topics.forEach(async (topicData) => {
-      if (topicData.invitation?.topic) {
-        const keyMaterial = getKeyMaterial(topicData.invitation)
-        const values = await Promise.all(
-          [
-            thirtyDayPeriodsSinceEpoch - 1,
-            thirtyDayPeriodsSinceEpoch,
-            thirtyDayPeriodsSinceEpoch + 1,
-          ].map(async (value) => {
-            const salt = `${value}-${this.accountAddress}`
-            const hmacKey = await hkdfHmacKey(
-              keyMaterial,
-              new TextEncoder().encode(salt)
-            )
-            return {
-              thirtyDayPeriodsSinceEpoch: value,
-              // convert CryptoKey to Uint8Array to match the proto
-              hmacKey: new Uint8Array(
-                await crypto.subtle.exportKey('raw', hmacKey)
-              ),
-            }
-          })
-        )
+    await Promise.all(
+      this.v2Store.topics.map(async (topicData) => {
+        if (topicData.invitation?.topic) {
+          const keyMaterial = getKeyMaterial(topicData.invitation)
+          const values = await Promise.all(
+            [
+              thirtyDayPeriodsSinceEpoch - 1,
+              thirtyDayPeriodsSinceEpoch,
+              thirtyDayPeriodsSinceEpoch + 1,
+            ].map(async (value) => {
+              const salt = `${value}-${this.accountAddress}`
+              const hmacKey = await hkdfHmacKey(
+                keyMaterial,
+                new TextEncoder().encode(salt)
+              )
+              return {
+                thirtyDayPeriodsSinceEpoch: value,
+                // convert CryptoKey to Uint8Array to match the proto
+                hmacKey: await exportHmacKey(hmacKey),
+              }
+            })
+          )
 
-        hmacKeys[topicData.invitation.topic] = {
-          values,
+          hmacKeys[topicData.invitation.topic] = {
+            values,
+          }
         }
-      }
-    })
+      })
+    )
 
     return { hmacKeys }
   }
