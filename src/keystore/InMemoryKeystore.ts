@@ -612,10 +612,10 @@ export default class InMemoryKeystore implements KeystoreInterface {
               thirtyDayPeriodsSinceEpoch,
               thirtyDayPeriodsSinceEpoch + 1,
             ].map(async (value) => {
-              const salt = `${value}-${this.accountAddress}`
+              const info = `${value}-${this.accountAddress}`
               const hmacKey = await hkdfHmacKey(
                 keyMaterial,
-                new TextEncoder().encode(salt)
+                new TextEncoder().encode(info)
               )
               return {
                 thirtyDayPeriodsSinceEpoch: value,
