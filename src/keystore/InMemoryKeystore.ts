@@ -305,10 +305,10 @@ export default class InMemoryKeystore implements KeystoreInterface {
         const thirtyDayPeriodsSinceEpoch = Math.floor(
           Date.now() / 1000 / 60 / 60 / 24 / 30
         )
-        const salt = `${thirtyDayPeriodsSinceEpoch}-${this.accountAddress}`
+        const info = `${thirtyDayPeriodsSinceEpoch}-${this.accountAddress}`
         const hmac = await generateHmacSignature(
           keyMaterial,
-          new TextEncoder().encode(salt),
+          new TextEncoder().encode(info),
           headerBytes
         )
 
