@@ -22,7 +22,7 @@ const encodeV1 = () => {
 
       // The returned function is the actual benchmark. Everything above is setup
       return async () => {
-        const encodedMessage = await alice.encodeContent(message)
+        const { payload: encodedMessage } = await alice.encodeContent(message)
         await MessageV1.encode(
           alice.keystore,
           encodedMessage,
@@ -57,11 +57,11 @@ const encodeV2 = () => {
         undefined
       )
       const message = randomBytes(size)
-      const payload = await alice.encodeContent(message)
+      const { payload, shouldPush } = await alice.encodeContent(message)
 
       // The returned function is the actual benchmark. Everything above is setup
       return async () => {
-        await convo.createMessage(payload)
+        await convo.createMessage(payload, shouldPush)
       }
     })
   )

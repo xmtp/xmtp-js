@@ -5,7 +5,7 @@ import {
   waitForUserContact,
   newLocalHostClientWithCustomWallet,
 } from './helpers'
-import { buildUserContactTopic } from '../src/utils'
+import { EnvelopeWithMessage, buildUserContactTopic } from '../src/utils'
 import Client, { ClientOptions } from '../src/Client'
 import {
   ApiUrls,
@@ -19,16 +19,18 @@ import {
 } from '../src'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
-import { PrivateKeyBundleV1 } from '../src/crypto'
+import { PrivateKey, PrivateKeyBundleV1 } from '../src/crypto'
 import { Wallet } from 'ethers'
 import { NetworkKeystoreProvider } from '../src/keystore/providers'
 import { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
 import LocalStoragePonyfill from '../src/keystore/persistence/LocalStoragePonyfill'
+import { message } from '@xmtp/proto'
 import { createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { mainnet } from 'viem/chains'
 import { generatePrivateKey } from 'viem/accounts'
 import { vi, assert } from 'vitest'
+import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
 
 type TestCase = {
   name: string
@@ -196,10 +198,24 @@ describe('encodeContent', () => {
       3, 0, 139, 43, 173, 229,
     ])
 
-    const payload = await c.encodeContent(uncompressed, {
+    const { payload } = await c.encodeContent(uncompressed, {
       compression: Compression.COMPRESSION_DEFLATE,
     })
     expect(Uint8Array.from(payload)).toEqual(compressed)
+  })
+
+  it('returns shouldPush based on content codec', async () => {
+    const alice = await newLocalHostClient()
+    alice.registerCodec(new TestKeyCodec())
+
+    const { shouldPush: result1 } = await alice.encodeContent('gm')
+    expect(result1).toBe(true)
+
+    const key = PrivateKey.generate().publicKey
+    const { shouldPush: result2 } = await alice.encodeContent(key, {
+      contentType: ContentTypeTestKey,
+    })
+    expect(result2).toBe(false)
   })
 })
 
@@ -293,6 +309,43 @@ describe('canMessageMultipleBatches', () => {
         Array.from({ length: 5 }, () => false)
       )
     )
+  })
+})
+
+describe('listEnvelopes', () => {
+  it('has envelopes with senderHmac and shouldPush', async () => {
+    const alice = await newLocalHostClient()
+    const bob = await newLocalHostClient()
+    alice.registerCodec(new TestKeyCodec())
+    const convo = await alice.conversations.newConversation(bob.address)
+    await convo.send('hi')
+    const key = PrivateKey.generate().publicKey
+    await convo.send(key, {
+      contentType: ContentTypeTestKey,
+    })
+
+    const envelopes = await alice.listEnvelopes(
+      convo.topic,
+      (env: EnvelopeWithMessage) => Promise.resolve(env)
+    )
+
+    const msg1 = message.Message.decode(envelopes[0].message)
+    if (!msg1.v2) {
+      throw new Error('unknown message version')
+    }
+    const header1 = message.MessageHeaderV2.decode(msg1.v2.headerBytes)
+    expect(header1.topic).toEqual(convo.topic)
+    expect(msg1.v2.senderHmac).toBeDefined()
+    expect(msg1.v2.shouldPush).toBe(true)
+
+    const msg2 = message.Message.decode(envelopes[1].message)
+    if (!msg2.v2) {
+      throw new Error('unknown message version')
+    }
+    const header2 = message.MessageHeaderV2.decode(msg2.v2.headerBytes)
+    expect(header2.topic).toEqual(convo.topic)
+    expect(msg2.v2.senderHmac).toBeDefined()
+    expect(msg2.v2.shouldPush).toBe(false)
   })
 })
 
