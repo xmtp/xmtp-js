@@ -45,7 +45,7 @@ test("can create a remote attachment", async () => {
   );
 
   try {
-    await fetch("https://localhost/test", {
+    await fetch("https://localhost:3000/test", {
       method: "POST",
       body: encryptedEncodedContent.payload,
       headers: {
@@ -57,7 +57,7 @@ test("can create a remote attachment", async () => {
   }
 
   const remoteAttachment: RemoteAttachment = {
-    url: "https://localhost/test",
+    url: "https://localhost:3000/test",
     contentDigest: encryptedEncodedContent.digest,
     salt: encryptedEncodedContent.salt,
     nonce: encryptedEncodedContent.nonce,
@@ -80,8 +80,9 @@ test("can create a remote attachment", async () => {
 
   const message = messages[0];
   const messageContent = message.content as RemoteAttachment;
-  expect(messageContent.url).toBe("https://localhost/test");
+  expect(messageContent.url).toBe("https://localhost:3000/test");
   expect(messageContent.filename).toBe("test.txt");
+  expect(messageContent.contentDigest).toBe(encryptedEncodedContent.digest);
 
   const content: Attachment = await RemoteAttachmentCodec.load(
     messageContent,
@@ -169,7 +170,7 @@ test("fails if content digest does not match", async () => {
   );
 
   try {
-    await fetch("https://localhost/test", {
+    await fetch("https://localhost:3000/test", {
       method: "POST",
       body: encryptedEncodedContent.payload,
       headers: {
@@ -181,7 +182,7 @@ test("fails if content digest does not match", async () => {
   }
 
   const remoteAttachment: RemoteAttachment = {
-    url: "https://localhost/test",
+    url: "https://localhost:3000/test",
     contentDigest: encryptedEncodedContent.digest,
     salt: encryptedEncodedContent.salt,
     nonce: encryptedEncodedContent.nonce,
@@ -205,7 +206,7 @@ test("fails if content digest does not match", async () => {
     attachment,
     new AttachmentCodec(),
   );
-  await fetch("https://localhost/test", {
+  await fetch("https://localhost:3000/test", {
     method: "POST",
     body: encryptedEncoded2.payload,
     headers: {
