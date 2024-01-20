@@ -635,7 +635,10 @@ export default class Client<ContentTypes = any> {
   async encodeContent(
     content: ContentTypes,
     options?: SendOptions
-  ): Promise<Uint8Array> {
+  ): Promise<{
+    payload: Uint8Array
+    shouldPush: boolean
+  }> {
     const contentType = options?.contentType || ContentTypeText
     const codec = this.codecFor(contentType)
     if (!codec) {
@@ -651,7 +654,10 @@ export default class Client<ContentTypes = any> {
       encoded.compression = options.compression
     }
     await compress(encoded)
-    return proto.EncodedContent.encode(encoded).finish()
+    return {
+      payload: proto.EncodedContent.encode(encoded).finish(),
+      shouldPush: codec.shouldPush(content),
+    }
   }
 
   async decodeContent(contentBytes: Uint8Array): Promise<{

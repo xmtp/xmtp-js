@@ -154,7 +154,7 @@ describe('Message', function () {
         env: 'local',
         privateKeyOverride: alice.encode(),
       })
-      const payload = await aliceClient.encodeContent(text)
+      const { payload } = await aliceClient.encodeContent(text)
       const timestamp = new Date()
       const sender = alice.getPublicKeyBundle()
       const recipient = bob.getPublicKeyBundle()
