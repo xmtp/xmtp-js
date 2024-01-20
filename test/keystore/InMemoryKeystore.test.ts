@@ -936,10 +936,10 @@ describe('InMemoryKeystore', () => {
 
           const topicData = aliceKeystore.lookupTopic(topic)
           const keyMaterial = getKeyMaterial(topicData!.invitation)
-          const salt = `${thirtyDayPeriodsSinceEpoch}-${aliceKeystore.walletAddress}`
+          const info = `${thirtyDayPeriodsSinceEpoch}-${aliceKeystore.walletAddress}`
           const hmac = await generateHmacSignature(
             keyMaterial,
-            new TextEncoder().encode(salt),
+            new TextEncoder().encode(info),
             headerBytes
           )
 
