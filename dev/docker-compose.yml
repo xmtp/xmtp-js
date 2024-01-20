@@ -21,15 +21,6 @@ services:
       POSTGRES_PASSWORD: xmtp
 
   upload-service:
-    build: ./upload-service
+    build: ./uploadService
     ports:
-      - 4567:4567
-
-  caddy:
-    image: caddy:latest
-    ports:
-      - "443:443"
-    volumes:
-      - ./upload-service/Caddyfile:/etc/caddy/Caddyfile
-      - ./upload-service/data/data:/data
-      - ./upload-service/data/config:/config
+      - 3000:3000
