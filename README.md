@@ -14,21 +14,6 @@ To learn more about the contents of this repository, see this README and the REA
 - [`content-type-read-receipt`](packages/content-type-read-receipt)
 - [`content-type-transaction-reference`](packages/content-type-transaction-reference)
 
-## Requirements
+## Contributing
 
-- Node 18+
-- Yarn v3+ is required only when working with this repo. See [Yarn Installation](https://yarnpkg.com/getting-started/install), or run the `setup-yarn` script in the `/dev` directory.
-
-## Running tests
-
-Before running unit tests, a required Docker container must be started. To do so, start Docker and run `yarn test:setup`. Run `yarn test:teardown` to stop the Docker container.
-
-## Useful commands
-
-- `yarn build`: Build all packages
-- `yarn clean`: Remove all `node_modules`, `.turbo`, and build folders, clear Yarn cache
-- `yarn format`: Run prettier format and write changes on all packages
-- `yarn format:check`: Run prettier format check on all packages
-- `yarn lint`: Lint all packages
-- `yarn test`: Test all packages
-- `yarn typecheck`: Typecheck all packages
+See our [contribution guide](./CONTRIBUTING.md) to learn more about contributing to this project.
