@@ -10,11 +10,13 @@ module.exports = {
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "prettier",
   ],
+  ignorePatterns: ["dist/**/*"],
   parserOptions: {
     ecmaVersion: "latest",
     sourceType: "module",
   },
   rules: {
+    "class-methods-use-this": "off",
     "@typescript-eslint/naming-convention": [
       "error",
       {
