@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/experimental-content-type-screen-effect",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An experimental content type to support screen effects accompanying messages",
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
