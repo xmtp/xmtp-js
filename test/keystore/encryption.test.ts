@@ -1,4 +1,3 @@
-import { Keystore } from '../../src/keystore'
 import { Ciphertext } from '../../src/crypto'
 import { PrivateKeyBundleV1 } from './../../src/crypto/PrivateKeyBundle'
 import { decryptV1, encryptV1 } from '../../src/keystore/encryption'
@@ -7,12 +6,12 @@ import { Wallet } from 'ethers'
 import { equalBytes } from '../../src/crypto/utils'
 import { newWallet } from '../helpers'
 import { InMemoryKeystore } from '../../src/keystore'
-import { InMemoryPersistence } from '../../src'
+import { InMemoryPersistence, KeystoreInterface } from '../../src'
 
 describe('encryption primitives', () => {
   let aliceKeys: PrivateKeyBundleV1
   let aliceWallet: Wallet
-  let aliceKeystore: Keystore
+  let aliceKeystore: KeystoreInterface
   let bobKeys: PrivateKeyBundleV1
   let bobWallet: Wallet
 
