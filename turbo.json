@@ -19,12 +19,8 @@
     "format:check": {
       "outputs": []
     },
-    "generate:types": {
-      "dependsOn": ["^generate:types"],
-      "outputs": ["dist/index.d.ts"]
-    },
     "lint": {
-      "dependsOn": ["^generate:types"],
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "test": {
@@ -35,7 +31,7 @@
       "outputs": []
     },
     "typecheck": {
-      "dependsOn": ["^generate:types"],
+      "dependsOn": ["^build"],
       "outputs": []
     }
   }
