@@ -4,7 +4,7 @@ import { dts } from 'rollup-plugin-dts'
 import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
 import terser from '@rollup/plugin-terser'
-import { resolveExtensions } from './build/rollup-plugin-resolve-extensions/index.js'
+import { resolveExtensions } from '@xmtp/rollup-plugin-resolve-extensions'
 
 const external = [
   '@noble/secp256k1',
@@ -69,7 +69,11 @@ export default defineConfig([
       format: 'es',
       sourcemap: true,
     },
-    plugins: [resolveExtensions(['.browser']), terser(), ...plugins],
+    plugins: [
+      resolveExtensions({ extensions: ['.browser'] }),
+      terser(),
+      ...plugins,
+    ],
     external,
   },
   {
@@ -80,7 +84,7 @@ export default defineConfig([
       sourcemap: true,
     },
     plugins: [
-      resolveExtensions(['.bundler', '.browser']),
+      resolveExtensions({ extensions: ['.bundler', '.browser'] }),
       terser(),
       ...plugins,
     ],
