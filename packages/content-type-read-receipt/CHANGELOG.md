@@ -1,5 +1,15 @@
 # @xmtp/content-type-read-receipt
 
+## 1.1.7
+
+### Patch Changes
+
+- [#54](https://github.com/xmtp/xmtp-js-content-types/pull/54) [`718cb9f`](https://github.com/xmtp/xmtp-js-content-types/commit/718cb9fec51f74bf2402f3f22160687cae35dda8) Thanks [@rygine](https://github.com/rygine)! - - Updated Turbo config to remove `generate:types` command and instead rely on `build`
+  - Removed all `generate:types` commands from `package.json` files
+  - Updated shared ESLint config and local ESLint configs
+  - Updated `include` field of `tsconfig.json` and `tsconfig.eslint.json` files
+  - Replaced `tsup` with `rollup`
+
 ## 1.1.6
 
 ### Patch Changes
