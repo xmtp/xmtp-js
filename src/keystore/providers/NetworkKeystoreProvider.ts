@@ -4,9 +4,9 @@ import { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
 import NetworkKeyLoader from './NetworkKeyManager'
 import { KeystoreProviderUnavailableError } from './errors'
 import TopicPersistence from '../persistence/TopicPersistence'
-import { Keystore } from '../interfaces'
 import InMemoryKeystore from '../InMemoryKeystore'
 import { buildPersistenceFromOptions } from './helpers'
+import { KeystoreInterface } from '../rpcDefinitions'
 
 /**
  * NetworkKeystoreProvider will look on the XMTP network for an `EncryptedPrivateKeyBundle`
@@ -18,7 +18,7 @@ export default class NetworkKeystoreProvider implements KeystoreProvider {
     opts: KeystoreProviderOptions,
     apiClient: ApiClient,
     wallet?: Signer
-  ): Promise<Keystore> {
+  ): Promise<KeystoreInterface> {
     if (!wallet) {
       throw new KeystoreProviderUnavailableError('No wallet provided')
     }

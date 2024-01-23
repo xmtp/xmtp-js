@@ -1,38 +1,32 @@
-import { Keystore } from './interfaces'
 import { SnapMeta, snapRPC } from './snapHelpers'
 import type { XmtpEnv } from '../Client'
-import { apiDefs } from './rpcDefinitions'
-
-async function getResponse<T extends keyof Keystore>(
-  method: T,
-  req: Uint8Array | null,
-  meta: SnapMeta,
-  snapId: string
-): Promise<(typeof apiDefs)[T]['res']> {
-  return snapRPC(method, apiDefs[method], req, meta, snapId)
-}
+import {
+  SnapKeystoreApiEntries,
+  SnapKeystoreApiRequestValues,
+  SnapKeystoreInterface,
+  snapApiDefs,
+} from './rpcDefinitions'
 
 export function SnapKeystore(
   walletAddress: string,
   env: XmtpEnv,
   snapId: string
-): Keystore {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const generatedMethods: any = {}
+) {
+  const generatedMethods: Partial<SnapKeystoreInterface> = {}
 
   const snapMeta: SnapMeta = {
     walletAddress,
     env,
   }
 
-  for (const [method, apiDef] of Object.entries(apiDefs)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    generatedMethods[method] = async (req: any) => {
-      if (!apiDef.req) {
-        return getResponse(method as keyof Keystore, null, snapMeta, snapId)
+  for (const [method, rpc] of Object.entries(
+    snapApiDefs
+  ) as SnapKeystoreApiEntries) {
+    generatedMethods[method] = async (req?: SnapKeystoreApiRequestValues) => {
+      if (!rpc.req) {
+        return snapRPC(method, rpc, undefined, snapMeta, snapId)
       }
-
-      return getResponse(method as keyof Keystore, req, snapMeta, snapId)
+      return snapRPC(method, rpc, req, snapMeta, snapId)
     }
   }
 
@@ -42,5 +36,5 @@ export function SnapKeystore(
     async getAccountAddress() {
       return walletAddress
     },
-  }
+  } as SnapKeystoreInterface
 }

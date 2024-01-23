@@ -1,7 +1,7 @@
 import {
   InMemoryKeystore,
   InMemoryPersistence,
-  Keystore,
+  KeystoreInterface,
   PrivateKeyBundleV1,
   nsToDate,
 } from '../../src'
@@ -10,7 +10,7 @@ import JobRunner from '../../src/conversations/JobRunner'
 import { newWallet, sleep } from '../helpers'
 
 describe('JobRunner', () => {
-  let keystore: Keystore
+  let keystore: KeystoreInterface
 
   beforeEach(async () => {
     const bundle = await PrivateKeyBundleV1.generate(newWallet())

@@ -1,8 +1,8 @@
 import { keystore } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
-import { Keystore } from '../keystore'
 import Long from 'long'
 import { dateToNs, nsToDate } from '../utils'
+import { KeystoreInterfaces } from '../keystore/rpcDefinitions'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 
@@ -13,10 +13,10 @@ type UpdateJob<T> = (lastRun: Date | undefined) => Promise<T>
 export default class JobRunner {
   readonly jobType: JobType
   readonly mutex: Mutex
-  readonly keystore: Keystore
+  readonly keystore: KeystoreInterfaces
   disableOffset: boolean = false
 
-  constructor(jobType: JobType, keystore: Keystore) {
+  constructor(jobType: JobType, keystore: KeystoreInterfaces) {
     this.jobType = jobType
     this.mutex = new Mutex()
     this.keystore = keystore

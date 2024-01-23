@@ -28,7 +28,6 @@ import { KeystoreAuthenticator } from './authn'
 import { Flatten } from './utils/typedefs'
 import BackupClient, { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
-import { Keystore } from './keystore'
 import {
   KeyGeneratorKeystoreProvider,
   KeystoreProvider,
@@ -47,6 +46,7 @@ import { packageName, version } from './snapInfo.json'
 import { ExtractDecodedType } from './types/client'
 import type { WalletClient } from 'viem'
 import { Contacts } from './Contacts'
+import { KeystoreInterfaces } from './keystore/rpcDefinitions'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -147,7 +147,7 @@ export type KeyStoreOptions = {
    * The client will attempt to use each one in sequence until one successfully
    * returns a Keystore instance
    */
-  keystoreProviders: KeystoreProvider[]
+  keystoreProviders: KeystoreProvider<KeystoreInterfaces>[]
   /**
    * Enable the Keystore to persist conversations in the provided storage interface
    */
@@ -252,7 +252,7 @@ export function defaultOptions(opts?: Partial<ClientOptions>): ClientOptions {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default class Client<ContentTypes = any> {
   address: string
-  keystore: Keystore
+  keystore: KeystoreInterfaces
   apiClient: ApiClient
   contacts: Contacts
   publicKeyBundle: PublicKeyBundle
@@ -271,7 +271,7 @@ export default class Client<ContentTypes = any> {
     publicKeyBundle: PublicKeyBundle,
     apiClient: ApiClient,
     backupClient: BackupClient,
-    keystore: Keystore
+    keystore: KeystoreInterfaces
   ) {
     this.knownPublicKeyBundles = new Map<
       string,
@@ -857,7 +857,7 @@ async function bootstrapKeystore(
   opts: ClientOptions,
   apiClient: ApiClient,
   wallet: Signer | null
-): Promise<Keystore> {
+) {
   for (const provider of opts.keystoreProviders) {
     try {
       return await provider.newKeystore(opts, apiClient, wallet ?? undefined)

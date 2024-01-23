@@ -4,6 +4,7 @@ import { WithoutUndefined } from '../utils/typedefs'
 /**
  * A Keystore is responsible for holding the user's XMTP private keys and using them to encrypt/decrypt/sign messages.
  * Keystores are instantiated using a `KeystoreProvider`
+ * @deprecated Use `KeystoreInterface` instead
  */
 export interface Keystore {
   /**

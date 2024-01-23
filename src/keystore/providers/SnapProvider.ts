@@ -1,5 +1,4 @@
 import { KeystoreProviderUnavailableError } from './errors'
-import { Keystore } from '../interfaces'
 import { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
 import { SnapKeystore } from '../SnapKeystore'
 import {
@@ -17,6 +16,7 @@ import { PrivateKeyBundleV1, decodePrivateKeyBundle } from '../../crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
 import type { XmtpEnv } from '../../Client'
 import { semverGreaterThan } from '../../utils/semver'
+import { SnapKeystoreInterface } from '../rpcDefinitions'
 const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
 
 export const SNAP_LOCAL_ORIGIN = 'local:http://localhost:8080'
@@ -27,7 +27,9 @@ export const SNAP_LOCAL_ORIGIN = 'local:http://localhost:8080'
  * 2. Check if the user has already setup the Snap with the appropriate keys
  * 3. If not, will get keys from the network or create new keys and store them in the Snap
  */
-export default class SnapKeystoreProvider implements KeystoreProvider {
+export default class SnapKeystoreProvider
+  implements KeystoreProvider<SnapKeystoreInterface>
+{
   snapId: string
   snapVersion?: string
 
@@ -40,7 +42,7 @@ export default class SnapKeystoreProvider implements KeystoreProvider {
     opts: KeystoreProviderOptions,
     apiClient: ApiClient,
     wallet?: Signer
-  ): Promise<Keystore> {
+  ) {
     if (!wallet) {
       throw new KeystoreProviderUnavailableError('No wallet provided')
     }

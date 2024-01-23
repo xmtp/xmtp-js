@@ -1,5 +1,4 @@
 import { KeystoreProviderUnavailableError } from './errors'
-import { Keystore } from '../interfaces'
 import type { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
 import InMemoryKeystore from '../InMemoryKeystore'
 import {
@@ -7,6 +6,7 @@ import {
   PrivateKeyBundleV2,
 } from '../../crypto/PrivateKeyBundle'
 import { buildPersistenceFromOptions } from './helpers'
+import { KeystoreInterface } from '../rpcDefinitions'
 
 /**
  * StaticKeystoreProvider will look for a `privateKeyOverride` in the provided options,
@@ -16,7 +16,7 @@ import { buildPersistenceFromOptions } from './helpers'
  * the client to continue iterating through the `KeystoreProviders` list.
  */
 export default class StaticKeystoreProvider implements KeystoreProvider {
-  async newKeystore(opts: KeystoreProviderOptions): Promise<Keystore> {
+  async newKeystore(opts: KeystoreProviderOptions): Promise<KeystoreInterface> {
     const { privateKeyOverride } = opts
     if (!privateKeyOverride) {
       throw new KeystoreProviderUnavailableError(

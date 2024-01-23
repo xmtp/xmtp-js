@@ -12,8 +12,8 @@ import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 import { ContentTypeId } from './MessageContent'
 import { dateToNs, nsToDate } from './utils'
-import { Keystore } from './keystore'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
+import { KeystoreInterfaces } from './keystore/rpcDefinitions'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message
@@ -105,7 +105,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
   }
 
   async decrypt(
-    keystore: Keystore,
+    keystore: KeystoreInterfaces,
     myPublicKeyBundle: PublicKeyBundle
   ): Promise<Uint8Array> {
     const responses = (
@@ -151,7 +151,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
   }
 
   static async encode(
-    keystore: Keystore,
+    keystore: KeystoreInterfaces,
     payload: Uint8Array,
     sender: PublicKeyBundle,
     recipient: PublicKeyBundle,
