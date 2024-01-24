@@ -24,9 +24,11 @@ export function SnapKeystore(
   ) as SnapKeystoreApiEntries) {
     generatedMethods[method] = async (req?: SnapKeystoreApiRequestValues) => {
       if (!rpc.req) {
-        return snapRPC(method, rpc, undefined, snapMeta, snapId)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return snapRPC(method, rpc, undefined, snapMeta, snapId) as any
       }
-      return snapRPC(method, rpc, req, snapMeta, snapId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return snapRPC(method, rpc, req, snapMeta, snapId) as any
     }
   }
 

@@ -53,8 +53,9 @@ export async function snapRPC<T extends SnapKeystoreApiMethods>(
     throw new Error('Unexpected array response')
   }
 
-  const decoder = rpc.res.decode as SnapKeystoreApiResponseDecoders[T]
-  return decoder(b64Decode(responseString))
+  return rpc.res.decode(b64Decode(responseString)) as ReturnType<
+    SnapKeystoreApiResponseDecoders[T]
+  >
 }
 
 export async function snapRequest(
@@ -78,11 +79,11 @@ export async function snapRequest(
     },
   })
 
-  if (!response || !response.res) {
+  if (!response || typeof response !== 'object') {
     throw new Error('No response value')
   }
 
-  return response.res
+  return (response as SnapResponse).res
 }
 
 export type Snap = {
