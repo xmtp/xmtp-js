@@ -86,12 +86,30 @@ export {
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
 } from './utils'
+export { Keystore, InMemoryKeystore, TopicData } from './keystore'
 export {
-  Keystore,
-  InMemoryKeystore,
-  TopicData,
-  keystoreApiDefs,
-} from './keystore'
+  apiDefs as keystoreApiDefs,
+  snapApiDefs as snapKeystoreApiDefs,
+  KeystoreApiDefs,
+  KeystoreApiEntries,
+  KeystoreApiMethods,
+  KeystoreApiRequestEncoders,
+  KeystoreApiRequestValues,
+  KeystoreApiResponseDecoders,
+  KeystoreInterface,
+  KeystoreInterfaceRequestValues,
+  KeystoreInterfaces,
+  KeystoreRPC,
+  KeystoreRPCCodec,
+  SnapKeystoreApiDefs,
+  SnapKeystoreApiEntries,
+  SnapKeystoreApiMethods,
+  SnapKeystoreApiRequestEncoders,
+  SnapKeystoreApiRequestValues,
+  SnapKeystoreApiResponseDecoders,
+  SnapKeystoreInterface,
+  SnapKeystoreInterfaceRequestValues,
+} from './keystore/rpcDefinitions'
 export {
   KeystoreProvider,
   KeyGeneratorKeystoreProvider,

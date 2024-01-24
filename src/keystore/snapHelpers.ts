@@ -1,5 +1,11 @@
-import { keystore as keystoreProto } from '@xmtp/proto'
-import type { RPC } from './rpcDefinitions'
+import { keystore } from '@xmtp/proto'
+import type {
+  SnapKeystoreApiDefs,
+  SnapKeystoreApiMethods,
+  SnapKeystoreInterfaceRequestValues,
+  SnapKeystoreApiRequestEncoders,
+  SnapKeystoreApiResponseDecoders,
+} from './rpcDefinitions'
 import { b64Decode, b64Encode } from '../utils/bytes'
 import { KeystoreError } from './errors'
 import { PrivateKeyBundleV1 } from '../crypto'
@@ -12,7 +18,7 @@ const {
   InitKeystoreResponse,
   GetKeystoreStatusRequest,
   GetKeystoreStatusResponse,
-} = keystoreProto
+} = keystore
 
 export type SnapMeta = {
   walletAddress: string
@@ -24,16 +30,21 @@ type SnapParams = {
   req?: string
 }
 
-export async function snapRPC<Req, Res>(
-  method: string,
-  codecs: RPC<Req, Res>,
-  req: Req,
+type SnapResponse = {
+  res: string | string[]
+}
+
+export async function snapRPC<T extends SnapKeystoreApiMethods>(
+  method: T,
+  rpc: SnapKeystoreApiDefs[T],
+  req: SnapKeystoreInterfaceRequestValues[T],
   meta: SnapMeta,
   snapId: string
-): Promise<Res> {
+) {
   let reqParam = null
-  if (codecs.req) {
-    const reqBytes = codecs.req.encode(req).finish()
+  if (rpc.req) {
+    const encoder = rpc.req.encode as SnapKeystoreApiRequestEncoders[T]
+    const reqBytes = encoder(req).finish()
     reqParam = b64Encode(reqBytes, 0, reqBytes.length)
   }
 
@@ -42,20 +53,22 @@ export async function snapRPC<Req, Res>(
     throw new Error('Unexpected array response')
   }
 
-  return codecs.res.decode(b64Decode(responseString))
+  return rpc.res.decode(b64Decode(responseString)) as ReturnType<
+    SnapKeystoreApiResponseDecoders[T]
+  >
 }
 
 export async function snapRequest(
-  method: string,
+  method: SnapKeystoreApiMethods,
   req: string | null,
   meta: SnapMeta,
   snapId: string
-): Promise<string> {
+) {
   const params: SnapParams = { meta }
   if (typeof req === 'string') {
     params.req = req
   }
-  const response = await getEthereum().request({
+  const response = await getEthereum()?.request<SnapResponse>({
     method: 'wallet_invokeSnap',
     params: {
       snapId,
@@ -70,8 +83,7 @@ export async function snapRequest(
     throw new Error('No response value')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (response as any).res as unknown as string
+  return (response as SnapResponse).res
 }
 
 export type Snap = {
@@ -143,10 +155,10 @@ export async function hasMetamaskWithSnaps() {
   return false
 }
 
-export async function getSnaps(): Promise<GetSnapsResponse> {
-  return (await getEthereum()?.request({
+export async function getSnaps() {
+  return await getEthereum()?.request<GetSnapsResponse>({
     method: 'wallet_getSnaps',
-  })) as unknown as GetSnapsResponse
+  })
 }
 
 export async function getSnap(
@@ -156,11 +168,16 @@ export async function getSnap(
   try {
     const snaps = await getSnaps()
 
-    return Object.values(snaps).find(
-      (snap) =>
-        snap.id === snapId &&
-        (!version || isSameMajorVersion(snap.version, version))
-    )
+    if (snaps) {
+      return Object.values(snaps).find(
+        (snap) =>
+          snap &&
+          snap.id === snapId &&
+          (!version || isSameMajorVersion(snap.version, version))
+      )
+    }
+
+    return undefined
   } catch (e) {
     console.warn('Failed to obtain installed snap', e)
     return undefined
@@ -183,6 +200,7 @@ const getWalletStatusCodec = {
   req: GetKeystoreStatusRequest,
   res: GetKeystoreStatusResponse,
 }
+
 export async function getWalletStatus(meta: SnapMeta, snapId: string) {
   const response = await snapRPC(
     'getKeystoreStatus',
@@ -210,6 +228,7 @@ const initKeystoreCodec = {
   req: InitKeystoreRequest,
   res: InitKeystoreResponse,
 }
+
 export async function initSnap(
   bundle: PrivateKeyBundleV1,
   env: XmtpEnv,

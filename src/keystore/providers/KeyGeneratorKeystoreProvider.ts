@@ -6,8 +6,8 @@ import { KeystoreProviderUnavailableError } from './errors'
 import { buildPersistenceFromOptions } from './helpers'
 import NetworkKeyManager from './NetworkKeyManager'
 import type { Signer } from '../../types/Signer'
-import type { Keystore } from '../interfaces'
 import type { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
+import { KeystoreInterface } from '../rpcDefinitions'
 
 /**
  * KeyGeneratorKeystoreProvider will create a new XMTP `PrivateKeyBundle` and persist it to the network
@@ -19,7 +19,7 @@ export default class KeyGeneratorKeystoreProvider implements KeystoreProvider {
     opts: KeystoreProviderOptions,
     apiClient: ApiClient,
     wallet?: Signer
-  ): Promise<Keystore> {
+  ): Promise<KeystoreInterface> {
     if (!wallet) {
       throw new KeystoreProviderUnavailableError(
         'Wallet required to generate new keys'

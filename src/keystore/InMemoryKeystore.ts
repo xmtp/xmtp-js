@@ -5,7 +5,7 @@ import {
 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
 import { PrivateKey, PublicKeyBundle } from '../crypto'
-import { Keystore, TopicData } from './interfaces'
+import { TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
 import {
@@ -34,6 +34,7 @@ import {
   userPreferencesEncrypt,
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
+import { KeystoreInterface } from '..'
 
 const { ErrorCode } = keystore
 
@@ -57,7 +58,7 @@ async function deriveKey(
   )
 }
 
-export default class InMemoryKeystore implements Keystore {
+export default class InMemoryKeystore implements KeystoreInterface {
   private v1Keys: PrivateKeyBundleV1
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private v1Store: V1Store

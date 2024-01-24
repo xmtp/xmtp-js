@@ -1,7 +1,4 @@
-/* eslint-disable*/
-
 import { MetaMaskInpageProvider } from '@metamask/providers'
-import type { providers } from 'ethers'
 
 type EthereumType = MetaMaskInpageProvider & {
   setProvider?: (provider: MetaMaskInpageProvider) => void

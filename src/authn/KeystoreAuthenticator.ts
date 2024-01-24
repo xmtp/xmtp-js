@@ -1,7 +1,10 @@
 import { authn } from '@xmtp/proto'
-import { Keystore } from '../keystore'
 import { dateToNs } from '../utils'
 import Token from './Token'
+import {
+  KeystoreInterface,
+  KeystoreInterfaces,
+} from '../keystore/rpcDefinitions'
 
 const wrapToken = (token: authn.Token): Token => {
   if (token instanceof Token) {
@@ -10,10 +13,12 @@ const wrapToken = (token: authn.Token): Token => {
   return new Token(token)
 }
 
-export default class KeystoreAuthenticator {
-  private keystore: Keystore
+export default class KeystoreAuthenticator<
+  T extends KeystoreInterfaces = KeystoreInterface,
+> {
+  private keystore: T
 
-  constructor(keystore: Keystore) {
+  constructor(keystore: T) {
     this.keystore = keystore
   }
 
