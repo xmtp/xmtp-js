@@ -199,8 +199,12 @@ export const apiDefs = {
     req: null,
     res: keystore.GetPrivatePreferencesTopicIdentifierResponse,
   },
+  /**
+   * Returns the conversation HMAC keys for the current, previous, and next
+   * 30 day periods since the epoch
+   */
   getV2ConversationHmacKeys: {
-    req: null,
+    req: keystore.GetConversationHmacKeysRequest,
     res: keystore.GetConversationHmacKeysResponse,
   },
 }

@@ -34,12 +34,12 @@ import {
   userPreferencesEncrypt,
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
-import { KeystoreInterface } from '..'
 import {
   exportHmacKey,
   generateHmacSignature,
   hkdfHmacKey,
 } from '../crypto/encryption'
+import { KeystoreInterface } from './rpcDefinitions'
 
 const { ErrorCode } = keystore
 
@@ -595,15 +595,28 @@ export default class InMemoryKeystore implements KeystoreInterface {
     return this.v2Store.lookup(topic)
   }
 
-  async getV2ConversationHmacKeys(): Promise<keystore.GetConversationHmacKeysResponse> {
+  async getV2ConversationHmacKeys(
+    req?: keystore.GetConversationHmacKeysRequest
+  ): Promise<keystore.GetConversationHmacKeysResponse> {
     const thirtyDayPeriodsSinceEpoch = Math.floor(
       Date.now() / 1000 / 60 / 60 / 24 / 30
     )
 
     const hmacKeys: keystore.GetConversationHmacKeysResponse['hmacKeys'] = {}
 
+    let topics = this.v2Store.topics
+
+    // if specific topics are requested, only include those topics
+    if (req?.topics) {
+      topics = topics.filter(
+        (topicData) =>
+          topicData.invitation !== undefined &&
+          req.topics.includes(topicData.invitation.topic)
+      )
+    }
+
     await Promise.all(
-      this.v2Store.topics.map(async (topicData) => {
+      topics.map(async (topicData) => {
         if (topicData.invitation?.topic) {
           const keyMaterial = getKeyMaterial(topicData.invitation)
           const values = await Promise.all(
