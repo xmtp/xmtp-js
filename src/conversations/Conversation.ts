@@ -15,13 +15,7 @@ import Client, {
 } from '../Client'
 import { InvitationContext } from '../Invitation'
 import { DecodedMessage, MessageV1, MessageV2 } from '../Message'
-import {
-  messageApi,
-  message,
-  content as proto,
-  keystore,
-  ciphertext,
-} from '@xmtp/proto'
+import { messageApi, message, content as proto, keystore } from '@xmtp/proto'
 import {
   SignedPublicKey,
   Signature,
@@ -290,7 +284,7 @@ export class ConversationV1<ContentTypes>
     } else {
       topics = [topic]
     }
-    const payload = await this.client.encodeContent(content, options)
+    const { payload } = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, recipient, options?.timestamp)
     const msgBytes = msg.toBytes()
 
@@ -399,7 +393,7 @@ export class ConversationV1<ContentTypes>
       topics = [topic]
     }
     const contentType = options?.contentType || ContentTypeText
-    const payload = await this.client.encodeContent(content, options)
+    const { payload } = await this.client.encodeContent(content, options)
     const msg = await this.createMessage(payload, recipient, options?.timestamp)
 
     await this.client.publishEnvelopes(
@@ -608,8 +602,15 @@ export class ConversationV2<ContentTypes>
     content: Exclude<ContentTypes, undefined>,
     options?: SendOptions
   ): Promise<DecodedMessage<ContentTypes>> {
-    const payload = await this.client.encodeContent(content, options)
-    const msg = await this.createMessage(payload, options?.timestamp)
+    const { payload, shouldPush } = await this.client.encodeContent(
+      content,
+      options
+    )
+    const msg = await this.createMessage(
+      payload,
+      shouldPush,
+      options?.timestamp
+    )
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
 
@@ -643,6 +644,7 @@ export class ConversationV2<ContentTypes>
   async createMessage(
     // Payload is expected to have already gone through `client.encodeContent`
     payload: Uint8Array,
+    shouldPush: boolean,
     timestamp?: Date
   ): Promise<MessageV2> {
     const header: message.MessageHeaderV2 = {
@@ -662,14 +664,18 @@ export class ConversationV2<ContentTypes>
     }
     const signedBytes = proto.SignedContent.encode(signed).finish()
 
-    const ciphertext = await this.encryptMessage(signedBytes, headerBytes)
+    const { encrypted: ciphertext, senderHmac } = await this.encryptMessage(
+      signedBytes,
+      headerBytes
+    )
+
     const protoMsg = {
       v1: undefined,
-      v2: { headerBytes, ciphertext },
+      v2: { headerBytes, ciphertext, senderHmac, shouldPush },
     }
     const bytes = message.Message.encode(protoMsg).finish()
 
-    return MessageV2.create(protoMsg, header, bytes)
+    return MessageV2.create(protoMsg, header, bytes, senderHmac, shouldPush)
   }
 
   private async decryptBatch(
@@ -713,10 +719,7 @@ export class ConversationV2<ContentTypes>
     }
   }
 
-  private async encryptMessage(
-    payload: Uint8Array,
-    headerBytes: Uint8Array
-  ): Promise<ciphertext.Ciphertext> {
+  private async encryptMessage(payload: Uint8Array, headerBytes: Uint8Array) {
     const { responses } = await this.client.keystore.encryptV2({
       requests: [
         {
@@ -729,8 +732,8 @@ export class ConversationV2<ContentTypes>
     if (responses.length !== 1) {
       throw new Error('Invalid response length')
     }
-    const { encrypted } = getResultOrThrow(responses[0])
-    return encrypted
+    const { encrypted, senderHmac } = getResultOrThrow(responses[0])
+    return { encrypted, senderHmac }
   }
 
   private async buildDecodedMessage(
@@ -785,8 +788,15 @@ export class ConversationV2<ContentTypes>
     content: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     options?: SendOptions
   ): Promise<PreparedMessage> {
-    const payload = await this.client.encodeContent(content, options)
-    const msg = await this.createMessage(payload, options?.timestamp)
+    const { payload, shouldPush } = await this.client.encodeContent(
+      content,
+      options
+    )
+    const msg = await this.createMessage(
+      payload,
+      shouldPush,
+      options?.timestamp
+    )
     const msgBytes = msg.toBytes()
 
     const topic = options?.ephemeral ? this.ephemeralTopic : this.topic
@@ -833,7 +843,13 @@ export class ConversationV2<ContentTypes>
       throw new Error('topic mismatch')
     }
 
-    return MessageV2.create(msg, header, env.message)
+    return MessageV2.create(
+      msg,
+      header,
+      env.message,
+      msg.v2.senderHmac,
+      msg.v2.shouldPush
+    )
   }
 
   async decodeMessage(

@@ -22,9 +22,10 @@ const decodeV1 = () => {
       const bob = await newPrivateKeyBundle()
 
       const message = randomBytes(size)
+      const { payload } = await alice.encodeContent(message)
       const encodedMessage = await MessageV1.encode(
         alice.keystore,
-        await alice.encodeContent(message),
+        payload,
         alice.publicKeyBundle,
         bob.getPublicKeyBundle(),
         new Date()
@@ -75,8 +76,8 @@ const decodeV2 = () => {
         new Date(),
         undefined
       )
-      const payload = await alice.encodeContent(message)
-      const encodedMessage = await convo.createMessage(payload)
+      const { payload, shouldPush } = await alice.encodeContent(message)
+      const encodedMessage = await convo.createMessage(payload, shouldPush)
       const messageBytes = encodedMessage.toBytes()
 
       const envelope = {

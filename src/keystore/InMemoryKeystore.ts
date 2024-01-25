@@ -34,7 +34,12 @@ import {
   userPreferencesEncrypt,
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
-import { KeystoreInterface } from '..'
+import {
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+} from '../crypto/encryption'
+import { KeystoreInterface } from './rpcDefinitions'
 
 const { ErrorCode } = keystore
 
@@ -295,12 +300,21 @@ export default class InMemoryKeystore implements KeystoreInterface {
           )
         }
 
+        const keyMaterial = getKeyMaterial(topicData.invitation)
+        const ciphertext = await encryptV2(payload, keyMaterial, headerBytes)
+        const thirtyDayPeriodsSinceEpoch = Math.floor(
+          Date.now() / 1000 / 60 / 60 / 24 / 30
+        )
+        const info = `${thirtyDayPeriodsSinceEpoch}-${this.accountAddress}`
+        const hmac = await generateHmacSignature(
+          keyMaterial,
+          new TextEncoder().encode(info),
+          headerBytes
+        )
+
         return {
-          encrypted: await encryptV2(
-            payload,
-            getKeyMaterial(topicData.invitation),
-            headerBytes
-          ),
+          encrypted: ciphertext,
+          senderHmac: hmac,
         }
       },
       ErrorCode.ERROR_CODE_INVALID_INPUT
@@ -579,5 +593,58 @@ export default class InMemoryKeystore implements KeystoreInterface {
   // on the InMemoryKeystore to support legacy use-cases.
   lookupTopic(topic: string) {
     return this.v2Store.lookup(topic)
+  }
+
+  async getV2ConversationHmacKeys(
+    req?: keystore.GetConversationHmacKeysRequest
+  ): Promise<keystore.GetConversationHmacKeysResponse> {
+    const thirtyDayPeriodsSinceEpoch = Math.floor(
+      Date.now() / 1000 / 60 / 60 / 24 / 30
+    )
+
+    const hmacKeys: keystore.GetConversationHmacKeysResponse['hmacKeys'] = {}
+
+    let topics = this.v2Store.topics
+
+    // if specific topics are requested, only include those topics
+    if (req?.topics) {
+      topics = topics.filter(
+        (topicData) =>
+          topicData.invitation !== undefined &&
+          req.topics.includes(topicData.invitation.topic)
+      )
+    }
+
+    await Promise.all(
+      topics.map(async (topicData) => {
+        if (topicData.invitation?.topic) {
+          const keyMaterial = getKeyMaterial(topicData.invitation)
+          const values = await Promise.all(
+            [
+              thirtyDayPeriodsSinceEpoch - 1,
+              thirtyDayPeriodsSinceEpoch,
+              thirtyDayPeriodsSinceEpoch + 1,
+            ].map(async (value) => {
+              const info = `${value}-${this.accountAddress}`
+              const hmacKey = await hkdfHmacKey(
+                keyMaterial,
+                new TextEncoder().encode(info)
+              )
+              return {
+                thirtyDayPeriodsSinceEpoch: value,
+                // convert CryptoKey to Uint8Array to match the proto
+                hmacKey: await exportHmacKey(hmacKey),
+              }
+            })
+          )
+
+          hmacKeys[topicData.invitation.topic] = {
+            values,
+          }
+        }
+      })
+    )
+
+    return { hmacKeys }
   }
 }

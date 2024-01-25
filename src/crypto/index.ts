@@ -9,7 +9,15 @@ import {
 import { UnsignedPublicKey, SignedPublicKey, PublicKey } from './PublicKey'
 import Signature, { WalletSigner } from './Signature'
 import * as utils from './utils'
-import { encrypt, decrypt } from './encryption'
+import {
+  decrypt,
+  encrypt,
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+  importHmacKey,
+  verifyHmacSignature,
+} from './encryption'
 import Ciphertext from './Ciphertext'
 import SignedEciesCiphertext from './SignedEciesCiphertext'
 
@@ -17,6 +25,11 @@ export {
   utils,
   encrypt,
   decrypt,
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+  importHmacKey,
+  verifyHmacSignature,
   Ciphertext,
   UnsignedPublicKey,
   SignedPublicKey,

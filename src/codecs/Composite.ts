@@ -112,4 +112,8 @@ export class CompositeCodec implements ContentCodec<Composite> {
   fallback(content: Composite): string | undefined {
     return undefined
   }
+
+  shouldPush() {
+    return false
+  }
 }

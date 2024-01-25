@@ -1,4 +1,4 @@
-import { DecodedMessage, MessageV1 } from './../../src/Message'
+import { DecodedMessage, MessageV1, MessageV2 } from './../../src/Message'
 import { buildDirectMessageTopic } from './../../src/utils'
 import { Client, Compression, ContentTypeId, ContentTypeText } from '../../src'
 import { SortDirection } from '../../src/ApiClient'
@@ -531,6 +531,17 @@ describe('conversation', () => {
 
       await bs.return()
       await as.return()
+
+      const messages = await alice.listEnvelopes<MessageV2>(
+        ac.topic,
+        ac.processEnvelope.bind(ac)
+      )
+
+      expect(messages).toHaveLength(2)
+      expect(messages[0].shouldPush).toBe(true)
+      expect(messages[0].senderHmac).toBeDefined()
+      expect(messages[1].shouldPush).toBe(true)
+      expect(messages[1].senderHmac).toBeDefined()
     })
 
     // it('rejects spoofed contact bundles', async () => {
@@ -663,6 +674,9 @@ describe('conversation', () => {
           metadata: {},
         }
       )
+      if (!(aliceConvo instanceof ConversationV2)) {
+        fail()
+      }
       await sleep(100)
       const bobConvo = await bob.conversations.newConversation(alice.address, {
         conversationId: 'xmtp.org/key',
@@ -674,7 +688,6 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       expect(
-        // @ts-expect-error
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -682,7 +695,6 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
-      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -704,7 +716,6 @@ describe('conversation', () => {
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
-      // @ts-expect-error
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -719,13 +730,23 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
-      // @ts-expect-error
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )
 
       await bobStream.return()
       await aliceStream.return()
+
+      const messages = await alice.listEnvelopes<MessageV2>(
+        aliceConvo.topic,
+        aliceConvo.processEnvelope.bind(aliceConvo)
+      )
+
+      expect(messages).toHaveLength(2)
+      expect(messages[0].shouldPush).toBe(false)
+      expect(messages[0].senderHmac).toBeDefined()
+      expect(messages[1].shouldPush).toBe(false)
+      expect(messages[1].senderHmac).toBeDefined()
     })
   })
 })

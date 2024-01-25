@@ -58,6 +58,7 @@ export interface ContentCodec<T> {
   encode(content: T, registry: CodecRegistry): EncodedContent
   decode(content: EncodedContent, registry: CodecRegistry): T
   fallback(content: T): string | undefined
+  shouldPush: (content: T) => boolean
 }
 
 // xmtp.org/fallback

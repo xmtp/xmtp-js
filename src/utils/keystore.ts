@@ -4,6 +4,12 @@ import { KeystoreError } from '../keystore/errors'
 import { MessageV1 } from '../Message'
 import { WithoutUndefined } from './typedefs'
 
+type EncryptionResponseResult<
+  T extends
+    | keystore.DecryptResponse_Response
+    | keystore.EncryptResponse_Response,
+> = WithoutUndefined<T>['result']
+
 // Validates the Keystore response. Throws on errors or missing fields.
 // Returns a type with all possibly undefined fields required to be defined
 export const getResultOrThrow = <
@@ -12,10 +18,11 @@ export const getResultOrThrow = <
     | keystore.EncryptResponse_Response,
 >(
   response: T
-): WithoutUndefined<NonNullable<T['result']>> => {
+) => {
   if (response.error) {
     throw new KeystoreError(response.error.code, response.error.message)
   }
+
   if (!response.result) {
     throw new KeystoreError(
       keystore.ErrorCode.ERROR_CODE_UNSPECIFIED,
@@ -31,9 +38,7 @@ export const getResultOrThrow = <
     throw new Error('Missing decrypted result')
   }
 
-  return response.result as unknown as WithoutUndefined<
-    NonNullable<T['result']>
-  >
+  return response.result as EncryptionResponseResult<T>
 }
 
 export const buildDecryptV1Request = (
