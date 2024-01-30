@@ -1,8 +1,9 @@
-import { Client } from "@xmtp/xmtp-js";
+import { Client, Signature, SignedPublicKey } from "@xmtp/xmtp-js";
 import { Wallet } from "ethers";
 import { frames, fetcher } from "@xmtp/proto";
 import { it, expect, describe, beforeEach } from "vitest";
 import { FramesClient } from ".";
+import { sha256 } from "./crypto";
 
 const { b64Decode } = fetcher;
 
@@ -56,6 +57,26 @@ describe("signFrameAction", () => {
     );
     expect(new TextDecoder().decode(signedPayloadBody.frameUrl)).toEqual(
       frameUrl,
+    );
+
+    if (
+      !signedPayloadProto.signature ||
+      !signedPayloadProto?.signedPublicKeyBundle?.identityKey
+    ) {
+      throw new Error("Missing signature");
+    }
+
+    const signatureInstance = new Signature(signedPayloadProto.signature);
+    const digest = await sha256(signedPayloadProto.actionBody);
+    // Ensure the signature is valid
+    expect(
+      signatureInstance
+        .getPublicKey(digest)
+        ?.equals(
+          new SignedPublicKey(
+            signedPayloadProto.signedPublicKeyBundle.identityKey,
+          ).toLegacyKey(),
+        ),
     );
   });
 });
