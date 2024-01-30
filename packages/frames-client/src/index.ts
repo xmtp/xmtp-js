@@ -21,6 +21,30 @@ export class FramesClient {
     return (await response.json()) as FramesApiResponse;
   }
 
+  static async postToFrame(
+    url: string,
+    payload: FramePostPayload,
+  ): Promise<FramesApiResponse> {
+    const response = await fetch(
+      `${OG_PROXY_URL}?url=${encodeURIComponent(url)}`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to post to frame: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    return (await response.json()) as FramesApiResponse;
+  }
+
   async signFrameAction(
     frameUrl: string,
     buttonIndex: number,
