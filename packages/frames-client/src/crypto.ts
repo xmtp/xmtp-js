@@ -1,13 +1,21 @@
+let cachedCrypto: Crypto | undefined;
+
 async function getCrypto(): Promise<Crypto> {
   if (typeof crypto !== "undefined") {
     return crypto;
+  }
+
+  if (typeof cachedCrypto !== "undefined") {
+    return cachedCrypto;
   }
 
   if (typeof window !== "undefined" && window.crypto) {
     return window.crypto;
   }
 
-  return (await import("crypto")).webcrypto as Crypto;
+  cachedCrypto = (await import("crypto")).webcrypto as Crypto;
+
+  return cachedCrypto;
 }
 
 export async function sha256(data: Uint8Array): Promise<Uint8Array> {
