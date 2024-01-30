@@ -1,7 +1,7 @@
 {
   "name": "@xmtp/frames-client",
   "packageManager": "yarn@4.0.2",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
   "type": "module",
