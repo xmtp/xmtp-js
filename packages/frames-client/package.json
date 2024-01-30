@@ -5,12 +5,13 @@
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
   "type": "module",
-  "browser": "lib/index.js",
+  "browser": "lib/browser/index.js",
   "module": "lib/index.js",
   "types": "lib/index.d.ts",
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
+      "browser": "./lib/browser/index.js",
       "default": "./lib/index.js"
     }
   },
@@ -59,6 +60,7 @@
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@xmtp/rollup-plugin-resolve-extensions": "^1.0.1",
     "@xmtp/tsconfig": "workspace:*",
     "@xmtp/xmtp-js": "^11.3.7",
     "eslint": "^8.56.0",

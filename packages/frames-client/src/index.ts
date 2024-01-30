@@ -2,7 +2,7 @@ import type { Client } from "@xmtp/xmtp-js";
 import { frames, fetcher } from "@xmtp/proto";
 import { OG_PROXY_URL } from "./constants";
 import type { FramePostPayload, FramesApiResponse } from "./types";
-import { sha256 } from "./crypto";
+import { sha256 } from "./utils";
 import { v1ToV2Bundle } from "./converters";
 
 const { b64Encode } = fetcher;
