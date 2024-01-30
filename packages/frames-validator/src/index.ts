@@ -1,8 +1,8 @@
 import { fetcher, frames } from "@xmtp/proto"
 import { Signature, SignedPublicKeyBundle } from "@xmtp/xmtp-js"
 
-import { sha256 } from "./crypto"
-import { FramePostPayload, FramePostUntrustedData } from "./types"
+import { sha256 } from "./crypto.js"
+import { FramePostPayload, FramePostUntrustedData } from "./types.js"
 
 const { b64Decode } = fetcher
 
