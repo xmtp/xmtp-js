@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.1.2
+
+### Patch Changes
+
+- aa1cc83: Fix polyfill for webcrypto in Node.js
+
 ## 0.1.1
 
 ### Patch Changes
