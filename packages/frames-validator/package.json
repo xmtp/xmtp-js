@@ -1,0 +1,39 @@
+{
+  "name": "@xmtp/frames-validator",
+  "version": "1.0.0",
+  "description": "A validator for XMTP frames requests",
+  "main": "dist/src/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@xmtp/proto": "3.41.0-beta.2",
+    "@xmtp/xmtp-js": "^11.3.5"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "yarn clean && tsc",
+    "prepublishOnly": "yarn build",
+    "test": "vitest run ./src"
+  },
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-node-js-tools/issues"
+  },
+  "homepage": "https://github.com/xmtp/xmtp-node-js-tools#readme",
+  "packageManager": "yarn@4.0.0",
+  "devDependencies": {
+    "@xmtp/frames-client": "^0.1.2",
+    "ethers": "^6.10.0",
+    "vitest": "^1.0.1"
+  }
+}
