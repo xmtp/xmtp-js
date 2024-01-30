@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.1.3
+
+### Patch Changes
+
+- 4c735d0: Add dynamic crypto import
+
 ## 0.1.2
 
 ### Patch Changes
