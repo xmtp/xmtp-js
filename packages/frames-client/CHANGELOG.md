@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.1.1
+
+### Patch Changes
+
+- fd952ee: Adds ability to post frame to a destination and see an updated response
+
 ## 0.1.0
 
 ### Minor Changes
