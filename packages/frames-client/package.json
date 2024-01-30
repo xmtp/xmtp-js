@@ -1,0 +1,92 @@
+{
+  "name": "@xmtp/frames-client",
+  "packageManager": "yarn@4.0.2",
+  "version": "0.0.1",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "license": "MIT",
+  "type": "module",
+  "browser": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xmtp/xmtp-web.git",
+    "directory": "packages/react-sdk"
+  },
+  "homepage": "https://github.com/xmtp/xmtp-web",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-web/issues"
+  },
+  "keywords": [
+    "xmtp",
+    "messaging",
+    "web3",
+    "sdk",
+    "js",
+    "ts",
+    "javascript",
+    "typescript",
+    "react",
+    "reactjs",
+    "react-hooks",
+    "hooks"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome versions",
+      "last 3 firefox versions",
+      "last 3 safari versions"
+    ]
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@xmtp/tsconfig": "workspace:*",
+    "eslint": "^8.56.0",
+    "eslint-config-xmtp-web": "workspace:*",
+    "prettier": "^3.2.4",
+    "rollup": "^4.9.6",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-filesize": "^10.0.0",
+    "rollup-plugin-tsconfig-paths": "^1.5.2",
+    "typedoc": "^0.25.7",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^1.2.1"
+  },
+  "scripts": {
+    "build": "yarn clean:lib && yarn rollup -c",
+    "dev": "yarn clean:lib && yarn rollup -c --watch",
+    "clean:lib": "rm -rf lib",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:lib",
+    "lint": "eslint . --ignore-path ../../.gitignore",
+    "format:base": "prettier --ignore-path ../../.gitignore",
+    "format:check": "yarn format:base -c .",
+    "format": "yarn format:base -w .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc",
+    "typedoc": "typedoc"
+  },
+  "peerDependencies": {
+    "@xmtp/xmtp-js": "^11.3.7"
+  }
+}
