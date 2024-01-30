@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.1.4
+
+### Patch Changes
+
+- 8b21c05: Updated crypto imports, build, and exports
+
 ## 0.1.3
 
 ### Patch Changes
