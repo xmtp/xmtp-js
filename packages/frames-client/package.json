@@ -1,7 +1,7 @@
 {
   "name": "@xmtp/frames-client",
   "packageManager": "yarn@4.0.2",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
   "type": "module",
@@ -89,6 +89,9 @@
     "typedoc": "typedoc"
   },
   "peerDependencies": {
-    "@xmtp/xmtp-js": "^11.3.7"
+    "@xmtp/xmtp-js": ">9.3.1"
+  },
+  "dependencies": {
+    "@xmtp/proto": "3.41.0-beta.2"
   }
 }
