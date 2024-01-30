@@ -1,4 +1,4 @@
-import { publicKey, signature } from "@xmtp/proto";
+import { publicKey } from "@xmtp/proto";
 
 function publicKeyBytesToSign(pubKey: publicKey.PublicKey): Uint8Array {
   return publicKey.PublicKey.encode({
