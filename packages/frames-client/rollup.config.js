@@ -4,7 +4,6 @@ import { dts } from "rollup-plugin-dts";
 import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 import terser from "@rollup/plugin-terser";
 import filesize from "rollup-plugin-filesize";
-import { resolveExtensions } from "@xmtp/rollup-plugin-resolve-extensions";
 
 const plugins = [
   tsConfigPaths(),
@@ -38,11 +37,7 @@ export default defineConfig([
       sourcemap: true,
     },
     external,
-    plugins: [
-      resolveExtensions({ extensions: [".browser"] }),
-      terser(),
-      ...plugins,
-    ],
+    plugins: [terser(), ...plugins],
   },
   {
     input: "src/index.ts",
