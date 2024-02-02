@@ -36,8 +36,8 @@ export function buildOpaqueIdentifier(inputs: FrameActionInputs): string {
   return base64Encode(
     sha256(
       concatStringsToBytes(
-        conversationTopic,
-        ...participantAccountAddresses.sort(),
+        conversationTopic.toLowerCase(),
+        ...participantAccountAddresses.map(p => p.toLowerCase()).sort(),
       ),
     ),
   );
