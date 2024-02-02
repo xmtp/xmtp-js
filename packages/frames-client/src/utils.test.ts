@@ -42,8 +42,8 @@ describe("buildOpaqueIdentifier", () => {
     const inputs = {
       frameUrl: "https://example.com",
       buttonIndex: 2,
-      conversationTopic: "foo",
-      participantAccountAddresses: ["bola", "amal"],
+      conversationTopic: "Foo",
+      participantAccountAddresses: ["Bola", "Amal"],
     };
     const result = buildOpaqueIdentifier(inputs);
     expect(result).toEqual(
