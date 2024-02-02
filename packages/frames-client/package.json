@@ -79,6 +79,7 @@
     "eslint-config-xmtp-web": "workspace:*",
     "ethers": "^6.10.0",
     "prettier": "^3.2.4",
+    "prettier-plugin-packagejson": "^2.4.10",
     "rollup": "^4.9.6",
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-filesize": "^10.0.0",

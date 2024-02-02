@@ -37,7 +37,7 @@ export function buildOpaqueIdentifier(inputs: FrameActionInputs): string {
     sha256(
       concatStringsToBytes(
         conversationTopic.toLowerCase(),
-        ...participantAccountAddresses.map(p => p.toLowerCase()).sort(),
+        ...participantAccountAddresses.map((p) => p.toLowerCase()).sort(),
       ),
     ),
   );
