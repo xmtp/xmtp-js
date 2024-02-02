@@ -124,7 +124,7 @@ export {
   PrefixedPersistence,
   Persistence,
 } from './keystore/persistence'
-export { InvitationContext, SealedInvitation } from './Invitation'
+export { InvitationContext, SealedInvitation, InvitationV1 } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'
 export type {
   GetMessageContentTypeFromClient,
