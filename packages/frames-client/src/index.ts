@@ -1,11 +1,16 @@
 import type { Client } from "@xmtp/xmtp-js";
-import { frames, fetcher } from "@xmtp/proto";
+import { frames } from "@xmtp/proto";
+import { sha256 } from "@noble/hashes/sha256";
+import Long from "long";
 import { OG_PROXY_URL } from "./constants";
-import type { FramePostPayload, FramesApiResponse } from "./types";
-import { sha256 } from "./utils";
+import type {
+  FrameActionInputs,
+  FramePostPayload,
+  FramesApiResponse,
+} from "./types";
 import { v1ToV2Bundle } from "./converters";
-
-const { b64Encode } = fetcher;
+import { ApiError } from "./errors";
+import { base64Encode, buildOpaqueIdentifier } from "./utils";
 
 export class FramesClient {
   xmtpClient: Client;
@@ -18,6 +23,11 @@ export class FramesClient {
     const response = await fetch(
       `${OG_PROXY_URL}?url=${encodeURIComponent(url)}`,
     );
+
+    if (!response.ok) {
+      throw new ApiError(`Failed to read metadata for ${url}`, response.status);
+    }
+
     return (await response.json()) as FramesApiResponse;
   }
 
@@ -45,48 +55,39 @@ export class FramesClient {
     return (await response.json()) as FramesApiResponse;
   }
 
-  async signFrameAction(
-    frameUrl: string,
-    buttonIndex: number,
-    conversationIdentifier: string,
-    messageId: string,
-  ): Promise<FramePostPayload> {
-    const signedAction = await this.buildSignedFrameAction(
+  async signFrameAction(inputs: FrameActionInputs): Promise<FramePostPayload> {
+    const opaqueConversationIdentifier = buildOpaqueIdentifier(inputs);
+    const { frameUrl, buttonIndex } = inputs;
+    const now = Date.now();
+    const toSign: frames.FrameActionBody = {
       frameUrl,
       buttonIndex,
-      conversationIdentifier,
-      messageId,
-    );
+      opaqueConversationIdentifier,
+      timestamp: Long.fromNumber(now),
+    };
+
+    const signedAction = await this.buildSignedFrameAction(toSign);
 
     return {
       untrustedData: {
+        buttonIndex,
+        opaqueConversationIdentifier,
         walletAddress: this.xmtpClient.address,
         url: frameUrl,
-        messageId,
-        timestamp: Date.now(),
-        buttonIndex,
-        conversationIdentifier,
+        timestamp: now,
       },
       trustedData: {
-        messageBytes: b64Encode(signedAction, 0, signedAction.length),
+        messageBytes: base64Encode(signedAction),
       },
     };
   }
 
   private async buildSignedFrameAction(
-    frameUrl: string,
-    buttonIndex: number,
-    conversationIdentifier: string,
-    messageId: string,
+    actionBodyInputs: frames.FrameActionBody,
   ) {
-    const actionBody = frames.FrameActionBody.encode({
-      frameUrl: new TextEncoder().encode(frameUrl),
-      buttonIndex: new TextEncoder().encode(buttonIndex.toString()),
-      conversationIdentifier,
-      messageId,
-    }).finish();
+    const actionBody = frames.FrameActionBody.encode(actionBodyInputs).finish();
 
-    const digest = await sha256(actionBody);
+    const digest = sha256(actionBody);
     const signature = await this.xmtpClient.keystore.signDigest({
       digest,
       identityKey: true,
