@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.2.0
+
+### Minor Changes
+
+- b955667: Updates to the latest format of the proto message and tries to make safe for RN usage
+
 ## 0.1.4
 
 ### Patch Changes
