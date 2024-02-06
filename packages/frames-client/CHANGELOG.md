@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.2.1
+
+### Patch Changes
+
+- 3bbf05c: updated readme
+
 ## 0.2.0
 
 ### Minor Changes
