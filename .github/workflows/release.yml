@@ -16,13 +16,13 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18.14.0
+          node-version-file: ".node-version"
           cache: "yarn"
         env:
           SKIP_YARN_COREPACK_CHECK: "1"
