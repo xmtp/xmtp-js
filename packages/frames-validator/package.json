@@ -15,7 +15,7 @@
     "provenance": true
   },
   "dependencies": {
-    "@xmtp/proto": "3.41.0-beta.2",
+    "@xmtp/proto": "3.41.0-beta.5",
     "@xmtp/xmtp-js": "^11.3.5"
   },
   "scripts": {
@@ -32,7 +32,7 @@
   "homepage": "https://github.com/xmtp/xmtp-node-js-tools#readme",
   "packageManager": "yarn@4.0.0",
   "devDependencies": {
-    "@xmtp/frames-client": "^0.1.2",
+    "@xmtp/frames-client": "^0.2.0",
     "ethers": "^6.10.0",
     "vitest": "^1.0.1"
   }

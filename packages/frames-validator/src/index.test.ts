@@ -21,8 +21,8 @@ describe("validations", () => {
   let framesClient: FramesClient
 
   const FRAME_URL = "https://frame.xyz"
-  const CONVERSATION_IDENTIFIER = "/xmtp/0/1234"
-  const MESSAGE_ID = "abcdefg"
+  const CONVERSATION_TOPIC = "/xmtp/0/1234"
+  const PARTICIPANT_ACCOUNT_ADDRESSES = ["0x1234", "0x5678"]
   const BUTTON_INDEX = 2
 
   beforeEach(async () => {
@@ -31,23 +31,23 @@ describe("validations", () => {
     framesClient = new FramesClient(client)
   })
   it("succeeds in the happy path", async () => {
-    const postData = await framesClient.signFrameAction(
-      FRAME_URL,
-      BUTTON_INDEX,
-      CONVERSATION_IDENTIFIER,
-      MESSAGE_ID,
-    )
+    const postData = await framesClient.signFrameAction({
+      buttonIndex: BUTTON_INDEX,
+      frameUrl: FRAME_URL,
+      conversationTopic: CONVERSATION_TOPIC,
+      participantAccountAddresses: PARTICIPANT_ACCOUNT_ADDRESSES,
+    })
     const validated = await validateFramesPost(postData)
     expect(validated.verifiedWalletAddress).toEqual(client.address)
   })
 
   it("fails if the signature verification fails", async () => {
-    const postData = await framesClient.signFrameAction(
-      FRAME_URL,
-      BUTTON_INDEX,
-      CONVERSATION_IDENTIFIER,
-      MESSAGE_ID,
-    )
+    const postData = await framesClient.signFrameAction({
+      buttonIndex: BUTTON_INDEX,
+      frameUrl: FRAME_URL,
+      conversationTopic: CONVERSATION_TOPIC,
+      participantAccountAddresses: PARTICIPANT_ACCOUNT_ADDRESSES,
+    })
     // Monkey around with the signature
     const deserialized = deserializeProtoMessage(
       b64Decode(postData.trustedData.messageBytes),
@@ -76,12 +76,12 @@ describe("validations", () => {
   })
 
   it("fails if the wallet address doesn't match", async () => {
-    const postData = await framesClient.signFrameAction(
-      FRAME_URL,
-      BUTTON_INDEX,
-      CONVERSATION_IDENTIFIER,
-      MESSAGE_ID,
-    )
+    const postData = await framesClient.signFrameAction({
+      buttonIndex: BUTTON_INDEX,
+      frameUrl: FRAME_URL,
+      conversationTopic: CONVERSATION_TOPIC,
+      participantAccountAddresses: PARTICIPANT_ACCOUNT_ADDRESSES,
+    })
     // Monkey around with the signature
     const deserialized = deserializeProtoMessage(
       b64Decode(postData.trustedData.messageBytes),

@@ -29,8 +29,7 @@ export async function validateFramesPost(data: FramePostPayload) {
   await checkUntrustedData(untrustedData, actionBody)
 
   return {
-    untrustedData,
-    trustedData,
+    actionBody,
     verifiedWalletAddress,
   }
 }
@@ -72,26 +71,29 @@ async function getVerifiedWalletAddress(
 }
 
 async function checkUntrustedData(
-  untrusted: FramePostUntrustedData,
+  {
+    url,
+    buttonIndex,
+    opaqueConversationIdentifier,
+    timestamp,
+  }: FramePostUntrustedData,
   actionBody: frames.FrameActionBody,
 ) {
-  const { url, messageId, buttonIndex, conversationIdentifier } = untrusted
-
-  if (new TextDecoder().decode(actionBody.frameUrl) !== url) {
+  if (actionBody.frameUrl !== url) {
     throw new Error("Mismatched URL")
   }
 
-  if (
-    new TextDecoder().decode(actionBody.buttonIndex) !== buttonIndex.toString()
-  ) {
+  if (actionBody.buttonIndex !== buttonIndex) {
     throw new Error("Mismatched button index")
   }
 
-  if (actionBody.conversationIdentifier !== conversationIdentifier) {
+  if (
+    actionBody.opaqueConversationIdentifier !== opaqueConversationIdentifier
+  ) {
     throw new Error("Mismatched conversation identifier")
   }
 
-  if (actionBody.messageId !== messageId) {
-    throw new Error("Mismatched message identifier")
+  if (actionBody.timestamp.toNumber() !== timestamp) {
+    throw new Error("Mismatched timestamp")
   }
 }
