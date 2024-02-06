@@ -10,7 +10,6 @@ import {
   EnvelopeMapperWithMessage,
   EnvelopeWithMessage,
 } from './utils'
-import { utils } from 'ethers'
 import { Signer } from './types/Signer'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
@@ -44,7 +43,7 @@ import {
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { packageName, version } from './snapInfo.json'
 import { ExtractDecodedType } from './types/client'
-import type { WalletClient } from 'viem'
+import { getAddress, type WalletClient } from 'viem'
 import { Contacts } from './Contacts'
 import { KeystoreInterfaces } from './keystore/rpcDefinitions'
 const { Compression } = proto
@@ -430,7 +429,7 @@ export default class Client<ContentTypes = any> {
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
-    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+    peerAddress = getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
     if (existingBundle) {
       return existingBundle
@@ -456,7 +455,7 @@ export default class Client<ContentTypes = any> {
   ): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
     // EIP55 normalize all peer addresses
     const normalizedAddresses = peerAddresses.map((address) =>
-      utils.getAddress(address)
+      getAddress(address)
     )
     // The logic here is tricky because we need to do a batch query for any uncached bundles,
     // then interleave back into an ordered array. So we create a map<string, keybundle|undefined>
@@ -501,7 +500,7 @@ export default class Client<ContentTypes = any> {
    * Used to force getUserContact fetch contact from the network.
    */
   forgetContact(peerAddress: string) {
-    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+    peerAddress = getAddress(peerAddress) // EIP55 normalize the address case.
     this.knownPublicKeyBundles.delete(peerAddress)
   }
 
@@ -552,7 +551,7 @@ export default class Client<ContentTypes = any> {
       const rawPeerAddresses: string[] = peerAddress
       // Try to normalize each of the peer addresses
       const normalizedPeerAddresses = rawPeerAddresses.map((address) =>
-        utils.getAddress(address)
+        getAddress(address)
       )
       // The getUserContactsFromNetwork will return false instead of throwing
       // on invalid envelopes
@@ -563,7 +562,7 @@ export default class Client<ContentTypes = any> {
       return contacts.map((contact) => !!contact)
     }
     try {
-      peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+      peerAddress = getAddress(peerAddress) // EIP55 normalize the address case.
     } catch (e) {
       return false
     }

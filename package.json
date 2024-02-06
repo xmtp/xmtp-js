@@ -110,7 +110,7 @@
     "elliptic": "^6.5.4",
     "ethers": "^5.7.2",
     "long": "^5.2.3",
-    "viem": "^1.21.4"
+    "viem": "^2.7.6"
   },
   "devDependencies": {
     "@commitlint/cli": "17.8.1",

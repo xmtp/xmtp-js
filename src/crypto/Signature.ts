@@ -3,9 +3,9 @@ import Long from 'long'
 import * as secp from '@noble/secp256k1'
 import { PublicKey, UnsignedPublicKey, SignedPublicKey } from './PublicKey'
 import { SignedPrivateKey } from './PrivateKey'
-import { utils } from 'ethers'
 import { Signer } from '../types/Signer'
-import { bytesToHex, equalBytes, hexToBytes } from './utils'
+import { bytesToHex, equalBytes, hexToBytes, splitSignature } from './utils'
+import { Hex, hashMessage } from 'viem'
 
 // ECDSA signature with recovery bit.
 export type ECDSACompactWithRecovery = {
@@ -164,7 +164,7 @@ export class WalletSigner implements KeySigner {
     signature: ECDSACompactWithRecovery
   ): UnsignedPublicKey | undefined {
     const digest = hexToBytes(
-      utils.hashMessage(this.identitySigRequestText(key.bytesToSign()))
+      hashMessage(this.identitySigRequestText(key.bytesToSign()))
     )
     return ecdsaSignerKey(digest, signature)
   }
@@ -174,16 +174,11 @@ export class WalletSigner implements KeySigner {
     const sigString = await this.wallet.signMessage(
       WalletSigner.identitySigRequestText(keyBytes)
     )
-    const eSig = utils.splitSignature(sigString)
-    const r = hexToBytes(eSig.r)
-    const s = hexToBytes(eSig.s)
-    const sigBytes = new Uint8Array(64)
-    sigBytes.set(r)
-    sigBytes.set(s, r.length)
+    const { bytes, recovery } = splitSignature(sigString as Hex)
     const signature = new Signature({
       walletEcdsaCompact: {
-        bytes: sigBytes,
-        recovery: eSig.recoveryParam,
+        bytes,
+        recovery,
       },
     })
     return new SignedPublicKey({ keyBytes, signature })

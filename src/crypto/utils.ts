@@ -1,4 +1,12 @@
 import * as secp from '@noble/secp256k1'
+import {
+  Hex,
+  getAddress,
+  hexToSignature,
+  keccak256,
+  hexToBytes as viemHexToBytes,
+  bytesToHex as viemBytesToHex,
+} from 'viem'
 
 export const bytesToHex = secp.utils.bytesToHex
 
@@ -28,4 +36,32 @@ export function equalBytes(b1: Uint8Array, b2: Uint8Array): boolean {
     }
   }
   return true
+}
+
+/**
+ * Compute the Ethereum address from uncompressed PublicKey bytes
+ */
+export function computeAddress(bytes: Uint8Array) {
+  const publicKey = viemBytesToHex(bytes.slice(1)) as `0x${string}`
+  const hash = keccak256(publicKey)
+  const address = hash.substring(hash.length - 40)
+  return getAddress(`0x${address}`)
+}
+
+/**
+ * Split an Ethereum signature hex string into bytes and a recovery bit
+ */
+export function splitSignature(signature: Hex) {
+  const eSig = hexToSignature(signature)
+  const r = viemHexToBytes(eSig.r)
+  const s = viemHexToBytes(eSig.s)
+  let v = Number(eSig.v)
+  if (v === 0 || v === 1) {
+    v += 27
+  }
+  const recovery = 1 - (v % 2)
+  const bytes = new Uint8Array(64)
+  bytes.set(r)
+  bytes.set(s, r.length)
+  return { bytes, recovery }
 }

@@ -2,10 +2,10 @@ import { publicKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature, { WalletSigner } from './Signature'
-import { equalBytes, hexToBytes } from './utils'
-import { utils } from 'ethers'
+import { computeAddress, equalBytes, splitSignature } from './utils'
 import { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
+import { hashMessage, Hex, hexToBytes } from 'viem'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {
@@ -90,7 +90,7 @@ export class UnsignedPublicKey implements publicKey.UnsignedPublicKey {
 
   // Derive Ethereum address from this public key.
   getEthereumAddress(): string {
-    return utils.computeAddress(this.secp256k1Uncompressed.bytes)
+    return computeAddress(this.secp256k1Uncompressed.bytes)
   }
 
   // Encode public key into bytes.
@@ -256,16 +256,11 @@ export class PublicKey
     const sigString = await wallet.signMessage(
       WalletSigner.identitySigRequestText(this.bytesToSign())
     )
-    const eSig = utils.splitSignature(sigString)
-    const r = hexToBytes(eSig.r)
-    const s = hexToBytes(eSig.s)
-    const sigBytes = new Uint8Array(64)
-    sigBytes.set(r)
-    sigBytes.set(s, r.length)
+    const { bytes, recovery } = splitSignature(sigString as Hex)
     this.signature = new Signature({
       ecdsaCompact: {
-        bytes: sigBytes,
-        recovery: eSig.recoveryParam,
+        bytes,
+        recovery,
       },
     })
   }
@@ -278,7 +273,7 @@ export class PublicKey
       throw new Error('key is not signed')
     }
     const digest = hexToBytes(
-      utils.hashMessage(WalletSigner.identitySigRequestText(this.bytesToSign()))
+      hashMessage(WalletSigner.identitySigRequestText(this.bytesToSign()))
     )
     const pk = this.signature.getPublicKey(digest)
     if (!pk) {

@@ -1,4 +1,4 @@
-import { utils } from 'ethers'
+import { getAddress } from 'viem'
 
 export const buildContentTopic = (name: string): string =>
   `/xmtp/0/${name}/proto`
@@ -8,7 +8,7 @@ export const buildDirectMessageTopic = (
   recipient: string
 ): string => {
   // EIP55 normalize the address case.
-  const members = [utils.getAddress(sender), utils.getAddress(recipient)]
+  const members = [getAddress(sender), getAddress(recipient)]
   members.sort()
   return buildContentTopic(`dm-${members.join('-')}`)
 }
@@ -19,17 +19,17 @@ export const buildDirectMessageTopicV2 = (randomString: string): string => {
 
 export const buildUserContactTopic = (walletAddr: string): string => {
   // EIP55 normalize the address case.
-  return buildContentTopic(`contact-${utils.getAddress(walletAddr)}`)
+  return buildContentTopic(`contact-${getAddress(walletAddr)}`)
 }
 
 export const buildUserIntroTopic = (walletAddr: string): string => {
   // EIP55 normalize the address case.
-  return buildContentTopic(`intro-${utils.getAddress(walletAddr)}`)
+  return buildContentTopic(`intro-${getAddress(walletAddr)}`)
 }
 
 export const buildUserInviteTopic = (walletAddr: string): string => {
   // EIP55 normalize the address case.
-  return buildContentTopic(`invite-${utils.getAddress(walletAddr)}`)
+  return buildContentTopic(`invite-${getAddress(walletAddr)}`)
 }
 
 export const buildUserPrivateStoreTopic = (addrPrefixedKey: string): string => {

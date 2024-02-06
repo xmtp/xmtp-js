@@ -13,6 +13,7 @@ const external = [
   'elliptic',
   'ethers',
   'long',
+  'viem',
 ]
 
 const plugins = [
