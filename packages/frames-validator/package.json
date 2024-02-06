@@ -34,6 +34,7 @@
   "devDependencies": {
     "@xmtp/frames-client": "^0.2.0",
     "ethers": "^6.10.0",
+    "typescript": "^5.3.3",
     "vitest": "^1.0.1"
   }
 }
