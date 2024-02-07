@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.3.1
+
+### Patch Changes
+
+- [#145](https://github.com/xmtp/xmtp-node-js-tools/pull/145) [`5fb6232`](https://github.com/xmtp/xmtp-node-js-tools/commit/5fb623267505a3e964281e3527c76c6a1c752c14) Thanks [@neekolas](https://github.com/neekolas)! - Export all the types
+
 ## 0.3.0
 
 ### Minor Changes
