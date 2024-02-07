@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.3.0
+
+### Minor Changes
+
+- [#143](https://github.com/xmtp/xmtp-node-js-tools/pull/143) [`050c529`](https://github.com/xmtp/xmtp-node-js-tools/commit/050c52986414773dba01796ed86d1ea5ec365be8) Thanks [@neekolas](https://github.com/neekolas)! - Configure to export for both Node.js and ESM
+
 ## 0.2.0
 
 ### Minor Changes
