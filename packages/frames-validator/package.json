@@ -2,8 +2,16 @@
   "name": "@xmtp/frames-validator",
   "version": "0.2.0",
   "description": "A validator for XMTP frames requests",
-  "main": "dist/src/index.js",
-  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "engines": {
     "node": ">=18"
   },
@@ -20,7 +28,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "yarn clean && tsc",
+    "build": "yarn clean && rollup -c",
     "prepublishOnly": "yarn build",
     "test": "vitest run ./src"
   },
@@ -32,8 +40,11 @@
   "homepage": "https://github.com/xmtp/xmtp-node-js-tools#readme",
   "packageManager": "yarn@4.0.0",
   "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.6",
     "@xmtp/frames-client": "^0.2.0",
     "ethers": "^6.10.0",
+    "rollup": "^4.9.6",
+    "rollup-plugin-dts": "^6.1.0",
     "typescript": "^5.3.3",
     "vitest": "^1.0.1"
   }
