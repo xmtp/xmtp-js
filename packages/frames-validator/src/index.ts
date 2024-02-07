@@ -3,6 +3,7 @@ import { Signature, SignedPublicKeyBundle } from "@xmtp/xmtp-js"
 
 import { sha256 } from "./crypto.js"
 import { FramePostPayload, FramePostUntrustedData } from "./types.js"
+export * from "./types.js"
 
 const { b64Decode } = fetcher
 
