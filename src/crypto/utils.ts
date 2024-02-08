@@ -4,23 +4,11 @@ import {
   getAddress,
   hexToSignature,
   keccak256,
-  hexToBytes as viemHexToBytes,
+  hexToBytes,
   bytesToHex as viemBytesToHex,
 } from 'viem'
 
 export const bytesToHex = secp.utils.bytesToHex
-
-export function hexToBytes(s: string): Uint8Array {
-  if (s.startsWith('0x')) {
-    s = s.slice(2)
-  }
-  const bytes = new Uint8Array(s.length / 2)
-  for (let i = 0; i < bytes.length; i++) {
-    const j = i * 2
-    bytes[i] = Number.parseInt(s.slice(j, j + 2), 16)
-  }
-  return bytes
-}
 
 export function bytesToBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString('base64')
@@ -42,7 +30,7 @@ export function equalBytes(b1: Uint8Array, b2: Uint8Array): boolean {
  * Compute the Ethereum address from uncompressed PublicKey bytes
  */
 export function computeAddress(bytes: Uint8Array) {
-  const publicKey = viemBytesToHex(bytes.slice(1)) as `0x${string}`
+  const publicKey = viemBytesToHex(bytes.slice(1)) as Hex
   const hash = keccak256(publicKey)
   const address = hash.substring(hash.length - 40)
   return getAddress(`0x${address}`)
@@ -53,8 +41,8 @@ export function computeAddress(bytes: Uint8Array) {
  */
 export function splitSignature(signature: Hex) {
   const eSig = hexToSignature(signature)
-  const r = viemHexToBytes(eSig.r)
-  const s = viemHexToBytes(eSig.s)
+  const r = hexToBytes(eSig.r)
+  const s = hexToBytes(eSig.s)
   let v = Number(eSig.v)
   if (v === 0 || v === 1) {
     v += 27

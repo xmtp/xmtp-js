@@ -4,8 +4,8 @@ import * as secp from '@noble/secp256k1'
 import { PublicKey, UnsignedPublicKey, SignedPublicKey } from './PublicKey'
 import { SignedPrivateKey } from './PrivateKey'
 import { Signer } from '../types/Signer'
-import { bytesToHex, equalBytes, hexToBytes, splitSignature } from './utils'
-import { Hex, hashMessage } from 'viem'
+import { bytesToHex, equalBytes, splitSignature } from './utils'
+import { Hex, hashMessage, hexToBytes } from 'viem'
 
 // ECDSA signature with recovery bit.
 export type ECDSACompactWithRecovery = {

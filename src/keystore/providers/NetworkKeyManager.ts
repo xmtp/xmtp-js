@@ -9,11 +9,11 @@ import {
 } from '../../crypto'
 import type { PreEventCallback } from '../../Client'
 import { LocalAuthenticator } from '../../authn'
-import { bytesToHex, hexToBytes } from '../../crypto/utils'
+import { bytesToHex } from '../../crypto/utils'
 import Ciphertext from '../../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
 import TopicPersistence from '../persistence/TopicPersistence'
-import { getAddress, verifyMessage } from 'viem'
+import { Hex, getAddress, hexToBytes, verifyMessage } from 'viem'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
@@ -100,14 +100,14 @@ export default class NetworkKeyManager {
     const valid = verifyMessage({
       address: walletAddr as `0x${string}`,
       message: input,
-      signature: sig as `0x${string}`,
+      signature: sig as Hex,
     })
 
     if (!valid) {
       throw new Error('invalid signature')
     }
 
-    const secret = hexToBytes(sig as `0x${string}`)
+    const secret = hexToBytes(sig as Hex)
     const ciphertext = await encrypt(bytes, secret)
     return proto.EncryptedPrivateKeyBundle.encode({
       v1: {
@@ -137,7 +137,7 @@ export default class NetworkKeyManager {
     const secret = hexToBytes(
       (await wallet.signMessage(
         storageSigRequestText(eBundle.walletPreKey)
-      )) as `0x${string}`
+      )) as Hex
     )
 
     // Ledger uses the last byte = v=[0,1,...] but Metamask and other wallets generate with
