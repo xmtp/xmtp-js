@@ -2,7 +2,7 @@ import type { Client } from "@xmtp/xmtp-js";
 import { frames } from "@xmtp/proto";
 import { sha256 } from "@noble/hashes/sha256";
 import Long from "long";
-import { OG_PROXY_URL } from "./constants";
+import { OG_PROXY_URL, PROTOCOL_VERSION } from "./constants";
 import type {
   FrameActionInputs,
   FramePostPayload,
@@ -19,9 +19,12 @@ export class FramesClient {
     this.xmtpClient = xmtpClient;
   }
 
-  static async readMetadata(url: string): Promise<FramesApiResponse> {
+  static async readMetadata(
+    url: string,
+    ogProxyUrl = OG_PROXY_URL,
+  ): Promise<FramesApiResponse> {
     const response = await fetch(
-      `${OG_PROXY_URL}?url=${encodeURIComponent(url)}`,
+      `${ogProxyUrl}?url=${encodeURIComponent(url)}`,
     );
 
     if (!response.ok) {
@@ -34,9 +37,10 @@ export class FramesClient {
   static async postToFrame(
     url: string,
     payload: FramePostPayload,
+    ogProxyUrl = OG_PROXY_URL,
   ): Promise<FramesApiResponse> {
     const response = await fetch(
-      `${OG_PROXY_URL}?url=${encodeURIComponent(url)}`,
+      `${ogProxyUrl}?url=${encodeURIComponent(url)}`,
       {
         method: "POST",
         body: JSON.stringify(payload),
@@ -69,6 +73,7 @@ export class FramesClient {
     const signedAction = await this.buildSignedFrameAction(toSign);
 
     return {
+      clientProtocol: `xmtp@${PROTOCOL_VERSION}`,
       untrustedData: {
         buttonIndex,
         opaqueConversationIdentifier,
