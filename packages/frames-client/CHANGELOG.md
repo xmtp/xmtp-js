@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.2.2
+
+### Patch Changes
+
+- c323d3b: Makes the payloads Open Frames compatible and allows overriding the OG proxy URL
+
 ## 0.2.1
 
 ### Patch Changes
