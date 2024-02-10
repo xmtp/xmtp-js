@@ -41,7 +41,7 @@
   "homepage": "https://github.com/xmtp/xmtp-node-js-tools#readme",
   "packageManager": "yarn@4.0.0",
   "devDependencies": {
-    "@open-frames/types": "^0.0.5",
+    "@open-frames/types": "^0.0.6",
     "@rollup/plugin-typescript": "^11.1.6",
     "@xmtp/frames-client": "^0.2.2",
     "ethers": "^6.10.0",
