@@ -72,7 +72,7 @@
     "bench": "yarn build:bench && node dist/bench/index.cjs",
     "build": "yarn clean:dist && rollup -c",
     "build:bench": "rollup -c rollup.config.bench.js",
-    "build:docs": "yarn clean:docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc --excludePrivate --readme tmp/README.md src/index.ts",
+    "build:docs": "yarn clean:docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc",
     "clean": "yarn clean:artifacts && yarn clean:dist && yarn clean:docs && yarn clean:deps",
     "clean:artifacts": "rm -rf docs tmp package.tgz",
     "clean:deps": "rm -rf node_modules",
