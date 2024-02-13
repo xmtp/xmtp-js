@@ -15,6 +15,7 @@ export type ECDSACompactWithRecovery = {
   recovery: number // recovery bit
 }
 
+// hexToBytes implementation that is compatible with `xmtp-js`'s implementation
 export function hexToBytes(s: string): Uint8Array {
   if (s.startsWith("0x")) {
     s = s.slice(2)
@@ -27,6 +28,7 @@ export function hexToBytes(s: string): Uint8Array {
   return bytes
 }
 
+// Ensure the signature is valid
 function ecdsaCheck(sig: ECDSACompactWithRecovery): void {
   if (sig.bytes.length !== 64) {
     throw new Error(`invalid signature length: ${sig.bytes.length}`)
@@ -36,6 +38,8 @@ function ecdsaCheck(sig: ECDSACompactWithRecovery): void {
   }
 }
 
+// Get the signature bytes from a Signature proto message, whether it is wallet signed or signed by
+// an XMTP key
 function extractSignature(
   signature: signature.Signature,
 ): ECDSACompactWithRecovery {
@@ -50,6 +54,7 @@ function extractSignature(
   }
 }
 
+// Directly copied from `xmtp-js`
 function walletSignatureText(keyBytes: Uint8Array): string {
   return (
     "XMTP : Create Identity\n" +
@@ -59,6 +64,7 @@ function walletSignatureText(keyBytes: Uint8Array): string {
   )
 }
 
+// Ensure that the `SignedPublicKeyBundle` has the required fields
 function validateSignedPublicKeyBundle(
   bundle: publicKey.SignedPublicKeyBundle,
 ): bundle is SignedPublicKeyBundle {
@@ -71,6 +77,12 @@ function validateSignedPublicKeyBundle(
   return true
 }
 
+/**
+ * Validate that a message was signed by the identity key in a `SignedPublicKeyBundle`
+ * @param message Uint8array
+ * @param sig signature.Signature
+ * @param bundle publicKey.SignedPublicKeyBundle
+ */
 export function verifyIdentityKeySignature(
   message: Uint8Array,
   sig: signature.Signature,
@@ -118,6 +130,11 @@ function recoverWalletAddress(
   return computeAddress(pubKey)
 }
 
+/**
+ * Retrieve the wallet address from a `SignedPublicKeyBundle` proto
+ * @param publicKeyBundle
+ * @returns string wallet address
+ */
 export async function verifyWalletSignature(
   publicKeyBundle: publicKey.SignedPublicKeyBundle,
 ) {
