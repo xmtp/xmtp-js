@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.4.0
+
+### Minor Changes
+
+- [#147](https://github.com/xmtp/xmtp-node-js-tools/pull/147) [`9ad92d8`](https://github.com/xmtp/xmtp-node-js-tools/commit/9ad92d801ce58a0610078016640a4e611b73e662) Thanks [@neekolas](https://github.com/neekolas)! - Adds support for an Open Frames validator
+
 ## 0.3.1
 
 ### Patch Changes

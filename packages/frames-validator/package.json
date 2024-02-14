@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/frames-validator",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A validator for XMTP frames requests",
   "type": "module",
   "main": "dist/index.cjs",
