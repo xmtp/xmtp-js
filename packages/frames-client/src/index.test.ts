@@ -3,7 +3,7 @@ import { Wallet } from "ethers";
 import { frames, fetcher } from "@xmtp/proto";
 import { it, expect, describe, beforeEach } from "vitest";
 import { sha256 } from "@noble/hashes/sha256";
-import { FramesClient } from ".";
+import { FramesClient } from "./client";
 
 const { b64Decode } = fetcher;
 
