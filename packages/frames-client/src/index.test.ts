@@ -70,21 +70,28 @@ describe("signFrameAction", () => {
   });
 
   // Will add E2E tests back once we have Frames deployed with the new schema
-  // it("works e2e", async () => {
-  //   const frameUrl =
-  //     "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
-  //   const metadata = await FramesClient.readMetadata(frameUrl);
-  //   expect(metadata).toBeDefined();
-  //   const signedPayload = await framesClient.signFrameAction(
-  //     frameUrl,
-  //     1,
-  //     "foo",
-  //     "bar",
-  //   );
-  //   console.log(signedPayload);
-  //   const postUrl = metadata.extractedTags["fc:frame:post_url"];
-  //   console.log("posting to", postUrl);
-  //   const response = await FramesClient.postToFrame(postUrl, signedPayload);
-  //   console.log(response);
-  // });
+  it("works e2e", async () => {
+    const frameUrl =
+      "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
+
+    const metadata = await framesClient.proxy.readMetadata(frameUrl);
+    expect(metadata).toBeDefined();
+    const signedPayload = await framesClient.signFrameAction({
+      frameUrl,
+      buttonIndex: 1,
+      conversationTopic: "foo",
+      participantAccountAddresses: ["amal", "bola"],
+    });
+    const postUrl = metadata.metaTags["fc:frame:post_url"];
+    const response = await framesClient.proxy.post(postUrl, signedPayload);
+    expect(response).toBeDefined();
+    expect(response.metaTags["fc:frame"]).toEqual("vNext");
+
+    const imageUrl = response.metaTags["fc:frame:image"];
+    const mediaUrl = framesClient.proxy.mediaUrl(imageUrl);
+
+    const downloadedMedia = await fetch(mediaUrl);
+    expect(downloadedMedia.ok).toBeTruthy();
+    expect(downloadedMedia.headers.get("content-type")).toEqual("image/png");
+  });
 });

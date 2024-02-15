@@ -2,61 +2,20 @@ import type { Client } from "@xmtp/xmtp-js";
 import { frames } from "@xmtp/proto";
 import { sha256 } from "@noble/hashes/sha256";
 import Long from "long";
-import { OG_PROXY_URL, PROTOCOL_VERSION } from "./constants";
-import type {
-  FrameActionInputs,
-  FramePostPayload,
-  FramesApiResponse,
-} from "./types";
+import { PROTOCOL_VERSION } from "./constants";
+import type { FrameActionInputs, FramePostPayload } from "./types";
 import { v1ToV2Bundle } from "./converters";
-import { ApiError } from "./errors";
 import { base64Encode, buildOpaqueIdentifier } from "./utils";
+import OpenFramesProxy from "./proxy";
 
 export class FramesClient {
   xmtpClient: Client;
 
-  constructor(xmtpClient: Client) {
+  proxy: OpenFramesProxy;
+
+  constructor(xmtpClient: Client, proxy?: OpenFramesProxy) {
     this.xmtpClient = xmtpClient;
-  }
-
-  static async readMetadata(
-    url: string,
-    ogProxyUrl = OG_PROXY_URL,
-  ): Promise<FramesApiResponse> {
-    const response = await fetch(
-      `${ogProxyUrl}?url=${encodeURIComponent(url)}`,
-    );
-
-    if (!response.ok) {
-      throw new ApiError(`Failed to read metadata for ${url}`, response.status);
-    }
-
-    return (await response.json()) as FramesApiResponse;
-  }
-
-  static async postToFrame(
-    url: string,
-    payload: FramePostPayload,
-    ogProxyUrl = OG_PROXY_URL,
-  ): Promise<FramesApiResponse> {
-    const response = await fetch(
-      `${ogProxyUrl}?url=${encodeURIComponent(url)}`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to post to frame: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    return (await response.json()) as FramesApiResponse;
+    this.proxy = proxy || new OpenFramesProxy();
   }
 
   async signFrameAction(inputs: FrameActionInputs): Promise<FramePostPayload> {
@@ -80,6 +39,7 @@ export class FramesClient {
         walletAddress: this.xmtpClient.address,
         url: frameUrl,
         timestamp: now,
+        unixTimestamp: now,
       },
       trustedData: {
         messageBytes: base64Encode(signedAction),
