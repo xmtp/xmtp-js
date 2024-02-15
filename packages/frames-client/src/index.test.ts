@@ -70,28 +70,33 @@ describe("signFrameAction", () => {
   });
 
   // Will add E2E tests back once we have Frames deployed with the new schema
-  it("works e2e", async () => {
-    const frameUrl =
-      "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
+  it(
+    "works e2e",
+    async () => {
+      const frameUrl =
+        "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
 
-    const metadata = await framesClient.proxy.readMetadata(frameUrl);
-    expect(metadata).toBeDefined();
-    const signedPayload = await framesClient.signFrameAction({
-      frameUrl,
-      buttonIndex: 1,
-      conversationTopic: "foo",
-      participantAccountAddresses: ["amal", "bola"],
-    });
-    const postUrl = metadata.extractedTags["fc:frame:post_url"];
-    const response = await framesClient.proxy.post(postUrl, signedPayload);
-    expect(response).toBeDefined();
-    expect(response.extractedTags["fc:frame"]).toEqual("vNext");
+      const metadata = await framesClient.proxy.readMetadata(frameUrl);
+      expect(metadata).toBeDefined();
+      const signedPayload = await framesClient.signFrameAction({
+        frameUrl,
+        buttonIndex: 1,
+        conversationTopic: "foo",
+        participantAccountAddresses: ["amal", "bola"],
+      });
+      const postUrl = metadata.extractedTags["fc:frame:post_url"];
+      const response = await framesClient.proxy.post(postUrl, signedPayload);
+      expect(response).toBeDefined();
+      expect(response.extractedTags["fc:frame"]).toEqual("vNext");
 
-    const imageUrl = response.extractedTags["fc:frame:image"];
-    const mediaUrl = framesClient.proxy.mediaUrl(imageUrl);
+      const imageUrl = response.extractedTags["fc:frame:image"];
+      const mediaUrl = framesClient.proxy.mediaUrl(imageUrl);
 
-    const downloadedMedia = await fetch(mediaUrl);
-    expect(downloadedMedia.ok).toBeTruthy();
-    expect(downloadedMedia.headers.get("content-type")).toEqual("image/png");
-  });
+      const downloadedMedia = await fetch(mediaUrl);
+      expect(downloadedMedia.ok).toBeTruthy();
+      expect(downloadedMedia.headers.get("content-type")).toEqual("image/png");
+    },
+    // Add a long timeout because Vercel cold starts can be slow
+    { timeout: 20000 },
+  );
 });
