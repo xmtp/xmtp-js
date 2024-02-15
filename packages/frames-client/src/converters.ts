@@ -18,7 +18,8 @@ function toSignedPublicKey(
   let v1Signature = v1Key.signature;
   if (signedByWallet) {
     v1Signature = {
-      walletEcdsaCompact: v1Signature.ecdsaCompact,
+      walletEcdsaCompact:
+        v1Signature.walletEcdsaCompact || v1Signature.ecdsaCompact,
       ecdsaCompact: undefined,
     };
   }
