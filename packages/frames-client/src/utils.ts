@@ -50,6 +50,7 @@ export function isReactNativeClient(
   const assertedClient = client as ReactNativeClient;
   return (
     typeof assertedClient.sign === "function" &&
-    typeof assertedClient.exportPublicKeyBundle === "function"
+    typeof assertedClient.exportPublicKeyBundle === "function" &&
+    !("keystore" in client)
   );
 }
