@@ -42,3 +42,14 @@ export type FrameActionInputs = {
   frameUrl: string;
   buttonIndex: number;
 } & ConversationActionInputs;
+
+type KeyType = {
+  kind: "identity" | "prekey";
+  prekeyIndex?: number | undefined;
+};
+
+export type ReactNativeClient = {
+  address: string;
+  exportPublicKeyBundle(): Promise<Uint8Array>;
+  sign(digest: Uint8Array, type: KeyType): Promise<Uint8Array>;
+};
