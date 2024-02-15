@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.3.1
+
+### Patch Changes
+
+- 71cb3a3: Fix bug with identity key translation
+
 ## 0.3.0
 
 ### Minor Changes
