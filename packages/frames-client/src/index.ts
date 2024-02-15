@@ -1,62 +1,33 @@
 import type { Client } from "@xmtp/xmtp-js";
-import { frames } from "@xmtp/proto";
+import {
+  signature as signatureProto,
+  publicKey as publicKeyProto,
+  frames,
+} from "@xmtp/proto";
 import { sha256 } from "@noble/hashes/sha256";
 import Long from "long";
-import { OG_PROXY_URL, PROTOCOL_VERSION } from "./constants";
+import { PROTOCOL_VERSION } from "./constants";
 import type {
   FrameActionInputs,
   FramePostPayload,
-  FramesApiResponse,
+  ReactNativeClient,
 } from "./types";
 import { v1ToV2Bundle } from "./converters";
-import { ApiError } from "./errors";
-import { base64Encode, buildOpaqueIdentifier } from "./utils";
+import {
+  base64Encode,
+  buildOpaqueIdentifier,
+  isReactNativeClient,
+} from "./utils";
+import OpenFramesProxy from "./proxy";
 
 export class FramesClient {
-  xmtpClient: Client;
+  xmtpClient: Client | ReactNativeClient;
 
-  constructor(xmtpClient: Client) {
+  proxy: OpenFramesProxy;
+
+  constructor(xmtpClient: Client | ReactNativeClient, proxy?: OpenFramesProxy) {
     this.xmtpClient = xmtpClient;
-  }
-
-  static async readMetadata(
-    url: string,
-    ogProxyUrl = OG_PROXY_URL,
-  ): Promise<FramesApiResponse> {
-    const response = await fetch(
-      `${ogProxyUrl}?url=${encodeURIComponent(url)}`,
-    );
-
-    if (!response.ok) {
-      throw new ApiError(`Failed to read metadata for ${url}`, response.status);
-    }
-
-    return (await response.json()) as FramesApiResponse;
-  }
-
-  static async postToFrame(
-    url: string,
-    payload: FramePostPayload,
-    ogProxyUrl = OG_PROXY_URL,
-  ): Promise<FramesApiResponse> {
-    const response = await fetch(
-      `${ogProxyUrl}?url=${encodeURIComponent(url)}`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to post to frame: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    return (await response.json()) as FramesApiResponse;
+    this.proxy = proxy || new OpenFramesProxy();
   }
 
   async signFrameAction(inputs: FrameActionInputs): Promise<FramePostPayload> {
@@ -80,6 +51,7 @@ export class FramesClient {
         walletAddress: this.xmtpClient.address,
         url: frameUrl,
         timestamp: now,
+        unixTimestamp: now,
       },
       trustedData: {
         messageBytes: base64Encode(signedAction),
@@ -93,18 +65,40 @@ export class FramesClient {
     const actionBody = frames.FrameActionBody.encode(actionBodyInputs).finish();
 
     const digest = sha256(actionBody);
-    const signature = await this.xmtpClient.keystore.signDigest({
-      digest,
-      identityKey: true,
-      prekeyIndex: undefined,
-    });
+    const signature = await this.signDigest(digest);
 
-    const publicKeyBundle = await this.xmtpClient.keystore.getPublicKeyBundle();
+    const publicKeyBundle = await this.getPublicKeyBundle();
 
     return frames.FrameAction.encode({
       actionBody,
       signature,
       signedPublicKeyBundle: v1ToV2Bundle(publicKeyBundle),
     }).finish();
+  }
+
+  private async signDigest(
+    digest: Uint8Array,
+  ): Promise<signatureProto.Signature> {
+    if (isReactNativeClient(this.xmtpClient)) {
+      const signatureBytes = await this.xmtpClient.sign(digest, {
+        kind: "identity",
+      });
+      return signatureProto.Signature.decode(signatureBytes);
+    }
+
+    return this.xmtpClient.keystore.signDigest({
+      digest,
+      identityKey: true,
+      prekeyIndex: undefined,
+    });
+  }
+
+  private async getPublicKeyBundle(): Promise<publicKeyProto.PublicKeyBundle> {
+    if (isReactNativeClient(this.xmtpClient)) {
+      const bundleBytes = await this.xmtpClient.exportPublicKeyBundle();
+      return publicKeyProto.PublicKeyBundle.decode(bundleBytes);
+    }
+
+    return this.xmtpClient.keystore.getPublicKeyBundle();
   }
 }

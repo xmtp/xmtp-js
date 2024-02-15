@@ -5,9 +5,15 @@ export type FramesApiResponse = {
   extractedTags: { [k: string]: string };
 };
 
+export type FramesApiRedirectResponse = {
+  originalUrl: string;
+  redirectedTo: string;
+};
+
 export type FramePostUntrustedData = OpenFramesUntrustedData & {
   walletAddress: string; // Untrusted version of the wallet address
   opaqueConversationIdentifier: string; // A hash of the conversation topic and the participants
+  unixTimestamp: number;
 };
 
 export type FramePostTrustedData = {
@@ -36,3 +42,14 @@ export type FrameActionInputs = {
   frameUrl: string;
   buttonIndex: number;
 } & ConversationActionInputs;
+
+type KeyType = {
+  kind: "identity" | "prekey";
+  prekeyIndex?: number | undefined;
+};
+
+export type ReactNativeClient = {
+  address: string;
+  exportPublicKeyBundle(): Promise<Uint8Array>;
+  sign(digest: Uint8Array, type: KeyType): Promise<Uint8Array>;
+};
