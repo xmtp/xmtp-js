@@ -30,32 +30,6 @@ export class FramesClient {
     this.proxy = proxy || new OpenFramesProxy();
   }
 
-  private async signDigest(
-    digest: Uint8Array,
-  ): Promise<signatureProto.Signature> {
-    if (isReactNativeClient(this.xmtpClient)) {
-      const signatureBytes = await this.xmtpClient.sign(digest, {
-        kind: "identity",
-      });
-      return signatureProto.Signature.decode(signatureBytes);
-    }
-
-    return this.xmtpClient.keystore.signDigest({
-      digest,
-      identityKey: true,
-      prekeyIndex: undefined,
-    });
-  }
-
-  private async getPublicKeyBundle(): Promise<publicKeyProto.PublicKeyBundle> {
-    if (isReactNativeClient(this.xmtpClient)) {
-      const bundleBytes = await this.xmtpClient.exportPublicKeyBundle();
-      return publicKeyProto.PublicKeyBundle.decode(bundleBytes);
-    }
-
-    return this.xmtpClient.keystore.getPublicKeyBundle();
-  }
-
   async signFrameAction(inputs: FrameActionInputs): Promise<FramePostPayload> {
     const opaqueConversationIdentifier = buildOpaqueIdentifier(inputs);
     const { frameUrl, buttonIndex } = inputs;
@@ -100,5 +74,31 @@ export class FramesClient {
       signature,
       signedPublicKeyBundle: v1ToV2Bundle(publicKeyBundle),
     }).finish();
+  }
+
+  private async signDigest(
+    digest: Uint8Array,
+  ): Promise<signatureProto.Signature> {
+    if (isReactNativeClient(this.xmtpClient)) {
+      const signatureBytes = await this.xmtpClient.sign(digest, {
+        kind: "identity",
+      });
+      return signatureProto.Signature.decode(signatureBytes);
+    }
+
+    return this.xmtpClient.keystore.signDigest({
+      digest,
+      identityKey: true,
+      prekeyIndex: undefined,
+    });
+  }
+
+  private async getPublicKeyBundle(): Promise<publicKeyProto.PublicKeyBundle> {
+    if (isReactNativeClient(this.xmtpClient)) {
+      const bundleBytes = await this.xmtpClient.exportPublicKeyBundle();
+      return publicKeyProto.PublicKeyBundle.decode(bundleBytes);
+    }
+
+    return this.xmtpClient.keystore.getPublicKeyBundle();
   }
 }
