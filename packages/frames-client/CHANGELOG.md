@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.3.0
+
+### Minor Changes
+
+- 65a7cc1: Add new Frames Proxy service and support for redirects and image URLs
+
 ## 0.2.2
 
 ### Patch Changes
