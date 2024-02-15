@@ -2,7 +2,7 @@ import type { OpenFramesUntrustedData } from "@open-frames/types";
 
 export type FramesApiResponse = {
   url: string;
-  metaTags: { [k: string]: string };
+  extractedTags: { [k: string]: string };
 };
 
 export type FramesApiRedirectResponse = {

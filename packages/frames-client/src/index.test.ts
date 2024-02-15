@@ -82,12 +82,12 @@ describe("signFrameAction", () => {
       conversationTopic: "foo",
       participantAccountAddresses: ["amal", "bola"],
     });
-    const postUrl = metadata.metaTags["fc:frame:post_url"];
+    const postUrl = metadata.extractedTags["fc:frame:post_url"];
     const response = await framesClient.proxy.post(postUrl, signedPayload);
     expect(response).toBeDefined();
-    expect(response.metaTags["fc:frame"]).toEqual("vNext");
+    expect(response.extractedTags["fc:frame"]).toEqual("vNext");
 
-    const imageUrl = response.metaTags["fc:frame:image"];
+    const imageUrl = response.extractedTags["fc:frame:image"];
     const mediaUrl = framesClient.proxy.mediaUrl(imageUrl);
 
     const downloadedMedia = await fetch(mediaUrl);
