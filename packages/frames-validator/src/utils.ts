@@ -1,5 +1,6 @@
+import { bytesToHex } from "@noble/curves/abstract/utils"
+import { secp256k1 } from "@noble/curves/secp256k1"
 import { sha256 } from "@noble/hashes/sha256"
-import * as secp from "@noble/secp256k1"
 import { publicKey, signature } from "@xmtp/proto"
 import { SignedPublicKeyBundle } from "@xmtp/xmtp-js"
 import {
@@ -8,7 +9,6 @@ import {
   hashMessage,
   keccak256,
 } from "viem/utils"
-const bytesToHex = secp.etc.bytesToHex
 
 export type ECDSACompactWithRecovery = {
   bytes: Uint8Array // compact representation [ R || S ], 64 bytes
@@ -100,7 +100,7 @@ export function verifyIdentityKeySignature(
   }
 
   const digest = sha256(message)
-  const isVerified = secp.verify(
+  const isVerified = secp256k1.verify(
     sig.ecdsaCompact.bytes,
     digest,
     pubKey.secp256k1Uncompressed.bytes,
@@ -122,7 +122,7 @@ function recoverWalletAddress(
   sig: ECDSACompactWithRecovery,
 ) {
   const digest = hexToBytes(hashMessage(messageString))
-  const pubKey = secp.Signature.fromCompact(sig.bytes)
+  const pubKey = secp256k1.Signature.fromCompact(sig.bytes)
     .addRecoveryBit(sig.recovery)
     .recoverPublicKey(digest)
     .toRawBytes(false)
@@ -135,7 +135,7 @@ function recoverWalletAddress(
  * @param publicKeyBundle
  * @returns string wallet address
  */
-export async function verifyWalletSignature(
+export function verifyWalletSignature(
   publicKeyBundle: publicKey.SignedPublicKeyBundle,
 ) {
   if (!validateSignedPublicKeyBundle(publicKeyBundle)) {
