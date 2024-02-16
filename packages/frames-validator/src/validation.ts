@@ -63,7 +63,7 @@ async function getVerifiedWalletAddress(
   signature: signature.Signature,
   signedPublicKeyBundle: publicKey.SignedPublicKeyBundle,
 ): Promise<string> {
-  const walletAddress = await verifyWalletSignature(signedPublicKeyBundle)
+  const walletAddress = verifyWalletSignature(signedPublicKeyBundle)
   verifyIdentityKeySignature(actionBodyBytes, signature, signedPublicKeyBundle)
 
   return walletAddress
