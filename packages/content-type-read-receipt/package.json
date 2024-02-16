@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@xmtp/proto": "^3.29.0",
-    "@xmtp/xmtp-js": "^11.1.2"
+    "@xmtp/xmtp-js": "^11.3.12"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
