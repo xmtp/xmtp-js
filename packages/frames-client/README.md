@@ -7,6 +7,7 @@ const xmtpClient = await Client.create(wallet);
 const framesClient = new FramesClient(xmtpClient);
 
 const frameUrl = "https://www.myframe.xyz";
+const framePostUrl =  "https://www.myframe.xyz/api/post"; //fc:frame:post_url
 
 // Read data from a frame
 const frameMetadata = await framesClient.proxy.readMetadata(frameUrl);
@@ -25,10 +26,10 @@ const payload = await signFrameAction({
 });
 
 // If the button action type was `post`
-const updatedFrameMetadata = await framesClient.proxy.post(frameUrl, payload);
+const updatedFrameMetadata = await framesClient.proxy.post(framePostUrl, payload);
 // If the button action type was `post_redirect`
 const { redirectedTo } = await framesClient.proxy.postRedirect(
-  frameUrl,
+  framePostUrl,
   payload,
 );
 ```
