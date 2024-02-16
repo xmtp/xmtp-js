@@ -371,6 +371,29 @@ describe('conversation', () => {
       expect(msg.content).toBe(content)
     })
 
+    it('does not compress v1 messages less than 10 bytes', async () => {
+      const convo = await alice.conversations.newConversation(bob.address)
+      await convo.send('gm!', {
+        contentType: ContentTypeText,
+        compression: Compression.COMPRESSION_DEFLATE,
+      })
+
+      const envelopes = await alice.apiClient.query(
+        {
+          contentTopic: convo.topic,
+        },
+        { limit: 1 }
+      )
+      const messageBytes = envelopes[0].message as Uint8Array
+      const decoded = await MessageV1.fromBytes(messageBytes)
+      const decrypted = await decoded.decrypt(
+        alice.keystore,
+        alice.publicKeyBundle
+      )
+      const encodedContent = proto.EncodedContent.decode(decrypted)
+      expect(encodedContent.compression).toBeUndefined()
+    })
+
     it('throws when opening a conversation with an unknown address', () => {
       expect(alice.conversations.newConversation('0xfoo')).rejects.toThrow(
         'invalid address'
@@ -562,7 +585,28 @@ describe('conversation', () => {
     //   ).rejects.toThrow('pre key not signed by identity key')
     // })
 
-    it('can send compressed v2 messages', async () => {
+    it('does not compress v2 messages less than 10 bytes', async () => {
+      const convo = await alice.conversations.newConversation(bob.address, {
+        conversationId: 'example.com/nocompression',
+        metadata: {},
+      })
+      await convo.send('gm!', {
+        contentType: ContentTypeText,
+        compression: Compression.COMPRESSION_DEFLATE,
+      })
+
+      const envelopes = await alice.apiClient.query(
+        {
+          contentTopic: convo.topic,
+        },
+        { limit: 1 }
+      )
+      const msg = await convo.decodeMessage(envelopes[0])
+      const decoded = proto.EncodedContent.decode(msg.contentBytes)
+      expect(decoded.compression).toBeUndefined()
+    })
+
+    it('can send compressed v2 messages of various lengths', async () => {
       const convo = await alice.conversations.newConversation(bob.address, {
         conversationId: 'example.com/compressedv2',
         metadata: {},
@@ -572,11 +616,48 @@ describe('conversation', () => {
         contentType: ContentTypeText,
         compression: Compression.COMPRESSION_DEFLATE,
       })
-      await sleep(100)
+      await convo.send('gm!', {
+        contentType: ContentTypeText,
+        compression: Compression.COMPRESSION_DEFLATE,
+      })
       const results = await convo.messages()
-      expect(results).toHaveLength(1)
-      const msg = results[0]
-      expect(msg.content).toBe(content)
+      expect(results).toHaveLength(2)
+      expect(results[0].content).toBe(content)
+      expect(results[1].content).toBe('gm!')
+    })
+
+    it('can send compressed v2 prepared messages of various lengths', async () => {
+      const aliceConversation = await alice.conversations.newConversation(
+        bob.address,
+        {
+          conversationId: 'example.com',
+          metadata: {},
+        }
+      )
+
+      const preparedMessage = await aliceConversation.prepareMessage('gm!', {
+        compression: Compression.COMPRESSION_DEFLATE,
+      })
+      const messageID = await preparedMessage.messageID()
+      const sentMessage = await preparedMessage.send()
+      const preparedMessage2 = await aliceConversation.prepareMessage(
+        'A'.repeat(100),
+        {
+          compression: Compression.COMPRESSION_DEFLATE,
+        }
+      )
+      const messageID2 = await preparedMessage2.messageID()
+      const sentMessage2 = await preparedMessage2.send()
+
+      const messages = await aliceConversation.messages()
+      expect(messages[0].id).toBe(messageID)
+      expect(messages[0].content).toBe('gm!')
+      expect(sentMessage.id).toBe(messageID)
+      expect(sentMessage.messageVersion).toBe('v2')
+      expect(messages[1].id).toBe(messageID2)
+      expect(messages[1].content).toBe('A'.repeat(100))
+      expect(sentMessage2.id).toBe(messageID2)
+      expect(sentMessage2.messageVersion).toBe('v2')
     })
 
     it('handles limiting page size', async () => {
