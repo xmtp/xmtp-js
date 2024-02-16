@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.5.0
+
+### Minor Changes
+
+- [#154](https://github.com/xmtp/xmtp-node-js-tools/pull/154) [`7530777`](https://github.com/xmtp/xmtp-node-js-tools/commit/7530777be8e863a87bc5cad6136db8202eb9bea7) Thanks [@neekolas](https://github.com/neekolas)! - Switch out encryption library for better commonjs support
+
 ## 0.4.0
 
 ### Minor Changes
