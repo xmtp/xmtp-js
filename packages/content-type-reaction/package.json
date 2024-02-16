@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-reaction",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "An XMTP content type to support reactions to messages",
   "author": "XMTP Labs <eng@xmtp.com>",
   "license": "MIT",
