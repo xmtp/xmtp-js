@@ -647,7 +647,11 @@ export default class Client<ContentTypes = any> {
     if (fallback) {
       encoded.fallback = fallback
     }
-    if (typeof options?.compression === 'number') {
+    if (
+      typeof options?.compression === 'number' &&
+      // do not compress content less than 10 bytes
+      encoded.content.length >= 10
+    ) {
       encoded.compression = options.compression
     }
     await compress(encoded)
