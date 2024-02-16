@@ -75,7 +75,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@xmtp/tsconfig": "workspace:*",
-    "@xmtp/xmtp-js": "^11.3.7",
+    "@xmtp/xmtp-js": "^11.3.12",
     "eslint": "^8.56.0",
     "eslint-config-xmtp-web": "workspace:*",
     "ethers": "^6.10.0",
@@ -96,6 +96,8 @@
   },
   "packageManager": "yarn@4.0.2",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
   }
 }
