@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.4.0
+
+### Minor Changes
+
+- 893bf17: Use new Frames Proxy with support for frameInfo field
+
 ## 0.3.2
 
 ### Patch Changes
