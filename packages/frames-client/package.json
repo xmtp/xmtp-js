@@ -68,6 +68,7 @@
     "long": "^5.2.3"
   },
   "devDependencies": {
+    "@open-frames/proxy": "^0.0.3",
     "@open-frames/types": "^0.0.6",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
