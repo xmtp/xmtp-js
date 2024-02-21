@@ -103,14 +103,14 @@
     ]
   },
   "dependencies": {
-    "@noble/secp256k1": "^1.5.2",
-    "@xmtp/proto": "^3.34.0",
-    "@xmtp/user-preferences-bindings-wasm": "^0.3.5",
-    "async-mutex": "^0.4.0",
-    "elliptic": "^6.5.4",
-    "ethers": "^5.5.3",
-    "js-sha3": "^0.9.3",
-    "long": "^5.2.0"
+    "@noble/secp256k1": "1.5.2",
+    "@xmtp/proto": "3.34.0",
+    "@xmtp/user-preferences-bindings-wasm": "0.3.5",
+    "async-mutex": "0.4.0",
+    "elliptic": "6.5.4",
+    "ethers": "5.5.3",
+    "js-sha3": "0.9.3",
+    "long": "5.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
