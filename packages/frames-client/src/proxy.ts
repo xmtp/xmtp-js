@@ -1,5 +1,5 @@
+import { OpenFramesProxy as BaseProxy } from "@open-frames/proxy-client";
 import { OPEN_FRAMES_PROXY_URL } from "./constants";
-import { ApiError } from "./errors";
 import type {
   FramePostPayload,
   FramesApiRedirectResponse,
@@ -7,73 +7,28 @@ import type {
 } from "./types";
 
 export default class OpenFramesProxy {
-  baseUrl: string;
+  inner: BaseProxy;
 
   constructor(baseUrl: string = OPEN_FRAMES_PROXY_URL) {
-    this.baseUrl = baseUrl;
+    this.inner = new BaseProxy(baseUrl);
   }
 
-  async readMetadata(url: string): Promise<FramesApiResponse> {
-    const response = await fetch(
-      `${this.baseUrl}?url=${encodeURIComponent(url)}`,
-    );
-
-    if (!response.ok) {
-      throw new ApiError(`Failed to read metadata for ${url}`, response.status);
-    }
-
-    return (await response.json()) as FramesApiResponse;
+  readMetadata(url: string): Promise<FramesApiResponse> {
+    return this.inner.readMetadata(url);
   }
 
-  async post(
-    url: string,
-    payload: FramePostPayload,
-  ): Promise<FramesApiResponse> {
-    const response = await fetch(
-      `${this.baseUrl}?url=${encodeURIComponent(url)}`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to post to frame: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    return (await response.json()) as FramesApiResponse;
+  post(url: string, payload: FramePostPayload): Promise<FramesApiResponse> {
+    return this.inner.post(url, payload);
   }
 
-  async postRedirect(
+  postRedirect(
     url: string,
     payload: FramePostPayload,
   ): Promise<FramesApiRedirectResponse> {
-    const response = await fetch(
-      `${this.baseUrl}redirect?url=${encodeURIComponent(url)}`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to post to frame: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    return (await response.json()) as FramesApiRedirectResponse;
+    return this.inner.postRedirect(url, payload);
   }
 
   mediaUrl(url: string): string {
-    return `${this.baseUrl}media?url=${encodeURIComponent(url)}`;
+    return this.inner.mediaUrl(url);
   }
 }
