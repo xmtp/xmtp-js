@@ -75,9 +75,27 @@ describe("signFrameAction", () => {
     async () => {
       const frameUrl =
         "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
-
       const metadata = await framesClient.proxy.readMetadata(frameUrl);
       expect(metadata).toBeDefined();
+      expect(metadata.frameInfo).toMatchObject({
+        acceptedClients: {
+          farcaster: "vNext",
+        },
+        buttons: {
+          "1": {
+            label: "Yes",
+          },
+          "2": {
+            label: "No",
+          },
+        },
+        image: {
+          content:
+            "https://fc-polls-five.vercel.app/api/image?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
+        },
+        postUrl:
+          "https://fc-polls-five.vercel.app/api/vote?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
+      });
       const signedPayload = await framesClient.signFrameAction({
         frameUrl,
         buttonIndex: 1,
