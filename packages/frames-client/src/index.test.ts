@@ -75,7 +75,6 @@ describe("signFrameAction", () => {
     async () => {
       const frameUrl =
         "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
-
       const metadata = await framesClient.proxy.readMetadata(frameUrl);
       expect(metadata).toBeDefined();
       expect(metadata.frameInfo).toMatchObject({

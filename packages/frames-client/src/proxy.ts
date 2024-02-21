@@ -13,7 +13,7 @@ export default class OpenFramesProxy {
     this.inner = new BaseProxy(baseUrl);
   }
 
-  readMetadata(url: string): Promise<FramesApiResponse> {
+  readMetadata(url: string) {
     return this.inner.readMetadata(url);
   }
 
