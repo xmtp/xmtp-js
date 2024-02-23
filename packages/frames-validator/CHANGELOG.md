@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.5.1
+
+### Patch Changes
+
+- [#161](https://github.com/xmtp/xmtp-node-js-tools/pull/161) [`0c3cbb8`](https://github.com/xmtp/xmtp-node-js-tools/commit/0c3cbb8fb3aa392ec72787e1512d177c7c49a011) Thanks [@neekolas](https://github.com/neekolas)! - Upgrade xmtp proto
+
 ## 0.5.0
 
 ### Minor Changes
