@@ -32,13 +32,16 @@ export class FramesClient {
 
   async signFrameAction(inputs: FrameActionInputs): Promise<FramePostPayload> {
     const opaqueConversationIdentifier = buildOpaqueIdentifier(inputs);
-    const { frameUrl, buttonIndex } = inputs;
+    const { frameUrl, buttonIndex, inputText } = inputs;
     const now = Date.now();
+    const timestamp = Long.fromNumber(now);
     const toSign: frames.FrameActionBody = {
       frameUrl,
       buttonIndex,
       opaqueConversationIdentifier,
-      timestamp: Long.fromNumber(now),
+      timestamp,
+      inputText: inputText || "",
+      unixTimestamp: now,
     };
 
     const signedAction = await this.buildSignedFrameAction(toSign);
@@ -49,6 +52,7 @@ export class FramesClient {
         buttonIndex,
         opaqueConversationIdentifier,
         walletAddress: this.xmtpClient.address,
+        inputText,
         url: frameUrl,
         timestamp: now,
         unixTimestamp: now,
