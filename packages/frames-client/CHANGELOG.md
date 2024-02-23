@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.4.1
+
+### Patch Changes
+
+- f822a36: Upgrade to 0.2.0 of the Frames Proxy client
+
 ## 0.4.0
 
 ### Minor Changes
