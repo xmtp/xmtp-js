@@ -39,6 +39,7 @@ type ConversationActionInputs = DmActionInputs | GroupActionInputs;
 export type FrameActionInputs = {
   frameUrl: string;
   buttonIndex: number;
+  inputText?: string;
 } & ConversationActionInputs;
 
 type KeyType = {

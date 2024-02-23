@@ -29,6 +29,9 @@ export default class OpenFramesProxy {
   }
 
   mediaUrl(url: string): string {
+    if (url?.startsWith("data:")) {
+      return url;
+    }
     return this.inner.mediaUrl(url);
   }
 }
