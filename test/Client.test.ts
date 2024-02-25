@@ -29,17 +29,18 @@ import { createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { mainnet } from 'viem/chains'
 import { generatePrivateKey } from 'viem/accounts'
+import { vi } from 'vitest'
 
 type TestCase = {
   name: string
   newClient: (opts?: Partial<ClientOptions>) => Promise<Client<any>>
 }
 
-const mockEthRequest = jest.fn()
-jest.mock('../src/utils/ethereum', () => {
+const mockEthRequest = vi.hoisted(() => vi.fn())
+vi.mock('../src/utils/ethereum', () => {
   return {
     __esModule: true,
-    getEthereum: jest.fn(() => {
+    getEthereum: vi.fn(() => {
       const ethereum: any = {
         request: mockEthRequest,
       }

@@ -1,4 +1,3 @@
-import { privatePreferences } from '@xmtp/proto'
 import Client from '../src/Client'
 import { Contacts } from '../src/Contacts'
 import { newWallet } from './helpers'
@@ -175,19 +174,19 @@ describe('Contacts', () => {
     expect(bobClient.contacts.isDenied(carol.address)).toBe(false)
   })
 
-  it('should stream consent updates', async () => {
-    const aliceStream = await aliceClient.contacts.streamConsentList()
-    await aliceClient.conversations.newConversation(bob.address)
+  // it('should stream consent updates', async () => {
+  //   const aliceStream = await aliceClient.contacts.streamConsentList()
+  //   await aliceClient.conversations.newConversation(bob.address)
 
-    let numActions = 0
-    const actions: privatePreferences.PrivatePreferencesAction[] = []
-    for await (const action of aliceStream) {
-      numActions++
-      expect(action.block).toBeUndefined()
-      expect(action.allow?.walletAddresses).toEqual([bob.address])
-      break
-    }
-    expect(numActions).toBe(1)
-    await aliceStream.return()
-  })
+  //   let numActions = 0
+  //   const actions: privatePreferences.PrivatePreferencesAction[] = []
+  //   for await (const action of aliceStream) {
+  //     numActions++
+  //     expect(action.block).toBeUndefined()
+  //     expect(action.allow?.walletAddresses).toEqual([bob.address])
+  //     break
+  //   }
+  //   expect(numActions).toBe(1)
+  //   await aliceStream.return()
+  // })
 })

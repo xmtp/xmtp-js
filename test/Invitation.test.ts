@@ -10,6 +10,7 @@ import { newWallet } from './helpers'
 import Long from 'long'
 import Ciphertext from '../src/crypto/Ciphertext'
 import { NoMatchingPreKeyError } from '../src/crypto/errors'
+import { vi } from 'vitest'
 
 const createInvitation = (): InvitationV1 => {
   return new InvitationV1({

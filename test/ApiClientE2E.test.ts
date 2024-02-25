@@ -33,8 +33,8 @@ describe('e2e tests', () => {
       })
 
       it('publish success', async () => {
-        expect(
-          await client.publish([
+        await expect(
+          client.publish([
             {
               contentTopic: buildUserPrivateStoreTopic(wallet.address),
               message: new Uint8Array(5),

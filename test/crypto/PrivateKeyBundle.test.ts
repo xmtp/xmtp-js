@@ -7,8 +7,7 @@ import {
   SignedPublicKeyBundle,
 } from '../../src/crypto'
 import { hexToBytes } from '../../src/crypto/utils'
-import { newWallet, sleep } from '../helpers'
-import ApiClient, { ApiUrls } from '../../src/ApiClient'
+import { newWallet } from '../helpers'
 import { storageSigRequestText } from '../../src/keystore/providers/NetworkKeyManager'
 
 describe('Crypto', function () {

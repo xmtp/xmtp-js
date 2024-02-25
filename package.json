@@ -52,9 +52,9 @@
     "test:setup": "./dev/up",
     "test:teardown": "./dev/down",
     "test": "yarn test:node",
-    "test:node": "jest --no-cache --env='node' --testTimeout=30000",
-    "test:jsdom": "jest --no-cache --env='./jest.jsdom.env.cjs' --testTimeout=30000",
-    "test:cov": "jest --coverage --no-cache --runInBand",
+    "test:node": "vitest run",
+    "test:jsdom": "vitest run --environment happy-dom",
+    "test:cov": "vitest run --coverage",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
     "semantic-release": "semantic-release",
@@ -107,7 +107,7 @@
   "dependencies": {
     "@noble/secp256k1": "1.7.1",
     "@xmtp/proto": "3.34.0",
-    "@xmtp/user-preferences-bindings-wasm": "0.3.5",
+    "@xmtp/user-preferences-bindings-wasm": "0.3.6",
     "async-mutex": "0.4.0",
     "elliptic": "6.5.4",
     "ethers": "5.5.3",
@@ -125,7 +125,6 @@
     "@types/bl": "5.0.2",
     "@types/callback-to-async-iterator": "1.1.7",
     "@types/elliptic": "6.4.18",
-    "@types/jest": "28.1.8",
     "@types/node": "18.19.17",
     "@typescript-eslint/eslint-plugin": "6.21.0",
     "@typescript-eslint/parser": "6.21.0",
@@ -141,9 +140,9 @@
     "eslint-plugin-prettier": "5.1.3",
     "eslint-plugin-promise": "6.1.1",
     "find-up": "7.0.0",
+    "happy-dom": "^13.5.0",
     "husky": "7.0.4",
-    "jest": "29.7.0",
-    "jest-environment-jsdom": "28.1.3",
+    "jsdom": "^24.0.0",
     "prettier": "3.2.5",
     "rimraf": "5.0.5",
     "rollup": "4.12.0",
@@ -154,7 +153,9 @@
     "tslib": "^2.6.2",
     "typedoc": "0.25.8",
     "typescript": "^5.2.2",
-    "viem": "1.21.4"
+    "viem": "1.21.4",
+    "vite": "^5.1.4",
+    "vitest": "^1.3.1"
   },
   "engines": {
     "node": ">=18"
