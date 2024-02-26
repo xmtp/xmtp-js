@@ -4,21 +4,28 @@ on:
     branches:
       - main
   pull_request:
+
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: ['node', 'jsdom']
+        env: ['node', 'browser']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - run: npm ci
+          cache: 'yarn'
+        env:
+          SKIP_YARN_COREPACK_CHECK: '1'
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn
       - run: ./dev/docker-compose up -d
-      - run: npm run test:${{ matrix.env }}
+      - run: yarn test:${{ matrix.env }}
         env:
           NODE_OPTIONS: '-r dd-trace/ci/init'
           DD_ENV: ci:${{ matrix.env }}

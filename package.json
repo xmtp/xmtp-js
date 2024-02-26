@@ -53,7 +53,7 @@
     "test:teardown": "./dev/down",
     "test": "yarn test:node",
     "test:node": "vitest run",
-    "test:jsdom": "vitest run --environment happy-dom",
+    "test:browser": "vitest run --environment happy-dom",
     "test:cov": "vitest run --coverage",
     "lint": "prettier --check . && eslint .",
     "autolint": "prettier --write . && eslint --fix .",
