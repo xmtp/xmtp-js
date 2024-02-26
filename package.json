@@ -2,11 +2,27 @@
   "name": "@xmtp/xmtp-js",
   "version": "0.0.0-development",
   "description": "XMTP client SDK for interacting with XMTP networks.",
+  "keywords": [
+    "xmtp",
+    "messaging",
+    "web3",
+    "sdk",
+    "js",
+    "javascript",
+    "node",
+    "nodejs"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https:git@github.com:xmtp/xmtp-js.git"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "browser": "dist/browser/index.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -36,36 +52,10 @@
       "default": "./dist/bundler/index.js"
     }
   },
-  "scripts": {
-    "bench": "yarn build:bench && node dist/bench/index.cjs",
-    "build": "yarn clean:dist && rollup -c",
-    "build:bench": "rollup -c rollup.config.bench.js",
-    "build:docs": "yarn clean:docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc --excludePrivate --readme tmp/README.md src/index.ts",
-    "clean": "yarn clean:artifacts && yarn clean:dist && yarn clean:deps && yarn clean:docs",
-    "clean:artifacts": "rm -rf docs tmp package.tgz",
-    "clean:deps": "rm -rf node_modules",
-    "clean:dist": "rm -rf dist",
-    "clean:docs": "rm -rf docs",
-    "format": "prettier -w .",
-    "format:check": "prettier -c .",
-    "package": "yarn pack",
-    "prepublishOnly": "yarn build",
-    "updateSnapVersion": "yarn npm info @xmtp/snap --json | jq '{\"version\": .version, \"packageName\": .name}' > ./src/snapInfo.json",
-    "test:setup": "./dev/up",
-    "test:teardown": "./dev/down",
-    "test": "yarn test:node",
-    "test:node": "vitest run",
-    "test:browser": "vitest run --environment happy-dom",
-    "test:cov": "vitest run --coverage",
-    "lint": "eslint .",
-    "autolint": "prettier --write . && eslint --fix .",
-    "semantic-release": "semantic-release",
-    "typecheck": "tsc"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "browser": "dist/browser/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/index.cjs",
     "dist/index.cjs.map",
@@ -77,25 +67,31 @@
     "dist/bundler/index.js",
     "dist/bundler/index.js.map"
   ],
-  "keywords": [
-    "xmtp",
-    "messaging",
-    "web3",
-    "sdk",
-    "js",
-    "javascript",
-    "node",
-    "nodejs"
-  ],
-  "author": "XMTP Labs <eng@xmtp.com>",
-  "license": "MIT",
-  "homepage": "https://github.com/xmtp/xmtp-js",
-  "repository": {
-    "type": "git",
-    "url": "https:git@github.com:xmtp/xmtp-js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/xmtp/xmtp-js/issues"
+  "scripts": {
+    "autolint": "prettier --write . && eslint --fix .",
+    "bench": "yarn build:bench && node dist/bench/index.cjs",
+    "build": "yarn clean:dist && rollup -c",
+    "build:bench": "rollup -c rollup.config.bench.js",
+    "build:docs": "yarn clean:docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc --excludePrivate --readme tmp/README.md src/index.ts",
+    "clean": "yarn clean:artifacts && yarn clean:dist && yarn clean:deps && yarn clean:docs",
+    "clean:artifacts": "rm -rf docs tmp package.tgz",
+    "clean:deps": "rm -rf node_modules",
+    "clean:dist": "rm -rf dist",
+    "clean:docs": "rm -rf docs",
+    "format": "prettier -w .",
+    "format:check": "prettier -c .",
+    "lint": "eslint .",
+    "package": "yarn pack",
+    "prepublishOnly": "yarn build",
+    "semantic-release": "semantic-release",
+    "test": "yarn test:node",
+    "test:browser": "vitest run --environment happy-dom",
+    "test:cov": "vitest run --coverage",
+    "test:node": "vitest run",
+    "test:setup": "./dev/up",
+    "test:teardown": "./dev/down",
+    "typecheck": "tsc",
+    "updateSnapVersion": "yarn npm info @xmtp/snap --json | jq '{\"version\": .version, \"packageName\": .name}' > ./src/snapInfo.json"
   },
   "release": {
     "branches": [
@@ -105,6 +101,9 @@
         "prerelease": true
       }
     ]
+  },
+  "resolutions": {
+    "long": "5.2.0"
   },
   "dependencies": {
     "@noble/secp256k1": "1.7.1",
@@ -145,6 +144,7 @@
     "happy-dom": "^13.5.0",
     "husky": "7.0.4",
     "prettier": "3.2.5",
+    "prettier-plugin-packagejson": "^2.4.12",
     "rollup": "4.12.0",
     "rollup-plugin-dts": "6.1.0",
     "rollup-plugin-filesize": "10.0.0",
@@ -155,11 +155,12 @@
     "vite": "^5.1.4",
     "vitest": "^1.3.1"
   },
+  "packageManager": "yarn@4.1.0",
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "yarn@4.1.0",
-  "resolutions": {
-    "long": "5.2.0"
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
