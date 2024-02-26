@@ -5,6 +5,7 @@ import {
 import { keystore } from '@xmtp/proto'
 import { b64Encode } from '../../src/utils'
 import { SNAP_LOCAL_ORIGIN } from '../../src/keystore/providers/SnapProvider'
+import { vi } from 'vitest'
 const {
   GetKeystoreStatusRequest,
   GetKeystoreStatusResponse,
@@ -12,11 +13,11 @@ const {
 } = keystore
 
 // Setup the mocks for window.ethereum
-const mockRequest = jest.fn()
-jest.mock('../../src/utils/ethereum', () => {
+const mockRequest = vi.hoisted(() => vi.fn())
+vi.mock('../../src/utils/ethereum', () => {
   return {
     __esModule: true,
-    getEthereum: jest.fn(() => {
+    getEthereum: vi.fn(() => {
       const ethereum: any = {
         request: mockRequest,
       }

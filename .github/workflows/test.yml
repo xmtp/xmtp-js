@@ -4,24 +4,46 @@ on:
     branches:
       - main
   pull_request:
+
 jobs:
-  test:
-    name: Test
+  node:
+    name: node
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        env: ['node', 'jsdom']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - run: npm ci
+          cache: 'yarn'
+        env:
+          SKIP_YARN_COREPACK_CHECK: '1'
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn
       - run: ./dev/docker-compose up -d
-      - run: npm run test:${{ matrix.env }}
+      - run: yarn test:node
         env:
           NODE_OPTIONS: '-r dd-trace/ci/init'
-          DD_ENV: ci:${{ matrix.env }}
+          DD_ENV: ci:node
           DD_SERVICE: xmtp-js
           DD_CIVISIBILITY_AGENTLESS_ENABLED: 'true'
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+  browser:
+    name: happy-dom
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+        env:
+          SKIP_YARN_COREPACK_CHECK: '1'
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn
+      - run: ./dev/docker-compose up -d
+      - run: yarn test:browser

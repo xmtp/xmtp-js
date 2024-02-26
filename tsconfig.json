@@ -9,7 +9,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vitest/globals"]
   },
-  "include": ["src/**/*", "bench/**/*", "build/**/*"]
+  "include": ["src/**/*", "bench/**/*", "build/**/*", "test/**/*"]
 }

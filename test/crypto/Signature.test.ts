@@ -1,4 +1,3 @@
-import * as assert from 'assert'
 import { PrivateKeyBundleV1, Signature } from '../../src/crypto'
 import { newWallet } from '../helpers'
 
@@ -8,23 +7,22 @@ describe('Crypto', function () {
       const alice = newWallet()
       const alicePri = await PrivateKeyBundleV1.generate(alice)
       const alicePub = alicePri.getPublicKeyBundle()
-      assert.equal(alicePub.identityKey.walletSignatureAddress(), alice.address)
+      expect(alicePub.identityKey.walletSignatureAddress()).toEqual(
+        alice.address
+      )
       const malory = newWallet()
-      assert.notEqual(alice.address, malory.address)
+      expect(alice.address).not.toEqual(malory.address)
       const maloryPri = await PrivateKeyBundleV1.generate(malory)
       const maloryPub = maloryPri.getPublicKeyBundle()
-      assert.equal(
-        maloryPub.identityKey.walletSignatureAddress(),
+      expect(maloryPub.identityKey.walletSignatureAddress()).toEqual(
         malory.address
       )
       // malory transplants alice's wallet sig onto her own key bundle
       maloryPub.identityKey.signature = alicePub.identityKey.signature
-      assert.notEqual(
-        maloryPub.identityKey.walletSignatureAddress(),
+      expect(maloryPub.identityKey.walletSignatureAddress()).not.toEqual(
         alice.address
       )
-      assert.notEqual(
-        maloryPub.identityKey.walletSignatureAddress(),
+      expect(maloryPub.identityKey.walletSignatureAddress()).not.toEqual(
         malory.address
       )
     })
@@ -33,19 +31,23 @@ describe('Crypto', function () {
       const alice = newWallet()
       const alicePri = await PrivateKeyBundleV1.generate(alice)
       const alicePub = alicePri.getPublicKeyBundle()
-      assert.ok(alicePub.identityKey.signature?.ecdsaCompact)
-      assert.equal(alicePub.identityKey.walletSignatureAddress(), alice.address)
+      expect(alicePub.identityKey.signature?.ecdsaCompact).toBeTruthy()
+      expect(alicePub.identityKey.walletSignatureAddress()).toEqual(
+        alice.address
+      )
 
       // create a malformed v1 signature
       alicePub.identityKey.signature = new Signature({
         walletEcdsaCompact: {
-          bytes: alicePub.identityKey.signature.ecdsaCompact.bytes,
-          recovery: alicePub.identityKey.signature.ecdsaCompact.recovery,
+          bytes: alicePub.identityKey.signature!.ecdsaCompact!.bytes,
+          recovery: alicePub.identityKey.signature!.ecdsaCompact!.recovery,
         },
       })
-      assert.ok(alicePub.identityKey.signature.walletEcdsaCompact)
-      assert.equal(alicePub.identityKey.signature.ecdsaCompact, undefined)
-      assert.equal(alicePub.identityKey.walletSignatureAddress(), alice.address)
+      expect(alicePub.identityKey.signature.walletEcdsaCompact).toBeTruthy()
+      expect(alicePub.identityKey.signature.ecdsaCompact).toEqual(undefined)
+      expect(alicePub.identityKey.walletSignatureAddress()).toEqual(
+        alice.address
+      )
     })
   })
 })

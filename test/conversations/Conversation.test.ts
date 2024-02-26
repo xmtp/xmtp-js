@@ -8,6 +8,7 @@ import { PrivateKey, SignedPublicKeyBundle } from '../../src/crypto'
 import { ConversationV2 } from '../../src/conversations/Conversation'
 import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
 import { content as proto } from '@xmtp/proto'
+import { assert, vi } from 'vitest'
 
 describe('conversation', () => {
   let alice: Client<string>
@@ -97,9 +98,7 @@ describe('conversation', () => {
     })
 
     it('ignores failed decoding of messages', async () => {
-      const consoleWarn = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {})
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const aliceConversation = await alice.conversations.newConversation(
         bob.address
       )
@@ -181,7 +180,7 @@ describe('conversation', () => {
       const stream = await aliceConversation.streamEphemeral()
 
       if (!stream) {
-        fail('no stream')
+        assert.fail('no stream')
       }
 
       await sleep(100)
@@ -217,7 +216,7 @@ describe('conversation', () => {
       const stream = await aliceConversation.streamEphemeral()
 
       if (!stream) {
-        fail('no stream')
+        assert.fail('no stream')
       }
 
       await sleep(100)
@@ -422,9 +421,7 @@ describe('conversation', () => {
     })
 
     it('filters out spoofed messages', async () => {
-      const consoleWarn = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {})
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       const bobConvo = await bob.conversations.newConversation(alice.address)
       const stream = await bobConvo.streamMessages()
@@ -529,7 +526,7 @@ describe('conversation', () => {
       const ac = await alice.conversations.newConversation(bob.address)
       expect(ac.conversationVersion).toBe('v2')
       if (!(ac instanceof ConversationV2)) {
-        fail()
+        assert.fail()
       }
       const as = await ac.streamMessages()
       await sleep(100)
@@ -539,7 +536,7 @@ describe('conversation', () => {
       const bc = bcs[0]
       expect(bc.conversationVersion).toBe('v2')
       if (!(bc instanceof ConversationV2)) {
-        fail()
+        assert.fail()
       }
       expect(bc.topic).toBe(ac.topic)
       const bs = await bc.streamMessages()

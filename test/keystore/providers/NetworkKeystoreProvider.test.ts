@@ -13,6 +13,7 @@ import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence
 import { hexToBytes } from '../../../src/crypto/utils'
 import { LocalAuthenticator } from '../../../src/authn'
 import crypto from '../../../src/crypto/crypto'
+import { vi } from 'vitest'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
@@ -89,7 +90,7 @@ describe('NetworkKeystoreProvider', () => {
     await manager.storePrivateKeyBundle(bundle)
 
     const provider = new NetworkKeystoreProvider()
-    const mockNotifier = jest.fn()
+    const mockNotifier = vi.fn()
     await provider.newKeystore(
       { ...testProviderOptions({}), preEnableIdentityCallback: mockNotifier },
       apiClient,

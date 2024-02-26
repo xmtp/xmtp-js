@@ -28,21 +28,27 @@ After a pull request is submitted, a single approval is required to merge it.
 
 Please make sure you have a compatible version as specified in `package.json`. We recommend using a Node version manager such as [nvm](https://github.com/nvm-sh/nvm) or [nodenv](https://github.com/nodenv/nodenv).
 
+#### Yarn
+
+This repository uses the [Yarn package manager](https://yarnpkg.com/). To use it, enable [Corepack](https://yarnpkg.com/corepack), if it isn't already, by running `corepack enable`.
+
 ### Useful commands
 
-- `npm install`: Installs all dependencies
-- `npm run bench`: Run the benchmarking suite
-- `npm run build`: Builds all SDK packages
-- `npm test`: Run the unit test suite
-- `npm run test:setup`: Start a local development node using Docker (only needs to be run once)
-- `npm run lint`: Lint with ESLint
-- `npm run typecheck`: Typecheck with `tsc`
+- `yarn`: Installs all dependencies
+- `yarn bench`: Run the benchmarking suite
+- `yarn build`: Builds the JS SDK
+- `yarn format`: Run prettier format and write changes
+- `yarn format:check`: Run prettier format check
+- `yarn test`: Run the unit test suite
+- `yarn test:setup`: Start a local development node using Docker (only needs to be run once)
+- `yarn lint`: Lint with ESLint
+- `yarn typecheck`: Typecheck with `tsc`
 
 ### Testing and validation
 
 Please add unit tests when appropriate and ensure that all unit tests are passing before submitting a pull request. Note that some unit tests require a backend node to be running locally. The `test:setup` command can be run a single time to start the node in the background using Docker.
 
-Manual validation requires setting up a client app such as the [example app](https://github.com/xmtp/example-chat-react). Once you have cloned and run the example app, it will use a published npm version of `xmtp-js` by default. You can point it to your local `xmtp-js` repository by running `npm i file:~/path/to/xmtp-js` from the `example-chat-react` directory, which will update its `package.json`. Once the example app is running, any further changes you make to `xmtp-js` will be reflected in the app after you run `npm run build` in the `xmtp-js` directory and then reload the app.
+Manual validation requires setting up a client app such as the [example app](https://github.com/xmtp/example-chat-react). Once you have cloned and run the example app, it will use a published npm version of `xmtp-js` by default. You can point it to your local `xmtp-js` repository by using `yarn link` or `npm link` from the `example-chat-react` directory, which will update its `package.json`. Once the example app is running, any further changes you make to `xmtp-js` will be reflected in the app after you run `yarn build` in the `xmtp-js` directory and then reload the app.
 
 ### Auto-releasing and commit conventions
 

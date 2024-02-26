@@ -11,7 +11,6 @@ import {
 import { Signer } from '../src/types/Signer'
 import Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
-import assert from 'assert'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
 import { messageApi, fetcher } from '@xmtp/proto'
 
@@ -48,8 +47,8 @@ export async function waitForUserContact(
   return pollFor(
     async () => {
       const contact = await c1.getUserContact(c2.address)
-      assert.ok(contact)
-      return contact
+      expect(contact).toBeTruthy()
+      return contact!
     },
     20000,
     200

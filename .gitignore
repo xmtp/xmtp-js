@@ -109,13 +109,14 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
+# yarn
 .pnp.*
-scratch
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 # generated docs
 docs/
@@ -125,6 +126,3 @@ tmp/
 
 # Benchmark results
 bench/results
-
-# rollup build plugin output
-build/rollup-plugin-resolve-extensions/index.js

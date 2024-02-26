@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { ContentTypeText } from '../../src'
 import {
   CompositeCodec,
@@ -18,9 +17,9 @@ describe('CompositeType', () => {
       ],
     }
     const encoded = codec.encode(content, codecs)
-    assert(encoded.type.sameAs(ContentTypeComposite))
+    expect(encoded.type.sameAs(ContentTypeComposite)).toBe(true)
     const decoded = codec.decode(encoded, codecs)
-    assert.deepEqual(decoded, content)
+    expect(decoded).toEqual(content)
   })
   it('nested composite', async () => {
     const content = {
@@ -45,22 +44,22 @@ describe('CompositeType', () => {
       ],
     }
     const encoded = codec.encode(content, codecs)
-    assert(encoded.type.sameAs(ContentTypeComposite))
+    expect(encoded.type.sameAs(ContentTypeComposite)).toBe(true)
     const decoded = codec.decode(encoded, codecs)
-    assert.deepEqual(decoded, content)
+    expect(decoded).toEqual(content)
   })
 
   it('not quite composite decodes as single part composite', async () => {
     const content = { type: ContentTypeText, content: 'one' }
     const encoded = codec.encode(content, codecs)
-    assert(encoded.type.sameAs(ContentTypeComposite))
+    expect(encoded.type.sameAs(ContentTypeComposite)).toBe(true)
     const decoded = codec.decode(encoded, codecs)
-    assert.deepEqual(decoded, { parts: [content] })
+    expect(decoded).toEqual({ parts: [content] })
   })
 
   it('definitely not a composite', () => {
     const codec = codecs.codecFor(ContentTypeComposite)
-    assert(codec)
-    expect(() => codec.encode('definitely not a composite', codecs)).toThrow()
+    expect(codec).toBeTruthy()
+    expect(() => codec!.encode('definitely not a composite', codecs)).toThrow()
   })
 })

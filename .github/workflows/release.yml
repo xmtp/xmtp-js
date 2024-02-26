@@ -26,12 +26,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: 'yarn'
+        env:
+          SKIP_YARN_COREPACK_CHECK: '1'
+      - name: Enable corepack
+        run: corepack enable
       - name: Install dependencies
-        run: npm ci
+        run: yarn
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+        run: yarn semantic-release

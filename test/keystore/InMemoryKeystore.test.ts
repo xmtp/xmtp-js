@@ -19,6 +19,7 @@ import Token from '../../src/authn/Token'
 import Long from 'long'
 import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 import { ethers } from 'ethers'
+import { assert } from 'vitest'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -296,12 +297,12 @@ describe('InMemoryKeystore', () => {
       } = response
 
       if (!firstResult.error) {
-        fail('should have errored')
+        assert.fail('should have errored')
       }
       expect(firstResult.error.code).toBeTruthy()
 
       if (secondResult.error) {
-        fail('should not have errored')
+        assert.fail('should not have errored')
       }
 
       expect(
