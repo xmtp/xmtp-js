@@ -2571,7 +2571,6 @@ __metadata:
     ethers: "npm:^5.7.2"
     happy-dom: "npm:^13.6.2"
     husky: "npm:^7.0.4"
-    js-sha3: "npm:0.9.3"
     long: "npm:^5.2.3"
     prettier: "npm:^3.2.5"
     prettier-plugin-packagejson: "npm:^2.4.12"
@@ -6286,13 +6285,6 @@ __metadata:
   version: 0.8.0
   resolution: "js-sha3@npm:0.8.0"
   checksum: 10/a49ac6d3a6bfd7091472a28ab82a94c7fb8544cc584ee1906486536ba1cb4073a166f8c7bb2b0565eade23c5b3a7b8f7816231e0309ab5c549b737632377a20c
-  languageName: node
-  linkType: hard
-
-"js-sha3@npm:0.9.3":
-  version: 0.9.3
-  resolution: "js-sha3@npm:0.9.3"
-  checksum: 10/8daacb93b18609a0dc081f2f6199b80a96df36f9975b4b9c7476ae92822e07100b9e1969fc76f4b58e703cd6175f0de7656a99cbb2335cfb554c66f988fbead5
   languageName: node
   linkType: hard
 

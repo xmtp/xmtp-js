@@ -1,11 +1,9 @@
-import sha3 from 'js-sha3'
 import { authn, signature, publicKey } from '@xmtp/proto'
 import AuthData from './AuthData'
 import { PrivateKey } from '../crypto'
 import { hexToBytes } from '../crypto/utils'
 import Token from './Token'
-
-const { keccak256 } = sha3
+import { keccak256 } from 'viem'
 
 export default class LocalAuthenticator {
   private identityKey: PrivateKey

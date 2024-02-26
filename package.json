@@ -109,7 +109,6 @@
     "async-mutex": "^0.4.1",
     "elliptic": "^6.5.4",
     "ethers": "^5.7.2",
-    "js-sha3": "0.9.3",
     "long": "^5.2.3"
   },
   "devDependencies": {
