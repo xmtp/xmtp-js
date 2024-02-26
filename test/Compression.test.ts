@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { content as proto } from '@xmtp/proto'
 import {
   compress,
@@ -14,7 +13,7 @@ describe('Compression', function () {
     // make sink smaller so that it has to grow a lot
     let to = { bytes: new Uint8Array(3) }
     await readStreamFromBytes(from, 23).pipeTo(writeStreamToBytes(to, 1000))
-    assert.deepEqual(from, to.bytes)
+    expect(from).toEqual(to.bytes)
   })
 
   it('will not write beyond limit', () => {
@@ -37,8 +36,8 @@ describe('Compression', function () {
       compression: proto.Compression.COMPRESSION_DEFLATE,
     }
     await compress(content)
-    assert.deepEqual(content.content, compressed)
+    expect(content.content).toEqual(compressed)
     await decompress(content, 1000)
-    assert.deepEqual(content.content, uncompressed)
+    expect(content.content).toEqual(uncompressed)
   })
 })

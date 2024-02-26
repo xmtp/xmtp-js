@@ -1,4 +1,3 @@
-import assert from 'assert'
 import {
   newWallet,
   newLocalHostClient,
@@ -29,7 +28,7 @@ import { createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { mainnet } from 'viem/chains'
 import { generatePrivateKey } from 'viem/accounts'
-import { vi } from 'vitest'
+import { vi, assert } from 'vitest'
 
 type TestCase = {
   name: string
@@ -83,9 +82,9 @@ describe('Client', () => {
 
       it('user contacts published', async () => {
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.publicKeyBundle, alicePublic)
+        expect(alicePublic).toEqual(alice.publicKeyBundle)
         const bobPublic = await bob.getUserContact(bob.address)
-        assert.deepEqual(bob.publicKeyBundle, bobPublic)
+        expect(bobPublic).toEqual(bob.publicKeyBundle)
       })
 
       it('user contacts are filtered to valid contacts', async () => {
@@ -98,18 +97,18 @@ describe('Client', () => {
           },
         ])
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.publicKeyBundle, alicePublic)
+        expect(alicePublic).toEqual(alice.publicKeyBundle)
       })
 
       it('Check address can be sent to', async () => {
         const can_mesg_a = await alice.canMessage('NOT AN ADDRESS')
-        assert.equal(can_mesg_a, false)
+        expect(can_mesg_a).toBe(false)
 
         const can_mesg_b = await alice.canMessage(bob.address)
-        assert.equal(can_mesg_b, true)
+        expect(can_mesg_b).toBe(true)
 
         const lower = await alice.canMessage(bob.address.toLowerCase())
-        assert.equal(lower, true)
+        expect(lower).toBe(true)
       })
     })
   })
@@ -200,7 +199,7 @@ describe('encodeContent', () => {
     const payload = await c.encodeContent(uncompressed, {
       compression: Compression.COMPRESSION_DEFLATE,
     })
-    assert.deepEqual(Uint8Array.from(payload), compressed)
+    expect(Uint8Array.from(payload)).toEqual(compressed)
   })
 })
 
@@ -371,7 +370,7 @@ describe('ClientOptions', () => {
       } catch (e) {
         return
       }
-      fail()
+      assert.fail()
     })
 
     it('allows you to use custom content types', async () => {

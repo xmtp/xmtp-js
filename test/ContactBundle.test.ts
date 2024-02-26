@@ -1,4 +1,3 @@
-import * as assert from 'assert'
 import { decodeContactBundle, encodeContactBundle } from '../src/ContactBundle'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../src'
 import {
@@ -15,7 +14,7 @@ describe('ContactBundles', function () {
     let bytes = encodeContactBundle(pub)
     const cb = decodeContactBundle(bytes)
     expect(cb).toBeInstanceOf(PublicKeyBundle)
-    assert.ok(pub.equals(cb as PublicKeyBundle))
+    expect(pub.equals(cb as PublicKeyBundle)).toBeTruthy()
   })
   it('roundtrip v2', async function () {
     const wallet = newWallet()
@@ -24,6 +23,6 @@ describe('ContactBundles', function () {
     let bytes = encodeContactBundle(pub)
     const cb = decodeContactBundle(bytes)
     expect(cb).toBeInstanceOf(SignedPublicKeyBundle)
-    assert.ok(pub.equals(cb as SignedPublicKeyBundle))
+    expect(pub.equals(cb as SignedPublicKeyBundle)).toBeTruthy()
   })
 })

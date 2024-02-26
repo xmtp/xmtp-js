@@ -1,4 +1,3 @@
-import * as assert from 'assert'
 import crypto from '../../src/crypto/crypto'
 import {
   PublicKeyBundle,
@@ -7,13 +6,14 @@ import {
   encrypt,
   decrypt,
 } from '../../src/crypto'
+import { assert } from 'vitest'
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {
     const identityKey = PrivateKey.generate()
     const preKey = PrivateKey.generate()
     await identityKey.signKey(preKey.publicKey)
-    assert.ok(await identityKey.publicKey.verifyKey(preKey.publicKey))
+    expect(await identityKey.publicKey.verifyKey(preKey.publicKey)).toBeTruthy()
   })
 
   it('encrypts and decrypts payload', async function () {
@@ -26,7 +26,7 @@ describe('Crypto', function () {
     // Bob decrypts msg from Alice.
     const decrypted2 = await bob.decrypt(encrypted, alice.publicKey)
     const msg2 = new TextDecoder().decode(decrypted2)
-    assert.equal(msg2, msg1)
+    expect(msg2).toEqual(msg1)
   })
 
   it('detects tampering with encrypted message', async function () {
@@ -37,8 +37,8 @@ describe('Crypto', function () {
     // Alice encrypts msg for Bob.
     const encrypted = await alice.encrypt(decrypted, bob.publicKey)
     // Malory tampers with the message
-    assert.ok(encrypted.aes256GcmHkdfSha256)
-    encrypted.aes256GcmHkdfSha256.payload[2] ^= 4 // flip one bit
+    expect(encrypted.aes256GcmHkdfSha256).toBeTruthy()
+    encrypted.aes256GcmHkdfSha256!.payload[2] ^= 4 // flip one bit
     // Bob attempts to decrypt msg from Alice.
     try {
       await bob.decrypt(encrypted, alice.publicKey)
@@ -53,11 +53,10 @@ describe('Crypto', function () {
     const digest = crypto.getRandomValues(new Uint8Array(16))
     const sig = await pri.sign(digest)
     const sigPub = sig.getPublicKey(digest)
-    assert.ok(sigPub)
-    assert.ok(sigPub.secp256k1Uncompressed)
-    assert.ok(pri.publicKey.secp256k1Uncompressed)
-    assert.deepEqual(
-      sigPub.secp256k1Uncompressed.bytes,
+    expect(sigPub).toBeTruthy()
+    expect(sigPub!.secp256k1Uncompressed).toBeTruthy()
+    expect(pri.publicKey.secp256k1Uncompressed).toBeTruthy()
+    expect(sigPub!.secp256k1Uncompressed.bytes).toEqual(
       pri.publicKey.secp256k1Uncompressed.bytes
     )
   })
@@ -76,16 +75,16 @@ describe('Crypto', function () {
     secret = await bob.sharedSecret(alicePublic, bobPublic.preKey, true)
     const decrypted2 = await decrypt(encrypted, secret)
     const msg2 = new TextDecoder().decode(decrypted2)
-    assert.equal(msg2, msg1)
+    expect(msg2).toEqual(msg1)
   })
 
   it('serializes and deserializes keys and signatures', async function () {
     const alice = await PrivateKeyBundleV1.generate()
     const bytes = alice.getPublicKeyBundle().toBytes()
-    assert.ok(bytes.length >= 213)
+    expect(bytes.length >= 213).toBeTruthy()
     const pub2 = PublicKeyBundle.fromBytes(bytes)
-    assert.ok(pub2.identityKey)
-    assert.ok(pub2.preKey)
-    assert.ok(pub2.identityKey.verifyKey(pub2.preKey))
+    expect(pub2.identityKey).toBeTruthy()
+    expect(pub2.preKey).toBeTruthy()
+    expect(pub2.identityKey.verifyKey(pub2.preKey)).toBeTruthy()
   })
 })
