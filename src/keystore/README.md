@@ -84,5 +84,5 @@ You will then want to sequence the release as follows:
 
 1. Update the files in the `keystore` folder in a backwards-compatible way, but do not make any changes outside of the Keystore folder. Merge to `main` to create a new release of `@xmtp/xmtp-js`. If you are introducing a new method, make sure to update [`rpcDefinitions.ts`](./rpcDefinitions.ts).
 2. Upgrade the `xmtp-js` dependency in `@xmtp/snap` to the newly released version. Usually this will require no other code changes, since the Snap itself is a very thin wrapper around the `InMemoryKeystore` and `rpcDefinitions`. Merge to main to create a new release of `@xmtp/snap`.
-3. Run `npm run updateSnapVersion` in the root of `xmtp-js` to update the version stored in `snapInfo.json`.
+3. Run `yarn updateSnapVersion` in the root of `xmtp-js` to update the version stored in `snapInfo.json`.
 4. Make any changes required in the SDK to use your new Keystore method. For example, you may need to update some code to call your new API. Merge to main to create a new release.
