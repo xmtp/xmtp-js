@@ -1,5 +1,2 @@
-dist
-coverage
-docs
-tmp
+CODEOWNERS
 .yarn
