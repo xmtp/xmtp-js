@@ -130,7 +130,7 @@
     "@typescript-eslint/parser": "6.21.0",
     "@xmtp/rollup-plugin-resolve-extensions": "1.0.1",
     "benny": "3.7.1",
-    "dd-trace": "2.46.0",
+    "dd-trace": "5.5.0",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-config-standard": "17.1.0",
