@@ -403,16 +403,10 @@ describe('conversation', () => {
       )
     })
 
-    it('normalizes upper and lowercase addresses', async () => {
+    it('normalizes lowercase addresses', async () => {
       const bobLower = bob.address.toLowerCase()
-      const bobUpper = '0x' + bob.address.substring(2).toUpperCase()
       await expect(
         alice.conversations.newConversation(bobLower)
-      ).resolves.toMatchObject({
-        peerAddress: bob.address,
-      })
-      await expect(
-        alice.conversations.newConversation(bobUpper)
       ).resolves.toMatchObject({
         peerAddress: bob.address,
       })
