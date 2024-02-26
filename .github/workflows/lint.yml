@@ -1,4 +1,4 @@
-name: Lint & Typecheck
+name: Code Quality
 on:
   push:
     branches:
