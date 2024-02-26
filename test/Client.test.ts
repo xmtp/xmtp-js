@@ -375,9 +375,10 @@ describe('ClientOptions', () => {
 
     it('allows you to use custom content types', async () => {
       const client = await Client.create(newWallet(), {
+        env: 'local',
         codecs: [new CompositeCodec()],
       })
-      const other = await Client.create(newWallet())
+      const other = await Client.create(newWallet(), { env: 'local' })
       const convo = await client.conversations.newConversation(other.address)
       expect(convo).toBeTruthy()
       // This will have a type error if the codecs field isn't being respected
@@ -443,7 +444,7 @@ describe('ClientOptions', () => {
         transport: http(),
       })
 
-      const c = await Client.create(walletClient)
+      const c = await Client.create(walletClient, { env: 'local' })
       expect(c).toBeDefined()
       expect(c.address).toEqual(account.address)
     })
@@ -458,8 +459,8 @@ describe('ClientOptions', () => {
         transport: http(),
       })
 
-      const viemClient = await Client.create(walletClient)
-      const ethersClient = await Client.create(randomWallet)
+      const viemClient = await Client.create(walletClient, { env: 'local' })
+      const ethersClient = await Client.create(randomWallet, { env: 'local' })
       expect(viemClient.address).toEqual(ethersClient.address)
       expect(
         viemClient.publicKeyBundle.equals(ethersClient.publicKeyBundle)
@@ -472,9 +473,9 @@ describe('ClientOptions', () => {
         transport: http(),
       })
 
-      await expect(Client.create(walletClient)).rejects.toThrow(
-        'WalletClient is not configured'
-      )
+      await expect(
+        Client.create(walletClient, { env: 'local' })
+      ).rejects.toThrow('WalletClient is not configured')
     })
   })
 })
