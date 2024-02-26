@@ -12,7 +12,6 @@ const external = [
   'crypto',
   'elliptic',
   'ethers',
-  'js-sha3',
   'long',
 ]
 
