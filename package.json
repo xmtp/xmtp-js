@@ -46,6 +46,8 @@
     "clean:deps": "rm -rf node_modules",
     "clean:dist": "rm -rf dist",
     "clean:docs": "rm -rf docs",
+    "format": "prettier -w .",
+    "format:check": "prettier -c .",
     "package": "yarn pack",
     "prepublishOnly": "yarn build",
     "updateSnapVersion": "yarn npm info @xmtp/snap --json | jq '{\"version\": .version, \"packageName\": .name}' > ./src/snapInfo.json",
@@ -55,7 +57,7 @@
     "test:node": "vitest run",
     "test:browser": "vitest run --environment happy-dom",
     "test:cov": "vitest run --coverage",
-    "lint": "prettier --check . && eslint .",
+    "lint": "eslint .",
     "autolint": "prettier --write . && eslint --fix .",
     "semantic-release": "semantic-release",
     "typecheck": "tsc"
