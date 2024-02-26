@@ -15,7 +15,6 @@ const external = [
   'async-mutex',
   'crypto',
   'elliptic',
-  'ethers',
   'long',
   'viem',
 ]
