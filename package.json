@@ -57,15 +57,9 @@
   "browser": "dist/browser/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/index.cjs",
-    "dist/index.cjs.map",
-    "dist/index.d.ts",
-    "dist/index.js",
-    "dist/index.js.map",
-    "dist/browser/index.js",
-    "dist/browser/index.js.map",
-    "dist/bundler/index.js",
-    "dist/bundler/index.js.map"
+    "dist",
+    "src",
+    "tsconfig.json"
   ],
   "scripts": {
     "autolint": "prettier --write . && eslint --fix .",
