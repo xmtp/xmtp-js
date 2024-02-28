@@ -75,7 +75,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@xmtp/tsconfig": "workspace:*",
-    "@xmtp/xmtp-js": "^11.3.12",
+    "@xmtp/xmtp-js": "^11.4.1",
     "eslint": "^8.57.0",
     "eslint-config-xmtp-web": "workspace:*",
     "ethers": "^6.11.1",
