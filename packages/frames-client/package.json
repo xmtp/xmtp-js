@@ -34,7 +34,10 @@
   "browser": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
-    "lib"
+    "lib",
+    "src",
+    "!src/**/*.test.*",
+    "tsconfig.json"
   ],
   "scripts": {
     "build": "yarn clean:lib && yarn rollup -c",
