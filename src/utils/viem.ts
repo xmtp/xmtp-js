@@ -15,7 +15,10 @@ export function getSigner(wallet: Signer | WalletClient | null): Signer | null {
 }
 
 function isWalletClient(wallet: Signer | WalletClient): wallet is WalletClient {
-  return 'type' in wallet && wallet.type === 'walletClient'
+  return (
+    'type' in wallet &&
+    (wallet.type === 'walletClient' || wallet.type === 'base')
+  )
 }
 
 export function convertWalletClientToSigner(
