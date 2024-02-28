@@ -6,7 +6,6 @@ import {
   concat,
   toNanoString,
 } from '../utils'
-import { utils } from 'ethers'
 import Stream from '../Stream'
 import Client, {
   ListMessagesOptions,
@@ -33,6 +32,7 @@ import { sha256 } from '../crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
 import { ConsentState } from '../Contacts'
+import { getAddress } from 'viem'
 
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.
@@ -178,7 +178,7 @@ export class ConversationV1<ContentTypes>
   private client: Client<ContentTypes>
 
   constructor(client: Client<ContentTypes>, address: string, createdAt: Date) {
-    this.peerAddress = utils.getAddress(address)
+    this.peerAddress = getAddress(address)
     this.client = client
     this.createdAt = createdAt
   }

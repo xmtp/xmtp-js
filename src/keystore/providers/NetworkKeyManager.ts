@@ -1,4 +1,3 @@
-import { utils } from 'ethers'
 import { Signer } from '../../types/Signer'
 import crypto from '../../crypto/crypto'
 import {
@@ -10,10 +9,11 @@ import {
 } from '../../crypto'
 import type { PreEventCallback } from '../../Client'
 import { LocalAuthenticator } from '../../authn'
-import { bytesToHex, hexToBytes } from '../../crypto/utils'
+import { bytesToHex } from '../../crypto/utils'
 import Ciphertext from '../../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
 import TopicPersistence from '../persistence/TopicPersistence'
+import { Hex, getAddress, hexToBytes, verifyMessage } from 'viem'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**
@@ -39,7 +39,7 @@ export default class NetworkKeyManager {
     // I think we want to namespace the storage address by wallet
     // This will allow us to support switching between multiple wallets in the same browser
     let walletAddress = await this.signer.getAddress()
-    walletAddress = utils.getAddress(walletAddress)
+    walletAddress = getAddress(walletAddress)
     return `${walletAddress}/${name}`
   }
 
@@ -91,24 +91,23 @@ export default class NetworkKeyManager {
     if (this.preEnableIdentityCallback) {
       await this.preEnableIdentityCallback()
     }
-    let sig = await wallet.signMessage(input)
+    const sig = await wallet.signMessage(input)
 
     // Check that the signature is correct, was created using the expected
     // input, and retry if not. This mitigates a bug in interacting with
     // LedgerLive for iOS, where the previous signature response is
     // returned in some cases.
-    let address = utils.verifyMessage(input, sig)
-    if (address !== walletAddr) {
-      sig = await wallet.signMessage(input)
-      console.log('invalid signature, retrying')
+    const valid = verifyMessage({
+      address: walletAddr as `0x${string}`,
+      message: input,
+      signature: sig as Hex,
+    })
 
-      address = utils.verifyMessage(input, sig)
-      if (address !== walletAddr) {
-        throw new Error('invalid signature')
-      }
+    if (!valid) {
+      throw new Error('invalid signature')
     }
 
-    const secret = hexToBytes(sig)
+    const secret = hexToBytes(sig as Hex)
     const ciphertext = await encrypt(bytes, secret)
     return proto.EncryptedPrivateKeyBundle.encode({
       v1: {
@@ -136,7 +135,9 @@ export default class NetworkKeyManager {
       await this.preEnableIdentityCallback()
     }
     const secret = hexToBytes(
-      await wallet.signMessage(storageSigRequestText(eBundle.walletPreKey))
+      (await wallet.signMessage(
+        storageSigRequestText(eBundle.walletPreKey)
+      )) as Hex
     )
 
     // Ledger uses the last byte = v=[0,1,...] but Metamask and other wallets generate with

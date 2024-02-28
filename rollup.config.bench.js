@@ -11,8 +11,8 @@ const external = [
   'benny',
   'crypto',
   'elliptic',
-  'ethers',
   'long',
+  'viem',
 ]
 
 const plugins = [
