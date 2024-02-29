@@ -42,6 +42,7 @@ export class FramesClient {
       timestamp,
       inputText: inputText || "",
       unixTimestamp: now,
+      state: inputs.state || "",
     };
 
     const signedAction = await this.buildSignedFrameAction(toSign);

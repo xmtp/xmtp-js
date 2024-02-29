@@ -23,6 +23,7 @@ describe("signFrameAction", () => {
       buttonIndex,
       conversationTopic: "foo",
       participantAccountAddresses: ["amal", "bola"],
+      state: "state",
     });
 
     expect(signedPayload.untrustedData.walletAddress).toEqual(client.address);
@@ -47,6 +48,7 @@ describe("signFrameAction", () => {
     expect(signedPayloadBody.buttonIndex).toEqual(buttonIndex);
     expect(signedPayloadBody.frameUrl).toEqual(frameUrl);
     expect(signedPayloadBody.opaqueConversationIdentifier).toBeDefined();
+    expect(signedPayloadBody.state).toEqual("state");
 
     if (
       !signedPayloadProto.signature ||
