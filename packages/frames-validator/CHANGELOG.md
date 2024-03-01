@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.5.2
+
+### Patch Changes
+
+- [#169](https://github.com/xmtp/xmtp-node-js-tools/pull/169) [`ea52fb6`](https://github.com/xmtp/xmtp-node-js-tools/commit/ea52fb63562d611307c7005c8fba472bc286e7e7) Thanks [@neekolas](https://github.com/neekolas)! - Add state field
+
 ## 0.5.1
 
 ### Patch Changes
