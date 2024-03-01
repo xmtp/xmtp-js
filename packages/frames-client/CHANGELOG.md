@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.4.3
+
+### Patch Changes
+
+- cab6fb3: Add support for the state field
+
 ## 0.4.2
 
 ### Patch Changes
