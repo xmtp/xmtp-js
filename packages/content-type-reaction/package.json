@@ -2,34 +2,6 @@
   "name": "@xmtp/content-type-reaction",
   "version": "1.1.6",
   "description": "An XMTP content type to support reactions to messages",
-  "author": "XMTP Labs <eng@xmtp.com>",
-  "license": "MIT",
-  "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "browser": "dist/browser/index.js",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "browser": "./dist/browser/index.js",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "sideEffects": false,
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:xmtp/xmtp-js-content-types.git",
-    "directory": "packages/content-type-reaction"
-  },
-  "homepage": "https://github.com/xmtp/xmtp-js-content-types",
-  "bugs": {
-    "url": "https://github.com/xmtp/xmtp-js-content-types/issues"
-  },
   "keywords": [
     "xmtp",
     "messaging",
@@ -40,10 +12,47 @@
     "typescript",
     "content-types"
   ],
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
+  "homepage": "https://github.com/xmtp/xmtp-js-content-types",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js-content-types/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xmtp/xmtp-js-content-types.git",
+    "directory": "packages/content-type-reaction"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": "./dist/browser/index.js",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "browser": "dist/browser/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "yarn clean:dist && yarn rollup -c",
+    "clean": "rimraf .turbo node_modules && yarn clean:dist",
+    "clean:dist": "rimraf dist",
+    "dev": "yarn clean:dist && yarn rollup -c --watch",
+    "format": "yarn format:base -w .",
+    "format:base": "prettier --ignore-path ../../.gitignore",
+    "format:check": "yarn format:base -c .",
+    "lint": "eslint . --ignore-path ../../.gitignore",
+    "test": "yarn test:node && yarn test:jsdom",
+    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment happy-dom",
+    "test:node": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
+    "typecheck": "tsc --noEmit"
   },
   "browserslist": {
     "production": [
@@ -57,44 +66,34 @@
       "last 3 safari versions"
     ]
   },
-  "scripts": {
-    "build": "yarn clean:dist && yarn rollup -c",
-    "clean:dist": "rimraf dist",
-    "clean": "rimraf .turbo node_modules && yarn clean:dist",
-    "dev": "yarn clean:dist && yarn rollup -c --watch",
-    "format:base": "prettier --ignore-path ../../.gitignore",
-    "format:check": "yarn format:base -c .",
-    "format": "yarn format:base -w .",
-    "lint": "eslint . --ignore-path ../../.gitignore",
-    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment jsdom",
-    "test:node": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
-    "test": "yarn test:node && yarn test:jsdom",
-    "typecheck": "tsc --noEmit"
-  },
   "dependencies": {
     "@xmtp/xmtp-js": "^11.3.12"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@types/node": "^18.14.2",
+    "@types/node": "^18.19.21",
     "buffer": "^6.0.3",
-    "esbuild": "^0.18.2",
-    "esbuild-plugin-external-global": "^1.0.1",
-    "eslint": "^8.43.0",
+    "eslint": "^8.57.0",
     "eslint-config-custom": "workspace:*",
-    "ethers": "^6.0.8",
-    "jsdom": "^22.1.0",
-    "prettier": "^2.8.8",
-    "rimraf": "^5.0.1",
-    "rollup": "^4.9.5",
+    "ethers": "^6.11.1",
+    "happy-dom": "^13.6.2",
+    "prettier": "^3.2.5",
+    "prettier-plugin-packagejson": "^2.4.12",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.12.1",
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-filesize": "^10.0.0",
-    "typescript": "^5.1.3",
-    "vite": "^4.3.9",
-    "vitest": "^0.32.2"
+    "typescript": "^5.3.3",
+    "vite": "^5.1.5",
+    "vitest": "^1.3.1"
   },
   "peerDependencies": {
     "@xmtp/xmtp-js": "^11.1.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
   }
 }

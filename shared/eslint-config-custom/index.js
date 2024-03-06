@@ -31,6 +31,7 @@ module.exports = {
         format: null,
       },
     ],
+    "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/unbound-method": [
