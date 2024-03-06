@@ -80,7 +80,7 @@
     "eslint-config-custom": "workspace:*",
     "ethers": "^6.11.1",
     "jsdom": "^24.0.0",
-    "prettier": "^2.8.8",
+    "prettier": "^3.2.5",
     "prettier-plugin-packagejson": "^2.4.12",
     "rimraf": "^5.0.5",
     "rollup": "^4.12.1",
