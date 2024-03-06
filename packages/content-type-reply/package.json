@@ -50,7 +50,7 @@
     "format:check": "yarn format:base -c .",
     "lint": "eslint . --ignore-path ../../.gitignore",
     "test": "yarn test:node && yarn test:jsdom",
-    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment jsdom",
+    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment happy-dom",
     "test:node": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
     "typecheck": "tsc --noEmit"
   },
@@ -79,7 +79,7 @@
     "eslint": "^8.57.0",
     "eslint-config-custom": "workspace:*",
     "ethers": "^6.11.1",
-    "jsdom": "^24.0.0",
+    "happy-dom": "^13.6.2",
     "prettier": "^3.2.5",
     "prettier-plugin-packagejson": "^2.4.12",
     "rimraf": "^5.0.5",
