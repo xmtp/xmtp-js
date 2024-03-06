@@ -2,8 +2,8 @@
   "name": "eslint-config-custom",
   "version": "0.0.0",
   "private": true,
-  "main": "index.js",
   "license": "UNLICENSED",
+  "main": "index.js",
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",

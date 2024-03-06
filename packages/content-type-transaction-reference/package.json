@@ -2,34 +2,6 @@
   "name": "@xmtp/content-type-transaction-reference",
   "version": "1.0.2",
   "description": "An XMTP content type to support on-chain transaction references",
-  "author": "XMTP Labs <eng@xmtp.com>",
-  "license": "MIT",
-  "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "browser": "dist/browser/index.js",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "browser": "./dist/browser/index.js",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "sideEffects": false,
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:xmtp/xmtp-js-content-types.git",
-    "directory": "packages/content-type-transaction-reference"
-  },
-  "homepage": "https://github.com/xmtp/xmtp-js-content-types",
-  "bugs": {
-    "url": "https://github.com/xmtp/xmtp-js-content-types/issues"
-  },
   "keywords": [
     "xmtp",
     "messaging",
@@ -40,10 +12,47 @@
     "typescript",
     "content-types"
   ],
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
+  "homepage": "https://github.com/xmtp/xmtp-js-content-types",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js-content-types/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xmtp/xmtp-js-content-types.git",
+    "directory": "packages/content-type-transaction-reference"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": "./dist/browser/index.js",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "browser": "dist/browser/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "yarn clean:dist && yarn rollup -c",
+    "clean": "rimraf .turbo node_modules && yarn clean:dist",
+    "clean:dist": "rimraf dist",
+    "dev": "yarn clean:dist && yarn rollup -c --watch",
+    "format": "yarn format:base -w .",
+    "format:base": "prettier --ignore-path ../../.gitignore",
+    "format:check": "yarn format:base -c .",
+    "lint": "eslint . --ignore-path ../../.gitignore",
+    "test": "yarn test:node && yarn test:jsdom",
+    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment jsdom",
+    "test:node": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
+    "typecheck": "tsc --noEmit"
   },
   "browserslist": {
     "production": [
@@ -56,20 +65,6 @@
       "last 3 firefox versions",
       "last 3 safari versions"
     ]
-  },
-  "scripts": {
-    "build": "yarn clean:dist && yarn rollup -c",
-    "clean:dist": "rimraf dist",
-    "clean": "rimraf .turbo node_modules && yarn clean:dist",
-    "dev": "yarn clean:dist && yarn rollup -c --watch",
-    "format:base": "prettier --ignore-path ../../.gitignore",
-    "format:check": "yarn format:base -c .",
-    "format": "yarn format:base -w .",
-    "lint": "eslint . --ignore-path ../../.gitignore",
-    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment jsdom",
-    "test:node": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
-    "test": "yarn test:node && yarn test:jsdom",
-    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@xmtp/proto": "^3.29.0",
@@ -85,6 +80,7 @@
     "ethers": "^6.11.1",
     "jsdom": "^24.0.0",
     "prettier": "^2.8.8",
+    "prettier-plugin-packagejson": "^2.4.12",
     "rimraf": "^5.0.5",
     "rollup": "^4.12.1",
     "rollup-plugin-dts": "^6.1.0",
@@ -95,5 +91,10 @@
   },
   "peerDependencies": {
     "@xmtp/xmtp-js": "^11.3.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
   }
 }
