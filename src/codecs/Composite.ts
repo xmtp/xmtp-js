@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import type {
   ContentCodec,
   EncodedContent,
