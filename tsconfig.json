@@ -13,5 +13,15 @@
     "target": "es2021",
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*", "bench/**/*", "build/**/*", "test/**/*"]
+  "include": [
+    "src/**/*",
+    "bench/**/*",
+    "build/**/*",
+    "test/**/*",
+    ".eslintrc.cjs",
+    "commitlint.config.cjs",
+    "rollup.config.bench.js",
+    "rollup.config.js",
+    "vitest.config.ts"
+  ]
 }
