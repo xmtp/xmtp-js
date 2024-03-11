@@ -1,5 +1,5 @@
 import { authn as authnProto } from '@xmtp/proto'
-import Long from 'long'
+import type Long from 'long'
 import { dateToNs } from '../utils/date'
 
 export default class AuthData implements authnProto.AuthData {

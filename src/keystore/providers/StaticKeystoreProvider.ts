@@ -6,7 +6,7 @@ import {
   PrivateKeyBundleV2,
 } from '../../crypto/PrivateKeyBundle'
 import { buildPersistenceFromOptions } from './helpers'
-import { KeystoreInterface } from '../rpcDefinitions'
+import type { KeystoreInterface } from '../rpcDefinitions'
 
 /**
  * StaticKeystoreProvider will look for a `privateKeyOverride` in the provided options,

@@ -1,4 +1,4 @@
-import { Signer } from '../../types/Signer'
+import type { Signer } from '../../types/Signer'
 import crypto from '../../crypto/crypto'
 import {
   PrivateKeyBundleV1,
@@ -12,8 +12,9 @@ import { LocalAuthenticator } from '../../authn'
 import { bytesToHex } from '../../crypto/utils'
 import Ciphertext from '../../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
-import TopicPersistence from '../persistence/TopicPersistence'
-import { Hex, getAddress, hexToBytes, verifyMessage } from 'viem'
+import type TopicPersistence from '../persistence/TopicPersistence'
+import type { Hex } from 'viem'
+import { getAddress, hexToBytes, verifyMessage } from 'viem'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**

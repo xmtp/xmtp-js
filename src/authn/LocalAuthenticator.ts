@@ -1,6 +1,6 @@
 import { authn, signature, publicKey } from '@xmtp/proto'
 import AuthData from './AuthData'
-import { PrivateKey } from '../crypto'
+import type { PrivateKey } from '../crypto'
 import Token from './Token'
 import { hexToBytes, keccak256 } from 'viem'
 

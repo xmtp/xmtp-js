@@ -1,5 +1,6 @@
 import { publicKey } from '@xmtp/proto'
-import { ContentTypeId, ContentCodec, PublicKey, EncodedContent } from '../src'
+import type { ContentCodec, EncodedContent } from '../src'
+import { ContentTypeId, PublicKey } from '../src'
 
 export const ContentTypeTestKey = new ContentTypeId({
   authorityId: 'xmtp.test',

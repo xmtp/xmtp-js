@@ -1,4 +1,4 @@
-import { keystore } from '@xmtp/proto'
+import type { keystore } from '@xmtp/proto'
 
 export class KeystoreError extends Error implements keystore.KeystoreError {
   code: keystore.ErrorCode

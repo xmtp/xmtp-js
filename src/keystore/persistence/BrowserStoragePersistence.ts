@@ -1,4 +1,4 @@
-import { Persistence } from './interface'
+import type { Persistence } from './interface'
 
 export default class BrowserStoragePersistence implements Persistence {
   storage: Storage

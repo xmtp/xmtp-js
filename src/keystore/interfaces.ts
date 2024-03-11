@@ -1,5 +1,11 @@
-import { keystore, publicKey, authn, privateKey, signature } from '@xmtp/proto'
-import { WithoutUndefined } from '../utils/typedefs'
+import type {
+  keystore,
+  publicKey,
+  authn,
+  privateKey,
+  signature,
+} from '@xmtp/proto'
+import type { WithoutUndefined } from '../utils/typedefs'
 
 /**
  * A Keystore is responsible for holding the user's XMTP private keys and using them to encrypt/decrypt/sign messages.

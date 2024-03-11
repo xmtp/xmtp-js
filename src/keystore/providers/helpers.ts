@@ -1,7 +1,7 @@
-import { PrivateKeyBundleV2 } from './../../crypto/PrivateKeyBundle'
-import { PrivateKeyBundleV1 } from '../../crypto/PrivateKeyBundle'
+import type { PrivateKeyBundleV2 } from './../../crypto/PrivateKeyBundle'
+import type { PrivateKeyBundleV1 } from '../../crypto/PrivateKeyBundle'
 import { EncryptedPersistence, PrefixedPersistence } from '../persistence'
-import { KeystoreProviderOptions } from './interfaces'
+import type { KeystoreProviderOptions } from './interfaces'
 import { buildPersistenceKey } from '../utils'
 import EphemeralPersistence from '../persistence/InMemoryPersistence'
 

@@ -1,4 +1,4 @@
-import { ciphertext } from '@xmtp/proto'
+import type { ciphertext } from '@xmtp/proto'
 import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext'
 import crypto from './crypto'
 

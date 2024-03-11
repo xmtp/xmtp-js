@@ -1,9 +1,9 @@
 import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
 import { SignedPrivateKey, PrivateKey } from './PrivateKey'
+import type { PrivateKeyBundle } from './PrivateKeyBundle'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
-  PrivateKeyBundle,
   decodePrivateKeyBundle,
 } from './PrivateKeyBundle'
 import { UnsignedPublicKey, SignedPublicKey, PublicKey } from './PublicKey'
@@ -13,6 +13,7 @@ import { encrypt, decrypt } from './encryption'
 import Ciphertext from './Ciphertext'
 import SignedEciesCiphertext from './SignedEciesCiphertext'
 
+export type { PrivateKeyBundle }
 export {
   utils,
   encrypt,
@@ -25,7 +26,6 @@ export {
   PublicKeyBundle,
   PrivateKey,
   SignedPrivateKey,
-  PrivateKeyBundle,
   decodePrivateKeyBundle,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,

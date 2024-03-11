@@ -1,4 +1,6 @@
-import BackupClient, { BackupType, NoBackupConfiguration } from './BackupClient'
+import type { NoBackupConfiguration } from './BackupClient'
+import type BackupClient from './BackupClient'
+import { BackupType } from './BackupClient'
 
 const BACKUP_TYPE = BackupType.none
 export default class NoBackupClient implements BackupClient {

@@ -3,9 +3,10 @@ import * as secp from '@noble/secp256k1'
 import Long from 'long'
 import Signature, { WalletSigner } from './Signature'
 import { computeAddress, equalBytes, splitSignature } from './utils'
-import { Signer } from '../types/Signer'
+import type { Signer } from '../types/Signer'
 import { sha256 } from './encryption'
-import { hashMessage, Hex, hexToBytes } from 'viem'
+import type { Hex } from 'viem'
+import { hashMessage, hexToBytes } from 'viem'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {

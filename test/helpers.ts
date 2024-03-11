@@ -1,18 +1,13 @@
 import { dateToNs, toNanoString } from './../src/utils'
 import { Wallet } from 'ethers'
-import {
-  PrivateKey,
-  ContentCodec,
-  ContentTypeId,
-  TextCodec,
-  Client,
-  ClientOptions,
-} from '../src'
-import { Signer } from '../src/types/Signer'
-import Stream from '../src/Stream'
+import type { ContentCodec, ContentTypeId, ClientOptions } from '../src'
+import { PrivateKey, TextCodec, Client } from '../src'
+import type { Signer } from '../src/types/Signer'
+import type Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
-import { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
-import { messageApi, fetcher } from '@xmtp/proto'
+import type { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
+import type { messageApi } from '@xmtp/proto'
+import { fetcher } from '@xmtp/proto'
 
 const { b64Encode } = fetcher
 

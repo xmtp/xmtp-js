@@ -1,5 +1,5 @@
-import { Authenticator } from './interfaces'
-import Token from './Token'
+import type { Authenticator } from './interfaces'
+import type Token from './Token'
 
 // Default to 10 seconds less than expected expiry to give some wiggle room near the end
 // https://github.com/xmtp/xmtp-node-go/blob/main/pkg/api/authentication.go#L18
