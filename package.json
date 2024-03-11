@@ -103,7 +103,7 @@
     "async-mutex": "^0.4.1",
     "elliptic": "^6.5.4",
     "long": "^5.2.3",
-    "viem": "^2.7.8"
+    "viem": "^2.7.22"
   },
   "devDependencies": {
     "@commitlint/cli": "17.8.1",
