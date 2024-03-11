@@ -98,12 +98,12 @@
   },
   "dependencies": {
     "@noble/secp256k1": "1.7.1",
-    "@xmtp/proto": "3.34.0",
+    "@xmtp/proto": "3.45.0",
     "@xmtp/user-preferences-bindings-wasm": "^0.3.6",
-    "async-mutex": "^0.4.1",
+    "async-mutex": "^0.5.0",
     "elliptic": "^6.5.4",
     "long": "^5.2.3",
-    "viem": "^2.7.8"
+    "viem": "^2.7.22"
   },
   "devDependencies": {
     "@commitlint/cli": "17.8.1",

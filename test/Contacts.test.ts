@@ -183,8 +183,8 @@ describe('Contacts', () => {
     const actions: privatePreferences.PrivatePreferencesAction[] = []
     for await (const action of aliceStream) {
       numActions++
-      expect(action.block).toBeUndefined()
-      expect(action.allow?.walletAddresses).toEqual([bob.address])
+      expect(action.denyAddress).toBeUndefined()
+      expect(action.allowAddress?.walletAddresses).toEqual([bob.address])
       break
     }
     expect(numActions).toBe(1)

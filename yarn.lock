@@ -2593,15 +2593,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/proto@npm:3.34.0":
-  version: 3.34.0
-  resolution: "@xmtp/proto@npm:3.34.0"
+"@xmtp/proto@npm:3.45.0":
+  version: 3.45.0
+  resolution: "@xmtp/proto@npm:3.45.0"
   dependencies:
     long: "npm:^5.2.0"
     protobufjs: "npm:^7.0.0"
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
-  checksum: 10/9aeda8805f6dd73394722dc5b30ca512c01c7b5bc3553bd3528474b3c8ff212958f4c86fd6f1227aba73f1a816a644941c0d1c8f4ca74d3a65c6d5c7c1581c7a
+  checksum: 10/8f9cb9de2265db8c329edbb6e17af117fd7a2ad6a688b3a353e103ce609d57f2df682aae481e6a4aa9df07fe7135cac8ba6e5a91f69a7d7a9f4946b2083e3a02
   languageName: node
   linkType: hard
 
@@ -2644,10 +2644,10 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.1.0"
     "@typescript-eslint/parser": "npm:^7.1.0"
     "@vitest/coverage-v8": "npm:^1.3.1"
-    "@xmtp/proto": "npm:3.34.0"
+    "@xmtp/proto": "npm:3.45.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:1.0.1"
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"
-    async-mutex: "npm:^0.4.1"
+    async-mutex: "npm:^0.5.0"
     benny: "npm:^3.7.1"
     dd-trace: "npm:^5.5.0"
     elliptic: "npm:^6.5.4"
@@ -2672,7 +2672,7 @@ __metadata:
     semantic-release: "npm:^21.1.2"
     typedoc: "npm:^0.25.9"
     typescript: "npm:^5.3.3"
-    viem: "npm:^2.7.8"
+    viem: "npm:^2.7.22"
     vite: "npm:^5.1.4"
     vitest: "npm:^1.3.1"
   languageName: unknown
@@ -3110,12 +3110,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"async-mutex@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "async-mutex@npm:0.4.1"
+"async-mutex@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "async-mutex@npm:0.5.0"
   dependencies:
     tslib: "npm:^2.4.0"
-  checksum: 10/7e9f77b112b8545beb6612493fae4a8d9d1d6c3f24fc22f4d6d05ce96d1e8d326ac3e743a804cc6d7bf24e7ef0267afb65bb127f99b2e433609684b38933ff1c
+  checksum: 10/4c6bfce1cc9cd43f723c4d96403ac5f4757f885c953b839cde6956ec8817ff39623b82d67614de10c7933e21626925882fb9bac367db7d15d7cb4f84228722c9
   languageName: node
   linkType: hard
 
@@ -10440,9 +10440,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:^2.7.8":
-  version: 2.7.15
-  resolution: "viem@npm:2.7.15"
+"viem@npm:^2.7.22":
+  version: 2.7.22
+  resolution: "viem@npm:2.7.22"
   dependencies:
     "@adraffy/ens-normalize": "npm:1.10.0"
     "@noble/curves": "npm:1.2.0"
@@ -10457,7 +10457,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/cf6923e8e042d626fc03e678757529dfa8e977d8079a744ffec88cdbdde7505bb9aadc73882ddf4c732eb6b380af478b13cc4363fdaa960d0ce2628da6941612
+  checksum: 10/2b4b8913ccf0a4b1ffc458581fd02ade73607158a36f736664860bd15c8a76cf437b8415adb554541f8f9260d8ffc227280d408a20460fc283875d50a11b30d6
   languageName: node
   linkType: hard
 
