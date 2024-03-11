@@ -106,10 +106,10 @@ export class ConsentList {
   ) {
     const entries: ConsentListEntry[] = []
     actions.forEach((action) => {
-      action.allow?.walletAddresses.forEach((address) => {
+      action.allowAddress?.walletAddresses.forEach((address) => {
         entries.push(this.allow(address))
       })
-      action.block?.walletAddresses.forEach((address) => {
+      action.denyAddress?.walletAddresses.forEach((address) => {
         entries.push(this.deny(address))
       })
     })
@@ -182,18 +182,20 @@ export class ConsentList {
       // only handle address entries for now
       if (entry.entryType === 'address') {
         const action: PrivatePreferencesAction = {
-          allow:
+          allowAddress:
             entry.permissionType === 'allowed'
               ? {
                   walletAddresses: [entry.value],
                 }
               : undefined,
-          block:
+          denyAddress:
             entry.permissionType === 'denied'
               ? {
                   walletAddresses: [entry.value],
                 }
               : undefined,
+          allowGroup: undefined,
+          denyGroup: undefined,
         }
         return result.concat(
           privatePreferences.PrivatePreferencesAction.encode(action).finish()

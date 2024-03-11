@@ -2593,15 +2593,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/proto@npm:3.34.0":
-  version: 3.34.0
-  resolution: "@xmtp/proto@npm:3.34.0"
+"@xmtp/proto@npm:3.45.0":
+  version: 3.45.0
+  resolution: "@xmtp/proto@npm:3.45.0"
   dependencies:
     long: "npm:^5.2.0"
     protobufjs: "npm:^7.0.0"
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
-  checksum: 10/9aeda8805f6dd73394722dc5b30ca512c01c7b5bc3553bd3528474b3c8ff212958f4c86fd6f1227aba73f1a816a644941c0d1c8f4ca74d3a65c6d5c7c1581c7a
+  checksum: 10/8f9cb9de2265db8c329edbb6e17af117fd7a2ad6a688b3a353e103ce609d57f2df682aae481e6a4aa9df07fe7135cac8ba6e5a91f69a7d7a9f4946b2083e3a02
   languageName: node
   linkType: hard
 
@@ -2644,7 +2644,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.1.0"
     "@typescript-eslint/parser": "npm:^7.1.0"
     "@vitest/coverage-v8": "npm:^1.3.1"
-    "@xmtp/proto": "npm:3.34.0"
+    "@xmtp/proto": "npm:3.45.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:1.0.1"
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"
     async-mutex: "npm:^0.4.1"
