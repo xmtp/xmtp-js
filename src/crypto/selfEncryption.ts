@@ -6,7 +6,7 @@ import {
   // eslint-disable-next-line camelcase
   user_preferences_encrypt,
 } from '@xmtp/user-preferences-bindings-wasm'
-import { PrivateKey } from '../crypto'
+import type { PrivateKey } from '../crypto'
 
 export async function userPreferencesEncrypt(
   identityKey: PrivateKey,

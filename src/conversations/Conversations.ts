@@ -1,12 +1,13 @@
-import { OnConnectionLostCallback } from './../ApiClient'
-import { messageApi, keystore, conversationReference } from '@xmtp/proto'
+import type { OnConnectionLostCallback } from './../ApiClient'
+import type { messageApi, keystore, conversationReference } from '@xmtp/proto'
 import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
-import { ListMessagesOptions } from './../Client'
-import { InvitationContext } from './../Invitation'
-import { Conversation, ConversationV1, ConversationV2 } from './Conversation'
+import type { ListMessagesOptions } from './../Client'
+import type { InvitationContext } from './../Invitation'
+import type { Conversation } from './Conversation'
+import { ConversationV1, ConversationV2 } from './Conversation'
 import { MessageV1, DecodedMessage } from '../Message'
 import Stream from '../Stream'
-import Client from '../Client'
+import type Client from '../Client'
 import {
   buildDirectMessageTopic,
   buildUserIntroTopic,

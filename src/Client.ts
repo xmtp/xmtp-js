@@ -1,51 +1,51 @@
 import { PrivateKeyBundleV1 } from './crypto/PrivateKeyBundle'
 import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
-import {
-  buildUserContactTopic,
-  mapPaginatedStream,
+import type {
   EnvelopeMapper,
-  buildUserInviteTopic,
-  isBrowser,
-  getSigner,
   EnvelopeMapperWithMessage,
   EnvelopeWithMessage,
 } from './utils'
-import { Signer } from './types/Signer'
+import {
+  buildUserContactTopic,
+  mapPaginatedStream,
+  buildUserInviteTopic,
+  isBrowser,
+  getSigner,
+} from './utils'
+import type { Signer } from './types/Signer'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
-import { ContentTypeId, ContentCodec, EncodedContent } from './MessageContent'
+import type { ContentCodec, EncodedContent } from './MessageContent'
+import { ContentTypeId } from './MessageContent'
 import { compress, decompress } from './Compression'
 import { content as proto, messageApi } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import HttpApiClient, {
-  ApiUrls,
-  ApiClient,
-  PublishParams,
-  SortDirection,
-} from './ApiClient'
+import type { ApiClient, PublishParams } from './ApiClient'
+import HttpApiClient, { ApiUrls, SortDirection } from './ApiClient'
 import { KeystoreAuthenticator } from './authn'
-import { Flatten } from './utils/typedefs'
-import BackupClient, { BackupType } from './message-backup/BackupClient'
+import type { Flatten } from './utils/typedefs'
+import type BackupClient from './message-backup/BackupClient'
+import { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
+import type { KeystoreProvider } from './keystore/providers'
 import {
   KeyGeneratorKeystoreProvider,
-  KeystoreProvider,
   KeystoreProviderUnavailableError,
   NetworkKeystoreProvider,
   SnapProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
+import type { Persistence } from './keystore/persistence'
 import {
   BrowserStoragePersistence,
   InMemoryPersistence,
-  Persistence,
 } from './keystore/persistence'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { packageName, version } from './snapInfo.json'
-import { ExtractDecodedType } from './types/client'
+import type { ExtractDecodedType } from './types/client'
 import { getAddress, type WalletClient } from 'viem'
 import { Contacts } from './Contacts'
-import { KeystoreInterfaces } from './keystore/rpcDefinitions'
+import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types

@@ -1,7 +1,6 @@
-import BackupClient, {
-  BackupType,
-  TopicStoreBackupConfiguration,
-} from './BackupClient'
+import type { TopicStoreBackupConfiguration } from './BackupClient'
+import type BackupClient from './BackupClient'
+import { BackupType } from './BackupClient'
 
 const BACKUP_TYPE = BackupType.xmtpTopicStore
 export default class TopicStoreBackupClient implements BackupClient {

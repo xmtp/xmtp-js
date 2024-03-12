@@ -1,5 +1,5 @@
-import { messageApi } from '@xmtp/proto'
-import { Flatten } from './typedefs'
+import type { messageApi } from '@xmtp/proto'
+import type { Flatten } from './typedefs'
 
 export type IsRetryable = (err?: Error) => boolean
 

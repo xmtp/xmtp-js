@@ -1,4 +1,4 @@
-import { OnConnectionLostCallback } from './../ApiClient'
+import type { OnConnectionLostCallback } from './../ApiClient'
 import {
   buildUserIntroTopic,
   buildDirectMessageTopic,
@@ -7,20 +7,16 @@ import {
   toNanoString,
 } from '../utils'
 import Stream from '../Stream'
-import Client, {
+import type {
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
   SendOptions,
 } from '../Client'
-import { InvitationContext } from '../Invitation'
+import type Client from '../Client'
+import type { InvitationContext } from '../Invitation'
 import { DecodedMessage, MessageV1, MessageV2 } from '../Message'
-import {
-  messageApi,
-  message,
-  content as proto,
-  keystore,
-  ciphertext,
-} from '@xmtp/proto'
+import type { messageApi, keystore, ciphertext } from '@xmtp/proto'
+import { message, content as proto } from '@xmtp/proto'
 import {
   SignedPublicKey,
   Signature,
@@ -31,7 +27,7 @@ import { PreparedMessage } from '../PreparedMessage'
 import { sha256 } from '../crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
 import { ContentTypeText } from '../codecs/Text'
-import { ConsentState } from '../Contacts'
+import type { ConsentState } from '../Contacts'
 import { getAddress } from 'viem'
 
 /**

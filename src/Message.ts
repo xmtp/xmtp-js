@@ -1,19 +1,17 @@
-import {
-  Conversation,
-  ConversationV1,
-  ConversationV2,
-} from './conversations/Conversation'
+import type { Conversation } from './conversations/Conversation'
+import { ConversationV1, ConversationV2 } from './conversations/Conversation'
 import type Client from './Client'
-import { message as proto, conversationReference } from '@xmtp/proto'
+import type { conversationReference } from '@xmtp/proto'
+import { message as proto } from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
 import { PublicKeyBundle, PublicKey } from './crypto'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
-import { ContentTypeId } from './MessageContent'
+import type { ContentTypeId } from './MessageContent'
 import { dateToNs, nsToDate } from './utils'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
-import { KeystoreInterfaces } from './keystore/rpcDefinitions'
+import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message

@@ -11,8 +11,16 @@ module.exports = {
   parserOptions: {
     sourceType: 'module',
     warnOnUnsupportedTypeScriptVersion: false,
+    project: 'tsconfig.json',
   },
   rules: {
+    '@typescript-eslint/consistent-type-exports': [
+      'error',
+      {
+        fixMixedExportsWithInlineTypeSpecifier: false,
+      },
+    ],
+    '@typescript-eslint/consistent-type-imports': 'error',
     'prettier/prettier': 'error',
     'jsdoc/require-jsdoc': 'off',
     'jsdoc/require-description': 'off',

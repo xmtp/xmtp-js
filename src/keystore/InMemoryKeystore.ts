@@ -1,11 +1,10 @@
-import { authn, keystore, privateKey, signature } from '@xmtp/proto'
-import {
-  PrivateKeyBundleV1,
-  PrivateKeyBundleV2,
-} from './../crypto/PrivateKeyBundle'
+import type { authn, privateKey, signature } from '@xmtp/proto'
+import { keystore } from '@xmtp/proto'
+import type { PrivateKeyBundleV1 } from './../crypto/PrivateKeyBundle'
+import { PrivateKeyBundleV2 } from './../crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from './../Invitation'
-import { PrivateKey, PublicKeyBundle } from '../crypto'
-import { TopicData } from './interfaces'
+import type { PrivateKey, PublicKeyBundle } from '../crypto'
+import type { TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
 import {
@@ -22,8 +21,9 @@ import {
   buildDirectMessageTopicV2,
   buildDirectMessageTopic,
 } from '../utils'
-import { AddRequest, V1Store, V2Store } from './conversationStores'
-import { Persistence } from './persistence'
+import type { AddRequest } from './conversationStores'
+import { V1Store, V2Store } from './conversationStores'
+import type { Persistence } from './persistence'
 import LocalAuthenticator from '../authn/LocalAuthenticator'
 import { hmacSha256Sign } from '../crypto/ecies'
 import crypto from '../crypto/crypto'
@@ -34,7 +34,7 @@ import {
   userPreferencesEncrypt,
   generateUserPreferencesTopic,
 } from '../crypto/selfEncryption'
-import { KeystoreInterface } from '..'
+import type { KeystoreInterface } from '..'
 
 const { ErrorCode } = keystore
 

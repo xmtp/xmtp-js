@@ -1,6 +1,6 @@
 import * as secp from '@noble/secp256k1'
+import type { Hex } from 'viem'
 import {
-  Hex,
   getAddress,
   hexToSignature,
   keccak256,

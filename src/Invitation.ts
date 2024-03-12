@@ -1,10 +1,11 @@
 import Long from 'long'
 import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
-import { messageApi, invitation } from '@xmtp/proto'
+import type { messageApi } from '@xmtp/proto'
+import { invitation } from '@xmtp/proto'
 import crypto from './crypto/crypto'
 import Ciphertext from './crypto/Ciphertext'
 import { decrypt, encrypt } from './crypto'
-import { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
+import type { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
 import { dateToNs, buildDirectMessageTopicV2 } from './utils'
 
 export type InvitationContext = {

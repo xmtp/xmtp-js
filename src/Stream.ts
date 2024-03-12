@@ -1,6 +1,6 @@
-import { OnConnectionLostCallback, SubscriptionManager } from './ApiClient'
-import Client from './Client'
-import { messageApi } from '@xmtp/proto'
+import type { OnConnectionLostCallback, SubscriptionManager } from './ApiClient'
+import type Client from './Client'
+import type { messageApi } from '@xmtp/proto'
 
 export type MessageDecoder<M> = (
   env: messageApi.Envelope

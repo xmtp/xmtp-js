@@ -1,7 +1,7 @@
-import { authn } from '@xmtp/proto'
+import type { authn } from '@xmtp/proto'
 import { dateToNs } from '../utils'
 import Token from './Token'
-import {
+import type {
   KeystoreInterface,
   KeystoreInterfaces,
 } from '../keystore/rpcDefinitions'
