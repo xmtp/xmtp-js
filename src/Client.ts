@@ -1,5 +1,4 @@
 import { PrivateKeyBundleV1 } from './crypto/PrivateKeyBundle'
-import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
 import type { Signer } from './types/Signer'
 import Conversations from '@/conversations/Conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
@@ -39,6 +38,10 @@ import StaticKeystoreProvider from '@/keystore/providers/StaticKeystoreProvider'
 import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
 import KeyGeneratorKeystoreProvider from '@/keystore/providers/KeyGeneratorKeystoreProvider'
 import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from '@/crypto/PublicKeyBundle'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types

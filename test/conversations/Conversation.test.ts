@@ -3,7 +3,6 @@ import { buildDirectMessageTopic } from '@/utils/topic'
 import { SortDirection } from '@/ApiClient'
 import { sleep } from '@/utils/async'
 import { newLocalHostClient, waitForUserContact } from '@test/helpers'
-import { PrivateKey, SignedPublicKeyBundle } from '@/crypto'
 import { ConversationV2 } from '@/conversations/Conversation'
 import { content as proto } from '@xmtp/proto'
 import { assert, vi } from 'vitest'
@@ -12,6 +11,8 @@ import { ContentTypeText } from '@/codecs/Text'
 import { Compression } from '@/Client'
 import { ContentTypeTestKey, TestKeyCodec } from '@test/ContentTypeTestKey'
 import { ContentTypeId } from '@/MessageContent'
+import { PrivateKey } from '@/crypto/PrivateKey'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
 
 describe('conversation', () => {
   let alice: Client<string>

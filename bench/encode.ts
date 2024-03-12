@@ -2,7 +2,6 @@ import { ConversationV2 } from '@/conversations/Conversation'
 import { MessageV1 } from '@/Message'
 import { add } from 'benny'
 import { newWallet, newLocalHostClient } from '@test/helpers'
-import { SignedPublicKeyBundle } from '@/crypto'
 import {
   MESSAGE_SIZES,
   newPrivateKeyBundle,
@@ -11,6 +10,7 @@ import {
 } from './helpers'
 import Client from '@/Client'
 import { dateToNs } from '@/utils/date'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
 
 const encodeV1 = () => {
   return MESSAGE_SIZES.map((size) =>

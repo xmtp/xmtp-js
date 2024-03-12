@@ -10,12 +10,6 @@ import type { InvitationContext } from '@/Invitation'
 import { DecodedMessage, MessageV1, MessageV2 } from '@/Message'
 import type { messageApi, keystore } from '@xmtp/proto'
 import { message, content as proto } from '@xmtp/proto'
-import {
-  SignedPublicKey,
-  Signature,
-  PublicKeyBundle,
-  SignedPublicKeyBundle,
-} from '@/crypto'
 import { PreparedMessage } from '@/PreparedMessage'
 import { sha256 } from '@/crypto/encryption'
 import { buildDecryptV1Request, getResultOrThrow } from '@/utils/keystore'
@@ -25,6 +19,12 @@ import { getAddress } from 'viem'
 import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
 import { dateToNs, toNanoString } from '@/utils/date'
 import { concat } from '@/utils/bytes'
+import {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from '@/crypto/PublicKeyBundle'
+import { SignedPublicKey } from '@/crypto/PublicKey'
+import Signature from '@/crypto/Signature'
 
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.

@@ -1,9 +1,9 @@
 import { privateKey } from '@xmtp/proto'
-import { PrivateKeyBundleV1 } from '@/crypto'
 import { newWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
 import StaticKeystoreProvider from '@/keystore/providers/StaticKeystoreProvider'
 import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 
 const ENV = 'local'
 

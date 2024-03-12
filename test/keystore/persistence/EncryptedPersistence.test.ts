@@ -1,9 +1,9 @@
 import crypto from '@/crypto/crypto'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
-import type { PrivateKey } from '@/crypto'
-import { SignedEciesCiphertext } from '@/crypto'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 import EncryptedPersistence from '@/keystore/persistence/EncryptedPersistence'
+import type { PrivateKey } from '@/crypto/PrivateKey'
+import SignedEciesCiphertext from '@/crypto/SignedEciesCiphertext'
 
 const TEST_KEY = 'test-key'
 const TEST_KEY_2 = 'test-key-2'

@@ -1,11 +1,13 @@
 import Long from 'long'
-import { PrivateKey, PrivateKeyBundleV1, Signature } from '@/crypto'
 import Authenticator from '@/authn/LocalAuthenticator'
 import Token from '@/authn/Token'
 import { newWallet, sleep } from '@test/helpers'
 import type { Wallet } from 'ethers'
 import AuthCache from '@/authn/AuthCache'
 import { hexToBytes, keccak256 } from 'viem'
+import { PrivateKey } from '@/crypto/PrivateKey'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import Signature from '@/crypto/Signature'
 
 describe('authn', () => {
   let authenticator: Authenticator

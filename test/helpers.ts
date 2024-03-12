@@ -3,17 +3,17 @@ import { Wallet } from 'ethers'
 import type { Signer } from '@/types/Signer'
 import type Stream from '@/Stream'
 import { promiseWithTimeout } from '@/utils/async'
-import {
-  PrivateKey,
-  type PublicKeyBundle,
-  type SignedPublicKeyBundle,
-} from '@/crypto'
 import type { messageApi } from '@xmtp/proto'
 import { fetcher } from '@xmtp/proto'
 import type { ClientOptions } from '@/Client'
 import Client from '@/Client'
 import type { ContentCodec, ContentTypeId } from '@/MessageContent'
 import { TextCodec } from '@/codecs/Text'
+import type {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from '@/crypto/PublicKeyBundle'
+import { PrivateKey } from '@/crypto/PrivateKey'
 
 const { b64Encode } = fetcher
 

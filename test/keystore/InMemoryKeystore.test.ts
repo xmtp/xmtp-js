@@ -3,11 +3,6 @@ import { randomBytes } from '@bench/helpers'
 import { InvitationV1, SealedInvitation } from '@/Invitation'
 import type { InvitationContext } from '@/Invitation'
 import { MessageV1 } from '@/Message'
-import {
-  PrivateKeyBundleV1,
-  SignedPublicKeyBundle,
-  PrivateKeyBundleV2,
-} from '@/crypto'
 import { decryptV1 } from '@/keystore/encryption'
 import { KeystoreError } from '@/keystore/errors'
 import InMemoryKeystore from '@/keystore/InMemoryKeystore'
@@ -20,13 +15,18 @@ import Long from 'long'
 import type { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 import { assert } from 'vitest'
 import { toBytes } from 'viem'
-import { getKeyMaterial } from '../../src/keystore/utils'
+import {
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
+} from '@/crypto/PrivateKeyBundle'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import { getKeyMaterial } from '@/keystore/utils'
 import {
   generateHmacSignature,
   hkdfHmacKey,
   importHmacKey,
   verifyHmacSignature,
-} from '../../src/crypto/encryption'
+} from '@/crypto/encryption'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -878,7 +878,7 @@ describe('InMemoryKeystore', () => {
 
       const invites = await Promise.all(
         [...timestamps].map(async (createdAt) => {
-          let keys = await PrivateKeyBundleV1.generate(newWallet())
+          const keys = await PrivateKeyBundleV1.generate(newWallet())
 
           const recipient = SignedPublicKeyBundle.fromLegacyBundle(
             keys.getPublicKeyBundle()
@@ -961,7 +961,7 @@ describe('InMemoryKeystore', () => {
                   topicHmacs[topic],
                   headerBytes
                 )
-                expect(valid).toBe(idx === 1 ? true : false)
+                expect(valid).toBe(idx === 1)
               }
             )
           )
@@ -978,7 +978,7 @@ describe('InMemoryKeystore', () => {
 
       const invites = await Promise.all(
         [...timestamps].map(async (createdAt) => {
-          let keys = await PrivateKeyBundleV1.generate(newWallet())
+          const keys = await PrivateKeyBundleV1.generate(newWallet())
 
           const recipient = SignedPublicKeyBundle.fromLegacyBundle(
             keys.getPublicKeyBundle()
@@ -1066,7 +1066,7 @@ describe('InMemoryKeystore', () => {
                   topicHmacs[topic],
                   headerBytes
                 )
-                expect(valid).toBe(idx === 1 ? true : false)
+                expect(valid).toBe(idx === 1)
               }
             )
           )

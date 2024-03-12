@@ -1,16 +1,19 @@
 export type { Message } from './Message'
 export { DecodedMessage, MessageV1, MessageV2, decodeContent } from './Message'
-export type { PrivateKeyBundle } from './crypto'
+export type { PrivateKeyBundle } from './crypto/PrivateKeyBundle'
+export { PrivateKey } from './crypto/PrivateKey'
 export {
-  Ciphertext,
-  PublicKey,
-  PublicKeyBundle,
-  SignedPublicKey,
-  SignedPublicKeyBundle,
-  PrivateKey,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
-  Signature,
+} from './crypto/PrivateKeyBundle'
+export { default as Ciphertext } from './crypto/Ciphertext'
+export { PublicKey, SignedPublicKey } from './crypto/PublicKey'
+export {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from './crypto/PublicKeyBundle'
+export { default as Signature } from './crypto/Signature'
+export {
   encrypt,
   decrypt,
   exportHmacKey,
@@ -18,7 +21,7 @@ export {
   hkdfHmacKey,
   importHmacKey,
   verifyHmacSignature,
-} from './crypto'
+} from './crypto/encryption'
 export { default as Stream } from './Stream'
 export type { Signer } from './types/Signer'
 export type {

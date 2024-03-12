@@ -1,13 +1,13 @@
-import {
-  decodePrivateKeyBundle,
-  PrivateKey,
-  PrivateKeyBundleV1,
-  PrivateKeyBundleV2,
-  SignedPublicKeyBundle,
-} from '@/crypto'
 import { newWallet } from '@test/helpers'
 import { storageSigRequestText } from '@/keystore/providers/NetworkKeyManager'
 import { hexToBytes } from 'viem'
+import {
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
+  decodePrivateKeyBundle,
+} from '@/crypto/PrivateKeyBundle'
+import { PrivateKey } from '@/crypto/PrivateKey'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
 
 describe('Crypto', function () {
   describe('PrivateKeyBundle', function () {

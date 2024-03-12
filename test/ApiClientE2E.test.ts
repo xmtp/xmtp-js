@@ -3,7 +3,7 @@ import { newWallet } from './helpers'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { buildUserPrivateStoreTopic } from '@/utils/topic'
 import type { Wallet } from 'ethers'
-import { PrivateKeyBundleV1 } from '@/crypto'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 
 type TestCase = { name: string; api: string }
 

@@ -1,4 +1,5 @@
-import { PrivateKeyBundleV1, Signature } from '@/crypto'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import Signature from '@/crypto/Signature'
 import { newWallet } from '@test/helpers'
 
 describe('Crypto', function () {

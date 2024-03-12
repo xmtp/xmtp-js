@@ -1,7 +1,6 @@
 import { privateKey } from '@xmtp/proto'
 import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
 import ApiClient, { ApiUrls } from '@/ApiClient'
-import { encrypt, PrivateKeyBundleV1 } from '@/crypto'
 import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
 import type { Signer } from '@/types/Signer'
 import { newWallet } from '@test/helpers'
@@ -15,6 +14,8 @@ import crypto from '@/crypto/crypto'
 import { vi } from 'vitest'
 import type { Hex } from 'viem'
 import { hexToBytes } from 'viem'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { encrypt } from '@/crypto/encryption'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient

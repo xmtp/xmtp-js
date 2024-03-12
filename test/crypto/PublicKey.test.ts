@@ -1,16 +1,11 @@
 import Long from 'long'
-import {
-  PrivateKey,
-  PublicKey,
-  SignedPublicKey,
-  SignedPrivateKey,
-  WalletSigner,
-  Signature,
-} from '@/crypto'
 import { Wallet } from 'ethers'
 import { equalBytes } from '@/crypto/utils'
 import { newWallet } from '@test/helpers'
 import { hexToBytes } from 'viem'
+import Signature, { WalletSigner } from '@/crypto/Signature'
+import { PrivateKey, SignedPrivateKey } from '@/crypto/PrivateKey'
+import { PublicKey, SignedPublicKey } from '@/crypto/PublicKey'
 
 describe('Crypto', function () {
   describe('Signed Keys', function () {

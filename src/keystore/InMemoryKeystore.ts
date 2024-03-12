@@ -3,13 +3,6 @@ import { keystore } from '@xmtp/proto'
 import type { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 import { PrivateKeyBundleV2 } from '@/crypto/PrivateKeyBundle'
 import { InvitationV1, SealedInvitation } from '@/Invitation'
-import {
-  exportHmacKey,
-  generateHmacSignature,
-  hkdfHmacKey,
-  type PrivateKey,
-  type PublicKeyBundle,
-} from '@/crypto'
 import type { TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
@@ -41,6 +34,13 @@ import {
   buildDirectMessageTopic,
   buildDirectMessageTopicV2,
 } from '@/utils/topic'
+import type { PrivateKey } from '@/crypto/PrivateKey'
+import type { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import {
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+} from '@/crypto/encryption'
 
 const { ErrorCode } = keystore
 
