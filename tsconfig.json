@@ -21,7 +21,6 @@
   "include": [
     "src/**/*",
     "bench/**/*",
-    "build/**/*",
     "test/**/*",
     ".eslintrc.cjs",
     "commitlint.config.cjs",
