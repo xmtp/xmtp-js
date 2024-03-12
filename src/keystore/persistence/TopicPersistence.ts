@@ -1,7 +1,7 @@
 import { messageApi } from '@xmtp/proto'
-import type { ApiClient } from '../../ApiClient'
+import type { ApiClient } from '@/ApiClient'
 import type { Authenticator } from '@/authn/interfaces'
-import { buildUserPrivateStoreTopic } from '../../utils/topic'
+import { buildUserPrivateStoreTopic } from '@/utils/topic'
 import type { Persistence } from './interface'
 
 export default class TopicPersistence implements Persistence {

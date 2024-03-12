@@ -1,10 +1,7 @@
-import {
-  getWalletStatus,
-  hasMetamaskWithSnaps,
-} from '../../src/keystore/snapHelpers'
+import { getWalletStatus, hasMetamaskWithSnaps } from '@/keystore/snapHelpers'
 import { keystore } from '@xmtp/proto'
 import { b64Encode } from '@/utils/bytes'
-import { SNAP_LOCAL_ORIGIN } from '../../src/keystore/providers/SnapProvider'
+import { SNAP_LOCAL_ORIGIN } from '@/keystore/providers/SnapProvider'
 import { vi } from 'vitest'
 const {
   GetKeystoreStatusRequest,
@@ -14,7 +11,7 @@ const {
 
 // Setup the mocks for window.ethereum
 const mockRequest = vi.hoisted(() => vi.fn())
-vi.mock('../../src/utils/ethereum', () => {
+vi.mock('@/utils/ethereum', () => {
   return {
     __esModule: true,
     getEthereum: vi.fn(() => {

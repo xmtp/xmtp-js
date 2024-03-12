@@ -15,19 +15,7 @@ import type { Flatten } from './utils/typedefs'
 import type BackupClient from './message-backup/BackupClient'
 import { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
-import type { KeystoreProvider } from './keystore/providers'
-import {
-  KeyGeneratorKeystoreProvider,
-  KeystoreProviderUnavailableError,
-  NetworkKeystoreProvider,
-  SnapProvider,
-  StaticKeystoreProvider,
-} from './keystore/providers'
-import type { Persistence } from './keystore/persistence'
-import {
-  BrowserStoragePersistence,
-  InMemoryPersistence,
-} from './keystore/persistence'
+import type { KeystoreProvider } from './keystore/providers/interfaces'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { packageName, version } from './snapInfo.json'
 import type { ExtractDecodedType } from './types/client'
@@ -43,6 +31,14 @@ import type {
   EnvelopeMapper,
   EnvelopeWithMessage,
 } from '@/utils/async'
+import type { Persistence } from '@/keystore/persistence/interface'
+import BrowserStoragePersistence from '@/keystore/persistence/BrowserStoragePersistence'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import SnapProvider from '@/keystore/providers/SnapProvider'
+import StaticKeystoreProvider from '@/keystore/providers/StaticKeystoreProvider'
+import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
+import KeyGeneratorKeystoreProvider from '@/keystore/providers/KeyGeneratorKeystoreProvider'
+import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types

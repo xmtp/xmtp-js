@@ -1,7 +1,7 @@
-import crypto from '../../src/crypto/crypto'
-import { V2Store } from '../../src/keystore'
-import { AddRequest, V1Store } from '../../src/keystore/conversationStores'
-import { InMemoryPersistence } from '../../src/keystore/persistence'
+import crypto from '@/crypto/crypto'
+import { V2Store } from '@/keystore/conversationStores'
+import { AddRequest, V1Store } from '@/keystore/conversationStores'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 import { dateToNs } from '@/utils/date'
 
 const INVITE_KEY = 'invitations/v1'

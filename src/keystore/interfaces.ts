@@ -5,7 +5,7 @@ import type {
   privateKey,
   signature,
 } from '@xmtp/proto'
-import type { WithoutUndefined } from '../utils/typedefs'
+import type { WithoutUndefined } from '@/utils/typedefs'
 
 /**
  * A Keystore is responsible for holding the user's XMTP private keys and using them to encrypt/decrypt/sign messages.

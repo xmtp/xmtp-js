@@ -5,7 +5,6 @@ import Client, { defaultOptions } from '../src/Client'
 import { Signer } from '../src/types/Signer'
 import ApiClient from '../src/ApiClient'
 import { PublicKeyBundle } from '../src/crypto/PublicKeyBundle'
-import { KeyGeneratorKeystoreProvider } from '../src/keystore/providers'
 import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
 

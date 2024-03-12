@@ -1,22 +1,22 @@
 import { KeystoreProviderUnavailableError } from './errors'
 import type { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
-import { SnapKeystore } from '../SnapKeystore'
+import { SnapKeystore } from '@/keystore/SnapKeystore'
 import {
   connectSnap,
   getSnap,
   getWalletStatus,
   hasMetamaskWithSnaps,
   initSnap,
-} from '../snapHelpers'
+} from '@/keystore/snapHelpers'
 import { keystore } from '@xmtp/proto'
-import type { Signer } from '../../types/Signer'
-import type { ApiClient } from '../../ApiClient'
+import type { Signer } from '@/types/Signer'
+import type { ApiClient } from '@/ApiClient'
 import NetworkKeystoreProvider from './NetworkKeystoreProvider'
-import { PrivateKeyBundleV1, decodePrivateKeyBundle } from '../../crypto'
+import { PrivateKeyBundleV1, decodePrivateKeyBundle } from '@/crypto'
 import KeyGeneratorKeystoreProvider from './KeyGeneratorKeystoreProvider'
-import type { XmtpEnv } from '../../Client'
-import { semverGreaterThan } from '../../utils/semver'
-import type { SnapKeystoreInterface } from '../rpcDefinitions'
+import type { XmtpEnv } from '@/Client'
+import { semverGreaterThan } from '@/utils/semver'
+import type { SnapKeystoreInterface } from '@/keystore/rpcDefinitions'
 const { GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus } = keystore
 
 export const SNAP_LOCAL_ORIGIN = 'local:http://localhost:8080'

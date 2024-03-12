@@ -1,8 +1,8 @@
 import type { Persistence } from './interface'
-import type { Ecies } from '../../crypto/ecies'
-import { getPublic, encrypt, decrypt } from '../../crypto/ecies'
-import type { PrivateKey, SignedPrivateKey } from '../../crypto'
-import { SignedEciesCiphertext } from '../../crypto'
+import type { Ecies } from '@/crypto/ecies'
+import { getPublic, encrypt, decrypt } from '@/crypto/ecies'
+import type { PrivateKey, SignedPrivateKey } from '@/crypto'
+import { SignedEciesCiphertext } from '@/crypto'
 
 /**
  * EncryptedPersistence is a Persistence implementation that uses ECIES to encrypt all values

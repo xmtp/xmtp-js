@@ -24,7 +24,7 @@ import {
 } from './utils'
 import type { AddRequest } from './conversationStores'
 import { V1Store, V2Store } from './conversationStores'
-import type { Persistence } from './persistence'
+import type { Persistence } from './persistence/interface'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { hmacSha256Sign } from '@/crypto/ecies'
 import crypto from '@/crypto/crypto'

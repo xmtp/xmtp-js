@@ -1,10 +1,8 @@
-import crypto from '../../../src/crypto/crypto'
-import { PrivateKeyBundleV1 } from './../../../src/crypto/PrivateKeyBundle'
-import {
-  EncryptedPersistence,
-  InMemoryPersistence,
-} from '../../../src/keystore/persistence'
-import { PrivateKey, SignedEciesCiphertext } from '../../../src/crypto'
+import crypto from '@/crypto/crypto'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { PrivateKey, SignedEciesCiphertext } from '@/crypto'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import EncryptedPersistence from '@/keystore/persistence/EncryptedPersistence'
 
 const TEST_KEY = 'test-key'
 const TEST_KEY_2 = 'test-key-2'

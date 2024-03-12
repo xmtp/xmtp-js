@@ -77,8 +77,8 @@ export {
   buildUserPrivateStoreTopic,
 } from './utils/topic'
 export { nsToDate, dateToNs, fromNanoString, toNanoString } from './utils/date'
-export type { Keystore, TopicData } from './keystore'
-export { InMemoryKeystore } from './keystore'
+export type { Keystore, TopicData } from './keystore/interfaces'
+export { default as InMemoryKeystore } from './keystore/InMemoryKeystore'
 export type {
   KeystoreApiDefs,
   KeystoreApiEntries,
@@ -104,20 +104,16 @@ export {
   apiDefs as keystoreApiDefs,
   snapApiDefs as snapKeystoreApiDefs,
 } from './keystore/rpcDefinitions'
-export type { KeystoreProvider } from './keystore/providers'
-export {
-  KeyGeneratorKeystoreProvider,
-  NetworkKeystoreProvider,
-  StaticKeystoreProvider,
-  SnapProvider,
-} from './keystore/providers'
-export type { Persistence } from './keystore/persistence'
-export {
-  EncryptedPersistence,
-  BrowserStoragePersistence,
-  InMemoryPersistence,
-  PrefixedPersistence,
-} from './keystore/persistence'
+export type { KeystoreProvider } from './keystore/providers/interfaces'
+export { default as KeyGeneratorKeystoreProvider } from './keystore/providers/KeyGeneratorKeystoreProvider'
+export { default as NetworkKeystoreProvider } from './keystore/providers/NetworkKeystoreProvider'
+export { default as StaticKeystoreProvider } from './keystore/providers/StaticKeystoreProvider'
+export { default as SnapProvider } from './keystore/providers/SnapProvider'
+export type { Persistence } from './keystore/persistence/interface'
+export { default as EncryptedPersistence } from './keystore/persistence/EncryptedPersistence'
+export { default as BrowserStoragePersistence } from './keystore/persistence/BrowserStoragePersistence'
+export { default as InMemoryPersistence } from './keystore/persistence/InMemoryPersistence'
+export { default as PrefixedPersistence } from './keystore/persistence/PrefixedPersistence'
 export type { InvitationContext } from './Invitation'
 export { SealedInvitation, InvitationV1 } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'

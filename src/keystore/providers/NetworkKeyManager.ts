@@ -1,18 +1,18 @@
-import type { Signer } from '../../types/Signer'
-import crypto from '../../crypto/crypto'
+import type { Signer } from '@/types/Signer'
+import crypto from '@/crypto/crypto'
 import {
   PrivateKeyBundleV1,
   decodePrivateKeyBundle,
   decrypt,
   encrypt,
   PrivateKeyBundleV2,
-} from '../../crypto'
-import type { PreEventCallback } from '../../Client'
+} from '@/crypto'
+import type { PreEventCallback } from '@/Client'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
-import { bytesToHex } from '../../crypto/utils'
-import Ciphertext from '../../crypto/Ciphertext'
+import { bytesToHex } from '@/crypto/utils'
+import Ciphertext from '@/crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
-import type TopicPersistence from '../persistence/TopicPersistence'
+import type TopicPersistence from '@/keystore/persistence/TopicPersistence'
 import type { Hex } from 'viem'
 import { getAddress, hexToBytes, verifyMessage } from 'viem'
 

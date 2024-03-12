@@ -4,13 +4,14 @@ import { MessageV1, DecodedMessage } from '../src/Message'
 import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
 import { bytesToHex, equalBytes } from '../src/crypto/utils'
 import { sha256 } from '../src/crypto/encryption'
-import { InMemoryKeystore, KeystoreError } from '../src/keystore'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
 import { Client, ContentTypeText, InMemoryPersistence } from '../src'
 import { Wallet } from 'ethers'
 import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { createWalletClient, http } from 'viem'
 import { mainnet } from 'viem/chains'
+import { KeystoreError } from '@/keystore/errors'
 
 describe('Message', function () {
   let aliceWallet: Wallet
