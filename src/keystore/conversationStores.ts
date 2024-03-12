@@ -4,7 +4,7 @@ import { keystore } from '@xmtp/proto'
 import type { Persistence } from './persistence/interface'
 import { Mutex } from 'async-mutex'
 import { isCompleteTopicData, topicDataToMap } from './utils'
-import { numberToUint8Array, uint8ArrayToNumber } from '../utils'
+import { numberToUint8Array, uint8ArrayToNumber } from '@/utils/bytes'
 
 export type AddRequest = {
   topic: string

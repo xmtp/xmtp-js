@@ -4,11 +4,8 @@ import {
 } from './../../src/conversations/Conversation'
 import { newLocalHostClient } from './../helpers'
 import { Client } from '../../src'
-import {
-  buildDirectMessageTopic,
-  buildUserIntroTopic,
-  sleep,
-} from '../../src/utils'
+import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
+import { sleep } from '@/utils/async'
 
 describe('conversations', () => {
   describe('listConversations', () => {

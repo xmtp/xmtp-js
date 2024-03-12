@@ -1,5 +1,5 @@
 import type { WalletClient } from 'viem'
-import type { Signer } from '../types/Signer'
+import type { Signer } from '@/types/Signer'
 
 export function getSigner(wallet: Signer | WalletClient | null): Signer | null {
   if (!wallet) {

@@ -1,11 +1,13 @@
 import { messageApi } from '@xmtp/proto'
 import type { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import { b64Decode, retry, sleep, toNanoString } from './utils'
 import AuthCache from './authn/AuthCache'
 import type { Authenticator } from '@/authn/interfaces'
 import { version } from '../package.json'
 import { XMTP_DEV_WARNING } from './constants'
 import type { Flatten } from './utils/typedefs'
+import { b64Decode } from '@/utils/bytes'
+import { retry, sleep } from '@/utils/async'
+import { toNanoString } from '@/utils/date'
 export const { MessageApi, SortDirection } = messageApi
 
 const RETRY_SLEEP_TIME = 100

@@ -5,7 +5,7 @@ import {
   waitForUserContact,
   newLocalHostClientWithCustomWallet,
 } from './helpers'
-import { EnvelopeWithMessage, buildUserContactTopic } from '../src/utils'
+import { buildUserContactTopic } from '@/utils/topic'
 import Client, { ClientOptions } from '../src/Client'
 import {
   ApiUrls,
@@ -31,6 +31,7 @@ import { mainnet } from 'viem/chains'
 import { generatePrivateKey } from 'viem/accounts'
 import { vi, assert } from 'vitest'
 import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
+import { EnvelopeWithMessage } from '@/utils/async'
 
 type TestCase = {
   name: string

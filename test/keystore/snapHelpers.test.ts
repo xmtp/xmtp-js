@@ -3,7 +3,7 @@ import {
   hasMetamaskWithSnaps,
 } from '../../src/keystore/snapHelpers'
 import { keystore } from '@xmtp/proto'
-import { b64Encode } from '../../src/utils'
+import { b64Encode } from '@/utils/bytes'
 import { SNAP_LOCAL_ORIGIN } from '../../src/keystore/providers/SnapProvider'
 import { vi } from 'vitest'
 const {

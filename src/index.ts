@@ -66,13 +66,8 @@ export { default as HttpApiClient, ApiUrls, SortDirection } from './ApiClient'
 export type { Authenticator } from '@/authn/interfaces'
 export { default as LocalAuthenticator } from '@/authn/LocalAuthenticator'
 export { default as AuthCache } from '@/authn/AuthCache'
+export { retry, mapPaginatedStream } from './utils/async'
 export {
-  nsToDate,
-  dateToNs,
-  retry,
-  fromNanoString,
-  toNanoString,
-  mapPaginatedStream,
   buildContentTopic,
   buildDirectMessageTopic,
   buildDirectMessageTopicV2,
@@ -80,7 +75,8 @@ export {
   buildUserIntroTopic,
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
-} from './utils'
+} from './utils/topic'
+export { nsToDate, dateToNs, fromNanoString, toNanoString } from './utils/date'
 export type { Keystore, TopicData } from './keystore'
 export { InMemoryKeystore } from './keystore'
 export type {

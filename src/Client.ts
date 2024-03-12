@@ -1,17 +1,5 @@
 import { PrivateKeyBundleV1 } from './crypto/PrivateKeyBundle'
 import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
-import type {
-  EnvelopeMapper,
-  EnvelopeMapperWithMessage,
-  EnvelopeWithMessage,
-} from './utils'
-import {
-  buildUserContactTopic,
-  mapPaginatedStream,
-  buildUserInviteTopic,
-  isBrowser,
-  getSigner,
-} from './utils'
 import type { Signer } from './types/Signer'
 import Conversations from '@/conversations/Conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
@@ -46,6 +34,15 @@ import type { ExtractDecodedType } from './types/client'
 import { getAddress, type WalletClient } from 'viem'
 import { Contacts } from './Contacts'
 import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
+import { isBrowser } from '@/utils/browser'
+import { getSigner } from '@/utils/viem'
+import { buildUserContactTopic, buildUserInviteTopic } from '@/utils/topic'
+import { mapPaginatedStream } from '@/utils/async'
+import type {
+  EnvelopeMapperWithMessage,
+  EnvelopeMapper,
+  EnvelopeWithMessage,
+} from '@/utils/async'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types

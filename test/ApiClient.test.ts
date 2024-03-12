@@ -12,7 +12,7 @@ import { sleep } from './helpers'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { PrivateKey } from '../src'
 import packageJson from '../package.json'
-import { dateToNs } from '../src/utils'
+import { dateToNs } from '@/utils/date'
 import { vi } from 'vitest'
 
 const { MessageApi } = messageApi

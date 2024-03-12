@@ -1,7 +1,7 @@
 import ApiClient, { ApiUrls, GrpcStatus } from '../src/ApiClient'
 import { newWallet } from './helpers'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
-import { buildUserPrivateStoreTopic } from '../src/utils'
+import { buildUserPrivateStoreTopic } from '@/utils/topic'
 import { Wallet } from 'ethers'
 import { PrivateKeyBundleV1 } from '../src/crypto'
 

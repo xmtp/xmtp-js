@@ -8,18 +8,17 @@ import { ConversationV1, ConversationV2 } from './Conversation'
 import { MessageV1, DecodedMessage } from '@/Message'
 import Stream from '@/Stream'
 import type Client from '@/Client'
-import {
-  buildDirectMessageTopic,
-  buildUserIntroTopic,
-  buildUserInviteTopic,
-  dateToNs,
-  isValidTopic,
-  nsToDate,
-} from '@/utils'
 import { PublicKeyBundle } from '@/crypto'
 import { SortDirection } from '@/ApiClient'
 import Long from 'long'
 import JobRunner from './JobRunner'
+import { dateToNs, nsToDate } from '@/utils/date'
+import {
+  buildDirectMessageTopic,
+  buildUserIntroTopic,
+  buildUserInviteTopic,
+  isValidTopic,
+} from '@/utils/topic'
 
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)

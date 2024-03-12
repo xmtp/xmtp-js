@@ -1,5 +1,5 @@
 import type { authn } from '@xmtp/proto'
-import { dateToNs } from '@/utils'
+import { dateToNs } from '@/utils/date'
 import Token from './Token'
 import type {
   KeystoreInterface,

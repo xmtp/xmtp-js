@@ -9,7 +9,7 @@ import { PublicKeyBundle, PublicKey } from './crypto'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 import type { ContentTypeId } from './MessageContent'
-import { dateToNs, nsToDate } from './utils'
+import { dateToNs, nsToDate } from './utils/date'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
 import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
 
