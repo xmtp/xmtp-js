@@ -1,13 +1,13 @@
-import type { OnConnectionLostCallback } from './../ApiClient'
+import type { OnConnectionLostCallback } from '@/ApiClient'
 import type { messageApi, keystore, conversationReference } from '@xmtp/proto'
-import { SignedPublicKeyBundle } from './../crypto/PublicKeyBundle'
-import type { ListMessagesOptions } from './../Client'
-import type { InvitationContext } from './../Invitation'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import type { ListMessagesOptions } from '@/Client'
+import type { InvitationContext } from '@/Invitation'
 import type { Conversation } from './Conversation'
 import { ConversationV1, ConversationV2 } from './Conversation'
-import { MessageV1, DecodedMessage } from '../Message'
-import Stream from '../Stream'
-import type Client from '../Client'
+import { MessageV1, DecodedMessage } from '@/Message'
+import Stream from '@/Stream'
+import type Client from '@/Client'
 import {
   buildDirectMessageTopic,
   buildUserIntroTopic,
@@ -15,9 +15,9 @@ import {
   dateToNs,
   isValidTopic,
   nsToDate,
-} from '../utils'
-import { PublicKeyBundle } from '../crypto'
-import { SortDirection } from '../ApiClient'
+} from '@/utils'
+import { PublicKeyBundle } from '@/crypto'
+import { SortDirection } from '@/ApiClient'
 import Long from 'long'
 import JobRunner from './JobRunner'
 

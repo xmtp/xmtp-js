@@ -1,20 +1,20 @@
-import type { OnConnectionLostCallback } from './../ApiClient'
+import type { OnConnectionLostCallback } from '@/ApiClient'
 import {
   buildUserIntroTopic,
   buildDirectMessageTopic,
   dateToNs,
   concat,
   toNanoString,
-} from '../utils'
-import Stream from '../Stream'
+} from '@/utils'
+import Stream from '@/Stream'
 import type {
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
   SendOptions,
-} from '../Client'
-import type Client from '../Client'
-import type { InvitationContext } from '../Invitation'
-import { DecodedMessage, MessageV1, MessageV2 } from '../Message'
+} from '@/Client'
+import type Client from '@/Client'
+import type { InvitationContext } from '@/Invitation'
+import { DecodedMessage, MessageV1, MessageV2 } from '@/Message'
 import type { messageApi, keystore } from '@xmtp/proto'
 import { message, content as proto } from '@xmtp/proto'
 import {
@@ -22,12 +22,12 @@ import {
   Signature,
   PublicKeyBundle,
   SignedPublicKeyBundle,
-} from '../crypto'
-import { PreparedMessage } from '../PreparedMessage'
-import { sha256 } from '../crypto/encryption'
-import { buildDecryptV1Request, getResultOrThrow } from '../utils/keystore'
-import { ContentTypeText } from '../codecs/Text'
-import type { ConsentState } from '../Contacts'
+} from '@/crypto'
+import { PreparedMessage } from '@/PreparedMessage'
+import { sha256 } from '@/crypto/encryption'
+import { buildDecryptV1Request, getResultOrThrow } from '@/utils/keystore'
+import { ContentTypeText } from '@/codecs/Text'
+import type { ConsentState } from '@/Contacts'
 import { getAddress } from 'viem'
 
 /**

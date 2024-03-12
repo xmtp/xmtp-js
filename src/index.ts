@@ -37,8 +37,9 @@ export {
   defaultKeystoreProviders,
   Compression,
 } from './Client'
-export type { Conversation } from './conversations'
-export { Conversations, ConversationV1, ConversationV2 } from './conversations'
+export type { Conversation } from '@/conversations/Conversation'
+export { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
+export { default as Conversations } from '@/conversations/Conversations'
 export type {
   CodecRegistry,
   ContentCodec,

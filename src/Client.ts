@@ -13,7 +13,7 @@ import {
   getSigner,
 } from './utils'
 import type { Signer } from './types/Signer'
-import { Conversations } from './conversations'
+import Conversations from '@/conversations/Conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import type { ContentCodec, EncodedContent } from './MessageContent'
 import { ContentTypeId } from './MessageContent'
