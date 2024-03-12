@@ -110,4 +110,9 @@ describe("ReplyContentType", () => {
     });
     expect(messageContent.reference).toBe(originalMessage.id);
   });
+
+  it("has a proper shouldPush value", () => {
+    const codec = new ReplyCodec();
+    expect(codec.shouldPush()).toBe(true);
+  });
 });

@@ -97,4 +97,25 @@ describe("ReactionContentType", () => {
     expect(messageContent.reference).toBe(originalMessage.id);
     expect(messageContent.schema).toBe("shortcode");
   });
+
+  it("has a proper shouldPush value based on content", () => {
+    const codec = new ReactionCodec();
+
+    const addReaction: Reaction = {
+      action: "added",
+      content: "smile",
+      reference: "foo",
+      schema: "shortcode",
+    };
+
+    const removeReaction: Reaction = {
+      action: "removed",
+      content: "smile",
+      reference: "foo",
+      schema: "shortcode",
+    };
+
+    expect(codec.shouldPush(addReaction)).toBe(true);
+    expect(codec.shouldPush(removeReaction)).toBe(false);
+  });
 });

@@ -54,4 +54,9 @@ describe("ScreenEffectContentType", () => {
     expect(messageContent.messageId).toBe(originalMessage.id);
     expect(messageContent.effectType).toBe("SNOW");
   });
+
+  it("has a proper shouldPush value", () => {
+    const codec = new ScreenEffectCodec();
+    expect(codec.shouldPush()).toBe(false);
+  });
 });
