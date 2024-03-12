@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-reply",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "An XMTP content type to support replying to a message",
   "keywords": [
     "xmtp",

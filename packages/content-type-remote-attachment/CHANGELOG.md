@@ -1,5 +1,11 @@
 # @xmtp/content-type-remote-attachment
 
+## 1.1.8
+
+### Patch Changes
+
+- [#65](https://github.com/xmtp/xmtp-js-content-types/pull/65) [`c4d43dc`](https://github.com/xmtp/xmtp-js-content-types/commit/c4d43dc948231de5c7f730e06f0931076de0673b) Thanks [@rygine](https://github.com/rygine)! - Add `shouldPush` to all content codecs
+
 ## 1.1.7
 
 ### Patch Changes
