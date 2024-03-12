@@ -1,11 +1,11 @@
-import crypto from '../../src/crypto/crypto'
+import crypto from '@/crypto/crypto'
 import {
   PublicKeyBundle,
   PrivateKeyBundleV1,
   PrivateKey,
   encrypt,
   decrypt,
-} from '../../src/crypto'
+} from '@/crypto'
 import { assert } from 'vitest'
 
 describe('Crypto', function () {

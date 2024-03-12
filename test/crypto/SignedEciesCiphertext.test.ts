@@ -1,8 +1,8 @@
-import { PrivateKeyBundleV1, SignedEciesCiphertext } from '../../src/crypto'
-import { newWallet } from '../helpers'
-import { encrypt, getPublic } from '../../src/crypto/ecies'
-import { equalBytes } from '../../src/crypto/utils'
-import crypto from '../../src/crypto/crypto'
+import { PrivateKeyBundleV1, SignedEciesCiphertext } from '@/crypto'
+import { newWallet } from '@test/helpers'
+import { encrypt, getPublic } from '@/crypto/ecies'
+import { equalBytes } from '@/crypto/utils'
+import crypto from '@/crypto/crypto'
 
 describe('SignedEciesCiphertext', () => {
   let bundle: PrivateKeyBundleV1

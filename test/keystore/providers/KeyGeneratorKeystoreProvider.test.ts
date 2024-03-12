@@ -1,6 +1,6 @@
 import KeyGeneratorKeystoreProvider from '@/keystore/providers/KeyGeneratorKeystoreProvider'
 import ApiClient, { ApiUrls } from '@/ApiClient'
-import { Signer } from '@/types/Signer'
+import type { Signer } from '@/types/Signer'
 import { newWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
 import { vi } from 'vitest'
@@ -11,7 +11,7 @@ describe('KeyGeneratorKeystoreProvider', () => {
   let apiClient: ApiClient
   beforeEach(() => {
     wallet = newWallet()
-    apiClient = new ApiClient(ApiUrls['local'])
+    apiClient = new ApiClient(ApiUrls.local)
   })
 
   it('creates a key when wallet supplied', async () => {

@@ -1,4 +1,4 @@
-import { isSameMajorVersion, semverGreaterThan } from '../../src/utils/semver'
+import { isSameMajorVersion, semverGreaterThan } from '@/utils/semver'
 
 describe('semver', () => {
   describe('isSameMajorVersion', () => {

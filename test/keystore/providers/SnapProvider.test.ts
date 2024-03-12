@@ -1,4 +1,5 @@
-import HttpApiClient, { ApiClient, ApiUrls } from '@/ApiClient'
+import type { ApiClient } from '@/ApiClient'
+import HttpApiClient, { ApiUrls } from '@/ApiClient'
 import { newWallet } from '@test/helpers'
 import SnapKeystoreProvider from '@/keystore/providers/SnapProvider'
 import {
@@ -8,10 +9,11 @@ import {
   hasMetamaskWithSnaps,
   initSnap,
 } from '@/keystore/snapHelpers'
-import { Signer } from '@/types/Signer'
+import type { Signer } from '@/types/Signer'
 import { keystore as keystoreProto } from '@xmtp/proto'
-import { vi, Mock } from 'vitest'
-import { KeystoreProviderOptions } from '@/keystore/providers/interfaces'
+import type { Mock } from 'vitest'
+import { vi } from 'vitest'
+import type { KeystoreProviderOptions } from '@/keystore/providers/interfaces'
 import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
 
 vi.mock('@/keystore/snapHelpers')
@@ -23,7 +25,7 @@ describe('SnapProvider', () => {
   let wallet: Signer
 
   beforeEach(async () => {
-    apiClient = new HttpApiClient(ApiUrls['local'])
+    apiClient = new HttpApiClient(ApiUrls.local)
     wallet = newWallet()
     vi.resetAllMocks()
   })

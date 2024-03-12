@@ -1,10 +1,8 @@
 import crypto from '@/crypto/crypto'
-import { V2Store } from '@/keystore/conversationStores'
-import { AddRequest, V1Store } from '@/keystore/conversationStores'
+import type { AddRequest } from '@/keystore/conversationStores'
+import { V2Store, V1Store } from '@/keystore/conversationStores'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 import { dateToNs } from '@/utils/date'
-
-const INVITE_KEY = 'invitations/v1'
 
 const buildAddRequest = (): AddRequest => {
   const topic = crypto.getRandomValues(new Uint8Array(32)).toString()
@@ -31,9 +29,9 @@ describe('V2Store', () => {
     const addRequest = buildAddRequest()
     await store.add([addRequest])
 
-    const result = store.lookup(addRequest.topic)
-    expect(result).not.toBeNull()
     const { topic, ...topicData } = addRequest
+    const result = store.lookup(topic)
+    expect(result).not.toBeNull()
     expect(result).toEqual(topicData)
   })
 

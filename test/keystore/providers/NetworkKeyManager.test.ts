@@ -3,7 +3,7 @@ import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 import TopicPersistence from '@/keystore/persistence/TopicPersistence'
 import { buildPersistenceFromOptions } from '@/keystore/providers/helpers'
 import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
-import { Signer } from '@/types/Signer'
+import type { Signer } from '@/types/Signer'
 import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
 import { vi } from 'vitest'
@@ -16,7 +16,7 @@ describe('NetworkKeyManager', () => {
 
   beforeEach(async () => {
     wallet = newWallet()
-    persistence = new TopicPersistence(new ApiClient(ApiUrls['local']))
+    persistence = new TopicPersistence(new ApiClient(ApiUrls.local))
   })
 
   it('round trips', async () => {

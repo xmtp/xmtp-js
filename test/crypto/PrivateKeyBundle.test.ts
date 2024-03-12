@@ -4,9 +4,9 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
   SignedPublicKeyBundle,
-} from '../../src/crypto'
-import { newWallet } from '../helpers'
-import { storageSigRequestText } from '../../src/keystore/providers/NetworkKeyManager'
+} from '@/crypto'
+import { newWallet } from '@test/helpers'
+import { storageSigRequestText } from '@/keystore/providers/NetworkKeyManager'
 import { hexToBytes } from 'viem'
 
 describe('Crypto', function () {
@@ -35,7 +35,7 @@ describe('Crypto', function () {
       )
       expect(pri.secp256k1).toBeTruthy()
       const wallet = newWallet()
-      const bundle = await PrivateKeyBundleV1.generate(wallet)
+      const _bundle = await PrivateKeyBundleV1.generate(wallet)
       const preKey = hexToBytes(
         '0xf51bd1da9ec2239723ae2cf6a9f8d0ac37546b27e634002c653d23bacfcc67ad'
       )

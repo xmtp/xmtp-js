@@ -4,9 +4,9 @@ import { decryptV1, encryptV1 } from '@/keystore/encryption'
 import { MessageV1 } from '@/Message'
 import { Wallet } from 'ethers'
 import { equalBytes } from '@/crypto/utils'
-import { newWallet } from '../helpers'
+import { newWallet } from '@test/helpers'
 import InMemoryKeystore from '@/keystore/InMemoryKeystore'
-import { KeystoreInterface } from '@/keystore/rpcDefinitions'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 
 describe('encryption primitives', () => {

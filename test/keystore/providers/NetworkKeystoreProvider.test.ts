@@ -3,7 +3,7 @@ import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
 import ApiClient, { ApiUrls } from '@/ApiClient'
 import { encrypt, PrivateKeyBundleV1 } from '@/crypto'
 import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
-import { Signer } from '@/types/Signer'
+import type { Signer } from '@/types/Signer'
 import { newWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
 import NetworkKeyManager, {
@@ -13,7 +13,8 @@ import TopicPersistence from '@/keystore/persistence/TopicPersistence'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import crypto from '@/crypto/crypto'
 import { vi } from 'vitest'
-import { Hex, hexToBytes } from 'viem'
+import type { Hex } from 'viem'
+import { hexToBytes } from 'viem'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
@@ -21,7 +22,7 @@ describe('NetworkKeystoreProvider', () => {
   let wallet: Signer
 
   beforeEach(async () => {
-    apiClient = new ApiClient(ApiUrls['local'])
+    apiClient = new ApiClient(ApiUrls.local)
     wallet = newWallet()
     bundle = await PrivateKeyBundleV1.generate(wallet)
   })
@@ -58,7 +59,7 @@ describe('NetworkKeystoreProvider', () => {
     const input = storageSigRequestText(wPreKey)
     const walletAddr = await wallet.getAddress()
 
-    let sig = await wallet.signMessage(input)
+    const sig = await wallet.signMessage(input)
     const secret = hexToBytes(sig as Hex)
     const ciphertext = await encrypt(bytes, secret)
     const bytesToStore = privateKey.EncryptedPrivateKeyBundleV1.encode({

@@ -1,17 +1,19 @@
-import { ConversationV1 } from './../src/conversations/Conversation'
+import { ConversationV1 } from '@/conversations/Conversation'
 import { newWallet } from './helpers'
-import { MessageV1, DecodedMessage } from '../src/Message'
-import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
-import { bytesToHex, equalBytes } from '../src/crypto/utils'
-import { sha256 } from '../src/crypto/encryption'
+import { MessageV1, DecodedMessage } from '@/Message'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { bytesToHex, equalBytes } from '@/crypto/utils'
+import { sha256 } from '@/crypto/encryption'
 import InMemoryKeystore from '@/keystore/InMemoryKeystore'
-import { Client, ContentTypeText, InMemoryPersistence } from '../src'
-import { Wallet } from 'ethers'
+import type { Wallet } from 'ethers'
 import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { createWalletClient, http } from 'viem'
 import { mainnet } from 'viem/chains'
 import { KeystoreError } from '@/keystore/errors'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import Client from '@/Client'
+import { ContentTypeText } from '@/codecs/Text'
 
 describe('Message', function () {
   let aliceWallet: Wallet
@@ -127,7 +129,7 @@ describe('Message', function () {
     )
 
     expect(() => {
-      msg.recipientAddress
+      const _ = msg.recipientAddress
     }).toThrow('key is not signed')
   })
 

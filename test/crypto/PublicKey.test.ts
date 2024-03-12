@@ -6,10 +6,10 @@ import {
   SignedPrivateKey,
   WalletSigner,
   Signature,
-} from '../../src/crypto'
+} from '@/crypto'
 import { Wallet } from 'ethers'
-import { equalBytes } from '../../src/crypto/utils'
-import { newWallet } from '../helpers'
+import { equalBytes } from '@/crypto/utils'
+import { newWallet } from '@test/helpers'
 import { hexToBytes } from 'viem'
 
 describe('Crypto', function () {

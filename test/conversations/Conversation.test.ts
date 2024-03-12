@@ -1,14 +1,17 @@
-import { DecodedMessage, MessageV1 } from './../../src/Message'
+import { DecodedMessage, MessageV1, MessageV2 } from '@/Message'
 import { buildDirectMessageTopic } from '@/utils/topic'
-import { Client, Compression, ContentTypeId, ContentTypeText } from '../../src'
-import { SortDirection } from '../../src/ApiClient'
+import { SortDirection } from '@/ApiClient'
 import { sleep } from '@/utils/async'
-import { newLocalHostClient, waitForUserContact } from '../helpers'
-import { PrivateKey, SignedPublicKeyBundle } from '../../src/crypto'
-import { ConversationV2 } from '../../src/conversations/Conversation'
-import { ContentTypeTestKey, TestKeyCodec } from '../ContentTypeTestKey'
+import { newLocalHostClient, waitForUserContact } from '@test/helpers'
+import { PrivateKey, SignedPublicKeyBundle } from '@/crypto'
+import { ConversationV2 } from '@/conversations/Conversation'
 import { content as proto } from '@xmtp/proto'
 import { assert, vi } from 'vitest'
+import type Client from '@/Client'
+import { ContentTypeText } from '@/codecs/Text'
+import { Compression } from '@/Client'
+import { ContentTypeTestKey, TestKeyCodec } from '@test/ContentTypeTestKey'
+import { ContentTypeId } from '@/MessageContent'
 
 describe('conversation', () => {
   let alice: Client<string>
@@ -81,7 +84,7 @@ describe('conversation', () => {
       expect(messageIds.size).toBe(10)
 
       // Test sorting
-      let lastMessage: DecodedMessage<any> | undefined = undefined
+      let lastMessage: DecodedMessage<any> | undefined
       for await (const page of aliceConversation.messagesPaginated({
         direction: SortDirection.SORT_DIRECTION_DESCENDING,
       })) {
@@ -188,7 +191,7 @@ describe('conversation', () => {
       await aliceConversation.send('hello', { ephemeral: true })
       await sleep(100)
 
-      let result = await stream.next()
+      const result = await stream.next()
       const message = result.value
 
       expect(message.error).toBeUndefined()
@@ -224,7 +227,7 @@ describe('conversation', () => {
       await aliceConversation.send('hello', { ephemeral: true })
       await sleep(100)
 
-      let result = await stream.next()
+      const result = await stream.next()
       const message = result.value
 
       expect(message.error).toBeUndefined()
@@ -293,7 +296,7 @@ describe('conversation', () => {
         await aliceConversation.send('gm to you too')
       }
 
-      let result = await stream.next()
+      const result = await stream.next()
       expect(result.done).toBeTruthy()
 
       await sleep(100)
@@ -444,7 +447,7 @@ describe('conversation', () => {
 
       // alice doesn't recognize the type
       await expect(
-        // @ts-expect-error
+        // @ts-expect-error default client doesn't have the right type
         aliceConvo.send(key, {
           contentType: ContentTypeTestKey,
         })
@@ -452,7 +455,7 @@ describe('conversation', () => {
 
       // bob doesn't recognize the type
       alice.registerCodec(new TestKeyCodec())
-      // @ts-expect-error
+      // @ts-expect-error default client doesn't have the right type
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -474,7 +477,7 @@ describe('conversation', () => {
 
       // both recognize the type
       bob.registerCodec(new TestKeyCodec())
-      // @ts-expect-error
+      // @ts-expect-error default client doesn't have the right type
       await aliceConvo.send(key, {
         contentType: ContentTypeTestKey,
       })
@@ -489,7 +492,7 @@ describe('conversation', () => {
         ...ContentTypeTestKey,
         versionMajor: 2,
       })
-      // @ts-expect-error
+      // @ts-expect-error default client doesn't have the right type
       expect(aliceConvo.send(key, { contentType: type2 })).rejects.toThrow(
         'unknown content type xmtp.test/public-key:2.0'
       )

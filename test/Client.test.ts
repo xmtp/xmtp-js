@@ -6,32 +6,26 @@ import {
   newLocalHostClientWithCustomWallet,
 } from './helpers'
 import { buildUserContactTopic } from '@/utils/topic'
-import Client, { ClientOptions } from '../src/Client'
-import {
-  ApiUrls,
-  CompositeCodec,
-  Compression,
-  ContentTypeText,
-  HttpApiClient,
-  InMemoryPersistence,
-  PublishParams,
-  TextCodec,
-} from '../src'
-import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
-import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
-import { PrivateKey, PrivateKeyBundleV1 } from '../src/crypto'
+import type { ClientOptions } from '@/Client'
+import Client, { Compression } from '@/Client'
+import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import { PrivateKey, PrivateKeyBundleV1 } from '@/crypto'
 import { Wallet } from 'ethers'
 import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
-import { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
-import LocalStoragePonyfill from '../src/keystore/persistence/LocalStoragePonyfill'
-import { message } from '@xmtp/proto'
+import type { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
+import LocalStoragePonyfill from '@/keystore/persistence/LocalStoragePonyfill'
 import { createWalletClient, http } from 'viem'
-import { privateKeyToAccount } from 'viem/accounts'
+import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts'
 import { mainnet } from 'viem/chains'
-import { generatePrivateKey } from 'viem/accounts'
 import { vi, assert } from 'vitest'
 import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
 import { EnvelopeWithMessage } from '@/utils/async'
+import { ContentTypeText, TextCodec } from '@/codecs/Text'
+import { CompositeCodec } from '@/codecs/Composite'
+import HttpApiClient, { ApiUrls } from '@/ApiClient'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import { message } from '@xmtp/proto'
 
 type TestCase = {
   name: string
@@ -39,7 +33,7 @@ type TestCase = {
 }
 
 const mockEthRequest = vi.hoisted(() => vi.fn())
-vi.mock('../src/utils/ethereum', () => {
+vi.mock('@/utils/ethereum', () => {
   return {
     __esModule: true,
     getEthereum: vi.fn(() => {
@@ -104,11 +98,11 @@ describe('Client', () => {
       })
 
       it('Check address can be sent to', async () => {
-        const can_mesg_a = await alice.canMessage('NOT AN ADDRESS')
-        expect(can_mesg_a).toBe(false)
+        const canMessageA = await alice.canMessage('NOT AN ADDRESS')
+        expect(canMessageA).toBe(false)
 
-        const can_mesg_b = await alice.canMessage(bob.address)
-        expect(can_mesg_b).toBe(true)
+        const canMessageB = await alice.canMessage(bob.address)
+        expect(canMessageB).toBe(true)
 
         const lower = await alice.canMessage(bob.address.toLowerCase())
         expect(lower).toBe(true)
@@ -365,7 +359,7 @@ describe('publishEnvelopes', () => {
     const c = await newLocalHostClient()
     // Set a bogus authenticator so we can have failing publishes
     c.apiClient.setAuthenticator({
-      // @ts-ignore-next-line
+      // @ts-expect-error mock function
       createToken: async () => ({
         toBase64: () => 'derp!',
       }),
@@ -395,11 +389,11 @@ describe('ClientOptions', () => {
   }
   tests.forEach((testCase) => {
     it('Default/empty options', async () => {
-      const c = await testCase.newClient()
+      await testCase.newClient()
     })
 
     it('Partial specification', async () => {
-      const c = await testCase.newClient({
+      await testCase.newClient({
         persistConversations: true,
       })
     })
@@ -412,13 +406,11 @@ describe('ClientOptions', () => {
       const convo = await client.conversations.newConversation(other.address)
       expect(convo).toBeTruthy()
       try {
-        // Add ts-expect-error so that if we break the type casting someone will notice
-        // @ts-expect-error
+        // @ts-expect-error if we break the type casting someone will notice
         await convo.send(123)
         const messages = await convo.messages()
         for (const message of messages) {
-          // Strings don't have this kind of method
-          // @ts-expect-error
+          // @ts-expect-error Strings don't have this kind of method
           message.toFixed()
         }
       } catch (e) {
@@ -444,13 +436,13 @@ describe('ClientOptions', () => {
     it('allows you to specify a custom API client factory', async () => {
       const expectedError = new Error('CustomApiClient')
       class CustomApiClient extends HttpApiClient {
-        publish(messages: PublishParams[]): Promise<PublishResponse> {
+        publish(): Promise<PublishResponse> {
           return Promise.reject(expectedError)
         }
       }
 
       const c = newLocalHostClient({
-        apiClientFactory: (opts) => {
+        apiClientFactory: () => {
           return new CustomApiClient(ApiUrls.local)
         },
       })
@@ -461,7 +453,7 @@ describe('ClientOptions', () => {
   describe('pluggable persistence', () => {
     it('allows for an override of the persistence engine', async () => {
       class MyNewPersistence extends InMemoryPersistence {
-        getItem(key: string): Promise<Uint8Array | null> {
+        getItem(): Promise<Uint8Array | null> {
           return Promise.reject(new Error('MyNewPersistence'))
         }
       }

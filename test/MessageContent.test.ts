@@ -1,4 +1,4 @@
-import { ContentTypeId } from '../src/MessageContent'
+import { ContentTypeId } from '@/MessageContent'
 
 describe('ContentTypeId', () => {
   it('creates a new content type', () => {

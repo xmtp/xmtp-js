@@ -11,7 +11,7 @@ describe('TopicPersistence', () => {
   let apiClient: ApiClient
   let bundle: PrivateKeyBundleV1
   beforeEach(async () => {
-    apiClient = new ApiClient(ApiUrls['local'])
+    apiClient = new ApiClient(ApiUrls.local)
     bundle = await PrivateKeyBundleV1.generate(newWallet())
   })
   it('round trips items from the store', async () => {

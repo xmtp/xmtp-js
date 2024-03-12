@@ -1,6 +1,7 @@
 import crypto from '@/crypto/crypto'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
-import { PrivateKey, SignedEciesCiphertext } from '@/crypto'
+import type { PrivateKey } from '@/crypto'
+import { SignedEciesCiphertext } from '@/crypto'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 import EncryptedPersistence from '@/keystore/persistence/EncryptedPersistence'
 
