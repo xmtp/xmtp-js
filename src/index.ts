@@ -62,8 +62,9 @@ export type {
   OnConnectionLostCallback,
 } from './ApiClient'
 export { default as HttpApiClient, ApiUrls, SortDirection } from './ApiClient'
-export type { Authenticator } from './authn'
-export { AuthCache, LocalAuthenticator } from './authn'
+export type { Authenticator } from '@/authn/interfaces'
+export { default as LocalAuthenticator } from '@/authn/LocalAuthenticator'
+export { default as AuthCache } from '@/authn/AuthCache'
 export {
   nsToDate,
   dateToNs,

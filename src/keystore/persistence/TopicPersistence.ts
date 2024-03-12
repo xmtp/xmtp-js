@@ -1,6 +1,6 @@
 import { messageApi } from '@xmtp/proto'
 import type { ApiClient } from '../../ApiClient'
-import type { Authenticator } from '../../authn'
+import type { Authenticator } from '@/authn/interfaces'
 import { buildUserPrivateStoreTopic } from '../../utils/topic'
 import type { Persistence } from './interface'
 

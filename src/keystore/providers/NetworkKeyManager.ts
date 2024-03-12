@@ -8,7 +8,7 @@ import {
   PrivateKeyBundleV2,
 } from '../../crypto'
 import type { PreEventCallback } from '../../Client'
-import { LocalAuthenticator } from '../../authn'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { bytesToHex } from '../../crypto/utils'
 import Ciphertext from '../../crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'

@@ -1,7 +1,7 @@
 import ApiClient, { ApiUrls } from '../../../src/ApiClient'
 import { newWallet } from '../../helpers'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { LocalAuthenticator } from '../../../src/authn'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { PrivateKeyBundleV1 } from '../../../src/crypto'
 
 // We restrict publishing to topics that do not match this pattern

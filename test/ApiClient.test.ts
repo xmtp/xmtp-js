@@ -9,7 +9,7 @@ import ApiClient, {
 } from '../src/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
-import { LocalAuthenticator } from '../src/authn'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { PrivateKey } from '../src'
 import packageJson from '../package.json'
 import { dateToNs } from '../src/utils'

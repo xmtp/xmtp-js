@@ -10,7 +10,7 @@ import NetworkKeyManager, {
   storageSigRequestText,
 } from '../../../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { LocalAuthenticator } from '../../../src/authn'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import crypto from '../../../src/crypto/crypto'
 import { vi } from 'vitest'
 import { Hex, hexToBytes } from 'viem'
