@@ -47,4 +47,9 @@ describe("ReadReceiptContentType", () => {
     const messageContent = readReceiptMessage.contentType;
     expect(messageContent.typeId).toBe("readReceipt");
   });
+
+  it("has a proper shouldPush value", () => {
+    const codec = new ReadReceiptCodec();
+    expect(codec.shouldPush()).toBe(false);
+  });
 });

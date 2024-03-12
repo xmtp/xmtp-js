@@ -50,3 +50,8 @@ test("can send an attachment", async () => {
   expect(messageContent.mimeType).toBe("image/png");
   expect(messageContent.data).toStrictEqual(Uint8Array.from([5, 4, 3, 2, 1]));
 });
+
+test("has a proper shouldPush value", () => {
+  const codec = new AttachmentCodec();
+  expect(codec.shouldPush()).toBe(true);
+});

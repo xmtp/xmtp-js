@@ -218,3 +218,8 @@ test("fails if content digest does not match", async () => {
     RemoteAttachmentCodec.load(message.content as RemoteAttachment, bobClient),
   ).rejects.toThrow("content digest does not match");
 });
+
+test("has a proper shouldPush value", () => {
+  const codec = new RemoteAttachmentCodec();
+  expect(codec.shouldPush()).toBe(true);
+});

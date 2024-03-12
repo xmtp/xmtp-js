@@ -52,4 +52,8 @@ export class ScreenEffectCodec
   fallback() {
     return undefined;
   }
+
+  shouldPush() {
+    return false;
+  }
 }

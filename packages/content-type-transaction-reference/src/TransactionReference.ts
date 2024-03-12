@@ -64,4 +64,8 @@ export class TransactionReferenceCodec
     }
     return `Crypto transaction`;
   }
+
+  shouldPush() {
+    return true;
+  }
 }

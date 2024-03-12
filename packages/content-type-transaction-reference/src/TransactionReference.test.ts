@@ -67,3 +67,8 @@ test("should successfully send and receive a TransactionReference message", asyn
   expect(messageContent.reference).toBe(transactionRefToSend.reference);
   expect(messageContent.metadata).toEqual(transactionRefToSend.metadata);
 });
+
+test("has a proper shouldPush value", () => {
+  const codec = new TransactionReferenceCodec();
+  expect(codec.shouldPush()).toBe(true);
+});
