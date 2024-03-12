@@ -33,4 +33,8 @@ export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
   fallback(content: ReadReceipt): string | undefined {
     return undefined;
   }
+
+  shouldPush() {
+    return false;
+  }
 }

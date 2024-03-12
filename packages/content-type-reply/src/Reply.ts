@@ -82,4 +82,8 @@ export class ReplyCodec implements ContentCodec<Reply> {
     }
     return "Replied to an earlier message";
   }
+
+  shouldPush() {
+    return true;
+  }
 }

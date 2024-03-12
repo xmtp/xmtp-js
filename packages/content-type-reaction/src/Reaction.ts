@@ -82,4 +82,8 @@ export class ReactionCodec implements ContentCodec<Reaction> {
         return undefined;
     }
   }
+
+  shouldPush(content: Reaction): boolean {
+    return content.action === "added";
+  }
 }

@@ -41,4 +41,8 @@ export class AttachmentCodec implements ContentCodec<Attachment> {
   fallback(content: Attachment): string | undefined {
     return `Can’t display "${content.filename}". This app doesn’t support attachments.`;
   }
+
+  shouldPush() {
+    return true;
+  }
 }
