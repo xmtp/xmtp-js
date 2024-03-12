@@ -2,6 +2,7 @@ import { messageApi } from '@xmtp/proto'
 import type { NotifyStreamEntityArrival } from '@xmtp/proto/ts/dist/types/fetch.pb'
 import AuthCache from './authn/AuthCache'
 import type { Authenticator } from '@/authn/interfaces'
+// eslint-disable-next-line no-restricted-syntax
 import { version } from '../package.json'
 import { XMTP_DEV_WARNING } from './constants'
 import type { Flatten } from './utils/typedefs'
