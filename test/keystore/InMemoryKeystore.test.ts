@@ -1,5 +1,5 @@
 import { keystore, privateKey } from '@xmtp/proto'
-import { randomBytes } from './../../bench/helpers'
+import { randomBytes } from '@bench/helpers'
 import { InvitationContext } from '@/Invitation'
 import { MessageV1 } from '@/Message'
 import {

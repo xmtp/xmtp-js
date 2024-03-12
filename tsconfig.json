@@ -8,6 +8,7 @@
     "noEmit": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@bench/*": ["./bench/*"],
       "@test/*": ["./test/*"]
     },
     "resolveJsonModule": true,
