@@ -1,29 +1,28 @@
-import assert from 'assert'
 import { CodecRegistry } from '../helpers'
 import { ContentTypeText, Encoding } from '../../src/codecs/Text'
 
 describe('ContentTypeText', () => {
   const codecs = new CodecRegistry()
   const codec = codecs.codecFor(ContentTypeText)
-  assert(codec)
+  expect(codec).toBeTruthy()
 
   it('can encode/decode text', () => {
     const text = 'Hey'
-    const ec = codec.encode(text, codecs)
-    assert(ec.type.sameAs(ContentTypeText))
-    assert.equal(ec.parameters.encoding, Encoding.utf8)
-    const text2 = codec.decode(ec, codecs)
-    assert.equal(text2, text)
+    const ec = codec!.encode(text, codecs)
+    expect(ec.type.sameAs(ContentTypeText)).toBe(true)
+    expect(ec.parameters.encoding).toEqual(Encoding.utf8)
+    const text2 = codec!.decode(ec, codecs)
+    expect(text2).toEqual(text)
   })
 
   it('defaults to utf-8', () => {
     const text = 'Hey'
-    const ec = codec.encode(text, codecs)
-    assert(ec.type.sameAs(ContentTypeText))
-    assert.equal(ec.parameters.encoding, Encoding.utf8)
+    const ec = codec!.encode(text, codecs)
+    expect(ec.type.sameAs(ContentTypeText)).toBe(true)
+    expect(ec.parameters.encoding).toEqual(Encoding.utf8)
     delete ec.parameters.encoding
-    const text2 = codec.decode(ec, codecs)
-    assert.equal(text2, text)
+    const text2 = codec!.decode(ec, codecs)
+    expect(text2).toEqual(text)
   })
 
   it('throws on non-string', () => {
@@ -42,7 +41,7 @@ describe('ContentTypeText', () => {
       parameters: {},
       content: {} as Uint8Array,
     }
-    expect(() => codec.decode(ec, codecs)).toThrow()
+    expect(() => codec!.decode(ec, codecs)).toThrow()
   })
 
   it('throws on unknown encoding', () => {
@@ -51,7 +50,7 @@ describe('ContentTypeText', () => {
       parameters: { encoding: 'UTF-16' },
       content: new Uint8Array(0),
     }
-    expect(() => codec.decode(ec, codecs)).toThrow(
+    expect(() => codec!.decode(ec, codecs)).toThrow(
       'unrecognized encoding UTF-16'
     )
   })

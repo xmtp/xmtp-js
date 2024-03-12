@@ -1,5 +1,2 @@
-dist
-coverage
-docs
-tmp
-build/rollup-plugin-resolve-extensions/index.js
+CODEOWNERS
+.yarn

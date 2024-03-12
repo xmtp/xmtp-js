@@ -1,52 +1,51 @@
 import { PrivateKeyBundleV1 } from './crypto/PrivateKeyBundle'
 import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
-import {
-  buildUserContactTopic,
-  mapPaginatedStream,
+import type {
   EnvelopeMapper,
-  buildUserInviteTopic,
-  isBrowser,
-  getSigner,
   EnvelopeMapperWithMessage,
   EnvelopeWithMessage,
 } from './utils'
-import { utils } from 'ethers'
-import { Signer } from './types/Signer'
+import {
+  buildUserContactTopic,
+  mapPaginatedStream,
+  buildUserInviteTopic,
+  isBrowser,
+  getSigner,
+} from './utils'
+import type { Signer } from './types/Signer'
 import { Conversations } from './conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
-import { ContentTypeId, ContentCodec, EncodedContent } from './MessageContent'
+import type { ContentCodec, EncodedContent } from './MessageContent'
+import { ContentTypeId } from './MessageContent'
 import { compress, decompress } from './Compression'
 import { content as proto, messageApi } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
-import HttpApiClient, {
-  ApiUrls,
-  ApiClient,
-  PublishParams,
-  SortDirection,
-} from './ApiClient'
+import type { ApiClient, PublishParams } from './ApiClient'
+import HttpApiClient, { ApiUrls, SortDirection } from './ApiClient'
 import { KeystoreAuthenticator } from './authn'
-import { Flatten } from './utils/typedefs'
-import BackupClient, { BackupType } from './message-backup/BackupClient'
+import type { Flatten } from './utils/typedefs'
+import type BackupClient from './message-backup/BackupClient'
+import { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
+import type { KeystoreProvider } from './keystore/providers'
 import {
   KeyGeneratorKeystoreProvider,
-  KeystoreProvider,
   KeystoreProviderUnavailableError,
   NetworkKeystoreProvider,
   SnapProvider,
   StaticKeystoreProvider,
 } from './keystore/providers'
+import type { Persistence } from './keystore/persistence'
 import {
   BrowserStoragePersistence,
   InMemoryPersistence,
-  Persistence,
 } from './keystore/persistence'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { packageName, version } from './snapInfo.json'
-import { ExtractDecodedType } from './types/client'
-import type { WalletClient } from 'viem'
+import type { ExtractDecodedType } from './types/client'
+import { getAddress, type WalletClient } from 'viem'
 import { Contacts } from './Contacts'
-import { KeystoreInterfaces } from './keystore/rpcDefinitions'
+import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types
@@ -430,7 +429,7 @@ export default class Client<ContentTypes = any> {
   async getUserContact(
     peerAddress: string
   ): Promise<PublicKeyBundle | SignedPublicKeyBundle | undefined> {
-    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+    peerAddress = getAddress(peerAddress) // EIP55 normalize the address case.
     const existingBundle = this.knownPublicKeyBundles.get(peerAddress)
     if (existingBundle) {
       return existingBundle
@@ -456,7 +455,7 @@ export default class Client<ContentTypes = any> {
   ): Promise<(PublicKeyBundle | SignedPublicKeyBundle | undefined)[]> {
     // EIP55 normalize all peer addresses
     const normalizedAddresses = peerAddresses.map((address) =>
-      utils.getAddress(address)
+      getAddress(address)
     )
     // The logic here is tricky because we need to do a batch query for any uncached bundles,
     // then interleave back into an ordered array. So we create a map<string, keybundle|undefined>
@@ -501,7 +500,7 @@ export default class Client<ContentTypes = any> {
    * Used to force getUserContact fetch contact from the network.
    */
   forgetContact(peerAddress: string) {
-    peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+    peerAddress = getAddress(peerAddress) // EIP55 normalize the address case.
     this.knownPublicKeyBundles.delete(peerAddress)
   }
 
@@ -552,7 +551,7 @@ export default class Client<ContentTypes = any> {
       const rawPeerAddresses: string[] = peerAddress
       // Try to normalize each of the peer addresses
       const normalizedPeerAddresses = rawPeerAddresses.map((address) =>
-        utils.getAddress(address)
+        getAddress(address)
       )
       // The getUserContactsFromNetwork will return false instead of throwing
       // on invalid envelopes
@@ -563,7 +562,7 @@ export default class Client<ContentTypes = any> {
       return contacts.map((contact) => !!contact)
     }
     try {
-      peerAddress = utils.getAddress(peerAddress) // EIP55 normalize the address case.
+      peerAddress = getAddress(peerAddress) // EIP55 normalize the address case.
     } catch (e) {
       return false
     }
@@ -650,7 +649,11 @@ export default class Client<ContentTypes = any> {
     if (fallback) {
       encoded.fallback = fallback
     }
-    if (typeof options?.compression === 'number') {
+    if (
+      typeof options?.compression === 'number' &&
+      // do not compress content less than 10 bytes
+      encoded.content.length >= 10
+    ) {
       encoded.compression = options.compression
     }
     await compress(encoded)

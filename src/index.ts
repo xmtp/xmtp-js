@@ -1,10 +1,6 @@
-export {
-  Message,
-  DecodedMessage,
-  MessageV1,
-  MessageV2,
-  decodeContent,
-} from './Message'
+export type { Message } from './Message'
+export { DecodedMessage, MessageV1, MessageV2, decodeContent } from './Message'
+export type { PrivateKeyBundle } from './crypto'
 export {
   Ciphertext,
   PublicKey,
@@ -12,7 +8,6 @@ export {
   SignedPublicKey,
   SignedPublicKeyBundle,
   PrivateKey,
-  PrivateKeyBundle,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
   Signature,
@@ -25,15 +20,12 @@ export {
   verifyHmacSignature,
 } from './crypto'
 export { default as Stream } from './Stream'
-export { Signer } from './types/Signer'
-export {
-  default as Client,
-  defaultKeystoreProviders,
+export type { Signer } from './types/Signer'
+export type {
   ClientOptions,
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
   SendOptions,
-  Compression,
   NetworkOptions,
   ContentOptions,
   KeyStoreOptions,
@@ -41,28 +33,22 @@ export {
   XmtpEnv,
 } from './Client'
 export {
-  Conversations,
-  Conversation,
-  ConversationV1,
-  ConversationV2,
-} from './conversations'
-export {
+  default as Client,
+  defaultKeystoreProviders,
+  Compression,
+} from './Client'
+export type { Conversation } from './conversations'
+export { Conversations, ConversationV1, ConversationV2 } from './conversations'
+export type {
   CodecRegistry,
-  ContentTypeId,
   ContentCodec,
   EncodedContent,
-  ContentTypeFallback,
 } from './MessageContent'
+export { ContentTypeId, ContentTypeFallback } from './MessageContent'
 export { TextCodec, ContentTypeText } from './codecs/Text'
-export {
-  Composite,
-  CompositeCodec,
-  ContentTypeComposite,
-} from './codecs/Composite'
-export {
-  default as HttpApiClient,
-  ApiUrls,
-  SortDirection,
+export type { Composite } from './codecs/Composite'
+export { CompositeCodec, ContentTypeComposite } from './codecs/Composite'
+export type {
   ApiClient,
   QueryParams,
   QueryAllOptions,
@@ -75,7 +61,9 @@ export {
   UnsubscribeFn,
   OnConnectionLostCallback,
 } from './ApiClient'
-export { Authenticator, AuthCache, LocalAuthenticator } from './authn'
+export { default as HttpApiClient, ApiUrls, SortDirection } from './ApiClient'
+export type { Authenticator } from './authn'
+export { AuthCache, LocalAuthenticator } from './authn'
 export {
   nsToDate,
   dateToNs,
@@ -91,10 +79,9 @@ export {
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
 } from './utils'
-export { Keystore, InMemoryKeystore, TopicData } from './keystore'
-export {
-  apiDefs as keystoreApiDefs,
-  snapApiDefs as snapKeystoreApiDefs,
+export type { Keystore, TopicData } from './keystore'
+export { InMemoryKeystore } from './keystore'
+export type {
   KeystoreApiDefs,
   KeystoreApiEntries,
   KeystoreApiMethods,
@@ -116,20 +103,25 @@ export {
   SnapKeystoreInterfaceRequestValues,
 } from './keystore/rpcDefinitions'
 export {
-  KeystoreProvider,
+  apiDefs as keystoreApiDefs,
+  snapApiDefs as snapKeystoreApiDefs,
+} from './keystore/rpcDefinitions'
+export type { KeystoreProvider } from './keystore/providers'
+export {
   KeyGeneratorKeystoreProvider,
   NetworkKeystoreProvider,
   StaticKeystoreProvider,
   SnapProvider,
 } from './keystore/providers'
+export type { Persistence } from './keystore/persistence'
 export {
   EncryptedPersistence,
   BrowserStoragePersistence,
   InMemoryPersistence,
   PrefixedPersistence,
-  Persistence,
 } from './keystore/persistence'
-export { InvitationContext, SealedInvitation } from './Invitation'
+export type { InvitationContext } from './Invitation'
+export { SealedInvitation, InvitationV1 } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'
 export type {
   GetMessageContentTypeFromClient,

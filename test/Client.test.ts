@@ -1,4 +1,3 @@
-import assert from 'assert'
 import {
   newWallet,
   newLocalHostClient,
@@ -31,17 +30,18 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { mainnet } from 'viem/chains'
 import { generatePrivateKey } from 'viem/accounts'
 import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
+import { vi, assert } from 'vitest'
 
 type TestCase = {
   name: string
   newClient: (opts?: Partial<ClientOptions>) => Promise<Client<any>>
 }
 
-const mockEthRequest = jest.fn()
-jest.mock('../src/utils/ethereum', () => {
+const mockEthRequest = vi.hoisted(() => vi.fn())
+vi.mock('../src/utils/ethereum', () => {
   return {
     __esModule: true,
-    getEthereum: jest.fn(() => {
+    getEthereum: vi.fn(() => {
       const ethereum: any = {
         request: mockEthRequest,
       }
@@ -84,9 +84,9 @@ describe('Client', () => {
 
       it('user contacts published', async () => {
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.publicKeyBundle, alicePublic)
+        expect(alicePublic).toEqual(alice.publicKeyBundle)
         const bobPublic = await bob.getUserContact(bob.address)
-        assert.deepEqual(bob.publicKeyBundle, bobPublic)
+        expect(bobPublic).toEqual(bob.publicKeyBundle)
       })
 
       it('user contacts are filtered to valid contacts', async () => {
@@ -99,18 +99,18 @@ describe('Client', () => {
           },
         ])
         const alicePublic = await alice.getUserContact(alice.address)
-        assert.deepEqual(alice.publicKeyBundle, alicePublic)
+        expect(alicePublic).toEqual(alice.publicKeyBundle)
       })
 
       it('Check address can be sent to', async () => {
         const can_mesg_a = await alice.canMessage('NOT AN ADDRESS')
-        assert.equal(can_mesg_a, false)
+        expect(can_mesg_a).toBe(false)
 
         const can_mesg_b = await alice.canMessage(bob.address)
-        assert.equal(can_mesg_b, true)
+        expect(can_mesg_b).toBe(true)
 
         const lower = await alice.canMessage(bob.address.toLowerCase())
-        assert.equal(lower, true)
+        expect(lower).toBe(true)
       })
     })
   })
@@ -192,16 +192,16 @@ describe('encodeContent', () => {
     const compressed = Uint8Array.from([
       10, 18, 10, 8, 120, 109, 116, 112, 46, 111, 114, 103, 18, 4, 116, 101,
       120, 116, 24, 1, 18, 17, 10, 8, 101, 110, 99, 111, 100, 105, 110, 103, 18,
-      5, 85, 84, 70, 45, 56, 40, 0, 34, 45, 120, 156, 51, 52, 48, 209, 49, 52,
-      48, 4, 98, 11, 8, 54, 52, 212, 49, 54, 2, 82, 150, 96, 166, 161, 161, 9,
-      84, 202, 0, 44, 60, 170, 122, 84, 245, 168, 106, 218, 171, 6, 0, 139, 43,
-      173, 229,
+      5, 85, 84, 70, 45, 56, 40, 0, 34, 48, 120, 156, 51, 52, 48, 209, 49, 52,
+      48, 212, 49, 52, 176, 128, 96, 67, 67, 29, 99, 35, 29, 67, 67, 75, 48,
+      211, 208, 208, 4, 42, 101, 0, 22, 30, 85, 61, 170, 122, 84, 53, 237, 85,
+      3, 0, 139, 43, 173, 229,
     ])
 
     const { payload } = await c.encodeContent(uncompressed, {
       compression: Compression.COMPRESSION_DEFLATE,
     })
-    assert.deepEqual(Uint8Array.from(payload), compressed)
+    expect(Uint8Array.from(payload)).toEqual(compressed)
   })
 
   it('returns shouldPush based on content codec', async () => {
@@ -423,14 +423,15 @@ describe('ClientOptions', () => {
       } catch (e) {
         return
       }
-      fail()
+      assert.fail()
     })
 
     it('allows you to use custom content types', async () => {
       const client = await Client.create(newWallet(), {
+        env: 'local',
         codecs: [new CompositeCodec()],
       })
-      const other = await Client.create(newWallet())
+      const other = await Client.create(newWallet(), { env: 'local' })
       const convo = await client.conversations.newConversation(other.address)
       expect(convo).toBeTruthy()
       // This will have a type error if the codecs field isn't being respected
@@ -496,7 +497,7 @@ describe('ClientOptions', () => {
         transport: http(),
       })
 
-      const c = await Client.create(walletClient)
+      const c = await Client.create(walletClient, { env: 'local' })
       expect(c).toBeDefined()
       expect(c.address).toEqual(account.address)
     })
@@ -511,8 +512,8 @@ describe('ClientOptions', () => {
         transport: http(),
       })
 
-      const viemClient = await Client.create(walletClient)
-      const ethersClient = await Client.create(randomWallet)
+      const viemClient = await Client.create(walletClient, { env: 'local' })
+      const ethersClient = await Client.create(randomWallet, { env: 'local' })
       expect(viemClient.address).toEqual(ethersClient.address)
       expect(
         viemClient.publicKeyBundle.equals(ethersClient.publicKeyBundle)
@@ -525,9 +526,9 @@ describe('ClientOptions', () => {
         transport: http(),
       })
 
-      await expect(Client.create(walletClient)).rejects.toThrow(
-        'WalletClient is not configured'
-      )
+      await expect(
+        Client.create(walletClient, { env: 'local' })
+      ).rejects.toThrow('WalletClient is not configured')
     })
   })
 })

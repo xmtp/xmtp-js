@@ -1,14 +1,11 @@
-import sha3 from 'js-sha3'
 import Long from 'long'
 import { PrivateKey, PrivateKeyBundleV1, Signature } from '../../src/crypto'
 import Authenticator from '../../src/authn/LocalAuthenticator'
 import Token from '../../src/authn/Token'
-import { hexToBytes } from '../../src/crypto/utils'
 import { newWallet, sleep } from '../helpers'
 import { Wallet } from 'ethers'
 import AuthCache from '../../src/authn/AuthCache'
-
-const { keccak256 } = sha3
+import { hexToBytes, keccak256 } from 'viem'
 
 describe('authn', () => {
   let authenticator: Authenticator

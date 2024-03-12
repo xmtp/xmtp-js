@@ -1,9 +1,9 @@
-import { ciphertext } from '@xmtp/proto'
+import type { ciphertext } from '@xmtp/proto'
 import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext'
 import crypto from './crypto'
 
-const hkdfNoInfo = new ArrayBuffer(0)
-const hkdfNoSalt = new ArrayBuffer(0)
+const hkdfNoInfo = new Uint8Array().buffer
+const hkdfNoSalt = new Uint8Array().buffer
 
 // This is a variation of https://github.com/paulmillr/noble-secp256k1/blob/main/index.ts#L1378-L1388
 // that uses `digest('SHA-256', bytes)` instead of `digest('SHA-256', bytes.buffer)`

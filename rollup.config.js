@@ -15,9 +15,8 @@ const external = [
   'async-mutex',
   'crypto',
   'elliptic',
-  'ethers',
-  'js-sha3',
   'long',
+  'viem',
 ]
 
 const plugins = [

@@ -1,4 +1,4 @@
-import { content as proto } from '@xmtp/proto'
+import type { content as proto } from '@xmtp/proto'
 
 // Represents proto.ContentTypeId
 export class ContentTypeId {

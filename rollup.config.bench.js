@@ -11,9 +11,8 @@ const external = [
   'benny',
   'crypto',
   'elliptic',
-  'ethers',
-  'js-sha3',
   'long',
+  'viem',
 ]
 
 const plugins = [

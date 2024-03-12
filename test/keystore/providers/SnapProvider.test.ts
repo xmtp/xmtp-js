@@ -14,8 +14,9 @@ import {
 } from '../../../src/keystore/snapHelpers'
 import { Signer } from '../../../src/types/Signer'
 import { keystore as keystoreProto } from '@xmtp/proto'
+import { vi, Mock } from 'vitest'
 
-jest.mock('../../../src/keystore/snapHelpers')
+vi.mock('../../../src/keystore/snapHelpers')
 
 describe('SnapProvider', () => {
   const provider = new SnapKeystoreProvider()
@@ -26,7 +27,7 @@ describe('SnapProvider', () => {
   beforeEach(async () => {
     apiClient = new HttpApiClient(ApiUrls['local'])
     wallet = newWallet()
-    jest.resetAllMocks()
+    vi.resetAllMocks()
   })
 
   it('should throw an error if no wallet is provided', async () => {
@@ -36,7 +37,7 @@ describe('SnapProvider', () => {
   })
 
   it('should throw a KeystoreProviderUnavailableError if MetaMask with Snaps is not detected', async () => {
-    ;(hasMetamaskWithSnaps as jest.Mock).mockReturnValue(Promise.resolve(false))
+    ;(hasMetamaskWithSnaps as Mock).mockReturnValue(Promise.resolve(false))
 
     await expect(
       provider.newKeystore(options, apiClient, wallet)
@@ -46,55 +47,55 @@ describe('SnapProvider', () => {
   })
 
   it('should attempt to connect to the snap if it is not already connected', async () => {
-    ;(hasMetamaskWithSnaps as jest.Mock).mockReturnValue(Promise.resolve(true))
-    ;(getWalletStatus as jest.Mock).mockReturnValue(
+    ;(hasMetamaskWithSnaps as Mock).mockReturnValue(Promise.resolve(true))
+    ;(getWalletStatus as Mock).mockReturnValue(
       Promise.resolve(
         keystoreProto.GetKeystoreStatusResponse_KeystoreStatus
           .KEYSTORE_STATUS_INITIALIZED
       )
     )
-    ;(getSnap as jest.Mock).mockReturnValue(Promise.resolve(undefined))
+    ;(getSnap as Mock).mockReturnValue(Promise.resolve(undefined))
 
     const keystore = await provider.newKeystore(options, apiClient, wallet)
 
     expect(keystore).toBeDefined()
-    expect(getWalletStatus as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(getSnap as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(connectSnap as jest.Mock).toHaveBeenCalledTimes(1)
-    expect(initSnap as jest.Mock).not.toHaveBeenCalled()
+    expect(getWalletStatus as Mock).toHaveBeenCalledTimes(1)
+    expect(getSnap as Mock).toHaveBeenCalledTimes(1)
+    expect(connectSnap as Mock).toHaveBeenCalledTimes(1)
+    expect(initSnap as Mock).not.toHaveBeenCalled()
   })
 
   it('does not attempt to connect to the snap if it is already connected', async () => {
-    ;(hasMetamaskWithSnaps as jest.Mock).mockReturnValue(Promise.resolve(true))
-    ;(getWalletStatus as jest.Mock).mockReturnValue(
+    ;(hasMetamaskWithSnaps as Mock).mockReturnValue(Promise.resolve(true))
+    ;(getWalletStatus as Mock).mockReturnValue(
       Promise.resolve(
         keystoreProto.GetKeystoreStatusResponse_KeystoreStatus
           .KEYSTORE_STATUS_INITIALIZED
       )
     )
-    ;(getSnap as jest.Mock).mockReturnValue(Promise.resolve({}))
-    ;(connectSnap as jest.Mock).mockReturnValue(Promise.resolve())
+    ;(getSnap as Mock).mockReturnValue(Promise.resolve({}))
+    ;(connectSnap as Mock).mockReturnValue(Promise.resolve())
 
     await provider.newKeystore(options, apiClient, wallet)
-    expect(connectSnap as jest.Mock).not.toHaveBeenCalled()
-    expect(initSnap as jest.Mock).not.toHaveBeenCalled()
+    expect(connectSnap as Mock).not.toHaveBeenCalled()
+    expect(initSnap as Mock).not.toHaveBeenCalled()
   })
 
   it('initializes the snap if it is not already initialized', async () => {
-    ;(hasMetamaskWithSnaps as jest.Mock).mockReturnValue(Promise.resolve(true))
-    ;(getWalletStatus as jest.Mock).mockReturnValue(
+    ;(hasMetamaskWithSnaps as Mock).mockReturnValue(Promise.resolve(true))
+    ;(getWalletStatus as Mock).mockReturnValue(
       Promise.resolve(
         keystoreProto.GetKeystoreStatusResponse_KeystoreStatus
           .KEYSTORE_STATUS_UNINITIALIZED
       )
     )
-    ;(getSnap as jest.Mock).mockReturnValue(Promise.resolve({}))
-    ;(connectSnap as jest.Mock).mockReturnValue(Promise.resolve())
-    ;(initSnap as jest.Mock).mockReturnValue(Promise.resolve())
+    ;(getSnap as Mock).mockReturnValue(Promise.resolve({}))
+    ;(connectSnap as Mock).mockReturnValue(Promise.resolve())
+    ;(initSnap as Mock).mockReturnValue(Promise.resolve())
 
     const keystore = await provider.newKeystore(options, apiClient, wallet)
 
     expect(keystore).toBeDefined()
-    expect(initSnap as jest.Mock).toHaveBeenCalledTimes(1)
+    expect(initSnap as Mock).toHaveBeenCalledTimes(1)
   })
 })

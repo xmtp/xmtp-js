@@ -11,23 +11,20 @@ import {
 } from '../../src/utils'
 
 describe('conversations', () => {
-  let alice: Client
-  let bob: Client
-  let charlie: Client
-
-  beforeEach(async () => {
-    alice = await newLocalHostClient({ publishLegacyContact: true })
-    bob = await newLocalHostClient({ publishLegacyContact: true })
-    charlie = await newLocalHostClient({ publishLegacyContact: true })
-  })
-
-  afterEach(async () => {
-    if (alice) await alice.close()
-    if (bob) await bob.close()
-    if (charlie) await charlie.close()
-  })
-
   describe('listConversations', () => {
+    let alice: Client
+    let bob: Client
+
+    beforeEach(async () => {
+      alice = await newLocalHostClient({ publishLegacyContact: true })
+      bob = await newLocalHostClient({ publishLegacyContact: true })
+    })
+
+    afterEach(async () => {
+      if (alice) await alice.close()
+      if (bob) await bob.close()
+    })
+
     it('lists all conversations', async () => {
       const aliceConversations = await alice.conversations.list()
       expect(aliceConversations).toHaveLength(0)
@@ -109,96 +106,9 @@ describe('conversations', () => {
     })
   })
 
-  it('streams conversations', async () => {
-    const stream = await alice.conversations.stream()
-    const conversation = await alice.conversations.newConversation(bob.address)
-    await conversation.send('hi bob')
-
-    let numConversations = 0
-    for await (const conversation of stream) {
-      numConversations++
-      expect(conversation.peerAddress).toBe(bob.address)
-      break
-    }
-    expect(numConversations).toBe(1)
-    await stream.return()
-  })
-
-  it('streams all conversation messages from empty state', async () => {
-    const aliceCharlie = await alice.conversations.newConversation(
-      charlie.address
-    )
-    const bobAlice = await bob.conversations.newConversation(alice.address)
-
-    const stream = await alice.conversations.streamAllMessages()
-    await aliceCharlie.send('gm alice -charlie')
-
-    let numMessages = 0
-    for await (const message of stream) {
-      numMessages++
-      if (numMessages == 1) {
-        expect(message.contentTopic).toBe(buildUserIntroTopic(alice.address))
-        expect(message.content).toBe('gm alice -charlie')
-        await bobAlice.send('gm alice -bob')
-      }
-      if (numMessages == 2) {
-        expect(message.contentTopic).toBe(buildUserIntroTopic(alice.address))
-        expect(message.content).toBe('gm alice -bob')
-        await aliceCharlie.send('gm charlie -alice')
-      }
-      if (numMessages == 3) {
-        expect(message.contentTopic).toBe(
-          buildDirectMessageTopic(alice.address, charlie.address)
-        )
-        expect(message.content).toBe('gm charlie -alice')
-        break
-      }
-    }
-    expect(numMessages).toBe(3)
-    await stream.return(undefined)
-  })
-
-  it('streams all conversation messages with a mix of v1 and v2 conversations', async () => {
-    const aliceBobV1 = await alice.conversations.newConversation(bob.address)
-    const aliceBobV2 = await alice.conversations.newConversation(bob.address, {
-      conversationId: 'xmtp.org/foo',
-      metadata: {},
-    })
-
-    const stream = await alice.conversations.streamAllMessages()
-    await sleep(50)
-
-    await aliceBobV1.send('V1')
-    const message1 = await stream.next()
-    expect(message1.value.content).toBe('V1')
-    expect(message1.value.contentTopic).toBe(buildUserIntroTopic(alice.address))
-
-    await aliceBobV2.send('V2')
-    const message2 = await stream.next()
-    expect(message2.value.content).toBe('V2')
-    expect(message2.value.contentTopic).toBe(aliceBobV2.topic)
-
-    await aliceBobV1.send('Second message in V1 channel')
-    const message3 = await stream.next()
-    expect(message3.value.content).toBe('Second message in V1 channel')
-    expect(message3.value.contentTopic).toBe(
-      buildDirectMessageTopic(alice.address, bob.address)
-    )
-
-    const aliceBobV2Bar = await alice.conversations.newConversation(
-      bob.address,
-      {
-        conversationId: 'xmtp.org/bar',
-        metadata: {},
-      }
-    )
-    await aliceBobV2Bar.send('bar')
-    const message4 = await stream.next()
-    expect(message4.value.content).toBe('bar')
-    await stream.return(undefined)
-  })
-
   it('dedupes conversations when multiple messages are in the introduction topic', async () => {
+    const alice = await newLocalHostClient({ publishLegacyContact: true })
+    const bob = await newLocalHostClient({ publishLegacyContact: true })
     const aliceConversation = await alice.conversations.newConversation(
       bob.address
     )
@@ -216,43 +126,24 @@ describe('conversations', () => {
     ])
     expect(aliceConversationsList).toHaveLength(1)
     expect(bobConversationList).toHaveLength(1)
-  })
-
-  it('handles a mix of streaming and listing conversations', async () => {
-    await bob.conversations.newConversation(alice.address, {
-      conversationId: 'xmtp.org/1',
-      metadata: {},
-    })
-    const aliceStream = await alice.conversations.stream()
-    await sleep(50)
-    await bob.conversations.newConversation(alice.address, {
-      conversationId: 'xmtp.org/2',
-      metadata: {},
-    })
-    // Ensure the result has been received
-    await aliceStream.next()
-    // Expect that even though a new conversation was found while streaming the first conversation is still returned
-    expect(await alice.conversations.list()).toHaveLength(2)
-    await aliceStream.return()
-
-    // Do it again to make sure the cache is updated with an existing timestamp
-    await bob.conversations.newConversation(alice.address, {
-      conversationId: 'xmtp.org/3',
-      metadata: {},
-    })
-    const aliceStream2 = await alice.conversations.stream()
-    await sleep(50)
-    await bob.conversations.newConversation(alice.address, {
-      conversationId: 'xmtp.org/4',
-      metadata: {},
-    })
-    await aliceStream2.next()
-
-    expect(await alice.conversations.list()).toHaveLength(4)
-    await aliceStream2.return()
+    await alice.close()
+    await bob.close()
   })
 
   describe('newConversation', () => {
+    let alice: Client
+    let bob: Client
+
+    beforeEach(async () => {
+      alice = await newLocalHostClient({ publishLegacyContact: true })
+      bob = await newLocalHostClient({ publishLegacyContact: true })
+    })
+
+    afterEach(async () => {
+      if (alice) await alice.close()
+      if (bob) await bob.close()
+    })
+
     it('uses an existing v1 conversation when one exists', async () => {
       const aliceConvo = await alice.conversations.newConversation(bob.address)
       expect(aliceConvo instanceof ConversationV1).toBeTruthy()
@@ -395,5 +286,149 @@ describe('conversations', () => {
       const invites = await alice.listInvitations()
       expect(invites).toHaveLength(1)
     })
+  })
+})
+
+describe.sequential('Conversation streams', () => {
+  it('streams conversations', async () => {
+    const alice = await newLocalHostClient({ publishLegacyContact: true })
+    const bob = await newLocalHostClient({ publishLegacyContact: true })
+    const stream = await alice.conversations.stream()
+    const conversation = await alice.conversations.newConversation(bob.address)
+    await conversation.send('hi bob')
+
+    let numConversations = 0
+    for await (const conversation of stream) {
+      numConversations++
+      expect(conversation.peerAddress).toBe(bob.address)
+      break
+    }
+    expect(numConversations).toBe(1)
+    await stream.return()
+    await alice.close()
+    await bob.close()
+  })
+
+  it('streams all conversation messages from empty state', async () => {
+    const alice = await newLocalHostClient({ publishLegacyContact: true })
+    const bob = await newLocalHostClient({ publishLegacyContact: true })
+    const charlie = await newLocalHostClient({ publishLegacyContact: true })
+    const aliceCharlie = await alice.conversations.newConversation(
+      charlie.address
+    )
+    const bobAlice = await bob.conversations.newConversation(alice.address)
+
+    const stream = alice.conversations.streamAllMessages()
+    const messages = []
+    setTimeout(async () => {
+      await aliceCharlie.send('gm alice -charlie')
+      await bobAlice.send('gm alice -bob')
+      await aliceCharlie.send('gm charlie -alice')
+    }, 100)
+
+    let numMessages = 0
+    for await (const message of await stream) {
+      numMessages++
+      messages.push(message)
+      if (numMessages === 3) {
+        break
+      }
+    }
+
+    expect(messages[0].contentTopic).toBe(buildUserIntroTopic(alice.address))
+    expect(messages[0].content).toBe('gm alice -charlie')
+    expect(messages[1].contentTopic).toBe(buildUserIntroTopic(alice.address))
+    expect(messages[1].content).toBe('gm alice -bob')
+    expect(messages[2].contentTopic).toBe(
+      buildDirectMessageTopic(alice.address, charlie.address)
+    )
+    expect(messages[2].content).toBe('gm charlie -alice')
+    expect(numMessages).toBe(3)
+    await (await stream).return(undefined)
+    await alice.close()
+    await bob.close()
+    await charlie.close()
+  })
+
+  it('streams all conversation messages with a mix of v1 and v2 conversations', async () => {
+    const alice = await newLocalHostClient({ publishLegacyContact: true })
+    const bob = await newLocalHostClient({ publishLegacyContact: true })
+    const aliceBobV1 = await alice.conversations.newConversation(bob.address)
+    const aliceBobV2 = await alice.conversations.newConversation(bob.address, {
+      conversationId: 'xmtp.org/foo',
+      metadata: {},
+    })
+
+    const stream = await alice.conversations.streamAllMessages()
+    await sleep(50)
+
+    await aliceBobV1.send('V1')
+    const message1 = await stream.next()
+    expect(message1.value.content).toBe('V1')
+    expect(message1.value.contentTopic).toBe(buildUserIntroTopic(alice.address))
+
+    await aliceBobV2.send('V2')
+    const message2 = await stream.next()
+    expect(message2.value.content).toBe('V2')
+    expect(message2.value.contentTopic).toBe(aliceBobV2.topic)
+
+    await aliceBobV1.send('Second message in V1 channel')
+    const message3 = await stream.next()
+    expect(message3.value.content).toBe('Second message in V1 channel')
+    expect(message3.value.contentTopic).toBe(
+      buildDirectMessageTopic(alice.address, bob.address)
+    )
+
+    const aliceBobV2Bar = await alice.conversations.newConversation(
+      bob.address,
+      {
+        conversationId: 'xmtp.org/bar',
+        metadata: {},
+      }
+    )
+    await aliceBobV2Bar.send('bar')
+    const message4 = await stream.next()
+    expect(message4.value.content).toBe('bar')
+    await stream.return(undefined)
+    await alice.close()
+    await bob.close()
+  })
+
+  it('handles a mix of streaming and listing conversations', async () => {
+    const alice = await newLocalHostClient({ publishLegacyContact: true })
+    const bob = await newLocalHostClient({ publishLegacyContact: true })
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/1',
+      metadata: {},
+    })
+    const aliceStream = await alice.conversations.stream()
+    await sleep(50)
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/2',
+      metadata: {},
+    })
+    // Ensure the result has been received
+    await aliceStream.next()
+    // Expect that even though a new conversation was found while streaming the first conversation is still returned
+    expect(await alice.conversations.list()).toHaveLength(2)
+    await aliceStream.return()
+
+    // Do it again to make sure the cache is updated with an existing timestamp
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/3',
+      metadata: {},
+    })
+    const aliceStream2 = await alice.conversations.stream()
+    await sleep(50)
+    await bob.conversations.newConversation(alice.address, {
+      conversationId: 'xmtp.org/4',
+      metadata: {},
+    })
+    await aliceStream2.next()
+
+    expect(await alice.conversations.list()).toHaveLength(4)
+    await aliceStream2.return()
+    await alice.close()
+    await bob.close()
   })
 })

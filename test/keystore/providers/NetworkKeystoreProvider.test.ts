@@ -10,9 +10,10 @@ import NetworkKeyManager, {
   storageSigRequestText,
 } from '../../../src/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { hexToBytes } from '../../../src/crypto/utils'
 import { LocalAuthenticator } from '../../../src/authn'
 import crypto from '../../../src/crypto/crypto'
+import { vi } from 'vitest'
+import { Hex, hexToBytes } from 'viem'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
@@ -58,7 +59,7 @@ describe('NetworkKeystoreProvider', () => {
     const walletAddr = await wallet.getAddress()
 
     let sig = await wallet.signMessage(input)
-    const secret = hexToBytes(sig)
+    const secret = hexToBytes(sig as Hex)
     const ciphertext = await encrypt(bytes, secret)
     const bytesToStore = privateKey.EncryptedPrivateKeyBundleV1.encode({
       ciphertext,
@@ -89,7 +90,7 @@ describe('NetworkKeystoreProvider', () => {
     await manager.storePrivateKeyBundle(bundle)
 
     const provider = new NetworkKeystoreProvider()
-    const mockNotifier = jest.fn()
+    const mockNotifier = vi.fn()
     await provider.newKeystore(
       { ...testProviderOptions({}), preEnableIdentityCallback: mockNotifier },
       apiClient,

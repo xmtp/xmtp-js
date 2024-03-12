@@ -6,6 +6,7 @@ import {
 import { Signer } from '../../../src/types/Signer'
 import { newWallet } from '../../helpers'
 import { testProviderOptions } from './helpers'
+import { vi } from 'vitest'
 
 describe('KeyGeneratorKeystoreProvider', () => {
   let wallet: Signer
@@ -37,7 +38,7 @@ describe('KeyGeneratorKeystoreProvider', () => {
 
   it('calls preCreateIdentityCallback when supplied', async () => {
     const provider = new KeyGeneratorKeystoreProvider()
-    const preCreateIdentityCallback = jest.fn()
+    const preCreateIdentityCallback = vi.fn()
     const keystore = await provider.newKeystore(
       { ...testProviderOptions({}), preCreateIdentityCallback },
       apiClient,
@@ -49,7 +50,7 @@ describe('KeyGeneratorKeystoreProvider', () => {
 
   it('calls preEnableIdentityCallback when supplied', async () => {
     const provider = new KeyGeneratorKeystoreProvider()
-    const preEnableIdentityCallback = jest.fn()
+    const preEnableIdentityCallback = vi.fn()
     const keystore = await provider.newKeystore(
       { ...testProviderOptions({}), preEnableIdentityCallback },
       apiClient,

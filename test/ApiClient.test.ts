@@ -13,6 +13,8 @@ import { LocalAuthenticator } from '../src/authn'
 import { PrivateKey } from '../src'
 import packageJson from '../package.json'
 import { dateToNs } from '../src/utils'
+import { vi } from 'vitest'
+
 const { MessageApi } = messageApi
 
 const PATH_PREFIX = 'http://fake:5050'
@@ -27,21 +29,25 @@ const AUTH_TOKEN = 'foo'
 
 const client = new ApiClient(PATH_PREFIX)
 
-const mockGetToken = jest.fn().mockReturnValue(
-  Promise.resolve({
-    toBase64: () => AUTH_TOKEN,
-    age: 10,
-  })
+const mockGetToken = vi.hoisted(() =>
+  vi.fn().mockReturnValue(
+    Promise.resolve({
+      toBase64: () => AUTH_TOKEN,
+      age: 10,
+    })
+  )
 )
-jest.mock('../src/authn/LocalAuthenticator', () => {
-  return jest.fn().mockImplementation(() => {
-    return { createToken: mockGetToken }
-  })
+vi.mock('../src/authn/LocalAuthenticator', () => {
+  return {
+    default: vi.fn().mockImplementation(() => {
+      return { createToken: mockGetToken }
+    }),
+  }
 })
 
 describe('Query', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('stops when receiving empty results', async () => {
@@ -182,9 +188,9 @@ describe('Publish', () => {
       pathPrefix: PATH_PREFIX,
       mode: 'cors',
       headers: new Headers({
-        Authorization: `Bearer ${AUTH_TOKEN}`,
         'X-Client-Version': 'xmtp-js/' + packageJson.version,
         'X-App-Version': 'test/0.0.0',
+        Authorization: `Bearer ${AUTH_TOKEN}`,
       }),
     })
   })
@@ -219,7 +225,6 @@ describe('Publish authn', () => {
       message: Uint8Array.from([1, 2, 3]),
       contentTopic: CONTENT_TOPIC,
     }
-
     await publishClient.publish([msg])
     expect(publishMock).toHaveBeenCalledTimes(2)
   })
@@ -237,15 +242,19 @@ describe('Publish authn', () => {
       contentTopic: CONTENT_TOPIC,
     }
 
-    const prom = publishClient.publish([msg])
-    expect(prom).rejects.toMatchObject({ code: GrpcStatus.UNAUTHENTICATED })
+    try {
+      await publishClient.publish([msg])
+    } catch (e: any) {
+      expect(e.code).toBe(GrpcStatus.UNAUTHENTICATED)
+    }
+
     expect(publishMock).toHaveBeenCalledTimes(2)
   })
 })
 
 describe('Subscribe', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('can subscribe', async () => {
@@ -271,7 +280,7 @@ describe('Subscribe', () => {
 
   it('should resubscribe on error', async () => {
     let called = 0
-    const subscribeMock = jest
+    const subscribeMock = vi
       .spyOn(MessageApi, 'Subscribe')
       .mockImplementation(
         async (
@@ -290,7 +299,7 @@ describe('Subscribe', () => {
           return await nonErroringSubscribe(req, cb, initReq)
         }
       )
-    const consoleInfo = jest.spyOn(console, 'info').mockImplementation(() => {})
+    const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {})
     let numEnvelopes = 0
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
@@ -321,7 +330,7 @@ describe('Subscribe', () => {
 
   it('should resubscribe on completion', async () => {
     let called = 0
-    const subscribeMock = jest
+    const subscribeMock = vi
       .spyOn(MessageApi, 'Subscribe')
       .mockImplementation(
         async (
@@ -340,7 +349,7 @@ describe('Subscribe', () => {
           return await nonAbortingSubscribe(req, cb, initReq)
         }
       )
-    const consoleInfo = jest.spyOn(console, 'info').mockImplementation(() => {})
+    const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {})
     let numEnvelopes = 0
     const cb = (env: messageApi.Envelope) => {
       numEnvelopes++
@@ -380,7 +389,7 @@ describe('Subscribe', () => {
 
 function createQueryMock(envelopes: messageApi.Envelope[], numPages = 1) {
   let numCalls = 0
-  return jest
+  return vi
     .spyOn(MessageApi, 'Query')
     .mockImplementation(async (): Promise<messageApi.QueryResponse> => {
       numCalls++
@@ -394,14 +403,14 @@ function createQueryMock(envelopes: messageApi.Envelope[], numPages = 1) {
 }
 
 function createPublishMock() {
-  return jest
+  return vi
     .spyOn(MessageApi, 'Publish')
     .mockImplementation(async (): Promise<messageApi.PublishResponse> => ({}))
 }
 
 function createAuthErrorPublishMock(rejectTimes = 1) {
   let numRejections = 0
-  return jest
+  return vi
     .spyOn(MessageApi, 'Publish')
     .mockImplementation(async (): Promise<messageApi.PublishResponse> => {
       if (numRejections < rejectTimes) {
@@ -417,7 +426,7 @@ function createAuthErrorPublishMock(rejectTimes = 1) {
 }
 
 function createSubscribeMock(numMessages: number) {
-  return jest
+  return vi
     .spyOn(MessageApi, 'Subscribe')
     .mockImplementation(subscribeMockImplementation(numMessages))
 }

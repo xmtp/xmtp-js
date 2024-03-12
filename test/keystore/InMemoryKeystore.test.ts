@@ -18,7 +18,6 @@ import { InMemoryPersistence } from '../../src/keystore/persistence'
 import Token from '../../src/authn/Token'
 import Long from 'long'
 import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
-import { ethers } from 'ethers'
 import { getKeyMaterial } from '../../src/keystore/utils'
 import {
   generateHmacSignature,
@@ -26,6 +25,8 @@ import {
   importHmacKey,
   verifyHmacSignature,
 } from '../../src/crypto/encryption'
+import { assert } from 'vitest'
+import { toBytes } from 'viem'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -303,12 +304,12 @@ describe('InMemoryKeystore', () => {
       } = response
 
       if (!firstResult.error) {
-        fail('should have errored')
+        assert.fail('should have errored')
       }
       expect(firstResult.error.code).toBeTruthy()
 
       if (secondResult.error) {
-        fail('should not have errored')
+        assert.fail('should not have errored')
       }
 
       expect(
@@ -584,7 +585,7 @@ describe('InMemoryKeystore', () => {
     it('generates known deterministic topic', async () => {
       aliceKeys = new PrivateKeyBundleV1(
         privateKey.PrivateKeyBundle.decode(
-          ethers.utils.arrayify(
+          toBytes(
             '0x0a8a030ac20108c192a3f7923112220a2068d2eb2ef8c50c4916b42ce638c5610e44ff4eb3ecb098' +
               'c9dacf032625c72f101a940108c192a3f7923112460a440a40fc9822283078c323c9319c45e60ab4' +
               '2c65f6e1744ed8c23c52728d456d33422824c98d307e8b1c86a26826578523ba15fe6f04a17fca17' +
@@ -604,7 +605,7 @@ describe('InMemoryKeystore', () => {
       )
       bobKeys = new PrivateKeyBundleV1(
         privateKey.PrivateKeyBundle.decode(
-          ethers.utils.arrayify(
+          toBytes(
             '0x0a88030ac001088cd68df7923112220a209057f8d813314a2aae74e6c4c30f909c1c496b6037ce32' +
               'a12c613558a8e961681a9201088cd68df7923112440a420a40501ae9b4f75d5bb5bae3ca4ecfda4e' +
               'de9edc5a9b7fc2d56dc7325b837957c23235cc3005b46bb9ef485f106404dcf71247097ed5096355' +

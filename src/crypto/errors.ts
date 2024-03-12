@@ -1,4 +1,4 @@
-import { PublicKey, SignedPublicKey } from './PublicKey'
+import type { PublicKey, SignedPublicKey } from './PublicKey'
 import { bytesToHex } from './utils'
 
 export class NoMatchingPreKeyError extends Error {

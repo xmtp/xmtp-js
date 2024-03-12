@@ -1,14 +1,10 @@
-import { TopicData } from './interfaces'
-import {
-  conversationReference,
-  publicKey,
-  keystore,
-  invitation,
-} from '@xmtp/proto'
+import type { TopicData } from './interfaces'
+import type { conversationReference, publicKey, invitation } from '@xmtp/proto'
+import { keystore } from '@xmtp/proto'
 import { PublicKeyBundle, SignedPublicKeyBundle } from '../crypto'
 import { KeystoreError } from './errors'
-import { WithoutUndefined } from '../utils/typedefs'
-import { XmtpEnv } from '../Client'
+import type { WithoutUndefined } from '../utils/typedefs'
+import type { XmtpEnv } from '../Client'
 
 export const convertError = (
   e: Error,

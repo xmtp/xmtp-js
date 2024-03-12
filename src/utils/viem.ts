@@ -1,5 +1,5 @@
 import type { WalletClient } from 'viem'
-import { Signer } from '../types/Signer'
+import type { Signer } from '../types/Signer'
 
 export function getSigner(wallet: Signer | WalletClient | null): Signer | null {
   if (!wallet) {
@@ -15,7 +15,10 @@ export function getSigner(wallet: Signer | WalletClient | null): Signer | null {
 }
 
 function isWalletClient(wallet: Signer | WalletClient): wallet is WalletClient {
-  return 'type' in wallet && wallet.type === 'walletClient'
+  return (
+    'type' in wallet &&
+    (wallet.type === 'walletClient' || wallet.type === 'base')
+  )
 }
 
 export function convertWalletClientToSigner(

@@ -1,10 +1,9 @@
-/* eslint-disable camelcase */
-import {
-  ContentTypeId,
+import type {
   ContentCodec,
   EncodedContent,
   CodecRegistry,
 } from '../MessageContent'
+import { ContentTypeId } from '../MessageContent'
 import { composite as proto } from '@xmtp/proto'
 
 // xmtp.org/composite

@@ -1,13 +1,10 @@
 import { privateKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
 import Long from 'long'
-import Signature, {
-  ECDSACompactWithRecovery,
-  ecdsaSignerKey,
-  KeySigner,
-} from './Signature'
+import type { ECDSACompactWithRecovery, KeySigner } from './Signature'
+import Signature, { ecdsaSignerKey } from './Signature'
 import { PublicKey, SignedPublicKey, UnsignedPublicKey } from './PublicKey'
-import Ciphertext from './Ciphertext'
+import type Ciphertext from './Ciphertext'
 import { decrypt, encrypt, sha256 } from './encryption'
 import { equalBytes } from './utils'
 

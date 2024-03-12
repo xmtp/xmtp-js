@@ -1,6 +1,6 @@
 import type Benchmark from 'benchmark'
 import { suite, save, cycle } from 'benny'
-import { Config } from 'benny/lib/internal/common-types'
+import type { Config } from 'benny/lib/internal/common-types'
 import crypto from '../src/crypto/crypto'
 import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
 import { newWallet } from '../test/helpers'

@@ -7,6 +7,7 @@ import NetworkKeyManager from '../../../src/keystore/providers/NetworkKeyManager
 import { Signer } from '../../../src/types/Signer'
 import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '../../helpers'
 import { testProviderOptions } from './helpers'
+import { vi } from 'vitest'
 
 describe('NetworkKeyManager', () => {
   let wallet: Signer
@@ -120,7 +121,7 @@ describe('NetworkKeyManager', () => {
   })
 
   it('calls notifier on store', async () => {
-    const mockNotifier = jest.fn()
+    const mockNotifier = vi.fn()
     const manager = new NetworkKeyManager(wallet, persistence, mockNotifier)
     const bundle = await PrivateKeyBundleV1.generate(wallet)
     await manager.storePrivateKeyBundle(bundle)

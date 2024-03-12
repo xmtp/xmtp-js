@@ -1,5 +1,4 @@
 import { ConversationV1 } from './../src/conversations/Conversation'
-import assert from 'assert'
 import { newWallet } from './helpers'
 import { MessageV1, DecodedMessage } from '../src/Message'
 import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
@@ -28,8 +27,8 @@ describe('Message', function () {
   it('fully encodes/decodes messages', async function () {
     // Alice's key bundle
     const alicePub = alice.getPublicKeyBundle()
-    assert.ok(alice.identityKey)
-    assert.deepEqual(alice.identityKey.publicKey, alicePub.identityKey)
+    expect(alice.identityKey).toBeTruthy()
+    expect(alice.identityKey.publicKey).toEqual(alicePub.identityKey)
 
     const bobWalletAddress = bob
       .getPublicKeyBundle()
@@ -53,13 +52,13 @@ describe('Message', function () {
       new Date()
     )
 
-    assert.equal(msg1.senderAddress, aliceWallet.address)
-    assert.equal(msg1.recipientAddress, bobWalletAddress)
+    expect(msg1.senderAddress).toEqual(aliceWallet.address)
+    expect(msg1.recipientAddress).toEqual(bobWalletAddress)
     const decrypted = await msg1.decrypt(
       aliceKeystore,
       alice.getPublicKeyBundle()
     )
-    assert.deepEqual(decrypted, content)
+    expect(decrypted).toEqual(content)
 
     // Bob decodes message from Alice
     const msg2 = await MessageV1.fromBytes(msg1.toBytes())
@@ -67,9 +66,9 @@ describe('Message', function () {
       bobKeystore,
       bob.getPublicKeyBundle()
     )
-    assert.deepEqual(msg2Decrypted, decrypted)
-    assert.equal(msg2.senderAddress, aliceWallet.address)
-    assert.equal(msg2.recipientAddress, bobWalletAddress)
+    expect(msg2Decrypted).toEqual(decrypted)
+    expect(msg2.senderAddress).toEqual(aliceWallet.address)
+    expect(msg2.recipientAddress).toEqual(bobWalletAddress)
   })
 
   it('undecodable returns with undefined decrypted value', async () => {
@@ -89,7 +88,7 @@ describe('Message', function () {
       bob.getPublicKeyBundle(),
       new Date()
     )
-    assert.ok(!msg.error)
+    expect(!msg.error).toBeTruthy()
     const eveResult = msg.decrypt(eveKeystore, eve.getPublicKeyBundle())
     expect(eveResult).rejects.toThrow(KeystoreError)
   })
@@ -143,8 +142,8 @@ describe('Message', function () {
       alice.getPublicKeyBundle(),
       new Date()
     )
-    assert.equal(msg.id.length, 64)
-    assert.equal(msg.id, bytesToHex(await sha256(msg.toBytes())))
+    expect(msg.id.length).toEqual(64)
+    expect(msg.id).toEqual(bytesToHex(await sha256(msg.toBytes())))
   })
 
   describe('DecodedMessage', () => {

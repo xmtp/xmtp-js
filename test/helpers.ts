@@ -1,19 +1,13 @@
 import { dateToNs, toNanoString } from './../src/utils'
 import { Wallet } from 'ethers'
-import {
-  PrivateKey,
-  ContentCodec,
-  ContentTypeId,
-  TextCodec,
-  Client,
-  ClientOptions,
-} from '../src'
-import { Signer } from '../src/types/Signer'
-import Stream from '../src/Stream'
+import type { ContentCodec, ContentTypeId, ClientOptions } from '../src'
+import { PrivateKey, TextCodec, Client } from '../src'
+import type { Signer } from '../src/types/Signer'
+import type Stream from '../src/Stream'
 import { promiseWithTimeout } from '../src/utils'
-import assert from 'assert'
-import { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
-import { messageApi, fetcher } from '@xmtp/proto'
+import type { PublicKeyBundle, SignedPublicKeyBundle } from '../src/crypto'
+import type { messageApi } from '@xmtp/proto'
+import { fetcher } from '@xmtp/proto'
 
 const { b64Encode } = fetcher
 
@@ -48,8 +42,8 @@ export async function waitForUserContact(
   return pollFor(
     async () => {
       const contact = await c1.getUserContact(c2.address)
-      assert.ok(contact)
-      return contact
+      expect(contact).toBeTruthy()
+      return contact!
     },
     20000,
     200
