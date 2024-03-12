@@ -13,6 +13,11 @@ export {
   Signature,
   encrypt,
   decrypt,
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+  importHmacKey,
+  verifyHmacSignature,
 } from './crypto'
 export { default as Stream } from './Stream'
 export type { Signer } from './types/Signer'

@@ -3,6 +3,7 @@ import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from './Ciphertext'
 import crypto from './crypto'
 
 const hkdfNoInfo = new Uint8Array().buffer
+const hkdfNoSalt = new Uint8Array().buffer
 
 // This is a variation of https://github.com/paulmillr/noble-secp256k1/blob/main/index.ts#L1378-L1388
 // that uses `digest('SHA-256', bytes)` instead of `digest('SHA-256', bytes.buffer)`
@@ -81,5 +82,54 @@ async function hkdf(secret: Uint8Array, salt: Uint8Array): Promise<CryptoKey> {
     { name: 'AES-GCM', length: 256 },
     false,
     ['encrypt', 'decrypt']
+  )
+}
+
+export async function hkdfHmacKey(
+  secret: Uint8Array,
+  info: Uint8Array
+): Promise<CryptoKey> {
+  const key = await crypto.subtle.importKey('raw', secret, 'HKDF', false, [
+    'deriveKey',
+  ])
+  return crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: hkdfNoSalt, info },
+    key,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 },
+    true,
+    ['sign', 'verify']
+  )
+}
+
+export async function generateHmacSignature(
+  secret: Uint8Array,
+  info: Uint8Array,
+  message: Uint8Array
+): Promise<Uint8Array> {
+  const key = await hkdfHmacKey(secret, info)
+  const signed = await crypto.subtle.sign('HMAC', key, message)
+  return new Uint8Array(signed)
+}
+
+export async function verifyHmacSignature(
+  key: CryptoKey,
+  signature: Uint8Array,
+  message: Uint8Array
+): Promise<boolean> {
+  return await crypto.subtle.verify('HMAC', key, signature, message)
+}
+
+export async function exportHmacKey(key: CryptoKey): Promise<Uint8Array> {
+  const exported = await crypto.subtle.exportKey('raw', key)
+  return new Uint8Array(exported)
+}
+
+export async function importHmacKey(key: Uint8Array): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    'raw',
+    key,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 },
+    true,
+    ['sign', 'verify']
   )
 }

@@ -188,26 +188,34 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
 
 export class MessageV2 extends MessageBase implements proto.MessageV2 {
   senderAddress: string | undefined
-  private header: proto.MessageHeaderV2 // eslint-disable-line camelcase
+  private header: proto.MessageHeaderV2
+  senderHmac?: Uint8Array
+  shouldPush?: boolean
 
   constructor(
     id: string,
     bytes: Uint8Array,
     obj: proto.Message,
-    header: proto.MessageHeaderV2
+    header: proto.MessageHeaderV2,
+    senderHmac?: Uint8Array,
+    shouldPush?: boolean
   ) {
     super(id, bytes, obj)
     this.header = header
+    this.senderHmac = senderHmac
+    this.shouldPush = shouldPush
   }
 
   static async create(
     obj: proto.Message,
     header: proto.MessageHeaderV2,
-    bytes: Uint8Array
+    bytes: Uint8Array,
+    senderHmac?: Uint8Array,
+    shouldPush?: boolean
   ): Promise<MessageV2> {
     const id = bytesToHex(await sha256(bytes))
 
-    return new MessageV2(id, bytes, obj, header)
+    return new MessageV2(id, bytes, obj, header, senderHmac, shouldPush)
   }
 
   get sent(): Date {
