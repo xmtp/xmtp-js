@@ -1,6 +1,9 @@
-import type { BackupConfiguration, SelectBackupProvider } from './BackupClient'
 import type BackupClient from './BackupClient'
-import { BackupType } from './BackupClient'
+import {
+  BackupType,
+  type BackupConfiguration,
+  type SelectBackupProvider,
+} from './BackupClient'
 import NoBackupClient from './NoBackupClient'
 import TopicStoreBackupClient from './TopicStoreBackupClient'
 

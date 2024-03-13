@@ -1,6 +1,9 @@
 import crypto from '@/crypto/crypto'
-import type { AddRequest } from '@/keystore/conversationStores'
-import { V2Store, V1Store } from '@/keystore/conversationStores'
+import {
+  V1Store,
+  V2Store,
+  type AddRequest,
+} from '@/keystore/conversationStores'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 import { dateToNs } from '@/utils/date'
 

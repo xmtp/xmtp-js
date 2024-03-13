@@ -1,11 +1,11 @@
 import { keystore as keystoreProto } from '@xmtp/proto'
 import JobRunner from '@/conversations/JobRunner'
-import { newWallet, sleep } from '@test/helpers'
-import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 import InMemoryKeystore from '@/keystore/InMemoryKeystore'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 import { nsToDate } from '@/utils/date'
+import { newWallet, sleep } from '@test/helpers'
 
 describe('JobRunner', () => {
   let keystore: KeystoreInterface

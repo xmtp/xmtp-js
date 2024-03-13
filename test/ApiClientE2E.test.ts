@@ -1,9 +1,9 @@
-import ApiClient, { ApiUrls, GrpcStatus } from '@/ApiClient'
-import { newWallet } from './helpers'
-import LocalAuthenticator from '@/authn/LocalAuthenticator'
-import { buildUserPrivateStoreTopic } from '@/utils/topic'
 import type { Wallet } from 'ethers'
+import ApiClient, { ApiUrls, GrpcStatus } from '@/ApiClient'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { buildUserPrivateStoreTopic } from '@/utils/topic'
+import { newWallet } from './helpers'
 
 type TestCase = { name: string; api: string }
 

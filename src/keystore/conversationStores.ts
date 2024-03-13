@@ -1,10 +1,9 @@
-import type Long from 'long'
-import type { invitation } from '@xmtp/proto'
-import { keystore } from '@xmtp/proto'
-import type { Persistence } from './persistence/interface'
+import { keystore, type invitation } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
-import { isCompleteTopicData, topicDataToMap } from './utils'
+import type Long from 'long'
 import { numberToUint8Array, uint8ArrayToNumber } from '@/utils/bytes'
+import type { Persistence } from './persistence/interface'
+import { isCompleteTopicData, topicDataToMap } from './utils'
 
 export type AddRequest = {
   topic: string

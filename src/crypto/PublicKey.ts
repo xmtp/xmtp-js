@@ -1,12 +1,11 @@
-import { publicKey } from '@xmtp/proto'
 import * as secp from '@noble/secp256k1'
+import { publicKey } from '@xmtp/proto'
 import Long from 'long'
-import Signature, { WalletSigner } from './Signature'
-import { computeAddress, equalBytes, splitSignature } from './utils'
+import { hashMessage, hexToBytes, type Hex } from 'viem'
 import type { Signer } from '@/types/Signer'
 import { sha256 } from './encryption'
-import type { Hex } from 'viem'
-import { hashMessage, hexToBytes } from 'viem'
+import Signature, { WalletSigner } from './Signature'
+import { computeAddress, equalBytes, splitSignature } from './utils'
 
 // SECP256k1 public key in uncompressed format with prefix
 type secp256k1Uncompressed = {

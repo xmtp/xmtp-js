@@ -1,8 +1,8 @@
+import { contact, publicKey } from '@xmtp/proto'
 import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '@/crypto/PublicKeyBundle'
-import { contact, publicKey } from '@xmtp/proto'
 
 // Decodes contact bundles from the contact topic.
 export function decodeContactBundle(

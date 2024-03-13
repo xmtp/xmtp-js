@@ -1,8 +1,8 @@
 import type {
-  keystore,
-  publicKey,
   authn,
+  keystore,
   privateKey,
+  publicKey,
   signature,
 } from '@xmtp/proto'
 import type { WithoutUndefined } from '@/utils/typedefs'

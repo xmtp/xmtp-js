@@ -1,17 +1,20 @@
+import { messageApi } from '@xmtp/proto'
 import type {
   InitReq,
   NotifyStreamEntityArrival,
 } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import type { PublishParams } from '@/ApiClient'
-import ApiClient, { GrpcError, GrpcStatus } from '@/ApiClient'
-import { messageApi } from '@xmtp/proto'
-import { sleep } from './helpers'
+import { vi } from 'vitest'
+import ApiClient, {
+  GrpcError,
+  GrpcStatus,
+  type PublishParams,
+} from '@/ApiClient'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import { PrivateKey } from '@/crypto/PrivateKey'
+import { dateToNs } from '@/utils/date'
 // eslint-disable-next-line no-restricted-syntax
 import packageJson from '../package.json'
-import { dateToNs } from '@/utils/date'
-import { vi } from 'vitest'
-import { PrivateKey } from '@/crypto/PrivateKey'
+import { sleep } from './helpers'
 
 const { MessageApi } = messageApi
 

@@ -1,8 +1,8 @@
-import { authn, signature, publicKey } from '@xmtp/proto'
-import AuthData from './AuthData'
-import Token from './Token'
+import { authn, publicKey, signature } from '@xmtp/proto'
 import { hexToBytes, keccak256 } from 'viem'
 import type { PrivateKey } from '@/crypto/PrivateKey'
+import AuthData from './AuthData'
+import Token from './Token'
 
 export default class LocalAuthenticator {
   private identityKey: PrivateKey

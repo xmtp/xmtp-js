@@ -1,12 +1,11 @@
-import type { SnapMeta } from './snapHelpers'
-import { snapRPC } from './snapHelpers'
 import type { XmtpEnv } from '@/Client'
-import type {
-  SnapKeystoreApiEntries,
-  SnapKeystoreApiRequestValues,
-  SnapKeystoreInterface,
+import {
+  snapApiDefs,
+  type SnapKeystoreApiEntries,
+  type SnapKeystoreApiRequestValues,
+  type SnapKeystoreInterface,
 } from './rpcDefinitions'
-import { snapApiDefs } from './rpcDefinitions'
+import { snapRPC, type SnapMeta } from './snapHelpers'
 
 export function SnapKeystore(
   walletAddress: string,

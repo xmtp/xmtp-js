@@ -1,11 +1,11 @@
 import * as secp from '@noble/secp256k1'
-import type { Hex } from 'viem'
 import {
   getAddress,
+  hexToBytes,
   hexToSignature,
   keccak256,
-  hexToBytes,
   bytesToHex as viemBytesToHex,
+  type Hex,
 } from 'viem'
 
 export const bytesToHex = secp.utils.bytesToHex

@@ -1,13 +1,12 @@
+import { invitation, type messageApi } from '@xmtp/proto'
 import Long from 'long'
-import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
-import type { messageApi } from '@xmtp/proto'
-import { invitation } from '@xmtp/proto'
-import crypto from './crypto/crypto'
+import { dateToNs } from '@/utils/date'
+import { buildDirectMessageTopicV2 } from '@/utils/topic'
 import Ciphertext from './crypto/Ciphertext'
+import crypto from './crypto/crypto'
 import { decrypt, encrypt } from './crypto/encryption'
 import type { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
-import { buildDirectMessageTopicV2 } from '@/utils/topic'
-import { dateToNs } from '@/utils/date'
+import { SignedPublicKeyBundle } from './crypto/PublicKeyBundle'
 
 export type InvitationContext = {
   conversationId: string

@@ -1,6 +1,6 @@
-import { defineConfig } from 'rollup'
-import typescript from '@rollup/plugin-typescript'
 import json from '@rollup/plugin-json'
+import typescript from '@rollup/plugin-typescript'
+import { defineConfig } from 'rollup'
 import tsConfigPaths from 'rollup-plugin-tsconfig-paths'
 
 const external = [

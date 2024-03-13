@@ -1,17 +1,18 @@
 import { keystore } from '@xmtp/proto'
+import type { XmtpEnv } from '@/Client'
+import type { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { b64Decode, b64Encode } from '@/utils/bytes'
+import { getEthereum } from '@/utils/ethereum'
+import { isSameMajorVersion } from '@/utils/semver'
+import { KeystoreError } from './errors'
 import type {
   SnapKeystoreApiDefs,
   SnapKeystoreApiMethods,
-  SnapKeystoreInterfaceRequestValues,
   SnapKeystoreApiRequestEncoders,
   SnapKeystoreApiResponseDecoders,
+  SnapKeystoreInterfaceRequestValues,
 } from './rpcDefinitions'
-import { b64Decode, b64Encode } from '@/utils/bytes'
-import { KeystoreError } from './errors'
-import { getEthereum } from '@/utils/ethereum'
-import type { XmtpEnv } from '@/Client'
-import { isSameMajorVersion } from '@/utils/semver'
-import type { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+
 const {
   GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus,
   InitKeystoreRequest,

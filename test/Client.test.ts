@@ -1,32 +1,31 @@
-import {
-  newWallet,
-  newLocalHostClient,
-  newDevClient,
-  waitForUserContact,
-  newLocalHostClientWithCustomWallet,
-} from './helpers'
-import { buildUserContactTopic } from '@/utils/topic'
-import type { ClientOptions } from '@/Client'
-import Client, { Compression } from '@/Client'
-import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
-import TopicPersistence from '@/keystore/persistence/TopicPersistence'
-import { Wallet } from 'ethers'
-import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
-import type { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
-import LocalStoragePonyfill from '@/keystore/persistence/LocalStoragePonyfill'
-import { createWalletClient, http } from 'viem'
-import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts'
-import { mainnet } from 'viem/chains'
-import { vi, assert } from 'vitest'
-import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
-import type { EnvelopeWithMessage } from '@/utils/async'
-import { ContentTypeText, TextCodec } from '@/codecs/Text'
-import { CompositeCodec } from '@/codecs/Composite'
-import HttpApiClient, { ApiUrls } from '@/ApiClient'
-import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 import { message } from '@xmtp/proto'
-import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import type { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
+import { Wallet } from 'ethers'
+import { createWalletClient, http } from 'viem'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { mainnet } from 'viem/chains'
+import { assert, vi } from 'vitest'
+import HttpApiClient, { ApiUrls } from '@/ApiClient'
+import Client, { Compression, type ClientOptions } from '@/Client'
+import { CompositeCodec } from '@/codecs/Composite'
+import { ContentTypeText, TextCodec } from '@/codecs/Text'
 import { PrivateKey } from '@/crypto/PrivateKey'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import LocalStoragePonyfill from '@/keystore/persistence/LocalStoragePonyfill'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
+import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
+import type { EnvelopeWithMessage } from '@/utils/async'
+import { buildUserContactTopic } from '@/utils/topic'
+import { ContentTypeTestKey, TestKeyCodec } from './ContentTypeTestKey'
+import {
+  newDevClient,
+  newLocalHostClient,
+  newLocalHostClientWithCustomWallet,
+  newWallet,
+  waitForUserContact,
+} from './helpers'
 
 type TestCase = {
   name: string

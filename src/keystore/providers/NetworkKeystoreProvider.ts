@@ -1,12 +1,12 @@
-import type { Signer } from '@/types/Signer'
 import type { ApiClient } from '@/ApiClient'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
+import type { Signer } from '@/types/Signer'
+import { KeystoreProviderUnavailableError } from './errors'
+import { buildPersistenceFromOptions } from './helpers'
 import type { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
 import NetworkKeyLoader from './NetworkKeyManager'
-import { KeystoreProviderUnavailableError } from './errors'
-import TopicPersistence from '@/keystore/persistence/TopicPersistence'
-import InMemoryKeystore from '@/keystore/InMemoryKeystore'
-import { buildPersistenceFromOptions } from './helpers'
-import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 
 /**
  * NetworkKeystoreProvider will look on the XMTP network for an `EncryptedPrivateKeyBundle`

@@ -1,11 +1,11 @@
 import { content as proto } from '@xmtp/proto'
+import { ContentTypeText } from '@/codecs/Text'
 import {
   compress,
   decompress,
   readStreamFromBytes,
   writeStreamToBytes,
 } from '@/Compression'
-import { ContentTypeText } from '@/codecs/Text'
 
 describe('Compression', function () {
   it('can stream bytes from source to sink', async function () {

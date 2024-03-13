@@ -1,8 +1,8 @@
-import { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
-import { newLocalHostClient } from '@test/helpers'
-import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
-import { sleep } from '@/utils/async'
 import type Client from '@/Client'
+import { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
+import { sleep } from '@/utils/async'
+import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
+import { newLocalHostClient } from '@test/helpers'
 
 describe('conversations', () => {
   describe('listConversations', () => {

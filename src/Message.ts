@@ -1,18 +1,20 @@
-import type { Conversation } from './conversations/Conversation'
-import { ConversationV1, ConversationV2 } from './conversations/Conversation'
-import type Client from './Client'
-import type { conversationReference } from '@xmtp/proto'
-import { message as proto } from '@xmtp/proto'
+import { message as proto, type conversationReference } from '@xmtp/proto'
 import Long from 'long'
+import { PublicKey } from '@/crypto/PublicKey'
+import { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import type Client from './Client'
+import {
+  ConversationV1,
+  ConversationV2,
+  type Conversation,
+} from './conversations/Conversation'
 import Ciphertext from './crypto/Ciphertext'
-import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
+import { bytesToHex } from './crypto/utils'
+import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
 import type { ContentTypeId } from './MessageContent'
 import { dateToNs, nsToDate } from './utils/date'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
-import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
-import { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
-import { PublicKey } from '@/crypto/PublicKey'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message

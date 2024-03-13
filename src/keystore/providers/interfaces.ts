@@ -1,11 +1,11 @@
-import type { XmtpEnv, PreEventCallbackOptions } from '@/Client'
-import type { Signer } from '@/types/Signer'
 import type { ApiClient } from '@/ApiClient'
+import type { PreEventCallbackOptions, XmtpEnv } from '@/Client'
 import type { Persistence } from '@/keystore/persistence/interface'
 import type {
   KeystoreInterface,
   KeystoreInterfaces,
 } from '@/keystore/rpcDefinitions'
+import type { Signer } from '@/types/Signer'
 
 export type KeystoreProviderOptions = {
   env: XmtpEnv

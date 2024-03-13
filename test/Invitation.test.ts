@@ -1,15 +1,15 @@
+import Long from 'long'
+import Ciphertext from '@/crypto/Ciphertext'
 import crypto from '@/crypto/crypto'
+import { NoMatchingPreKeyError } from '@/crypto/errors'
+import { PrivateKeyBundleV2 } from '@/crypto/PrivateKeyBundle'
 import {
   InvitationV1,
   SealedInvitation,
-  SealedInvitationV1,
   SealedInvitationHeaderV1,
+  SealedInvitationV1,
 } from '@/Invitation'
-import { PrivateKeyBundleV2 } from '@/crypto/PrivateKeyBundle'
 import { newWallet } from './helpers'
-import Long from 'long'
-import Ciphertext from '@/crypto/Ciphertext'
-import { NoMatchingPreKeyError } from '@/crypto/errors'
 
 const createInvitation = (): InvitationV1 => {
   return new InvitationV1({

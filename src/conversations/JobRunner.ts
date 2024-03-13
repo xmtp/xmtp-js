@@ -1,8 +1,8 @@
 import { keystore } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import Long from 'long'
-import { dateToNs, nsToDate } from '@/utils/date'
 import type { KeystoreInterfaces } from '@/keystore/rpcDefinitions'
+import { dateToNs, nsToDate } from '@/utils/date'
 
 const CLOCK_SKEW_OFFSET_MS = 10000
 

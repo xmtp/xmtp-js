@@ -1,11 +1,11 @@
-import type Client from './Client'
 import { privatePreferences } from '@xmtp/proto'
-import Stream from './Stream'
-import type { OnConnectionLostCallback } from './ApiClient'
-import JobRunner from './conversations/JobRunner'
 import type { EnvelopeWithMessage } from '@/utils/async'
 import { fromNanoString } from '@/utils/date'
 import { buildUserPrivatePreferencesTopic } from '@/utils/topic'
+import type { OnConnectionLostCallback } from './ApiClient'
+import type Client from './Client'
+import JobRunner from './conversations/JobRunner'
+import Stream from './Stream'
 
 export type ConsentState = 'allowed' | 'denied' | 'unknown'
 

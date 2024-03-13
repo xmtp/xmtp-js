@@ -1,6 +1,8 @@
-import type { ApiClient } from '@/ApiClient'
-import HttpApiClient, { ApiUrls } from '@/ApiClient'
-import { newWallet } from '@test/helpers'
+import { keystore as keystoreProto } from '@xmtp/proto'
+import { vi, type Mock } from 'vitest'
+import HttpApiClient, { ApiUrls, type ApiClient } from '@/ApiClient'
+import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import type { KeystoreProviderOptions } from '@/keystore/providers/interfaces'
 import SnapKeystoreProvider from '@/keystore/providers/SnapProvider'
 import {
   connectSnap,
@@ -10,11 +12,7 @@ import {
   initSnap,
 } from '@/keystore/snapHelpers'
 import type { Signer } from '@/types/Signer'
-import { keystore as keystoreProto } from '@xmtp/proto'
-import type { Mock } from 'vitest'
-import { vi } from 'vitest'
-import type { KeystoreProviderOptions } from '@/keystore/providers/interfaces'
-import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import { newWallet } from '@test/helpers'
 
 vi.mock('@/keystore/snapHelpers')
 

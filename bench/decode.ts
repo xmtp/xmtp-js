@@ -1,5 +1,9 @@
+import { fetcher } from '@xmtp/proto'
+import { add } from 'benny'
 import { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
 import { MessageV1 } from '@/Message'
+import { dateToNs } from '@/utils/date'
 import { newLocalHostClient } from '@test/helpers'
 import {
   MESSAGE_SIZES,
@@ -7,10 +11,6 @@ import {
   randomBytes,
   wrapSuite,
 } from './helpers'
-import { add } from 'benny'
-import { fetcher } from '@xmtp/proto'
-import { dateToNs } from '@/utils/date'
-import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
 
 const decodeV1 = () => {
   return MESSAGE_SIZES.map((size) =>
