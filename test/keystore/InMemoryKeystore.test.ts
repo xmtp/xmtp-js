@@ -1,32 +1,32 @@
 import { keystore, privateKey } from '@xmtp/proto'
-import { randomBytes } from './../../bench/helpers'
-import { InvitationContext } from './../../src/Invitation'
-import { MessageV1 } from './../../src/Message'
-import {
-  PrivateKeyBundleV1,
-  SignedPublicKeyBundle,
-  PrivateKeyBundleV2,
-} from '../../src/crypto'
-import { decryptV1 } from '../../src/keystore/encryption'
-import { KeystoreError } from '../../src/keystore/errors'
-import InMemoryKeystore from '../../src/keystore/InMemoryKeystore'
-import { equalBytes } from '../../src/crypto/utils'
-import { InvitationV1, SealedInvitation } from '../../src/Invitation'
-import { buildProtoEnvelope, newWallet } from '../helpers'
-import { dateToNs, nsToDate } from '../../src/utils/date'
-import { InMemoryPersistence } from '../../src/keystore/persistence'
-import Token from '../../src/authn/Token'
+import { randomBytes } from '@bench/helpers'
+import { InvitationV1, SealedInvitation } from '@/Invitation'
+import type { InvitationContext } from '@/Invitation'
+import { MessageV1 } from '@/Message'
+import { decryptV1 } from '@/keystore/encryption'
+import { KeystoreError } from '@/keystore/errors'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
+import { equalBytes } from '@/crypto/utils'
+import { buildProtoEnvelope, newWallet } from '@test/helpers'
+import { dateToNs, nsToDate } from '@/utils/date'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import Token from '@/authn/Token'
 import Long from 'long'
-import { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
+import type { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 import { assert } from 'vitest'
 import { toBytes } from 'viem'
-import { getKeyMaterial } from '../../src/keystore/utils'
+import {
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
+} from '@/crypto/PrivateKeyBundle'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import { getKeyMaterial } from '@/keystore/utils'
 import {
   generateHmacSignature,
   hkdfHmacKey,
   importHmacKey,
   verifyHmacSignature,
-} from '../../src/crypto/encryption'
+} from '@/crypto/encryption'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1
@@ -110,7 +110,7 @@ describe('InMemoryKeystore', () => {
         },
       ]
 
-      // @ts-expect-error
+      // @ts-expect-error test case
       const res = await aliceKeystore.encryptV1({ requests })
 
       expect(res.responses).toHaveLength(requests.length)
@@ -519,7 +519,7 @@ describe('InMemoryKeystore', () => {
 
       await Promise.all(
         shuffled.map(async (createdAt) => {
-          let keys = await PrivateKeyBundleV1.generate(newWallet())
+          const keys = await PrivateKeyBundleV1.generate(newWallet())
 
           const recipient = SignedPublicKeyBundle.fromLegacyBundle(
             keys.getPublicKeyBundle()
@@ -573,10 +573,11 @@ describe('InMemoryKeystore', () => {
       const firstResponse: CreateInviteResponse = responses[0]
       const topicName = firstResponse.conversation!.topic
 
+      // eslint-disable-next-line no-control-regex
       expect(topicName).toMatch(/^[\x00-\x7F]+$/)
 
       expect(
-        responses.filter((response, index, array) => {
+        responses.filter((response) => {
           return response.conversation!.topic === topicName
         })
       ).toHaveLength(25)
@@ -694,7 +695,7 @@ describe('InMemoryKeystore', () => {
       const topicName = firstResponse.conversation!.topic
 
       expect(
-        responses.filter((response, index, array) => {
+        responses.filter((response) => {
           return response.conversation!.topic === topicName
         })
       ).toHaveLength(25)
@@ -877,7 +878,7 @@ describe('InMemoryKeystore', () => {
 
       const invites = await Promise.all(
         [...timestamps].map(async (createdAt) => {
-          let keys = await PrivateKeyBundleV1.generate(newWallet())
+          const keys = await PrivateKeyBundleV1.generate(newWallet())
 
           const recipient = SignedPublicKeyBundle.fromLegacyBundle(
             keys.getPublicKeyBundle()
@@ -960,7 +961,7 @@ describe('InMemoryKeystore', () => {
                   topicHmacs[topic],
                   headerBytes
                 )
-                expect(valid).toBe(idx === 1 ? true : false)
+                expect(valid).toBe(idx === 1)
               }
             )
           )
@@ -977,7 +978,7 @@ describe('InMemoryKeystore', () => {
 
       const invites = await Promise.all(
         [...timestamps].map(async (createdAt) => {
-          let keys = await PrivateKeyBundleV1.generate(newWallet())
+          const keys = await PrivateKeyBundleV1.generate(newWallet())
 
           const recipient = SignedPublicKeyBundle.fromLegacyBundle(
             keys.getPublicKeyBundle()
@@ -1065,7 +1066,7 @@ describe('InMemoryKeystore', () => {
                   topicHmacs[topic],
                   headerBytes
                 )
-                expect(valid).toBe(idx === 1 ? true : false)
+                expect(valid).toBe(idx === 1)
               }
             )
           )

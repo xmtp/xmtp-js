@@ -5,13 +5,14 @@ import type { conversationReference } from '@xmtp/proto'
 import { message as proto } from '@xmtp/proto'
 import Long from 'long'
 import Ciphertext from './crypto/Ciphertext'
-import { PublicKeyBundle, PublicKey } from './crypto'
 import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
 import type { ContentTypeId } from './MessageContent'
-import { dateToNs, nsToDate } from './utils'
+import { dateToNs, nsToDate } from './utils/date'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
 import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
+import { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import { PublicKey } from '@/crypto/PublicKey'
 
 const headerBytesAndCiphertext = (
   msg: proto.Message

@@ -1,13 +1,14 @@
-import { BrowserStoragePersistence, PrefixedPersistence } from '../../../src'
-import ApiClient, { ApiUrls } from '../../../src/ApiClient'
-import { PrivateKeyBundleV1 } from '../../../src/crypto/PrivateKeyBundle'
-import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { buildPersistenceFromOptions } from '../../../src/keystore/providers/helpers'
-import NetworkKeyManager from '../../../src/keystore/providers/NetworkKeyManager'
-import { Signer } from '../../../src/types/Signer'
-import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '../../helpers'
+import ApiClient, { ApiUrls } from '@/ApiClient'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import { buildPersistenceFromOptions } from '@/keystore/providers/helpers'
+import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
+import type { Signer } from '@/types/Signer'
+import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
 import { vi } from 'vitest'
+import BrowserStoragePersistence from '@/keystore/persistence/BrowserStoragePersistence'
+import PrefixedPersistence from '@/keystore/persistence/PrefixedPersistence'
 
 describe('NetworkKeyManager', () => {
   let wallet: Signer
@@ -15,7 +16,7 @@ describe('NetworkKeyManager', () => {
 
   beforeEach(async () => {
     wallet = newWallet()
-    persistence = new TopicPersistence(new ApiClient(ApiUrls['local']))
+    persistence = new TopicPersistence(new ApiClient(ApiUrls.local))
   })
 
   it('round trips', async () => {

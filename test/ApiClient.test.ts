@@ -1,19 +1,17 @@
-import {
+import type {
   InitReq,
   NotifyStreamEntityArrival,
 } from '@xmtp/proto/ts/dist/types/fetch.pb'
-import ApiClient, {
-  GrpcError,
-  GrpcStatus,
-  PublishParams,
-} from '../src/ApiClient'
+import type { PublishParams } from '@/ApiClient'
+import ApiClient, { GrpcError, GrpcStatus } from '@/ApiClient'
 import { messageApi } from '@xmtp/proto'
 import { sleep } from './helpers'
-import { LocalAuthenticator } from '../src/authn'
-import { PrivateKey } from '../src'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
+// eslint-disable-next-line no-restricted-syntax
 import packageJson from '../package.json'
-import { dateToNs } from '../src/utils'
+import { dateToNs } from '@/utils/date'
 import { vi } from 'vitest'
+import { PrivateKey } from '@/crypto/PrivateKey'
 
 const { MessageApi } = messageApi
 
@@ -37,7 +35,7 @@ const mockGetToken = vi.hoisted(() =>
     })
   )
 )
-vi.mock('../src/authn/LocalAuthenticator', () => {
+vi.mock('@/authn/LocalAuthenticator', () => {
   return {
     default: vi.fn().mockImplementation(() => {
       return { createToken: mockGetToken }
@@ -260,7 +258,7 @@ describe('Subscribe', () => {
   it('can subscribe', async () => {
     const subscribeMock = createSubscribeMock(2)
     let numEnvelopes = 0
-    const cb = (env: messageApi.Envelope) => {
+    const cb = () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
@@ -292,20 +290,20 @@ describe('Subscribe', () => {
           // it is called. The second time it is called, it behaves as expected (the connection
           // stays open, and two messages are received over the subscription)
           called++
-          if (called == 1) {
+          if (called === 1) {
             throw new Error('error')
           }
-          let nonErroringSubscribe = subscribeMockImplementation(2)
+          const nonErroringSubscribe = subscribeMockImplementation(2)
           return await nonErroringSubscribe(req, cb, initReq)
         }
       )
     const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {})
     let numEnvelopes = 0
-    const cb = (env: messageApi.Envelope) => {
+    const cb = () => {
       numEnvelopes++
     }
     let numDisconnects = 0
-    let onDisconnect = () => {
+    const onDisconnect = () => {
       numDisconnects++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
@@ -342,16 +340,16 @@ describe('Subscribe', () => {
           // it is called. The second time it is called, it behaves as expected (the connection
           // stays open, and two messages are received over the subscription)
           called++
-          if (called == 1) {
+          if (called === 1) {
             return
           }
-          let nonAbortingSubscribe = subscribeMockImplementation(2)
+          const nonAbortingSubscribe = subscribeMockImplementation(2)
           return await nonAbortingSubscribe(req, cb, initReq)
         }
       )
     const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {})
     let numEnvelopes = 0
-    const cb = (env: messageApi.Envelope) => {
+    const cb = () => {
       numEnvelopes++
     }
     const req = { contentTopics: [CONTENT_TOPIC] }
@@ -374,11 +372,8 @@ describe('Subscribe', () => {
   })
 
   it('throws when no content topics returned', async () => {
-    const subscribeMock = createSubscribeMock(2)
-    let numEnvelopes = 0
-    const cb = (env: messageApi.Envelope) => {
-      numEnvelopes++
-    }
+    createSubscribeMock(2)
+    const cb = () => {}
     const req = { contentTopics: [] }
     const t = () => client.subscribe(req, cb)
     expect(t).toThrow(
@@ -394,7 +389,7 @@ function createQueryMock(envelopes: messageApi.Envelope[], numPages = 1) {
     .mockImplementation(async (): Promise<messageApi.QueryResponse> => {
       numCalls++
       return {
-        envelopes: envelopes,
+        envelopes,
         pagingInfo: {
           cursor: numCalls >= numPages ? undefined : CURSOR,
         },
@@ -435,7 +430,7 @@ function createSubscribeMock(numMessages: number) {
 // The connection stream is expected to stay open until it is closed by an unsubscribe
 // request (which is reflected by the 'onabort' signal)
 function subscribeMockImplementation(numMessages: number) {
-  let subscribe = async (
+  const subscribe = async (
     req: messageApi.SubscribeRequest,
     cb: NotifyStreamEntityArrival<messageApi.Envelope> | undefined,
     initReq?: InitReq

@@ -1,17 +1,19 @@
-import { decodeContactBundle, encodeContactBundle } from '../src/ContactBundle'
-import { PublicKeyBundle, SignedPublicKeyBundle } from '../src'
+import { decodeContactBundle, encodeContactBundle } from '@/ContactBundle'
 import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
-} from '../src/crypto/PrivateKeyBundle'
-
+} from '@/crypto/PrivateKeyBundle'
 import { newWallet } from './helpers'
+import {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from '@/crypto/PublicKeyBundle'
 
 describe('ContactBundles', function () {
   it('roundtrip', async function () {
     const priv = await PrivateKeyBundleV1.generate()
     const pub = priv.getPublicKeyBundle()
-    let bytes = encodeContactBundle(pub)
+    const bytes = encodeContactBundle(pub)
     const cb = decodeContactBundle(bytes)
     expect(cb).toBeInstanceOf(PublicKeyBundle)
     expect(pub.equals(cb as PublicKeyBundle)).toBeTruthy()
@@ -20,7 +22,7 @@ describe('ContactBundles', function () {
     const wallet = newWallet()
     const priv = await PrivateKeyBundleV2.generate(wallet)
     const pub = priv.getPublicKeyBundle()
-    let bytes = encodeContactBundle(pub)
+    const bytes = encodeContactBundle(pub)
     const cb = decodeContactBundle(bytes)
     expect(cb).toBeInstanceOf(SignedPublicKeyBundle)
     expect(pub.equals(cb as SignedPublicKeyBundle)).toBeTruthy()

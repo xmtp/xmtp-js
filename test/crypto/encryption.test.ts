@@ -4,8 +4,8 @@ import {
   hkdfHmacKey,
   verifyHmacSignature,
   generateHmacSignature,
-} from '../../src/crypto/encryption'
-import crypto from '../../src/crypto/crypto'
+} from '@/crypto/encryption'
+import crypto from '@/crypto/crypto'
 
 describe('HMAC encryption', () => {
   it('generates and validates HMAC', async () => {

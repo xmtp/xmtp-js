@@ -1,13 +1,11 @@
-import {
-  InMemoryKeystore,
-  InMemoryPersistence,
-  KeystoreInterface,
-  PrivateKeyBundleV1,
-  nsToDate,
-} from '../../src'
 import { keystore as keystoreProto } from '@xmtp/proto'
-import JobRunner from '../../src/conversations/JobRunner'
-import { newWallet, sleep } from '../helpers'
+import JobRunner from '@/conversations/JobRunner'
+import { newWallet, sleep } from '@test/helpers'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import { nsToDate } from '@/utils/date'
 
 describe('JobRunner', () => {
   let keystore: KeystoreInterface
@@ -58,7 +56,7 @@ describe('JobRunner', () => {
   })
 
   it('fails with an invalid job type', async () => {
-    // @ts-ignore-next-line
+    // @ts-expect-error test case
     const v3Runner = new JobRunner('v3', keystore)
     expect(v3Runner.run(async () => {})).rejects.toThrow('unknown job type: v3')
   })

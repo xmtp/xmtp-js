@@ -5,6 +5,7 @@ import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
 import terser from '@rollup/plugin-terser'
 import { resolveExtensions } from '@xmtp/rollup-plugin-resolve-extensions'
+import tsConfigPaths from 'rollup-plugin-tsconfig-paths'
 
 const external = [
   '@noble/secp256k1',
@@ -20,6 +21,7 @@ const external = [
 ]
 
 const plugins = [
+  tsConfigPaths(),
   typescript({
     declaration: false,
     declarationMap: false,
@@ -59,7 +61,7 @@ export default defineConfig([
       file: 'dist/index.d.ts',
       format: 'es',
     },
-    plugins: [dts()],
+    plugins: [tsConfigPaths(), dts()],
   },
   {
     input: 'src/index.ts',

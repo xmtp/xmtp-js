@@ -1,5 +1,8 @@
-import { InMemoryPersistence } from '../../../src/keystore/persistence'
-import { decodePrivateKeyBundle, PrivateKeyBundleV1 } from '../../../src/crypto'
+import {
+  PrivateKeyBundleV1,
+  decodePrivateKeyBundle,
+} from '@/crypto/PrivateKeyBundle'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 
 describe('Persistence', () => {
   describe('LocalStoragePersistence', () => {

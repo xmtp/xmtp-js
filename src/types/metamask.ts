@@ -1,4 +1,4 @@
-import { MetaMaskInpageProvider } from '@metamask/providers'
+import type { MetaMaskInpageProvider } from '@metamask/providers'
 
 type EthereumType = MetaMaskInpageProvider & {
   setProvider?: (provider: MetaMaskInpageProvider) => void

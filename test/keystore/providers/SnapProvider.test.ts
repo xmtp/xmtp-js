@@ -1,22 +1,22 @@
-import HttpApiClient, { ApiClient, ApiUrls } from '../../../src/ApiClient'
-import {
-  KeystoreProviderOptions,
-  KeystoreProviderUnavailableError,
-} from '../../../src/keystore/providers'
-import { newWallet } from '../../helpers'
-import SnapKeystoreProvider from '../../../src/keystore/providers/SnapProvider'
+import type { ApiClient } from '@/ApiClient'
+import HttpApiClient, { ApiUrls } from '@/ApiClient'
+import { newWallet } from '@test/helpers'
+import SnapKeystoreProvider from '@/keystore/providers/SnapProvider'
 import {
   connectSnap,
   getSnap,
   getWalletStatus,
   hasMetamaskWithSnaps,
   initSnap,
-} from '../../../src/keystore/snapHelpers'
-import { Signer } from '../../../src/types/Signer'
+} from '@/keystore/snapHelpers'
+import type { Signer } from '@/types/Signer'
 import { keystore as keystoreProto } from '@xmtp/proto'
-import { vi, Mock } from 'vitest'
+import type { Mock } from 'vitest'
+import { vi } from 'vitest'
+import type { KeystoreProviderOptions } from '@/keystore/providers/interfaces'
+import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
 
-vi.mock('../../../src/keystore/snapHelpers')
+vi.mock('@/keystore/snapHelpers')
 
 describe('SnapProvider', () => {
   const provider = new SnapKeystoreProvider()
@@ -25,7 +25,7 @@ describe('SnapProvider', () => {
   let wallet: Signer
 
   beforeEach(async () => {
-    apiClient = new HttpApiClient(ApiUrls['local'])
+    apiClient = new HttpApiClient(ApiUrls.local)
     wallet = newWallet()
     vi.resetAllMocks()
   })

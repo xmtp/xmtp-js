@@ -1,6 +1,6 @@
 import { keystore, authn, publicKey, privateKey, signature } from '@xmtp/proto'
 import type { Reader, Writer } from 'protobufjs/minimal'
-import type { Flatten } from '../utils/typedefs'
+import type { Flatten } from '@/utils/typedefs'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type KeystoreRPCCodec<T = any> = {

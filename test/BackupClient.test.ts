@@ -1,4 +1,4 @@
-import { BackupType } from '../src/message-backup/BackupClient'
+import { BackupType } from '@/message-backup/BackupClient'
 import { newLocalHostClient, newDevClient } from './helpers'
 
 describe('Backup configuration', () => {

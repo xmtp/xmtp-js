@@ -1,9 +1,8 @@
 import type { authn, privateKey, signature } from '@xmtp/proto'
 import { keystore } from '@xmtp/proto'
-import type { PrivateKeyBundleV1 } from './../crypto/PrivateKeyBundle'
-import { PrivateKeyBundleV2 } from './../crypto/PrivateKeyBundle'
-import { InvitationV1, SealedInvitation } from './../Invitation'
-import type { PrivateKey, PublicKeyBundle } from '../crypto'
+import type { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { PrivateKeyBundleV2 } from '@/crypto/PrivateKeyBundle'
+import { InvitationV1, SealedInvitation } from '@/Invitation'
 import type { TopicData } from './interfaces'
 import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
 import { KeystoreError } from './errors'
@@ -16,30 +15,32 @@ import {
   getKeyMaterial,
   topicDataToV2ConversationReference,
 } from './utils'
-import {
-  nsToDate,
-  buildDirectMessageTopicV2,
-  buildDirectMessageTopic,
-} from '../utils'
 import type { AddRequest } from './conversationStores'
 import { V1Store, V2Store } from './conversationStores'
-import type { Persistence } from './persistence'
-import LocalAuthenticator from '../authn/LocalAuthenticator'
-import { hmacSha256Sign } from '../crypto/ecies'
-import crypto from '../crypto/crypto'
-import { bytesToHex } from '../crypto/utils'
+import type { Persistence } from './persistence/interface'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import { hmacSha256Sign } from '@/crypto/ecies'
+import crypto from '@/crypto/crypto'
+import { bytesToHex } from '@/crypto/utils'
 import Long from 'long'
 import {
   userPreferencesDecrypt,
   userPreferencesEncrypt,
   generateUserPreferencesTopic,
-} from '../crypto/selfEncryption'
+} from '@/crypto/selfEncryption'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
+import { nsToDate } from '@/utils/date'
+import {
+  buildDirectMessageTopic,
+  buildDirectMessageTopicV2,
+} from '@/utils/topic'
+import type { PrivateKey } from '@/crypto/PrivateKey'
+import type { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
 import {
   exportHmacKey,
   generateHmacSignature,
   hkdfHmacKey,
-} from '../crypto/encryption'
-import type { KeystoreInterface } from './rpcDefinitions'
+} from '@/crypto/encryption'
 
 const { ErrorCode } = keystore
 

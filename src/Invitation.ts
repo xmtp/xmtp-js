@@ -4,9 +4,10 @@ import type { messageApi } from '@xmtp/proto'
 import { invitation } from '@xmtp/proto'
 import crypto from './crypto/crypto'
 import Ciphertext from './crypto/Ciphertext'
-import { decrypt, encrypt } from './crypto'
+import { decrypt, encrypt } from './crypto/encryption'
 import type { PrivateKeyBundleV2 } from './crypto/PrivateKeyBundle'
-import { dateToNs, buildDirectMessageTopicV2 } from './utils'
+import { buildDirectMessageTopicV2 } from '@/utils/topic'
+import { dateToNs } from '@/utils/date'
 
 export type InvitationContext = {
   conversationId: string

@@ -1,9 +1,9 @@
 import type Benchmark from 'benchmark'
 import { suite, save, cycle } from 'benny'
 import type { Config } from 'benny/lib/internal/common-types'
-import crypto from '../src/crypto/crypto'
-import { PrivateKeyBundleV1 } from '../src/crypto/PrivateKeyBundle'
-import { newWallet } from '../test/helpers'
+import crypto from '@/crypto/crypto'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { newWallet } from '@test/helpers'
 
 const MAX_RANDOM_BYTES_SIZE = 65536
 

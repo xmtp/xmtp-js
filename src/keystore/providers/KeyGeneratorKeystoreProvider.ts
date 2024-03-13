@@ -1,13 +1,13 @@
-import type { ApiClient } from '../../ApiClient'
-import { PrivateKeyBundleV1 } from '../../crypto'
-import InMemoryKeystore from '../InMemoryKeystore'
-import TopicPersistence from '../persistence/TopicPersistence'
+import type { ApiClient } from '@/ApiClient'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
 import { KeystoreProviderUnavailableError } from './errors'
 import { buildPersistenceFromOptions } from './helpers'
 import NetworkKeyManager from './NetworkKeyManager'
-import type { Signer } from '../../types/Signer'
+import type { Signer } from '@/types/Signer'
 import type { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
-import type { KeystoreInterface } from '../rpcDefinitions'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 
 /**
  * KeyGeneratorKeystoreProvider will create a new XMTP `PrivateKeyBundle` and persist it to the network

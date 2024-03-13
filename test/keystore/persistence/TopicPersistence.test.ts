@@ -1,8 +1,8 @@
-import ApiClient, { ApiUrls } from '../../../src/ApiClient'
-import { newWallet } from '../../helpers'
-import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { LocalAuthenticator } from '../../../src/authn'
-import { PrivateKeyBundleV1 } from '../../../src/crypto'
+import ApiClient, { ApiUrls } from '@/ApiClient'
+import { newWallet } from '@test/helpers'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 
 // We restrict publishing to topics that do not match this pattern
 const buildValidKey = (walletAddress: string) => `${walletAddress}/key_bundle`
@@ -11,7 +11,7 @@ describe('TopicPersistence', () => {
   let apiClient: ApiClient
   let bundle: PrivateKeyBundleV1
   beforeEach(async () => {
-    apiClient = new ApiClient(ApiUrls['local'])
+    apiClient = new ApiClient(ApiUrls.local)
     bundle = await PrivateKeyBundleV1.generate(newWallet())
   })
   it('round trips items from the store', async () => {

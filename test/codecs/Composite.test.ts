@@ -1,9 +1,6 @@
-import { ContentTypeText } from '../../src'
-import {
-  CompositeCodec,
-  ContentTypeComposite,
-} from '../../src/codecs/Composite'
-import { CodecRegistry } from '../helpers'
+import { CompositeCodec, ContentTypeComposite } from '@/codecs/Composite'
+import { CodecRegistry } from '@test/helpers'
+import { ContentTypeText } from '@/codecs/Text'
 
 describe('CompositeType', () => {
   const codecs = new CodecRegistry()

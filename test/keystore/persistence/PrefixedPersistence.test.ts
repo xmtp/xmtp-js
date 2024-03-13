@@ -1,7 +1,5 @@
-import {
-  InMemoryPersistence,
-  PrefixedPersistence,
-} from '../../../src/keystore/persistence'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import PrefixedPersistence from '@/keystore/persistence/PrefixedPersistence'
 
 describe('PrefixedPersistence', () => {
   it('correctly adds a prefix to keys', async () => {

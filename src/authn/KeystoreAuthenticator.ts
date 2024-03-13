@@ -1,10 +1,10 @@
 import type { authn } from '@xmtp/proto'
-import { dateToNs } from '../utils'
+import { dateToNs } from '@/utils/date'
 import Token from './Token'
 import type {
   KeystoreInterface,
   KeystoreInterfaces,
-} from '../keystore/rpcDefinitions'
+} from '@/keystore/rpcDefinitions'
 
 const wrapToken = (token: authn.Token): Token => {
   if (token instanceof Token) {

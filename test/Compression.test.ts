@@ -4,21 +4,21 @@ import {
   decompress,
   readStreamFromBytes,
   writeStreamToBytes,
-} from '../src/Compression'
-import { ContentTypeText } from '../src/codecs/Text'
+} from '@/Compression'
+import { ContentTypeText } from '@/codecs/Text'
 
 describe('Compression', function () {
   it('can stream bytes from source to sink', async function () {
-    let from = new Uint8Array(111).fill(42)
+    const from = new Uint8Array(111).fill(42)
     // make sink smaller so that it has to grow a lot
-    let to = { bytes: new Uint8Array(3) }
+    const to = { bytes: new Uint8Array(3) }
     await readStreamFromBytes(from, 23).pipeTo(writeStreamToBytes(to, 1000))
     expect(from).toEqual(to.bytes)
   })
 
   it('will not write beyond limit', () => {
-    let from = new Uint8Array(111).fill(42)
-    let to = { bytes: new Uint8Array(10) }
+    const from = new Uint8Array(111).fill(42)
+    const to = { bytes: new Uint8Array(10) }
     expect(
       readStreamFromBytes(from, 23).pipeTo(writeStreamToBytes(to, 100))
     ).rejects.toThrow('maximum output size exceeded')
@@ -29,7 +29,7 @@ describe('Compression', function () {
     const compressed = new Uint8Array([
       120, 156, 211, 210, 34, 11, 0, 0, 252, 223, 9, 7,
     ])
-    let content = {
+    const content = {
       type: ContentTypeText,
       parameters: {},
       content: uncompressed,

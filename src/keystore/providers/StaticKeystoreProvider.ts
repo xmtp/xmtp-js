@@ -1,12 +1,12 @@
 import { KeystoreProviderUnavailableError } from './errors'
 import type { KeystoreProvider, KeystoreProviderOptions } from './interfaces'
-import InMemoryKeystore from '../InMemoryKeystore'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
 import {
   decodePrivateKeyBundle,
   PrivateKeyBundleV2,
-} from '../../crypto/PrivateKeyBundle'
+} from '@/crypto/PrivateKeyBundle'
 import { buildPersistenceFromOptions } from './helpers'
-import type { KeystoreInterface } from '../rpcDefinitions'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 
 /**
  * StaticKeystoreProvider will look for a `privateKeyOverride` in the provided options,

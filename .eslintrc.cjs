@@ -20,7 +20,17 @@ module.exports = {
         fixMixedExportsWithInlineTypeSpecifier: false,
       },
     ],
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/consistent-type-imports': 'error',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+        varsIgnorePattern: '^_',
+      },
+    ],
     'prettier/prettier': 'error',
     'jsdoc/require-jsdoc': 'off',
     'jsdoc/require-description': 'off',
@@ -36,16 +46,12 @@ module.exports = {
         message:
           'Do not import directly from `crypto`, use `src/crypto/crypto` instead.',
       },
+      {
+        selector: 'ImportDeclaration[source.value=/^\\.\\./]',
+        message:
+          'Relative parent imports are not allowed, use path aliases instead.',
+      },
     ],
   },
   plugins: ['@typescript-eslint', 'prettier', 'jsdoc'],
-  ignorePatterns: [
-    'dist',
-    'node_modules',
-    'examples',
-    'scripts',
-    'src/types',
-    'docs',
-    'tmp',
-  ],
 }

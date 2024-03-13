@@ -1,14 +1,8 @@
-import {
-  ConversationV1,
-  ConversationV2,
-} from './../../src/conversations/Conversation'
-import { newLocalHostClient } from './../helpers'
-import { Client } from '../../src'
-import {
-  buildDirectMessageTopic,
-  buildUserIntroTopic,
-  sleep,
-} from '../../src/utils'
+import { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
+import { newLocalHostClient } from '@test/helpers'
+import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
+import { sleep } from '@/utils/async'
+import type Client from '@/Client'
 
 describe('conversations', () => {
   describe('listConversations', () => {
@@ -298,6 +292,7 @@ describe.sequential('Conversation streams', () => {
     await conversation.send('hi bob')
 
     let numConversations = 0
+    // eslint-disable-next-line no-unreachable-loop
     for await (const conversation of stream) {
       numConversations++
       expect(conversation.peerAddress).toBe(bob.address)

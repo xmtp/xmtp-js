@@ -6,6 +6,11 @@
     "lib": ["dom"],
     "moduleResolution": "bundler",
     "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@bench/*": ["./bench/*"],
+      "@test/*": ["./test/*"]
+    },
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
@@ -16,7 +21,6 @@
   "include": [
     "src/**/*",
     "bench/**/*",
-    "build/**/*",
     "test/**/*",
     ".eslintrc.cjs",
     "commitlint.config.cjs",

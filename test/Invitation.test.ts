@@ -1,15 +1,15 @@
-import crypto from '../src/crypto/crypto'
-import { InvitationV1 } from './../src/Invitation'
-import { PrivateKeyBundleV2 } from './../src/crypto/PrivateKeyBundle'
+import crypto from '@/crypto/crypto'
 import {
+  InvitationV1,
   SealedInvitation,
   SealedInvitationV1,
   SealedInvitationHeaderV1,
-} from '../src/Invitation'
+} from '@/Invitation'
+import { PrivateKeyBundleV2 } from '@/crypto/PrivateKeyBundle'
 import { newWallet } from './helpers'
 import Long from 'long'
-import Ciphertext from '../src/crypto/Ciphertext'
-import { NoMatchingPreKeyError } from '../src/crypto/errors'
+import Ciphertext from '@/crypto/Ciphertext'
+import { NoMatchingPreKeyError } from '@/crypto/errors'
 
 const createInvitation = (): InvitationV1 => {
   return new InvitationV1({
@@ -80,7 +80,7 @@ describe('Invitations', () => {
       ).rejects.toThrow(NoMatchingPreKeyError)
 
       expect(() => {
-        const sealedInvite = new SealedInvitation({
+        const _sealedInvite = new SealedInvitation({
           v1: { headerBytes: Uint8Array.from([123]), ciphertext: undefined },
         })
       }).toThrow()
@@ -103,7 +103,7 @@ describe('Invitations', () => {
       })
       const invite = new SealedInvitationV1({
         headerBytes: header.toBytes(),
-        ciphertext: ciphertext,
+        ciphertext,
       })
 
       expect(

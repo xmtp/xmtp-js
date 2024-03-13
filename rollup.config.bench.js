@@ -1,6 +1,7 @@
 import { defineConfig } from 'rollup'
 import typescript from '@rollup/plugin-typescript'
 import json from '@rollup/plugin-json'
+import tsConfigPaths from 'rollup-plugin-tsconfig-paths'
 
 const external = [
   '@noble/secp256k1',
@@ -11,11 +12,13 @@ const external = [
   'benny',
   'crypto',
   'elliptic',
+  'ethers',
   'long',
   'viem',
 ]
 
 const plugins = [
+  tsConfigPaths(),
   typescript({
     declaration: false,
     declarationMap: false,

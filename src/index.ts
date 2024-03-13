@@ -1,16 +1,19 @@
 export type { Message } from './Message'
 export { DecodedMessage, MessageV1, MessageV2, decodeContent } from './Message'
-export type { PrivateKeyBundle } from './crypto'
+export type { PrivateKeyBundle } from './crypto/PrivateKeyBundle'
+export { PrivateKey } from './crypto/PrivateKey'
 export {
-  Ciphertext,
-  PublicKey,
-  PublicKeyBundle,
-  SignedPublicKey,
-  SignedPublicKeyBundle,
-  PrivateKey,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
-  Signature,
+} from './crypto/PrivateKeyBundle'
+export { default as Ciphertext } from './crypto/Ciphertext'
+export { PublicKey, SignedPublicKey } from './crypto/PublicKey'
+export {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from './crypto/PublicKeyBundle'
+export { default as Signature } from './crypto/Signature'
+export {
   encrypt,
   decrypt,
   exportHmacKey,
@@ -18,7 +21,7 @@ export {
   hkdfHmacKey,
   importHmacKey,
   verifyHmacSignature,
-} from './crypto'
+} from './crypto/encryption'
 export { default as Stream } from './Stream'
 export type { Signer } from './types/Signer'
 export type {
@@ -37,8 +40,9 @@ export {
   defaultKeystoreProviders,
   Compression,
 } from './Client'
-export type { Conversation } from './conversations'
-export { Conversations, ConversationV1, ConversationV2 } from './conversations'
+export type { Conversation } from '@/conversations/Conversation'
+export { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
+export { default as Conversations } from '@/conversations/Conversations'
 export type {
   CodecRegistry,
   ContentCodec,
@@ -62,15 +66,11 @@ export type {
   OnConnectionLostCallback,
 } from './ApiClient'
 export { default as HttpApiClient, ApiUrls, SortDirection } from './ApiClient'
-export type { Authenticator } from './authn'
-export { AuthCache, LocalAuthenticator } from './authn'
+export type { Authenticator } from '@/authn/interfaces'
+export { default as LocalAuthenticator } from '@/authn/LocalAuthenticator'
+export { default as AuthCache } from '@/authn/AuthCache'
+export { retry, mapPaginatedStream } from './utils/async'
 export {
-  nsToDate,
-  dateToNs,
-  retry,
-  fromNanoString,
-  toNanoString,
-  mapPaginatedStream,
   buildContentTopic,
   buildDirectMessageTopic,
   buildDirectMessageTopicV2,
@@ -78,9 +78,10 @@ export {
   buildUserIntroTopic,
   buildUserInviteTopic,
   buildUserPrivateStoreTopic,
-} from './utils'
-export type { Keystore, TopicData } from './keystore'
-export { InMemoryKeystore } from './keystore'
+} from './utils/topic'
+export { nsToDate, dateToNs, fromNanoString, toNanoString } from './utils/date'
+export type { Keystore, TopicData } from './keystore/interfaces'
+export { default as InMemoryKeystore } from './keystore/InMemoryKeystore'
 export type {
   KeystoreApiDefs,
   KeystoreApiEntries,
@@ -106,20 +107,16 @@ export {
   apiDefs as keystoreApiDefs,
   snapApiDefs as snapKeystoreApiDefs,
 } from './keystore/rpcDefinitions'
-export type { KeystoreProvider } from './keystore/providers'
-export {
-  KeyGeneratorKeystoreProvider,
-  NetworkKeystoreProvider,
-  StaticKeystoreProvider,
-  SnapProvider,
-} from './keystore/providers'
-export type { Persistence } from './keystore/persistence'
-export {
-  EncryptedPersistence,
-  BrowserStoragePersistence,
-  InMemoryPersistence,
-  PrefixedPersistence,
-} from './keystore/persistence'
+export type { KeystoreProvider } from './keystore/providers/interfaces'
+export { default as KeyGeneratorKeystoreProvider } from './keystore/providers/KeyGeneratorKeystoreProvider'
+export { default as NetworkKeystoreProvider } from './keystore/providers/NetworkKeystoreProvider'
+export { default as StaticKeystoreProvider } from './keystore/providers/StaticKeystoreProvider'
+export { default as SnapProvider } from './keystore/providers/SnapProvider'
+export type { Persistence } from './keystore/persistence/interface'
+export { default as EncryptedPersistence } from './keystore/persistence/EncryptedPersistence'
+export { default as BrowserStoragePersistence } from './keystore/persistence/BrowserStoragePersistence'
+export { default as InMemoryPersistence } from './keystore/persistence/InMemoryPersistence'
+export { default as PrefixedPersistence } from './keystore/persistence/PrefixedPersistence'
 export type { InvitationContext } from './Invitation'
 export { SealedInvitation, InvitationV1 } from './Invitation'
 export { decodeContactBundle } from './ContactBundle'

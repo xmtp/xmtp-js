@@ -2,8 +2,8 @@ import {
   buildContentTopic,
   buildDirectMessageTopicV2,
   isValidTopic,
-} from '../../src/utils/topic'
-import crypto from '../../src/crypto/crypto'
+} from '@/utils/topic'
+import crypto from '@/crypto/crypto'
 
 describe('topic utils', () => {
   describe('isValidTopic', () => {

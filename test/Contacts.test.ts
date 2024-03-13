@@ -1,6 +1,5 @@
-import { privatePreferences } from '@xmtp/proto'
-import Client from '../src/Client'
-import { Contacts } from '../src/Contacts'
+import Client from '@/Client'
+import { Contacts } from '@/Contacts'
 import { newWallet } from './helpers'
 
 const alice = newWallet()
@@ -180,7 +179,7 @@ describe('Contacts', () => {
     await aliceClient.conversations.newConversation(bob.address)
 
     let numActions = 0
-    const actions: privatePreferences.PrivatePreferencesAction[] = []
+    // eslint-disable-next-line no-unreachable-loop
     for await (const action of aliceStream) {
       numActions++
       expect(action.denyAddress).toBeUndefined()

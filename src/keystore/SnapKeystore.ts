@@ -1,6 +1,6 @@
 import type { SnapMeta } from './snapHelpers'
 import { snapRPC } from './snapHelpers'
-import type { XmtpEnv } from '../Client'
+import type { XmtpEnv } from '@/Client'
 import type {
   SnapKeystoreApiEntries,
   SnapKeystoreApiRequestValues,

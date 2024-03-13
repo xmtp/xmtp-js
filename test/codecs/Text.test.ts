@@ -1,5 +1,5 @@
-import { CodecRegistry } from '../helpers'
-import { ContentTypeText, Encoding } from '../../src/codecs/Text'
+import { CodecRegistry } from '@test/helpers'
+import { ContentTypeText, Encoding } from '@/codecs/Text'
 
 describe('ContentTypeText', () => {
   const codecs = new CodecRegistry()

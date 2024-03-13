@@ -1,19 +1,21 @@
 import { privateKey } from '@xmtp/proto'
-import { KeystoreProviderUnavailableError } from './../../../src/keystore/providers/errors'
-import ApiClient, { ApiUrls } from '../../../src/ApiClient'
-import { encrypt, PrivateKeyBundleV1 } from '../../../src/crypto'
-import NetworkKeystoreProvider from '../../../src/keystore/providers/NetworkKeystoreProvider'
-import { Signer } from '../../../src/types/Signer'
-import { newWallet } from '../../helpers'
+import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import ApiClient, { ApiUrls } from '@/ApiClient'
+import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
+import type { Signer } from '@/types/Signer'
+import { newWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
 import NetworkKeyManager, {
   storageSigRequestText,
-} from '../../../src/keystore/providers/NetworkKeyManager'
-import TopicPersistence from '../../../src/keystore/persistence/TopicPersistence'
-import { LocalAuthenticator } from '../../../src/authn'
-import crypto from '../../../src/crypto/crypto'
+} from '@/keystore/providers/NetworkKeyManager'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import crypto from '@/crypto/crypto'
 import { vi } from 'vitest'
-import { Hex, hexToBytes } from 'viem'
+import type { Hex } from 'viem'
+import { hexToBytes } from 'viem'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { encrypt } from '@/crypto/encryption'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
@@ -21,7 +23,7 @@ describe('NetworkKeystoreProvider', () => {
   let wallet: Signer
 
   beforeEach(async () => {
-    apiClient = new ApiClient(ApiUrls['local'])
+    apiClient = new ApiClient(ApiUrls.local)
     wallet = newWallet()
     bundle = await PrivateKeyBundleV1.generate(wallet)
   })
@@ -58,7 +60,7 @@ describe('NetworkKeystoreProvider', () => {
     const input = storageSigRequestText(wPreKey)
     const walletAddr = await wallet.getAddress()
 
-    let sig = await wallet.signMessage(input)
+    const sig = await wallet.signMessage(input)
     const secret = hexToBytes(sig as Hex)
     const ciphertext = await encrypt(bytes, secret)
     const bytesToStore = privateKey.EncryptedPrivateKeyBundleV1.encode({

@@ -1,7 +1,7 @@
 import { keystore } from '@xmtp/proto'
-import { PublicKeyBundle } from '../crypto/PublicKeyBundle'
-import { KeystoreError } from '../keystore/errors'
-import type { MessageV1 } from '../Message'
+import { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import { KeystoreError } from '@/keystore/errors'
+import type { MessageV1 } from '@/Message'
 import type { WithoutUndefined } from './typedefs'
 
 type EncryptionResponseResult<

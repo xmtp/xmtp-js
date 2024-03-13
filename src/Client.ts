@@ -1,19 +1,6 @@
 import { PrivateKeyBundleV1 } from './crypto/PrivateKeyBundle'
-import { PublicKeyBundle, SignedPublicKeyBundle } from './crypto'
-import type {
-  EnvelopeMapper,
-  EnvelopeMapperWithMessage,
-  EnvelopeWithMessage,
-} from './utils'
-import {
-  buildUserContactTopic,
-  mapPaginatedStream,
-  buildUserInviteTopic,
-  isBrowser,
-  getSigner,
-} from './utils'
 import type { Signer } from './types/Signer'
-import { Conversations } from './conversations'
+import Conversations from '@/conversations/Conversations'
 import { ContentTypeText, TextCodec } from './codecs/Text'
 import type { ContentCodec, EncodedContent } from './MessageContent'
 import { ContentTypeId } from './MessageContent'
@@ -22,30 +9,39 @@ import { content as proto, messageApi } from '@xmtp/proto'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import type { ApiClient, PublishParams } from './ApiClient'
 import HttpApiClient, { ApiUrls, SortDirection } from './ApiClient'
-import { KeystoreAuthenticator } from './authn'
+import KeystoreAuthenticator from '@/authn/KeystoreAuthenticator'
 import type { Flatten } from './utils/typedefs'
 import type BackupClient from './message-backup/BackupClient'
 import { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
-import type { KeystoreProvider } from './keystore/providers'
-import {
-  KeyGeneratorKeystoreProvider,
-  KeystoreProviderUnavailableError,
-  NetworkKeystoreProvider,
-  SnapProvider,
-  StaticKeystoreProvider,
-} from './keystore/providers'
-import type { Persistence } from './keystore/persistence'
-import {
-  BrowserStoragePersistence,
-  InMemoryPersistence,
-} from './keystore/persistence'
+import type { KeystoreProvider } from './keystore/providers/interfaces'
 import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import { packageName, version } from './snapInfo.json'
 import type { ExtractDecodedType } from './types/client'
 import { getAddress, type WalletClient } from 'viem'
 import { Contacts } from './Contacts'
 import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
+import { isBrowser } from '@/utils/browser'
+import { getSigner } from '@/utils/viem'
+import { buildUserContactTopic, buildUserInviteTopic } from '@/utils/topic'
+import { mapPaginatedStream } from '@/utils/async'
+import type {
+  EnvelopeMapperWithMessage,
+  EnvelopeMapper,
+  EnvelopeWithMessage,
+} from '@/utils/async'
+import type { Persistence } from '@/keystore/persistence/interface'
+import BrowserStoragePersistence from '@/keystore/persistence/BrowserStoragePersistence'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import SnapProvider from '@/keystore/providers/SnapProvider'
+import StaticKeystoreProvider from '@/keystore/providers/StaticKeystoreProvider'
+import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
+import KeyGeneratorKeystoreProvider from '@/keystore/providers/KeyGeneratorKeystoreProvider'
+import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import {
+  PublicKeyBundle,
+  SignedPublicKeyBundle,
+} from '@/crypto/PublicKeyBundle'
 const { Compression } = proto
 
 // eslint-disable @typescript-eslint/explicit-module-boundary-types

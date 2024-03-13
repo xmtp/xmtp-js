@@ -3,7 +3,7 @@ import { PrivateKey, SignedPrivateKey } from './PrivateKey'
 import { WalletSigner } from './Signature'
 import type { PublicKey, SignedPublicKey } from './PublicKey'
 import { PublicKeyBundle, SignedPublicKeyBundle } from './PublicKeyBundle'
-import type { Signer } from '../types/Signer'
+import type { Signer } from '@/types/Signer'
 import { NoMatchingPreKeyError } from './errors'
 
 // PrivateKeyBundle bundles the private keys corresponding to a PublicKeyBundle for convenience.

@@ -1,13 +1,11 @@
-import { decodePrivateKeyBundle } from './../src/crypto/PrivateKeyBundle'
-import { ApiUrls } from './../src/ApiClient'
-import { newWallet, sleep } from './helpers'
-import Client, { defaultOptions } from '../src/Client'
-import { Signer } from '../src/types/Signer'
-import ApiClient from '../src/ApiClient'
-import { PublicKeyBundle } from '../src/crypto/PublicKeyBundle'
-import { KeyGeneratorKeystoreProvider } from '../src/keystore/providers'
-import NetworkKeyManager from '../src/keystore/providers/NetworkKeyManager'
-import TopicPersistence from '../src/keystore/persistence/TopicPersistence'
+import { decodePrivateKeyBundle } from '@/crypto/PrivateKeyBundle'
+import ApiClient, { ApiUrls } from '@/ApiClient'
+import { newWallet } from './helpers'
+import Client, { defaultOptions } from '@/Client'
+import type { Signer } from '@/types/Signer'
+import type { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
 
 describe('Key Generation', () => {
   let wallet: Signer
@@ -39,7 +37,7 @@ describe('Key Generation', () => {
     const keys = await Client.getKeys(wallet, opts)
     const manager = new NetworkKeyManager(
       wallet,
-      new TopicPersistence(new ApiClient(ApiUrls['local']))
+      new TopicPersistence(new ApiClient(ApiUrls.local))
     )
 
     expect(

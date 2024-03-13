@@ -1,5 +1,5 @@
-import { InMemoryPersistence } from '../../../src'
-import type { KeystoreProviderOptions } from '../../../src/keystore/providers'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import type { KeystoreProviderOptions } from '@/keystore/providers/interfaces'
 
 export const testProviderOptions = ({
   privateKeyOverride = undefined,

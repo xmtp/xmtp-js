@@ -1,9 +1,12 @@
-import type { PrivateKeyBundleV2 } from './../../crypto/PrivateKeyBundle'
-import type { PrivateKeyBundleV1 } from '../../crypto/PrivateKeyBundle'
-import { EncryptedPersistence, PrefixedPersistence } from '../persistence'
+import type {
+  PrivateKeyBundleV2,
+  PrivateKeyBundleV1,
+} from '@/crypto/PrivateKeyBundle'
+import EncryptedPersistence from '@/keystore/persistence/EncryptedPersistence'
+import PrefixedPersistence from '@/keystore/persistence/PrefixedPersistence'
 import type { KeystoreProviderOptions } from './interfaces'
-import { buildPersistenceKey } from '../utils'
-import EphemeralPersistence from '../persistence/InMemoryPersistence'
+import { buildPersistenceKey } from '@/keystore/utils'
+import EphemeralPersistence from '@/keystore/persistence/InMemoryPersistence'
 
 export const buildPersistenceFromOptions = async (
   opts: KeystoreProviderOptions,
