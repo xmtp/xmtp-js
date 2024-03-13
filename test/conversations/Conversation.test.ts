@@ -1,4 +1,5 @@
-import { DecodedMessage, MessageV1, MessageV2 } from '@/Message'
+import type { MessageV2 } from '@/Message'
+import { DecodedMessage, MessageV1 } from '@/Message'
 import { buildDirectMessageTopic } from '@/utils/topic'
 import { SortDirection } from '@/ApiClient'
 import { sleep } from '@/utils/async'
