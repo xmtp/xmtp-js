@@ -108,6 +108,7 @@
   "devDependencies": {
     "@commitlint/cli": "19.0.3",
     "@commitlint/config-conventional": "19.0.3",
+    "@ianvs/prettier-plugin-sort-imports": "^4.2.0",
     "@metamask/providers": "^14.0.2",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-terser": "^0.4.4",

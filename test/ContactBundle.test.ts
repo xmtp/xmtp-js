@@ -3,11 +3,11 @@ import {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from '@/crypto/PrivateKeyBundle'
-import { newWallet } from './helpers'
 import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '@/crypto/PublicKeyBundle'
+import { newWallet } from './helpers'
 
 describe('ContactBundles', function () {
   it('roundtrip', async function () {

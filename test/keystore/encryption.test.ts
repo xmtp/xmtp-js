@@ -1,13 +1,13 @@
-import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
-import { decryptV1, encryptV1 } from '@/keystore/encryption'
-import { MessageV1 } from '@/Message'
 import { Wallet } from 'ethers'
-import { equalBytes } from '@/crypto/utils'
-import { newWallet } from '@test/helpers'
-import InMemoryKeystore from '@/keystore/InMemoryKeystore'
-import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
-import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 import Ciphertext from '@/crypto/Ciphertext'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import { equalBytes } from '@/crypto/utils'
+import { decryptV1, encryptV1 } from '@/keystore/encryption'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
+import { MessageV1 } from '@/Message'
+import { newWallet } from '@test/helpers'
 
 describe('encryption primitives', () => {
   let aliceKeys: PrivateKeyBundleV1

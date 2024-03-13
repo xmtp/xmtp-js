@@ -1,46 +1,51 @@
-import type { authn, privateKey, signature } from '@xmtp/proto'
-import { keystore } from '@xmtp/proto'
-import type { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
-import { PrivateKeyBundleV2 } from '@/crypto/PrivateKeyBundle'
-import { InvitationV1, SealedInvitation } from '@/Invitation'
-import type { TopicData } from './interfaces'
-import { decryptV1, encryptV1, encryptV2, decryptV2 } from './encryption'
-import { KeystoreError } from './errors'
 import {
-  convertError,
-  mapAndConvertErrors,
-  toPublicKeyBundle,
-  toSignedPublicKeyBundle,
-  validateObject,
-  getKeyMaterial,
-  topicDataToV2ConversationReference,
-} from './utils'
-import type { AddRequest } from './conversationStores'
-import { V1Store, V2Store } from './conversationStores'
-import type { Persistence } from './persistence/interface'
-import LocalAuthenticator from '@/authn/LocalAuthenticator'
-import { hmacSha256Sign } from '@/crypto/ecies'
-import crypto from '@/crypto/crypto'
-import { bytesToHex } from '@/crypto/utils'
+  keystore,
+  type authn,
+  type privateKey,
+  type signature,
+} from '@xmtp/proto'
 import Long from 'long'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import crypto from '@/crypto/crypto'
+import { hmacSha256Sign } from '@/crypto/ecies'
 import {
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+} from '@/crypto/encryption'
+import type { PrivateKey } from '@/crypto/PrivateKey'
+import {
+  PrivateKeyBundleV2,
+  type PrivateKeyBundleV1,
+} from '@/crypto/PrivateKeyBundle'
+import type { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import {
+  generateUserPreferencesTopic,
   userPreferencesDecrypt,
   userPreferencesEncrypt,
-  generateUserPreferencesTopic,
 } from '@/crypto/selfEncryption'
+import { bytesToHex } from '@/crypto/utils'
+import { InvitationV1, SealedInvitation } from '@/Invitation'
 import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 import { nsToDate } from '@/utils/date'
 import {
   buildDirectMessageTopic,
   buildDirectMessageTopicV2,
 } from '@/utils/topic'
-import type { PrivateKey } from '@/crypto/PrivateKey'
-import type { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import { V1Store, V2Store, type AddRequest } from './conversationStores'
+import { decryptV1, decryptV2, encryptV1, encryptV2 } from './encryption'
+import { KeystoreError } from './errors'
+import type { TopicData } from './interfaces'
+import type { Persistence } from './persistence/interface'
 import {
-  exportHmacKey,
-  generateHmacSignature,
-  hkdfHmacKey,
-} from '@/crypto/encryption'
+  convertError,
+  getKeyMaterial,
+  mapAndConvertErrors,
+  topicDataToV2ConversationReference,
+  toPublicKeyBundle,
+  toSignedPublicKeyBundle,
+  validateObject,
+} from './utils'
 
 const { ErrorCode } = keystore
 

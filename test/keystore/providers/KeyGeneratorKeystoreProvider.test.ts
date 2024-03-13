@@ -1,10 +1,10 @@
-import KeyGeneratorKeystoreProvider from '@/keystore/providers/KeyGeneratorKeystoreProvider'
+import { vi } from 'vitest'
 import ApiClient, { ApiUrls } from '@/ApiClient'
+import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import KeyGeneratorKeystoreProvider from '@/keystore/providers/KeyGeneratorKeystoreProvider'
 import type { Signer } from '@/types/Signer'
 import { newWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
-import { vi } from 'vitest'
-import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
 
 describe('KeyGeneratorKeystoreProvider', () => {
   let wallet: Signer

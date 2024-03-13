@@ -1,12 +1,11 @@
+import * as secp from '@noble/secp256k1'
 import { signature } from '@xmtp/proto'
 import Long from 'long'
-import * as secp from '@noble/secp256k1'
-import { PublicKey, UnsignedPublicKey, SignedPublicKey } from './PublicKey'
-import { SignedPrivateKey } from './PrivateKey'
+import { hashMessage, hexToBytes, type Hex } from 'viem'
 import type { Signer } from '@/types/Signer'
+import { SignedPrivateKey } from './PrivateKey'
+import { PublicKey, SignedPublicKey, UnsignedPublicKey } from './PublicKey'
 import { bytesToHex, equalBytes, splitSignature } from './utils'
-import type { Hex } from 'viem'
-import { hashMessage, hexToBytes } from 'viem'
 
 // ECDSA signature with recovery bit.
 export type ECDSACompactWithRecovery = {

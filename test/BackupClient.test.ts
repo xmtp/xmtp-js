@@ -1,5 +1,5 @@
 import { BackupType } from '@/message-backup/BackupClient'
-import { newLocalHostClient, newDevClient } from './helpers'
+import { newDevClient, newLocalHostClient } from './helpers'
 
 describe('Backup configuration', () => {
   it('Uses XMTP backup for localhost', async function () {

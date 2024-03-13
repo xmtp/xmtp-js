@@ -1,5 +1,5 @@
 import type Benchmark from 'benchmark'
-import { suite, save, cycle } from 'benny'
+import { cycle, save, suite } from 'benny'
 import type { Config } from 'benny/lib/internal/common-types'
 import crypto from '@/crypto/crypto'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'

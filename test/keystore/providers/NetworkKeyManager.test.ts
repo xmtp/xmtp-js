@@ -1,14 +1,14 @@
+import { vi } from 'vitest'
 import ApiClient, { ApiUrls } from '@/ApiClient'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import BrowserStoragePersistence from '@/keystore/persistence/BrowserStoragePersistence'
+import PrefixedPersistence from '@/keystore/persistence/PrefixedPersistence'
 import TopicPersistence from '@/keystore/persistence/TopicPersistence'
 import { buildPersistenceFromOptions } from '@/keystore/providers/helpers'
 import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
 import type { Signer } from '@/types/Signer'
 import { newWallet, pollFor, sleep, wrapAsLedgerWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
-import { vi } from 'vitest'
-import BrowserStoragePersistence from '@/keystore/persistence/BrowserStoragePersistence'
-import PrefixedPersistence from '@/keystore/persistence/PrefixedPersistence'
 
 describe('NetworkKeyManager', () => {
   let wallet: Signer

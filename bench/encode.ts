@@ -1,16 +1,16 @@
-import { ConversationV2 } from '@/conversations/Conversation'
-import { MessageV1 } from '@/Message'
 import { add } from 'benny'
-import { newWallet, newLocalHostClient } from '@test/helpers'
+import Client from '@/Client'
+import { ConversationV2 } from '@/conversations/Conversation'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import { MessageV1 } from '@/Message'
+import { dateToNs } from '@/utils/date'
+import { newLocalHostClient, newWallet } from '@test/helpers'
 import {
   MESSAGE_SIZES,
   newPrivateKeyBundle,
   randomBytes,
   wrapSuite,
 } from './helpers'
-import Client from '@/Client'
-import { dateToNs } from '@/utils/date'
-import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
 
 const encodeV1 = () => {
   return MESSAGE_SIZES.map((size) =>

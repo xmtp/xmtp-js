@@ -1,9 +1,9 @@
+import crypto from '@/crypto/crypto'
 import {
   buildContentTopic,
   buildDirectMessageTopicV2,
   isValidTopic,
 } from '@/utils/topic'
-import crypto from '@/crypto/crypto'
 
 describe('topic utils', () => {
   describe('isValidTopic', () => {

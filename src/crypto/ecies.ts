@@ -5,6 +5,7 @@
  */
 import elliptic from 'elliptic'
 import crypto from './crypto'
+
 const EC = elliptic.ec
 const ec = new EC('secp256k1')
 

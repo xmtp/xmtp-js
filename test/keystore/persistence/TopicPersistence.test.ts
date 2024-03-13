@@ -1,8 +1,8 @@
 import ApiClient, { ApiUrls } from '@/ApiClient'
-import { newWallet } from '@test/helpers'
-import TopicPersistence from '@/keystore/persistence/TopicPersistence'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import { newWallet } from '@test/helpers'
 
 // We restrict publishing to topics that do not match this pattern
 const buildValidKey = (walletAddress: string) => `${walletAddress}/key_bundle`

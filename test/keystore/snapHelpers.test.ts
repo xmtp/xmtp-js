@@ -1,8 +1,9 @@
-import { getWalletStatus, hasMetamaskWithSnaps } from '@/keystore/snapHelpers'
 import { keystore } from '@xmtp/proto'
-import { b64Encode } from '@/utils/bytes'
-import { SNAP_LOCAL_ORIGIN } from '@/keystore/providers/SnapProvider'
 import { vi } from 'vitest'
+import { SNAP_LOCAL_ORIGIN } from '@/keystore/providers/SnapProvider'
+import { getWalletStatus, hasMetamaskWithSnaps } from '@/keystore/snapHelpers'
+import { b64Encode } from '@/utils/bytes'
+
 const {
   GetKeystoreStatusRequest,
   GetKeystoreStatusResponse,

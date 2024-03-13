@@ -1,19 +1,18 @@
-import type { Signer } from '@/types/Signer'
-import crypto from '@/crypto/crypto'
-import type { PreEventCallback } from '@/Client'
-import LocalAuthenticator from '@/authn/LocalAuthenticator'
-import { bytesToHex } from '@/crypto/utils'
-import Ciphertext from '@/crypto/Ciphertext'
 import { privateKey as proto } from '@xmtp/proto'
-import type TopicPersistence from '@/keystore/persistence/TopicPersistence'
-import type { Hex } from 'viem'
-import { getAddress, hexToBytes, verifyMessage } from 'viem'
+import { getAddress, hexToBytes, verifyMessage, type Hex } from 'viem'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import type { PreEventCallback } from '@/Client'
+import Ciphertext from '@/crypto/Ciphertext'
+import crypto from '@/crypto/crypto'
+import { decrypt, encrypt } from '@/crypto/encryption'
 import {
+  decodePrivateKeyBundle,
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
-  decodePrivateKeyBundle,
 } from '@/crypto/PrivateKeyBundle'
-import { decrypt, encrypt } from '@/crypto/encryption'
+import { bytesToHex } from '@/crypto/utils'
+import type TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import type { Signer } from '@/types/Signer'
 
 const KEY_BUNDLE_NAME = 'key_bundle'
 /**

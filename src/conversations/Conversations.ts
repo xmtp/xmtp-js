@@ -1,19 +1,15 @@
-import type { OnConnectionLostCallback } from '@/ApiClient'
-import type { messageApi, keystore, conversationReference } from '@xmtp/proto'
+import type { conversationReference, keystore, messageApi } from '@xmtp/proto'
+import Long from 'long'
+import { SortDirection, type OnConnectionLostCallback } from '@/ApiClient'
+import type { ListMessagesOptions } from '@/Client'
+import type Client from '@/Client'
 import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '@/crypto/PublicKeyBundle'
-import type { ListMessagesOptions } from '@/Client'
 import type { InvitationContext } from '@/Invitation'
-import type { Conversation } from './Conversation'
-import { ConversationV1, ConversationV2 } from './Conversation'
-import { MessageV1, DecodedMessage } from '@/Message'
+import { DecodedMessage, MessageV1 } from '@/Message'
 import Stream from '@/Stream'
-import type Client from '@/Client'
-import { SortDirection } from '@/ApiClient'
-import Long from 'long'
-import JobRunner from './JobRunner'
 import { dateToNs, nsToDate } from '@/utils/date'
 import {
   buildDirectMessageTopic,
@@ -21,6 +17,12 @@ import {
   buildUserInviteTopic,
   isValidTopic,
 } from '@/utils/topic'
+import {
+  ConversationV1,
+  ConversationV2,
+  type Conversation,
+} from './Conversation'
+import JobRunner from './JobRunner'
 
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)

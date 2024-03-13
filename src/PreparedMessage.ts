@@ -1,6 +1,6 @@
 import type { Envelope } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
-import { bytesToHex } from './crypto/utils'
 import { sha256 } from './crypto/encryption'
+import { bytesToHex } from './crypto/utils'
 import type { DecodedMessage } from './Message'
 
 export class PreparedMessage {

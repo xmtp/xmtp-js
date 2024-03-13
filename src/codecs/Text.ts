@@ -1,5 +1,8 @@
-import type { ContentCodec, EncodedContent } from '@/MessageContent'
-import { ContentTypeId } from '@/MessageContent'
+import {
+  ContentTypeId,
+  type ContentCodec,
+  type EncodedContent,
+} from '@/MessageContent'
 
 // xmtp.org/text
 //

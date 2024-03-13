@@ -1,11 +1,11 @@
-import { decodePrivateKeyBundle } from '@/crypto/PrivateKeyBundle'
 import ApiClient, { ApiUrls } from '@/ApiClient'
-import { newWallet } from './helpers'
 import Client, { defaultOptions } from '@/Client'
-import type { Signer } from '@/types/Signer'
+import { decodePrivateKeyBundle } from '@/crypto/PrivateKeyBundle'
 import type { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
-import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
 import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import NetworkKeyManager from '@/keystore/providers/NetworkKeyManager'
+import type { Signer } from '@/types/Signer'
+import { newWallet } from './helpers'
 
 describe('Key Generation', () => {
   let wallet: Signer

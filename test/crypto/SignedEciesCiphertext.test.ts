@@ -1,9 +1,9 @@
-import { newWallet } from '@test/helpers'
-import { encrypt, getPublic } from '@/crypto/ecies'
-import { equalBytes } from '@/crypto/utils'
 import crypto from '@/crypto/crypto'
+import { encrypt, getPublic } from '@/crypto/ecies'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 import SignedEciesCiphertext from '@/crypto/SignedEciesCiphertext'
+import { equalBytes } from '@/crypto/utils'
+import { newWallet } from '@test/helpers'
 
 describe('SignedEciesCiphertext', () => {
   let bundle: PrivateKeyBundleV1

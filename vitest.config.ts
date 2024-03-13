@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 import { defineConfig, mergeConfig } from 'vite'
-import { defineConfig as defineVitestConfig } from 'vitest/config'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import { defineConfig as defineVitestConfig } from 'vitest/config'
 
 // https://vitejs.dev/config/
 const viteConfig = defineConfig({

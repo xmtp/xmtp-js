@@ -1,11 +1,11 @@
-import {
-  importHmacKey,
-  exportHmacKey,
-  hkdfHmacKey,
-  verifyHmacSignature,
-  generateHmacSignature,
-} from '@/crypto/encryption'
 import crypto from '@/crypto/crypto'
+import {
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+  importHmacKey,
+  verifyHmacSignature,
+} from '@/crypto/encryption'
 
 describe('HMAC encryption', () => {
   it('generates and validates HMAC', async () => {

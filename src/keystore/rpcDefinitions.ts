@@ -1,4 +1,4 @@
-import { keystore, authn, publicKey, privateKey, signature } from '@xmtp/proto'
+import { authn, keystore, privateKey, publicKey, signature } from '@xmtp/proto'
 import type { Reader, Writer } from 'protobufjs/minimal'
 import type { Flatten } from '@/utils/typedefs'
 

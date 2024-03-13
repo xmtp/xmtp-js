@@ -1,6 +1,6 @@
 import {
-  PrivateKeyBundleV1,
   decodePrivateKeyBundle,
+  PrivateKeyBundleV1,
 } from '@/crypto/PrivateKeyBundle'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
 

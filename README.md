@@ -94,6 +94,7 @@ A client is created with `Client.create(wallet: Signer): Promise<Client>` that r
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
+
 // Create the client with a `Signer` from your application
 const xmtp = await Client.create(wallet)
 ```
@@ -124,6 +125,7 @@ Most of the time, when interacting with the network, you'll want to do it throug
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
+
 // Create the client with a `Signer` from your application
 const xmtp = await Client.create(wallet)
 const conversations = xmtp.conversations
@@ -341,6 +343,7 @@ Additional codecs can be configured through the `ClientOptions` parameter of `Cl
 ```ts
 // Adding support for `xmtp.org/composite` content type
 import { CompositeCodec } from '@xmtp/xmtp-js'
+
 const xmtp = Client.create(wallet, { codecs: [new CompositeCodec()] })
 ```
 
@@ -370,6 +373,7 @@ You can export the unencrypted key bundle using the static method `Client.getKey
 
 ```ts
 import { Client } from '@xmtp/xmtp-js'
+
 // Get the keys using a valid Signer. Save them somewhere secure.
 const keys = await Client.getKeys(wallet)
 // Create a client using keys returned from getKeys

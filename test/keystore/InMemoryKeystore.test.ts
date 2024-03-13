@@ -1,32 +1,35 @@
 import { keystore, privateKey } from '@xmtp/proto'
-import { randomBytes } from '@bench/helpers'
-import { InvitationV1, SealedInvitation } from '@/Invitation'
-import type { InvitationContext } from '@/Invitation'
-import { MessageV1 } from '@/Message'
-import { decryptV1 } from '@/keystore/encryption'
-import { KeystoreError } from '@/keystore/errors'
-import InMemoryKeystore from '@/keystore/InMemoryKeystore'
-import { equalBytes } from '@/crypto/utils'
-import { buildProtoEnvelope, newWallet } from '@test/helpers'
-import { dateToNs, nsToDate } from '@/utils/date'
-import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
-import Token from '@/authn/Token'
-import Long from 'long'
 import type { CreateInviteResponse } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
-import { assert } from 'vitest'
+import Long from 'long'
 import { toBytes } from 'viem'
-import {
-  PrivateKeyBundleV1,
-  PrivateKeyBundleV2,
-} from '@/crypto/PrivateKeyBundle'
-import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
-import { getKeyMaterial } from '@/keystore/utils'
+import { assert } from 'vitest'
+import Token from '@/authn/Token'
 import {
   generateHmacSignature,
   hkdfHmacKey,
   importHmacKey,
   verifyHmacSignature,
 } from '@/crypto/encryption'
+import {
+  PrivateKeyBundleV1,
+  PrivateKeyBundleV2,
+} from '@/crypto/PrivateKeyBundle'
+import { SignedPublicKeyBundle } from '@/crypto/PublicKeyBundle'
+import { equalBytes } from '@/crypto/utils'
+import {
+  InvitationV1,
+  SealedInvitation,
+  type InvitationContext,
+} from '@/Invitation'
+import { decryptV1 } from '@/keystore/encryption'
+import { KeystoreError } from '@/keystore/errors'
+import InMemoryKeystore from '@/keystore/InMemoryKeystore'
+import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
+import { getKeyMaterial } from '@/keystore/utils'
+import { MessageV1 } from '@/Message'
+import { dateToNs, nsToDate } from '@/utils/date'
+import { buildProtoEnvelope, newWallet } from '@test/helpers'
+import { randomBytes } from '@bench/helpers'
 
 describe('InMemoryKeystore', () => {
   let aliceKeys: PrivateKeyBundleV1

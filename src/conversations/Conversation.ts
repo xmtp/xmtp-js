@@ -1,30 +1,34 @@
+import {
+  message,
+  content as proto,
+  type keystore,
+  type messageApi,
+} from '@xmtp/proto'
+import { getAddress } from 'viem'
 import type { OnConnectionLostCallback } from '@/ApiClient'
-import Stream from '@/Stream'
 import type {
   ListMessagesOptions,
   ListMessagesPaginatedOptions,
   SendOptions,
 } from '@/Client'
 import type Client from '@/Client'
-import type { InvitationContext } from '@/Invitation'
-import { DecodedMessage, MessageV1, MessageV2 } from '@/Message'
-import type { messageApi, keystore } from '@xmtp/proto'
-import { message, content as proto } from '@xmtp/proto'
-import { PreparedMessage } from '@/PreparedMessage'
-import { sha256 } from '@/crypto/encryption'
-import { buildDecryptV1Request, getResultOrThrow } from '@/utils/keystore'
 import { ContentTypeText } from '@/codecs/Text'
 import type { ConsentState } from '@/Contacts'
-import { getAddress } from 'viem'
-import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
-import { dateToNs, toNanoString } from '@/utils/date'
-import { concat } from '@/utils/bytes'
+import { sha256 } from '@/crypto/encryption'
+import { SignedPublicKey } from '@/crypto/PublicKey'
 import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '@/crypto/PublicKeyBundle'
-import { SignedPublicKey } from '@/crypto/PublicKey'
 import Signature from '@/crypto/Signature'
+import type { InvitationContext } from '@/Invitation'
+import { DecodedMessage, MessageV1, MessageV2 } from '@/Message'
+import { PreparedMessage } from '@/PreparedMessage'
+import Stream from '@/Stream'
+import { concat } from '@/utils/bytes'
+import { dateToNs, toNanoString } from '@/utils/date'
+import { buildDecryptV1Request, getResultOrThrow } from '@/utils/keystore'
+import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
 
 /**
  * Conversation represents either a V1 or V2 conversation with a common set of methods.

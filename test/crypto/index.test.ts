@@ -1,9 +1,9 @@
+import { assert } from 'vitest'
+import crypto from '@/crypto/crypto'
+import { decrypt, encrypt } from '@/crypto/encryption'
 import { PrivateKey } from '@/crypto/PrivateKey'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 import { PublicKeyBundle } from '@/crypto/PublicKeyBundle'
-import crypto from '@/crypto/crypto'
-import { decrypt, encrypt } from '@/crypto/encryption'
-import { assert } from 'vitest'
 
 describe('Crypto', function () {
   it('signs keys and verifies signatures', async function () {

@@ -1,21 +1,20 @@
 import { privateKey } from '@xmtp/proto'
-import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import { hexToBytes, type Hex } from 'viem'
+import { vi } from 'vitest'
 import ApiClient, { ApiUrls } from '@/ApiClient'
+import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import crypto from '@/crypto/crypto'
+import { encrypt } from '@/crypto/encryption'
+import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
+import TopicPersistence from '@/keystore/persistence/TopicPersistence'
+import { KeystoreProviderUnavailableError } from '@/keystore/providers/errors'
+import NetworkKeyManager, {
+  storageSigRequestText,
+} from '@/keystore/providers/NetworkKeyManager'
 import NetworkKeystoreProvider from '@/keystore/providers/NetworkKeystoreProvider'
 import type { Signer } from '@/types/Signer'
 import { newWallet } from '@test/helpers'
 import { testProviderOptions } from './helpers'
-import NetworkKeyManager, {
-  storageSigRequestText,
-} from '@/keystore/providers/NetworkKeyManager'
-import TopicPersistence from '@/keystore/persistence/TopicPersistence'
-import LocalAuthenticator from '@/authn/LocalAuthenticator'
-import crypto from '@/crypto/crypto'
-import { vi } from 'vitest'
-import type { Hex } from 'viem'
-import { hexToBytes } from 'viem'
-import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
-import { encrypt } from '@/crypto/encryption'
 
 describe('NetworkKeystoreProvider', () => {
   let apiClient: ApiClient
