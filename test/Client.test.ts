@@ -462,6 +462,7 @@ describe('ClientOptions', () => {
 
       const client = await Client.create(newWallet(), {
         codecs: [new CustomCodec()],
+        env: 'local',
       })
       const other = await Client.create(newWallet(), { env: 'local' })
       const convo = await client.conversations.newConversation(other.address)
