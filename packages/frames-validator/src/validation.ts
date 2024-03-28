@@ -75,7 +75,8 @@ async function checkUntrustedData(
     buttonIndex,
     opaqueConversationIdentifier,
     timestamp,
-    state,
+    state = "",
+    inputText = "",
   }: UntrustedData,
   actionBody: frames.FrameActionBody,
 ) {
@@ -99,5 +100,9 @@ async function checkUntrustedData(
 
   if (actionBody.state !== state) {
     throw new Error("Mismatched state")
+  }
+
+  if (actionBody.inputText !== inputText) {
+    throw new Error("Missing input text")
   }
 }
