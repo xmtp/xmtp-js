@@ -70,7 +70,13 @@ async function getVerifiedWalletAddress(
 }
 
 async function checkUntrustedData(
-  { url, buttonIndex, opaqueConversationIdentifier, timestamp }: UntrustedData,
+  {
+    url,
+    buttonIndex,
+    opaqueConversationIdentifier,
+    timestamp,
+    state,
+  }: UntrustedData,
   actionBody: frames.FrameActionBody,
 ) {
   if (actionBody.frameUrl !== url) {
@@ -89,5 +95,9 @@ async function checkUntrustedData(
 
   if (actionBody.timestamp.toNumber() !== timestamp) {
     throw new Error("Mismatched timestamp")
+  }
+
+  if (actionBody.state !== state) {
+    throw new Error("Mismatched state")
   }
 }
