@@ -66,12 +66,12 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.3.3",
-    "@open-frames/proxy-client": "^0.2.0",
+    "@open-frames/proxy-client": "^0.2.1",
     "@xmtp/proto": "3.45.0",
     "long": "^5.2.3"
   },
   "devDependencies": {
-    "@open-frames/types": "^0.0.6",
+    "@open-frames/types": "^0.0.7",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@xmtp/tsconfig": "workspace:*",
