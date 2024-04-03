@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.6.0
+
+### Minor Changes
+
+- [#191](https://github.com/xmtp/xmtp-node-js-tools/pull/191) [`da721b9`](https://github.com/xmtp/xmtp-node-js-tools/commit/da721b981ba7b225345c7086952f343592796992) Thanks [@alexrisch](https://github.com/alexrisch)! - Added State handling
+
 ## 0.5.2
 
 ### Patch Changes
