@@ -23,6 +23,7 @@ const payload = await signFrameAction({
   buttonIndex: 2,
   conversationTopic: "/xmtp/0/123",
   participantAccountAddresses: ["abc", "xyz"],
+  address: "0x...",
 });
 
 // If the button action type was `post`
@@ -32,6 +33,11 @@ const updatedFrameMetadata = await framesClient.proxy.post(
 );
 // If the button action type was `post_redirect`
 const { redirectedTo } = await framesClient.proxy.postRedirect(
+  framePostUrl,
+  payload,
+);
+// If the button action type was `postTransaction`
+const transactionInfo = await framesClient.proxy.postTransaction(
   framePostUrl,
   payload,
 );

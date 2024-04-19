@@ -24,9 +24,15 @@ describe("signFrameAction", () => {
       conversationTopic: "foo",
       participantAccountAddresses: ["amal", "bola"],
       state: "state",
+      address: "0x...",
     });
 
+    // Below addresses are typically the same but can technically be different
+    // walletAddress references address of XMTP client
     expect(signedPayload.untrustedData.walletAddress).toEqual(client.address);
+
+    // address references the address associated with initiating a transaction
+    expect(signedPayload.untrustedData.address).toEqual("0x...");
     expect(signedPayload.untrustedData.url).toEqual(frameUrl);
     expect(signedPayload.untrustedData.buttonIndex).toEqual(buttonIndex);
     expect(
