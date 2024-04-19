@@ -33,10 +33,7 @@ export default class OpenFramesProxy {
     url: string,
     payload: FramePostPayload,
   ): Promise<FramesTransactionApiResponse> {
-    return this.inner.postTransaction(url, {
-      ...payload,
-      address: payload.untrustedData.walletAddress,
-    });
+    return this.inner.postTransaction(url, payload);
   }
 
   mediaUrl(url: string): string {
