@@ -23,6 +23,7 @@ const payload = await signFrameAction({
   buttonIndex: 2,
   conversationTopic: "/xmtp/0/123",
   participantAccountAddresses: ["abc", "xyz"],
+  address: "0x...",
 });
 
 // If the button action type was `post`

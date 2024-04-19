@@ -32,7 +32,7 @@ export class FramesClient {
 
   async signFrameAction(inputs: FrameActionInputs): Promise<FramePostPayload> {
     const opaqueConversationIdentifier = buildOpaqueIdentifier(inputs);
-    const { frameUrl, buttonIndex, inputText, state } = inputs;
+    const { frameUrl, buttonIndex, inputText, state, address } = inputs;
     const now = Date.now();
     const timestamp = Long.fromNumber(now);
     const toSign: frames.FrameActionBody = {
@@ -43,6 +43,7 @@ export class FramesClient {
       inputText: inputText || "",
       unixTimestamp: now,
       state: state || "",
+      address: address || "",
     };
 
     const signedAction = await this.buildSignedFrameAction(toSign);
@@ -58,6 +59,8 @@ export class FramesClient {
         timestamp: now,
         unixTimestamp: now,
         state,
+        // The address associated with initiating a transaction
+        address,
       },
       trustedData: {
         messageBytes: base64Encode(signedAction),
