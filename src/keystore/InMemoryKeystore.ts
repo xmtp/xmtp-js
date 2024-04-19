@@ -311,7 +311,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
         const thirtyDayPeriodsSinceEpoch = Math.floor(
           Date.now() / 1000 / 60 / 60 / 24 / 30
         )
-        const info = `${thirtyDayPeriodsSinceEpoch}-${this.accountAddress}`
+        const info = `${thirtyDayPeriodsSinceEpoch}-${await this.getAccountAddress()}`
         const hmac = await generateHmacSignature(
           keyMaterial,
           new TextEncoder().encode(info),
@@ -631,7 +631,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
               thirtyDayPeriodsSinceEpoch,
               thirtyDayPeriodsSinceEpoch + 1,
             ].map(async (value) => {
-              const info = `${value}-${this.accountAddress}`
+              const info = `${value}-${await this.getAccountAddress()}`
               const hmacKey = await hkdfHmacKey(
                 keyMaterial,
                 new TextEncoder().encode(info)
