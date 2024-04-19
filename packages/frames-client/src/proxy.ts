@@ -4,6 +4,7 @@ import type {
   FramePostPayload,
   FramesApiRedirectResponse,
   FramesApiResponse,
+  FramesTransactionApiResponse,
 } from "./types";
 
 export default class OpenFramesProxy {
@@ -26,6 +27,16 @@ export default class OpenFramesProxy {
     payload: FramePostPayload,
   ): Promise<FramesApiRedirectResponse> {
     return this.inner.postRedirect(url, payload);
+  }
+
+  postTransaction(
+    url: string,
+    payload: FramePostPayload,
+  ): Promise<FramesTransactionApiResponse> {
+    return this.inner.postTransaction(url, {
+      ...payload,
+      address: payload.untrustedData.walletAddress,
+    });
   }
 
   mediaUrl(url: string): string {

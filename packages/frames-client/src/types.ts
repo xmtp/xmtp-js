@@ -2,11 +2,14 @@ import type { OpenFramesUntrustedData } from "@open-frames/types";
 import type {
   GetMetadataResponse,
   PostRedirectResponse,
+  TransactionResponse,
 } from "@open-frames/proxy-client";
 
 export type FramesApiResponse = GetMetadataResponse;
 
 export type FramesApiRedirectResponse = PostRedirectResponse;
+
+export type FramesTransactionApiResponse = TransactionResponse;
 
 export type FramePostUntrustedData = OpenFramesUntrustedData & {
   walletAddress: string; // Untrusted version of the wallet address

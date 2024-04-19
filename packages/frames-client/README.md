@@ -35,4 +35,9 @@ const { redirectedTo } = await framesClient.proxy.postRedirect(
   framePostUrl,
   payload,
 );
+// If the button action type was `postTransaction`
+const transactionInfo = await framesClient.proxy.postTransaction(
+  framePostUrl,
+  payload,
+);
 ```
