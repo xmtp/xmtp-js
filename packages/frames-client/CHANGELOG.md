@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.5.0
+
+### Minor Changes
+
+- e1ac826: add postTransaction support
+
 ## 0.4.3
 
 ### Patch Changes
