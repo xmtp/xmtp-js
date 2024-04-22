@@ -31,6 +31,8 @@ jobs:
           SKIP_YARN_COREPACK_CHECK: '1'
       - name: Enable corepack
         run: corepack enable
+      - name: Update npm to latest
+        run: npm install -g npm@latest
       - name: Install dependencies
         run: yarn
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
