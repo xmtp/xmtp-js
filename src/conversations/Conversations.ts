@@ -1,4 +1,9 @@
-import type { conversationReference, keystore, messageApi } from '@xmtp/proto'
+import type {
+  conversationReference,
+  invitation,
+  keystore,
+  messageApi,
+} from '@xmtp/proto'
 import Long from 'long'
 import { SortDirection, type OnConnectionLostCallback } from '@/ApiClient'
 import type { ListMessagesOptions } from '@/Client'
@@ -27,7 +32,6 @@ import JobRunner from './JobRunner'
 const messageHasHeaders = (msg: MessageV1): boolean => {
   return Boolean(msg.recipientAddress && msg.senderAddress)
 }
-
 /**
  * Conversations allows you to view ongoing 1:1 messaging sessions with another wallet
  */
@@ -88,6 +92,7 @@ export default class Conversations<ContentTypes = any> {
             createdNs: dateToNs(createdAt),
             topic: buildDirectMessageTopic(peerAddress, this.client.address),
             context: undefined,
+            consentProofPayload: undefined,
           }))
           .filter((c) => isValidTopic(c.topic)),
       })
@@ -169,6 +174,13 @@ export default class Conversations<ContentTypes = any> {
     const out: ConversationV2<ContentTypes>[] = []
     for (const response of responses) {
       try {
+        console.log(
+          'here11113',
+          !!response.result?.conversation?.consentProofPayload
+        )
+        // if (response.result?.conversation?.consentProofPayload) {
+
+        // }
         out.push(this.saveInviteResponseToConversation(response))
       } catch (e) {
         console.warn('Error saving invite response to conversation: ', e)
@@ -198,7 +210,8 @@ export default class Conversations<ContentTypes = any> {
       convoRef.topic,
       convoRef.peerAddress,
       nsToDate(convoRef.createdNs),
-      convoRef.context
+      convoRef.context,
+      convoRef.consentProofPayload
     )
   }
 
@@ -469,7 +482,8 @@ export default class Conversations<ContentTypes = any> {
    */
   async newConversation(
     peerAddress: string,
-    context?: InvitationContext
+    context?: InvitationContext,
+    consentProof?: invitation.ConsentProofPayload
   ): Promise<Conversation<ContentTypes>> {
     let contact = await this.client.getUserContact(peerAddress)
     if (!contact) {
@@ -535,19 +549,25 @@ export default class Conversations<ContentTypes = any> {
         return newItemMatch
       }
 
-      return this.createV2Convo(contact as SignedPublicKeyBundle, context)
+      return this.createV2Convo(
+        contact as SignedPublicKeyBundle,
+        context,
+        consentProof
+      )
     })
   }
 
   private async createV2Convo(
     recipient: SignedPublicKeyBundle,
-    context?: InvitationContext
+    context?: InvitationContext,
+    consentProof?: invitation.ConsentProofPayload
   ): Promise<ConversationV2<ContentTypes>> {
     const timestamp = new Date()
     const { payload, conversation } = await this.client.keystore.createInvite({
       recipient,
       context,
       createdNs: dateToNs(timestamp),
+      consentProof,
     })
     if (!payload || !conversation) {
       throw new Error('Required field not returned from Keystore')

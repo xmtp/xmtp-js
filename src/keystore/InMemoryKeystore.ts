@@ -421,6 +421,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
         topic: buildDirectMessageTopicV2(topic),
         aes256GcmHkdfSha256: { keyMaterial },
         context: req.context,
+        consentProof: req.consentProof,
       })
 
       const sealed = await SealedInvitation.createV1({
@@ -575,6 +576,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
       createdNs: data.createdNs,
       topic: buildDirectMessageTopic(data.peerAddress, this.walletAddress),
       context: undefined,
+      consentProofPayload: undefined,
     }
   }
 

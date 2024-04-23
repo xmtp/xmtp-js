@@ -20,6 +20,7 @@ export class InvitationV1 implements invitation.InvitationV1 {
   topic: string
   context: InvitationContext | undefined
   aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256 // eslint-disable-line camelcase
+  consentProof: invitation.ConsentProofPayload | undefined
 
   constructor({
     topic,
@@ -41,7 +42,10 @@ export class InvitationV1 implements invitation.InvitationV1 {
     this.aes256GcmHkdfSha256 = aes256GcmHkdfSha256
   }
 
-  static createRandom(context?: invitation.InvitationV1_Context): InvitationV1 {
+  static createRandom(
+    context?: invitation.InvitationV1_Context,
+    consentProof?: invitation.ConsentProofPayload
+  ): InvitationV1 {
     const topic = buildDirectMessageTopicV2(
       Buffer.from(crypto.getRandomValues(new Uint8Array(32)))
         .toString('base64')
@@ -56,6 +60,7 @@ export class InvitationV1 implements invitation.InvitationV1 {
       topic,
       aes256GcmHkdfSha256: { keyMaterial },
       context,
+      consentProof,
     })
   }
 

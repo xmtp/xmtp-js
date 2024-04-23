@@ -1,8 +1,12 @@
-import type Client from '@/Client'
+import { invitation } from '@xmtp/proto'
+import Client from '@/Client'
 import { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
+// import { PrivateKey, SignedPrivateKey } from '@/crypto/PrivateKey'
+// import { PublicKey, SignedPublicKey } from '@/crypto/PublicKey'
+import { WalletSigner } from '@/crypto/Signature'
 import { sleep } from '@/utils/async'
 import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
-import { newLocalHostClient } from '@test/helpers'
+import { newLocalHostClient, newWallet } from '@test/helpers'
 
 describe('conversations', () => {
   describe('listConversations', () => {
@@ -279,6 +283,39 @@ describe('conversations', () => {
 
       const invites = await alice.listInvitations()
       expect(invites).toHaveLength(1)
+    })
+
+    it('handles consent proof on invitation', async () => {
+      const bo = await newLocalHostClient()
+      const wallet = newWallet()
+      const keySigner = new WalletSigner(wallet)
+      const alixAddress = await keySigner.wallet.getAddress()
+      const timestamp = Date.now()
+      const consentMessage = WalletSigner.consentProofRequestText(
+        bob.address,
+        timestamp
+      )
+      const signedMessage = await keySigner.wallet.signMessage(consentMessage)
+      const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
+        signature: signedMessage,
+        timestamp,
+      })
+      const boConvo = await bo.conversations.newConversation(
+        alixAddress,
+        undefined,
+        consentProofPayload
+      )
+      const alix = await Client.create(wallet, {
+        env: 'local',
+      })
+      const conversations = await alix.conversations.list()
+      const convo = conversations.find((c) => c.topic === boConvo.topic)
+      expect(convo).toBeTruthy()
+      await alix.contacts.refreshConsentList()
+      const isApproved = await alix.contacts.isAllowed(bob.address)
+      expect(isApproved).toBeTruthy()
+      await alix.close()
+      await bo.close()
     })
   })
 })

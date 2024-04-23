@@ -193,6 +193,7 @@ describe('InMemoryKeystore', () => {
         recipient,
         createdNs,
         context: undefined,
+        consentProof: undefined,
       })
 
       expect(response.conversation?.topic).toBeTruthy()
@@ -211,6 +212,7 @@ describe('InMemoryKeystore', () => {
         recipient,
         createdNs,
         context,
+        consentProof: undefined,
       })
 
       expect(response.conversation?.topic).toBeTruthy()
@@ -224,6 +226,7 @@ describe('InMemoryKeystore', () => {
           recipient: {} as any,
           createdNs,
           context: undefined,
+          consentProof: undefined,
         })
       }).rejects.toThrow(KeystoreError)
     })
@@ -365,6 +368,7 @@ describe('InMemoryKeystore', () => {
         recipient,
         createdNs,
         context: undefined,
+        consentProof: undefined,
       })
 
       const payload = new TextEncoder().encode('Hello, world!')
@@ -416,6 +420,7 @@ describe('InMemoryKeystore', () => {
         recipient,
         createdNs,
         context: undefined,
+        consentProof: undefined,
       })
 
       const payload = new TextEncoder().encode('Hello, world!')
@@ -532,6 +537,7 @@ describe('InMemoryKeystore', () => {
             recipient,
             createdNs: dateToNs(createdAt),
             context: undefined,
+            consentProof: undefined,
           })
         })
       )
@@ -565,6 +571,7 @@ describe('InMemoryKeystore', () => {
             recipient,
             createdNs: dateToNs(createdAt),
             context: undefined,
+            consentProof: undefined,
           })
 
           responses.push(response)
@@ -643,6 +650,7 @@ describe('InMemoryKeystore', () => {
           conversationId: 'test',
           metadata: {},
         },
+        consentProof: undefined,
       })
       expect(aliceInvite.conversation!.topic).toEqual(
         '/xmtp/0/m-4b52be1e8567d72d0bc407debe2d3c7fca2ae93a47e58c3f9b5c5068aff80ec5/proto'
@@ -657,6 +665,7 @@ describe('InMemoryKeystore', () => {
           conversationId: 'test',
           metadata: {},
         },
+        consentProof: undefined,
       })
       expect(bobInvite.conversation!.topic).toEqual(
         '/xmtp/0/m-4b52be1e8567d72d0bc407debe2d3c7fca2ae93a47e58c3f9b5c5068aff80ec5/proto'
@@ -686,6 +695,7 @@ describe('InMemoryKeystore', () => {
               conversationId: 'test',
               metadata: {},
             },
+            consentProof: undefined,
           })
 
           responses.push(response)
@@ -711,6 +721,7 @@ describe('InMemoryKeystore', () => {
         ),
         createdNs: dateToNs(new Date()),
         context: undefined,
+        consentProof: undefined,
       })
       const bobInvite = await bobKeystore.createInvite({
         recipient: SignedPublicKeyBundle.fromLegacyBundle(
@@ -718,6 +729,7 @@ describe('InMemoryKeystore', () => {
         ),
         createdNs: dateToNs(new Date()),
         context: undefined,
+        consentProof: undefined,
       })
       expect(
         await aliceKeys.sharedSecret(
@@ -891,6 +903,7 @@ describe('InMemoryKeystore', () => {
             recipient,
             createdNs: dateToNs(createdAt),
             context: undefined,
+            consentProof: undefined,
           })
         })
       )
@@ -991,6 +1004,7 @@ describe('InMemoryKeystore', () => {
             recipient,
             createdNs: dateToNs(createdAt),
             context: undefined,
+            consentProof: undefined,
           })
         })
       )

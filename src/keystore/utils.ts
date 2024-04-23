@@ -118,6 +118,7 @@ export const topicDataToV2ConversationReference = ({
   topic: invitation.topic,
   peerAddress,
   createdNs,
+  consentProofPayload: invitation.consentProof,
 })
 
 export const isCompleteTopicData = (

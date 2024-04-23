@@ -65,12 +65,14 @@ const decodeV2 = () => {
         ),
         createdNs: dateToNs(new Date()),
         context: undefined,
+        consentProof: undefined,
       })
       const convo = new ConversationV2(
         alice,
         invite.conversation?.topic ?? '',
         bob.identityKey.publicKey.walletSignatureAddress(),
         new Date(),
+        undefined,
         undefined
       )
       const { payload, shouldPush } = await alice.encodeContent(message)

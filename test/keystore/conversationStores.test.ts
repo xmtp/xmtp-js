@@ -22,6 +22,7 @@ const buildAddRequest = (): AddRequest => {
         conversationId: 'foo',
         metadata: {},
       },
+      consentProof: undefined,
     },
   }
 }
