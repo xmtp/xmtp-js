@@ -362,10 +362,10 @@ describe('conversations', () => {
       const alix = await Client.create(wallet, {
         env: 'local',
       })
-      const timestamp = Date.now() + 1
+      const timestamp = Date.now()
       const consentMessage = WalletSigner.consentProofRequestText(
         bo.address,
-        timestamp
+        timestamp + 1
       )
       const signedMessage = await keySigner.wallet.signMessage(consentMessage)
       const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
