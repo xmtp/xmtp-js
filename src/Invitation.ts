@@ -26,6 +26,7 @@ export class InvitationV1 implements invitation.InvitationV1 {
     topic,
     context,
     aes256GcmHkdfSha256,
+    consentProof,
   }: invitation.InvitationV1) {
     if (!topic || !topic.length) {
       throw new Error('Missing topic')
@@ -40,6 +41,7 @@ export class InvitationV1 implements invitation.InvitationV1 {
     this.topic = topic
     this.context = context
     this.aes256GcmHkdfSha256 = aes256GcmHkdfSha256
+    this.consentProof = consentProof
   }
 
   static createRandom(

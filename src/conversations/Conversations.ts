@@ -5,6 +5,7 @@ import type {
   messageApi,
 } from '@xmtp/proto'
 import Long from 'long'
+import { hashMessage, hexToBytes } from 'viem'
 import { SortDirection, type OnConnectionLostCallback } from '@/ApiClient'
 import type { ListMessagesOptions } from '@/Client'
 import type Client from '@/Client'
@@ -12,6 +13,8 @@ import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '@/crypto/PublicKeyBundle'
+import { ecdsaSignerKey, WalletSigner } from '@/crypto/Signature'
+import { splitSignature } from '@/crypto/utils'
 import type { InvitationContext } from '@/Invitation'
 import { DecodedMessage, MessageV1 } from '@/Message'
 import Stream from '@/Stream'
@@ -157,6 +160,43 @@ export default class Conversations<ContentTypes = any> {
     return this.decodeInvites(envelopes)
   }
 
+  private async validateConsentSignature(
+    signature: `0x${string}`,
+    timestamp: number,
+    peerAddress: string
+  ): Promise<boolean> {
+    const signatureData = splitSignature(signature)
+    const message = WalletSigner.consentProofRequestText(peerAddress, timestamp)
+    const digest = hexToBytes(hashMessage(message))
+    // Recover public key
+    const publicKey = ecdsaSignerKey(digest, signatureData)
+    if (!publicKey) {
+      return false
+    }
+    console.log('Recovered public key: ', typeof publicKey)
+    console.log('here1116', publicKey.getEthereumAddress())
+    return publicKey.getEthereumAddress() === this.client.address
+  }
+
+  private async handleConsentProof(
+    consentProof: invitation.ConsentProofPayload,
+    peerAddress: string
+  ): Promise<void> {
+    const { signature, timestamp } = consentProof
+    const isValid = await this.validateConsentSignature(
+      signature as `0x${string}`,
+      Number(timestamp),
+      peerAddress
+    )
+    if (!isValid) {
+      return
+    }
+    const consentState = await this.client.contacts.consentState(peerAddress)
+    if (consentState === 'unknown') {
+      this.client.contacts.allow([peerAddress])
+    }
+  }
+
   private async decodeInvites(
     envelopes: messageApi.Envelope[],
     shouldThrow = false
@@ -174,13 +214,12 @@ export default class Conversations<ContentTypes = any> {
     const out: ConversationV2<ContentTypes>[] = []
     for (const response of responses) {
       try {
-        console.log(
-          'here11113',
-          !!response.result?.conversation?.consentProofPayload
-        )
-        // if (response.result?.conversation?.consentProofPayload) {
-
-        // }
+        if (response.result?.conversation?.consentProofPayload) {
+          this.handleConsentProof(
+            response.result.conversation.consentProofPayload,
+            response.result.conversation.peerAddress
+          )
+        }
         out.push(this.saveInviteResponseToConversation(response))
       } catch (e) {
         console.warn('Error saving invite response to conversation: ', e)
@@ -498,7 +537,6 @@ export default class Conversations<ContentTypes = any> {
     if (contact instanceof PublicKeyBundle && !context?.conversationId) {
       return new ConversationV1(this.client, peerAddress, new Date())
     }
-
     // If no conversationId, check and see if we have an existing V1 conversation
     if (!context?.conversationId) {
       const v1Convos = await this.listV1Conversations()
@@ -548,7 +586,6 @@ export default class Conversations<ContentTypes = any> {
       if (newItemMatch) {
         return newItemMatch
       }
-
       return this.createV2Convo(
         contact as SignedPublicKeyBundle,
         context,
