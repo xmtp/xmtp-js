@@ -170,12 +170,7 @@ export default class Conversations<ContentTypes = any> {
     const digest = hexToBytes(hashMessage(message))
     // Recover public key
     const publicKey = ecdsaSignerKey(digest, signatureData)
-    if (!publicKey) {
-      return false
-    }
-    console.log('Recovered public key: ', typeof publicKey)
-    console.log('here1116', publicKey.getEthereumAddress())
-    return publicKey.getEthereumAddress() === this.client.address
+    return publicKey?.getEthereumAddress() === this.client.address
   }
 
   private async handleConsentProof(
