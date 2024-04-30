@@ -1,4 +1,6 @@
-# frames-client
+# Frames Client
+
+This repo is used by messaging apps to render Open Frames.
 
 ## Usage
 
@@ -18,6 +20,7 @@ const imageUrl = framesClient.proxy.mediaUrl(
 );
 
 // Handle a click to button 2 from a conversation with topic "/xmtp/0/123" and participant addresses "abc" and "xyz"
+const textInputValue = "Your value";
 const payload = await signFrameAction({
   frameUrl,
   inputText: textInputValue || undefined,
@@ -25,7 +28,7 @@ const payload = await signFrameAction({
   conversationTopic: "/xmtp/0/123",
   participantAccountAddresses: ["abc", "xyz"],
   address: "0x...",
-  state: frameInfo.state,
+  state: frameMetadata?.frameInfo?.state, // Pulled from frame metadata
 });
 
 // If the button action type was `post`
