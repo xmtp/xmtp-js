@@ -20,10 +20,12 @@ const imageUrl = framesClient.proxy.mediaUrl(
 // Handle a click to button 2 from a conversation with topic "/xmtp/0/123" and participant addresses "abc" and "xyz"
 const payload = await signFrameAction({
   frameUrl,
+  inputText: textInputValue || undefined,
   buttonIndex: 2,
   conversationTopic: "/xmtp/0/123",
   participantAccountAddresses: ["abc", "xyz"],
   address: "0x...",
+  state: frameInfo.state,
 });
 
 // If the button action type was `post`
