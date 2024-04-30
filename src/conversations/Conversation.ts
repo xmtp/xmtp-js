@@ -1,10 +1,10 @@
 import {
   message,
   content as proto,
+  type invitation,
   type keystore,
   type messageApi,
 } from '@xmtp/proto'
-import type { ConsentProofPayload } from '@xmtp/proto/ts/dist/types/message_contents/invitation.pb'
 import { getAddress } from 'viem'
 import type { OnConnectionLostCallback } from '@/ApiClient'
 import type {
@@ -89,7 +89,7 @@ export interface Conversation<ContentTypes = any> {
   /**
    * Proof of consent for the conversation, used when a user has pre-consented to a conversation
    */
-  consentProof?: ConsentProofPayload
+  consentProof?: invitation.ConsentProofPayload
 
   /**
    * Retrieve messages in this conversation. Default to returning all messages.
@@ -508,7 +508,7 @@ export class ConversationV2<ContentTypes>
   peerAddress: string
   createdAt: Date
   context?: InvitationContext
-  consentProof?: ConsentProofPayload
+  consentProof?: invitation.ConsentProofPayload
 
   constructor(
     client: Client<ContentTypes>,
@@ -516,7 +516,7 @@ export class ConversationV2<ContentTypes>
     peerAddress: string,
     createdAt: Date,
     context: InvitationContext | undefined,
-    consentProof: ConsentProofPayload | undefined
+    consentProof: invitation.ConsentProofPayload | undefined
   ) {
     this.topic = topic
     this.createdAt = createdAt
@@ -550,7 +550,7 @@ export class ConversationV2<ContentTypes>
     return this.client.contacts.consentState(this.peerAddress)
   }
 
-  get consentProofPayload(): ConsentProofPayload | undefined {
+  get consentProofPayload(): invitation.ConsentProofPayload | undefined {
     return this.consentProof
   }
 

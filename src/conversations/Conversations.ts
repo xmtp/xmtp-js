@@ -156,17 +156,25 @@ export default class Conversations<ContentTypes = any> {
       startTime,
       direction: SortDirection.SORT_DIRECTION_ASCENDING,
     })
-
-    return this.decodeInvites(envelopes)
+    const newConversations = await this.decodeInvites(envelopes)
+    newConversations.forEach((convo) => {
+      if (convo.consentProofPayload) {
+        this.handleConsentProof(convo.consentProofPayload, convo.peerAddress)
+      }
+    })
+    return newConversations
   }
 
   private async validateConsentSignature(
     signature: `0x${string}`,
-    timestamp: number,
+    timestampMs: number,
     peerAddress: string
   ): Promise<boolean> {
     const signatureData = splitSignature(signature)
-    const message = WalletSigner.consentProofRequestText(peerAddress, timestamp)
+    const message = WalletSigner.consentProofRequestText(
+      peerAddress,
+      timestampMs
+    )
     const digest = hexToBytes(hashMessage(message))
     // Recover public key
     const publicKey = ecdsaSignerKey(digest, signatureData)
@@ -209,12 +217,6 @@ export default class Conversations<ContentTypes = any> {
     const out: ConversationV2<ContentTypes>[] = []
     for (const response of responses) {
       try {
-        if (response.result?.conversation?.consentProofPayload) {
-          this.handleConsentProof(
-            response.result.conversation.consentProofPayload,
-            response.result.conversation.peerAddress
-          )
-        }
         out.push(this.saveInviteResponseToConversation(response))
       } catch (e) {
         console.warn('Error saving invite response to conversation: ', e)
