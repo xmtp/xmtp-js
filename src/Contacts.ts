@@ -1,4 +1,7 @@
-import { privatePreferences } from '@xmtp/proto'
+import { privatePreferences, type invitation } from '@xmtp/proto'
+import { hashMessage, hexToBytes } from 'viem'
+import { ecdsaSignerKey, WalletSigner } from '@/crypto/Signature'
+import { splitSignature } from '@/crypto/utils'
 import type { EnvelopeWithMessage } from '@/utils/async'
 import { fromNanoString } from '@/utils/date'
 import { buildUserPrivatePreferencesTopic } from '@/utils/topic'
@@ -252,10 +255,60 @@ export class Contacts {
     this.jobRunner = new JobRunner('user-preferences', client.keystore)
   }
 
+  private async validateConsentSignature(
+    signature: `0x${string}`,
+    timestampMs: number,
+    peerAddress: string
+  ): Promise<boolean> {
+    const signatureData = splitSignature(signature)
+    const message = WalletSigner.consentProofRequestText(
+      peerAddress,
+      timestampMs
+    )
+    const digest = hexToBytes(hashMessage(message))
+    // Recover public key
+    const publicKey = ecdsaSignerKey(digest, signatureData)
+    return publicKey?.getEthereumAddress() === this.client.address
+  }
+
+  private async handleConsentProof(
+    consentProof: invitation.ConsentProofPayload,
+    peerAddress: string
+  ): Promise<void> {
+    const { signature, timestamp } = consentProof
+    const isValid = await this.validateConsentSignature(
+      signature as `0x${string}`,
+      Number(timestamp),
+      peerAddress
+    )
+    if (!isValid) {
+      return
+    }
+    await this.client.contacts.allow([peerAddress])
+  }
+
   async loadConsentList(startTime?: Date) {
     return this.jobRunner.run(async (lastRun) => {
       // allow for override of startTime
-      return this.consentList.load(startTime ?? lastRun)
+      const entries = await this.consentList.load(startTime ?? lastRun)
+      try {
+        const conversations = await this.client.conversations.list()
+        conversations.forEach((conversation) => {
+          if (
+            conversation.consentProof &&
+            this.consentState(conversation.peerAddress) === 'unknown'
+          ) {
+            this.handleConsentProof(
+              conversation.consentProof,
+              conversation.peerAddress
+            )
+          }
+        })
+      } catch (err) {
+        console.log(err)
+      }
+
+      return entries
     })
   }
 

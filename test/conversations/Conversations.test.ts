@@ -1,10 +1,8 @@
-import { invitation } from '@xmtp/proto'
-import Client from '@/Client'
+import type Client from '@/Client'
 import { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
-import { WalletSigner } from '@/crypto/Signature'
 import { sleep } from '@/utils/async'
 import { buildDirectMessageTopic, buildUserIntroTopic } from '@/utils/topic'
-import { newLocalHostClient, newWallet } from '@test/helpers'
+import { newLocalHostClient } from '@test/helpers'
 
 describe('conversations', () => {
   describe('listConversations', () => {
@@ -281,112 +279,6 @@ describe('conversations', () => {
 
       const invites = await alice.listInvitations()
       expect(invites).toHaveLength(1)
-    })
-
-    it('handles consent proof on invitation', async () => {
-      const bo = await newLocalHostClient()
-      const wallet = newWallet()
-      const keySigner = new WalletSigner(wallet)
-      const alixAddress = await keySigner.wallet.getAddress()
-      const alix = await Client.create(wallet, {
-        env: 'local',
-      })
-      const timestamp = Date.now()
-      const consentMessage = WalletSigner.consentProofRequestText(
-        bo.address,
-        timestamp
-      )
-      const signedMessage = await keySigner.wallet.signMessage(consentMessage)
-      const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
-        signature: signedMessage,
-        timestamp,
-        payloadVersion:
-          invitation.ConsentProofPayloadVersion.CONSENT_PROOF_PAYLOAD_VERSION_1,
-      })
-      const boConvo = await bo.conversations.newConversation(
-        alixAddress,
-        undefined,
-        consentProofPayload
-      )
-      const conversations = await alix.conversations.list()
-      const convo = conversations.find((c) => c.topic === boConvo.topic)
-      expect(convo).toBeTruthy()
-      await alix.contacts.refreshConsentList()
-      const isApproved = await alix.contacts.isAllowed(bo.address)
-      expect(isApproved).toBeTruthy()
-      await alix.close()
-      await bo.close()
-    })
-
-    it('consent proof yields to network consent', async () => {
-      const bo = await newLocalHostClient()
-      const wallet = newWallet()
-      const keySigner = new WalletSigner(wallet)
-      const alixAddress = await keySigner.wallet.getAddress()
-      const alix = await Client.create(wallet, {
-        env: 'local',
-      })
-      const timestamp = Date.now()
-      const consentMessage = WalletSigner.consentProofRequestText(
-        bo.address,
-        timestamp
-      )
-      const signedMessage = await keySigner.wallet.signMessage(consentMessage)
-      const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
-        signature: signedMessage,
-        timestamp,
-        payloadVersion:
-          invitation.ConsentProofPayloadVersion.CONSENT_PROOF_PAYLOAD_VERSION_1,
-      })
-      const boConvo = await bo.conversations.newConversation(
-        alixAddress,
-        undefined,
-        consentProofPayload
-      )
-      await alix.contacts.deny([bo.address])
-      const conversations = await alix.conversations.list()
-      const convo = conversations.find((c) => c.topic === boConvo.topic)
-      expect(convo).toBeTruthy()
-      await alix.contacts.refreshConsentList()
-      const isDenied = await alix.contacts.isDenied(bo.address)
-      expect(isDenied).toBeTruthy()
-      await alix.close()
-      await bo.close()
-    })
-
-    it('consent proof correctly validates', async () => {
-      const bo = await newLocalHostClient()
-      const wallet = newWallet()
-      const keySigner = new WalletSigner(wallet)
-      const alixAddress = await keySigner.wallet.getAddress()
-      const alix = await Client.create(wallet, {
-        env: 'local',
-      })
-      const timestamp = Date.now()
-      const consentMessage = WalletSigner.consentProofRequestText(
-        bo.address,
-        timestamp + 1
-      )
-      const signedMessage = await keySigner.wallet.signMessage(consentMessage)
-      const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
-        signature: signedMessage,
-        timestamp,
-        payloadVersion:
-          invitation.ConsentProofPayloadVersion.CONSENT_PROOF_PAYLOAD_VERSION_1,
-      })
-      const boConvo = await bo.conversations.newConversation(
-        alixAddress,
-        undefined,
-        consentProofPayload
-      )
-      const conversations = await alix.conversations.list()
-      const convo = conversations.find((c) => c.topic === boConvo.topic)
-      expect(convo).toBeTruthy()
-      await alix.contacts.refreshConsentList()
-      const isAllowed = await alix.contacts.isAllowed(bo.address)
-      expect(isAllowed).toBeFalsy()
-      await alix.close()
-      await bo.close()
     })
   })
 })

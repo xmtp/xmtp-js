@@ -5,7 +5,6 @@ import type {
   messageApi,
 } from '@xmtp/proto'
 import Long from 'long'
-import { hashMessage, hexToBytes } from 'viem'
 import { SortDirection, type OnConnectionLostCallback } from '@/ApiClient'
 import type { ListMessagesOptions } from '@/Client'
 import type Client from '@/Client'
@@ -13,8 +12,6 @@ import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '@/crypto/PublicKeyBundle'
-import { ecdsaSignerKey, WalletSigner } from '@/crypto/Signature'
-import { splitSignature } from '@/crypto/utils'
 import type { InvitationContext } from '@/Invitation'
 import { DecodedMessage, MessageV1 } from '@/Message'
 import Stream from '@/Stream'
@@ -156,48 +153,7 @@ export default class Conversations<ContentTypes = any> {
       startTime,
       direction: SortDirection.SORT_DIRECTION_ASCENDING,
     })
-    const newConversations = await this.decodeInvites(envelopes)
-    newConversations.forEach((convo) => {
-      if (convo.consentProofPayload) {
-        this.handleConsentProof(convo.consentProofPayload, convo.peerAddress)
-      }
-    })
-    return newConversations
-  }
-
-  private async validateConsentSignature(
-    signature: `0x${string}`,
-    timestampMs: number,
-    peerAddress: string
-  ): Promise<boolean> {
-    const signatureData = splitSignature(signature)
-    const message = WalletSigner.consentProofRequestText(
-      peerAddress,
-      timestampMs
-    )
-    const digest = hexToBytes(hashMessage(message))
-    // Recover public key
-    const publicKey = ecdsaSignerKey(digest, signatureData)
-    return publicKey?.getEthereumAddress() === this.client.address
-  }
-
-  private async handleConsentProof(
-    consentProof: invitation.ConsentProofPayload,
-    peerAddress: string
-  ): Promise<void> {
-    const { signature, timestamp } = consentProof
-    const isValid = await this.validateConsentSignature(
-      signature as `0x${string}`,
-      Number(timestamp),
-      peerAddress
-    )
-    if (!isValid) {
-      return
-    }
-    const consentState = await this.client.contacts.consentState(peerAddress)
-    if (consentState === 'unknown') {
-      this.client.contacts.allow([peerAddress])
-    }
+    return this.decodeInvites(envelopes)
   }
 
   private async decodeInvites(
