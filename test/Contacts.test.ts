@@ -224,8 +224,6 @@ describe('Contacts', () => {
       expect(convo).toBeTruthy()
       const isApproved = await convo?.isAllowed
       expect(isApproved).toBe(true)
-      await alix.close()
-      await bo.close()
     })
 
     it('consent proof yields to network consent', async () => {
@@ -237,7 +235,6 @@ describe('Contacts', () => {
         env: 'local',
       })
       alix1.contacts.deny([bo.address])
-      await alix1.close()
       const alix2 = await Client.create(wallet, {
         env: 'local',
       })
@@ -264,8 +261,6 @@ describe('Contacts', () => {
       await alix2.contacts.refreshConsentList()
       const isDenied = await alix2.contacts.isDenied(bo.address)
       expect(isDenied).toBeTruthy()
-      await alix2.close()
-      await bo.close()
     })
 
     it('consent proof correctly validates', async () => {
@@ -299,8 +294,6 @@ describe('Contacts', () => {
       await alix.contacts.refreshConsentList()
       const isAllowed = await alix.contacts.isAllowed(bo.address)
       expect(isAllowed).toBeFalsy()
-      await alix.close()
-      await bo.close()
     })
   })
 })

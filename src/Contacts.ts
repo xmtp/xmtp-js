@@ -260,6 +260,15 @@ export class Contacts {
     timestampMs: number,
     peerAddress: string
   ): Promise<boolean> {
+    if (!signature || !timestampMs) {
+      return false
+    }
+    if (timestampMs > Date.now()) {
+      return false
+    }
+    if (timestampMs < Date.now() - 1000 * 60 * 60 * 24 * 30) {
+      return false
+    }
     const signatureData = splitSignature(signature)
     const message = WalletSigner.consentProofRequestText(
       peerAddress,
@@ -271,20 +280,28 @@ export class Contacts {
     return publicKey?.getEthereumAddress() === this.client.address
   }
 
-  private async handleConsentProof(
-    consentProof: invitation.ConsentProofPayload,
-    peerAddress: string
-  ): Promise<void> {
-    const { signature, timestamp } = consentProof
-    const isValid = await this.validateConsentSignature(
-      signature as `0x${string}`,
-      Number(timestamp),
-      peerAddress
+  private async handleConsentProofs(
+    consentProofs: {
+      consentProof: invitation.ConsentProofPayload
+      peerAddress: string
+    }[]
+  ) {
+    const validConsentProofAddresses: string[] = []
+    const validationResults = await Promise.allSettled(
+      consentProofs.map((proofItem) => {
+        return this.validateConsentSignature(
+          proofItem.consentProof.signature as `0x${string}`,
+          Number(proofItem.consentProof.timestamp),
+          proofItem.peerAddress
+        )
+      })
     )
-    if (!isValid) {
-      return
-    }
-    await this.client.contacts.allow([peerAddress])
+    validationResults.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value) {
+        validConsentProofAddresses.push(consentProofs[index].peerAddress)
+      }
+    })
+    this.client.contacts.allow(validConsentProofAddresses)
   }
 
   async loadConsentList(startTime?: Date) {
@@ -293,17 +310,24 @@ export class Contacts {
       const entries = await this.consentList.load(startTime ?? lastRun)
       try {
         const conversations = await this.client.conversations.list()
+        const consentProofs: {
+          consentProof: invitation.ConsentProofPayload
+          peerAddress: string
+        }[] = []
         conversations.forEach((conversation) => {
           if (
             conversation.consentProof &&
             this.consentState(conversation.peerAddress) === 'unknown'
           ) {
-            this.handleConsentProof(
-              conversation.consentProof,
-              conversation.peerAddress
-            )
+            consentProofs.push({
+              consentProof: conversation.consentProof,
+              peerAddress: conversation.peerAddress,
+            })
           }
         })
+        if (consentProofs.length) {
+          this.handleConsentProofs(consentProofs)
+        }
       } catch (err) {
         console.log(err)
       }
