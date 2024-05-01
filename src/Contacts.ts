@@ -255,21 +255,26 @@ export class Contacts {
     this.jobRunner = new JobRunner('user-preferences', client.keystore)
   }
 
-  private async validateConsentSignature(
-    signature: `0x${string}`,
-    timestampMs: number,
+  /**
+   * Validate the signature and timestamp of a consent proof
+   */
+  private validateConsentSignature(
+    { signature, timestamp }: invitation.ConsentProofPayload,
     peerAddress: string
-  ): Promise<boolean> {
+  ): boolean {
+    const timestampMs = Number(timestamp)
     if (!signature || !timestampMs) {
       return false
     }
+    // timestamp should be in the past
     if (timestampMs > Date.now()) {
       return false
     }
+    // timestamp should be within the last 30 days
     if (timestampMs < Date.now() - 1000 * 60 * 60 * 24 * 30) {
       return false
     }
-    const signatureData = splitSignature(signature)
+    const signatureData = splitSignature(signature as `0x${string}`)
     const message = WalletSigner.consentProofRequestText(
       peerAddress,
       timestampMs
@@ -280,58 +285,35 @@ export class Contacts {
     return publicKey?.getEthereumAddress() === this.client.address
   }
 
-  private async handleConsentProofs(
-    consentProofs: {
-      consentProof: invitation.ConsentProofPayload
-      peerAddress: string
-    }[]
-  ) {
-    const validConsentProofAddresses: string[] = []
-    const validationResults = await Promise.allSettled(
-      consentProofs.map((proofItem) => {
-        return this.validateConsentSignature(
-          proofItem.consentProof.signature as `0x${string}`,
-          Number(proofItem.consentProof.timestamp),
-          proofItem.peerAddress
-        )
-      })
-    )
-    validationResults.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value) {
-        validConsentProofAddresses.push(consentProofs[index].peerAddress)
-      }
-    })
-    this.client.contacts.allow(validConsentProofAddresses)
-  }
-
   async loadConsentList(startTime?: Date) {
     return this.jobRunner.run(async (lastRun) => {
       // allow for override of startTime
       const entries = await this.consentList.load(startTime ?? lastRun)
       try {
         const conversations = await this.client.conversations.list()
-        const consentProofs: {
-          consentProof: invitation.ConsentProofPayload
-          peerAddress: string
-        }[] = []
-        conversations.forEach((conversation) => {
-          if (
-            conversation.consentProof &&
-            this.consentState(conversation.peerAddress) === 'unknown'
-          ) {
-            consentProofs.push({
-              consentProof: conversation.consentProof,
-              peerAddress: conversation.peerAddress,
-            })
-          }
-        })
-        if (consentProofs.length) {
-          this.handleConsentProofs(consentProofs)
+        const validConsentProofAddresses: string[] = conversations.reduce(
+          (result, conversation) => {
+            if (
+              conversation.consentProof &&
+              this.consentState(conversation.peerAddress) === 'unknown' &&
+              this.validateConsentSignature(
+                conversation.consentProof,
+                conversation.peerAddress
+              )
+            ) {
+              return result.concat(conversation.peerAddress)
+            } else {
+              return result
+            }
+          },
+          [] as string[]
+        )
+        if (validConsentProofAddresses.length) {
+          this.client.contacts.allow(validConsentProofAddresses)
         }
       } catch (err) {
         console.log(err)
       }
-
       return entries
     })
   }
