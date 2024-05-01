@@ -159,6 +159,20 @@ export class WalletSigner implements KeySigner {
     )
   }
 
+  static consentProofRequestText(
+    peerAddress: string,
+    timestamp: number
+  ): string {
+    return (
+      'XMTP : Grant inbox consent to sender\n' +
+      '\n' +
+      `Current Time: ${timestamp}\n` +
+      `From Address: ${peerAddress}\n` +
+      '\n' +
+      'For more info: https://xmtp.org/signatures/'
+    )
+  }
+
   static signerKey(
     key: SignedPublicKey,
     signature: ECDSACompactWithRecovery

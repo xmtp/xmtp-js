@@ -279,6 +279,7 @@ export class DecodedMessage<ContentTypes = any> {
         context: this.conversation.context ?? undefined,
         createdNs: dateToNs(this.conversation.createdAt),
         peerAddress: this.conversation.peerAddress,
+        consentProofPayload: this.conversation.consentProof ?? undefined,
       },
       sentNs: dateToNs(this.sent),
     }).finish()
@@ -395,7 +396,8 @@ function conversationReferenceToConversation<ContentTypes>(
       reference.topic,
       reference.peerAddress,
       nsToDate(reference.createdNs),
-      reference.context
+      reference.context,
+      reference.consentProofPayload
     )
   }
   throw new Error(`Unknown conversation version ${version}`)

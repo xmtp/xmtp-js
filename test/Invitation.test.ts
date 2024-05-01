@@ -18,6 +18,7 @@ const createInvitation = (): InvitationV1 => {
     aes256GcmHkdfSha256: {
       keyMaterial: crypto.getRandomValues(new Uint8Array(32)),
     },
+    consentProof: undefined,
   })
 }
 
@@ -192,6 +193,7 @@ describe('Invitations', () => {
         aes256GcmHkdfSha256: {
           keyMaterial,
         },
+        consentProof: undefined,
       })
 
       expect(invite.topic).toEqual(topic)
@@ -213,6 +215,7 @@ describe('Invitations', () => {
             topic,
             context: undefined,
             aes256GcmHkdfSha256: { keyMaterial: new Uint8Array() },
+            consentProof: undefined,
           })
       ).toThrow('Missing key material')
 
@@ -222,6 +225,7 @@ describe('Invitations', () => {
             topic: '',
             context: undefined,
             aes256GcmHkdfSha256: { keyMaterial },
+            consentProof: undefined,
           })
       ).toThrow('Missing topic')
     })

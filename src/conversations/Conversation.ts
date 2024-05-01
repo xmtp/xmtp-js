@@ -1,6 +1,7 @@
 import {
   message,
   content as proto,
+  type invitation,
   type keystore,
   type messageApi,
 } from '@xmtp/proto'
@@ -84,6 +85,11 @@ export interface Conversation<ContentTypes = any> {
    * Returns the consent state of the conversation peer address
    */
   consentState: ConsentState
+
+  /**
+   * Proof of consent for the conversation, used when a user has pre-consented to a conversation
+   */
+  consentProof?: invitation.ConsentProofPayload
 
   /**
    * Retrieve messages in this conversation. Default to returning all messages.
@@ -502,19 +508,22 @@ export class ConversationV2<ContentTypes>
   peerAddress: string
   createdAt: Date
   context?: InvitationContext
+  consentProof?: invitation.ConsentProofPayload
 
   constructor(
     client: Client<ContentTypes>,
     topic: string,
     peerAddress: string,
     createdAt: Date,
-    context: InvitationContext | undefined
+    context: InvitationContext | undefined,
+    consentProof: invitation.ConsentProofPayload | undefined
   ) {
     this.topic = topic
     this.createdAt = createdAt
     this.context = context
     this.client = client
     this.peerAddress = peerAddress
+    this.consentProof = consentProof
   }
 
   get clientAddress() {
@@ -539,6 +548,10 @@ export class ConversationV2<ContentTypes>
 
   get consentState() {
     return this.client.contacts.consentState(this.peerAddress)
+  }
+
+  get consentProofPayload(): invitation.ConsentProofPayload | undefined {
+    return this.consentProof
   }
 
   /**
