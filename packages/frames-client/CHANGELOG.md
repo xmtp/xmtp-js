@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.5.1
+
+### Patch Changes
+
+- 3ffc491: bumped packages to pass postUrl through in frameInfo
+
 ## 0.5.0
 
 ### Minor Changes
