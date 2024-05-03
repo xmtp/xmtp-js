@@ -3,8 +3,7 @@ import { createConsentMessage } from ".";
 
 describe("createConsentMessage", () => {
   it("should return a signature", () => {
-    const date = new Date(2020, 1, 14);
-    const timestampMs = date.getTime();
+    const timestampMs = 1581663600000;
     const exampleAddress = "0x1234567890abcdef";
     const signatureMessage = createConsentMessage(exampleAddress, timestampMs);
     expect(signatureMessage).toEqual(
