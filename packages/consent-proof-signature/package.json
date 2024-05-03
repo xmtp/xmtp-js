@@ -1,7 +1,6 @@
 {
   "name": "@xmtp/consent-proof-signature",
   "version": "0.1.0",
-  "description": "",
   "keywords": [
     "xmtp",
     "messaging",
@@ -42,6 +41,13 @@
     "tsconfig.json"
   ],
   "scripts": {
+    "build": "yarn clean:lib && yarn rollup -c",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:lib",
+    "clean:lib": "rm -rf lib",
+    "dev": "yarn clean:lib && yarn rollup -c --watch",
+    "format": "yarn format:base -w .",
+    "format:base": "prettier --ignore-path ../../.gitignore",
+    "format:check": "yarn format:base -c .",
     "lint": "eslint . --ignore-path ../../.gitignore",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc",
@@ -59,12 +65,14 @@
       "last 3 safari versions"
     ]
   },
+  "dependencies": {
+    "@xmtp/proto": "3.56.0",
+    "long": "^5.2.3"
+  },
   "devDependencies": {
-    "@open-frames/types": "^0.0.7",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@xmtp/tsconfig": "workspace:*",
-    "@xmtp/xmtp-js": "^11.4.1",
     "eslint": "^8.57.0",
     "eslint-config-xmtp-web": "workspace:*",
     "ethers": "^6.11.1",
