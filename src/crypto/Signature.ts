@@ -161,12 +161,12 @@ export class WalletSigner implements KeySigner {
 
   static consentProofRequestText(
     peerAddress: string,
-    timestamp: number
+    timestampMs: number
   ): string {
     return (
       'XMTP : Grant inbox consent to sender\n' +
       '\n' +
-      `Current Time: ${timestamp}\n` +
+      `Current Time: ${new Date(timestampMs).toUTCString()}\n` +
       `From Address: ${peerAddress}\n` +
       '\n' +
       'For more info: https://xmtp.org/signatures/'
