@@ -7,7 +7,7 @@ describe("createConsentMessage", () => {
     const exampleAddress = "0x1234567890abcdef";
     const signatureMessage = createConsentMessage(exampleAddress, timestampMs);
     expect(signatureMessage).toEqual(
-      "XMTP : Grant inbox consent to sender\n\nCurrent Time: 1581663600000\nFrom Address: 0x1234567890abcdef\n\nFor more info: https://xmtp.org/signatures/",
+      "XMTP : Grant inbox consent to sender\n\nCurrent Time: Fri, 14 Feb 2020 07:00:00 GMT\nFrom Address: 0x1234567890abcdef\n\nFor more info: https://xmtp.org/signatures/",
     );
   });
 });

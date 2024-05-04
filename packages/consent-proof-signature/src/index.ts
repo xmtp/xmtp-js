@@ -12,7 +12,7 @@ export const createConsentMessage = (
 ): string =>
   "XMTP : Grant inbox consent to sender\n" +
   "\n" +
-  `Current Time: ${timestampMs}\n` +
+  `Current Time: ${new Date(timestampMs).toUTCString()}\n` +
   `From Address: ${peerAddress}\n` +
   "\n" +
   "For more info: https://xmtp.org/signatures/";
