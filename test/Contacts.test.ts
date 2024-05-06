@@ -1,3 +1,4 @@
+import { createConsentMessage } from '@xmtp/consent-proof-signature'
 import { invitation } from '@xmtp/proto'
 import Client from '@/Client'
 import { Contacts } from '@/Contacts'
@@ -202,10 +203,7 @@ describe('Contacts', () => {
         env: 'local',
       })
       const timestamp = Date.now()
-      const consentMessage = WalletSigner.consentProofRequestText(
-        bo.address,
-        timestamp
-      )
+      const consentMessage = createConsentMessage(bo.address, timestamp)
       const signedMessage = await keySigner.wallet.signMessage(consentMessage)
       const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
         signature: signedMessage,
@@ -239,10 +237,7 @@ describe('Contacts', () => {
         env: 'local',
       })
       const timestamp = Date.now()
-      const consentMessage = WalletSigner.consentProofRequestText(
-        bo.address,
-        timestamp
-      )
+      const consentMessage = createConsentMessage(bo.address, timestamp)
       const signedMessage = await keySigner.wallet.signMessage(consentMessage)
       const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
         signature: signedMessage,
@@ -272,10 +267,7 @@ describe('Contacts', () => {
         env: 'local',
       })
       const timestamp = Date.now()
-      const consentMessage = WalletSigner.consentProofRequestText(
-        bo.address,
-        timestamp + 1
-      )
+      const consentMessage = createConsentMessage(bo.address, timestamp + 1)
       const signedMessage = await keySigner.wallet.signMessage(consentMessage)
       const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
         signature: signedMessage,
