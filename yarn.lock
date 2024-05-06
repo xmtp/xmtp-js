@@ -3154,6 +3154,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/consent-proof-signature@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@xmtp/consent-proof-signature@npm:0.1.2"
+  dependencies:
+    "@xmtp/proto": "npm:3.56.0"
+    long: "npm:^5.2.3"
+  checksum: 10/d7701a98c72b5ca985dbeb5f676a7475e9db25fa5e7b560885d32740d3cc5821249252e5832e758b2dc45fee2794ff47b8d1d972dff3da9d6bc2720fd5537c3c
+  languageName: node
+  linkType: hard
+
 "@xmtp/proto@npm:3.54.0":
   version: 3.54.0
   resolution: "@xmtp/proto@npm:3.54.0"
@@ -3163,6 +3173,18 @@ __metadata:
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
   checksum: 10/536b846b234bdf49978716b232b6a25985a55bb0c10c825b090354cb43f0b071ee506e5a9765c69deb0e6a4b9aa4cd61abe2c9d2df563cfd6ec121197b591844
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:3.56.0":
+  version: 3.56.0
+  resolution: "@xmtp/proto@npm:3.56.0"
+  dependencies:
+    long: "npm:^5.2.0"
+    protobufjs: "npm:^7.0.0"
+    rxjs: "npm:^7.8.0"
+    undici: "npm:^5.8.1"
+  checksum: 10/f752e6858692464319d6f22861fe8f23c46d9bb0eb390fe2220e0b4932a4de84be2e9e1cbafc0200e1bfe2a0ed3a3fb6079941630e57fb80e6325bc2a52bf10d
   languageName: node
   linkType: hard
 
@@ -3206,6 +3228,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.2.0"
     "@typescript-eslint/parser": "npm:^7.2.0"
     "@vitest/coverage-v8": "npm:^1.3.1"
+    "@xmtp/consent-proof-signature": "npm:^0.1.2"
     "@xmtp/proto": "npm:3.54.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:1.0.1"
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"

@@ -1,6 +1,7 @@
+import { createConsentMessage } from '@xmtp/consent-proof-signature'
 import { privatePreferences, type invitation } from '@xmtp/proto'
 import { hashMessage, hexToBytes } from 'viem'
-import { ecdsaSignerKey, WalletSigner } from '@/crypto/Signature'
+import { ecdsaSignerKey } from '@/crypto/Signature'
 import { splitSignature } from '@/crypto/utils'
 import type { EnvelopeWithMessage } from '@/utils/async'
 import { fromNanoString } from '@/utils/date'
@@ -275,10 +276,7 @@ export class Contacts {
       return false
     }
     const signatureData = splitSignature(signature as `0x${string}`)
-    const message = WalletSigner.consentProofRequestText(
-      peerAddress,
-      timestampMs
-    )
+    const message = createConsentMessage(peerAddress, timestampMs)
     const digest = hexToBytes(hashMessage(message))
     // Recover public key
     const publicKey = ecdsaSignerKey(digest, signatureData)
