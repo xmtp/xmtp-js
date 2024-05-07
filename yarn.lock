@@ -3229,7 +3229,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.1.3"
     eslint-plugin-promise: "npm:^6.1.1"
     ethers: "npm:^5.7.2"
-    happy-dom: "npm:^13.7.3"
+    happy-dom: "npm:^14.10.1"
     husky: "npm:^7.0.4"
     long: "npm:^5.2.3"
     prettier: "npm:^3.2.5"
@@ -6284,14 +6284,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^13.7.3":
-  version: 13.7.3
-  resolution: "happy-dom@npm:13.7.3"
+"happy-dom@npm:^14.10.1":
+  version: 14.10.1
+  resolution: "happy-dom@npm:14.10.1"
   dependencies:
     entities: "npm:^4.5.0"
     webidl-conversions: "npm:^7.0.0"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/51bd72567b1f5146b703cfe4a5cb083a3ba6b9e38e829053e91b9ac4f98240550e28fc7888e60c02b13107fdf438578befe0ab72327dedd3ce02dff292a5c242
+  checksum: 10/e9dcdc6977c494ecd75126b01d895b5d34c654886a4f2752da2ce010ae85e623e4dcd4e7ab707b425f1294fee270858fc3910e684a671b65f9931b97a2a7857f
   languageName: node
   linkType: hard
 
