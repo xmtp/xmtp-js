@@ -12,6 +12,3 @@ if ! which docker &>/dev/null; then
 fi
 
 dev/docker-compose up -d
-
-npm install
-npx husky install
