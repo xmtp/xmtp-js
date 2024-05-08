@@ -307,7 +307,7 @@ export class Contacts {
           [] as string[]
         )
         if (validConsentProofAddresses.length) {
-          this.client.contacts.allow(validConsentProofAddresses)
+          await this.client.contacts.allow(validConsentProofAddresses)
         }
       } catch (err) {
         console.log(err)

@@ -258,7 +258,7 @@ describe('Contacts', () => {
       expect(isDenied).toBeTruthy()
     })
 
-    it('consent proof correctly validates', async () => {
+    it('consent proof should not approve for invalid signature', async () => {
       const bo = await newLocalHostClient()
       const wallet = newWallet()
       const keySigner = new WalletSigner(wallet)
@@ -266,12 +266,17 @@ describe('Contacts', () => {
       const alix = await Client.create(wallet, {
         env: 'local',
       })
+      const initialIsAllowed = await alix.contacts.isAllowed(bo.address)
+      expect(
+        initialIsAllowed,
+        'Should be not be allowed by default'
+      ).toBeFalsy()
       const timestamp = Date.now()
-      const consentMessage = createConsentMessage(bo.address, timestamp + 1)
+      const consentMessage = createConsentMessage(bo.address, timestamp)
       const signedMessage = await keySigner.wallet.signMessage(consentMessage)
       const consentProofPayload = invitation.ConsentProofPayload.fromPartial({
         signature: signedMessage,
-        timestamp,
+        timestamp: timestamp + 1000,
         payloadVersion:
           invitation.ConsentProofPayloadVersion.CONSENT_PROOF_PAYLOAD_VERSION_1,
       })

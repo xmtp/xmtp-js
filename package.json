@@ -1,161 +1,33 @@
 {
-  "name": "@xmtp/xmtp-js",
-  "version": "0.0.0-development",
-  "description": "XMTP client SDK for interacting with XMTP networks.",
-  "keywords": [
-    "xmtp",
-    "messaging",
-    "web3",
-    "sdk",
-    "js",
-    "javascript",
-    "node",
-    "nodejs"
-  ],
-  "homepage": "https://github.com/xmtp/xmtp-js",
-  "bugs": {
-    "url": "https://github.com/xmtp/xmtp-js/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https:git@github.com:xmtp/xmtp-js.git"
-  },
-  "license": "MIT",
-  "author": "XMTP Labs <eng@xmtp.com>",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "browser": "./dist/browser/index.js",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./node": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./node/esm": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./node/cjs": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.cjs"
-    },
-    "./browser": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/browser/index.js"
-    },
-    "./browser/bundler": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/bundler/index.js"
-    }
-  },
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "browser": "dist/browser/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "src",
-    "tsconfig.json"
+  "name": "xmtp-js",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
-    "autolint": "prettier --write . && eslint --fix .",
-    "bench": "yarn build:bench && node dist/bench/index.cjs",
-    "build": "yarn clean:dist && rollup -c",
-    "build:bench": "rollup -c rollup.config.bench.js",
-    "build:docs": "yarn clean:docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc",
-    "clean": "yarn clean:artifacts && yarn clean:dist && yarn clean:docs && yarn clean:deps",
-    "clean:artifacts": "rm -rf docs tmp package.tgz",
-    "clean:deps": "rm -rf node_modules",
-    "clean:dist": "rm -rf dist",
-    "clean:docs": "rm -rf docs",
-    "format": "prettier -w .",
-    "format:check": "prettier -c .",
-    "lint": "eslint .",
-    "package": "yarn pack",
-    "prepublishOnly": "yarn build",
-    "semantic-release": "semantic-release",
-    "test": "yarn test:node",
-    "test:browser": "vitest run --environment happy-dom",
-    "test:cov": "vitest run --coverage",
-    "test:node": "vitest run",
+    "build": "turbo run build --filter='./packages/*'",
+    "clean": "turbo run clean && rm -rf node_modules && yarn cache clean",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "lint": "FORCE_COLOR=1 turbo run lint",
+    "publish": "yarn build && changeset publish",
+    "test": "FORCE_COLOR=1 turbo run test",
     "test:setup": "./dev/up",
     "test:teardown": "./dev/down",
-    "typecheck": "tsc",
-    "updateSnapVersion": "yarn npm info @xmtp/snap --json | jq '{\"version\": .version, \"packageName\": .name}' > ./src/snapInfo.json"
-  },
-  "release": {
-    "branches": [
-      "main",
-      {
-        "name": "beta",
-        "prerelease": true
-      }
-    ]
+    "typecheck": "FORCE_COLOR=1 turbo run typecheck"
   },
   "dependencies": {
-    "@noble/secp256k1": "1.7.1",
-    "@xmtp/consent-proof-signature": "^0.1.2",
-    "@xmtp/proto": "3.54.0",
-    "@xmtp/user-preferences-bindings-wasm": "^0.3.6",
-    "async-mutex": "^0.5.0",
-    "elliptic": "^6.5.4",
-    "long": "^5.2.3",
-    "viem": "2.7.15"
+    "@changesets/changelog-git": "^0.2.0",
+    "@changesets/cli": "^2.27.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "19.0.3",
-    "@commitlint/config-conventional": "19.0.3",
-    "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
-    "@metamask/providers": "^14.0.2",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "@types/benchmark": "^2.1.5",
-    "@types/bl": "^5.1.0",
-    "@types/callback-to-async-iterator": "^1.1.7",
-    "@types/elliptic": "^6.4.18",
-    "@types/node": "^18.19.23",
-    "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.8.0",
-    "@vitest/coverage-v8": "^1.6.0",
-    "@xmtp/rollup-plugin-resolve-extensions": "1.0.1",
-    "benny": "^3.7.1",
-    "dd-trace": "5.5.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsdoc": "^48.2.3",
-    "eslint-plugin-n": "^17.5.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "eslint-plugin-promise": "^6.1.1",
-    "ethers": "^5.7.2",
-    "happy-dom": "^14.10.1",
-    "husky": "^7.0.4",
     "prettier": "^3.2.5",
-    "prettier-plugin-packagejson": "^2.5.0",
-    "rollup": "^4.17.2",
-    "rollup-plugin-dts": "^6.1.0",
-    "rollup-plugin-filesize": "^10.0.0",
-    "rollup-plugin-tsconfig-paths": "^1.5.2",
-    "semantic-release": "^21.1.2",
-    "typedoc": "^0.25.13",
-    "typescript": "^5.4.5",
-    "vite": "5.2.11",
-    "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^1.6.0"
+    "prettier-plugin-packagejson": "^2.4.12",
+    "turbo": "^1.12.5"
   },
   "packageManager": "yarn@4.1.0",
   "engines": {
     "node": ">=18"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   }
 }
