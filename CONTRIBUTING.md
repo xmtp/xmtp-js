@@ -53,3 +53,9 @@ Manual validation requires setting up a client app such as the [example app](htt
 ## 🚢 Publishing
 
 This repository uses [changesets](https://github.com/changesets/changesets) to publish updates. Pull requests must contain a changeset in order for changes to be published. The [changeset-bot](https://github.com/apps/changeset-bot) will guide you through this process.
+
+### Beta releases
+
+To begin development on a beta release, make sure the `beta` branch is up to date with the `main` branch. Create a new branch from the `beta` branch. After merging your changes into the `beta` branch, you must create a PR from the `beta` branch into the `releases/beta` branch. Once merged, a beta release will be published to the NPM registry.
+
+After the beta period has ended, merge the latest `beta` branch into `main` to publish a production release with the changes.
