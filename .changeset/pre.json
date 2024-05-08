@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@xmtp/xmtp-js": "11.6.1"
+  },
+  "changesets": []
+}
