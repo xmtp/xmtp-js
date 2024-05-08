@@ -77,8 +77,6 @@
     "format:check": "yarn format:base -c .",
     "lint": "eslint . --ignore-path ../../.gitignore",
     "package": "yarn pack",
-    "prepublishOnly": "yarn build",
-    "semantic-release": "semantic-release",
     "test": "yarn test:node",
     "test:browser": "vitest run --environment happy-dom",
     "test:cov": "vitest run --coverage",
@@ -87,15 +85,6 @@
     "test:teardown": "./dev/down",
     "typecheck": "tsc",
     "updateSnapVersion": "yarn npm info @xmtp/snap --json | jq '{\"version\": .version, \"packageName\": .name}' > ./src/snapInfo.json"
-  },
-  "release": {
-    "branches": [
-      "main",
-      {
-        "name": "beta",
-        "prerelease": true
-      }
-    ]
   },
   "dependencies": {
     "@noble/secp256k1": "1.7.1",
@@ -141,7 +130,6 @@
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
-    "semantic-release": "^21.1.2",
     "typedoc": "^0.25.13",
     "typescript": "^5.4.5",
     "vite": "5.2.11",
