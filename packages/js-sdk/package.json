@@ -81,8 +81,6 @@
     "test:browser": "vitest run --environment happy-dom",
     "test:cov": "vitest run --coverage",
     "test:node": "vitest run",
-    "test:setup": "./dev/up",
-    "test:teardown": "./dev/down",
     "typecheck": "tsc",
     "updateSnapVersion": "yarn npm info @xmtp/snap --json | jq '{\"version\": .version, \"packageName\": .name}' > ./src/snapInfo.json"
   },
