@@ -52,6 +52,7 @@ build
 
 # typedocs
 docs
+tmp
 
 # next.js
 .next
