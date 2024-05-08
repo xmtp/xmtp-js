@@ -35,8 +35,8 @@ This repository uses the [Yarn package manager](https://yarnpkg.com/). To use it
 ### Useful commands
 
 - `yarn`: Installs all dependencies
-- `yarn bench`: Run the benchmarking suite
-- `yarn build`: Builds the JS SDK
+- `yarn build`: Builds all packages in the `/packages` folder
+- `yarn clean`: Remove all `node_modules`, `.turbo`, and build folders, clear Yarn cache
 - `yarn format`: Run prettier format and write changes
 - `yarn format:check`: Run prettier format check
 - `yarn test`: Run the unit test suite
@@ -50,29 +50,6 @@ Please add unit tests when appropriate and ensure that all unit tests are passin
 
 Manual validation requires setting up a client app such as the [example app](https://github.com/xmtp/example-chat-react). Once you have cloned and run the example app, it will use a published npm version of `xmtp-js` by default. You can point it to your local `xmtp-js` repository by using `yarn link` or `npm link` from the `example-chat-react` directory, which will update its `package.json`. Once the example app is running, any further changes you make to `xmtp-js` will be reflected in the app after you run `yarn build` in the `xmtp-js` directory and then reload the app.
 
-### Auto-releasing and commit conventions
+## 🚢 Publishing
 
-A new version of this package will be automatically published whenever there is a merge to the `main` branch. Specifically, new GitHub releases and tags will be created, and a new NPM package version will be published. The release version increment type is derived from the format of the commit messages that were bundled in the merge to `main`, using [semantic-release commit message conventions](https://github.com/semantic-release/semantic-release#commit-message-format).
-
-The table below shows example commits and the resulting release type for a `pencil` project:
-
-<!-- prettier-ignore-start -->
-| Commit message                                                                                                                                                                                   | Release type                                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `docs: describe scribble feature` | No Release |
-| `test: fix failing unit test` | No Release |
-| `fix: stop graphite breaking when too much pressure applied` | ~~Patch~~ Fix Release |
-| `feat: add 'graphiteWidth' option` | ~~Minor~~ Feature Release |
-| `perf: remove graphiteWidth option`<br><br>`BREAKING CHANGE: The graphiteWidth option has been removed.`<br>`The default graphite width of 10mm is always used for performance reasons.` | ~~Major~~ Breaking Release <br /> (Note that the `BREAKING CHANGE:` token must be in the footer of the commit) |
-<!-- prettier-ignore-end -->
-
-This is currently configured to use the [Angular Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format). e.g. `feat: add message signing` would cause a minor release.
-
-If there are multiple commits within a single pull request, each commit will be listed as a separate bullet point in the [release notes](https://github.com/xmtp/xmtp-js/releases) and bundled together in a release of the highest increment type specified.
-
-If your commit messages are not to your liking, it is permitted to rewrite the history on your branch and force-push it before merging it. Make sure you are never force-pushing on `main`, and that the following is in your `~/.gitconfig` file.
-
-```
-[push]
-	default = simple
-```
+This repository uses [changesets](https://github.com/changesets/changesets) to publish updates. Pull requests must contain a changeset in order for changes to be published. The [changeset-bot](https://github.com/apps/changeset-bot) will guide you through this process.
