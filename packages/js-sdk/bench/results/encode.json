@@ -1,0 +1,51 @@
+{
+  "name": "encode",
+  "date": "2024-03-12T05:53:10.109Z",
+  "version": null,
+  "results": [
+    {
+      "name": "encode and encrypt a 128 byte v1 message",
+      "ops": 141,
+      "margin": 0.32,
+      "percentSlower": 95.88
+    },
+    {
+      "name": "encode and encrypt a 65536 byte v1 message",
+      "ops": 138,
+      "margin": 0.64,
+      "percentSlower": 95.97
+    },
+    {
+      "name": "encode and encrypt a 524288 byte v1 message",
+      "ops": 99,
+      "margin": 0.54,
+      "percentSlower": 97.11
+    },
+    {
+      "name": "encode and encrypt a 128 byte v2 message",
+      "ops": 3426,
+      "margin": 0.79,
+      "percentSlower": 0
+    },
+    {
+      "name": "encode and encrypt a 65536 byte v2 message",
+      "ops": 1187,
+      "margin": 1.04,
+      "percentSlower": 65.35
+    },
+    {
+      "name": "encode and encrypt a 524288 byte v2 message",
+      "ops": 254,
+      "margin": 0.54,
+      "percentSlower": 92.59
+    }
+  ],
+  "fastest": {
+    "name": "encode and encrypt a 128 byte v2 message",
+    "index": 3
+  },
+  "slowest": {
+    "name": "encode and encrypt a 524288 byte v1 message",
+    "index": 2
+  }
+}

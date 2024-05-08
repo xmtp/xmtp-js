@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" />
+    <title>encode</title>
+  </head>
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>name</th><th>ops</th><th>margin</th><th>percentSlower</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>encode and encrypt a 128 byte v1 message</td><td>141</td><td>0.32</td><td>95.88</td>
+        </tr><tr>
+          <td>encode and encrypt a 65536 byte v1 message</td><td>138</td><td>0.64</td><td>95.97</td>
+        </tr><tr>
+          <td>encode and encrypt a 524288 byte v1 message</td><td>99</td><td>0.54</td><td>97.11</td>
+        </tr><tr>
+          <td>encode and encrypt a 128 byte v2 message</td><td>3426</td><td>0.79</td><td>0</td>
+        </tr><tr>
+          <td>encode and encrypt a 65536 byte v2 message</td><td>1187</td><td>1.04</td><td>65.35</td>
+        </tr><tr>
+          <td>encode and encrypt a 524288 byte v2 message</td><td>254</td><td>0.54</td><td>92.59</td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
