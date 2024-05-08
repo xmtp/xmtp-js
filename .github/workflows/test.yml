@@ -21,7 +21,7 @@ jobs:
         run: corepack enable
       - name: Install dependencies
         run: yarn
-      - run: ./dev/docker-compose up -d
+      - run: ./dev/up
       - run: yarn test:node
         env:
           NODE_OPTIONS: '-r dd-trace/ci/init'
@@ -45,5 +45,5 @@ jobs:
         run: corepack enable
       - name: Install dependencies
         run: yarn
-      - run: ./dev/docker-compose up -d
+      - run: ./dev/up
       - run: yarn test:browser

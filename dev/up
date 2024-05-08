@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-if [[ $OSTYPE != 'darwin'* ]]; then
-    echo "MacOS required to run dev/up"
-    exit 1
-fi
-
 if ! which docker &>/dev/null; then
     echo "Docker required to run dev/up. Install it and run this again."
     exit 1
