@@ -1,0 +1,33 @@
+{
+  "name": "xmtp-js",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build --filter='./packages/*'",
+    "clean": "turbo run clean && rm -rf node_modules && yarn cache clean",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "lint": "FORCE_COLOR=1 turbo run lint",
+    "publish": "yarn build && changeset publish",
+    "test": "FORCE_COLOR=1 turbo run test",
+    "test:setup": "./dev/up",
+    "test:teardown": "./dev/down",
+    "typecheck": "FORCE_COLOR=1 turbo run typecheck"
+  },
+  "dependencies": {
+    "@changesets/changelog-git": "^0.2.0",
+    "@changesets/cli": "^2.27.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "prettier-plugin-packagejson": "^2.4.12",
+    "turbo": "^1.12.5"
+  },
+  "packageManager": "yarn@4.1.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
