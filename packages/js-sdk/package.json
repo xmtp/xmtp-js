@@ -62,7 +62,6 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "autolint": "prettier --write . && eslint --fix .",
     "bench": "yarn build:bench && node dist/bench/index.cjs",
     "build": "yarn clean:dist && rollup -c",
     "build:bench": "rollup -c rollup.config.bench.js",
