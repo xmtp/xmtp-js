@@ -2853,13 +2853,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/consent-proof-signature@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@xmtp/consent-proof-signature@npm:0.1.2"
+"@xmtp/consent-proof-signature@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "@xmtp/consent-proof-signature@npm:0.1.3"
   dependencies:
     "@xmtp/proto": "npm:3.56.0"
     long: "npm:^5.2.3"
-  checksum: 10/d7701a98c72b5ca985dbeb5f676a7475e9db25fa5e7b560885d32740d3cc5821249252e5832e758b2dc45fee2794ff47b8d1d972dff3da9d6bc2720fd5537c3c
+  checksum: 10/24f3c5298a951cbf561c7986ffba670400560b94ce51f1ace5b29f98c899c554e13f01b370752e2a9159ccb885d7a0031e75f6d96816c81d799df877bd59715f
   languageName: node
   linkType: hard
 
@@ -2925,7 +2925,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.8.0"
     "@typescript-eslint/parser": "npm:^7.8.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
-    "@xmtp/consent-proof-signature": "npm:^0.1.2"
+    "@xmtp/consent-proof-signature": "npm:^0.1.3"
     "@xmtp/proto": "npm:3.54.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:1.0.1"
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"
