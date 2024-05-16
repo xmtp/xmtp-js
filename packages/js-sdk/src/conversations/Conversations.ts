@@ -477,6 +477,18 @@ export default class Conversations<ContentTypes = any> {
     context?: InvitationContext,
     consentProof?: invitation.ConsentProofPayload
   ): Promise<Conversation<ContentTypes>> {
+    // Define a function for matching V2 conversations
+    const matcherFn = (convo: Conversation<ContentTypes>) =>
+      convo.peerAddress.toLowerCase() === peerAddress.toLowerCase() &&
+      isMatchingContext(context, convo.context ?? undefined)
+
+    // Check if we already have a V2 conversation with the peer in keystore
+    const existing = await this.getV2ConversationsFromKeystore()
+    const existingMatch = existing.find(matcherFn)
+    if (existingMatch) {
+      return existingMatch
+    }
+
     let contact = await this.client.getUserContact(peerAddress)
     if (!contact) {
       throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
@@ -519,17 +531,6 @@ export default class Conversations<ContentTypes = any> {
     // Coerce the contact into a V2 bundle
     if (contact instanceof PublicKeyBundle) {
       contact = SignedPublicKeyBundle.fromLegacyBundle(contact)
-    }
-
-    // Define a function for matching V2 conversations
-    const matcherFn = (convo: Conversation<ContentTypes>) =>
-      convo.peerAddress.toLowerCase() === peerAddress.toLowerCase() &&
-      isMatchingContext(context, convo.context ?? undefined)
-
-    const existing = await this.getV2ConversationsFromKeystore()
-    const existingMatch = existing.find(matcherFn)
-    if (existingMatch) {
-      return existingMatch
     }
 
     return this.v2JobRunner.run(async (lastRun) => {
