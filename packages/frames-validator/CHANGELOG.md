@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.6.1
+
+### Patch Changes
+
+- [#232](https://github.com/xmtp/xmtp-node-js-tools/pull/232) [`15c5032`](https://github.com/xmtp/xmtp-node-js-tools/commit/15c50320b06a80e50d666fa36da201cc754d3d68) Thanks [@daria-github](https://github.com/daria-github)! - Bumped version of proto package.
+
 ## 0.6.0
 
 ### Minor Changes
