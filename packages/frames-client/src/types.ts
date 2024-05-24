@@ -45,6 +45,7 @@ export type FrameActionInputs = {
   inputText?: string;
   state?: string;
   address?: string;
+  transactionId?: string;
 } & ConversationActionInputs;
 
 type KeyType = {
