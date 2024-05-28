@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.5.2
+
+### Patch Changes
+
+- 7db2728: adds transactionId to type
+
 ## 0.5.1
 
 ### Patch Changes
