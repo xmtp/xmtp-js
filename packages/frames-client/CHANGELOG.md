@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.5.3
+
+### Patch Changes
+
+- 815ef8f: fix for transaction id
+
 ## 0.5.2
 
 ### Patch Changes
