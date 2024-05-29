@@ -25,6 +25,7 @@ describe("signFrameAction", () => {
       participantAccountAddresses: ["amal", "bola"],
       state: "state",
       address: "0x...",
+      transactionId: "123",
     });
 
     // Below addresses are typically the same but can technically be different
@@ -33,6 +34,8 @@ describe("signFrameAction", () => {
 
     // address references the address associated with initiating a transaction
     expect(signedPayload.untrustedData.address).toEqual("0x...");
+    expect(signedPayload.untrustedData.transactionId).toEqual("123");
+
     expect(signedPayload.untrustedData.url).toEqual(frameUrl);
     expect(signedPayload.untrustedData.buttonIndex).toEqual(buttonIndex);
     expect(
