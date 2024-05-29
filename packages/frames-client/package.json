@@ -71,7 +71,7 @@
     "long": "^5.2.3"
   },
   "devDependencies": {
-    "@open-frames/types": "^0.1.0",
+    "@open-frames/types": "^0.1.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@xmtp/tsconfig": "workspace:*",

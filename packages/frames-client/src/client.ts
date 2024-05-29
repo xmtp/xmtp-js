@@ -63,6 +63,7 @@ export class FramesClient {
         state,
         // The address associated with initiating a transaction
         address,
+        transactionId,
       },
       trustedData: {
         messageBytes: base64Encode(signedAction),
