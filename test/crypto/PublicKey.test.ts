@@ -20,6 +20,10 @@ describe('Crypto', function () {
       const keySigner = new WalletSigner(wallet)
       const idPri = await SignedPrivateKey.generate(keySigner)
       const idPub = idPri.publicKey
+      // idPub.keyBytes
+      console.log(await keySigner.wallet.getAddress())
+      console.log(JSON.stringify(idPri))
+      console.log(JSON.stringify(idPri.toBytes()))
       const prePri = await SignedPrivateKey.generate(idPri)
       const prePub = prePri.publicKey
       assert.ok(idPub.verifyKey(prePub))

@@ -52,6 +52,8 @@ export default class NetworkKeyManager {
       return null
     }
 
+    // Here!
+
     const [bundle, needsUpdate] = await this.fromEncryptedBytes(
       this.signer,
       Uint8Array.from(storageBuffer)

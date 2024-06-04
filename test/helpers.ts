@@ -85,6 +85,7 @@ export function newWallet(): Wallet {
   if (!key.secp256k1) {
     throw new Error('invalid key')
   }
+  console.log('key.secp256k1.bytes', key.secp256k1.bytes)
   return new Wallet(key.secp256k1.bytes)
 }
 
