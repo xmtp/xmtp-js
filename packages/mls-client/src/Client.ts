@@ -2,8 +2,9 @@ import { join } from 'node:path'
 import process from 'node:process'
 import {
   createClient,
+  NapiGroupMessageKind,
   type NapiClient,
-  type NapiEncodedContent,
+  type NapiMessage,
 } from '@xmtp/mls-client-bindings-node'
 import {
   TextCodec,
@@ -11,7 +12,10 @@ import {
   type ContentTypeId,
   type EncodedContent,
 } from '@xmtp/xmtp-js'
-import { GroupUpdatedCodec } from '@/codecs/GroupUpdatedCodec'
+import {
+  ContentTypeGroupUpdated,
+  GroupUpdatedCodec,
+} from '@/codecs/GroupUpdatedCodec'
 import { Conversations } from '@/Conversations'
 
 export const ApiUrls = {
@@ -168,11 +172,20 @@ export class Client {
     return encoded
   }
 
-  decodeContent(content: NapiEncodedContent, contentType: ContentTypeId) {
+  decodeContent(message: NapiMessage, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType)
     if (!codec) {
       throw new Error(`no codec for ${contentType.toString()}`)
     }
-    return codec.decode(content as EncodedContent, this)
+
+    // throw an error if there's an invalid group membership change message
+    if (
+      contentType.sameAs(ContentTypeGroupUpdated) &&
+      message.kind !== NapiGroupMessageKind.MembershipChange
+    ) {
+      throw new Error('Error decoding group membership change')
+    }
+
+    return codec.decode(message.content as EncodedContent, this)
   }
 }

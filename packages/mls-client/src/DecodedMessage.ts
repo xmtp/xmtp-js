@@ -60,6 +60,6 @@ export class DecodedMessage {
     this.parameters = message.content.parameters
     this.fallback = message.content.fallback
     this.compression = message.content.compression
-    this.content = this.#client.decodeContent(message.content, this.contentType)
+    this.content = this.#client.decodeContent(message, this.contentType)
   }
 }
