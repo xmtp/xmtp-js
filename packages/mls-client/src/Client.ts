@@ -12,7 +12,6 @@ import {
   type EncodedContent,
 } from '@xmtp/xmtp-js'
 import { GroupUpdatedCodec } from '@/codecs/GroupUpdatedCodec'
-import { MembershipChangeCodec } from '@/codecs/MembershipChangeCodec'
 import { Conversations } from '@/Conversations'
 
 export const ApiUrls = {
@@ -96,12 +95,7 @@ export class Client {
         accountAddress,
         options?.encryptionKey
       ),
-      [
-        new MembershipChangeCodec(),
-        new GroupUpdatedCodec(),
-        new TextCodec(),
-        ...(options?.codecs ?? []),
-      ]
+      [new GroupUpdatedCodec(), new TextCodec(), ...(options?.codecs ?? [])]
     )
   }
 
