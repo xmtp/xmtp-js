@@ -2883,7 +2883,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^1.6.0"
     "@xmtp/mls-client-bindings-node": "npm:^0.0.1"
     "@xmtp/proto": "npm:^3.61.1"
-    "@xmtp/xmtp-js": "workspace:*"
+    "@xmtp/xmtp-js": "npm:^11.6.2"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-config-standard: "npm:^17.1.0"
@@ -2963,7 +2963,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/xmtp-js@workspace:*, @xmtp/xmtp-js@workspace:packages/js-sdk":
+"@xmtp/xmtp-js@npm:^11.6.2, @xmtp/xmtp-js@workspace:packages/js-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/xmtp-js@workspace:packages/js-sdk"
   dependencies:
