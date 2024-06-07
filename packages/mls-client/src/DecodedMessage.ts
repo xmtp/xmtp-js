@@ -5,6 +5,7 @@ import {
 } from '@xmtp/mls-client-bindings-node'
 import { ContentTypeId } from '@xmtp/xmtp-js'
 import type { Client } from '@/Client'
+import type { Conversation } from '@/Conversation'
 import { nsToDate } from '@/helpers/date'
 
 export type MessageKind = 'application' | 'membership_change'
@@ -14,6 +15,7 @@ export class DecodedMessage {
   #client: Client
   content: any
   contentType: ContentTypeId
+  conversation: Conversation
   conversationId: string
   deliveryStatus: MessageDeliveryStatus
   fallback?: string
@@ -25,8 +27,13 @@ export class DecodedMessage {
   sentAt: Date
   sentAtNs: number
 
-  constructor(client: Client, message: NapiMessage) {
+  constructor(
+    client: Client,
+    conversation: Conversation,
+    message: NapiMessage
+  ) {
     this.#client = client
+    this.conversation = conversation
     this.id = message.id
     this.sentAtNs = message.sentAtNs
     this.sentAt = nsToDate(message.sentAtNs)

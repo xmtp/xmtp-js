@@ -80,7 +80,7 @@ export class Conversation {
 
   stream() {
     const asyncStream = new AsyncStream<NapiMessage, DecodedMessage>(
-      (message) => new DecodedMessage(this.#client, message)
+      (message) => new DecodedMessage(this.#client, this, message)
     )
     const stream = this.#group.stream(asyncStream.callback)
     asyncStream.stopCallback = stream.end.bind(stream)
@@ -126,6 +126,6 @@ export class Conversation {
   messages(options?: NapiListMessagesOptions): DecodedMessage[] {
     return this.#group
       .findMessages(options)
-      .map((message) => new DecodedMessage(this.#client, message))
+      .map((message) => new DecodedMessage(this.#client, this, message))
   }
 }
