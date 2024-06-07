@@ -22,7 +22,7 @@ describe('Conversations', () => {
     expect(conversation.createdAt).toBeDefined()
     expect(conversation.createdAtNs).toBeDefined()
     expect(conversation.isActive).toBe(true)
-    expect(conversation.name).toBe('New Group')
+    expect(conversation.name).toBe('')
     expect(conversation.addedByInboxId).toBe(client1.inboxId)
     expect(conversation.messages().length).toBe(1)
     expect(conversation.members.length).toBe(2)

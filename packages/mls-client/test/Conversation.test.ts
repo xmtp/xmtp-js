@@ -158,4 +158,56 @@ describe('Conversation', () => {
     }
     stream.stop()
   })
+
+  it('should add and remove admins', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    const client2 = await createRegisteredClient(user2)
+    const conversation = await client1.conversations.newConversation([
+      user2.account.address,
+    ])
+
+    expect(conversation.isAdmin(client1.inboxId)).toBe(true)
+    expect(conversation.isAdmin(client2.inboxId)).toBe(false)
+    expect(conversation.admins.length).toBe(1)
+    expect(conversation.admins).toContain(client1.inboxId)
+
+    await conversation.addAdmin(client2.inboxId)
+    expect(conversation.isAdmin(client2.inboxId)).toBe(true)
+    expect(conversation.admins.length).toBe(2)
+    expect(conversation.admins).toContain(client1.inboxId)
+    expect(conversation.admins).toContain(client2.inboxId)
+
+    await conversation.removeAdmin(client2.inboxId)
+    expect(conversation.isAdmin(client2.inboxId)).toBe(false)
+    expect(conversation.admins.length).toBe(1)
+    expect(conversation.admins).toContain(client1.inboxId)
+  })
+
+  it('should add and remove super admins', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    const client2 = await createRegisteredClient(user2)
+    const conversation = await client1.conversations.newConversation([
+      user2.account.address,
+    ])
+
+    expect(conversation.isSuperAdmin(client1.inboxId)).toBe(true)
+    expect(conversation.isSuperAdmin(client2.inboxId)).toBe(false)
+    expect(conversation.superAdmins.length).toBe(1)
+    expect(conversation.superAdmins).toContain(client1.inboxId)
+
+    await conversation.addSuperAdmin(client2.inboxId)
+    expect(conversation.isSuperAdmin(client2.inboxId)).toBe(true)
+    expect(conversation.superAdmins.length).toBe(2)
+    expect(conversation.superAdmins).toContain(client1.inboxId)
+    expect(conversation.superAdmins).toContain(client2.inboxId)
+
+    await conversation.removeSuperAdmin(client2.inboxId)
+    expect(conversation.isSuperAdmin(client2.inboxId)).toBe(false)
+    expect(conversation.superAdmins.length).toBe(1)
+    expect(conversation.superAdmins).toContain(client1.inboxId)
+  })
 })

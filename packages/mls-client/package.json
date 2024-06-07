@@ -52,7 +52,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@xmtp/mls-client-bindings-node": "^0.0.1",
+    "@xmtp/mls-client-bindings-node": "^0.0.3",
     "@xmtp/proto": "^3.61.1",
     "@xmtp/xmtp-js": "^11.6.2"
   },
