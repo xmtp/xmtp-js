@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.3
+
+### Patch Changes
+
+- 3006d8b: Upgrade MLS node bindings, add admin features
+
 ## 0.0.2
 
 ### Patch Changes
