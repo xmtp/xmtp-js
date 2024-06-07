@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.4
+
+### Patch Changes
+
+- 632e6a3: Add conversation reference to messages
+
 ## 0.0.3
 
 ### Patch Changes
