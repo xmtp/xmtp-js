@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 632e6a3: Add conversation reference to messages
+- 632e6a3: Add conversation access to messages
 
 ## 0.0.3
 
