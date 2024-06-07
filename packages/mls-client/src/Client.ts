@@ -2,6 +2,8 @@ import { join } from 'node:path'
 import process from 'node:process'
 import {
   createClient,
+  generateInboxId,
+  getInboxIdForAddress,
   NapiGroupMessageKind,
   type NapiClient,
   type NapiMessage,
@@ -91,11 +93,19 @@ export class Client {
     const dbPath =
       options?.dbPath ?? join(process.cwd(), `${accountAddress}.db3`)
 
+    const inboxId =
+      (await getInboxIdForAddress(
+        'http://localhost:5556',
+        false,
+        accountAddress
+      )) || generateInboxId(accountAddress)
+
     return new Client(
       await createClient(
         host,
         isSecure,
         dbPath,
+        inboxId,
         accountAddress,
         options?.encryptionKey
       ),

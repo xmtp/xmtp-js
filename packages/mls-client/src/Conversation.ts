@@ -58,6 +58,22 @@ export class Conversation {
     return this.#group.listMembers()
   }
 
+  get admins() {
+    return this.#group.adminList()
+  }
+
+  get superAdmins() {
+    return this.#group.superAdminList()
+  }
+
+  isAdmin(inboxId: string) {
+    return this.#group.isAdmin(inboxId)
+  }
+
+  isSuperAdmin(inboxId: string) {
+    return this.#group.isSuperAdmin(inboxId)
+  }
+
   async sync() {
     return this.#group.sync()
   }
@@ -66,7 +82,6 @@ export class Conversation {
     const asyncStream = new AsyncStream<NapiMessage, DecodedMessage>(
       (message) => new DecodedMessage(this.#client, message)
     )
-    // @ts-expect-error type is incorrect in the bindings
     const stream = this.#group.stream(asyncStream.callback)
     asyncStream.stopCallback = stream.end.bind(stream)
     return asyncStream
@@ -86,6 +101,22 @@ export class Conversation {
 
   async removeMembersByInboxId(inboxIds: string[]) {
     return this.#group.removeMembersByInboxId(inboxIds)
+  }
+
+  async addAdmin(inboxId: string) {
+    return this.#group.addAdmin(inboxId)
+  }
+
+  async removeAdmin(inboxId: string) {
+    return this.#group.removeAdmin(inboxId)
+  }
+
+  async addSuperAdmin(inboxId: string) {
+    return this.#group.addSuperAdmin(inboxId)
+  }
+
+  async removeSuperAdmin(inboxId: string) {
+    return this.#group.removeSuperAdmin(inboxId)
   }
 
   async send(content: any, contentType: ContentTypeId) {
