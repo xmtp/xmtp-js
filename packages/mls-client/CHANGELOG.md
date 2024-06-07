@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 3006d8b: Upgrade MLS node bindings, add admin features and tests
+- 3006d8b: Upgrade MLS node bindings, add admin features
 
 ## 0.0.2
 
