@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- ff6c304: Ensure correct inbox ID for all environments
+- ff6c304: Use correct inbox ID for all environments
 
 ## 0.0.4
 
