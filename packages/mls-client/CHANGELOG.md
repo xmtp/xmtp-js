@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.5
+
+### Patch Changes
+
+- ff6c304: Use correct inbox ID for all environments
+
 ## 0.0.4
 
 ### Patch Changes
