@@ -94,11 +94,8 @@ export class Client {
       options?.dbPath ?? join(process.cwd(), `${accountAddress}.db3`)
 
     const inboxId =
-      (await getInboxIdForAddress(
-        'http://localhost:5556',
-        false,
-        accountAddress
-      )) || generateInboxId(accountAddress)
+      (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
+      generateInboxId(accountAddress)
 
     return new Client(
       await createClient(
