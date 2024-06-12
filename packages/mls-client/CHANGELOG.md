@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.6
+
+### Patch Changes
+
+- 6dd6a0e: Add `streamAllMessages` to Conversations
+
 ## 0.0.5
 
 ### Patch Changes
