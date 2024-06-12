@@ -1,3 +1,4 @@
+import { ContentTypeText } from '@xmtp/xmtp-js'
 import { describe, expect, it } from 'vitest'
 import { createRegisteredClient, createUser } from '@test/helpers'
 
@@ -70,6 +71,43 @@ describe('Conversations', () => {
       }
       if (count === 2) {
         expect(convo!.id).toBe(conversation2.id)
+        break
+      }
+    }
+    stream.stop()
+  })
+
+  it('should stream all messages', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const user3 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    const client2 = await createRegisteredClient(user2)
+    const client3 = await createRegisteredClient(user3)
+    await client1.conversations.newConversation([user2.account.address])
+    await client1.conversations.newConversation([user3.account.address])
+
+    const stream = await client1.conversations.streamAllMessages()
+
+    await client2.conversations.sync()
+    const groups2 = await client2.conversations.list()
+
+    await client3.conversations.sync()
+    const groups3 = await client3.conversations.list()
+
+    await groups2[0].send('gm!', ContentTypeText)
+    await groups3[0].send('gm2!', ContentTypeText)
+
+    let count = 0
+
+    for await (const message of stream) {
+      count++
+      expect(message).toBeDefined()
+      if (count === 1) {
+        expect(message!.senderInboxId).toBe(client2.inboxId)
+      }
+      if (count === 2) {
+        expect(message!.senderInboxId).toBe(client3.inboxId)
         break
       }
     }
