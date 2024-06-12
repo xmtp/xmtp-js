@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 6dd6a0e: Add streamAllMessages to Conversations
+- 6dd6a0e: Add `streamAllMessages` to Conversations
 
 ## 0.0.5
 
