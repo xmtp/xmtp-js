@@ -19,6 +19,12 @@ export type Reply = {
    */
   reference: string;
   /**
+   * The inbox ID of the user who sent the message that is being replied to
+   *
+   * This only applies to group messages
+   */
+  referenceInboxId?: string;
+  /**
    * The content of the reply
    */
   content: any;
@@ -44,13 +50,20 @@ export class ReplyCodec implements ContentCodec<Reply> {
     const encodedContent = codec.encode(content.content, codecs);
     const bytes = proto.EncodedContent.encode(encodedContent).finish();
 
+    const parameters: Record<string, string> = {
+      // TODO: cut when we're certain no one is looking for "contentType" here.
+      contentType: content.contentType.toString(),
+      reference: content.reference,
+    };
+
+    // add referenceInboxId if it's present
+    if (content.referenceInboxId) {
+      parameters.referenceInboxId = content.referenceInboxId;
+    }
+
     return {
-      type: ContentTypeReply,
-      parameters: {
-        // TODO: cut when we're certain no one is looking for "contentType" here.
-        contentType: content.contentType.toString(),
-        reference: content.reference,
-      },
+      type: this.contentType,
+      parameters,
       content: bytes,
     };
   }
@@ -70,6 +83,7 @@ export class ReplyCodec implements ContentCodec<Reply> {
 
     return {
       reference: content.parameters.reference,
+      referenceInboxId: content.parameters.referenceInboxId,
       contentType,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       content: codec.decode(decodedContent as EncodedContent, codecs),

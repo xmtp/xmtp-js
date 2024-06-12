@@ -14,6 +14,12 @@ export type Reaction = {
    */
   reference: string;
   /**
+   * The inbox ID of the user who sent the message that is being reacted to
+   *
+   * This only applies to group messages
+   */
+  referenceInboxId?: string;
+  /**
    * The action of the reaction
    */
   action: "added" | "removed";
@@ -40,12 +46,18 @@ export class ReactionCodec implements ContentCodec<Reaction> {
   }
 
   encode(reaction: Reaction): EncodedContent {
-    const { action, reference, schema, content } = reaction;
+    const { action, reference, referenceInboxId, schema, content } = reaction;
     return {
-      type: ContentTypeReaction,
+      type: this.contentType,
       parameters: {},
       content: new TextEncoder().encode(
-        JSON.stringify({ action, reference, schema, content }),
+        JSON.stringify({
+          action,
+          reference,
+          referenceInboxId,
+          schema,
+          content,
+        }),
       ),
     };
   }
@@ -56,8 +68,8 @@ export class ReactionCodec implements ContentCodec<Reaction> {
     // First try to decode it in the canonical form.
     try {
       const reaction = JSON.parse(decodedContent) as Reaction;
-      const { action, reference, schema, content } = reaction;
-      return { action, reference, schema, content };
+      const { action, reference, referenceInboxId, schema, content } = reaction;
+      return { action, reference, referenceInboxId, schema, content };
     } catch (e) {
       // ignore, fall through to legacy decoding
     }
