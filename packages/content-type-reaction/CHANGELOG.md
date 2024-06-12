@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- [#68](https://github.com/xmtp/xmtp-js-content-types/pull/68) [`8896b33`](https://github.com/xmtp/xmtp-js-content-types/commit/8896b33501b2860d68ea8be5e33a9cca5dd9315c) Thanks [@rygine](https://github.com/rygine)! - Add optional referenceInboxId to reactions and replies
+- [#68](https://github.com/xmtp/xmtp-js-content-types/pull/68) [`8896b33`](https://github.com/xmtp/xmtp-js-content-types/commit/8896b33501b2860d68ea8be5e33a9cca5dd9315c) Thanks [@rygine](https://github.com/rygine)! - Add optional referenceInboxId
 
 ## 1.1.7
 
