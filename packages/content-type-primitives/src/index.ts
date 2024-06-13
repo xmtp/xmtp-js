@@ -52,3 +52,13 @@ export type ContentCodec<T> = {
   fallback(content: T): string | undefined;
   shouldPush: (content: T) => boolean;
 };
+
+/**
+ * An interface implemented for accessing codecs by content type.
+ * @deprecated
+ */
+export interface CodecRegistry<T = any> {
+  codecFor(contentType: ContentTypeId): ContentCodec<T> | undefined;
+}
+
+export type CodecMap<T = any> = Map<string, ContentCodec<T>>;
