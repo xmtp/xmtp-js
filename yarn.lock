@@ -2003,6 +2003,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/content-type-primitives@workspace:packages/content-type-primitives":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/content-type-primitives@workspace:packages/content-type-primitives"
+  dependencies:
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^11.1.6"
+    "@types/node": "npm:^18.19.22"
+    "@xmtp/proto": "npm:^3.61.1"
+    eslint: "npm:^8.57.0"
+    eslint-config-custom: "workspace:*"
+    happy-dom: "npm:^13.7.3"
+    prettier: "npm:^3.2.5"
+    prettier-plugin-packagejson: "npm:^2.4.12"
+    rimraf: "npm:^5.0.5"
+    rollup: "npm:^4.12.1"
+    rollup-plugin-dts: "npm:^6.1.0"
+    rollup-plugin-filesize: "npm:^10.0.0"
+    typescript: "npm:^5.4.2"
+    vite: "npm:^5.1.6"
+    vitest: "npm:^1.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/content-type-reaction@workspace:packages/content-type-reaction":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reaction@workspace:packages/content-type-reaction"
@@ -2193,6 +2216,18 @@ __metadata:
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
   checksum: 10/b48b1d6628c923f4bd2c78916a9d79fcd5b5b8a2dbc89fcf20725b56ea84e332066ab0eb7148d806e79d0380a3d6f76787cf2fb5669b6fa31545dd045c8fd3a5
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:^3.61.1":
+  version: 3.61.1
+  resolution: "@xmtp/proto@npm:3.61.1"
+  dependencies:
+    long: "npm:^5.2.0"
+    protobufjs: "npm:^7.0.0"
+    rxjs: "npm:^7.8.0"
+    undici: "npm:^5.8.1"
+  checksum: 10/c5acae46ad301a50652f30384be55a3389b4c11994652fa5386052c7ff4111fcb15c0e9d267898d6173cbcb6559b24bd7bef7470f020388f8610fecd3b8deea9
   languageName: node
   linkType: hard
 

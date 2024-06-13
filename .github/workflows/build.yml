@@ -85,5 +85,5 @@ jobs:
         run: corepack enable
       - name: Install dependencies
         run: yarn
-      - name: Check types
-        run: yarn typecheck
+      - name: Build packages
+        run: yarn build
