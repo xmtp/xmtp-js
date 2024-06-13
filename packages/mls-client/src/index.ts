@@ -13,3 +13,4 @@ export {
   ContentTypeGroupUpdated,
   GroupUpdatedCodec,
 } from './codecs/GroupUpdatedCodec'
+export type { StreamCallback } from './AsyncStream'
