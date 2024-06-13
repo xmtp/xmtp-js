@@ -1,11 +1,9 @@
 import type {
   GroupPermissions,
   NapiConversations,
-  NapiGroup,
   NapiListMessagesOptions,
-  NapiMessage,
 } from '@xmtp/mls-client-bindings-node'
-import { AsyncStream } from '@/AsyncStream'
+import { AsyncStream, type StreamCallback } from '@/AsyncStream'
 import type { Client } from '@/Client'
 import { Conversation } from '@/Conversation'
 import { DecodedMessage } from '@/DecodedMessage'
@@ -13,10 +11,16 @@ import { DecodedMessage } from '@/DecodedMessage'
 export class Conversations {
   #client: Client
   #conversations: NapiConversations
+  #map: Map<string, Conversation>
 
   constructor(client: Client, conversations: NapiConversations) {
     this.#client = client
     this.#conversations = conversations
+    this.#map = new Map()
+  }
+
+  get(id: string) {
+    return this.#map.get(id)
   }
 
   async newConversation(
@@ -27,35 +31,53 @@ export class Conversations {
       accountAddresses,
       permissions
     )
-    return new Conversation(this.#client, group)
+    const conversation = new Conversation(this.#client, group)
+    this.#map.set(conversation.id, conversation)
+    return conversation
   }
 
   async list(options?: NapiListMessagesOptions) {
     const groups = await this.#conversations.list(options)
-    return groups.map((group) => new Conversation(this.#client, group))
+    return groups.map((group) => {
+      const conversation = new Conversation(this.#client, group)
+      this.#map.set(conversation.id, conversation)
+      return conversation
+    })
   }
 
   async sync() {
     return this.#conversations.sync()
   }
 
-  stream() {
-    const asyncStream = new AsyncStream<NapiGroup, Conversation>(
-      (group) => new Conversation(this.#client, group)
-    )
-    const stream = this.#conversations.stream(asyncStream.callback)
+  stream(callback?: StreamCallback<Conversation>) {
+    const asyncStream = new AsyncStream<Conversation>()
+
+    const stream = this.#conversations.stream((err, group) => {
+      const conversation = new Conversation(this.#client, group)
+      this.#map.set(conversation.id, conversation)
+      asyncStream.callback(err, conversation)
+      callback?.(err, conversation)
+    })
+
     asyncStream.stopCallback = stream.end.bind(stream)
+
     return asyncStream
   }
 
-  async streamAllMessages() {
+  async streamAllMessages(callback?: StreamCallback<DecodedMessage>) {
     // sync conversations first
     await this.sync()
-    const asyncStream = new AsyncStream<NapiMessage, DecodedMessage>(
-      (message) => new DecodedMessage(this.#client, message)
-    )
-    const stream = this.#conversations.streamAllMessages(asyncStream.callback)
+
+    const asyncStream = new AsyncStream<DecodedMessage>()
+
+    const stream = this.#conversations.streamAllMessages((err, message) => {
+      const decodedMessage = new DecodedMessage(this.#client, message)
+      asyncStream.callback(err, decodedMessage)
+      callback?.(err, decodedMessage)
+    })
+
     asyncStream.stopCallback = stream.end.bind(stream)
+
     return asyncStream
   }
 }

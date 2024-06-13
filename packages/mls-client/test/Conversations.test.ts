@@ -19,6 +19,7 @@ describe('Conversations', () => {
       user2.account.address,
     ])
     expect(conversation).toBeDefined()
+    expect(client1.conversations.get(conversation.id)?.id).toBe(conversation.id)
     expect(conversation.id).toBeDefined()
     expect(conversation.createdAt).toBeDefined()
     expect(conversation.createdAtNs).toBeDefined()
@@ -75,6 +76,12 @@ describe('Conversations', () => {
       }
     }
     stream.stop()
+    expect(client3.conversations.get(conversation1.id)?.id).toBe(
+      conversation1.id
+    )
+    expect(client3.conversations.get(conversation2.id)?.id).toBe(
+      conversation2.id
+    )
   })
 
   it('should stream all messages', async () => {
