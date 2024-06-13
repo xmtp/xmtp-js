@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-transaction-reference",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An XMTP content type to support on-chain transaction references",
   "keywords": [
     "xmtp",
