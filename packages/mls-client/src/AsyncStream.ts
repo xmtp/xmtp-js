@@ -1,32 +1,30 @@
-type Value<T, V> = V extends undefined ? T : V
-
-type ResolveValue<T, V> = {
-  value: Value<T, V> | undefined
+type ResolveValue<T> = {
+  value: T | undefined
   done: boolean
 }
 
-type ResolveNext<T, V> = (resolveValue: ResolveValue<T, V>) => void
+type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void
 
-type TransformValue<T, V> = (value: T) => Value<T, V>
+export type StreamCallback<T> = (err: Error | null, value: T) => void
 
-export class AsyncStream<T, V = undefined> {
+export class AsyncStream<T> {
   #done = false
-  #resolveNext: ResolveNext<T, V> | null
-  #queue: Value<T, V>[]
-  #transformValue?: TransformValue<T, V>
+  #resolveNext: ResolveNext<T> | null
+  #queue: T[]
 
   stopCallback: (() => void) | undefined = undefined
 
-  constructor(
-    transformValue: V extends undefined ? undefined : TransformValue<T, V>
-  ) {
+  constructor() {
     this.#queue = []
     this.#resolveNext = null
     this.#done = false
-    this.#transformValue = transformValue
   }
 
-  callback = (err: Error | null, value: T) => {
+  get isDone() {
+    return this.#done
+  }
+
+  callback: StreamCallback<T> = (err, value) => {
     if (err) {
       console.error('stream error', err)
       this.stop()
@@ -37,17 +35,11 @@ export class AsyncStream<T, V = undefined> {
       return
     }
 
-    const newValue = this.#transformValue
-      ? this.#transformValue(value)
-      : // must assert type because TypeScript can't infer that T is assignable
-        // to Value<T, V> when this.#transformValue is undefined
-        (value as unknown as Value<T, V>)
-
     if (this.#resolveNext) {
-      this.#resolveNext({ value: newValue, done: false })
+      this.#resolveNext({ value, done: false })
       this.#resolveNext = null
     } else {
-      this.#queue.push(newValue)
+      this.#queue.push(value)
     }
   }
 
@@ -59,7 +51,7 @@ export class AsyncStream<T, V = undefined> {
     this.stopCallback?.()
   }
 
-  next = (): Promise<ResolveValue<T, V>> => {
+  next = (): Promise<ResolveValue<T>> => {
     if (this.#queue.length > 0) {
       return Promise.resolve({ value: this.#queue.shift(), done: false })
     } else if (this.#done) {

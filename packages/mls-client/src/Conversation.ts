@@ -1,10 +1,9 @@
 import type {
   NapiGroup,
   NapiListMessagesOptions,
-  NapiMessage,
 } from '@xmtp/mls-client-bindings-node'
 import type { ContentTypeId } from '@xmtp/xmtp-js'
-import { AsyncStream } from '@/AsyncStream'
+import { AsyncStream, type StreamCallback } from '@/AsyncStream'
 import type { Client } from '@/Client'
 import { DecodedMessage } from '@/DecodedMessage'
 import { nsToDate } from '@/helpers/date'
@@ -78,12 +77,17 @@ export class Conversation {
     return this.#group.sync()
   }
 
-  stream() {
-    const asyncStream = new AsyncStream<NapiMessage, DecodedMessage>(
-      (message) => new DecodedMessage(this.#client, message)
-    )
-    const stream = this.#group.stream(asyncStream.callback)
+  stream(callback?: StreamCallback<DecodedMessage>) {
+    const asyncStream = new AsyncStream<DecodedMessage>()
+
+    const stream = this.#group.stream((err, message) => {
+      const decodedMessage = new DecodedMessage(this.#client, message)
+      asyncStream.callback(err, decodedMessage)
+      callback?.(err, decodedMessage)
+    })
+
     asyncStream.stopCallback = stream.end.bind(stream)
+
     return asyncStream
   }
 
