@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:xmtp/xmtp-js-content-types.git",
+    "url": "git+ssh://git@github.com/xmtp/xmtp-js-content-types.git",
     "directory": "packages/content-type-reply"
   },
   "license": "MIT",
