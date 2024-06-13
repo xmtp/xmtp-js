@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.7
+
+### Patch Changes
+
+- 8a9b624: Add streaming callbacks
+
 ## 0.0.6
 
 ### Patch Changes
