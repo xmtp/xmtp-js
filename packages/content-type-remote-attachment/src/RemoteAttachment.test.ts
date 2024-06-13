@@ -83,7 +83,7 @@ test("can create a remote attachment", async () => {
   expect(messageContent.filename).toBe("test.txt");
   expect(messageContent.contentDigest).toBe(encryptedEncodedContent.digest);
 
-  const content: Attachment = await RemoteAttachmentCodec.load(
+  const content = await RemoteAttachmentCodec.load<Attachment>(
     messageContent,
     bobClient,
   );
