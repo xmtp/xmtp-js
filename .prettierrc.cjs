@@ -23,8 +23,6 @@ module.exports = {
     "<BUILTIN_MODULES>",
     "<THIRD_PARTY_MODULES>",
     "^@(/.*)$",
-    "^@test(/.*)$",
-    "^@bench(/.*)$",
     "^[.]",
   ],
   importOrderTypeScriptVersion: "5.4.2",
