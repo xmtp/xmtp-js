@@ -4,7 +4,9 @@
 
 ### Patch Changes
 
-- 8a9b624: Add streaming callbacks
+- 8a9b624:
+  - Add streaming callbacks
+  - Add `get` method to `Conversations` for easy access to conversations that are created, listed, or streamed during a client session
 
 ## 0.0.6
 
