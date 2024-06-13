@@ -1,10 +1,10 @@
-import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
+import { Wallet } from "ethers";
 import {
   ContentTypeTransactionReference,
   TransactionReferenceCodec,
+  type TransactionReference,
 } from "./TransactionReference";
-import type { TransactionReference } from "./TransactionReference";
 
 test("content type exists", () => {
   expect(ContentTypeTransactionReference.authorityId).toBe("xmtp.org");

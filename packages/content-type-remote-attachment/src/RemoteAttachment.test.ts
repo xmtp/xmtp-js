@@ -1,11 +1,10 @@
-import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
-import type { Attachment } from "./Attachment";
-import { AttachmentCodec } from "./Attachment";
-import type { RemoteAttachment } from "./RemoteAttachment";
+import { Wallet } from "ethers";
+import { AttachmentCodec, type Attachment } from "./Attachment";
 import {
   ContentTypeRemoteAttachment,
   RemoteAttachmentCodec,
+  type RemoteAttachment,
 } from "./RemoteAttachment";
 
 test("content type exists", () => {
@@ -84,7 +83,7 @@ test("can create a remote attachment", async () => {
   expect(messageContent.filename).toBe("test.txt");
   expect(messageContent.contentDigest).toBe(encryptedEncodedContent.digest);
 
-  const content: Attachment = await RemoteAttachmentCodec.load(
+  const content = await RemoteAttachmentCodec.load<Attachment>(
     messageContent,
     bobClient,
   );

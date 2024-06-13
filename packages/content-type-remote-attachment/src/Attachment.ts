@@ -1,5 +1,8 @@
-import type { ContentCodec, EncodedContent } from "@xmtp/xmtp-js";
-import { ContentTypeId } from "@xmtp/xmtp-js";
+import {
+  ContentTypeId,
+  type ContentCodec,
+  type EncodedContent,
+} from "@xmtp/content-type-primitives";
 
 export const ContentTypeAttachment = new ContentTypeId({
   authorityId: "xmtp.org",

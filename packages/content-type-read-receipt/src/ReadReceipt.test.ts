@@ -1,7 +1,10 @@
-import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
-import { ContentTypeReadReceipt, ReadReceiptCodec } from "./ReadReceipt";
-import type { ReadReceipt } from "./ReadReceipt";
+import { Wallet } from "ethers";
+import {
+  ContentTypeReadReceipt,
+  ReadReceiptCodec,
+  type ReadReceipt,
+} from "./ReadReceipt";
 
 describe("ReadReceiptContentType", () => {
   it("has the right content type", () => {

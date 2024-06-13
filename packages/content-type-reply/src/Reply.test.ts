@@ -1,12 +1,11 @@
-import { Wallet } from "ethers";
-import { Client, ContentTypeText } from "@xmtp/xmtp-js";
-import type { Attachment } from "@xmtp/content-type-remote-attachment";
 import {
   AttachmentCodec,
   ContentTypeAttachment,
+  type Attachment,
 } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply, ReplyCodec } from "./Reply";
-import type { Reply } from "./Reply";
+import { Client, ContentTypeText } from "@xmtp/xmtp-js";
+import { Wallet } from "ethers";
+import { ContentTypeReply, ReplyCodec, type Reply } from "./Reply";
 
 describe("ReplyContentType", () => {
   it("has the right content type", () => {
