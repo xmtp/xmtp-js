@@ -7,9 +7,6 @@
 - [#75](https://github.com/xmtp/xmtp-js-content-types/pull/75) [`da0bd85`](https://github.com/xmtp/xmtp-js-content-types/commit/da0bd8578d5f5032b221e25f02e8492b27929d6c)
   - Use primitives package for types
 
-- Updated dependencies [[`da0bd85`](https://github.com/xmtp/xmtp-js-content-types/commit/da0bd8578d5f5032b221e25f02e8492b27929d6c)]:
-  - @xmtp/content-type-primitives@1.0.2
-
 ## 1.0.6
 
 ### Patch Changes
