@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/experimental-content-type-screen-effect",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "An experimental content type to support screen effects accompanying messages",
   "keywords": [
     "xmtp",
@@ -67,7 +67,7 @@
     ]
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "^1.0.1"
+    "@xmtp/content-type-primitives": "^1.0.2"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",

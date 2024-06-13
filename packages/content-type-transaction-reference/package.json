@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-transaction-reference",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An XMTP content type to support on-chain transaction references",
   "keywords": [
     "xmtp",
@@ -67,7 +67,7 @@
     ]
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "^1.0.1"
+    "@xmtp/content-type-primitives": "^1.0.2"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
