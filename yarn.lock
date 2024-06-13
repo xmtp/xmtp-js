@@ -2863,6 +2863,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/content-type-primitives@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@xmtp/content-type-primitives@npm:1.0.1"
+  dependencies:
+    "@xmtp/proto": "npm:^3.61.1"
+  checksum: 10/656826cda74328e3079c7f5937eeb694260bd68a66090303fdf6abf4c54c8bbf924064eb6895b9e66addee1269779dfe1c3f0e836fcd8857f784c5645c7b7bf5
+  languageName: node
+  linkType: hard
+
 "@xmtp/mls-client-bindings-node@npm:^0.0.4":
   version: 0.0.4
   resolution: "@xmtp/mls-client-bindings-node@npm:0.0.4"
@@ -2881,9 +2890,9 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.8.0"
     "@typescript-eslint/parser": "npm:^7.8.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
+    "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/mls-client-bindings-node": "npm:^0.0.4"
     "@xmtp/proto": "npm:^3.61.1"
-    "@xmtp/xmtp-js": "npm:^11.6.2"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-config-standard: "npm:^17.1.0"
@@ -2963,7 +2972,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/xmtp-js@npm:^11.6.2, @xmtp/xmtp-js@workspace:packages/js-sdk":
+"@xmtp/xmtp-js@workspace:packages/js-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/xmtp-js@workspace:packages/js-sdk"
   dependencies:

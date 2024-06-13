@@ -1,9 +1,9 @@
-import { mlsTranscriptMessages } from '@xmtp/proto'
 import {
   ContentTypeId,
   type ContentCodec,
   type EncodedContent,
-} from '@xmtp/xmtp-js'
+} from '@xmtp/content-type-primitives'
+import { mlsTranscriptMessages } from '@xmtp/proto'
 
 export const ContentTypeGroupUpdated = new ContentTypeId({
   authorityId: 'xmtp.org',
