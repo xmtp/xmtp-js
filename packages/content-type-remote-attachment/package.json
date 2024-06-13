@@ -69,7 +69,7 @@
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
     "@xmtp/content-type-primitives": "^1.0.1",
-    "@xmtp/proto": "^3.29.0",
+    "@xmtp/proto": "^3.61.1",
     "@xmtp/xmtp-js": "^11.6.3"
   },
   "devDependencies": {

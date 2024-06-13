@@ -2035,7 +2035,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^11.1.6"
     "@types/node": "npm:^18.19.22"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
-    "@xmtp/proto": "npm:^3.29.0"
+    "@xmtp/proto": "npm:^3.61.1"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2065,7 +2065,7 @@ __metadata:
     "@types/node": "npm:^18.19.22"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-remote-attachment": "workspace:*"
-    "@xmtp/proto": "npm:^3.29.0"
+    "@xmtp/proto": "npm:^3.61.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     eslint: "npm:^8.57.0"
@@ -2159,18 +2159,6 @@ __metadata:
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
   checksum: 10/f752e6858692464319d6f22861fe8f23c46d9bb0eb390fe2220e0b4932a4de84be2e9e1cbafc0200e1bfe2a0ed3a3fb6079941630e57fb80e6325bc2a52bf10d
-  languageName: node
-  linkType: hard
-
-"@xmtp/proto@npm:^3.29.0":
-  version: 3.29.0
-  resolution: "@xmtp/proto@npm:3.29.0"
-  dependencies:
-    long: "npm:^5.2.0"
-    protobufjs: "npm:^7.0.0"
-    rxjs: "npm:^7.8.0"
-    undici: "npm:^5.8.1"
-  checksum: 10/71824c21c396cf4fee92018ff9fb584dc7931947ad46db87133500c110c582a240278d9d0b28cbeb9393ff7933d82a405839718cdee0e6aa0217ae7b5b80e585
   languageName: node
   linkType: hard
 
