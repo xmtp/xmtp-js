@@ -1,5 +1,8 @@
-import { ContentTypeId } from "@xmtp/xmtp-js";
-import type { ContentCodec, EncodedContent } from "@xmtp/xmtp-js";
+import type {
+  ContentCodec,
+  EncodedContent,
+} from "@xmtp/content-type-primitives";
+import { ContentTypeId } from "@xmtp/content-type-primitives";
 
 export const ContentTypeReadReceipt = new ContentTypeId({
   authorityId: "xmtp.org",
@@ -15,8 +18,7 @@ export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
     return ContentTypeReadReceipt;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  encode(content: ReadReceipt): EncodedContent {
+  encode(): EncodedContent {
     return {
       type: ContentTypeReadReceipt,
       parameters: {},
@@ -24,13 +26,11 @@ export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  decode(content: EncodedContent): ReadReceipt {
+  decode(): ReadReceipt {
     return {};
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  fallback(content: ReadReceipt): string | undefined {
+  fallback(): string | undefined {
     return undefined;
   }
 

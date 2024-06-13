@@ -2,8 +2,9 @@ import type {
   ContentCodec,
   EncodedContent,
   CodecRegistry,
-} from "@xmtp/xmtp-js";
-import { Ciphertext, ContentTypeId, encrypt, decrypt } from "@xmtp/xmtp-js";
+} from "@xmtp/content-type-primitives";
+import { ContentTypeId } from "@xmtp/content-type-primitives";
+import { Ciphertext, encrypt, decrypt } from "@xmtp/xmtp-js";
 import * as secp from "@noble/secp256k1";
 import { content as proto } from "@xmtp/proto";
 import { crypto } from "./encryption";
@@ -37,7 +38,7 @@ export type RemoteAttachment = {
 export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
   static async load<T>(
     remoteAttachment: RemoteAttachment,
-    codecRegistry: CodecRegistry,
+    codecRegistry: CodecRegistry<T>,
   ): Promise<T> {
     const response = await fetch(remoteAttachment.url);
     const payload = new Uint8Array(await response.arrayBuffer());
@@ -86,7 +87,6 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
       throw new Error(`no codec found for ${encodedContent.type?.typeId}`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return codec.decode(encodedContent as EncodedContent, codecRegistry);
   }
 

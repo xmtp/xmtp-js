@@ -1,9 +1,9 @@
-import { ContentTypeId } from "@xmtp/xmtp-js";
 import type {
   CodecRegistry,
   ContentCodec,
   EncodedContent,
-} from "@xmtp/xmtp-js";
+} from "@xmtp/content-type-primitives";
+import { ContentTypeId } from "@xmtp/content-type-primitives";
 import { content as proto } from "@xmtp/proto";
 
 export const ContentTypeReply = new ContentTypeId({
@@ -39,15 +39,15 @@ export class ReplyCodec implements ContentCodec<Reply> {
     return ContentTypeReply;
   }
 
-  encode(content: Reply, codecs: CodecRegistry): EncodedContent {
-    const codec = codecs.codecFor(content.contentType);
+  encode(content: Reply, registry: CodecRegistry): EncodedContent {
+    const codec = registry.codecFor(content.contentType);
     if (!codec) {
       throw new Error(
         `missing codec for content type "${content.contentType.toString()}"`,
       );
     }
 
-    const encodedContent = codec.encode(content.content, codecs);
+    const encodedContent = codec.encode(content.content, registry);
     const bytes = proto.EncodedContent.encode(encodedContent).finish();
 
     const parameters: Record<string, string> = {
@@ -68,13 +68,13 @@ export class ReplyCodec implements ContentCodec<Reply> {
     };
   }
 
-  decode(content: EncodedContent, codecs: CodecRegistry): Reply {
+  decode(content: EncodedContent, registry: CodecRegistry): Reply {
     const decodedContent = proto.EncodedContent.decode(content.content);
     if (!decodedContent.type) {
       throw new Error("missing content type");
     }
     const contentType = new ContentTypeId(decodedContent.type);
-    const codec = codecs.codecFor(contentType);
+    const codec = registry.codecFor(contentType);
     if (!codec) {
       throw new Error(
         `missing codec for content type "${contentType.toString()}"`,
@@ -86,7 +86,7 @@ export class ReplyCodec implements ContentCodec<Reply> {
       referenceInboxId: content.parameters.referenceInboxId,
       contentType,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      content: codec.decode(decodedContent as EncodedContent, codecs),
+      content: codec.decode(decodedContent as EncodedContent, registry),
     };
   }
 
