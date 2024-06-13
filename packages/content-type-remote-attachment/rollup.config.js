@@ -1,9 +1,9 @@
-import { defineConfig } from "rollup";
-import typescript from "@rollup/plugin-typescript";
-import { dts } from "rollup-plugin-dts";
 import terser from "@rollup/plugin-terser";
-import filesize from "rollup-plugin-filesize";
+import typescript from "@rollup/plugin-typescript";
 import { resolveExtensions } from "@xmtp/rollup-plugin-resolve-extensions";
+import { defineConfig } from "rollup";
+import { dts } from "rollup-plugin-dts";
+import filesize from "rollup-plugin-filesize";
 
 const plugins = [
   typescript({

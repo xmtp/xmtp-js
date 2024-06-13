@@ -1,11 +1,10 @@
-import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
-import type { Attachment } from "./Attachment";
-import { AttachmentCodec } from "./Attachment";
-import type { RemoteAttachment } from "./RemoteAttachment";
+import { Wallet } from "ethers";
+import { AttachmentCodec, type Attachment } from "./Attachment";
 import {
   ContentTypeRemoteAttachment,
   RemoteAttachmentCodec,
+  type RemoteAttachment,
 } from "./RemoteAttachment";
 
 test("content type exists", () => {

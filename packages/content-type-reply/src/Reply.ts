@@ -1,9 +1,9 @@
-import type {
-  CodecRegistry,
-  ContentCodec,
-  EncodedContent,
+import {
+  ContentTypeId,
+  type CodecRegistry,
+  type ContentCodec,
+  type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { ContentTypeId } from "@xmtp/content-type-primitives";
 import { content as proto } from "@xmtp/proto";
 
 export const ContentTypeReply = new ContentTypeId({

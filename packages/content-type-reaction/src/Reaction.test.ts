@@ -1,7 +1,6 @@
-import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
-import { ContentTypeReaction, ReactionCodec } from "./Reaction";
-import type { Reaction } from "./Reaction";
+import { Wallet } from "ethers";
+import { ContentTypeReaction, ReactionCodec, type Reaction } from "./Reaction";
 
 describe("ReactionContentType", () => {
   it("has the right content type", () => {

@@ -1,7 +1,10 @@
-import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
-import { ContentTypeAttachment, AttachmentCodec } from "./Attachment";
-import type { Attachment } from "./Attachment";
+import { Wallet } from "ethers";
+import {
+  AttachmentCodec,
+  ContentTypeAttachment,
+  type Attachment,
+} from "./Attachment";
 
 test("content type exists", () => {
   expect(ContentTypeAttachment.authorityId).toBe("xmtp.org");

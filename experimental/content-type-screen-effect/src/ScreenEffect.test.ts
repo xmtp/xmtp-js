@@ -1,7 +1,10 @@
-import { Wallet } from "ethers";
 import { Client } from "@xmtp/xmtp-js";
-import { ContentTypeScreenEffect, ScreenEffectCodec } from "./ScreenEffect";
-import type { ScreenEffect } from "./ScreenEffect";
+import { Wallet } from "ethers";
+import {
+  ContentTypeScreenEffect,
+  ScreenEffectCodec,
+  type ScreenEffect,
+} from "./ScreenEffect";
 
 describe("ScreenEffectContentType", () => {
   it("has the right content type", () => {

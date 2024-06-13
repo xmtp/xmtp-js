@@ -1,8 +1,8 @@
-import type {
-  ContentCodec,
-  EncodedContent,
+import {
+  ContentTypeId,
+  type ContentCodec,
+  type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { ContentTypeId } from "@xmtp/content-type-primitives";
 
 export const ContentTypeReadReceipt = new ContentTypeId({
   authorityId: "xmtp.org",

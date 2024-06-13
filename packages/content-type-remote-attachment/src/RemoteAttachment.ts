@@ -1,12 +1,12 @@
-import type {
-  ContentCodec,
-  EncodedContent,
-  CodecRegistry,
-} from "@xmtp/content-type-primitives";
-import { ContentTypeId } from "@xmtp/content-type-primitives";
-import { Ciphertext, encrypt, decrypt } from "@xmtp/xmtp-js";
 import * as secp from "@noble/secp256k1";
+import {
+  ContentTypeId,
+  type CodecRegistry,
+  type ContentCodec,
+  type EncodedContent,
+} from "@xmtp/content-type-primitives";
 import { content as proto } from "@xmtp/proto";
+import { Ciphertext, decrypt, encrypt } from "@xmtp/xmtp-js";
 import { crypto } from "./encryption";
 
 export const ContentTypeRemoteAttachment = new ContentTypeId({
