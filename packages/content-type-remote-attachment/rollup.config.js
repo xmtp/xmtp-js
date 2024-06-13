@@ -18,6 +18,7 @@ const plugins = [
 const external = [
   "@noble/secp256k1",
   "@xmtp/proto",
+  "@xmtp/content-type-primitives",
   "@xmtp/xmtp-js",
   "node:crypto",
 ];

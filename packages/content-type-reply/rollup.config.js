@@ -14,7 +14,7 @@ const plugins = [
   }),
 ];
 
-const external = ["@xmtp/proto", "@xmtp/xmtp-js"];
+const external = ["@xmtp/proto", "@xmtp/content-type-primitives"];
 
 export default defineConfig([
   {
