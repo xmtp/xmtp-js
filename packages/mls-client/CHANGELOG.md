@@ -1,5 +1,14 @@
 # @xmtp/mls-client
 
+## 0.0.8
+
+### Patch Changes
+
+- b87672a:
+  - Add production environment
+  - Allow for all environments when creating a client
+  - Remove dependency on `@xmtp/xmtp-js` for content types and their primitives
+
 ## 0.0.7
 
 ### Patch Changes
