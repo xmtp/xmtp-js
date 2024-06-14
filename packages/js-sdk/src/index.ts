@@ -50,8 +50,6 @@ export type {
 } from './MessageContent'
 export { ContentTypeId, ContentTypeFallback } from './MessageContent'
 export { TextCodec, ContentTypeText } from './codecs/Text'
-export type { Composite } from './codecs/Composite'
-export { CompositeCodec, ContentTypeComposite } from './codecs/Composite'
 export type {
   ApiClient,
   QueryParams,
