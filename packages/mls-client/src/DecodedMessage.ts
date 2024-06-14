@@ -1,9 +1,9 @@
+import { ContentTypeId } from '@xmtp/content-type-primitives'
 import {
   NapiDeliveryStatus,
   NapiGroupMessageKind,
   type NapiMessage,
 } from '@xmtp/mls-client-bindings-node'
-import { ContentTypeId } from '@xmtp/xmtp-js'
 import type { Client } from '@/Client'
 import { nsToDate } from '@/helpers/date'
 

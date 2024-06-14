@@ -1,4 +1,4 @@
-import { ContentTypeText } from '@xmtp/xmtp-js'
+import { ContentTypeText } from '@xmtp/content-type-text'
 import { describe, expect, it } from 'vitest'
 import { createRegisteredClient, createUser } from '@test/helpers'
 

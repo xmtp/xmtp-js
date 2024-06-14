@@ -1,5 +1,11 @@
 import { join } from 'node:path'
 import process from 'node:process'
+import type {
+  ContentCodec,
+  ContentTypeId,
+  EncodedContent,
+} from '@xmtp/content-type-primitives'
+import { TextCodec } from '@xmtp/content-type-text'
 import {
   createClient,
   generateInboxId,
@@ -8,12 +14,6 @@ import {
   type NapiClient,
   type NapiMessage,
 } from '@xmtp/mls-client-bindings-node'
-import {
-  TextCodec,
-  type ContentCodec,
-  type ContentTypeId,
-  type EncodedContent,
-} from '@xmtp/xmtp-js'
 import {
   ContentTypeGroupUpdated,
   GroupUpdatedCodec,
