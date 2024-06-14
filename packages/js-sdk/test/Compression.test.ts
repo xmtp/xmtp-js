@@ -1,5 +1,5 @@
+import { ContentTypeText } from '@xmtp/content-type-text'
 import { content as proto } from '@xmtp/proto'
-import { ContentTypeText } from '@/codecs/Text'
 import {
   compress,
   decompress,

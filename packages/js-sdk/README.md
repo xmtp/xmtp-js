@@ -318,7 +318,7 @@ To learn more about content types, see [Content types with XMTP](https://xmtp.or
 
 Support for other types of content can be added by registering additional `ContentCodecs` with the `Client`. Every codec is associated with a content type identifier, `ContentTypeId`, which is used to signal to the client which codec should be used to process the content that is being sent or received.
 
-For example, see the [Codecs](https://github.com/xmtp/xmtp-js/tree/main/src/codecs) available in `xmtp-js`.
+For examples, see the [content types](https://github.com/xmtp/xmtp-js-content-types/tree/main/packages) available in the `xmtp-js-content-types` repository.
 
 If there is a concern that the recipient may not be able to handle a non-standard content type, the sender can use the `contentFallback` option to provide a string that describes the content being sent. If the recipient fails to decode the original content, the fallback will replace it and can be used to inform the recipient what the original content was.
 
@@ -339,13 +339,6 @@ As shown in the example above, you must provide a `contentFallback` value. Use i
 > If you don't provide a `contentFallback` value, clients that don't support the content type will display an empty message. This results in a poor user experience and breaks interoperability.
 
 Additional codecs can be configured through the `ClientOptions` parameter of `Client.create`. The `codecs` option is a list of codec instances that should be added to the default set of codecs (currently only the `TextCodec`). If a codec is added for a content type that is already in the default set, it will replace the original codec.
-
-```ts
-// Adding support for `xmtp.org/composite` content type
-import { CompositeCodec } from '@xmtp/xmtp-js'
-
-const xmtp = Client.create(wallet, { codecs: [new CompositeCodec()] })
-```
 
 To learn more about how to build a custom content type, see [Build a custom content type](https://xmtp.org/docs/content-types/introduction#create-custom-content-types).
 

@@ -1,13 +1,13 @@
+import type { ContentCodec, ContentTypeId } from '@xmtp/content-type-primitives'
+import { TextCodec } from '@xmtp/content-type-text'
 import { fetcher, type messageApi } from '@xmtp/proto'
 import { Wallet } from 'ethers'
 import Client, { type ClientOptions } from '@/Client'
-import { TextCodec } from '@/codecs/Text'
 import { PrivateKey } from '@/crypto/PrivateKey'
 import type {
   PublicKeyBundle,
   SignedPublicKeyBundle,
 } from '@/crypto/PublicKeyBundle'
-import type { ContentCodec, ContentTypeId } from '@/MessageContent'
 import type Stream from '@/Stream'
 import type { Signer } from '@/types/Signer'
 import { promiseWithTimeout } from '@/utils/async'

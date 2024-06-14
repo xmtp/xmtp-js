@@ -44,15 +44,6 @@ export type { Conversation } from '@/conversations/Conversation'
 export { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
 export { default as Conversations } from '@/conversations/Conversations'
 export type {
-  CodecRegistry,
-  ContentCodec,
-  EncodedContent,
-} from './MessageContent'
-export { ContentTypeId, ContentTypeFallback } from './MessageContent'
-export { TextCodec, ContentTypeText } from './codecs/Text'
-export type { Composite } from './codecs/Composite'
-export { CompositeCodec, ContentTypeComposite } from './codecs/Composite'
-export type {
   ApiClient,
   QueryParams,
   QueryAllOptions,

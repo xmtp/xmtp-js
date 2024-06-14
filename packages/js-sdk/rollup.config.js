@@ -10,6 +10,8 @@ import tsConfigPaths from 'rollup-plugin-tsconfig-paths'
 const external = [
   '@noble/secp256k1',
   '@xmtp/consent-proof-signature',
+  '@xmtp/content-type-text',
+  '@xmtp/content-type-primitives',
   '@xmtp/proto',
   '@xmtp/user-preferences-bindings-wasm',
   '@xmtp/user-preferences-bindings-wasm/web',
