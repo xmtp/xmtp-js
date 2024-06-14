@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.8
+
+### Patch Changes
+
+- b87672a: Add production environment
+
 ## 0.0.7
 
 ### Patch Changes
