@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { createWalletClient, http, toBytes } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
-import { Client } from '@/Client'
+import { Client, type XmtpEnv } from '@/Client'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -33,14 +33,14 @@ export const getSignature = async (client: Client, user: User) => {
   return null
 }
 
-export const createClient = async (user: User) =>
+export const createClient = async (user: User, env?: XmtpEnv) =>
   Client.create(user.account.address, {
-    env: 'local',
+    env: env ?? 'local',
     dbPath: join(__dirname, `./test-${user.account.address}.db3`),
   })
 
-export const createRegisteredClient = async (user: User) => {
-  const client = await createClient(user)
+export const createRegisteredClient = async (user: User, env?: XmtpEnv) => {
+  const client = await createClient(user, env)
   if (!client.isRegistered) {
     const signature = await getSignature(client, user)
     if (signature) {

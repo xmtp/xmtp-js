@@ -2872,6 +2872,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/content-type-text@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@xmtp/content-type-text@npm:1.0.0"
+  dependencies:
+    "@xmtp/content-type-primitives": "npm:^1.0.1"
+  checksum: 10/b195060ad5686a6ace2772d5208d535d1f5062820629764aec52cedf3f2630885b5913aea6d2f0186a49139845c20d2ded783c6bf998884f09374c07b183141f
+  languageName: node
+  linkType: hard
+
 "@xmtp/mls-client-bindings-node@npm:^0.0.4":
   version: 0.0.4
   resolution: "@xmtp/mls-client-bindings-node@npm:0.0.4"
@@ -2891,6 +2900,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^7.8.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
+    "@xmtp/content-type-text": "npm:^1.0.0"
     "@xmtp/mls-client-bindings-node": "npm:^0.0.4"
     "@xmtp/proto": "npm:^3.61.1"
     "@xmtp/xmtp-js": "workspace:^"

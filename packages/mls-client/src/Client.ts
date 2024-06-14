@@ -1,5 +1,11 @@
 import { join } from 'node:path'
 import process from 'node:process'
+import type {
+  ContentCodec,
+  ContentTypeId,
+  EncodedContent,
+} from '@xmtp/content-type-primitives'
+import { TextCodec } from '@xmtp/content-type-text'
 import {
   createClient,
   generateInboxId,
@@ -9,12 +15,6 @@ import {
   type NapiMessage,
 } from '@xmtp/mls-client-bindings-node'
 import {
-  TextCodec,
-  type ContentCodec,
-  type ContentTypeId,
-  type EncodedContent,
-} from '@xmtp/xmtp-js'
-import {
   ContentTypeGroupUpdated,
   GroupUpdatedCodec,
 } from '@/codecs/GroupUpdatedCodec'
@@ -23,6 +23,7 @@ import { Conversations } from '@/Conversations'
 export const ApiUrls = {
   local: 'http://localhost:5556',
   dev: 'https://grpc.dev.xmtp.network:443',
+  production: 'https://grpc.production.xmtp.network:443',
 } as const
 
 export type XmtpEnv = keyof typeof ApiUrls
