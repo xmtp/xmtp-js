@@ -340,13 +340,6 @@ As shown in the example above, you must provide a `contentFallback` value. Use i
 
 Additional codecs can be configured through the `ClientOptions` parameter of `Client.create`. The `codecs` option is a list of codec instances that should be added to the default set of codecs (currently only the `TextCodec`). If a codec is added for a content type that is already in the default set, it will replace the original codec.
 
-```ts
-// Adding support for `xmtp.org/composite` content type
-import { CompositeCodec } from '@xmtp/xmtp-js'
-
-const xmtp = Client.create(wallet, { codecs: [new CompositeCodec()] })
-```
-
 To learn more about how to build a custom content type, see [Build a custom content type](https://xmtp.org/docs/content-types/introduction#create-custom-content-types).
 
 Custom codecs and content types may be proposed as interoperable standards through XRCs. To learn about the custom content type proposal process, see [XIP-5](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-5-message-content-types.md).

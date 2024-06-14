@@ -43,8 +43,6 @@ export {
 export type { Conversation } from '@/conversations/Conversation'
 export { ConversationV1, ConversationV2 } from '@/conversations/Conversation'
 export { default as Conversations } from '@/conversations/Conversations'
-export type { Composite } from './codecs/Composite'
-export { CompositeCodec, ContentTypeComposite } from './codecs/Composite'
 export type {
   ApiClient,
   QueryParams,

@@ -1,3 +1,8 @@
+import {
+  ContentTypeId,
+  type ContentCodec,
+  type EncodedContent,
+} from '@xmtp/content-type-primitives'
 import { ContentTypeText, TextCodec } from '@xmtp/content-type-text'
 import { message } from '@xmtp/proto'
 import type { PublishResponse } from '@xmtp/proto/ts/dist/types/message_api/v1/message_api.pb'
@@ -8,7 +13,6 @@ import { mainnet } from 'viem/chains'
 import { assert, vi } from 'vitest'
 import HttpApiClient, { ApiUrls } from '@/ApiClient'
 import Client, { Compression, type ClientOptions } from '@/Client'
-import { CompositeCodec } from '@/codecs/Composite'
 import { PrivateKey } from '@/crypto/PrivateKey'
 import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
 import InMemoryPersistence from '@/keystore/persistence/InMemoryPersistence'
@@ -420,15 +424,51 @@ describe('ClientOptions', () => {
     })
 
     it('allows you to use custom content types', async () => {
+      const ContentTypeCustom = new ContentTypeId({
+        authorityId: 'xmtp.org',
+        typeId: 'text',
+        versionMajor: 1,
+        versionMinor: 0,
+      })
+      class CustomCodec implements ContentCodec<{ custom: string }> {
+        get contentType(): ContentTypeId {
+          return ContentTypeCustom
+        }
+
+        encode(content: { custom: string }): EncodedContent {
+          return {
+            type: ContentTypeText,
+            parameters: {},
+            content: new TextEncoder().encode(JSON.stringify(content)),
+          }
+        }
+
+        decode(content: EncodedContent): { custom: string } {
+          const decodedContent = new TextDecoder().decode(content.content)
+          const parsedContent = JSON.parse(decodedContent) as { custom: string }
+          return {
+            custom: parsedContent.custom,
+          }
+        }
+
+        fallback() {
+          return undefined
+        }
+
+        shouldPush() {
+          return false
+        }
+      }
+
       const client = await Client.create(newWallet(), {
+        codecs: [new CustomCodec()],
         env: 'local',
-        codecs: [new CompositeCodec()],
       })
       const other = await Client.create(newWallet(), { env: 'local' })
       const convo = await client.conversations.newConversation(other.address)
       expect(convo).toBeTruthy()
       // This will have a type error if the codecs field isn't being respected
-      await convo.send({ parts: [{ type: ContentTypeText, content: 'foo' }] })
+      await convo.send({ custom: 'test' })
     })
   })
 
