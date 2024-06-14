@@ -1,3 +1,9 @@
+import {
+  ContentTypeId,
+  type ContentCodec,
+  type EncodedContent,
+} from '@xmtp/content-type-primitives'
+import { ContentTypeText, TextCodec } from '@xmtp/content-type-text'
 import { messageApi, content as proto } from '@xmtp/proto'
 import { getAddress, type WalletClient } from 'viem'
 import KeystoreAuthenticator from '@/authn/KeystoreAuthenticator'
@@ -29,7 +35,6 @@ import HttpApiClient, {
   type ApiClient,
   type PublishParams,
 } from './ApiClient'
-import { ContentTypeText, TextCodec } from './codecs/Text'
 import { compress, decompress } from './Compression'
 import { decodeContactBundle, encodeContactBundle } from './ContactBundle'
 import { Contacts } from './Contacts'
@@ -40,11 +45,6 @@ import { hasMetamaskWithSnaps } from './keystore/snapHelpers'
 import type BackupClient from './message-backup/BackupClient'
 import { BackupType } from './message-backup/BackupClient'
 import { createBackupClient } from './message-backup/BackupClientFactory'
-import {
-  ContentTypeId,
-  type ContentCodec,
-  type EncodedContent,
-} from './MessageContent'
 import { packageName, version } from './snapInfo.json'
 import type { ExtractDecodedType } from './types/client'
 import type { Signer } from './types/Signer'

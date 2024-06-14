@@ -1,10 +1,10 @@
-import { composite as proto } from '@xmtp/proto'
 import {
   ContentTypeId,
   type CodecRegistry,
   type ContentCodec,
   type EncodedContent,
-} from '@/MessageContent'
+} from '@xmtp/content-type-primitives'
+import { composite as proto } from '@xmtp/proto'
 
 // xmtp.org/composite
 //

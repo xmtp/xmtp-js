@@ -1,5 +1,5 @@
+import { ContentTypeText } from '@xmtp/content-type-text'
 import { CompositeCodec, ContentTypeComposite } from '@/codecs/Composite'
-import { ContentTypeText } from '@/codecs/Text'
 import { CodecRegistry } from '@test/helpers'
 
 describe('CompositeType', () => {

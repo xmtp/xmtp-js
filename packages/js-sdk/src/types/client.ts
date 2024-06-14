@@ -1,5 +1,5 @@
+import type { ContentCodec } from '@xmtp/content-type-primitives'
 import type Client from '@/Client'
-import type { ContentCodec } from '@/MessageContent'
 
 export type GetMessageContentTypeFromClient<C> =
   C extends Client<infer T> ? T : never

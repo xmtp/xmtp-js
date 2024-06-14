@@ -1,3 +1,4 @@
+import type { ContentTypeId } from '@xmtp/content-type-primitives'
 import { message as proto, type conversationReference } from '@xmtp/proto'
 import Long from 'long'
 import { PublicKey } from '@/crypto/PublicKey'
@@ -12,7 +13,6 @@ import Ciphertext from './crypto/Ciphertext'
 import { sha256 } from './crypto/encryption'
 import { bytesToHex } from './crypto/utils'
 import type { KeystoreInterfaces } from './keystore/rpcDefinitions'
-import type { ContentTypeId } from './MessageContent'
 import { dateToNs, nsToDate } from './utils/date'
 import { buildDecryptV1Request, getResultOrThrow } from './utils/keystore'
 
