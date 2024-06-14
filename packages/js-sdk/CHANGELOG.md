@@ -8,7 +8,7 @@
   - Removed internal content types and their primitives
   - Added content types and primitives from their respective packages
   - Removed `ContentTypeComposite`, see [XIP-19](https://community.xmtp.org/t/xip-19-deprecate-the-composite-codec/525) for more details
-  - Removed `ContentTypeFallback` 
+  - Removed `ContentTypeFallback`
 
 ### BREAKING CHANGES
 
