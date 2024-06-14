@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/xmtp-js",
-  "version": "11.6.3",
+  "version": "12.0.0",
   "description": "XMTP client SDK for interacting with XMTP networks.",
   "keywords": [
     "xmtp",
