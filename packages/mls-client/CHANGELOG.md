@@ -4,7 +4,10 @@
 
 ### Patch Changes
 
-- b87672a: Add production environment
+- b87672a:
+  - Add production environment
+  - Allow for all environments when creating a client
+  - Remove dependency on `@xmtp/xmtp-js` for content types and their primitives
 
 ## 0.0.7
 
