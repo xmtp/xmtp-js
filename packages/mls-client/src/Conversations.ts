@@ -1,6 +1,6 @@
 import type {
-  GroupPermissions,
   NapiConversations,
+  NapiCreateGroupOptions,
   NapiListMessagesOptions,
 } from '@xmtp/mls-client-bindings-node'
 import { AsyncStream, type StreamCallback } from '@/AsyncStream'
@@ -25,11 +25,11 @@ export class Conversations {
 
   async newConversation(
     accountAddresses: string[],
-    permissions?: GroupPermissions
+    options?: NapiCreateGroupOptions
   ) {
     const group = await this.#conversations.createGroup(
       accountAddresses,
-      permissions
+      options
     )
     const conversation = new Conversation(this.#client, group)
     this.#map.set(conversation.id, conversation)
