@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/mls-client",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "XMTP MLS client for interacting with XMTP networks",
   "keywords": [
     "xmtp",
