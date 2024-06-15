@@ -1,14 +1,23 @@
-name: Code checks
+name: MLS Client
+
 on:
   push:
     branches:
       - main
+
   pull_request:
+    paths:
+      - 'packages/mls-client/**'
+      - '.github/workflows/mls-client.yml'
+      - '.node-version'
+      - '.nvmrc'
+      - '.prettierignore'
+      - '.prettierrc.cjs'
 
 jobs:
   typecheck:
     name: Typecheck
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-8x
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,11 +31,13 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Typecheck
-        run: yarn typecheck
+        run: |
+          cd packages/mls-client
+          yarn typecheck
 
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-8x
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,11 +51,13 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Lint
-        run: yarn lint
+        run: |
+          cd packages/mls-client
+          yarn lint
 
   prettier:
     name: Prettier
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-8x
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -58,4 +71,26 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Format check
-        run: yarn format:check
+        run: |
+          cd packages/mls-client
+          yarn format:check
+
+  build:
+    name: Build
+    runs-on: warp-ubuntu-latest-x64-8x
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+        env:
+          SKIP_YARN_COREPACK_CHECK: '1'
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn
+      - name: Build
+        run: |
+          cd packages/mls-client
+          yarn build
