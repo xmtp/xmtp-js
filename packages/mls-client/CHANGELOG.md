@@ -1,5 +1,18 @@
 # @xmtp/mls-client
 
+## 0.0.9
+
+### Patch Changes
+
+- a419052:
+  - Upgrade to latest node bindings
+  - Rename addErc1271Signature to addScwSignature
+  - Add more options when creating a group with client.conversations.newConversation
+  - Add getter and setter for group image URL
+  - Add getter for group permissions
+  - Add more tests
+  - Add GroupPermissions to exports
+
 ## 0.0.8
 
 ### Patch Changes
