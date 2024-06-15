@@ -29,6 +29,32 @@ describe('Conversation', () => {
     expect(conversation2.messages().length).toBe(1)
   })
 
+  it('should update conversation image URL', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    const client2 = await createRegisteredClient(user2)
+    const conversation = await client1.conversations.newConversation([
+      user2.account.address,
+    ])
+    const imageUrl = 'https://foo/bar.jpg'
+    await conversation.updateImageUrl(imageUrl)
+    expect(conversation.imageUrl).toBe(imageUrl)
+    const messages = conversation.messages()
+    expect(messages.length).toBe(2)
+
+    await client2.conversations.sync()
+    const conversations = await client2.conversations.list()
+    expect(conversations.length).toBe(1)
+
+    const conversation2 = conversations[0]
+    expect(conversation2).toBeDefined()
+    await conversation2.sync()
+    expect(conversation2.id).toBe(conversation.id)
+    expect(conversation2.imageUrl).toBe(imageUrl)
+    expect(conversation2.messages().length).toBe(1)
+  })
+
   it('should add and remove members', async () => {
     const user1 = createUser()
     const user2 = createUser()

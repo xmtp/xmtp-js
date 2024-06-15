@@ -1,4 +1,5 @@
 import { ContentTypeText } from '@xmtp/content-type-text'
+import { GroupPermissions } from '@xmtp/mls-client-bindings-node'
 import { describe, expect, it } from 'vitest'
 import { createRegisteredClient, createUser } from '@test/helpers'
 
@@ -25,6 +26,9 @@ describe('Conversations', () => {
     expect(conversation.createdAtNs).toBeDefined()
     expect(conversation.isActive).toBe(true)
     expect(conversation.name).toBe('')
+    expect(conversation.permissions.policyType).toBe(
+      GroupPermissions.EveryoneIsAdmin
+    )
     expect(conversation.addedByInboxId).toBe(client1.inboxId)
     expect(conversation.messages().length).toBe(1)
     expect(conversation.members.length).toBe(2)
@@ -47,6 +51,60 @@ describe('Conversations', () => {
     const conversations2 = await client2.conversations.list()
     expect(conversations2.length).toBe(1)
     expect(conversations2[0].id).toBe(conversation.id)
+  })
+
+  it('should create a new conversation with options', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const user3 = createUser()
+    const user4 = createUser()
+    const user5 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    await createRegisteredClient(user2)
+    await createRegisteredClient(user3)
+    await createRegisteredClient(user4)
+    await createRegisteredClient(user5)
+    const groupWithName = await client1.conversations.newConversation(
+      [user2.account.address],
+      {
+        groupName: 'foo',
+      }
+    )
+    expect(groupWithName).toBeDefined()
+    expect(groupWithName.name).toBe('foo')
+    expect(groupWithName.imageUrl).toBe('')
+
+    const groupWithImageUrl = await client1.conversations.newConversation(
+      [user3.account.address],
+      {
+        groupImageUrlSquare: 'https://foo/bar.png',
+      }
+    )
+    expect(groupWithImageUrl).toBeDefined()
+    expect(groupWithImageUrl.name).toBe('')
+    expect(groupWithImageUrl.imageUrl).toBe('https://foo/bar.png')
+
+    const groupWithNameAndImageUrl =
+      await client1.conversations.newConversation([user4.account.address], {
+        groupImageUrlSquare: 'https://foo/bar.png',
+        groupName: 'foo',
+      })
+    expect(groupWithNameAndImageUrl).toBeDefined()
+    expect(groupWithNameAndImageUrl.name).toBe('foo')
+    expect(groupWithNameAndImageUrl.imageUrl).toBe('https://foo/bar.png')
+
+    const groupWithPermissions = await client1.conversations.newConversation(
+      [user4.account.address],
+      {
+        permissions: GroupPermissions.GroupCreatorIsAdmin,
+      }
+    )
+    expect(groupWithPermissions).toBeDefined()
+    expect(groupWithPermissions.name).toBe('')
+    expect(groupWithPermissions.imageUrl).toBe('')
+    expect(groupWithPermissions.permissions.policyType).toBe(
+      GroupPermissions.GroupCreatorIsAdmin
+    )
   })
 
   it('should stream new conversations', async () => {
