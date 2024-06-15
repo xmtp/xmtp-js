@@ -139,14 +139,14 @@ export class Client {
     this.#innerClient.addEcdsaSignature(signatureBytes)
   }
 
-  addErc1271Signature(
+  addScwSignature(
     signatureBytes: Uint8Array,
     chainId: string,
     accountAddress: string,
     chainRpcUrl: string,
     blockNumber: bigint
   ) {
-    this.#innerClient.addErc1271Signature(
+    this.#innerClient.addScwSignature(
       signatureBytes,
       chainId,
       accountAddress,
