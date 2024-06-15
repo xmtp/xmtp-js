@@ -73,6 +73,12 @@ export class Conversation {
     return this.#group.superAdminList()
   }
 
+  get permissions() {
+    return {
+      policyType: this.#group.groupPermissions().policyType(),
+    }
+  }
+
   isAdmin(inboxId: string) {
     return this.#group.isAdmin(inboxId)
   }
