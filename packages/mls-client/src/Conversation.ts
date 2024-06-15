@@ -29,6 +29,14 @@ export class Conversation {
     return this.#group.updateGroupName(name)
   }
 
+  get imageUrl() {
+    return this.#group.groupImageUrlSquare()
+  }
+
+  async updateImageUrl(imageUrl: string) {
+    return this.#group.updateGroupImageUrlSquare(imageUrl)
+  }
+
   get isActive() {
     return this.#group.isActive()
   }
