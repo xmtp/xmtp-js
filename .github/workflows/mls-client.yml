@@ -75,6 +75,12 @@ jobs:
           cd packages/mls-client
           yarn format:check
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No tests for MLS Client yet."
+
   build:
     name: Build
     runs-on: warp-ubuntu-latest-x64-8x

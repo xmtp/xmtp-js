@@ -75,8 +75,8 @@ jobs:
           cd packages/js-sdk
           yarn format:check
 
-  node:
-    name: Test node
+  test:
+    name: Test
     # TODO: Investigate why fetch is failing for some of these tests on warp build runners
     runs-on: ubuntu-latest
     steps:
@@ -101,24 +101,6 @@ jobs:
           DD_SERVICE: xmtp-js
           DD_CIVISIBILITY_AGENTLESS_ENABLED: 'true'
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
-
-  browser:
-    name: Test browser
-    # TODO: Investigate why fetch is failing for some of these tests on warp build runners
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-        env:
-          SKIP_YARN_COREPACK_CHECK: '1'
-      - name: Enable corepack
-        run: corepack enable
-      - name: Install dependencies
-        run: yarn
-      - run: ./dev/up
       - run: |
           cd packages/js-sdk
           yarn test:browser
