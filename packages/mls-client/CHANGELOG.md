@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.10
+
+### Patch Changes
+
+- b5db898: Upgrade node bindings for bug fixes
+
 ## 0.0.9
 
 ### Patch Changes
