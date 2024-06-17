@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- b5db898: Upgrade node bindings
+- b5db898: Upgrade node bindings for bug fixes
 
 ## 0.0.9
 
