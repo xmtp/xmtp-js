@@ -22,4 +22,11 @@ describe('Client', () => {
       [user.account.address.toLowerCase()]: true,
     })
   })
+
+  it('should get an inbox ID from an address', async () => {
+    const user = createUser()
+    const client = await createRegisteredClient(user)
+    const inboxId = await client.getInboxIdByAddress(user.account.address)
+    expect(inboxId).toBe(client.inboxId)
+  })
 })

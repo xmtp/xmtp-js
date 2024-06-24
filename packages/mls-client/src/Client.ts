@@ -196,4 +196,12 @@ export class Client {
 
     return codec.decode(message.content as EncodedContent, this)
   }
+
+  async requestHistorySync() {
+    return this.#innerClient.requestHistorySync()
+  }
+
+  async getInboxIdByAddress(accountAddress: string) {
+    return this.#innerClient.findInboxIdByAddress(accountAddress)
+  }
 }
