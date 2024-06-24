@@ -1,5 +1,14 @@
 # @xmtp/mls-client
 
+## 0.0.11
+
+### Patch Changes
+
+- c506faf: - Upgraded to latest MLS node bindings
+  - Added `requestHistorySync` and `getInboxIdByAddress` to `Client`
+  - Renamed `get` to `getConversationById` in `Conversations`
+  - Added `getMessageById` to `Conversations`
+
 ## 0.0.10
 
 ### Patch Changes
