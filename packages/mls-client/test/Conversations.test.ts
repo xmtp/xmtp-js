@@ -20,7 +20,9 @@ describe('Conversations', () => {
       user2.account.address,
     ])
     expect(conversation).toBeDefined()
-    expect(client1.conversations.get(conversation.id)?.id).toBe(conversation.id)
+    expect(client1.conversations.getConversationById(conversation.id)?.id).toBe(
+      conversation.id
+    )
     expect(conversation.id).toBeDefined()
     expect(conversation.createdAt).toBeDefined()
     expect(conversation.createdAtNs).toBeDefined()
@@ -51,6 +53,37 @@ describe('Conversations', () => {
     const conversations2 = await client2.conversations.list()
     expect(conversations2.length).toBe(1)
     expect(conversations2[0].id).toBe(conversation.id)
+  })
+
+  it('should get a group by ID', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    await createRegisteredClient(user2)
+    const group = await client1.conversations.newConversation([
+      user2.account.address,
+    ])
+    expect(group).toBeDefined()
+    expect(group.id).toBeDefined()
+    const foundGroup = client1.conversations.getConversationById(group.id)
+    expect(foundGroup).toBeDefined()
+    expect(foundGroup!.id).toBe(group.id)
+  })
+
+  it('should get a message by ID', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    await createRegisteredClient(user2)
+    const group = await client1.conversations.newConversation([
+      user2.account.address,
+    ])
+    const messageId = await group.send('gm!', ContentTypeText)
+    expect(messageId).toBeDefined()
+
+    const message = client1.conversations.getMessageById(messageId)
+    expect(message).toBeDefined()
+    expect(message!.id).toBe(messageId)
   })
 
   it('should create a new conversation with options', async () => {
@@ -134,12 +167,12 @@ describe('Conversations', () => {
       }
     }
     stream.stop()
-    expect(client3.conversations.get(conversation1.id)?.id).toBe(
-      conversation1.id
-    )
-    expect(client3.conversations.get(conversation2.id)?.id).toBe(
-      conversation2.id
-    )
+    expect(
+      client3.conversations.getConversationById(conversation1.id)?.id
+    ).toBe(conversation1.id)
+    expect(
+      client3.conversations.getConversationById(conversation2.id)?.id
+    ).toBe(conversation2.id)
   })
 
   it('should stream all messages', async () => {

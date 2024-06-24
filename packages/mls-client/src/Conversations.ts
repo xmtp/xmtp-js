@@ -11,16 +11,30 @@ import { DecodedMessage } from '@/DecodedMessage'
 export class Conversations {
   #client: Client
   #conversations: NapiConversations
-  #map: Map<string, Conversation>
 
   constructor(client: Client, conversations: NapiConversations) {
     this.#client = client
     this.#conversations = conversations
-    this.#map = new Map()
   }
 
-  get(id: string) {
-    return this.#map.get(id)
+  getConversationById(id: string) {
+    try {
+      // findGroupById will throw if group is not found
+      const group = this.#conversations.findGroupById(id)
+      return new Conversation(this.#client, group)
+    } catch {
+      return null
+    }
+  }
+
+  getMessageById(id: string) {
+    try {
+      // findMessageById will throw if message is not found
+      const message = this.#conversations.findMessageById(id)
+      return new DecodedMessage(this.#client, message)
+    } catch {
+      return null
+    }
   }
 
   async newConversation(
@@ -32,7 +46,6 @@ export class Conversations {
       options
     )
     const conversation = new Conversation(this.#client, group)
-    this.#map.set(conversation.id, conversation)
     return conversation
   }
 
@@ -40,7 +53,6 @@ export class Conversations {
     const groups = await this.#conversations.list(options)
     return groups.map((group) => {
       const conversation = new Conversation(this.#client, group)
-      this.#map.set(conversation.id, conversation)
       return conversation
     })
   }
@@ -54,7 +66,6 @@ export class Conversations {
 
     const stream = this.#conversations.stream((err, group) => {
       const conversation = new Conversation(this.#client, group)
-      this.#map.set(conversation.id, conversation)
       asyncStream.callback(err, conversation)
       callback?.(err, conversation)
     })
