@@ -94,7 +94,7 @@
   "peerDependencies": {
     "@xmtp/xmtp-js": ">9.3.1"
   },
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.3.1",
   "publishConfig": {
     "access": "public",
     "provenance": true,
