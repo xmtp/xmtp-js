@@ -230,21 +230,21 @@ describe('Conversation', () => {
       user2.account.address,
     ])
 
-    expect(conversation.isAdmin(client1.inboxId)).toBe(true)
+    expect(conversation.isSuperAdmin(client1.inboxId)).toBe(true)
+    expect(conversation.superAdmins.length).toBe(1)
+    expect(conversation.superAdmins).toContain(client1.inboxId)
+    expect(conversation.isAdmin(client1.inboxId)).toBe(false)
     expect(conversation.isAdmin(client2.inboxId)).toBe(false)
-    expect(conversation.admins.length).toBe(1)
-    expect(conversation.admins).toContain(client1.inboxId)
+    expect(conversation.admins.length).toBe(0)
 
     await conversation.addAdmin(client2.inboxId)
     expect(conversation.isAdmin(client2.inboxId)).toBe(true)
-    expect(conversation.admins.length).toBe(2)
-    expect(conversation.admins).toContain(client1.inboxId)
+    expect(conversation.admins.length).toBe(1)
     expect(conversation.admins).toContain(client2.inboxId)
 
     await conversation.removeAdmin(client2.inboxId)
     expect(conversation.isAdmin(client2.inboxId)).toBe(false)
-    expect(conversation.admins.length).toBe(1)
-    expect(conversation.admins).toContain(client1.inboxId)
+    expect(conversation.admins.length).toBe(0)
   })
 
   it('should add and remove super admins', async () => {
