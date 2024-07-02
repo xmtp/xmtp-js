@@ -4,7 +4,8 @@
 
 ### Patch Changes
 
-- 4ec046b: - Added conversation descriptions
+- 4ec046b:
+  - Added conversation descriptions
   - Fixed DB locking issues
   - Fixed invalid policy error
   - Removed Admin status from group creators (Super Admin only)
