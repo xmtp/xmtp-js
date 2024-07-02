@@ -137,6 +137,17 @@ describe('Conversations', () => {
     expect(groupWithPermissions.permissions.policyType).toBe(
       GroupPermissions.GroupCreatorIsAdmin
     )
+
+    const groupWithDescription = await client1.conversations.newConversation(
+      [user2.account.address],
+      {
+        groupDescription: 'foo',
+      }
+    )
+    expect(groupWithDescription).toBeDefined()
+    expect(groupWithDescription.name).toBe('')
+    expect(groupWithDescription.imageUrl).toBe('')
+    expect(groupWithDescription.description).toBe('foo')
   })
 
   it('should stream new conversations', async () => {
