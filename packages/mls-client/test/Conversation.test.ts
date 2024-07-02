@@ -1,6 +1,10 @@
-import { ContentTypeText } from '@xmtp/content-type-text'
 import { describe, expect, it } from 'vitest'
-import { createRegisteredClient, createUser } from '@test/helpers'
+import {
+  ContentTypeTest,
+  createRegisteredClient,
+  createUser,
+  TestCodec,
+} from '@test/helpers'
 
 describe('Conversation', () => {
   it('should update conversation name', async () => {
@@ -131,7 +135,7 @@ describe('Conversation', () => {
     ])
 
     const text = 'gm'
-    await conversation.send(text, ContentTypeText)
+    await conversation.send(text)
 
     const messages = conversation.messages()
     expect(messages.length).toBe(2)
@@ -151,6 +155,38 @@ describe('Conversation', () => {
     expect(messages2[0].content).toBe(text)
   })
 
+  it('should require content type when sending non-string content', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const client1 = await createRegisteredClient(user1, {
+      codecs: [new TestCodec()],
+    })
+    await createRegisteredClient(user2)
+    const conversation = await client1.conversations.newConversation([
+      user2.account.address,
+    ])
+
+    await expect(() => conversation.send(1)).rejects.toThrow()
+    await expect(() => conversation.send({ foo: 'bar' })).rejects.toThrow()
+    await expect(
+      conversation.send({ foo: 'bar' }, ContentTypeTest)
+    ).resolves.not.toThrow()
+  })
+
+  it('should throw when sending content without a codec', async () => {
+    const user1 = createUser()
+    const user2 = createUser()
+    const client1 = await createRegisteredClient(user1)
+    await createRegisteredClient(user2)
+    const conversation = await client1.conversations.newConversation([
+      user2.account.address,
+    ])
+
+    await expect(
+      conversation.send({ foo: 'bar' }, ContentTypeTest)
+    ).rejects.toThrow()
+  })
+
   it('should stream messages', async () => {
     const user1 = createUser()
     const user2 = createUser()
@@ -167,8 +203,8 @@ describe('Conversation', () => {
 
     const stream = conversation2[0].stream()
 
-    await conversation.send('gm', ContentTypeText)
-    await conversation.send('gm2', ContentTypeText)
+    await conversation.send('gm')
+    await conversation.send('gm2')
 
     let count = 0
     for await (const message of stream) {

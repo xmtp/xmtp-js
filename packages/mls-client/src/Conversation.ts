@@ -1,4 +1,5 @@
 import type { ContentTypeId } from '@xmtp/content-type-primitives'
+import { ContentTypeText } from '@xmtp/content-type-text'
 import type {
   NapiGroup,
   NapiListMessagesOptions,
@@ -137,8 +138,19 @@ export class Conversation {
     return this.#group.removeSuperAdmin(inboxId)
   }
 
-  async send(content: any, contentType: ContentTypeId) {
-    return this.#group.send(this.#client.encodeContent(content, contentType))
+  async send(content: any, contentType?: ContentTypeId) {
+    if (typeof content !== 'string' && !contentType) {
+      throw new Error(
+        'Content type is required when sending content other than text'
+      )
+    }
+
+    const encodedContent =
+      typeof content === 'string'
+        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        : this.#client.encodeContent(content, contentType!)
+
+    return this.#group.send(encodedContent)
   }
 
   messages(options?: NapiListMessagesOptions): DecodedMessage[] {

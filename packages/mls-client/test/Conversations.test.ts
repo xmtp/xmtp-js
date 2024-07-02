@@ -1,4 +1,3 @@
-import { ContentTypeText } from '@xmtp/content-type-text'
 import { GroupPermissions } from '@xmtp/mls-client-bindings-node'
 import { describe, expect, it } from 'vitest'
 import { createRegisteredClient, createUser } from '@test/helpers'
@@ -78,7 +77,7 @@ describe('Conversations', () => {
     const group = await client1.conversations.newConversation([
       user2.account.address,
     ])
-    const messageId = await group.send('gm!', ContentTypeText)
+    const messageId = await group.send('gm!')
     expect(messageId).toBeDefined()
 
     const message = client1.conversations.getMessageById(messageId)
@@ -193,8 +192,8 @@ describe('Conversations', () => {
     await client3.conversations.sync()
     const groups3 = await client3.conversations.list()
 
-    await groups2[0].send('gm!', ContentTypeText)
-    await groups3[0].send('gm2!', ContentTypeText)
+    await groups2[0].send('gm!')
+    await groups3[0].send('gm2!')
 
     let count = 0
 
