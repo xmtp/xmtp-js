@@ -67,7 +67,7 @@
     ]
   },
   "dependencies": {
-    "@xmtp/proto": "3.56.0",
+    "@xmtp/proto": "3.62.1",
     "long": "^5.2.3"
   },
   "devDependencies": {
