@@ -2668,12 +2668,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.19.23":
-  version: 18.19.23
-  resolution: "@types/node@npm:18.19.23"
+"@types/node@npm:^20.14.9":
+  version: 20.14.9
+  resolution: "@types/node@npm:20.14.9"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10/4cf9698cacc88c9064fb440c159e01756e4e8f5a43e218c3d7d95af62a3d1ab833c64c60a71bb0b4d06eabdc143456730db205771810f6a78a357b8d1dfd2775
+  checksum: 10/f313b06c79be92f5d3541159ef813b9fc606941f951ecf826e940658c6d4952755ca2f06277b746326cef0697ed79a04676ecde053d32e1121b3352c8168d2e9
   languageName: node
   linkType: hard
 
@@ -2938,7 +2938,7 @@ __metadata:
     "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.0"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^11.1.6"
-    "@types/node": "npm:^18.19.23"
+    "@types/node": "npm:^20.14.9"
     "@typescript-eslint/eslint-plugin": "npm:^7.15.0"
     "@typescript-eslint/parser": "npm:^7.15.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
@@ -3040,7 +3040,7 @@ __metadata:
     "@types/bl": "npm:^5.1.0"
     "@types/callback-to-async-iterator": "npm:^1.1.7"
     "@types/elliptic": "npm:^6.4.18"
-    "@types/node": "npm:^18.19.23"
+    "@types/node": "npm:^20.14.9"
     "@typescript-eslint/eslint-plugin": "npm:^7.15.0"
     "@typescript-eslint/parser": "npm:^7.15.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
