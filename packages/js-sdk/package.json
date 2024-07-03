@@ -109,7 +109,7 @@
     "viem": "2.7.15"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.3.0",
     "@metamask/providers": "^14.0.2",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-terser": "^0.4.4",
@@ -136,7 +136,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "ethers": "^5.7.2",
     "happy-dom": "^14.10.1",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "prettier-plugin-packagejson": "^2.5.0",
     "rollup": "^4.17.2",
     "rollup-plugin-dts": "^6.1.0",
