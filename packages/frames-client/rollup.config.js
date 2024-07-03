@@ -16,7 +16,13 @@ const plugins = [
   }),
 ];
 
-const external = ["@xmtp/proto", "node:crypto"];
+const external = [
+  "@xmtp/proto",
+  "node:crypto",
+  "@open-frames/proxy-client",
+  "@noble/hashes/sha256",
+  "long",
+];
 
 export default defineConfig([
   {
