@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@changesets/changelog-git": "^0.2.0",
-    "@changesets/cli": "^2.27.1"
+    "@changesets/cli": "^2.27.7"
   },
   "devDependencies": {
     "prettier": "^3.3.2",
