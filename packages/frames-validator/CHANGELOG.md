@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.6.2
+
+### Patch Changes
+
+- [#260](https://github.com/xmtp/xmtp-node-js-tools/pull/260) [`57bf55d`](https://github.com/xmtp/xmtp-node-js-tools/commit/57bf55d89bce8a52a1dfaf8b7fc649054aaa6fd5) Thanks [@neekolas](https://github.com/neekolas)! - Update dependencies
+
 ## 0.6.1
 
 ### Patch Changes
