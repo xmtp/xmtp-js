@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "build": "turbo run build --filter='./packages/*'",
-    "clean": "turbo run clean && rm -rf node_modules && yarn cache clean",
+    "clean": "turbo run clean && rm -rf node_modules && rm -rf .turbo && yarn cache clean",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "lint": "FORCE_COLOR=1 turbo run lint",
