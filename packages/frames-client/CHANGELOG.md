@@ -1,5 +1,17 @@
 # @xmtp/frames-client
 
+## 0.5.4
+
+### Patch Changes
+
+- 3fc5b82: ### React SDK
+
+  - Fixed dev and peer dependencies
+
+  ### Frames client
+
+  - Upgraded dependencies
+
 ## 0.5.3
 
 ### Patch Changes
