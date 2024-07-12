@@ -9,10 +9,14 @@ on:
     paths:
       - 'packages/mls-client/**'
       - '.github/workflows/mls-client.yml'
+      - 'dev/**'
       - '.node-version'
       - '.nvmrc'
       - '.prettierignore'
       - '.prettierrc.cjs'
+      - '.yarnrc.yml'
+      - 'turbo.json'
+      - 'yarn.lock'
 
 jobs:
   typecheck:

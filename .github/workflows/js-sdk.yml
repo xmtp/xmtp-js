@@ -9,10 +9,14 @@ on:
     paths:
       - 'packages/js-sdk/**'
       - '.github/workflows/js-sdk.yml'
+      - 'dev/**'
       - '.node-version'
       - '.nvmrc'
       - '.prettierignore'
       - '.prettierrc.cjs'
+      - '.yarnrc.yml'
+      - 'turbo.json'
+      - 'yarn.lock'
 
 jobs:
   typecheck:
