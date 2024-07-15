@@ -2908,7 +2908,7 @@ __metadata:
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
     "@xmtp/mls-client-bindings-node": "npm:^0.0.8"
-    "@xmtp/proto": "npm:^3.61.1"
+    "@xmtp/proto": "npm:^3.62.1"
     "@xmtp/xmtp-js": "workspace:^"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -2933,18 +2933,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:3.54.0":
-  version: 3.54.0
-  resolution: "@xmtp/proto@npm:3.54.0"
-  dependencies:
-    long: "npm:^5.2.0"
-    protobufjs: "npm:^7.0.0"
-    rxjs: "npm:^7.8.0"
-    undici: "npm:^5.8.1"
-  checksum: 10/536b846b234bdf49978716b232b6a25985a55bb0c10c825b090354cb43f0b071ee506e5a9765c69deb0e6a4b9aa4cd61abe2c9d2df563cfd6ec121197b591844
-  languageName: node
-  linkType: hard
-
 "@xmtp/proto@npm:3.56.0":
   version: 3.56.0
   resolution: "@xmtp/proto@npm:3.56.0"
@@ -2966,6 +2954,18 @@ __metadata:
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
   checksum: 10/c5acae46ad301a50652f30384be55a3389b4c11994652fa5386052c7ff4111fcb15c0e9d267898d6173cbcb6559b24bd7bef7470f020388f8610fecd3b8deea9
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:^3.62.1":
+  version: 3.62.1
+  resolution: "@xmtp/proto@npm:3.62.1"
+  dependencies:
+    long: "npm:^5.2.0"
+    protobufjs: "npm:^7.0.0"
+    rxjs: "npm:^7.8.0"
+    undici: "npm:^5.8.1"
+  checksum: 10/7d6633f5ffb60725a6f3f128191944caf203fb3110a6076cdec31bc3cc6e5dca1b03170c6fa38b877125475ed3050031b93a47587c5e6bee6ebd91de53f8f0f2
   languageName: node
   linkType: hard
 
@@ -3010,7 +3010,7 @@ __metadata:
     "@xmtp/consent-proof-signature": "npm:^0.1.3"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/proto": "npm:3.54.0"
+    "@xmtp/proto": "npm:^3.62.1"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:1.0.1"
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"
     async-mutex: "npm:^0.5.0"
