@@ -7,7 +7,7 @@ on:
 
   pull_request:
     paths:
-      - '.changeset/**'
+      - '.changeset/config.json'
       - '.github/**'
       - '!.github/workflows/js-sdk.yml'
       - '!.github/workflows/mls-client.yml'
