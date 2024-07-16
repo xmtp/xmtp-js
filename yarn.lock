@@ -2948,14 +2948,14 @@ __metadata:
     eslint-plugin-promise: "npm:^6.4.0"
     fast-glob: "npm:^3.3.2"
     prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.0"
+    prettier-plugin-packagejson: "npm:^2.5.1"
     rollup: "npm:^4.18.1"
     rollup-plugin-dts: "npm:^6.1.1"
     rollup-plugin-filesize: "npm:^10.0.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.5.3"
     viem: "npm:^2.13.6"
-    vite: "npm:5.3.3"
+    vite: "npm:5.3.4"
     vite-tsconfig-paths: "npm:^4.3.2"
     vitest: "npm:^2.0.3"
   languageName: unknown
@@ -3058,7 +3058,7 @@ __metadata:
     happy-dom: "npm:^14.12.3"
     long: "npm:^5.2.3"
     prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.0"
+    prettier-plugin-packagejson: "npm:^2.5.1"
     rollup: "npm:^4.18.1"
     rollup-plugin-dts: "npm:^6.1.1"
     rollup-plugin-filesize: "npm:^10.0.0"
@@ -3066,7 +3066,7 @@ __metadata:
     typedoc: "npm:^0.26.4"
     typescript: "npm:^5.5.3"
     viem: "npm:2.7.15"
-    vite: "npm:5.3.3"
+    vite: "npm:5.3.4"
     vite-tsconfig-paths: "npm:^4.3.2"
     vitest: "npm:^2.0.3"
   languageName: unknown
@@ -7682,18 +7682,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-packagejson@npm:^2.5.0":
-  version: 2.5.0
-  resolution: "prettier-plugin-packagejson@npm:2.5.0"
+"prettier-plugin-packagejson@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "prettier-plugin-packagejson@npm:2.5.1"
   dependencies:
     sort-package-json: "npm:2.10.0"
-    synckit: "npm:0.9.0"
+    synckit: "npm:0.9.1"
   peerDependencies:
     prettier: ">= 1.16.0"
   peerDependenciesMeta:
     prettier:
       optional: true
-  checksum: 10/0b05b02e96173abc1220d11a5ae6fbdefd45823ad86e5aba70bd52377f555db82fbe41c67bdfb186fa3f4c2ef5d12d4803b7215cb301533829a8389b411bb99a
+  checksum: 10/ddf202a1b758ff419611cd4fffd13f61956592dde60075ea233d33827a25611bee22f5c698921afecad6bca701c441af8404a8e8edbd41432509270ba2c37558
   languageName: node
   linkType: hard
 
@@ -8813,13 +8813,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"synckit@npm:0.9.0, synckit@npm:^0.9.0":
-  version: 0.9.0
-  resolution: "synckit@npm:0.9.0"
+"synckit@npm:0.9.1":
+  version: 0.9.1
+  resolution: "synckit@npm:0.9.1"
   dependencies:
     "@pkgr/core": "npm:^0.1.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/e93f3f5ee43fa71d3bb2a345049642d9034f34fa9528706b5ef26e825335ca5446143c56c2b041810afe26aa6e343583ff08525f5530618a4707375270f87be1
+  checksum: 10/bff3903976baf8b699b5483228116d70223781a93b17c70e685c277ee960cdfd1a09cb5a741e6a9ec35e2428f14f4664baec41ccc99a598f267608b2a54f529b
   languageName: node
   linkType: hard
 
@@ -8830,6 +8830,16 @@ __metadata:
     "@pkgr/core": "npm:^0.1.0"
     tslib: "npm:^2.6.2"
   checksum: 10/2864a5c3e689ad5b991bebbd8a583c5682c4fa08a4f39986b510b6b5d160c08fc3672444069f8f96ed6a9d12772879c674c1f61e728573eadfa90af40a765b74
+  languageName: node
+  linkType: hard
+
+"synckit@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "synckit@npm:0.9.0"
+  dependencies:
+    "@pkgr/core": "npm:^0.1.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10/e93f3f5ee43fa71d3bb2a345049642d9034f34fa9528706b5ef26e825335ca5446143c56c2b041810afe26aa6e343583ff08525f5530618a4707375270f87be1
   languageName: node
   linkType: hard
 
@@ -9441,9 +9451,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:5.3.3":
-  version: 5.3.3
-  resolution: "vite@npm:5.3.3"
+"vite@npm:5.3.4":
+  version: 5.3.4
+  resolution: "vite@npm:5.3.4"
   dependencies:
     esbuild: "npm:^0.21.3"
     fsevents: "npm:~2.3.3"
@@ -9477,7 +9487,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/e7a094cefedad9e204b715588502118e07d1b9c00c617f55b810169181907f55144f0a82f650995d6a74f12e3695fca65afc348b475b91a81dcbd0274d30a088
+  checksum: 10/9eadb261be1f5f6335a67cb44a8803febd8b190202909385fd2ae7849991095ee13c5af914da53da48a421ee0901a8fedbb7519dc7d1b8ade3ea6e42bd9b2b39
   languageName: node
   linkType: hard
 
@@ -9771,7 +9781,7 @@ __metadata:
     "@changesets/changelog-git": "npm:^0.2.0"
     "@changesets/cli": "npm:^2.27.7"
     prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.0"
+    prettier-plugin-packagejson: "npm:^2.5.1"
     turbo: "npm:^2.0.6"
   languageName: unknown
   linkType: soft
