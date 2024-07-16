@@ -2915,10 +2915,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/mls-client-bindings-node@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "@xmtp/mls-client-bindings-node@npm:0.0.8"
-  checksum: 10/58bbe484844e08ae1bd9d22388fb9081662ef96debd29fcb375c88de66d27da1dc94da465add6c54ab926f8b100b0c6e717f6b500706705c7b08ea1021e70e34
+"@xmtp/mls-client-bindings-node@npm:^0.0.9":
+  version: 0.0.9
+  resolution: "@xmtp/mls-client-bindings-node@npm:0.0.9"
+  checksum: 10/ca13010b542be6671c48115e38e8888bc725007bdfddd1fd3d7ee300ef0318e64cdca48cbe32f9240b2c8f5a9904f943b360af09abd7ce5cdeda3a3b62c6e7d2
   languageName: node
   linkType: hard
 
@@ -2935,7 +2935,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^2.0.3"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/mls-client-bindings-node": "npm:^0.0.8"
+    "@xmtp/mls-client-bindings-node": "npm:^0.0.9"
     "@xmtp/proto": "npm:^3.62.1"
     "@xmtp/xmtp-js": "workspace:^"
     eslint: "npm:^8.57.0"
