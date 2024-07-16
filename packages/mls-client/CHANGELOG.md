@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.13
+
+### Patch Changes
+
+- 4c0340b: Upgrade dependencies
+
 ## 0.0.12
 
 ### Patch Changes

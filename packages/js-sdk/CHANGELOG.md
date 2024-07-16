@@ -1,5 +1,11 @@
 # @xmtp/xmtp-js
 
+## 12.0.1
+
+### Patch Changes
+
+- 4c0340b: Upgrade dependencies
+
 ## 12.0.0
 
 ### Major Changes
