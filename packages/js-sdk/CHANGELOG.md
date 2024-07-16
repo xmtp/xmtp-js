@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 4c0340b: Upgrade dependencies
+- 4c0340b: Upgraded `@xmtp/proto` and `elliptic` dependencies
 
 ## 12.0.0
 
