@@ -1,5 +1,11 @@
 # @xmtp/xmtp-js
 
+## 12.0.1
+
+### Patch Changes
+
+- 4c0340b: Upgraded `@xmtp/proto` and `elliptic` dependencies
+
 ## 12.0.0
 
 ### Major Changes

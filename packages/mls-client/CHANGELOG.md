@@ -1,5 +1,16 @@
 # @xmtp/mls-client
 
+## 0.0.13
+
+### Patch Changes
+
+- 4c0340b:
+  - Upgraded `@xmtp/proto`
+  - Upgraded MLS bindings
+  - Added optimistic sending
+  - Added `pinnedFrameUrl` metadata to conversations
+  - Added `policySet` to conversation permissions
+
 ## 0.0.12
 
 ### Patch Changes
