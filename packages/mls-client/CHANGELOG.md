@@ -4,7 +4,12 @@
 
 ### Patch Changes
 
-- 4c0340b: Upgrade dependencies
+- 4c0340b:
+  - Upgraded `@xmtp/proto`
+  - Upgraded MLS bindings
+  - Added optimistic sending
+  - Added `pinnedFrameUrl` metadata to conversations
+  - Added `policySet` to conversation permissions
 
 ## 0.0.12
 
