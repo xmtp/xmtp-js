@@ -14,4 +14,4 @@ export {
   GroupUpdatedCodec,
 } from './codecs/GroupUpdatedCodec'
 export type { StreamCallback } from './AsyncStream'
-export { GroupPermissions } from '@xmtp/mls-client-bindings-node'
+export type * from '@xmtp/mls-client-bindings-node'

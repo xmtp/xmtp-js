@@ -46,6 +46,14 @@ export class Conversation {
     return this.#group.updateGroupDescription(description)
   }
 
+  get pinnedFrameUrl() {
+    return this.#group.groupPinnedFrameUrl()
+  }
+
+  async updatePinnedFrameUrl(pinnedFrameUrl: string) {
+    return this.#group.updateGroupPinnedFrameUrl(pinnedFrameUrl)
+  }
+
   get isActive() {
     return this.#group.isActive()
   }
@@ -85,6 +93,7 @@ export class Conversation {
   get permissions() {
     return {
       policyType: this.#group.groupPermissions().policyType(),
+      policySet: this.#group.groupPermissions().policySet(),
     }
   }
 
@@ -144,6 +153,25 @@ export class Conversation {
 
   async removeSuperAdmin(inboxId: string) {
     return this.#group.removeSuperAdmin(inboxId)
+  }
+
+  async publishMessages() {
+    return this.#group.publishMessages()
+  }
+
+  sendOptimistic(content: any, contentType?: ContentTypeId) {
+    if (typeof content !== 'string' && !contentType) {
+      throw new Error(
+        'Content type is required when sending content other than text'
+      )
+    }
+
+    const encodedContent =
+      typeof content === 'string'
+        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        : this.#client.encodeContent(content, contentType!)
+
+    return this.#group.sendOptimistic(encodedContent)
   }
 
   async send(content: any, contentType?: ContentTypeId) {

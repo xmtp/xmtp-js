@@ -198,6 +198,8 @@ export class ConsentList {
               : undefined,
           allowGroup: undefined,
           denyGroup: undefined,
+          allowInboxId: undefined,
+          denyInboxId: undefined,
         }
         return result.concat(
           privatePreferences.PrivatePreferencesAction.encode(action).finish()

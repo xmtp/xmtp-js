@@ -1,2 +1,3 @@
 CODEOWNERS
 .yarn
+.changeset/**/*.md

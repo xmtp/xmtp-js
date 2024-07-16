@@ -1,4 +1,4 @@
-import { GroupPermissions } from '@xmtp/mls-client-bindings-node'
+import { NapiGroupPermissionsOptions } from '@xmtp/mls-client-bindings-node'
 import { describe, expect, it } from 'vitest'
 import { createRegisteredClient, createUser } from '@test/helpers'
 
@@ -28,8 +28,18 @@ describe('Conversations', () => {
     expect(conversation.isActive).toBe(true)
     expect(conversation.name).toBe('')
     expect(conversation.permissions.policyType).toBe(
-      GroupPermissions.EveryoneIsAdmin
+      NapiGroupPermissionsOptions.AllMembers
     )
+    expect(conversation.permissions.policySet).toEqual({
+      addMemberPolicy: 0,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 0,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateGroupPinnedFrameUrlPolicy: 0,
+    })
     expect(conversation.addedByInboxId).toBe(client1.inboxId)
     expect(conversation.messages().length).toBe(1)
     expect(conversation.members.length).toBe(2)
@@ -128,15 +138,26 @@ describe('Conversations', () => {
     const groupWithPermissions = await client1.conversations.newConversation(
       [user4.account.address],
       {
-        permissions: GroupPermissions.GroupCreatorIsAdmin,
+        permissions: NapiGroupPermissionsOptions.AdminOnly,
       }
     )
     expect(groupWithPermissions).toBeDefined()
     expect(groupWithPermissions.name).toBe('')
     expect(groupWithPermissions.imageUrl).toBe('')
     expect(groupWithPermissions.permissions.policyType).toBe(
-      GroupPermissions.GroupCreatorIsAdmin
+      NapiGroupPermissionsOptions.AdminOnly
     )
+
+    expect(groupWithPermissions.permissions.policySet).toEqual({
+      addMemberPolicy: 2,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 2,
+      updateGroupDescriptionPolicy: 2,
+      updateGroupImageUrlSquarePolicy: 2,
+      updateGroupPinnedFrameUrlPolicy: 2,
+    })
 
     const groupWithDescription = await client1.conversations.newConversation(
       [user2.account.address],
@@ -148,6 +169,18 @@ describe('Conversations', () => {
     expect(groupWithDescription.name).toBe('')
     expect(groupWithDescription.imageUrl).toBe('')
     expect(groupWithDescription.description).toBe('foo')
+
+    const groupWithPinnedFrameUrl = await client1.conversations.newConversation(
+      [user2.account.address],
+      {
+        groupPinnedFrameUrl: 'https://foo/bar',
+      }
+    )
+    expect(groupWithPinnedFrameUrl).toBeDefined()
+    expect(groupWithPinnedFrameUrl.name).toBe('')
+    expect(groupWithPinnedFrameUrl.imageUrl).toBe('')
+    expect(groupWithPinnedFrameUrl.description).toBe('')
+    expect(groupWithPinnedFrameUrl.pinnedFrameUrl).toBe('https://foo/bar')
   })
 
   it('should stream new conversations', async () => {
