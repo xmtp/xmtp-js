@@ -13,10 +13,18 @@ import Stream from './Stream'
 
 export type ConsentState = 'allowed' | 'denied' | 'unknown'
 
-export type ConsentListEntryType = 'address'
+export type ConsentListEntryType = 'address' | 'groupId' | 'inboxId'
 
 export type PrivatePreferencesAction =
   privatePreferences.PrivatePreferencesAction
+
+type PrivatePreferencesActionKey = keyof PrivatePreferencesAction
+
+type PrivatePreferencesActionValueKey = {
+  [K in PrivatePreferencesActionKey]: keyof NonNullable<
+    PrivatePreferencesAction[K]
+  >
+}[PrivatePreferencesActionKey]
 
 export class ConsentListEntry {
   value: string
@@ -43,6 +51,20 @@ export class ConsentListEntry {
   ): ConsentListEntry {
     return new ConsentListEntry(address, 'address', permissionType)
   }
+
+  static fromGroupId(
+    groupId: string,
+    permissionType: ConsentState = 'unknown'
+  ): ConsentListEntry {
+    return new ConsentListEntry(groupId, 'groupId', permissionType)
+  }
+
+  static fromInboxId(
+    inboxId: string,
+    permissionType: ConsentState = 'unknown'
+  ): ConsentListEntry {
+    return new ConsentListEntry(inboxId, 'inboxId', permissionType)
+  }
 }
 
 export class ConsentList {
@@ -68,8 +90,42 @@ export class ConsentList {
     return entry
   }
 
+  allowGroup(groupId: string) {
+    const entry = ConsentListEntry.fromGroupId(groupId, 'allowed')
+    this.entries.set(entry.key, 'allowed')
+    return entry
+  }
+
+  denyGroup(groupId: string) {
+    const entry = ConsentListEntry.fromGroupId(groupId, 'denied')
+    this.entries.set(entry.key, 'denied')
+    return entry
+  }
+
+  allowInboxId(inboxId: string) {
+    const entry = ConsentListEntry.fromInboxId(inboxId, 'allowed')
+    this.entries.set(entry.key, 'allowed')
+    return entry
+  }
+
+  denyInboxId(inboxId: string) {
+    const entry = ConsentListEntry.fromInboxId(inboxId, 'denied')
+    this.entries.set(entry.key, 'denied')
+    return entry
+  }
+
   state(address: string) {
     const entry = ConsentListEntry.fromAddress(address)
+    return this.entries.get(entry.key) ?? 'unknown'
+  }
+
+  groupState(groupId: string) {
+    const entry = ConsentListEntry.fromGroupId(groupId)
+    return this.entries.get(entry.key) ?? 'unknown'
+  }
+
+  inboxIdState(inboxId: string) {
+    const entry = ConsentListEntry.fromInboxId(inboxId)
     return this.entries.get(entry.key) ?? 'unknown'
   }
 
@@ -113,6 +169,18 @@ export class ConsentList {
       })
       action.denyAddress?.walletAddresses.forEach((address) => {
         entries.push(this.deny(address))
+      })
+      action.allowGroup?.groupIds.forEach((groupId) => {
+        entries.push(this.allowGroup(groupId))
+      })
+      action.denyGroup?.groupIds.forEach((groupId) => {
+        entries.push(this.denyGroup(groupId))
+      })
+      action.allowInboxId?.inboxIds.forEach((inboxId) => {
+        entries.push(this.allowInboxId(inboxId))
+      })
+      action.denyInboxId?.inboxIds.forEach((inboxId) => {
+        entries.push(this.denyInboxId(inboxId))
       })
     })
 
@@ -179,37 +247,55 @@ export class ConsentList {
   async publish(entries: ConsentListEntry[]) {
     const identifier = await this.getIdentifier()
 
-    // encoded actions
-    const actions = entries.reduce((result, entry) => {
-      // only handle address entries for now
-      if (entry.entryType === 'address') {
-        const action: PrivatePreferencesAction = {
-          allowAddress:
-            entry.permissionType === 'allowed'
-              ? {
-                  walletAddresses: [entry.value],
-                }
-              : undefined,
-          denyAddress:
-            entry.permissionType === 'denied'
-              ? {
-                  walletAddresses: [entry.value],
-                }
-              : undefined,
-          allowGroup: undefined,
-          denyGroup: undefined,
-          allowInboxId: undefined,
-          denyInboxId: undefined,
-        }
-        return result.concat(
-          privatePreferences.PrivatePreferencesAction.encode(action).finish()
-        )
+    // this reduce is purposefully verbose for type safety
+    const action = entries.reduce((result, entry) => {
+      let actionKey: PrivatePreferencesActionKey
+      let valueKey: PrivatePreferencesActionValueKey
+      let values: string[]
+      // ignore unknown permission types
+      if (entry.permissionType === 'unknown') {
+        return result
       }
-      return result
-    }, [] as Uint8Array[])
+      switch (entry.entryType) {
+        case 'address': {
+          actionKey =
+            entry.permissionType === 'allowed' ? 'allowAddress' : 'denyAddress'
+          valueKey = 'walletAddresses'
+          values = result[actionKey]?.[valueKey] ?? []
+          break
+        }
+        case 'groupId': {
+          actionKey =
+            entry.permissionType === 'allowed' ? 'allowGroup' : 'denyGroup'
+          valueKey = 'groupIds'
+          values = result[actionKey]?.[valueKey] ?? []
+          break
+        }
+        case 'inboxId': {
+          actionKey =
+            entry.permissionType === 'allowed' ? 'allowInboxId' : 'denyInboxId'
+          valueKey = 'inboxIds'
+          values = result[actionKey]?.[valueKey] ?? []
+          break
+        }
+        default:
+          return result
+      }
+      return {
+        ...result,
+        [actionKey]: {
+          [valueKey]: [...values, entry.value],
+        },
+      }
+    }, {} as PrivatePreferencesAction)
 
+    // encoded action
+    const payload =
+      privatePreferences.PrivatePreferencesAction.encode(action).finish()
+
+    // encrypt payload
     const { responses } = await this.client.keystore.selfEncrypt({
-      requests: actions.map((action) => ({ payload: action })),
+      requests: [{ payload }],
     })
 
     // encrypted messages
@@ -229,7 +315,7 @@ export class ConsentList {
       timestamp,
     }))
 
-    // publish entries
+    // publish private preferences update
     await this.client.publishEnvelopes(envelopes)
 
     // update local entries after publishing
@@ -361,8 +447,32 @@ export class Contacts {
     return this.consentList.state(address) === 'denied'
   }
 
+  isGroupAllowed(groupId: string) {
+    return this.consentList.groupState(groupId) === 'allowed'
+  }
+
+  isGroupDenied(groupId: string) {
+    return this.consentList.groupState(groupId) === 'denied'
+  }
+
+  isInboxAllowed(inboxId: string) {
+    return this.consentList.inboxIdState(inboxId) === 'allowed'
+  }
+
+  isInboxDenied(inboxId: string) {
+    return this.consentList.inboxIdState(inboxId) === 'denied'
+  }
+
   consentState(address: string) {
     return this.consentList.state(address)
+  }
+
+  groupConsentState(groupId: string) {
+    return this.consentList.groupState(groupId)
+  }
+
+  inboxConsentState(inboxId: string) {
+    return this.consentList.inboxIdState(inboxId)
   }
 
   async allow(addresses: string[]) {
@@ -378,6 +488,34 @@ export class Contacts {
       addresses.map((address) =>
         ConsentListEntry.fromAddress(address, 'denied')
       )
+    )
+  }
+
+  async allowGroups(groupIds: string[]) {
+    await this.consentList.publish(
+      groupIds.map((groupId) =>
+        ConsentListEntry.fromGroupId(groupId, 'allowed')
+      )
+    )
+  }
+
+  async denyGroups(groupIds: string[]) {
+    await this.consentList.publish(
+      groupIds.map((groupId) => ConsentListEntry.fromGroupId(groupId, 'denied'))
+    )
+  }
+
+  async allowInboxes(inboxIds: string[]) {
+    await this.consentList.publish(
+      inboxIds.map((inboxId) =>
+        ConsentListEntry.fromInboxId(inboxId, 'allowed')
+      )
+    )
+  }
+
+  async denyInboxes(inboxIds: string[]) {
+    await this.consentList.publish(
+      inboxIds.map((inboxId) => ConsentListEntry.fromInboxId(inboxId, 'denied'))
     )
   }
 }
