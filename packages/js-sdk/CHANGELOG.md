@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- 9958ff1: Add allow/deny of groups and inboxes
+- 9958ff1: Added allow and deny consent for groups and inboxes
 
 ## 12.0.1
 
