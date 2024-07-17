@@ -1,5 +1,11 @@
 # @xmtp/xmtp-js
 
+## 12.1.0
+
+### Minor Changes
+
+- 9958ff1: Add allow/deny of groups and inboxes
+
 ## 12.0.1
 
 ### Patch Changes
