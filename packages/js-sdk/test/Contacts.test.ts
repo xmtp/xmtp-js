@@ -44,6 +44,30 @@ describe('Contacts', () => {
     expect(aliceClient.contacts.isDenied(bob.address)).toBe(true)
   })
 
+  it('should allow and deny groups', async () => {
+    await aliceClient.contacts.allowGroups(['foo'])
+    expect(aliceClient.contacts.groupConsentState('foo')).toBe('allowed')
+    expect(aliceClient.contacts.isGroupAllowed('foo')).toBe(true)
+    expect(aliceClient.contacts.isGroupDenied('foo')).toBe(false)
+
+    await aliceClient.contacts.denyGroups(['foo'])
+    expect(aliceClient.contacts.groupConsentState('foo')).toBe('denied')
+    expect(aliceClient.contacts.isGroupAllowed('foo')).toBe(false)
+    expect(aliceClient.contacts.isGroupDenied('foo')).toBe(true)
+  })
+
+  it('should allow and deny inboxes', async () => {
+    await aliceClient.contacts.allowInboxes(['foo'])
+    expect(aliceClient.contacts.inboxConsentState('foo')).toBe('allowed')
+    expect(aliceClient.contacts.isInboxAllowed('foo')).toBe(true)
+    expect(aliceClient.contacts.isInboxDenied('foo')).toBe(false)
+
+    await aliceClient.contacts.denyInboxes(['foo'])
+    expect(aliceClient.contacts.inboxConsentState('foo')).toBe('denied')
+    expect(aliceClient.contacts.isInboxAllowed('foo')).toBe(false)
+    expect(aliceClient.contacts.isInboxDenied('foo')).toBe(true)
+  })
+
   it('should allow an address when a conversation is started', async () => {
     const conversation = await aliceClient.conversations.newConversation(
       carol.address
@@ -116,14 +140,12 @@ describe('Contacts', () => {
     await bobClient.contacts.deny([carol.address])
     await bobClient.contacts.deny([alice.address])
     await bobClient.contacts.allow([carol.address])
-
-    expect(bobClient.contacts.consentState(alice.address)).toBe('denied')
-    expect(bobClient.contacts.isAllowed(alice.address)).toBe(false)
-    expect(bobClient.contacts.isDenied(alice.address)).toBe(true)
-
-    expect(bobClient.contacts.consentState(carol.address)).toBe('allowed')
-    expect(bobClient.contacts.isAllowed(carol.address)).toBe(true)
-    expect(bobClient.contacts.isDenied(carol.address)).toBe(false)
+    await bobClient.contacts.allowGroups(['foo', 'bar'])
+    await bobClient.contacts.denyGroups(['foo'])
+    await bobClient.contacts.allowGroups(['foo'])
+    await bobClient.contacts.allowInboxes(['baz', 'qux'])
+    await bobClient.contacts.denyInboxes(['baz'])
+    await bobClient.contacts.allowInboxes(['baz'])
 
     bobClient = await Client.create(bob, {
       env: 'local',
@@ -131,10 +153,14 @@ describe('Contacts', () => {
 
     expect(bobClient.contacts.consentState(alice.address)).toBe('unknown')
     expect(bobClient.contacts.consentState(carol.address)).toBe('unknown')
+    expect(bobClient.contacts.groupConsentState('foo')).toBe('unknown')
+    expect(bobClient.contacts.groupConsentState('bar')).toBe('unknown')
+    expect(bobClient.contacts.inboxConsentState('baz')).toBe('unknown')
+    expect(bobClient.contacts.inboxConsentState('qux')).toBe('unknown')
 
     const latestEntries = await bobClient.contacts.refreshConsentList()
 
-    expect(latestEntries.length).toBe(6)
+    expect(latestEntries.length).toBe(14)
     expect(latestEntries).toEqual([
       {
         entryType: 'address',
@@ -166,15 +192,54 @@ describe('Contacts', () => {
         permissionType: 'allowed',
         value: carol.address,
       },
+      {
+        entryType: 'groupId',
+        permissionType: 'allowed',
+        value: 'foo',
+      },
+      {
+        entryType: 'groupId',
+        permissionType: 'allowed',
+        value: 'bar',
+      },
+      {
+        entryType: 'groupId',
+        permissionType: 'denied',
+        value: 'foo',
+      },
+      {
+        entryType: 'groupId',
+        permissionType: 'allowed',
+        value: 'foo',
+      },
+      {
+        entryType: 'inboxId',
+        permissionType: 'allowed',
+        value: 'baz',
+      },
+      {
+        entryType: 'inboxId',
+        permissionType: 'allowed',
+        value: 'qux',
+      },
+      {
+        entryType: 'inboxId',
+        permissionType: 'denied',
+        value: 'baz',
+      },
+      {
+        entryType: 'inboxId',
+        permissionType: 'allowed',
+        value: 'baz',
+      },
     ])
 
     expect(bobClient.contacts.consentState(alice.address)).toBe('denied')
-    expect(bobClient.contacts.isAllowed(alice.address)).toBe(false)
-    expect(bobClient.contacts.isDenied(alice.address)).toBe(true)
-
     expect(bobClient.contacts.consentState(carol.address)).toBe('allowed')
-    expect(bobClient.contacts.isAllowed(carol.address)).toBe(true)
-    expect(bobClient.contacts.isDenied(carol.address)).toBe(false)
+    expect(bobClient.contacts.groupConsentState('foo')).toBe('allowed')
+    expect(bobClient.contacts.groupConsentState('bar')).toBe('allowed')
+    expect(bobClient.contacts.inboxConsentState('baz')).toBe('allowed')
+    expect(bobClient.contacts.inboxConsentState('qux')).toBe('allowed')
   })
 
   it('should stream consent updates', async () => {
@@ -185,6 +250,10 @@ describe('Contacts', () => {
     // eslint-disable-next-line no-unreachable-loop
     for await (const action of aliceStream) {
       numActions++
+      expect(action.allowGroup).toBeUndefined()
+      expect(action.denyGroup).toBeUndefined()
+      expect(action.allowInboxId).toBeUndefined()
+      expect(action.denyInboxId).toBeUndefined()
       expect(action.denyAddress).toBeUndefined()
       expect(action.allowAddress?.walletAddresses).toEqual([bob.address])
       break
