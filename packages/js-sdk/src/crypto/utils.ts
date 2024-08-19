@@ -7,6 +7,7 @@ import {
   bytesToHex as viemBytesToHex,
   type Hex,
 } from 'viem'
+import Buffer from './buffer'
 
 export const bytesToHex = secp.utils.bytesToHex
 

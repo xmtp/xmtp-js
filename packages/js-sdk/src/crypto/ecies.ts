@@ -4,6 +4,7 @@
  * DO NOT CHANGE THIS TO A NAMED IMPORT
  */
 import elliptic from 'elliptic'
+import Buffer from './buffer'
 import crypto from './crypto'
 
 const EC = elliptic.ec

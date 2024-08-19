@@ -6,6 +6,7 @@ import {
 } from '@xmtp/proto'
 import Long from 'long'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
+import Buffer from '@/crypto/buffer'
 import crypto from '@/crypto/crypto'
 import { hmacSha256Sign } from '@/crypto/ecies'
 import {

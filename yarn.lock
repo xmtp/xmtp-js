@@ -3043,6 +3043,7 @@ __metadata:
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"
     async-mutex: "npm:^0.5.0"
     benny: "npm:^3.7.1"
+    buffer: "npm:^6.0.3"
     dd-trace: "npm:5.5.0"
     elliptic: "npm:^6.5.5"
     eslint: "npm:^8.57.0"
