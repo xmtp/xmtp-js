@@ -1,4 +1,5 @@
 import { authn, type publicKey, type signature } from '@xmtp/proto'
+import Buffer from '@/crypto/buffer'
 import AuthData from './AuthData'
 
 export default class Token implements authn.Token {

@@ -1,3 +1,4 @@
+import Buffer from '@/crypto/buffer'
 import type { Persistence } from './interface'
 
 export default class BrowserStoragePersistence implements Persistence {

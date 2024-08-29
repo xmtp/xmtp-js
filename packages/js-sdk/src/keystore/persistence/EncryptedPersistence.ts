@@ -1,3 +1,4 @@
+import Buffer from '@/crypto/buffer'
 import { decrypt, encrypt, getPublic, type Ecies } from '@/crypto/ecies'
 import type { PrivateKey, SignedPrivateKey } from '@/crypto/PrivateKey'
 import SignedEciesCiphertext from '@/crypto/SignedEciesCiphertext'
