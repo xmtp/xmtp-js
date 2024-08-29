@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 93f0fb9: Upgrade to latest MLS node bindings
+- 93f0fb9: Upgraded to latest MLS node bindings
 
 ## 0.0.13
 
