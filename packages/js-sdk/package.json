@@ -104,7 +104,7 @@
     "@xmtp/proto": "^3.62.1",
     "@xmtp/user-preferences-bindings-wasm": "^0.3.6",
     "async-mutex": "^0.5.0",
-    "elliptic": "^6.5.5",
+    "elliptic": "^6.5.7",
     "long": "^5.2.3",
     "viem": "2.7.15"
   },
