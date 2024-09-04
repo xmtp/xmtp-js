@@ -1,10 +1,12 @@
 import {
   keystore,
+  privatePreferences,
   type authn,
   type privateKey,
   type signature,
 } from '@xmtp/proto'
 import Long from 'long'
+import type { PublishParams } from '@/ApiClient'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import crypto from '@/crypto/crypto'
 import { hmacSha256Sign } from '@/crypto/ecies'
@@ -35,6 +37,7 @@ import { nsToDate } from '@/utils/date'
 import {
   buildDirectMessageTopic,
   buildDirectMessageTopicV2,
+  buildUserPrivatePreferencesTopic,
 } from '@/utils/topic'
 import { V1Store, V2Store, type AddRequest } from './conversationStores'
 import { decryptV1, decryptV2, encryptV1, encryptV2 } from './encryption'
@@ -82,6 +85,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
   private authenticator: LocalAuthenticator
   private accountAddress: string | undefined
   private jobStatePersistence: Persistence
+  #privatePreferencesTopic: string | undefined
 
   constructor(
     keys: PrivateKeyBundleV1,
@@ -662,6 +666,47 @@ export default class InMemoryKeystore implements KeystoreInterface {
     )
 
     return { hmacKeys }
+  }
+
+  async getPrivatePreferencesTopic(): Promise<string> {
+    if (!this.#privatePreferencesTopic) {
+      const { identifier } = await this.getPrivatePreferencesTopicIdentifier()
+      this.#privatePreferencesTopic =
+        buildUserPrivatePreferencesTopic(identifier)
+    }
+    return this.#privatePreferencesTopic
+  }
+
+  async createPrivatePreference(
+    action: privatePreferences.PrivatePreferencesAction
+  ) {
+    // encrypt action payload
+    // there should only be one response
+    const { responses } = await this.selfEncrypt({
+      requests: [
+        {
+          payload:
+            privatePreferences.PrivatePreferencesAction.encode(action).finish(),
+        },
+      ],
+    })
+
+    // encrypted message
+    const messages = responses.reduce((result, response) => {
+      return response.result?.encrypted
+        ? result.concat(response.result?.encrypted)
+        : result
+    }, [] as Uint8Array[])
+
+    const contentTopic = await this.getPrivatePreferencesTopic()
+    const timestamp = new Date()
+
+    // return envelopes to publish
+    return messages.map((message) => ({
+      contentTopic,
+      message,
+      timestamp,
+    })) as PublishParams[]
   }
 
   getPrivatePreferences() {

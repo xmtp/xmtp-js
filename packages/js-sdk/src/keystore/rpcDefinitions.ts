@@ -7,6 +7,7 @@ import {
   type privatePreferences,
 } from '@xmtp/proto'
 import type { Reader, Writer } from 'protobufjs/minimal'
+import type { PublishParams } from '@/ApiClient'
 import type { ActionsMap } from '@/keystore/privatePreferencesStore'
 import type { Flatten } from '@/utils/typedefs'
 
@@ -218,7 +219,11 @@ export const apiDefs = {
 }
 
 export type PrivatePreferenceKeystoreInterface = {
+  createPrivatePreference: (
+    action: privatePreferences.PrivatePreferencesAction
+  ) => Promise<PublishParams[]>
   getPrivatePreferences: () => privatePreferences.PrivatePreferencesAction[]
+  getPrivatePreferencesTopic: () => Promise<string>
   savePrivatePreferences: (data: ActionsMap) => Promise<void>
 }
 
