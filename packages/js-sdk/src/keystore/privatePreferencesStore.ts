@@ -1,6 +1,7 @@
 import { keystore, type privatePreferences } from '@xmtp/proto'
 import { Mutex } from 'async-mutex'
 import { numberToUint8Array, uint8ArrayToNumber } from '@/utils/bytes'
+import { fromNanoString } from '@/utils/date'
 import type { Persistence } from './persistence/interface'
 
 const PRIVATE_PREFERENCES_ACTIONS_STORAGE_KEY = 'private-preferences/actions'
@@ -112,7 +113,14 @@ export class PrivatePreferencesStore {
   }
 
   get actions(): privatePreferences.PrivatePreferencesAction[] {
-    return Array.from(this.actionsMap.values())
+    // sort actions by their keys (timestamps) in ascending order
+    const sortedActions = new Map(
+      [...this.actionsMap.entries()].sort(
+        (a, b) =>
+          fromNanoString(a[0])!.getTime() - fromNanoString(b[0])!.getTime()
+      )
+    )
+    return Array.from(sortedActions.values())
   }
 
   lookup(
