@@ -71,7 +71,7 @@ export class ConsentList {
   client: Client
   entries: Map<string, ConsentState>
   lastEntryTimestamp?: Date
-  private _identifier: string | undefined
+  #identifier: string | undefined
 
   constructor(client: Client) {
     this.entries = new Map<string, ConsentState>()
@@ -130,12 +130,12 @@ export class ConsentList {
   }
 
   async getIdentifier(): Promise<string> {
-    if (!this._identifier) {
+    if (!this.#identifier) {
       const { identifier } =
         await this.client.keystore.getPrivatePreferencesTopicIdentifier()
-      this._identifier = identifier
+      this.#identifier = identifier
     }
-    return this._identifier
+    return this.#identifier
   }
 
   async decodeMessages(messages: Uint8Array[]) {
@@ -334,20 +334,20 @@ export class Contacts {
    * XMTP client
    */
   client: Client
-  private consentList: ConsentList
-  private jobRunner: JobRunner
+  #consentList: ConsentList
+  #jobRunner: JobRunner
 
   constructor(client: Client) {
     this.addresses = new Set<string>()
-    this.consentList = new ConsentList(client)
     this.client = client
-    this.jobRunner = new JobRunner('user-preferences', client.keystore)
+    this.#consentList = new ConsentList(client)
+    this.#jobRunner = new JobRunner('user-preferences', client.keystore)
   }
 
   /**
    * Validate the signature and timestamp of a consent proof
    */
-  private validateConsentSignature(
+  #validateConsentSignature(
     { signature, timestamp }: invitation.ConsentProofPayload,
     peerAddress: string
   ): boolean {
@@ -372,9 +372,9 @@ export class Contacts {
   }
 
   async loadConsentList(startTime?: Date) {
-    return this.jobRunner.run(async (lastRun) => {
+    return this.#jobRunner.run(async (lastRun) => {
       // allow for override of startTime
-      const entries = await this.consentList.load(startTime ?? lastRun)
+      const entries = await this.#consentList.load(startTime ?? lastRun)
       try {
         const conversations = await this.client.conversations.list()
         const validConsentProofAddresses: string[] = conversations.reduce(
@@ -382,7 +382,7 @@ export class Contacts {
             if (
               conversation.consentProof &&
               this.consentState(conversation.peerAddress) === 'unknown' &&
-              this.validateConsentSignature(
+              this.#validateConsentSignature(
                 conversation.consentProof,
                 conversation.peerAddress
               )
@@ -406,77 +406,77 @@ export class Contacts {
 
   async refreshConsentList() {
     // clear existing consent list
-    this.consentList.reset()
+    this.#consentList.reset()
     // reset last run time to the epoch
-    await this.jobRunner.resetLastRunTime()
+    await this.#jobRunner.resetLastRunTime()
     // reload the consent list
     return this.loadConsentList()
   }
 
   async streamConsentList(onConnectionLost?: OnConnectionLostCallback) {
-    return this.consentList.stream(onConnectionLost)
+    return this.#consentList.stream(onConnectionLost)
   }
 
   /**
    * The timestamp of the last entry in the consent list
    */
   get lastConsentListEntryTimestamp() {
-    return this.consentList.lastEntryTimestamp
+    return this.#consentList.lastEntryTimestamp
   }
 
   setConsentListEntries(entries: ConsentListEntry[]) {
     if (!entries.length) {
       return
     }
-    this.consentList.reset()
+    this.#consentList.reset()
     entries.forEach((entry) => {
       if (entry.permissionType === 'allowed') {
-        this.consentList.allow(entry.value)
+        this.#consentList.allow(entry.value)
       }
       if (entry.permissionType === 'denied') {
-        this.consentList.deny(entry.value)
+        this.#consentList.deny(entry.value)
       }
     })
   }
 
   isAllowed(address: string) {
-    return this.consentList.state(address) === 'allowed'
+    return this.#consentList.state(address) === 'allowed'
   }
 
   isDenied(address: string) {
-    return this.consentList.state(address) === 'denied'
+    return this.#consentList.state(address) === 'denied'
   }
 
   isGroupAllowed(groupId: string) {
-    return this.consentList.groupState(groupId) === 'allowed'
+    return this.#consentList.groupState(groupId) === 'allowed'
   }
 
   isGroupDenied(groupId: string) {
-    return this.consentList.groupState(groupId) === 'denied'
+    return this.#consentList.groupState(groupId) === 'denied'
   }
 
   isInboxAllowed(inboxId: string) {
-    return this.consentList.inboxIdState(inboxId) === 'allowed'
+    return this.#consentList.inboxIdState(inboxId) === 'allowed'
   }
 
   isInboxDenied(inboxId: string) {
-    return this.consentList.inboxIdState(inboxId) === 'denied'
+    return this.#consentList.inboxIdState(inboxId) === 'denied'
   }
 
   consentState(address: string) {
-    return this.consentList.state(address)
+    return this.#consentList.state(address)
   }
 
   groupConsentState(groupId: string) {
-    return this.consentList.groupState(groupId)
+    return this.#consentList.groupState(groupId)
   }
 
   inboxConsentState(inboxId: string) {
-    return this.consentList.inboxIdState(inboxId)
+    return this.#consentList.inboxIdState(inboxId)
   }
 
   async allow(addresses: string[]) {
-    await this.consentList.publish(
+    await this.#consentList.publish(
       addresses.map((address) =>
         ConsentListEntry.fromAddress(address, 'allowed')
       )
@@ -484,7 +484,7 @@ export class Contacts {
   }
 
   async deny(addresses: string[]) {
-    await this.consentList.publish(
+    await this.#consentList.publish(
       addresses.map((address) =>
         ConsentListEntry.fromAddress(address, 'denied')
       )
@@ -492,7 +492,7 @@ export class Contacts {
   }
 
   async allowGroups(groupIds: string[]) {
-    await this.consentList.publish(
+    await this.#consentList.publish(
       groupIds.map((groupId) =>
         ConsentListEntry.fromGroupId(groupId, 'allowed')
       )
@@ -500,13 +500,13 @@ export class Contacts {
   }
 
   async denyGroups(groupIds: string[]) {
-    await this.consentList.publish(
+    await this.#consentList.publish(
       groupIds.map((groupId) => ConsentListEntry.fromGroupId(groupId, 'denied'))
     )
   }
 
   async allowInboxes(inboxIds: string[]) {
-    await this.consentList.publish(
+    await this.#consentList.publish(
       inboxIds.map((inboxId) =>
         ConsentListEntry.fromInboxId(inboxId, 'allowed')
       )
@@ -514,7 +514,7 @@ export class Contacts {
   }
 
   async denyInboxes(inboxIds: string[]) {
-    await this.consentList.publish(
+    await this.#consentList.publish(
       inboxIds.map((inboxId) => ConsentListEntry.fromInboxId(inboxId, 'denied'))
     )
   }
