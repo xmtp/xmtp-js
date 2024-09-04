@@ -26,6 +26,10 @@ import {
 } from '@/crypto/selfEncryption'
 import { bytesToHex } from '@/crypto/utils'
 import { InvitationV1, SealedInvitation } from '@/Invitation'
+import {
+  PrivatePreferencesStore,
+  type ActionsMap,
+} from '@/keystore/privatePreferencesStore'
 import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 import { nsToDate } from '@/utils/date'
 import {
@@ -74,6 +78,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private v1Store: V1Store
   private v2Store: V2Store
+  private privatePreferencesStore: PrivatePreferencesStore
   private authenticator: LocalAuthenticator
   private accountAddress: string | undefined
   private jobStatePersistence: Persistence
@@ -82,12 +87,14 @@ export default class InMemoryKeystore implements KeystoreInterface {
     keys: PrivateKeyBundleV1,
     v1Store: V1Store,
     v2Store: V2Store,
+    privatePreferencesStore: PrivatePreferencesStore,
     persistence: Persistence
   ) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.v1Store = v1Store
     this.v2Store = v2Store
+    this.privatePreferencesStore = privatePreferencesStore
     this.authenticator = new LocalAuthenticator(keys.identityKey)
     this.jobStatePersistence = persistence
   }
@@ -97,6 +104,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
       keys,
       await V1Store.create(persistence),
       await V2Store.create(persistence),
+      await PrivatePreferencesStore.create(persistence),
       persistence
     )
   }
@@ -654,5 +662,13 @@ export default class InMemoryKeystore implements KeystoreInterface {
     )
 
     return { hmacKeys }
+  }
+
+  getPrivatePreferences() {
+    return this.privatePreferencesStore.actions
+  }
+
+  savePrivatePreferences(data: ActionsMap) {
+    return this.privatePreferencesStore.add(data)
   }
 }

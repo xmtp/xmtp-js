@@ -1,5 +1,13 @@
-import { authn, keystore, privateKey, publicKey, signature } from '@xmtp/proto'
+import {
+  authn,
+  keystore,
+  privateKey,
+  publicKey,
+  signature,
+  type privatePreferences,
+} from '@xmtp/proto'
 import type { Reader, Writer } from 'protobufjs/minimal'
+import type { ActionsMap } from '@/keystore/privatePreferencesStore'
 import type { Flatten } from '@/utils/typedefs'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -209,9 +217,15 @@ export const apiDefs = {
   },
 }
 
+export type PrivatePreferenceKeystoreInterface = {
+  getPrivatePreferences: () => privatePreferences.PrivatePreferencesAction[]
+  savePrivatePreferences: (data: ActionsMap) => Promise<void>
+}
+
 export type KeystoreApiDefs = typeof apiDefs
 export type KeystoreApiMethods = keyof KeystoreApiDefs
-export type KeystoreInterface = ExtractInterface<KeystoreApiDefs>
+export type KeystoreInterface = ExtractInterface<KeystoreApiDefs> &
+  PrivatePreferenceKeystoreInterface
 export type KeystoreApiEntries = Entries<KeystoreApiDefs>
 export type KeystoreApiRequestEncoders =
   ExtractInterfaceRequestEncoders<KeystoreApiDefs>
@@ -222,7 +236,6 @@ export type KeystoreInterfaceRequestValues =
 export type KeystoreApiRequestValues = Values<KeystoreInterfaceRequestValues>
 
 export const snapApiDefs = {
-  ...apiDefs,
   getKeystoreStatus: {
     req: keystore.GetKeystoreStatusRequest,
     res: keystore.GetKeystoreStatusResponse,
@@ -235,7 +248,8 @@ export const snapApiDefs = {
 
 export type SnapKeystoreApiDefs = typeof snapApiDefs
 export type SnapKeystoreApiMethods = keyof SnapKeystoreApiDefs
-export type SnapKeystoreInterface = ExtractInterface<SnapKeystoreApiDefs>
+export type SnapKeystoreInterface = KeystoreInterface &
+  ExtractInterface<SnapKeystoreApiDefs>
 export type SnapKeystoreApiEntries = Entries<SnapKeystoreApiDefs>
 export type SnapKeystoreApiRequestEncoders =
   ExtractInterfaceRequestEncoders<SnapKeystoreApiDefs>
