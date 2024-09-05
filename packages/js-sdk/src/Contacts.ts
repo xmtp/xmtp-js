@@ -1,11 +1,12 @@
 import { createConsentMessage } from '@xmtp/consent-proof-signature'
-import { privatePreferences, type invitation } from '@xmtp/proto'
+import { messageApi, privatePreferences, type invitation } from '@xmtp/proto'
+// eslint-disable-next-line camelcase
+import type { DecryptResponse_Response } from '@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb'
 import { hashMessage, hexToBytes } from 'viem'
 import { ecdsaSignerKey } from '@/crypto/Signature'
 import { splitSignature } from '@/crypto/utils'
+import type { ActionsMap } from '@/keystore/privatePreferencesStore'
 import type { EnvelopeWithMessage } from '@/utils/async'
-import { fromNanoString } from '@/utils/date'
-import { buildUserPrivatePreferencesTopic } from '@/utils/topic'
 import type { OnConnectionLostCallback } from './ApiClient'
 import type Client from './Client'
 import JobRunner from './conversations/JobRunner'
@@ -70,8 +71,6 @@ export class ConsentListEntry {
 export class ConsentList {
   client: Client
   entries: Map<string, ConsentState>
-  lastEntryTimestamp?: Date
-  #identifier: string | undefined
 
   constructor(client: Client) {
     this.entries = new Map<string, ConsentState>()
@@ -129,40 +128,58 @@ export class ConsentList {
     return this.entries.get(entry.key) ?? 'unknown'
   }
 
-  async getIdentifier(): Promise<string> {
-    if (!this.#identifier) {
-      const { identifier } =
-        await this.client.keystore.getPrivatePreferencesTopicIdentifier()
-      this.#identifier = identifier
-    }
-    return this.#identifier
-  }
-
-  async decodeMessages(messages: Uint8Array[]) {
+  /**
+   * Decode messages and save them to the keystore
+   */
+  async decodeMessages(messageMap: Map<string, Uint8Array>) {
+    const messages = Array.from(messageMap.values())
     // decrypt messages
     const { responses } = await this.client.keystore.selfDecrypt({
       requests: messages.map((message) => ({ payload: message })),
     })
 
-    // decoded actions
-    const actions = responses.reduce((result, response) => {
-      return response.result?.decrypted
-        ? result.concat(
-            privatePreferences.PrivatePreferencesAction.decode(
-              response.result.decrypted
-            )
-          )
-        : result
-    }, [] as PrivatePreferencesAction[])
+    const decryptedMessageEntries = Array.from(messageMap.keys()).map(
+      (key, index) =>
+        // eslint-disable-next-line camelcase
+        [key, responses[index]] as [string, DecryptResponse_Response]
+    )
 
-    return actions
+    // decode decrypted messages into actions, convert to map
+    const actionsMap = decryptedMessageEntries.reduce(
+      (result, [key, response]) => {
+        if (response.result?.decrypted) {
+          const action = privatePreferences.PrivatePreferencesAction.decode(
+            response.result.decrypted
+          )
+          result.set(key, action)
+        }
+        return result
+      },
+      new Map<string, privatePreferences.PrivatePreferencesAction>()
+    )
+
+    // save actions to keystore
+    await this.client.keystore.savePrivatePreferences(actionsMap)
+
+    return actionsMap
   }
 
-  processActions(
-    actions: privatePreferences.PrivatePreferencesAction[],
-    lastTimestampNs?: string
-  ) {
+  /*
+   * Process actions and update internal consent list
+   */
+  processActions(actionsMap?: ActionsMap) {
     const entries: ConsentListEntry[] = []
+    // actions to process
+    const actions = actionsMap
+      ? Array.from(actionsMap.values())
+      : this.client.keystore.getPrivatePreferences()
+
+    // processing all actions, reset consent list
+    if (!actionsMap) {
+      this.reset()
+    }
+
+    // update the consent list
     actions.forEach((action) => {
       action.allowAddress?.walletAddresses.forEach((address) => {
         entries.push(this.allow(address))
@@ -184,30 +201,31 @@ export class ConsentList {
       })
     })
 
-    if (lastTimestampNs) {
-      this.lastEntryTimestamp = fromNanoString(lastTimestampNs)
-    }
-
     return entries
   }
 
   async stream(onConnectionLost?: OnConnectionLostCallback) {
-    const identifier = await this.getIdentifier()
-    const contentTopic = buildUserPrivatePreferencesTopic(identifier)
+    const contentTopic = await this.client.keystore.getPrivatePreferencesTopic()
 
     return Stream.create<privatePreferences.PrivatePreferencesAction>(
       this.client,
       [contentTopic],
       async (envelope) => {
-        if (!envelope.message) {
+        // ignore envelopes without message or timestamp
+        if (!envelope.message || !envelope.timestampNs) {
           return undefined
         }
-        const actions = await this.decodeMessages([envelope.message])
+
+        // decode message and save to keystore
+        const actionsMap = await this.decodeMessages(
+          new Map([[envelope.timestampNs, envelope.message]])
+        )
 
         // update consent list
-        this.processActions(actions, envelope.timestampNs)
+        this.processActions(actionsMap)
 
-        return actions[0]
+        // return the action
+        return actionsMap.get(envelope.timestampNs)
       },
       undefined,
       onConnectionLost
@@ -220,33 +238,34 @@ export class ConsentList {
   }
 
   async load(startTime?: Date) {
-    const identifier = await this.getIdentifier()
-    const contentTopic = buildUserPrivatePreferencesTopic(identifier)
+    const contentTopic = await this.client.keystore.getPrivatePreferencesTopic()
 
-    let lastTimestampNs: string | undefined
-
-    const messages = await this.client.listEnvelopes(
-      contentTopic,
-      async ({ message, timestampNs }: EnvelopeWithMessage) => {
-        if (timestampNs) {
-          lastTimestampNs = timestampNs
+    // get private preferences from the network
+    const messageEntries = (
+      await this.client.listEnvelopes(
+        contentTopic,
+        async ({ message, timestampNs }: EnvelopeWithMessage) =>
+          [timestampNs, message] as [string | undefined, Uint8Array],
+        {
+          // special exception for private preferences topic
+          limit: 500,
+          // ensure messages are in ascending order
+          direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
+          startTime,
         }
-        return message
-      },
-      {
-        startTime,
-      }
+      )
     )
+      // filter out messages with no timestamp
+      .filter(([timestampNs]) => Boolean(timestampNs)) as [string, Uint8Array][]
 
-    const actions = await this.decodeMessages(messages)
+    // decode messages and save them to keystore
+    const actionsMap = await this.decodeMessages(new Map(messageEntries))
 
-    // update consent list
-    return this.processActions(actions, lastTimestampNs)
+    // process actions and update consent list
+    return this.processActions(actionsMap)
   }
 
   async publish(entries: ConsentListEntry[]) {
-    const identifier = await this.getIdentifier()
-
     // this reduce is purposefully verbose for type safety
     const action = entries.reduce((result, entry) => {
       let actionKey: PrivatePreferencesActionKey
@@ -289,34 +308,16 @@ export class ConsentList {
       }
     }, {} as PrivatePreferencesAction)
 
-    // encoded action
-    const payload =
-      privatePreferences.PrivatePreferencesAction.encode(action).finish()
-
-    // encrypt payload
-    const { responses } = await this.client.keystore.selfEncrypt({
-      requests: [{ payload }],
-    })
-
-    // encrypted messages
-    const messages = responses.reduce((result, response) => {
-      return response.result?.encrypted
-        ? result.concat(response.result?.encrypted)
-        : result
-    }, [] as Uint8Array[])
-
-    const contentTopic = buildUserPrivatePreferencesTopic(identifier)
-    const timestamp = new Date()
-
-    // envelopes to publish
-    const envelopes = messages.map((message) => ({
-      contentTopic,
-      message,
-      timestamp,
-    }))
+    // get envelopes to publish (there should only be one)
+    const envelopes = await this.client.keystore.createPrivatePreference(action)
 
     // publish private preferences update
     await this.client.publishEnvelopes(envelopes)
+
+    // persist newly published private preference to keystore
+    this.client.keystore.savePrivatePreferences(
+      new Map([[envelopes[0].timestamp!.getTime().toString(), action]])
+    )
 
     // update local entries after publishing
     entries.forEach((entry) => {
@@ -415,13 +416,6 @@ export class Contacts {
 
   async streamConsentList(onConnectionLost?: OnConnectionLostCallback) {
     return this.#consentList.stream(onConnectionLost)
-  }
-
-  /**
-   * The timestamp of the last entry in the consent list
-   */
-  get lastConsentListEntryTimestamp() {
-    return this.#consentList.lastEntryTimestamp
   }
 
   setConsentListEntries(entries: ConsentListEntry[]) {
