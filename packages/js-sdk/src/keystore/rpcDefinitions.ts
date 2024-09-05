@@ -40,6 +40,15 @@ type ApiInterface = {
   [key: string]: (...args: any[]) => any
 }
 
+type PrivatePreferenceKeystoreMethods = {
+  createPrivatePreference: (
+    action: privatePreferences.PrivatePreferencesAction
+  ) => Promise<PublishParams[]>
+  getPrivatePreferences: () => privatePreferences.PrivatePreferencesAction[]
+  getPrivatePreferencesTopic: () => Promise<string>
+  savePrivatePreferences: (data: ActionsMap) => Promise<void>
+}
+
 type OtherKeyStoreMethods = {
   /**
    * Get the account address of the wallet used to create the Keystore
@@ -54,7 +63,8 @@ type ExtractInterface<T extends ApiDefs> = Flatten<
         ? () => Promise<Res>
         : (req: Req) => Promise<Res>
       : never
-  } & OtherKeyStoreMethods
+  } & OtherKeyStoreMethods &
+    PrivatePreferenceKeystoreMethods
 >
 
 type ExtractInterfaceRequestEncoders<T extends ApiDefs> = {
@@ -218,19 +228,9 @@ export const apiDefs = {
   },
 }
 
-export type PrivatePreferenceKeystoreInterface = {
-  createPrivatePreference: (
-    action: privatePreferences.PrivatePreferencesAction
-  ) => Promise<PublishParams[]>
-  getPrivatePreferences: () => privatePreferences.PrivatePreferencesAction[]
-  getPrivatePreferencesTopic: () => Promise<string>
-  savePrivatePreferences: (data: ActionsMap) => Promise<void>
-}
-
 export type KeystoreApiDefs = typeof apiDefs
 export type KeystoreApiMethods = keyof KeystoreApiDefs
-export type KeystoreInterface = ExtractInterface<KeystoreApiDefs> &
-  PrivatePreferenceKeystoreInterface
+export type KeystoreInterface = ExtractInterface<KeystoreApiDefs>
 export type KeystoreApiEntries = Entries<KeystoreApiDefs>
 export type KeystoreApiRequestEncoders =
   ExtractInterfaceRequestEncoders<KeystoreApiDefs>
@@ -251,10 +251,9 @@ export const snapApiDefs = {
   },
 }
 
-export type SnapKeystoreApiDefs = typeof snapApiDefs
+export type SnapKeystoreApiDefs = typeof snapApiDefs & KeystoreApiDefs
 export type SnapKeystoreApiMethods = keyof SnapKeystoreApiDefs
-export type SnapKeystoreInterface = KeystoreInterface &
-  ExtractInterface<SnapKeystoreApiDefs>
+export type SnapKeystoreInterface = ExtractInterface<SnapKeystoreApiDefs>
 export type SnapKeystoreApiEntries = Entries<SnapKeystoreApiDefs>
 export type SnapKeystoreApiRequestEncoders =
   ExtractInterfaceRequestEncoders<SnapKeystoreApiDefs>
