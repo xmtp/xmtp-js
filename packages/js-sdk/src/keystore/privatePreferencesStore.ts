@@ -12,8 +12,8 @@ export type ActionsMap = Map<
 >
 
 /**
- * PrivatePreferencesStore holds a mapping of message hash -> private preference action and
- * writes to the persistence layer on changes
+ * PrivatePreferencesStore holds a mapping of message timestamp -> private
+ * preference action and writes to the persistence layer on changes
  */
 export class PrivatePreferencesStore {
   #persistence: Persistence
@@ -123,10 +123,8 @@ export class PrivatePreferencesStore {
     return Array.from(sortedActions.values())
   }
 
-  lookup(
-    hash: string
-  ): privatePreferences.PrivatePreferencesAction | undefined {
-    return this.actionsMap.get(hash)
+  lookup(key: string): privatePreferences.PrivatePreferencesAction | undefined {
+    return this.actionsMap.get(key)
   }
 
   #toBytes(): Uint8Array {
