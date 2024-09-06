@@ -9,7 +9,7 @@
   - Added a private preferences store to manage persisting of actions
   - Added new methods to `InMemoryKeystore` to interact with the private preferences store
   - Refactored `Contacts` class to use the private preferences store
- 
+
 ### BREAKING CHANGES
 
 - Removed deprecated `lastConsentListEntryTimestamp` method from `Contacts` class
