@@ -2997,6 +2997,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/proto@npm:^3.68.0":
+  version: 3.68.0
+  resolution: "@xmtp/proto@npm:3.68.0"
+  dependencies:
+    long: "npm:^5.2.0"
+    protobufjs: "npm:^7.0.0"
+    rxjs: "npm:^7.8.0"
+    undici: "npm:^5.8.1"
+  checksum: 10/2cadf9d212ac01dc6a1d3a83e59ca559debff65ee83c7381e29e1a5e9dc2f0caa021a4c6df696957d77da8b5c1133fe02cbc8a4c3c7c4d2e45993366e309da63
+  languageName: node
+  linkType: hard
+
 "@xmtp/rollup-plugin-resolve-extensions@npm:1.0.1":
   version: 1.0.1
   resolution: "@xmtp/rollup-plugin-resolve-extensions@npm:1.0.1"
@@ -3038,7 +3050,7 @@ __metadata:
     "@xmtp/consent-proof-signature": "npm:^0.1.3"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/proto": "npm:^3.62.1"
+    "@xmtp/proto": "npm:^3.68.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:1.0.1"
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"
     async-mutex: "npm:^0.5.0"

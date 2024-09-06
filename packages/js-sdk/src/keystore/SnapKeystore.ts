@@ -28,7 +28,7 @@ export function SnapKeystore(
         return snapRPC(method, rpc, undefined, snapMeta, snapId) as any
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return snapRPC(method, rpc, req, snapMeta, snapId) as any
+      return snapRPC(method, rpc, req as any, snapMeta, snapId) as any
     }
   }
 

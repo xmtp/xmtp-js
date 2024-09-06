@@ -1,5 +1,14 @@
-import { authn, keystore, privateKey, publicKey, signature } from '@xmtp/proto'
+import {
+  authn,
+  keystore,
+  privateKey,
+  publicKey,
+  signature,
+  type privatePreferences,
+} from '@xmtp/proto'
 import type { Reader, Writer } from 'protobufjs/minimal'
+import type { PublishParams } from '@/ApiClient'
+import type { ActionsMap } from '@/keystore/privatePreferencesStore'
 import type { Flatten } from '@/utils/typedefs'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,6 +40,15 @@ type ApiInterface = {
   [key: string]: (...args: any[]) => any
 }
 
+type PrivatePreferenceKeystoreMethods = {
+  createPrivatePreference: (
+    action: privatePreferences.PrivatePreferencesAction
+  ) => Promise<PublishParams[]>
+  getPrivatePreferences: () => ActionsMap
+  getPrivatePreferencesTopic: () => Promise<string>
+  savePrivatePreferences: (data: ActionsMap) => Promise<void>
+}
+
 type OtherKeyStoreMethods = {
   /**
    * Get the account address of the wallet used to create the Keystore
@@ -45,7 +63,8 @@ type ExtractInterface<T extends ApiDefs> = Flatten<
         ? () => Promise<Res>
         : (req: Req) => Promise<Res>
       : never
-  } & OtherKeyStoreMethods
+  } & OtherKeyStoreMethods &
+    PrivatePreferenceKeystoreMethods
 >
 
 type ExtractInterfaceRequestEncoders<T extends ApiDefs> = {
@@ -222,7 +241,6 @@ export type KeystoreInterfaceRequestValues =
 export type KeystoreApiRequestValues = Values<KeystoreInterfaceRequestValues>
 
 export const snapApiDefs = {
-  ...apiDefs,
   getKeystoreStatus: {
     req: keystore.GetKeystoreStatusRequest,
     res: keystore.GetKeystoreStatusResponse,
@@ -233,7 +251,7 @@ export const snapApiDefs = {
   },
 }
 
-export type SnapKeystoreApiDefs = typeof snapApiDefs
+export type SnapKeystoreApiDefs = typeof snapApiDefs & KeystoreApiDefs
 export type SnapKeystoreApiMethods = keyof SnapKeystoreApiDefs
 export type SnapKeystoreInterface = ExtractInterface<SnapKeystoreApiDefs>
 export type SnapKeystoreApiEntries = Entries<SnapKeystoreApiDefs>

@@ -1,10 +1,12 @@
 import {
   keystore,
+  privatePreferences,
   type authn,
   type privateKey,
   type signature,
 } from '@xmtp/proto'
 import Long from 'long'
+import type { PublishParams } from '@/ApiClient'
 import LocalAuthenticator from '@/authn/LocalAuthenticator'
 import crypto from '@/crypto/crypto'
 import { hmacSha256Sign } from '@/crypto/ecies'
@@ -26,11 +28,16 @@ import {
 } from '@/crypto/selfEncryption'
 import { bytesToHex } from '@/crypto/utils'
 import { InvitationV1, SealedInvitation } from '@/Invitation'
+import {
+  PrivatePreferencesStore,
+  type ActionsMap,
+} from '@/keystore/privatePreferencesStore'
 import type { KeystoreInterface } from '@/keystore/rpcDefinitions'
 import { nsToDate } from '@/utils/date'
 import {
   buildDirectMessageTopic,
   buildDirectMessageTopicV2,
+  buildUserPrivatePreferencesTopic,
 } from '@/utils/topic'
 import { V1Store, V2Store, type AddRequest } from './conversationStores'
 import { decryptV1, decryptV2, encryptV1, encryptV2 } from './encryption'
@@ -74,20 +81,24 @@ export default class InMemoryKeystore implements KeystoreInterface {
   private v2Keys: PrivateKeyBundleV2 // Do I need this?
   private v1Store: V1Store
   private v2Store: V2Store
+  private privatePreferencesStore: PrivatePreferencesStore
   private authenticator: LocalAuthenticator
   private accountAddress: string | undefined
   private jobStatePersistence: Persistence
+  #privatePreferencesTopic: string | undefined
 
   constructor(
     keys: PrivateKeyBundleV1,
     v1Store: V1Store,
     v2Store: V2Store,
+    privatePreferencesStore: PrivatePreferencesStore,
     persistence: Persistence
   ) {
     this.v1Keys = keys
     this.v2Keys = PrivateKeyBundleV2.fromLegacyBundle(keys)
     this.v1Store = v1Store
     this.v2Store = v2Store
+    this.privatePreferencesStore = privatePreferencesStore
     this.authenticator = new LocalAuthenticator(keys.identityKey)
     this.jobStatePersistence = persistence
   }
@@ -97,6 +108,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
       keys,
       await V1Store.create(persistence),
       await V2Store.create(persistence),
+      await PrivatePreferencesStore.create(persistence),
       persistence
     )
   }
@@ -654,5 +666,54 @@ export default class InMemoryKeystore implements KeystoreInterface {
     )
 
     return { hmacKeys }
+  }
+
+  async getPrivatePreferencesTopic(): Promise<string> {
+    if (!this.#privatePreferencesTopic) {
+      const { identifier } = await this.getPrivatePreferencesTopicIdentifier()
+      this.#privatePreferencesTopic =
+        buildUserPrivatePreferencesTopic(identifier)
+    }
+    return this.#privatePreferencesTopic
+  }
+
+  async createPrivatePreference(
+    action: privatePreferences.PrivatePreferencesAction
+  ) {
+    // encrypt action payload
+    // there should only be one response
+    const { responses } = await this.selfEncrypt({
+      requests: [
+        {
+          payload:
+            privatePreferences.PrivatePreferencesAction.encode(action).finish(),
+        },
+      ],
+    })
+
+    // encrypted message
+    const messages = responses.reduce((result, response) => {
+      return response.result?.encrypted
+        ? result.concat(response.result?.encrypted)
+        : result
+    }, [] as Uint8Array[])
+
+    const contentTopic = await this.getPrivatePreferencesTopic()
+    const timestamp = new Date()
+
+    // return envelopes to publish
+    return messages.map((message) => ({
+      contentTopic,
+      message,
+      timestamp,
+    })) as PublishParams[]
+  }
+
+  getPrivatePreferences() {
+    return this.privatePreferencesStore.actions
+  }
+
+  savePrivatePreferences(data: ActionsMap) {
+    return this.privatePreferencesStore.add(data)
   }
 }
