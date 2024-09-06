@@ -1,5 +1,11 @@
 # @xmtp/xmtp-js
 
+## 13.0.0
+
+### Major Changes
+
+- d3b13b7: Persist private preferences to keystore
+
 ## 12.1.0
 
 ### Minor Changes
