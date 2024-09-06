@@ -132,7 +132,7 @@ describe('Contacts', () => {
   it('should retrieve consent state', async () => {
     const entries = await bobClient.contacts.refreshConsentList()
 
-    expect(entries.length).toBe(0)
+    expect(entries.size).toBe(0)
 
     await bobClient.contacts.deny([alice.address])
     await bobClient.contacts.allow([carol.address])
@@ -143,6 +143,7 @@ describe('Contacts', () => {
     await bobClient.contacts.allowGroups(['foo', 'bar'])
     await bobClient.contacts.denyGroups(['foo'])
     await bobClient.contacts.allowGroups(['foo'])
+    await bobClient.contacts.denyGroups(['bar'])
     await bobClient.contacts.allowInboxes(['baz', 'qux'])
     await bobClient.contacts.denyInboxes(['baz'])
     await bobClient.contacts.allowInboxes(['baz'])
@@ -158,86 +159,24 @@ describe('Contacts', () => {
     expect(bobClient.contacts.inboxConsentState('baz')).toBe('unknown')
     expect(bobClient.contacts.inboxConsentState('qux')).toBe('unknown')
 
-    const latestEntries = await bobClient.contacts.refreshConsentList()
+    const latestEntries = await bobClient.contacts.loadConsentList()
 
-    expect(latestEntries.length).toBe(14)
-    expect(latestEntries).toEqual([
-      {
-        entryType: 'address',
-        permissionType: 'denied',
-        value: alice.address,
-      },
-      {
-        entryType: 'address',
-        permissionType: 'allowed',
-        value: carol.address,
-      },
-      {
-        entryType: 'address',
-        permissionType: 'allowed',
-        value: alice.address,
-      },
-      {
-        entryType: 'address',
-        permissionType: 'denied',
-        value: carol.address,
-      },
-      {
-        entryType: 'address',
-        permissionType: 'denied',
-        value: alice.address,
-      },
-      {
-        entryType: 'address',
-        permissionType: 'allowed',
-        value: carol.address,
-      },
-      {
-        entryType: 'groupId',
-        permissionType: 'allowed',
-        value: 'foo',
-      },
-      {
-        entryType: 'groupId',
-        permissionType: 'allowed',
-        value: 'bar',
-      },
-      {
-        entryType: 'groupId',
-        permissionType: 'denied',
-        value: 'foo',
-      },
-      {
-        entryType: 'groupId',
-        permissionType: 'allowed',
-        value: 'foo',
-      },
-      {
-        entryType: 'inboxId',
-        permissionType: 'allowed',
-        value: 'baz',
-      },
-      {
-        entryType: 'inboxId',
-        permissionType: 'allowed',
-        value: 'qux',
-      },
-      {
-        entryType: 'inboxId',
-        permissionType: 'denied',
-        value: 'baz',
-      },
-      {
-        entryType: 'inboxId',
-        permissionType: 'allowed',
-        value: 'baz',
-      },
-    ])
+    expect(latestEntries.size).toBe(6)
+    expect(latestEntries).toEqual(
+      new Map([
+        [`address-${alice.address}`, 'denied'],
+        [`address-${carol.address}`, 'allowed'],
+        [`groupId-foo`, 'allowed'],
+        [`groupId-bar`, 'denied'],
+        [`inboxId-baz`, 'allowed'],
+        [`inboxId-qux`, 'allowed'],
+      ])
+    )
 
     expect(bobClient.contacts.consentState(alice.address)).toBe('denied')
     expect(bobClient.contacts.consentState(carol.address)).toBe('allowed')
     expect(bobClient.contacts.groupConsentState('foo')).toBe('allowed')
-    expect(bobClient.contacts.groupConsentState('bar')).toBe('allowed')
+    expect(bobClient.contacts.groupConsentState('bar')).toBe('denied')
     expect(bobClient.contacts.inboxConsentState('baz')).toBe('allowed')
     expect(bobClient.contacts.inboxConsentState('qux')).toBe('allowed')
   })

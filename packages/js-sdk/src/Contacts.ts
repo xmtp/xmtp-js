@@ -168,33 +168,30 @@ export class ConsentList {
    * Process actions and update internal consent list
    */
   processActions(actionsMap: ActionsMap) {
-    const entries: ConsentListEntry[] = []
     // actions to process
     const actions = Array.from(actionsMap.values())
 
     // update the consent list
     actions.forEach((action) => {
       action.allowAddress?.walletAddresses.forEach((address) => {
-        entries.push(this.allow(address))
+        this.allow(address)
       })
       action.denyAddress?.walletAddresses.forEach((address) => {
-        entries.push(this.deny(address))
+        this.deny(address)
       })
       action.allowGroup?.groupIds.forEach((groupId) => {
-        entries.push(this.allowGroup(groupId))
+        this.allowGroup(groupId)
       })
       action.denyGroup?.groupIds.forEach((groupId) => {
-        entries.push(this.denyGroup(groupId))
+        this.denyGroup(groupId)
       })
       action.allowInboxId?.inboxIds.forEach((inboxId) => {
-        entries.push(this.allowInboxId(inboxId))
+        this.allowInboxId(inboxId)
       })
       action.denyInboxId?.inboxIds.forEach((inboxId) => {
-        entries.push(this.denyInboxId(inboxId))
+        this.denyInboxId(inboxId)
       })
     })
-
-    return entries
   }
 
   async stream(onConnectionLost?: OnConnectionLostCallback) {
@@ -261,7 +258,9 @@ export class ConsentList {
     this.reset()
 
     // process actions and update consent list
-    return this.processActions(actionsMap)
+    this.processActions(actionsMap)
+
+    return this.entries
   }
 
   async publish(entries: ConsentListEntry[]) {
