@@ -2,9 +2,18 @@
 
 ## 13.0.0
 
-### Major Changes
+### Minor Changes
 
-- d3b13b7: Persist private preferences to keystore
+- d3b13b7:
+  - Upgraded `@xmtp/proto` for encoding of a private preferences action map
+  - Added a private preferences store to manage persisting of actions
+  - Added new methods to `InMemoryKeystore` to interact with the private preferences store
+  - Refactored `Contacts` class to use the private preferences store
+ 
+### BREAKING CHANGES
+
+- Removed deprecated `lastConsentListEntryTimestamp` method from `Contacts` class
+- Changed return value of the `refreshConsentList` and `loadConsentList` methods of the `Contacts` class
 
 ## 12.1.0
 
