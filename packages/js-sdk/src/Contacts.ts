@@ -167,17 +167,10 @@ export class ConsentList {
   /*
    * Process actions and update internal consent list
    */
-  processActions(actionsMap?: ActionsMap) {
+  processActions(actionsMap: ActionsMap) {
     const entries: ConsentListEntry[] = []
     // actions to process
-    const actions = actionsMap
-      ? Array.from(actionsMap.values())
-      : this.client.keystore.getPrivatePreferences()
-
-    // processing all actions, reset consent list
-    if (!actionsMap) {
-      this.reset()
-    }
+    const actions = Array.from(actionsMap.values())
 
     // update the consent list
     actions.forEach((action) => {
@@ -259,7 +252,13 @@ export class ConsentList {
       .filter(([timestampNs]) => Boolean(timestampNs)) as [string, Uint8Array][]
 
     // decode messages and save them to keystore
-    const actionsMap = await this.decodeMessages(new Map(messageEntries))
+    await this.decodeMessages(new Map(messageEntries))
+
+    // get all actions from keystore
+    const actionsMap = this.client.keystore.getPrivatePreferences()
+
+    // reset consent list
+    this.reset()
 
     // process actions and update consent list
     return this.processActions(actionsMap)

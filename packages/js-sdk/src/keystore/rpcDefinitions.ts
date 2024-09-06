@@ -44,7 +44,7 @@ type PrivatePreferenceKeystoreMethods = {
   createPrivatePreference: (
     action: privatePreferences.PrivatePreferencesAction
   ) => Promise<PublishParams[]>
-  getPrivatePreferences: () => privatePreferences.PrivatePreferencesAction[]
+  getPrivatePreferences: () => ActionsMap
   getPrivatePreferencesTopic: () => Promise<string>
   savePrivatePreferences: (data: ActionsMap) => Promise<void>
 }

@@ -112,7 +112,7 @@ export class PrivatePreferencesStore {
     })
   }
 
-  get actions(): privatePreferences.PrivatePreferencesAction[] {
+  get actions(): ActionsMap {
     // sort actions by their keys (timestamps) in ascending order
     const sortedActions = new Map(
       [...this.actionsMap.entries()].sort(
@@ -120,7 +120,7 @@ export class PrivatePreferencesStore {
           fromNanoString(a[0])!.getTime() - fromNanoString(b[0])!.getTime()
       )
     )
-    return Array.from(sortedActions.values())
+    return sortedActions
   }
 
   lookup(key: string): privatePreferences.PrivatePreferencesAction | undefined {
