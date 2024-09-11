@@ -141,7 +141,7 @@ export class Client {
 
   addScwSignature(
     signatureBytes: Uint8Array,
-    chainId: string,
+    chainId: bigint,
     accountAddress: string,
     chainRpcUrl: string,
     blockNumber: bigint
