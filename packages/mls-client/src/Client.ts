@@ -141,7 +141,7 @@ export class Client {
 
   addScwSignature(
     signatureBytes: Uint8Array,
-    chainId: string,
+    chainId: bigint,
     accountAddress: string,
     chainRpcUrl: string,
     blockNumber: bigint
@@ -203,5 +203,9 @@ export class Client {
 
   async getInboxIdByAddress(accountAddress: string) {
     return this.#innerClient.findInboxIdByAddress(accountAddress)
+  }
+
+  async inboxState(refreshFromNetwork: boolean = false) {
+    return this.#innerClient.inboxState(refreshFromNetwork)
   }
 }
