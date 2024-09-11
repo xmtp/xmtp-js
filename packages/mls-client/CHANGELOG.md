@@ -1,5 +1,11 @@
 # @xmtp/mls-client
 
+## 0.0.15
+
+### Patch Changes
+
+- b8d9b36: Upgrade node bindings, add `inboxState` to Client
+
 ## 0.0.14
 
 ### Patch Changes
