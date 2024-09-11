@@ -47,13 +47,61 @@ pnpm install @xmtp/xmtp-js
 yarn add @xmtp/xmtp-js
 ```
 
-Additional configuration is required in React environments due to the removal of polyfills from Webpack 5.
-
-## Troubleshoot
+## Requirements
 
 ### Buffer polyfill
 
-If you run into issues with Buffer and polyfills, see this [solution](https://xmtp.org/docs/faq#why-is-my-app-failing-with-a-buffer-is-not-found-error).
+A Buffer polyfill is required for browser environments.
+
+See [this solution](https://docs.xmtp.org/dms/troubleshoot#why-is-my-app-failing-with-a-buffer-is-not-found-error) for implementation details.
+
+## Troubleshoot
+
+### WebAssembly issues
+
+This SDK uses WebAssembly, which may require additional configuration in your environment.
+
+#### Vite
+
+**vite.config.js**
+
+```js
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  optimizeDeps: {
+    exclude: ['@xmtp/user-preferences-bindings-wasm'],
+  },
+})
+```
+
+#### Next.js
+
+Configuration is dependent on your version of Next.js.
+
+**next.config.mjs**
+
+Next.js < 15
+
+```js
+const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ['@xmtp/user-preferences-bindings-wasm'],
+  },
+}
+
+export default nextConfig
+```
+
+Next.js >= 15
+
+```js
+const nextConfig = {
+  serverExternalPackages: ['@xmtp/user-preferences-bindings-wasm'],
+}
+
+export default nextConfig
+```
 
 ### BigInt polyfill
 
