@@ -4,7 +4,9 @@
 
 ### Patch Changes
 
-- b8d9b36: Upgrade node bindings, add `inboxState` to Client
+- b8d9b36:
+  - Upgraded to latest MLS node bindings
+  - Added `inboxState` to Client
 
 ## 0.0.14
 
