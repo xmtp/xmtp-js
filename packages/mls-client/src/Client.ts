@@ -204,4 +204,8 @@ export class Client {
   async getInboxIdByAddress(accountAddress: string) {
     return this.#innerClient.findInboxIdByAddress(accountAddress)
   }
+
+  async inboxState(refreshFromNetwork: boolean = false) {
+    return this.#innerClient.inboxState(refreshFromNetwork)
+  }
 }
