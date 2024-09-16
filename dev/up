@@ -1,9 +1,6 @@
 #!/bin/bash
-set -e
+set -eou pipefail
+script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-if ! which docker &>/dev/null; then
-    echo "Docker required to run dev/up. Install it and run this again."
-    exit 1
-fi
-
-dev/docker-compose up -d
+"${script_dir}"/compose pull
+"${script_dir}"/compose up -d --wait
