@@ -1,0 +1,4 @@
+#!/bin/bash
+set -eou pipefail
+
+docker compose -f dev/docker-compose.yml -p "xmtp-js" "$@"

@@ -81,8 +81,7 @@ jobs:
 
   test:
     name: Test
-    # TODO: Investigate why fetch is failing for some of these tests on warp build runners
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-8x
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -95,8 +94,12 @@ jobs:
         run: corepack enable
       - name: Install dependencies
         run: yarn
-      - run: ./dev/up
-      - run: |
+      - name: Start dev environment
+        run: ./dev/up
+      - name: Sleep for 5 seconds
+        run: sleep 5s
+      - name: Run node tests
+        run: |
           cd packages/js-sdk
           yarn test:node
         env:
@@ -105,7 +108,8 @@ jobs:
           DD_SERVICE: xmtp-js
           DD_CIVISIBILITY_AGENTLESS_ENABLED: 'true'
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      - run: |
+      - name: Run browser tests
+        run: |
           cd packages/js-sdk
           yarn test:browser
 

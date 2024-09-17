@@ -1,4 +1,5 @@
 #!/bin/bash
-set -e
+set -eou pipefail
+script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-dev/docker-compose down
+"${script_dir}"/compose down

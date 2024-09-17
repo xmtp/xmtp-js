@@ -1,5 +1,5 @@
 services:
-  waku-node:
+  node:
     image: xmtp/node-go:latest
     platform: linux/amd64
     environment:
@@ -8,14 +8,29 @@ services:
       - --store.enable
       - --store.db-connection-string=postgres://postgres:xmtp@db:5432/postgres?sslmode=disable
       - --store.reader-db-connection-string=postgres://postgres:xmtp@db:5432/postgres?sslmode=disable
+      - --mls-store.db-connection-string=postgres://postgres:xmtp@mlsdb:5432/postgres?sslmode=disable
+      - --mls-validation.grpc-address=validation:50051
+      - --api.enable-mls
       - --wait-for-db=30s
       - --api.authn.enable
     ports:
-      - 9001:9001
       - 5555:5555
+      - 5556:5556
     depends_on:
       - db
+      - mlsdb
+      - validation
+
+  validation:
+    image: ghcr.io/xmtp/mls-validation-service:main
+    platform: linux/amd64
+
   db:
+    image: postgres:13
+    environment:
+      POSTGRES_PASSWORD: xmtp
+
+  mlsdb:
     image: postgres:13
     environment:
       POSTGRES_PASSWORD: xmtp
