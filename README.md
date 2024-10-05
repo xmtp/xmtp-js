@@ -1,6 +1,6 @@
 # XMTP JavaScript SDKs
 
-This is the official repository for XMTP JavaScript SDKs, powered by [Turborepo](https://turbo.build/repo).
+This is the official repository for [XMTP](https://docs.xmtp.org/) JavaScript SDKs, powered by [Turborepo](https://turbo.build/repo).
 
 To learn more about the contents of this repository, see this README and the READMEs provided for [packages](https://github.com/xmtp/xmtp-web/tree/main/packages).
 
