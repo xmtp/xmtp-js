@@ -1,5 +1,20 @@
 # @xmtp/mls-client
 
+## 0.0.16
+
+### Patch Changes
+
+- b8f97ba: Upgrade to latest node bindings
+
+### BREAKING CHANGE
+
+This is a breaking change as some of the APIs have changed.
+
+- `Client.signatureText` is now an async function
+- `Client.addScwSignature` has been removed
+- `Client.addEcdsaSignature` has been renamed to `Client.addSignature`
+- `Conversation.members` is now an async function
+
 ## 0.0.15
 
 ### Patch Changes
