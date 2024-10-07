@@ -29,9 +29,10 @@ export const createUser = () => {
 export type User = ReturnType<typeof createUser>
 
 export const getSignature = async (client: Client, user: User) => {
-  if (client.signatureText) {
+  const signatureText = await client.signatureText()
+  if (signatureText) {
     const signature = await user.wallet.signMessage({
-      message: client.signatureText,
+      message: signatureText,
     })
     return toBytes(signature)
   }
@@ -57,7 +58,7 @@ export const createRegisteredClient = async (
   if (!client.isRegistered) {
     const signature = await getSignature(client, user)
     if (signature) {
-      client.addEcdsaSignature(signature)
+      client.addSignature(signature)
     }
     await client.registerIdentity()
   }

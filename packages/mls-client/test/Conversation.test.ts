@@ -122,23 +122,29 @@ describe('Conversation', () => {
       user2.account.address,
     ])
 
-    const memberInboxIds = conversation.members.map((member) => member.inboxId)
+    const members = await conversation.members()
+
+    const memberInboxIds = members.map((member) => member.inboxId)
     expect(memberInboxIds).toContain(client1.inboxId)
     expect(memberInboxIds).toContain(client2.inboxId)
     expect(memberInboxIds).not.toContain(client3.inboxId)
 
     await conversation.addMembers([user3.account.address])
-    expect(conversation.members.length).toBe(3)
 
-    const memberInboxIds2 = conversation.members.map((member) => member.inboxId)
+    const members2 = await conversation.members()
+    expect(members2.length).toBe(3)
+
+    const memberInboxIds2 = members2.map((member) => member.inboxId)
     expect(memberInboxIds2).toContain(client1.inboxId)
     expect(memberInboxIds2).toContain(client2.inboxId)
     expect(memberInboxIds2).toContain(client3.inboxId)
 
     await conversation.removeMembers([user2.account.address])
-    expect(conversation.members.length).toBe(2)
 
-    const memberInboxIds3 = conversation.members.map((member) => member.inboxId)
+    const members3 = await conversation.members()
+    expect(members3.length).toBe(2)
+
+    const memberInboxIds3 = members3.map((member) => member.inboxId)
     expect(memberInboxIds3).toContain(client1.inboxId)
     expect(memberInboxIds3).not.toContain(client2.inboxId)
     expect(memberInboxIds3).toContain(client3.inboxId)
@@ -155,23 +161,28 @@ describe('Conversation', () => {
       user2.account.address,
     ])
 
-    const memberInboxIds = conversation.members.map((member) => member.inboxId)
+    const members = await conversation.members()
+    const memberInboxIds = members.map((member) => member.inboxId)
     expect(memberInboxIds).toContain(client1.inboxId)
     expect(memberInboxIds).toContain(client2.inboxId)
     expect(memberInboxIds).not.toContain(client3.inboxId)
 
     await conversation.addMembersByInboxId([client3.inboxId])
-    expect(conversation.members.length).toBe(3)
 
-    const memberInboxIds2 = conversation.members.map((member) => member.inboxId)
+    const members2 = await conversation.members()
+    expect(members2.length).toBe(3)
+
+    const memberInboxIds2 = members2.map((member) => member.inboxId)
     expect(memberInboxIds2).toContain(client1.inboxId)
     expect(memberInboxIds2).toContain(client2.inboxId)
     expect(memberInboxIds2).toContain(client3.inboxId)
 
     await conversation.removeMembersByInboxId([client2.inboxId])
-    expect(conversation.members.length).toBe(2)
 
-    const memberInboxIds3 = conversation.members.map((member) => member.inboxId)
+    const members3 = await conversation.members()
+    expect(members3.length).toBe(2)
+
+    const memberInboxIds3 = members3.map((member) => member.inboxId)
     expect(memberInboxIds3).toContain(client1.inboxId)
     expect(memberInboxIds3).not.toContain(client2.inboxId)
     expect(memberInboxIds3).toContain(client3.inboxId)

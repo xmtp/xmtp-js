@@ -17,7 +17,7 @@ describe('Client', () => {
     await createRegisteredClient(user)
     const client2 = await createRegisteredClient(user)
     expect(client2.isRegistered).toBe(true)
-    expect(client2.signatureText).toBe(null)
+    expect(await client2.signatureText()).toBe(null)
     expect(await client2.canMessage([user.account.address])).toEqual({
       [user.account.address.toLowerCase()]: true,
     })
@@ -35,7 +35,9 @@ describe('Client', () => {
     const client = await createRegisteredClient(user)
     const inboxState = await client.inboxState()
     expect(inboxState.inboxId).toBe(client.inboxId)
-    expect(inboxState.installationIds).toEqual([client.installationId])
+    expect(inboxState.installations.map((install) => install.id)).toEqual([
+      client.installationId,
+    ])
     expect(inboxState.accountAddresses).toEqual([
       user.account.address.toLowerCase(),
     ])

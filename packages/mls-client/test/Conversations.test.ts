@@ -42,8 +42,10 @@ describe('Conversations', () => {
     })
     expect(conversation.addedByInboxId).toBe(client1.inboxId)
     expect(conversation.messages().length).toBe(1)
-    expect(conversation.members.length).toBe(2)
-    const memberInboxIds = conversation.members.map((member) => member.inboxId)
+
+    const members = await conversation.members()
+    expect(members.length).toBe(2)
+    const memberInboxIds = members.map((member) => member.inboxId)
     expect(memberInboxIds).toContain(client1.inboxId)
     expect(memberInboxIds).toContain(client2.inboxId)
     expect(conversation.metadata).toEqual({
