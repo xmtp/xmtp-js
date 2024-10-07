@@ -66,6 +66,7 @@ export type QueryParams = {
 export type QueryAllOptions = {
   direction?: messageApi.SortDirection
   limit?: number
+  pageSize?: number
 }
 
 export type QueryStreamOptions = Flatten<
@@ -317,14 +318,17 @@ export default class HttpApiClient implements ApiClient {
     {
       direction = SortDirection.SORT_DIRECTION_ASCENDING,
       limit,
+      pageSize,
     }: QueryAllOptions
   ): Promise<messageApi.Envelope[]> {
     const out: messageApi.Envelope[] = []
+    const maxPageSize = params.contentTopic.startsWith('userpreferences-') ? 500 : 100;
+    
     // Use queryIteratePages for better performance. 1/100th the number of Promises to resolve compared to queryStream
     for await (const page of this.queryIteratePages(params, {
       direction,
       // If there is a limit of < 100, use that as the page size. Otherwise use 100 and stop if/when limit reached.
-      pageSize: limit && limit < 100 ? limit : 100,
+      pageSize: pageSize ? Math.min(pageSize, maxPageSize) : maxPageSize,
     })) {
       for (const envelope of page) {
         out.push(envelope)
