@@ -11,6 +11,7 @@ import {
   generateInboxId,
   getInboxIdForAddress,
   NapiGroupMessageKind,
+  NapiSignatureRequestType,
   type NapiClient,
   type NapiMessage,
 } from '@xmtp/mls-client-bindings-node'
@@ -127,31 +128,23 @@ export class Client {
     return this.#innerClient.isRegistered()
   }
 
-  get signatureText() {
-    return this.#innerClient.signatureText()
+  async signatureText() {
+    try {
+      const signatureText = await this.#innerClient.createInboxSignatureText()
+      return signatureText
+    } catch (e) {
+      return null
+    }
   }
 
   async canMessage(accountAddresses: string[]) {
     return this.#innerClient.canMessage(accountAddresses)
   }
 
-  addEcdsaSignature(signatureBytes: Uint8Array) {
-    this.#innerClient.addEcdsaSignature(signatureBytes)
-  }
-
-  addScwSignature(
-    signatureBytes: Uint8Array,
-    chainId: bigint,
-    accountAddress: string,
-    chainRpcUrl: string,
-    blockNumber: bigint
-  ) {
-    this.#innerClient.addScwSignature(
-      signatureBytes,
-      chainId,
-      accountAddress,
-      chainRpcUrl,
-      blockNumber
+  addSignature(signatureBytes: Uint8Array) {
+    this.#innerClient.addSignature(
+      NapiSignatureRequestType.CreateInbox,
+      signatureBytes
     )
   }
 

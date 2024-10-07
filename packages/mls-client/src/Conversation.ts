@@ -78,7 +78,7 @@ export class Conversation {
     }
   }
 
-  get members() {
+  async members() {
     return this.#group.listMembers()
   }
 
