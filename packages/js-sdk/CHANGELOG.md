@@ -1,5 +1,11 @@
 # @xmtp/xmtp-js
 
+## 13.0.1
+
+### Patch Changes
+
+- 760da4a: Allow larger page size and limit in the API client when querying consent
+
 ## 13.0.0
 
 ### Minor Changes
