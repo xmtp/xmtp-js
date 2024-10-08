@@ -16,12 +16,19 @@
       "outputs": []
     },
     "lint": {
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "test": {
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@xmtp/content-type-reply#test": {
+      "dependsOn": ["@xmtp/content-type-remote-attachment#build"],
       "outputs": []
     }
   }
