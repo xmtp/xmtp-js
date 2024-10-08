@@ -64,7 +64,7 @@
     "@types/node": "^20.14.10",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
-    "@vitest/coverage-v8": "^2.0.3",
+    "@vitest/coverage-v8": "^2.1.2",
     "@xmtp/xmtp-js": "workspace:^",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -83,9 +83,9 @@
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.5.3",
     "viem": "^2.13.6",
-    "vite": "5.3.4",
-    "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^2.0.3"
+    "vite": "5.4.8",
+    "vite-tsconfig-paths": "^5.0.1",
+    "vitest": "^2.1.2"
   },
   "packageManager": "yarn@4.3.1",
   "engines": {
