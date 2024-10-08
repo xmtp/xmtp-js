@@ -322,8 +322,10 @@ export default class HttpApiClient implements ApiClient {
     }: QueryAllOptions
   ): Promise<messageApi.Envelope[]> {
     const out: messageApi.Envelope[] = []
-    const maxPageSize = params.contentTopic.startsWith('userpreferences-') ? 500 : 100;
-    
+    const maxPageSize = params.contentTopic.startsWith('userpreferences-')
+      ? 500
+      : 100
+
     // Use queryIteratePages for better performance. 1/100th the number of Promises to resolve compared to queryStream
     for await (const page of this.queryIteratePages(params, {
       direction,
