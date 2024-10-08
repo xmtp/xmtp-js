@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "shared/*"
   ],
   "scripts": {
     "build": "turbo run build --filter='./packages/*'",
