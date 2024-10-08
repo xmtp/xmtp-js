@@ -1,0 +1,26 @@
+services:
+  waku-node:
+    image: xmtp/node-go:latest
+    platform: linux/amd64
+    environment:
+      - GOWAKU-NODEKEY=8a30dcb604b0b53627a5adc054dbf434b446628d4bd1eccc681d223f0550ce67
+    command:
+      - --store.enable
+      - --store.db-connection-string=postgres://postgres:xmtp@db:5432/postgres?sslmode=disable
+      - --store.reader-db-connection-string=postgres://postgres:xmtp@db:5432/postgres?sslmode=disable
+      - --wait-for-db=30s
+      - --api.authn.enable
+    ports:
+      - 9001:9001
+      - 5555:5555
+    depends_on:
+      - db
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_PASSWORD: xmtp
+
+  upload-service:
+    build: ./uploadService
+    ports:
+      - 3000:3000

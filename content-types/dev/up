@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+if ! which docker &>/dev/null; then
+    echo "Docker required to run dev/up. Install it and run this again."
+    exit 1
+fi
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+docker-compose -p xmtp-js -f $SCRIPT_DIR/docker-compose.yml up -d
