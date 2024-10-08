@@ -65,6 +65,7 @@ export type ListMessagesOptions = {
   endTime?: Date
   limit?: number
   direction?: messageApi.SortDirection
+  pageSize?: number
 }
 
 export type ListMessagesPaginatedOptions = {
@@ -723,7 +724,7 @@ export default class Client<ContentTypes = any> {
     if (!opts) {
       opts = {}
     }
-    const { startTime, endTime, limit } = opts
+    const { startTime, endTime, limit, pageSize } = opts
 
     const envelopes = await this.apiClient.query(
       { contentTopic: topic, startTime, endTime },
@@ -731,6 +732,7 @@ export default class Client<ContentTypes = any> {
         direction:
           opts.direction || messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
         limit,
+        pageSize,
       }
     )
     const results: Out[] = []

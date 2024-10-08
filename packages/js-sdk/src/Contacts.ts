@@ -238,7 +238,7 @@ export class ConsentList {
           [timestampNs, message] as [string | undefined, Uint8Array],
         {
           // special exception for private preferences topic
-          limit: 500,
+          pageSize: 500,
           // ensure messages are in ascending order
           direction: messageApi.SortDirection.SORT_DIRECTION_ASCENDING,
           startTime,
