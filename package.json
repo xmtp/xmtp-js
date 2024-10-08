@@ -19,11 +19,11 @@
   },
   "dependencies": {
     "@changesets/changelog-git": "^0.2.0",
-    "@changesets/cli": "^2.27.7"
+    "@changesets/cli": "^2.27.9"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
-    "prettier-plugin-packagejson": "^2.5.1",
+    "prettier-plugin-packagejson": "^2.5.2",
     "turbo": "^2.0.6"
   },
   "packageManager": "yarn@4.5.0",
