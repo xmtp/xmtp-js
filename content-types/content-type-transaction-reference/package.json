@@ -12,14 +12,14 @@
     "typescript",
     "content-types"
   ],
-  "homepage": "https://github.com/xmtp/xmtp-js-content-types",
+  "homepage": "https://github.com/xmtp/xmtp-js",
   "bugs": {
-    "url": "https://github.com/xmtp/xmtp-js-content-types/issues"
+    "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/xmtp/xmtp-js-content-types.git",
-    "directory": "packages/content-type-transaction-reference"
+    "url": "git+ssh://git@github.com/xmtp/xmtp-js.git",
+    "directory": "content-types/content-type-transaction-reference"
   },
   "license": "MIT",
   "author": "XMTP Labs <eng@xmtp.com>",
