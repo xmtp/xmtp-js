@@ -1,108 +1,111 @@
-import type { ContentCodec, ContentTypeId } from '@xmtp/content-type-primitives'
-import { TextCodec } from '@xmtp/content-type-text'
-import { fetcher, type messageApi } from '@xmtp/proto'
-import { Wallet } from 'ethers'
-import Client, { type ClientOptions } from '@/Client'
-import { PrivateKey } from '@/crypto/PrivateKey'
+import type {
+  ContentCodec,
+  ContentTypeId,
+} from "@xmtp/content-type-primitives";
+import { TextCodec } from "@xmtp/content-type-text";
+import { fetcher, type messageApi } from "@xmtp/proto";
+import { Wallet } from "ethers";
+import Client, { type ClientOptions } from "@/Client";
+import { PrivateKey } from "@/crypto/PrivateKey";
 import type {
   PublicKeyBundle,
   SignedPublicKeyBundle,
-} from '@/crypto/PublicKeyBundle'
-import type Stream from '@/Stream'
-import type { Signer } from '@/types/Signer'
-import { promiseWithTimeout } from '@/utils/async'
-import { dateToNs, toNanoString } from '@/utils/date'
+} from "@/crypto/PublicKeyBundle";
+import type Stream from "@/Stream";
+import type { Signer } from "@/types/Signer";
+import { promiseWithTimeout } from "@/utils/async";
+import { dateToNs, toNanoString } from "@/utils/date";
 
-const { b64Encode } = fetcher
+const { b64Encode } = fetcher;
 
 export const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms))
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function pollFor<T>(
   callback: () => Promise<T>,
   timeoutMs: number,
-  delayMs: number
+  delayMs: number,
 ): Promise<T> {
-  const started = Date.now()
+  const started = Date.now();
   try {
-    return await callback()
+    return await callback();
   } catch (err) {
     if (delayMs) {
-      await sleep(delayMs)
+      await sleep(delayMs);
     }
-    const elapsedMs = Date.now() - started
-    const remainingTimeoutMs = timeoutMs - elapsedMs
+    const elapsedMs = Date.now() - started;
+    const remainingTimeoutMs = timeoutMs - elapsedMs;
     if (remainingTimeoutMs <= 0) {
-      throw new Error('timeout exceeded')
+      throw new Error("timeout exceeded");
     }
-    return await pollFor(callback, remainingTimeoutMs, delayMs)
+    return await pollFor(callback, remainingTimeoutMs, delayMs);
   }
 }
 
 export async function waitForUserContact(
   c1: Client,
-  c2: Client
+  c2: Client,
 ): Promise<PublicKeyBundle | SignedPublicKeyBundle> {
   return pollFor(
     async () => {
-      const contact = await c1.getUserContact(c2.address)
-      expect(contact).toBeTruthy()
-      return contact!
+      const contact = await c1.getUserContact(c2.address);
+      expect(contact).toBeTruthy();
+      return contact!;
     },
     20000,
-    200
-  )
+    200,
+  );
 }
 
 export async function dumpStream<T>(
   stream: Stream<T>,
-  timeoutMs = 1000
+  timeoutMs = 1000,
 ): Promise<T[]> {
-  const messages: T[] = []
+  const messages: T[] = [];
   try {
     while (true) {
       const result = await promiseWithTimeout(
         timeoutMs,
         () => stream.next(),
-        'timeout'
-      )
+        "timeout",
+      );
       if (result.done) {
-        break
+        break;
       }
-      messages.push(result.value)
+      messages.push(result.value);
     }
   } catch {
   } finally {
-    stream.return()
+    stream.return();
   }
-  return messages
+  return messages;
 }
 
 export function newWallet(): Wallet {
-  const key = PrivateKey.generate()
+  const key = PrivateKey.generate();
   if (!key.secp256k1) {
-    throw new Error('invalid key')
+    throw new Error("invalid key");
   }
-  return new Wallet(key.secp256k1.bytes)
+  return new Wallet(key.secp256k1.bytes);
 }
 
 export function newCustomWallet(): Signer {
-  const ethersWallet = newWallet()
+  const ethersWallet = newWallet();
   // Client apps don't have to use ethers, they can implement their
   // own Signer methods. Here we implement a custom Signer that is actually
   // backed by ethers.
   return {
     getAddress(): Promise<string> {
-      return ethersWallet.getAddress()
+      return ethersWallet.getAddress();
     },
     signMessage(message: ArrayLike<number> | string): Promise<string> {
       return ethersWallet.signMessage(message).then((signature) => {
         return new Promise((resolve) => {
-          resolve(signature)
-        })
-      })
+          resolve(signature);
+        });
+      });
     },
-  }
+  };
 }
 
 export function wrapAsLedgerWallet(ethersWallet: Wallet): Signer {
@@ -110,46 +113,46 @@ export function wrapAsLedgerWallet(ethersWallet: Wallet): Signer {
   // so 0x1b => 0x00 and 0x1c => 0x01
   return {
     getAddress(): Promise<string> {
-      return ethersWallet.getAddress()
+      return ethersWallet.getAddress();
     },
     signMessage(message: ArrayLike<number> | string): Promise<string> {
       return ethersWallet.signMessage(message).then((signature) => {
-        const bytes = Buffer.from(signature.slice(2), 'hex')
-        const lastByte = bytes[bytes.length - 1]
+        const bytes = Buffer.from(signature.slice(2), "hex");
+        const lastByte = bytes[bytes.length - 1];
         if (lastByte < 0x1b) {
-          return new Promise((resolve) => resolve(signature))
+          return new Promise((resolve) => resolve(signature));
         }
-        bytes[bytes.length - 1] = lastByte - 0x1b
+        bytes[bytes.length - 1] = lastByte - 0x1b;
         return new Promise((resolve) => {
-          resolve('0x' + bytes.toString('hex'))
-        })
-      })
+          resolve("0x" + bytes.toString("hex"));
+        });
+      });
     },
-  }
+  };
 }
 
 // A helper to replace a full Client in testing custom content types,
 // extracting just the codec registry aspect of the client.
 export class CodecRegistry {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _codecs: Map<string, ContentCodec<any>>
+  private _codecs: Map<string, ContentCodec<any>>;
 
   constructor() {
-    this._codecs = new Map()
-    this.registerCodec(new TextCodec())
+    this._codecs = new Map();
+    this.registerCodec(new TextCodec());
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerCodec(codec: ContentCodec<any>): void {
-    const id = codec.contentType
-    const key = `${id.authorityId}/${id.typeId}`
-    this._codecs.set(key, codec)
+    const id = codec.contentType;
+    const key = `${id.authorityId}/${id.typeId}`;
+    this._codecs.set(key, codec);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
-    const key = `${contentType.authorityId}/${contentType.typeId}`
-    return this._codecs.get(key)
+    const key = `${contentType.authorityId}/${contentType.typeId}`;
+    return this._codecs.get(key);
   }
 }
 
@@ -157,47 +160,47 @@ export class CodecRegistry {
 // see github.com/xmtp/xmtp-node-go/scripts/xmtp-js.sh
 export const newLocalHostClient = (opts?: Partial<ClientOptions>) =>
   Client.create(newWallet(), {
-    env: 'local',
+    env: "local",
     ...opts,
-  })
+  });
 
 // client running against local node running on the host,
 // with a non-ethers wallet
 export const newLocalHostClientWithCustomWallet = (
-  opts?: Partial<ClientOptions>
+  opts?: Partial<ClientOptions>,
 ) =>
   Client.create(newCustomWallet(), {
-    env: 'local',
+    env: "local",
     ...opts,
-  })
+  });
 
 // client running against the dev cluster in AWS
 export const newDevClient = (opts?: Partial<ClientOptions>) =>
   Client.create(newWallet(), {
-    env: 'dev',
+    env: "dev",
     ...opts,
-  })
+  });
 
 export const buildEnvelope = (
   message: Uint8Array,
   contentTopic: string,
-  created: Date
+  created: Date,
 ): messageApi.Envelope => {
   return {
     contentTopic,
     timestampNs: toNanoString(created),
     message: b64Encode(message, 0, message.length) as unknown as Uint8Array,
-  }
-}
+  };
+};
 
 export const buildProtoEnvelope = (
   payload: Uint8Array,
   contentTopic: string,
-  timestamp: Date
+  timestamp: Date,
 ) => {
   return {
     contentTopic,
     timestampNs: dateToNs(timestamp),
     payload,
-  }
-}
+  };
+};

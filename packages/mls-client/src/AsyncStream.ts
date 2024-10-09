@@ -1,69 +1,69 @@
 type ResolveValue<T> = {
-  value: T | undefined
-  done: boolean
-}
+  value: T | undefined;
+  done: boolean;
+};
 
-type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void
+type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
 
-export type StreamCallback<T> = (err: Error | null, value: T) => void
+export type StreamCallback<T> = (err: Error | null, value: T) => void;
 
 export class AsyncStream<T> {
-  #done = false
-  #resolveNext: ResolveNext<T> | null
-  #queue: T[]
+  #done = false;
+  #resolveNext: ResolveNext<T> | null;
+  #queue: T[];
 
-  stopCallback: (() => void) | undefined = undefined
+  stopCallback: (() => void) | undefined = undefined;
 
   constructor() {
-    this.#queue = []
-    this.#resolveNext = null
-    this.#done = false
+    this.#queue = [];
+    this.#resolveNext = null;
+    this.#done = false;
   }
 
   get isDone() {
-    return this.#done
+    return this.#done;
   }
 
   callback: StreamCallback<T> = (err, value) => {
     if (err) {
-      console.error('stream error', err)
-      this.stop()
-      return
+      console.error("stream error", err);
+      this.stop();
+      return;
     }
 
     if (this.#done) {
-      return
+      return;
     }
 
     if (this.#resolveNext) {
-      this.#resolveNext({ value, done: false })
-      this.#resolveNext = null
+      this.#resolveNext({ value, done: false });
+      this.#resolveNext = null;
     } else {
-      this.#queue.push(value)
+      this.#queue.push(value);
     }
-  }
+  };
 
   stop = () => {
-    this.#done = true
+    this.#done = true;
     if (this.#resolveNext) {
-      this.#resolveNext({ value: undefined, done: true })
+      this.#resolveNext({ value: undefined, done: true });
     }
-    this.stopCallback?.()
-  }
+    this.stopCallback?.();
+  };
 
   next = (): Promise<ResolveValue<T>> => {
     if (this.#queue.length > 0) {
-      return Promise.resolve({ value: this.#queue.shift(), done: false })
+      return Promise.resolve({ value: this.#queue.shift(), done: false });
     } else if (this.#done) {
-      return Promise.resolve({ value: undefined, done: true })
+      return Promise.resolve({ value: undefined, done: true });
     } else {
       return new Promise((resolve) => {
-        this.#resolveNext = resolve
-      })
+        this.#resolveNext = resolve;
+      });
     }
   };
 
   [Symbol.asyncIterator]() {
-    return this
+    return this;
   }
 }

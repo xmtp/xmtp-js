@@ -3,48 +3,48 @@ import type {
   invitation,
   keystore,
   messageApi,
-} from '@xmtp/proto'
-import Long from 'long'
-import { SortDirection, type OnConnectionLostCallback } from '@/ApiClient'
-import type { ListMessagesOptions } from '@/Client'
-import type Client from '@/Client'
+} from "@xmtp/proto";
+import Long from "long";
+import { SortDirection, type OnConnectionLostCallback } from "@/ApiClient";
+import type { ListMessagesOptions } from "@/Client";
+import type Client from "@/Client";
 import {
   PublicKeyBundle,
   SignedPublicKeyBundle,
-} from '@/crypto/PublicKeyBundle'
-import type { InvitationContext } from '@/Invitation'
-import { DecodedMessage, MessageV1 } from '@/Message'
-import Stream from '@/Stream'
-import { dateToNs, nsToDate } from '@/utils/date'
+} from "@/crypto/PublicKeyBundle";
+import type { InvitationContext } from "@/Invitation";
+import { DecodedMessage, MessageV1 } from "@/Message";
+import Stream from "@/Stream";
+import { dateToNs, nsToDate } from "@/utils/date";
 import {
   buildDirectMessageTopic,
   buildUserIntroTopic,
   buildUserInviteTopic,
   isValidTopic,
-} from '@/utils/topic'
+} from "@/utils/topic";
 import {
   ConversationV1,
   ConversationV2,
   type Conversation,
-} from './Conversation'
-import JobRunner from './JobRunner'
+} from "./Conversation";
+import JobRunner from "./JobRunner";
 
 const messageHasHeaders = (msg: MessageV1): boolean => {
-  return Boolean(msg.recipientAddress && msg.senderAddress)
-}
+  return Boolean(msg.recipientAddress && msg.senderAddress);
+};
 /**
  * Conversations allows you to view ongoing 1:1 messaging sessions with another wallet
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default class Conversations<ContentTypes = any> {
-  private client: Client<ContentTypes>
-  private v1JobRunner: JobRunner
-  private v2JobRunner: JobRunner
+  private client: Client<ContentTypes>;
+  private v1JobRunner: JobRunner;
+  private v2JobRunner: JobRunner;
 
   constructor(client: Client<ContentTypes>) {
-    this.client = client
-    this.v1JobRunner = new JobRunner('v1', client.keystore)
-    this.v2JobRunner = new JobRunner('v2', client.keystore)
+    this.client = client;
+    this.v1JobRunner = new JobRunner("v1", client.keystore);
+    this.v2JobRunner = new JobRunner("v2", client.keystore);
   }
 
   /**
@@ -54,12 +54,12 @@ export default class Conversations<ContentTypes = any> {
     const [v1Convos, v2Convos] = await Promise.all([
       this.listV1Conversations(),
       this.listV2Conversations(),
-    ])
+    ]);
 
-    const conversations = v1Convos.concat(v2Convos)
+    const conversations = v1Convos.concat(v2Convos);
 
-    conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    return conversations
+    conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    return conversations;
   }
 
   /**
@@ -71,11 +71,11 @@ export default class Conversations<ContentTypes = any> {
       await Promise.all([
         this.getV1ConversationsFromKeystore(),
         this.getV2ConversationsFromKeystore(),
-      ])
-    const conversations = v1Convos.concat(v2Convos)
+      ]);
+    const conversations = v1Convos.concat(v2Convos);
 
-    conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    return conversations
+    conversations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    return conversations;
   }
 
   private async listV1Conversations(): Promise<Conversation<ContentTypes>[]> {
@@ -83,7 +83,7 @@ export default class Conversations<ContentTypes = any> {
       const seenPeers = await this.getIntroductionPeers({
         startTime: latestSeen,
         direction: SortDirection.SORT_DIRECTION_ASCENDING,
-      })
+      });
 
       await this.client.keystore.saveV1Conversations({
         conversations: Array.from(seenPeers)
@@ -95,12 +95,12 @@ export default class Conversations<ContentTypes = any> {
             consentProofPayload: undefined,
           }))
           .filter((c) => isValidTopic(c.topic)),
-      })
+      });
 
       return (
         await this.client.keystore.getV1Conversations()
-      ).conversations.map(this.conversationReferenceToV1.bind(this))
-    })
+      ).conversations.map(this.conversationReferenceToV1.bind(this));
+    });
   }
 
   /**
@@ -109,56 +109,56 @@ export default class Conversations<ContentTypes = any> {
   private async listV2Conversations(): Promise<Conversation<ContentTypes>[]> {
     return this.v2JobRunner.run(async (lastRun) => {
       // Get all conversations already in the KeyStore
-      const existing = await this.getV2ConversationsFromKeystore()
+      const existing = await this.getV2ConversationsFromKeystore();
       // Load all conversations started after the newest conversation found
-      const newConversations = await this.updateV2Conversations(lastRun)
+      const newConversations = await this.updateV2Conversations(lastRun);
 
       // Create a Set of all the existing topics to ensure no duplicates are added
-      const existingTopics = new Set(existing.map((c) => c.topic))
+      const existingTopics = new Set(existing.map((c) => c.topic));
       // Add all new conversations to the existing list
       for (const convo of newConversations) {
         if (!existingTopics.has(convo.topic)) {
-          existing.push(convo)
-          existingTopics.add(convo.topic)
+          existing.push(convo);
+          existingTopics.add(convo.topic);
         }
       }
 
       // Sort the result set by creation time in ascending order
-      existing.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-      return existing
-    })
+      existing.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      return existing;
+    });
   }
 
   private async getV2ConversationsFromKeystore(): Promise<
     ConversationV2<ContentTypes>[]
   > {
     return (await this.client.keystore.getV2Conversations()).conversations.map(
-      this.conversationReferenceToV2.bind(this)
-    )
+      this.conversationReferenceToV2.bind(this),
+    );
   }
 
   private async getV1ConversationsFromKeystore(): Promise<
     ConversationV1<ContentTypes>[]
   > {
     return (await this.client.keystore.getV1Conversations()).conversations.map(
-      this.conversationReferenceToV1.bind(this)
-    )
+      this.conversationReferenceToV1.bind(this),
+    );
   }
 
   // Called in listV2Conversations and in newConversation
   async updateV2Conversations(
-    startTime?: Date
+    startTime?: Date,
   ): Promise<ConversationV2<ContentTypes>[]> {
     const envelopes = await this.client.listInvitations({
       startTime,
       direction: SortDirection.SORT_DIRECTION_ASCENDING,
-    })
-    return this.decodeInvites(envelopes)
+    });
+    return this.decodeInvites(envelopes);
   }
 
   private async decodeInvites(
     envelopes: messageApi.Envelope[],
-    shouldThrow = false
+    shouldThrow = false,
   ): Promise<ConversationV2<ContentTypes>[]> {
     const { responses } = await this.client.keystore.saveInvites({
       requests: envelopes
@@ -168,20 +168,20 @@ export default class Conversations<ContentTypes = any> {
           contentTopic: env.contentTopic as string,
         }))
         .filter((req) => isValidTopic(req.contentTopic)),
-    })
+    });
 
-    const out: ConversationV2<ContentTypes>[] = []
+    const out: ConversationV2<ContentTypes>[] = [];
     for (const response of responses) {
       try {
-        out.push(this.saveInviteResponseToConversation(response))
+        out.push(this.saveInviteResponseToConversation(response));
       } catch (e) {
-        console.warn('Error saving invite response to conversation: ', e)
+        console.warn("Error saving invite response to conversation: ", e);
         if (shouldThrow) {
-          throw e
+          throw e;
         }
       }
     }
-    return out
+    return out;
   }
 
   private saveInviteResponseToConversation({
@@ -189,13 +189,13 @@ export default class Conversations<ContentTypes = any> {
     error,
   }: keystore.SaveInvitesResponse_Response): ConversationV2<ContentTypes> {
     if (error || !result || !result.conversation) {
-      throw new Error(`Error from keystore: ${error?.code} ${error?.message}}`)
+      throw new Error(`Error from keystore: ${error?.code} ${error?.message}}`);
     }
-    return this.conversationReferenceToV2(result.conversation)
+    return this.conversationReferenceToV2(result.conversation);
   }
 
   private conversationReferenceToV2(
-    convoRef: conversationReference.ConversationReference
+    convoRef: conversationReference.ConversationReference,
   ): ConversationV2<ContentTypes> {
     return new ConversationV2(
       this.client,
@@ -203,18 +203,18 @@ export default class Conversations<ContentTypes = any> {
       convoRef.peerAddress,
       nsToDate(convoRef.createdNs),
       convoRef.context,
-      convoRef.consentProofPayload
-    )
+      convoRef.consentProofPayload,
+    );
   }
 
   private conversationReferenceToV1(
-    convoRef: conversationReference.ConversationReference
+    convoRef: conversationReference.ConversationReference,
   ): ConversationV1<ContentTypes> {
     return new ConversationV1(
       this.client,
       convoRef.peerAddress,
-      nsToDate(convoRef.createdNs)
-    )
+      nsToDate(convoRef.createdNs),
+    );
   }
 
   /**
@@ -223,53 +223,53 @@ export default class Conversations<ContentTypes = any> {
    * Does not dedupe any other previously seen conversations
    */
   async stream(
-    onConnectionLost?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback,
   ): Promise<Stream<Conversation<ContentTypes>, ContentTypes>> {
-    const seenPeers: Set<string> = new Set()
-    const introTopic = buildUserIntroTopic(this.client.address)
-    const inviteTopic = buildUserInviteTopic(this.client.address)
+    const seenPeers: Set<string> = new Set();
+    const introTopic = buildUserIntroTopic(this.client.address);
+    const inviteTopic = buildUserInviteTopic(this.client.address);
 
     const newPeer = (peerAddress: string): boolean => {
       // Check if we have seen the peer already in this stream
       if (seenPeers.has(peerAddress)) {
-        return false
+        return false;
       }
-      seenPeers.add(peerAddress)
-      return true
-    }
+      seenPeers.add(peerAddress);
+      return true;
+    };
 
     const decodeConversation = async (env: messageApi.Envelope) => {
       if (env.contentTopic === introTopic) {
         if (!env.message) {
-          throw new Error('empty envelope')
+          throw new Error("empty envelope");
         }
-        const msg = await MessageV1.fromBytes(env.message)
-        const peerAddress = this.getPeerAddress(msg)
+        const msg = await MessageV1.fromBytes(env.message);
+        const peerAddress = this.getPeerAddress(msg);
         if (!newPeer(peerAddress)) {
-          return undefined
+          return undefined;
         }
-        await msg.decrypt(this.client.keystore, this.client.publicKeyBundle)
-        return new ConversationV1(this.client, peerAddress, msg.sent)
+        await msg.decrypt(this.client.keystore, this.client.publicKeyBundle);
+        return new ConversationV1(this.client, peerAddress, msg.sent);
       }
       if (env.contentTopic === inviteTopic) {
-        const results = await this.decodeInvites([env], true)
+        const results = await this.decodeInvites([env], true);
         if (results.length) {
-          return results[0]
+          return results[0];
         }
       }
 
-      throw new Error('unrecognized invite topic')
-    }
+      throw new Error("unrecognized invite topic");
+    };
 
-    const topics = [introTopic, inviteTopic]
+    const topics = [introTopic, inviteTopic];
 
     return Stream.create<Conversation<ContentTypes>, ContentTypes>(
       this.client,
       topics,
       decodeConversation.bind(this),
       undefined,
-      onConnectionLost
-    )
+      onConnectionLost,
+    );
   }
 
   /**
@@ -280,87 +280,87 @@ export default class Conversations<ContentTypes = any> {
    *
    */
   async streamAllMessages(
-    onConnectionLost?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback,
   ): Promise<AsyncGenerator<DecodedMessage<ContentTypes>>> {
-    const introTopic = buildUserIntroTopic(this.client.address)
-    const inviteTopic = buildUserInviteTopic(this.client.address)
+    const introTopic = buildUserIntroTopic(this.client.address);
+    const inviteTopic = buildUserInviteTopic(this.client.address);
 
-    const topics = new Set<string>([introTopic, inviteTopic])
+    const topics = new Set<string>([introTopic, inviteTopic]);
 
-    const convoMap = new Map<string, Conversation<ContentTypes>>()
+    const convoMap = new Map<string, Conversation<ContentTypes>>();
 
     for (const conversation of await this.list()) {
-      topics.add(conversation.topic)
-      convoMap.set(conversation.topic, conversation)
+      topics.add(conversation.topic);
+      convoMap.set(conversation.topic, conversation);
     }
 
     const decodeMessage = async (
-      env: messageApi.Envelope
+      env: messageApi.Envelope,
     ): Promise<
       Conversation<ContentTypes> | DecodedMessage<ContentTypes> | null
     > => {
-      const contentTopic = env.contentTopic
+      const contentTopic = env.contentTopic;
       if (!contentTopic || !env.message) {
-        return null
+        return null;
       }
 
       if (contentTopic === introTopic) {
-        const msg = await MessageV1.fromBytes(env.message)
+        const msg = await MessageV1.fromBytes(env.message);
         if (!messageHasHeaders(msg)) {
-          return null
+          return null;
         }
-        const peerAddress = this.getPeerAddress(msg)
+        const peerAddress = this.getPeerAddress(msg);
 
         // Temporarily create a convo to decrypt the message
         const convo = new ConversationV1(
           this.client,
           peerAddress as string,
-          msg.sent
-        )
+          msg.sent,
+        );
 
         // TODO: This duplicates the proto deserialization unnecessarily
         // Refactor to avoid duplicate work
-        return convo.decodeMessage(env)
+        return convo.decodeMessage(env);
       }
 
       // Decode as an invite and return the envelope
       // This gives the contentTopicUpdater everything it needs to add to the topic list
       if (contentTopic === inviteTopic) {
-        const results = await this.decodeInvites([env], true)
-        return results[0]
+        const results = await this.decodeInvites([env], true);
+        return results[0];
       }
 
-      const convo = convoMap.get(contentTopic)
+      const convo = convoMap.get(contentTopic);
 
       // Decode as a V1 message if the topic matches a V1 convo
       if (convo instanceof ConversationV1) {
-        return convo.decodeMessage(env)
+        return convo.decodeMessage(env);
       }
 
       // Decode as a V2 message if the topic matches a V2 convo
       if (convo instanceof ConversationV2) {
-        return convo.decodeMessage(env)
+        return convo.decodeMessage(env);
       }
 
-      console.log('Unknown topic')
+      console.log("Unknown topic");
 
-      throw new Error('Unknown topic')
-    }
+      throw new Error("Unknown topic");
+    };
 
     const addConvo = (
       topic: string,
-      conversation: Conversation<ContentTypes>
+      conversation: Conversation<ContentTypes>,
     ): boolean => {
       if (topics.has(topic)) {
-        return false
+        return false;
       }
-      convoMap.set(topic, conversation)
-      topics.add(topic)
-      return true
-    }
+      convoMap.set(topic, conversation);
+      topics.add(topic);
+      return true;
+    };
 
     const contentTopicUpdater = (
-      msg: Conversation<ContentTypes> | DecodedMessage<ContentTypes> | null
+      msg: Conversation<ContentTypes> | DecodedMessage<ContentTypes> | null,
     ) => {
       // If we have a V1 message from the introTopic, store the conversation in our mapping
       if (msg instanceof DecodedMessage && msg.contentTopic === introTopic) {
@@ -370,21 +370,21 @@ export default class Conversations<ContentTypes = any> {
           this.client.address.toLowerCase()
             ? (msg.senderAddress as string)
             : (msg.recipientAddress as string),
-          msg.sent
-        )
-        const isNew = addConvo(convo.topic, convo)
+          msg.sent,
+        );
+        const isNew = addConvo(convo.topic, convo);
 
-        return isNew ? Array.from(topics.values()) : undefined
+        return isNew ? Array.from(topics.values()) : undefined;
       }
 
       if (msg instanceof ConversationV2) {
-        const isNew = addConvo(msg.topic, msg)
+        const isNew = addConvo(msg.topic, msg);
 
-        return isNew ? Array.from(topics.values()) : undefined
+        return isNew ? Array.from(topics.values()) : undefined;
       }
 
-      return undefined
-    }
+      return undefined;
+    };
 
     const str = await Stream.create<
       DecodedMessage<ContentTypes> | Conversation<ContentTypes> | null,
@@ -394,23 +394,23 @@ export default class Conversations<ContentTypes = any> {
       Array.from(topics.values()),
       decodeMessage,
       contentTopicUpdater,
-      onConnectionLost
-    )
+      onConnectionLost,
+    );
 
     const gen = (async function* generate() {
       for await (const val of str) {
         if (val instanceof DecodedMessage) {
-          yield val
+          yield val;
         }
         // For conversation V2, we may have messages in the new topic before we started streaming.
         // To be safe, we fetch all messages
         if (val instanceof ConversationV2) {
           for (const convoMessage of await val.messages()) {
-            yield convoMessage
+            yield convoMessage;
           }
         }
       }
-    })()
+    })();
 
     // Overwrite the generator's return method to close the underlying stream
     // Generators by default need to wait until the next yield to return.
@@ -418,55 +418,55 @@ export default class Conversations<ContentTypes = any> {
     gen.return = async () => {
       // Returning the stream will cause the iteration to end inside the generator
       // The generator will then return on its own
-      await str?.return()
-      return { value: undefined, done: true }
-    }
+      await str?.return();
+      return { value: undefined, done: true };
+    };
 
-    return gen
+    return gen;
   }
 
   private async getIntroductionPeers(
-    opts?: ListMessagesOptions
+    opts?: ListMessagesOptions,
   ): Promise<Map<string, Date>> {
-    const topic = buildUserIntroTopic(this.client.address)
+    const topic = buildUserIntroTopic(this.client.address);
     const messages = await this.client.listEnvelopes(
       topic,
       (env) => {
         if (!env.message) {
-          throw new Error('empty envelope')
+          throw new Error("empty envelope");
         }
-        return MessageV1.fromBytes(env.message)
+        return MessageV1.fromBytes(env.message);
       },
-      opts
-    )
-    const seenPeers: Map<string, Date> = new Map()
+      opts,
+    );
+    const seenPeers: Map<string, Date> = new Map();
     for (const message of messages) {
       // Ignore all messages without sender or recipient address headers
       // Makes getPeerAddress safe
       if (!messageHasHeaders(message)) {
-        continue
+        continue;
       }
 
-      const peerAddress = this.getPeerAddress(message)
+      const peerAddress = this.getPeerAddress(message);
 
       if (peerAddress) {
-        const have = seenPeers.get(peerAddress)
+        const have = seenPeers.get(peerAddress);
         if (!have || have > message.sent) {
           try {
             // Verify that the message can be decrypted before treating the intro as valid
             await message.decrypt(
               this.client.keystore,
-              this.client.publicKeyBundle
-            )
-            seenPeers.set(peerAddress, message.sent)
+              this.client.publicKeyBundle,
+            );
+            seenPeers.set(peerAddress, message.sent);
           } catch (e) {
-            continue
+            continue;
           }
         }
       }
     }
 
-    return seenPeers
+    return seenPeers;
   }
 
   /**
@@ -475,96 +475,97 @@ export default class Conversations<ContentTypes = any> {
   async newConversation(
     peerAddress: string,
     context?: InvitationContext,
-    consentProof?: invitation.ConsentProofPayload
+    consentProof?: invitation.ConsentProofPayload,
   ): Promise<Conversation<ContentTypes>> {
     // Define a function for matching V2 conversations
     const matcherFn = (convo: Conversation<ContentTypes>) =>
       convo.peerAddress.toLowerCase() === peerAddress.toLowerCase() &&
-      isMatchingContext(context, convo.context ?? undefined)
+      isMatchingContext(context, convo.context ?? undefined);
 
     // Check if we already have a V2 conversation with the peer in keystore
-    const existing = await this.getV2ConversationsFromKeystore()
-    const existingMatch = existing.find(matcherFn)
+    const existing = await this.getV2ConversationsFromKeystore();
+    const existingMatch = existing.find(matcherFn);
     if (existingMatch) {
-      return existingMatch
+      return existingMatch;
     }
 
-    let contact = await this.client.getUserContact(peerAddress)
+    let contact = await this.client.getUserContact(peerAddress);
     if (!contact) {
-      throw new Error(`Recipient ${peerAddress} is not on the XMTP network`)
+      throw new Error(`Recipient ${peerAddress} is not on the XMTP network`);
     }
 
     if (peerAddress.toLowerCase() === this.client.address.toLowerCase()) {
-      throw new Error('self messaging not supported')
+      throw new Error("self messaging not supported");
     }
 
     // If this is a V1 conversation continuation
     if (contact instanceof PublicKeyBundle && !context?.conversationId) {
-      return new ConversationV1(this.client, peerAddress, new Date())
+      return new ConversationV1(this.client, peerAddress, new Date());
     }
     // If no conversationId, check and see if we have an existing V1 conversation
     if (!context?.conversationId) {
-      const v1Convos = await this.listV1Conversations()
+      const v1Convos = await this.listV1Conversations();
       const matchingConvo = v1Convos.find(
-        (convo) => convo.peerAddress.toLowerCase() === peerAddress.toLowerCase()
-      )
+        (convo) =>
+          convo.peerAddress.toLowerCase() === peerAddress.toLowerCase(),
+      );
       // If intro already exists, return V1 conversation
       // if both peers have V1 compatible key bundles
       if (matchingConvo) {
         if (!this.client.signedPublicKeyBundle.isFromLegacyBundle()) {
           throw new Error(
-            'cannot resume pre-existing V1 conversation; client keys not compatible'
-          )
+            "cannot resume pre-existing V1 conversation; client keys not compatible",
+          );
         }
         if (
           !(contact instanceof PublicKeyBundle) &&
           !contact.isFromLegacyBundle()
         ) {
           throw new Error(
-            'cannot resume pre-existing V1 conversation; peer keys not compatible'
-          )
+            "cannot resume pre-existing V1 conversation; peer keys not compatible",
+          );
         }
-        return matchingConvo
+        return matchingConvo;
       }
     }
 
     // Coerce the contact into a V2 bundle
     if (contact instanceof PublicKeyBundle) {
-      contact = SignedPublicKeyBundle.fromLegacyBundle(contact)
+      contact = SignedPublicKeyBundle.fromLegacyBundle(contact);
     }
 
     return this.v2JobRunner.run(async (lastRun) => {
-      const newItems = await this.updateV2Conversations(lastRun)
-      const newItemMatch = newItems.find(matcherFn)
+      const newItems = await this.updateV2Conversations(lastRun);
+      const newItemMatch = newItems.find(matcherFn);
       // If one of those matches, return it to update the cache
       if (newItemMatch) {
-        return newItemMatch
+        return newItemMatch;
       }
       return this.createV2Convo(
         contact as SignedPublicKeyBundle,
         context,
-        consentProof
-      )
-    })
+        consentProof,
+      );
+    });
   }
 
   private async createV2Convo(
     recipient: SignedPublicKeyBundle,
     context?: InvitationContext,
-    consentProof?: invitation.ConsentProofPayload
+    consentProof?: invitation.ConsentProofPayload,
   ): Promise<ConversationV2<ContentTypes>> {
-    const timestamp = new Date()
+    const timestamp = new Date();
     const { payload, conversation } = await this.client.keystore.createInvite({
       recipient,
       context,
       createdNs: dateToNs(timestamp),
       consentProof,
-    })
+    });
     if (!payload || !conversation) {
-      throw new Error('Required field not returned from Keystore')
+      throw new Error("Required field not returned from Keystore");
     }
 
-    const peerAddress = await recipient.walletSignatureAddress()
+    const peerAddress = await recipient.walletSignatureAddress();
 
     await this.client.publishEnvelopes([
       {
@@ -577,12 +578,12 @@ export default class Conversations<ContentTypes = any> {
         message: payload,
         timestamp,
       },
-    ])
+    ]);
 
     // add peer address to allow list
-    await this.client.contacts.allow([peerAddress])
+    await this.client.contacts.allow([peerAddress]);
 
-    return this.conversationReferenceToV2(conversation)
+    return this.conversationReferenceToV2(conversation);
   }
 
   private getPeerAddress(message: MessageV1): string {
@@ -590,17 +591,17 @@ export default class Conversations<ContentTypes = any> {
       message.recipientAddress?.toLowerCase() ===
       this.client.address.toLowerCase()
         ? message.senderAddress
-        : message.recipientAddress
+        : message.recipientAddress;
 
     // This assertion is safe, so long as messages have been through the filter
-    return peerAddress as string
+    return peerAddress as string;
   }
 }
 
 function isMatchingContext(
   contextA?: InvitationContext,
-  contextB?: InvitationContext
+  contextB?: InvitationContext,
 ): boolean {
   // Use == to allow null and undefined to be equivalent
-  return contextA?.conversationId === contextB?.conversationId
+  return contextA?.conversationId === contextB?.conversationId;
 }

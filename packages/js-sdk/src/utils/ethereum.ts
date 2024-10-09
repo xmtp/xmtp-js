@@ -1,3 +1,3 @@
 export function getEthereum() {
-  return window.ethereum
+  return window.ethereum;
 }

@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-syntax
-import { webcrypto } from 'crypto'
+import { webcrypto } from "crypto";
 
-const crypto = webcrypto
-export default crypto
+const crypto = webcrypto;
+export default crypto;

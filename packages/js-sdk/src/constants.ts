@@ -7,4 +7,4 @@ XX    XX MM    MM   TT   PP       DDDDDD  EEEEEEE    VVV
 
 Connected to the XMTP 'dev' network. Use 'production' for production messages.
 https://github.com/xmtp/xmtp-js#xmtp-production-and-dev-network-environments
-`
+`;

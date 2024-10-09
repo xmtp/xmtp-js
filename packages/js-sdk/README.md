@@ -66,13 +66,13 @@ This SDK uses WebAssembly, which may require additional configuration in your en
 **vite.config.js**
 
 ```js
-import { defineConfig } from 'vite'
+import { defineConfig } from "vite";
 
 export default defineConfig({
   optimizeDeps: {
-    exclude: ['@xmtp/user-preferences-bindings-wasm'],
+    exclude: ["@xmtp/user-preferences-bindings-wasm"],
   },
-})
+});
 ```
 
 #### Next.js
@@ -86,21 +86,21 @@ Next.js < 15
 ```js
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@xmtp/user-preferences-bindings-wasm'],
+    serverComponentsExternalPackages: ["@xmtp/user-preferences-bindings-wasm"],
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;
 ```
 
 Next.js >= 15
 
 ```js
 const nextConfig = {
-  serverExternalPackages: ['@xmtp/user-preferences-bindings-wasm'],
-}
+  serverExternalPackages: ["@xmtp/user-preferences-bindings-wasm"],
+};
 
-export default nextConfig
+export default nextConfig;
 ```
 
 ### BigInt polyfill

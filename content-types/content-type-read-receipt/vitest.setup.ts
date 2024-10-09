@@ -1,3 +1,3 @@
-import { Buffer } from 'buffer'
+import { Buffer } from "buffer";
 
-globalThis.Buffer = Buffer
+globalThis.Buffer = Buffer;

@@ -1,4 +1,4 @@
 export interface Signer {
-  getAddress(): Promise<string>
-  signMessage(message: ArrayLike<number> | string): Promise<string>
+  getAddress(): Promise<string>;
+  signMessage(message: ArrayLike<number> | string): Promise<string>;
 }

@@ -2,27 +2,27 @@
 // Borrowed from https://github.com/MitchellCash/node-storage-polyfill but implemented as a ponyfill instead of a polyfill
 
 export default class LocalStoragePonyfill implements Storage {
-  store: Map<string, string>
+  store: Map<string, string>;
   constructor() {
-    this.store = new Map()
+    this.store = new Map();
   }
 
   get length(): number {
-    return this.store.size
+    return this.store.size;
   }
 
   clear(): void {
-    this.store = new Map()
+    this.store = new Map();
   }
 
   getItem(key: string): string | null {
-    this.validateString(key)
+    this.validateString(key);
 
     if (this.store.has(key)) {
-      return String(this.store.get(key))
+      return String(this.store.get(key));
     }
 
-    return null
+    return null;
   }
 
   key(index: number): string | null {
@@ -30,33 +30,33 @@ export default class LocalStoragePonyfill implements Storage {
       // This is the TypeError implemented in Chrome, Firefox throws "Storage.key: At least 1
       // argument required, but only 0 passed".
       throw new TypeError(
-        "Failed to execute 'key' on 'Storage': 1 argument required, but only 0 present."
-      )
+        "Failed to execute 'key' on 'Storage': 1 argument required, but only 0 present.",
+      );
     }
 
-    const keys = [...this.store.keys()]
+    const keys = [...this.store.keys()];
 
     if (index >= keys.length) {
-      return null
+      return null;
     }
 
-    return keys[index]
+    return keys[index];
   }
 
   removeItem(key: string): void {
-    this.validateString(key)
-    this.store.delete(key)
+    this.validateString(key);
+    this.store.delete(key);
   }
 
   setItem(key: string, value: string): void {
-    this.validateString(key)
-    this.validateString(value)
-    this.store.set(String(key), String(value))
+    this.validateString(key);
+    this.validateString(value);
+    this.store.set(String(key), String(value));
   }
 
   private validateString(val: string): void {
-    if (!(typeof val === 'string')) {
-      throw new TypeError('Key must be a string')
+    if (!(typeof val === "string")) {
+      throw new TypeError("Key must be a string");
     }
   }
 }

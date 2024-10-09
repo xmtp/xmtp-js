@@ -1,22 +1,22 @@
-import type BackupClient from './BackupClient'
-import { BackupType, type NoBackupConfiguration } from './BackupClient'
+import type BackupClient from "./BackupClient";
+import { BackupType, type NoBackupConfiguration } from "./BackupClient";
 
-const BACKUP_TYPE = BackupType.none
+const BACKUP_TYPE = BackupType.none;
 export default class NoBackupClient implements BackupClient {
-  private configuration: NoBackupConfiguration
+  private configuration: NoBackupConfiguration;
 
   public static createConfiguration(): NoBackupConfiguration {
     return {
       type: BACKUP_TYPE,
       version: 0,
-    }
+    };
   }
 
   constructor(configuration: NoBackupConfiguration) {
-    this.configuration = configuration
+    this.configuration = configuration;
   }
 
   public get backupType(): BackupType {
-    return BACKUP_TYPE
+    return BACKUP_TYPE;
   }
 }

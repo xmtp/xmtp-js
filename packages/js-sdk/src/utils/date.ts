@@ -1,20 +1,20 @@
-import Long from 'long'
+import Long from "long";
 
 export function dateToNs(date: Date): Long {
-  return Long.fromNumber(date.valueOf()).multiply(1_000_000)
+  return Long.fromNumber(date.valueOf()).multiply(1_000_000);
 }
 
 export function nsToDate(ns: Long): Date {
-  return new Date(ns.divide(1_000_000).toNumber())
+  return new Date(ns.divide(1_000_000).toNumber());
 }
 
 export const toNanoString = (d: Date | undefined): undefined | string => {
-  return d && dateToNs(d).toString()
-}
+  return d && dateToNs(d).toString();
+};
 
 export const fromNanoString = (s: string | undefined): undefined | Date => {
   if (!s) {
-    return undefined
+    return undefined;
   }
-  return nsToDate(Long.fromString(s))
-}
+  return nsToDate(Long.fromString(s));
+};
