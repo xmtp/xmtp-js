@@ -42,7 +42,7 @@
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",
-    "clean": "rimraf .turbo node_modules && yarn clean:dist",
+    "clean": "yarn clean:dist && rimraf .turbo node_modules",
     "clean:dist": "rimraf dist",
     "dev": "yarn clean:dist && yarn rollup -c --watch",
     "format": "yarn format:base -w .",
@@ -70,22 +70,22 @@
     "@xmtp/proto": "^3.61.1"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.3.1",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-typescript": "^12.1.0",
     "@types/node": "^18.19.22",
     "eslint": "^8.57.0",
     "eslint-config-custom": "workspace:*",
     "happy-dom": "^13.7.3",
-    "prettier": "^3.2.5",
-    "prettier-plugin-packagejson": "^2.4.12",
-    "rimraf": "^5.0.5",
-    "rollup": "^4.12.1",
-    "rollup-plugin-dts": "^6.1.0",
+    "prettier": "^3.3.3",
+    "prettier-plugin-packagejson": "^2.5.3",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.24.0",
+    "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
-    "typescript": "^5.4.2",
+    "typescript": "^5.6.3",
     "vite": "^5.1.6",
-    "vitest": "^1.3.1"
+    "vitest": "^2.1.2"
   },
   "publishConfig": {
     "access": "public",
