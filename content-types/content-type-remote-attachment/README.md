@@ -205,8 +205,6 @@ Before running unit tests, start the required Docker container at the root of th
 - `yarn build`: Builds the content type
 - `yarn clean`: Removes `node_modules`, `dist`, and `.turbo` folders
 - `yarn dev`: Builds the content type and watches for changes, which will trigger a rebuild
-- `yarn format`: Runs prettier format and write changes
-- `yarn format:check`: Runs prettier format check
 - `yarn lint`: Runs ESLint
 - `yarn test:setup`: Starts a necessary docker container for testing
 - `yarn test:teardown`: Stops docker container for testing

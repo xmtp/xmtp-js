@@ -2970,7 +2970,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^18.19.22"
@@ -2978,8 +2977,6 @@ __metadata:
     eslint: "npm:^8.57.0"
     eslint-config-custom: "workspace:*"
     happy-dom: "npm:^13.7.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -2994,7 +2991,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^18.19.22"
@@ -3005,8 +3001,6 @@ __metadata:
     eslint-config-custom: "workspace:*"
     ethers: "npm:^6.11.1"
     happy-dom: "npm:^13.7.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3021,7 +3015,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-read-receipt@workspace:content-types/content-type-read-receipt"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^18.19.22"
@@ -3032,8 +3025,6 @@ __metadata:
     eslint-config-custom: "workspace:*"
     ethers: "npm:^6.11.1"
     happy-dom: "npm:^13.7.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3048,7 +3039,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@noble/secp256k1": "npm:^1.7.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
@@ -3062,8 +3052,6 @@ __metadata:
     eslint-config-custom: "workspace:*"
     ethers: "npm:^6.11.1"
     happy-dom: "npm:^13.7.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3078,7 +3066,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^18.19.22"
@@ -3091,8 +3078,6 @@ __metadata:
     eslint-config-custom: "workspace:*"
     ethers: "npm:^6.11.1"
     happy-dom: "npm:^13.7.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3116,7 +3101,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-text@workspace:content-types/content-type-text"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^18.19.22"
@@ -3127,8 +3111,6 @@ __metadata:
     eslint-config-custom: "workspace:*"
     ethers: "npm:^6.11.1"
     happy-dom: "npm:^13.7.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3143,7 +3125,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-transaction-reference@workspace:content-types/content-type-transaction-reference"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^18.19.22"
@@ -3154,8 +3135,6 @@ __metadata:
     eslint-config-custom: "workspace:*"
     ethers: "npm:^6.11.1"
     happy-dom: "npm:^13.7.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3177,7 +3156,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/mls-client@workspace:packages/mls-client"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^20.14.10"
@@ -3198,8 +3176,6 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.1.3"
     eslint-plugin-promise: "npm:^6.4.0"
     fast-glob: "npm:^3.3.2"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3313,7 +3289,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/xmtp-js@workspace:packages/js-sdk"
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@metamask/providers": "npm:^17.1.1"
     "@noble/secp256k1": "npm:1.7.1"
     "@rollup/plugin-json": "npm:^6.1.0"
@@ -3349,8 +3324,6 @@ __metadata:
     ethers: "npm:^5.7.2"
     happy-dom: "npm:^15.7.4"
     long: "npm:^5.2.3"
-    prettier: "npm:^3.3.3"
-    prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.24.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -10446,6 +10419,7 @@ __metadata:
   dependencies:
     "@changesets/changelog-git": "npm:^0.2.0"
     "@changesets/cli": "npm:^2.27.9"
+    "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     prettier: "npm:^3.3.3"
     prettier-plugin-packagejson: "npm:^2.5.3"
     rimraf: "npm:^6.0.1"
