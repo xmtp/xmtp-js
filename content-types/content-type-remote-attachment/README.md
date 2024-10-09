@@ -2,7 +2,7 @@
 
 ![Status](https://img.shields.io/badge/Content_type_status-Standards--track-yellow) ![Status](https://img.shields.io/badge/Reference_implementation_status-Stable-brightgreen)
 
-The [remote-attachment](https://github.com/xmtp/xmtp-js-content-types/tree/main/remote-attachment) package provides an XMTP content type to support sending file attachments that are stored off-network. Use it to enable your app to send and receive message attachments.
+The [@xmtp/content-type-remote-attachment](https://github.com/xmtp/xmtp-js-content-types/tree/main/content-types/content-type-remote-attachment) package provides an XMTP content type to support sending file attachments that are stored off-network. Use it to enable your app to send and receive message attachments.
 
 > **Open for feedback**  
 > You are welcome to provide feedback on this implementation by commenting on the [Remote Attachment Content Type XIP](https://github.com/xmtp/XIPs/blob/main/XIPs/xip-17-remote-attachment-content-type-proposal.md) (XMTP Improvement Proposal).
@@ -67,7 +67,7 @@ Use the `RemoteAttachmentCodec.encodeEncrypted` to encrypt the attachment:
 import {
   AttachmentCodec,
   RemoteAttachmentCodec,
-} from "xmtp-content-type-remote-attachment";
+} from "@xmtp/content-type-remote-attachment";
 
 // Encode the attachment and encrypt that encoded content
 const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
