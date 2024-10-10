@@ -33,9 +33,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Typecheck
-        run: |
-          cd packages/mls-client
-          yarn typecheck
+        run: yarn turbo run typecheck --filter='./packages/mls-client'
 
   lint:
     name: Lint
@@ -53,9 +51,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Lint
-        run: |
-          cd packages/mls-client
-          yarn lint
+        run: yarn turbo run lint --filter='./packages/mls-client'
 
   test:
     name: Test
@@ -77,9 +73,7 @@ jobs:
       - name: Sleep for 5 seconds
         run: sleep 5s
       - name: Run tests
-        run: |
-          cd packages/mls-client
-          yarn test
+        run: yarn turbo run test --filter='./packages/mls-client'
 
   build:
     name: Build
@@ -97,6 +91,4 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Build
-        run: |
-          cd packages/mls-client
-          yarn build
+        run: yarn turbo run build --filter='./packages/mls-client'

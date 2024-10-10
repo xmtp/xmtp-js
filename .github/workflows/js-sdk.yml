@@ -33,9 +33,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Typecheck
-        run: |
-          cd packages/js-sdk
-          yarn typecheck
+        run: yarn turbo run typecheck --filter='./packages/js-sdk'
 
   lint:
     name: Lint
@@ -53,9 +51,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Lint
-        run: |
-          cd packages/js-sdk
-          yarn lint
+        run: yarn turbo run lint --filter='./packages/js-sdk'
 
   test:
     name: Test
@@ -76,20 +72,8 @@ jobs:
         run: ./dev/up
       - name: Sleep for 5 seconds
         run: sleep 5s
-      - name: Run node tests
-        run: |
-          cd packages/js-sdk
-          yarn test:node
-        env:
-          NODE_OPTIONS: "-r dd-trace/ci/init"
-          DD_ENV: ci:node
-          DD_SERVICE: xmtp-js
-          DD_CIVISIBILITY_AGENTLESS_ENABLED: "true"
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      - name: Run browser tests
-        run: |
-          cd packages/js-sdk
-          yarn test:browser
+      - name: Run tests
+        run: yarn turbo run test --filter='./packages/js-sdk'
 
   build:
     name: Build
@@ -107,6 +91,4 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Build
-        run: |
-          cd packages/js-sdk
-          yarn build
+        run: yarn turbo run build --filter='./packages/js-sdk'
