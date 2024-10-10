@@ -66,7 +66,7 @@
     "bench": "yarn build:bench && node dist/bench/index.cjs",
     "build": "yarn clean:dist && rollup -c",
     "build:bench": "rollup -c rollup.config.bench.js",
-    "build:docs": "yarn clean:docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc",
+    "build:docs": "cd ../../ && yarn build && cd packages/js-sdk && yarn clean:docs && mkdir -p tmp && cp README.md tmp/ && sed -i.bak '/badge.svg/d' tmp/README.md && typedoc",
     "clean": "rimraf .turbo &&yarn clean:artifacts && yarn clean:dist && yarn clean:docs && yarn clean:deps",
     "clean:artifacts": "rimraf docs tmp package.tgz",
     "clean:deps": "rimraf node_modules",
