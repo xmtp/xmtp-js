@@ -1,0 +1,9 @@
+{
+  "extends": "tsconfig/react-sdk.json",
+  "include": ["src", ".eslintrc.cjs", "vitest.config.ts"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
