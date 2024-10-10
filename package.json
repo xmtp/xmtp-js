@@ -5,6 +5,7 @@
   "workspaces": [
     "content-types/*",
     "packages/*",
+    "sdks/*",
     "shared/*"
   ],
   "scripts": {

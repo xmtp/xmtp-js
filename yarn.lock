@@ -2704,9 +2704,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/mls-client@workspace:packages/mls-client":
+"@xmtp/mls-client@workspace:sdks/mls-client":
   version: 0.0.0-use.local
-  resolution: "@xmtp/mls-client@workspace:packages/mls-client"
+  resolution: "@xmtp/mls-client@workspace:sdks/mls-client"
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.0"
@@ -2813,9 +2813,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/xmtp-js@workspace:^, @xmtp/xmtp-js@workspace:packages/js-sdk":
+"@xmtp/xmtp-js@workspace:^, @xmtp/xmtp-js@workspace:sdks/js-sdk":
   version: 0.0.0-use.local
-  resolution: "@xmtp/xmtp-js@workspace:packages/js-sdk"
+  resolution: "@xmtp/xmtp-js@workspace:sdks/js-sdk"
   dependencies:
     "@metamask/providers": "npm:^17.1.1"
     "@noble/secp256k1": "npm:1.7.1"

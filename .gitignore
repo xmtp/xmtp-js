@@ -69,4 +69,4 @@ next-env.d.ts
 .cache
 
 # Benchmark results
-packages/js-sdk/bench/results
+sdks/js-sdk/bench/results

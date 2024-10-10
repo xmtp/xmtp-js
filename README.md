@@ -1,14 +1,14 @@
 # XMTP TypeScript
 
-This is the official repository for XMTP TypeScript SDKs and content types, powered by [Turborepo](https://turbo.build/repo). All content types can be used with these SDKs.
+This is the official repository for XMTP client SDKs, content types, and packages, written in TypeScript and powered by [Turborepo](https://turbo.build/repo).
 
-To learn more about the contents of this repository, see this README and the READMEs provided in workspace directories.
+To learn more about the contents of this repository, see this README and the READMEs provided in each workspace directory.
 
 ## What's inside?
 
 ### SDKs
 
-- [`js-sdk`](https://github.com/xmtp/xmtp-js/blob/main/packages/js-sdk): XMTP JS client SDK for Node and the browser
+- [`js-sdk`](https://github.com/xmtp/xmtp-js/blob/main/sdks/js-sdk): XMTP JS client SDK for Node and the browser
 
 ### Content types
 
