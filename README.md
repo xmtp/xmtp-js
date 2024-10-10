@@ -8,7 +8,7 @@ To learn more about the contents of this repository, see this README and the REA
 
 ### SDKs
 
-- [`js-sdk`](https://github.com/xmtp/xmtp-js/blob/main/packages/js-sdk): XMTP JS client SDK for Node and the browser
+- [`js-sdk`](https://github.com/xmtp/xmtp-js/blob/main/sdks/js-sdk): XMTP JS client SDK for Node and the browser
 
 ### Content types
 
