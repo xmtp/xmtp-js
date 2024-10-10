@@ -4,6 +4,7 @@
   "private": true,
   "workspaces": [
     "content-types/*",
+    "examples/*",
     "packages/*",
     "sdks/*",
     "shared/*"

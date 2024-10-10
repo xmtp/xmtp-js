@@ -1,0 +1,54 @@
+{
+  "name": "eslint-config-xmtp-web",
+  "version": "1.0.0",
+  "description": "ESLint configuration for XMTP web projects",
+  "keywords": [
+    "eslint",
+    "eslintconfig",
+    "eslint-config",
+    "react",
+    "typescript",
+    "xmtp"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xmtp/xmtp-js.git",
+    "directory": "packages/eslint-config-xmtp-web"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "format": "yarn format:base -w .",
+    "format:base": "prettier --ignore-path ../../.gitignore",
+    "format:check": "yarn format:base -c ."
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-n": "^17.9.0",
+    "eslint-plugin-promise": "^6.4.0",
+    "eslint-plugin-react": "^7.34.4",
+    "eslint-plugin-react-hooks": "^4.6.2"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "prettier-plugin-packagejson": "^2.5.0",
+    "typescript": "^5.5.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
+}
