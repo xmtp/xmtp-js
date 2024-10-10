@@ -5,86 +5,86 @@ import {
   publicKey,
   signature,
   type privatePreferences,
-} from '@xmtp/proto'
-import type { Reader, Writer } from 'protobufjs/minimal'
-import type { PublishParams } from '@/ApiClient'
-import type { ActionsMap } from '@/keystore/privatePreferencesStore'
-import type { Flatten } from '@/utils/typedefs'
+} from "@xmtp/proto";
+import type { Reader, Writer } from "protobufjs/minimal";
+import type { PublishParams } from "@/ApiClient";
+import type { ActionsMap } from "@/keystore/privatePreferencesStore";
+import type { Flatten } from "@/utils/typedefs";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type KeystoreRPCCodec<T = any> = {
-  decode(input: Reader | Uint8Array, length?: number): T
-  encode(message: T, writer?: Writer): Writer
-}
+  decode(input: Reader | Uint8Array, length?: number): T;
+  encode(message: T, writer?: Writer): Writer;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type KeystoreRPC<Request = any, Response = any> = {
-  req: KeystoreRPCCodec<Request> | null
-  res: KeystoreRPCCodec<Response>
-}
+  req: KeystoreRPCCodec<Request> | null;
+  res: KeystoreRPCCodec<Response>;
+};
 
 type Entries<T> = {
-  [K in keyof T]: [K, T[K]]
-}[keyof T][]
+  [K in keyof T]: [K, T[K]];
+}[keyof T][];
 
 type Values<T> = {
-  [K in keyof T]: T[K]
-}[keyof T]
+  [K in keyof T]: T[K];
+}[keyof T];
 
 type ApiDefs = {
-  [key: string]: KeystoreRPC
-}
+  [key: string]: KeystoreRPC;
+};
 
 type ApiInterface = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: (...args: any[]) => any
-}
+  [key: string]: (...args: any[]) => any;
+};
 
 type PrivatePreferenceKeystoreMethods = {
   createPrivatePreference: (
-    action: privatePreferences.PrivatePreferencesAction
-  ) => Promise<PublishParams[]>
-  getPrivatePreferences: () => ActionsMap
-  getPrivatePreferencesTopic: () => Promise<string>
-  savePrivatePreferences: (data: ActionsMap) => Promise<void>
-}
+    action: privatePreferences.PrivatePreferencesAction,
+  ) => Promise<PublishParams[]>;
+  getPrivatePreferences: () => ActionsMap;
+  getPrivatePreferencesTopic: () => Promise<string>;
+  savePrivatePreferences: (data: ActionsMap) => Promise<void>;
+};
 
 type OtherKeyStoreMethods = {
   /**
    * Get the account address of the wallet used to create the Keystore
    */
-  getAccountAddress(): Promise<string>
-}
+  getAccountAddress(): Promise<string>;
+};
 
 type ExtractInterface<T extends ApiDefs> = Flatten<
   {
     [K in keyof T]: T[K] extends KeystoreRPC<infer Req, infer Res>
-      ? T[K]['req'] extends null
+      ? T[K]["req"] extends null
         ? () => Promise<Res>
         : (req: Req) => Promise<Res>
-      : never
+      : never;
   } & OtherKeyStoreMethods &
     PrivatePreferenceKeystoreMethods
->
+>;
 
 type ExtractInterfaceRequestEncoders<T extends ApiDefs> = {
-  [K in keyof T]: T[K]['req'] extends KeystoreRPCCodec
-    ? T[K]['req']['encode']
-    : never
-}
+  [K in keyof T]: T[K]["req"] extends KeystoreRPCCodec
+    ? T[K]["req"]["encode"]
+    : never;
+};
 
 type ExtractInterfaceResponseDecoders<T extends ApiDefs> = {
-  [K in keyof T]: T[K]['res'] extends KeystoreRPCCodec
-    ? T[K]['res']['decode']
-    : never
-}
+  [K in keyof T]: T[K]["res"] extends KeystoreRPCCodec
+    ? T[K]["res"]["decode"]
+    : never;
+};
 
 type ExtractInterfaceRequestValues<T extends ApiInterface> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [K in keyof T]: T[K] extends (...args: any[]) => any
     ? Parameters<T[K]>[0]
-    : never
-}
+    : never;
+};
 
 export const apiDefs = {
   /**
@@ -226,19 +226,19 @@ export const apiDefs = {
     req: keystore.GetConversationHmacKeysRequest,
     res: keystore.GetConversationHmacKeysResponse,
   },
-}
+};
 
-export type KeystoreApiDefs = typeof apiDefs
-export type KeystoreApiMethods = keyof KeystoreApiDefs
-export type KeystoreInterface = ExtractInterface<KeystoreApiDefs>
-export type KeystoreApiEntries = Entries<KeystoreApiDefs>
+export type KeystoreApiDefs = typeof apiDefs;
+export type KeystoreApiMethods = keyof KeystoreApiDefs;
+export type KeystoreInterface = ExtractInterface<KeystoreApiDefs>;
+export type KeystoreApiEntries = Entries<KeystoreApiDefs>;
 export type KeystoreApiRequestEncoders =
-  ExtractInterfaceRequestEncoders<KeystoreApiDefs>
+  ExtractInterfaceRequestEncoders<KeystoreApiDefs>;
 export type KeystoreApiResponseDecoders =
-  ExtractInterfaceResponseDecoders<KeystoreApiDefs>
+  ExtractInterfaceResponseDecoders<KeystoreApiDefs>;
 export type KeystoreInterfaceRequestValues =
-  ExtractInterfaceRequestValues<KeystoreInterface>
-export type KeystoreApiRequestValues = Values<KeystoreInterfaceRequestValues>
+  ExtractInterfaceRequestValues<KeystoreInterface>;
+export type KeystoreApiRequestValues = Values<KeystoreInterfaceRequestValues>;
 
 export const snapApiDefs = {
   getKeystoreStatus: {
@@ -249,23 +249,23 @@ export const snapApiDefs = {
     req: keystore.InitKeystoreRequest,
     res: keystore.InitKeystoreResponse,
   },
-}
+};
 
-export type SnapKeystoreApiDefs = typeof snapApiDefs & KeystoreApiDefs
-export type SnapKeystoreApiMethods = keyof SnapKeystoreApiDefs
-export type SnapKeystoreInterface = ExtractInterface<SnapKeystoreApiDefs>
-export type SnapKeystoreApiEntries = Entries<SnapKeystoreApiDefs>
+export type SnapKeystoreApiDefs = typeof snapApiDefs & KeystoreApiDefs;
+export type SnapKeystoreApiMethods = keyof SnapKeystoreApiDefs;
+export type SnapKeystoreInterface = ExtractInterface<SnapKeystoreApiDefs>;
+export type SnapKeystoreApiEntries = Entries<SnapKeystoreApiDefs>;
 export type SnapKeystoreApiRequestEncoders =
-  ExtractInterfaceRequestEncoders<SnapKeystoreApiDefs>
+  ExtractInterfaceRequestEncoders<SnapKeystoreApiDefs>;
 export type SnapKeystoreApiResponseDecoders =
-  ExtractInterfaceResponseDecoders<SnapKeystoreApiDefs>
+  ExtractInterfaceResponseDecoders<SnapKeystoreApiDefs>;
 export type SnapKeystoreInterfaceRequestValues =
-  ExtractInterfaceRequestValues<SnapKeystoreInterface>
+  ExtractInterfaceRequestValues<SnapKeystoreInterface>;
 export type SnapKeystoreApiRequestValues =
-  Values<SnapKeystoreInterfaceRequestValues>
+  Values<SnapKeystoreInterfaceRequestValues>;
 
 /**
  * A Keystore is responsible for holding the user's XMTP private keys and using them to encrypt/decrypt/sign messages.
  * Keystores are instantiated using a `KeystoreProvider`
  */
-export type KeystoreInterfaces = KeystoreInterface | SnapKeystoreInterface
+export type KeystoreInterfaces = KeystoreInterface | SnapKeystoreInterface;

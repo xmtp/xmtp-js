@@ -12,18 +12,18 @@ Following snippet shows the API for managing key bundles (assuming a connected w
 
 ```js
 // generate new wallet keys
-let pri = await PrivateKeyBundleV1.generate(wallet)
-let pub = pri.getPublicKeyBundle()
+let pri = await PrivateKeyBundleV1.generate(wallet);
+let pub = pri.getPublicKeyBundle();
 
 // serialize the public bundle for advertisement on the network
-let bytes = pub.toBytes()
+let bytes = pub.toBytes();
 
 // serialize/encrypt the private bundle for secure storage
-store = EncryptedKeyStore(wallet, new LocalStorageStore())
-await store.storePrivateKeyBundle(pri)
+store = EncryptedKeyStore(wallet, new LocalStorageStore());
+await store.storePrivateKeyBundle(pri);
 
 // deserialize/decrypt private key bundle from storage
-let pri2 = await store.loadPrivateKeyBundle()
+let pri2 = await store.loadPrivateKeyBundle();
 ```
 
 ## Sending a message
@@ -32,7 +32,7 @@ The sender must obtain the advertized public key bundle of the recipient and use
 
 ```js
 // deserializing recipient's public key bundle (bytes obtained from the network)
-recipientPublic = PublicKeyBundle.fromBytes(bytes)
+recipientPublic = PublicKeyBundle.fromBytes(bytes);
 
 // encrypting binary `payload` for submission to the network
 // @sender is sender's PrivateKeyBundle
@@ -40,9 +40,9 @@ recipientPublic = PublicKeyBundle.fromBytes(bytes)
 let secret = await sender.sharedSecret(
   recipientPublic,
   senderPublic.preKey,
-  false
-)
-let bytes = await encrypt(payload, secret)
+  false,
+);
+let bytes = await encrypt(payload, secret);
 ```
 
 ## Receiving a message

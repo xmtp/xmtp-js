@@ -1,21 +1,21 @@
-import json from '@rollup/plugin-json'
-import typescript from '@rollup/plugin-typescript'
-import { defineConfig } from 'rollup'
-import tsConfigPaths from 'rollup-plugin-tsconfig-paths'
+import json from "@rollup/plugin-json";
+import typescript from "@rollup/plugin-typescript";
+import { defineConfig } from "rollup";
+import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
 const external = [
-  '@noble/secp256k1',
-  '@xmtp/proto',
-  '@xmtp/user-preferences-bindings-wasm',
-  'assert',
-  'async-mutex',
-  'benny',
-  'crypto',
-  'elliptic',
-  'ethers',
-  'long',
-  'viem',
-]
+  "@noble/secp256k1",
+  "@xmtp/proto",
+  "@xmtp/user-preferences-bindings-wasm",
+  "assert",
+  "async-mutex",
+  "benny",
+  "crypto",
+  "elliptic",
+  "ethers",
+  "long",
+  "viem",
+];
 
 const plugins = [
   tsConfigPaths(),
@@ -26,16 +26,16 @@ const plugins = [
   json({
     preferConst: true,
   }),
-]
+];
 
 export default defineConfig([
   {
-    input: 'bench/index.ts',
+    input: "bench/index.ts",
     output: {
-      file: 'dist/bench/index.cjs',
-      format: 'cjs',
+      file: "dist/bench/index.cjs",
+      format: "cjs",
     },
     plugins,
     external,
   },
-])
+]);

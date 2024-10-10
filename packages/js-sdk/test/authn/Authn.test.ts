@@ -1,101 +1,101 @@
-import type { Wallet } from 'ethers'
-import Long from 'long'
-import { hexToBytes, keccak256 } from 'viem'
-import AuthCache from '@/authn/AuthCache'
-import Authenticator from '@/authn/LocalAuthenticator'
-import Token from '@/authn/Token'
-import { PrivateKey } from '@/crypto/PrivateKey'
-import { PrivateKeyBundleV1 } from '@/crypto/PrivateKeyBundle'
-import Signature from '@/crypto/Signature'
-import { newWallet, sleep } from '@test/helpers'
+import type { Wallet } from "ethers";
+import Long from "long";
+import { hexToBytes, keccak256 } from "viem";
+import AuthCache from "@/authn/AuthCache";
+import Authenticator from "@/authn/LocalAuthenticator";
+import Token from "@/authn/Token";
+import { PrivateKey } from "@/crypto/PrivateKey";
+import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
+import Signature from "@/crypto/Signature";
+import { newWallet, sleep } from "@test/helpers";
 
-describe('authn', () => {
-  let authenticator: Authenticator
-  let privateKey: PrivateKey
-  let wallet: Wallet
+describe("authn", () => {
+  let authenticator: Authenticator;
+  let privateKey: PrivateKey;
+  let wallet: Wallet;
 
   beforeEach(async () => {
-    wallet = newWallet()
-    const bundle = await PrivateKeyBundleV1.generate(wallet)
-    privateKey = bundle.identityKey
-    authenticator = new Authenticator(privateKey)
-  })
+    wallet = newWallet();
+    const bundle = await PrivateKeyBundleV1.generate(wallet);
+    privateKey = bundle.identityKey;
+    authenticator = new Authenticator(privateKey);
+  });
 
-  it('can create a token', async () => {
-    const timestamp = new Date()
-    const token = await authenticator.createToken(timestamp)
+  it("can create a token", async () => {
+    const timestamp = new Date();
+    const token = await authenticator.createToken(timestamp);
 
     expect(token.authData.walletAddr).toEqual(
-      privateKey.publicKey.walletSignatureAddress()
-    )
+      privateKey.publicKey.walletSignatureAddress(),
+    );
     expect(token.authData.createdNs).toEqual(
-      Long.fromNumber(timestamp.valueOf()).toUnsigned().multiply(1_000_000)
-    )
-    expect(token.identityKey.timestamp).toEqual(privateKey.publicKey.timestamp)
-    expect(token.identityKey.signature).toEqual(privateKey.publicKey.signature)
+      Long.fromNumber(timestamp.valueOf()).toUnsigned().multiply(1_000_000),
+    );
+    expect(token.identityKey.timestamp).toEqual(privateKey.publicKey.timestamp);
+    expect(token.identityKey.signature).toEqual(privateKey.publicKey.signature);
     expect(token.identityKey.secp256k1Uncompressed).toEqual(
-      privateKey.publicKey.secp256k1Uncompressed
-    )
-  })
+      privateKey.publicKey.secp256k1Uncompressed,
+    );
+  });
 
-  it('rejects unsigned identity keys', async () => {
-    const pk = PrivateKey.generate()
-    expect(pk.publicKey.signature).toBeUndefined()
+  it("rejects unsigned identity keys", async () => {
+    const pk = PrivateKey.generate();
+    expect(pk.publicKey.signature).toBeUndefined();
     expect(() => new Authenticator(pk)).toThrow(
-      'Provided public key is not signed'
-    )
-  })
+      "Provided public key is not signed",
+    );
+  });
 
-  it('round trips safely', async () => {
-    const originalToken = await authenticator.createToken()
-    const bytes = originalToken.toBytes()
-    const newToken = Token.fromBytes(bytes)
-    expect(originalToken.authData).toEqual(newToken.authData)
-    expect(originalToken.toBytes()).toEqual(newToken.toBytes())
-  })
+  it("round trips safely", async () => {
+    const originalToken = await authenticator.createToken();
+    const bytes = originalToken.toBytes();
+    const newToken = Token.fromBytes(bytes);
+    expect(originalToken.authData).toEqual(newToken.authData);
+    expect(originalToken.toBytes()).toEqual(newToken.toBytes());
+  });
 
-  it('creates a signature that can be verified', async () => {
-    const token = await authenticator.createToken()
-    const digest = hexToBytes(keccak256(token.authDataBytes))
-    const sig = new Signature(token.authDataSignature)
+  it("creates a signature that can be verified", async () => {
+    const token = await authenticator.createToken();
+    const digest = hexToBytes(keccak256(token.authDataBytes));
+    const sig = new Signature(token.authDataSignature);
 
-    expect(sig.getPublicKey(digest)?.equals(privateKey.publicKey)).toBeTruthy()
-    expect(privateKey.publicKey.verify(sig, digest)).toBeTruthy()
-  })
-})
+    expect(sig.getPublicKey(digest)?.equals(privateKey.publicKey)).toBeTruthy();
+    expect(privateKey.publicKey.verify(sig, digest)).toBeTruthy();
+  });
+});
 
-describe('AuthCache', () => {
-  let authenticator: Authenticator
-  let privateKey: PrivateKey
-  let wallet: Wallet
+describe("AuthCache", () => {
+  let authenticator: Authenticator;
+  let privateKey: PrivateKey;
+  let wallet: Wallet;
 
   beforeEach(async () => {
-    wallet = newWallet()
-    const bundle = await PrivateKeyBundleV1.generate(wallet)
-    privateKey = bundle.identityKey
-    authenticator = new Authenticator(privateKey)
-  })
+    wallet = newWallet();
+    const bundle = await PrivateKeyBundleV1.generate(wallet);
+    privateKey = bundle.identityKey;
+    authenticator = new Authenticator(privateKey);
+  });
 
-  it('safely re-uses cached token', async () => {
-    const authCache = new AuthCache(authenticator)
-    const firstToken = await authCache.getToken()
-    const secondToken = await authCache.getToken()
-    expect(firstToken).toEqual(secondToken)
-  })
+  it("safely re-uses cached token", async () => {
+    const authCache = new AuthCache(authenticator);
+    const firstToken = await authCache.getToken();
+    const secondToken = await authCache.getToken();
+    expect(firstToken).toEqual(secondToken);
+  });
 
-  it('refreshes to new token', async () => {
-    const authCache = new AuthCache(authenticator)
-    const firstToken = await authCache.getToken()
-    await authCache.refresh()
-    const secondToken = await authCache.getToken()
-    expect(firstToken === secondToken).toBeFalsy()
-  })
+  it("refreshes to new token", async () => {
+    const authCache = new AuthCache(authenticator);
+    const firstToken = await authCache.getToken();
+    await authCache.refresh();
+    const secondToken = await authCache.getToken();
+    expect(firstToken === secondToken).toBeFalsy();
+  });
 
-  it('respects expiration', async () => {
-    const authCache = new AuthCache(authenticator, 0.01)
-    const firstToken = await authCache.getToken()
-    await sleep(50)
-    const secondToken = await authCache.getToken()
-    expect(firstToken === secondToken).toBeFalsy()
-  })
-})
+  it("respects expiration", async () => {
+    const authCache = new AuthCache(authenticator, 0.01);
+    const firstToken = await authCache.getToken();
+    await sleep(50);
+    const secondToken = await authCache.getToken();
+    expect(firstToken === secondToken).toBeFalsy();
+  });
+});

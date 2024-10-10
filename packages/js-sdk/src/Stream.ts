@@ -1,12 +1,15 @@
-import type { messageApi } from '@xmtp/proto'
-import type { OnConnectionLostCallback, SubscriptionManager } from './ApiClient'
-import type Client from './Client'
+import type { messageApi } from "@xmtp/proto";
+import type {
+  OnConnectionLostCallback,
+  SubscriptionManager,
+} from "./ApiClient";
+import type Client from "./Client";
 
 export type MessageDecoder<M> = (
-  env: messageApi.Envelope
-) => Promise<M | undefined>
+  env: messageApi.Envelope,
+) => Promise<M | undefined>;
 
-export type ContentTopicUpdater<M> = (msg: M) => string[] | undefined
+export type ContentTopicUpdater<M> = (msg: M) => string[] | undefined;
 
 /**
  * Stream implements an Asynchronous Iterable over messages received from a topic.
@@ -14,75 +17,75 @@ export type ContentTopicUpdater<M> = (msg: M) => string[] | undefined
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default class Stream<T, ClientType = any> {
-  topics: string[]
-  client: Client<ClientType>
+  topics: string[];
+  client: Client<ClientType>;
   // queue of incoming Waku messages
-  messages: T[]
+  messages: T[];
   // queue of already pending Promises
-  resolvers: ((value: IteratorResult<T>) => void)[]
+  resolvers: ((value: IteratorResult<T>) => void)[];
   // cache the callback so that it can be properly deregistered in Waku
   // if callback is undefined the stream is closed
-  callback: ((env: messageApi.Envelope) => Promise<void>) | undefined
+  callback: ((env: messageApi.Envelope) => Promise<void>) | undefined;
 
-  subscriptionManager?: SubscriptionManager
+  subscriptionManager?: SubscriptionManager;
 
-  onConnectionLost?: OnConnectionLostCallback
+  onConnectionLost?: OnConnectionLostCallback;
 
   constructor(
     client: Client<ClientType>,
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
-    onConnectionLost?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback,
   ) {
-    this.messages = []
-    this.resolvers = []
-    this.topics = topics
-    this.client = client
-    this.callback = this.newMessageCallback(decoder, contentTopicUpdater)
-    this.onConnectionLost = onConnectionLost
+    this.messages = [];
+    this.resolvers = [];
+    this.topics = topics;
+    this.client = client;
+    this.callback = this.newMessageCallback(decoder, contentTopicUpdater);
+    this.onConnectionLost = onConnectionLost;
   }
 
   // returns new closure to handle incoming messages
   private newMessageCallback(
     decoder: MessageDecoder<T>,
-    contentTopicUpdater?: ContentTopicUpdater<T>
+    contentTopicUpdater?: ContentTopicUpdater<T>,
   ): (env: messageApi.Envelope) => Promise<void> {
     return async (env: messageApi.Envelope) => {
       if (!env.message) {
-        return
+        return;
       }
       try {
-        const msg = await decoder(env)
+        const msg = await decoder(env);
         // decoder can return undefined to signal a message to ignore/skip.
         if (!msg) {
-          return
+          return;
         }
         // Check to see if we should update the stream's content topic subscription
         if (contentTopicUpdater) {
-          const topics = contentTopicUpdater(msg)
+          const topics = contentTopicUpdater(msg);
           if (topics) {
-            this.resubscribeToTopics(topics)
+            this.resubscribeToTopics(topics);
           }
         }
         // is there a Promise already pending?
-        const resolver = this.resolvers.pop()
+        const resolver = this.resolvers.pop();
         if (resolver) {
           // yes, resolve it
-          resolver({ value: msg })
+          resolver({ value: msg });
         } else {
           // no, push the message into the queue
-          this.messages.unshift(msg)
+          this.messages.unshift(msg);
         }
       } catch (e) {
-        console.warn(e)
+        console.warn(e);
       }
-    }
+    };
   }
 
   private async start(): Promise<void> {
     if (!this.callback) {
-      throw new Error('Missing callback for stream')
+      throw new Error("Missing callback for stream");
     }
 
     this.subscriptionManager = this.client.apiClient.subscribe(
@@ -90,11 +93,11 @@ export default class Stream<T, ClientType = any> {
         contentTopics: this.topics,
       },
       async (env: messageApi.Envelope) => {
-        if (!this.callback) return
-        await this?.callback(env)
+        if (!this.callback) return;
+        await this?.callback(env);
       },
-      this.onConnectionLost
-    )
+      this.onConnectionLost,
+    );
   }
 
   static async create<T, ClientType = string>(
@@ -102,22 +105,22 @@ export default class Stream<T, ClientType = any> {
     topics: string[],
     decoder: MessageDecoder<T>,
     contentTopicUpdater?: ContentTopicUpdater<T>,
-    onConnectionLost?: OnConnectionLostCallback
+    onConnectionLost?: OnConnectionLostCallback,
   ): Promise<Stream<T, ClientType>> {
     const stream = new Stream(
       client,
       topics,
       decoder,
       contentTopicUpdater,
-      onConnectionLost
-    )
-    await stream.start()
-    return stream
+      onConnectionLost,
+    );
+    await stream.start();
+    return stream;
   }
 
   // To make Stream proper Async Iterable
   [Symbol.asyncIterator](): AsyncIterableIterator<T> {
-    return this
+    return this;
   }
 
   // return should be called if the interpreter detects that the stream won't be used anymore,
@@ -126,16 +129,16 @@ export default class Stream<T, ClientType = any> {
   // Note that this means the Stream will be closed after it was used in a for-await-of or yield* or similar.
   async return(): Promise<IteratorResult<T>> {
     if (this.subscriptionManager) {
-      await this.subscriptionManager.unsubscribe()
+      await this.subscriptionManager.unsubscribe();
     }
     if (!this.callback) {
-      return { value: undefined, done: true }
+      return { value: undefined, done: true };
     }
-    this.callback = undefined
+    this.callback = undefined;
     this.resolvers.forEach((resolve) =>
-      resolve({ value: undefined, done: true })
-    )
-    return { value: undefined, done: true }
+      resolve({ value: undefined, done: true }),
+    );
+    return { value: undefined, done: true };
   }
 
   // To make Stream proper Async Iterator
@@ -143,39 +146,39 @@ export default class Stream<T, ClientType = any> {
   // even after the stream was closed via return().
   next(): Promise<IteratorResult<T>> {
     // Is there a message already pending?
-    const msg = this.messages.pop()
+    const msg = this.messages.pop();
     if (msg) {
       // yes, return resolved promise
-      return Promise.resolve({ value: msg })
+      return Promise.resolve({ value: msg });
     }
     if (!this.callback) {
-      return Promise.resolve({ value: undefined, done: true })
+      return Promise.resolve({ value: undefined, done: true });
     }
     // otherwise return empty Promise and queue its resolver
-    return new Promise((resolve) => this.resolvers.unshift(resolve))
+    return new Promise((resolve) => this.resolvers.unshift(resolve));
   }
 
   // Unsubscribe from the existing content topics and resubscribe to the given topics.
   private async resubscribeToTopics(topics: string[]): Promise<void> {
     if (!this.callback || !this.subscriptionManager) {
-      throw new Error('Missing callback for stream')
+      throw new Error("Missing callback for stream");
     }
 
-    if (typeof this.subscriptionManager?.updateContentTopics === 'function') {
-      return this.subscriptionManager.updateContentTopics(topics)
+    if (typeof this.subscriptionManager?.updateContentTopics === "function") {
+      return this.subscriptionManager.updateContentTopics(topics);
     }
 
-    await this.subscriptionManager.unsubscribe()
-    this.topics = topics
+    await this.subscriptionManager.unsubscribe();
+    this.topics = topics;
     this.subscriptionManager = this.client.apiClient.subscribe(
       {
         contentTopics: this.topics,
       },
       async (env: messageApi.Envelope) => {
-        if (!this.callback) return
-        await this?.callback(env)
+        if (!this.callback) return;
+        await this?.callback(env);
       },
-      this.onConnectionLost
-    )
+      this.onConnectionLost,
+    );
   }
 }

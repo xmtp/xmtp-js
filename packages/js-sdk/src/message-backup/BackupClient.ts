@@ -6,26 +6,26 @@ export enum BackupType {
   xmtpTopicStore,
 }
 export interface BackupProvider {
-  type: BackupType
+  type: BackupType;
 }
-export type SelectBackupProvider = () => Promise<BackupProvider>
+export type SelectBackupProvider = () => Promise<BackupProvider>;
 
 export interface NoBackupConfiguration {
-  type: BackupType.none
-  version: number
+  type: BackupType.none;
+  version: number;
 }
 export interface TopicStoreBackupConfiguration {
-  type: BackupType.xmtpTopicStore
-  version: number
+  type: BackupType.xmtpTopicStore;
+  version: number;
   // The location where the backup will be stored
-  topic: string
+  topic: string;
   // The symmetric encryption key used to encrypt/decrypt backups (optional for now)
-  secret?: Uint8Array
+  secret?: Uint8Array;
 }
 export type BackupConfiguration =
   | NoBackupConfiguration
-  | TopicStoreBackupConfiguration
+  | TopicStoreBackupConfiguration;
 
 export default interface BackupClient {
-  get backupType(): BackupType
+  get backupType(): BackupType;
 }

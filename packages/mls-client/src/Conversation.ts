@@ -1,197 +1,197 @@
-import type { ContentTypeId } from '@xmtp/content-type-primitives'
-import { ContentTypeText } from '@xmtp/content-type-text'
+import type { ContentTypeId } from "@xmtp/content-type-primitives";
+import { ContentTypeText } from "@xmtp/content-type-text";
 import type {
   NapiGroup,
   NapiListMessagesOptions,
-} from '@xmtp/mls-client-bindings-node'
-import { AsyncStream, type StreamCallback } from '@/AsyncStream'
-import type { Client } from '@/Client'
-import { DecodedMessage } from '@/DecodedMessage'
-import { nsToDate } from '@/helpers/date'
+} from "@xmtp/mls-client-bindings-node";
+import { AsyncStream, type StreamCallback } from "@/AsyncStream";
+import type { Client } from "@/Client";
+import { DecodedMessage } from "@/DecodedMessage";
+import { nsToDate } from "@/helpers/date";
 
 export class Conversation {
-  #client: Client
-  #group: NapiGroup
+  #client: Client;
+  #group: NapiGroup;
 
   constructor(client: Client, group: NapiGroup) {
-    this.#client = client
-    this.#group = group
+    this.#client = client;
+    this.#group = group;
   }
 
   get id() {
-    return this.#group.id()
+    return this.#group.id();
   }
 
   get name() {
-    return this.#group.groupName()
+    return this.#group.groupName();
   }
 
   async updateName(name: string) {
-    return this.#group.updateGroupName(name)
+    return this.#group.updateGroupName(name);
   }
 
   get imageUrl() {
-    return this.#group.groupImageUrlSquare()
+    return this.#group.groupImageUrlSquare();
   }
 
   async updateImageUrl(imageUrl: string) {
-    return this.#group.updateGroupImageUrlSquare(imageUrl)
+    return this.#group.updateGroupImageUrlSquare(imageUrl);
   }
 
   get description() {
-    return this.#group.groupDescription()
+    return this.#group.groupDescription();
   }
 
   async updateDescription(description: string) {
-    return this.#group.updateGroupDescription(description)
+    return this.#group.updateGroupDescription(description);
   }
 
   get pinnedFrameUrl() {
-    return this.#group.groupPinnedFrameUrl()
+    return this.#group.groupPinnedFrameUrl();
   }
 
   async updatePinnedFrameUrl(pinnedFrameUrl: string) {
-    return this.#group.updateGroupPinnedFrameUrl(pinnedFrameUrl)
+    return this.#group.updateGroupPinnedFrameUrl(pinnedFrameUrl);
   }
 
   get isActive() {
-    return this.#group.isActive()
+    return this.#group.isActive();
   }
 
   get addedByInboxId() {
-    return this.#group.addedByInboxId()
+    return this.#group.addedByInboxId();
   }
 
   get createdAtNs() {
-    return this.#group.createdAtNs()
+    return this.#group.createdAtNs();
   }
 
   get createdAt() {
-    return nsToDate(this.createdAtNs)
+    return nsToDate(this.createdAtNs);
   }
 
   get metadata() {
-    const metadata = this.#group.groupMetadata()
+    const metadata = this.#group.groupMetadata();
     return {
       creatorInboxId: metadata.creatorInboxId(),
       conversationType: metadata.conversationType(),
-    }
+    };
   }
 
   async members() {
-    return this.#group.listMembers()
+    return this.#group.listMembers();
   }
 
   get admins() {
-    return this.#group.adminList()
+    return this.#group.adminList();
   }
 
   get superAdmins() {
-    return this.#group.superAdminList()
+    return this.#group.superAdminList();
   }
 
   get permissions() {
     return {
       policyType: this.#group.groupPermissions().policyType(),
       policySet: this.#group.groupPermissions().policySet(),
-    }
+    };
   }
 
   isAdmin(inboxId: string) {
-    return this.#group.isAdmin(inboxId)
+    return this.#group.isAdmin(inboxId);
   }
 
   isSuperAdmin(inboxId: string) {
-    return this.#group.isSuperAdmin(inboxId)
+    return this.#group.isSuperAdmin(inboxId);
   }
 
   async sync() {
-    return this.#group.sync()
+    return this.#group.sync();
   }
 
   stream(callback?: StreamCallback<DecodedMessage>) {
-    const asyncStream = new AsyncStream<DecodedMessage>()
+    const asyncStream = new AsyncStream<DecodedMessage>();
 
     const stream = this.#group.stream((err, message) => {
-      const decodedMessage = new DecodedMessage(this.#client, message)
-      asyncStream.callback(err, decodedMessage)
-      callback?.(err, decodedMessage)
-    })
+      const decodedMessage = new DecodedMessage(this.#client, message);
+      asyncStream.callback(err, decodedMessage);
+      callback?.(err, decodedMessage);
+    });
 
-    asyncStream.stopCallback = stream.end.bind(stream)
+    asyncStream.stopCallback = stream.end.bind(stream);
 
-    return asyncStream
+    return asyncStream;
   }
 
   async addMembers(accountAddresses: string[]) {
-    return this.#group.addMembers(accountAddresses)
+    return this.#group.addMembers(accountAddresses);
   }
 
   async addMembersByInboxId(inboxIds: string[]) {
-    return this.#group.addMembersByInboxId(inboxIds)
+    return this.#group.addMembersByInboxId(inboxIds);
   }
 
   async removeMembers(accountAddresses: string[]) {
-    return this.#group.removeMembers(accountAddresses)
+    return this.#group.removeMembers(accountAddresses);
   }
 
   async removeMembersByInboxId(inboxIds: string[]) {
-    return this.#group.removeMembersByInboxId(inboxIds)
+    return this.#group.removeMembersByInboxId(inboxIds);
   }
 
   async addAdmin(inboxId: string) {
-    return this.#group.addAdmin(inboxId)
+    return this.#group.addAdmin(inboxId);
   }
 
   async removeAdmin(inboxId: string) {
-    return this.#group.removeAdmin(inboxId)
+    return this.#group.removeAdmin(inboxId);
   }
 
   async addSuperAdmin(inboxId: string) {
-    return this.#group.addSuperAdmin(inboxId)
+    return this.#group.addSuperAdmin(inboxId);
   }
 
   async removeSuperAdmin(inboxId: string) {
-    return this.#group.removeSuperAdmin(inboxId)
+    return this.#group.removeSuperAdmin(inboxId);
   }
 
   async publishMessages() {
-    return this.#group.publishMessages()
+    return this.#group.publishMessages();
   }
 
   sendOptimistic(content: any, contentType?: ContentTypeId) {
-    if (typeof content !== 'string' && !contentType) {
+    if (typeof content !== "string" && !contentType) {
       throw new Error(
-        'Content type is required when sending content other than text'
-      )
+        "Content type is required when sending content other than text",
+      );
     }
 
     const encodedContent =
-      typeof content === 'string'
+      typeof content === "string"
         ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
-        : this.#client.encodeContent(content, contentType!)
+        : this.#client.encodeContent(content, contentType!);
 
-    return this.#group.sendOptimistic(encodedContent)
+    return this.#group.sendOptimistic(encodedContent);
   }
 
   async send(content: any, contentType?: ContentTypeId) {
-    if (typeof content !== 'string' && !contentType) {
+    if (typeof content !== "string" && !contentType) {
       throw new Error(
-        'Content type is required when sending content other than text'
-      )
+        "Content type is required when sending content other than text",
+      );
     }
 
     const encodedContent =
-      typeof content === 'string'
+      typeof content === "string"
         ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
-        : this.#client.encodeContent(content, contentType!)
+        : this.#client.encodeContent(content, contentType!);
 
-    return this.#group.send(encodedContent)
+    return this.#group.send(encodedContent);
   }
 
   messages(options?: NapiListMessagesOptions): DecodedMessage[] {
     return this.#group
       .findMessages(options)
-      .map((message) => new DecodedMessage(this.#client, message))
+      .map((message) => new DecodedMessage(this.#client, message));
   }
 }

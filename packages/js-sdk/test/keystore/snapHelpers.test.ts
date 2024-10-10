@@ -1,73 +1,73 @@
-import { keystore } from '@xmtp/proto'
-import { vi } from 'vitest'
-import { SNAP_LOCAL_ORIGIN } from '@/keystore/providers/SnapProvider'
-import { getWalletStatus, hasMetamaskWithSnaps } from '@/keystore/snapHelpers'
-import { b64Encode } from '@/utils/bytes'
+import { keystore } from "@xmtp/proto";
+import { vi } from "vitest";
+import { SNAP_LOCAL_ORIGIN } from "@/keystore/providers/SnapProvider";
+import { getWalletStatus, hasMetamaskWithSnaps } from "@/keystore/snapHelpers";
+import { b64Encode } from "@/utils/bytes";
 
 const {
   GetKeystoreStatusRequest,
   GetKeystoreStatusResponse,
   GetKeystoreStatusResponse_KeystoreStatus: KeystoreStatus,
-} = keystore
+} = keystore;
 
 // Setup the mocks for window.ethereum
-const mockRequest = vi.hoisted(() => vi.fn())
-vi.mock('@/utils/ethereum', () => {
+const mockRequest = vi.hoisted(() => vi.fn());
+vi.mock("@/utils/ethereum", () => {
   return {
     __esModule: true,
     getEthereum: vi.fn(() => {
       const ethereum: any = {
         request: mockRequest,
-      }
-      ethereum.providers = [ethereum]
-      ethereum.detected = [ethereum]
-      return ethereum
+      };
+      ethereum.providers = [ethereum];
+      ethereum.detected = [ethereum];
+      return ethereum;
     }),
-  }
-})
+  };
+});
 
-describe('snapHelpers', () => {
+describe("snapHelpers", () => {
   beforeEach(() => {
-    mockRequest.mockClear()
-  })
+    mockRequest.mockClear();
+  });
 
-  it('can check if the user has Flask installed', async () => {
-    mockRequest.mockResolvedValue(['flask'])
+  it("can check if the user has Flask installed", async () => {
+    mockRequest.mockResolvedValue(["flask"]);
 
-    expect(await hasMetamaskWithSnaps()).toBe(true)
-    expect(mockRequest).toHaveBeenCalledTimes(1)
-  })
+    expect(await hasMetamaskWithSnaps()).toBe(true);
+    expect(mockRequest).toHaveBeenCalledTimes(1);
+  });
 
-  it('returns false when the user does not have flask installed', async () => {
-    mockRequest.mockRejectedValue(new Error('foo'))
+  it("returns false when the user does not have flask installed", async () => {
+    mockRequest.mockRejectedValue(new Error("foo"));
 
-    expect(await hasMetamaskWithSnaps()).toBe(false)
-    expect(mockRequest).toHaveBeenCalledTimes(2)
-  })
+    expect(await hasMetamaskWithSnaps()).toBe(false);
+    expect(mockRequest).toHaveBeenCalledTimes(2);
+  });
 
-  it('can check wallet status', async () => {
-    const method = 'getKeystoreStatus'
-    const walletAddress = '0xfoo'
-    const env = 'dev'
+  it("can check wallet status", async () => {
+    const method = "getKeystoreStatus";
+    const walletAddress = "0xfoo";
+    const env = "dev";
     const resBytes = GetKeystoreStatusResponse.encode({
       status: KeystoreStatus.KEYSTORE_STATUS_INITIALIZED,
-    }).finish()
+    }).finish();
 
     mockRequest.mockResolvedValue({
       res: b64Encode(resBytes, 0, resBytes.length),
-    })
+    });
 
     const status = await getWalletStatus(
       { walletAddress, env },
-      SNAP_LOCAL_ORIGIN
-    )
-    expect(status).toBe(KeystoreStatus.KEYSTORE_STATUS_INITIALIZED)
+      SNAP_LOCAL_ORIGIN,
+    );
+    expect(status).toBe(KeystoreStatus.KEYSTORE_STATUS_INITIALIZED);
     const expectedRequest = GetKeystoreStatusRequest.encode({
       walletAddress,
-    }).finish()
+    }).finish();
 
     expect(mockRequest).toHaveBeenCalledWith({
-      method: 'wallet_invokeSnap',
+      method: "wallet_invokeSnap",
       params: {
         snapId: SNAP_LOCAL_ORIGIN,
         request: {
@@ -78,6 +78,6 @@ describe('snapHelpers', () => {
           },
         },
       },
-    })
-  })
-})
+    });
+  });
+});
