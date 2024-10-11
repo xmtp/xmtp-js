@@ -2,7 +2,7 @@ import type {
   NapiConversations,
   NapiCreateGroupOptions,
   NapiListMessagesOptions,
-} from "@xmtp/mls-client-bindings-node";
+} from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";

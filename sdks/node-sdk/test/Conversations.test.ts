@@ -1,4 +1,4 @@
-import { NapiGroupPermissionsOptions } from "@xmtp/mls-client-bindings-node";
+import { NapiGroupPermissionsOptions } from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import { createRegisteredClient, createUser } from "@test/helpers";
 

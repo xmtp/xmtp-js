@@ -14,7 +14,7 @@ import {
   NapiSignatureRequestType,
   type NapiClient,
   type NapiMessage,
-} from "@xmtp/mls-client-bindings-node";
+} from "@xmtp/node-bindings";
 import {
   ContentTypeGroupUpdated,
   GroupUpdatedCodec,
