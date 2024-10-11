@@ -2697,16 +2697,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/mls-client-bindings-node@npm:^0.0.12":
-  version: 0.0.12
-  resolution: "@xmtp/mls-client-bindings-node@npm:0.0.12"
-  checksum: 10/90d48198dc7419c3365a55a0227d6aafbe70580e7a5a5c240a40f500fbcbb939c88bc4280c2ec85e9ef046064507f2818ef124f0fa3449c82bedbd0fc308214e
+"@xmtp/node-bindings@npm:^0.0.13":
+  version: 0.0.13
+  resolution: "@xmtp/node-bindings@npm:0.0.13"
+  checksum: 10/98c8a26cdc56c9b0dab794ca933a0be002bdf8d7e7ebdf1ad7ed33c015eeb7ffa5773185b077dd68e6f53509b12e30971a3963e611a8f42693fd11493fe4d802
   languageName: node
   linkType: hard
 
-"@xmtp/mls-client@workspace:sdks/mls-client":
+"@xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
-  resolution: "@xmtp/mls-client@workspace:sdks/mls-client"
+  resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.0"
@@ -2716,7 +2716,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^2.1.2"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/mls-client-bindings-node": "npm:^0.0.12"
+    "@xmtp/node-bindings": "npm:^0.0.13"
     "@xmtp/proto": "npm:^3.62.1"
     "@xmtp/xmtp-js": "workspace:^"
     eslint: "npm:^8.57.0"

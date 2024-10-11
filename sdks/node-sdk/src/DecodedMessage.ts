@@ -3,7 +3,7 @@ import {
   NapiDeliveryStatus,
   NapiGroupMessageKind,
   type NapiMessage,
-} from "@xmtp/mls-client-bindings-node";
+} from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import { nsToDate } from "@/helpers/date";
 

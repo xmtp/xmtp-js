@@ -47,4 +47,21 @@ describe("Client", () => {
     ]);
     expect(inboxState.recoveryAddress).toBe(user.account.address.toLowerCase());
   });
+
+  it("should get inbox states from inbox IDs", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    const inboxStates = await client.inboxStateFromInboxIds([client.inboxId]);
+    expect(inboxStates.length).toBe(1);
+    expect(inboxStates[0].inboxId).toBe(client.inboxId);
+    expect(inboxStates[0].installations.map((install) => install.id)).toEqual([
+      client.installationId,
+    ]);
+    expect(inboxStates[0].accountAddresses).toEqual([
+      user.account.address.toLowerCase(),
+    ]);
+    expect(inboxStates[0].recoveryAddress).toBe(
+      user.account.address.toLowerCase(),
+    );
+  });
 });

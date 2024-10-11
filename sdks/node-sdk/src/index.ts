@@ -1,6 +1,6 @@
 export type {
   ClientOptions,
-  EncryptionOptions,
+  OtherOptions,
   NetworkOptions,
   StorageOptions,
   XmtpEnv,
@@ -14,4 +14,4 @@ export {
   GroupUpdatedCodec,
 } from "./codecs/GroupUpdatedCodec";
 export type { StreamCallback } from "./AsyncStream";
-export type * from "@xmtp/mls-client-bindings-node";
+export type * from "@xmtp/node-bindings";

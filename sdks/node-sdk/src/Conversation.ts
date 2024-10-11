@@ -1,9 +1,6 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type {
-  NapiGroup,
-  NapiListMessagesOptions,
-} from "@xmtp/mls-client-bindings-node";
+import type { NapiGroup, NapiListMessagesOptions } from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";

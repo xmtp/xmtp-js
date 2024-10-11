@@ -10,7 +10,7 @@ const external = [
   "node:process",
   "@xmtp/content-type-text",
   "@xmtp/content-type-primitives",
-  "@xmtp/mls-client-bindings-node",
+  "@xmtp/node-bindings",
   "@xmtp/proto",
   "@xmtp/xmtp-js",
 ];

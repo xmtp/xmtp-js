@@ -14,7 +14,7 @@ import {
   NapiSignatureRequestType,
   type NapiClient,
   type NapiMessage,
-} from "@xmtp/mls-client-bindings-node";
+} from "@xmtp/node-bindings";
 import {
   ContentTypeGroupUpdated,
   GroupUpdatedCodec,
@@ -45,19 +45,13 @@ export type NetworkOptions = {
 };
 
 /**
- * Encryption options
+ * Storage options
  */
-export type EncryptionOptions = {
+export type StorageOptions = {
   /**
    * Encryption key to use for the local DB
    */
   encryptionKey?: Uint8Array | null;
-};
-
-/**
- * Storage options
- */
-export type StorageOptions = {
   /**
    * Path to the local DB
    */
@@ -71,10 +65,21 @@ export type ContentOptions = {
   codecs?: ContentCodec<any>[];
 };
 
+export type OtherOptions = {
+  /**
+   * Optionally set the request history sync URL
+   */
+  requestHistorySync?: string;
+  /**
+   * Optionally set the logging level (default: 'off')
+   */
+  logging?: "debug" | "info" | "warn" | "error" | "off";
+};
+
 export type ClientOptions = NetworkOptions &
-  EncryptionOptions &
   StorageOptions &
-  ContentOptions;
+  ContentOptions &
+  OtherOptions;
 
 export class Client {
   #innerClient: NapiClient;
@@ -107,6 +112,8 @@ export class Client {
         inboxId,
         accountAddress,
         options?.encryptionKey,
+        options?.requestHistorySync,
+        options?.logging ?? "off",
       ),
       [new GroupUpdatedCodec(), new TextCodec(), ...(options?.codecs ?? [])],
     );
@@ -200,5 +207,15 @@ export class Client {
 
   async inboxState(refreshFromNetwork: boolean = false) {
     return this.#innerClient.inboxState(refreshFromNetwork);
+  }
+
+  async inboxStateFromInboxIds(
+    inboxIds: string[],
+    refreshFromNetwork?: boolean,
+  ) {
+    return this.#innerClient.addressesFromInboxId(
+      refreshFromNetwork ?? false,
+      inboxIds,
+    );
   }
 }
