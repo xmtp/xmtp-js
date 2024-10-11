@@ -1,5 +1,14 @@
 # @xmtp/node-sdk
 
+## 0.0.17
+
+### Patch Changes
+
+- 5f02a9b:
+  - Upgraded node bindings
+  - Added `inboxStateFromInboxIds` method to client
+  - Added logging option when creating a client
+
 ## 0.0.16
 
 ### Patch Changes
