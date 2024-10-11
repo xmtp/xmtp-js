@@ -7,8 +7,8 @@ on:
 
   pull_request:
     paths:
-      - "sdks/mls-client/**"
-      - ".github/workflows/mls-client.yml"
+      - "sdks/node-sdk/**"
+      - ".github/workflows/node-sdk.yml"
       - "dev/**"
       - ".node-version"
       - ".nvmrc"
@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Typecheck
-        run: yarn turbo run typecheck --filter='./sdks/mls-client'
+        run: yarn turbo run typecheck --filter='./sdks/node-sdk'
 
   lint:
     name: Lint
@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Lint
-        run: yarn turbo run lint --filter='./sdks/mls-client'
+        run: yarn turbo run lint --filter='./sdks/node-sdk'
 
   test:
     name: Test
@@ -73,7 +73,7 @@ jobs:
       - name: Sleep for 5 seconds
         run: sleep 5s
       - name: Run tests
-        run: yarn turbo run test --filter='./sdks/mls-client'
+        run: yarn turbo run test --filter='./sdks/node-sdk'
 
   build:
     name: Build
@@ -91,4 +91,4 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Build
-        run: yarn turbo run build --filter='./sdks/mls-client'
+        run: yarn turbo run build --filter='./sdks/node-sdk'

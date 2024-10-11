@@ -10,7 +10,7 @@ on:
       - ".changeset/config.json"
       - ".github/**"
       - "!.github/workflows/js-sdk.yml"
-      - "!.github/workflows/mls-client.yml"
+      - "!.github/workflows/node-sdk.yml"
       - "!.github/workflows/content-types.yml"
       - ".vscode/**"
       - ".yarn/**"
