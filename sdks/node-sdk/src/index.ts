@@ -1,6 +1,6 @@
 export type {
   ClientOptions,
-  EncryptionOptions,
+  OtherOptions,
   NetworkOptions,
   StorageOptions,
   XmtpEnv,
