@@ -1,4 +1,4 @@
-# @xmtp/mls-client
+# @xmtp/node-sdk
 
 ## 0.0.16
 

@@ -2704,9 +2704,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/mls-client@workspace:sdks/mls-client":
+"@xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
-  resolution: "@xmtp/mls-client@workspace:sdks/mls-client"
+  resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.0"

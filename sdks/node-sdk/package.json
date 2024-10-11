@@ -1,7 +1,7 @@
 {
-  "name": "@xmtp/mls-client",
+  "name": "@xmtp/node-sdk",
   "version": "0.0.16",
-  "description": "XMTP MLS client for interacting with XMTP networks",
+  "description": "XMTP Node client SDK for interacting with XMTP networks",
   "keywords": [
     "xmtp",
     "messaging",
@@ -18,7 +18,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://git@github.com/xmtp/xmtp-js.git",
-    "directory": "packages/mls-client"
+    "directory": "packages/node-sdk"
   },
   "license": "MIT",
   "author": "XMTP Labs <eng@xmtp.com>",
