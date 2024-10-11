@@ -4,7 +4,10 @@
 
 ### Patch Changes
 
-- 5f02a9b: Upgrade Node SDK
+- 5f02a9b:
+  - Upgraded node bindings
+  - Added `inboxStateFromInboxIds` method to client
+  - Added logging option when creating a client
 
 ## 0.0.16
 
