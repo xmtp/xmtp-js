@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.17
+
+### Patch Changes
+
+- 5f02a9b: Upgrade Node SDK
+
 ## 0.0.16
 
 ### Patch Changes
