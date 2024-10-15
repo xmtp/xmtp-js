@@ -1,3 +1,4 @@
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import { resolveExtensions } from "@xmtp/rollup-plugin-resolve-extensions";
@@ -13,13 +14,15 @@ const plugins = [
   filesize({
     showMinifiedSize: false,
   }),
+  nodeResolve({
+    resolveOnly: ["@xmtp/encryption"],
+  }),
 ];
 
 const external = [
   "@noble/secp256k1",
-  "@xmtp/proto",
   "@xmtp/content-type-primitives",
-  "@xmtp/xmtp-js",
+  "@xmtp/proto",
   "node:crypto",
 ];
 

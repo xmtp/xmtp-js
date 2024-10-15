@@ -5,9 +5,8 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
+import { Ciphertext, crypto, decrypt, encrypt } from "@xmtp/encryption";
 import { content as proto } from "@xmtp/proto";
-import { Ciphertext, decrypt, encrypt } from "@xmtp/xmtp-js";
-import { crypto } from "./encryption";
 
 export const ContentTypeRemoteAttachment = new ContentTypeId({
   authorityId: "xmtp.org",
