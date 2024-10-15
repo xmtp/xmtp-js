@@ -1,6 +1,5 @@
+import { crypto, decrypt, encrypt } from "@xmtp/encryption";
 import { assert } from "vitest";
-import crypto from "@/crypto/crypto";
-import { decrypt, encrypt } from "@/crypto/encryption";
 import { PrivateKey } from "@/crypto/PrivateKey";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import { PublicKeyBundle } from "@/crypto/PublicKeyBundle";

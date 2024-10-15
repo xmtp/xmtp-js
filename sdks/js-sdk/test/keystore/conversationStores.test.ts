@@ -1,4 +1,4 @@
-import crypto from "@/crypto/crypto";
+import { crypto } from "@xmtp/encryption";
 import {
   V1Store,
   V2Store,

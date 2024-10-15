@@ -1,4 +1,4 @@
-import crypto from "@/crypto/crypto";
+import { crypto } from "@xmtp/encryption";
 import { encrypt, getPublic } from "@/crypto/ecies";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import SignedEciesCiphertext from "@/crypto/SignedEciesCiphertext";

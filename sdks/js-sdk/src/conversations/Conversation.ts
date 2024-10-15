@@ -1,4 +1,5 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
+import { sha256 } from "@xmtp/encryption";
 import {
   message,
   content as proto,
@@ -15,7 +16,6 @@ import type {
 } from "@/Client";
 import type Client from "@/Client";
 import type { ConsentState } from "@/Contacts";
-import { sha256 } from "@/crypto/encryption";
 import { SignedPublicKey } from "@/crypto/PublicKey";
 import {
   PublicKeyBundle,

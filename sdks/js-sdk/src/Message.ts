@@ -1,4 +1,5 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
+import { Ciphertext, sha256 } from "@xmtp/encryption";
 import { message as proto, type conversationReference } from "@xmtp/proto";
 import Long from "long";
 import { PublicKey } from "@/crypto/PublicKey";
@@ -9,8 +10,6 @@ import {
   ConversationV2,
   type Conversation,
 } from "./conversations/Conversation";
-import Ciphertext from "./crypto/Ciphertext";
-import { sha256 } from "./crypto/encryption";
 import { bytesToHex } from "./crypto/utils";
 import type { KeystoreInterfaces } from "./keystore/rpcDefinitions";
 import { dateToNs, nsToDate } from "./utils/date";
