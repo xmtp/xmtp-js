@@ -1,4 +1,4 @@
-import crypto from "@/crypto/crypto";
+import { crypto } from "@xmtp/encryption";
 import {
   buildContentTopic,
   buildDirectMessageTopicV2,

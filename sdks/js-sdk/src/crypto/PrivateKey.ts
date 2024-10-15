@@ -1,8 +1,7 @@
 import * as secp from "@noble/secp256k1";
+import { decrypt, encrypt, sha256, type Ciphertext } from "@xmtp/encryption";
 import { privateKey } from "@xmtp/proto";
 import Long from "long";
-import type Ciphertext from "./Ciphertext";
-import { decrypt, encrypt, sha256 } from "./encryption";
 import { PublicKey, SignedPublicKey, UnsignedPublicKey } from "./PublicKey";
 import Signature, {
   ecdsaSignerKey,

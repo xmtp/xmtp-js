@@ -1,12 +1,15 @@
-import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import { resolveExtensions } from "@xmtp/rollup-plugin-resolve-extensions";
 import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
 import filesize from "rollup-plugin-filesize";
+import tsConfigPaths from "rollup-plugin-tsconfig-paths";
+
+const external = ["@xmtp/proto", "node:crypto"];
 
 const plugins = [
+  tsConfigPaths(),
   typescript({
     declaration: false,
     declarationMap: false,
@@ -14,16 +17,6 @@ const plugins = [
   filesize({
     showMinifiedSize: false,
   }),
-  nodeResolve({
-    resolveOnly: ["@xmtp/encryption"],
-  }),
-];
-
-const external = [
-  "@noble/secp256k1",
-  "@xmtp/content-type-primitives",
-  "@xmtp/proto",
-  "node:crypto",
 ];
 
 export default defineConfig([
@@ -35,20 +28,6 @@ export default defineConfig([
       sourcemap: true,
     },
     plugins,
-    external,
-  },
-  {
-    input: "src/index.ts",
-    output: {
-      file: "dist/browser/index.js",
-      format: "es",
-      sourcemap: true,
-    },
-    plugins: [
-      resolveExtensions({ extensions: [".browser"] }),
-      terser(),
-      ...plugins,
-    ],
     external,
   },
   {
@@ -67,6 +46,20 @@ export default defineConfig([
       file: "dist/index.d.ts",
       format: "es",
     },
-    plugins: [dts()],
+    plugins: [tsConfigPaths(), dts()],
+  },
+  {
+    input: "src/index.ts",
+    output: {
+      file: "dist/browser/index.js",
+      format: "es",
+      sourcemap: true,
+    },
+    plugins: [
+      resolveExtensions({ extensions: [".browser"] }),
+      terser(),
+      ...plugins,
+    ],
+    external,
   },
 ]);

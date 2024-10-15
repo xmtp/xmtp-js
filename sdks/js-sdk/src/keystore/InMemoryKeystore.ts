@@ -1,4 +1,10 @@
 import {
+  crypto,
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+} from "@xmtp/encryption";
+import {
   keystore,
   privatePreferences,
   type authn,
@@ -8,13 +14,7 @@ import {
 import Long from "long";
 import type { PublishParams } from "@/ApiClient";
 import LocalAuthenticator from "@/authn/LocalAuthenticator";
-import crypto from "@/crypto/crypto";
 import { hmacSha256Sign } from "@/crypto/ecies";
-import {
-  exportHmacKey,
-  generateHmacSignature,
-  hkdfHmacKey,
-} from "@/crypto/encryption";
 import type { PrivateKey } from "@/crypto/PrivateKey";
 import {
   PrivateKeyBundleV2,

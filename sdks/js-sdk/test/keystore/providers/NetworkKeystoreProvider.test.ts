@@ -1,10 +1,9 @@
+import { crypto, encrypt } from "@xmtp/encryption";
 import { privateKey } from "@xmtp/proto";
 import { hexToBytes, type Hex } from "viem";
 import { vi } from "vitest";
 import ApiClient, { ApiUrls } from "@/ApiClient";
 import LocalAuthenticator from "@/authn/LocalAuthenticator";
-import crypto from "@/crypto/crypto";
-import { encrypt } from "@/crypto/encryption";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import TopicPersistence from "@/keystore/persistence/TopicPersistence";
 import { KeystoreProviderUnavailableError } from "@/keystore/providers/errors";

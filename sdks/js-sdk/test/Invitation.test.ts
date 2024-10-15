@@ -1,6 +1,5 @@
+import { Ciphertext, crypto } from "@xmtp/encryption";
 import Long from "long";
-import Ciphertext from "@/crypto/Ciphertext";
-import crypto from "@/crypto/crypto";
 import { NoMatchingPreKeyError } from "@/crypto/errors";
 import { PrivateKeyBundleV2 } from "@/crypto/PrivateKeyBundle";
 import {

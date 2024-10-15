@@ -1,10 +1,8 @@
+import { Ciphertext, crypto, decrypt, encrypt } from "@xmtp/encryption";
 import { privateKey as proto } from "@xmtp/proto";
 import { getAddress, hexToBytes, verifyMessage, type Hex } from "viem";
 import LocalAuthenticator from "@/authn/LocalAuthenticator";
 import type { PreEventCallback } from "@/Client";
-import Ciphertext from "@/crypto/Ciphertext";
-import crypto from "@/crypto/crypto";
-import { decrypt, encrypt } from "@/crypto/encryption";
 import {
   decodePrivateKeyBundle,
   PrivateKeyBundleV1,

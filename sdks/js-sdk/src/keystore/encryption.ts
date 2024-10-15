@@ -1,5 +1,5 @@
+import { decrypt, encrypt } from "@xmtp/encryption";
 import type { ciphertext } from "@xmtp/proto";
-import { decrypt, encrypt } from "@/crypto/encryption";
 import type { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import type { PublicKeyBundle } from "@/crypto/PublicKeyBundle";
 

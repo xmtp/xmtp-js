@@ -1,5 +1,5 @@
+import { Ciphertext } from "@xmtp/encryption";
 import { Wallet } from "ethers";
-import Ciphertext from "@/crypto/Ciphertext";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import { equalBytes } from "@/crypto/utils";
 import { decryptV1, encryptV1 } from "@/keystore/encryption";
