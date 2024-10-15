@@ -1,3 +1,3 @@
 # XMTP Encryption
 
-This package provides encryption and decryption for XMTP.
+This package provides private,shared encryption functions for use with XMTP.

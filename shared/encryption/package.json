@@ -2,17 +2,6 @@
   "name": "@xmtp/encryption",
   "version": "0.0.0",
   "private": true,
-  "description": "XMTP encryption library",
-  "keywords": [
-    "xmtp",
-    "messaging",
-    "web3",
-    "sdk",
-    "js",
-    "javascript",
-    "node",
-    "nodejs"
-  ],
   "license": "MIT",
   "author": "XMTP Labs <eng@xmtp.com>",
   "type": "module",
