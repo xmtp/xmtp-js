@@ -2203,16 +2203,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.19.22":
-  version: 18.19.55
-  resolution: "@types/node@npm:18.19.55"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/7ba2b7203338f855fd7e90d09de3196e0d534c361ee0fbd7e3f24d416b867a017530d5721c4186f2c5402184e824a1fe65d2b5f9291751b9d8a7d2f9824f9a73
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.14.10":
+"@types/node@npm:^20.16.11":
   version: 20.16.11
   resolution: "@types/node@npm:20.16.11"
   dependencies:
@@ -2558,7 +2549,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^18.19.22"
+    "@types/node": "npm:^20.16.11"
     "@xmtp/proto": "npm:^3.61.1"
     eslint: "npm:^8.57.0"
     eslint-config-custom: "workspace:*"
@@ -2579,7 +2570,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^18.19.22"
+    "@types/node": "npm:^20.16.11"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2603,7 +2594,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^18.19.22"
+    "@types/node": "npm:^20.16.11"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2629,7 +2620,7 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:^15.3.0"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^18.19.22"
+    "@types/node": "npm:^20.16.11"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/encryption": "workspace:*"
     "@xmtp/proto": "npm:^3.61.1"
@@ -2656,7 +2647,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^18.19.22"
+    "@types/node": "npm:^20.16.11"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-remote-attachment": "workspace:*"
     "@xmtp/proto": "npm:^3.61.1"
@@ -2682,7 +2673,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^18.19.22"
+    "@types/node": "npm:^20.16.11"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2706,7 +2697,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^18.19.22"
+    "@types/node": "npm:^20.16.11"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2730,7 +2721,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^20.14.10"
+    "@types/node": "npm:^20.16.11"
     "@typescript-eslint/eslint-plugin": "npm:^7.18.0"
     "@typescript-eslint/parser": "npm:^7.18.0"
     "@vitest/coverage-v8": "npm:^2.1.2"
@@ -2771,7 +2762,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.0"
-    "@types/node": "npm:^20.14.10"
+    "@types/node": "npm:^20.16.11"
     "@typescript-eslint/eslint-plugin": "npm:^7.18.0"
     "@typescript-eslint/parser": "npm:^7.18.0"
     "@vitest/coverage-v8": "npm:^2.1.2"
@@ -2888,7 +2879,7 @@ __metadata:
     "@types/bl": "npm:^5.1.0"
     "@types/callback-to-async-iterator": "npm:^1.1.7"
     "@types/elliptic": "npm:^6.4.18"
-    "@types/node": "npm:^20.14.10"
+    "@types/node": "npm:^20.16.11"
     "@typescript-eslint/eslint-plugin": "npm:^7.18.0"
     "@typescript-eslint/parser": "npm:^7.18.0"
     "@vitest/coverage-v8": "npm:^2.1.2"
@@ -8831,13 +8822,6 @@ __metadata:
     has-symbols: "npm:^1.0.3"
     which-boxed-primitive: "npm:^1.0.2"
   checksum: 10/06e1ee41c1095e37281cb71a975cb3350f7cb470a0665d2576f02cc9564f623bd90cfc0183693b8a7fdf2d242963dcc3010b509fa3ac683f540c765c0f3e7e43
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~5.26.4":
-  version: 5.26.5
-  resolution: "undici-types@npm:5.26.5"
-  checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
   languageName: node
   linkType: hard
 
