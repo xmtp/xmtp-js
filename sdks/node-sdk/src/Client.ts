@@ -62,7 +62,7 @@ export type ContentOptions = {
   /**
    * Allow configuring codecs for additional content types
    */
-  codecs?: ContentCodec<any>[];
+  codecs?: ContentCodec[];
 };
 
 export type OtherOptions = {
@@ -84,9 +84,9 @@ export type ClientOptions = NetworkOptions &
 export class Client {
   #innerClient: NapiClient;
   #conversations: Conversations;
-  #codecs: Map<string, ContentCodec<any>>;
+  #codecs: Map<string, ContentCodec>;
 
-  constructor(client: NapiClient, codecs: ContentCodec<any>[]) {
+  constructor(client: NapiClient, codecs: ContentCodec[]) {
     this.#innerClient = client;
     this.#conversations = new Conversations(this, client.conversations());
     this.#codecs = new Map(
@@ -139,7 +139,7 @@ export class Client {
     try {
       const signatureText = await this.#innerClient.createInboxSignatureText();
       return signatureText;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -149,7 +149,7 @@ export class Client {
   }
 
   addSignature(signatureBytes: Uint8Array) {
-    this.#innerClient.addSignature(
+    void this.#innerClient.addSignature(
       NapiSignatureRequestType.CreateInbox,
       signatureBytes,
     );
@@ -194,6 +194,7 @@ export class Client {
       throw new Error("Error decoding group membership change");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return codec.decode(message.content as EncodedContent, this);
   }
 

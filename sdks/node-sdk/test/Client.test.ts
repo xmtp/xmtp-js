@@ -11,7 +11,7 @@ describe("Client", () => {
     const client = await createClient(user);
     expect(client.accountAddress).toBe(user.account.address);
     expect(client.isRegistered).toBe(false);
-    expect(client.signatureText).not.toBe(null);
+    expect(await client.signatureText()).not.toBe(null);
     expect(client.inboxId).toBeDefined();
     expect(client.installationId).toBeDefined();
   });

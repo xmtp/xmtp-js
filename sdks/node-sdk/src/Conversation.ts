@@ -166,7 +166,8 @@ export class Conversation {
     const encodedContent =
       typeof content === "string"
         ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
-        : this.#client.encodeContent(content, contentType!);
+        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          this.#client.encodeContent(content, contentType!);
 
     return this.#group.sendOptimistic(encodedContent);
   }
@@ -181,7 +182,8 @@ export class Conversation {
     const encodedContent =
       typeof content === "string"
         ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
-        : this.#client.encodeContent(content, contentType!);
+        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          this.#client.encodeContent(content, contentType!);
 
     return this.#group.send(encodedContent);
   }
