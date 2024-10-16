@@ -30,6 +30,7 @@ export function equalBytes(b1: Uint8Array, b2: Uint8Array): boolean {
  * Compute the Ethereum address from uncompressed PublicKey bytes
  */
 export function computeAddress(bytes: Uint8Array) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const publicKey = viemBytesToHex(bytes.slice(1)) as Hex;
   const hash = keccak256(publicKey);
   const address = hash.substring(hash.length - 40);

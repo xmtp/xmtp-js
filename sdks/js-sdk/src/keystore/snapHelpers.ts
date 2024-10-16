@@ -69,6 +69,7 @@ export async function snapRequest(
   if (typeof req === "string") {
     params.req = req;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const response = await getEthereum()?.request<SnapResponse>({
     method: "wallet_invokeSnap",
     params: {
@@ -103,6 +104,7 @@ export type GetSnapsResponse = Record<string, Snap>;
 export async function hasMetamaskWithSnaps() {
   const ethereum = getEthereum();
   // Naive way of detecting snaps support
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (ethereum?.isMetaMask) {
     try {
       await ethereum.request({
@@ -114,6 +116,7 @@ export async function hasMetamaskWithSnaps() {
     }
   }
   if (
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     typeof ethereum?.detected !== "undefined" &&
     Array.isArray(ethereum.detected)
   ) {
@@ -124,6 +127,7 @@ export async function hasMetamaskWithSnaps() {
           method: "wallet_getSnaps",
         });
         // enforces MetaMask as provider
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         ethereum?.setProvider?.(provider);
 
         return true;
@@ -134,6 +138,7 @@ export async function hasMetamaskWithSnaps() {
   }
 
   if (
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     typeof ethereum?.providers !== "undefined" &&
     Array.isArray(ethereum.providers)
   ) {
@@ -157,6 +162,7 @@ export async function hasMetamaskWithSnaps() {
 }
 
 export async function getSnaps() {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return await getEthereum()?.request<GetSnapsResponse>({
     method: "wallet_getSnaps",
   });
@@ -187,8 +193,10 @@ export async function getSnap(
 
 export async function connectSnap(
   snapId: string,
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   params: Record<"version" | string, unknown> = {},
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   await getEthereum()?.request({
     method: "wallet_requestSnaps",
     params: {

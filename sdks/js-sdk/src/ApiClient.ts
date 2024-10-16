@@ -117,6 +117,7 @@ const isAbortError = (err?: Error): boolean => {
 };
 
 const isAuthError = (err?: GrpcError | Error): boolean => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   if (err && "code" in err && err.code === ERR_CODE_UNAUTHENTICATED) {
     return true;
   }
@@ -189,6 +190,7 @@ export default class HttpApiClient implements ApiClient {
   ): ReturnType<typeof MessageApi.Query> {
     try {
       return await retry(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         MessageApi.Query,
         [
           req,
@@ -203,6 +205,7 @@ export default class HttpApiClient implements ApiClient {
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       throw GrpcError.fromObject(e);
     }
   }
@@ -212,6 +215,7 @@ export default class HttpApiClient implements ApiClient {
     req: messageApi.BatchQueryRequest,
   ): ReturnType<typeof MessageApi.BatchQuery> {
     return retry(
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       MessageApi.BatchQuery,
       [
         req,
@@ -236,6 +240,7 @@ export default class HttpApiClient implements ApiClient {
     headers.set("Authorization", `Bearer ${authToken}`);
     try {
       return await retry(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         MessageApi.Publish,
         [
           req,
@@ -253,7 +258,9 @@ export default class HttpApiClient implements ApiClient {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       // Try at most 2X. If refreshing the auth token doesn't work the first time, it won't work the second time
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (isNotAuthError(e) || attemptNumber >= 1) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         throw GrpcError.fromObject(e);
       }
       await this.authCache?.refresh();
@@ -270,6 +277,7 @@ export default class HttpApiClient implements ApiClient {
     const abortController = new AbortController();
 
     const doSubscribe = async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         const startTime = new Date().getTime();
         try {
@@ -290,6 +298,7 @@ export default class HttpApiClient implements ApiClient {
           onConnectionLost?.();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           if (isAbortError(err) || abortController.signal.aborted) {
             return;
           }
@@ -303,10 +312,13 @@ export default class HttpApiClient implements ApiClient {
         }
       }
     };
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     doSubscribe();
 
     return {
+      // eslint-disable-next-line @typescript-eslint/require-await
       unsubscribe: async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         abortController?.abort();
       },
     };
@@ -369,6 +381,7 @@ export default class HttpApiClient implements ApiClient {
     const endTimeNs = toNanoString(endTime);
     let cursor: messageApi.Cursor | undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const pagingInfo: messageApi.PagingInfo = {
         limit: pageSize,
@@ -390,6 +403,7 @@ export default class HttpApiClient implements ApiClient {
       }
 
       if (result.pagingInfo?.cursor) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         cursor = result.pagingInfo?.cursor;
       } else {
         return;
@@ -495,6 +509,7 @@ export default class HttpApiClient implements ApiClient {
 
     return this._subscribe(
       params,
+      // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
       (env) => callback(normalizeEnvelope(env)),
       onConnectionLost,
     );

@@ -58,7 +58,7 @@ class MessageBase {
 // Message header carries the sender and recipient keys used to protect message.
 // Message timestamp is set by the sender.
 export class MessageV1 extends MessageBase implements proto.MessageV1 {
-  header: proto.MessageHeaderV1; // eslint-disable-line camelcase
+  header: proto.MessageHeaderV1;
   // wallet address derived from the signature of the message recipient
   senderAddress: string | undefined;
   conversation = undefined;
@@ -96,6 +96,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
 
   // wallet address derived from the signature of the message recipient
   get recipientAddress(): string | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!this.header?.recipient?.identityKey) {
       return undefined;
     }
@@ -125,6 +126,7 @@ export class MessageV1 extends MessageBase implements proto.MessageV1 {
     const message = proto.Message.decode(bytes);
     const [headerBytes] = headerBytesAndCiphertext(message);
     const header = proto.MessageHeaderV1.decode(headerBytes);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!header) {
       throw new Error("missing message header");
     }
@@ -389,6 +391,7 @@ function conversationReferenceToConversation<ContentTypes>(
       nsToDate(reference.createdNs),
     );
   }
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (version === "v2") {
     return new ConversationV2(
       client,
@@ -399,6 +402,7 @@ function conversationReferenceToConversation<ContentTypes>(
       reference.consentProofPayload,
     );
   }
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   throw new Error(`Unknown conversation version ${version}`);
 }
 

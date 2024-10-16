@@ -27,7 +27,7 @@ export class SignedPrivateKey
   implements privateKey.SignedPrivateKey, KeySigner
 {
   createdNs: Long; // time the key was generated, ns since epoch
-  secp256k1: secp256k1; // eslint-disable-line camelcase
+  secp256k1: secp256k1;
   publicKey: SignedPublicKey; // caches corresponding PublicKey
 
   constructor(obj: privateKey.SignedPrivateKey) {
@@ -182,7 +182,7 @@ export class SignedPrivateKey
 // LEGACY: PrivateKey represents a secp256k1 private key.
 export class PrivateKey implements privateKey.PrivateKey {
   timestamp: Long;
-  secp256k1: secp256k1; // eslint-disable-line camelcase
+  secp256k1: secp256k1;
   publicKey: PublicKey; // caches corresponding PublicKey
 
   constructor(obj: privateKey.PrivateKey) {

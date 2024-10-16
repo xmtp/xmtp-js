@@ -100,6 +100,7 @@ export class PrivatePreferencesStore {
       for (let i = 0; i < keys.length; i++) {
         // ignore duplicate actions
         if (!this.actionsMap.has(keys[i])) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.actionsMap.set(keys[i], actionsMap.get(keys[i])!);
           // indicate new value added
           isDirty = true;
@@ -117,6 +118,7 @@ export class PrivatePreferencesStore {
     const sortedActions = new Map(
       [...this.actionsMap.entries()].sort(
         (a, b) =>
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           fromNanoString(a[0])!.getTime() - fromNanoString(b[0])!.getTime(),
       ),
     );

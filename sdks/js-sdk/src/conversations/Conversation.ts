@@ -299,6 +299,7 @@ export class ConversationV1<ContentTypes>
     } else {
       topics = [topic];
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const { payload } = await this.client.encodeContent(content, options);
     const msg = await this.createMessage(
       payload,
@@ -774,6 +775,7 @@ export class ConversationV2<ContentTypes>
     const signed = proto.SignedContent.decode(decrypted);
     if (
       !signed.sender?.identityKey ||
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       !signed.sender?.preKey ||
       !signed.signature
     ) {
@@ -785,6 +787,7 @@ export class ConversationV2<ContentTypes>
     // Verify the signature
     const digest = await sha256(concat(msg.headerBytes, signed.payload));
     if (
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       !new SignedPublicKey(signed.sender?.preKey).verify(
         new Signature(signed.signature),
         digest,
@@ -819,6 +822,7 @@ export class ConversationV2<ContentTypes>
     options?: SendOptions,
   ): Promise<PreparedMessage> {
     const { payload, shouldPush } = await this.client.encodeContent(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       content,
       options,
     );
@@ -902,6 +906,7 @@ async function validatePrekeys(signed: proto.SignedContent) {
   // this is required to chain the prekey-signed message to the identity key
   // and finally to the user's wallet address
   const senderPreKey = signed.sender?.preKey;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!senderPreKey || !senderPreKey.signature || !senderPreKey.keyBytes) {
     throw new Error("missing pre-key or pre-key signature");
   }

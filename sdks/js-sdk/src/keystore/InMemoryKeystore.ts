@@ -239,6 +239,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
       async (req) => {
         const { payload } = req;
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!payload) {
           throw new KeystoreError(
             ErrorCode.ERROR_CODE_INVALID_INPUT,
@@ -269,6 +270,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
       async (req) => {
         const { payload } = req;
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!payload) {
           throw new KeystoreError(
             ErrorCode.ERROR_CODE_INVALID_INPUT,
@@ -415,6 +417,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
       const sortedAddresses = [myAddress, theirAddress].sort();
 
       const msgString =
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         (req.context?.conversationId || "") + sortedAddresses.join();
 
       const msgBytes = new TextEncoder().encode(msgString);
@@ -485,6 +488,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
       Number.isInteger(prekeyIndex)
     ) {
       key = this.v1Keys.preKeys[prekeyIndex];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!key) {
         throw new KeystoreError(
           ErrorCode.ERROR_CODE_NO_MATCHING_PREKEY,
@@ -516,6 +520,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getV1Conversations(): Promise<keystore.GetConversationsResponse> {
     const convos = this.v1Store.topics.map(
       this.topicDataToV1ConversationReference.bind(this),
@@ -524,6 +529,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
     return { conversations: convos };
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getV2Conversations(): Promise<keystore.GetConversationsResponse> {
     const convos = this.v2Store.topics.map((invite) =>
       topicDataToV2ConversationReference(invite as TopicData),
@@ -538,10 +544,12 @@ export default class InMemoryKeystore implements KeystoreInterface {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getPublicKeyBundle(): Promise<PublicKeyBundle> {
     return this.v1Keys.getPublicKeyBundle();
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getPrivateKeyBundle(): Promise<privateKey.PrivateKeyBundleV1> {
     return this.v1Keys;
   }
@@ -576,6 +584,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
     jobType,
     lastRunNs,
   }: keystore.SetRefeshJobRequest): Promise<keystore.SetRefreshJobResponse> {
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const key = await this.buildJobStorageKey(jobType);
     await this.jobStatePersistence.setItem(
       key,
@@ -699,8 +708,10 @@ export default class InMemoryKeystore implements KeystoreInterface {
     // encrypted message
     const messages = responses.reduce((result, response) => {
       return response.result?.encrypted
-        ? result.concat(response.result?.encrypted)
+        ? // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          result.concat(response.result?.encrypted)
         : result;
+      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
     }, [] as Uint8Array[]);
 
     const contentTopic = await this.getPrivatePreferencesTopic();

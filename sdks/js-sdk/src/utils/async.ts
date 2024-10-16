@@ -14,6 +14,7 @@ export const promiseWithTimeout = <T>(
   let timeoutHandle: NodeJS.Timeout;
   const timeoutPromise = new Promise<never>((_resolve, reject) => {
     timeoutHandle = setTimeout(
+      // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
       () => reject(new Error(failureMessage)),
       timeoutMs,
     );
@@ -39,7 +40,9 @@ export async function retry<T extends (...arg0: any[]) => any>(
 ): Promise<Awaited<ReturnType<T>>> {
   const currRetry = typeof retryCount === "number" ? retryCount : 1;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result = await fn(...args);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
   } catch (e) {
     if (!isRetryableFn(e as Error) || currRetry > maxRetries) {

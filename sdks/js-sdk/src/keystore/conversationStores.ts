@@ -150,6 +150,7 @@ export class V1Store extends V2Store {
     return !!(
       topicData.topic &&
       topicData.topic.length &&
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       topicData.peerAddress?.length > 0
     );
   }

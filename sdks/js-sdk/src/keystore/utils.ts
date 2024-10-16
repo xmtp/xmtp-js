@@ -86,6 +86,7 @@ export const validateObject = <T>(
   for (const field of arrayFields) {
     const val = obj[field];
     // @ts-expect-error does not know it's an array
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!val || !val?.length) {
       throw new KeystoreError(
         keystore.ErrorCode.ERROR_CODE_INVALID_INPUT,

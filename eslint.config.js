@@ -88,6 +88,33 @@ export default tseslint.config(
     },
   },
   {
+    files: ["sdks/js-sdk/test/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-confusing-void-expression": "off",
+      "@typescript-eslint/require-await": "off",
+      "@typescript-eslint/await-thenable": "off",
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/only-throw-error": "off",
+      "@typescript-eslint/unbound-method": "off",
+      "@typescript-eslint/no-misused-promises": "off",
+      "@typescript-eslint/no-unnecessary-type-arguments": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      "@typescript-eslint/no-deprecated": "off",
+      "@typescript-eslint/restrict-plus-operands": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "no-empty": "off",
+    },
+  },
+  {
     files: ["sdks/**/*.ts"],
     rules: {
       "no-restricted-syntax": [

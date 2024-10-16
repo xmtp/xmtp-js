@@ -41,6 +41,7 @@ export function ecdsaSignerKey(
     signature.bytes,
     signature.recovery,
   );
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return bytes
     ? new UnsignedPublicKey({
         secp256k1Uncompressed: { bytes },
@@ -51,9 +52,9 @@ export function ecdsaSignerKey(
 
 export default class Signature implements signature.Signature {
   // SECP256k1/SHA256 ECDSA signature
-  ecdsaCompact: ECDSACompactWithRecovery | undefined; // eslint-disable-line camelcase
+  ecdsaCompact: ECDSACompactWithRecovery | undefined;
   // SECP256k1/keccak256 ECDSA signature created with Signer.signMessage (see WalletSigner)
-  walletEcdsaCompact: ECDSACompactWithRecovery | undefined; // eslint-disable-line camelcase
+  walletEcdsaCompact: ECDSACompactWithRecovery | undefined;
 
   constructor(obj: Partial<signature.Signature>) {
     if (obj.ecdsaCompact) {
@@ -99,6 +100,7 @@ export default class Signature implements signature.Signature {
     } else {
       throw new Error("invalid v1 signature");
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     return bytes
       ? new PublicKey({
           secp256k1Uncompressed: { bytes },

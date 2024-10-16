@@ -20,6 +20,7 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
       throw new Error("missing identity key");
     }
     this.identityKey = new SignedPrivateKey(bundle.identityKey);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     this.preKeys = (bundle.preKeys || []).map((k) => new SignedPrivateKey(k));
   }
 
@@ -79,12 +80,14 @@ export class PrivateKeyBundleV2 implements proto.PrivateKeyBundleV2 {
     myPreKey: SignedPublicKey,
     isRecipient: boolean,
   ): Promise<Uint8Array> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!peer.identityKey || !peer.preKey) {
       throw new Error("invalid peer key bundle");
     }
     if (!(await peer.identityKey.verifyKey(peer.preKey))) {
       throw new Error("peer preKey signature invalid");
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!this.identityKey) {
       throw new Error("missing identity key");
     }
@@ -157,6 +160,7 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
       throw new Error("missing identity key");
     }
     this.identityKey = new PrivateKey(bundle.identityKey);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     this.preKeys = (bundle.preKeys || []).map((k) => new PrivateKey(k));
   }
 
@@ -226,12 +230,14 @@ export class PrivateKeyBundleV1 implements proto.PrivateKeyBundleV1 {
     myPreKey: PublicKey,
     isRecipient: boolean,
   ): Promise<Uint8Array> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!peer.identityKey || !peer.preKey) {
       throw new Error("invalid peer key bundle");
     }
     if (!(await peer.identityKey.verifyKey(peer.preKey))) {
       throw new Error("peer preKey signature invalid");
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!this.identityKey) {
       throw new Error("missing identity key");
     }

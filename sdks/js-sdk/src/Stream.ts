@@ -65,6 +65,7 @@ export default class Stream<T, ClientType = any> {
         if (contentTopicUpdater) {
           const topics = contentTopicUpdater(msg);
           if (topics) {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.resubscribeToTopics(topics);
           }
         }
@@ -83,6 +84,7 @@ export default class Stream<T, ClientType = any> {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async start(): Promise<void> {
     if (!this.callback) {
       throw new Error("Missing callback for stream");
@@ -92,8 +94,10 @@ export default class Stream<T, ClientType = any> {
       {
         contentTopics: this.topics,
       },
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       async (env: messageApi.Envelope) => {
         if (!this.callback) return;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         await this?.callback(env);
       },
       this.onConnectionLost,
@@ -136,6 +140,7 @@ export default class Stream<T, ClientType = any> {
     }
     this.callback = undefined;
     this.resolvers.forEach((resolve) =>
+      // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
       resolve({ value: undefined, done: true }),
     );
     return { value: undefined, done: true };
@@ -164,6 +169,7 @@ export default class Stream<T, ClientType = any> {
       throw new Error("Missing callback for stream");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (typeof this.subscriptionManager?.updateContentTopics === "function") {
       return this.subscriptionManager.updateContentTopics(topics);
     }
@@ -174,8 +180,10 @@ export default class Stream<T, ClientType = any> {
       {
         contentTopics: this.topics,
       },
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       async (env: messageApi.Envelope) => {
         if (!this.callback) return;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         await this?.callback(env);
       },
       this.onConnectionLost,

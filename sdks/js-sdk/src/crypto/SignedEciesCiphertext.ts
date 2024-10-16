@@ -37,6 +37,7 @@ export default class SignedEciesCiphertext
   ciphertext: ciphertext.SignedEciesCiphertext_Ecies;
 
   constructor({ eciesBytes, signature }: ciphertext.SignedEciesCiphertext) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!eciesBytes || !eciesBytes.length) {
       throw new Error("eciesBytes is empty");
     }

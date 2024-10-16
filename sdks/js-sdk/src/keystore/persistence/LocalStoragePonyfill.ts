@@ -26,6 +26,7 @@ export default class LocalStoragePonyfill implements Storage {
   }
 
   key(index: number): string | null {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (index === undefined) {
       // This is the TypeError implemented in Chrome, Firefox throws "Storage.key: At least 1
       // argument required, but only 0 passed".

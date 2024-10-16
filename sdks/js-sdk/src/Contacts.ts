@@ -1,6 +1,5 @@
 import { createConsentMessage } from "@xmtp/consent-proof-signature";
 import { messageApi, privatePreferences, type invitation } from "@xmtp/proto";
-// eslint-disable-next-line camelcase
 import type { DecryptResponse_Response } from "@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb";
 import { hashMessage, hexToBytes } from "viem";
 import { ecdsaSignerKey } from "@/crypto/Signature";
@@ -140,7 +139,6 @@ export class ConsentList {
 
     const decryptedMessageEntries = Array.from(messageMap.keys()).map(
       (key, index) =>
-        // eslint-disable-next-line camelcase
         [key, responses[index]] as [string, DecryptResponse_Response],
     );
 
@@ -199,6 +197,7 @@ export class ConsentList {
       await this.client.keystore.getPrivatePreferencesTopic();
 
     return Stream.create<privatePreferences.PrivatePreferencesAction>(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       this.client,
       [contentTopic],
       async (envelope) => {
@@ -236,6 +235,7 @@ export class ConsentList {
     const messageEntries = (
       await this.client.listEnvelopes(
         contentTopic,
+        // eslint-disable-next-line @typescript-eslint/require-await
         async ({ message, timestampNs }: EnvelopeWithMessage) =>
           [timestampNs, message] as [string | undefined, Uint8Array],
         {
@@ -309,6 +309,7 @@ export class ConsentList {
           [valueKey]: [...values, entry.value],
         },
       };
+      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
     }, {} as PrivatePreferencesAction);
 
     // get envelopes to publish (there should only be one)
@@ -319,7 +320,9 @@ export class ConsentList {
     await this.client.publishEnvelopes(envelopes);
 
     // persist newly published private preference to keystore
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.client.keystore.savePrivatePreferences(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       new Map([[envelopes[0].timestamp!.getTime().toString(), action]]),
     );
 
@@ -397,6 +400,7 @@ export class Contacts {
               return result;
             }
           },
+          // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
           [] as string[],
         );
         if (validConsentProofAddresses.length) {

@@ -314,6 +314,7 @@ export default class Conversations<ContentTypes = any> {
         // Temporarily create a convo to decrypt the message
         const convo = new ConversationV1(
           this.client,
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           peerAddress as string,
           msg.sent,
         );
@@ -368,7 +369,8 @@ export default class Conversations<ContentTypes = any> {
           this.client,
           msg.recipientAddress?.toLowerCase() ===
           this.client.address.toLowerCase()
-            ? (msg.senderAddress as string)
+            ? // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+              (msg.senderAddress as string)
             : (msg.recipientAddress as string),
           msg.sent,
         );
@@ -418,6 +420,7 @@ export default class Conversations<ContentTypes = any> {
     gen.return = async () => {
       // Returning the stream will cause the iteration to end inside the generator
       // The generator will then return on its own
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       await str?.return();
       return { value: undefined, done: true };
     };
@@ -432,6 +435,7 @@ export default class Conversations<ContentTypes = any> {
     const messages = await this.client.listEnvelopes(
       topic,
       (env) => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!env.message) {
           throw new Error("empty envelope");
         }
@@ -459,6 +463,7 @@ export default class Conversations<ContentTypes = any> {
               this.client.publicKeyBundle,
             );
             seenPeers.set(peerAddress, message.sent);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (e) {
             continue;
           }
@@ -542,6 +547,7 @@ export default class Conversations<ContentTypes = any> {
         return newItemMatch;
       }
       return this.createV2Convo(
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         contact as SignedPublicKeyBundle,
         context,
         consentProof,
@@ -561,6 +567,7 @@ export default class Conversations<ContentTypes = any> {
       createdNs: dateToNs(timestamp),
       consentProof,
     });
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!payload || !conversation) {
       throw new Error("Required field not returned from Keystore");
     }
