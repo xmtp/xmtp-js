@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
@@ -19,7 +18,6 @@
   "include": [
     "src/**/*",
     "test/**/*",
-    ".eslintrc.cjs",
     "rollup.config.js",
     "vitest.config.ts",
     "vitest.setup.ts"
