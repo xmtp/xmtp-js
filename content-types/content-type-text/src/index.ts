@@ -1,1 +1,1 @@
-export { ContentTypeText, Encoding, TextCodec } from "./Text";
+export * from "./Text";

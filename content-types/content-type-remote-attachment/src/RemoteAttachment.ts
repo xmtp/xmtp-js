@@ -34,7 +34,19 @@ export type RemoteAttachment = {
   filename: string;
 };
 
-export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
+export type RemoteAttachmentParameters = {
+  contentDigest: string;
+  salt: string;
+  nonce: string;
+  secret: string;
+  scheme: string;
+  contentLength: string;
+  filename: string;
+};
+
+export class RemoteAttachmentCodec
+  implements ContentCodec<RemoteAttachment, RemoteAttachmentParameters>
+{
   static async load<T>(
     remoteAttachment: RemoteAttachment,
     codecRegistry: CodecRegistry<T>,
@@ -42,7 +54,7 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
     const response = await fetch(remoteAttachment.url);
     const payload = new Uint8Array(await response.arrayBuffer());
 
-    if (!payload) {
+    if (payload.length === 0) {
       throw new Error(
         `no payload for remote attachment at ${remoteAttachment.url}`,
       );
@@ -71,19 +83,16 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
     );
     const encodedContent = proto.EncodedContent.decode(encodedContentData);
 
-    if (!encodedContent || !encodedContent.type) {
-      throw new Error("no encoded content");
-    }
-
-    const contentType = encodedContent.type;
-    if (!contentType) {
+    if (!encodedContent.type) {
       throw new Error("no content type");
     }
 
-    const codec = codecRegistry.codecFor(new ContentTypeId(contentType));
+    const codec = codecRegistry.codecFor(
+      new ContentTypeId(encodedContent.type),
+    );
 
     if (!codec) {
-      throw new Error(`no codec found for ${encodedContent.type?.typeId}`);
+      throw new Error(`no codec found for ${encodedContent.type.typeId}`);
     }
 
     return codec.decode(encodedContent as EncodedContent, codecRegistry);
@@ -128,7 +137,7 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
     return ContentTypeRemoteAttachment;
   }
 
-  encode(content: RemoteAttachment): EncodedContent {
+  encode(content: RemoteAttachment) {
     if (!content.url.startsWith("https")) {
       throw new Error("scheme must be https");
     }
@@ -148,7 +157,9 @@ export class RemoteAttachmentCodec implements ContentCodec<RemoteAttachment> {
     };
   }
 
-  decode(content: EncodedContent): RemoteAttachment {
+  decode(
+    content: EncodedContent<RemoteAttachmentParameters>,
+  ): RemoteAttachment {
     return {
       url: new TextDecoder().decode(content.content),
       contentDigest: content.parameters.contentDigest,

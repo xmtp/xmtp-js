@@ -1,7 +1,6 @@
 import {
   ContentTypeId,
   type ContentCodec,
-  type EncodedContent,
 } from "@xmtp/content-type-primitives";
 
 export const ContentTypeReadReceipt = new ContentTypeId({
@@ -13,12 +12,16 @@ export const ContentTypeReadReceipt = new ContentTypeId({
 
 export type ReadReceipt = Record<string, never>;
 
-export class ReadReceiptCodec implements ContentCodec<ReadReceipt> {
+export type ReadReceiptParameters = Record<string, never>;
+
+export class ReadReceiptCodec
+  implements ContentCodec<ReadReceipt, ReadReceiptParameters>
+{
   get contentType(): ContentTypeId {
     return ContentTypeReadReceipt;
   }
 
-  encode(): EncodedContent {
+  encode() {
     return {
       type: ContentTypeReadReceipt,
       parameters: {},
