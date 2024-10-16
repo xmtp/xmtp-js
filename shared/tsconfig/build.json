@@ -6,11 +6,12 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
+    "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "sourceMap": true,
     "resolveJsonModule": true,
     "noEmit": true,
     "types": ["vitest", "vitest/globals"]
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }
