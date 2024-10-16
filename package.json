@@ -14,7 +14,7 @@
     "clean": "turbo run clean && rimraf .turbo node_modules && yarn cache clean",
     "format": "prettier -w .",
     "format:check": "prettier -c .",
-    "lint": "FORCE_COLOR=1 turbo run lint",
+    "lint": "yarn build && eslint .",
     "publish": "yarn build && changeset publish",
     "test": "FORCE_COLOR=1 turbo run test",
     "test:setup": "./dev/up",
