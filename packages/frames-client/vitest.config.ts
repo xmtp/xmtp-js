@@ -11,6 +11,7 @@ const vitestConfig = defineVitestConfig({
   test: {
     globals: true,
     environment: "happy-dom",
+    testTimeout: 60000,
   },
 });
 

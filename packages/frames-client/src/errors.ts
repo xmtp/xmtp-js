@@ -1,5 +1,3 @@
-/* eslint-disable max-classes-per-file */
-
 export class ApiError extends Error {
   status: number;
 

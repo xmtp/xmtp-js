@@ -61,7 +61,7 @@ describe("signFrameAction", () => {
 
     if (
       !signedPayloadProto.signature ||
-      !signedPayloadProto?.signedPublicKeyBundle?.identityKey
+      !signedPayloadProto.signedPublicKeyBundle?.identityKey
     ) {
       throw new Error("Missing signature");
     }
@@ -81,81 +81,73 @@ describe("signFrameAction", () => {
   });
 
   // Will add E2E tests back once we have Frames deployed with the new schema
-  it(
-    "works e2e",
-    async () => {
-      const frameUrl =
-        "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
-      const metadata = await framesClient.proxy.readMetadata(frameUrl);
-      expect(metadata).toBeDefined();
-      expect(metadata.frameInfo).toMatchObject({
-        acceptedClients: {
-          farcaster: "vNext",
+  it("works e2e", async () => {
+    const frameUrl =
+      "https://fc-polls-five.vercel.app/polls/01032f47-e976-42ee-9e3d-3aac1324f4b8";
+    const metadata = await framesClient.proxy.readMetadata(frameUrl);
+    expect(metadata).toBeDefined();
+    expect(metadata.frameInfo).toMatchObject({
+      acceptedClients: {
+        farcaster: "vNext",
+      },
+      buttons: {
+        "1": {
+          label: "Yes",
         },
-        buttons: {
-          "1": {
-            label: "Yes",
-          },
-          "2": {
-            label: "No",
-          },
+        "2": {
+          label: "No",
         },
-        image: {
-          content:
-            "https://fc-polls-five.vercel.app/api/image?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
-        },
-        postUrl:
-          "https://fc-polls-five.vercel.app/api/vote?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
-      });
-      const signedPayload = await framesClient.signFrameAction({
-        frameUrl,
-        buttonIndex: 1,
-        conversationTopic: "foo",
-        participantAccountAddresses: ["amal", "bola"],
-      });
-      const postUrl = metadata.extractedTags["fc:frame:post_url"];
-      const response = await framesClient.proxy.post(postUrl, signedPayload);
-      expect(response).toBeDefined();
-      expect(response.extractedTags["fc:frame"]).toEqual("vNext");
+      },
+      image: {
+        content:
+          "https://fc-polls-five.vercel.app/api/image?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
+      },
+      postUrl:
+        "https://fc-polls-five.vercel.app/api/vote?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
+    });
+    const signedPayload = await framesClient.signFrameAction({
+      frameUrl,
+      buttonIndex: 1,
+      conversationTopic: "foo",
+      participantAccountAddresses: ["amal", "bola"],
+    });
+    const postUrl = metadata.extractedTags["fc:frame:post_url"];
+    const response = await framesClient.proxy.post(postUrl, signedPayload);
+    expect(response).toBeDefined();
+    expect(response.extractedTags["fc:frame"]).toEqual("vNext");
 
-      const imageUrl = response.extractedTags["fc:frame:image"];
-      const mediaUrl = framesClient.proxy.mediaUrl(imageUrl);
+    const imageUrl = response.extractedTags["fc:frame:image"];
+    const mediaUrl = framesClient.proxy.mediaUrl(imageUrl);
 
-      const downloadedMedia = await fetch(mediaUrl);
-      expect(downloadedMedia.ok).toBeTruthy();
-      expect(downloadedMedia.headers.get("content-type")).toEqual("image/png");
-    },
-    // Add a long timeout because Vercel cold starts can be slow
-    { timeout: 20000 },
-  );
-  it(
-    "sends back the button postUrl for a tx frame in frame info",
-    async () => {
-      const frameUrl =
-        "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/";
-      const metadata = await framesClient.proxy.readMetadata(frameUrl);
-      expect(metadata).toBeDefined();
-      expect(metadata.frameInfo).toMatchObject({
-        acceptedClients: {
-          xmtp: "2024-02-09",
-          farcaster: "vNext",
+    const downloadedMedia = await fetch(mediaUrl);
+    expect(downloadedMedia.ok).toBeTruthy();
+    expect(downloadedMedia.headers.get("content-type")).toEqual("image/png");
+  });
+
+  it("sends back the button postUrl for a tx frame in frame info", async () => {
+    const frameUrl =
+      "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/";
+    const metadata = await framesClient.proxy.readMetadata(frameUrl);
+    expect(metadata).toBeDefined();
+    expect(metadata.frameInfo).toMatchObject({
+      acceptedClients: {
+        xmtp: "2024-02-09",
+        farcaster: "vNext",
+      },
+      buttons: {
+        "1": {
+          label: "Make transaction",
+          action: "tx",
+          target:
+            "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/api/transaction",
+          postUrl:
+            "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/api/transaction-success",
         },
-        buttons: {
-          "1": {
-            label: "Make transaction",
-            action: "tx",
-            target:
-              "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/api/transaction",
-            postUrl:
-              "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/api/transaction-success",
-          },
-        },
-        image: {
-          content:
-            "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/api/og?transaction=null",
-        },
-      });
-    },
-    { timeout: 20000 },
-  );
+      },
+      image: {
+        content:
+          "https://tx-boilerplate-frame-git-main-xmtp-labs.vercel.app/api/og?transaction=null",
+      },
+    });
+  });
 });

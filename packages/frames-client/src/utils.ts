@@ -8,7 +8,7 @@ const { b64Encode } = fetcher;
 
 export function concatArrays(...arrays: Uint8Array[]): Uint8Array {
   return new Uint8Array(
-    arrays.reduce((acc, arr) => acc.concat(Array.from(arr)), [] as number[]),
+    arrays.reduce<number[]>((acc, arr) => acc.concat(Array.from(arr)), []),
   );
 }
 
