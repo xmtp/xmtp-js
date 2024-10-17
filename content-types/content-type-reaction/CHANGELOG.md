@@ -1,5 +1,15 @@
 # @xmtp/content-type-reaction
 
+## 1.1.10
+
+### Patch Changes
+
+- 9addb1c:
+  - Updated `ReactionCodec` type to include parameters type
+  - Added and exported `LegacyReactionParameters` type
+- Updated dependencies [9addb1c]
+  - @xmtp/content-type-primitives@1.0.2
+
 ## 1.1.9
 
 ### Patch Changes

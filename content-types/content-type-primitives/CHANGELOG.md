@@ -1,5 +1,11 @@
 # @xmtp/content-type-primitives
 
+## 1.0.2
+
+### Patch Changes
+
+- 9addb1c: Added new parameter to `ContentCodec` generic type to allow typing of content parameters
+
 ## 1.0.1
 
 ### Patch Changes
