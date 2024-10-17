@@ -30,6 +30,17 @@
     "@xmtp/content-type-reply#test": {
       "dependsOn": ["@xmtp/content-type-remote-attachment#build"],
       "outputs": []
+    },
+    "@xmtp/content-type-remote-attachment#test": {
+      "dependsOn": ["@xmtp/consent-proof-signature#build"],
+      "outputs": []
+    },
+    "@xmtp/frames-client#test": {
+      "dependsOn": [
+        "@xmtp/consent-proof-signature#build",
+        "@xmtp/content-type-text#build"
+      ],
+      "outputs": []
     }
   }
 }
