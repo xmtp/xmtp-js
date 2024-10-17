@@ -1,4 +1,4 @@
-name: Lint
+name: ESLint
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
   pull_request:
 
 jobs:
-  eslint:
-    name: ESLint
+  lint:
+    name: Lint
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
       - uses: actions/checkout@v4
