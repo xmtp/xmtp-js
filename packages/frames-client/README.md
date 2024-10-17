@@ -1,6 +1,6 @@
 # Frames Client
 
-This repo is used by messaging apps to render Open Frames.
+This package is used by messaging apps to render Open Frames.
 
 ## Usage
 

@@ -21,4 +21,4 @@ const signature = await walletClient.signMessage({
 const consentProofBytes = createConsentProofPayload(signature, timestamp);
 ```
 
-Now the consentProofBytes can be encoded and sent to a service to decode and add in a new conversation invitation
+Now the `consentProofBytes` can be encoded and sent to a service to decode and add in a new conversation invitation
