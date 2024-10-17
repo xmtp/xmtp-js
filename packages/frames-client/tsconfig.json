@@ -1,0 +1,5 @@
+{
+  "extends": "tsconfig/react-sdk.json",
+  "include": ["src", "rollup.config.js", "vitest.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}
