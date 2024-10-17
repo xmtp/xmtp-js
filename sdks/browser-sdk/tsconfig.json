@@ -1,0 +1,9 @@
+{
+  "extends": "tsconfig/react-sdk.json",
+  "include": ["src", "vite.config.ts", "rollup.config.js"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
