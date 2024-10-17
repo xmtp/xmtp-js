@@ -34,6 +34,7 @@ export const getResultOrThrow = <
     throw new Error("Missing ciphertext");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if ("decrypted" in response.result && !response.result.decrypted) {
     throw new Error("Missing decrypted result");
   }

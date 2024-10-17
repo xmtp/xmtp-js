@@ -294,7 +294,6 @@ describe.sequential("Conversation streams", () => {
     await conversation.send("hi bob");
 
     let numConversations = 0;
-    // eslint-disable-next-line no-unreachable-loop
     for await (const conversation of stream) {
       numConversations++;
       expect(conversation.peerAddress).toBe(bob.address);

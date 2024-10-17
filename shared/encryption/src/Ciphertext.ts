@@ -9,7 +9,7 @@ export const AESGCMTagLength = 16; // property tagLength
 // Ciphertext packages the encrypted ciphertext with the salt and nonce used to produce it.
 // salt and nonce are not secret, and should be transmitted/stored along with the encrypted ciphertext.
 export default class Ciphertext implements ciphertext.Ciphertext {
-  aes256GcmHkdfSha256: ciphertext.Ciphertext_Aes256gcmHkdfsha256 | undefined; // eslint-disable-line camelcase
+  aes256GcmHkdfSha256: ciphertext.Ciphertext_Aes256gcmHkdfsha256 | undefined;
 
   constructor(obj: ciphertext.Ciphertext) {
     if (!obj.aes256GcmHkdfSha256) {

@@ -56,10 +56,12 @@ export class DecodedMessage {
       // no default
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.contentType = new ContentTypeId(message.content.type!);
     this.parameters = message.content.parameters;
     this.fallback = message.content.fallback;
     this.compression = message.content.compression;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.content = this.#client.decodeContent(message, this.contentType);
   }
 }

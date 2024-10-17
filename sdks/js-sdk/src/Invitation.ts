@@ -17,7 +17,7 @@ export type InvitationContext = {
 export class InvitationV1 implements invitation.InvitationV1 {
   topic: string;
   context: InvitationContext | undefined;
-  aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256; // eslint-disable-line camelcase
+  aes256GcmHkdfSha256: invitation.InvitationV1_Aes256gcmHkdfsha256;
   consentProof: invitation.ConsentProofPayload | undefined;
 
   constructor({
@@ -31,6 +31,7 @@ export class InvitationV1 implements invitation.InvitationV1 {
     }
     if (
       !aes256GcmHkdfSha256 ||
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       !aes256GcmHkdfSha256.keyMaterial ||
       !aes256GcmHkdfSha256.keyMaterial.length
     ) {
@@ -117,6 +118,7 @@ export class SealedInvitationV1 implements invitation.SealedInvitationV1 {
   private _invitation?: InvitationV1;
 
   constructor({ headerBytes, ciphertext }: invitation.SealedInvitationV1) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!headerBytes || !headerBytes.length) {
       throw new Error("Missing header bytes");
     }
@@ -204,6 +206,7 @@ export class SealedInvitation implements invitation.SealedInvitation {
     return new SealedInvitation(invitation.SealedInvitation.decode(bytes));
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   static async fromEnvelope(
     env: messageApi.Envelope,
   ): Promise<SealedInvitation> {

@@ -100,6 +100,7 @@ export default class NetworkKeyManager {
       signature: sig as Hex,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-misused-promises
     if (!valid) {
       throw new Error("invalid signature");
     }
@@ -121,6 +122,7 @@ export default class NetworkKeyManager {
   ): Promise<[PrivateKeyBundleV1, boolean]> {
     const [eBundle, needsUpdate] = getEncryptedBundle(bytes);
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!eBundle.walletPreKey) {
       throw new Error("missing wallet pre-key");
     }
@@ -148,6 +150,7 @@ export default class NetworkKeyManager {
       const decrypted = await decrypt(ciphertext, secret);
       const [bundle, needsUpdate2] = getPrivateBundle(decrypted);
       return [bundle, needsUpdate || needsUpdate2];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       // Assert that the secret is length 65 (encoded signature + recovery byte)
       if (secret.length !== 65) {
@@ -183,6 +186,7 @@ function getEncryptedBundle(
     if (b.v1) {
       return [b.v1, false];
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return [proto.EncryptedPrivateKeyBundleV1.decode(bytes), true];
   }
@@ -199,6 +203,7 @@ function getPrivateBundle(bytes: Uint8Array): [PrivateKeyBundleV1, boolean] {
       throw new Error("V2 bundles not supported yet");
     }
     return [b, false];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     // Adds a default fallback for older versions of the proto
     const b = proto.PrivateKeyBundleV1.decode(bytes);

@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["dom"],
@@ -19,11 +18,9 @@
     "types": ["vitest/globals"]
   },
   "include": [
-    "src/**/*",
-    "bench/**/*",
-    "test/**/*",
-    ".eslintrc.cjs",
-    "commitlint.config.cjs",
+    "src",
+    "bench",
+    "test",
     "rollup.config.bench.js",
     "rollup.config.js",
     "vitest.config.ts"

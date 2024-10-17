@@ -51,6 +51,7 @@ export function readStreamFromBytes(
   return new ReadableStream({
     pull(controller) {
       if (position >= bytes.length) {
+        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
         return controller.close();
       }
       let end = position + chunkSize;

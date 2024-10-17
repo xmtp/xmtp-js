@@ -13,14 +13,19 @@ export const ContentTypeText = new ContentTypeId({
 
 export enum Encoding {
   utf8 = "UTF-8",
+  unknown = "unknown",
 }
 
-export class TextCodec implements ContentCodec<string> {
+export type TextParameters = {
+  encoding: Encoding;
+};
+
+export class TextCodec implements ContentCodec<string, TextParameters> {
   get contentType(): ContentTypeId {
     return ContentTypeText;
   }
 
-  encode(content: string): EncodedContent {
+  encode(content: string) {
     return {
       type: ContentTypeText,
       parameters: { encoding: Encoding.utf8 },
@@ -28,10 +33,9 @@ export class TextCodec implements ContentCodec<string> {
     };
   }
 
-  decode(content: EncodedContent) {
-    const { encoding } = content.parameters;
-    if ((encoding as Encoding) !== Encoding.utf8) {
-      throw new Error(`unrecognized encoding ${encoding}`);
+  decode(content: EncodedContent<TextParameters>) {
+    if (content.parameters.encoding !== Encoding.utf8) {
+      throw new Error(`unrecognized encoding ${content.parameters.encoding}`);
     }
     return new TextDecoder().decode(content.content);
   }

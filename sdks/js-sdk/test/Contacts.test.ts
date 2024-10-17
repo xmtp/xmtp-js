@@ -186,7 +186,6 @@ describe("Contacts", () => {
     await aliceClient.conversations.newConversation(bob.address);
 
     let numActions = 0;
-    // eslint-disable-next-line no-unreachable-loop
     for await (const action of aliceStream) {
       numActions++;
       expect(action.allowGroup).toBeUndefined();

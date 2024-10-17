@@ -36,19 +36,22 @@ export type Reaction = {
   schema: "unicode" | "shortcode" | "custom";
 };
 
-type LegacyReactionParameters = Pick<
+export type LegacyReactionParameters = Pick<
   Reaction,
   "action" | "reference" | "schema"
 > & {
   encoding: "UTF-8";
 };
 
-export class ReactionCodec implements ContentCodec<Reaction> {
+export class ReactionCodec
+  implements
+    ContentCodec<Reaction, LegacyReactionParameters | Record<string, never>>
+{
   get contentType(): ContentTypeId {
     return ContentTypeReaction;
   }
 
-  encode(reaction: Reaction): EncodedContent {
+  encode(reaction: Reaction) {
     const { action, reference, referenceInboxId, schema, content } = reaction;
     return {
       type: this.contentType,
@@ -65,7 +68,7 @@ export class ReactionCodec implements ContentCodec<Reaction> {
     };
   }
 
-  decode(encodedContent: EncodedContent): Reaction {
+  decode(encodedContent: EncodedContent<LegacyReactionParameters>): Reaction {
     const decodedContent = new TextDecoder().decode(encodedContent.content);
 
     // First try to decode it in the canonical form.
@@ -73,12 +76,12 @@ export class ReactionCodec implements ContentCodec<Reaction> {
       const reaction = JSON.parse(decodedContent) as Reaction;
       const { action, reference, referenceInboxId, schema, content } = reaction;
       return { action, reference, referenceInboxId, schema, content };
-    } catch (e) {
+    } catch {
       // ignore, fall through to legacy decoding
     }
 
     // If that fails, try to decode it in the legacy form.
-    const parameters = encodedContent.parameters as LegacyReactionParameters;
+    const parameters = encodedContent.parameters;
     return {
       action: parameters.action,
       reference: parameters.reference,

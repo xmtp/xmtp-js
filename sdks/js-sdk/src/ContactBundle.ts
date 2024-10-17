@@ -11,6 +11,7 @@ export function decodeContactBundle(
   let cb: contact.ContactBundle;
   try {
     cb = contact.ContactBundle.decode(bytes);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     const pb = publicKey.PublicKeyBundle.decode(bytes);
     cb = { v1: { keyBundle: new PublicKeyBundle(pb) }, v2: undefined };

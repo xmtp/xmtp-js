@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["dom"],
@@ -16,11 +15,5 @@
     "target": "es2021",
     "types": ["vitest/globals"]
   },
-  "include": [
-    "src/**/*",
-    "test/**/*",
-    ".eslintrc.cjs",
-    "rollup.config.js",
-    "vitest.config.ts"
-  ]
+  "include": ["src/**/*", "test/**/*", "rollup.config.js", "vitest.config.ts"]
 }

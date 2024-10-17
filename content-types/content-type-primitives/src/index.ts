@@ -45,12 +45,21 @@ export type EncodedContent<Parameters = Record<string, string>> = {
   content: Uint8Array;
 };
 
-export type ContentCodec<T = any> = {
+export type ContentCodec<
+  ContentType = any,
+  Parameters = Record<string, string>,
+> = {
   contentType: ContentTypeId;
-  encode(content: T, registry: CodecRegistry<T>): EncodedContent;
-  decode(content: EncodedContent, registry: CodecRegistry<T>): T;
-  fallback(content: T): string | undefined;
-  shouldPush: (content: T) => boolean;
+  encode(
+    content: ContentType,
+    registry: CodecRegistry<ContentType>,
+  ): EncodedContent<Parameters>;
+  decode(
+    content: EncodedContent<Parameters>,
+    registry: CodecRegistry<ContentType>,
+  ): ContentType;
+  fallback(content: ContentType): string | undefined;
+  shouldPush: (content: ContentType) => boolean;
 };
 
 /**

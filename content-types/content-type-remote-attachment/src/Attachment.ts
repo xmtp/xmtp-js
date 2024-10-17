@@ -17,12 +17,19 @@ export type Attachment = {
   data: Uint8Array;
 };
 
-export class AttachmentCodec implements ContentCodec<Attachment> {
+export type AttachmentParameters = {
+  filename: string;
+  mimeType: string;
+};
+
+export class AttachmentCodec
+  implements ContentCodec<Attachment, AttachmentParameters>
+{
   get contentType(): ContentTypeId {
     return ContentTypeAttachment;
   }
 
-  encode(content: Attachment): EncodedContent {
+  encode(content: Attachment) {
     return {
       type: ContentTypeAttachment,
       parameters: {
@@ -33,7 +40,7 @@ export class AttachmentCodec implements ContentCodec<Attachment> {
     };
   }
 
-  decode(content: EncodedContent): Attachment {
+  decode(content: EncodedContent<AttachmentParameters>): Attachment {
     return {
       filename: content.parameters.filename,
       mimeType: content.parameters.mimeType,

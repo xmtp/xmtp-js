@@ -25,11 +25,13 @@ export function convertWalletClientToSigner(
   walletClient: WalletClient,
 ): Signer {
   const { account } = walletClient;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!account || !account.address) {
     throw new Error("WalletClient is not configured");
   }
 
   return {
+    // eslint-disable-next-line @typescript-eslint/require-await
     getAddress: async () => account.address,
     signMessage: async (message: string | Uint8Array) =>
       walletClient.signMessage({

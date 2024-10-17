@@ -134,7 +134,6 @@ export function wrapAsLedgerWallet(ethersWallet: Wallet): Signer {
 // A helper to replace a full Client in testing custom content types,
 // extracting just the codec registry aspect of the client.
 export class CodecRegistry {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _codecs: Map<string, ContentCodec<any>>;
 
   constructor() {
@@ -142,14 +141,12 @@ export class CodecRegistry {
     this.registerCodec(new TextCodec());
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerCodec(codec: ContentCodec<any>): void {
     const id = codec.contentType;
     const key = `${id.authorityId}/${id.typeId}`;
     this._codecs.set(key, codec);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
     const key = `${contentType.authorityId}/${contentType.typeId}`;
     return this._codecs.get(key);

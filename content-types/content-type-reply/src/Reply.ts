@@ -34,12 +34,18 @@ export type Reply = {
   contentType: ContentTypeId;
 };
 
-export class ReplyCodec implements ContentCodec<Reply> {
+export type ReplyParameters = {
+  contentType: string;
+  reference: string;
+  referenceInboxId?: string;
+};
+
+export class ReplyCodec implements ContentCodec<Reply, ReplyParameters> {
   get contentType(): ContentTypeId {
     return ContentTypeReply;
   }
 
-  encode(content: Reply, registry: CodecRegistry): EncodedContent {
+  encode(content: Reply, registry: CodecRegistry) {
     const codec = registry.codecFor(content.contentType);
     if (!codec) {
       throw new Error(
@@ -50,7 +56,7 @@ export class ReplyCodec implements ContentCodec<Reply> {
     const encodedContent = codec.encode(content.content, registry);
     const bytes = proto.EncodedContent.encode(encodedContent).finish();
 
-    const parameters: Record<string, string> = {
+    const parameters: ReplyParameters = {
       // TODO: cut when we're certain no one is looking for "contentType" here.
       contentType: content.contentType.toString(),
       reference: content.reference,
@@ -68,7 +74,10 @@ export class ReplyCodec implements ContentCodec<Reply> {
     };
   }
 
-  decode(content: EncodedContent, registry: CodecRegistry): Reply {
+  decode(
+    content: EncodedContent<ReplyParameters>,
+    registry: CodecRegistry,
+  ): Reply {
     const decodedContent = proto.EncodedContent.decode(content.content);
     if (!decodedContent.type) {
       throw new Error("missing content type");

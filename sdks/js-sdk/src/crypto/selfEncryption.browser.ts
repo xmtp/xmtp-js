@@ -3,11 +3,8 @@
  ***********************************************************************************************/
 
 import init, {
-  // eslint-disable-next-line camelcase
   generate_private_preferences_topic,
-  // eslint-disable-next-line camelcase
   user_preferences_decrypt,
-  // eslint-disable-next-line camelcase
   user_preferences_encrypt,
 } from "@xmtp/user-preferences-bindings-wasm/web";
 import type { PrivateKey } from "./PrivateKey";
@@ -20,7 +17,7 @@ export async function userPreferencesEncrypt(
   await init();
   const publicKey = identityKey.publicKey.secp256k1Uncompressed.bytes;
   const privateKey = identityKey.secp256k1.bytes;
-  // eslint-disable-next-line camelcase
+
   return user_preferences_encrypt(publicKey, privateKey, payload);
 }
 
@@ -32,7 +29,7 @@ export async function userPreferencesDecrypt(
   await init();
   const publicKey = identityKey.publicKey.secp256k1Uncompressed.bytes;
   const privateKey = identityKey.secp256k1.bytes;
-  // eslint-disable-next-line camelcase
+
   return user_preferences_decrypt(publicKey, privateKey, payload);
 }
 
@@ -40,6 +37,6 @@ export async function generateUserPreferencesTopic(identityKey: PrivateKey) {
   // wait for WASM to be initialized
   await init();
   const privateKey = identityKey.secp256k1.bytes;
-  // eslint-disable-next-line camelcase
+
   return generate_private_preferences_topic(privateKey);
 }

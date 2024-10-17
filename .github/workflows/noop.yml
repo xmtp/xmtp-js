@@ -17,8 +17,6 @@ on:
       - "*"
       - "!.node-version"
       - "!.nvmrc"
-      - "!.prettierignore"
-      - "!.prettierrc.cjs"
       - "!.yarnrc.yml"
       - "!turbo.json"
       - "!yarn.lock"
@@ -29,12 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Nothing to typecheck"
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Nothing to lint"
 
   test:
     name: Test

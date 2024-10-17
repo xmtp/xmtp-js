@@ -1,0 +1,7 @@
+{
+  "extends": ["tsconfig/node.json"],
+  "compilerOptions": {
+    "allowJs": true
+  },
+  "include": [".prettierrc.cjs", "eslint.config.js", "dev/uploadService/*"]
+}

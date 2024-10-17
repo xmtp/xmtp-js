@@ -71,6 +71,7 @@ function getAes(
   op: "encrypt" | "decrypt",
 ): (iv: Buffer, key: Buffer, data: Buffer) => Promise<Buffer> {
   return function (iv: Buffer, key: Uint8Array, data: Uint8Array) {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     return new Promise(function (resolve) {
       const importAlgorithm = { name: "AES-CBC" };
       const keyp = subtle.importKey("raw", key, importAlgorithm, false, [op]);
@@ -211,14 +212,18 @@ export function derive(
 export async function encrypt(
   publicKeyTo: Buffer,
   msg: Buffer,
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
   opts?: { ephemPrivateKey?: Buffer; iv?: Buffer } | undefined,
 ) {
   opts = opts || {};
   // Take IV from opts or generate randomly
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const iv = opts?.iv || randomBytes(16);
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   let ephemPrivateKey = opts?.ephemPrivateKey || randomBytes(32);
   // There is a very unlikely possibility that it is not a valid key
   while (!isValidPrivateKey(ephemPrivateKey)) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (opts?.ephemPrivateKey) {
       throw new Error("ephemPrivateKey is not valid");
     }

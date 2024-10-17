@@ -13,6 +13,7 @@ export default class BrowserStoragePersistence implements Persistence {
     return new BrowserStoragePersistence(localStorage);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getItem(key: string): Promise<Uint8Array | null> {
     const value = this.storage.getItem(key);
     if (value === null) {
@@ -21,6 +22,7 @@ export default class BrowserStoragePersistence implements Persistence {
     return Uint8Array.from(Buffer.from(value, "binary"));
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async setItem(key: string, value: Uint8Array): Promise<void> {
     this.storage.setItem(key, Buffer.from(value).toString("binary"));
   }

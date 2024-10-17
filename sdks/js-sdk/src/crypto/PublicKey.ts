@@ -32,9 +32,10 @@ export class UnsignedPublicKey implements publicKey.UnsignedPublicKey {
   // it can also be ms since epoch; use MS_NS_TIMESTAMP_THRESHOLD to distinguish
   // the two cases.
   createdNs: Long;
-  secp256k1Uncompressed: secp256k1Uncompressed; // eslint-disable-line camelcase
+  secp256k1Uncompressed: secp256k1Uncompressed;
 
   constructor(obj: publicKey.UnsignedPublicKey) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!obj?.secp256k1Uncompressed) {
       throw new Error("invalid public key");
     }
@@ -113,6 +114,7 @@ export class SignedPublicKey
   signature: Signature;
 
   constructor(obj: publicKey.SignedPublicKey) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!obj.keyBytes) {
       throw new Error("missing key bytes");
     }

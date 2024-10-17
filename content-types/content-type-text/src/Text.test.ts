@@ -26,7 +26,9 @@ describe("ContentTypeText", () => {
     const codec = new TextCodec();
     const ec = {
       type: ContentTypeText,
-      parameters: {},
+      parameters: {
+        encoding: Encoding.utf8,
+      },
       content: {} as Uint8Array,
     };
     expect(() => codec.decode(ec)).toThrow();
@@ -36,7 +38,7 @@ describe("ContentTypeText", () => {
     const codec = new TextCodec();
     const ec = {
       type: ContentTypeText,
-      parameters: { encoding: "UTF-16" },
+      parameters: { encoding: "UTF-16" } as unknown as { encoding: Encoding },
       content: new Uint8Array(0),
     };
     expect(() => codec.decode(ec)).toThrow("unrecognized encoding UTF-16");

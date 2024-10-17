@@ -135,7 +135,7 @@ export type ContentOptions = {
   /**
    * Allow configuring codecs for additional content types
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
   codecs: ContentCodec<any>[];
 
   /**
@@ -267,7 +267,7 @@ export default class Client<ContentTypes = any> {
 
   private _backupClient: BackupClient;
   private readonly _conversations: Conversations<ContentTypes>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
   private _codecs: Map<string, ContentCodec<any>>;
   private _maxContentSize: number;
 
@@ -314,7 +314,7 @@ export default class Client<ContentTypes = any> {
    * @param opts specify how to to connect to the network
    */
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
   static async create<ContentCodecs extends ContentCodec<any>[] = []>(
     wallet: Signer | WalletClient | null,
     opts?: Partial<ClientOptions> & { codecs?: ContentCodecs },
@@ -350,6 +350,7 @@ export default class Client<ContentTypes = any> {
    * impersonate a user on the XMTP network and read the user's
    * messages.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   static async getKeys<U>(
     wallet: Signer | WalletClient | null,
     opts?: Partial<ClientOptions> & { codecs?: U },
@@ -390,6 +391,7 @@ export default class Client<ContentTypes = any> {
   }
 
   // gracefully shut down the client
+  // eslint-disable-next-line @typescript-eslint/require-await
   async close(): Promise<void> {
     return undefined;
   }
@@ -530,6 +532,7 @@ export default class Client<ContentTypes = any> {
       // Else do the single address case
       const keyBundle = await this.getUserContact(peerAddress);
       return keyBundle !== undefined;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       // Instead of throwing, a bad address should just return false.
       return false;
@@ -571,6 +574,7 @@ export default class Client<ContentTypes = any> {
     }
     try {
       peerAddress = getAddress(peerAddress); // EIP55 normalize the address case.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       return false;
     }
@@ -584,6 +588,7 @@ export default class Client<ContentTypes = any> {
       throw new Error("Missing content topic");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!bytes || !bytes.length) {
       throw new Error("Cannot publish empty message");
     }
@@ -608,9 +613,10 @@ export default class Client<ContentTypes = any> {
    * Register a codec to be automatically used for encoding/decoding
    * messages of the given Content Type
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
   registerCodec<Codec extends ContentCodec<any>>(
     codec: Codec,
+    // eslint-disable-next-line @typescript-eslint/prefer-return-this-type
   ): Client<ContentTypes | ExtractDecodedType<Codec>> {
     const id = codec.contentType;
     const key = `${id.authorityId}/${id.typeId}`;
@@ -622,7 +628,7 @@ export default class Client<ContentTypes = any> {
    * Find a matching codec for a given `ContentTypeId` from the
    * client's codec registry
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
   codecFor(contentType: ContentTypeId): ContentCodec<any> | undefined {
     const key = `${contentType.authorityId}/${contentType.typeId}`;
     const codec = this._codecs.get(key);
@@ -649,6 +655,7 @@ export default class Client<ContentTypes = any> {
     const contentType = options?.contentType || ContentTypeText;
     const codec = this.codecFor(contentType);
     if (!codec) {
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       throw new Error("unknown content type " + contentType);
     }
     const encoded = codec.encode(content, this);
@@ -691,12 +698,15 @@ export default class Client<ContentTypes = any> {
 
     const codec = this.codecFor(contentType);
     if (codec) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       content = codec.decode(encodedContent as EncodedContent, this);
     } else {
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       error = new Error("unknown content type " + contentType);
     }
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       content,
       contentType,
       error,
@@ -707,6 +717,7 @@ export default class Client<ContentTypes = any> {
   listInvitations(opts?: ListMessagesOptions): Promise<messageApi.Envelope[]> {
     return this.listEnvelopes(
       buildUserInviteTopic(this.address),
+      // eslint-disable-next-line @typescript-eslint/require-await
       async (env) => env,
       opts,
     );
@@ -795,7 +806,9 @@ async function getUserContactFromNetwork(
     const keyBundle = decodeContactBundle(env.message);
     let address: string | undefined;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       address = await keyBundle?.walletSignatureAddress();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       address = undefined;
     }
@@ -828,6 +841,7 @@ async function getUserContactsFromNetwork(
   return Promise.all(
     peerAddresses.map(async (address: string, index: number) => {
       const envelopes = topicToEnvelopes[index];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!envelopes) {
         return undefined;
       }
@@ -835,6 +849,7 @@ async function getUserContactsFromNetwork(
         if (!env.message) continue;
         try {
           const keyBundle = decodeContactBundle(env.message);
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           const signingAddress = await keyBundle?.walletSignatureAddress();
           if (address.toLowerCase() === signingAddress.toLowerCase()) {
             return keyBundle;
