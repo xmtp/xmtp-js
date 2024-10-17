@@ -20,7 +20,7 @@ export default defineConfig([
   {
     input: "src/index.ts",
     output: {
-      file: "lib/index.js",
+      file: "dist/index.js",
       format: "es",
       sourcemap: true,
     },
@@ -30,7 +30,7 @@ export default defineConfig([
   {
     input: "src/index.ts",
     output: {
-      file: "lib/index.cjs",
+      file: "dist/index.cjs",
       format: "cjs",
       sourcemap: true,
     },
@@ -40,7 +40,7 @@ export default defineConfig([
   {
     input: "src/index.ts",
     output: {
-      file: "lib/browser/index.js",
+      file: "dist/browser/index.js",
       format: "es",
       sourcemap: true,
     },
@@ -50,7 +50,7 @@ export default defineConfig([
   {
     input: "src/index.ts",
     output: {
-      file: "lib/index.d.ts",
+      file: "dist/index.d.ts",
       format: "es",
     },
     plugins: [dts()],

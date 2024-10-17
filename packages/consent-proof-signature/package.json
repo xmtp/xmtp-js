@@ -26,26 +26,26 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "require": "./lib/index.cjs",
-      "import": "./lib/index.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
     }
   },
-  "main": "lib/index.cjs",
-  "module": "lib/index.js",
-  "browser": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "browser": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "lib",
+    "dist",
     "src",
     "!src/**/*.test.*",
     "tsconfig.json"
   ],
   "scripts": {
-    "build": "yarn clean:lib && yarn rollup -c",
-    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:lib",
-    "clean:lib": "rm -rf lib",
-    "dev": "yarn clean:lib && yarn rollup -c --watch",
+    "build": "yarn clean:dist && yarn rollup -c",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
+    "clean:dist": "rm -rf dist",
+    "dev": "yarn clean:dist && yarn rollup -c --watch",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc",
     "typedoc": "typedoc"
@@ -79,7 +79,7 @@
     "vite": "^5.3.3",
     "vitest": "^2.0.3"
   },
-  "packageManager": "yarn@4.3.1",
+  "packageManager": "yarn@4.5.0",
   "publishConfig": {
     "access": "public",
     "provenance": true,
