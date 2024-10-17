@@ -4,7 +4,9 @@
 
 ### Patch Changes
 
-- 9addb1c: Update `ContentCodec` generic type
+- 9addb1c:
+  - Updated `ReadReceiptCodec` type to include parameters type
+  - Added and exported `ReadReceiptParameters` type
 - Updated dependencies [9addb1c]
   - @xmtp/content-type-primitives@1.0.2
 

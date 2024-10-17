@@ -4,7 +4,11 @@
 
 ### Patch Changes
 
-- 9addb1c: Update `ContentCodec` generic type
+- 9addb1c:
+  - Updated `AttachmentCodec` type to include parameters type
+  - Added and exported `AttachmentParameters` type
+  - Updated `RemoteAttachmentCodec` type to include parameters type
+  - Added and exported `RemoteAttachmentParameters` type
 - Updated dependencies [9addb1c]
   - @xmtp/content-type-primitives@1.0.2
 
