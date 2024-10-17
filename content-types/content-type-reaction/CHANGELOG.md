@@ -1,5 +1,13 @@
 # @xmtp/content-type-reaction
 
+## 1.1.10
+
+### Patch Changes
+
+- 9addb1c: Update `ContentCodec` generic type
+- Updated dependencies [9addb1c]
+  - @xmtp/content-type-primitives@1.0.2
+
 ## 1.1.9
 
 ### Patch Changes
