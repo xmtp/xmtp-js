@@ -2,10 +2,13 @@
   "name": "@xmtp/frames-validator",
   "version": "0.6.2",
   "description": "A validator for XMTP frames requests",
+  "homepage": "https://github.com/xmtp/xmtp-node-js-tools#readme",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-node-js-tools/issues"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,15 +16,17 @@
       "require": "./dist/index.cjs"
     }
   },
-  "engines": {
-    "node": ">=18"
-  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+  "scripts": {
+    "build": "yarn clean && rollup -c",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "yarn build",
+    "test": "vitest run ./src"
   },
   "dependencies": {
     "@noble/curves": "^1.3.0",
@@ -29,19 +34,6 @@
     "@xmtp/proto": "3.61.1",
     "viem": "^2.16.5"
   },
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build": "yarn clean && rollup -c",
-    "prepublishOnly": "yarn build",
-    "test": "vitest run ./src"
-  },
-  "author": "XMTP Labs <eng@xmtp.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/xmtp/xmtp-node-js-tools/issues"
-  },
-  "homepage": "https://github.com/xmtp/xmtp-node-js-tools#readme",
-  "packageManager": "yarn@4.0.0",
   "devDependencies": {
     "@open-frames/types": "^0.0.7",
     "@rollup/plugin-typescript": "^11.1.6",
@@ -52,5 +44,13 @@
     "rollup-plugin-dts": "^6.1.1",
     "typescript": "^5.4.5",
     "vitest": "^1.0.1"
+  },
+  "packageManager": "yarn@4.0.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

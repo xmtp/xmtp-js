@@ -1,10 +1,10 @@
-import { defineConfig, mergeConfig } from "vite"
-import { defineConfig as defineVitestConfig } from "vitest/config"
+import { defineConfig, mergeConfig } from "vite";
+import { defineConfig as defineVitestConfig } from "vitest/config";
 
 // https://vitejs.dev/config/
 const viteConfig = defineConfig({
   plugins: [],
-})
+});
 
 const vitestConfig = defineVitestConfig({
   test: {
@@ -12,6 +12,6 @@ const vitestConfig = defineVitestConfig({
     environment: "node",
     setupFiles: "./vitest.setup.ts",
   },
-})
+});
 
-export default mergeConfig(viteConfig, vitestConfig)
+export default mergeConfig(viteConfig, vitestConfig);

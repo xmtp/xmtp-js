@@ -1,15 +1,15 @@
-import typescript from "@rollup/plugin-typescript"
-import { defineConfig } from "rollup"
-import { dts } from "rollup-plugin-dts"
+import typescript from "@rollup/plugin-typescript";
+import { defineConfig } from "rollup";
+import { dts } from "rollup-plugin-dts";
 
-const external = ["@xmtp/proto", "node:crypto", "@xmtp/xmtp-js", "long"]
+const external = ["@xmtp/proto", "node:crypto", "@xmtp/xmtp-js", "long"];
 
 const plugins = [
   typescript({
     declaration: false,
     declarationMap: false,
   }),
-]
+];
 
 export default defineConfig([
   {
@@ -40,4 +40,4 @@ export default defineConfig([
     },
     plugins: [dts()],
   },
-])
+]);
