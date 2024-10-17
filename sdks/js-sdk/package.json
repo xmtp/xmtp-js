@@ -110,7 +110,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.0",
+    "@rollup/plugin-typescript": "^12.1.1",
     "@types/benchmark": "^2.1.5",
     "@types/bl": "^5.1.0",
     "@types/callback-to-async-iterator": "^1.1.7",
