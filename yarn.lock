@@ -2530,7 +2530,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/content-type-primitives@npm:^1.0.1, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:^1.0.1, @xmtp/content-type-primitives@npm:^1.0.2, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -2556,7 +2556,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^20.16.11"
-    "@xmtp/content-type-primitives": "npm:^1.0.1"
+    "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -2578,7 +2578,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^20.16.11"
-    "@xmtp/content-type-primitives": "npm:^1.0.1"
+    "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -2602,7 +2602,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^20.16.11"
-    "@xmtp/content-type-primitives": "npm:^1.0.1"
+    "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/encryption": "workspace:*"
     "@xmtp/proto": "npm:^3.61.1"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
@@ -2627,7 +2627,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.0"
     "@types/node": "npm:^20.16.11"
-    "@xmtp/content-type-primitives": "npm:^1.0.1"
+    "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/content-type-remote-attachment": "workspace:*"
     "@xmtp/proto": "npm:^3.61.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
