@@ -1,0 +1,35 @@
+{
+  "name": "@xmtp/client-bindings-wasm",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/bindings_wasm.d.ts",
+      "default": "./dist/bindings_wasm.js"
+    }
+  },
+  "main": "dist/bindings_wasm.js",
+  "types": "dist/bindings_wasm.d.ts",
+  "files": [
+    "./dist/**/*"
+  ],
+  "scripts": {
+    "build:node": "wasm-pack build --target web --no-pack --release --out-dir ./dist",
+    "clean": "rm -rf ./dist",
+    "clean:gitignore": "rm -f ./dist/**/.gitignore",
+    "prepublishOnly": "npm run build",
+    "test": "wasm-pack test --chrome --headless"
+  },
+  "devDependencies": {
+    "wasm-pack": "^0.13.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
+}

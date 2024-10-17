@@ -1,0 +1,18 @@
+import react from "@vitejs/plugin-react";
+import { defineConfig, mergeConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig as defineVitestConfig } from "vitest/config";
+
+// https://vitejs.dev/config/
+const viteConfig = defineConfig({
+  plugins: [tsconfigPaths(), react()],
+});
+
+const vitestConfig = defineVitestConfig({
+  test: {
+    globals: true,
+    environment: "happy-dom",
+  },
+});
+
+export default mergeConfig(viteConfig, vitestConfig);
