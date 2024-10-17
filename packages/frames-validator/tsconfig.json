@@ -1,8 +1,4 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "dist/esm",
-    "composite": false
-  },
-  "includes": ["src/**/*"]
+  "extends": "tsconfig/base.json",
+  "includes": ["src", "rollup.config.js", "vitest.config.ts", "vitest.setup.ts"]
 }
