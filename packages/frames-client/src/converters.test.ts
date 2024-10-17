@@ -1,6 +1,6 @@
-import { Wallet } from "ethers";
-import { it, expect, describe } from "vitest";
 import { PrivateKeyBundleV1, SignedPublicKeyBundle } from "@xmtp/xmtp-js";
+import { Wallet } from "ethers";
+import { describe, expect, it } from "vitest";
 import { v1ToV2Bundle } from "./converters";
 
 describe("converters", () => {

@@ -1,9 +1,9 @@
-import type { OpenFramesUntrustedData } from "@open-frames/types";
 import type {
   GetMetadataResponse,
   PostRedirectResponse,
   TransactionResponse,
 } from "@open-frames/proxy-client";
+import type { OpenFramesUntrustedData } from "@open-frames/types";
 
 export type FramesApiResponse = GetMetadataResponse;
 

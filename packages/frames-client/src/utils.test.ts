@@ -1,5 +1,5 @@
-import { it, expect, describe } from "vitest";
 import { webcrypto } from "crypto";
+import { describe, expect, it } from "vitest";
 import {
   base64Encode,
   buildOpaqueIdentifier,

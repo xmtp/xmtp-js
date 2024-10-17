@@ -1,24 +1,24 @@
-import type { Client } from "@xmtp/xmtp-js";
-import {
-  signature as signatureProto,
-  publicKey as publicKeyProto,
-  frames,
-} from "@xmtp/proto";
 import { sha256 } from "@noble/hashes/sha256";
+import {
+  frames,
+  publicKey as publicKeyProto,
+  signature as signatureProto,
+} from "@xmtp/proto";
+import type { Client } from "@xmtp/xmtp-js";
 import Long from "long";
 import { PROTOCOL_VERSION } from "./constants";
+import { v1ToV2Bundle } from "./converters";
+import OpenFramesProxy from "./proxy";
 import type {
   FrameActionInputs,
   FramePostPayload,
   ReactNativeClient,
 } from "./types";
-import { v1ToV2Bundle } from "./converters";
 import {
   base64Encode,
   buildOpaqueIdentifier,
   isReactNativeClient,
 } from "./utils";
-import OpenFramesProxy from "./proxy";
 
 export class FramesClient {
   xmtpClient: Client | ReactNativeClient;

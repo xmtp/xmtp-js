@@ -11,13 +11,13 @@
     "javascript",
     "typescript"
   ],
-  "homepage": "https://github.com/xmtp/xmtp-web",
+  "homepage": "https://github.com/xmtp/xmtp-js",
   "bugs": {
-    "url": "https://github.com/xmtp/xmtp-web/issues"
+    "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:xmtp/xmtp-web.git",
+    "url": "git@github.com:xmtp/xmtp-js.git",
     "directory": "packages/frames-client"
   },
   "license": "MIT",
@@ -44,10 +44,6 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:lib",
     "clean:lib": "rm -rf lib",
     "dev": "yarn clean:lib && yarn rollup -c --watch",
-    "format": "yarn format:base -w .",
-    "format:base": "prettier --ignore-path ../../.gitignore",
-    "format:check": "yarn format:base -c .",
-    "lint": "eslint . --ignore-path ../../.gitignore",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc",
     "typedoc": "typedoc"
@@ -74,17 +70,13 @@
     "@open-frames/types": "^0.1.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@xmtp/tsconfig": "workspace:*",
     "@xmtp/xmtp-js": "^12.0.0",
-    "eslint": "^8.57.0",
-    "eslint-config-xmtp-web": "workspace:*",
     "ethers": "^6.13.1",
-    "prettier": "^3.3.3",
-    "prettier-plugin-packagejson": "^2.5.0",
     "rollup": "^4.18.1",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
+    "tsconfig": "workspace:*",
     "typedoc": "^0.26.4",
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
@@ -94,7 +86,7 @@
   "peerDependencies": {
     "@xmtp/xmtp-js": ">9.3.1"
   },
-  "packageManager": "yarn@4.3.1",
+  "packageManager": "yarn@4.5.0",
   "publishConfig": {
     "access": "public",
     "provenance": true,

@@ -3,10 +3,11 @@
 ## Usage
 
 ```ts
-const timestamp = Date.now();
-const message = createConsentMessage(broadcastAddress, timestamp);
 // Sign the message for example with Viem
 import { createWalletClient, custom } from "viem";
+
+const timestamp = Date.now();
+const message = createConsentMessage(broadcastAddress, timestamp);
 
 const walletClient = createWalletClient({
   chain: mainnet,

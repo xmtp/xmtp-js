@@ -1,8 +1,8 @@
+import { sha256 } from "@noble/hashes/sha256";
+import { fetcher, frames } from "@xmtp/proto";
 import { Client, Signature, SignedPublicKey } from "@xmtp/xmtp-js";
 import { Wallet } from "ethers";
-import { frames, fetcher } from "@xmtp/proto";
-import { it, expect, describe, beforeEach } from "vitest";
-import { sha256 } from "@noble/hashes/sha256";
+import { beforeEach, describe, expect, it } from "vitest";
 import { FramesClient } from "./client";
 
 const { b64Decode } = fetcher;

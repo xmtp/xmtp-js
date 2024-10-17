@@ -1,5 +1,6 @@
-import Long from "long";
 import { invitation } from "@xmtp/proto";
+import Long from "long";
+
 /**
  *
  * @param peerAddress - Ethereum address of the broadcaster

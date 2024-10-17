@@ -1,8 +1,8 @@
-import { fetcher } from "@xmtp/proto";
 import { sha256 } from "@noble/hashes/sha256";
+import { fetcher } from "@xmtp/proto";
 import type { Client } from "@xmtp/xmtp-js";
-import type { FrameActionInputs, ReactNativeClient } from "./types";
 import { InvalidArgumentsError } from "./errors";
+import type { FrameActionInputs, ReactNativeClient } from "./types";
 
 const { b64Encode } = fetcher;
 
