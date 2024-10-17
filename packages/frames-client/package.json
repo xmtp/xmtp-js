@@ -1,0 +1,103 @@
+{
+  "name": "@xmtp/frames-client",
+  "version": "0.5.4",
+  "keywords": [
+    "xmtp",
+    "messaging",
+    "web3",
+    "sdk",
+    "js",
+    "ts",
+    "javascript",
+    "typescript"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-web",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-web/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xmtp/xmtp-web.git",
+    "directory": "packages/frames-client"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "module": "lib/index.js",
+  "browser": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "src",
+    "!src/**/*.test.*",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "build": "yarn clean:lib && yarn rollup -c",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:lib",
+    "clean:lib": "rm -rf lib",
+    "dev": "yarn clean:lib && yarn rollup -c --watch",
+    "format": "yarn format:base -w .",
+    "format:base": "prettier --ignore-path ../../.gitignore",
+    "format:check": "yarn format:base -c .",
+    "lint": "eslint . --ignore-path ../../.gitignore",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc",
+    "typedoc": "typedoc"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome versions",
+      "last 3 firefox versions",
+      "last 3 safari versions"
+    ]
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.4.0",
+    "@open-frames/proxy-client": "^0.3.3",
+    "@xmtp/proto": "3.62.1",
+    "long": "^5.2.3"
+  },
+  "devDependencies": {
+    "@open-frames/types": "^0.1.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@xmtp/tsconfig": "workspace:*",
+    "@xmtp/xmtp-js": "^12.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-xmtp-web": "workspace:*",
+    "ethers": "^6.13.1",
+    "prettier": "^3.3.3",
+    "prettier-plugin-packagejson": "^2.5.0",
+    "rollup": "^4.18.1",
+    "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-filesize": "^10.0.0",
+    "rollup-plugin-tsconfig-paths": "^1.5.2",
+    "typedoc": "^0.26.4",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^2.0.3"
+  },
+  "peerDependencies": {
+    "@xmtp/xmtp-js": ">9.3.1"
+  },
+  "packageManager": "yarn@4.3.1",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
+}
