@@ -1511,7 +1511,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:1.6.0, @noble/curves@npm:^1.4.0, @noble/curves@npm:~1.6.0":
+"@noble/curves@npm:1.6.0, @noble/curves@npm:^1.3.0, @noble/curves@npm:^1.4.0, @noble/curves@npm:~1.6.0":
   version: 1.6.0
   resolution: "@noble/curves@npm:1.6.0"
   dependencies:
@@ -2286,7 +2286,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.16.11":
+"@types/node@npm:^20.16.12":
   version: 20.16.12
   resolution: "@types/node@npm:20.16.12"
   dependencies:
@@ -2569,7 +2569,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@xmtp/proto": "npm:^3.61.1"
     happy-dom: "npm:^15.7.4"
     rimraf: "npm:^6.0.1"
@@ -2588,7 +2588,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2610,7 +2610,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2633,7 +2633,7 @@ __metadata:
     "@noble/secp256k1": "npm:^1.7.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/proto": "npm:^3.61.1"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
@@ -2657,7 +2657,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/content-type-remote-attachment": "workspace:*"
     "@xmtp/proto": "npm:^3.61.1"
@@ -2681,7 +2681,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2703,7 +2703,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -2719,7 +2719,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/frames-client@workspace:packages/frames-client":
+"@xmtp/frames-client@npm:^0.5.4, @xmtp/frames-client@workspace:packages/frames-client":
   version: 0.0.0-use.local
   resolution: "@xmtp/frames-client@workspace:packages/frames-client"
   dependencies:
@@ -2747,6 +2747,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/frames-validator@workspace:packages/frames-validator":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/frames-validator@workspace:packages/frames-validator"
+  dependencies:
+    "@noble/curves": "npm:^1.3.0"
+    "@noble/hashes": "npm:^1.4.0"
+    "@open-frames/types": "npm:^0.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@xmtp/frames-client": "npm:^0.5.4"
+    "@xmtp/proto": "npm:3.61.1"
+    "@xmtp/xmtp-js": "npm:^12.1.0"
+    ethers: "npm:^6.10.0"
+    rollup: "npm:^4.24.0"
+    rollup-plugin-dts: "npm:^6.1.1"
+    typescript: "npm:^5.6.3"
+    viem: "npm:^2.16.5"
+    vitest: "npm:^2.1.3"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/node-bindings@npm:^0.0.13":
   version: 0.0.13
   resolution: "@xmtp/node-bindings@npm:0.0.13"
@@ -2760,7 +2780,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@vitest/coverage-v8": "npm:^2.1.3"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
@@ -2790,6 +2810,18 @@ __metadata:
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
   checksum: 10/536b846b234bdf49978716b232b6a25985a55bb0c10c825b090354cb43f0b071ee506e5a9765c69deb0e6a4b9aa4cd61abe2c9d2df563cfd6ec121197b591844
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:3.61.1":
+  version: 3.61.1
+  resolution: "@xmtp/proto@npm:3.61.1"
+  dependencies:
+    long: "npm:^5.2.0"
+    protobufjs: "npm:^7.0.0"
+    rxjs: "npm:^7.8.0"
+    undici: "npm:^5.8.1"
+  checksum: 10/c5acae46ad301a50652f30384be55a3389b4c11994652fa5386052c7ff4111fcb15c0e9d267898d6173cbcb6559b24bd7bef7470f020388f8610fecd3b8deea9
   languageName: node
   linkType: hard
 
@@ -2853,7 +2885,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/xmtp-js@npm:^12.0.0":
+"@xmtp/xmtp-js@npm:^12.0.0, @xmtp/xmtp-js@npm:^12.1.0":
   version: 12.1.0
   resolution: "@xmtp/xmtp-js@npm:12.1.0"
   dependencies:
@@ -2884,7 +2916,7 @@ __metadata:
     "@types/bl": "npm:^5.1.0"
     "@types/callback-to-async-iterator": "npm:^1.1.7"
     "@types/elliptic": "npm:^6.4.18"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     "@vitest/coverage-v8": "npm:^2.1.3"
     "@xmtp/consent-proof-signature": "npm:^0.1.3"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
@@ -4198,7 +4230,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers@npm:^6.11.1, ethers@npm:^6.13.1":
+"ethers@npm:^6.10.0, ethers@npm:^6.11.1, ethers@npm:^6.13.1":
   version: 6.13.4
   resolution: "ethers@npm:6.13.4"
   dependencies:
@@ -7804,6 +7836,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"viem@npm:^2.16.5":
+  version: 2.21.29
+  resolution: "viem@npm:2.21.29"
+  dependencies:
+    "@adraffy/ens-normalize": "npm:1.11.0"
+    "@noble/curves": "npm:1.6.0"
+    "@noble/hashes": "npm:1.5.0"
+    "@scure/bip32": "npm:1.5.0"
+    "@scure/bip39": "npm:1.4.0"
+    abitype: "npm:1.0.6"
+    isows: "npm:1.0.6"
+    webauthn-p256: "npm:0.0.10"
+    ws: "npm:8.18.0"
+  peerDependencies:
+    typescript: ">=5.0.4"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/5f50833efe873860ed5bc67e609494447c9b85aef894905889e0292ef7051490ebd6640f8854e89ed76c218887cb8706cd37feb701046c285374f3fcc6a26867
+  languageName: node
+  linkType: hard
+
 "vite-node@npm:2.1.3":
   version: 2.1.3
   resolution: "vite-node@npm:2.1.3"
@@ -8141,7 +8195,7 @@ __metadata:
     "@eslint/js": "npm:^9.12.0"
     "@ianvs/prettier-plugin-sort-imports": "npm:^4.3.1"
     "@types/eslint__js": "npm:^8.42.3"
-    "@types/node": "npm:^20.16.11"
+    "@types/node": "npm:^20.16.12"
     eslint: "npm:^9.12.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-prettier: "npm:^5.2.1"

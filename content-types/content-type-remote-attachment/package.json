@@ -70,7 +70,7 @@
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
-    "@types/node": "^20.16.11",
+    "@types/node": "^20.16.12",
     "@xmtp/rollup-plugin-resolve-extensions": "^1.0.1",
     "@xmtp/xmtp-js": "^11.6.3",
     "buffer": "^6.0.3",

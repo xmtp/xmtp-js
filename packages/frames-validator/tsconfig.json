@@ -1,0 +1,4 @@
+{
+  "extends": "tsconfig/base.json",
+  "includes": ["src", "rollup.config.js", "vitest.config.ts", "vitest.setup.ts"]
+}

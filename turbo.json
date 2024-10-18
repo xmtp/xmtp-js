@@ -41,6 +41,13 @@
         "@xmtp/content-type-text#build"
       ],
       "outputs": []
+    },
+    "@xmtp/frames-validator#test": {
+      "dependsOn": [
+        "@xmtp/content-type-text#build",
+        "@xmtp/frames-client#build"
+      ],
+      "outputs": []
     }
   }
 }
