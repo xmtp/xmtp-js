@@ -82,7 +82,7 @@ export default tseslint.config(
         {
           selector: "ImportDeclaration[source.value=/^(node:)?crypto$/]",
           message:
-            "Do not import directly from `crypto`, use `@xmtp/encryption` instead.",
+            "Do not import directly from `crypto`, use `@/encryption` instead.",
         },
       ],
     },
