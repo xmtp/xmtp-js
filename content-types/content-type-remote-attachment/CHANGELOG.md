@@ -1,5 +1,11 @@
 # @xmtp/content-type-remote-attachment
 
+## 1.1.11
+
+### Patch Changes
+
+- b81dbff: Fixed encryption dependency
+
 ## 1.1.10
 
 ### Patch Changes

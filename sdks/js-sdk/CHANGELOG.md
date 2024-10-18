@@ -1,5 +1,11 @@
 # @xmtp/xmtp-js
 
+## 13.0.2
+
+### Patch Changes
+
+- b81dbff: Fixed encryption dependency
+
 ## 13.0.1
 
 ### Patch Changes
