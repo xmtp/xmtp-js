@@ -80,6 +80,7 @@ export const App = () => {
       const element = document.getElementById(elementId) as HTMLInputElement;
       const message = element.value;
       await conversation.send(message);
+      element.value = "";
     }
   };
 
@@ -92,6 +93,7 @@ export const App = () => {
       const group = await client.conversations.newGroup([]);
       await group.sync();
       await group.updateName(name);
+      element.value = "";
       await handleListGroups();
     }
   };
