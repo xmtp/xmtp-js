@@ -1,5 +1,5 @@
-import { sha256 } from "@xmtp/encryption";
 import { ciphertext } from "@xmtp/proto";
+import { sha256 } from "@/encryption";
 import type { PrivateKey, SignedPrivateKey } from "./PrivateKey";
 import type { PublicKey, SignedPublicKey } from "./PublicKey";
 import Signature from "./Signature";

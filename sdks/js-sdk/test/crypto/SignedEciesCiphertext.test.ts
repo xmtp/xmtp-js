@@ -1,8 +1,8 @@
-import { crypto } from "@xmtp/encryption";
 import { encrypt, getPublic } from "@/crypto/ecies";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import SignedEciesCiphertext from "@/crypto/SignedEciesCiphertext";
 import { equalBytes } from "@/crypto/utils";
+import { crypto } from "@/encryption";
 import { newWallet } from "@test/helpers";
 
 describe("SignedEciesCiphertext", () => {

@@ -1,5 +1,4 @@
 import json from "@rollup/plugin-json";
-import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import { resolveExtensions } from "@xmtp/rollup-plugin-resolve-extensions";
@@ -35,9 +34,6 @@ const plugins = [
   }),
   json({
     preferConst: true,
-  }),
-  nodeResolve({
-    resolveOnly: ["@xmtp/encryption"],
   }),
 ];
 

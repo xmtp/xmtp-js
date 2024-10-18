@@ -1,6 +1,6 @@
 import type { ciphertext } from "@xmtp/proto";
-import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from "@/Ciphertext";
-import crypto from "@/crypto";
+import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from "./Ciphertext";
+import crypto from "./crypto";
 
 const hkdfNoInfo = new Uint8Array().buffer;
 const hkdfNoSalt = new Uint8Array().buffer;

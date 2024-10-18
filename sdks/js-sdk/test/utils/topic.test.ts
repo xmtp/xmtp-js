@@ -1,4 +1,4 @@
-import { crypto } from "@xmtp/encryption";
+import { crypto } from "@/encryption";
 import {
   buildContentTopic,
   buildDirectMessageTopicV2,

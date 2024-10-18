@@ -1,9 +1,9 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
-import { Ciphertext, sha256 } from "@xmtp/encryption";
 import { message as proto, type conversationReference } from "@xmtp/proto";
 import Long from "long";
 import { PublicKey } from "@/crypto/PublicKey";
 import { PublicKeyBundle } from "@/crypto/PublicKeyBundle";
+import { Ciphertext, sha256 } from "@/encryption";
 import type Client from "./Client";
 import {
   ConversationV1,

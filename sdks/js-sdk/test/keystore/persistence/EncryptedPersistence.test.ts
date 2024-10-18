@@ -1,7 +1,7 @@
-import { crypto } from "@xmtp/encryption";
 import type { PrivateKey } from "@/crypto/PrivateKey";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import SignedEciesCiphertext from "@/crypto/SignedEciesCiphertext";
+import { crypto } from "@/encryption";
 import EncryptedPersistence from "@/keystore/persistence/EncryptedPersistence";
 import InMemoryPersistence from "@/keystore/persistence/InMemoryPersistence";
 

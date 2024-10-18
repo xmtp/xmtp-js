@@ -1,5 +1,5 @@
-import { crypto } from "@xmtp/encryption";
 import type { PrivatePreferencesAction } from "@xmtp/proto/ts/dist/types/message_contents/private_preferences.pb";
+import { crypto } from "@/encryption";
 import InMemoryPersistence from "@/keystore/persistence/InMemoryPersistence";
 import { PrivatePreferencesStore } from "@/keystore/privatePreferencesStore";
 

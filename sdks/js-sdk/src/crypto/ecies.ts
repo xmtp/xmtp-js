@@ -3,8 +3,8 @@
  * `elliptic` is a CommonJS module and has issues with named imports
  * DO NOT CHANGE THIS TO A NAMED IMPORT
  */
-import { crypto } from "@xmtp/encryption";
 import elliptic from "elliptic";
+import { crypto } from "@/encryption";
 
 const EC = elliptic.ec;
 const ec = new EC("secp256k1");

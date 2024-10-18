@@ -1,9 +1,3 @@
-import {
-  generateHmacSignature,
-  hkdfHmacKey,
-  importHmacKey,
-  verifyHmacSignature,
-} from "@xmtp/encryption";
 import { keystore, privateKey } from "@xmtp/proto";
 import type { CreateInviteResponse } from "@xmtp/proto/ts/dist/types/keystore_api/v1/keystore.pb";
 import Long from "long";
@@ -16,6 +10,12 @@ import {
 } from "@/crypto/PrivateKeyBundle";
 import { SignedPublicKeyBundle } from "@/crypto/PublicKeyBundle";
 import { equalBytes } from "@/crypto/utils";
+import {
+  generateHmacSignature,
+  hkdfHmacKey,
+  importHmacKey,
+  verifyHmacSignature,
+} from "@/encryption";
 import {
   InvitationV1,
   SealedInvitation,

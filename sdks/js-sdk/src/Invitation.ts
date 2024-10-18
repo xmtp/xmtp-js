@@ -1,6 +1,6 @@
-import { Ciphertext, crypto, decrypt, encrypt } from "@xmtp/encryption";
 import { invitation, type messageApi } from "@xmtp/proto";
 import Long from "long";
+import { Ciphertext, crypto, decrypt, encrypt } from "@/encryption";
 import { dateToNs } from "@/utils/date";
 import { buildDirectMessageTopicV2 } from "@/utils/topic";
 import type { PrivateKeyBundleV2 } from "./crypto/PrivateKeyBundle";

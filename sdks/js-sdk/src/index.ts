@@ -6,7 +6,7 @@ export {
   PrivateKeyBundleV1,
   PrivateKeyBundleV2,
 } from "./crypto/PrivateKeyBundle";
-export { Ciphertext } from "@xmtp/encryption";
+export { Ciphertext } from "./encryption";
 export { PublicKey, SignedPublicKey } from "./crypto/PublicKey";
 export {
   PublicKeyBundle,
@@ -21,7 +21,7 @@ export {
   hkdfHmacKey,
   importHmacKey,
   verifyHmacSignature,
-} from "@xmtp/encryption";
+} from "./encryption";
 export { default as Stream } from "./Stream";
 export type { Signer } from "./types/Signer";
 export type {
