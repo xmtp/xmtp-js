@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- b81dbff: Fix encryption dependency
+- b81dbff: Fixed encryption dependency
 
 ## 13.0.1
 
