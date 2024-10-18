@@ -2,7 +2,13 @@ import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
 
-const external = ["@xmtp/proto", "node:crypto", "@xmtp/xmtp-js", "long"];
+const external = [
+  "@noble/curves/abstract/utils",
+  "@noble/curves/secp256k1",
+  "@noble/hashes/sha256",
+  "@xmtp/proto",
+  "viem/utils",
+];
 
 const plugins = [
   typescript({

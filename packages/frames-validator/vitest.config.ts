@@ -10,7 +10,6 @@ const vitestConfig = defineVitestConfig({
   test: {
     globals: true,
     environment: "node",
-    setupFiles: "./vitest.setup.ts",
   },
 });
 

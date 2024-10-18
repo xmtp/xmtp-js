@@ -23,10 +23,11 @@
     "dist"
   ],
   "scripts": {
-    "build": "yarn clean && rollup -c",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "yarn build",
-    "test": "vitest run ./src"
+    "build": "yarn clean:dist && yarn rollup -c",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
+    "clean:dist": "rm -rf dist",
+    "test": "vitest run",
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@noble/curves": "^1.3.0",
@@ -38,7 +39,7 @@
     "@open-frames/types": "^0.1.1",
     "@rollup/plugin-typescript": "^12.1.1",
     "@xmtp/frames-client": "^0.5.4",
-    "@xmtp/xmtp-js": "^11.3.12",
+    "@xmtp/xmtp-js": "^12.1.0",
     "ethers": "^6.10.0",
     "rollup": "^4.24.0",
     "rollup-plugin-dts": "^6.1.1",
@@ -47,7 +48,7 @@
   },
   "packageManager": "yarn@4.5.0",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public",
