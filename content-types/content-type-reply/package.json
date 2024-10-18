@@ -71,7 +71,7 @@
     "@rollup/plugin-typescript": "^12.1.1",
     "@types/node": "^20.16.11",
     "@xmtp/content-type-remote-attachment": "workspace:*",
-    "@xmtp/xmtp-js": "^11.6.3",
+    "@xmtp/xmtp-js": "^13.0.2",
     "buffer": "^6.0.3",
     "ethers": "^6.11.1",
     "happy-dom": "^15.7.4",
