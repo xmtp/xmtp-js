@@ -29,6 +29,7 @@ describe("validations", () => {
     client = await Client.create(wallet);
     framesClient = new FramesClient(client);
   });
+
   it("succeeds in the happy path", async () => {
     const postData = await framesClient.signFrameAction({
       buttonIndex: BUTTON_INDEX,
@@ -36,7 +37,7 @@ describe("validations", () => {
       conversationTopic: CONVERSATION_TOPIC,
       participantAccountAddresses: PARTICIPANT_ACCOUNT_ADDRESSES,
     });
-    const validated = await validateFramesPost(postData);
+    const validated = validateFramesPost(postData);
     expect(validated.verifiedWalletAddress).toEqual(client.address);
   });
 
@@ -52,12 +53,12 @@ describe("validations", () => {
       b64Decode(postData.trustedData.messageBytes),
     );
 
-    if (!deserialized.signature?.ecdsaCompact?.bytes) {
+    if (!deserialized.signature.ecdsaCompact?.bytes) {
       throw new Error("Signature bytes are empty");
     }
 
     deserialized.signature.ecdsaCompact.bytes = scrambleBytes(
-      deserialized.signature.ecdsaCompact?.bytes,
+      deserialized.signature.ecdsaCompact.bytes,
     );
     const reserialized = frames.FrameAction.encode({
       signature: deserialized.signature,
@@ -71,7 +72,7 @@ describe("validations", () => {
       reserialized.length,
     );
 
-    expect(validateFramesPost(postData)).rejects.toThrow();
+    expect(() => validateFramesPost(postData)).toThrow();
   });
 
   it("fails if the wallet address doesn't match", async () => {
@@ -85,10 +86,6 @@ describe("validations", () => {
     const deserialized = deserializeProtoMessage(
       b64Decode(postData.trustedData.messageBytes),
     );
-
-    if (!deserialized.signedPublicKeyBundle) {
-      throw new Error("Public key bunlde is empty");
-    }
 
     const throwAwayWallet = Wallet.createRandom();
     const wrongPublicKeyBundle = (
@@ -107,6 +104,6 @@ describe("validations", () => {
       reserialized.length,
     );
 
-    expect(validateFramesPost(postData)).rejects.toThrow();
+    expect(() => validateFramesPost(postData)).toThrow();
   });
 });

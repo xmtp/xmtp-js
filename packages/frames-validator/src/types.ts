@@ -2,7 +2,7 @@ import type {
   OpenFramesTrustedData,
   OpenFramesUntrustedData,
 } from "@open-frames/types";
-import { frames } from "@xmtp/proto";
+import type { frames } from "@xmtp/proto";
 
 export type UntrustedData = OpenFramesUntrustedData & {
   walletAddress: string; // Untrusted version of the wallet address

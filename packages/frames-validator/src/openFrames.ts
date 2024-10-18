@@ -1,9 +1,9 @@
-import {
+import type {
   OpenFramesRequest,
   RequestValidator,
   ValidationResponse,
 } from "@open-frames/types";
-import { XmtpOpenFramesRequest, XmtpValidationResponse } from "./types";
+import type { XmtpOpenFramesRequest, XmtpValidationResponse } from "./types";
 import { validateFramesPost } from "./validation";
 
 export class XmtpValidator
@@ -30,7 +30,7 @@ export class XmtpValidator
     const isCorrectClientProtocol = protocol === "xmtp";
     const isCorrectVersion = version >= this.minProtocolVersionDate;
     const isTrustedDataValid =
-      typeof payload.trustedData?.messageBytes === "string";
+      typeof payload.trustedData.messageBytes === "string";
 
     return isCorrectClientProtocol && isCorrectVersion && isTrustedDataValid;
   }
@@ -41,16 +41,16 @@ export class XmtpValidator
     ValidationResponse<XmtpValidationResponse, typeof this.protocolIdentifier>
   > {
     try {
-      const validationResponse = await validateFramesPost(payload);
-      return {
+      const validationResponse = validateFramesPost(payload);
+      return await Promise.resolve({
         isValid: true,
         clientProtocol: payload.clientProtocol,
         message: validationResponse,
-      };
-    } catch (error) {
-      return {
+      });
+    } catch {
+      return Promise.resolve({
         isValid: false,
-      };
+      });
     }
   }
 }

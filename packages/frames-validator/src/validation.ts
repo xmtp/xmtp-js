@@ -1,18 +1,18 @@
-import { fetcher, frames, publicKey, signature } from "@xmtp/proto";
-import {
+import { fetcher, frames, type publicKey, type signature } from "@xmtp/proto";
+import type {
   UntrustedData,
   XmtpOpenFramesRequest,
   XmtpValidationResponse,
 } from "./types.js";
 import { verifyIdentityKeySignature, verifyWalletSignature } from "./utils.js";
 
-export * from "./types.js";
+export type * from "./types.js";
 
 const { b64Decode } = fetcher;
 
-export async function validateFramesPost(
+export function validateFramesPost(
   data: XmtpOpenFramesRequest,
-): Promise<XmtpValidationResponse> {
+): XmtpValidationResponse {
   const { untrustedData, trustedData } = data;
   const { walletAddress } = untrustedData;
   const { messageBytes: messageBytesString } = trustedData;
@@ -22,7 +22,7 @@ export async function validateFramesPost(
   const { actionBody, actionBodyBytes, signature, signedPublicKeyBundle } =
     deserializeProtoMessage(messageBytes);
 
-  const verifiedWalletAddress = await getVerifiedWalletAddress(
+  const verifiedWalletAddress = getVerifiedWalletAddress(
     actionBodyBytes,
     signature,
     signedPublicKeyBundle,
@@ -33,7 +33,7 @@ export async function validateFramesPost(
     throw new Error("Invalid wallet address");
   }
 
-  await checkUntrustedData(untrustedData, actionBody);
+  checkUntrustedData(untrustedData, actionBody);
 
   return {
     actionBody,
@@ -58,18 +58,18 @@ export function deserializeProtoMessage(messageBytes: Uint8Array) {
   };
 }
 
-async function getVerifiedWalletAddress(
+function getVerifiedWalletAddress(
   actionBodyBytes: Uint8Array,
   signature: signature.Signature,
   signedPublicKeyBundle: publicKey.SignedPublicKeyBundle,
-): Promise<string> {
+): string {
   const walletAddress = verifyWalletSignature(signedPublicKeyBundle);
   verifyIdentityKeySignature(actionBodyBytes, signature, signedPublicKeyBundle);
 
   return walletAddress;
 }
 
-async function checkUntrustedData(
+function checkUntrustedData(
   {
     url,
     buttonIndex,

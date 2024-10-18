@@ -1,8 +1,8 @@
 import { bytesToHex } from "@noble/curves/abstract/utils";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { sha256 } from "@noble/hashes/sha256";
-import { publicKey, signature } from "@xmtp/proto";
-import { SignedPublicKeyBundle } from "@xmtp/xmtp-js";
+import { publicKey, type signature } from "@xmtp/proto";
+import type { SignedPublicKeyBundle } from "@xmtp/xmtp-js";
 import {
   getAddress,
   hashMessage,
@@ -113,7 +113,7 @@ export function verifyIdentityKeySignature(
 }
 
 function computeAddress(bytes: Uint8Array) {
-  const publicKey = viemBytesToHex(bytes.slice(1)) as `0x${string}`;
+  const publicKey = viemBytesToHex(bytes.slice(1));
   const hash = keccak256(publicKey);
   const address = hash.substring(hash.length - 40);
   return getAddress(`0x${address}`);
@@ -150,10 +150,6 @@ export function verifyWalletSignature(
   );
 
   const walletAddress = recoverWalletAddress(signatureText, toVerify);
-
-  if (!walletAddress) {
-    throw new Error("Could not recover wallet address");
-  }
 
   return walletAddress;
 }
