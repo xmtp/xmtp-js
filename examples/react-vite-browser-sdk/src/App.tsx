@@ -36,6 +36,7 @@ export const App = () => {
   const handleUpdateGroupName = async (groupId: string, elementId: string) => {
     if (client) {
       const conversation = new Conversation(client, groupId);
+      await conversation.sync();
       const element = document.getElementById(elementId) as HTMLInputElement;
       const name = element.value;
       await conversation.updateName(name);
@@ -50,6 +51,7 @@ export const App = () => {
   ) => {
     if (client) {
       const conversation = new Conversation(client, groupId);
+      await conversation.sync();
       const element = document.getElementById(elementId) as HTMLInputElement;
       const description = element.value;
       await conversation.updateDescription(description);
@@ -61,6 +63,7 @@ export const App = () => {
   const handleListGroupMessages = async (groupId: string) => {
     if (client) {
       const conversation = new Conversation(client, groupId);
+      await conversation.sync();
       const groupMessages = await conversation.messages();
       setMessages((prevMessages) => {
         const newMessages = new Map(prevMessages);
@@ -73,6 +76,7 @@ export const App = () => {
   const handleSendGroupMessage = async (groupId: string, elementId: string) => {
     if (client) {
       const conversation = new Conversation(client, groupId);
+      await conversation.sync();
       const element = document.getElementById(elementId) as HTMLInputElement;
       const message = element.value;
       await conversation.send(message);
@@ -86,6 +90,7 @@ export const App = () => {
       ) as HTMLInputElement;
       const name = element.value;
       const group = await client.conversations.newGroup([]);
+      await group.sync();
       await group.updateName(name);
       await handleListGroups();
     }
