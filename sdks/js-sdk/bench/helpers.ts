@@ -1,8 +1,8 @@
-import { crypto } from "@xmtp/encryption";
 import type Benchmark from "benchmark";
 import { cycle, save, suite } from "benny";
 import type { Config } from "benny/lib/internal/common-types";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
+import { crypto } from "@/encryption";
 import { newWallet } from "@test/helpers";
 
 const MAX_RANDOM_BYTES_SIZE = 65536;

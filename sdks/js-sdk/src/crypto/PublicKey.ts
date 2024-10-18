@@ -1,8 +1,8 @@
 import * as secp from "@noble/secp256k1";
-import { sha256 } from "@xmtp/encryption";
 import { publicKey } from "@xmtp/proto";
 import Long from "long";
 import { hashMessage, hexToBytes, type Hex } from "viem";
+import { sha256 } from "@/encryption";
 import type { Signer } from "@/types/Signer";
 import Signature, { WalletSigner } from "./Signature";
 import { computeAddress, equalBytes, splitSignature } from "./utils";

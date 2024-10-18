@@ -1,5 +1,4 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { sha256 } from "@xmtp/encryption";
 import type { Wallet } from "ethers";
 import { createWalletClient, http } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -8,6 +7,7 @@ import Client from "@/Client";
 import { ConversationV1 } from "@/conversations/Conversation";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import { bytesToHex, equalBytes } from "@/crypto/utils";
+import { sha256 } from "@/encryption";
 import { KeystoreError } from "@/keystore/errors";
 import InMemoryKeystore from "@/keystore/InMemoryKeystore";
 import InMemoryPersistence from "@/keystore/persistence/InMemoryPersistence";

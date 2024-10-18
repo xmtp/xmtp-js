@@ -1,8 +1,8 @@
-import { crypto, decrypt, encrypt } from "@xmtp/encryption";
 import { assert } from "vitest";
 import { PrivateKey } from "@/crypto/PrivateKey";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import { PublicKeyBundle } from "@/crypto/PublicKeyBundle";
+import { crypto, decrypt, encrypt } from "@/encryption";
 
 describe("Crypto", function () {
   it("signs keys and verifies signatures", async function () {

@@ -1,7 +1,7 @@
-import { Ciphertext } from "@xmtp/encryption";
 import { Wallet } from "ethers";
 import { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import { equalBytes } from "@/crypto/utils";
+import { Ciphertext } from "@/encryption";
 import { decryptV1, encryptV1 } from "@/keystore/encryption";
 import InMemoryKeystore from "@/keystore/InMemoryKeystore";
 import InMemoryPersistence from "@/keystore/persistence/InMemoryPersistence";

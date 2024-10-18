@@ -1,7 +1,7 @@
-import { decrypt, encrypt } from "@xmtp/encryption";
 import type { ciphertext } from "@xmtp/proto";
 import type { PrivateKeyBundleV1 } from "@/crypto/PrivateKeyBundle";
 import type { PublicKeyBundle } from "@/crypto/PublicKeyBundle";
+import { decrypt, encrypt } from "@/encryption";
 
 export const decryptV1 = async (
   myKeys: PrivateKeyBundleV1,

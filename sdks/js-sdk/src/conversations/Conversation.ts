@@ -1,5 +1,4 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { sha256 } from "@xmtp/encryption";
 import {
   message,
   content as proto,
@@ -22,6 +21,7 @@ import {
   SignedPublicKeyBundle,
 } from "@/crypto/PublicKeyBundle";
 import Signature from "@/crypto/Signature";
+import { sha256 } from "@/encryption";
 import type { InvitationContext } from "@/Invitation";
 import { DecodedMessage, MessageV1, MessageV2 } from "@/Message";
 import { PreparedMessage } from "@/PreparedMessage";

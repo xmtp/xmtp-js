@@ -1,10 +1,4 @@
 import {
-  crypto,
-  exportHmacKey,
-  generateHmacSignature,
-  hkdfHmacKey,
-} from "@xmtp/encryption";
-import {
   keystore,
   privatePreferences,
   type authn,
@@ -27,6 +21,12 @@ import {
   userPreferencesEncrypt,
 } from "@/crypto/selfEncryption";
 import { bytesToHex } from "@/crypto/utils";
+import {
+  crypto,
+  exportHmacKey,
+  generateHmacSignature,
+  hkdfHmacKey,
+} from "@/encryption";
 import { InvitationV1, SealedInvitation } from "@/Invitation";
 import {
   PrivatePreferencesStore,

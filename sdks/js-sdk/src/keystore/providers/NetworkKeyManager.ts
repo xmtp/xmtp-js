@@ -1,4 +1,3 @@
-import { Ciphertext, crypto, decrypt, encrypt } from "@xmtp/encryption";
 import { privateKey as proto } from "@xmtp/proto";
 import { getAddress, hexToBytes, verifyMessage, type Hex } from "viem";
 import LocalAuthenticator from "@/authn/LocalAuthenticator";
@@ -9,6 +8,7 @@ import {
   PrivateKeyBundleV2,
 } from "@/crypto/PrivateKeyBundle";
 import { bytesToHex } from "@/crypto/utils";
+import { Ciphertext, crypto, decrypt, encrypt } from "@/encryption";
 import type TopicPersistence from "@/keystore/persistence/TopicPersistence";
 import type { Signer } from "@/types/Signer";
 
