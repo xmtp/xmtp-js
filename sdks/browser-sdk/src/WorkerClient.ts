@@ -1,8 +1,10 @@
 import {
   WasmSignatureRequestType,
   type WasmClient,
+  type WasmConsentEntityType,
 } from "@xmtp/client-bindings-wasm";
 import type { ClientOptions } from "@/types";
+import type { SafeConsent } from "@/utils/conversions";
 import { createClient } from "@/utils/createClient";
 import { WorkerConversations } from "@/WorkerConversations";
 
@@ -64,7 +66,23 @@ export class WorkerClient {
     return this.#client.registerIdentity();
   }
 
-  async getInboxIdByAddress(accountAddress: string) {
-    return this.#client.findInboxIdByAddress(accountAddress);
+  async findInboxIdByAddress(address: string) {
+    return this.#client.findInboxIdByAddress(address);
+  }
+
+  async inboxState(refreshFromNetwork: boolean) {
+    return this.#client.inboxState(refreshFromNetwork);
+  }
+
+  async getLatestInboxState(inboxId: string) {
+    return this.#client.getLatestInboxState(inboxId);
+  }
+
+  async setConsentStates(records: SafeConsent[]) {
+    return this.#client.setConsentStates(records);
+  }
+
+  async getConsentState(entityType: WasmConsentEntityType, entity: string) {
+    return this.#client.getConsentState(entityType, entity);
   }
 }

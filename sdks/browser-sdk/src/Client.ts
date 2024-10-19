@@ -1,4 +1,7 @@
-import { WasmGroupMessageKind } from "@xmtp/client-bindings-wasm";
+import {
+  WasmGroupMessageKind,
+  type WasmConsentEntityType,
+} from "@xmtp/client-bindings-wasm";
 import type {
   ContentCodec,
   ContentTypeId,
@@ -14,6 +17,7 @@ import type { ClientOptions } from "@/types";
 import {
   fromSafeEncodedContent,
   toSafeEncodedContent,
+  type SafeConsent,
   type SafeMessage,
 } from "@/utils/conversions";
 
@@ -96,6 +100,26 @@ export class Client extends ClientWorkerClass {
 
   async canMessage(accountAddresses: string[]) {
     return this.sendMessage("canMessage", { accountAddresses });
+  }
+
+  async findInboxByAddress(address: string) {
+    return this.sendMessage("findInboxByAddress", { address });
+  }
+
+  async inboxState(refreshFromNetwork: boolean) {
+    return this.sendMessage("inboxState", { refreshFromNetwork });
+  }
+
+  async getLatestInboxState(inboxId: string) {
+    return this.sendMessage("getLatestInboxState", { inboxId });
+  }
+
+  async setConsentStates(records: SafeConsent[]) {
+    return this.sendMessage("setConsentStates", { records });
+  }
+
+  async getConsentState(entityType: WasmConsentEntityType, entity: string) {
+    return this.sendMessage("getConsentState", { entityType, entity });
   }
 
   get conversations() {

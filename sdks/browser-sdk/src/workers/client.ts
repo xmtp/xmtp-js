@@ -235,6 +235,15 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         }
         break;
       }
+      case "inboxState": {
+        const result = await client.inboxState(data.refreshFromNetwork);
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
       // no default
     }
   } catch (e) {

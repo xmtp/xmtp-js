@@ -1,4 +1,8 @@
 import type {
+  WasmConsentEntityType,
+  WasmConsentState,
+} from "@xmtp/client-bindings-wasm";
+import type {
   ClientOptions,
   EventsClientMessageData,
   EventsClientPostMessageData,
@@ -11,8 +15,10 @@ import type {
   SendMessageData,
 } from "@/types";
 import type {
+  SafeConsent,
   SafeConversation,
   SafeEncodedContent,
+  SafeInboxState,
   SafeMessage,
 } from "@/utils/conversions";
 
@@ -270,6 +276,47 @@ export type ClientEvents =
       result: undefined;
       data: {
         id: string;
+      };
+    }
+  | {
+      action: "inboxState";
+      id: string;
+      result: SafeInboxState;
+      data: {
+        refreshFromNetwork: boolean;
+      };
+    }
+  | {
+      action: "getLatestInboxState";
+      id: string;
+      result: SafeInboxState;
+      data: {
+        inboxId: string;
+      };
+    }
+  | {
+      action: "setConsentStates";
+      id: string;
+      result: undefined;
+      data: {
+        records: SafeConsent[];
+      };
+    }
+  | {
+      action: "getConsentState";
+      id: string;
+      result: WasmConsentState;
+      data: {
+        entityType: WasmConsentEntityType;
+        entity: string;
+      };
+    }
+  | {
+      action: "findInboxByAddress";
+      id: string;
+      result: string | undefined;
+      data: {
+        address: string;
       };
     };
 

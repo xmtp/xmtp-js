@@ -1,12 +1,17 @@
 import {
+  WasmConsent,
   WasmContentTypeId,
   WasmCreateGroupOptions,
   WasmEncodedContent,
   WasmListConversationsOptions,
   WasmListMessagesOptions,
+  type WasmConsentEntityType,
+  type WasmConsentState,
   type WasmDeliveryStatus,
   type WasmGroupMessageKind,
   type WasmGroupPermissionsOptions,
+  type WasmInboxState,
+  type WasmInstallation,
   type WasmMessage,
   type WasmPermissionPolicySet,
 } from "@xmtp/client-bindings-wasm";
@@ -207,3 +212,46 @@ export const toSafeConversation = (
   superAdmins: conversation.superAdmins,
   createdAtNs: conversation.createdAtNs,
 });
+
+export type SafeInstallation = {
+  id: string;
+  clientTimestampNs?: bigint;
+};
+
+export const toSafeInstallation = (
+  installation: WasmInstallation,
+): SafeInstallation => ({
+  id: installation.id,
+  clientTimestampNs: installation.client_timestamp_ns,
+});
+
+export type SafeInboxState = {
+  accountAddresses: string[];
+  inboxId: string;
+  installations: SafeInstallation[];
+  recoveryAddress: string;
+};
+
+export const toSafeInboxState = (
+  inboxState: WasmInboxState,
+): SafeInboxState => ({
+  accountAddresses: inboxState.account_addresses,
+  inboxId: inboxState.inbox_id,
+  installations: inboxState.installations.map(toSafeInstallation),
+  recoveryAddress: inboxState.recovery_address,
+});
+
+export type SafeConsent = {
+  entity: string;
+  entityType: WasmConsentEntityType;
+  state: WasmConsentState;
+};
+
+export const toSafeConsent = (consent: WasmConsent): SafeConsent => ({
+  entity: consent.entity,
+  entityType: consent.entity_type,
+  state: consent.state,
+});
+
+export const fromSafeConsent = (consent: SafeConsent): WasmConsent =>
+  new WasmConsent(consent.entity, consent.entityType, consent.state);
