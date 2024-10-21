@@ -1,0 +1,89 @@
+{
+  "name": "@xmtp/content-type-group-updated",
+  "version": "1.0.0",
+  "description": "An XMTP content type to support group updated messages",
+  "keywords": [
+    "xmtp",
+    "messaging",
+    "web3",
+    "js",
+    "ts",
+    "javascript",
+    "typescript",
+    "content-types"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/xmtp/xmtp-js.git",
+    "directory": "content-types/content-type-group-updated"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": "./dist/browser/index.js",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "browser": "dist/browser/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "yarn clean:dist && yarn rollup -c",
+    "clean": "yarn clean:dist && rimraf .turbo node_modules",
+    "clean:dist": "rimraf dist",
+    "dev": "yarn clean:dist && yarn rollup -c --watch",
+    "test": "yarn test:node && yarn test:jsdom",
+    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment happy-dom",
+    "test:node": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
+    "typecheck": "tsc --noEmit"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome versions",
+      "last 3 firefox versions",
+      "last 3 safari versions"
+    ]
+  },
+  "dependencies": {
+    "@xmtp/content-type-primitives": "^1.0.1",
+    "@xmtp/proto": "^3.71.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@types/node": "^20.16.12",
+    "buffer": "^6.0.3",
+    "ethers": "^6.11.1",
+    "happy-dom": "^15.7.4",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.24.0",
+    "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-filesize": "^10.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.9",
+    "vitest": "^2.1.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
+}
