@@ -1,0 +1,111 @@
+:root {
+  font-family: "SF Pro Rounded", Inter, system-ui, Avenir, Helvetica, Arial,
+    sans-serif;
+  line-height: 1.3;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #213547;
+  background-color: #fff;
+}
+
+#root {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#root > [data-rk] {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.App {
+  width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.App h1 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.Actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ClientDetail {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.ConversationActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.ConversationAction {
+  padding: 6px;
+  border: 1px solid #213547;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  display: flex;
+  gap: 2px;
+  flex-direction: column;
+}
+
+.ConversationWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.Conversation {
+  border: 1px solid #213547;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.Conversation > h3 {
+  margin-top: 0;
+}
+
+.ConversationDetail {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.ConversationMessages {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ConversationMessage {
+  border: 1px solid #213547;
+  border-radius: 6px;
+  padding: 4px;
+  background-color: #f0f0f0;
+  text-wrap: pretty;
+}
