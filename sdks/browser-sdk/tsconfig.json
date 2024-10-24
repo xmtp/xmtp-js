@@ -1,0 +1,11 @@
+{
+  "extends": "tsconfig/react-sdk.json",
+  "include": ["src", "test", "vite.config.ts", "rollup.config.js"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@test/*": ["./test/*"]
+    },
+    "types": ["@vitest/browser/providers/playwright"]
+  }
+}
