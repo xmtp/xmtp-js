@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- cdc9212: Update node bindings to 0.0.14
+- cdc9212: Update `@xmtp/node-bindings` to 0.0.14
 
 ## 0.0.17
 
