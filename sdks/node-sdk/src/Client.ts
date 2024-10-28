@@ -1,5 +1,9 @@
 import { join } from "node:path";
 import process from "node:process";
+import {
+  ContentTypeGroupUpdated,
+  GroupUpdatedCodec,
+} from "@xmtp/content-type-group-updated";
 import type {
   ContentCodec,
   ContentTypeId,
@@ -15,10 +19,6 @@ import {
   type NapiClient,
   type NapiMessage,
 } from "@xmtp/node-bindings";
-import {
-  ContentTypeGroupUpdated,
-  GroupUpdatedCodec,
-} from "@/codecs/GroupUpdatedCodec";
 import { Conversations } from "@/Conversations";
 
 export const ApiUrls = {

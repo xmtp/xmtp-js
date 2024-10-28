@@ -189,8 +189,12 @@ export class Conversation {
   }
 
   messages(options?: NapiListMessagesOptions): DecodedMessage[] {
-    return this.#group
-      .findMessages(options)
-      .map((message) => new DecodedMessage(this.#client, message));
+    return (
+      this.#group
+        .findMessages(options)
+        .map((message) => new DecodedMessage(this.#client, message))
+        // filter out messages without content
+        .filter((message) => message.content !== undefined)
+    );
   }
 }

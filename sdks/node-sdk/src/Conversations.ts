@@ -27,11 +27,11 @@ export class Conversations {
     }
   }
 
-  getMessageById(id: string) {
+  getMessageById<T = any>(id: string) {
     try {
       // findMessageById will throw if message is not found
       const message = this.#conversations.findMessageById(id);
-      return new DecodedMessage(this.#client, message);
+      return new DecodedMessage<T>(this.#client, message);
     } catch {
       return null;
     }

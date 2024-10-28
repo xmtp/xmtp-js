@@ -10,10 +10,10 @@ import { nsToDate } from "@/helpers/date";
 export type MessageKind = "application" | "membership_change";
 export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
 
-export class DecodedMessage {
+export class DecodedMessage<T = any> {
   #client: Client;
-  content: any;
-  contentType: ContentTypeId;
+  content: T;
+  contentType: ContentTypeId | undefined;
   conversationId: string;
   deliveryStatus: MessageDeliveryStatus;
   fallback?: string;
@@ -56,12 +56,15 @@ export class DecodedMessage {
       // no default
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.contentType = new ContentTypeId(message.content.type!);
+    this.contentType = message.content.type
+      ? new ContentTypeId(message.content.type)
+      : undefined;
     this.parameters = message.content.parameters;
     this.fallback = message.content.fallback;
     this.compression = message.content.compression;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.content = this.#client.decodeContent(message, this.contentType);
+    this.content = this.contentType
+      ? this.#client.decodeContent(message, this.contentType)
+      : undefined;
   }
 }
