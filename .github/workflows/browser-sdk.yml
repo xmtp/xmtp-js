@@ -51,6 +51,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Install playwright browsers
+        working-directory: ./sdks/browser-sdk
         run: yarn playwright install
       - name: Start dev environment
         run: ./dev/up
