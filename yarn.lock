@@ -2789,10 +2789,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:^0.0.13":
-  version: 0.0.13
-  resolution: "@xmtp/node-bindings@npm:0.0.13"
-  checksum: 10/98c8a26cdc56c9b0dab794ca933a0be002bdf8d7e7ebdf1ad7ed33c015eeb7ffa5773185b077dd68e6f53509b12e30971a3963e611a8f42693fd11493fe4d802
+"@xmtp/node-bindings@npm:^0.0.14":
+  version: 0.0.14
+  resolution: "@xmtp/node-bindings@npm:0.0.14"
+  checksum: 10/1c2186418fc3c3066f3a63f91b547b23a0165b2b7ca162e9032a19e575fe9f1fc4922ca4ee4af332d898d98c03ecdec7d954aec3dbed065f8893cf06689a7475
   languageName: node
   linkType: hard
 
@@ -2804,9 +2804,9 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.16.12"
     "@vitest/coverage-v8": "npm:^2.1.3"
-    "@xmtp/content-type-primitives": "npm:^1.0.1"
+    "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/node-bindings": "npm:^0.0.13"
+    "@xmtp/node-bindings": "npm:^0.0.14"
     "@xmtp/proto": "npm:^3.62.1"
     "@xmtp/xmtp-js": "workspace:^"
     fast-glob: "npm:^3.3.2"
