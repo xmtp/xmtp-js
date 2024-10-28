@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.18
+
+### Patch Changes
+
+- cdc9212: Update `@xmtp/node-bindings` to 0.0.14
+
 ## 0.0.17
 
 ### Patch Changes
