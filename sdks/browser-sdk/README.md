@@ -103,7 +103,7 @@ The following table provides the deprecation schedule.
 | -------------------------------------------------------------- | --------- | --------------- | --------- |
 | There are no deprecations scheduled for this SDK at this time. |           |                 |           |
 
-Bug reports, feature requests, and PRs are welcome in accordance with these [contribution guidelines](https://github.com/xmtp/xmtp-web/blob/main/CONTRIBUTING.md).
+Bug reports, feature requests, and PRs are welcome in accordance with these [contribution guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md).
 
 ## Developing
 
