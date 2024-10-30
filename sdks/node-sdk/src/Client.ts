@@ -251,6 +251,10 @@ export class Client {
     return this.#innerClient.inboxState(refreshFromNetwork);
   }
 
+  async getLatestInboxState(inboxId: string) {
+    return this.#innerClient.getLatestInboxState(inboxId);
+  }
+
   async inboxStateFromInboxIds(
     inboxIds: string[],
     refreshFromNetwork?: boolean,
