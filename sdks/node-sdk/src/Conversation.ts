@@ -1,6 +1,10 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { NapiGroup, NapiListMessagesOptions } from "@xmtp/node-bindings";
+import type {
+  NapiConsentState,
+  NapiGroup,
+  NapiListMessagesOptions,
+} from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
@@ -196,6 +200,14 @@ export class Conversation {
         // filter out messages without content
         .filter((message) => message.content !== undefined)
     );
+  }
+
+  get consentState() {
+    return this.#group.consentState();
+  }
+
+  updateConsentState(consentState: NapiConsentState) {
+    this.#group.updateConsentState(consentState);
   }
 
   get dmPeerInboxId() {

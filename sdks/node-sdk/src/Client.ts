@@ -16,6 +16,8 @@ import {
   getInboxIdForAddress,
   NapiGroupMessageKind,
   type NapiClient,
+  type NapiConsent,
+  type NapiConsentEntityType,
   type NapiMessage,
   type NapiSignatureRequestType,
 } from "@xmtp/node-bindings";
@@ -257,5 +259,13 @@ export class Client {
       refreshFromNetwork ?? false,
       inboxIds,
     );
+  }
+
+  async setConsentStates(consentStates: NapiConsent[]) {
+    return this.#innerClient.setConsentStates(consentStates);
+  }
+
+  async getConsentState(entityType: NapiConsentEntityType, entity: string) {
+    return this.#innerClient.getConsentState(entityType, entity);
   }
 }
