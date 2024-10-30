@@ -1,6 +1,7 @@
 type ResolveValue<T> = {
   value: T | undefined;
   done: boolean;
+  error: Error | null;
 };
 
 type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
@@ -24,10 +25,10 @@ export class AsyncStream<T> {
     return this.#done;
   }
 
-  callback: StreamCallback<T> = (err, value) => {
-    if (err) {
-      console.error("stream error", err);
-      this.stop();
+  callback: StreamCallback<T> = (error, value) => {
+    if (error) {
+      console.error("stream error", error);
+      this.stop(error);
       return;
     }
 
@@ -36,26 +37,42 @@ export class AsyncStream<T> {
     }
 
     if (this.#resolveNext) {
-      this.#resolveNext({ value, done: false });
+      this.#resolveNext({
+        done: false,
+        error: null,
+        value,
+      });
       this.#resolveNext = null;
     } else {
       this.#queue.push(value);
     }
   };
 
-  stop = () => {
+  stop = (error?: Error) => {
     this.#done = true;
     if (this.#resolveNext) {
-      this.#resolveNext({ value: undefined, done: true });
+      this.#resolveNext({
+        done: true,
+        error: error ?? null,
+        value: undefined,
+      });
     }
     this.stopCallback?.();
   };
 
   next = (): Promise<ResolveValue<T>> => {
     if (this.#queue.length > 0) {
-      return Promise.resolve({ value: this.#queue.shift(), done: false });
+      return Promise.resolve({
+        done: false,
+        error: null,
+        value: this.#queue.shift(),
+      });
     } else if (this.#done) {
-      return Promise.resolve({ value: undefined, done: true });
+      return Promise.resolve({
+        done: true,
+        error: null,
+        value: undefined,
+      });
     } else {
       return new Promise((resolve) => {
         this.#resolveNext = resolve;
