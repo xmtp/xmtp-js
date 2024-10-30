@@ -11,3 +11,4 @@ export { Conversations } from "./Conversations";
 export { DecodedMessage } from "./DecodedMessage";
 export type { StreamCallback } from "./AsyncStream";
 export type * from "@xmtp/node-bindings";
+export { generateInboxId, getInboxIdForAddress } from "./helpers/inboxId";
