@@ -1,13 +1,20 @@
-import { NapiGroupPermissionsOptions } from "@xmtp/node-bindings";
+import {
+  NapiConsentState,
+  NapiGroupPermissionsOptions,
+} from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
+import { AsyncStream } from "@/AsyncStream";
+import type { Conversation } from "@/Conversation";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
 describe("Conversations", () => {
   it("should not have initial conversations", async () => {
     const user = createUser();
     const client = await createRegisteredClient(user);
-    const conversations = client.conversations.list();
-    expect((await conversations).length).toBe(0);
+
+    expect((await client.conversations.list()).length).toBe(0);
+    expect((await client.conversations.listDms()).length).toBe(0);
+    expect((await client.conversations.listGroups()).length).toBe(0);
   });
 
   it("should create a new conversation", async () => {
@@ -64,6 +71,74 @@ describe("Conversations", () => {
     const conversations2 = await client2.conversations.list();
     expect(conversations2.length).toBe(1);
     expect(conversations2[0].id).toBe(conversation.id);
+
+    expect((await client2.conversations.listDms()).length).toBe(0);
+    expect((await client2.conversations.listGroups()).length).toBe(1);
+  });
+
+  it("should create a dm group", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const group = await client1.conversations.newDm(user2.account.address);
+    expect(group).toBeDefined();
+    expect(group.id).toBeDefined();
+    expect(group.createdAtNs).toBeTypeOf("number");
+    expect(group.isActive).toBe(true);
+    expect(group.name).toBe("");
+    expect(group.permissions.policyType).toBe(
+      NapiGroupPermissionsOptions.CustomPolicy,
+    );
+    expect(group.permissions.policySet).toEqual({
+      addAdminPolicy: 1,
+      addMemberPolicy: 1,
+      removeAdminPolicy: 1,
+      removeMemberPolicy: 1,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateGroupNamePolicy: 0,
+      updateGroupPinnedFrameUrlPolicy: 0,
+    });
+    expect(group.addedByInboxId).toBe(client1.inboxId);
+    expect(group.messages().length).toBe(1);
+    const members = await group.members();
+    expect(members.length).toBe(2);
+    const memberInboxIds = members.map((member) => member.inboxId);
+    expect(memberInboxIds).toContain(client1.inboxId);
+    expect(memberInboxIds).toContain(client2.inboxId);
+    expect(group.metadata.conversationType).toBe("dm");
+    expect(group.metadata.creatorInboxId).toBe(client1.inboxId);
+
+    expect(group.consentState).toBe(NapiConsentState.Allowed);
+
+    const group1 = await client1.conversations.list();
+    expect(group1.length).toBe(1);
+    expect(group1[0].id).toBe(group.id);
+    expect(group1[0].dmPeerInboxId).toBe(client2.inboxId);
+
+    expect((await client1.conversations.listDms()).length).toBe(1);
+    expect((await client1.conversations.listGroups()).length).toBe(0);
+
+    expect((await client2.conversations.list()).length).toBe(0);
+
+    await client2.conversations.sync();
+
+    const group2 = await client2.conversations.list();
+    expect(group2.length).toBe(1);
+    expect(group2[0].id).toBe(group.id);
+    expect(group2[0].dmPeerInboxId).toBe(client1.inboxId);
+
+    expect((await client2.conversations.listDms()).length).toBe(1);
+    expect((await client2.conversations.listGroups()).length).toBe(0);
+
+    const dm1 = client1.conversations.getDmByInboxId(client2.inboxId);
+    expect(dm1).toBeDefined();
+    expect(dm1!.id).toBe(group.id);
+
+    const dm2 = client2.conversations.getDmByInboxId(client1.inboxId);
+    expect(dm2).toBeDefined();
+    expect(dm2!.id).toBe(group.id);
   });
 
   it("should get a group by ID", async () => {
@@ -220,6 +295,66 @@ describe("Conversations", () => {
     ).toBe(conversation2.id);
   });
 
+  it("should only stream group conversations", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const user4 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
+    const client4 = await createRegisteredClient(user4);
+    const asyncStream = new AsyncStream<Conversation>();
+    const stream = client3.conversations.streamGroups(asyncStream.callback);
+    await client4.conversations.newDm(user3.account.address);
+    const group1 = await client1.conversations.newConversation([
+      user3.account.address,
+    ]);
+    const group2 = await client2.conversations.newConversation([
+      user3.account.address,
+    ]);
+    let count = 0;
+    for await (const convo of asyncStream) {
+      count++;
+      expect(convo).toBeDefined();
+      if (count === 1) {
+        expect(convo!.id).toBe(group1.id);
+      }
+      if (count === 2) {
+        expect(convo!.id).toBe(group2.id);
+        break;
+      }
+    }
+    stream.stop();
+  });
+
+  it("should only stream dm conversations", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const user4 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
+    const client4 = await createRegisteredClient(user4);
+    const asyncStream = new AsyncStream<Conversation>();
+    const stream = client3.conversations.streamDms(asyncStream.callback);
+    await client1.conversations.newConversation([user3.account.address]);
+    await client2.conversations.newConversation([user3.account.address]);
+    const group3 = await client4.conversations.newDm(user3.account.address);
+    let count = 0;
+    for await (const convo of asyncStream) {
+      count++;
+      expect(convo).toBeDefined();
+      if (count === 1) {
+        expect(convo!.id).toBe(group3.id);
+        break;
+      }
+    }
+    expect(count).toBe(1);
+    stream.stop();
+  });
+
   it("should stream all messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
@@ -251,6 +386,97 @@ describe("Conversations", () => {
       }
       if (count === 2) {
         expect(message!.senderInboxId).toBe(client3.inboxId);
+        break;
+      }
+    }
+    stream.stop();
+  });
+
+  it("should only stream group conversation messages", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const user4 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
+    const client4 = await createRegisteredClient(user4);
+    await client1.conversations.newConversation([user2.account.address]);
+    await client1.conversations.newConversation([user3.account.address]);
+    await client1.conversations.newDm(user4.account.address);
+
+    const stream = await client1.conversations.streamAllGroupMessages();
+
+    const groups2 = client2.conversations;
+    await groups2.sync();
+    const groupsList2 = await groups2.list();
+
+    const groups3 = client3.conversations;
+    await groups3.sync();
+    const groupsList3 = await groups3.list();
+
+    const groups4 = client4.conversations;
+    await groups4.sync();
+    const groupsList4 = await groups4.list();
+
+    await groupsList4[0].send("gm3!");
+    await groupsList2[0].send("gm!");
+    await groupsList3[0].send("gm2!");
+
+    let count = 0;
+
+    for await (const message of stream) {
+      count++;
+      expect(message).toBeDefined();
+      if (count === 1) {
+        expect(message!.senderInboxId).toBe(client2.inboxId);
+      }
+      if (count === 2) {
+        expect(message!.senderInboxId).toBe(client3.inboxId);
+        break;
+      }
+    }
+    stream.stop();
+  });
+
+  it("should only stream dm messages", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const user4 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
+    const client4 = await createRegisteredClient(user4);
+    await client1.conversations.newConversation([user2.account.address]);
+    await client1.conversations.newConversation([user3.account.address]);
+    await client1.conversations.newDm(user4.account.address);
+
+    const stream = await client1.conversations.streamAllDmMessages();
+
+    const groups2 = client2.conversations;
+    await groups2.sync();
+    const groupsList2 = await groups2.list();
+
+    const groups3 = client3.conversations;
+    await groups3.sync();
+    const groupsList3 = await groups3.list();
+
+    const groups4 = client4.conversations;
+    await groups4.sync();
+    const groupsList4 = await groups4.list();
+
+    await groupsList2[0].send("gm!");
+    await groupsList3[0].send("gm2!");
+    await groupsList4[0].send("gm3!");
+
+    let count = 0;
+
+    for await (const message of stream) {
+      count++;
+      expect(message).toBeDefined();
+      if (count === 1) {
+        expect(message!.senderInboxId).toBe(client4.inboxId);
         break;
       }
     }
