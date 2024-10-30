@@ -197,4 +197,8 @@ export class Conversation {
         .filter((message) => message.content !== undefined)
     );
   }
+
+  get dmPeerInboxId() {
+    return this.#group.dmPeerInboxId();
+  }
 }
