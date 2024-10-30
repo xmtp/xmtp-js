@@ -1,4 +1,4 @@
-name: MLS Client
+name: Node SDK
 
 on:
   push:
