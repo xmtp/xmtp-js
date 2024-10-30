@@ -104,7 +104,7 @@ export type SubscriptionManager = {
   updateContentTopics?: UpdateContentTopics;
 };
 
-export type OnConnectionLostCallback = () => void;
+export type OnConnectionLostCallback = (err?: Error) => void;
 
 const isAbortError = (err?: Error): boolean => {
   if (!err) {
