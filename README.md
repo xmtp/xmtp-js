@@ -9,6 +9,8 @@ To learn more about the contents of this repository, see this README and the REA
 ### SDKs
 
 - [`js-sdk`](https://github.com/xmtp/xmtp-js/blob/main/sdks/js-sdk): XMTP JS client SDK for Node and the browser
+- [`node-sdk`](https://github.com/xmtp/xmtp-js/blob/main/sdks/node-sdk): XMTP client SDK for Node (V3 only)
+- [`browser-sdk`](https://github.com/xmtp/xmtp-js/blob/main/sdks/browser-sdk): XMTP client SDK for browsers (V3 only)
 
 ### Content types
 
@@ -22,8 +24,9 @@ To learn more about the contents of this repository, see this README and the REA
 
 ### Packages
 
-- [`frames-client`](https://github.com/xmtp/xmtp-js/blob/main/packages/frames-client): XMTP Open Frames client
 - [`consent-proof-signature`](https://github.com/xmtp/xmtp-js/blob/main/packages/consent-proof-signature): Lightweight package for creating consent proofs
+- [`frames-client`](https://github.com/xmtp/xmtp-js/blob/main/packages/frames-client): XMTP Open Frames client
+- [`frames-validator`](https://github.com/xmtp/xmtp-js/blob/main/packages/frames-validator): Tools for validating POST payloads from XMTP Open Frames
 
 ## Contributing
 
