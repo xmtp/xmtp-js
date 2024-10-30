@@ -1,3 +1,4 @@
+import { NapiConsentState } from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import {
   ContentTypeTest,
@@ -389,5 +390,34 @@ describe("Conversation", () => {
     expect(conversation.isSuperAdmin(client2.inboxId)).toBe(false);
     expect(conversation.superAdmins.length).toBe(1);
     expect(conversation.superAdmins).toContain(client1.inboxId);
+  });
+
+  it("should manage group consent state", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
+    const group = await client1.conversations.newConversation([
+      user2.account.address,
+    ]);
+    expect(group).toBeDefined();
+    const dmGroup = await client1.conversations.newDm(user3.account.address);
+    expect(dmGroup).toBeDefined();
+
+    await client2.conversations.sync();
+    const group2 = client2.conversations.getConversationById(group.id);
+    expect(group2).toBeDefined();
+    expect(group2!.consentState).toBe(NapiConsentState.Unknown);
+    await group2!.send("gm!");
+    expect(group2!.consentState).toBe(NapiConsentState.Allowed);
+
+    await client3.conversations.sync();
+    const dmGroup2 = client3.conversations.getConversationById(dmGroup.id);
+    expect(dmGroup2).toBeDefined();
+    expect(dmGroup2!.consentState).toBe(NapiConsentState.Unknown);
+    await dmGroup2!.send("gm!");
+    expect(dmGroup2!.consentState).toBe(NapiConsentState.Allowed);
   });
 });

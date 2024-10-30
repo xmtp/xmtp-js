@@ -15,9 +15,11 @@ import {
   generateInboxId,
   getInboxIdForAddress,
   NapiGroupMessageKind,
-  NapiSignatureRequestType,
   type NapiClient,
+  type NapiConsent,
+  type NapiConsentEntityType,
   type NapiMessage,
+  type NapiSignatureRequestType,
 } from "@xmtp/node-bindings";
 import { Conversations } from "@/Conversations";
 
@@ -135,9 +137,44 @@ export class Client {
     return this.#innerClient.isRegistered();
   }
 
-  async signatureText() {
+  async createInboxSignatureText() {
     try {
       const signatureText = await this.#innerClient.createInboxSignatureText();
+      return signatureText;
+    } catch {
+      return null;
+    }
+  }
+
+  async addWalletSignatureText(
+    existingAccountAddress: string,
+    newAccountAddress: string,
+  ) {
+    try {
+      const signatureText = await this.#innerClient.addWalletSignatureText(
+        existingAccountAddress,
+        newAccountAddress,
+      );
+      return signatureText;
+    } catch {
+      return null;
+    }
+  }
+
+  async revokeWalletSignatureText(accountAddress: string) {
+    try {
+      const signatureText =
+        await this.#innerClient.revokeWalletSignatureText(accountAddress);
+      return signatureText;
+    } catch {
+      return null;
+    }
+  }
+
+  async revokeInstallationsSignatureText() {
+    try {
+      const signatureText =
+        await this.#innerClient.revokeInstallationsSignatureText();
       return signatureText;
     } catch {
       return null;
@@ -148,11 +185,15 @@ export class Client {
     return this.#innerClient.canMessage(accountAddresses);
   }
 
-  addSignature(signatureBytes: Uint8Array) {
-    void this.#innerClient.addSignature(
-      NapiSignatureRequestType.CreateInbox,
-      signatureBytes,
-    );
+  addSignature(
+    signatureType: NapiSignatureRequestType,
+    signatureBytes: Uint8Array,
+  ) {
+    void this.#innerClient.addSignature(signatureType, signatureBytes);
+  }
+
+  async applySignatures() {
+    return this.#innerClient.applySignatureRequests();
   }
 
   async registerIdentity() {
@@ -210,6 +251,10 @@ export class Client {
     return this.#innerClient.inboxState(refreshFromNetwork);
   }
 
+  async getLatestInboxState(inboxId: string) {
+    return this.#innerClient.getLatestInboxState(inboxId);
+  }
+
   async inboxStateFromInboxIds(
     inboxIds: string[],
     refreshFromNetwork?: boolean,
@@ -218,5 +263,13 @@ export class Client {
       refreshFromNetwork ?? false,
       inboxIds,
     );
+  }
+
+  async setConsentStates(consentStates: NapiConsent[]) {
+    return this.#innerClient.setConsentStates(consentStates);
+  }
+
+  async getConsentState(entityType: NapiConsentEntityType, entity: string) {
+    return this.#innerClient.getConsentState(entityType, entity);
   }
 }

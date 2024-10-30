@@ -5,6 +5,8 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
+import { NapiSignatureRequestType } from "@xmtp/node-bindings";
+import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -23,13 +25,14 @@ export const createUser = () => {
       chain: sepolia,
       transport: http(),
     }),
+    uuid: v4(),
   };
 };
 
 export type User = ReturnType<typeof createUser>;
 
 export const getSignature = async (client: Client, user: User) => {
-  const signatureText = await client.signatureText();
+  const signatureText = await client.createInboxSignatureText();
   if (signatureText) {
     const signature = await user.wallet.signMessage({
       message: signatureText,
@@ -46,7 +49,7 @@ export const createClient = async (user: User, options?: ClientOptions) => {
   };
   return Client.create(user.account.address, {
     ...opts,
-    dbPath: join(__dirname, `./test-${user.account.address}.db3`),
+    dbPath: join(__dirname, `./test-${user.uuid}.db3`),
   });
 };
 
@@ -58,7 +61,7 @@ export const createRegisteredClient = async (
   if (!client.isRegistered) {
     const signature = await getSignature(client, user);
     if (signature) {
-      client.addSignature(signature);
+      client.addSignature(NapiSignatureRequestType.CreateInbox, signature);
     }
     await client.registerIdentity();
   }

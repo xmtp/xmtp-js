@@ -4832,10 +4832,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:^0.0.14":
-  version: 0.0.14
-  resolution: "@xmtp/node-bindings@npm:0.0.14"
-  checksum: 10/1c2186418fc3c3066f3a63f91b547b23a0165b2b7ca162e9032a19e575fe9f1fc4922ca4ee4af332d898d98c03ecdec7d954aec3dbed065f8893cf06689a7475
+"@xmtp/node-bindings@npm:^0.0.16":
+  version: 0.0.16
+  resolution: "@xmtp/node-bindings@npm:0.0.16"
+  checksum: 10/d6bf406c0e2802061a1d5808dac17fc7c0bcf01b1d3917805832e38fa5a69ccfdb0b0283fe47da2e9c302214cf693271207c466d061f8a7096b86edf7fa12c8e
   languageName: node
   linkType: hard
 
@@ -4850,7 +4850,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^1.0.0"
     "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/node-bindings": "npm:^0.0.14"
+    "@xmtp/node-bindings": "npm:^0.0.16"
     "@xmtp/proto": "npm:^3.62.1"
     "@xmtp/xmtp-js": "workspace:^"
     fast-glob: "npm:^3.3.2"
@@ -4860,6 +4860,7 @@ __metadata:
     rollup-plugin-filesize: "npm:^10.0.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.6.3"
+    uuid: "npm:^11.0.2"
     viem: "npm:^2.13.6"
     vite: "npm:^5.4.9"
     vite-tsconfig-paths: "npm:^5.0.1"
@@ -12562,6 +12563,15 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 10/35aa60614811a201ff90f8ca5e9ecb7076a75c3821e17f0f5ff72d44e36c2d35fcbc2ceee9c4ac7317f4cc41895da30e74f3885e30313bee48fda6338f250538
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^11.0.2":
+  version: 11.0.2
+  resolution: "uuid@npm:11.0.2"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: 10/b98082f398fa2ece8cacc2264402f739256ca70def4bb82e3a14ec70777d189c01ce1054764c3b59b8fc098b62b135a15d1b24914712904c988822e2ac9b4f44
   languageName: node
   linkType: hard
 
