@@ -4,7 +4,13 @@
 
 ### Patch Changes
 
-- 981bcf4: Add 1:1 messages, consent state, and more identity updates
+- 981bcf4:
+  - Added 1:1 messages
+  - Added stream errors to the stream's async iterator values
+  - Added consent state methods to client and conversation
+  - Added signature methods for adding/revoke wallets and revoking installations
+  - Added `getLatestInboxState` to client
+  - Added inbox ID helpers
 
 ## 0.0.19
 
