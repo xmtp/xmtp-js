@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.20
+
+### Patch Changes
+
+- 981bcf4: Add 1:1 messages, consent state, and more identity updates
+
 ## 0.0.19
 
 ### Patch Changes
