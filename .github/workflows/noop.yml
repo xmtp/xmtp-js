@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - ".changeset/config.json"
+      - ".changeset/*.md"
       - ".github/**"
       - "!.github/workflows/js-sdk.yml"
       - "!.github/workflows/node-sdk.yml"
