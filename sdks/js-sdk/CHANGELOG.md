@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 1d71ebd: Add optional err to OnConnectionLostCallback
+- 1d71ebd: Add optional `err` parameter to `OnConnectionLostCallback`
 
 ## 13.0.2
 
