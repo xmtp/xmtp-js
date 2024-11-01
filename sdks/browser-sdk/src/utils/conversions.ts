@@ -182,6 +182,8 @@ export type SafeListConversationsOptions = {
 export const toSafeListConversationsOptions = (
   options: WasmListConversationsOptions,
 ): SafeListConversationsOptions => ({
+  allowed_states: options.allowed_states,
+  conversation_type: options.conversation_type,
   created_after_ns: options.created_after_ns,
   created_before_ns: options.created_before_ns,
   limit: options.limit,
