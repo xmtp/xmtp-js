@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Utils } from "@/Utils";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
-describe("Utils", () => {
+describe.concurrent("Utils", () => {
   it("should generate inbox id", async () => {
     const utils = new Utils();
     const inboxId = await utils.generateInboxId("0x1234");
