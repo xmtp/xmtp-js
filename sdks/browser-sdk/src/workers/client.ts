@@ -747,6 +747,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             error: "Group not found",
           });
         }
+        break;
       }
     }
   } catch (e) {
