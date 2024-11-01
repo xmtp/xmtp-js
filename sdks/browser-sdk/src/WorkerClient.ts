@@ -84,7 +84,7 @@ export class WorkerClient {
     return this.#client.addSignature(type, bytes);
   }
 
-  async applySignaturesRequests() {
+  async applySignatures() {
     return this.#client.applySignatureRequests();
   }
 

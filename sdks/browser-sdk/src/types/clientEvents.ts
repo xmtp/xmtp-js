@@ -79,7 +79,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "applySignaturesRequests";
+      action: "applySignatures";
       id: string;
       result: undefined;
       data: undefined;

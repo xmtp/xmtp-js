@@ -107,8 +107,8 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           result: undefined,
         });
         break;
-      case "applySignaturesRequests":
-        await client.applySignaturesRequests();
+      case "applySignatures":
+        await client.applySignatures();
         postMessage({
           id,
           action,

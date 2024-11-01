@@ -99,8 +99,8 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("addSignature", { type, bytes });
   }
 
-  async applySignaturesRequests() {
-    return this.sendMessage("applySignaturesRequests", undefined);
+  async applySignatures() {
+    return this.sendMessage("applySignatures", undefined);
   }
 
   async registerIdentity() {
