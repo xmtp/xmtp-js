@@ -99,6 +99,15 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "getRevokeInstallationsSignatureText": {
+        const result = await client.getRevokeInstallationsSignatureText();
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
       case "addSignature":
         await client.addSignature(data.type, data.bytes);
         postMessage({
