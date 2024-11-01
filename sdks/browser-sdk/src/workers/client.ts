@@ -203,10 +203,45 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "getGroups": {
+        const conversations = await client.conversations.listGroups(
+          data.options,
+        );
+        postMessage({
+          id,
+          action,
+          result: conversations.map((conversation) =>
+            toSafeConversation(conversation),
+          ),
+        });
+        break;
+      }
+      case "getDms": {
+        const conversations = await client.conversations.listDms(data.options);
+        postMessage({
+          id,
+          action,
+          result: conversations.map((conversation) =>
+            toSafeConversation(conversation),
+          ),
+        });
+        break;
+      }
       case "newGroup": {
         const conversation = await client.conversations.newGroup(
           data.accountAddresses,
           data.options,
+        );
+        postMessage({
+          id,
+          action,
+          result: toSafeConversation(conversation),
+        });
+        break;
+      }
+      case "newDm": {
+        const conversation = await client.conversations.newDm(
+          data.accountAddress,
         );
         postMessage({
           id,
@@ -239,6 +274,15 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           id,
           action,
           result: message,
+        });
+        break;
+      }
+      case "getDmByInboxId": {
+        const conversation = client.conversations.getDmByInboxId(data.inboxId);
+        postMessage({
+          id,
+          action,
+          result: conversation ? toSafeConversation(conversation) : undefined,
         });
         break;
       }
@@ -677,6 +721,23 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           });
         }
         break;
+      }
+      case "getDmPeerInboxId": {
+        const group = client.conversations.getConversationById(data.id);
+        if (group) {
+          const result = group.dmPeerInboxId();
+          postMessage({
+            id,
+            action,
+            result,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
       }
     }
   } catch (e) {

@@ -282,4 +282,10 @@ export class Conversation {
       state,
     });
   }
+
+  async dmPeerInboxId() {
+    return this.#client.sendMessage("getDmPeerInboxId", {
+      id: this.#id,
+    });
+  }
 }

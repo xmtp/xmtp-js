@@ -165,11 +165,35 @@ export type ClientEvents =
       };
     }
   | {
+      action: "getDmByInboxId";
+      id: string;
+      result: SafeConversation | undefined;
+      data: {
+        inboxId: string;
+      };
+    }
+  | {
       action: "getConversations";
       id: string;
       result: SafeConversation[];
       data: {
         options?: SafeListConversationsOptions;
+      };
+    }
+  | {
+      action: "getGroups";
+      id: string;
+      result: SafeConversation[];
+      data: {
+        options?: Omit<SafeListConversationsOptions, "conversation_type">;
+      };
+    }
+  | {
+      action: "getDms";
+      id: string;
+      result: SafeConversation[];
+      data: {
+        options?: Omit<SafeListConversationsOptions, "conversation_type">;
       };
     }
   | {
@@ -179,6 +203,14 @@ export type ClientEvents =
       data: {
         accountAddresses: string[];
         options?: SafeCreateGroupOptions;
+      };
+    }
+  | {
+      action: "newDm";
+      id: string;
+      result: SafeConversation;
+      data: {
+        accountAddress: string;
       };
     }
   | {
@@ -398,6 +430,14 @@ export type ClientEvents =
       data: {
         id: string;
         state: WasmConsentState;
+      };
+    }
+  | {
+      action: "getDmPeerInboxId";
+      id: string;
+      result: string;
+      data: {
+        id: string;
       };
     };
 

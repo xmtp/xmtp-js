@@ -28,6 +28,12 @@ export class Conversations {
     });
   }
 
+  async getDmByInboxId(inboxId: string) {
+    return this.#client.sendMessage("getDmByInboxId", {
+      inboxId,
+    });
+  }
+
   async list(options?: SafeListConversationsOptions) {
     const conversations = await this.#client.sendMessage("getConversations", {
       options,
@@ -39,10 +45,34 @@ export class Conversations {
     );
   }
 
+  async listGroups(
+    options?: Omit<SafeListConversationsOptions, "conversation_type">,
+  ) {
+    return this.#client.sendMessage("getGroups", {
+      options,
+    });
+  }
+
+  async listDms(
+    options?: Omit<SafeListConversationsOptions, "conversation_type">,
+  ) {
+    return this.#client.sendMessage("getDms", {
+      options,
+    });
+  }
+
   async newGroup(accountAddresses: string[], options?: SafeCreateGroupOptions) {
     const conversation = await this.#client.sendMessage("newGroup", {
       accountAddresses,
       options,
+    });
+
+    return new Conversation(this.#client, conversation.id, conversation);
+  }
+
+  async newDm(accountAddress: string) {
+    const conversation = await this.#client.sendMessage("newDm", {
+      accountAddress,
     });
 
     return new Conversation(this.#client, conversation.id, conversation);
