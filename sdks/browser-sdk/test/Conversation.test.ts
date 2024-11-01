@@ -1,4 +1,6 @@
+import { WasmConsentState } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
+import { Conversation } from "@/Conversation";
 import {
   ContentTypeTest,
   createRegisteredClient,
@@ -6,7 +8,7 @@ import {
   TestCodec,
 } from "@test/helpers";
 
-describe("Conversation", () => {
+describe.concurrent("Conversation", () => {
   it("should update conversation name", async () => {
     const user1 = createUser();
     const user2 = createUser();
@@ -371,5 +373,40 @@ describe("Conversation", () => {
     const superAdmins3 = await conversation.superAdmins();
     expect(superAdmins3.length).toBe(1);
     expect(superAdmins3).toContain(client1.inboxId);
+  });
+
+  it("should manage group consent state", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
+    const group = await client1.conversations.newGroup([user2.account.address]);
+    expect(group).toBeDefined();
+    const dmGroup = await client1.conversations.newDm(user3.account.address);
+    expect(dmGroup).toBeDefined();
+
+    await client2.conversations.sync();
+    const group2 = await client2.conversations.getConversationById(group.id);
+    expect(group2).toBeDefined();
+
+    const groupConvo = new Conversation(client2, group2!.id, group2);
+
+    expect(await groupConvo.consentState()).toBe(WasmConsentState.Unknown);
+    await groupConvo.send("gm!");
+    expect(await groupConvo.consentState()).toBe(WasmConsentState.Allowed);
+
+    await client3.conversations.sync();
+    const dmGroup2 = await client3.conversations.getConversationById(
+      dmGroup.id,
+    );
+    expect(dmGroup2).toBeDefined();
+
+    const dmConvo = new Conversation(client3, dmGroup2!.id, dmGroup2);
+
+    expect(await dmConvo.consentState()).toBe(WasmConsentState.Unknown);
+    await dmConvo.send("gm!");
+    expect(await dmConvo.consentState()).toBe(WasmConsentState.Allowed);
   });
 });

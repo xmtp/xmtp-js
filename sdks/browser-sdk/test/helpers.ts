@@ -4,6 +4,7 @@ import {
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
 import { WasmSignatureRequestType } from "@xmtp/wasm-bindings";
+import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -21,6 +22,7 @@ export const createUser = () => {
       chain: sepolia,
       transport: http(),
     }),
+    uuid: v4(),
   };
 };
 
@@ -44,7 +46,7 @@ export const createClient = async (user: User, options?: ClientOptions) => {
   };
   return Client.create(user.account.address, {
     ...opts,
-    dbPath: `./test-${user.account.address}.db3`,
+    dbPath: `./test-${user.uuid}.db3`,
   });
 };
 

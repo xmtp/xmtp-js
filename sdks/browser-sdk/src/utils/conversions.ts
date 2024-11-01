@@ -12,7 +12,10 @@ import {
   WasmListMessagesOptions,
   type WasmConsentEntityType,
   type WasmConsentState,
+  type WasmConversationType,
   type WasmDeliveryStatus,
+  type WasmDirection,
+  type WasmGroupMembershipState,
   type WasmGroupMessageKind,
   type WasmGroupPermissionsOptions,
   type WasmInboxState,
@@ -141,6 +144,7 @@ export const toSafeMessage = (message: WasmMessage): SafeMessage => ({
 
 export type SafeListMessagesOptions = {
   delivery_status?: WasmDeliveryStatus;
+  direction?: WasmDirection;
   limit?: bigint;
   sent_after_ns?: bigint;
   sent_before_ns?: bigint;
@@ -150,6 +154,7 @@ export const toSafeListMessagesOptions = (
   options: WasmListMessagesOptions,
 ): SafeListMessagesOptions => ({
   delivery_status: options.delivery_status,
+  direction: options.direction,
   limit: options.limit,
   sent_after_ns: options.sent_after_ns,
   sent_before_ns: options.sent_before_ns,
@@ -163,9 +168,12 @@ export const fromSafeListMessagesOptions = (
     options.sent_after_ns,
     options.limit,
     options.delivery_status,
+    options.direction,
   );
 
 export type SafeListConversationsOptions = {
+  allowed_states?: WasmGroupMembershipState[];
+  conversation_type?: WasmConversationType;
   created_after_ns?: bigint;
   created_before_ns?: bigint;
   limit?: bigint;
@@ -174,6 +182,8 @@ export type SafeListConversationsOptions = {
 export const toSafeListConversationsOptions = (
   options: WasmListConversationsOptions,
 ): SafeListConversationsOptions => ({
+  allowed_states: options.allowed_states,
+  conversation_type: options.conversation_type,
   created_after_ns: options.created_after_ns,
   created_before_ns: options.created_before_ns,
   limit: options.limit,
@@ -183,6 +193,8 @@ export const fromSafeListConversationsOptions = (
   options: SafeListConversationsOptions,
 ): WasmListConversationsOptions =>
   new WasmListConversationsOptions(
+    options.allowed_states,
+    options.conversation_type,
     options.created_after_ns,
     options.created_before_ns,
     options.limit,

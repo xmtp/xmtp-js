@@ -43,8 +43,35 @@ export class WorkerConversations {
     }
   }
 
+  getDmByInboxId(inboxId: string) {
+    try {
+      const group = this.#conversations.find_dm_by_target_inbox_id(inboxId);
+      return new WorkerConversation(this.#client, group);
+    } catch {
+      return undefined;
+    }
+  }
+
   async list(options?: SafeListConversationsOptions) {
     const groups = (await this.#conversations.list(
+      options ? fromSafeListConversationsOptions(options) : undefined,
+    )) as WasmGroup[];
+    return groups.map((group) => new WorkerConversation(this.#client, group));
+  }
+
+  async listGroups(
+    options?: Omit<SafeListConversationsOptions, "conversation_type">,
+  ) {
+    const groups = (await this.#conversations.list_groups(
+      options ? fromSafeListConversationsOptions(options) : undefined,
+    )) as WasmGroup[];
+    return groups.map((group) => new WorkerConversation(this.#client, group));
+  }
+
+  async listDms(
+    options?: Omit<SafeListConversationsOptions, "conversation_type">,
+  ) {
+    const groups = (await this.#conversations.list_dms(
       options ? fromSafeListConversationsOptions(options) : undefined,
     )) as WasmGroup[];
     return groups.map((group) => new WorkerConversation(this.#client, group));
@@ -55,6 +82,11 @@ export class WorkerConversations {
       accountAddresses,
       options ? fromSafeCreateGroupOptions(options) : undefined,
     );
+    return new WorkerConversation(this.#client, group);
+  }
+
+  async newDm(accountAddress: string) {
+    const group = await this.#conversations.create_dm(accountAddress);
     return new WorkerConversation(this.#client, group);
   }
 }

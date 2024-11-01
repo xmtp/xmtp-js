@@ -1,13 +1,18 @@
-import { WasmGroupPermissionsOptions } from "@xmtp/wasm-bindings";
+import {
+  WasmConsentState,
+  WasmGroupPermissionsOptions,
+} from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
-describe("Conversations", () => {
+describe.concurrent("Conversations", () => {
   it("should not have initial conversations", async () => {
     const user = createUser();
     const client = await createRegisteredClient(user);
-    const conversations = await client.conversations.list();
-    expect(conversations.length).toBe(0);
+
+    expect((await client.conversations.list()).length).toBe(0);
+    expect((await client.conversations.listDms()).length).toBe(0);
+    expect((await client.conversations.listGroups()).length).toBe(0);
   });
 
   it("should create a new conversation", async () => {
@@ -19,7 +24,6 @@ describe("Conversations", () => {
       user2.account.address,
     ]);
     expect(conversation).toBeDefined();
-
     expect(
       (await client1.conversations.getConversationById(conversation.id))?.id,
     ).toBe(conversation.id);
@@ -65,6 +69,75 @@ describe("Conversations", () => {
     const conversations2 = await client2.conversations.list();
     expect(conversations2.length).toBe(1);
     expect(conversations2[0].id).toBe(conversation.id);
+
+    expect((await client2.conversations.listDms()).length).toBe(0);
+    expect((await client2.conversations.listGroups()).length).toBe(1);
+  });
+
+  it("should create a dm group", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const group = await client1.conversations.newDm(user2.account.address);
+    expect(group).toBeDefined();
+    expect(group.id).toBeDefined();
+    expect(group.createdAtNs).toBeDefined();
+    expect(group.createdAt).toBeDefined();
+    expect(group.isActive).toBe(true);
+    expect(group.name).toBe("");
+    expect(group.permissions?.policyType).toBe(
+      WasmGroupPermissionsOptions.CustomPolicy,
+    );
+    expect(group.permissions?.policySet).toEqual({
+      addAdminPolicy: 1,
+      addMemberPolicy: 1,
+      removeAdminPolicy: 1,
+      removeMemberPolicy: 1,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateGroupNamePolicy: 0,
+      updateGroupPinnedFrameUrlPolicy: 0,
+    });
+    expect(group.addedByInboxId).toBe(client1.inboxId);
+    expect((await group.messages()).length).toBe(1);
+    const members = await group.members();
+    expect(members.length).toBe(2);
+    const memberInboxIds = members.map((member) => member.inboxId);
+    expect(memberInboxIds).toContain(client1.inboxId);
+    expect(memberInboxIds).toContain(client2.inboxId);
+    expect(group.metadata?.conversationType).toBe("dm");
+    expect(group.metadata?.creatorInboxId).toBe(client1.inboxId);
+
+    expect(await group.consentState()).toBe(WasmConsentState.Allowed);
+
+    const group1 = await client1.conversations.list();
+    expect(group1.length).toBe(1);
+    expect(group1[0].id).toBe(group.id);
+    expect(await group1[0].dmPeerInboxId()).toBe(client2.inboxId);
+
+    expect((await client1.conversations.listDms()).length).toBe(1);
+    expect((await client1.conversations.listGroups()).length).toBe(0);
+
+    expect((await client2.conversations.list()).length).toBe(0);
+
+    await client2.conversations.sync();
+
+    const group2 = await client2.conversations.list();
+    expect(group2.length).toBe(1);
+    expect(group2[0].id).toBe(group.id);
+    expect(await group2[0].dmPeerInboxId()).toBe(client1.inboxId);
+
+    expect((await client2.conversations.listDms()).length).toBe(1);
+    expect((await client2.conversations.listGroups()).length).toBe(0);
+
+    const dm1 = await client1.conversations.getDmByInboxId(client2.inboxId!);
+    expect(dm1).toBeDefined();
+    expect(dm1!.id).toBe(group.id);
+
+    const dm2 = await client2.conversations.getDmByInboxId(client1.inboxId!);
+    expect(dm2).toBeDefined();
+    expect(dm2!.id).toBe(group.id);
   });
 
   it("should get a group by ID", async () => {

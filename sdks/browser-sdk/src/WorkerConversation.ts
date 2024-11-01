@@ -166,4 +166,8 @@ export class WorkerConversation {
   updateConsentState(state: WasmConsentState) {
     this.#group.update_consent_state(state);
   }
+
+  dmPeerInboxId() {
+    return this.#group.dm_peer_inbox_id();
+  }
 }

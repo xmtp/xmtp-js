@@ -84,7 +84,8 @@ describe("Conversations", () => {
     const group = await client1.conversations.newDm(user2.account.address);
     expect(group).toBeDefined();
     expect(group.id).toBeDefined();
-    expect(group.createdAtNs).toBeTypeOf("number");
+    expect(group.createdAtNs).toBeDefined();
+    expect(group.createdAt).toBeDefined();
     expect(group.isActive).toBe(true);
     expect(group.name).toBe("");
     expect(group.permissions.policyType).toBe(

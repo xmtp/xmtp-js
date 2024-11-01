@@ -95,12 +95,16 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("getRevokeWalletSignatureText", { accountAddress });
   }
 
+  async getRevokeInstallationsSignatureText() {
+    return this.sendMessage("getRevokeInstallationsSignatureText", undefined);
+  }
+
   async addSignature(type: WasmSignatureRequestType, bytes: Uint8Array) {
     return this.sendMessage("addSignature", { type, bytes });
   }
 
-  async applySignaturesRequests() {
-    return this.sendMessage("applySignaturesRequests", undefined);
+  async applySignatures() {
+    return this.sendMessage("applySignatures", undefined);
   }
 
   async registerIdentity() {
@@ -119,8 +123,10 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("findInboxIdByAddress", { address });
   }
 
-  async inboxState(refreshFromNetwork: boolean) {
-    return this.sendMessage("inboxState", { refreshFromNetwork });
+  async inboxState(refreshFromNetwork?: boolean) {
+    return this.sendMessage("inboxState", {
+      refreshFromNetwork: refreshFromNetwork ?? false,
+    });
   }
 
   async getLatestInboxState(inboxId: string) {
