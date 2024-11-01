@@ -14,7 +14,8 @@ export const createClient = async (
   await init();
 
   const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
-  const dbPath = `xmtp-${options?.env ?? "dev"}-${accountAddress}.db3`;
+  const dbPath =
+    options?.dbPath ?? `xmtp-${options?.env ?? "dev"}-${accountAddress}.db3`;
 
   const inboxId =
     (await getInboxIdForAddress(host, accountAddress)) ||
