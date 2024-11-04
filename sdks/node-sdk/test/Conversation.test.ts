@@ -337,7 +337,6 @@ describe("Conversation", () => {
         break;
       }
     }
-    stream.stop();
   });
 
   it("should add and remove admins", async () => {

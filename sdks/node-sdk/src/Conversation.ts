@@ -119,7 +119,7 @@ export class Conversation {
       callback?.(err, decodedMessage);
     });
 
-    asyncStream.stopCallback = stream.end.bind(stream);
+    asyncStream.onReturn = stream.end.bind(stream);
 
     return asyncStream;
   }
