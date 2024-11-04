@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 764d6c0: Refactor AsyncStream
+- 764d6c0: Refactor streams for better error handling
 
 ## 0.0.20
 
