@@ -106,7 +106,7 @@ export class Conversations {
       callback?.(err, conversation);
     });
 
-    asyncStream.stopCallback = stream.end.bind(stream);
+    asyncStream.onReturn = stream.end.bind(stream);
 
     return asyncStream;
   }
@@ -120,7 +120,7 @@ export class Conversations {
       callback?.(err, conversation);
     });
 
-    asyncStream.stopCallback = stream.end.bind(stream);
+    asyncStream.onReturn = stream.end.bind(stream);
 
     return asyncStream;
   }
@@ -134,7 +134,7 @@ export class Conversations {
       callback?.(err, conversation);
     });
 
-    asyncStream.stopCallback = stream.end.bind(stream);
+    asyncStream.onReturn = stream.end.bind(stream);
 
     return asyncStream;
   }
@@ -151,7 +151,7 @@ export class Conversations {
       callback?.(err, decodedMessage);
     });
 
-    asyncStream.stopCallback = stream.end.bind(stream);
+    asyncStream.onReturn = stream.end.bind(stream);
 
     return asyncStream;
   }
@@ -170,7 +170,7 @@ export class Conversations {
       },
     );
 
-    asyncStream.stopCallback = stream.end.bind(stream);
+    asyncStream.onReturn = stream.end.bind(stream);
 
     return asyncStream;
   }
@@ -187,7 +187,7 @@ export class Conversations {
       callback?.(err, decodedMessage);
     });
 
-    asyncStream.stopCallback = stream.end.bind(stream);
+    asyncStream.onReturn = stream.end.bind(stream);
 
     return asyncStream;
   }

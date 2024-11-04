@@ -1,7 +1,6 @@
 type ResolveValue<T> = {
   value: T | undefined;
   done: boolean;
-  error: Error | null;
 };
 
 type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
@@ -13,7 +12,7 @@ export class AsyncStream<T> {
   #resolveNext: ResolveNext<T> | null;
   #queue: T[];
 
-  stopCallback: (() => void) | undefined = undefined;
+  onReturn: (() => void) | undefined = undefined;
 
   constructor() {
     this.#queue = [];
@@ -27,9 +26,7 @@ export class AsyncStream<T> {
 
   callback: StreamCallback<T> = (error, value) => {
     if (error) {
-      console.error("stream error", error);
-      this.stop(error);
-      return;
+      throw error;
     }
 
     if (this.#done) {
@@ -39,7 +36,6 @@ export class AsyncStream<T> {
     if (this.#resolveNext) {
       this.#resolveNext({
         done: false,
-        error: null,
         value,
       });
       this.#resolveNext = null;
@@ -48,29 +44,15 @@ export class AsyncStream<T> {
     }
   };
 
-  stop = (error?: Error) => {
-    this.#done = true;
-    if (this.#resolveNext) {
-      this.#resolveNext({
-        done: true,
-        error: error ?? null,
-        value: undefined,
-      });
-    }
-    this.stopCallback?.();
-  };
-
   next = (): Promise<ResolveValue<T>> => {
     if (this.#queue.length > 0) {
       return Promise.resolve({
         done: false,
-        error: null,
         value: this.#queue.shift(),
       });
     } else if (this.#done) {
       return Promise.resolve({
         done: true,
-        error: null,
         value: undefined,
       });
     } else {
@@ -78,6 +60,15 @@ export class AsyncStream<T> {
         this.#resolveNext = resolve;
       });
     }
+  };
+
+  return = (value: T) => {
+    this.#done = true;
+    this.onReturn?.();
+    return Promise.resolve({
+      done: true,
+      value,
+    });
   };
 
   [Symbol.asyncIterator]() {

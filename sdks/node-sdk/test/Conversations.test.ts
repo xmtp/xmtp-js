@@ -3,8 +3,6 @@ import {
   NapiGroupPermissionsOptions,
 } from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
-import { AsyncStream } from "@/AsyncStream";
-import type { Conversation } from "@/Conversation";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
 describe("Conversations", () => {
@@ -287,7 +285,6 @@ describe("Conversations", () => {
         break;
       }
     }
-    stream.stop();
     expect(
       client3.conversations.getConversationById(conversation1.id)?.id,
     ).toBe(conversation1.id);
@@ -305,8 +302,7 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
     const client4 = await createRegisteredClient(user4);
-    const asyncStream = new AsyncStream<Conversation>();
-    const stream = client3.conversations.streamGroups(asyncStream.callback);
+    const stream = client3.conversations.streamGroups();
     await client4.conversations.newDm(user3.account.address);
     const group1 = await client1.conversations.newConversation([
       user3.account.address,
@@ -315,7 +311,7 @@ describe("Conversations", () => {
       user3.account.address,
     ]);
     let count = 0;
-    for await (const convo of asyncStream) {
+    for await (const convo of stream) {
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -326,7 +322,6 @@ describe("Conversations", () => {
         break;
       }
     }
-    stream.stop();
   });
 
   it("should only stream dm conversations", async () => {
@@ -338,13 +333,12 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
     const client4 = await createRegisteredClient(user4);
-    const asyncStream = new AsyncStream<Conversation>();
-    const stream = client3.conversations.streamDms(asyncStream.callback);
+    const stream = client3.conversations.streamDms();
     await client1.conversations.newConversation([user3.account.address]);
     await client2.conversations.newConversation([user3.account.address]);
     const group3 = await client4.conversations.newDm(user3.account.address);
     let count = 0;
-    for await (const convo of asyncStream) {
+    for await (const convo of stream) {
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -353,7 +347,6 @@ describe("Conversations", () => {
       }
     }
     expect(count).toBe(1);
-    stream.stop();
   });
 
   it("should stream all messages", async () => {
@@ -390,7 +383,6 @@ describe("Conversations", () => {
         break;
       }
     }
-    stream.stop();
   });
 
   it("should only stream group conversation messages", async () => {
@@ -437,7 +429,6 @@ describe("Conversations", () => {
         break;
       }
     }
-    stream.stop();
   });
 
   it("should only stream dm messages", async () => {
@@ -481,6 +472,5 @@ describe("Conversations", () => {
         break;
       }
     }
-    stream.stop();
   });
 });
