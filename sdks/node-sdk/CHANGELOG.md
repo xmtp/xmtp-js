@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.21
+
+### Patch Changes
+
+- 764d6c0: Refactor streams for better error handling
+
 ## 0.0.20
 
 ### Patch Changes
