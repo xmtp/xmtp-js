@@ -6,6 +6,10 @@ const testError = new Error("test");
 describe("AsyncStream", () => {
   it("should return values from callbacks", async () => {
     const stream = new AsyncStream<number>();
+    let onReturnCalled = false;
+    stream.onReturn = () => {
+      onReturnCalled = true;
+    };
     stream.callback(null, 1);
     stream.callback(null, 2);
     stream.callback(null, 3);
@@ -25,10 +29,15 @@ describe("AsyncStream", () => {
       }
       count++;
     }
+    expect(onReturnCalled).toBe(true);
   });
 
   it("should catch an error thrown in the for..await loop", async () => {
     const stream = new AsyncStream<number>();
+    let onReturnCalled = false;
+    stream.onReturn = () => {
+      onReturnCalled = true;
+    };
     stream.callback(null, 1);
 
     try {
@@ -40,11 +49,16 @@ describe("AsyncStream", () => {
       expect(error).toBe(testError);
       expect((error as Error).message).toBe("test");
     }
+    expect(onReturnCalled).toBe(true);
   });
 
   it("should catch an error passed to callback", async () => {
     const runTest = async () => {
       const stream = new AsyncStream<number>();
+      let onReturnCalled = false;
+      stream.onReturn = () => {
+        onReturnCalled = true;
+      };
       stream.callback(testError, 1);
       try {
         for await (const _value of stream) {
@@ -54,6 +68,7 @@ describe("AsyncStream", () => {
         expect(error).toBe(testError);
         expect((error as Error).message).toBe("test");
       }
+      expect(onReturnCalled).toBe(true);
     };
 
     await expect(runTest()).rejects.toThrow(testError);
