@@ -1,7 +1,7 @@
 import type {
-  NapiConversations,
-  NapiCreateGroupOptions,
-  NapiListConversationsOptions,
+  CreateGroupOptions,
+  ListConversationsOptions,
+  Conversations as NodeConversations,
 } from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
@@ -10,9 +10,9 @@ import { DecodedMessage } from "@/DecodedMessage";
 
 export class Conversations {
   #client: Client;
-  #conversations: NapiConversations;
+  #conversations: NodeConversations;
 
-  constructor(client: Client, conversations: NapiConversations) {
+  constructor(client: Client, conversations: NodeConversations) {
     this.#client = client;
     this.#conversations = conversations;
   }
@@ -49,7 +49,7 @@ export class Conversations {
 
   async newConversation(
     accountAddresses: string[],
-    options?: NapiCreateGroupOptions,
+    options?: CreateGroupOptions,
   ) {
     const group = await this.#conversations.createGroup(
       accountAddresses,
@@ -65,7 +65,7 @@ export class Conversations {
     return conversation;
   }
 
-  async list(options?: NapiListConversationsOptions) {
+  async list(options?: ListConversationsOptions) {
     const groups = await this.#conversations.list(options);
     return groups.map((group) => {
       const conversation = new Conversation(this.#client, group);
@@ -74,7 +74,7 @@ export class Conversations {
   }
 
   async listGroups(
-    options?: Omit<NapiListConversationsOptions, "conversationType">,
+    options?: Omit<ListConversationsOptions, "conversationType">,
   ) {
     const groups = await this.#conversations.listGroups(options);
     return groups.map((group) => {
@@ -83,9 +83,7 @@ export class Conversations {
     });
   }
 
-  async listDms(
-    options?: Omit<NapiListConversationsOptions, "conversationType">,
-  ) {
+  async listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = await this.#conversations.listDms(options);
     return groups.map((group) => {
       const conversation = new Conversation(this.#client, group);

@@ -1,8 +1,8 @@
 import { ContentTypeId } from "@xmtp/content-type-primitives";
 import {
-  NapiDeliveryStatus,
-  NapiGroupMessageKind,
-  type NapiMessage,
+  DeliveryStatus,
+  GroupMessageKind,
+  type Message,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import { nsToDate } from "@/helpers/date";
@@ -25,7 +25,7 @@ export class DecodedMessage<T = any> {
   sentAt: Date;
   sentAtNs: number;
 
-  constructor(client: Client, message: NapiMessage) {
+  constructor(client: Client, message: Message) {
     this.#client = client;
     this.id = message.id;
     this.sentAtNs = message.sentAtNs;
@@ -34,23 +34,23 @@ export class DecodedMessage<T = any> {
     this.senderInboxId = message.senderInboxId;
 
     switch (message.kind) {
-      case NapiGroupMessageKind.Application:
+      case GroupMessageKind.Application:
         this.kind = "application";
         break;
-      case NapiGroupMessageKind.MembershipChange:
+      case GroupMessageKind.MembershipChange:
         this.kind = "membership_change";
         break;
       // no default
     }
 
     switch (message.deliveryStatus) {
-      case NapiDeliveryStatus.Unpublished:
+      case DeliveryStatus.Unpublished:
         this.deliveryStatus = "unpublished";
         break;
-      case NapiDeliveryStatus.Published:
+      case DeliveryStatus.Published:
         this.deliveryStatus = "published";
         break;
-      case NapiDeliveryStatus.Failed:
+      case DeliveryStatus.Failed:
         this.deliveryStatus = "failed";
         break;
       // no default
