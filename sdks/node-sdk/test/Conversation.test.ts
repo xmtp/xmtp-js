@@ -320,7 +320,11 @@ describe("Conversation", () => {
     expect(conversation2.length).toBe(1);
     expect(conversation2[0].id).toBe(conversation.id);
 
-    const stream = conversation2[0].stream();
+    const streamedMessages: string[] = [];
+    const stream = conversation2[0].stream((_, message) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      streamedMessages.push(message.content);
+    });
 
     await conversation.send("gm");
     await conversation.send("gm2");
@@ -337,6 +341,8 @@ describe("Conversation", () => {
         break;
       }
     }
+
+    expect(streamedMessages).toEqual(["gm", "gm2"]);
   });
 
   it("should add and remove admins", async () => {
