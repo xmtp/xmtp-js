@@ -113,10 +113,12 @@ export class Conversation {
   stream(callback?: StreamCallback<DecodedMessage>) {
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#group.stream((err, message) => {
-      const decodedMessage = new DecodedMessage(this.#client, message);
-      asyncStream.callback(err, decodedMessage);
-      callback?.(err, decodedMessage);
+    const stream = this.#group.stream((error, value) => {
+      const message = value
+        ? new DecodedMessage(this.#client, value)
+        : undefined;
+      asyncStream.callback(error, message);
+      callback?.(error, message);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);

@@ -98,8 +98,10 @@ export class Conversations {
   stream(callback?: StreamCallback<Conversation>) {
     const asyncStream = new AsyncStream<Conversation>();
 
-    const stream = this.#conversations.stream((err, group) => {
-      const conversation = new Conversation(this.#client, group);
+    const stream = this.#conversations.stream((err, value) => {
+      const conversation = value
+        ? new Conversation(this.#client, value)
+        : undefined;
       asyncStream.callback(err, conversation);
       callback?.(err, conversation);
     });
@@ -112,8 +114,10 @@ export class Conversations {
   streamGroups(callback?: StreamCallback<Conversation>) {
     const asyncStream = new AsyncStream<Conversation>();
 
-    const stream = this.#conversations.streamGroups((err, group) => {
-      const conversation = new Conversation(this.#client, group);
+    const stream = this.#conversations.streamGroups((err, value) => {
+      const conversation = value
+        ? new Conversation(this.#client, value)
+        : undefined;
       asyncStream.callback(err, conversation);
       callback?.(err, conversation);
     });
@@ -126,8 +130,10 @@ export class Conversations {
   streamDms(callback?: StreamCallback<Conversation>) {
     const asyncStream = new AsyncStream<Conversation>();
 
-    const stream = this.#conversations.streamDms((err, group) => {
-      const conversation = new Conversation(this.#client, group);
+    const stream = this.#conversations.streamDms((err, value) => {
+      const conversation = value
+        ? new Conversation(this.#client, value)
+        : undefined;
       asyncStream.callback(err, conversation);
       callback?.(err, conversation);
     });
@@ -143,8 +149,10 @@ export class Conversations {
 
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#conversations.streamAllMessages((err, message) => {
-      const decodedMessage = new DecodedMessage(this.#client, message);
+    const stream = this.#conversations.streamAllMessages((err, value) => {
+      const decodedMessage = value
+        ? new DecodedMessage(this.#client, value)
+        : undefined;
       asyncStream.callback(err, decodedMessage);
       callback?.(err, decodedMessage);
     });
@@ -160,13 +168,13 @@ export class Conversations {
 
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#conversations.streamAllGroupMessages(
-      (err, message) => {
-        const decodedMessage = new DecodedMessage(this.#client, message);
-        asyncStream.callback(err, decodedMessage);
-        callback?.(err, decodedMessage);
-      },
-    );
+    const stream = this.#conversations.streamAllGroupMessages((err, value) => {
+      const decodedMessage = value
+        ? new DecodedMessage(this.#client, value)
+        : undefined;
+      asyncStream.callback(err, decodedMessage);
+      callback?.(err, decodedMessage);
+    });
 
     asyncStream.onReturn = stream.end.bind(stream);
 
@@ -179,8 +187,10 @@ export class Conversations {
 
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#conversations.streamAllDmMessages((err, message) => {
-      const decodedMessage = new DecodedMessage(this.#client, message);
+    const stream = this.#conversations.streamAllDmMessages((err, value) => {
+      const decodedMessage = value
+        ? new DecodedMessage(this.#client, value)
+        : undefined;
       asyncStream.callback(err, decodedMessage);
       callback?.(err, decodedMessage);
     });
