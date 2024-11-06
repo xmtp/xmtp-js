@@ -5,12 +5,15 @@ type ResolveValue<T> = {
 
 type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
 
-export type StreamCallback<T> = (err: Error | null, value: T) => void;
+export type StreamCallback<T> = (
+  err: Error | null,
+  value: T | undefined,
+) => void;
 
 export class AsyncStream<T> {
   #done = false;
   #resolveNext: ResolveNext<T> | null;
-  #queue: T[];
+  #queue: (T | undefined)[];
 
   onReturn: (() => void) | undefined = undefined;
 
@@ -62,7 +65,7 @@ export class AsyncStream<T> {
     }
   };
 
-  return = (value: T) => {
+  return = (value: T | undefined) => {
     this.#done = true;
     this.onReturn?.();
     return Promise.resolve({
