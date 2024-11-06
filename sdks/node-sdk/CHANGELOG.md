@@ -4,7 +4,10 @@
 
 ### Patch Changes
 
-- 5a41542: Upgrade node bindings
+- 5a41542:
+  - Upgraded node bindings
+  - Refactored code with updated type exports
+  - Fixed streaming issues when a stream error occurs
 
 ## 0.0.21
 
