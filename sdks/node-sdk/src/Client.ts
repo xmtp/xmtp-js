@@ -14,12 +14,12 @@ import {
   createClient,
   generateInboxId,
   getInboxIdForAddress,
-  NapiGroupMessageKind,
-  type NapiClient,
-  type NapiConsent,
-  type NapiConsentEntityType,
-  type NapiMessage,
-  type NapiSignatureRequestType,
+  GroupMessageKind,
+  type Consent,
+  type ConsentEntityType,
+  type Message,
+  type Client as NodeClient,
+  type SignatureRequestType,
 } from "@xmtp/node-bindings";
 import { Conversations } from "@/Conversations";
 
@@ -84,11 +84,11 @@ export type ClientOptions = NetworkOptions &
   OtherOptions;
 
 export class Client {
-  #innerClient: NapiClient;
+  #innerClient: NodeClient;
   #conversations: Conversations;
   #codecs: Map<string, ContentCodec>;
 
-  constructor(client: NapiClient, codecs: ContentCodec[]) {
+  constructor(client: NodeClient, codecs: ContentCodec[]) {
     this.#innerClient = client;
     this.#conversations = new Conversations(this, client.conversations());
     this.#codecs = new Map(
@@ -186,7 +186,7 @@ export class Client {
   }
 
   addSignature(
-    signatureType: NapiSignatureRequestType,
+    signatureType: SignatureRequestType,
     signatureBytes: Uint8Array,
   ) {
     void this.#innerClient.addSignature(signatureType, signatureBytes);
@@ -221,7 +221,7 @@ export class Client {
     return encoded;
   }
 
-  decodeContent(message: NapiMessage, contentType: ContentTypeId) {
+  decodeContent(message: Message, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
       throw new Error(`no codec for ${contentType.toString()}`);
@@ -230,7 +230,7 @@ export class Client {
     // throw an error if there's an invalid group membership change message
     if (
       contentType.sameAs(ContentTypeGroupUpdated) &&
-      message.kind !== NapiGroupMessageKind.MembershipChange
+      message.kind !== GroupMessageKind.MembershipChange
     ) {
       throw new Error("Error decoding group membership change");
     }
@@ -240,7 +240,7 @@ export class Client {
   }
 
   async requestHistorySync() {
-    return this.#innerClient.requestHistorySync();
+    return this.#innerClient.sendHistorySyncRequest();
   }
 
   async getInboxIdByAddress(accountAddress: string) {
@@ -265,11 +265,11 @@ export class Client {
     );
   }
 
-  async setConsentStates(consentStates: NapiConsent[]) {
+  async setConsentStates(consentStates: Consent[]) {
     return this.#innerClient.setConsentStates(consentStates);
   }
 
-  async getConsentState(entityType: NapiConsentEntityType, entity: string) {
+  async getConsentState(entityType: ConsentEntityType, entity: string) {
     return this.#innerClient.getConsentState(entityType, entity);
   }
 }

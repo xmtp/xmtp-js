@@ -1,9 +1,9 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type {
-  NapiConsentState,
-  NapiGroup,
-  NapiListMessagesOptions,
+  ConsentState,
+  Conversation as Group,
+  ListMessagesOptions,
 } from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
@@ -12,9 +12,9 @@ import { nsToDate } from "@/helpers/date";
 
 export class Conversation {
   #client: Client;
-  #group: NapiGroup;
+  #group: Group;
 
-  constructor(client: Client, group: NapiGroup) {
+  constructor(client: Client, group: Group) {
     this.#client = client;
     this.#group = group;
   }
@@ -113,10 +113,12 @@ export class Conversation {
   stream(callback?: StreamCallback<DecodedMessage>) {
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#group.stream((err, message) => {
-      const decodedMessage = new DecodedMessage(this.#client, message);
-      asyncStream.callback(err, decodedMessage);
-      callback?.(err, decodedMessage);
+    const stream = this.#group.stream((error, value) => {
+      const message = value
+        ? new DecodedMessage(this.#client, value)
+        : undefined;
+      asyncStream.callback(error, message);
+      callback?.(error, message);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -192,7 +194,7 @@ export class Conversation {
     return this.#group.send(encodedContent);
   }
 
-  messages(options?: NapiListMessagesOptions): DecodedMessage[] {
+  messages(options?: ListMessagesOptions): DecodedMessage[] {
     return (
       this.#group
         .findMessages(options)
@@ -206,7 +208,7 @@ export class Conversation {
     return this.#group.consentState();
   }
 
-  updateConsentState(consentState: NapiConsentState) {
+  updateConsentState(consentState: ConsentState) {
     this.#group.updateConsentState(consentState);
   }
 

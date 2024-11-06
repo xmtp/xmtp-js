@@ -5,7 +5,7 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { NapiSignatureRequestType } from "@xmtp/node-bindings";
+import { SignatureRequestType } from "@xmtp/node-bindings";
 import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -61,7 +61,7 @@ export const createRegisteredClient = async (
   if (!client.isRegistered) {
     const signature = await getSignature(client, user);
     if (signature) {
-      client.addSignature(NapiSignatureRequestType.CreateInbox, signature);
+      client.addSignature(SignatureRequestType.CreateInbox, signature);
     }
     await client.registerIdentity();
   }

@@ -1,7 +1,7 @@
 import {
-  NapiConsentEntityType,
-  NapiConsentState,
-  NapiSignatureRequestType,
+  ConsentEntityType,
+  ConsentState,
+  SignatureRequestType,
 } from "@xmtp/node-bindings";
 import { v4 } from "uuid";
 import { toBytes } from "viem";
@@ -116,11 +116,8 @@ describe("Client", () => {
       message: signatureText!,
     });
 
-    client.addSignature(NapiSignatureRequestType.AddWallet, toBytes(signature));
-    client.addSignature(
-      NapiSignatureRequestType.AddWallet,
-      toBytes(signature2),
-    );
+    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature));
+    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature2));
     await client.applySignatures();
     const inboxState = await client.inboxState();
     expect(inboxState.accountAddresses.length).toEqual(2);
@@ -150,11 +147,8 @@ describe("Client", () => {
       message: signatureText!,
     });
 
-    client.addSignature(NapiSignatureRequestType.AddWallet, toBytes(signature));
-    client.addSignature(
-      NapiSignatureRequestType.AddWallet,
-      toBytes(signature2),
-    );
+    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature));
+    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature2));
     await client.applySignatures();
 
     const signatureText2 = await client.revokeWalletSignatureText(
@@ -167,10 +161,7 @@ describe("Client", () => {
       message: signatureText2!,
     });
 
-    client.addSignature(
-      NapiSignatureRequestType.RevokeWallet,
-      toBytes(signature3),
-    );
+    client.addSignature(SignatureRequestType.RevokeWallet, toBytes(signature3));
     await client.applySignatures();
     const inboxState = await client.inboxState();
     expect(inboxState.accountAddresses).toEqual([
@@ -204,7 +195,7 @@ describe("Client", () => {
     });
 
     client3.addSignature(
-      NapiSignatureRequestType.RevokeInstallations,
+      SignatureRequestType.RevokeInstallations,
       toBytes(signature),
     );
     await client3.applySignatures();
@@ -229,27 +220,27 @@ describe("Client", () => {
     expect(group2).not.toBeNull();
 
     expect(
-      await client2.getConsentState(NapiConsentEntityType.GroupId, group2!.id),
-    ).toBe(NapiConsentState.Unknown);
+      await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
+    ).toBe(ConsentState.Unknown);
 
     await client2.setConsentStates([
       {
-        entityType: NapiConsentEntityType.GroupId,
+        entityType: ConsentEntityType.GroupId,
         entity: group2!.id,
-        state: NapiConsentState.Allowed,
+        state: ConsentState.Allowed,
       },
     ]);
 
     expect(
-      await client2.getConsentState(NapiConsentEntityType.GroupId, group2!.id),
-    ).toBe(NapiConsentState.Allowed);
+      await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
+    ).toBe(ConsentState.Allowed);
 
-    expect(group2!.consentState).toBe(NapiConsentState.Allowed);
+    expect(group2!.consentState).toBe(ConsentState.Allowed);
 
-    group2!.updateConsentState(NapiConsentState.Denied);
+    group2!.updateConsentState(ConsentState.Denied);
 
     expect(
-      await client2.getConsentState(NapiConsentEntityType.GroupId, group2!.id),
-    ).toBe(NapiConsentState.Denied);
+      await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
+    ).toBe(ConsentState.Denied);
   });
 });

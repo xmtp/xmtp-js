@@ -1,4 +1,4 @@
-import { NapiConsentState } from "@xmtp/node-bindings";
+import { ConsentState } from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import {
   ContentTypeTest,
@@ -320,7 +320,11 @@ describe("Conversation", () => {
     expect(conversation2.length).toBe(1);
     expect(conversation2[0].id).toBe(conversation.id);
 
-    const stream = conversation2[0].stream();
+    const streamedMessages: string[] = [];
+    const stream = conversation2[0].stream((_, message) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      streamedMessages.push(message!.content);
+    });
 
     await conversation.send("gm");
     await conversation.send("gm2");
@@ -337,6 +341,8 @@ describe("Conversation", () => {
         break;
       }
     }
+
+    expect(streamedMessages).toEqual(["gm", "gm2"]);
   });
 
   it("should add and remove admins", async () => {
@@ -408,15 +414,15 @@ describe("Conversation", () => {
     await client2.conversations.sync();
     const group2 = client2.conversations.getConversationById(group.id);
     expect(group2).toBeDefined();
-    expect(group2!.consentState).toBe(NapiConsentState.Unknown);
+    expect(group2!.consentState).toBe(ConsentState.Unknown);
     await group2!.send("gm!");
-    expect(group2!.consentState).toBe(NapiConsentState.Allowed);
+    expect(group2!.consentState).toBe(ConsentState.Allowed);
 
     await client3.conversations.sync();
     const dmGroup2 = client3.conversations.getConversationById(dmGroup.id);
     expect(dmGroup2).toBeDefined();
-    expect(dmGroup2!.consentState).toBe(NapiConsentState.Unknown);
+    expect(dmGroup2!.consentState).toBe(ConsentState.Unknown);
     await dmGroup2!.send("gm!");
-    expect(dmGroup2!.consentState).toBe(NapiConsentState.Allowed);
+    expect(dmGroup2!.consentState).toBe(ConsentState.Allowed);
   });
 });
