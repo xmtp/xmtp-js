@@ -1,5 +1,14 @@
 # @xmtp/node-sdk
 
+## 0.0.22
+
+### Patch Changes
+
+- 5a41542:
+  - Upgraded node bindings
+  - Refactored code with updated type exports
+  - Fixed streaming issues when a stream error occurs
+
 ## 0.0.21
 
 ### Patch Changes
