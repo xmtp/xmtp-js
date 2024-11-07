@@ -1,6 +1,6 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { WasmConsentState } from "@xmtp/wasm-bindings";
+import type { ConsentState } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
@@ -276,7 +276,7 @@ export class Conversation {
     });
   }
 
-  async updateConsentState(state: WasmConsentState) {
+  async updateConsentState(state: ConsentState) {
     return this.#client.sendMessage("updateGroupConsentState", {
       id: this.#id,
       state,

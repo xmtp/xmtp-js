@@ -1,12 +1,13 @@
 import type {
-  WasmConsentState,
-  WasmEncodedContent,
-  WasmGroup,
-  WasmGroupMember,
+  ConsentState,
+  Conversation,
+  EncodedContent,
 } from "@xmtp/wasm-bindings";
 import {
   fromSafeListMessagesOptions,
+  toSafeGroupMember,
   type SafeListMessagesOptions,
+  type WasmGroupMember,
 } from "@/utils/conversions";
 import type { WorkerClient } from "@/WorkerClient";
 
@@ -14,9 +15,9 @@ export class WorkerConversation {
   // eslint-disable-next-line no-unused-private-class-members
   #client: WorkerClient;
 
-  #group: WasmGroup;
+  #group: Conversation;
 
-  constructor(client: WorkerClient, group: WasmGroup) {
+  constructor(client: WorkerClient, group: Conversation) {
     this.#client = client;
     this.#group = group;
   }
@@ -26,51 +27,51 @@ export class WorkerConversation {
   }
 
   get name() {
-    return this.#group.group_name();
+    return this.#group.groupName();
   }
 
   async updateName(name: string) {
-    return this.#group.update_group_name(name);
+    return this.#group.updateGroupName(name);
   }
 
   get imageUrl() {
-    return this.#group.group_image_url_square();
+    return this.#group.groupImageUrlSquare();
   }
 
   async updateImageUrl(imageUrl: string) {
-    return this.#group.update_group_image_url_square(imageUrl);
+    return this.#group.updateGroupImageUrlSquare(imageUrl);
   }
 
   get description() {
-    return this.#group.group_description();
+    return this.#group.groupDescription();
   }
 
   async updateDescription(description: string) {
-    return this.#group.update_group_description(description);
+    return this.#group.updateGroupDescription(description);
   }
 
   get pinnedFrameUrl() {
-    return this.#group.group_pinned_frame_url();
+    return this.#group.groupPinnedFrameUrl();
   }
 
   async updatePinnedFrameUrl(pinnedFrameUrl: string) {
-    return this.#group.update_group_pinned_frame_url(pinnedFrameUrl);
+    return this.#group.updateGroupPinnedFrameUrl(pinnedFrameUrl);
   }
 
   get isActive() {
-    return this.#group.is_active();
+    return this.#group.isActive();
   }
 
   get addedByInboxId() {
-    return this.#group.added_by_inbox_id();
+    return this.#group.addedByInboxId();
   }
 
   get createdAtNs() {
-    return this.#group.created_at_ns();
+    return this.#group.createdAtNs();
   }
 
   get metadata() {
-    const metadata = this.#group.group_metadata();
+    const metadata = this.#group.groupMetadata();
     return {
       creatorInboxId: metadata.creator_inbox_id(),
       conversationType: metadata.conversation_type(),
@@ -78,31 +79,32 @@ export class WorkerConversation {
   }
 
   async members() {
-    return this.#group.list_members() as Promise<WasmGroupMember[]>;
+    const members = (await this.#group.listMembers()) as WasmGroupMember[];
+    return members.map((member) => toSafeGroupMember(member));
   }
 
   get admins() {
-    return this.#group.admin_list();
+    return this.#group.adminList();
   }
 
   get superAdmins() {
-    return this.#group.super_admin_list();
+    return this.#group.superAdminList();
   }
 
   get permissions() {
-    const permissions = this.#group.group_permissions();
+    const permissions = this.#group.groupPermissions();
     return {
-      policyType: permissions.policy_type(),
-      policySet: permissions.policy_set(),
+      policyType: permissions.policyType(),
+      policySet: permissions.policySet(),
     };
   }
 
   isAdmin(inboxId: string) {
-    return this.#group.is_admin(inboxId);
+    return this.#group.isAdmin(inboxId);
   }
 
   isSuperAdmin(inboxId: string) {
-    return this.#group.is_super_admin(inboxId);
+    return this.#group.isSuperAdmin(inboxId);
   }
 
   async sync() {
@@ -110,64 +112,64 @@ export class WorkerConversation {
   }
 
   async addMembers(accountAddresses: string[]) {
-    return this.#group.add_members(accountAddresses);
+    return this.#group.addMembers(accountAddresses);
   }
 
   async addMembersByInboxId(inboxIds: string[]) {
-    return this.#group.add_members_by_inbox_id(inboxIds);
+    return this.#group.addMembersByInboxId(inboxIds);
   }
 
   async removeMembers(accountAddresses: string[]) {
-    return this.#group.remove_members(accountAddresses);
+    return this.#group.removeMembers(accountAddresses);
   }
 
   async removeMembersByInboxId(inboxIds: string[]) {
-    return this.#group.remove_members_by_inbox_id(inboxIds);
+    return this.#group.removeMembersByInboxId(inboxIds);
   }
 
   async addAdmin(inboxId: string) {
-    return this.#group.add_admin(inboxId);
+    return this.#group.addAdmin(inboxId);
   }
 
   async removeAdmin(inboxId: string) {
-    return this.#group.remove_admin(inboxId);
+    return this.#group.removeAdmin(inboxId);
   }
 
   async addSuperAdmin(inboxId: string) {
-    return this.#group.add_super_admin(inboxId);
+    return this.#group.addSuperAdmin(inboxId);
   }
 
   async removeSuperAdmin(inboxId: string) {
-    return this.#group.remove_super_admin(inboxId);
+    return this.#group.removeSuperAdmin(inboxId);
   }
 
   async publishMessages() {
-    return this.#group.publish_messages();
+    return this.#group.publishMessages();
   }
 
-  sendOptimistic(encodedContent: WasmEncodedContent) {
-    return this.#group.send_optimistic(encodedContent);
+  sendOptimistic(encodedContent: EncodedContent) {
+    return this.#group.sendOptimistic(encodedContent);
   }
 
-  async send(encodedContent: WasmEncodedContent) {
+  async send(encodedContent: EncodedContent) {
     return this.#group.send(encodedContent);
   }
 
   messages(options?: SafeListMessagesOptions) {
-    return this.#group.find_messages(
+    return this.#group.findMessages(
       options ? fromSafeListMessagesOptions(options) : undefined,
     );
   }
 
   get consentState() {
-    return this.#group.consent_state();
+    return this.#group.consentState();
   }
 
-  updateConsentState(state: WasmConsentState) {
-    this.#group.update_consent_state(state);
+  updateConsentState(state: ConsentState) {
+    this.#group.updateConsentState(state);
   }
 
   dmPeerInboxId() {
-    return this.#group.dm_peer_inbox_id();
+    return this.#group.dmPeerInboxId();
   }
 }

@@ -1,4 +1,4 @@
-import { WasmConsentState } from "@xmtp/wasm-bindings";
+import { ConsentState } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
 import { Conversation } from "@/Conversation";
 import {
@@ -393,9 +393,9 @@ describe.concurrent("Conversation", () => {
 
     const groupConvo = new Conversation(client2, group2!.id, group2);
 
-    expect(await groupConvo.consentState()).toBe(WasmConsentState.Unknown);
+    expect(await groupConvo.consentState()).toBe(ConsentState.Unknown);
     await groupConvo.send("gm!");
-    expect(await groupConvo.consentState()).toBe(WasmConsentState.Allowed);
+    expect(await groupConvo.consentState()).toBe(ConsentState.Allowed);
 
     await client3.conversations.sync();
     const dmGroup2 = await client3.conversations.getConversationById(
@@ -405,8 +405,8 @@ describe.concurrent("Conversation", () => {
 
     const dmConvo = new Conversation(client3, dmGroup2!.id, dmGroup2);
 
-    expect(await dmConvo.consentState()).toBe(WasmConsentState.Unknown);
+    expect(await dmConvo.consentState()).toBe(ConsentState.Unknown);
     await dmConvo.send("gm!");
-    expect(await dmConvo.consentState()).toBe(WasmConsentState.Allowed);
+    expect(await dmConvo.consentState()).toBe(ConsentState.Allowed);
   });
 });

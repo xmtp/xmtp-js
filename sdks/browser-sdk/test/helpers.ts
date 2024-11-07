@@ -3,7 +3,7 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { WasmSignatureRequestType } from "@xmtp/wasm-bindings";
+import { SignatureRequestType } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -59,10 +59,7 @@ export const createRegisteredClient = async (
   if (!isRegistered) {
     const signature = await getSignature(client, user);
     if (signature) {
-      await client.addSignature(
-        WasmSignatureRequestType.CreateInbox,
-        signature,
-      );
+      await client.addSignature(SignatureRequestType.CreateInbox, signature);
     }
     await client.registerIdentity();
   }

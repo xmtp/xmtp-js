@@ -1,4 +1,4 @@
-import { Client, WasmSignatureRequestType } from "@xmtp/browser-sdk";
+import { Client, SignatureRequestType } from "@xmtp/browser-sdk";
 import { toBytes } from "viem/utils";
 import { createWallet } from "./wallets";
 
@@ -24,10 +24,7 @@ export const createClient = async (walletKey: string) => {
   if (!isRegistered) {
     const signature = await getSignature(client, wallet);
     if (signature) {
-      await client.addSignature(
-        WasmSignatureRequestType.CreateInbox,
-        signature,
-      );
+      await client.addSignature(SignatureRequestType.CreateInbox, signature);
     }
     await client.registerIdentity();
   }

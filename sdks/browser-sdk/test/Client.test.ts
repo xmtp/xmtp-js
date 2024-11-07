@@ -1,7 +1,7 @@
 import {
-  WasmConsentEntityType,
-  WasmConsentState,
-  WasmSignatureRequestType,
+  ConsentEntityType,
+  ConsentState,
+  SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { toBytes } from "viem";
@@ -93,11 +93,11 @@ describe.concurrent("Client", () => {
     });
 
     await client.addSignature(
-      WasmSignatureRequestType.AddWallet,
+      SignatureRequestType.AddWallet,
       toBytes(signature),
     );
     await client.addSignature(
-      WasmSignatureRequestType.AddWallet,
+      SignatureRequestType.AddWallet,
       toBytes(signature2),
     );
     await client.applySignatures();
@@ -130,11 +130,11 @@ describe.concurrent("Client", () => {
     });
 
     await client.addSignature(
-      WasmSignatureRequestType.AddWallet,
+      SignatureRequestType.AddWallet,
       toBytes(signature),
     );
     await client.addSignature(
-      WasmSignatureRequestType.AddWallet,
+      SignatureRequestType.AddWallet,
       toBytes(signature2),
     );
     await client.applySignatures();
@@ -150,7 +150,7 @@ describe.concurrent("Client", () => {
     });
 
     await client.addSignature(
-      WasmSignatureRequestType.RevokeWallet,
+      SignatureRequestType.RevokeWallet,
       toBytes(signature3),
     );
     await client.applySignatures();
@@ -186,7 +186,7 @@ describe.concurrent("Client", () => {
     });
 
     await client3.addSignature(
-      WasmSignatureRequestType.RevokeInstallations,
+      SignatureRequestType.RevokeInstallations,
       toBytes(signature),
     );
     await client3.applySignatures();
@@ -209,29 +209,29 @@ describe.concurrent("Client", () => {
     expect(group2).not.toBeNull();
 
     expect(
-      await client2.getConsentState(WasmConsentEntityType.GroupId, group2!.id),
-    ).toBe(WasmConsentState.Unknown);
+      await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
+    ).toBe(ConsentState.Unknown);
 
     await client2.setConsentStates([
       {
-        entityType: WasmConsentEntityType.GroupId,
+        entityType: ConsentEntityType.GroupId,
         entity: group2!.id,
-        state: WasmConsentState.Allowed,
+        state: ConsentState.Allowed,
       },
     ]);
 
     expect(
-      await client2.getConsentState(WasmConsentEntityType.GroupId, group2!.id),
-    ).toBe(WasmConsentState.Allowed);
+      await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
+    ).toBe(ConsentState.Allowed);
 
     const convo = new Conversation(client2, group2!.id, group2);
 
-    expect(await convo.consentState()).toBe(WasmConsentState.Allowed);
+    expect(await convo.consentState()).toBe(ConsentState.Allowed);
 
-    await convo.updateConsentState(WasmConsentState.Denied);
+    await convo.updateConsentState(ConsentState.Denied);
 
     expect(
-      await client2.getConsentState(WasmConsentEntityType.GroupId, group2!.id),
-    ).toBe(WasmConsentState.Denied);
+      await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
+    ).toBe(ConsentState.Denied);
   });
 });

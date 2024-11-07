@@ -8,9 +8,9 @@ import type {
 } from "@xmtp/content-type-primitives";
 import { TextCodec } from "@xmtp/content-type-text";
 import {
-  WasmGroupMessageKind,
-  type WasmConsentEntityType,
-  type WasmSignatureRequestType,
+  GroupMessageKind,
+  type ConsentEntityType,
+  type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
@@ -99,7 +99,7 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("getRevokeInstallationsSignatureText", undefined);
   }
 
-  async addSignature(type: WasmSignatureRequestType, bytes: Uint8Array) {
+  async addSignature(type: SignatureRequestType, bytes: Uint8Array) {
     return this.sendMessage("addSignature", { type, bytes });
   }
 
@@ -137,7 +137,7 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("setConsentStates", { records });
   }
 
-  async getConsentState(entityType: WasmConsentEntityType, entity: string) {
+  async getConsentState(entityType: ConsentEntityType, entity: string) {
     return this.sendMessage("getConsentState", { entityType, entity });
   }
 
@@ -175,7 +175,7 @@ export class Client extends ClientWorkerClass {
     // throw an error if there's an invalid group membership change message
     if (
       contentType.sameAs(ContentTypeGroupUpdated) &&
-      message.kind !== WasmGroupMessageKind.MembershipChange
+      message.kind !== GroupMessageKind.MembershipChange
     ) {
       throw new Error("Error decoding group membership change");
     }

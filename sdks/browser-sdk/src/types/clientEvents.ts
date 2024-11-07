@@ -1,7 +1,7 @@
 import type {
-  WasmConsentEntityType,
-  WasmConsentState,
-  WasmSignatureRequestType,
+  ConsentEntityType,
+  ConsentState,
+  SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import type {
   ClientOptions,
@@ -74,7 +74,7 @@ export type ClientEvents =
       id: string;
       result: undefined;
       data: {
-        type: WasmSignatureRequestType;
+        type: SignatureRequestType;
         bytes: Uint8Array;
       };
     }
@@ -131,9 +131,9 @@ export type ClientEvents =
   | {
       action: "getConsentState";
       id: string;
-      result: WasmConsentState;
+      result: ConsentState;
       data: {
-        entityType: WasmConsentEntityType;
+        entityType: ConsentEntityType;
         entity: string;
       };
     }
@@ -418,7 +418,7 @@ export type ClientEvents =
   | {
       action: "getGroupConsentState";
       id: string;
-      result: WasmConsentState;
+      result: ConsentState;
       data: {
         id: string;
       };
@@ -429,7 +429,7 @@ export type ClientEvents =
       result: undefined;
       data: {
         id: string;
-        state: WasmConsentState;
+        state: ConsentState;
       };
     }
   | {
