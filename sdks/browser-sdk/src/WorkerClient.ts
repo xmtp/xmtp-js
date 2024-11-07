@@ -1,7 +1,7 @@
 import {
-  type WasmClient,
-  type WasmConsentEntityType,
-  type WasmSignatureRequestType,
+  type Client,
+  type ConsentEntityType,
+  type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types";
 import { fromSafeConsent, type SafeConsent } from "@/utils/conversions";
@@ -9,13 +9,13 @@ import { createClient } from "@/utils/createClient";
 import { WorkerConversations } from "@/WorkerConversations";
 
 export class WorkerClient {
-  #client: WasmClient;
+  #client: Client;
 
   #conversations: WorkerConversations;
 
   #accountAddress: string;
 
-  constructor(client: WasmClient) {
+  constructor(client: Client) {
     this.#client = client;
     this.#accountAddress = client.accountAddress;
     this.#conversations = new WorkerConversations(this, client.conversations());
@@ -80,7 +80,7 @@ export class WorkerClient {
     }
   }
 
-  async addSignature(type: WasmSignatureRequestType, bytes: Uint8Array) {
+  async addSignature(type: SignatureRequestType, bytes: Uint8Array) {
     return this.#client.addSignature(type, bytes);
   }
 
@@ -114,7 +114,7 @@ export class WorkerClient {
     return this.#client.setConsentStates(records.map(fromSafeConsent));
   }
 
-  async getConsentState(entityType: WasmConsentEntityType, entity: string) {
+  async getConsentState(entityType: ConsentEntityType, entity: string) {
     return this.#client.getConsentState(entityType, entity);
   }
 

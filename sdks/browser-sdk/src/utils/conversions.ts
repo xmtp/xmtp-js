@@ -3,26 +3,26 @@ import {
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
 import {
-  WasmConsent,
-  WasmContentTypeId,
-  WasmCreateGroupOptions,
-  WasmEncodedContent,
-  WasmGroupMember,
-  WasmListConversationsOptions,
-  WasmListMessagesOptions,
-  type WasmConsentEntityType,
-  type WasmConsentState,
-  type WasmConversationType,
-  type WasmDeliveryStatus,
-  type WasmDirection,
-  type WasmGroupMembershipState,
-  type WasmGroupMessageKind,
-  type WasmGroupPermissionsOptions,
-  type WasmInboxState,
-  type WasmInstallation,
-  type WasmMessage,
-  type WasmPermissionLevel,
-  type WasmPermissionPolicy,
+  Consent,
+  CreateGroupOptions,
+  GroupMember,
+  ListConversationsOptions,
+  ListMessagesOptions,
+  ContentTypeId as WasmContentTypeId,
+  EncodedContent as WasmEncodedContent,
+  type ConsentEntityType,
+  type ConsentState,
+  type ConversationType,
+  type DeliveryStatus,
+  type GroupMembershipState,
+  type GroupMessageKind,
+  type GroupPermissionsOptions,
+  type InboxState,
+  type Installation,
+  type Message,
+  type PermissionLevel,
+  type PermissionPolicy,
+  type SortDirection,
 } from "@xmtp/wasm-bindings";
 import type { WorkerConversation } from "@/WorkerConversation";
 
@@ -30,10 +30,10 @@ export const toContentTypeId = (
   contentTypeId: WasmContentTypeId,
 ): ContentTypeId =>
   new ContentTypeId({
-    authorityId: contentTypeId.authority_id,
-    typeId: contentTypeId.type_id,
-    versionMajor: contentTypeId.version_major,
-    versionMinor: contentTypeId.version_minor,
+    authorityId: contentTypeId.authorityId,
+    typeId: contentTypeId.typeId,
+    versionMajor: contentTypeId.versionMajor,
+    versionMinor: contentTypeId.versionMinor,
   });
 
 export const fromContentTypeId = (
@@ -125,83 +125,83 @@ export const fromSafeEncodedContent = (
 export type SafeMessage = {
   content: SafeEncodedContent;
   convoId: string;
-  deliveryStatus: WasmDeliveryStatus;
+  deliveryStatus: DeliveryStatus;
   id: string;
-  kind: WasmGroupMessageKind;
+  kind: GroupMessageKind;
   senderInboxId: string;
   sentAtNs: bigint;
 };
 
-export const toSafeMessage = (message: WasmMessage): SafeMessage => ({
+export const toSafeMessage = (message: Message): SafeMessage => ({
   content: toSafeEncodedContent(toEncodedContent(message.content)),
-  convoId: message.convo_id,
-  deliveryStatus: message.delivery_status,
+  convoId: message.convoId,
+  deliveryStatus: message.deliveryStatus,
   id: message.id,
   kind: message.kind,
-  senderInboxId: message.sender_inbox_id,
-  sentAtNs: message.sent_at_ns,
+  senderInboxId: message.senderInboxId,
+  sentAtNs: message.sentAtNs,
 });
 
 export type SafeListMessagesOptions = {
-  delivery_status?: WasmDeliveryStatus;
-  direction?: WasmDirection;
+  deliveryStatus?: DeliveryStatus;
+  direction?: SortDirection;
   limit?: bigint;
-  sent_after_ns?: bigint;
-  sent_before_ns?: bigint;
+  sentAfterNs?: bigint;
+  sentBeforeNs?: bigint;
 };
 
 export const toSafeListMessagesOptions = (
-  options: WasmListMessagesOptions,
+  options: ListMessagesOptions,
 ): SafeListMessagesOptions => ({
-  delivery_status: options.delivery_status,
+  deliveryStatus: options.deliveryStatus,
   direction: options.direction,
   limit: options.limit,
-  sent_after_ns: options.sent_after_ns,
-  sent_before_ns: options.sent_before_ns,
+  sentAfterNs: options.sentAfterNs,
+  sentBeforeNs: options.sentBeforeNs,
 });
 
 export const fromSafeListMessagesOptions = (
   options: SafeListMessagesOptions,
-): WasmListMessagesOptions =>
-  new WasmListMessagesOptions(
-    options.sent_before_ns,
-    options.sent_after_ns,
+): ListMessagesOptions =>
+  new ListMessagesOptions(
+    options.sentBeforeNs,
+    options.sentAfterNs,
     options.limit,
-    options.delivery_status,
+    options.deliveryStatus,
     options.direction,
   );
 
 export type SafeListConversationsOptions = {
-  allowed_states?: WasmGroupMembershipState[];
-  conversation_type?: WasmConversationType;
-  created_after_ns?: bigint;
-  created_before_ns?: bigint;
+  allowedStates?: GroupMembershipState[];
+  conversationType?: ConversationType;
+  createdAfterNs?: bigint;
+  createdBeforeNs?: bigint;
   limit?: bigint;
 };
 
 export const toSafeListConversationsOptions = (
-  options: WasmListConversationsOptions,
+  options: ListConversationsOptions,
 ): SafeListConversationsOptions => ({
-  allowed_states: options.allowed_states,
-  conversation_type: options.conversation_type,
-  created_after_ns: options.created_after_ns,
-  created_before_ns: options.created_before_ns,
+  allowedStates: options.allowedStates,
+  conversationType: options.conversationType,
+  createdAfterNs: options.createdAfterNs,
+  createdBeforeNs: options.createdBeforeNs,
   limit: options.limit,
 });
 
 export const fromSafeListConversationsOptions = (
   options: SafeListConversationsOptions,
-): WasmListConversationsOptions =>
-  new WasmListConversationsOptions(
-    options.allowed_states,
-    options.conversation_type,
-    options.created_after_ns,
-    options.created_before_ns,
+): ListConversationsOptions =>
+  new ListConversationsOptions(
+    options.allowedStates,
+    options.conversationType,
+    options.createdAfterNs,
+    options.createdBeforeNs,
     options.limit,
   );
 
 export type SafeCreateGroupOptions = {
-  permissions?: WasmGroupPermissionsOptions;
+  permissions?: GroupPermissionsOptions;
   name?: string;
   imageUrlSquare?: string;
   description?: string;
@@ -209,19 +209,19 @@ export type SafeCreateGroupOptions = {
 };
 
 export const toSafeCreateGroupOptions = (
-  options: WasmCreateGroupOptions,
+  options: CreateGroupOptions,
 ): SafeCreateGroupOptions => ({
   permissions: options.permissions,
-  name: options.group_name,
-  imageUrlSquare: options.group_image_url_square,
-  description: options.group_description,
-  pinnedFrameUrl: options.group_pinned_frame_url,
+  name: options.groupName,
+  imageUrlSquare: options.groupImageUrlSquare,
+  description: options.groupDescription,
+  pinnedFrameUrl: options.groupPinnedFrameUrl,
 });
 
 export const fromSafeCreateGroupOptions = (
   options: SafeCreateGroupOptions,
-): WasmCreateGroupOptions =>
-  new WasmCreateGroupOptions(
+): CreateGroupOptions =>
+  new CreateGroupOptions(
     options.permissions,
     options.name,
     options.imageUrlSquare,
@@ -236,16 +236,16 @@ export type SafeConversation = {
   description: string;
   pinnedFrameUrl: string;
   permissions: {
-    policyType: WasmGroupPermissionsOptions;
+    policyType: GroupPermissionsOptions;
     policySet: {
-      addAdminPolicy: WasmPermissionPolicy;
-      addMemberPolicy: WasmPermissionPolicy;
-      removeAdminPolicy: WasmPermissionPolicy;
-      removeMemberPolicy: WasmPermissionPolicy;
-      updateGroupDescriptionPolicy: WasmPermissionPolicy;
-      updateGroupImageUrlSquarePolicy: WasmPermissionPolicy;
-      updateGroupNamePolicy: WasmPermissionPolicy;
-      updateGroupPinnedFrameUrlPolicy: WasmPermissionPolicy;
+      addAdminPolicy: PermissionPolicy;
+      addMemberPolicy: PermissionPolicy;
+      removeAdminPolicy: PermissionPolicy;
+      removeMemberPolicy: PermissionPolicy;
+      updateGroupDescriptionPolicy: PermissionPolicy;
+      updateGroupImageUrlSquarePolicy: PermissionPolicy;
+      updateGroupNamePolicy: PermissionPolicy;
+      updateGroupPinnedFrameUrlPolicy: PermissionPolicy;
     };
   };
   isActive: boolean;
@@ -270,19 +270,18 @@ export const toSafeConversation = (
   permissions: {
     policyType: conversation.permissions.policyType,
     policySet: {
-      addAdminPolicy: conversation.permissions.policySet.add_admin_policy,
-      addMemberPolicy: conversation.permissions.policySet.add_member_policy,
-      removeAdminPolicy: conversation.permissions.policySet.remove_admin_policy,
-      removeMemberPolicy:
-        conversation.permissions.policySet.remove_member_policy,
+      addAdminPolicy: conversation.permissions.policySet.addAdminPolicy,
+      addMemberPolicy: conversation.permissions.policySet.addMemberPolicy,
+      removeAdminPolicy: conversation.permissions.policySet.removeAdminPolicy,
+      removeMemberPolicy: conversation.permissions.policySet.removeMemberPolicy,
       updateGroupDescriptionPolicy:
-        conversation.permissions.policySet.update_group_description_policy,
+        conversation.permissions.policySet.updateGroupDescriptionPolicy,
       updateGroupImageUrlSquarePolicy:
-        conversation.permissions.policySet.update_group_image_url_square_policy,
+        conversation.permissions.policySet.updateGroupImageUrlSquarePolicy,
       updateGroupNamePolicy:
-        conversation.permissions.policySet.update_group_name_policy,
+        conversation.permissions.policySet.updateGroupNamePolicy,
       updateGroupPinnedFrameUrlPolicy:
-        conversation.permissions.policySet.update_group_pinned_frame_url_policy,
+        conversation.permissions.policySet.updateGroupPinnedFrameUrlPolicy,
     },
   },
   isActive: conversation.isActive,
@@ -299,10 +298,10 @@ export type SafeInstallation = {
 };
 
 export const toSafeInstallation = (
-  installation: WasmInstallation,
+  installation: Installation,
 ): SafeInstallation => ({
   id: installation.id,
-  clientTimestampNs: installation.client_timestamp_ns,
+  clientTimestampNs: installation.clientTimestampNs,
 });
 
 export type SafeInboxState = {
@@ -312,37 +311,57 @@ export type SafeInboxState = {
   recoveryAddress: string;
 };
 
-export const toSafeInboxState = (
-  inboxState: WasmInboxState,
-): SafeInboxState => ({
-  accountAddresses: inboxState.account_addresses,
-  inboxId: inboxState.inbox_id,
+export const toSafeInboxState = (inboxState: InboxState): SafeInboxState => ({
+  accountAddresses: inboxState.accountAddresses,
+  inboxId: inboxState.inboxId,
   installations: inboxState.installations.map(toSafeInstallation),
-  recoveryAddress: inboxState.recovery_address,
+  recoveryAddress: inboxState.recoveryAddress,
 });
 
 export type SafeConsent = {
   entity: string;
-  entityType: WasmConsentEntityType;
-  state: WasmConsentState;
+  entityType: ConsentEntityType;
+  state: ConsentState;
 };
 
-export const toSafeConsent = (consent: WasmConsent): SafeConsent => ({
+export const toSafeConsent = (consent: Consent): SafeConsent => ({
   entity: consent.entity,
-  entityType: consent.entity_type,
+  entityType: consent.entityType,
   state: consent.state,
 });
 
-export const fromSafeConsent = (consent: SafeConsent): WasmConsent =>
-  new WasmConsent(consent.entityType, consent.state, consent.entity);
+export const fromSafeConsent = (consent: SafeConsent): Consent =>
+  new Consent(consent.entityType, consent.state, consent.entity);
 
 export type SafeGroupMember = {
   accountAddresses: string[];
-  consentState: WasmConsentState;
+  consentState: ConsentState;
   inboxId: string;
   installationIds: string[];
-  permissionLevel: WasmPermissionLevel;
+  permissionLevel: PermissionLevel;
 };
+
+export class WasmGroupMember {
+  account_addresses: string[];
+  consent_state: ConsentState;
+  inbox_id: string;
+  installation_ids: string[];
+  permission_level: PermissionLevel;
+
+  constructor(
+    inbox_id: string,
+    account_addresses: string[],
+    installation_ids: string[],
+    permission_level: PermissionLevel,
+    consent_state: ConsentState,
+  ) {
+    this.inbox_id = inbox_id;
+    this.account_addresses = account_addresses;
+    this.installation_ids = installation_ids;
+    this.permission_level = permission_level;
+    this.consent_state = consent_state;
+  }
+}
 
 export const toSafeGroupMember = (
   member: WasmGroupMember,
@@ -354,8 +373,8 @@ export const toSafeGroupMember = (
   permissionLevel: member.permission_level,
 });
 
-export const fromSafeGroupMember = (member: SafeGroupMember): WasmGroupMember =>
-  new WasmGroupMember(
+export const fromSafeGroupMember = (member: SafeGroupMember): GroupMember =>
+  new GroupMember(
     member.inboxId,
     member.accountAddresses,
     member.installationIds,

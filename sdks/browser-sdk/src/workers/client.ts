@@ -8,7 +8,6 @@ import {
   fromEncodedContent,
   fromSafeEncodedContent,
   toSafeConversation,
-  toSafeGroupMember,
   toSafeInboxState,
   toSafeMessage,
 } from "@/utils/conversions";
@@ -467,11 +466,11 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       case "getGroupMembers": {
         const group = client.conversations.getConversationById(data.id);
         if (group) {
-          const members = await group.members();
+          const result = await group.members();
           postMessage({
             id,
             action,
-            result: members.map((member) => toSafeGroupMember(member)),
+            result,
           });
         } else {
           postMessageError({

@@ -4,8 +4,9 @@ import { createRegisteredClient, createUser } from "@test/helpers";
 
 describe.concurrent("Utils", () => {
   it("should generate inbox id", async () => {
+    const user = createUser();
     const utils = new Utils();
-    const inboxId = await utils.generateInboxId("0x1234");
+    const inboxId = await utils.generateInboxId(user.account.address);
     expect(inboxId).toBeDefined();
   });
 

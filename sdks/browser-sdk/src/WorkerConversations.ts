@@ -1,4 +1,4 @@
-import type { WasmConversations, WasmGroup } from "@xmtp/wasm-bindings";
+import type { Conversation, Conversations } from "@xmtp/wasm-bindings";
 import {
   fromSafeCreateGroupOptions,
   fromSafeListConversationsOptions,
@@ -12,9 +12,9 @@ import { WorkerConversation } from "@/WorkerConversation";
 export class WorkerConversations {
   #client: WorkerClient;
 
-  #conversations: WasmConversations;
+  #conversations: Conversations;
 
-  constructor(client: WorkerClient, conversations: WasmConversations) {
+  constructor(client: WorkerClient, conversations: Conversations) {
     this.#client = client;
     this.#conversations = conversations;
   }
@@ -25,7 +25,7 @@ export class WorkerConversations {
 
   getConversationById(id: string) {
     try {
-      const group = this.#conversations.find_group_by_id(id);
+      const group = this.#conversations.findGroupById(id);
       // findGroupById will throw if group is not found
       return new WorkerConversation(this.#client, group);
     } catch {
@@ -36,7 +36,7 @@ export class WorkerConversations {
   getMessageById(id: string) {
     try {
       // findMessageById will throw if message is not found
-      const message = this.#conversations.find_message_by_id(id);
+      const message = this.#conversations.findMessageById(id);
       return toSafeMessage(message);
     } catch {
       return undefined;
@@ -45,7 +45,7 @@ export class WorkerConversations {
 
   getDmByInboxId(inboxId: string) {
     try {
-      const group = this.#conversations.find_dm_by_target_inbox_id(inboxId);
+      const group = this.#conversations.findDmByTargetInboxId(inboxId);
       return new WorkerConversation(this.#client, group);
     } catch {
       return undefined;
@@ -55,30 +55,30 @@ export class WorkerConversations {
   async list(options?: SafeListConversationsOptions) {
     const groups = (await this.#conversations.list(
       options ? fromSafeListConversationsOptions(options) : undefined,
-    )) as WasmGroup[];
+    )) as Conversation[];
     return groups.map((group) => new WorkerConversation(this.#client, group));
   }
 
   async listGroups(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    const groups = (await this.#conversations.list_groups(
+    const groups = (await this.#conversations.listGroups(
       options ? fromSafeListConversationsOptions(options) : undefined,
-    )) as WasmGroup[];
+    )) as Conversation[];
     return groups.map((group) => new WorkerConversation(this.#client, group));
   }
 
   async listDms(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    const groups = (await this.#conversations.list_dms(
+    const groups = (await this.#conversations.listDms(
       options ? fromSafeListConversationsOptions(options) : undefined,
-    )) as WasmGroup[];
+    )) as Conversation[];
     return groups.map((group) => new WorkerConversation(this.#client, group));
   }
 
   async newGroup(accountAddresses: string[], options?: SafeCreateGroupOptions) {
-    const group = await this.#conversations.create_group(
+    const group = await this.#conversations.createGroup(
       accountAddresses,
       options ? fromSafeCreateGroupOptions(options) : undefined,
     );
@@ -86,7 +86,7 @@ export class WorkerConversations {
   }
 
   async newDm(accountAddress: string) {
-    const group = await this.#conversations.create_dm(accountAddress);
+    const group = await this.#conversations.createDm(accountAddress);
     return new WorkerConversation(this.#client, group);
   }
 }

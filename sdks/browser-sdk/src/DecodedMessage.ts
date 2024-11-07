@@ -1,5 +1,5 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
-import { WasmDeliveryStatus, WasmGroupMessageKind } from "@xmtp/wasm-bindings";
+import { DeliveryStatus, GroupMessageKind } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
 import { fromSafeContentTypeId, type SafeMessage } from "@/utils/conversions";
 
@@ -39,23 +39,23 @@ export class DecodedMessage {
     this.senderInboxId = message.senderInboxId;
 
     switch (message.kind) {
-      case WasmGroupMessageKind.Application:
+      case GroupMessageKind.Application:
         this.kind = "application";
         break;
-      case WasmGroupMessageKind.MembershipChange:
+      case GroupMessageKind.MembershipChange:
         this.kind = "membership_change";
         break;
       // no default
     }
 
     switch (message.deliveryStatus) {
-      case WasmDeliveryStatus.Unpublished:
+      case DeliveryStatus.Unpublished:
         this.deliveryStatus = "unpublished";
         break;
-      case WasmDeliveryStatus.Published:
+      case DeliveryStatus.Published:
         this.deliveryStatus = "published";
         break;
-      case WasmDeliveryStatus.Failed:
+      case DeliveryStatus.Failed:
         this.deliveryStatus = "failed";
         break;
       // no default

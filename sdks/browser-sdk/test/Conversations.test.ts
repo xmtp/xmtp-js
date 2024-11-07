@@ -1,7 +1,4 @@
-import {
-  WasmConsentState,
-  WasmGroupPermissionsOptions,
-} from "@xmtp/wasm-bindings";
+import { ConsentState, GroupPermissionsOptions } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
@@ -33,7 +30,7 @@ describe.concurrent("Conversations", () => {
     expect(conversation.isActive).toBe(true);
     expect(conversation.name).toBe("");
     expect(conversation.permissions?.policyType).toBe(
-      WasmGroupPermissionsOptions.AllMembers,
+      GroupPermissionsOptions.AllMembers,
     );
     expect(conversation.permissions?.policySet).toEqual({
       addMemberPolicy: 0,
@@ -87,7 +84,7 @@ describe.concurrent("Conversations", () => {
     expect(group.isActive).toBe(true);
     expect(group.name).toBe("");
     expect(group.permissions?.policyType).toBe(
-      WasmGroupPermissionsOptions.CustomPolicy,
+      GroupPermissionsOptions.CustomPolicy,
     );
     expect(group.permissions?.policySet).toEqual({
       addAdminPolicy: 1,
@@ -109,7 +106,7 @@ describe.concurrent("Conversations", () => {
     expect(group.metadata?.conversationType).toBe("dm");
     expect(group.metadata?.creatorInboxId).toBe(client1.inboxId);
 
-    expect(await group.consentState()).toBe(WasmConsentState.Allowed);
+    expect(await group.consentState()).toBe(ConsentState.Allowed);
 
     const group1 = await client1.conversations.list();
     expect(group1.length).toBe(1);
@@ -214,14 +211,14 @@ describe.concurrent("Conversations", () => {
     const groupWithPermissions = await client1.conversations.newGroup(
       [user4.account.address],
       {
-        permissions: WasmGroupPermissionsOptions.AdminOnly,
+        permissions: GroupPermissionsOptions.AdminOnly,
       },
     );
     expect(groupWithPermissions).toBeDefined();
     expect(groupWithPermissions.name).toBe("");
     expect(groupWithPermissions.imageUrl).toBe("");
     expect(groupWithPermissions.permissions?.policyType).toBe(
-      WasmGroupPermissionsOptions.AdminOnly,
+      GroupPermissionsOptions.AdminOnly,
     );
 
     expect(groupWithPermissions.permissions?.policySet).toEqual({
