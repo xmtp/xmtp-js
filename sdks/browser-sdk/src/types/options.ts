@@ -19,16 +19,6 @@ export type NetworkOptions = {
 };
 
 /**
- * Encryption options
- */
-export type EncryptionOptions = {
-  /**
-   * Encryption key to use for the local DB
-   */
-  encryptionKey?: Uint8Array;
-};
-
-/**
  * Storage options
  */
 export type StorageOptions = {
@@ -47,13 +37,20 @@ export type ContentOptions = {
 
 export type OtherOptions = {
   /**
-   * Enable logging of events between the client and worker
+   * Enable structured JSON logging
    */
-  enableLogging?: boolean;
+  structuredLogging?: boolean;
+  /**
+   * Enable performance metrics
+   */
+  performanceLogging?: boolean;
+  /**
+   * Logging level
+   */
+  loggingLevel?: "off" | "error" | "warn" | "info" | "debug" | "trace";
 };
 
 export type ClientOptions = NetworkOptions &
-  EncryptionOptions &
   StorageOptions &
   ContentOptions &
   OtherOptions;

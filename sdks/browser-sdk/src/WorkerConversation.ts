@@ -2,12 +2,12 @@ import type {
   ConsentState,
   Conversation,
   EncodedContent,
+  GroupMember,
 } from "@xmtp/wasm-bindings";
 import {
   fromSafeListMessagesOptions,
   toSafeGroupMember,
   type SafeListMessagesOptions,
-  type WasmGroupMember,
 } from "@/utils/conversions";
 import type { WorkerClient } from "@/WorkerClient";
 
@@ -73,13 +73,13 @@ export class WorkerConversation {
   get metadata() {
     const metadata = this.#group.groupMetadata();
     return {
-      creatorInboxId: metadata.creator_inbox_id(),
-      conversationType: metadata.conversation_type(),
+      creatorInboxId: metadata.creatorInboxId(),
+      conversationType: metadata.conversationType(),
     };
   }
 
   async members() {
-    const members = (await this.#group.listMembers()) as WasmGroupMember[];
+    const members = (await this.#group.listMembers()) as GroupMember[];
     return members.map((member) => toSafeGroupMember(member));
   }
 

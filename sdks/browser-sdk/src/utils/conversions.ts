@@ -341,36 +341,12 @@ export type SafeGroupMember = {
   permissionLevel: PermissionLevel;
 };
 
-export class WasmGroupMember {
-  account_addresses: string[];
-  consent_state: ConsentState;
-  inbox_id: string;
-  installation_ids: string[];
-  permission_level: PermissionLevel;
-
-  constructor(
-    inbox_id: string,
-    account_addresses: string[],
-    installation_ids: string[],
-    permission_level: PermissionLevel,
-    consent_state: ConsentState,
-  ) {
-    this.inbox_id = inbox_id;
-    this.account_addresses = account_addresses;
-    this.installation_ids = installation_ids;
-    this.permission_level = permission_level;
-    this.consent_state = consent_state;
-  }
-}
-
-export const toSafeGroupMember = (
-  member: WasmGroupMember,
-): SafeGroupMember => ({
-  accountAddresses: member.account_addresses,
-  consentState: member.consent_state,
-  inboxId: member.inbox_id,
-  installationIds: member.installation_ids,
-  permissionLevel: member.permission_level,
+export const toSafeGroupMember = (member: GroupMember): SafeGroupMember => ({
+  accountAddresses: member.accountAddresses,
+  consentState: member.consentState,
+  inboxId: member.inboxId,
+  installationIds: member.installationIds,
+  permissionLevel: member.permissionLevel,
 });
 
 export const fromSafeGroupMember = (member: SafeGroupMember): GroupMember =>

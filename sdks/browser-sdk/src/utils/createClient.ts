@@ -2,12 +2,14 @@ import init, {
   createClient as createWasmClient,
   generateInboxId,
   getInboxIdForAddress,
+  LogOptions,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls } from "@/constants";
 import type { ClientOptions } from "@/types";
 
 export const createClient = async (
   accountAddress: string,
+  encryptionKey: Uint8Array,
   options?: Omit<ClientOptions, "codecs">,
 ) => {
   // initialize WASM module
@@ -25,11 +27,25 @@ export const createClient = async (
     (await getInboxIdForAddress(host, accountAddress)) ||
     generateInboxId(accountAddress);
 
+  const isLogging =
+    options &&
+    (options.loggingLevel !== undefined ||
+      options.structuredLogging ||
+      options.performanceLogging);
+
   return createWasmClient(
     host,
     inboxId,
     accountAddress,
     dbPath,
-    options?.encryptionKey,
+    encryptionKey,
+    undefined,
+    isLogging
+      ? new LogOptions(
+          options.structuredLogging ?? false,
+          options.performanceLogging ?? false,
+          options.loggingLevel,
+        )
+      : undefined,
   );
 };
