@@ -38,6 +38,7 @@ export type ClientEvents =
       };
       data: {
         address: string;
+        encryptionKey: Uint8Array;
         options?: ClientOptions;
       };
     }
@@ -76,6 +77,17 @@ export type ClientEvents =
       data: {
         type: SignatureRequestType;
         bytes: Uint8Array;
+      };
+    }
+  | {
+      action: "addScwSignature";
+      id: string;
+      result: undefined;
+      data: {
+        type: SignatureRequestType;
+        bytes: Uint8Array;
+        chainId: bigint;
+        blockNumber?: bigint;
       };
     }
   | {

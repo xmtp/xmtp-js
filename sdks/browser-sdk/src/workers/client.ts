@@ -56,8 +56,14 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
        * Client actions
        */
       case "init":
-        client = await WorkerClient.create(data.address, data.options);
-        enableLogging = data.options?.enableLogging ?? false;
+        client = await WorkerClient.create(
+          data.address,
+          data.encryptionKey,
+          data.options,
+        );
+        enableLogging =
+          data.options?.loggingLevel !== undefined &&
+          data.options.loggingLevel !== "off";
         postMessage({
           id,
           action,
@@ -109,6 +115,19 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       }
       case "addSignature":
         await client.addSignature(data.type, data.bytes);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      case "addScwSignature":
+        await client.addScwSignature(
+          data.type,
+          data.bytes,
+          data.chainId,
+          data.blockNumber,
+        );
         postMessage({
           id,
           action,

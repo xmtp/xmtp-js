@@ -23,9 +23,10 @@ export class WorkerClient {
 
   static async create(
     accountAddress: string,
+    encryptionKey: Uint8Array,
     options?: Omit<ClientOptions, "codecs">,
   ) {
-    const client = await createClient(accountAddress, options);
+    const client = await createClient(accountAddress, encryptionKey, options);
     return new WorkerClient(client);
   }
 
@@ -82,6 +83,15 @@ export class WorkerClient {
 
   async addSignature(type: SignatureRequestType, bytes: Uint8Array) {
     return this.#client.addSignature(type, bytes);
+  }
+
+  async addScwSignature(
+    type: SignatureRequestType,
+    bytes: Uint8Array,
+    chainId: bigint,
+    blockNumber?: bigint,
+  ) {
+    return this.#client.addScwSignature(type, bytes, chainId, blockNumber);
   }
 
   async applySignatures() {

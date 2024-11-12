@@ -37,13 +37,23 @@ export class Client extends ClientWorkerClass {
 
   #codecs: Map<string, ContentCodec>;
 
-  constructor(address: string, options?: ClientOptions) {
+  #encryptionKey: Uint8Array;
+
+  constructor(
+    address: string,
+    encryptionKey: Uint8Array,
+    options?: ClientOptions,
+  ) {
     const worker = new Worker(new URL("./workers/client", import.meta.url), {
       type: "module",
     });
-    super(worker, options?.enableLogging ?? false);
+    super(
+      worker,
+      options?.loggingLevel !== undefined && options.loggingLevel !== "off",
+    );
     this.address = address;
     this.options = options;
+    this.#encryptionKey = encryptionKey;
     this.#conversations = new Conversations(this);
     const codecs = [
       new GroupUpdatedCodec(),
@@ -58,6 +68,7 @@ export class Client extends ClientWorkerClass {
   async init() {
     const result = await this.sendMessage("init", {
       address: this.address,
+      encryptionKey: this.#encryptionKey,
       options: this.options,
     });
     this.#inboxId = result.inboxId;
@@ -65,8 +76,12 @@ export class Client extends ClientWorkerClass {
     this.#isReady = true;
   }
 
-  static async create(address: string, options?: ClientOptions) {
-    const client = new Client(address, options);
+  static async create(
+    address: string,
+    encryptionKey: Uint8Array,
+    options?: ClientOptions,
+  ) {
+    const client = new Client(address, encryptionKey, options);
     await client.init();
     return client;
   }
@@ -101,6 +116,20 @@ export class Client extends ClientWorkerClass {
 
   async addSignature(type: SignatureRequestType, bytes: Uint8Array) {
     return this.sendMessage("addSignature", { type, bytes });
+  }
+
+  async addScwSignature(
+    type: SignatureRequestType,
+    bytes: Uint8Array,
+    chainId: bigint,
+    blockNumber?: bigint,
+  ) {
+    return this.sendMessage("addScwSignature", {
+      type,
+      bytes,
+      chainId,
+      blockNumber,
+    });
   }
 
   async applySignatures() {

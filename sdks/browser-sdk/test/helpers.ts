@@ -11,6 +11,8 @@ import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
 import type { ClientOptions } from "@/types";
 
+const testEncryptionKey = window.crypto.getRandomValues(new Uint8Array(32));
+
 export const createUser = () => {
   const key = generatePrivateKey();
   const account = privateKeyToAccount(key);
@@ -44,7 +46,7 @@ export const createClient = async (user: User, options?: ClientOptions) => {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.create(user.account.address, {
+  return Client.create(user.account.address, testEncryptionKey, {
     ...opts,
     dbPath: `./test-${user.uuid}.db3`,
   });
