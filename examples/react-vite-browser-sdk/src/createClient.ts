@@ -16,8 +16,13 @@ export const getSignature = async (client: Client, wallet: Wallet) => {
 };
 
 export const createClient = async (walletKey: string) => {
+  const encryptionKeyHex = import.meta.env.VITE_ENCRYPTION_KEY;
+  if (!encryptionKeyHex) {
+    throw new Error("VITE_ENCRYPTION_KEY must be set in the environment");
+  }
+  const encryptionBytes = toBytes(encryptionKeyHex);
   const wallet = createWallet(walletKey);
-  const client = await Client.create(wallet.account.address, {
+  const client = await Client.create(wallet.account.address, encryptionBytes, {
     env: "local",
   });
   const isRegistered = await client.isRegistered();

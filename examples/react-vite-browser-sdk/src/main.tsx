@@ -9,9 +9,14 @@ import { WagmiProvider } from "wagmi";
 import { App } from "./App";
 import "./index.css";
 
+const projectId = import.meta.env.VITE_PROJECT_ID;
+if (!projectId) {
+  throw new Error("VITE_PROJECT_ID must be set in the environment");
+}
+
 export const config = getDefaultConfig({
   appName: "XMTP V3 Browser SDK Example",
-  projectId: import.meta.env.VITE_PROJECT_ID,
+  projectId,
   chains: [mainnet],
   transports: {
     [mainnet.id]: http(),
