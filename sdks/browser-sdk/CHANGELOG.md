@@ -1,5 +1,16 @@
 # @xmtp/browser-sdk
 
+## 0.0.3
+
+### Patch Changes
+
+- f3734c8:
+  - Upgraded to latest WASM bindings
+  - Required `encryptionKey` when creating a new client
+  - Added smart contract wallet signature support
+  - Added more logging options
+  - Updated WASM bindings re-exports
+
 ## 0.0.2
 
 ### Patch Changes
