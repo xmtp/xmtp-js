@@ -15,8 +15,10 @@ import {
   generateInboxId,
   getInboxIdForAddress,
   GroupMessageKind,
+  Level,
   type Consent,
   type ConsentEntityType,
+  type LogOptions,
   type Message,
   type Client as NodeClient,
   type SignatureRequestType,
@@ -51,10 +53,6 @@ export type NetworkOptions = {
  */
 export type StorageOptions = {
   /**
-   * Encryption key to use for the local DB
-   */
-  encryptionKey?: Uint8Array | null;
-  /**
    * Path to the local DB
    */
   dbPath?: string;
@@ -73,9 +71,13 @@ export type OtherOptions = {
    */
   requestHistorySync?: string;
   /**
-   * Optionally set the logging level (default: 'off')
+   * Enable structured JSON logging
    */
-  logging?: "debug" | "info" | "warn" | "error" | "off";
+  structuredLogging?: boolean;
+  /**
+   * Logging level
+   */
+  loggingLevel?: Level;
 };
 
 export type ClientOptions = NetworkOptions &
@@ -96,7 +98,11 @@ export class Client {
     );
   }
 
-  static async create(accountAddress: string, options?: ClientOptions) {
+  static async create(
+    accountAddress: string,
+    encryptionKey: Uint8Array,
+    options?: ClientOptions,
+  ) {
     const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
     const isSecure = host.startsWith("https");
     const dbPath =
@@ -106,6 +112,11 @@ export class Client {
       (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
       generateInboxId(accountAddress);
 
+    const logOptions: LogOptions = {
+      structured: options?.structuredLogging ?? false,
+      level: options?.loggingLevel ?? Level.off,
+    };
+
     return new Client(
       await createClient(
         host,
@@ -113,9 +124,9 @@ export class Client {
         dbPath,
         inboxId,
         accountAddress,
-        options?.encryptionKey,
+        encryptionKey,
         options?.requestHistorySync,
-        options?.logging ?? "off",
+        logOptions,
       ),
       [new GroupUpdatedCodec(), new TextCodec(), ...(options?.codecs ?? [])],
     );
@@ -182,7 +193,8 @@ export class Client {
   }
 
   async canMessage(accountAddresses: string[]) {
-    return this.#innerClient.canMessage(accountAddresses);
+    const canMessage = await this.#innerClient.canMessage(accountAddresses);
+    return new Map(Object.entries(canMessage));
   }
 
   addSignature(
@@ -190,6 +202,15 @@ export class Client {
     signatureBytes: Uint8Array,
   ) {
     void this.#innerClient.addSignature(signatureType, signatureBytes);
+  }
+
+  async addScwSignature(
+    type: SignatureRequestType,
+    bytes: Uint8Array,
+    chainId: bigint,
+    blockNumber?: bigint,
+  ) {
+    return this.#innerClient.addScwSignature(type, bytes, chainId, blockNumber);
   }
 
   async applySignatures() {
