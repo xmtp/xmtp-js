@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.23
+
+### Patch Changes
+
+- 31ca82d: Update Node SDK
+
 ## 0.0.22
 
 ### Patch Changes
