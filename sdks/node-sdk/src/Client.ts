@@ -204,6 +204,15 @@ export class Client {
     void this.#innerClient.addSignature(signatureType, signatureBytes);
   }
 
+  async addScwSignature(
+    type: SignatureRequestType,
+    bytes: Uint8Array,
+    chainId: bigint,
+    blockNumber?: bigint,
+  ) {
+    return this.#innerClient.addScwSignature(type, bytes, chainId, blockNumber);
+  }
+
   async applySignatures() {
     return this.#innerClient.applySignatureRequests();
   }
