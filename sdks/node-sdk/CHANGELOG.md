@@ -4,7 +4,12 @@
 
 ### Patch Changes
 
-- 31ca82d: Update Node SDK
+- 31ca82d:
+  - Updated return type of `Client.canMessage` from Record to Map
+  - Added requirement of encryption key when creating a client
+  - Updated logging options
+  - Added smart contract wallet support
+  - Updated exports
 
 ## 0.0.22
 
