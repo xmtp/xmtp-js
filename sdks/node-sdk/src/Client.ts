@@ -51,10 +51,6 @@ export type NetworkOptions = {
  */
 export type StorageOptions = {
   /**
-   * Encryption key to use for the local DB
-   */
-  encryptionKey?: Uint8Array | null;
-  /**
    * Path to the local DB
    */
   dbPath?: string;
@@ -96,7 +92,11 @@ export class Client {
     );
   }
 
-  static async create(accountAddress: string, options?: ClientOptions) {
+  static async create(
+    accountAddress: string,
+    encryptionKey: Uint8Array,
+    options?: ClientOptions,
+  ) {
     const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
     const isSecure = host.startsWith("https");
     const dbPath =
@@ -113,7 +113,7 @@ export class Client {
         dbPath,
         inboxId,
         accountAddress,
-        options?.encryptionKey,
+        encryptionKey,
         options?.requestHistorySync,
         options?.logging ?? "off",
       ),

@@ -1,3 +1,4 @@
+import { getRandomValues } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -13,6 +14,7 @@ import { sepolia } from "viem/chains";
 import { Client, type ClientOptions } from "@/Client";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const testEncryptionKey = getRandomValues(new Uint8Array(32));
 
 export const createUser = () => {
   const key = generatePrivateKey();
@@ -47,7 +49,7 @@ export const createClient = async (user: User, options?: ClientOptions) => {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.create(user.account.address, {
+  return Client.create(user.account.address, testEncryptionKey, {
     ...opts,
     dbPath: join(__dirname, `./test-${user.uuid}.db3`),
   });
