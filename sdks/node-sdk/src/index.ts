@@ -19,6 +19,7 @@ export type {
   Installation,
   ListConversationsOptions,
   ListMessagesOptions,
+  LogOptions,
   Message,
   PermissionPolicySet,
 } from "@xmtp/node-bindings";
@@ -33,6 +34,7 @@ export {
   GroupMetadata,
   GroupPermissions,
   GroupPermissionsOptions,
+  Level,
   PermissionLevel,
   PermissionPolicy,
   PermissionUpdateType,

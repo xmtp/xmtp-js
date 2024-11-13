@@ -15,8 +15,10 @@ import {
   generateInboxId,
   getInboxIdForAddress,
   GroupMessageKind,
+  Level,
   type Consent,
   type ConsentEntityType,
+  type LogOptions,
   type Message,
   type Client as NodeClient,
   type SignatureRequestType,
@@ -69,9 +71,13 @@ export type OtherOptions = {
    */
   requestHistorySync?: string;
   /**
-   * Optionally set the logging level (default: 'off')
+   * Enable structured JSON logging
    */
-  logging?: "debug" | "info" | "warn" | "error" | "off";
+  structuredLogging?: boolean;
+  /**
+   * Logging level
+   */
+  loggingLevel?: Level;
 };
 
 export type ClientOptions = NetworkOptions &
@@ -106,6 +112,11 @@ export class Client {
       (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
       generateInboxId(accountAddress);
 
+    const logOptions: LogOptions = {
+      structured: options?.structuredLogging ?? false,
+      level: options?.loggingLevel ?? Level.off,
+    };
+
     return new Client(
       await createClient(
         host,
@@ -115,7 +126,7 @@ export class Client {
         accountAddress,
         encryptionKey,
         options?.requestHistorySync,
-        options?.logging ?? "off",
+        logOptions,
       ),
       [new GroupUpdatedCodec(), new TextCodec(), ...(options?.codecs ?? [])],
     );
