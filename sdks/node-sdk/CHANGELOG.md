@@ -1,5 +1,16 @@
 # @xmtp/node-sdk
 
+## 0.0.23
+
+### Patch Changes
+
+- 31ca82d:
+  - Updated return type of `Client.canMessage` from Record to Map
+  - Added requirement of encryption key when creating a client
+  - Updated logging options
+  - Added smart contract wallet support
+  - Updated exports
+
 ## 0.0.22
 
 ### Patch Changes
