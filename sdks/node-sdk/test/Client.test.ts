@@ -29,16 +29,15 @@ describe("Client", () => {
     const client2 = await createRegisteredClient(user);
     expect(client2.isRegistered).toBe(true);
     expect(await client2.createInboxSignatureText()).toBe(null);
-    expect(await client2.canMessage([user.account.address])).toEqual({
-      [user.account.address.toLowerCase()]: true,
-    });
   });
 
   it("should be able to message registered identity", async () => {
     const user = createUser();
     const client = await createRegisteredClient(user);
     const canMessage = await client.canMessage([user.account.address]);
-    expect(canMessage).toEqual({ [user.account.address.toLowerCase()]: true });
+    expect(Object.fromEntries(canMessage)).toEqual({
+      [user.account.address.toLowerCase()]: true,
+    });
   });
 
   it("should get an inbox ID from an address", async () => {

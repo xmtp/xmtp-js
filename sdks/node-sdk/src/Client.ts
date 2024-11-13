@@ -182,7 +182,8 @@ export class Client {
   }
 
   async canMessage(accountAddresses: string[]) {
-    return this.#innerClient.canMessage(accountAddresses);
+    const canMessage = await this.#innerClient.canMessage(accountAddresses);
+    return new Map(Object.entries(canMessage));
   }
 
   addSignature(
