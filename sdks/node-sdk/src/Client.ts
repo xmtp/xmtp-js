@@ -16,14 +16,15 @@ import {
   getInboxIdForAddress,
   GroupMessageKind,
   Level,
+  SignatureRequestType,
   type Consent,
   type ConsentEntityType,
   type LogOptions,
   type Message,
   type Client as NodeClient,
-  type SignatureRequestType,
 } from "@xmtp/node-bindings";
 import { Conversations } from "@/Conversations";
+import { isSmartContractSigner, type Signer } from "@/helpers/signer";
 
 export const ApiUrls = {
   local: "http://localhost:5556",
@@ -78,6 +79,10 @@ export type OtherOptions = {
    * Logging level
    */
   loggingLevel?: Level;
+  /**
+   * Disable automatic registration when creating a client
+   */
+  disableAutoRegister?: boolean;
 };
 
 export type ClientOptions = NetworkOptions &
@@ -88,21 +93,24 @@ export type ClientOptions = NetworkOptions &
 export class Client {
   #innerClient: NodeClient;
   #conversations: Conversations;
+  #signer: Signer;
   #codecs: Map<string, ContentCodec>;
 
-  constructor(client: NodeClient, codecs: ContentCodec[]) {
+  constructor(client: NodeClient, signer: Signer, codecs: ContentCodec[]) {
     this.#innerClient = client;
     this.#conversations = new Conversations(this, client.conversations());
+    this.#signer = signer;
     this.#codecs = new Map(
       codecs.map((codec) => [codec.contentType.toString(), codec]),
     );
   }
 
   static async create(
-    accountAddress: string,
+    signer: Signer,
     encryptionKey: Uint8Array,
     options?: ClientOptions,
   ) {
+    const accountAddress = await signer.getAddress();
     const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
     const isSecure = host.startsWith("https");
     const dbPath =
@@ -117,7 +125,7 @@ export class Client {
       level: options?.loggingLevel ?? Level.off,
     };
 
-    return new Client(
+    const client = new Client(
       await createClient(
         host,
         isSecure,
@@ -128,8 +136,15 @@ export class Client {
         options?.requestHistorySync,
         logOptions,
       ),
+      signer,
       [new GroupUpdatedCodec(), new TextCodec(), ...(options?.codecs ?? [])],
     );
+
+    if (!options?.disableAutoRegister) {
+      await client.register();
+    }
+
+    return client;
   }
 
   get accountAddress() {
@@ -148,7 +163,7 @@ export class Client {
     return this.#innerClient.isRegistered();
   }
 
-  async createInboxSignatureText() {
+  async #createInboxSignatureText() {
     try {
       const signatureText = await this.#innerClient.createInboxSignatureText();
       return signatureText;
@@ -157,7 +172,7 @@ export class Client {
     }
   }
 
-  async addWalletSignatureText(
+  async #addAccountSignatureText(
     existingAccountAddress: string,
     newAccountAddress: string,
   ) {
@@ -172,7 +187,7 @@ export class Client {
     }
   }
 
-  async revokeWalletSignatureText(accountAddress: string) {
+  async #removeAccountSignatureText(accountAddress: string) {
     try {
       const signatureText =
         await this.#innerClient.revokeWalletSignatureText(accountAddress);
@@ -182,7 +197,7 @@ export class Client {
     }
   }
 
-  async revokeInstallationsSignatureText() {
+  async #revokeInstallationsSignatureText() {
     try {
       const signatureText =
         await this.#innerClient.revokeInstallationsSignatureText();
@@ -192,33 +207,107 @@ export class Client {
     }
   }
 
-  async canMessage(accountAddresses: string[]) {
-    const canMessage = await this.#innerClient.canMessage(accountAddresses);
-    return new Map(Object.entries(canMessage));
-  }
-
-  addSignature(
+  async #addSignature(
     signatureType: SignatureRequestType,
-    signatureBytes: Uint8Array,
+    signatureText: string,
+    signer: Signer,
   ) {
-    void this.#innerClient.addSignature(signatureType, signatureBytes);
+    const signature = await signer.signMessage(signatureText);
+
+    if (isSmartContractSigner(signer)) {
+      await this.#innerClient.addScwSignature(
+        signatureType,
+        signature,
+        signer.getChainId(),
+        signer.getBlockNumber(),
+      );
+    } else {
+      await this.#innerClient.addSignature(signatureType, signature);
+    }
   }
 
-  async addScwSignature(
-    type: SignatureRequestType,
-    bytes: Uint8Array,
-    chainId: bigint,
-    blockNumber?: bigint,
-  ) {
-    return this.#innerClient.addScwSignature(type, bytes, chainId, blockNumber);
-  }
-
-  async applySignatures() {
+  async #applySignatures() {
     return this.#innerClient.applySignatureRequests();
   }
 
-  async registerIdentity() {
+  async register() {
+    const signatureText = await this.#createInboxSignatureText();
+
+    // if the signature text is not available, the client is already registered
+    if (!signatureText) {
+      return;
+    }
+
+    await this.#addSignature(
+      SignatureRequestType.CreateInbox,
+      signatureText,
+      this.#signer,
+    );
+
     return this.#innerClient.registerIdentity();
+  }
+
+  async addAccount(newAccountSigner: Signer) {
+    const signatureText = await this.#addAccountSignatureText(
+      await this.#signer.getAddress(),
+      await newAccountSigner.getAddress(),
+    );
+
+    if (!signatureText) {
+      throw new Error("Unable to generate add account signature text");
+    }
+
+    await this.#addSignature(
+      SignatureRequestType.AddWallet,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.#addSignature(
+      SignatureRequestType.AddWallet,
+      signatureText,
+      newAccountSigner,
+    );
+
+    await this.#applySignatures();
+  }
+
+  async removeAccount(accountAddress: string) {
+    const signatureText =
+      await this.#removeAccountSignatureText(accountAddress);
+
+    if (!signatureText) {
+      throw new Error("Unable to generate remove account signature text");
+    }
+
+    await this.#addSignature(
+      SignatureRequestType.RevokeWallet,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.#applySignatures();
+  }
+
+  async revokeInstallations() {
+    const signatureText = await this.#revokeInstallationsSignatureText();
+
+    if (!signatureText) {
+      throw new Error("Unable to generate revoke installations signature text");
+    }
+
+    await this.#addSignature(
+      SignatureRequestType.RevokeInstallations,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.#applySignatures();
+  }
+
+  async canMessage(accountAddresses: string[]) {
+    const canMessage = await this.#innerClient.canMessage(accountAddresses);
+    return new Map(Object.entries(canMessage));
   }
 
   get conversations() {
