@@ -114,7 +114,11 @@ export class Client {
     const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
     const isSecure = host.startsWith("https");
     const dbPath =
-      options?.dbPath ?? join(process.cwd(), `${accountAddress}.db3`);
+      options?.dbPath ??
+      join(
+        process.cwd(),
+        `xmtp-${options?.env ?? "dev"}-${accountAddress}.db3`,
+      );
 
     const inboxId =
       (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
