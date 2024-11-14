@@ -314,6 +314,29 @@ export class Client {
     return new Map(Object.entries(canMessage));
   }
 
+  static async canMessage(accountAddresses: string[], env?: XmtpEnv) {
+    const accountAddress = "0x0000000000000000000000000000000000000000";
+    const host = ApiUrls[env ?? "dev"];
+    const isSecure = host.startsWith("https");
+    const dbPath = join(
+      process.cwd(),
+      `xmtp-${env ?? "dev"}-${accountAddress}.db3`,
+    );
+    const inboxId =
+      (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
+      generateInboxId(accountAddress);
+    const signer: Signer = {
+      getAddress: () => accountAddress,
+      signMessage: () => new Uint8Array(),
+    };
+    const client = new Client(
+      await createClient(host, isSecure, dbPath, inboxId, accountAddress),
+      signer,
+      [],
+    );
+    return client.canMessage(accountAddresses);
+  }
+
   get conversations() {
     return this.#conversations;
   }
