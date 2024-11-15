@@ -1,5 +1,22 @@
 # @xmtp/node-sdk
 
+## 0.0.24
+
+### Patch Changes
+
+- a1a16a0:
+  - Added `Signer` interface
+  - Refactored `Client.create` to accept a `Signer` instead of account address
+  - Refactored client creation to automatically register and identity
+  - Added `disableAutoRegister` to `ClientOptions` to allow disabling of client registration after creation
+  - Removed direct access to all signature functions
+  - Added `Client.register` method for registering a client
+  - Added `Client.addAccount` method for adding another account to an installation
+  - Added `Client.removeAccount` method for removing an account from an installation
+  - Added `Client.revokeInstallations` method for revoking all other installations
+  - Added static `Client.canMessage` for checking if an address is on the network without a client
+  - Added environment to DB path
+
 ## 0.0.23
 
 ### Patch Changes
