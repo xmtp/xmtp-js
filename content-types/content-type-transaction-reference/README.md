@@ -39,7 +39,7 @@ const transactionReference: TransactionReference = {
    */
   namespace: "eip155";
   /**
-   * The networkId for the transaction, in decimal or hexidecimal format
+   * The networkId for the transaction, in decimal or hexadecimal format
    */
   networkId: 1;
   /**
