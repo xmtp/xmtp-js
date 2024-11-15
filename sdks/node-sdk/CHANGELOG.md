@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.24
+
+### Patch Changes
+
+- a1a16a0: Refactor signing in browser and node SDKs
+
 ## 0.0.23
 
 ### Patch Changes
