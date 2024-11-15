@@ -232,6 +232,23 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("canMessage", { accountAddresses });
   }
 
+  static async canMessage(accountAddresses: string[], env?: XmtpEnv) {
+    const accountAddress = "0x0000000000000000000000000000000000000000";
+    const signer: Signer = {
+      getAddress: () => accountAddress,
+      signMessage: () => new Uint8Array(),
+    };
+    const client = await Client.create(
+      signer,
+      window.crypto.getRandomValues(new Uint8Array(32)),
+      {
+        disableAutoRegister: true,
+        env,
+      },
+    );
+    return client.canMessage(accountAddresses);
+  }
+
   async findInboxIdByAddress(address: string) {
     return this.sendMessage("findInboxIdByAddress", { address });
   }

@@ -1,6 +1,7 @@
 import { ConsentEntityType, ConsentState } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
+import { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
 import {
   createClient,
@@ -30,6 +31,15 @@ describe.concurrent("Client", () => {
     const user = createUser();
     const client = await createRegisteredClient(user);
     const canMessage = await client.canMessage([user.account.address]);
+    expect(Object.fromEntries(canMessage)).toEqual({
+      [user.account.address.toLowerCase()]: true,
+    });
+  });
+
+  it("should be able to check if can message without client instance", async () => {
+    const user = createUser();
+    await createRegisteredClient(user);
+    const canMessage = await Client.canMessage([user.account.address], "local");
     expect(Object.fromEntries(canMessage)).toEqual({
       [user.account.address.toLowerCase()]: true,
     });
