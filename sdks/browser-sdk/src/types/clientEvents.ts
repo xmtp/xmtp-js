@@ -43,13 +43,21 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getCreateInboxSignatureText";
+      action: "createInboxSignatureText";
       id: string;
       result: string | undefined;
       data: undefined;
     }
   | {
-      action: "getAddWalletSignatureText";
+      action: "addAccountSignatureText";
+      id: string;
+      result: string | undefined;
+      data: {
+        newAccountAddress: string;
+      };
+    }
+  | {
+      action: "removeAccountSignatureText";
       id: string;
       result: string | undefined;
       data: {
@@ -57,15 +65,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getRevokeWalletSignatureText";
-      id: string;
-      result: string | undefined;
-      data: {
-        accountAddress: string;
-      };
-    }
-  | {
-      action: "getRevokeInstallationsSignatureText";
+      action: "revokeInstallationsSignatureText";
       id: string;
       result: string | undefined;
       data: undefined;

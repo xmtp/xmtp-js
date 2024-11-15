@@ -1,14 +1,11 @@
-import {
-  ConsentEntityType,
-  ConsentState,
-  SignatureRequestType,
-} from "@xmtp/node-bindings";
+import { ConsentEntityType, ConsentState } from "@xmtp/node-bindings";
 import { v4 } from "uuid";
-import { toBytes } from "viem";
 import { describe, expect, it } from "vitest";
+import { Client } from "@/Client";
 import {
   createClient,
   createRegisteredClient,
+  createSigner,
   createUser,
 } from "@test/helpers";
 
@@ -18,7 +15,6 @@ describe("Client", () => {
     const client = await createClient(user);
     expect(client.accountAddress).toBe(user.account.address);
     expect(client.isRegistered).toBe(false);
-    expect(await client.createInboxSignatureText()).not.toBe(null);
     expect(client.inboxId).toBeDefined();
     expect(client.installationId).toBeDefined();
   });
@@ -28,13 +24,21 @@ describe("Client", () => {
     await createRegisteredClient(user);
     const client2 = await createRegisteredClient(user);
     expect(client2.isRegistered).toBe(true);
-    expect(await client2.createInboxSignatureText()).toBe(null);
   });
 
   it("should be able to message registered identity", async () => {
     const user = createUser();
     const client = await createRegisteredClient(user);
     const canMessage = await client.canMessage([user.account.address]);
+    expect(Object.fromEntries(canMessage)).toEqual({
+      [user.account.address.toLowerCase()]: true,
+    });
+  });
+
+  it("should be able to check if can message without client instance", async () => {
+    const user = createUser();
+    await createRegisteredClient(user);
+    const canMessage = await Client.canMessage([user.account.address], "local");
     expect(Object.fromEntries(canMessage)).toEqual({
       [user.account.address.toLowerCase()]: true,
     });
@@ -101,23 +105,10 @@ describe("Client", () => {
     const user = createUser();
     const user2 = createUser();
     const client = await createRegisteredClient(user);
-    const signatureText = await client.addWalletSignatureText(
-      user.account.address,
-      user2.account.address,
-    );
-    expect(signatureText).toBeDefined();
+    const signer2 = createSigner(user2);
 
-    // sign message
-    const signature = await user.wallet.signMessage({
-      message: signatureText!,
-    });
-    const signature2 = await user2.wallet.signMessage({
-      message: signatureText!,
-    });
+    await client.addAccount(signer2);
 
-    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature));
-    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature2));
-    await client.applySignatures();
     const inboxState = await client.inboxState();
     expect(inboxState.accountAddresses.length).toEqual(2);
     expect(inboxState.accountAddresses).toContain(
@@ -132,36 +123,11 @@ describe("Client", () => {
     const user = createUser();
     const user2 = createUser();
     const client = await createRegisteredClient(user);
-    const signatureText = await client.addWalletSignatureText(
-      user.account.address,
-      user2.account.address,
-    );
-    expect(signatureText).toBeDefined();
+    const signer2 = createSigner(user2);
 
-    // sign message
-    const signature = await user.wallet.signMessage({
-      message: signatureText!,
-    });
-    const signature2 = await user2.wallet.signMessage({
-      message: signatureText!,
-    });
+    await client.addAccount(signer2);
+    await client.removeAccount(user2.account.address);
 
-    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature));
-    client.addSignature(SignatureRequestType.AddWallet, toBytes(signature2));
-    await client.applySignatures();
-
-    const signatureText2 = await client.revokeWalletSignatureText(
-      user2.account.address,
-    );
-    expect(signatureText2).toBeDefined();
-
-    // sign message
-    const signature3 = await user.wallet.signMessage({
-      message: signatureText2!,
-    });
-
-    client.addSignature(SignatureRequestType.RevokeWallet, toBytes(signature3));
-    await client.applySignatures();
     const inboxState = await client.inboxState();
     expect(inboxState.accountAddresses).toEqual([
       user.account.address.toLowerCase(),
@@ -185,19 +151,8 @@ describe("Client", () => {
     expect(installationIds).toContain(client2.installationId);
     expect(installationIds).toContain(client3.installationId);
 
-    const signatureText = await client3.revokeInstallationsSignatureText();
-    expect(signatureText).toBeDefined();
+    await client3.revokeInstallations();
 
-    // sign message
-    const signature = await user.wallet.signMessage({
-      message: signatureText!,
-    });
-
-    client3.addSignature(
-      SignatureRequestType.RevokeInstallations,
-      toBytes(signature),
-    );
-    await client3.applySignatures();
     const inboxState2 = await client3.inboxState(true);
 
     expect(inboxState2.installations.length).toBe(1);

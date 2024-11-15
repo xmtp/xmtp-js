@@ -34,3 +34,8 @@ export {
   Consent,
   ContentTypeId,
 } from "@xmtp/wasm-bindings";
+export {
+  isSmartContractSigner,
+  type Signer,
+  type SmartContractSigner,
+} from "./utils/signer";

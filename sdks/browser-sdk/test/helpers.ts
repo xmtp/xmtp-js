@@ -3,13 +3,13 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { SignatureRequestType } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
 import type { ClientOptions } from "@/types";
+import type { Signer } from "@/utils/signer";
 
 const testEncryptionKey = window.crypto.getRandomValues(new Uint8Array(32));
 
@@ -28,26 +28,28 @@ export const createUser = () => {
   };
 };
 
-export type User = ReturnType<typeof createUser>;
-
-export const getSignature = async (client: Client, user: User) => {
-  const signatureText = await client.getCreateInboxSignatureText();
-  if (signatureText) {
-    const signature = await user.wallet.signMessage({
-      message: signatureText,
-    });
-    return toBytes(signature);
-  }
-  return null;
+export const createSigner = (user: User): Signer => {
+  return {
+    getAddress: () => user.account.address,
+    signMessage: async (message: string) => {
+      const signature = await user.wallet.signMessage({
+        message,
+      });
+      return toBytes(signature);
+    },
+  };
 };
+
+export type User = ReturnType<typeof createUser>;
 
 export const createClient = async (user: User, options?: ClientOptions) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.create(user.account.address, testEncryptionKey, {
+  return Client.create(createSigner(user), testEncryptionKey, {
     ...opts,
+    disableAutoRegister: true,
     dbPath: `./test-${user.uuid}.db3`,
   });
 };
@@ -56,16 +58,14 @@ export const createRegisteredClient = async (
   user: User,
   options?: ClientOptions,
 ) => {
-  const client = await createClient(user, options);
-  const isRegistered = await client.isRegistered();
-  if (!isRegistered) {
-    const signature = await getSignature(client, user);
-    if (signature) {
-      await client.addSignature(SignatureRequestType.CreateInbox, signature);
-    }
-    await client.registerIdentity();
-  }
-  return client;
+  const opts = {
+    ...options,
+    env: options?.env ?? "local",
+  };
+  return Client.create(createSigner(user), testEncryptionKey, {
+    ...opts,
+    dbPath: `./test-${user.uuid}.db3`,
+  });
 };
 
 export const ContentTypeTest = new ContentTypeId({

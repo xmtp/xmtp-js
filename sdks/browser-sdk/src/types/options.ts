@@ -48,6 +48,10 @@ export type OtherOptions = {
    * Logging level
    */
   loggingLevel?: "off" | "error" | "warn" | "info" | "debug" | "trace";
+  /**
+   * Disable automatic registration when creating a client
+   */
+  disableAutoRegister?: boolean;
 };
 
 export type ClientOptions = NetworkOptions &

@@ -6,7 +6,6 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { SignatureRequestType } from "@xmtp/node-bindings";
 import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -31,26 +30,28 @@ export const createUser = () => {
   };
 };
 
-export type User = ReturnType<typeof createUser>;
-
-export const getSignature = async (client: Client, user: User) => {
-  const signatureText = await client.createInboxSignatureText();
-  if (signatureText) {
-    const signature = await user.wallet.signMessage({
-      message: signatureText,
-    });
-    return toBytes(signature);
-  }
-  return null;
+export const createSigner = (user: User) => {
+  return {
+    getAddress: () => user.account.address,
+    signMessage: async (message: string) => {
+      const signature = await user.wallet.signMessage({
+        message,
+      });
+      return toBytes(signature);
+    },
+  };
 };
+
+export type User = ReturnType<typeof createUser>;
 
 export const createClient = async (user: User, options?: ClientOptions) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.create(user.account.address, testEncryptionKey, {
+  return Client.create(createSigner(user), testEncryptionKey, {
     ...opts,
+    disableAutoRegister: true,
     dbPath: join(__dirname, `./test-${user.uuid}.db3`),
   });
 };
@@ -59,15 +60,14 @@ export const createRegisteredClient = async (
   user: User,
   options?: ClientOptions,
 ) => {
-  const client = await createClient(user, options);
-  if (!client.isRegistered) {
-    const signature = await getSignature(client, user);
-    if (signature) {
-      client.addSignature(SignatureRequestType.CreateInbox, signature);
-    }
-    await client.registerIdentity();
-  }
-  return client;
+  const opts = {
+    ...options,
+    env: options?.env ?? "local",
+  };
+  return Client.create(createSigner(user), testEncryptionKey, {
+    ...opts,
+    dbPath: join(__dirname, `./test-${user.uuid}.db3`),
+  });
 };
 
 export const ContentTypeTest = new ContentTypeId({

@@ -46,7 +46,7 @@ export class WorkerClient {
     return this.#client.isRegistered;
   }
 
-  async getCreateInboxSignatureText() {
+  async createInboxSignatureText() {
     try {
       return await this.#client.createInboxSignatureText();
     } catch {
@@ -54,7 +54,7 @@ export class WorkerClient {
     }
   }
 
-  async getAddWalletSignatureText(accountAddress: string) {
+  async addAccountSignatureText(accountAddress: string) {
     try {
       return await this.#client.addWalletSignatureText(
         this.#accountAddress,
@@ -65,7 +65,7 @@ export class WorkerClient {
     }
   }
 
-  async getRevokeWalletSignatureText(accountAddress: string) {
+  async removeAccountSignatureText(accountAddress: string) {
     try {
       return await this.#client.revokeWalletSignatureText(accountAddress);
     } catch {
@@ -73,7 +73,7 @@ export class WorkerClient {
     }
   }
 
-  async getRevokeInstallationsSignatureText() {
+  async revokeInstallationsSignatureText() {
     try {
       return await this.#client.revokeInstallationsSignatureText();
     } catch {

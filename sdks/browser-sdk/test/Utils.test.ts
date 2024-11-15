@@ -14,7 +14,10 @@ describe.concurrent("Utils", () => {
     const user = createUser();
     const client = await createRegisteredClient(user);
     const utils = new Utils();
-    const inboxId = await utils.getInboxIdForAddress(client.address, "local");
+    const inboxId = await utils.getInboxIdForAddress(
+      client.accountAddress,
+      "local",
+    );
     expect(inboxId).toBe(client.inboxId);
   });
 });

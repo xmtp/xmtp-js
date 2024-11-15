@@ -73,8 +73,8 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           },
         });
         break;
-      case "getCreateInboxSignatureText": {
-        const result = await client.getCreateInboxSignatureText();
+      case "createInboxSignatureText": {
+        const result = await client.createInboxSignatureText();
         postMessage({
           id,
           action,
@@ -82,8 +82,19 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
-      case "getAddWalletSignatureText": {
-        const result = await client.getAddWalletSignatureText(
+      case "addAccountSignatureText": {
+        const result = await client.addAccountSignatureText(
+          data.newAccountAddress,
+        );
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
+      case "removeAccountSignatureText": {
+        const result = await client.removeAccountSignatureText(
           data.accountAddress,
         );
         postMessage({
@@ -93,19 +104,8 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
-      case "getRevokeWalletSignatureText": {
-        const result = await client.getRevokeWalletSignatureText(
-          data.accountAddress,
-        );
-        postMessage({
-          id,
-          action,
-          result,
-        });
-        break;
-      }
-      case "getRevokeInstallationsSignatureText": {
-        const result = await client.getRevokeInstallationsSignatureText();
+      case "revokeInstallationsSignatureText": {
+        const result = await client.revokeInstallationsSignatureText();
         postMessage({
           id,
           action,
