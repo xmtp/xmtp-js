@@ -18,8 +18,6 @@ export const createClient = async (walletKey: string) => {
       return toBytes(signature);
     },
   };
-  const client = await Client.create(signer, encryptionBytes, {
-    env: "local",
-  });
+  const client = await Client.create(signer, encryptionBytes);
   return client;
 };

@@ -136,7 +136,7 @@ export const App = () => {
             <h2>Client details</h2>
             <div className="ClientDetail">
               <div>Address:</div>
-              <div>{client.address}</div>
+              <div>{client.accountAddress}</div>
             </div>
             <div className="ClientDetail">
               <div>Inbox ID:</div>
