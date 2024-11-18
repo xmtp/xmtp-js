@@ -8,6 +8,7 @@ import filesize from "rollup-plugin-filesize";
 import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
 const external = [
+  "node:crypto",
   "@noble/secp256k1",
   "@xmtp/consent-proof-signature",
   "@xmtp/content-type-text",
