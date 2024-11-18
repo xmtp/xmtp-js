@@ -18,9 +18,57 @@ Server response headers must be set to the following values:
 - `Cross-Origin-Embedder-Policy: require-corp`
 - `Cross-Origin-Opener-Policy: same-origin`
 
+#### Vite
+
+Add the following to `vite.config.ts`:
+
+```typescript
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  server: {
+    headers: {
+      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Cross-Origin-Opener-Policy": "same-origin",
+    },
+  },
+});
+```
+
+#### Next.js
+
+Add the following to `next.config.ts`:
+
+```typescript
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        // adjust ":path*" as needed
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp",
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
+```
+
 ### Bundlers
 
-This SDK uses a WebAssembly (WASM) module and bundlers must be configured properly to handle it.
+This SDK uses a WebAssembly (WASM) module and some bundlers must be configured properly to handle it.
 
 #### Vite
 
@@ -29,24 +77,11 @@ Add the following to `vite.config.ts`:
 ```typescript
 import { defineConfig } from "vite";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   optimizeDeps: {
     exclude: ["@xmtp/wasm-bindings"],
   },
 });
-```
-
-#### Next.js
-
-Add the following to `next.config.mjs`:
-
-```typescript
-const nextConfig = {
-  serverComponentsExternalPackages: ["@xmtp/wasm-bindings"],
-};
-
-export default nextConfig;
 ```
 
 ## Install
