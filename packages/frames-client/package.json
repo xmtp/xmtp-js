@@ -63,7 +63,7 @@
   "dependencies": {
     "@noble/hashes": "^1.4.0",
     "@open-frames/proxy-client": "^0.3.3",
-    "@xmtp/proto": "3.62.1",
+    "@xmtp/proto": "^3.72.0",
     "long": "^5.2.3"
   },
   "devDependencies": {

@@ -4808,7 +4808,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^1.0.0"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/proto": "npm:^3.70.0"
+    "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/wasm-bindings": "npm:^0.0.4"
     playwright: "npm:^1.48.1"
     rollup: "npm:^4.27.3"
@@ -4832,7 +4832,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@xmtp/proto": "npm:3.62.1"
+    "@xmtp/proto": "npm:^3.72.0"
     ethers: "npm:^6.13.1"
     long: "npm:^5.2.3"
     rollup: "npm:^4.27.3"
@@ -4854,7 +4854,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
-    "@xmtp/proto": "npm:^3.71.0"
+    "@xmtp/proto": "npm:^3.72.0"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
     happy-dom: "npm:^15.7.4"
@@ -4875,7 +4875,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/proto": "npm:^3.61.1"
+    "@xmtp/proto": "npm:^3.72.0"
     happy-dom: "npm:^15.7.4"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
@@ -4940,7 +4940,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
     "@xmtp/content-type-primitives": "npm:^1.0.2"
-    "@xmtp/proto": "npm:^3.61.1"
+    "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
@@ -4965,7 +4965,7 @@ __metadata:
     "@types/node": "npm:^20.17.6"
     "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/content-type-remote-attachment": "workspace:*"
-    "@xmtp/proto": "npm:^3.61.1"
+    "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -5033,7 +5033,7 @@ __metadata:
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@xmtp/proto": "npm:3.62.1"
+    "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/xmtp-js": "npm:^12.0.0"
     ethers: "npm:^6.13.1"
     long: "npm:^5.2.3"
@@ -5062,7 +5062,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/bl": "npm:^5.1.4"
     "@xmtp/frames-client": "npm:^0.5.4"
-    "@xmtp/proto": "npm:3.61.1"
+    "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/xmtp-js": "npm:^12.1.0"
     ethers: "npm:^6.10.0"
     rollup: "npm:^4.27.3"
@@ -5092,7 +5092,7 @@ __metadata:
     "@xmtp/content-type-primitives": "npm:^1.0.2"
     "@xmtp/content-type-text": "npm:^1.0.0"
     "@xmtp/node-bindings": "npm:^0.0.18"
-    "@xmtp/proto": "npm:^3.62.1"
+    "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/xmtp-js": "workspace:^"
     fast-glob: "npm:^3.3.2"
     rimraf: "npm:^6.0.1"
@@ -5121,31 +5121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/proto@npm:3.61.1":
-  version: 3.61.1
-  resolution: "@xmtp/proto@npm:3.61.1"
-  dependencies:
-    long: "npm:^5.2.0"
-    protobufjs: "npm:^7.0.0"
-    rxjs: "npm:^7.8.0"
-    undici: "npm:^5.8.1"
-  checksum: 10/c5acae46ad301a50652f30384be55a3389b4c11994652fa5386052c7ff4111fcb15c0e9d267898d6173cbcb6559b24bd7bef7470f020388f8610fecd3b8deea9
-  languageName: node
-  linkType: hard
-
-"@xmtp/proto@npm:3.62.1":
-  version: 3.62.1
-  resolution: "@xmtp/proto@npm:3.62.1"
-  dependencies:
-    long: "npm:^5.2.0"
-    protobufjs: "npm:^7.0.0"
-    rxjs: "npm:^7.8.0"
-    undici: "npm:^5.8.1"
-  checksum: 10/7d6633f5ffb60725a6f3f128191944caf203fb3110a6076cdec31bc3cc6e5dca1b03170c6fa38b877125475ed3050031b93a47587c5e6bee6ebd91de53f8f0f2
-  languageName: node
-  linkType: hard
-
-"@xmtp/proto@npm:^3.61.1, @xmtp/proto@npm:^3.62.1, @xmtp/proto@npm:^3.68.0, @xmtp/proto@npm:^3.70.0, @xmtp/proto@npm:^3.71.0":
+"@xmtp/proto@npm:^3.62.1":
   version: 3.71.0
   resolution: "@xmtp/proto@npm:3.71.0"
   dependencies:
@@ -5154,6 +5130,18 @@ __metadata:
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
   checksum: 10/db633ccbe1bc4015494daa4b788f51e672ab3afa5bb54bb82839fae5101a918c6bc6b0aaf14080c8f6d5873ec42fe8f67a47621bfc023b946432a2d9bf18f7b9
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:^3.72.0":
+  version: 3.72.0
+  resolution: "@xmtp/proto@npm:3.72.0"
+  dependencies:
+    long: "npm:^5.2.0"
+    protobufjs: "npm:^7.0.0"
+    rxjs: "npm:^7.8.0"
+    undici: "npm:^5.8.1"
+  checksum: 10/a60df6fa60a9523978c7ad52696ed393179060ed91fb521dfc2cace3127fcd070527a03c5be99089df6c73aead06c8ce74e86e31b9353cfb2a36986fbb7fc645
   languageName: node
   linkType: hard
 
@@ -5260,7 +5248,7 @@ __metadata:
     "@xmtp/consent-proof-signature": "npm:^0.1.3"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-text": "npm:^1.0.0"
-    "@xmtp/proto": "npm:^3.68.0"
+    "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:1.0.1"
     "@xmtp/user-preferences-bindings-wasm": "npm:^0.3.6"
     async-mutex: "npm:^0.5.0"
