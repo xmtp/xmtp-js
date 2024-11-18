@@ -12,6 +12,7 @@ To learn more about XMTP and get answers to frequently asked questions, see theÂ
 ## Requirements
 
 - Node.js 20+
+- `glibc` 3.28+ (i.e. Ubuntu 24.04 or later)
 
 ## Install
 
