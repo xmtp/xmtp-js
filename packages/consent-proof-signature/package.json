@@ -70,7 +70,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
     "ethers": "^6.13.1",
-    "rollup": "^4.24.0",
+    "rollup": "^4.27.3",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "tsconfig": "workspace:*",

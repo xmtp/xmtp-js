@@ -63,7 +63,7 @@
     "@xmtp/xmtp-js": "workspace:^",
     "fast-glob": "^3.3.2",
     "rimraf": "^6.0.1",
-    "rollup": "^4.24.0",
+    "rollup": "^4.27.3",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",

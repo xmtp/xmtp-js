@@ -70,7 +70,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-typescript": "^12.1.1",
     "@testing-library/dom": "^10.3.2",
     "@testing-library/jest-dom": "^6.4.6",
     "@types/uuid": "^10.0.0",
@@ -78,7 +78,7 @@
     "@vitest/coverage-v8": "^2.0.3",
     "@web/rollup-plugin-copy": "^0.5.1",
     "playwright": "^1.48.1",
-    "rollup": "^4.18.1",
+    "rollup": "^4.27.3",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
