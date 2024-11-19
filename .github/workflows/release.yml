@@ -6,6 +6,13 @@ on:
       - main
       - releases/**
 
+  workflow_dispatch:
+    inputs:
+      disable_audit:
+        type: boolean
+        description: "Disable audit in the release"
+        default: false
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
@@ -37,6 +44,7 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        if: ${{ github.event_name != 'workflow_dispatch' || (github.event_name == 'workflow_dispatch' && !inputs.disable_audit) }}
         run: npm audit signatures
       - name: Publish
         uses: changesets/action@v1
