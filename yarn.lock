@@ -4857,7 +4857,7 @@ __metadata:
     "@xmtp/proto": "npm:^3.72.0"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4876,7 +4876,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
     "@xmtp/proto": "npm:^3.72.0"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4898,7 +4898,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4920,7 +4920,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4945,7 +4945,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4969,7 +4969,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4991,7 +4991,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -5013,7 +5013,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -5255,7 +5255,7 @@ __metadata:
     benny: "npm:^3.7.1"
     elliptic: "npm:^6.5.7"
     ethers: "npm:^5.7.2"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     long: "npm:^5.2.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
@@ -7856,14 +7856,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^15.7.4":
-  version: 15.7.4
-  resolution: "happy-dom@npm:15.7.4"
+"happy-dom@npm:^15.11.6":
+  version: 15.11.6
+  resolution: "happy-dom@npm:15.11.6"
   dependencies:
     entities: "npm:^4.5.0"
     webidl-conversions: "npm:^7.0.0"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/fd5026e8a2d9437f161e4c6d9725ffe68f6d31cd09ac7d729b3cd5dd2207a3833272607171da1caf4b1247839ead8bd01a4381a0e31909589af29d27fa24a0f5
+  checksum: 10/895a40bda00753f833ea563f64aef80558b6f701a3238e9fe7143265a1246bde57bc5a7a58ed89e77e2bbe309a119dcf956a70c48033fa84893c41206a6b4128
   languageName: node
   linkType: hard
 

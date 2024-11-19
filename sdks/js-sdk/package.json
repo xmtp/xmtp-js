@@ -117,7 +117,7 @@
     "@xmtp/rollup-plugin-resolve-extensions": "1.0.1",
     "benny": "^3.7.1",
     "ethers": "^5.7.2",
-    "happy-dom": "^15.7.4",
+    "happy-dom": "^15.11.6",
     "rimraf": "^6.0.1",
     "rollup": "^4.27.3",
     "rollup-plugin-dts": "^6.1.1",
