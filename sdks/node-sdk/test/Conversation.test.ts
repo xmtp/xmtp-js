@@ -13,7 +13,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
     const newName = "foo";
@@ -39,7 +39,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
     const imageUrl = "https://foo/bar.jpg";
@@ -65,7 +65,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
     const newDescription = "foo";
@@ -91,7 +91,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
     const pinnedFrameUrl = "https://foo/bar";
@@ -119,7 +119,7 @@ describe("Conversation", () => {
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -158,7 +158,7 @@ describe("Conversation", () => {
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -194,7 +194,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -226,7 +226,7 @@ describe("Conversation", () => {
       codecs: [new TestCodec()],
     });
     await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -242,7 +242,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -281,7 +281,7 @@ describe("Conversation", () => {
       codecs: [new TestCodec()],
     });
     await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -297,7 +297,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -311,7 +311,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -350,7 +350,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -376,7 +376,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
 
@@ -404,9 +404,7 @@ describe("Conversation", () => {
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
-    const group = await client1.conversations.newConversation([
-      user2.account.address,
-    ]);
+    const group = await client1.conversations.newGroup([user2.account.address]);
     expect(group).toBeDefined();
     const dmGroup = await client1.conversations.newDm(user3.account.address);
     expect(dmGroup).toBeDefined();

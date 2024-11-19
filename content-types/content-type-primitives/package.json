@@ -31,14 +31,17 @@
       "browser": "./dist/browser/index.js",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "browser": "dist/browser/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "!src/**/*.test.*"
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",

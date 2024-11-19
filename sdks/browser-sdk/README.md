@@ -68,7 +68,7 @@ export default nextConfig;
 
 ### Bundlers
 
-This SDK uses a WebAssembly (WASM) module and some bundlers must be configured properly to handle it.
+This SDK and some of its dependencies use `import.meta.url`. Some bundlers must be configured to account for this during development.
 
 #### Vite
 
@@ -79,7 +79,8 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   optimizeDeps: {
-    exclude: ["@xmtp/wasm-bindings"],
+    exclude: ["@xmtp/browser-sdk"],
+    include: ["@xmtp/proto"],
   },
 });
 ```

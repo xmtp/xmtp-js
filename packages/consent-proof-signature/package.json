@@ -29,7 +29,8 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -38,8 +39,7 @@
   "files": [
     "dist",
     "src",
-    "!src/**/*.test.*",
-    "tsconfig.json"
+    "!src/**/*.test.*"
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",

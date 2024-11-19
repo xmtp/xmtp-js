@@ -28,7 +28,8 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "module": "dist/index.js",
   "browser": "dist/index.js",
@@ -36,8 +37,7 @@
   "files": [
     "dist",
     "src",
-    "!src/**/*.test.*",
-    "tsconfig.json"
+    "!src/**/*.test.*"
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",

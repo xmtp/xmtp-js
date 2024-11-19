@@ -47,10 +47,7 @@ export class Conversations {
     }
   }
 
-  async newConversation(
-    accountAddresses: string[],
-    options?: CreateGroupOptions,
-  ) {
+  async newGroup(accountAddresses: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroup(
       accountAddresses,
       options,

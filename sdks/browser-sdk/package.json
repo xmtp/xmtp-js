@@ -29,15 +29,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "module": "dist/index.js",
   "browser": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "src",
-    "tsconfig.json"
+    "src"
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",
