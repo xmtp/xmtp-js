@@ -12,12 +12,12 @@ describe("Conversations", () => {
     expect((await client.conversations.listGroups()).length).toBe(0);
   });
 
-  it("should create a new conversation", async () => {
+  it("should create a group", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newConversation([
+    const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
     expect(conversation).toBeDefined();
@@ -71,7 +71,7 @@ describe("Conversations", () => {
     expect((await client2.conversations.listGroups()).length).toBe(1);
   });
 
-  it("should create a dm group", async () => {
+  it("should create a dm", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
@@ -142,9 +142,7 @@ describe("Conversations", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     await createRegisteredClient(user2);
-    const group = await client1.conversations.newConversation([
-      user2.account.address,
-    ]);
+    const group = await client1.conversations.newGroup([user2.account.address]);
     expect(group).toBeDefined();
     expect(group.id).toBeDefined();
     const foundGroup = client1.conversations.getConversationById(group.id);
@@ -157,9 +155,7 @@ describe("Conversations", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     await createRegisteredClient(user2);
-    const group = await client1.conversations.newConversation([
-      user2.account.address,
-    ]);
+    const group = await client1.conversations.newGroup([user2.account.address]);
     const messageId = await group.send("gm!");
     expect(messageId).toBeDefined();
 
@@ -168,7 +164,7 @@ describe("Conversations", () => {
     expect(message!.id).toBe(messageId);
   });
 
-  it("should create a new conversation with options", async () => {
+  it("should create a group with options", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
@@ -179,7 +175,7 @@ describe("Conversations", () => {
     await createRegisteredClient(user3);
     await createRegisteredClient(user4);
     await createRegisteredClient(user5);
-    const groupWithName = await client1.conversations.newConversation(
+    const groupWithName = await client1.conversations.newGroup(
       [user2.account.address],
       {
         groupName: "foo",
@@ -189,7 +185,7 @@ describe("Conversations", () => {
     expect(groupWithName.name).toBe("foo");
     expect(groupWithName.imageUrl).toBe("");
 
-    const groupWithImageUrl = await client1.conversations.newConversation(
+    const groupWithImageUrl = await client1.conversations.newGroup(
       [user3.account.address],
       {
         groupImageUrlSquare: "https://foo/bar.png",
@@ -199,16 +195,18 @@ describe("Conversations", () => {
     expect(groupWithImageUrl.name).toBe("");
     expect(groupWithImageUrl.imageUrl).toBe("https://foo/bar.png");
 
-    const groupWithNameAndImageUrl =
-      await client1.conversations.newConversation([user4.account.address], {
+    const groupWithNameAndImageUrl = await client1.conversations.newGroup(
+      [user4.account.address],
+      {
         groupImageUrlSquare: "https://foo/bar.png",
         groupName: "foo",
-      });
+      },
+    );
     expect(groupWithNameAndImageUrl).toBeDefined();
     expect(groupWithNameAndImageUrl.name).toBe("foo");
     expect(groupWithNameAndImageUrl.imageUrl).toBe("https://foo/bar.png");
 
-    const groupWithPermissions = await client1.conversations.newConversation(
+    const groupWithPermissions = await client1.conversations.newGroup(
       [user4.account.address],
       {
         permissions: GroupPermissionsOptions.AdminOnly,
@@ -232,7 +230,7 @@ describe("Conversations", () => {
       updateGroupPinnedFrameUrlPolicy: 2,
     });
 
-    const groupWithDescription = await client1.conversations.newConversation(
+    const groupWithDescription = await client1.conversations.newGroup(
       [user2.account.address],
       {
         groupDescription: "foo",
@@ -243,7 +241,7 @@ describe("Conversations", () => {
     expect(groupWithDescription.imageUrl).toBe("");
     expect(groupWithDescription.description).toBe("foo");
 
-    const groupWithPinnedFrameUrl = await client1.conversations.newConversation(
+    const groupWithPinnedFrameUrl = await client1.conversations.newGroup(
       [user2.account.address],
       {
         groupPinnedFrameUrl: "https://foo/bar",
@@ -264,10 +262,10 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
     const stream = client3.conversations.stream();
-    const conversation1 = await client1.conversations.newConversation([
+    const conversation1 = await client1.conversations.newGroup([
       user3.account.address,
     ]);
-    const conversation2 = await client2.conversations.newConversation([
+    const conversation2 = await client2.conversations.newGroup([
       user3.account.address,
     ]);
     let count = 0;
@@ -301,10 +299,10 @@ describe("Conversations", () => {
     const client4 = await createRegisteredClient(user4);
     const stream = client3.conversations.streamGroups();
     await client4.conversations.newDm(user3.account.address);
-    const group1 = await client1.conversations.newConversation([
+    const group1 = await client1.conversations.newGroup([
       user3.account.address,
     ]);
-    const group2 = await client2.conversations.newConversation([
+    const group2 = await client2.conversations.newGroup([
       user3.account.address,
     ]);
     let count = 0;
@@ -331,8 +329,8 @@ describe("Conversations", () => {
     const client3 = await createRegisteredClient(user3);
     const client4 = await createRegisteredClient(user4);
     const stream = client3.conversations.streamDms();
-    await client1.conversations.newConversation([user3.account.address]);
-    await client2.conversations.newConversation([user3.account.address]);
+    await client1.conversations.newGroup([user3.account.address]);
+    await client2.conversations.newGroup([user3.account.address]);
     const group3 = await client4.conversations.newDm(user3.account.address);
     let count = 0;
     for await (const convo of stream) {
@@ -353,8 +351,8 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
-    await client1.conversations.newConversation([user2.account.address]);
-    await client1.conversations.newConversation([user3.account.address]);
+    await client1.conversations.newGroup([user2.account.address]);
+    await client1.conversations.newGroup([user3.account.address]);
 
     const stream = await client1.conversations.streamAllMessages();
 
@@ -391,8 +389,8 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
     const client4 = await createRegisteredClient(user4);
-    await client1.conversations.newConversation([user2.account.address]);
-    await client1.conversations.newConversation([user3.account.address]);
+    await client1.conversations.newGroup([user2.account.address]);
+    await client1.conversations.newGroup([user3.account.address]);
     await client1.conversations.newDm(user4.account.address);
 
     const stream = await client1.conversations.streamAllGroupMessages();
@@ -437,8 +435,8 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(user2);
     const client3 = await createRegisteredClient(user3);
     const client4 = await createRegisteredClient(user4);
-    await client1.conversations.newConversation([user2.account.address]);
-    await client1.conversations.newConversation([user3.account.address]);
+    await client1.conversations.newGroup([user2.account.address]);
+    await client1.conversations.newGroup([user3.account.address]);
     await client1.conversations.newDm(user4.account.address);
 
     const stream = await client1.conversations.streamAllDmMessages();

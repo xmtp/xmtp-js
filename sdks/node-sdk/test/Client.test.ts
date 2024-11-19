@@ -164,9 +164,7 @@ describe("Client", () => {
     const user2 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
-    const group = await client1.conversations.newConversation([
-      user2.account.address,
-    ]);
+    const group = await client1.conversations.newGroup([user2.account.address]);
 
     await client2.conversations.sync();
     const group2 = client2.conversations.getConversationById(group.id);
