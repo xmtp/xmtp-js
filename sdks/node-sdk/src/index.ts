@@ -34,7 +34,7 @@ export {
   GroupMetadata,
   GroupPermissions,
   GroupPermissionsOptions,
-  Level,
+  LogLevel,
   PermissionLevel,
   PermissionPolicy,
   PermissionUpdateType,
