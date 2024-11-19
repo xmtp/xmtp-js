@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 0.6.3
+
+### Patch Changes
+
+- 63e5276: Updated exports
+
 ## 0.6.2
 
 ### Patch Changes

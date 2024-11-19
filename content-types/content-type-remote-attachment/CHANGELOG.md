@@ -1,5 +1,12 @@
 # @xmtp/content-type-remote-attachment
 
+## 1.1.12
+
+### Patch Changes
+
+- Updated dependencies [63e5276]
+  - @xmtp/content-type-primitives@1.0.3
+
 ## 1.1.11
 
 ### Patch Changes

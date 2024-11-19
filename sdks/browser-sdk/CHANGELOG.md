@@ -1,5 +1,16 @@
 # @xmtp/browser-sdk
 
+## 0.0.5
+
+### Patch Changes
+
+- 63e5276: Updated exports
+- Updated dependencies [63e5276]
+  - @xmtp/content-type-group-updated@1.0.1
+  - @xmtp/content-type-primitives@1.0.3
+  - @xmtp/content-type-text@1.0.1
+  - @xmtp/proto@3.72.0
+
 ## 0.0.4
 
 ### Patch Changes

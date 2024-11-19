@@ -1,5 +1,11 @@
 # @xmtp/consent-proof-signature
 
+## 0.1.4
+
+### Patch Changes
+
+- 63e5276: Upgraded `@xmtp/proto` dependency
+
 ## 0.1.3
 
 ### Patch Changes

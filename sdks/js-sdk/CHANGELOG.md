@@ -1,5 +1,15 @@
 # @xmtp/xmtp-js
 
+## 13.0.4
+
+### Patch Changes
+
+- Updated dependencies [63e5276]
+  - @xmtp/content-type-primitives@1.0.3
+  - @xmtp/content-type-text@1.0.1
+  - @xmtp/consent-proof-signature@0.1.4
+  - @xmtp/proto@3.72.0
+
 ## 13.0.3
 
 ### Patch Changes
