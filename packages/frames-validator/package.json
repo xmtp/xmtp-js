@@ -20,7 +20,10 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "!src/**/*.test.*",
+    "tsconfig.json"
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",
