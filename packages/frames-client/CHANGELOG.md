@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 0.5.5
+
+### Patch Changes
+
+- 63e5276: Updated exports
+
 ## 0.5.4
 
 ### Patch Changes

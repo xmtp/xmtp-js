@@ -1,5 +1,12 @@
 # @xmtp/content-type-transaction-reference
 
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [63e5276]
+  - @xmtp/content-type-primitives@1.0.3
+
 ## 1.0.4
 
 ### Patch Changes
