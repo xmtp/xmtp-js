@@ -59,8 +59,7 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "src",
-    "tsconfig.json"
+    "src"
   ],
   "scripts": {
     "bench": "yarn build:bench && node dist/bench/index.cjs",

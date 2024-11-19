@@ -22,8 +22,7 @@
   "files": [
     "dist",
     "src",
-    "!src/**/*.test.*",
-    "tsconfig.json"
+    "!src/**/*.test.*"
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",

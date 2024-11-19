@@ -36,8 +36,7 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "src",
-    "tsconfig.json"
+    "src"
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",
