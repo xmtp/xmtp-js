@@ -15,7 +15,7 @@ import {
   generateInboxId,
   getInboxIdForAddress,
   GroupMessageKind,
-  Level,
+  LogLevel,
   SignatureRequestType,
   type Consent,
   type ConsentEntityType,
@@ -78,7 +78,7 @@ export type OtherOptions = {
   /**
    * Logging level
    */
-  loggingLevel?: Level;
+  loggingLevel?: LogLevel;
   /**
    * Disable automatic registration when creating a client
    */
@@ -126,7 +126,7 @@ export class Client {
 
     const logOptions: LogOptions = {
       structured: options?.structuredLogging ?? false,
-      level: options?.loggingLevel ?? Level.off,
+      level: options?.loggingLevel ?? LogLevel.off,
     };
 
     const client = new Client(
@@ -408,5 +408,31 @@ export class Client {
 
   async getConsentState(entityType: ConsentEntityType, entity: string) {
     return this.#innerClient.getConsentState(entityType, entity);
+  }
+
+  signWithInstallationKey(signatureText: string) {
+    return this.#innerClient.signWithInstallationKey(signatureText);
+  }
+
+  verifySignedWithInstallationKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+  ) {
+    this.#innerClient.verifySignedWithInstallationKey(
+      signatureText,
+      signatureBytes,
+    );
+  }
+
+  verifySignedWithPublicKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+    publicKey: Uint8Array,
+  ) {
+    this.#innerClient.verifySignedWithPublicKey(
+      signatureText,
+      signatureBytes,
+      publicKey,
+    );
   }
 }
