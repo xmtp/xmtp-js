@@ -1,5 +1,13 @@
 # @xmtp/node-sdk
 
+## 0.0.26
+
+### Patch Changes
+
+- 7661f78:
+  - Added `syncAll` method to `Conversations`
+  - Added `signWithInstallationKey`, `verifySignedWithInstallationKey`, and `verifySignedWithPublicKey` to `Client`
+
 ## 0.0.25
 
 ### Patch Changes
