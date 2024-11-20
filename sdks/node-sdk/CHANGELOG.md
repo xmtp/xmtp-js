@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.26
+
+### Patch Changes
+
+- 7661f78: Upgrade node bindings
+
 ## 0.0.25
 
 ### Patch Changes
