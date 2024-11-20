@@ -4810,7 +4810,7 @@ __metadata:
     "@xmtp/content-type-text": "npm:^1.0.1"
     "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/wasm-bindings": "npm:^0.0.4"
-    playwright: "npm:^1.48.1"
+    playwright: "npm:^1.49.0"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
     rollup-plugin-filesize: "npm:^10.0.0"
@@ -4857,7 +4857,7 @@ __metadata:
     "@xmtp/proto": "npm:^3.72.0"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4876,7 +4876,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
     "@xmtp/proto": "npm:^3.72.0"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4898,7 +4898,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4920,7 +4920,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4945,7 +4945,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4969,7 +4969,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4991,7 +4991,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -5013,7 +5013,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -5073,10 +5073,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:^0.0.18":
-  version: 0.0.18
-  resolution: "@xmtp/node-bindings@npm:0.0.18"
-  checksum: 10/5cca0748f163728c013ff17cf7fba81a64a7a6029a9782c6b568fd1044940c8ae641110f0a187ee2ac7787f303552712ebe1d5c515c5dad4dc0baa31506d8b83
+"@xmtp/node-bindings@npm:^0.0.20":
+  version: 0.0.20
+  resolution: "@xmtp/node-bindings@npm:0.0.20"
+  checksum: 10/fbbe2e223a7871e9908cda41161a0360dc61b5b32cbe3342b7471de7039cac65e6b71783faf0827cce03cdbb68ee60fb1394bc76a0749b7ca0d014dae96a3ce9
   languageName: node
   linkType: hard
 
@@ -5091,7 +5091,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^1.0.1"
     "@xmtp/content-type-primitives": "npm:^1.0.3"
     "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/node-bindings": "npm:^0.0.18"
+    "@xmtp/node-bindings": "npm:^0.0.20"
     "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/xmtp-js": "workspace:^"
     fast-glob: "npm:^3.3.2"
@@ -5255,7 +5255,7 @@ __metadata:
     benny: "npm:^3.7.1"
     elliptic: "npm:^6.5.7"
     ethers: "npm:^5.7.2"
-    happy-dom: "npm:^15.7.4"
+    happy-dom: "npm:^15.11.6"
     long: "npm:^5.2.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.27.3"
@@ -7856,14 +7856,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^15.7.4":
-  version: 15.7.4
-  resolution: "happy-dom@npm:15.7.4"
+"happy-dom@npm:^15.11.6":
+  version: 15.11.6
+  resolution: "happy-dom@npm:15.11.6"
   dependencies:
     entities: "npm:^4.5.0"
     webidl-conversions: "npm:^7.0.0"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/fd5026e8a2d9437f161e4c6d9725ffe68f6d31cd09ac7d729b3cd5dd2207a3833272607171da1caf4b1247839ead8bd01a4381a0e31909589af29d27fa24a0f5
+  checksum: 10/895a40bda00753f833ea563f64aef80558b6f701a3238e9fe7143265a1246bde57bc5a7a58ed89e77e2bbe309a119dcf956a70c48033fa84893c41206a6b4128
   languageName: node
   linkType: hard
 
@@ -10181,27 +10181,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.48.1":
-  version: 1.48.1
-  resolution: "playwright-core@npm:1.48.1"
+"playwright-core@npm:1.49.0":
+  version: 1.49.0
+  resolution: "playwright-core@npm:1.49.0"
   bin:
     playwright-core: cli.js
-  checksum: 10/81b51d288be78b75898470eb192ef0bc65594eebfb5f7602d83ba2505e1d2163c9923a0d7bae46779d5f3a16e1daf392acfbccde01d9f302cdf90bf2b21b8988
+  checksum: 10/ef9c708293adab100337ed7fd8e61660be381707fc2b84f07b5f40d1ead44feb6a8e52fef98075e594522229d15a9ad56dd1471689cfa59409bec6447c22944d
   languageName: node
   linkType: hard
 
-"playwright@npm:^1.48.1":
-  version: 1.48.1
-  resolution: "playwright@npm:1.48.1"
+"playwright@npm:^1.49.0":
+  version: 1.49.0
+  resolution: "playwright@npm:1.49.0"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.48.1"
+    playwright-core: "npm:1.49.0"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10/39e231af3d9e576ba835813c5319b8773d8536ba54c7e34c7004cf06fadb412b6bbfc91badf4bb5cda3f138e5a8994c314de4c76d06d9424430e415f86fb3dd1
+  checksum: 10/1fb198d09d388ec46cc2f0fc6b889a8bde8a75066ded82d35f08ba333091ebf3fc4ddf11263a86058a7078c7238ec4f23a86a9f1dc3ebd4f610c9eb07841fb32
   languageName: node
   linkType: hard
 

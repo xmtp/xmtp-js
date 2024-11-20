@@ -92,6 +92,10 @@ export class Conversations {
     return this.#conversations.sync();
   }
 
+  async syncAll() {
+    return this.#conversations.syncAllConversations();
+  }
+
   stream(callback?: StreamCallback<Conversation>) {
     const asyncStream = new AsyncStream<Conversation>();
 
