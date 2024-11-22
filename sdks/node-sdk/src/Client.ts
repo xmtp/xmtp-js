@@ -180,15 +180,10 @@ export class Client {
     }
   }
 
-  async #addAccountSignatureText(
-    existingAccountAddress: string,
-    newAccountAddress: string,
-  ) {
+  async #addAccountSignatureText(newAccountAddress: string) {
     try {
-      const signatureText = await this.#innerClient.addWalletSignatureText(
-        existingAccountAddress,
-        newAccountAddress,
-      );
+      const signatureText =
+        await this.#innerClient.addWalletSignatureText(newAccountAddress);
       return signatureText;
     } catch {
       return null;
@@ -257,19 +252,12 @@ export class Client {
 
   async addAccount(newAccountSigner: Signer) {
     const signatureText = await this.#addAccountSignatureText(
-      await this.#signer.getAddress(),
       await newAccountSigner.getAddress(),
     );
 
     if (!signatureText) {
       throw new Error("Unable to generate add account signature text");
     }
-
-    await this.#addSignature(
-      SignatureRequestType.AddWallet,
-      signatureText,
-      this.#signer,
-    );
 
     await this.#addSignature(
       SignatureRequestType.AddWallet,
