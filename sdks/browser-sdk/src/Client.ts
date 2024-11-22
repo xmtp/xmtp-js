@@ -185,12 +185,6 @@ export class Client extends ClientWorkerClass {
     await this.#addSignature(
       SignatureRequestType.AddWallet,
       signatureText,
-      this.#signer,
-    );
-
-    await this.#addSignature(
-      SignatureRequestType.AddWallet,
-      signatureText,
       newAccountSigner,
     );
 

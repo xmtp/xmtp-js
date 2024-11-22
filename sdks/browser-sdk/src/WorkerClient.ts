@@ -60,10 +60,7 @@ export class WorkerClient {
 
   async addAccountSignatureText(accountAddress: string) {
     try {
-      return await this.#client.addWalletSignatureText(
-        this.#accountAddress,
-        accountAddress,
-      );
+      return await this.#client.addWalletSignatureText(accountAddress);
     } catch {
       return undefined;
     }
