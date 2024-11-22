@@ -17,6 +17,7 @@ import {
   GroupMessageKind,
   LogLevel,
   SignatureRequestType,
+  verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
   type Consent,
   type ConsentEntityType,
   type LogOptions,
@@ -410,21 +411,31 @@ export class Client {
     signatureText: string,
     signatureBytes: Uint8Array,
   ) {
-    this.#innerClient.verifySignedWithInstallationKey(
-      signatureText,
-      signatureBytes,
-    );
+    try {
+      this.#innerClient.verifySignedWithInstallationKey(
+        signatureText,
+        signatureBytes,
+      );
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  verifySignedWithPublicKey(
+  static verifySignedWithPublicKey(
     signatureText: string,
     signatureBytes: Uint8Array,
     publicKey: Uint8Array,
   ) {
-    this.#innerClient.verifySignedWithPublicKey(
-      signatureText,
-      signatureBytes,
-      publicKey,
-    );
+    try {
+      verifySignedWithPublicKeyBinding(
+        signatureText,
+        signatureBytes,
+        publicKey,
+      );
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

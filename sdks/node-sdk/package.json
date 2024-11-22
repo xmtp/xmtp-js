@@ -69,6 +69,7 @@
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.6.3",
+    "uint8array-extras": "^1.4.0",
     "uuid": "^11.0.3",
     "viem": "^2.13.6",
     "vite": "^5.4.11",
