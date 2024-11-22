@@ -30,6 +30,7 @@ export class Client extends ClientWorkerClass {
   #encryptionKey: Uint8Array;
   #inboxId: string | undefined;
   #installationId: string | undefined;
+  #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
   #signer: Signer;
   options?: ClientOptions;
@@ -74,6 +75,7 @@ export class Client extends ClientWorkerClass {
     });
     this.#inboxId = result.inboxId;
     this.#installationId = result.installationId;
+    this.#installationIdBytes = result.installationIdBytes;
     this.#isReady = true;
   }
 
@@ -104,6 +106,10 @@ export class Client extends ClientWorkerClass {
 
   get installationId() {
     return this.#installationId;
+  }
+
+  get installationIdBytes() {
+    return this.#installationIdBytes;
   }
 
   async #createInboxSignatureText() {

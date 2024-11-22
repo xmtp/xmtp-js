@@ -42,6 +42,10 @@ export class WorkerClient {
     return this.#client.installationId;
   }
 
+  get installationIdBytes() {
+    return this.#client.installationIdBytes;
+  }
+
   get isRegistered() {
     return this.#client.isRegistered;
   }

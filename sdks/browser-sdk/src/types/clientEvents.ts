@@ -35,6 +35,7 @@ export type ClientEvents =
       result: {
         inboxId: string;
         installationId: string;
+        installationIdBytes: Uint8Array;
       };
       data: {
         address: string;

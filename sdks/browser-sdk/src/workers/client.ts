@@ -70,6 +70,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           result: {
             inboxId: client.inboxId,
             installationId: client.installationId,
+            installationIdBytes: client.installationIdBytes,
           },
         });
         break;
