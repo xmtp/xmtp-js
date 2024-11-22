@@ -1,4 +1,5 @@
 import {
+  verifySignedWithPublicKey,
   type Client,
   type ConsentEntityType,
   type SignatureRequestType,
@@ -158,11 +159,7 @@ export class WorkerClient {
     publicKey: Uint8Array,
   ) {
     try {
-      this.#client.verifySignedWithPublicKey(
-        signatureText,
-        signatureBytes,
-        publicKey,
-      );
+      verifySignedWithPublicKey(signatureText, signatureBytes, publicKey);
       return true;
     } catch {
       return false;
