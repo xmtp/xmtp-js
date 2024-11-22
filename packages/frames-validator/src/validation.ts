@@ -1,4 +1,7 @@
+import { sha256 } from "@noble/hashes/sha256";
+import { Client, getInboxIdForAddress, type XmtpEnv } from "@xmtp/node-sdk";
 import { fetcher, frames, type publicKey, type signature } from "@xmtp/proto";
+import { uint8ArrayToHex } from "uint8array-extras";
 import type {
   UntrustedData,
   XmtpOpenFramesRequest,
@@ -10,44 +13,70 @@ export type * from "./types.js";
 
 const { b64Decode } = fetcher;
 
-export function validateFramesPost(
+export async function validateFramesPost(
   data: XmtpOpenFramesRequest,
-): XmtpValidationResponse {
+  env?: XmtpEnv,
+): Promise<XmtpValidationResponse> {
   const { untrustedData, trustedData } = data;
   const { walletAddress } = untrustedData;
   const { messageBytes: messageBytesString } = trustedData;
 
   const messageBytes = b64Decode(messageBytesString);
 
-  const { actionBody, actionBodyBytes, signature, signedPublicKeyBundle } =
-    deserializeProtoMessage(messageBytes);
-
-  const verifiedWalletAddress = getVerifiedWalletAddress(
+  const {
+    actionBody,
     actionBodyBytes,
     signature,
     signedPublicKeyBundle,
-  );
+    installationId, // not necessary
+    installationSignature,
+    inboxId,
+  } = deserializeProtoMessage(messageBytes);
 
-  if (verifiedWalletAddress !== walletAddress) {
-    console.log(`${verifiedWalletAddress} !== ${walletAddress}`);
-    throw new Error("Invalid wallet address");
+  const isV2Frame = signature && signedPublicKeyBundle;
+
+  if (isV2Frame) {
+    const verifiedWalletAddress = getVerifiedWalletAddress(
+      actionBodyBytes,
+      signature,
+      signedPublicKeyBundle,
+    );
+
+    if (verifiedWalletAddress !== walletAddress) {
+      console.log(`${verifiedWalletAddress} !== ${walletAddress}`);
+      throw new Error("Invalid wallet address");
+    }
+  } else {
+    // make sure inbox IDs match
+    const addressInboxId = await getInboxIdForAddress(walletAddress, env);
+    if (inboxId !== addressInboxId) {
+      throw new Error("Invalid inbox ID");
+    }
+
+    const digest = sha256(actionBodyBytes);
+
+    // make sure installation signature is valid
+    const valid = Client.verifySignedWithPublicKey(
+      uint8ArrayToHex(digest),
+      installationSignature,
+      installationId,
+    );
+
+    if (!valid) {
+      throw new Error("Invalid signature");
+    }
   }
 
   checkUntrustedData(untrustedData, actionBody);
 
   return {
     actionBody,
-    verifiedWalletAddress,
+    verifiedWalletAddress: walletAddress,
   };
 }
 
 export function deserializeProtoMessage(messageBytes: Uint8Array) {
   const frameAction = frames.FrameAction.decode(messageBytes);
-  if (!frameAction.signature || !frameAction.signedPublicKeyBundle) {
-    throw new Error(
-      "Invalid frame action: missing signature or signed public key bundle",
-    );
-  }
   const actionBody = frames.FrameActionBody.decode(frameAction.actionBody);
 
   return {
@@ -55,6 +84,9 @@ export function deserializeProtoMessage(messageBytes: Uint8Array) {
     actionBodyBytes: frameAction.actionBody,
     signature: frameAction.signature,
     signedPublicKeyBundle: frameAction.signedPublicKeyBundle,
+    installationId: frameAction.installationId,
+    installationSignature: frameAction.installationSignature,
+    inboxId: frameAction.inboxId,
   };
 }
 
