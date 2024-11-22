@@ -321,6 +321,15 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "syncAllConversations": {
+        await client.conversations.syncAll();
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
       case "getConversationById": {
         const conversation = client.conversations.getConversationById(data.id);
         postMessage({

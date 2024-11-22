@@ -259,6 +259,12 @@ export type ClientEvents =
       result: undefined;
       data: undefined;
     }
+  | {
+      action: "syncAllConversations";
+      id: string;
+      result: undefined;
+      data: undefined;
+    }
   /**
    * Group actions
    */

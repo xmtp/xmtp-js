@@ -16,6 +16,10 @@ export class Conversations {
     return this.#client.sendMessage("syncConversations", undefined);
   }
 
+  async syncAll() {
+    return this.#client.sendMessage("syncAllConversations", undefined);
+  }
+
   async getConversationById(id: string) {
     return this.#client.sendMessage("getConversationById", {
       id,
