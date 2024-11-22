@@ -1,8 +1,7 @@
 import { sha256 } from "@noble/hashes/sha256";
 import { fetcher } from "@xmtp/proto";
-import type { Client } from "@xmtp/xmtp-js";
 import { InvalidArgumentsError } from "./errors";
-import type { FrameActionInputs, ReactNativeClient } from "./types";
+import type { FrameActionInputs } from "./types";
 
 const { b64Encode } = fetcher;
 
@@ -41,16 +40,5 @@ export function buildOpaqueIdentifier(inputs: FrameActionInputs): string {
         ...participantAccountAddresses.map((p) => p.toLowerCase()).sort(),
       ),
     ),
-  );
-}
-
-export function isReactNativeClient(
-  client: Client | ReactNativeClient,
-): client is ReactNativeClient {
-  const assertedClient = client as ReactNativeClient;
-  return (
-    typeof assertedClient.sign === "function" &&
-    typeof assertedClient.exportPublicKeyBundle === "function" &&
-    !("keystore" in client)
   );
 }
