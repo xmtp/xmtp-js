@@ -163,6 +163,10 @@ export class Client {
     return this.#innerClient.installationId();
   }
 
+  get installationIdBytes() {
+    return this.#innerClient.installationIdBytes();
+  }
+
   get isRegistered() {
     return this.#innerClient.isRegistered();
   }
