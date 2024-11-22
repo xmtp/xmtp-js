@@ -97,7 +97,7 @@ describe.concurrent("Conversations", () => {
       updateGroupPinnedFrameUrlPolicy: 0,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
-    expect((await group.messages()).length).toBe(1);
+    expect((await group.messages()).length).toBe(0);
     const members = await group.members();
     expect(members.length).toBe(2);
     const memberInboxIds = members.map((member) => member.inboxId);
