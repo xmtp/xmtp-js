@@ -158,6 +158,33 @@ export type ClientEvents =
         address: string;
       };
     }
+  | {
+      action: "signWithInstallationKey";
+      id: string;
+      result: Uint8Array;
+      data: {
+        signatureText: string;
+      };
+    }
+  | {
+      action: "verifySignedWithInstallationKey";
+      id: string;
+      result: boolean;
+      data: {
+        signatureText: string;
+        signatureBytes: Uint8Array;
+      };
+    }
+  | {
+      action: "verifySignedWithPublicKey";
+      id: string;
+      result: boolean;
+      data: {
+        signatureText: string;
+        signatureBytes: Uint8Array;
+        publicKey: Uint8Array;
+      };
+    }
   /**
    * Conversations actions
    */

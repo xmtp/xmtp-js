@@ -320,4 +320,30 @@ export class Client extends ClientWorkerClass {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return codec.decode(encodedContent, this);
   }
+
+  signWithInstallationKey(signatureText: string) {
+    return this.sendMessage("signWithInstallationKey", { signatureText });
+  }
+
+  verifySignedWithInstallationKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+  ) {
+    return this.sendMessage("verifySignedWithInstallationKey", {
+      signatureText,
+      signatureBytes,
+    });
+  }
+
+  verifySignedWithPublicKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+    publicKey: Uint8Array,
+  ) {
+    return this.sendMessage("verifySignedWithPublicKey", {
+      signatureText,
+      signatureBytes,
+      publicKey,
+    });
+  }
 }

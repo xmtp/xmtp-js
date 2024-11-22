@@ -217,6 +217,40 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "signWithInstallationKey": {
+        const result = client.signWithInstallationKey(data.signatureText);
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
+      case "verifySignedWithInstallationKey": {
+        const result = client.verifySignedWithInstallationKey(
+          data.signatureText,
+          data.signatureBytes,
+        );
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
+      case "verifySignedWithPublicKey": {
+        const result = client.verifySignedWithPublicKey(
+          data.signatureText,
+          data.signatureBytes,
+          data.publicKey,
+        );
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
       /**
        * Conversations actions
        */
