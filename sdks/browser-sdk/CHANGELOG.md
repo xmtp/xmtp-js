@@ -1,5 +1,14 @@
 # @xmtp/browser-sdk
 
+## 0.0.6
+
+### Patch Changes
+
+- 9324310:
+  - Added `installationIdBytes` to `Client`
+  - Added `Conversations.syncAll` method
+  - Added `signWithInstallationKey`, `verifySignedWithInstallationKey`, and `verifySignedWithPublicKey` methods to `Client`
+
 ## 0.0.5
 
 ### Patch Changes

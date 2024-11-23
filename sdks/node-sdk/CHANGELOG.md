@@ -1,5 +1,14 @@
 # @xmtp/node-sdk
 
+## 0.0.27
+
+### Patch Changes
+
+- 9324310:
+  - Added `installationIdBytes` to `Client`
+  - Refactored `Client.verifySignedWithInstallationKey` to return a `boolean`
+  - Changed `Client.verifySignedWithPublicKey` to a static method
+
 ## 0.0.26
 
 ### Patch Changes
