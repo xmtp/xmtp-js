@@ -4,6 +4,10 @@ import type {
   TransactionResponse,
 } from "@open-frames/proxy-client";
 import type { OpenFramesUntrustedData } from "@open-frames/types";
+import {
+  type publicKey as publicKeyProto,
+  type signature as signatureProto,
+} from "@xmtp/proto";
 
 export type FramesApiResponse = GetMetadataResponse;
 
@@ -48,13 +52,23 @@ export type FrameActionInputs = {
   transactionId?: string;
 } & ConversationActionInputs;
 
-type KeyType = {
-  kind: "identity" | "prekey";
-  prekeyIndex?: number | undefined;
+export type V2FramesSigner = {
+  address: () => Promise<string> | string;
+  getPublicKeyBundle: () => Promise<publicKeyProto.PublicKeyBundle>;
+  sign: (message: Uint8Array) => Promise<signatureProto.Signature>;
 };
 
-export type ReactNativeClient = {
-  address: string;
-  exportPublicKeyBundle(): Promise<Uint8Array>;
-  sign(digest: Uint8Array, type: KeyType): Promise<Uint8Array>;
+export type V3FramesSigner = {
+  installationId: () => Promise<Uint8Array> | Uint8Array;
+  inboxId: () => Promise<string> | string;
+  address: () => Promise<string> | string;
+  sign: (message: Uint8Array) => Promise<Uint8Array> | Uint8Array;
+};
+
+export type FramesSigner = V2FramesSigner | V3FramesSigner;
+
+export const isV3FramesSigner = (
+  signer: FramesSigner,
+): signer is V3FramesSigner => {
+  return "installationId" in signer && "inboxId" in signer;
 };

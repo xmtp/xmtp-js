@@ -3,6 +3,7 @@ import type {
   RequestValidator,
   ValidationResponse,
 } from "@open-frames/types";
+import type { XmtpEnv } from "@xmtp/node-sdk";
 import type { XmtpOpenFramesRequest, XmtpValidationResponse } from "./types";
 import { validateFramesPost } from "./validation";
 
@@ -37,11 +38,12 @@ export class XmtpValidator
 
   async validate(
     payload: XmtpOpenFramesRequest,
+    env?: XmtpEnv,
   ): Promise<
     ValidationResponse<XmtpValidationResponse, typeof this.protocolIdentifier>
   > {
     try {
-      const validationResponse = validateFramesPost(payload);
+      const validationResponse = await validateFramesPost(payload, env);
       return await Promise.resolve({
         isValid: true,
         clientProtocol: payload.clientProtocol,

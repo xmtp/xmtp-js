@@ -1,33 +1,28 @@
 import { sha256 } from "@noble/hashes/sha256";
-import {
-  frames,
-  publicKey as publicKeyProto,
-  signature as signatureProto,
-} from "@xmtp/proto";
-import type { Client } from "@xmtp/xmtp-js";
+import { frames } from "@xmtp/proto";
 import Long from "long";
 import { PROTOCOL_VERSION } from "./constants";
 import { v1ToV2Bundle } from "./converters";
 import OpenFramesProxy from "./proxy";
-import type {
-  FrameActionInputs,
-  FramePostPayload,
-  ReactNativeClient,
-} from "./types";
 import {
-  base64Encode,
-  buildOpaqueIdentifier,
-  isReactNativeClient,
-} from "./utils";
+  isV3FramesSigner,
+  type FrameActionInputs,
+  type FramePostPayload,
+  type FramesSigner,
+} from "./types";
+import { base64Encode, buildOpaqueIdentifier } from "./utils";
 
 export class FramesClient {
-  xmtpClient: Client | ReactNativeClient;
+  #proxy: OpenFramesProxy;
+  #signer: FramesSigner;
 
-  proxy: OpenFramesProxy;
+  constructor(signer: FramesSigner, proxy?: OpenFramesProxy) {
+    this.#signer = signer;
+    this.#proxy = proxy || new OpenFramesProxy();
+  }
 
-  constructor(xmtpClient: Client | ReactNativeClient, proxy?: OpenFramesProxy) {
-    this.xmtpClient = xmtpClient;
-    this.proxy = proxy || new OpenFramesProxy();
+  get proxy() {
+    return this.#proxy;
   }
 
   async signFrameAction(inputs: FrameActionInputs): Promise<FramePostPayload> {
@@ -55,7 +50,7 @@ export class FramesClient {
       untrustedData: {
         buttonIndex,
         opaqueConversationIdentifier,
-        walletAddress: this.xmtpClient.address,
+        walletAddress: await this.#signer.address(),
         inputText,
         url: frameUrl,
         timestamp: now,
@@ -77,40 +72,31 @@ export class FramesClient {
     const actionBody = frames.FrameActionBody.encode(actionBodyInputs).finish();
 
     const digest = sha256(actionBody);
-    const signature = await this.signDigest(digest);
+    let payload: frames.FrameAction;
 
-    const publicKeyBundle = await this.getPublicKeyBundle();
-
-    return frames.FrameAction.encode({
-      actionBody,
-      signature,
-      signedPublicKeyBundle: v1ToV2Bundle(publicKeyBundle),
-    }).finish();
-  }
-
-  private async signDigest(
-    digest: Uint8Array,
-  ): Promise<signatureProto.Signature> {
-    if (isReactNativeClient(this.xmtpClient)) {
-      const signatureBytes = await this.xmtpClient.sign(digest, {
-        kind: "identity",
-      });
-      return signatureProto.Signature.decode(signatureBytes);
+    if (isV3FramesSigner(this.#signer)) {
+      const signature = await this.#signer.sign(digest);
+      payload = {
+        actionBody,
+        inboxId: await this.#signer.inboxId(),
+        installationId: await this.#signer.installationId(),
+        installationSignature: signature,
+        signature: undefined,
+        signedPublicKeyBundle: undefined,
+      };
+    } else {
+      const signature = await this.#signer.sign(digest);
+      const publicKeyBundle = await this.#signer.getPublicKeyBundle();
+      payload = {
+        actionBody,
+        inboxId: "",
+        installationId: new Uint8Array(),
+        installationSignature: new Uint8Array(),
+        signature,
+        signedPublicKeyBundle: v1ToV2Bundle(publicKeyBundle),
+      };
     }
 
-    return this.xmtpClient.keystore.signDigest({
-      digest,
-      identityKey: true,
-      prekeyIndex: undefined,
-    });
-  }
-
-  private async getPublicKeyBundle(): Promise<publicKeyProto.PublicKeyBundle> {
-    if (isReactNativeClient(this.xmtpClient)) {
-      const bundleBytes = await this.xmtpClient.exportPublicKeyBundle();
-      return publicKeyProto.PublicKeyBundle.decode(bundleBytes);
-    }
-
-    return this.xmtpClient.keystore.getPublicKeyBundle();
+    return frames.FrameAction.encode(payload).finish();
   }
 }

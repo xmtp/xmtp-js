@@ -1,2 +1,2 @@
-export * from "./openFrames.js";
+export * from "./validator.js";
 export * from "./validation.js";

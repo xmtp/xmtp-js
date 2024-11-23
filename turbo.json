@@ -38,7 +38,8 @@
     "@xmtp/frames-client#test": {
       "dependsOn": [
         "@xmtp/consent-proof-signature#build",
-        "@xmtp/content-type-text#build"
+        "@xmtp/content-type-text#build",
+        "@xmtp/node-sdk#build"
       ],
       "outputs": []
     },
