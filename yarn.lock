@@ -4808,8 +4808,8 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^1.0.1"
     "@xmtp/content-type-primitives": "npm:^1.0.3"
     "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/proto": "npm:^3.72.0"
-    "@xmtp/wasm-bindings": "npm:^0.0.4"
+    "@xmtp/proto": "npm:^3.72.3"
+    "@xmtp/wasm-bindings": "npm:^0.0.7"
     playwright: "npm:^1.49.0"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -5073,10 +5073,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:^0.0.20":
-  version: 0.0.20
-  resolution: "@xmtp/node-bindings@npm:0.0.20"
-  checksum: 10/fbbe2e223a7871e9908cda41161a0360dc61b5b32cbe3342b7471de7039cac65e6b71783faf0827cce03cdbb68ee60fb1394bc76a0749b7ca0d014dae96a3ce9
+"@xmtp/node-bindings@npm:^0.0.22":
+  version: 0.0.22
+  resolution: "@xmtp/node-bindings@npm:0.0.22"
+  checksum: 10/e8668b2fd30041dff8671625c13d49245d421ac31c0669b9be5365b5f22bf3c28f4d0cc12015a2710b90136423828bcdb1a99a10b37d4d5ac51e3ac47228b960
   languageName: node
   linkType: hard
 
@@ -5091,8 +5091,8 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^1.0.1"
     "@xmtp/content-type-primitives": "npm:^1.0.3"
     "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/node-bindings": "npm:^0.0.20"
-    "@xmtp/proto": "npm:^3.72.0"
+    "@xmtp/node-bindings": "npm:^0.0.22"
+    "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "workspace:^"
     fast-glob: "npm:^3.3.2"
     rimraf: "npm:^6.0.1"
@@ -5101,6 +5101,7 @@ __metadata:
     rollup-plugin-filesize: "npm:^10.0.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.6.3"
+    uint8array-extras: "npm:^1.4.0"
     uuid: "npm:^11.0.3"
     viem: "npm:^2.13.6"
     vite: "npm:^5.4.11"
@@ -5142,6 +5143,18 @@ __metadata:
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
   checksum: 10/a60df6fa60a9523978c7ad52696ed393179060ed91fb521dfc2cace3127fcd070527a03c5be99089df6c73aead06c8ce74e86e31b9353cfb2a36986fbb7fc645
+  languageName: node
+  linkType: hard
+
+"@xmtp/proto@npm:^3.72.3":
+  version: 3.72.3
+  resolution: "@xmtp/proto@npm:3.72.3"
+  dependencies:
+    long: "npm:^5.2.0"
+    protobufjs: "npm:^7.0.0"
+    rxjs: "npm:^7.8.0"
+    undici: "npm:^5.8.1"
+  checksum: 10/fc2f1ff57527a09eff400bef96dfd870790201893746270a13bad35d94d5f3166cf4a527ed955c05f0341ecd8e156c4421869b522789b6800840b17989cb1098
   languageName: node
   linkType: hard
 
@@ -5189,10 +5202,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:^0.0.4":
-  version: 0.0.4
-  resolution: "@xmtp/wasm-bindings@npm:0.0.4"
-  checksum: 10/6edbb9cf0a116f75a2ac1a9cce730e3988672aa48a524933555747c2f2c88616dae758e45a0f341ed052bb6e84da758c026e61f6a425072f32ec151202bda442
+"@xmtp/wasm-bindings@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "@xmtp/wasm-bindings@npm:0.0.7"
+  checksum: 10/4063d9cee51e4fd181d4d9f5840b861d8b99d6eb3d1bb6c3c09049105e126b958053c16ca29d729b62339d3d343b68e8955314d5a2c366b4d6e67d074228a94e
   languageName: node
   linkType: hard
 
@@ -12467,6 +12480,13 @@ __metadata:
   version: 1.5.4
   resolution: "ufo@npm:1.5.4"
   checksum: 10/a885ed421e656aea6ca64e9727b8118a9488715460b6f1a0f0427118adfe2f2830fe7c1d5bd9c5c754a332e6807516551cd663ea67ce9ed6a4e3edc739916335
+  languageName: node
+  linkType: hard
+
+"uint8array-extras@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "uint8array-extras@npm:1.4.0"
+  checksum: 10/4d2955d67c112e5ebaa4901272a75fc9ad14902c40f05a178b01e32387aa2702b6840472d931a1ca16e068ac59013c7d9ee2b4b2f141c4e73ba4bc7456490599
   languageName: node
   linkType: hard
 
