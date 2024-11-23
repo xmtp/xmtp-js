@@ -2,9 +2,22 @@
 
 ## 1.0.0
 
-### Major Changes
+### BREAKING CHANGE
 
-- 86a8f9f: Add V3 support to Frames client and validator
+- 86a8f9f: Added support for validating V3 frames
+
+`validateFramesPost` is now async to support fetching the inbox ID of an account address when validating V3 frames. It also accepts a second parameter to specify the environment to use when looking up inbox IDs. In production, this parameter **must** be set to `production`.
+
+```ts
+import { XmtpValidator, validateFramesPost } from "@xmtp/frames-validator";
+
+const validator = new XmtpValidator();
+// environment must be set in production (default: "dev")
+const validation = await validator(payload, "production");
+
+// now async, also requires environment in production (default: "dev")
+const validation = await validateFramesPost(payload, "production");
+```
 
 ## 0.6.3
 
