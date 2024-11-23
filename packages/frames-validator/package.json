@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/frames-validator",
-  "version": "0.6.3",
+  "version": "1.0.0",
   "description": "A validator for XMTP frames requests",
   "homepage": "https://github.com/xmtp/xmtp-js",
   "bugs": {
@@ -49,7 +49,7 @@
     "@open-frames/types": "^0.1.1",
     "@rollup/plugin-typescript": "^12.1.1",
     "@types/bl": "^5.1.4",
-    "@xmtp/frames-client": "^0.5.5",
+    "@xmtp/frames-client": "^1.0.0",
     "@xmtp/xmtp-js": "^12.1.0",
     "ethers": "^6.10.0",
     "fast-glob": "^3.3.2",

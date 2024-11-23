@@ -1,5 +1,30 @@
 # @xmtp/frames-client
 
+## 1.0.0
+
+### BREAKING CHANGE
+
+- 86a8f9f: Refactored signing process using a new `FramesSigner` type
+
+The `FramesClient` class now accepts a `FramesSigner` that handles signing of the frame actions. It supports both V2 and V3 signers.
+
+```ts
+type V2FramesSigner = {
+  address: () => Promise<string> | string;
+  getPublicKeyBundle: () => Promise<publicKeyProto.PublicKeyBundle>;
+  sign: (message: Uint8Array) => Promise<signatureProto.Signature>;
+};
+
+type V3FramesSigner = {
+  installationId: () => Promise<Uint8Array> | Uint8Array;
+  inboxId: () => Promise<string> | string;
+  address: () => Promise<string> | string;
+  sign: (message: Uint8Array) => Promise<Uint8Array> | Uint8Array;
+};
+
+type FramesSigner = V2FramesSigner | V3FramesSigner;
+```
+
 ## 0.5.5
 
 ### Patch Changes

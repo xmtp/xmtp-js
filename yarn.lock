@@ -5024,7 +5024,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/frames-client@npm:^0.5.5, @xmtp/frames-client@workspace:packages/frames-client":
+"@xmtp/frames-client@npm:^1.0.0, @xmtp/frames-client@workspace:packages/frames-client":
   version: 0.0.0-use.local
   resolution: "@xmtp/frames-client@workspace:packages/frames-client"
   dependencies:
@@ -5064,7 +5064,7 @@ __metadata:
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/bl": "npm:^5.1.4"
-    "@xmtp/frames-client": "npm:^0.5.5"
+    "@xmtp/frames-client": "npm:^1.0.0"
     "@xmtp/node-sdk": "npm:^0.0.27"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.1.0"
