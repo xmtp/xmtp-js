@@ -5033,7 +5033,8 @@ __metadata:
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@xmtp/proto": "npm:^3.72.0"
+    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.0.0"
     ethers: "npm:^6.13.1"
     fast-glob: "npm:^3.3.2"
@@ -5045,6 +5046,7 @@ __metadata:
     tsconfig: "workspace:*"
     typedoc: "npm:^0.26.11"
     typescript: "npm:^5.6.3"
+    uint8array-extras: "npm:^1.4.0"
     vite: "npm:^5.4.11"
     vite-tsconfig-paths: "npm:^5.1.2"
     vitest: "npm:^2.1.3"
@@ -5063,17 +5065,26 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/bl": "npm:^5.1.4"
     "@xmtp/frames-client": "npm:^0.5.5"
-    "@xmtp/proto": "npm:^3.72.0"
+    "@xmtp/node-sdk": "npm:^0.0.26"
+    "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.1.0"
     ethers: "npm:^6.10.0"
     fast-glob: "npm:^3.3.2"
     rollup: "npm:^4.27.3"
     rollup-plugin-dts: "npm:^6.1.1"
     typescript: "npm:^5.6.3"
+    uint8array-extras: "npm:^1.4.0"
     viem: "npm:^2.16.5"
     vitest: "npm:^2.1.3"
   languageName: unknown
   linkType: soft
+
+"@xmtp/node-bindings@npm:^0.0.20":
+  version: 0.0.20
+  resolution: "@xmtp/node-bindings@npm:0.0.20"
+  checksum: 10/fbbe2e223a7871e9908cda41161a0360dc61b5b32cbe3342b7471de7039cac65e6b71783faf0827cce03cdbb68ee60fb1394bc76a0749b7ca0d014dae96a3ce9
+  languageName: node
+  linkType: hard
 
 "@xmtp/node-bindings@npm:^0.0.22":
   version: 0.0.22
@@ -5082,7 +5093,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^0.0.26":
+  version: 0.0.26
+  resolution: "@xmtp/node-sdk@npm:0.0.26"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^1.0.1"
+    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-text": "npm:^1.0.1"
+    "@xmtp/node-bindings": "npm:^0.0.20"
+    "@xmtp/proto": "npm:^3.72.0"
+  checksum: 10/33b980ea1bb123f55cb2ecf2480dbcc123b6c42abc84ede64a2abf9131fd962100338088f504b0aba503aa1cdf45ddb4b1bc4299abfdb84a4c9aedc7d626de73
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
