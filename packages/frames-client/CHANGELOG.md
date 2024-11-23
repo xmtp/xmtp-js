@@ -1,5 +1,11 @@
 # @xmtp/frames-client
 
+## 1.0.0
+
+### Major Changes
+
+- 86a8f9f: Add V3 support to Frames client and validator
+
 ## 0.5.5
 
 ### Patch Changes
