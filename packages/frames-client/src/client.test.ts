@@ -117,7 +117,7 @@ const shouldSignFrameActionWithValidSignature =
               signedPayloadProto.signedPublicKeyBundle.identityKey,
             ).toLegacyKey(),
           ),
-      );
+      ).toBe(true);
     }
 
     const signedPayloadBody = frames.FrameActionBody.decode(
