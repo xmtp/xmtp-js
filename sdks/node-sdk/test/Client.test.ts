@@ -1,4 +1,5 @@
 import { ConsentEntityType, ConsentState } from "@xmtp/node-bindings";
+import { uint8ArrayToHex } from "uint8array-extras";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
@@ -194,5 +195,40 @@ describe("Client", () => {
     expect(
       await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
     ).toBe(ConsentState.Denied);
+  });
+
+  it("should verify signatures", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    const signatureText = "gm1";
+    const signature = client.signWithInstallationKey(signatureText);
+    const verified = client.verifySignedWithInstallationKey(
+      signatureText,
+      signature,
+    );
+    expect(verified).toBe(true);
+    const verified2 = Client.verifySignedWithPublicKey(
+      signatureText,
+      signature,
+      client.installationIdBytes,
+    );
+    expect(verified2).toBe(true);
+
+    const signatureText2 = new Uint8Array(32).fill(1);
+    const signature2 = client.signWithInstallationKey(
+      uint8ArrayToHex(signatureText2),
+    );
+    const verified3 = Client.verifySignedWithPublicKey(
+      uint8ArrayToHex(signatureText2),
+      signature2,
+      client.installationIdBytes,
+    );
+    expect(verified3).toBe(true);
+    const verified4 = Client.verifySignedWithPublicKey(
+      uint8ArrayToHex(signatureText2),
+      signature,
+      client.installationIdBytes,
+    );
+    expect(verified4).toBe(false);
   });
 });

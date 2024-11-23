@@ -23,6 +23,10 @@ export class WorkerConversations {
     return this.#conversations.sync();
   }
 
+  async syncAll() {
+    return this.#conversations.syncAllConversations();
+  }
+
   getConversationById(id: string) {
     try {
       const group = this.#conversations.findGroupById(id);

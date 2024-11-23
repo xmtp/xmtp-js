@@ -35,6 +35,7 @@ export type ClientEvents =
       result: {
         inboxId: string;
         installationId: string;
+        installationIdBytes: Uint8Array;
       };
       data: {
         address: string;
@@ -157,6 +158,33 @@ export type ClientEvents =
         address: string;
       };
     }
+  | {
+      action: "signWithInstallationKey";
+      id: string;
+      result: Uint8Array;
+      data: {
+        signatureText: string;
+      };
+    }
+  | {
+      action: "verifySignedWithInstallationKey";
+      id: string;
+      result: boolean;
+      data: {
+        signatureText: string;
+        signatureBytes: Uint8Array;
+      };
+    }
+  | {
+      action: "verifySignedWithPublicKey";
+      id: string;
+      result: boolean;
+      data: {
+        signatureText: string;
+        signatureBytes: Uint8Array;
+        publicKey: Uint8Array;
+      };
+    }
   /**
    * Conversations actions
    */
@@ -227,6 +255,12 @@ export type ClientEvents =
     }
   | {
       action: "syncConversations";
+      id: string;
+      result: undefined;
+      data: undefined;
+    }
+  | {
+      action: "syncAllConversations";
       id: string;
       result: undefined;
       data: undefined;

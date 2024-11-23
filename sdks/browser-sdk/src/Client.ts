@@ -30,6 +30,7 @@ export class Client extends ClientWorkerClass {
   #encryptionKey: Uint8Array;
   #inboxId: string | undefined;
   #installationId: string | undefined;
+  #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
   #signer: Signer;
   options?: ClientOptions;
@@ -74,6 +75,7 @@ export class Client extends ClientWorkerClass {
     });
     this.#inboxId = result.inboxId;
     this.#installationId = result.installationId;
+    this.#installationIdBytes = result.installationIdBytes;
     this.#isReady = true;
   }
 
@@ -104,6 +106,10 @@ export class Client extends ClientWorkerClass {
 
   get installationId() {
     return this.#installationId;
+  }
+
+  get installationIdBytes() {
+    return this.#installationIdBytes;
   }
 
   async #createInboxSignatureText() {
@@ -175,12 +181,6 @@ export class Client extends ClientWorkerClass {
     if (!signatureText) {
       throw new Error("Unable to generate add account signature text");
     }
-
-    await this.#addSignature(
-      SignatureRequestType.AddWallet,
-      signatureText,
-      this.#signer,
-    );
 
     await this.#addSignature(
       SignatureRequestType.AddWallet,
@@ -313,5 +313,31 @@ export class Client extends ClientWorkerClass {
     const encodedContent = fromSafeEncodedContent(message.content);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return codec.decode(encodedContent, this);
+  }
+
+  signWithInstallationKey(signatureText: string) {
+    return this.sendMessage("signWithInstallationKey", { signatureText });
+  }
+
+  verifySignedWithInstallationKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+  ) {
+    return this.sendMessage("verifySignedWithInstallationKey", {
+      signatureText,
+      signatureBytes,
+    });
+  }
+
+  verifySignedWithPublicKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+    publicKey: Uint8Array,
+  ) {
+    return this.sendMessage("verifySignedWithPublicKey", {
+      signatureText,
+      signatureBytes,
+      publicKey,
+    });
   }
 }

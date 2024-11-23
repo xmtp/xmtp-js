@@ -53,8 +53,8 @@
     "@xmtp/content-type-group-updated": "^1.0.1",
     "@xmtp/content-type-primitives": "^1.0.3",
     "@xmtp/content-type-text": "^1.0.1",
-    "@xmtp/node-bindings": "^0.0.20",
-    "@xmtp/proto": "^3.72.0"
+    "@xmtp/node-bindings": "^0.0.22",
+    "@xmtp/proto": "^3.72.3"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
@@ -69,6 +69,7 @@
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.6.3",
+    "uint8array-extras": "^1.4.0",
     "uuid": "^11.0.3",
     "viem": "^2.13.6",
     "vite": "^5.4.11",

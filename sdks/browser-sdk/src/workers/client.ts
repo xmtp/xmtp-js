@@ -70,6 +70,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           result: {
             inboxId: client.inboxId,
             installationId: client.installationId,
+            installationIdBytes: client.installationIdBytes,
           },
         });
         break;
@@ -216,6 +217,40 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "signWithInstallationKey": {
+        const result = client.signWithInstallationKey(data.signatureText);
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
+      case "verifySignedWithInstallationKey": {
+        const result = client.verifySignedWithInstallationKey(
+          data.signatureText,
+          data.signatureBytes,
+        );
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
+      case "verifySignedWithPublicKey": {
+        const result = client.verifySignedWithPublicKey(
+          data.signatureText,
+          data.signatureBytes,
+          data.publicKey,
+        );
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
       /**
        * Conversations actions
        */
@@ -279,6 +314,15 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       }
       case "syncConversations": {
         await client.conversations.sync();
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
+      case "syncAllConversations": {
+        await client.conversations.syncAll();
         postMessage({
           id,
           action,

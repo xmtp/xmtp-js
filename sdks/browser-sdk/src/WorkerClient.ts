@@ -1,4 +1,5 @@
 import {
+  verifySignedWithPublicKey,
   type Client,
   type ConsentEntityType,
   type SignatureRequestType,
@@ -42,6 +43,10 @@ export class WorkerClient {
     return this.#client.installationId;
   }
 
+  get installationIdBytes() {
+    return this.#client.installationIdBytes;
+  }
+
   get isRegistered() {
     return this.#client.isRegistered;
   }
@@ -56,10 +61,7 @@ export class WorkerClient {
 
   async addAccountSignatureText(accountAddress: string) {
     try {
-      return await this.#client.addWalletSignatureText(
-        this.#accountAddress,
-        accountAddress,
-      );
+      return await this.#client.addWalletSignatureText(accountAddress);
     } catch {
       return undefined;
     }
@@ -130,5 +132,37 @@ export class WorkerClient {
 
   get conversations() {
     return this.#conversations;
+  }
+
+  signWithInstallationKey(signatureText: string) {
+    return this.#client.signWithInstallationKey(signatureText);
+  }
+
+  verifySignedWithInstallationKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+  ) {
+    try {
+      this.#client.verifySignedWithInstallationKey(
+        signatureText,
+        signatureBytes,
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  verifySignedWithPublicKey(
+    signatureText: string,
+    signatureBytes: Uint8Array,
+    publicKey: Uint8Array,
+  ) {
+    try {
+      verifySignedWithPublicKey(signatureText, signatureBytes, publicKey);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
