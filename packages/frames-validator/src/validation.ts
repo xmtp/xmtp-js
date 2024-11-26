@@ -53,7 +53,7 @@ export async function validateFramesPost(
       installationId,
     );
     if (!authorized) {
-      throw new Error("Invalid inbox ID");
+      throw new Error("Installation not a member of association state");
     }
 
     const digest = sha256(actionBodyBytes);
