@@ -14,6 +14,7 @@ export type * from "./types.js";
 const { b64Decode } = fetcher;
 
 export async function validateFramesPost(
+  client: Client,
   data: XmtpOpenFramesRequest,
   env?: XmtpEnv,
 ): Promise<XmtpValidationResponse> {
@@ -48,7 +49,7 @@ export async function validateFramesPost(
     }
   } else {
     // make sure inbox IDs match
-    const authorized = await Client.isInstallationAuthorized(
+    const authorized = await client.isInstallationAuthorized(
       inboxId,
       installationId,
     );
@@ -56,7 +57,8 @@ export async function validateFramesPost(
       throw new Error("Installation not a member of association state");
     }
 
-    const isMember = await Client.isAddressAuthorized(inboxId, walletAddress);
+    const isMember = await client.isAddressAuthorized(inboxId, walletAddress);
+
     if (!isMember) {
       throw new Error("Unable to associate wallet address with inbox");
     }
@@ -64,7 +66,7 @@ export async function validateFramesPost(
     const digest = sha256(actionBodyBytes);
 
     // make sure installation signature is valid
-    const valid = Client.verifySignedWithPublicKey(
+    const valid = client.verifySignedWithPublicKey(
       uint8ArrayToHex(digest),
       installationSignature,
       installationId,

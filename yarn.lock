@@ -5033,7 +5033,7 @@ __metadata:
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@xmtp/node-sdk": "npm:^0.0.27"
+    "@xmtp/node-sdk": "npm:^0.0.28"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.0.0"
     ethers: "npm:^6.13.1"
@@ -5079,30 +5079,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:^0.0.22":
-  version: 0.0.22
-  resolution: "@xmtp/node-bindings@npm:0.0.22"
-  checksum: 10/e8668b2fd30041dff8671625c13d49245d421ac31c0669b9be5365b5f22bf3c28f4d0cc12015a2710b90136423828bcdb1a99a10b37d4d5ac51e3ac47228b960
-  languageName: node
-  linkType: hard
-
 "@xmtp/node-bindings@npm:^0.0.25":
   version: 0.0.25
   resolution: "@xmtp/node-bindings@npm:0.0.25"
   checksum: 10/336f9b2a4a8b2781f6c53a7dd444428893f5e04a927350c82fcb79e37e0cc69abcb86406ffedeaa28115f1b57801890309546a10c9e806e3ed81b18b9d8f1431
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-sdk@npm:^0.0.27":
-  version: 0.0.27
-  resolution: "@xmtp/node-sdk@npm:0.0.27"
-  dependencies:
-    "@xmtp/content-type-group-updated": "npm:^1.0.1"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
-    "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/node-bindings": "npm:^0.0.22"
-    "@xmtp/proto": "npm:^3.72.3"
-  checksum: 10/9937c77d4bd3f3ed8df2f9938e940e2c21a7c8e8f06506d227bb97939f8294e0ae6ec6bc1498f528274257d61f9142e38639aa123c3ddf086a98d9cd041c0161
   languageName: node
   linkType: hard
 

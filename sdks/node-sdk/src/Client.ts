@@ -172,20 +172,6 @@ export class Client {
     return this.#innerClient.isRegistered();
   }
 
-  async isAddressAuthorized(
-    inboxId: string,
-    address: string,
-  ): Promise<boolean> {
-    return this.#innerClient.isAddressAuthorized(inboxId, address);
-  }
-
-  async isInstallationAuthorized(
-    inboxId: string,
-    installationId: Uint8Array,
-  ): Promise<boolean> {
-    return this.#innerClient.isInstallationAuthorized(inboxId, installationId);
-  }
-
   async #createInboxSignatureText() {
     try {
       const signatureText = await this.#innerClient.createInboxSignatureText();
@@ -281,6 +267,20 @@ export class Client {
     );
 
     await this.#applySignatures();
+  }
+
+  async isAddressAuthorized(
+    inboxId: string,
+    address: string,
+  ): Promise<boolean> {
+    return this.#innerClient.isAddressAuthorized(inboxId, address);
+  }
+
+  async isInstallationAuthorized(
+    inboxId: string,
+    installationId: Uint8Array,
+  ): Promise<boolean> {
+    return this.#innerClient.isInstallationAuthorized(inboxId, installationId);
   }
 
   async removeAccount(accountAddress: string) {
