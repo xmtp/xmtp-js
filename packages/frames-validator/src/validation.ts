@@ -48,7 +48,10 @@ export async function validateFramesPost(
     }
   } else {
     // make sure inbox IDs match
-    const authorized = Client.isInstallationAuthorized(inboxId, installationId);
+    const authorized = await Client.isInstallationAuthorized(
+      inboxId,
+      installationId,
+    );
     if (!authorized) {
       throw new Error("Invalid inbox ID");
     }
