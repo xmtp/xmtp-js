@@ -56,6 +56,11 @@ export async function validateFramesPost(
       throw new Error("Installation not a member of association state");
     }
 
+    const isMember = await Client.isAddressAuthorized(inboxId, walletAddress);
+    if (!isMember) {
+      throw new Error("Unable to associate wallet address with inbox");
+    }
+
     const digest = sha256(actionBodyBytes);
 
     // make sure installation signature is valid
