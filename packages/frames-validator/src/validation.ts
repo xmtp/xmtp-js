@@ -28,7 +28,7 @@ export async function validateFramesPost(
     actionBodyBytes,
     signature,
     signedPublicKeyBundle,
-    installationId, // not necessary
+    installationId,
     installationSignature,
     inboxId,
   } = deserializeProtoMessage(messageBytes);
@@ -48,7 +48,7 @@ export async function validateFramesPost(
     }
   } else {
     // make sure inbox IDs match
-    const authorized = Client.isAddressAuthorized(inboxId, walletAddress);
+    const authorized = Client.isInstallationAuthorized(inboxId, installationId);
     if (!authorized) {
       throw new Error("Invalid inbox ID");
     }
