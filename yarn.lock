@@ -5065,7 +5065,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/bl": "npm:^5.1.4"
     "@xmtp/frames-client": "npm:^1.0.0"
-    "@xmtp/node-sdk": "npm:^0.0.27"
+    "@xmtp/node-sdk": "workspace:^"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.1.0"
     ethers: "npm:^6.10.0"
@@ -5086,7 +5086,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^0.0.27, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-bindings@npm:^0.0.23":
+  version: 0.0.23
+  resolution: "@xmtp/node-bindings@npm:0.0.23"
+  checksum: 10/c7327d874c0ec05027bb40b9d51bcc436662aabb9a8d342fbf8ef96f03fe103a596785b312e760b76df68f8176fe8baf348019328f89ff63e4faed17219fbe61
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@npm:^0.0.27":
+  version: 0.0.27
+  resolution: "@xmtp/node-sdk@npm:0.0.27"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^1.0.1"
+    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-text": "npm:^1.0.1"
+    "@xmtp/node-bindings": "npm:^0.0.22"
+    "@xmtp/proto": "npm:^3.72.3"
+  checksum: 10/9937c77d4bd3f3ed8df2f9938e940e2c21a7c8e8f06506d227bb97939f8294e0ae6ec6bc1498f528274257d61f9142e38639aa123c3ddf086a98d9cd041c0161
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
@@ -5097,7 +5117,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^1.0.1"
     "@xmtp/content-type-primitives": "npm:^1.0.3"
     "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/node-bindings": "npm:^0.0.22"
+    "@xmtp/node-bindings": "npm:^0.0.23"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "workspace:^"
     fast-glob: "npm:^3.3.2"

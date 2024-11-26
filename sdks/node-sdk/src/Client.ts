@@ -172,6 +172,13 @@ export class Client {
     return this.#innerClient.isRegistered();
   }
 
+  async isAddressAuthorized(
+    inboxId: string,
+    address: string,
+  ): Promise<boolean> {
+    return this.#innerClient.isAddressAuthorized(inboxId, address);
+  }
+
   async #createInboxSignatureText() {
     try {
       const signatureText = await this.#innerClient.createInboxSignatureText();

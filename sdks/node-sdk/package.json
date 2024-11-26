@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/node-sdk",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "XMTP Node client SDK for interacting with XMTP networks",
   "keywords": [
     "xmtp",
@@ -53,7 +53,7 @@
     "@xmtp/content-type-group-updated": "^1.0.1",
     "@xmtp/content-type-primitives": "^1.0.3",
     "@xmtp/content-type-text": "^1.0.1",
-    "@xmtp/node-bindings": "^0.0.22",
+    "@xmtp/node-bindings": "^0.0.23",
     "@xmtp/proto": "^3.72.3"
   },
   "devDependencies": {

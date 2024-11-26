@@ -48,8 +48,8 @@ export async function validateFramesPost(
     }
   } else {
     // make sure inbox IDs match
-    const addressInboxId = await getInboxIdForAddress(walletAddress, env);
-    if (inboxId !== addressInboxId) {
+    const authorized = Client.isAddressAuthorized(inboxId, walletAddress);
+    if (!authorized) {
       throw new Error("Invalid inbox ID");
     }
 
