@@ -66,7 +66,7 @@ export async function validateFramesPost(
     const digest = sha256(actionBodyBytes);
 
     // make sure installation signature is valid
-    const valid = client.verifySignedWithPublicKey(
+    const valid = Client.verifySignedWithPublicKey(
       uint8ArrayToHex(digest),
       installationSignature,
       installationId,
