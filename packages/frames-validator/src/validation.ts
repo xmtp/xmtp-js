@@ -1,6 +1,8 @@
+import { getRandomValues } from "crypto";
 import { sha256 } from "@noble/hashes/sha256";
-import { Client, getInboxIdForAddress, type XmtpEnv } from "@xmtp/node-sdk";
+import { Client, type XmtpEnv } from "@xmtp/node-sdk";
 import { fetcher, frames, type publicKey, type signature } from "@xmtp/proto";
+import { getBytes, Wallet } from "ethers";
 import { uint8ArrayToHex } from "uint8array-extras";
 import type {
   UntrustedData,
@@ -14,7 +16,6 @@ export type * from "./types.js";
 const { b64Decode } = fetcher;
 
 export async function validateFramesPost(
-  client: Client,
   data: XmtpOpenFramesRequest,
   env?: XmtpEnv,
 ): Promise<XmtpValidationResponse> {
@@ -48,6 +49,17 @@ export async function validateFramesPost(
       throw new Error("Invalid wallet address");
     }
   } else {
+    let randomWallet = Wallet.createRandom();
+    const encryptionKey = getRandomValues(new Uint8Array(32));
+    const client = await Client.create(
+      {
+        getAddress: () => randomWallet.address,
+        signMessage: async (message: string) =>
+          getBytes(await randomWallet.signMessage(message)),
+      },
+      encryptionKey,
+    );
+
     // make sure inbox IDs match
     const authorized = await client.isInstallationAuthorized(
       inboxId,
