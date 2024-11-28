@@ -13,8 +13,6 @@ import { verifyIdentityKeySignature, verifyWalletSignature } from "./utils.js";
 
 export type * from "./types.js";
 
-// let seed = Mnemonic.fromEntropy(randomBytes(16), "", LangEn.wordlist()).computeSeed();
-
 const { b64Decode } = fetcher;
 
 export async function validateFramesPost(
