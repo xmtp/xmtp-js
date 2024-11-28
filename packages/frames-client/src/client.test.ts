@@ -133,7 +133,7 @@ const shouldSignFrameActionWithValidSignature =
 // Will add E2E tests back once we have Frames deployed with the new schema
 const worksE2E = (framesClient: FramesClient) => async () => {
   const frameUrl =
-    "https://fc-polls-aikbbaraw-ephemerahq.vercel.app/polls/95de04bf-3f35-4042-895a-094e50062b1e";
+    "https://fc-polls-five.vercel.app/polls/03710836-bc1d-4921-9e24-89d82015c53b";
   const metadata = await framesClient.proxy.readMetadata(frameUrl);
   expect(metadata).toBeDefined();
   expect(metadata.frameInfo).toMatchObject({
@@ -150,10 +150,10 @@ const worksE2E = (framesClient: FramesClient) => async () => {
     },
     image: {
       content:
-        "https://fc-polls-aikbbaraw-ephemerahq.vercel.app/api/image?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
+        "https://fc-polls-five.vercel.app/api/image?id=03710836-bc1d-4921-9e24-89d82015c53b",
     },
     postUrl:
-      "https://fc-polls-aikbbaraw-ephemerahq.vercel.app/api/vote?id=01032f47-e976-42ee-9e3d-3aac1324f4b8",
+      "https://fc-polls-five.vercel.app/api/vote?id=03710836-bc1d-4921-9e24-89d82015c53b",
   });
   const signedPayload = await framesClient.signFrameAction({
     frameUrl,
