@@ -1,8 +1,6 @@
-import { getRandomValues, randomBytes } from "crypto";
 import { sha256 } from "@noble/hashes/sha256";
 import { Client, type XmtpEnv } from "@xmtp/node-sdk";
 import { fetcher, frames, type publicKey, type signature } from "@xmtp/proto";
-import { getBytes, LangEn, Mnemonic, Wallet } from "ethers";
 import { uint8ArrayToHex } from "uint8array-extras";
 import type {
   UntrustedData,
