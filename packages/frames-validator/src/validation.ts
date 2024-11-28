@@ -51,19 +51,9 @@ export async function validateFramesPost(
       throw new Error("Invalid wallet address");
     }
   } else {
-    const randomWallet = Wallet.createRandom();
-    const encryptionKey = getRandomValues(new Uint8Array(32));
-    const client = await Client.create(
-      {
-        getAddress: () => randomWallet.address,
-        signMessage: async (message: string) =>
-          getBytes(await randomWallet.signMessage(message)),
-      },
-      encryptionKey,
-    );
-
     // make sure inbox IDs match
-    const authorized = await client.isInstallationAuthorized(
+    const authorized = await Client.isInstallationAuthorized(
+      { env },
       inboxId,
       installationId,
     );
@@ -71,7 +61,11 @@ export async function validateFramesPost(
       throw new Error("Installation not a member of association state");
     }
 
-    const isMember = await client.isAddressAuthorized(inboxId, walletAddress);
+    const isMember = await Client.isAddressAuthorized(
+      { env },
+      inboxId,
+      walletAddress,
+    );
 
     if (!isMember) {
       throw new Error("Unable to associate wallet address with inbox");

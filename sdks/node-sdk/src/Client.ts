@@ -464,7 +464,7 @@ export class Client {
     return await isAddressAuthorizedBinding(host, inboxId, address);
   }
 
-  static async isInstallationAuthori(
+  static async isInstallationAuthorized(
     networkOptions: NetworkOptions,
     inboxId: string,
     installation: Uint8Array,
