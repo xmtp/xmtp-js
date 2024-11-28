@@ -70,7 +70,7 @@
     "@open-frames/types": "^0.1.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
-    "@xmtp/node-sdk": "^0.0.28",
+    "@xmtp/node-sdk": "^0.0.29",
     "@xmtp/xmtp-js": "^12.0.0",
     "ethers": "^6.13.1",
     "fast-glob": "^3.3.2",
