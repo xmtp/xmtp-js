@@ -133,7 +133,7 @@ const shouldSignFrameActionWithValidSignature =
 // Will add E2E tests back once we have Frames deployed with the new schema
 const worksE2E = (framesClient: FramesClient) => async () => {
   const frameUrl =
-    "https://fc-polls-aikbbaraw-ephemerahq.vercel.app/polls/95de04bf-3f35-4042-895a-094e50062b1e;
+    "https://fc-polls-aikbbaraw-ephemerahq.vercel.app/polls/95de04bf-3f35-4042-895a-094e50062b1e";
   const metadata = await framesClient.proxy.readMetadata(frameUrl);
   expect(metadata).toBeDefined();
   expect(metadata.frameInfo).toMatchObject({
