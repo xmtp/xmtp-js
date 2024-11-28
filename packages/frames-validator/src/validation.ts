@@ -1,8 +1,8 @@
-import { getRandomValues } from "crypto";
+import { getRandomValues, randomBytes } from "crypto";
 import { sha256 } from "@noble/hashes/sha256";
 import { Client, type XmtpEnv } from "@xmtp/node-sdk";
 import { fetcher, frames, type publicKey, type signature } from "@xmtp/proto";
-import { getBytes, Wallet } from "ethers";
+import { getBytes, LangEn, Mnemonic, Wallet } from "ethers";
 import { uint8ArrayToHex } from "uint8array-extras";
 import type {
   UntrustedData,
@@ -12,6 +12,8 @@ import type {
 import { verifyIdentityKeySignature, verifyWalletSignature } from "./utils.js";
 
 export type * from "./types.js";
+
+// let seed = Mnemonic.fromEntropy(randomBytes(16), "", LangEn.wordlist()).computeSeed();
 
 const { b64Decode } = fetcher;
 
@@ -49,7 +51,7 @@ export async function validateFramesPost(
       throw new Error("Invalid wallet address");
     }
   } else {
-    let randomWallet = Wallet.createRandom();
+    const randomWallet = Wallet.createRandom();
     const encryptionKey = getRandomValues(new Uint8Array(32));
     const client = await Client.create(
       {

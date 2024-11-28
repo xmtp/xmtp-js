@@ -15,6 +15,8 @@ import {
   generateInboxId,
   getInboxIdForAddress,
   GroupMessageKind,
+  isAddressAuthorized as isAddressAuthorizedBinding,
+  isInstallationAuthorized as isInstallationAuthorizedBinding,
   LogLevel,
   SignatureRequestType,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
@@ -451,5 +453,23 @@ export class Client {
     } catch {
       return false;
     }
+  }
+
+  static async isAddressAuthorized(
+    networkOptions: NetworkOptions,
+    inboxId: string,
+    address: string,
+  ): Promise<boolean> {
+    const host = networkOptions.apiUrl || ApiUrls[networkOptions.env || "dev"];
+    return await isAddressAuthorizedBinding(host, inboxId, address);
+  }
+
+  static async isInstallationAuthori(
+    networkOptions: NetworkOptions,
+    inboxId: string,
+    installation: Uint8Array,
+  ): Promise<boolean> {
+    const host = networkOptions.apiUrl || ApiUrls[networkOptions.env || "dev"];
+    return await isInstallationAuthorizedBinding(host, inboxId, installation);
   }
 }
