@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 6edc8a5: Fix V3 frames validation
+- 6edc8a5: Fix V3 Frames validation
 
 ## 1.0.0
 
