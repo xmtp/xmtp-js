@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.30
+
+### Patch Changes
+
+- 7338e0e: Add static authorization methods to Node SDK Client
+
 ## 0.0.29
 
 ### Patch Changes
