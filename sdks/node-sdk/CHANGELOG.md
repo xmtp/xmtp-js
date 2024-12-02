@@ -1,5 +1,14 @@
 # @xmtp/node-sdk
 
+## 0.0.30
+
+### Patch Changes
+
+- 7338e0e:
+  - Removed authorization instance methods from client
+  - Added static authorization methods to client
+  - Upgraded to latest node bindings
+
 ## 0.0.29
 
 ### Patch Changes
