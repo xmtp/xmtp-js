@@ -1,5 +1,19 @@
 # @xmtp/node-sdk
 
+## 0.0.29
+
+### Patch Changes
+
+- f1b93bb: Upgraded to latest node bindings
+
+## 0.0.28
+
+### Patch Changes
+
+- a1f27b8:
+  - Added `isAddressAuthorized` to `Client`
+  - Added `isInstallationAuthorized` to `Client`
+
 ## 0.0.27
 
 ### Patch Changes
