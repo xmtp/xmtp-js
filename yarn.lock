@@ -5033,7 +5033,7 @@ __metadata:
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@xmtp/node-sdk": "npm:^0.0.29"
+    "@xmtp/node-sdk": "npm:^0.0.30"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.0.0"
     ethers: "npm:^6.13.1"
@@ -5065,7 +5065,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/bl": "npm:^5.1.4"
     "@xmtp/frames-client": "npm:^1.0.0"
-    "@xmtp/node-sdk": "npm:^0.0.29"
+    "@xmtp/node-sdk": "npm:^0.0.30"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.1.0"
     ethers: "npm:^6.10.0"
@@ -5079,13 +5079,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:^0.0.27":
-  version: 0.0.27
-  resolution: "@xmtp/node-bindings@npm:0.0.27"
-  checksum: 10/e5c737f41169caa58b55241e7f8e544076e8f7d7e3ba9703703885bda73d352c26984a8a4a4d1277a30d3837da9a0023a94dfadf40b5c8f8f3b6366260f3d20e
-  languageName: node
-  linkType: hard
-
 "@xmtp/node-bindings@npm:^0.0.28":
   version: 0.0.28
   resolution: "@xmtp/node-bindings@npm:0.0.28"
@@ -5093,20 +5086,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^0.0.29":
-  version: 0.0.29
-  resolution: "@xmtp/node-sdk@npm:0.0.29"
-  dependencies:
-    "@xmtp/content-type-group-updated": "npm:^1.0.1"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
-    "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/node-bindings": "npm:^0.0.27"
-    "@xmtp/proto": "npm:^3.72.3"
-  checksum: 10/d4d02916eb70b14bb34151ac513572aaad3d5341cc1edb251f75e9cd29e92c50e5d01714643e1db02ff23d22f5b9d6640c8e3a8fc63b1e503ced5dc9aca849d8
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^0.0.30, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
