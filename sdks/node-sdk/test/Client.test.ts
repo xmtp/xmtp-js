@@ -231,4 +231,26 @@ describe("Client", () => {
     );
     expect(verified4).toBe(false);
   });
+
+  it("should check if an address is authorized", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    const authorized = await Client.isAddressAuthorized(
+      client.inboxId,
+      user.account.address.toLowerCase(),
+      { env: "local" },
+    );
+    expect(authorized).toBe(true);
+  });
+
+  it("should check if an installation is authorized", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    const authorized = await Client.isInstallationAuthorized(
+      client.inboxId,
+      client.installationIdBytes,
+      { env: "local" },
+    );
+    expect(authorized).toBe(true);
+  });
 });

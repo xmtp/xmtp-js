@@ -15,6 +15,8 @@ import {
   generateInboxId,
   getInboxIdForAddress,
   GroupMessageKind,
+  isAddressAuthorized as isAddressAuthorizedBinding,
+  isInstallationAuthorized as isInstallationAuthorizedBinding,
   LogLevel,
   SignatureRequestType,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
@@ -170,20 +172,6 @@ export class Client {
 
   get isRegistered() {
     return this.#innerClient.isRegistered();
-  }
-
-  async isAddressAuthorized(
-    inboxId: string,
-    address: string,
-  ): Promise<boolean> {
-    return this.#innerClient.isAddressAuthorized(inboxId, address);
-  }
-
-  async isInstallationAuthorized(
-    inboxId: string,
-    installationId: Uint8Array,
-  ): Promise<boolean> {
-    return this.#innerClient.isInstallationAuthorized(inboxId, installationId);
   }
 
   async #createInboxSignatureText() {
@@ -451,5 +439,23 @@ export class Client {
     } catch {
       return false;
     }
+  }
+
+  static async isAddressAuthorized(
+    inboxId: string,
+    address: string,
+    options?: NetworkOptions,
+  ): Promise<boolean> {
+    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
+    return await isAddressAuthorizedBinding(host, inboxId, address);
+  }
+
+  static async isInstallationAuthorized(
+    inboxId: string,
+    installation: Uint8Array,
+    options?: NetworkOptions,
+  ): Promise<boolean> {
+    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
+    return await isInstallationAuthorizedBinding(host, inboxId, installation);
   }
 }
