@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 1.0.1
+
+### Patch Changes
+
+- 6edc8a5: Fix V3 frames validation
+
 ## 1.0.0
 
 ### BREAKING CHANGE
