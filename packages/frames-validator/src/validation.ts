@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha256";
-import { Client, getInboxIdForAddress, type XmtpEnv } from "@xmtp/node-sdk";
+import { Client, type XmtpEnv } from "@xmtp/node-sdk";
 import { fetcher, frames, type publicKey, type signature } from "@xmtp/proto";
 import { uint8ArrayToHex } from "uint8array-extras";
 import type {
@@ -28,7 +28,7 @@ export async function validateFramesPost(
     actionBodyBytes,
     signature,
     signedPublicKeyBundle,
-    installationId, // not necessary
+    installationId,
     installationSignature,
     inboxId,
   } = deserializeProtoMessage(messageBytes);
@@ -48,9 +48,21 @@ export async function validateFramesPost(
     }
   } else {
     // make sure inbox IDs match
-    const addressInboxId = await getInboxIdForAddress(walletAddress, env);
-    if (inboxId !== addressInboxId) {
-      throw new Error("Invalid inbox ID");
+    const authorized = await Client.isInstallationAuthorized(
+      inboxId,
+      installationId,
+      { env },
+    );
+    if (!authorized) {
+      throw new Error("Installation not a member of association state");
+    }
+
+    const isMember = await Client.isAddressAuthorized(inboxId, walletAddress, {
+      env,
+    });
+
+    if (!isMember) {
+      throw new Error("Unable to associate wallet address with inbox");
     }
 
     const digest = sha256(actionBodyBytes);
