@@ -271,20 +271,6 @@ export class Client {
     await this.#applySignatures();
   }
 
-  async isAddressAuthorized(
-    inboxId: string,
-    address: string,
-  ): Promise<boolean> {
-    return this.#innerClient.isAddressAuthorized(inboxId, address);
-  }
-
-  async isInstallationAuthorized(
-    inboxId: string,
-    installationId: Uint8Array,
-  ): Promise<boolean> {
-    return this.#innerClient.isInstallationAuthorized(inboxId, installationId);
-  }
-
   async removeAccount(accountAddress: string) {
     const signatureText =
       await this.#removeAccountSignatureText(accountAddress);
@@ -456,20 +442,20 @@ export class Client {
   }
 
   static async isAddressAuthorized(
-    networkOptions: NetworkOptions,
     inboxId: string,
     address: string,
+    options?: NetworkOptions,
   ): Promise<boolean> {
-    const host = networkOptions.apiUrl || ApiUrls[networkOptions.env || "dev"];
+    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
     return await isAddressAuthorizedBinding(host, inboxId, address);
   }
 
   static async isInstallationAuthorized(
-    networkOptions: NetworkOptions,
     inboxId: string,
     installation: Uint8Array,
+    options?: NetworkOptions,
   ): Promise<boolean> {
-    const host = networkOptions.apiUrl || ApiUrls[networkOptions.env || "dev"];
+    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
     return await isInstallationAuthorizedBinding(host, inboxId, installation);
   }
 }

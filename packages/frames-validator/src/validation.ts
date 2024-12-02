@@ -49,19 +49,17 @@ export async function validateFramesPost(
   } else {
     // make sure inbox IDs match
     const authorized = await Client.isInstallationAuthorized(
-      { env },
       inboxId,
       installationId,
+      { env },
     );
     if (!authorized) {
       throw new Error("Installation not a member of association state");
     }
 
-    const isMember = await Client.isAddressAuthorized(
-      { env },
-      inboxId,
-      walletAddress,
-    );
+    const isMember = await Client.isAddressAuthorized(inboxId, walletAddress, {
+      env,
+    });
 
     if (!isMember) {
       throw new Error("Unable to associate wallet address with inbox");
