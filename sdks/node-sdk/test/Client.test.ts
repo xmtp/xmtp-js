@@ -241,6 +241,13 @@ describe("Client", () => {
       { env: "local" },
     );
     expect(authorized).toBe(true);
+
+    const notAuthorized = await Client.isAddressAuthorized(
+      client.inboxId,
+      "0x1234567890123456789012345678901234567890",
+      { env: "local" },
+    );
+    expect(notAuthorized).toBe(false);
   });
 
   it("should check if an installation is authorized", async () => {
@@ -252,5 +259,12 @@ describe("Client", () => {
       { env: "local" },
     );
     expect(authorized).toBe(true);
+
+    const notAuthorized = await Client.isInstallationAuthorized(
+      client.inboxId,
+      new Uint8Array(32),
+      { env: "local" },
+    );
+    expect(notAuthorized).toBe(false);
   });
 });
