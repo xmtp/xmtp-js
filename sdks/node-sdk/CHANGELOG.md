@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- f1b93bb: Upgrade Node bindings
+- f1b93bb: Upgraded to latest node bindings
 
 ## 0.0.28
 
