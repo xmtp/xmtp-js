@@ -4,7 +4,10 @@
 
 ### Patch Changes
 
-- 7338e0e: Add static authorization methods to Node SDK Client
+- 7338e0e:
+  - Removed authorization instance methods from client
+  - Added static authorization methods to client
+  - Upgraded to latest node bindings
 
 ## 0.0.29
 
