@@ -2,13 +2,14 @@
 
 ![Status](https://img.shields.io/badge/Deprecated-brown)
 
-**The XMTP-JS SDK is no longer maintained.**
+> [!CAUTION]
+> The XMTP-JS SDK is no longer maintained.
 
 For your project, consider using the [Browser SDK](/sdks/browser-sdk/README.md) or [Node SDK](/sdks/node-sdk/README.md). These updated SDKs provide enhanced functionality and are designed to provide better support for your development needs.
 
 The documentation below is provided for reference only.
 
-**XMTP client SDK for JavaScript applications**
+## XMTP client SDK for JavaScript applications
 
 `xmtp-js` provides a TypeScript implementation of an XMTP client for use with JavaScript and React applications.
 
