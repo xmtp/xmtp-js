@@ -101,7 +101,7 @@ export class ReactionCodec
     }
   }
 
-  shouldPush(content: Reaction): boolean {
-    return content.action === "added";
+  shouldPush(): boolean {
+    return false;
   }
 }
