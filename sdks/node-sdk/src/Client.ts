@@ -313,10 +313,6 @@ export class Client {
     const accountAddress = "0x0000000000000000000000000000000000000000";
     const host = ApiUrls[env ?? "dev"];
     const isSecure = host.startsWith("https");
-    const dbPath = join(
-      process.cwd(),
-      `xmtp-${env ?? "dev"}-${accountAddress}.db3`,
-    );
     const inboxId =
       (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
       generateInboxId(accountAddress);
@@ -325,7 +321,7 @@ export class Client {
       signMessage: () => new Uint8Array(),
     };
     const client = new Client(
-      await createClient(host, isSecure, dbPath, inboxId, accountAddress),
+      await createClient(host, isSecure, undefined, inboxId, accountAddress),
       signer,
       [],
     );
