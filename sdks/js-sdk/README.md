@@ -1,13 +1,15 @@
 # XMTP-JS
 
-![Test](https://github.com/xmtp/xmtp-js/actions/workflows/test.yml/badge.svg)
-![Lint](https://github.com/xmtp/xmtp-js/actions/workflows/lint.yml/badge.svg)
-![Build](https://github.com/xmtp/xmtp-js/actions/workflows/build.yml/badge.svg)
-![Status](https://img.shields.io/badge/Project_Status-Production-brightgreen)
+![Status](https://img.shields.io/badge/Deprecated-brown)
 
-![x-red-sm](https://user-images.githubusercontent.com/510695/163488403-1fb37e86-c673-4b48-954e-8460ae4d4b05.png)
+> [!CAUTION]
+> The XMTP-JS SDK is no longer maintained.
 
-**XMTP client SDK for JavaScript applications**
+For your project, consider using the [Browser SDK](/sdks/browser-sdk/README.md) or [Node SDK](/sdks/node-sdk/README.md). These updated SDKs provide enhanced functionality and are designed to provide better support for your development needs.
+
+The documentation below is provided for reference only.
+
+## XMTP client SDK for JavaScript applications
 
 `xmtp-js` provides a TypeScript implementation of an XMTP client for use with JavaScript and React applications.
 
