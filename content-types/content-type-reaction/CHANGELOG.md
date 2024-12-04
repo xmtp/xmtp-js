@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- c27eb2e: Set shouldPush to false to reactions
+- c27eb2e: Set `shouldPush` to `false`
 
 ## 1.1.11
 
