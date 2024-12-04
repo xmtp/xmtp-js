@@ -1,5 +1,11 @@
 # @xmtp/content-type-reaction
 
+## 1.1.12
+
+### Patch Changes
+
+- c27eb2e: Set shouldPush to false to reactions
+
 ## 1.1.11
 
 ### Patch Changes
