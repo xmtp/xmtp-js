@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.31
+
+### Patch Changes
+
+- 9c625ad: Do not create local DB when calling the `Client.canMessage` static method
+
 ## 0.0.30
 
 ### Patch Changes
