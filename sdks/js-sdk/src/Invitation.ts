@@ -217,7 +217,7 @@ export class SealedInvitation implements invitation.SealedInvitation {
     const envelopeTime = Long.fromString(env.timestampNs);
     const headerTime = sealed.v1?.header.createdNs;
     if (!headerTime || !headerTime.equals(envelopeTime)) {
-      throw new Error("envelope and header timestamp mistmatch");
+      throw new Error("envelope and header timestamp mismatch");
     }
     return sealed;
   }
