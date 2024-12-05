@@ -28,7 +28,7 @@ let pri2 = await store.loadPrivateKeyBundle();
 
 ## Sending a message
 
-The sender must obtain the advertized public key bundle of the recipient and use it and his/her private key bundle to derive a shared secret that is then used as input into the symmetric encryption of the payload.
+The sender must obtain the advertised public key bundle of the recipient and use it and his/her private key bundle to derive a shared secret that is then used as input into the symmetric encryption of the payload.
 
 ```js
 // deserializing recipient's public key bundle (bytes obtained from the network)

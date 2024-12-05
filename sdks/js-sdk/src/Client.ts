@@ -311,7 +311,7 @@ export default class Client<ContentTypes = any> {
   /**
    * Create and start a client associated with given wallet.
    * @param wallet the wallet as a Signer instance
-   * @param opts specify how to to connect to the network
+   * @param opts specify how to connect to the network
    */
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-arguments
