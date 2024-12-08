@@ -1,0 +1,3 @@
+.root:focus {
+  border-color: var(--mantine-primary-color-filled);
+}

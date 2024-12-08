@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "apps/*",
     "content-types/*",
     "examples/*",
     "packages/*",
@@ -24,7 +25,8 @@
   },
   "dependencies": {
     "@changesets/changelog-git": "^0.2.0",
-    "@changesets/cli": "^2.27.9"
+    "@changesets/cli": "^2.27.9",
+    "@tabler/icons-react": "^3.24.0"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.3",

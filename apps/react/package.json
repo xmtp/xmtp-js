@@ -1,0 +1,46 @@
+{
+  "name": "@xmtp/react-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/index.css"
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo && rm -rf node_modules",
+    "dev": "yarn vite",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@mantine/core": "^7.14.3",
+    "@mantine/form": "^7.14.3",
+    "@mantine/hooks": "^7.14.3",
+    "@mantine/modals": "^7.14.3",
+    "@mantine/notifications": "^7.14.3",
+    "@tabler/icons": "^3.24.0",
+    "@tanstack/react-query": "^5.61.5",
+    "@xmtp/browser-sdk": "^0.0.6",
+    "@xmtp/content-type-group-updated": "workspace:^",
+    "@xmtp/content-type-primitives": "^1.0.1",
+    "@xmtp/content-type-reaction": "^1.1.9",
+    "@xmtp/content-type-remote-attachment": "^1.1.9",
+    "@xmtp/content-type-reply": "^1.1.11",
+    "@xmtp/content-type-text": "workspace:^",
+    "date-fns": "^4.1.0",
+    "react": "^18.3.1",
+    "react-18-blockies": "^1.0.6",
+    "react-dom": "^18.3.1",
+    "viem": "^2.21.52",
+    "wagmi": "^2.13.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "postcss": "^8.4.49",
+    "postcss-preset-mantine": "^1.17.0",
+    "postcss-simple-vars": "^7.0.1",
+    "tsconfig": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}
