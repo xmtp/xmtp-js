@@ -29,13 +29,11 @@
     ".": {
       "types": "./dist/index.d.ts",
       "browser": "./dist/browser/index.js",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
+  "main": "dist/index.js",
   "browser": "dist/browser/index.js",
   "types": "dist/index.d.ts",
   "files": [

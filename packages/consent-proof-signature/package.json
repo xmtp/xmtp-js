@@ -27,14 +27,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js"
+      "browser": "./dist/browser/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "browser": "dist/index.js",
+  "main": "dist/index.js",
+  "browser": "dist/browser/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
