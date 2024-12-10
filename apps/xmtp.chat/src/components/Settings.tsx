@@ -1,28 +1,11 @@
-import {
-  Button,
-  Checkbox,
-  Flex,
-  FocusTrap,
-  Popover,
-  Stack,
-  Tooltip,
-  useMatches,
-} from "@mantine/core";
-import { useLocalStorage } from "@mantine/hooks";
-import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
+import { Button, FocusTrap, Popover, Stack, useMatches } from "@mantine/core";
+import { IconSettings } from "@tabler/icons-react";
 import React from "react";
+import { LoggingSelect } from "./LoggingSelect";
 import { NetworkSelect } from "./NetworkSelect";
+import { UseEphemeralAccountOption } from "./UseEphemeralAccountOption";
 
 export const Settings: React.FC = () => {
-  const [checked, setChecked] = useLocalStorage({
-    key: "XMTP_USE_EPHEMERAL_ACCOUNT",
-    defaultValue: false,
-  });
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setChecked(event.currentTarget.checked);
-  };
-
   const label: React.ReactNode = useMatches({
     base: <IconSettings stroke={1.5} />,
     sm: "Settings",
@@ -43,22 +26,9 @@ export const Settings: React.FC = () => {
       <Popover.Dropdown>
         <FocusTrap>
           <Stack gap="md" align="flex-end" p="xs">
-            <Flex gap="xs" align="center">
-              <Checkbox
-                checked={checked}
-                onChange={handleChange}
-                label="Use ephemeral account"
-              />
-              <Tooltip
-                multiline
-                w={260}
-                label="A private key is generated and stored in the browser's local storage for reuse. To generate a new account, clear the local storage."
-                withArrow
-                events={{ hover: true, focus: true, touch: true }}>
-                <IconInfoCircle tabIndex={0} size={20} stroke={1.2} />
-              </Tooltip>
-            </Flex>
+            <UseEphemeralAccountOption />
             <NetworkSelect />
+            <LoggingSelect />
           </Stack>
         </FocusTrap>
       </Popover.Dropdown>

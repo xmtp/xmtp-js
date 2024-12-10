@@ -11,7 +11,6 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content }) => {
       c="white"
       py="xs"
       px="sm"
-      maw="80%"
       radius="md">
       {content}
     </Paper>
