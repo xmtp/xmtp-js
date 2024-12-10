@@ -1,0 +1,9 @@
+body.conversation-layout main {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+}
