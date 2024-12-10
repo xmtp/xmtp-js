@@ -1,5 +1,12 @@
 # @xmtp/frames-client
 
+## 1.0.1
+
+### Patch Changes
+
+- 1777a23: Dropped support for CommonJS
+  - @xmtp/xmtp-js@13.0.5
+
 ## 1.0.0
 
 ### BREAKING CHANGE

@@ -1,5 +1,16 @@
 # @xmtp/frames-validator
 
+## 2.0.0
+
+### Major Changes
+
+- 1777a23: Dropped support for CommonJS
+
+### Patch Changes
+
+- Updated dependencies [1777a23]
+  - @xmtp/node-sdk@0.0.32
+
 ## 1.0.1
 
 ### Patch Changes

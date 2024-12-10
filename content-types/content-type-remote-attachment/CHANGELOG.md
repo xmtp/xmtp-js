@@ -1,5 +1,16 @@
 # @xmtp/content-type-remote-attachment
 
+## 2.0.0
+
+### Major Changes
+
+- 1777a23: Dropped support for CommonJS
+
+### Patch Changes
+
+- Updated dependencies [1777a23]
+  - @xmtp/content-type-primitives@2.0.0
+
 ## 1.1.12
 
 ### Patch Changes
