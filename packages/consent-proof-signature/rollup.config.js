@@ -30,16 +30,6 @@ export default defineConfig([
   {
     input: "src/index.ts",
     output: {
-      file: "dist/index.cjs",
-      format: "cjs",
-      sourcemap: true,
-    },
-    external,
-    plugins,
-  },
-  {
-    input: "src/index.ts",
-    output: {
       file: "dist/browser/index.js",
       format: "es",
       sourcemap: true,
