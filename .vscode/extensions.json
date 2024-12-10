@@ -1,3 +1,9 @@
 {
-  "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "clinyong.vscode-css-modules",
+    "vunguyentuan.vscode-css-variables",
+    "vunguyentuan.vscode-postcss"
+  ]
 }
