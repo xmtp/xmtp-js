@@ -35,7 +35,7 @@ export const Conversation: React.FC<ConversationProps> = ({ id }) => {
           />
           <Message
             senderAddress="0x6B3Fd2B8481bDB805CeF2a86503229e7c5866Dd3"
-            content="Hello"
+            content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a aliquam erat. In hac habitasse platea dictumst. Praesent ex massa, posuere non neque quis, lacinia sodales arcu. Quisque id purus quam. Maecenas dapibus pretium sem, non scelerisque leo dapibus vitae. Nam pellentesque nunc lorem, eget faucibus est feugiat a. Etiam nec pharetra dui. Integer sit amet libero vulputate sem pulvinar viverra a sit amet orci. Nam auctor porta posuere."
             sentAt={new Date()}
           />
           <Message

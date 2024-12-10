@@ -22,7 +22,7 @@ export const NetworkSelect: React.FC = () => {
   };
 
   return (
-    <Flex align="center" gap="xs">
+    <Flex align="center" gap="xs" justify="space-between" w="100%">
       <Text size="sm" fw={700}>
         NETWORK
       </Text>

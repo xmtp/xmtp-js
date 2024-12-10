@@ -5,6 +5,7 @@ import { XMTPContext } from "../components/XMTPContext";
 export type InitializeClientOptions = {
   encryptionKey: Uint8Array;
   env?: ClientOptions["env"];
+  loggingLevel?: ClientOptions["loggingLevel"];
   signer: Signer;
 };
 
@@ -24,7 +25,12 @@ export const useClient = (onError?: (error: Error) => void) => {
    * Initialize an XMTP client
    */
   const initialize = useCallback(
-    async ({ encryptionKey, env, signer }: InitializeClientOptions) => {
+    async ({
+      encryptionKey,
+      env,
+      loggingLevel,
+      signer,
+    }: InitializeClientOptions) => {
       // only initialize a client if one doesn't already exist
       if (!client) {
         // if the client is already initializing, don't do anything
@@ -46,7 +52,7 @@ export const useClient = (onError?: (error: Error) => void) => {
           // create a new XMTP client
           xmtpClient = await Client.create(signer, encryptionKey, {
             env,
-            loggingLevel: "error",
+            loggingLevel,
           });
           setClient(xmtpClient);
         } catch (e) {

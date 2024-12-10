@@ -1,7 +1,7 @@
 import { Button, Flex, Loader, Text, useMatches } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { IconLogin2, IconUser } from "@tabler/icons-react";
-import type { XmtpEnv } from "@xmtp/browser-sdk";
+import type { ClientOptions, XmtpEnv } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { hexToUint8Array, uint8ArrayToHex } from "uint8array-extras";
 import { type Hex } from "viem";
@@ -58,6 +58,10 @@ export const Connect: React.FC = () => {
       key: "XMTP_EPHEMERAL_ACCOUNT_KEY",
       defaultValue: null,
     });
+  const [loggingLevel] = useLocalStorage<ClientOptions["loggingLevel"]>({
+    key: "XMTP_LOGGING_LEVEL",
+    defaultValue: "off",
+  });
   const { connect } = useConnect();
   const { data } = useWalletClient();
   const label: React.ReactNode = useMatches({
@@ -74,6 +78,7 @@ export const Connect: React.FC = () => {
       void initialize({
         encryptionKey: hexToUint8Array(encryptionKey),
         env,
+        loggingLevel,
         signer: createSigner(data.account.address, data),
       });
       setLoading(false);
@@ -91,6 +96,7 @@ export const Connect: React.FC = () => {
       await initialize({
         encryptionKey: hexToUint8Array(encryptionKey),
         env,
+        loggingLevel,
         signer,
       });
       setLoading(false);
