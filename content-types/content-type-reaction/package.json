@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-reaction",
-  "version": "1.1.12",
+  "version": "2.0.0",
   "description": "An XMTP content type to support reactions to messages",
   "keywords": [
     "xmtp",
@@ -64,7 +64,7 @@
     ]
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "^1.0.3"
+    "@xmtp/content-type-primitives": "^2.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",

@@ -1,5 +1,11 @@
 # @xmtp/content-type-primitives
 
+## 2.0.0
+
+### Major Changes
+
+- 1777a23: Dropped support for CommonJS
+
 ## 1.0.3
 
 ### Patch Changes

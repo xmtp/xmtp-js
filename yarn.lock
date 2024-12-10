@@ -4805,9 +4805,9 @@ __metadata:
     "@vitest/browser": "npm:^2.1.3"
     "@vitest/coverage-v8": "npm:^2.0.3"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
-    "@xmtp/content-type-group-updated": "npm:^1.0.1"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
-    "@xmtp/content-type-text": "npm:^1.0.1"
+    "@xmtp/content-type-group-updated": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-text": "npm:^2.0.0"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/wasm-bindings": "npm:^0.0.7"
     playwright: "npm:^1.49.0"
@@ -4826,7 +4826,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/consent-proof-signature@npm:^0.1.3, @xmtp/consent-proof-signature@npm:^0.1.4, @xmtp/consent-proof-signature@workspace:packages/consent-proof-signature":
+"@xmtp/consent-proof-signature@npm:^0.1.3, @xmtp/consent-proof-signature@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@xmtp/consent-proof-signature@npm:0.1.4"
+  dependencies:
+    "@xmtp/proto": "npm:^3.72.0"
+    long: "npm:^5.2.3"
+  checksum: 10/71e337bf9f737fa7b0d6793bbff245703bfa600a872ecc19c8f4219a01615ac406f732a2809a66e87c784a5c00791734d267e1574cc5db964c357404dc10e9cf
+  languageName: node
+  linkType: hard
+
+"@xmtp/consent-proof-signature@workspace:packages/consent-proof-signature":
   version: 0.0.0-use.local
   resolution: "@xmtp/consent-proof-signature@workspace:packages/consent-proof-signature"
   dependencies:
@@ -4846,14 +4856,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-group-updated@npm:^1.0.1, @xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated":
+"@xmtp/content-type-group-updated@npm:^2.0.0, @xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/proto": "npm:^3.72.0"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -4868,7 +4878,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:^1.0.1, @xmtp/content-type-primitives@npm:^1.0.3, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:^1.0.1, @xmtp/content-type-primitives@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@xmtp/content-type-primitives@npm:1.0.3"
+  dependencies:
+    "@xmtp/proto": "npm:^3.72.0"
+  checksum: 10/d8e0570345ac28d90839100932d6034ed0d5b12e8b7602bcb88dbaf2b375b63a04afc66aae10b32d0e8ec137749ee9af2eab59af334102e5a649e9d02bdb35a7
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@npm:^2.0.0, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -4894,7 +4913,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -4916,7 +4935,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -4939,7 +4958,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
     "@xmtp/xmtp-js": "npm:^11.6.3"
@@ -4963,7 +4982,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/content-type-remote-attachment": "workspace:*"
     "@xmtp/proto": "npm:^3.72.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
@@ -4980,14 +4999,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-text@npm:^1.0.0, @xmtp/content-type-text@npm:^1.0.1, @xmtp/content-type-text@workspace:content-types/content-type-text":
+"@xmtp/content-type-text@npm:^1.0.0, @xmtp/content-type-text@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@xmtp/content-type-text@npm:1.0.1"
+  dependencies:
+    "@xmtp/content-type-primitives": "npm:^1.0.3"
+  checksum: 10/574fa2f108b815fc7a8d9a29f0358b3aec2f164b5effd505a97ad54556296db207b17f2370604d953f4e50c2807516fe6ad86761dfe2c904a31b8fa77e0b4d6b
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-text@npm:^2.0.0, @xmtp/content-type-text@workspace:content-types/content-type-text":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-text@workspace:content-types/content-type-text"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -5009,7 +5037,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
@@ -5024,7 +5052,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/frames-client@npm:^1.0.0, @xmtp/frames-client@workspace:packages/frames-client":
+"@xmtp/frames-client@npm:^1.0.1, @xmtp/frames-client@workspace:packages/frames-client":
   version: 0.0.0-use.local
   resolution: "@xmtp/frames-client@workspace:packages/frames-client"
   dependencies:
@@ -5033,7 +5061,7 @@ __metadata:
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.1"
-    "@xmtp/node-sdk": "npm:^0.0.30"
+    "@xmtp/node-sdk": "npm:^0.0.32"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.0.0"
     ethers: "npm:^6.13.1"
@@ -5064,8 +5092,8 @@ __metadata:
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/bl": "npm:^5.1.4"
-    "@xmtp/frames-client": "npm:^1.0.0"
-    "@xmtp/node-sdk": "npm:^0.0.30"
+    "@xmtp/frames-client": "npm:^1.0.1"
+    "@xmtp/node-sdk": "npm:^0.0.32"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.1.0"
     ethers: "npm:^6.10.0"
@@ -5086,20 +5114,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^0.0.30":
-  version: 0.0.30
-  resolution: "@xmtp/node-sdk@npm:0.0.30"
-  dependencies:
-    "@xmtp/content-type-group-updated": "npm:^1.0.1"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
-    "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/node-bindings": "npm:^0.0.28"
-    "@xmtp/proto": "npm:^3.72.3"
-  checksum: 10/533ea8a801296358ab2aec41a97d135545bfb877a5cc3bc1a57670b91ec68f7ab39b9e0eab5fe0cf3765166a9e54662bea4adc860c610d289f763709948ed626
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^0.0.32, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
@@ -5107,9 +5122,9 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.1"
     "@types/node": "npm:^20.17.6"
     "@vitest/coverage-v8": "npm:^2.1.3"
-    "@xmtp/content-type-group-updated": "npm:^1.0.1"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
-    "@xmtp/content-type-text": "npm:^1.0.1"
+    "@xmtp/content-type-group-updated": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-text": "npm:^2.0.0"
     "@xmtp/node-bindings": "npm:^0.0.28"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "workspace:^"

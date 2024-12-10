@@ -1,5 +1,15 @@
 # @xmtp/browser-sdk
 
+## 0.0.7
+
+### Patch Changes
+
+- 1777a23: Dropped support for CommonJS
+- Updated dependencies [1777a23]
+  - @xmtp/content-type-group-updated@2.0.0
+  - @xmtp/content-type-primitives@2.0.0
+  - @xmtp/content-type-text@2.0.0
+
 ## 0.0.6
 
 ### Patch Changes

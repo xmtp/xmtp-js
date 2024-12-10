@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/node-sdk",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "description": "XMTP Node client SDK for interacting with XMTP networks",
   "keywords": [
     "xmtp",
@@ -48,9 +48,9 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@xmtp/content-type-group-updated": "^1.0.1",
-    "@xmtp/content-type-primitives": "^1.0.3",
-    "@xmtp/content-type-text": "^1.0.1",
+    "@xmtp/content-type-group-updated": "^2.0.0",
+    "@xmtp/content-type-primitives": "^2.0.0",
+    "@xmtp/content-type-text": "^2.0.0",
     "@xmtp/node-bindings": "^0.0.28",
     "@xmtp/proto": "^3.72.3"
   },

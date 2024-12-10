@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-remote-attachment",
-  "version": "1.1.12",
+  "version": "2.0.0",
   "description": "An XMTP content type to support sending file attachments that are stored off network",
   "keywords": [
     "xmtp",
@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@xmtp/content-type-primitives": "^1.0.3",
+    "@xmtp/content-type-primitives": "^2.0.0",
     "@xmtp/proto": "^3.72.0"
   },
   "devDependencies": {
