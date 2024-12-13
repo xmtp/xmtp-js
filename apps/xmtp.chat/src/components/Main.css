@@ -1,4 +1,4 @@
-body.conversation-layout main {
+body.main-flex-layout main {
   display: flex;
   flex-direction: column;
   height: 100dvh;

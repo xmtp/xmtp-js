@@ -1,5 +1,4 @@
 import { Flex, ScrollArea, Stack, Text } from "@mantine/core";
-import "./Conversation.css";
 import { useBodyClass } from "../hooks/useBodyClass";
 import { Composer } from "./Composer";
 import classes from "./Conversation.module.css";
@@ -10,7 +9,7 @@ export type ConversationProps = {
 };
 
 export const Conversation: React.FC<ConversationProps> = ({ id }) => {
-  useBodyClass("conversation-layout");
+  useBodyClass("main-flex-layout");
 
   return (
     <Stack
