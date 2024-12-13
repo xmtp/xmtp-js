@@ -1,6 +1,7 @@
 import { Card, Flex, Skeleton, Stack, Text } from "@mantine/core";
 import { type Conversation, type SafeGroupMember } from "@xmtp/browser-sdk";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 // import { useMessages } from "../hooks/useMessages";
 import { AddressBadge } from "./AddressBadge";
 import styles from "./ConversationCard.module.css";
@@ -13,6 +14,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   conversation,
 }) => {
   const [members, setMembers] = useState<SafeGroupMember[]>([]);
+  const navigate = useNavigate();
   // const { messages } = useMessages(conversation);
 
   useEffect(() => {
@@ -50,8 +52,8 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
       padding="sm"
       radius="md"
       withBorder
-      component="a"
-      href="#"
+      onClick={() => void navigate(`/conversations/${conversation.id}`)}
+      style={{ cursor: "pointer" }}
       classNames={{ root: styles.root }}>
       <Stack gap="xs">
         <Flex justify="space-between">
