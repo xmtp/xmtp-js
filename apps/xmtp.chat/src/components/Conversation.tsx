@@ -1,8 +1,8 @@
 import { Flex, ScrollArea, Stack, Text } from "@mantine/core";
 import { useBodyClass } from "../hooks/useBodyClass";
 import { Composer } from "./Composer";
-import classes from "./Conversation.module.css";
 import { Message } from "./Message";
+import classes from "./ScrollFade.module.css";
 
 export type ConversationProps = {
   id: string;
