@@ -4,6 +4,7 @@
     var(--mantine-color-gray-0),
     var(--mantine-color-dark-8)
   );
+  position: relative;
 }
 
 .root::before {
@@ -15,6 +16,7 @@
   height: 20px;
   background: linear-gradient(to top, transparent, var(--gradient-color) 20px);
   pointer-events: none;
+  z-index: 1;
 }
 
 .root::after {
@@ -30,4 +32,5 @@
     var(--gradient-color) 20px
   );
   pointer-events: none;
+  z-index: 1;
 }

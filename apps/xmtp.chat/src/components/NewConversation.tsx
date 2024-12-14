@@ -11,16 +11,28 @@ import {
   Stack,
   Switch,
   Text,
+  Textarea,
   TextInput,
   Title,
+  Tooltip,
 } from "@mantine/core";
-import { useState } from "react";
+import {
+  GroupPermissionsOptions,
+  PermissionPolicy,
+  type PermissionPolicySet,
+} from "@xmtp/browser-sdk";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { isValidLongWalletAddress } from "../helpers/address";
 import { useBodyClass } from "../hooks/useBodyClass";
 import { useClient } from "../hooks/useClient";
+import classes from "./ScrollFade.module.css";
 
-type ConversationPermissions = "All members" | "Admin only" | "Custom policy";
+type AnyFn = (...args: unknown[]) => unknown;
+type ClassProperties<C> = {
+  [K in keyof C as C[K] extends AnyFn ? never : K]: C[K];
+};
+type PolicySet = ClassProperties<PermissionPolicySet>;
 
 export const NewConversation: React.FC = () => {
   useBodyClass("main-flex-layout");
@@ -28,11 +40,21 @@ export const NewConversation: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [address, setAddress] = useState("");
+  const [addressError, setAddressError] = useState<string | null>(null);
   const [members, setMembers] = useState<string[]>([]);
-  const [invalidAddress, setInvalidAddress] = useState(false);
   const [isDmGroup, setIsDmGroup] = useState(false);
-  const [permissions, setPermissions] =
-    useState<ConversationPermissions>("All members");
+  const [permissionsPolicy, setPermissionsPolicy] =
+    useState<GroupPermissionsOptions>(GroupPermissionsOptions.AllMembers);
+  const [policySet, setPolicySet] = useState<PolicySet>({
+    addAdminPolicy: PermissionPolicy.Allow,
+    addMemberPolicy: PermissionPolicy.Allow,
+    removeAdminPolicy: PermissionPolicy.Allow,
+    removeMemberPolicy: PermissionPolicy.Allow,
+    updateGroupDescriptionPolicy: PermissionPolicy.Allow,
+    updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
+    updateGroupNamePolicy: PermissionPolicy.Allow,
+    updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
+  });
   const [createConversationError, setCreateConversationError] = useState<
     string | null
   >(null);
@@ -41,6 +63,54 @@ export const NewConversation: React.FC = () => {
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [pinnedFrameUrl, setPinnedFrameUrl] = useState("");
+
+  const policyTooltip = useMemo(() => {
+    if (permissionsPolicy === GroupPermissionsOptions.AllMembers) {
+      return "All members of the group can perform group actions";
+    } else if (permissionsPolicy === GroupPermissionsOptions.AdminOnly) {
+      return "Only admins can perform group actions";
+    }
+    return "";
+  }, [permissionsPolicy]);
+
+  useEffect(() => {
+    if (
+      permissionsPolicy === GroupPermissionsOptions.AllMembers ||
+      permissionsPolicy === GroupPermissionsOptions.CustomPolicy
+    ) {
+      setPolicySet({
+        addAdminPolicy: PermissionPolicy.Allow,
+        addMemberPolicy: PermissionPolicy.Allow,
+        removeAdminPolicy: PermissionPolicy.Allow,
+        removeMemberPolicy: PermissionPolicy.Allow,
+        updateGroupDescriptionPolicy: PermissionPolicy.Allow,
+        updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
+        updateGroupNamePolicy: PermissionPolicy.Allow,
+        updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
+      });
+    } else {
+      setPolicySet({
+        addAdminPolicy: PermissionPolicy.Admin,
+        addMemberPolicy: PermissionPolicy.Admin,
+        removeAdminPolicy: PermissionPolicy.Admin,
+        removeMemberPolicy: PermissionPolicy.Admin,
+        updateGroupDescriptionPolicy: PermissionPolicy.Admin,
+        updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
+        updateGroupNamePolicy: PermissionPolicy.Admin,
+        updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
+      });
+    }
+  }, [permissionsPolicy]);
+
+  useEffect(() => {
+    if (members.includes(address)) {
+      setAddressError("Duplicate address");
+    } else if (address && !isValidLongWalletAddress(address)) {
+      setAddressError("Invalid address");
+    } else {
+      setAddressError(null);
+    }
+  }, [members, address]);
 
   const handleCreate = async () => {
     if (isDmGroup && members.length === 0) {
@@ -57,7 +127,13 @@ export const NewConversation: React.FC = () => {
     try {
       const conversation = isDmGroup
         ? await client.conversations.newDm(members[0])
-        : await client.conversations.newGroup(members, {});
+        : await client.conversations.newGroup(members, {
+            description,
+            imageUrlSquare: imageUrl,
+            pinnedFrameUrl,
+            name,
+            permissions: permissionsPolicy,
+          });
       void navigate(`/conversations/${conversation.id}`);
     } catch (error) {
       setCreateConversationError(
@@ -69,13 +145,9 @@ export const NewConversation: React.FC = () => {
   };
 
   const handleAddMember = () => {
-    if (!isValidLongWalletAddress(address)) {
-      setInvalidAddress(true);
-      return;
-    }
     setMembers([...members, address]);
     setAddress("");
-    setInvalidAddress(false);
+    setAddressError(null);
   };
 
   return (
@@ -114,8 +186,8 @@ export const NewConversation: React.FC = () => {
           }}>
           <LoadingOverlay visible={isLoading} />
           <Title order={3}>New conversation</Title>
-          <ScrollArea type="scroll" flex={1}>
-            <Stack gap="lg">
+          <ScrollArea type="scroll" className={classes.root}>
+            <Stack gap="lg" py="md">
               <Paper p="md" radius="md" withBorder>
                 <Stack gap="md">
                   <Group gap="md" justify="space-between">
@@ -131,80 +203,314 @@ export const NewConversation: React.FC = () => {
                       labelPosition="left"
                     />
                   </Group>
-                  <TextInput
-                    label="Name"
-                    disabled={isDmGroup}
-                    value={name}
-                    onChange={(event) => {
-                      setName(event.target.value);
-                    }}
-                  />
-                  <TextInput
-                    label="Description"
-                    disabled={isDmGroup}
-                    value={description}
-                    onChange={(event) => {
-                      setDescription(event.target.value);
-                    }}
-                  />
-                  <TextInput
-                    label="Image URL"
-                    disabled={isDmGroup}
-                    value={imageUrl}
-                    onChange={(event) => {
-                      setImageUrl(event.target.value);
-                    }}
-                  />
-                  <TextInput
-                    label="Pinned frame URL"
-                    disabled={isDmGroup}
-                    value={pinnedFrameUrl}
-                    onChange={(event) => {
-                      setPinnedFrameUrl(event.target.value);
-                    }}
-                  />
-                  <NativeSelect
-                    flex={1}
-                    disabled={isDmGroup}
-                    label="Permissions"
-                    value={permissions}
-                    onChange={(event) => {
-                      setPermissions(
-                        event.currentTarget.value as ConversationPermissions,
-                      );
-                    }}
-                    data={["All members", "Admin only", "Custom policy"]}
-                  />
+                  <Group gap="md" align="center" wrap="nowrap">
+                    <Text flex="1 1 40%">Name</Text>
+                    <TextInput
+                      flex="1 1 60%"
+                      disabled={isDmGroup}
+                      value={name}
+                      onChange={(event) => {
+                        setName(event.target.value);
+                      }}
+                    />
+                  </Group>
+                  <Group gap="md" align="flex-start" wrap="nowrap">
+                    <Text flex="1 1 40%">Description</Text>
+                    <Textarea
+                      flex="1 1 60%"
+                      disabled={isDmGroup}
+                      value={description}
+                      onChange={(event) => {
+                        setDescription(event.target.value);
+                      }}
+                    />
+                  </Group>
+                  <Group gap="md" align="center" wrap="nowrap">
+                    <Text flex="1 1 40%">Image URL</Text>
+                    <TextInput
+                      flex="1 1 60%"
+                      disabled={isDmGroup}
+                      value={imageUrl}
+                      onChange={(event) => {
+                        setImageUrl(event.target.value);
+                      }}
+                    />
+                  </Group>
+                  <Group gap="md" align="center" wrap="nowrap">
+                    <Text flex="1 1 40%">Pinned frame URL</Text>
+                    <TextInput
+                      flex="1 1 60%"
+                      disabled={isDmGroup}
+                      value={pinnedFrameUrl}
+                      onChange={(event) => {
+                        setPinnedFrameUrl(event.target.value);
+                      }}
+                    />
+                  </Group>
+                </Stack>
+              </Paper>
+              <Paper p="md" radius="md" withBorder>
+                <Stack gap="md">
+                  <Group gap="md" justify="space-between">
+                    <Title order={4}>Permissions</Title>
+                    <Group gap="xs">
+                      <Text>Policy</Text>
+                      <Tooltip withArrow label={policyTooltip}>
+                        <NativeSelect
+                          disabled={isDmGroup}
+                          value={permissionsPolicy}
+                          onChange={(event) => {
+                            setPermissionsPolicy(
+                              parseInt(
+                                event.currentTarget.value,
+                                10,
+                              ) as GroupPermissionsOptions,
+                            );
+                          }}
+                          data={[
+                            { value: "0", label: "All members" },
+                            { value: "1", label: "Admins only" },
+                            { value: "2", label: "Custom policy" },
+                          ]}
+                        />
+                      </Tooltip>
+                    </Group>
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Add members</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.addMemberPolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          addMemberPolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Remove members</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.removeMemberPolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          removeMemberPolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Add admins</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.addAdminPolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          addAdminPolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Remove admins</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.removeAdminPolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          removeAdminPolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Update group name</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.updateGroupNamePolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          updateGroupNamePolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Update group description</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.updateGroupDescriptionPolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          updateGroupDescriptionPolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Update group image</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.updateGroupImageUrlSquarePolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          updateGroupImageUrlSquarePolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
+                  <Group gap="md" justify="space-between" align="center">
+                    <Text>Update group pinned frame</Text>
+                    <NativeSelect
+                      disabled={
+                        isDmGroup ||
+                        permissionsPolicy !==
+                          GroupPermissionsOptions.CustomPolicy
+                      }
+                      value={policySet.updateGroupPinnedFrameUrlPolicy}
+                      onChange={(event) => {
+                        setPolicySet({
+                          ...policySet,
+                          updateGroupPinnedFrameUrlPolicy: parseInt(
+                            event.currentTarget.value,
+                            10,
+                          ) as PermissionPolicy,
+                        });
+                      }}
+                      data={[
+                        { value: "0", label: "Everyone" },
+                        { value: "1", label: "Disabled" },
+                        { value: "2", label: "Admins only" },
+                        { value: "3", label: "Super admins only" },
+                      ]}
+                    />
+                  </Group>
                 </Stack>
               </Paper>
               <Paper p="md" radius="md" withBorder>
                 <Stack gap="md">
                   <Title order={4}>Members</Title>
-                  <Group gap="xs" align="flex-end">
-                    <TextInput
-                      label="Address"
-                      flex={1}
-                      error={invalidAddress}
-                      value={address}
-                      onBlur={() => {
-                        if (isValidLongWalletAddress(address)) {
-                          setInvalidAddress(false);
-                        }
-                      }}
-                      onChange={(event) => {
-                        setAddress(event.target.value);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          handleAddMember();
-                        }
-                      }}
-                    />
+                  <Group gap="xs" align="flex-start">
+                    <Stack flex={1} gap="xs">
+                      <TextInput
+                        label="Address"
+                        error={addressError}
+                        value={address}
+                        onChange={(event) => {
+                          setAddress(event.target.value);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            handleAddMember();
+                          }
+                        }}
+                      />
+                    </Stack>
                     <Button
+                      mt="1.5rem"
                       disabled={
                         !address ||
                         (isDmGroup && members.length > 0) ||
-                        members.includes(address)
+                        addressError !== null
                       }
                       onClick={handleAddMember}>
                       Add
