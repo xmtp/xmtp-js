@@ -6,7 +6,6 @@ import type {
 } from "@/types";
 import {
   fromEncodedContent,
-  fromSafeCreateGroupOptions,
   fromSafeEncodedContent,
   toSafeConversation,
   toSafeInboxState,
