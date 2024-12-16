@@ -42,7 +42,7 @@ const getV3Setup = async () => {
         getBytes(await wallet.signMessage(message)),
     },
     encryptionKey,
-    { env: "local" },
+    { env: "dev" },
   );
   const signer: V3FramesSigner = {
     address: () => client.accountAddress,
@@ -133,7 +133,7 @@ const shouldSignFrameActionWithValidSignature =
 // Will add E2E tests back once we have Frames deployed with the new schema
 const worksE2E = (framesClient: FramesClient) => async () => {
   const frameUrl =
-    "https://fc-polls-five.vercel.app/polls/03710836-bc1d-4921-9e24-89d82015c53b";
+    "https://fc-polls-five.vercel.app/polls/03710836-bc1d-4921-9e24-89d82015c53b?env=dev";
   const metadata = await framesClient.proxy.readMetadata(frameUrl);
   expect(metadata).toBeDefined();
   expect(metadata.frameInfo).toMatchObject({
@@ -153,7 +153,7 @@ const worksE2E = (framesClient: FramesClient) => async () => {
         "https://fc-polls-five.vercel.app/api/image?id=03710836-bc1d-4921-9e24-89d82015c53b",
     },
     postUrl:
-      "https://fc-polls-five.vercel.app/api/vote?id=03710836-bc1d-4921-9e24-89d82015c53b",
+      "https://fc-polls-five.vercel.app/api/vote?id=03710836-bc1d-4921-9e24-89d82015c53b&env=dev",
   });
   const signedPayload = await framesClient.signFrameAction({
     frameUrl,
@@ -224,6 +224,11 @@ describe("FramesClient", () => {
       it("should sign a frame action with a valid signature", async () => {
         const { signer, framesClient } = await getV3Setup();
         await shouldSignFrameActionWithValidSignature(signer, framesClient)();
+      });
+
+      it("works e2e", async () => {
+        const { framesClient } = await getV3Setup();
+        await worksE2E(framesClient)();
       });
 
       it("sends back the button postUrl for a tx frame in frame info", async () => {
