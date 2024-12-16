@@ -6,6 +6,7 @@ import type {
 } from "@/types";
 import {
   fromEncodedContent,
+  fromSafeCreateGroupOptions,
   fromSafeEncodedContent,
   toSafeConversation,
   toSafeInboxState,
@@ -290,6 +291,11 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "newGroup": {
+        // console.log(
+        //   "newGroup",
+        //   fromSafeCreateGroupOptions(data.options!),
+        //   data.options,
+        // );
         const conversation = await client.conversations.newGroup(
           data.accountAddresses,
           data.options,
