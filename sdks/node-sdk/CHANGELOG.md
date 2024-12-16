@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.33
+
+### Patch Changes
+
+- 8120a39: Added support for custom permissions policy
+
 ## 0.0.32
 
 ### Patch Changes
