@@ -255,4 +255,41 @@ describe.concurrent("Conversations", () => {
     expect(groupWithPinnedFrameUrl.description).toBe("");
     expect(groupWithPinnedFrameUrl.pinnedFrameUrl).toBe("https://foo/bar");
   });
+
+  it("should create a group with custom permissions", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    await createRegisteredClient(user2);
+    const group = await client1.conversations.newGroup(
+      [user2.account.address],
+      {
+        permissions: GroupPermissionsOptions.CustomPolicy,
+        customPermissionPolicySet: {
+          addAdminPolicy: 1,
+          addMemberPolicy: 0,
+          removeAdminPolicy: 1,
+          removeMemberPolicy: 1,
+          updateGroupNamePolicy: 1,
+          updateGroupDescriptionPolicy: 1,
+          updateGroupImageUrlSquarePolicy: 1,
+          updateGroupPinnedFrameUrlPolicy: 1,
+        },
+      },
+    );
+    expect(group).toBeDefined();
+    expect(group.permissions?.policyType).toBe(
+      GroupPermissionsOptions.CustomPolicy,
+    );
+    expect(group.permissions?.policySet).toEqual({
+      addAdminPolicy: 1,
+      addMemberPolicy: 0,
+      removeAdminPolicy: 1,
+      removeMemberPolicy: 1,
+      updateGroupNamePolicy: 1,
+      updateGroupDescriptionPolicy: 1,
+      updateGroupImageUrlSquarePolicy: 1,
+      updateGroupPinnedFrameUrlPolicy: 1,
+    });
+  });
 });

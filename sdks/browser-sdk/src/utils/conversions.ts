@@ -6,8 +6,10 @@ import {
   Consent,
   CreateGroupOptions,
   GroupMember,
+  GroupPermissionsOptions,
   ListConversationsOptions,
   ListMessagesOptions,
+  PermissionPolicySet,
   ContentTypeId as WasmContentTypeId,
   EncodedContent as WasmEncodedContent,
   type ConsentEntityType,
@@ -16,7 +18,6 @@ import {
   type DeliveryStatus,
   type GroupMembershipState,
   type GroupMessageKind,
-  type GroupPermissionsOptions,
   type InboxState,
   type Installation,
   type Message,
@@ -200,22 +201,62 @@ export const fromSafeListConversationsOptions = (
     options.limit,
   );
 
+export type SafePermissionPolicySet = {
+  addAdminPolicy: PermissionPolicy;
+  addMemberPolicy: PermissionPolicy;
+  removeAdminPolicy: PermissionPolicy;
+  removeMemberPolicy: PermissionPolicy;
+  updateGroupDescriptionPolicy: PermissionPolicy;
+  updateGroupImageUrlSquarePolicy: PermissionPolicy;
+  updateGroupNamePolicy: PermissionPolicy;
+  updateGroupPinnedFrameUrlPolicy: PermissionPolicy;
+};
+
+export const toSafePermissionPolicySet = (
+  policySet: PermissionPolicySet,
+): SafePermissionPolicySet => ({
+  addAdminPolicy: policySet.addAdminPolicy,
+  addMemberPolicy: policySet.addMemberPolicy,
+  removeAdminPolicy: policySet.removeAdminPolicy,
+  removeMemberPolicy: policySet.removeMemberPolicy,
+  updateGroupDescriptionPolicy: policySet.updateGroupDescriptionPolicy,
+  updateGroupImageUrlSquarePolicy: policySet.updateGroupImageUrlSquarePolicy,
+  updateGroupNamePolicy: policySet.updateGroupNamePolicy,
+  updateGroupPinnedFrameUrlPolicy: policySet.updateGroupPinnedFrameUrlPolicy,
+});
+
+export const fromSafePermissionPolicySet = (
+  policySet: SafePermissionPolicySet,
+): PermissionPolicySet =>
+  new PermissionPolicySet(
+    policySet.addMemberPolicy,
+    policySet.removeMemberPolicy,
+    policySet.addAdminPolicy,
+    policySet.removeAdminPolicy,
+    policySet.updateGroupNamePolicy,
+    policySet.updateGroupDescriptionPolicy,
+    policySet.updateGroupImageUrlSquarePolicy,
+    policySet.updateGroupPinnedFrameUrlPolicy,
+  );
+
 export type SafeCreateGroupOptions = {
-  permissions?: GroupPermissionsOptions;
-  name?: string;
-  imageUrlSquare?: string;
+  customPermissionPolicySet?: SafePermissionPolicySet;
   description?: string;
+  imageUrlSquare?: string;
+  name?: string;
+  permissions?: GroupPermissionsOptions;
   pinnedFrameUrl?: string;
 };
 
 export const toSafeCreateGroupOptions = (
   options: CreateGroupOptions,
 ): SafeCreateGroupOptions => ({
-  permissions: options.permissions,
-  name: options.groupName,
-  imageUrlSquare: options.groupImageUrlSquare,
   description: options.groupDescription,
+  imageUrlSquare: options.groupImageUrlSquare,
+  name: options.groupName,
   pinnedFrameUrl: options.groupPinnedFrameUrl,
+  permissions: options.permissions,
+  customPermissionPolicySet: options.customPermissionPolicySet,
 });
 
 export const fromSafeCreateGroupOptions = (
@@ -227,6 +268,11 @@ export const fromSafeCreateGroupOptions = (
     options.imageUrlSquare,
     options.description,
     options.pinnedFrameUrl,
+    // only include custom policy set if permissions are set to CustomPolicy
+    options.customPermissionPolicySet &&
+    options.permissions === GroupPermissionsOptions.CustomPolicy
+      ? fromSafePermissionPolicySet(options.customPermissionPolicySet)
+      : undefined,
   );
 
 export type SafeConversation = {
