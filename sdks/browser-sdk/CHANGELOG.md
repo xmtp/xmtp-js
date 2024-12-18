@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.9
+
+### Patch Changes
+
+- a35afb8: Upgraded bindings, refactored some methods to be async
+
 ## 0.0.8
 
 ### Patch Changes
