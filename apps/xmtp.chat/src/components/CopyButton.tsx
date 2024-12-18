@@ -1,6 +1,6 @@
 import { Button, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
-import { IconCopy } from "@tabler/icons-react";
+import { IconCopy } from "../icons/IconCopy";
 import classes from "./CopyButton.module.css";
 
 type CopyButtonProps = {
@@ -40,7 +40,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ value }) => {
         aria-label="Copy"
         p="0"
         className={classes.button}>
-        <IconCopy size={16} />
+        <IconCopy />
       </Button>
     </Tooltip>
   );

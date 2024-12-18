@@ -1,13 +1,13 @@
 import { Button, Flex, useMatches } from "@mantine/core";
-import { IconMessagePlus } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 import { useClient } from "../hooks/useClient";
+import { IconMessagePlus } from "../icons/IconMessagePlus";
 
 export const Actions: React.FC = () => {
   const { client } = useClient();
   const navigate = useNavigate();
   const label: React.ReactNode = useMatches({
-    base: <IconMessagePlus stroke={1.5} />,
+    base: <IconMessagePlus size={24} />,
     sm: "New conversation",
   });
   const px = useMatches({
