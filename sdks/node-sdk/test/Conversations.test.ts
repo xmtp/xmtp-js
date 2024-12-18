@@ -43,14 +43,14 @@ describe("Conversations", () => {
       updateGroupPinnedFrameUrlPolicy: 0,
     });
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
-    expect(conversation.messages().length).toBe(1);
+    expect((await conversation.messages()).length).toBe(1);
 
     const members = await conversation.members();
     expect(members.length).toBe(2);
     const memberInboxIds = members.map((member) => member.inboxId);
     expect(memberInboxIds).toContain(client1.inboxId);
     expect(memberInboxIds).toContain(client2.inboxId);
-    expect(conversation.metadata).toEqual({
+    expect(await conversation.metadata()).toEqual({
       conversationType: "group",
       creatorInboxId: client1.inboxId,
     });
@@ -97,14 +97,14 @@ describe("Conversations", () => {
       updateGroupPinnedFrameUrlPolicy: 0,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
-    expect(group.messages().length).toBe(0);
+    expect((await group.messages()).length).toBe(0);
     const members = await group.members();
     expect(members.length).toBe(2);
     const memberInboxIds = members.map((member) => member.inboxId);
     expect(memberInboxIds).toContain(client1.inboxId);
     expect(memberInboxIds).toContain(client2.inboxId);
-    expect(group.metadata.conversationType).toBe("dm");
-    expect(group.metadata.creatorInboxId).toBe(client1.inboxId);
+    expect((await group.metadata()).conversationType).toBe("dm");
+    expect((await group.metadata()).creatorInboxId).toBe(client1.inboxId);
 
     expect(group.consentState).toBe(ConsentState.Allowed);
 

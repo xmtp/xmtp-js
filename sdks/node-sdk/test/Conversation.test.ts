@@ -19,7 +19,7 @@ describe("Conversation", () => {
     const newName = "foo";
     await conversation.updateName(newName);
     expect(conversation.name).toBe(newName);
-    const messages = conversation.messages();
+    const messages = await conversation.messages();
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
@@ -31,7 +31,8 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.name).toBe(newName);
-    expect(conversation2.messages().length).toBe(1);
+    const messages2 = await conversation2.messages();
+    expect(messages2.length).toBe(1);
   });
 
   it("should update conversation image URL", async () => {
@@ -45,7 +46,7 @@ describe("Conversation", () => {
     const imageUrl = "https://foo/bar.jpg";
     await conversation.updateImageUrl(imageUrl);
     expect(conversation.imageUrl).toBe(imageUrl);
-    const messages = conversation.messages();
+    const messages = await conversation.messages();
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
@@ -57,7 +58,8 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.imageUrl).toBe(imageUrl);
-    expect(conversation2.messages().length).toBe(1);
+    const messages2 = await conversation2.messages();
+    expect(messages2.length).toBe(1);
   });
 
   it("should update conversation description", async () => {
@@ -71,7 +73,7 @@ describe("Conversation", () => {
     const newDescription = "foo";
     await conversation.updateDescription(newDescription);
     expect(conversation.description).toBe(newDescription);
-    const messages = conversation.messages();
+    const messages = await conversation.messages();
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
@@ -83,7 +85,8 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.description).toBe(newDescription);
-    expect(conversation2.messages().length).toBe(1);
+    const messages2 = await conversation2.messages();
+    expect(messages2.length).toBe(1);
   });
 
   it("should update conversation pinned frame URL", async () => {
@@ -97,7 +100,7 @@ describe("Conversation", () => {
     const pinnedFrameUrl = "https://foo/bar";
     await conversation.updatePinnedFrameUrl(pinnedFrameUrl);
     expect(conversation.pinnedFrameUrl).toBe(pinnedFrameUrl);
-    const messages = conversation.messages();
+    const messages = await conversation.messages();
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
@@ -109,7 +112,8 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.pinnedFrameUrl).toBe(pinnedFrameUrl);
-    expect(conversation2.messages().length).toBe(1);
+    const messages2 = await conversation2.messages();
+    expect(messages2.length).toBe(1);
   });
 
   it("should add and remove members", async () => {
@@ -201,7 +205,7 @@ describe("Conversation", () => {
     const text = "gm";
     await conversation.send(text);
 
-    const messages = conversation.messages();
+    const messages = await conversation.messages();
     expect(messages.length).toBe(2);
     expect(messages[1].content).toBe(text);
 
@@ -214,7 +218,7 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
 
-    const messages2 = conversation2.messages();
+    const messages2 = await conversation2.messages();
     expect(messages2.length).toBe(1);
     expect(messages2[0].content).toBe(text);
   });
@@ -249,7 +253,7 @@ describe("Conversation", () => {
     const text = "gm";
     conversation.sendOptimistic(text);
 
-    const messages = conversation.messages();
+    const messages = await conversation.messages();
     expect(messages.length).toBe(2);
     expect(messages[1].content).toBe(text);
 
@@ -263,13 +267,13 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
 
-    const messages2 = conversation2.messages();
+    const messages2 = await conversation2.messages();
     expect(messages2.length).toBe(0);
 
     await conversation.publishMessages();
     await conversation2.sync();
 
-    const messages4 = conversation2.messages();
+    const messages4 = await conversation2.messages();
     expect(messages4.length).toBe(1);
     expect(messages4[0].content).toBe(text);
   });

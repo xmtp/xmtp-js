@@ -70,8 +70,8 @@ export class WorkerConversation {
     return this.#group.createdAtNs();
   }
 
-  get metadata() {
-    const metadata = this.#group.groupMetadata();
+  async metadata() {
+    const metadata = await this.#group.groupMetadata();
     return {
       creatorInboxId: metadata.creatorInboxId(),
       conversationType: metadata.conversationType(),
@@ -155,7 +155,7 @@ export class WorkerConversation {
     return this.#group.send(encodedContent);
   }
 
-  messages(options?: SafeListMessagesOptions) {
+  async messages(options?: SafeListMessagesOptions) {
     return this.#group.findMessages(
       options ? fromSafeListMessagesOptions(options) : undefined,
     );
