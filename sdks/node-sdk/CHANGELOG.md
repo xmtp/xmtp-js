@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.34
+
+### Patch Changes
+
+- a35afb8: Upgrade bindings
+
 ## 0.0.33
 
 ### Patch Changes

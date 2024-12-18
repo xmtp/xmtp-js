@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.9
+
+### Patch Changes
+
+- a35afb8: Upgrade bindings
+
 ## 0.0.8
 
 ### Patch Changes
