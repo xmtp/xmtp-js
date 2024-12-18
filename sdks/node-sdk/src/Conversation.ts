@@ -71,8 +71,8 @@ export class Conversation {
     return nsToDate(this.createdAtNs);
   }
 
-  get metadata() {
-    const metadata = this.#group.groupMetadata();
+  async metadata() {
+    const metadata = await this.#group.groupMetadata();
     return {
       creatorInboxId: metadata.creatorInboxId(),
       conversationType: metadata.conversationType(),
@@ -194,10 +194,10 @@ export class Conversation {
     return this.#group.send(encodedContent);
   }
 
-  messages(options?: ListMessagesOptions): DecodedMessage[] {
+  async messages(options?: ListMessagesOptions): Promise<DecodedMessage[]> {
+    const messages = await this.#group.findMessages(options);
     return (
-      this.#group
-        .findMessages(options)
+      messages
         .map((message) => new DecodedMessage(this.#client, message))
         // filter out messages without content
         .filter((message) => message.content !== undefined)

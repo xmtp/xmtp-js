@@ -305,9 +305,9 @@ export type SafeConversation = {
   createdAtNs: bigint;
 };
 
-export const toSafeConversation = (
+export const toSafeConversation = async (
   conversation: WorkerConversation,
-): SafeConversation => ({
+): Promise<SafeConversation> => ({
   id: conversation.id,
   name: conversation.name,
   imageUrl: conversation.imageUrl,
@@ -332,7 +332,7 @@ export const toSafeConversation = (
   },
   isActive: conversation.isActive,
   addedByInboxId: conversation.addedByInboxId,
-  metadata: conversation.metadata,
+  metadata: await conversation.metadata(),
   admins: conversation.admins,
   superAdmins: conversation.superAdmins,
   createdAtNs: conversation.createdAtNs,

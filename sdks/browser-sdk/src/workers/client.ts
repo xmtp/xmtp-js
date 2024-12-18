@@ -259,8 +259,10 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: conversations.map((conversation) =>
-            toSafeConversation(conversation),
+          result: await Promise.all(
+            conversations.map((conversation) =>
+              toSafeConversation(conversation),
+            ),
           ),
         });
         break;
@@ -272,8 +274,10 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: conversations.map((conversation) =>
-            toSafeConversation(conversation),
+          result: await Promise.all(
+            conversations.map((conversation) =>
+              toSafeConversation(conversation),
+            ),
           ),
         });
         break;
@@ -283,8 +287,10 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: conversations.map((conversation) =>
-            toSafeConversation(conversation),
+          result: await Promise.all(
+            conversations.map((conversation) =>
+              toSafeConversation(conversation),
+            ),
           ),
         });
         break;
@@ -302,7 +308,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: toSafeConversation(conversation),
+          result: await toSafeConversation(conversation),
         });
         break;
       }
@@ -313,7 +319,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: toSafeConversation(conversation),
+          result: await toSafeConversation(conversation),
         });
         break;
       }
@@ -340,7 +346,9 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: conversation ? toSafeConversation(conversation) : undefined,
+          result: conversation
+            ? await toSafeConversation(conversation)
+            : undefined,
         });
         break;
       }
@@ -358,7 +366,9 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: conversation ? toSafeConversation(conversation) : undefined,
+          result: conversation
+            ? await toSafeConversation(conversation)
+            : undefined,
         });
         break;
       }
@@ -372,7 +382,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           postMessage({
             id,
             action,
-            result: toSafeConversation(group),
+            result: await toSafeConversation(group),
           });
         } else {
           postMessageError({
@@ -516,7 +526,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       case "getGroupMessages": {
         const group = client.conversations.getConversationById(data.id);
         if (group) {
-          const messages = group.messages(data.options);
+          const messages = await group.messages(data.options);
           postMessage({
             id,
             action,
