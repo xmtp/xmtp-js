@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- a35afb8: Upgrade bindings
+- a35afb8: Upgraded bindings, refactored some methods to be async
 
 ## 0.0.33
 
