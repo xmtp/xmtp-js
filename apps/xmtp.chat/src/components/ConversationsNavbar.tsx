@@ -1,22 +1,54 @@
-import { AppShell, Badge, Flex, ScrollArea, Stack, Text } from "@mantine/core";
+import {
+  AppShell,
+  Badge,
+  Button,
+  Group,
+  LoadingOverlay,
+  ScrollArea,
+  Stack,
+  Text,
+} from "@mantine/core";
+import type { Conversation } from "@xmtp/browser-sdk";
+import { useEffect, useState } from "react";
 import { useConversations } from "../hooks/useConversations";
 import { ConversationCard } from "./ConversationCard";
 
 export const ConversationsNavbar: React.FC = () => {
-  const { conversations } = useConversations();
+  const { getConversations, syncing, loading } = useConversations();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    const loadConversations = async () => {
+      const conversations = await getConversations();
+      setConversations(conversations ?? []);
+    };
+    void loadConversations();
+  }, []);
+
+  const handleSync = async () => {
+    const conversations = await getConversations(undefined, true);
+    setConversations(conversations ?? []);
+  };
+
   return (
     <>
-      <AppShell.Section>
-        <Flex align="center" gap="xs" justify="space-between">
-          <Text size="lg" fw={700}>
-            Conversations
-          </Text>
-          <Badge color="gray" size="lg">
-            {conversations.length}
-          </Badge>
-        </Flex>
+      {(loading || syncing) && <LoadingOverlay visible={true} />}
+      <AppShell.Section p="md">
+        <Stack gap="xs">
+          <Group align="center" gap="xs" justify="space-between">
+            <Group align="center" gap="xs">
+              <Text size="lg" fw={700}>
+                Conversations
+              </Text>
+              <Badge color="gray" size="lg">
+                {conversations.length}
+              </Badge>
+            </Group>
+            <Button onClick={() => void handleSync()}>Sync</Button>
+          </Group>
+        </Stack>
       </AppShell.Section>
-      <AppShell.Section grow my="md" component={ScrollArea}>
+      <AppShell.Section grow my="md" component={ScrollArea} px="md">
         {conversations.length === 0 ? (
           <Text>No conversations found</Text>
         ) : (

@@ -1,26 +1,34 @@
-import type { Conversation, DecodedMessage } from "@xmtp/browser-sdk";
-import { useEffect, useState } from "react";
+import type { Conversation, SafeListMessagesOptions } from "@xmtp/browser-sdk";
+import { useState } from "react";
 import { useClient } from "./useClient";
 
-export const useMessages = (conversation: Conversation) => {
+export const useMessages = (conversation?: Conversation) => {
   const { client } = useClient();
-  const [messages, setMessages] = useState<DecodedMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
-  useEffect(() => {
-    if (client) {
-      void conversation.sync().then(() => {
-        void conversation.messages().then(setMessages);
-      });
-    }
-  }, [client]);
-
-  const sync = async () => {
-    if (client) {
-      await conversation.sync();
-      const msgs = await conversation.messages();
-      setMessages(msgs);
+  const getMessages = async (
+    options?: SafeListMessagesOptions,
+    syncFromNetwork: boolean = false,
+  ) => {
+    if (client && conversation) {
+      if (syncFromNetwork) {
+        await sync();
+      }
+      setLoading(true);
+      const msgs = await conversation.messages(options);
+      setLoading(false);
+      return msgs;
     }
   };
 
-  return { messages, sync };
+  const sync = async () => {
+    if (client && conversation) {
+      setSyncing(true);
+      await conversation.sync();
+      setSyncing(false);
+    }
+  };
+
+  return { sync, loading, syncing, getMessages };
 };

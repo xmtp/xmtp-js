@@ -5,8 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    exclude: ["@xmtp/browser-sdk"],
-    include: ["@xmtp/proto"],
+    exclude: ["@xmtp/wasm-bindings"],
   },
   server: {
     headers: {

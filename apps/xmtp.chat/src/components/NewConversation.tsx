@@ -70,7 +70,7 @@ export const NewConversation: React.FC = () => {
     } else if (permissionsPolicy === GroupPermissionsOptions.AdminOnly) {
       return "Only admins can perform group actions";
     }
-    return "";
+    return "Custom policy as defined below";
   }, [permissionsPolicy]);
 
   useEffect(() => {
@@ -133,6 +133,10 @@ export const NewConversation: React.FC = () => {
             pinnedFrameUrl,
             name,
             permissions: permissionsPolicy,
+            customPermissionPolicySet:
+              permissionsPolicy === GroupPermissionsOptions.CustomPolicy
+                ? policySet
+                : undefined,
           });
       void navigate(`/conversations/${conversation.id}`);
     } catch (error) {

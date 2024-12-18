@@ -1,0 +1,3 @@
+.button {
+  color: light-dark(var(--mantine-color-light-4), var(--mantine-color-dark-1));
+}
