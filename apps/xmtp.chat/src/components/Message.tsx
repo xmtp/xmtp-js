@@ -1,36 +1,42 @@
 import { Flex, Paper, Stack, Text } from "@mantine/core";
+import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { intlFormat } from "date-fns";
+import { Link } from "react-router";
 import { shortAddress } from "../helpers/address";
+import { nsToDate } from "../helpers/date";
+import { useClient } from "../hooks/useClient";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
 
 export type MessageProps = {
-  align?: "left" | "right";
-  content: string;
-  senderAddress: string;
-  sentAt: Date;
+  message: DecodedMessage;
 };
 
-export const Message: React.FC<MessageProps> = ({
-  align = "left",
-  senderAddress,
-  content,
-  sentAt,
-}) => {
+export const Message: React.FC<MessageProps> = ({ message }) => {
+  const { client } = useClient();
+  const isSender = client?.inboxId === message.senderInboxId;
+  const align = isSender ? "right" : "left";
   return (
     <Flex justify={align === "left" ? "flex-start" : "flex-end"}>
-      <Paper p="md" withBorder shadow="md" maw="90%" className={classes.root}>
+      <Paper
+        p="md"
+        withBorder
+        shadow="md"
+        maw="90%"
+        className={classes.root}
+        component={Link}
+        to={`/conversations/${message.conversationId}/message/${message.id}`}>
         <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
           <Flex
             align="center"
             gap="xs"
             direction={align === "left" ? "row" : "row-reverse"}
             justify={align === "left" ? "flex-start" : "flex-end"}>
-            <Text size="sm" fw={700}>
-              {shortAddress(senderAddress)}
+            <Text size="sm" fw={700} c="text.primary">
+              {shortAddress(message.senderInboxId)}
             </Text>
             <Text size="sm" c="dimmed">
-              {intlFormat(sentAt, {
+              {intlFormat(nsToDate(message.sentAtNs), {
                 year: "numeric",
                 month: "2-digit",
                 day: "2-digit",
@@ -39,7 +45,7 @@ export const Message: React.FC<MessageProps> = ({
               })}
             </Text>
           </Flex>
-          <MessageContent content={content} />
+          <MessageContent content={message.content as string} />
         </Stack>
       </Paper>
     </Flex>

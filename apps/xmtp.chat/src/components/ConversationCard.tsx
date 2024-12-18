@@ -1,8 +1,15 @@
-import { Card, Flex, Skeleton, Stack, Text } from "@mantine/core";
-import { type Conversation, type SafeGroupMember } from "@xmtp/browser-sdk";
+import { Card, Flex, Stack, Text } from "@mantine/core";
+import {
+  SortDirection,
+  type Conversation,
+  type DecodedMessage,
+  type SafeGroupMember,
+} from "@xmtp/browser-sdk";
+import { formatDistanceToNow } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-// import { useMessages } from "../hooks/useMessages";
+import { nsToDate } from "../helpers/date";
+import { useMessages } from "../hooks/useMessages";
 import { AddressBadge } from "./AddressBadge";
 import styles from "./ConversationCard.module.css";
 
@@ -15,7 +22,19 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
 }) => {
   const [members, setMembers] = useState<SafeGroupMember[]>([]);
   const navigate = useNavigate();
-  // const { messages } = useMessages(conversation);
+  const [lastMessage, setLastMessage] = useState<DecodedMessage | null>(null);
+  const { getMessages } = useMessages(conversation);
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      const msgs = await getMessages({
+        limit: 1n,
+        direction: SortDirection.Descending,
+      });
+      setLastMessage(msgs?.[0] ?? null);
+    };
+    void loadMessages();
+  }, [conversation]);
 
   useEffect(() => {
     void conversation.members().then(setMembers);
@@ -43,7 +62,13 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
       );
     }
 
-    return <Skeleton height="1rem" radius="xl" w="100px" />;
+    return (
+      <Flex gap="xs" align="center">
+        <Text fw={700} c="dimmed">
+          Untitled
+        </Text>
+      </Flex>
+    );
   }, [conversation.id, members]);
 
   return (
@@ -60,18 +85,16 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
           <Flex align="center" gap="xs">
             {title}
           </Flex>
-
-          {/* {lastMessage && (
-          <Text size="sm" c="dimmed">
-            {formatDistanceToNow(nsToDate(lastMessage.sentAtNs), {
-              addSuffix: true,
-            })}
-          </Text>
-        )} */}
+          {lastMessage && (
+            <Text size="sm" c="dimmed">
+              {formatDistanceToNow(nsToDate(lastMessage.sentAtNs), {
+                addSuffix: true,
+              })}
+            </Text>
+          )}
         </Flex>
-        <Text c="dimmed" lineClamp={2}>
-          Message content here
-        </Text>
+        {lastMessage && <Text lineClamp={1}>{lastMessage.content}</Text>}
+        {!lastMessage && <Text c="dimmed">No messages</Text>}
       </Stack>
     </Card>
   );

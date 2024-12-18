@@ -4715,21 +4715,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/browser-sdk@npm:^0.0.6":
-  version: 0.0.6
-  resolution: "@xmtp/browser-sdk@npm:0.0.6"
-  dependencies:
-    "@xmtp/content-type-group-updated": "npm:^1.0.1"
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
-    "@xmtp/content-type-text": "npm:^1.0.1"
-    "@xmtp/proto": "npm:^3.72.3"
-    "@xmtp/wasm-bindings": "npm:^0.0.7"
-    uuid: "npm:^11.0.3"
-  checksum: 10/5b8f24c018da597abeb936c3143b020c2810f3b8c095d6fd7846c39991ae0bc3769cbb276a5bad24bd106eb34ef20419a91fc221b9653031f24886813d631bfb
-  languageName: node
-  linkType: hard
-
-"@xmtp/browser-sdk@workspace:sdks/browser-sdk":
+"@xmtp/browser-sdk@npm:^0.0.8, @xmtp/browser-sdk@workspace:sdks/browser-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/browser-sdk@workspace:sdks/browser-sdk"
   dependencies:
@@ -4791,16 +4777,6 @@ __metadata:
     vitest: "npm:^2.1.3"
   languageName: unknown
   linkType: soft
-
-"@xmtp/content-type-group-updated@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@xmtp/content-type-group-updated@npm:1.0.1"
-  dependencies:
-    "@xmtp/content-type-primitives": "npm:^1.0.3"
-    "@xmtp/proto": "npm:^3.72.0"
-  checksum: 10/b1f52da4cdef9423c57faf56fe60684352fd07600889a7a4d5236271ff96556b60db91f1c00fd82332e1d726d3f76d45cc5fabb02daa85c969227dd53a7ba575
-  languageName: node
-  linkType: hard
 
 "@xmtp/content-type-group-updated@npm:^2.0.0, @xmtp/content-type-group-updated@workspace:^, @xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated":
   version: 0.0.0-use.local
@@ -5305,7 +5281,7 @@ __metadata:
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.1"
     "@vitejs/plugin-react": "npm:^4.3.3"
-    "@xmtp/browser-sdk": "npm:^0.0.6"
+    "@xmtp/browser-sdk": "npm:^0.0.8"
     "@xmtp/content-type-group-updated": "workspace:^"
     "@xmtp/content-type-primitives": "npm:^1.0.1"
     "@xmtp/content-type-reaction": "npm:^1.1.9"

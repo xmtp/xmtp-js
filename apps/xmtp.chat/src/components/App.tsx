@@ -49,7 +49,7 @@ export const App: React.FC = () => {
       <AppShell.Header>
         <AppHeader opened={opened} toggle={toggle} collapsed={collapsed} />
       </AppShell.Header>
-      <AppShell.Navbar p="md" className={classes.navbar}>
+      <AppShell.Navbar className={classes.navbar}>
         <Navbar />
       </AppShell.Navbar>
       <AppShell.Main className={classes.main}>
