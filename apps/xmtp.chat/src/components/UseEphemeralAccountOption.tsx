@@ -1,9 +1,9 @@
 import { Flex, Switch, Text, Tooltip } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
-import { IconInfoCircle } from "@tabler/icons-react";
 import React from "react";
 import { useDisconnect } from "wagmi";
 import { useClient } from "../hooks/useClient";
+import { IconInfoCircle } from "../icons/IconInfoCircle";
 
 const UseEphemeralAccountLabel = () => {
   return (
@@ -15,7 +15,7 @@ const UseEphemeralAccountLabel = () => {
         label="A private key is generated and stored in the browser's local storage for reuse. To generate a new account, clear the local storage."
         withArrow
         events={{ hover: true, focus: true, touch: true }}>
-        <IconInfoCircle tabIndex={0} size={20} stroke={1.2} />
+        <IconInfoCircle tabIndex={0} size={20} />
       </Tooltip>
     </Flex>
   );

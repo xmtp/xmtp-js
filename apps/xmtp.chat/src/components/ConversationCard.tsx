@@ -48,7 +48,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
         </Flex>
       );
 
-    if (members.length > 0) {
+    if (members.length > 1) {
       return (
         <Flex gap="xs" align="center">
           {members.length > 0 && (
@@ -57,7 +57,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
               address={members[0].accountAddresses[0]}
             />
           )}
-          {members.length > 1 && <Text c="dimmed">+{members.length - 1}</Text>}
+          {members.length > 2 && <Text c="dimmed">+{members.length - 1}</Text>}
         </Flex>
       );
     }

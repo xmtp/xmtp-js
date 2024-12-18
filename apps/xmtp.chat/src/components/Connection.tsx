@@ -1,6 +1,5 @@
 import { Button, Flex, Loader, Text, useMatches } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
-import { IconLogin2, IconUser } from "@tabler/icons-react";
 import type { ClientOptions, XmtpEnv } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { hexToUint8Array, uint8ArrayToHex } from "uint8array-extras";
@@ -10,13 +9,15 @@ import { useConnect, useDisconnect, useWalletClient } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { createEphemeralSigner, createSigner } from "../helpers/createSigner";
 import { useClient } from "../hooks/useClient";
+import { IconLogout } from "../icons/IconLogout";
+import { IconUser } from "../icons/IconUser";
 import { Settings } from "./Settings";
 
 export const Disconnect: React.FC = () => {
   const { disconnect } = useDisconnect();
   const { disconnect: disconnectClient } = useClient();
   const label: React.ReactNode = useMatches({
-    base: <IconLogin2 stroke={1.5} />,
+    base: <IconLogout size={24} />,
     sm: "Disconnect",
   });
   const px = useMatches({
@@ -65,7 +66,7 @@ export const Connect: React.FC = () => {
   const { connect } = useConnect();
   const { data } = useWalletClient();
   const label: React.ReactNode = useMatches({
-    base: <IconUser stroke={1.5} />,
+    base: <IconUser size={24} />,
     sm: "Connect",
   });
   const px = useMatches({

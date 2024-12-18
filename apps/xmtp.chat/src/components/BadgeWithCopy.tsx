@@ -1,6 +1,6 @@
 import { Badge, Button, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
-import { IconCopy } from "@tabler/icons-react";
+import { IconCopy } from "../icons/IconCopy";
 import classes from "./BadgeWithCopy.module.css";
 
 type CopyIconProps = {
@@ -40,7 +40,7 @@ const CopyIcon: React.FC<CopyIconProps> = ({ value }) => {
         aria-label="Copy"
         p="0"
         className={classes.button}>
-        <IconCopy size={16} />
+        <IconCopy />
       </Button>
     </Tooltip>
   );

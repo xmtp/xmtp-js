@@ -1,13 +1,13 @@
 import { Button, FocusTrap, Popover, Stack, useMatches } from "@mantine/core";
-import { IconSettings } from "@tabler/icons-react";
 import React from "react";
+import { IconSettings } from "../icons/IconSettings";
 import { LoggingSelect } from "./LoggingSelect";
 import { NetworkSelect } from "./NetworkSelect";
 import { UseEphemeralAccountOption } from "./UseEphemeralAccountOption";
 
 export const Settings: React.FC = () => {
   const label: React.ReactNode = useMatches({
-    base: <IconSettings stroke={1.5} />,
+    base: <IconSettings size={24} />,
     sm: "Settings",
   });
 
