@@ -2,7 +2,6 @@ import { ConsentEntityType, ConsentState } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
-import { Conversation } from "@/Conversation";
 import {
   createClient,
   createRegisteredClient,
