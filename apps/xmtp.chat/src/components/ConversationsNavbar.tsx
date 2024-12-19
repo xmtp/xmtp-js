@@ -14,25 +14,31 @@ import { useConversations } from "../hooks/useConversations";
 import { ConversationCard } from "./ConversationCard";
 
 export const ConversationsNavbar: React.FC = () => {
-  const { getConversations, syncing, loading } = useConversations();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { getConversations } = useConversations();
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
     const loadConversations = async () => {
+      setLoading(true);
       const conversations = await getConversations();
       setConversations(conversations ?? []);
+      setLoading(false);
     };
     void loadConversations();
   }, []);
 
   const handleSync = async () => {
+    setIsSyncing(true);
     const conversations = await getConversations(undefined, true);
     setConversations(conversations ?? []);
+    setIsSyncing(false);
   };
 
   return (
     <>
-      {(loading || syncing) && <LoadingOverlay visible={true} />}
+      {loading && <LoadingOverlay visible={true} />}
       <AppShell.Section p="md">
         <Stack gap="xs">
           <Group align="center" gap="xs" justify="space-between">
@@ -44,7 +50,9 @@ export const ConversationsNavbar: React.FC = () => {
                 {conversations.length}
               </Badge>
             </Group>
-            <Button onClick={() => void handleSync()}>Sync</Button>
+            <Button loading={isSyncing} onClick={() => void handleSync()}>
+              Sync
+            </Button>
           </Group>
         </Stack>
       </AppShell.Section>

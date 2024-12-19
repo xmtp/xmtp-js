@@ -1,7 +1,7 @@
 import { Flex, Paper, Stack, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { intlFormat } from "date-fns";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import { shortAddress } from "../helpers/address";
 import { nsToDate } from "../helpers/date";
 import { useClient } from "../hooks/useClient";
@@ -16,6 +16,8 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
   const { client } = useClient();
   const isSender = client?.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
+  const navigate = useNavigate();
+
   return (
     <Flex justify={align === "left" ? "flex-start" : "flex-end"}>
       <Paper
@@ -23,9 +25,20 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
         withBorder
         shadow="md"
         maw="90%"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            void navigate(
+              `/conversations/${message.conversationId}/message/${message.id}`,
+            );
+          }
+        }}
         className={classes.root}
-        component={Link}
-        to={`/conversations/${message.conversationId}/message/${message.id}`}>
+        onClick={() =>
+          void navigate(
+            `/conversations/${message.conversationId}/message/${message.id}`,
+          )
+        }>
         <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
           <Flex
             align="center"

@@ -2,3 +2,7 @@
   background-color: var(--mantine-color-default-hover);
   cursor: pointer;
 }
+
+.root:focus {
+  border-color: var(--mantine-color-blue-outline);
+}

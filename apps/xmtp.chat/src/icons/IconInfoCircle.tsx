@@ -1,17 +1,12 @@
-import { forwardRef } from "react";
-
 export type IconInfoCircleProps = {
   size?: number;
-  tabIndex?: number;
 };
 
-export const IconInfoCircle: React.FC<IconInfoCircleProps> = forwardRef<
-  SVGSVGElement,
-  IconInfoCircleProps
->(({ size = 16, tabIndex }, ref) => {
+export const IconInfoCircle: React.FC<IconInfoCircleProps> = ({
+  size = 16,
+}) => {
   return (
     <svg
-      ref={ref}
       xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
@@ -20,12 +15,11 @@ export const IconInfoCircle: React.FC<IconInfoCircleProps> = forwardRef<
       stroke="currentColor"
       strokeWidth="1.2"
       strokeLinecap="round"
-      strokeLinejoin="round"
-      tabIndex={tabIndex}>
+      strokeLinejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
       <path d="M12 9h.01" />
       <path d="M11 12h1v4h1" />
     </svg>
   );
-});
+};

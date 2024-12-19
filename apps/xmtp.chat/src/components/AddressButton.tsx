@@ -1,5 +1,7 @@
 import { Button, FocusTrap, Popover, Stack, Text, Title } from "@mantine/core";
+import { useState } from "react";
 import { shortAddress } from "../helpers/address";
+import { useClient } from "../hooks/useClient";
 import classes from "./AddressButton.module.css";
 import { BadgeWithCopy } from "./BadgeWithCopy";
 
@@ -14,6 +16,13 @@ export const AddressButton: React.FC<AddressButtonProps> = ({
   inboxId,
   installationId,
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { client } = useClient();
+  const handleRevokeInstallations = async () => {
+    setIsLoading(true);
+    await client?.revokeInstallations();
+    setIsLoading(false);
+  };
   return (
     <Popover position="bottom" withArrow shadow="md">
       <Popover.Target>
@@ -40,6 +49,14 @@ export const AddressButton: React.FC<AddressButtonProps> = ({
             <Stack gap="calc(var(--mantine-spacing-xs) / 2)">
               <Text size="sm">Installation ID</Text>
               <BadgeWithCopy value={installationId} />
+            </Stack>
+            <Title order={3}>Actions</Title>
+            <Stack gap="xs">
+              <Button
+                onClick={() => void handleRevokeInstallations()}
+                loading={isLoading}>
+                Revoke installations
+              </Button>
             </Stack>
           </Stack>
         </FocusTrap>

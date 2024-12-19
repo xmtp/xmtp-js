@@ -30,20 +30,26 @@ export const Conversation: React.FC<ConversationProps> = ({
   loading,
 }) => {
   useBodyClass("main-flex-layout");
+  const [isSyncing, setIsSyncing] = useState(false);
   const [messages, setMessages] = useState<DecodedMessage[]>([]);
-  const { getMessages, loading: messagesLoading } = useMessages(conversation);
+  const { getMessages } = useMessages(conversation);
+  const [messagesLoading, setMessagesLoading] = useState(true);
 
   useEffect(() => {
     const loadMessages = async () => {
+      setMessagesLoading(true);
       const messages = await getMessages();
       setMessages(messages ?? []);
+      setMessagesLoading(false);
     };
     void loadMessages();
   }, [conversation?.id]);
 
   const handleSync = async () => {
+    setIsSyncing(true);
     const messages = await getMessages(undefined, true);
     setMessages(messages ?? []);
+    setIsSyncing(false);
   };
 
   return (
@@ -70,7 +76,9 @@ export const Conversation: React.FC<ConversationProps> = ({
                 <Button component={Link} to="manage">
                   Manage
                 </Button>
-                <Button onClick={() => void handleSync()}>Sync</Button>
+                <Button loading={isSyncing} onClick={() => void handleSync()}>
+                  Sync
+                </Button>
               </Group>
             </Flex>
             <Stack flex={1} style={{ overflow: "hidden" }}>

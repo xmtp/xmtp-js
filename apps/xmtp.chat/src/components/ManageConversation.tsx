@@ -19,6 +19,7 @@ import {
   GroupPermissionsOptions,
   PermissionPolicy,
   type PermissionPolicySet,
+  type SafeGroupMember,
 } from "@xmtp/browser-sdk";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -41,9 +42,9 @@ export const ManageConversation: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [address, setAddress] = useState("");
   const [addressError, setAddressError] = useState<string | null>(null);
-  const [members, setMembers] = useState<string[]>([]);
+  const [members, setMembers] = useState<SafeGroupMember[]>([]);
   const [addedMembers, setAddedMembers] = useState<string[]>([]);
-  const [removedMembers, setRemovedMembers] = useState<string[]>([]);
+  const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
   const [permissionsPolicy, setPermissionsPolicy] =
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.AllMembers);
   const [policySet, setPolicySet] = useState<PolicySet>({
@@ -104,7 +105,7 @@ export const ManageConversation: React.FC = () => {
   }, [permissionsPolicy]);
 
   useEffect(() => {
-    if (members.includes(address)) {
+    if (members.some((member) => member.accountAddresses.includes(address))) {
       setAddressError("Duplicate address");
     } else if (address && !isValidLongWalletAddress(address)) {
       setAddressError("Invalid address");
@@ -132,7 +133,7 @@ export const ManageConversation: React.FC = () => {
   };
 
   const handleAddMember = () => {
-    setMembers([...members, address]);
+    setAddedMembers([...addedMembers, address]);
     setAddress("");
     setAddressError(null);
   };
@@ -140,13 +141,52 @@ export const ManageConversation: React.FC = () => {
   useEffect(() => {
     const loadConversation = async () => {
       if (client && conversationId) {
+        setIsLoading(true);
         const conversation =
           await client.conversations.getConversationById(conversationId);
+        setIsLoading(false);
         if (conversation) {
           setName(conversation.name ?? "");
           setDescription(conversation.description ?? "");
           setImageUrl(conversation.imageUrl ?? "");
           setPinnedFrameUrl(conversation.pinnedFrameUrl ?? "");
+          const members = await conversation.members();
+          setMembers(members);
+          const policyType = conversation.permissions?.policyType;
+          switch (policyType) {
+            case GroupPermissionsOptions.AllMembers:
+              setPermissionsPolicy(GroupPermissionsOptions.AllMembers);
+              setPolicySet({
+                addAdminPolicy: PermissionPolicy.Admin,
+                addMemberPolicy: PermissionPolicy.Admin,
+                removeAdminPolicy: PermissionPolicy.Admin,
+                removeMemberPolicy: PermissionPolicy.Admin,
+                updateGroupDescriptionPolicy: PermissionPolicy.Allow,
+                updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
+                updateGroupNamePolicy: PermissionPolicy.Allow,
+                updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
+              });
+              break;
+            case GroupPermissionsOptions.AdminOnly:
+              setPermissionsPolicy(GroupPermissionsOptions.AdminOnly);
+              setPolicySet({
+                addAdminPolicy: PermissionPolicy.Admin,
+                addMemberPolicy: PermissionPolicy.Admin,
+                removeAdminPolicy: PermissionPolicy.Admin,
+                removeMemberPolicy: PermissionPolicy.Admin,
+                updateGroupDescriptionPolicy: PermissionPolicy.Admin,
+                updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
+                updateGroupNamePolicy: PermissionPolicy.Admin,
+                updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
+              });
+              break;
+            case GroupPermissionsOptions.CustomPolicy:
+              setPermissionsPolicy(GroupPermissionsOptions.CustomPolicy);
+              if (conversation.permissions?.policySet) {
+                setPolicySet(conversation.permissions.policySet);
+              }
+              break;
+          }
         } else {
           void navigate("/conversations");
         }
@@ -192,7 +232,9 @@ export const ManageConversation: React.FC = () => {
             margin: "calc(var(--mantine-spacing-md) * -1)",
           }}>
           <LoadingOverlay visible={isLoading} />
-          <Title order={3}>{name}</Title>
+          <Title order={3} c={name ? "text.primary" : "dimmed"}>
+            {name || "Untitled"}
+          </Title>
           <ScrollArea type="scroll" className={classes.root}>
             <Stack gap="lg" py="md">
               <Paper p="md" radius="md" withBorder>
@@ -201,6 +243,7 @@ export const ManageConversation: React.FC = () => {
                   <Group gap="md" align="center" wrap="nowrap">
                     <Text flex="1 1 40%">Name</Text>
                     <TextInput
+                      size="md"
                       flex="1 1 60%"
                       value={name}
                       onChange={(event) => {
@@ -211,6 +254,7 @@ export const ManageConversation: React.FC = () => {
                   <Group gap="md" align="flex-start" wrap="nowrap">
                     <Text flex="1 1 40%">Description</Text>
                     <Textarea
+                      size="md"
                       flex="1 1 60%"
                       value={description}
                       onChange={(event) => {
@@ -221,6 +265,7 @@ export const ManageConversation: React.FC = () => {
                   <Group gap="md" align="center" wrap="nowrap">
                     <Text flex="1 1 40%">Image URL</Text>
                     <TextInput
+                      size="md"
                       flex="1 1 60%"
                       value={imageUrl}
                       onChange={(event) => {
@@ -231,6 +276,7 @@ export const ManageConversation: React.FC = () => {
                   <Group gap="md" align="center" wrap="nowrap">
                     <Text flex="1 1 40%">Pinned frame URL</Text>
                     <TextInput
+                      size="md"
                       flex="1 1 60%"
                       value={pinnedFrameUrl}
                       onChange={(event) => {
@@ -470,6 +516,7 @@ export const ManageConversation: React.FC = () => {
                   <Group gap="xs" align="flex-start">
                     <Stack flex={1} gap="xs">
                       <TextInput
+                        size="md"
                         label="Address"
                         error={addressError}
                         value={address}
@@ -484,6 +531,7 @@ export const ManageConversation: React.FC = () => {
                       />
                     </Stack>
                     <Button
+                      size="md"
                       mt="1.5rem"
                       disabled={addressError !== null}
                       onClick={handleAddMember}>
@@ -494,11 +542,11 @@ export const ManageConversation: React.FC = () => {
                     <Group gap="xs">
                       <Text fw={700}>Added members</Text>
                       <Badge color="gray" size="lg">
-                        {members.length}
+                        {addedMembers.length}
                       </Badge>
                     </Group>
                     <Stack gap="4px">
-                      {members.map((member) => (
+                      {addedMembers.map((member) => (
                         <Group
                           key={member}
                           justify="space-between"
@@ -507,9 +555,72 @@ export const ManageConversation: React.FC = () => {
                             {member}
                           </Text>
                           <Button
-                            size="xs"
                             onClick={() => {
-                              setMembers(members.filter((m) => m !== member));
+                              setAddedMembers(
+                                addedMembers.filter((m) => m !== member),
+                              );
+                            }}>
+                            Remove
+                          </Button>
+                        </Group>
+                      ))}
+                    </Stack>
+                  </Stack>
+                  <Stack gap="xs">
+                    <Group gap="xs">
+                      <Text fw={700}>Removed members</Text>
+                      <Badge color="gray" size="lg">
+                        {removedMembers.length}
+                      </Badge>
+                    </Group>
+                    <Stack gap="4px">
+                      {removedMembers.map((member) => (
+                        <Group
+                          key={member.inboxId}
+                          justify="space-between"
+                          align="center">
+                          <Text truncate="end" flex={1}>
+                            {member.accountAddresses.join(", ")}
+                          </Text>
+                          <Button
+                            onClick={() => {
+                              setRemovedMembers(
+                                removedMembers.filter(
+                                  (m) => m.inboxId !== member.inboxId,
+                                ),
+                              );
+                              setMembers([...members, member]);
+                            }}>
+                            Restore
+                          </Button>
+                        </Group>
+                      ))}
+                    </Stack>
+                  </Stack>
+                  <Stack gap="xs">
+                    <Group gap="xs">
+                      <Text fw={700}>Members</Text>
+                      <Badge color="gray" size="lg">
+                        {members.length}
+                      </Badge>
+                    </Group>
+                    <Stack gap="4px">
+                      {members.map((member) => (
+                        <Group
+                          key={member.inboxId}
+                          justify="space-between"
+                          align="center">
+                          <Text truncate="end" flex={1}>
+                            {member.accountAddresses.join(", ")}
+                          </Text>
+                          <Button
+                            onClick={() => {
+                              setMembers(
+                                members.filter(
+                                  (m) => m.inboxId !== member.inboxId,
+                                ),
+                              );
+                              setRemovedMembers([...removedMembers, member]);
                             }}>
                             Remove
                           </Button>

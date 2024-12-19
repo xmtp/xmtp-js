@@ -3,6 +3,7 @@ import { Conversations } from "./Conversations";
 import { LoadConversation } from "./LoadConversation";
 import { NewConversation } from "./NewConversation";
 import "./Main.css";
+import { ManageConversation } from "./ManageConversation";
 import { MessageModal } from "./MessageModal";
 
 export const Main: React.FC = () => (
@@ -14,7 +15,7 @@ export const Main: React.FC = () => (
       <Route path=":conversationId" element={<LoadConversation />}>
         <Route path="message/:messageId" element={<MessageModal />} />
       </Route>
-      <Route path=":conversationId/manage" element="Manage" />
+      <Route path=":conversationId/manage" element={<ManageConversation />} />
     </Route>
   </Routes>
 );

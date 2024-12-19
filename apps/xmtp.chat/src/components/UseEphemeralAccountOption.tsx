@@ -1,4 +1,4 @@
-import { Flex, Switch, Text, Tooltip } from "@mantine/core";
+import { Box, Flex, Switch, Text, Tooltip } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import React from "react";
 import { useDisconnect } from "wagmi";
@@ -15,7 +15,9 @@ const UseEphemeralAccountLabel = () => {
         label="A private key is generated and stored in the browser's local storage for reuse. To generate a new account, clear the local storage."
         withArrow
         events={{ hover: true, focus: true, touch: true }}>
-        <IconInfoCircle tabIndex={0} size={20} />
+        <Box tabIndex={0} w={20} h={20}>
+          <IconInfoCircle size={20} />
+        </Box>
       </Tooltip>
     </Flex>
   );

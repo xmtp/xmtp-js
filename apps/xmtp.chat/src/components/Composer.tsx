@@ -35,7 +35,8 @@ export const Composer = ({ conversation }: ComposerProps) => {
         }}
       />
       <Button
-        disabled={message.length === 0 || sending}
+        disabled={message.length === 0}
+        loading={sending}
         size="md"
         onClick={() => void handleSend()}>
         Send
