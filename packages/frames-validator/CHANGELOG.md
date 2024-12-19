@@ -1,5 +1,11 @@
 # @xmtp/frames-validator
 
+## 2.0.1
+
+### Patch Changes
+
+- 2646e15: Removed deprecated timestamp check
+
 ## 2.0.0
 
 ### Major Changes
