@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/frames-validator",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A validator for XMTP frames requests",
   "homepage": "https://github.com/xmtp/xmtp-js",
   "bugs": {
