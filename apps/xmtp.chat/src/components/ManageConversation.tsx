@@ -9,7 +9,6 @@ import {
   Paper,
   ScrollArea,
   Stack,
-  Switch,
   Text,
   Textarea,
   TextInput,
@@ -17,12 +16,13 @@ import {
   Tooltip,
 } from "@mantine/core";
 import {
+  Conversation,
   GroupPermissionsOptions,
   PermissionPolicy,
   type PermissionPolicySet,
 } from "@xmtp/browser-sdk";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { isValidLongWalletAddress } from "../helpers/address";
 import { useBodyClass } from "../hooks/useBodyClass";
 import { useClient } from "../hooks/useClient";
@@ -34,15 +34,17 @@ type ClassProperties<C> = {
 };
 type PolicySet = ClassProperties<PermissionPolicySet>;
 
-export const NewConversation: React.FC = () => {
+export const ManageConversation: React.FC = () => {
   useBodyClass("main-flex-layout");
+  const { conversationId } = useParams();
   const { client } = useClient();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [address, setAddress] = useState("");
   const [addressError, setAddressError] = useState<string | null>(null);
   const [members, setMembers] = useState<string[]>([]);
-  const [isDmGroup, setIsDmGroup] = useState(false);
+  const [addedMembers, setAddedMembers] = useState<string[]>([]);
+  const [removedMembers, setRemovedMembers] = useState<string[]>([]);
   const [permissionsPolicy, setPermissionsPolicy] =
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.AllMembers);
   const [policySet, setPolicySet] = useState<PolicySet>({
@@ -55,7 +57,7 @@ export const NewConversation: React.FC = () => {
     updateGroupNamePolicy: PermissionPolicy.Allow,
     updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
   });
-  const [createConversationError, setCreateConversationError] = useState<
+  const [updateConversationError, setUpdateConversationError] = useState<
     string | null
   >(null);
 
@@ -112,36 +114,18 @@ export const NewConversation: React.FC = () => {
     }
   }, [members, address]);
 
-  const handleCreate = async () => {
-    if (isDmGroup && members.length === 0) {
-      setCreateConversationError(
-        "Direct message groups must have at least one member",
-      );
-      return;
-    }
+  const handleUpdate = async () => {
     if (!client) {
-      setCreateConversationError("Client not initialized");
+      setUpdateConversationError("Client not initialized");
       return;
     }
     setIsLoading(true);
     try {
-      const conversation = isDmGroup
-        ? await client.conversations.newDm(members[0])
-        : await client.conversations.newGroup(members, {
-            description,
-            imageUrlSquare: imageUrl,
-            pinnedFrameUrl,
-            name,
-            permissions: permissionsPolicy,
-            customPermissionPolicySet:
-              permissionsPolicy === GroupPermissionsOptions.CustomPolicy
-                ? policySet
-                : undefined,
-          });
-      void navigate(`/conversations/${conversation.id}`);
+      // TODO: update conversation
+      void navigate(`/conversations/${conversationId}`);
     } catch (error) {
-      setCreateConversationError(
-        `Failed to create conversation: ${error as Error}`,
+      setUpdateConversationError(
+        `Failed to update conversation: ${error as Error}`,
       );
     } finally {
       setIsLoading(false);
@@ -154,23 +138,44 @@ export const NewConversation: React.FC = () => {
     setAddressError(null);
   };
 
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (client && conversationId) {
+        const data =
+          await client.conversations.getConversationById(conversationId);
+        if (data) {
+          const conversation = new Conversation(client, conversationId, data);
+          setName(data.name);
+          setDescription(data.description);
+          setImageUrl(data.imageUrl);
+          setPinnedFrameUrl(data.pinnedFrameUrl);
+        } else {
+          void navigate("/conversations");
+        }
+      } else {
+        void navigate("/conversations");
+      }
+    };
+    void loadConversation();
+  }, [client, conversationId]);
+
   return (
     <>
-      {createConversationError && (
+      {updateConversationError && (
         <Modal
-          opened={!!createConversationError}
+          opened={!!updateConversationError}
           onClose={() => {
-            setCreateConversationError(null);
+            setUpdateConversationError(null);
           }}
           withCloseButton={false}
           centered>
           <Stack gap="md">
             <Title order={4}>Error</Title>
-            <Text>{createConversationError}</Text>
+            <Text>{updateConversationError}</Text>
             <Group justify="flex-end">
               <Button
                 onClick={() => {
-                  setCreateConversationError(null);
+                  setUpdateConversationError(null);
                 }}>
                 OK
               </Button>
@@ -189,29 +194,16 @@ export const NewConversation: React.FC = () => {
             margin: "calc(var(--mantine-spacing-md) * -1)",
           }}>
           <LoadingOverlay visible={isLoading} />
-          <Title order={3}>New conversation</Title>
+          <Title order={3}>{name}</Title>
           <ScrollArea type="scroll" className={classes.root}>
             <Stack gap="lg" py="md">
               <Paper p="md" radius="md" withBorder>
                 <Stack gap="md">
-                  <Group gap="md" justify="space-between">
-                    <Title order={4}>Properties</Title>
-                    <Switch
-                      disabled={members.length > 1}
-                      label="Direct message group"
-                      size="md"
-                      checked={isDmGroup}
-                      onChange={(event) => {
-                        setIsDmGroup(event.currentTarget.checked);
-                      }}
-                      labelPosition="left"
-                    />
-                  </Group>
+                  <Title order={4}>Properties</Title>
                   <Group gap="md" align="center" wrap="nowrap">
                     <Text flex="1 1 40%">Name</Text>
                     <TextInput
                       flex="1 1 60%"
-                      disabled={isDmGroup}
                       value={name}
                       onChange={(event) => {
                         setName(event.target.value);
@@ -222,7 +214,6 @@ export const NewConversation: React.FC = () => {
                     <Text flex="1 1 40%">Description</Text>
                     <Textarea
                       flex="1 1 60%"
-                      disabled={isDmGroup}
                       value={description}
                       onChange={(event) => {
                         setDescription(event.target.value);
@@ -233,7 +224,6 @@ export const NewConversation: React.FC = () => {
                     <Text flex="1 1 40%">Image URL</Text>
                     <TextInput
                       flex="1 1 60%"
-                      disabled={isDmGroup}
                       value={imageUrl}
                       onChange={(event) => {
                         setImageUrl(event.target.value);
@@ -244,7 +234,6 @@ export const NewConversation: React.FC = () => {
                     <Text flex="1 1 40%">Pinned frame URL</Text>
                     <TextInput
                       flex="1 1 60%"
-                      disabled={isDmGroup}
                       value={pinnedFrameUrl}
                       onChange={(event) => {
                         setPinnedFrameUrl(event.target.value);
@@ -261,7 +250,6 @@ export const NewConversation: React.FC = () => {
                       <Text>Policy</Text>
                       <Tooltip withArrow label={policyTooltip}>
                         <NativeSelect
-                          disabled={isDmGroup}
                           value={permissionsPolicy}
                           onChange={(event) => {
                             setPermissionsPolicy(
@@ -284,9 +272,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Add members</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.addMemberPolicy}
                       onChange={(event) => {
@@ -309,9 +296,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Remove members</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.removeMemberPolicy}
                       onChange={(event) => {
@@ -334,9 +320,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Add admins</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.addAdminPolicy}
                       onChange={(event) => {
@@ -359,9 +344,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Remove admins</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.removeAdminPolicy}
                       onChange={(event) => {
@@ -384,9 +368,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Update group name</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupNamePolicy}
                       onChange={(event) => {
@@ -410,9 +393,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Update group description</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupDescriptionPolicy}
                       onChange={(event) => {
@@ -436,9 +418,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Update group image</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupImageUrlSquarePolicy}
                       onChange={(event) => {
@@ -462,9 +443,8 @@ export const NewConversation: React.FC = () => {
                     <Text>Update group pinned frame</Text>
                     <NativeSelect
                       disabled={
-                        isDmGroup ||
                         permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
+                        GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupPinnedFrameUrlPolicy}
                       onChange={(event) => {
@@ -507,11 +487,7 @@ export const NewConversation: React.FC = () => {
                     </Stack>
                     <Button
                       mt="1.5rem"
-                      disabled={
-                        !address ||
-                        (isDmGroup && members.length > 0) ||
-                        addressError !== null
-                      }
+                      disabled={addressError !== null}
                       onClick={handleAddMember}>
                       Add
                     </Button>
@@ -550,10 +526,10 @@ export const NewConversation: React.FC = () => {
           <Group gap="xs" justify="flex-end">
             <Button
               variant="default"
-              onClick={() => void navigate("/conversations")}>
+              onClick={() => void navigate(`/conversations/${conversationId}`)}>
               Cancel
             </Button>
-            <Button onClick={() => void handleCreate()}>Create</Button>
+            <Button onClick={() => void handleUpdate()}>Update</Button>
           </Group>
         </Stack>
       </FocusTrap>

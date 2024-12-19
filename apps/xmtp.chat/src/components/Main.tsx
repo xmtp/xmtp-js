@@ -11,10 +11,10 @@ export const Main: React.FC = () => (
     <Route path="conversations" element={<Conversations />}>
       <Route index element={"Select a conversation"} />
       <Route path="new" element={<NewConversation />} />
-      <Route path=":id" element={<LoadConversation />}>
+      <Route path=":conversationId" element={<LoadConversation />}>
         <Route path="message/:messageId" element={<MessageModal />} />
       </Route>
-      <Route path=":id/manage" element="Manage" />
+      <Route path=":conversationId/manage" element="Manage" />
     </Route>
   </Routes>
 );

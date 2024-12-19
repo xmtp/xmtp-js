@@ -7,7 +7,7 @@ import { Conversation } from "./Conversation";
 
 export const LoadConversation: React.FC = () => {
   useBodyClass("main-flex-layout");
-  const { id } = useParams();
+  const { conversationId } = useParams();
   const { client } = useClient();
   const [loading, setLoading] = useState(false);
   const [conversation, setConversation] = useState<
@@ -16,17 +16,18 @@ export const LoadConversation: React.FC = () => {
 
   useEffect(() => {
     const loadConversation = async () => {
-      if (client && id) {
+      if (client && conversationId) {
         setLoading(true);
-        const data = await client.conversations.getConversationById(id);
+        const data =
+          await client.conversations.getConversationById(conversationId);
         if (data) {
-          setConversation(new XmtpConversation(client, id, data));
+          setConversation(new XmtpConversation(client, conversationId, data));
         }
         setLoading(false);
       }
     };
     void loadConversation();
-  }, [client, id]);
+  }, [client, conversationId]);
 
   return <Conversation conversation={conversation} loading={loading} />;
 };
