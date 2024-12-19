@@ -1,33 +1,35 @@
 import { Stack, Text } from "@mantine/core";
-import {
-  DeliveryStatus,
-  GroupMessageKind,
-  type SafeMessage,
-} from "@xmtp/browser-sdk";
+import { type DecodedMessage } from "@xmtp/browser-sdk";
 import { intlFormat } from "date-fns";
 import { useMemo } from "react";
 import { nsToDate } from "../helpers/date";
 import { BadgeWithCopy } from "./BadgeWithCopy";
 
 export type MessagePropertiesProps = {
-  message: SafeMessage;
+  message: DecodedMessage;
 };
 
 export const MessageProperties: React.FC<MessagePropertiesProps> = ({
   message,
 }) => {
   const deliveryStatus = useMemo(() => {
-    return message.deliveryStatus === DeliveryStatus.Published
-      ? "Published"
-      : message.deliveryStatus === DeliveryStatus.Failed
-        ? "Failed"
-        : "Unpublished";
+    switch (message.deliveryStatus) {
+      case "published":
+        return "Published";
+      case "failed":
+        return "Failed";
+      case "unpublished":
+        return "Unpublished";
+    }
   }, [message]);
 
   const messageKind = useMemo(() => {
-    return message.kind === GroupMessageKind.Application
-      ? "Application"
-      : "Membership Change";
+    switch (message.kind) {
+      case "application":
+        return "Application";
+      case "membership_change":
+        return "Membership Change";
+    }
   }, [message]);
 
   return (
@@ -42,7 +44,7 @@ export const MessageProperties: React.FC<MessagePropertiesProps> = ({
         <Text size="sm" ml="xs">
           Conversation ID
         </Text>
-        <BadgeWithCopy value={message.convoId} />
+        <BadgeWithCopy value={message.conversationId} />
       </Stack>
       <Stack gap="calc(var(--mantine-spacing-xs) / 2)">
         <Text size="sm" ml="xs">

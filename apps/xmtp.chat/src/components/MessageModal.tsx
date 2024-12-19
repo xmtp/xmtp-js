@@ -1,6 +1,5 @@
 import {
   Center,
-  Code,
   Modal,
   ScrollArea,
   Stack,
@@ -8,8 +7,7 @@ import {
   Text,
   useMatches,
 } from "@mantine/core";
-import { type SafeMessage } from "@xmtp/browser-sdk";
-import { ContentTypeId } from "@xmtp/content-type-primitives";
+import { type DecodedMessage } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useClient } from "../hooks/useClient";
@@ -20,7 +18,7 @@ export const MessageModal: React.FC = () => {
   const { messageId } = useParams();
   const { client } = useClient();
   const navigate = useNavigate();
-  const [message, setMessage] = useState<SafeMessage | undefined>(undefined);
+  const [message, setMessage] = useState<DecodedMessage | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   const fullScreen = useMatches({
@@ -78,7 +76,7 @@ export const MessageModal: React.FC = () => {
             }}>
             <Tabs.List>
               <Tabs.Tab value="properties">Properties</Tabs.Tab>
-              <Tabs.Tab value="rawContent">Raw content</Tabs.Tab>
+              <Tabs.Tab value="encodedContent">Encoded content</Tabs.Tab>
               <Tabs.Tab value="decodedContent">Decoded content</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel
@@ -95,7 +93,7 @@ export const MessageModal: React.FC = () => {
               </ScrollArea>
             </Tabs.Panel>
             <Tabs.Panel
-              value="rawContent"
+              value="encodedContent"
               py="md"
               flex={1}
               style={{
@@ -104,7 +102,9 @@ export const MessageModal: React.FC = () => {
                 flexDirection: "column",
               }}>
               <ScrollArea>
-                <CodeWithCopy code={JSON.stringify(message.content, null, 2)} />
+                <CodeWithCopy
+                  code={JSON.stringify(message.encodedContent, null, 2)}
+                />
               </ScrollArea>
             </Tabs.Panel>
             <Tabs.Panel
@@ -117,16 +117,7 @@ export const MessageModal: React.FC = () => {
                 flexDirection: "column",
               }}>
               <ScrollArea>
-                <CodeWithCopy
-                  code={JSON.stringify(
-                    client?.decodeContent(
-                      message,
-                      new ContentTypeId(message.content.type),
-                    ),
-                    null,
-                    2,
-                  )}
-                />
+                <CodeWithCopy code={JSON.stringify(message.content, null, 2)} />
               </ScrollArea>
             </Tabs.Panel>
           </Tabs>

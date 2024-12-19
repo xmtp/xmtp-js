@@ -1,4 +1,4 @@
-import { Conversation as XmtpConversation } from "@xmtp/browser-sdk";
+import type { Conversation as XmtpConversation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useBodyClass } from "../hooks/useBodyClass";
@@ -18,10 +18,10 @@ export const LoadConversation: React.FC = () => {
     const loadConversation = async () => {
       if (client && conversationId) {
         setLoading(true);
-        const data =
+        const conversation =
           await client.conversations.getConversationById(conversationId);
-        if (data) {
-          setConversation(new XmtpConversation(client, conversationId, data));
+        if (conversation) {
+          setConversation(conversation);
         }
         setLoading(false);
       }

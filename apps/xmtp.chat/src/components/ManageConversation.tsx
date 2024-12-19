@@ -16,7 +16,6 @@ import {
   Tooltip,
 } from "@mantine/core";
 import {
-  Conversation,
   GroupPermissionsOptions,
   PermissionPolicy,
   type PermissionPolicySet,
@@ -141,14 +140,13 @@ export const ManageConversation: React.FC = () => {
   useEffect(() => {
     const loadConversation = async () => {
       if (client && conversationId) {
-        const data =
+        const conversation =
           await client.conversations.getConversationById(conversationId);
-        if (data) {
-          const conversation = new Conversation(client, conversationId, data);
-          setName(data.name);
-          setDescription(data.description);
-          setImageUrl(data.imageUrl);
-          setPinnedFrameUrl(data.pinnedFrameUrl);
+        if (conversation) {
+          setName(conversation.name ?? "");
+          setDescription(conversation.description ?? "");
+          setImageUrl(conversation.imageUrl ?? "");
+          setPinnedFrameUrl(conversation.pinnedFrameUrl ?? "");
         } else {
           void navigate("/conversations");
         }
