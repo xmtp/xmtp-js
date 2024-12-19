@@ -1,5 +1,17 @@
 # @xmtp/browser-sdk
 
+## 0.0.10
+
+### Patch Changes
+
+- dad39c4:
+  - Added admins and super admins to conversation data sync
+  - Refactored `Conversation` admin and super admin accessors
+    - Changed `admins` and `superAdmins` to getters
+    - Added `syncAdmins` and `syncSuperAdmins` methods
+  - Refactored `Conversations.getConversationById`, `Conversations.listDms`, `Conversations.listGroups`, and `Conversations.getDmByInboxId` to return `Conversation` instances
+  - Refactored `Conversations.getMessageById` to return `DecodedMessage` instance
+
 ## 0.0.9
 
 ### Patch Changes
