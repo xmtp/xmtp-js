@@ -357,7 +357,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({
           id,
           action,
-          result: message,
+          result: message ? toSafeMessage(message) : undefined,
         });
         break;
       }

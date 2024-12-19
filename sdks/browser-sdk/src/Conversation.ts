@@ -32,6 +32,10 @@ export class Conversation {
 
   #createdAtNs?: SafeConversation["createdAtNs"];
 
+  #admins: SafeConversation["admins"] = [];
+
+  #superAdmins: SafeConversation["superAdmins"] = [];
+
   constructor(client: Client, id: string, data?: SafeConversation) {
     this.#client = client;
     this.#id = id;
@@ -48,6 +52,8 @@ export class Conversation {
     this.#metadata = data?.metadata ?? undefined;
     this.#permissions = data?.permissions ?? undefined;
     this.#createdAtNs = data?.createdAtNs ?? undefined;
+    this.#admins = data?.admins ?? [];
+    this.#superAdmins = data?.superAdmins ?? [];
   }
 
   get id() {
@@ -128,16 +134,26 @@ export class Conversation {
     });
   }
 
-  async admins() {
-    return this.#client.sendMessage("getGroupAdmins", {
-      id: this.#id,
-    });
+  get admins() {
+    return this.#admins;
   }
 
-  async superAdmins() {
-    return this.#client.sendMessage("getGroupSuperAdmins", {
+  get superAdmins() {
+    return this.#superAdmins;
+  }
+
+  async syncAdmins() {
+    const admins = await this.#client.sendMessage("getGroupAdmins", {
       id: this.#id,
     });
+    this.#admins = admins;
+  }
+
+  async syncSuperAdmins() {
+    const superAdmins = await this.#client.sendMessage("getGroupSuperAdmins", {
+      id: this.#id,
+    });
+    this.#superAdmins = superAdmins;
   }
 
   get permissions() {
@@ -145,13 +161,13 @@ export class Conversation {
   }
 
   async isAdmin(inboxId: string) {
-    const admins = await this.admins();
-    return admins.includes(inboxId);
+    await this.syncAdmins();
+    return this.#admins.includes(inboxId);
   }
 
   async isSuperAdmin(inboxId: string) {
-    const superAdmins = await this.superAdmins();
-    return superAdmins.includes(inboxId);
+    await this.syncSuperAdmins();
+    return this.#superAdmins.includes(inboxId);
   }
 
   async sync() {

@@ -163,11 +163,9 @@ describe.concurrent("Client", () => {
       await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),
     ).toBe(ConsentState.Allowed);
 
-    const convo = new Conversation(client2, group2!.id, group2);
+    expect(await group2!.consentState()).toBe(ConsentState.Allowed);
 
-    expect(await convo.consentState()).toBe(ConsentState.Allowed);
-
-    await convo.updateConsentState(ConsentState.Denied);
+    await group2!.updateConsentState(ConsentState.Denied);
 
     expect(
       await client2.getConsentState(ConsentEntityType.GroupId, group2!.id),

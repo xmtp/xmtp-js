@@ -1,5 +1,6 @@
 import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
+import { DecodedMessage } from "@/DecodedMessage";
 import type {
   SafeCreateGroupOptions,
   SafeListConversationsOptions,
@@ -21,21 +22,24 @@ export class Conversations {
   }
 
   async getConversationById(id: string) {
-    return this.#client.sendMessage("getConversationById", {
+    const data = await this.#client.sendMessage("getConversationById", {
       id,
     });
+    return data ? new Conversation(this.#client, id, data) : undefined;
   }
 
   async getMessageById(id: string) {
-    return this.#client.sendMessage("getMessageById", {
+    const data = await this.#client.sendMessage("getMessageById", {
       id,
     });
+    return data ? new DecodedMessage(this.#client, data) : undefined;
   }
 
   async getDmByInboxId(inboxId: string) {
-    return this.#client.sendMessage("getDmByInboxId", {
+    const data = await this.#client.sendMessage("getDmByInboxId", {
       inboxId,
     });
+    return data ? new Conversation(this.#client, data.id, data) : undefined;
   }
 
   async list(options?: SafeListConversationsOptions) {
@@ -52,17 +56,27 @@ export class Conversations {
   async listGroups(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    return this.#client.sendMessage("getGroups", {
+    const conversations = await this.#client.sendMessage("getGroups", {
       options,
     });
+
+    return conversations.map(
+      (conversation) =>
+        new Conversation(this.#client, conversation.id, conversation),
+    );
   }
 
   async listDms(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    return this.#client.sendMessage("getDms", {
+    const conversations = await this.#client.sendMessage("getDms", {
       options,
     });
+
+    return conversations.map(
+      (conversation) =>
+        new Conversation(this.#client, conversation.id, conversation),
+    );
   }
 
   async newGroup(accountAddresses: string[], options?: SafeCreateGroupOptions) {
