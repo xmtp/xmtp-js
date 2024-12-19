@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 2646e15: Remove untrusted timestamp check
+- 2646e15: Removed deprecated timestamp check
 
 ## 2.0.0
 
