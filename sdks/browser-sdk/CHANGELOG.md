@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.10
+
+### Patch Changes
+
+- dad39c4: Browser SDK updates
+
 ## 0.0.9
 
 ### Patch Changes
