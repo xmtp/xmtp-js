@@ -2,7 +2,6 @@ import type { Conversation, Conversations } from "@xmtp/wasm-bindings";
 import {
   fromSafeCreateGroupOptions,
   fromSafeListConversationsOptions,
-  toSafeMessage,
   type SafeCreateGroupOptions,
   type SafeListConversationsOptions,
 } from "@/utils/conversions";
@@ -40,8 +39,7 @@ export class WorkerConversations {
   getMessageById(id: string) {
     try {
       // findMessageById will throw if message is not found
-      const message = this.#conversations.findMessageById(id);
-      return toSafeMessage(message);
+      return this.#conversations.findMessageById(id);
     } catch {
       return undefined;
     }

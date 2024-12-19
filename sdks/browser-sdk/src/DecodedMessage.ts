@@ -27,6 +27,8 @@ export class DecodedMessage {
 
   parameters: Map<string, string>;
 
+  encodedContent: SafeMessage["content"];
+
   senderInboxId: string;
 
   sentAtNs: bigint;
@@ -37,6 +39,7 @@ export class DecodedMessage {
     this.sentAtNs = message.sentAtNs;
     this.conversationId = message.convoId;
     this.senderInboxId = message.senderInboxId;
+    this.encodedContent = message.content;
 
     switch (message.kind) {
       case GroupMessageKind.Application:

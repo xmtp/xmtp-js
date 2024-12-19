@@ -1,6 +1,5 @@
 import { ConsentState } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
-import { Conversation } from "@/Conversation";
 import {
   ContentTypeTest,
   createRegisteredClient,
@@ -323,24 +322,24 @@ describe.concurrent("Conversation", () => {
     ]);
 
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
-    const superAdmins = await conversation.superAdmins();
-    expect(superAdmins.length).toBe(1);
-    expect(superAdmins).toContain(client1.inboxId);
+    await conversation.syncSuperAdmins();
+    expect(conversation.superAdmins.length).toBe(1);
+    expect(conversation.superAdmins).toContain(client1.inboxId);
     expect(await conversation.isAdmin(client1.inboxId!)).toBe(false);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(false);
-    const admins = await conversation.admins();
-    expect(admins.length).toBe(0);
+    await conversation.syncAdmins();
+    expect(conversation.admins.length).toBe(0);
 
     await conversation.addAdmin(client2.inboxId!);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(true);
-    const admins2 = await conversation.admins();
-    expect(admins2.length).toBe(1);
-    expect(admins2).toContain(client2.inboxId);
+    await conversation.syncAdmins();
+    expect(conversation.admins.length).toBe(1);
+    expect(conversation.admins).toContain(client2.inboxId);
 
     await conversation.removeAdmin(client2.inboxId!);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(false);
-    const admins3 = await conversation.admins();
-    expect(admins3.length).toBe(0);
+    await conversation.syncAdmins();
+    expect(conversation.admins.length).toBe(0);
   });
 
   it("should add and remove super admins", async () => {
@@ -355,24 +354,24 @@ describe.concurrent("Conversation", () => {
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(false);
 
-    const superAdmins = await conversation.superAdmins();
-    expect(superAdmins.length).toBe(1);
-    expect(superAdmins).toContain(client1.inboxId);
+    await conversation.syncSuperAdmins();
+    expect(conversation.superAdmins.length).toBe(1);
+    expect(conversation.superAdmins).toContain(client1.inboxId);
 
     await conversation.addSuperAdmin(client2.inboxId!);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(true);
 
-    const superAdmins2 = await conversation.superAdmins();
-    expect(superAdmins2.length).toBe(2);
-    expect(superAdmins2).toContain(client1.inboxId);
-    expect(superAdmins2).toContain(client2.inboxId);
+    await conversation.syncSuperAdmins();
+    expect(conversation.superAdmins.length).toBe(2);
+    expect(conversation.superAdmins).toContain(client1.inboxId);
+    expect(conversation.superAdmins).toContain(client2.inboxId);
 
     await conversation.removeSuperAdmin(client2.inboxId!);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(false);
 
-    const superAdmins3 = await conversation.superAdmins();
-    expect(superAdmins3.length).toBe(1);
-    expect(superAdmins3).toContain(client1.inboxId);
+    await conversation.syncSuperAdmins();
+    expect(conversation.superAdmins.length).toBe(1);
+    expect(conversation.superAdmins).toContain(client1.inboxId);
   });
 
   it("should manage group consent state", async () => {
@@ -391,11 +390,9 @@ describe.concurrent("Conversation", () => {
     const group2 = await client2.conversations.getConversationById(group.id);
     expect(group2).toBeDefined();
 
-    const groupConvo = new Conversation(client2, group2!.id, group2);
-
-    expect(await groupConvo.consentState()).toBe(ConsentState.Unknown);
-    await groupConvo.send("gm!");
-    expect(await groupConvo.consentState()).toBe(ConsentState.Allowed);
+    expect(await group2!.consentState()).toBe(ConsentState.Unknown);
+    await group2!.send("gm!");
+    expect(await group2!.consentState()).toBe(ConsentState.Allowed);
 
     await client3.conversations.sync();
     const dmGroup2 = await client3.conversations.getConversationById(
@@ -403,10 +400,8 @@ describe.concurrent("Conversation", () => {
     );
     expect(dmGroup2).toBeDefined();
 
-    const dmConvo = new Conversation(client3, dmGroup2!.id, dmGroup2);
-
-    expect(await dmConvo.consentState()).toBe(ConsentState.Unknown);
-    await dmConvo.send("gm!");
-    expect(await dmConvo.consentState()).toBe(ConsentState.Allowed);
+    expect(await dmGroup2!.consentState()).toBe(ConsentState.Unknown);
+    await dmGroup2!.send("gm!");
+    expect(await dmGroup2!.consentState()).toBe(ConsentState.Allowed);
   });
 });
