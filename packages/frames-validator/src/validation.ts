@@ -118,7 +118,6 @@ function checkUntrustedData(
     url,
     buttonIndex,
     opaqueConversationIdentifier,
-    timestamp,
     state = "",
     inputText = "",
   }: UntrustedData,
@@ -136,10 +135,6 @@ function checkUntrustedData(
     actionBody.opaqueConversationIdentifier !== opaqueConversationIdentifier
   ) {
     throw new Error("Mismatched conversation identifier");
-  }
-
-  if (actionBody.timestamp.toNumber() !== timestamp) {
-    throw new Error("Mismatched timestamp");
   }
 
   if (actionBody.state !== state) {
