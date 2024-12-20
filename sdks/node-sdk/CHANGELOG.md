@@ -4,7 +4,9 @@
 
 ### Patch Changes
 
-- 3a1e53b: Enable group permissions updates
+- 3a1e53b: Enabled group permissions updates
+  - Added `updatePermission` method to `Conversation`
+  - Exported `MetadataField` type
 
 ## 0.0.34
 
