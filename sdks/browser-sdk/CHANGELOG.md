@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.11
+
+### Patch Changes
+
+- 3a1e53b: Enable group permissions updates
+
 ## 0.0.10
 
 ### Patch Changes

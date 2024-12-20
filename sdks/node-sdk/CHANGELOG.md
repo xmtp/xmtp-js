@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.35
+
+### Patch Changes
+
+- 3a1e53b: Enable group permissions updates
+
 ## 0.0.34
 
 ### Patch Changes
