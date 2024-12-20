@@ -29,10 +29,9 @@ describe.concurrent("Conversations", () => {
     expect(conversation.createdAt).toBeDefined();
     expect(conversation.isActive).toBe(true);
     expect(conversation.name).toBe("");
-    expect(conversation.permissions?.policyType).toBe(
-      GroupPermissionsOptions.AllMembers,
-    );
-    expect(conversation.permissions?.policySet).toEqual({
+    const permissions = await conversation.permissions();
+    expect(permissions.policyType).toBe(GroupPermissionsOptions.AllMembers);
+    expect(permissions.policySet).toEqual({
       addMemberPolicy: 0,
       removeMemberPolicy: 2,
       addAdminPolicy: 3,
@@ -83,10 +82,9 @@ describe.concurrent("Conversations", () => {
     expect(group.createdAt).toBeDefined();
     expect(group.isActive).toBe(true);
     expect(group.name).toBe("");
-    expect(group.permissions?.policyType).toBe(
-      GroupPermissionsOptions.CustomPolicy,
-    );
-    expect(group.permissions?.policySet).toEqual({
+    const permissions = await group.permissions();
+    expect(permissions.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
+    expect(permissions.policySet).toEqual({
       addAdminPolicy: 1,
       addMemberPolicy: 1,
       removeAdminPolicy: 1,
@@ -217,11 +215,10 @@ describe.concurrent("Conversations", () => {
     expect(groupWithPermissions).toBeDefined();
     expect(groupWithPermissions.name).toBe("");
     expect(groupWithPermissions.imageUrl).toBe("");
-    expect(groupWithPermissions.permissions?.policyType).toBe(
-      GroupPermissionsOptions.AdminOnly,
-    );
 
-    expect(groupWithPermissions.permissions?.policySet).toEqual({
+    const permissions = await groupWithPermissions.permissions();
+    expect(permissions.policyType).toBe(GroupPermissionsOptions.AdminOnly);
+    expect(permissions.policySet).toEqual({
       addMemberPolicy: 2,
       removeMemberPolicy: 2,
       addAdminPolicy: 3,
@@ -278,10 +275,10 @@ describe.concurrent("Conversations", () => {
       },
     );
     expect(group).toBeDefined();
-    expect(group.permissions?.policyType).toBe(
-      GroupPermissionsOptions.CustomPolicy,
-    );
-    expect(group.permissions?.policySet).toEqual({
+
+    const permissions = await group.permissions();
+    expect(permissions.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
+    expect(permissions.policySet).toEqual({
       addAdminPolicy: 1,
       addMemberPolicy: 0,
       removeAdminPolicy: 1,

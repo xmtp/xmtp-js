@@ -826,6 +826,46 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         }
         break;
       }
+      case "updateGroupPermissionPolicy": {
+        const group = client.conversations.getConversationById(data.id);
+        if (group) {
+          await group.updatePermission(
+            data.permissionType,
+            data.policy,
+            data.metadataField,
+          );
+          postMessage({
+            id,
+            action,
+            result: undefined,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
+        break;
+      }
+      case "getGroupPermissions": {
+        const group = client.conversations.getConversationById(data.id);
+        if (group) {
+          const safeConversation = await toSafeConversation(group);
+          postMessage({
+            id,
+            action,
+            result: safeConversation.permissions,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
+        break;
+      }
     }
   } catch (e) {
     postMessageError({

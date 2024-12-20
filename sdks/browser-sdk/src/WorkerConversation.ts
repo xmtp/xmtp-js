@@ -3,6 +3,9 @@ import type {
   Conversation,
   EncodedContent,
   GroupMember,
+  MetadataField,
+  PermissionPolicy,
+  PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
 import {
   fromSafeListMessagesOptions,
@@ -97,6 +100,18 @@ export class WorkerConversation {
       policyType: permissions.policyType(),
       policySet: permissions.policySet(),
     };
+  }
+
+  async updatePermission(
+    permissionType: PermissionUpdateType,
+    policy: PermissionPolicy,
+    metadataField?: MetadataField,
+  ) {
+    return this.#group.updatePermissionPolicy(
+      permissionType,
+      policy,
+      metadataField,
+    );
   }
 
   isAdmin(inboxId: string) {

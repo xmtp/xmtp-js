@@ -1,4 +1,9 @@
-import { ConsentState } from "@xmtp/node-bindings";
+import {
+  ConsentState,
+  MetadataField,
+  PermissionPolicy,
+  PermissionUpdateType,
+} from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import {
   ContentTypeTest,
@@ -426,5 +431,81 @@ describe("Conversation", () => {
     expect(dmGroup2!.consentState).toBe(ConsentState.Unknown);
     await dmGroup2!.send("gm!");
     expect(dmGroup2!.consentState).toBe(ConsentState.Allowed);
+  });
+
+  it("should update group permissions", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    await createRegisteredClient(user2);
+    const conversation = await client1.conversations.newGroup([
+      user2.account.address,
+    ]);
+
+    expect(conversation.permissions.policySet).toEqual({
+      addMemberPolicy: 0,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 0,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateGroupPinnedFrameUrlPolicy: 0,
+    });
+
+    await conversation.updatePermission(
+      PermissionUpdateType.AddMember,
+      PermissionPolicy.Admin,
+    );
+
+    await conversation.updatePermission(
+      PermissionUpdateType.RemoveMember,
+      PermissionPolicy.SuperAdmin,
+    );
+
+    await conversation.updatePermission(
+      PermissionUpdateType.AddAdmin,
+      PermissionPolicy.Admin,
+    );
+
+    await conversation.updatePermission(
+      PermissionUpdateType.RemoveAdmin,
+      PermissionPolicy.Admin,
+    );
+
+    await conversation.updatePermission(
+      PermissionUpdateType.UpdateMetadata,
+      PermissionPolicy.Admin,
+      MetadataField.GroupName,
+    );
+
+    await conversation.updatePermission(
+      PermissionUpdateType.UpdateMetadata,
+      PermissionPolicy.Admin,
+      MetadataField.Description,
+    );
+
+    await conversation.updatePermission(
+      PermissionUpdateType.UpdateMetadata,
+      PermissionPolicy.Admin,
+      MetadataField.ImageUrlSquare,
+    );
+
+    await conversation.updatePermission(
+      PermissionUpdateType.UpdateMetadata,
+      PermissionPolicy.Admin,
+      MetadataField.PinnedFrameUrl,
+    );
+
+    expect(conversation.permissions.policySet).toEqual({
+      addMemberPolicy: 2,
+      removeMemberPolicy: 3,
+      addAdminPolicy: 2,
+      removeAdminPolicy: 2,
+      updateGroupNamePolicy: 2,
+      updateGroupDescriptionPolicy: 2,
+      updateGroupImageUrlSquarePolicy: 2,
+      updateGroupPinnedFrameUrlPolicy: 2,
+    });
   });
 });

@@ -4,6 +4,9 @@ import type {
   ConsentState,
   Conversation as Group,
   ListMessagesOptions,
+  MetadataField,
+  PermissionPolicy,
+  PermissionUpdateType,
 } from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
@@ -92,10 +95,23 @@ export class Conversation {
   }
 
   get permissions() {
+    const permissions = this.#group.groupPermissions();
     return {
-      policyType: this.#group.groupPermissions().policyType(),
-      policySet: this.#group.groupPermissions().policySet(),
+      policyType: permissions.policyType(),
+      policySet: permissions.policySet(),
     };
+  }
+
+  async updatePermission(
+    permissionType: PermissionUpdateType,
+    policy: PermissionPolicy,
+    metadataField?: MetadataField,
+  ) {
+    return this.#group.updatePermissionPolicy(
+      permissionType,
+      policy,
+      metadataField,
+    );
   }
 
   isAdmin(inboxId: string) {

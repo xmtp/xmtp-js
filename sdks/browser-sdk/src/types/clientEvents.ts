@@ -1,6 +1,9 @@
 import type {
   ConsentEntityType,
   ConsentState,
+  MetadataField,
+  PermissionPolicy,
+  PermissionUpdateType,
   SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import type {
@@ -482,6 +485,25 @@ export type ClientEvents =
       action: "getDmPeerInboxId";
       id: string;
       result: string;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "updateGroupPermissionPolicy";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+        permissionType: PermissionUpdateType;
+        policy: PermissionPolicy;
+        metadataField?: MetadataField;
+      };
+    }
+  | {
+      action: "getGroupPermissions";
+      id: string;
+      result: SafeConversation["permissions"];
       data: {
         id: string;
       };
