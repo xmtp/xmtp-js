@@ -1,6 +1,11 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { ConsentState } from "@xmtp/wasm-bindings";
+import type {
+  ConsentState,
+  MetadataField,
+  PermissionPolicy,
+  PermissionUpdateType,
+} from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
@@ -28,8 +33,6 @@ export class Conversation {
 
   #metadata?: SafeConversation["metadata"];
 
-  #permissions?: SafeConversation["permissions"];
-
   #createdAtNs?: SafeConversation["createdAtNs"];
 
   #admins: SafeConversation["admins"] = [];
@@ -50,7 +53,6 @@ export class Conversation {
     this.#isActive = data?.isActive ?? undefined;
     this.#addedByInboxId = data?.addedByInboxId ?? "";
     this.#metadata = data?.metadata ?? undefined;
-    this.#permissions = data?.permissions ?? undefined;
     this.#createdAtNs = data?.createdAtNs ?? undefined;
     this.#admins = data?.admins ?? [];
     this.#superAdmins = data?.superAdmins ?? [];
@@ -156,8 +158,23 @@ export class Conversation {
     this.#superAdmins = superAdmins;
   }
 
-  get permissions() {
-    return this.#permissions;
+  async permissions() {
+    return this.#client.sendMessage("getGroupPermissions", {
+      id: this.#id,
+    });
+  }
+
+  async updatePermission(
+    permissionType: PermissionUpdateType,
+    policy: PermissionPolicy,
+    metadataField?: MetadataField,
+  ) {
+    return this.#client.sendMessage("updateGroupPermissionPolicy", {
+      id: this.#id,
+      permissionType,
+      policy,
+      metadataField,
+    });
   }
 
   async isAdmin(inboxId: string) {

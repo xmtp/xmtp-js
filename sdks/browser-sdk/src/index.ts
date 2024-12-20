@@ -25,6 +25,7 @@ export {
   ListConversationsOptions,
   ListMessagesOptions,
   Message,
+  MetadataField,
   PermissionLevel,
   PermissionPolicy,
   PermissionPolicySet,
