@@ -19,7 +19,7 @@ export default class Token implements authn.Token {
     this.authDataSignature = authDataSignature;
   }
 
-  // Get AuthData, generating from bytes and cacheing the first time it is accessed
+  // Get AuthData, generating from bytes and caching the first time it is accessed
   get authData(): AuthData {
     if (!this._authData) {
       this._authData = AuthData.fromBytes(this.authDataBytes);

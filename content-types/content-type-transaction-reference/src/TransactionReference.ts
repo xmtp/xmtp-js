@@ -17,7 +17,7 @@ export type TransactionReference = {
    */
   namespace?: string;
   /**
-   * The networkId for the transaction, in decimal or hexidecimal format
+   * The networkId for the transaction, in decimal or hexadecimal format
    */
   networkId: number | string;
   /**
