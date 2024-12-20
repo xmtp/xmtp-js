@@ -15,7 +15,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content }) => {
       {content}
     </Paper>
   ) : (
-    <Code block maw="100%">
+    <Code block maw={420}>
       {JSON.stringify(content, null, 2)}
     </Code>
   );

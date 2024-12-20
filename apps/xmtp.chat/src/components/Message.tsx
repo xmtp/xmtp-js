@@ -24,7 +24,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
         p="md"
         withBorder
         shadow="md"
-        maw="90%"
+        maw="80%"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
