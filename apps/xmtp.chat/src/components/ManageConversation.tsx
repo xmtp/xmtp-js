@@ -17,7 +17,9 @@ import {
 } from "@mantine/core";
 import {
   GroupPermissionsOptions,
+  MetadataField,
   PermissionPolicy,
+  PermissionUpdateType,
   type Conversation,
   type PermissionPolicySet,
   type SafeGroupMember,
@@ -143,6 +145,130 @@ export const ManageConversation: React.FC = () => {
           removedMembers.map((member) => member.inboxId),
         );
       }
+
+      const permissions = await conversation?.permissions();
+      if (
+        permissions?.policyType !== permissionsPolicy &&
+        permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
+      ) {
+        switch (permissionsPolicy) {
+          case GroupPermissionsOptions.AllMembers: {
+            await conversation?.updatePermission(
+              PermissionUpdateType.AddMember,
+              PermissionPolicy.Deny,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.RemoveMember,
+              PermissionPolicy.Admin,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.AddAdmin,
+              PermissionPolicy.SuperAdmin,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.RemoveAdmin,
+              PermissionPolicy.SuperAdmin,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Allow,
+              MetadataField.GroupName,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Allow,
+              MetadataField.Description,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Allow,
+              MetadataField.ImageUrlSquare,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Allow,
+              MetadataField.PinnedFrameUrl,
+            );
+            break;
+          }
+          case GroupPermissionsOptions.AdminOnly: {
+            await conversation?.updatePermission(
+              PermissionUpdateType.AddMember,
+              PermissionPolicy.Admin,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.RemoveMember,
+              PermissionPolicy.Admin,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.AddAdmin,
+              PermissionPolicy.SuperAdmin,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.RemoveAdmin,
+              PermissionPolicy.SuperAdmin,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Admin,
+              MetadataField.GroupName,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Admin,
+              MetadataField.Description,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Admin,
+              MetadataField.ImageUrlSquare,
+            );
+            await conversation?.updatePermission(
+              PermissionUpdateType.UpdateMetadata,
+              PermissionPolicy.Admin,
+              MetadataField.PinnedFrameUrl,
+            );
+          }
+        }
+      }
+      if (permissionsPolicy === GroupPermissionsOptions.CustomPolicy) {
+        await conversation?.updatePermission(
+          PermissionUpdateType.AddMember,
+          policySet.addMemberPolicy,
+        );
+        await conversation?.updatePermission(
+          PermissionUpdateType.RemoveMember,
+          policySet.removeMemberPolicy,
+        );
+        await conversation?.updatePermission(
+          PermissionUpdateType.AddAdmin,
+          policySet.addAdminPolicy,
+        );
+        await conversation?.updatePermission(
+          PermissionUpdateType.RemoveAdmin,
+          policySet.removeAdminPolicy,
+        );
+        await conversation?.updatePermission(
+          PermissionUpdateType.UpdateMetadata,
+          policySet.updateGroupNamePolicy,
+          MetadataField.GroupName,
+        );
+        await conversation?.updatePermission(
+          PermissionUpdateType.UpdateMetadata,
+          policySet.updateGroupDescriptionPolicy,
+          MetadataField.Description,
+        );
+        await conversation?.updatePermission(
+          PermissionUpdateType.UpdateMetadata,
+          policySet.updateGroupImageUrlSquarePolicy,
+          MetadataField.ImageUrlSquare,
+        );
+        await conversation?.updatePermission(
+          PermissionUpdateType.UpdateMetadata,
+          policySet.updateGroupPinnedFrameUrlPolicy,
+          MetadataField.PinnedFrameUrl,
+        );
+      }
       void navigate(`/conversations/${conversationId}`);
     } catch (error) {
       setUpdateConversationError(
@@ -174,7 +300,8 @@ export const ManageConversation: React.FC = () => {
           setPinnedFrameUrl(conversation.pinnedFrameUrl ?? "");
           const members = await conversation.members();
           setMembers(members);
-          const policyType = conversation.permissions?.policyType;
+          const permissions = await conversation.permissions();
+          const policyType = permissions.policyType;
           switch (policyType) {
             case GroupPermissionsOptions.AllMembers:
               setPermissionsPolicy(GroupPermissionsOptions.AllMembers);
@@ -204,9 +331,7 @@ export const ManageConversation: React.FC = () => {
               break;
             case GroupPermissionsOptions.CustomPolicy:
               setPermissionsPolicy(GroupPermissionsOptions.CustomPolicy);
-              if (conversation.permissions?.policySet) {
-                setPolicySet(conversation.permissions.policySet);
-              }
+              setPolicySet(permissions.policySet);
               break;
           }
         } else {
