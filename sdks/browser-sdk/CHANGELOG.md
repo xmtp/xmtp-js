@@ -1,5 +1,14 @@
 # @xmtp/browser-sdk
 
+## 0.0.11
+
+### Patch Changes
+
+- 3a1e53b: Enabled group permissions updates
+  - Added `updatePermission` method to `Conversation`
+  - Refactored `permissions` getter to async function
+  - Exported `MetadataField` type
+
 ## 0.0.10
 
 ### Patch Changes
