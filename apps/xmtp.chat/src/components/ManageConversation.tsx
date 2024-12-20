@@ -18,6 +18,7 @@ import {
 import {
   GroupPermissionsOptions,
   PermissionPolicy,
+  type Conversation,
   type PermissionPolicySet,
   type SafeGroupMember,
 } from "@xmtp/browser-sdk";
@@ -61,6 +62,7 @@ export const ManageConversation: React.FC = () => {
     string | null
   >(null);
 
+  const [conversation, setConversation] = useState<Conversation | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -121,7 +123,26 @@ export const ManageConversation: React.FC = () => {
     }
     setIsLoading(true);
     try {
-      // TODO: update conversation
+      if (name !== conversation?.name) {
+        await conversation?.updateName(name);
+      }
+      if (description !== conversation?.description) {
+        await conversation?.updateDescription(description);
+      }
+      if (imageUrl !== conversation?.imageUrl) {
+        await conversation?.updateImageUrl(imageUrl);
+      }
+      if (pinnedFrameUrl !== conversation?.pinnedFrameUrl) {
+        await conversation?.updatePinnedFrameUrl(pinnedFrameUrl);
+      }
+      if (addedMembers.length > 0) {
+        await conversation?.addMembers(addedMembers);
+      }
+      if (removedMembers.length > 0) {
+        await conversation?.removeMembersByInboxId(
+          removedMembers.map((member) => member.inboxId),
+        );
+      }
       void navigate(`/conversations/${conversationId}`);
     } catch (error) {
       setUpdateConversationError(
@@ -146,6 +167,7 @@ export const ManageConversation: React.FC = () => {
           await client.conversations.getConversationById(conversationId);
         setIsLoading(false);
         if (conversation) {
+          setConversation(conversation);
           setName(conversation.name ?? "");
           setDescription(conversation.description ?? "");
           setImageUrl(conversation.imageUrl ?? "");
@@ -232,8 +254,8 @@ export const ManageConversation: React.FC = () => {
             margin: "calc(var(--mantine-spacing-md) * -1)",
           }}>
           <LoadingOverlay visible={isLoading} />
-          <Title order={3} c={name ? "text.primary" : "dimmed"}>
-            {name || "Untitled"}
+          <Title order={3} c={conversation?.name !== "" ? undefined : "dimmed"}>
+            {conversation?.name || "Untitled"}
           </Title>
           <ScrollArea type="scroll" className={classes.root}>
             <Stack gap="lg" py="md">
