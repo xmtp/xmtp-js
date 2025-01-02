@@ -5114,10 +5114,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-bindings@npm:^0.0.30":
-  version: 0.0.30
-  resolution: "@xmtp/node-bindings@npm:0.0.30"
-  checksum: 10/a7bf581c038f811b38ea53690b1500bd931b3fb8c32798fc96cf852ab5e0fc0b837fdfc2f354943be45095f096c23467e8de5a96235409b2013fc49c27cb2644
+"@xmtp/node-bindings@npm:^0.0.31":
+  version: 0.0.31
+  resolution: "@xmtp/node-bindings@npm:0.0.31"
+  checksum: 10/bcb754e23a8dd123789580d288336343e5bed12f2952ea24a0ee24961494c8765469f14b836815a33d54a7fe35afe2edc72c8113487013a690888eb190790a3f
   languageName: node
   linkType: hard
 
@@ -5145,7 +5145,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.0"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/content-type-text": "npm:^2.0.0"
-    "@xmtp/node-bindings": "npm:^0.0.30"
+    "@xmtp/node-bindings": "npm:^0.0.31"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "workspace:^"
     fast-glob: "npm:^3.3.2"

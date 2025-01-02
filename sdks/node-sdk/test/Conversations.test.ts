@@ -505,4 +505,28 @@ describe("Conversations", () => {
       }
     }
   });
+
+  it("should get hmac keys", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    await createRegisteredClient(user2);
+    const group = await client1.conversations.newGroup([user2.account.address]);
+    const dm = await client1.conversations.newDm(user2.account.address);
+    const hmacKeys = client1.conversations.hmacKeys();
+    expect(hmacKeys).toBeDefined();
+    const keys = Object.keys(hmacKeys);
+    expect(keys.length).toBe(2);
+    expect(keys).toContain(group.id);
+    expect(keys).toContain(dm.id);
+    for (const values of Object.values(hmacKeys)) {
+      expect(values.length).toBe(3);
+      for (const value of values) {
+        expect(value.key).toBeDefined();
+        expect(value.key.length).toBe(42);
+        expect(value.epoch).toBeDefined();
+        expect(typeof value.epoch).toBe("bigint");
+      }
+    }
+  });
 });
