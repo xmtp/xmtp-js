@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.36
+
+### Patch Changes
+
+- d84932a: Add support for HMAC keys in Node SDK
+
 ## 0.0.35
 
 ### Patch Changes
