@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- d84932a: Add support for HMAC keys in Node SDK
+- d84932a: Added support for HMAC keys
 
 ## 0.0.35
 
