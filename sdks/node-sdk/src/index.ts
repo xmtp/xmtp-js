@@ -23,6 +23,7 @@ export type {
   Message,
   PermissionPolicySet,
 } from "@xmtp/node-bindings";
+export type { HmacKey } from "@xmtp/node-bindings";
 export {
   ConsentEntityType,
   ConsentState,

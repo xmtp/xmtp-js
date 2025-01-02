@@ -200,4 +200,8 @@ export class Conversations {
 
     return asyncStream;
   }
+
+  hmacKeys() {
+    return this.#conversations.getHmacKeys();
+  }
 }
