@@ -62,26 +62,24 @@ export class Conversations {
     return conversation;
   }
 
-  async list(options?: ListConversationsOptions) {
-    const groups = await this.#conversations.list(options);
+  list(options?: ListConversationsOptions) {
+    const groups = this.#conversations.list(options);
     return groups.map((group) => {
       const conversation = new Conversation(this.#client, group);
       return conversation;
     });
   }
 
-  async listGroups(
-    options?: Omit<ListConversationsOptions, "conversationType">,
-  ) {
-    const groups = await this.#conversations.listGroups(options);
+  listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
+    const groups = this.#conversations.listGroups(options);
     return groups.map((group) => {
       const conversation = new Conversation(this.#client, group);
       return conversation;
     });
   }
 
-  async listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
-    const groups = await this.#conversations.listDms(options);
+  listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
+    const groups = this.#conversations.listDms(options);
     return groups.map((group) => {
       const conversation = new Conversation(this.#client, group);
       return conversation;

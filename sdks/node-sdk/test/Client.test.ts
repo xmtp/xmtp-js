@@ -135,7 +135,7 @@ describe("Client", () => {
     ]);
   });
 
-  it("should revoke all installations", async () => {
+  it("should revoke all other installations", async () => {
     const user = createUser();
 
     const client = await createRegisteredClient(user);
@@ -152,12 +152,41 @@ describe("Client", () => {
     expect(installationIds).toContain(client2.installationId);
     expect(installationIds).toContain(client3.installationId);
 
-    await client3.revokeInstallations();
+    await client3.revokeAllOtherInstallations();
 
     const inboxState2 = await client3.inboxState(true);
 
     expect(inboxState2.installations.length).toBe(1);
     expect(inboxState2.installations[0].id).toBe(client3.installationId);
+  });
+
+  it("should revoke specific installations", async () => {
+    const user = createUser();
+
+    const client = await createRegisteredClient(user);
+    user.uuid = v4();
+    const client2 = await createRegisteredClient(user);
+    user.uuid = v4();
+    const client3 = await createRegisteredClient(user);
+
+    const inboxState = await client3.inboxState(true);
+    expect(inboxState.installations.length).toBe(3);
+
+    const installationIds = inboxState.installations.map((i) => i.id);
+    expect(installationIds).toContain(client.installationId);
+    expect(installationIds).toContain(client2.installationId);
+    expect(installationIds).toContain(client3.installationId);
+
+    await client3.revokeInstallations([client.installationIdBytes]);
+
+    const inboxState2 = await client3.inboxState(true);
+
+    expect(inboxState2.installations.length).toBe(2);
+
+    const installationIds2 = inboxState2.installations.map((i) => i.id);
+    expect(installationIds2).toContain(client2.installationId);
+    expect(installationIds2).toContain(client3.installationId);
+    expect(installationIds2).not.toContain(client.installationId);
   });
 
   it("should manage consent states", async () => {
