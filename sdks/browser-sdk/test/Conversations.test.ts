@@ -130,9 +130,17 @@ describe.concurrent("Conversations", () => {
     expect(dm1).toBeDefined();
     expect(dm1!.id).toBe(group.id);
 
+    const peerInboxId = await dm1?.dmPeerInboxId();
+    expect(peerInboxId).toBeDefined();
+    expect(peerInboxId).toBe(client2.inboxId);
+
     const dm2 = await client2.conversations.getDmByInboxId(client1.inboxId!);
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
+
+    const peerInboxId2 = await dm2?.dmPeerInboxId();
+    expect(peerInboxId2).toBeDefined();
+    expect(peerInboxId2).toBe(client1.inboxId);
   });
 
   it("should get a group by ID", async () => {
