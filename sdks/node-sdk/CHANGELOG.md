@@ -1,5 +1,13 @@
 # @xmtp/node-sdk
 
+## 0.0.37
+
+### Patch Changes
+
+- d09ec27:
+  - Added support for revoking specific installations
+  - Refactored `list`, `listGroups`, and `listDms` to be synchronous
+
 ## 0.0.36
 
 ### Patch Changes

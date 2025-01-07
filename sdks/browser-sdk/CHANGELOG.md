@@ -1,5 +1,13 @@
 # @xmtp/browser-sdk
 
+## 0.0.12
+
+### Patch Changes
+
+- d09ec27:
+  - Added support for revoking specific installations
+  - Refactored `list`, `listGroups`, and `listDms` to be synchronous when called from worker
+
 ## 0.0.11
 
 ### Patch Changes
