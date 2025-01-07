@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.12
+
+### Patch Changes
+
+- d09ec27: Add support for revoking specific installations
+
 ## 0.0.11
 
 ### Patch Changes
