@@ -54,28 +54,26 @@ export class WorkerConversations {
     }
   }
 
-  async list(options?: SafeListConversationsOptions) {
-    const groups = (await this.#conversations.list(
+  list(options?: SafeListConversationsOptions) {
+    const groups = this.#conversations.list(
       options ? fromSafeListConversationsOptions(options) : undefined,
-    )) as Conversation[];
+    ) as Conversation[];
     return groups.map((group) => new WorkerConversation(this.#client, group));
   }
 
-  async listGroups(
+  listGroups(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    const groups = (await this.#conversations.listGroups(
+    const groups = this.#conversations.listGroups(
       options ? fromSafeListConversationsOptions(options) : undefined,
-    )) as Conversation[];
+    ) as Conversation[];
     return groups.map((group) => new WorkerConversation(this.#client, group));
   }
 
-  async listDms(
-    options?: Omit<SafeListConversationsOptions, "conversation_type">,
-  ) {
-    const groups = (await this.#conversations.listDms(
+  listDms(options?: Omit<SafeListConversationsOptions, "conversation_type">) {
+    const groups = this.#conversations.listDms(
       options ? fromSafeListConversationsOptions(options) : undefined,
-    )) as Conversation[];
+    ) as Conversation[];
     return groups.map((group) => new WorkerConversation(this.#client, group));
   }
 

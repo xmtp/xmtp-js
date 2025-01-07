@@ -105,8 +105,19 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "revokeAllOtherInstallationsSignatureText": {
+        const result = await client.revokeAllAOtherInstallationsSignatureText();
+        postMessage({
+          id,
+          action,
+          result,
+        });
+        break;
+      }
       case "revokeInstallationsSignatureText": {
-        const result = await client.revokeInstallationsSignatureText();
+        const result = await client.revokeInstallationsSignatureText(
+          data.installationIds,
+        );
         postMessage({
           id,
           action,
@@ -255,7 +266,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
        * Conversations actions
        */
       case "getConversations": {
-        const conversations = await client.conversations.list(data.options);
+        const conversations = client.conversations.list(data.options);
         postMessage({
           id,
           action,
@@ -268,9 +279,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "getGroups": {
-        const conversations = await client.conversations.listGroups(
-          data.options,
-        );
+        const conversations = client.conversations.listGroups(data.options);
         postMessage({
           id,
           action,
@@ -283,7 +292,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "getDms": {
-        const conversations = await client.conversations.listDms(data.options);
+        const conversations = client.conversations.listDms(data.options);
         postMessage({
           id,
           action,
@@ -296,11 +305,6 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "newGroup": {
-        // console.log(
-        //   "newGroup",
-        //   fromSafeCreateGroupOptions(data.options!),
-        //   data.options,
-        // );
         const conversation = await client.conversations.newGroup(
           data.accountAddresses,
           data.options,
