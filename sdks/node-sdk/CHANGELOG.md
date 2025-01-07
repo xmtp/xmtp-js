@@ -4,7 +4,9 @@
 
 ### Patch Changes
 
-- d09ec27: Add support for revoking specific installations
+- d09ec27:
+  - Added support for revoking specific installations
+  - Refactored `list`, `listGroups`, and `listDms` to be synchronous
 
 ## 0.0.36
 
