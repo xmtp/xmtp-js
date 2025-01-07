@@ -203,10 +203,22 @@ export class Client {
     }
   }
 
-  async #revokeInstallationsSignatureText() {
+  async #revokeAllOtherInstallationsSignatureText() {
     try {
       const signatureText =
-        await this.#innerClient.revokeInstallationsSignatureText();
+        await this.#innerClient.revokeAllOtherInstallationsSignatureText();
+      return signatureText;
+    } catch {
+      return null;
+    }
+  }
+
+  async #revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+    try {
+      const signatureText =
+        await this.#innerClient.revokeInstallationsSignatureText(
+          installationIds,
+        );
       return signatureText;
     } catch {
       return null;
@@ -288,8 +300,28 @@ export class Client {
     await this.#applySignatures();
   }
 
-  async revokeInstallations() {
-    const signatureText = await this.#revokeInstallationsSignatureText();
+  async revokeAllOtherInstallations() {
+    const signatureText =
+      await this.#revokeAllOtherInstallationsSignatureText();
+
+    if (!signatureText) {
+      throw new Error(
+        "Unable to generate revoke all other installations signature text",
+      );
+    }
+
+    await this.#addSignature(
+      SignatureRequestType.RevokeInstallations,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.#applySignatures();
+  }
+
+  async revokeInstallations(installationIds: Uint8Array[]) {
+    const signatureText =
+      await this.#revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
       throw new Error("Unable to generate revoke installations signature text");

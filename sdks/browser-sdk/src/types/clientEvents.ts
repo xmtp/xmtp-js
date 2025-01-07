@@ -69,10 +69,18 @@ export type ClientEvents =
       };
     }
   | {
-      action: "revokeInstallationsSignatureText";
+      action: "revokeAllOtherInstallationsSignatureText";
       id: string;
       result: string | undefined;
       data: undefined;
+    }
+  | {
+      action: "revokeInstallationsSignatureText";
+      id: string;
+      result: string | undefined;
+      data: {
+        installationIds: Uint8Array[];
+      };
     }
   | {
       action: "addSignature";

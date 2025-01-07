@@ -28,7 +28,7 @@ describe("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = client2.conversations.list();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -55,7 +55,7 @@ describe("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = client2.conversations.list();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -82,7 +82,7 @@ describe("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = client2.conversations.list();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -109,7 +109,7 @@ describe("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = client2.conversations.list();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -215,7 +215,7 @@ describe("Conversation", () => {
     expect(messages[1].content).toBe(text);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = client2.conversations.list();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -263,7 +263,7 @@ describe("Conversation", () => {
     expect(messages[1].content).toBe(text);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = client2.conversations.list();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -325,7 +325,7 @@ describe("Conversation", () => {
     ]);
 
     await client2.conversations.sync();
-    const conversation2 = await client2.conversations.list();
+    const conversation2 = client2.conversations.list();
     expect(conversation2.length).toBe(1);
     expect(conversation2[0].id).toBe(conversation.id);
 

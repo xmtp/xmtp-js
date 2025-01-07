@@ -75,9 +75,19 @@ export class WorkerClient {
     }
   }
 
-  async revokeInstallationsSignatureText() {
+  async revokeAllAOtherInstallationsSignatureText() {
     try {
-      return await this.#client.revokeInstallationsSignatureText();
+      return await this.#client.revokeAllOtherInstallationsSignatureText();
+    } catch {
+      return undefined;
+    }
+  }
+
+  async revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+    try {
+      return await this.#client.revokeInstallationsSignatureText(
+        installationIds,
+      );
     } catch {
       return undefined;
     }

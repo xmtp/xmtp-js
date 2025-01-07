@@ -126,8 +126,17 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("removeAccountSignatureText", { accountAddress });
   }
 
-  async #revokeInstallationsSignatureText() {
-    return this.sendMessage("revokeInstallationsSignatureText", undefined);
+  async #revokeAllOtherInstallationsSignatureText() {
+    return this.sendMessage(
+      "revokeAllOtherInstallationsSignatureText",
+      undefined,
+    );
+  }
+
+  async #revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+    return this.sendMessage("revokeInstallationsSignatureText", {
+      installationIds,
+    });
   }
 
   async #addSignature(
@@ -208,8 +217,28 @@ export class Client extends ClientWorkerClass {
     await this.#applySignatures();
   }
 
-  async revokeInstallations() {
-    const signatureText = await this.#revokeInstallationsSignatureText();
+  async revokeAllOtherInstallations() {
+    const signatureText =
+      await this.#revokeAllOtherInstallationsSignatureText();
+
+    if (!signatureText) {
+      throw new Error(
+        "Unable to generate revoke all other installations signature text",
+      );
+    }
+
+    await this.#addSignature(
+      SignatureRequestType.RevokeInstallations,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.#applySignatures();
+  }
+
+  async revokeInstallations(installationIds: Uint8Array[]) {
+    const signatureText =
+      await this.#revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
       throw new Error("Unable to generate revoke installations signature text");
