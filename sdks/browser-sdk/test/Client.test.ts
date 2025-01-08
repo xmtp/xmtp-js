@@ -70,6 +70,9 @@ describe.concurrent("Client", () => {
     expect(inboxState2.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.length).toBe(1);
     expect(inboxState.installations[0].id).toBe(client.installationId);
+    expect(inboxState.installations[0].bytes).toEqual(
+      client.installationIdBytes,
+    );
     expect(inboxState2.accountAddresses).toEqual([
       user.account.address.toLowerCase(),
     ]);

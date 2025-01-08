@@ -339,15 +339,17 @@ export const toSafeConversation = async (
 });
 
 export type SafeInstallation = {
-  id: string;
+  bytes: Uint8Array;
   clientTimestampNs?: bigint;
+  id: string;
 };
 
 export const toSafeInstallation = (
   installation: Installation,
 ): SafeInstallation => ({
-  id: installation.id,
+  bytes: installation.bytes,
   clientTimestampNs: installation.clientTimestampNs,
+  id: installation.id,
 });
 
 export type SafeInboxState = {
