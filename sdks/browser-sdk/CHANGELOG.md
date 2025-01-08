@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- b4f452c: Include installation ID bytes in inbox state
+- b4f452c: Added installation ID bytes to inbox state
 
 ## 0.0.12
 
