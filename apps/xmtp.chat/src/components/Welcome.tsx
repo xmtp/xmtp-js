@@ -68,7 +68,7 @@ export const Welcome = () => {
         <Text>
           Your feedback is incredibly important to the success of this tool. If
           you find any bugs or have suggestions, please let us know by{" "}
-          <Anchor href="https://github.com/xmtp/xmtp-chat/issues">
+          <Anchor href="https://github.com/xmtp/xmtp-js/issues/new/choose">
             filing an issue
           </Anchor>{" "}
           on GitHub.
