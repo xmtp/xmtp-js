@@ -3,8 +3,8 @@ import {
   Button,
   Group,
   Modal,
+  ScrollArea,
   Stack,
-  Text,
   Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -14,6 +14,7 @@ import { useClient } from "../hooks/useClient";
 import classes from "./App.module.css";
 import { AppFooter } from "./AppFooter";
 import { AppHeader } from "./AppHeader";
+import { CodeWithCopy } from "./CodeWithCopy";
 import { Main } from "./Main";
 import { Navbar } from "./Navbar";
 
@@ -74,8 +75,19 @@ export const App: React.FC = () => {
           centered>
           <Stack gap="md">
             <Title order={4}>Application error</Title>
-            <Text>{unhandledRejectionError}</Text>
-            <Group justify="flex-end">
+            <ScrollArea>
+              <CodeWithCopy
+                code={JSON.stringify(unhandledRejectionError, null, 2)}
+              />
+            </ScrollArea>
+            <Group justify="space-between">
+              <Button
+                variant="default"
+                component="a"
+                href="https://github.com/xmtp/xmtp-js/issues/new/choose"
+                target="_blank">
+                Report issue
+              </Button>
               <Button
                 onClick={() => {
                   setUnhandledRejectionError(null);
