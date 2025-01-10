@@ -9,6 +9,8 @@ export const CodeWithCopy: React.FC<CodeWithCopyProps> = ({ code }) => {
   return (
     <Box pos="relative">
       <Code
+        p="md"
+        pt="xl"
         block
         maw="calc(var(--modal-size) - calc(var(--mantine-spacing-md) * 2))">
         {code}
