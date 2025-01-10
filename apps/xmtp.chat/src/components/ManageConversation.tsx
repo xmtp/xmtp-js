@@ -40,6 +40,30 @@ type ClassProperties<C> = {
 };
 type PolicySet = ClassProperties<PermissionPolicySet>;
 
+const defaultPolicySet: PolicySet = {
+  addAdminPolicy: PermissionPolicy.SuperAdmin,
+  addMemberPolicy: PermissionPolicy.Allow,
+  removeAdminPolicy: PermissionPolicy.SuperAdmin,
+  removeMemberPolicy: PermissionPolicy.Admin,
+  updateGroupNamePolicy: PermissionPolicy.Allow,
+  updateGroupDescriptionPolicy: PermissionPolicy.Allow,
+  updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
+  updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
+  updateMessageExpirationPolicy: PermissionPolicy.Admin,
+};
+
+const adminPolicySet: PolicySet = {
+  addAdminPolicy: PermissionPolicy.SuperAdmin,
+  addMemberPolicy: PermissionPolicy.Admin,
+  removeAdminPolicy: PermissionPolicy.SuperAdmin,
+  removeMemberPolicy: PermissionPolicy.Admin,
+  updateGroupNamePolicy: PermissionPolicy.Admin,
+  updateGroupDescriptionPolicy: PermissionPolicy.Admin,
+  updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
+  updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
+  updateMessageExpirationPolicy: PermissionPolicy.Admin,
+};
+
 export const ManageConversation: React.FC = () => {
   useBodyClass("main-flex-layout");
   const { conversationId } = useParams();
@@ -53,17 +77,8 @@ export const ManageConversation: React.FC = () => {
   const [addedMembers, setAddedMembers] = useState<string[]>([]);
   const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
   const [permissionsPolicy, setPermissionsPolicy] =
-    useState<GroupPermissionsOptions>(GroupPermissionsOptions.AllMembers);
-  const [policySet, setPolicySet] = useState<PolicySet>({
-    addAdminPolicy: PermissionPolicy.Admin,
-    addMemberPolicy: PermissionPolicy.Admin,
-    removeAdminPolicy: PermissionPolicy.Admin,
-    removeMemberPolicy: PermissionPolicy.Admin,
-    updateGroupDescriptionPolicy: PermissionPolicy.Allow,
-    updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
-    updateGroupNamePolicy: PermissionPolicy.Allow,
-    updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
-  });
+    useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
+  const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
   const [updateConversationError, setUpdateConversationError] = useState<
     string | null
   >(null);
@@ -76,7 +91,7 @@ export const ManageConversation: React.FC = () => {
   const [pinnedFrameUrl, setPinnedFrameUrl] = useState("");
 
   const policyTooltip = useMemo(() => {
-    if (permissionsPolicy === GroupPermissionsOptions.AllMembers) {
+    if (permissionsPolicy === GroupPermissionsOptions.Default) {
       return "All members of the group can perform group actions";
     } else if (permissionsPolicy === GroupPermissionsOptions.AdminOnly) {
       return "Only admins can perform group actions";
@@ -86,30 +101,12 @@ export const ManageConversation: React.FC = () => {
 
   useEffect(() => {
     if (
-      permissionsPolicy === GroupPermissionsOptions.AllMembers ||
+      permissionsPolicy === GroupPermissionsOptions.Default ||
       permissionsPolicy === GroupPermissionsOptions.CustomPolicy
     ) {
-      setPolicySet({
-        addAdminPolicy: PermissionPolicy.Admin,
-        addMemberPolicy: PermissionPolicy.Admin,
-        removeAdminPolicy: PermissionPolicy.Admin,
-        removeMemberPolicy: PermissionPolicy.Admin,
-        updateGroupDescriptionPolicy: PermissionPolicy.Allow,
-        updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
-        updateGroupNamePolicy: PermissionPolicy.Allow,
-        updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
-      });
+      setPolicySet(defaultPolicySet);
     } else {
-      setPolicySet({
-        addAdminPolicy: PermissionPolicy.Admin,
-        addMemberPolicy: PermissionPolicy.Admin,
-        removeAdminPolicy: PermissionPolicy.Admin,
-        removeMemberPolicy: PermissionPolicy.Admin,
-        updateGroupDescriptionPolicy: PermissionPolicy.Admin,
-        updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
-        updateGroupNamePolicy: PermissionPolicy.Admin,
-        updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
-      });
+      setPolicySet(adminPolicySet);
     }
   }, [permissionsPolicy]);
 
@@ -161,41 +158,41 @@ export const ManageConversation: React.FC = () => {
         permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
       ) {
         switch (permissionsPolicy) {
-          case GroupPermissionsOptions.AllMembers: {
+          case GroupPermissionsOptions.Default: {
             await conversation?.updatePermission(
               PermissionUpdateType.AddMember,
-              PermissionPolicy.Deny,
+              defaultPolicySet.addMemberPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.RemoveMember,
-              PermissionPolicy.Admin,
+              defaultPolicySet.removeMemberPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.AddAdmin,
-              PermissionPolicy.SuperAdmin,
+              defaultPolicySet.addAdminPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.RemoveAdmin,
-              PermissionPolicy.SuperAdmin,
+              defaultPolicySet.removeAdminPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Allow,
+              defaultPolicySet.updateGroupNamePolicy,
               MetadataField.GroupName,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Allow,
+              defaultPolicySet.updateGroupDescriptionPolicy,
               MetadataField.Description,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Allow,
+              defaultPolicySet.updateGroupImageUrlSquarePolicy,
               MetadataField.ImageUrlSquare,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Allow,
+              defaultPolicySet.updateGroupPinnedFrameUrlPolicy,
               MetadataField.PinnedFrameUrl,
             );
             break;
@@ -203,38 +200,38 @@ export const ManageConversation: React.FC = () => {
           case GroupPermissionsOptions.AdminOnly: {
             await conversation?.updatePermission(
               PermissionUpdateType.AddMember,
-              PermissionPolicy.Admin,
+              adminPolicySet.addMemberPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.RemoveMember,
-              PermissionPolicy.Admin,
+              adminPolicySet.removeMemberPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.AddAdmin,
-              PermissionPolicy.SuperAdmin,
+              adminPolicySet.addAdminPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.RemoveAdmin,
-              PermissionPolicy.SuperAdmin,
+              adminPolicySet.removeAdminPolicy,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Admin,
+              adminPolicySet.updateGroupNamePolicy,
               MetadataField.GroupName,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Admin,
+              adminPolicySet.updateGroupDescriptionPolicy,
               MetadataField.Description,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Admin,
+              adminPolicySet.updateGroupImageUrlSquarePolicy,
               MetadataField.ImageUrlSquare,
             );
             await conversation?.updatePermission(
               PermissionUpdateType.UpdateMetadata,
-              PermissionPolicy.Admin,
+              adminPolicySet.updateGroupPinnedFrameUrlPolicy,
               MetadataField.PinnedFrameUrl,
             );
           }
@@ -312,31 +309,13 @@ export const ManageConversation: React.FC = () => {
           const permissions = await conversation.permissions();
           const policyType = permissions.policyType;
           switch (policyType) {
-            case GroupPermissionsOptions.AllMembers:
-              setPermissionsPolicy(GroupPermissionsOptions.AllMembers);
-              setPolicySet({
-                addAdminPolicy: PermissionPolicy.Admin,
-                addMemberPolicy: PermissionPolicy.Admin,
-                removeAdminPolicy: PermissionPolicy.Admin,
-                removeMemberPolicy: PermissionPolicy.Admin,
-                updateGroupDescriptionPolicy: PermissionPolicy.Allow,
-                updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
-                updateGroupNamePolicy: PermissionPolicy.Allow,
-                updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
-              });
+            case GroupPermissionsOptions.Default:
+              setPermissionsPolicy(GroupPermissionsOptions.Default);
+              setPolicySet(defaultPolicySet);
               break;
             case GroupPermissionsOptions.AdminOnly:
               setPermissionsPolicy(GroupPermissionsOptions.AdminOnly);
-              setPolicySet({
-                addAdminPolicy: PermissionPolicy.Admin,
-                addMemberPolicy: PermissionPolicy.Admin,
-                removeAdminPolicy: PermissionPolicy.Admin,
-                removeMemberPolicy: PermissionPolicy.Admin,
-                updateGroupDescriptionPolicy: PermissionPolicy.Admin,
-                updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
-                updateGroupNamePolicy: PermissionPolicy.Admin,
-                updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
-              });
+              setPolicySet(adminPolicySet);
               break;
             case GroupPermissionsOptions.CustomPolicy:
               setPermissionsPolicy(GroupPermissionsOptions.CustomPolicy);
@@ -486,7 +465,7 @@ export const ManageConversation: React.FC = () => {
                             );
                           }}
                           data={[
-                            { value: "0", label: "All members" },
+                            { value: "0", label: "Default" },
                             { value: "1", label: "Admins only" },
                             { value: "2", label: "Custom policy" },
                           ]}
