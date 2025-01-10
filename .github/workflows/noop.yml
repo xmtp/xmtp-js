@@ -15,6 +15,7 @@ on:
       - "!.github/workflows/content-types.yml"
       - ".vscode/**"
       - ".yarn/**"
+      - "apps/xmtp.chat/**"
       - "*"
       - "!.node-version"
       - "!.nvmrc"
