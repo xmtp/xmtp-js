@@ -429,6 +429,7 @@ describe.concurrent("Conversation", () => {
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupPinnedFrameUrlPolicy: 0,
+      updateMessageExpirationPolicy: 2,
     });
 
     await conversation.updatePermission(
@@ -485,6 +486,7 @@ describe.concurrent("Conversation", () => {
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
       updateGroupPinnedFrameUrlPolicy: 2,
+      updateMessageExpirationPolicy: 2,
     });
   });
 });

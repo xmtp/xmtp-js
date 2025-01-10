@@ -2,6 +2,7 @@ import type { Conversation, Conversations } from "@xmtp/wasm-bindings";
 import {
   fromSafeCreateGroupOptions,
   fromSafeListConversationsOptions,
+  type HmacKeys,
   type SafeCreateGroupOptions,
   type SafeListConversationsOptions,
 } from "@/utils/conversions";
@@ -88,5 +89,9 @@ export class WorkerConversations {
   async newDm(accountAddress: string) {
     const group = await this.#conversations.createDm(accountAddress);
     return new WorkerConversation(this.#client, group);
+  }
+
+  getHmacKeys() {
+    return this.#conversations.getHmacKeys() as HmacKeys;
   }
 }

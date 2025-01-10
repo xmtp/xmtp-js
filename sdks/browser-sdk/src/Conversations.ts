@@ -95,4 +95,8 @@ export class Conversations {
 
     return new Conversation(this.#client, conversation.id, conversation);
   }
+
+  async getHmacKeys() {
+    return this.#client.sendMessage("getHmacKeys", undefined);
+  }
 }

@@ -8,6 +8,7 @@ import {
   fromEncodedContent,
   fromSafeEncodedContent,
   toSafeConversation,
+  toSafeHmacKey,
   toSafeInboxState,
   toSafeMessage,
 } from "@/utils/conversions";
@@ -373,6 +374,20 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           result: conversation
             ? await toSafeConversation(conversation)
             : undefined,
+        });
+        break;
+      }
+      case "getHmacKeys": {
+        const result = client.conversations.getHmacKeys();
+        postMessage({
+          id,
+          action,
+          result: Object.fromEntries(
+            Array.from(result.entries()).map(([groupId, hmacKeys]) => [
+              groupId,
+              hmacKeys.map(toSafeHmacKey),
+            ]),
+          ),
         });
         break;
       }
