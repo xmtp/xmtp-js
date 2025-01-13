@@ -134,6 +134,10 @@ export const NewConversation: React.FC = () => {
               ? policySet
               : undefined,
         });
+    // automatically sync when creating a group with no members
+    if (!isDmGroup && members.length === 0) {
+      await conversation.sync();
+    }
     void navigate(`/conversations/${conversation.id}`);
   };
 
