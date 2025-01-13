@@ -1,5 +1,6 @@
 import {
   ConsentState,
+  GroupPermissionsOptions,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
@@ -413,8 +414,10 @@ describe.concurrent("Conversation", () => {
   it("should update group permission policy", async () => {
     const user1 = createUser();
     const user2 = createUser();
+    const user3 = createUser();
     const client1 = await createRegisteredClient(user1);
     await createRegisteredClient(user2);
+    await createRegisteredClient(user3);
     const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
@@ -482,6 +485,44 @@ describe.concurrent("Conversation", () => {
       removeMemberPolicy: 3,
       addAdminPolicy: 2,
       removeAdminPolicy: 2,
+      updateGroupNamePolicy: 2,
+      updateGroupDescriptionPolicy: 2,
+      updateGroupImageUrlSquarePolicy: 2,
+      updateGroupPinnedFrameUrlPolicy: 2,
+      updateMessageExpirationPolicy: 2,
+    });
+
+    const conversation2 = await client1.conversations.newGroup([], {
+      permissions: GroupPermissionsOptions.AdminOnly,
+    });
+
+    const permissions3 = await conversation2.permissions();
+    expect(permissions3.policySet).toEqual({
+      addMemberPolicy: 2,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 2,
+      updateGroupDescriptionPolicy: 2,
+      updateGroupImageUrlSquarePolicy: 2,
+      updateGroupPinnedFrameUrlPolicy: 2,
+      updateMessageExpirationPolicy: 2,
+    });
+
+    // required when group has no members
+    await conversation2.sync();
+
+    await conversation2.updatePermission(
+      PermissionUpdateType.AddMember,
+      PermissionPolicy.Allow,
+    );
+
+    const permissions4 = await conversation2.permissions();
+    expect(permissions4.policySet).toEqual({
+      addMemberPolicy: 0,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
       updateGroupNamePolicy: 2,
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
