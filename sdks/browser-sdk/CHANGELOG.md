@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- c91612d: Add support for HMAC keys (browser)
+- c91612d: Added support for HMAC keys
 
 ## 0.0.13
 
