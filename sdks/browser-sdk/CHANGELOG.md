@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.14
+
+### Patch Changes
+
+- c91612d: Add support for HMAC keys (browser)
+
 ## 0.0.13
 
 ### Patch Changes
