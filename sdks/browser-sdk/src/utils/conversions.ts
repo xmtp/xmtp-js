@@ -18,6 +18,7 @@ import {
   type DeliveryStatus,
   type GroupMembershipState,
   type GroupMessageKind,
+  type HmacKey,
   type InboxState,
   type Installation,
   type Message,
@@ -210,6 +211,7 @@ export type SafePermissionPolicySet = {
   updateGroupImageUrlSquarePolicy: PermissionPolicy;
   updateGroupNamePolicy: PermissionPolicy;
   updateGroupPinnedFrameUrlPolicy: PermissionPolicy;
+  updateMessageExpirationPolicy: PermissionPolicy;
 };
 
 export const toSafePermissionPolicySet = (
@@ -223,6 +225,7 @@ export const toSafePermissionPolicySet = (
   updateGroupImageUrlSquarePolicy: policySet.updateGroupImageUrlSquarePolicy,
   updateGroupNamePolicy: policySet.updateGroupNamePolicy,
   updateGroupPinnedFrameUrlPolicy: policySet.updateGroupPinnedFrameUrlPolicy,
+  updateMessageExpirationPolicy: policySet.updateMessageExpirationPolicy,
 });
 
 export const fromSafePermissionPolicySet = (
@@ -237,6 +240,7 @@ export const fromSafePermissionPolicySet = (
     policySet.updateGroupDescriptionPolicy,
     policySet.updateGroupImageUrlSquarePolicy,
     policySet.updateGroupPinnedFrameUrlPolicy,
+    policySet.updateMessageExpirationPolicy,
   );
 
 export type SafeCreateGroupOptions = {
@@ -292,6 +296,7 @@ export type SafeConversation = {
       updateGroupImageUrlSquarePolicy: PermissionPolicy;
       updateGroupNamePolicy: PermissionPolicy;
       updateGroupPinnedFrameUrlPolicy: PermissionPolicy;
+      updateMessageExpirationPolicy: PermissionPolicy;
     };
   };
   isActive: boolean;
@@ -328,6 +333,8 @@ export const toSafeConversation = async (
         conversation.permissions.policySet.updateGroupNamePolicy,
       updateGroupPinnedFrameUrlPolicy:
         conversation.permissions.policySet.updateGroupPinnedFrameUrlPolicy,
+      updateMessageExpirationPolicy:
+        conversation.permissions.policySet.updateMessageExpirationPolicy,
     },
   },
   isActive: conversation.isActive,
@@ -405,3 +412,16 @@ export const fromSafeGroupMember = (member: SafeGroupMember): GroupMember =>
     member.permissionLevel,
     member.consentState,
   );
+
+export type SafeHmacKey = {
+  key: Uint8Array;
+  epoch: bigint;
+};
+
+export const toSafeHmacKey = (hmacKey: HmacKey): SafeHmacKey => ({
+  key: hmacKey.key,
+  epoch: hmacKey.epoch,
+});
+
+export type HmacKeys = Map<string, HmacKey[]>;
+export type SafeHmacKeys = Record<string, SafeHmacKey[]>;

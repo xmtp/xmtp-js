@@ -22,6 +22,7 @@ import type {
   SafeCreateGroupOptions,
   SafeEncodedContent,
   SafeGroupMember,
+  SafeHmacKeys,
   SafeInboxState,
   SafeListConversationsOptions,
   SafeListMessagesOptions,
@@ -274,6 +275,12 @@ export type ClientEvents =
       action: "syncAllConversations";
       id: string;
       result: undefined;
+      data: undefined;
+    }
+  | {
+      action: "getHmacKeys";
+      id: string;
+      result: SafeHmacKeys;
       data: undefined;
     }
   /**

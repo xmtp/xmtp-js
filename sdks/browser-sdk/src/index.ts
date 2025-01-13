@@ -34,6 +34,7 @@ export {
   SortDirection,
   Consent,
   ContentTypeId,
+  HmacKey,
 } from "@xmtp/wasm-bindings";
 export {
   isSmartContractSigner,

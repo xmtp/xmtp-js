@@ -43,7 +43,7 @@ export const NewConversation: React.FC = () => {
   const [members, setMembers] = useState<string[]>([]);
   const [isDmGroup, setIsDmGroup] = useState(false);
   const [permissionsPolicy, setPermissionsPolicy] =
-    useState<GroupPermissionsOptions>(GroupPermissionsOptions.AllMembers);
+    useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
   const [policySet, setPolicySet] = useState<PolicySet>({
     addAdminPolicy: PermissionPolicy.Admin,
     addMemberPolicy: PermissionPolicy.Admin,
@@ -53,6 +53,7 @@ export const NewConversation: React.FC = () => {
     updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
     updateGroupNamePolicy: PermissionPolicy.Allow,
     updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
+    updateMessageExpirationPolicy: PermissionPolicy.Allow,
   });
   const [createConversationError, setCreateConversationError] = useState<
     string | null
@@ -64,7 +65,7 @@ export const NewConversation: React.FC = () => {
   const [pinnedFrameUrl, setPinnedFrameUrl] = useState("");
 
   const policyTooltip = useMemo(() => {
-    if (permissionsPolicy === GroupPermissionsOptions.AllMembers) {
+    if (permissionsPolicy === GroupPermissionsOptions.Default) {
       return "All members of the group can perform group actions";
     } else if (permissionsPolicy === GroupPermissionsOptions.AdminOnly) {
       return "Only admins can perform group actions";
@@ -74,7 +75,7 @@ export const NewConversation: React.FC = () => {
 
   useEffect(() => {
     if (
-      permissionsPolicy === GroupPermissionsOptions.AllMembers ||
+      permissionsPolicy === GroupPermissionsOptions.Default ||
       permissionsPolicy === GroupPermissionsOptions.CustomPolicy
     ) {
       setPolicySet({
@@ -86,6 +87,7 @@ export const NewConversation: React.FC = () => {
         updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
         updateGroupNamePolicy: PermissionPolicy.Allow,
         updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
+        updateMessageExpirationPolicy: PermissionPolicy.Admin,
       });
     } else {
       setPolicySet({
@@ -97,6 +99,7 @@ export const NewConversation: React.FC = () => {
         updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
         updateGroupNamePolicy: PermissionPolicy.Admin,
         updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
+        updateMessageExpirationPolicy: PermissionPolicy.Admin,
       });
     }
   }, [permissionsPolicy]);
@@ -131,6 +134,10 @@ export const NewConversation: React.FC = () => {
               ? policySet
               : undefined,
         });
+    // automatically sync when creating a group with no members
+    if (!isDmGroup && members.length === 0) {
+      await conversation.sync();
+    }
     void navigate(`/conversations/${conversation.id}`);
   };
 
@@ -258,7 +265,7 @@ export const NewConversation: React.FC = () => {
                             );
                           }}
                           data={[
-                            { value: "0", label: "All members" },
+                            { value: "0", label: "Default" },
                             { value: "1", label: "Admins only" },
                             { value: "2", label: "Custom policy" },
                           ]}

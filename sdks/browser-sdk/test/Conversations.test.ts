@@ -30,7 +30,7 @@ describe.concurrent("Conversations", () => {
     expect(conversation.isActive).toBe(true);
     expect(conversation.name).toBe("");
     const permissions = await conversation.permissions();
-    expect(permissions.policyType).toBe(GroupPermissionsOptions.AllMembers);
+    expect(permissions.policyType).toBe(GroupPermissionsOptions.Default);
     expect(permissions.policySet).toEqual({
       addMemberPolicy: 0,
       removeMemberPolicy: 2,
@@ -40,6 +40,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupPinnedFrameUrlPolicy: 0,
+      updateMessageExpirationPolicy: 2,
     });
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
     expect((await conversation.messages()).length).toBe(1);
@@ -93,6 +94,7 @@ describe.concurrent("Conversations", () => {
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupNamePolicy: 0,
       updateGroupPinnedFrameUrlPolicy: 0,
+      updateMessageExpirationPolicy: 0,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(0);
@@ -235,6 +237,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
       updateGroupPinnedFrameUrlPolicy: 2,
+      updateMessageExpirationPolicy: 2,
     });
 
     const groupWithDescription = await client1.conversations.newGroup(
@@ -279,6 +282,7 @@ describe.concurrent("Conversations", () => {
           updateGroupDescriptionPolicy: 1,
           updateGroupImageUrlSquarePolicy: 1,
           updateGroupPinnedFrameUrlPolicy: 1,
+          updateMessageExpirationPolicy: 1,
         },
       },
     );
@@ -295,6 +299,41 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 1,
       updateGroupImageUrlSquarePolicy: 1,
       updateGroupPinnedFrameUrlPolicy: 1,
+      updateMessageExpirationPolicy: 1,
+    });
+  });
+
+  it("should get conversation HMAC keys", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const user4 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    await createRegisteredClient(user2);
+    await createRegisteredClient(user3);
+    await createRegisteredClient(user4);
+    const group1 = await client1.conversations.newGroup([
+      user2.account.address,
+    ]);
+    const group2 = await client1.conversations.newGroup([
+      user3.account.address,
+    ]);
+    const group3 = await client1.conversations.newGroup([
+      user4.account.address,
+    ]);
+    const hmacKeys = await client1.conversations.getHmacKeys();
+    expect(hmacKeys).toBeDefined();
+    const groupIds = Object.keys(hmacKeys);
+    expect(groupIds).toContain(group1.id);
+    expect(groupIds).toContain(group2.id);
+    expect(groupIds).toContain(group3.id);
+    Object.values(hmacKeys).forEach((keys) => {
+      keys.forEach((key) => {
+        expect(key.epoch).toBeDefined();
+        expect(key.epoch).toBeGreaterThan(0);
+        expect(key.key).toBeDefined();
+        expect(key.key.length).toBe(42);
+      });
     });
   });
 });

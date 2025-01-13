@@ -12,5 +12,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@xmtp/react-vite-browser-sdk-example"]
+  "ignore": ["@xmtp/xmtp.chat"]
 }
