@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.15
+
+### Patch Changes
+
+- cf6fbc0: Add history sync URL to client
+
 ## 0.0.14
 
 ### Patch Changes

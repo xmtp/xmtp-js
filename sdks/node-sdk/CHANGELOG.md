@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.38
+
+### Patch Changes
+
+- cf6fbc0: Add history sync URL to client
+
 ## 0.0.37
 
 ### Patch Changes
