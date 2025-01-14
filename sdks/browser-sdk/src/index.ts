@@ -4,7 +4,7 @@ export { Conversation } from "./Conversation";
 export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
 export { Utils } from "./Utils";
-export { ApiUrls } from "./constants";
+export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types";
 export * from "./utils/conversions";
 export {

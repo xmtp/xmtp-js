@@ -16,6 +16,18 @@ export type NetworkOptions = {
    * specific endpoint
    */
   apiUrl?: string;
+  /**
+   * historySyncUrl can be used to override the `env` flag and connect to a
+   * specific endpoint for syncing history
+   */
+  historySyncUrl?: string;
+};
+
+export type ContentOptions = {
+  /**
+   * Allow configuring codecs for additional content types
+   */
+  codecs?: ContentCodec[];
 };
 
 /**
@@ -26,13 +38,6 @@ export type StorageOptions = {
    * Path to the local DB
    */
   dbPath?: string;
-};
-
-export type ContentOptions = {
-  /**
-   * Allow configuring codecs for additional content types
-   */
-  codecs?: ContentCodec[];
 };
 
 export type OtherOptions = {
@@ -55,6 +60,6 @@ export type OtherOptions = {
 };
 
 export type ClientOptions = NetworkOptions &
-  StorageOptions &
   ContentOptions &
+  StorageOptions &
   OtherOptions;

@@ -4,7 +4,7 @@ import init, {
   getInboxIdForAddress,
   LogOptions,
 } from "@xmtp/wasm-bindings";
-import { ApiUrls } from "@/constants";
+import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types";
 
 export const createClient = async (
@@ -16,10 +16,6 @@ export const createClient = async (
   await init();
 
   const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
-  // TODO: add db path validation
-  //       - must end with .db3
-  //       - must not contain invalid characters
-  //       - must not start with a dot
   const dbPath =
     options?.dbPath ?? `xmtp-${options?.env ?? "dev"}-${accountAddress}.db3`;
 
@@ -33,13 +29,16 @@ export const createClient = async (
       options.structuredLogging ||
       options.performanceLogging);
 
+  const historySyncUrl =
+    options?.historySyncUrl ?? HistorySyncUrls[options?.env ?? "dev"];
+
   return createWasmClient(
     host,
     inboxId,
     accountAddress,
     dbPath,
     encryptionKey,
-    undefined,
+    historySyncUrl,
     isLogging
       ? new LogOptions(
           options.structuredLogging ?? false,
