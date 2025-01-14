@@ -274,6 +274,7 @@ export class DecodedMessage<ContentTypes = any> {
 
   toBytes(): Uint8Array {
     return proto.DecodedMessage.encode({
+      // eslint-disable-next-line @typescript-eslint/no-misused-spread
       ...this,
       conversation: {
         topic: this.conversation.topic,
