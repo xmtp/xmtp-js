@@ -5,7 +5,7 @@ export type {
   StorageOptions,
   XmtpEnv,
 } from "./Client";
-export { Client, ApiUrls } from "./Client";
+export { Client, ApiUrls, HistorySyncUrls } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
 export { DecodedMessage } from "./DecodedMessage";

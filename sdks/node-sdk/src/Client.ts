@@ -35,6 +35,12 @@ export const ApiUrls = {
   production: "https://grpc.production.xmtp.network:443",
 } as const;
 
+export const HistorySyncUrls = {
+  local: "http://localhost:5558",
+  dev: "https://message-history.dev.ephemera.network",
+  production: "https://message-history.production.ephemera.network",
+} as const;
+
 export type XmtpEnv = keyof typeof ApiUrls;
 
 /**
@@ -50,6 +56,11 @@ export type NetworkOptions = {
    * specific endpoint
    */
   apiUrl?: string;
+  /**
+   * historySyncUrl can be used to override the `env` flag and connect to a
+   * specific endpoint for syncing history
+   */
+  historySyncUrl?: string;
 };
 
 /**
@@ -70,10 +81,6 @@ export type ContentOptions = {
 };
 
 export type OtherOptions = {
-  /**
-   * Optionally set the request history sync URL
-   */
-  requestHistorySync?: string;
   /**
    * Enable structured JSON logging
    */
@@ -132,6 +139,9 @@ export class Client {
       level: options?.loggingLevel ?? LogLevel.off,
     };
 
+    const historySyncUrl =
+      options?.historySyncUrl ?? HistorySyncUrls[options?.env ?? "dev"];
+
     const client = new Client(
       await createClient(
         host,
@@ -140,7 +150,7 @@ export class Client {
         inboxId,
         accountAddress,
         encryptionKey,
-        options?.requestHistorySync,
+        historySyncUrl,
         logOptions,
       ),
       signer,
