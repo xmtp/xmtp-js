@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.15
+
+### Patch Changes
+
+- cf6fbc0: Added default history sync URL to client with option to override
+
 ## 0.0.14
 
 ### Patch Changes

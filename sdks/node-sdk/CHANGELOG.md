@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.38
+
+### Patch Changes
+
+- cf6fbc0: Added default history sync URL to client with option to override
+
 ## 0.0.37
 
 ### Patch Changes
