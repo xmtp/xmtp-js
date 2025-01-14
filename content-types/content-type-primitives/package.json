@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.1",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "^20.17.13",
     "happy-dom": "^16.5.3",
     "rimraf": "^6.0.1",

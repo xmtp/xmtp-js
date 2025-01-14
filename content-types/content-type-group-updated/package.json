@@ -69,7 +69,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.1",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "^20.17.13",
     "buffer": "^6.0.3",
     "ethers": "^6.11.1",

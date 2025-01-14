@@ -107,7 +107,7 @@
     "@metamask/providers": "^17.1.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.1",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@types/benchmark": "^2.1.5",
     "@types/bl": "^5.1.4",
     "@types/callback-to-async-iterator": "^1.1.7",

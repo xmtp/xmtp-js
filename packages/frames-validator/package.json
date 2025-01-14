@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@open-frames/types": "^0.1.1",
-    "@rollup/plugin-typescript": "^12.1.1",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@types/bl": "^5.1.4",
     "@xmtp/frames-client": "^1.0.1",
     "@xmtp/xmtp-js": "^12.1.0",

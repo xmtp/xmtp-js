@@ -1045,15 +1045,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/compat@npm:^1.2.3":
-  version: 1.2.3
-  resolution: "@eslint/compat@npm:1.2.3"
+"@eslint/compat@npm:^1.2.5":
+  version: 1.2.5
+  resolution: "@eslint/compat@npm:1.2.5"
   peerDependencies:
     eslint: ^9.10.0
   peerDependenciesMeta:
     eslint:
       optional: true
-  checksum: 10/5a8fc6ecb127a1ce757c2b94e4a71fd72939c3e9007eb80c0a819618e1c7cc98ffe3e5229a504c52e6f5b5dc0f6be3b899fa6a3dedb220cb4a02c8d5d0c333df
+  checksum: 10/bb4370ca995fcc69d7a657cd478ff0cf2b0d3efe78e45818509917e3a6e73bdc706d3830ccda6aa46c3968e99170feb44fe8eb4314b6c9fa9bcb76d4a2fd4f8c
   languageName: node
   linkType: hard
 
@@ -1094,17 +1094,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.18.0":
+"@eslint/js@npm:9.18.0, @eslint/js@npm:^9.18.0":
   version: 9.18.0
   resolution: "@eslint/js@npm:9.18.0"
   checksum: 10/364a7d030dad9dbda1458d8dbcea0199fe7d48bcfefe4b49389df6c45cdc5a2449f70e5d8a794e46ed9fb34af3fe5a3f53e30020d306b6ee791e2a1b2b9fa25f
-  languageName: node
-  linkType: hard
-
-"@eslint/js@npm:^9.15.0":
-  version: 9.15.0
-  resolution: "@eslint/js@npm:9.15.0"
-  checksum: 10/cdea71574a8be164147f426ffa5eca05a9c7fbfbae98387ed0cf772292fc9fb5ded69ce96eac110aaa633f6b7504ec551e1d33f2d6690ae95b11ec395553bae1
   languageName: node
   linkType: hard
 
@@ -2861,9 +2854,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-typescript@npm:^12.1.1":
-  version: 12.1.1
-  resolution: "@rollup/plugin-typescript@npm:12.1.1"
+"@rollup/plugin-typescript@npm:^12.1.2":
+  version: 12.1.2
+  resolution: "@rollup/plugin-typescript@npm:12.1.2"
   dependencies:
     "@rollup/pluginutils": "npm:^5.1.0"
     resolve: "npm:^1.22.1"
@@ -2876,7 +2869,7 @@ __metadata:
       optional: true
     tslib:
       optional: true
-  checksum: 10/838d5e67d1b383154fab7ae1b0c58e91844c70380210b12c1d5f2ed5d2264d4fbd21ff991a13a4a72078dce897b5c482c70554a21671269219aa9d2525f14dcd
+  checksum: 10/1fd201b9430125686bcdb3eecfa4f8d9d5005a9d454f2d733c0fdc0f58e28f772209ecbfe4f5d1a42a2a7ac25746a5f37d15897d695326eaea0fe3a30857375d
   languageName: node
   linkType: hard
 
@@ -4692,7 +4685,7 @@ __metadata:
   resolution: "@xmtp/browser-sdk@workspace:sdks/browser-sdk"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@types/uuid": "npm:^10.0.0"
@@ -4735,7 +4728,7 @@ __metadata:
   resolution: "@xmtp/consent-proof-signature@workspace:packages/consent-proof-signature"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@xmtp/proto": "npm:^3.72.0"
     ethers: "npm:^6.13.1"
     long: "npm:^5.2.3"
@@ -4755,7 +4748,7 @@ __metadata:
   resolution: "@xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/proto": "npm:^3.72.0"
@@ -4786,7 +4779,7 @@ __metadata:
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/proto": "npm:^3.72.0"
     happy-dom: "npm:^16.5.3"
@@ -4805,7 +4798,7 @@ __metadata:
   resolution: "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
@@ -4827,7 +4820,7 @@ __metadata:
   resolution: "@xmtp/content-type-read-receipt@workspace:content-types/content-type-read-receipt"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
@@ -4850,7 +4843,7 @@ __metadata:
   dependencies:
     "@noble/secp256k1": "npm:^1.7.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/proto": "npm:^3.72.0"
@@ -4874,7 +4867,7 @@ __metadata:
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/content-type-remote-attachment": "workspace:*"
@@ -4907,7 +4900,7 @@ __metadata:
   resolution: "@xmtp/content-type-text@workspace:content-types/content-type-text"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
@@ -4929,7 +4922,7 @@ __metadata:
   resolution: "@xmtp/content-type-transaction-reference@workspace:content-types/content-type-transaction-reference"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/xmtp-js": "npm:^11.6.3"
@@ -4954,7 +4947,7 @@ __metadata:
     "@open-frames/proxy-client": "npm:^0.3.3"
     "@open-frames/types": "npm:^0.1.1"
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@xmtp/node-sdk": "npm:^0.0.32"
     "@xmtp/proto": "npm:^3.72.3"
     "@xmtp/xmtp-js": "npm:^12.0.0"
@@ -4984,7 +4977,7 @@ __metadata:
     "@noble/curves": "npm:^1.3.0"
     "@noble/hashes": "npm:^1.4.0"
     "@open-frames/types": "npm:^0.1.1"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/bl": "npm:^5.1.4"
     "@xmtp/frames-client": "npm:^1.0.1"
     "@xmtp/node-sdk": "npm:^0.0.32"
@@ -5033,7 +5026,7 @@ __metadata:
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^20.17.13"
     "@vitest/coverage-v8": "npm:^2.1.3"
     "@xmtp/content-type-group-updated": "npm:^2.0.0"
@@ -5175,7 +5168,7 @@ __metadata:
     "@noble/secp256k1": "npm:1.7.1"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-terser": "npm:^0.4.4"
-    "@rollup/plugin-typescript": "npm:^12.1.1"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/benchmark": "npm:^2.1.5"
     "@types/bl": "npm:^5.1.4"
     "@types/callback-to-async-iterator": "npm:^1.1.7"
@@ -13345,8 +13338,8 @@ __metadata:
   dependencies:
     "@changesets/changelog-git": "npm:^0.2.0"
     "@changesets/cli": "npm:^2.27.11"
-    "@eslint/compat": "npm:^1.2.3"
-    "@eslint/js": "npm:^9.15.0"
+    "@eslint/compat": "npm:^1.2.5"
+    "@eslint/js": "npm:^9.18.0"
     "@ianvs/prettier-plugin-sort-imports": "npm:^4.4.0"
     "@types/eslint__js": "npm:^8.42.3"
     "@types/node": "npm:^20.17.13"
