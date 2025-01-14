@@ -75,7 +75,7 @@
     "@xmtp/xmtp-js": "^11.6.3",
     "buffer": "^6.0.3",
     "ethers": "^6.11.1",
-    "happy-dom": "^15.11.6",
+    "happy-dom": "^16.5.3",
     "rimraf": "^6.0.1",
     "rollup": "^4.30.1",
     "rollup-plugin-dts": "^6.1.1",
