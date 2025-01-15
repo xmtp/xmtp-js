@@ -16,6 +16,7 @@ export async function decompress(
     .pipeThrough(
       new DecompressionStream(compressionIdFromCode(encoded.compression)),
     )
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     .pipeTo(writeStreamToBytes(sink, maxSize));
   encoded.content = sink.bytes;
 }
@@ -29,6 +30,7 @@ export async function compress(encoded: proto.EncodedContent): Promise<void> {
     .pipeThrough(
       new CompressionStream(compressionIdFromCode(encoded.compression)),
     )
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     .pipeTo(writeStreamToBytes(sink, encoded.content.length + 1000));
   encoded.content = sink.bytes;
 }

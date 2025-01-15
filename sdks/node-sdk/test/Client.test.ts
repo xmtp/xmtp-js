@@ -10,7 +10,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe("Client", () => {
+describe.concurrent("Client", () => {
   it("should create a client", async () => {
     const user = createUser();
     const client = await createClient(user);

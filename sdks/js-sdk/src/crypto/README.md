@@ -60,20 +60,20 @@ If the message was tampered with or the key signatures don't check out, the deco
 let secret = await recipient.sharedSecret(
   senderPublic,
   recipientPublic.preKey,
-  true
-)
-let payload = await decrypt(bytes, secret)
+  true,
+);
+let payload = await decrypt(bytes, secret);
 
 // sender's address can be derived from the key bundle
-let address = senderPublic.walletSignatureAddress()
+let address = senderPublic.walletSignatureAddress();
 
 // the sender can also decrypt the payload deriving the secret the same way as for encryption.
 let secret = await sender.sharedSecret(
   recipientPublic,
   senderPublic.preKey,
-  false
-)
-let payload = await decrypt(bytes, secret)
+  false,
+);
+let payload = await decrypt(bytes, secret);
 ```
 
 ## Implementation Notes

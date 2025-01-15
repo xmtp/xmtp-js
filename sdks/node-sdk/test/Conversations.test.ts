@@ -2,7 +2,7 @@ import { ConsentState, GroupPermissionsOptions } from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
-describe("Conversations", () => {
+describe.concurrent("Conversations", () => {
   it("should not have initial conversations", async () => {
     const user = createUser();
     const client = await createRegisteredClient(user);

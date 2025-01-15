@@ -494,6 +494,7 @@ describe("conversation", () => {
 
       // alice tries to send version that is not supported
       const type2 = new ContentTypeId({
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
         ...ContentTypeTestKey,
         versionMajor: 2,
       });
@@ -805,6 +806,7 @@ describe("conversation", () => {
 
       // alice tries to send version that is not supported
       const type2 = new ContentTypeId({
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
         ...ContentTypeTestKey,
         versionMajor: 2,
       });
