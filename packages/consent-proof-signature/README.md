@@ -1,5 +1,12 @@
 # Consent Proof Signature
 
+![Status](https://img.shields.io/badge/Deprecated-brown)
+
+> [!CAUTION]
+> The Consent Proof Signature package is no longer maintained.
+
+The documentation below is provided for reference only.
+
 ## Usage
 
 ```ts
