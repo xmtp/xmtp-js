@@ -73,7 +73,7 @@
     "@types/node": "^22.10.6",
     "buffer": "^6.0.3",
     "ethers": "^6.11.1",
-    "happy-dom": "^16.5.3",
+    "happy-dom": "^16.6.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.30.1",
     "rollup-plugin-dts": "^6.1.1",

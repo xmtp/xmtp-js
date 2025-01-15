@@ -4754,7 +4754,7 @@ __metadata:
     "@xmtp/proto": "npm:^3.72.0"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4782,7 +4782,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.10.6"
     "@xmtp/proto": "npm:^3.72.0"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4804,7 +4804,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4826,7 +4826,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4851,7 +4851,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4875,7 +4875,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4906,7 +4906,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4928,7 +4928,7 @@ __metadata:
     "@xmtp/xmtp-js": "npm:^11.6.3"
     buffer: "npm:^6.0.3"
     ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -5185,7 +5185,7 @@ __metadata:
     benny: "npm:^3.7.1"
     elliptic: "npm:^6.5.7"
     ethers: "npm:^5.7.2"
-    happy-dom: "npm:^16.5.3"
+    happy-dom: "npm:^16.6.0"
     long: "npm:^5.2.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"
@@ -6903,9 +6903,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-prettier@npm:^5.2.1":
-  version: 5.2.1
-  resolution: "eslint-plugin-prettier@npm:5.2.1"
+"eslint-plugin-prettier@npm:^5.2.2":
+  version: 5.2.2
+  resolution: "eslint-plugin-prettier@npm:5.2.2"
   dependencies:
     prettier-linter-helpers: "npm:^1.0.0"
     synckit: "npm:^0.9.1"
@@ -6919,7 +6919,7 @@ __metadata:
       optional: true
     eslint-config-prettier:
       optional: true
-  checksum: 10/10ddf68215237e327af09a47adab4c63f3885fda4fb28c4c42d1fc5f47d8a0cc45df6484799360ff1417a0aa3c77c3aaac49d7e9dfd145557b17e2d7ecc2a27c
+  checksum: 10/292569865fde6a91646037f58105c18225f5cd57e255966f8388b13c196ce023f84e22100408dcd30472c02d0846a897b8afe460ece57dfc23e80e6cac70a644
   languageName: node
   linkType: hard
 
@@ -7829,13 +7829,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^16.5.3":
-  version: 16.5.3
-  resolution: "happy-dom@npm:16.5.3"
+"happy-dom@npm:^16.6.0":
+  version: 16.6.0
+  resolution: "happy-dom@npm:16.6.0"
   dependencies:
     webidl-conversions: "npm:^7.0.0"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10/414e45e816c9f3efdc7f9cef3f017fbf8032fc5a5368bd6b98be8e9bb39999ed189f7d0b03a45c6464557f263f0791a041c40ac2cc78a5cea79e3ae68591aabf
+  checksum: 10/41574aaec650d85c97da7620f2914400a2c7873922b5927332a80608c85ce725cf6c8622c48445a800533b63f3dd570ac74f54967ac27b1ca1be3c5749507ebb
   languageName: node
   linkType: hard
 
@@ -13368,7 +13368,7 @@ __metadata:
     "@types/node": "npm:^22.10.6"
     eslint: "npm:^9.18.0"
     eslint-config-prettier: "npm:^10.0.1"
-    eslint-plugin-prettier: "npm:^5.2.1"
+    eslint-plugin-prettier: "npm:^5.2.2"
     globals: "npm:^15.14.0"
     prettier: "npm:^3.4.2"
     prettier-plugin-packagejson: "npm:^2.5.7"
