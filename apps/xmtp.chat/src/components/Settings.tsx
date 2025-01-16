@@ -1,6 +1,7 @@
 import { Button, FocusTrap, Popover, Stack, useMatches } from "@mantine/core";
 import React, { useEffect, useRef } from "react";
 import { IconSettings } from "../icons/IconSettings";
+import { DisableAnalytics } from "./DisableAnalytics";
 import { LoggingSelect } from "./LoggingSelect";
 import { NetworkSelect } from "./NetworkSelect";
 import { useRefManager } from "./RefManager";
@@ -36,6 +37,7 @@ export const Settings: React.FC = () => {
             <UseEphemeralAccountOption />
             <NetworkSelect />
             <LoggingSelect />
+            <DisableAnalytics />
           </Stack>
         </FocusTrap>
       </Popover.Dropdown>

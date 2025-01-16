@@ -8,6 +8,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import Plausible from "plausible-tracker";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useClient } from "../hooks/useClient";
@@ -60,6 +61,18 @@ export const App: React.FC = () => {
         "unhandledrejection",
         handleUnhandledRejection,
       );
+    };
+  }, []);
+
+  useEffect(() => {
+    const plausible = Plausible({
+      domain: "xmtp.chat",
+    });
+    const cleanupAutoPageviews = plausible.enableAutoPageviews();
+    const cleanupAutoOutboundTracking = plausible.enableAutoOutboundTracking();
+    return () => {
+      cleanupAutoPageviews();
+      cleanupAutoOutboundTracking();
     };
   }, []);
 
