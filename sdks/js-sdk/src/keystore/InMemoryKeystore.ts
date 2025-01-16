@@ -498,7 +498,7 @@ export default class InMemoryKeystore implements KeystoreInterface {
     } else {
       throw new KeystoreError(
         ErrorCode.ERROR_CODE_INVALID_INPUT,
-        "must specifify identityKey or prekeyIndex",
+        "must specify identityKey or prekeyIndex",
       );
     }
 
