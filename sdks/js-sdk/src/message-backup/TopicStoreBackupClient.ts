@@ -1,3 +1,7 @@
+/// <reference lib="dom" />
+/// <reference lib="es2017" />
+
+/* global crypto */
 import type BackupClient from "./BackupClient";
 import { BackupType, type TopicStoreBackupConfiguration } from "./BackupClient";
 
@@ -8,11 +12,20 @@ export default class TopicStoreBackupClient implements BackupClient {
   public static createConfiguration(
     walletAddress: string,
   ): TopicStoreBackupConfiguration {
-    // TODO: randomly generate topic and encryption key
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    
+    const timestamp = new Date().getTime();
+    const randomId = Array.from(randomBytes.slice(0, 4))
+      .map((b: number) => b.toString(16).padStart(2, '0'))
+      .join('');
+    const randomTopic = `history-v0:${walletAddress}:${timestamp}:${randomId}`;
+    
     return {
       type: BACKUP_TYPE,
       version: 0,
-      topic: "history-v0:" + walletAddress,
+      topic: randomTopic,
+      secret: randomBytes,
     };
   }
 
