@@ -76,14 +76,18 @@ export const fromSafeContentTypeId = (
 
 export const toEncodedContent = (
   content: WasmEncodedContent,
-): EncodedContent => ({
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  type: toContentTypeId(content.type!),
-  parameters: Object.fromEntries(content.parameters as Map<string, string>),
-  fallback: content.fallback,
-  compression: content.compression,
-  content: content.content,
-});
+): EncodedContent => {
+  if (!content.type) {
+    throw new Error('Missing required content type in WasmEncodedContent');
+  }
+  return {
+    type: toContentTypeId(content.type),
+    parameters: Object.fromEntries(content.parameters as Map<string, string>),
+    fallback: content.fallback,
+    compression: content.compression,
+    content: content.content,
+  };
+};
 
 export const fromEncodedContent = (
   content: EncodedContent,
