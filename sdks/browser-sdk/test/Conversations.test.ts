@@ -1,4 +1,5 @@
 import { ConsentState, GroupPermissionsOptions } from "@xmtp/wasm-bindings";
+import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
@@ -335,5 +336,27 @@ describe.concurrent("Conversations", () => {
         expect(key.key.length).toBe(42);
       });
     });
+  });
+
+  it("should sync groups across installations", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    user.uuid = v4();
+    const client2 = await createRegisteredClient(user);
+    const user2 = createUser();
+    await createRegisteredClient(user2);
+
+    const group = await client.conversations.newGroup([user2.account.address]);
+    await client2.conversations.sync();
+    const convos = await client2.conversations.list();
+    expect(convos.length).toBe(1);
+    expect(convos[0].id).toBe(group.id);
+
+    const group2 = await client.conversations.newDm(user2.account.address);
+    await client2.conversations.sync();
+    const convos2 = await client2.conversations.list();
+    expect(convos2.length).toBe(2);
+    expect(convos2[0].id).toBe(group.id);
+    expect(convos2[1].id).toBe(group2.id);
   });
 });
