@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.16
+
+### Patch Changes
+
+- 626d420: Fixed DM group syncing across installations
+
 ## 0.0.15
 
 ### Patch Changes
