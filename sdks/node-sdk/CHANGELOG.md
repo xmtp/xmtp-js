@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.39
+
+### Patch Changes
+
+- 626d420: Fixed DM group syncing across installations
+
 ## 0.0.38
 
 ### Patch Changes
