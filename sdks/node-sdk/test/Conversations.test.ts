@@ -1,4 +1,5 @@
 import { ConsentState, GroupPermissionsOptions } from "@xmtp/node-bindings";
+import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { createRegisteredClient, createUser } from "@test/helpers";
 
@@ -30,7 +31,7 @@ describe.concurrent("Conversations", () => {
     expect(conversation.isActive).toBe(true);
     expect(conversation.name).toBe("");
     expect(conversation.permissions.policyType).toBe(
-      GroupPermissionsOptions.AllMembers,
+      GroupPermissionsOptions.Default,
     );
     expect(conversation.permissions.policySet).toEqual({
       addMemberPolicy: 0,
@@ -41,6 +42,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupPinnedFrameUrlPolicy: 0,
+      updateMessageExpirationMsPolicy: 2,
     });
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
     expect((await conversation.messages()).length).toBe(1);
@@ -95,6 +97,7 @@ describe.concurrent("Conversations", () => {
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupNamePolicy: 0,
       updateGroupPinnedFrameUrlPolicy: 0,
+      updateMessageExpirationMsPolicy: 0,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(0);
@@ -228,6 +231,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
       updateGroupPinnedFrameUrlPolicy: 2,
+      updateMessageExpirationMsPolicy: 2,
     });
 
     const groupWithDescription = await client1.conversations.newGroup(
@@ -272,6 +276,7 @@ describe.concurrent("Conversations", () => {
           updateGroupDescriptionPolicy: 1,
           updateGroupImageUrlSquarePolicy: 1,
           updateGroupPinnedFrameUrlPolicy: 1,
+          updateMessageExpirationMsPolicy: 2,
         },
       },
     );
@@ -288,6 +293,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 1,
       updateGroupImageUrlSquarePolicy: 1,
       updateGroupPinnedFrameUrlPolicy: 1,
+      updateMessageExpirationMsPolicy: 2,
     });
   });
 
@@ -528,5 +534,27 @@ describe.concurrent("Conversations", () => {
         expect(typeof value.epoch).toBe("bigint");
       }
     }
+  });
+
+  it("should sync groups across installations", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    user.uuid = v4();
+    const client2 = await createRegisteredClient(user);
+    const user2 = createUser();
+    await createRegisteredClient(user2);
+
+    const group = await client.conversations.newGroup([user2.account.address]);
+    await client2.conversations.sync();
+    const convos = client2.conversations.list();
+    expect(convos.length).toBe(1);
+    expect(convos[0].id).toBe(group.id);
+
+    const group2 = await client.conversations.newDm(user2.account.address);
+    await client2.conversations.sync();
+    const convos2 = client2.conversations.list();
+    expect(convos2.length).toBe(2);
+    expect(convos2[0].id).toBe(group.id);
+    expect(convos2[1].id).toBe(group2.id);
   });
 });
