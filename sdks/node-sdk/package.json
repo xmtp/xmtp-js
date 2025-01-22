@@ -43,6 +43,8 @@
     "clean:dist": "rimraf dist",
     "clean:tests": "rimraf test/*.db3* ||:",
     "dev": "yarn build --watch",
+    "generate:accounts": "tsx scripts/accounts.ts",
+    "generate:groups": "tsx scripts/groups.ts",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc"
