@@ -5230,6 +5230,7 @@ __metadata:
     react-18-blockies: "npm:^1.0.6"
     react-dom: "npm:^18.3.1"
     react-router: "npm:^7.1.1"
+    react-virtuoso: "npm:^4.12.3"
     tsconfig: "workspace:*"
     typescript: "npm:^5.7.3"
     uint8array-extras: "npm:^1.4.0"
@@ -10726,6 +10727,16 @@ __metadata:
     react: ">=16.6.0"
     react-dom: ">=16.6.0"
   checksum: 10/ca32d3fd2168c976c5d90a317f25d5f5cd723608b415fb3b9006f9d793c8965c619562d0884503a3e44e4b06efbca4fdd1520f30e58ca3e00a0890e637d55419
+  languageName: node
+  linkType: hard
+
+"react-virtuoso@npm:^4.12.3":
+  version: 4.12.3
+  resolution: "react-virtuoso@npm:4.12.3"
+  peerDependencies:
+    react: ">=16 || >=17 || >= 18"
+    react-dom: ">=16 || >=17 || >= 18"
+  checksum: 10/6e43800c23b8f12dba9e304462410dc2bfe82eecfa0bea97c89929a7d14d469709f69b0ba7da4e37de6bc98dacecd656fea208a1ef05cae579bb5a41181607cd
   languageName: node
   linkType: hard
 
