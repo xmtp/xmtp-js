@@ -312,38 +312,51 @@ export type SafeConversation = {
 
 export const toSafeConversation = async (
   conversation: WorkerConversation,
-): Promise<SafeConversation> => ({
-  id: conversation.id,
-  name: conversation.name,
-  imageUrl: conversation.imageUrl,
-  description: conversation.description,
-  pinnedFrameUrl: conversation.pinnedFrameUrl,
-  permissions: {
-    policyType: conversation.permissions.policyType,
-    policySet: {
-      addAdminPolicy: conversation.permissions.policySet.addAdminPolicy,
-      addMemberPolicy: conversation.permissions.policySet.addMemberPolicy,
-      removeAdminPolicy: conversation.permissions.policySet.removeAdminPolicy,
-      removeMemberPolicy: conversation.permissions.policySet.removeMemberPolicy,
-      updateGroupDescriptionPolicy:
-        conversation.permissions.policySet.updateGroupDescriptionPolicy,
-      updateGroupImageUrlSquarePolicy:
-        conversation.permissions.policySet.updateGroupImageUrlSquarePolicy,
-      updateGroupNamePolicy:
-        conversation.permissions.policySet.updateGroupNamePolicy,
-      updateGroupPinnedFrameUrlPolicy:
-        conversation.permissions.policySet.updateGroupPinnedFrameUrlPolicy,
-      updateMessageExpirationPolicy:
-        conversation.permissions.policySet.updateMessageExpirationPolicy,
+): Promise<SafeConversation> => {
+  const id = conversation.id;
+  const name = conversation.name;
+  const imageUrl = conversation.imageUrl;
+  const description = conversation.description;
+  const pinnedFrameUrl = conversation.pinnedFrameUrl;
+  const permissions = conversation.permissions;
+  const isActive = conversation.isActive;
+  const addedByInboxId = conversation.addedByInboxId;
+  const metadata = await conversation.metadata();
+  const admins = conversation.admins;
+  const superAdmins = conversation.superAdmins;
+  const createdAtNs = conversation.createdAtNs;
+  const policyType = permissions.policyType;
+  const policySet = permissions.policySet;
+  return {
+    id,
+    name,
+    imageUrl,
+    description,
+    pinnedFrameUrl,
+    permissions: {
+      policyType,
+      policySet: {
+        addAdminPolicy: policySet.addAdminPolicy,
+        addMemberPolicy: policySet.addMemberPolicy,
+        removeAdminPolicy: policySet.removeAdminPolicy,
+        removeMemberPolicy: policySet.removeMemberPolicy,
+        updateGroupDescriptionPolicy: policySet.updateGroupDescriptionPolicy,
+        updateGroupImageUrlSquarePolicy:
+          policySet.updateGroupImageUrlSquarePolicy,
+        updateGroupNamePolicy: policySet.updateGroupNamePolicy,
+        updateGroupPinnedFrameUrlPolicy:
+          policySet.updateGroupPinnedFrameUrlPolicy,
+        updateMessageExpirationPolicy: policySet.updateMessageExpirationPolicy,
+      },
     },
-  },
-  isActive: conversation.isActive,
-  addedByInboxId: conversation.addedByInboxId,
-  metadata: await conversation.metadata(),
-  admins: conversation.admins,
-  superAdmins: conversation.superAdmins,
-  createdAtNs: conversation.createdAtNs,
-});
+    isActive,
+    addedByInboxId,
+    metadata,
+    admins,
+    superAdmins,
+    createdAtNs,
+  };
+};
 
 export type SafeInstallation = {
   bytes: Uint8Array;
