@@ -372,55 +372,57 @@ export const ManageConversation: React.FC = () => {
           </Title>
           <ScrollArea type="scroll" className={classes.root}>
             <Stack gap="lg" py="md">
-              <Paper p="md" radius="md" withBorder>
-                <Stack gap="md">
-                  <Title order={4}>Properties</Title>
-                  <Group gap="md" align="center" wrap="nowrap">
-                    <Text flex="1 1 40%">Name</Text>
-                    <TextInput
-                      size="md"
-                      flex="1 1 60%"
-                      value={name}
-                      onChange={(event) => {
-                        setName(event.target.value);
-                      }}
-                    />
-                  </Group>
-                  <Group gap="md" align="flex-start" wrap="nowrap">
-                    <Text flex="1 1 40%">Description</Text>
-                    <Textarea
-                      size="md"
-                      flex="1 1 60%"
-                      value={description}
-                      onChange={(event) => {
-                        setDescription(event.target.value);
-                      }}
-                    />
-                  </Group>
-                  <Group gap="md" align="center" wrap="nowrap">
-                    <Text flex="1 1 40%">Image URL</Text>
-                    <TextInput
-                      size="md"
-                      flex="1 1 60%"
-                      value={imageUrl}
-                      onChange={(event) => {
-                        setImageUrl(event.target.value);
-                      }}
-                    />
-                  </Group>
-                  <Group gap="md" align="center" wrap="nowrap">
-                    <Text flex="1 1 40%">Pinned frame URL</Text>
-                    <TextInput
-                      size="md"
-                      flex="1 1 60%"
-                      value={pinnedFrameUrl}
-                      onChange={(event) => {
-                        setPinnedFrameUrl(event.target.value);
-                      }}
-                    />
-                  </Group>
-                </Stack>
-              </Paper>
+              {conversation?.metadata?.conversationType !== "dm" && (
+                <Paper p="md" radius="md" withBorder>
+                  <Stack gap="md">
+                    <Title order={4}>Properties</Title>
+                    <Group gap="md" align="center" wrap="nowrap">
+                      <Text flex="1 1 40%">Name</Text>
+                      <TextInput
+                        size="md"
+                        flex="1 1 60%"
+                        value={name}
+                        onChange={(event) => {
+                          setName(event.target.value);
+                        }}
+                      />
+                    </Group>
+                    <Group gap="md" align="flex-start" wrap="nowrap">
+                      <Text flex="1 1 40%">Description</Text>
+                      <Textarea
+                        size="md"
+                        flex="1 1 60%"
+                        value={description}
+                        onChange={(event) => {
+                          setDescription(event.target.value);
+                        }}
+                      />
+                    </Group>
+                    <Group gap="md" align="center" wrap="nowrap">
+                      <Text flex="1 1 40%">Image URL</Text>
+                      <TextInput
+                        size="md"
+                        flex="1 1 60%"
+                        value={imageUrl}
+                        onChange={(event) => {
+                          setImageUrl(event.target.value);
+                        }}
+                      />
+                    </Group>
+                    <Group gap="md" align="center" wrap="nowrap">
+                      <Text flex="1 1 40%">Pinned frame URL</Text>
+                      <TextInput
+                        size="md"
+                        flex="1 1 60%"
+                        value={pinnedFrameUrl}
+                        onChange={(event) => {
+                          setPinnedFrameUrl(event.target.value);
+                        }}
+                      />
+                    </Group>
+                  </Stack>
+                </Paper>
+              )}
               <Paper p="md" radius="md" withBorder>
                 <Stack gap="md">
                   <Title order={4}>Consent</Title>
@@ -455,6 +457,9 @@ export const ManageConversation: React.FC = () => {
                       <Text>Policy</Text>
                       <Tooltip withArrow label={policyTooltip}>
                         <NativeSelect
+                          disabled={
+                            conversation?.metadata?.conversationType === "dm"
+                          }
                           value={permissionsPolicy}
                           onChange={(event) => {
                             setPermissionsPolicy(
@@ -477,8 +482,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Add members</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.addMemberPolicy}
                       onChange={(event) => {
@@ -501,8 +507,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Remove members</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.removeMemberPolicy}
                       onChange={(event) => {
@@ -525,8 +532,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Add admins</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.addAdminPolicy}
                       onChange={(event) => {
@@ -549,8 +557,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Remove admins</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.removeAdminPolicy}
                       onChange={(event) => {
@@ -573,8 +582,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Update group name</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupNamePolicy}
                       onChange={(event) => {
@@ -598,8 +608,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Update group description</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupDescriptionPolicy}
                       onChange={(event) => {
@@ -623,8 +634,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Update group image</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupImageUrlSquarePolicy}
                       onChange={(event) => {
@@ -648,8 +660,9 @@ export const ManageConversation: React.FC = () => {
                     <Text>Update group pinned frame</Text>
                     <NativeSelect
                       disabled={
+                        conversation?.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
-                        GroupPermissionsOptions.CustomPolicy
+                          GroupPermissionsOptions.CustomPolicy
                       }
                       value={policySet.updateGroupPinnedFrameUrlPolicy}
                       onChange={(event) => {
@@ -674,120 +687,133 @@ export const ManageConversation: React.FC = () => {
               <Paper p="md" radius="md" withBorder>
                 <Stack gap="md">
                   <Title order={4}>Members</Title>
-                  <Group gap="xs" align="flex-start">
-                    <Stack flex={1} gap="xs">
-                      <TextInput
-                        size="md"
-                        label="Address"
-                        error={addressError}
-                        value={address}
-                        onChange={(event) => {
-                          setAddress(event.target.value);
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            handleAddMember();
-                          }
-                        }}
-                      />
-                    </Stack>
-                    <Button
-                      size="md"
-                      mt="1.5rem"
-                      disabled={addressError !== null}
-                      onClick={handleAddMember}>
-                      Add
-                    </Button>
-                  </Group>
-                  <Stack gap="xs">
-                    <Group gap="xs">
-                      <Text fw={700}>Added members</Text>
-                      <Badge color="gray" size="lg">
-                        {addedMembers.length}
-                      </Badge>
-                    </Group>
-                    <Stack gap="4px">
-                      {addedMembers.map((member) => (
-                        <Group
-                          key={member}
-                          justify="space-between"
-                          align="center">
-                          <Text truncate="end" flex={1}>
-                            {member}
-                          </Text>
-                          <Button
-                            onClick={() => {
-                              setAddedMembers(
-                                addedMembers.filter((m) => m !== member),
-                              );
-                            }}>
-                            Remove
-                          </Button>
+                  {conversation?.metadata?.conversationType !== "dm" && (
+                    <>
+                      <Group gap="xs" align="flex-start">
+                        <Stack flex={1} gap="xs">
+                          <TextInput
+                            size="md"
+                            label="Address"
+                            error={addressError}
+                            value={address}
+                            onChange={(event) => {
+                              setAddress(event.target.value);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                handleAddMember();
+                              }
+                            }}
+                          />
+                        </Stack>
+                        <Button
+                          size="md"
+                          mt="1.5rem"
+                          disabled={addressError !== null}
+                          onClick={handleAddMember}>
+                          Add
+                        </Button>
+                      </Group>
+                      <Stack gap="xs">
+                        <Group gap="xs">
+                          <Text fw={700}>Added members</Text>
+                          <Badge color="gray" size="lg">
+                            {addedMembers.length}
+                          </Badge>
                         </Group>
-                      ))}
-                    </Stack>
-                  </Stack>
-                  <Stack gap="xs">
-                    <Group gap="xs">
-                      <Text fw={700}>Removed members</Text>
-                      <Badge color="gray" size="lg">
-                        {removedMembers.length}
-                      </Badge>
-                    </Group>
-                    <Stack gap="4px">
-                      {removedMembers.map((member) => (
-                        <Group
-                          key={member.inboxId}
-                          justify="space-between"
-                          align="center">
-                          <Text truncate="end" flex={1}>
-                            {member.accountAddresses.join(", ")}
-                          </Text>
-                          <Button
-                            onClick={() => {
-                              setRemovedMembers(
-                                removedMembers.filter(
-                                  (m) => m.inboxId !== member.inboxId,
-                                ),
-                              );
-                              setMembers([...members, member]);
-                            }}>
-                            Restore
-                          </Button>
+                        <Stack gap="4px">
+                          {addedMembers.map((member) => (
+                            <Group
+                              key={member}
+                              justify="space-between"
+                              align="center">
+                              <Text truncate="end" flex={1}>
+                                {member}
+                              </Text>
+                              <Button
+                                onClick={() => {
+                                  setAddedMembers(
+                                    addedMembers.filter((m) => m !== member),
+                                  );
+                                }}>
+                                Remove
+                              </Button>
+                            </Group>
+                          ))}
+                        </Stack>
+                      </Stack>
+                      <Stack gap="xs">
+                        <Group gap="xs">
+                          <Text fw={700}>Removed members</Text>
+                          <Badge color="gray" size="lg">
+                            {removedMembers.length}
+                          </Badge>
                         </Group>
-                      ))}
-                    </Stack>
-                  </Stack>
+                        <Stack gap="4px">
+                          {removedMembers.map((member) => (
+                            <Group
+                              key={member.inboxId}
+                              justify="space-between"
+                              align="center">
+                              <Text truncate="end" flex={1}>
+                                {member.accountAddresses.join(", ")}
+                              </Text>
+                              <Button
+                                onClick={() => {
+                                  setRemovedMembers(
+                                    removedMembers.filter(
+                                      (m) => m.inboxId !== member.inboxId,
+                                    ),
+                                  );
+                                  setMembers([...members, member]);
+                                }}>
+                                Restore
+                              </Button>
+                            </Group>
+                          ))}
+                        </Stack>
+                      </Stack>
+                    </>
+                  )}
                   <Stack gap="xs">
                     <Group gap="xs">
                       <Text fw={700}>Members</Text>
                       <Badge color="gray" size="lg">
-                        {members.length}
+                        {members.length - 1}
                       </Badge>
                     </Group>
                     <Stack gap="4px">
-                      {members.map((member) => (
-                        <Group
-                          key={member.inboxId}
-                          justify="space-between"
-                          align="center"
-                          wrap="nowrap">
-                          <BadgeWithCopy value={member.inboxId} />
-                          <Button
-                            flex="0 0 auto"
-                            size="xs"
-                            onClick={() => {
-                              setMembers(
-                                members.filter(
-                                  (m) => m.inboxId !== member.inboxId,
-                                ),
-                              );
-                              setRemovedMembers([...removedMembers, member]);
-                            }}>
-                            Remove
-                          </Button>
-                        </Group>
-                      ))}
+                      {members.map(
+                        (member) =>
+                          client?.inboxId !== member.inboxId && (
+                            <Group
+                              key={member.inboxId}
+                              justify="space-between"
+                              align="center"
+                              wrap="nowrap">
+                              <BadgeWithCopy value={member.inboxId} />
+                              {conversation?.metadata?.conversationType !==
+                                "dm" && (
+                                <Button
+                                  flex="0 0 auto"
+                                  size="xs"
+                                  onClick={() => {
+                                    setMembers(
+                                      members.filter(
+                                        (m) => m.inboxId !== member.inboxId,
+                                      ),
+                                    );
+                                    setRemovedMembers([
+                                      ...removedMembers,
+                                      member,
+                                    ]);
+                                  }}>
+                                  Remove
+                                </Button>
+                              )}
+                            </Group>
+                          ),
+                      )}
                     </Stack>
                   </Stack>
                 </Stack>
