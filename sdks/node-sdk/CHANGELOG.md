@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.40
+
+### Patch Changes
+
+- 25e0e15: Replaced some `??` with `||` to ensure string values are not empty
+
 ## 0.0.39
 
 ### Patch Changes

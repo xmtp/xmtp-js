@@ -1,5 +1,13 @@
 # @xmtp/browser-sdk
 
+## 0.0.17
+
+### Patch Changes
+
+- 25e0e15:
+  - Optimized `toSafeConversation`
+  - Replaced some `??` with `||` to ensure string values are not empty
+
 ## 0.0.16
 
 ### Patch Changes
