@@ -121,13 +121,13 @@ export class Client {
     options?: ClientOptions,
   ) {
     const accountAddress = await signer.getAddress();
-    const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
+    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
     const isSecure = host.startsWith("https");
     const dbPath =
-      options?.dbPath ??
+      options?.dbPath ||
       join(
         process.cwd(),
-        `xmtp-${options?.env ?? "dev"}-${accountAddress}.db3`,
+        `xmtp-${options?.env || "dev"}-${accountAddress}.db3`,
       );
 
     const inboxId =
@@ -140,7 +140,7 @@ export class Client {
     };
 
     const historySyncUrl =
-      options?.historySyncUrl ?? HistorySyncUrls[options?.env ?? "dev"];
+      options?.historySyncUrl || HistorySyncUrls[options?.env || "dev"];
 
     const client = new Client(
       await createClient(
@@ -353,7 +353,7 @@ export class Client {
 
   static async canMessage(accountAddresses: string[], env?: XmtpEnv) {
     const accountAddress = "0x0000000000000000000000000000000000000000";
-    const host = ApiUrls[env ?? "dev"];
+    const host = ApiUrls[env || "dev"];
     const isSecure = host.startsWith("https");
     const inboxId =
       (await getInboxIdForAddress(host, isSecure, accountAddress)) ||

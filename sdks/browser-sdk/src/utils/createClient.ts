@@ -15,9 +15,9 @@ export const createClient = async (
   // initialize WASM module
   await init();
 
-  const host = options?.apiUrl ?? ApiUrls[options?.env ?? "dev"];
+  const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
   const dbPath =
-    options?.dbPath ?? `xmtp-${options?.env ?? "dev"}-${accountAddress}.db3`;
+    options?.dbPath || `xmtp-${options?.env || "dev"}-${accountAddress}.db3`;
 
   const inboxId =
     (await getInboxIdForAddress(host, accountAddress)) ||
@@ -30,7 +30,7 @@ export const createClient = async (
       options.performanceLogging);
 
   const historySyncUrl =
-    options?.historySyncUrl ?? HistorySyncUrls[options?.env ?? "dev"];
+    options?.historySyncUrl || HistorySyncUrls[options?.env || "dev"];
 
   return createWasmClient(
     host,

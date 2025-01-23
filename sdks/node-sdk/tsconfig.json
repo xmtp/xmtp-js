@@ -16,9 +16,10 @@
     "types": ["vitest/globals"]
   },
   "include": [
+    "rollup.config.js",
+    "scripts/**/*",
     "src/**/*",
     "test/**/*",
-    "rollup.config.js",
     "vitest.config.ts",
     "vitest.setup.ts"
   ]
