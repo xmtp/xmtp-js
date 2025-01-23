@@ -20,13 +20,17 @@ export const useConversations = () => {
     }
 
     if (syncFromNetwork) {
-      setLoading(true);
       await sync();
-      setLoading(false);
     }
 
-    const convos = await client.conversations.list(options);
-    return convos;
+    setLoading(true);
+
+    try {
+      const convos = await client.conversations.list(options);
+      return convos;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const sync = async () => {

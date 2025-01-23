@@ -4,26 +4,18 @@ import {
   Button,
   Group,
   LoadingOverlay,
-  ScrollArea,
   Stack,
   Text,
 } from "@mantine/core";
 import type { Conversation } from "@xmtp/browser-sdk";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Virtuoso } from "react-virtuoso";
 import { useConversations } from "../hooks/useConversations";
 import { ConversationCard } from "./ConversationCard";
 
 export const ConversationsNavbar: React.FC = () => {
   const { list, loading, syncing } = useConversations();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-
-  useEffect(() => {
-    const loadConversations = async () => {
-      const conversations = await list();
-      setConversations(conversations);
-    };
-    void loadConversations();
-  }, []);
 
   const handleSync = async () => {
     const conversations = await list(undefined, true);
@@ -50,18 +42,21 @@ export const ConversationsNavbar: React.FC = () => {
           </Group>
         </Stack>
       </AppShell.Section>
-      <AppShell.Section grow my="md" component={ScrollArea} px="md">
+      <AppShell.Section
+        grow
+        my="md"
+        display="flex"
+        style={{ flexDirection: "column" }}>
         {conversations.length === 0 ? (
           <Text>No conversations found</Text>
         ) : (
-          <Stack gap="sm">
-            {conversations.map((conversation) => (
-              <ConversationCard
-                key={conversation.id}
-                conversation={conversation}
-              />
-            ))}
-          </Stack>
+          <Virtuoso
+            style={{ flexGrow: 1 }}
+            data={conversations}
+            itemContent={(_, conversation) => (
+              <ConversationCard conversation={conversation} />
+            )}
+          />
         )}
       </AppShell.Section>
     </>
