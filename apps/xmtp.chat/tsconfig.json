@@ -1,5 +1,10 @@
 {
   "extends": "tsconfig/react-app.json",
   "include": ["src", "vite.config.ts", "postcss.config.cjs"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
 }

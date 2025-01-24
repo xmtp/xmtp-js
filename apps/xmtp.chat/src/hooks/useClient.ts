@@ -1,6 +1,6 @@
 import { Client, type ClientOptions, type Signer } from "@xmtp/browser-sdk";
 import { useCallback, useContext, useRef, useState } from "react";
-import { XMTPContext } from "../components/XMTPContext";
+import { XMTPContext } from "../contexts/XMTPContext";
 
 export type InitializeClientOptions = {
   encryptionKey: Uint8Array;

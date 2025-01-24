@@ -5405,6 +5405,7 @@ __metadata:
     uint8array-extras: "npm:^1.4.0"
     viem: "npm:^2.21.52"
     vite: "npm:^6.0.7"
+    vite-tsconfig-paths: "npm:^5.1.4"
     wagmi: "npm:^2.13.2"
   languageName: unknown
   linkType: soft

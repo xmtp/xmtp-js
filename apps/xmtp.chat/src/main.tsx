@@ -1,13 +1,14 @@
 import "@mantine/core/styles.css";
+import "@/styles/scrollfade.css";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { base, mainnet } from "wagmi/chains";
-import { App } from "./components/App";
-import { RefManagerProvider } from "./components/RefManager";
-import { XMTPProvider } from "./components/XMTPContext";
+import { App } from "@/components/App/App";
+import { RefManagerProvider } from "@/contexts/RefManager";
+import { XMTPProvider } from "@/contexts/XMTPContext";
 
 const queryClient = new QueryClient();
 
