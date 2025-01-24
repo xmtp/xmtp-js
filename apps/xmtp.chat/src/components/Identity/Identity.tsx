@@ -11,8 +11,8 @@ import {
   Title,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
+import { useAppState } from "@/contexts/AppState";
 import { useBodyClass } from "@/hooks/useBodyClass";
 import { useClient } from "@/hooks/useClient";
 import { useIdentity } from "@/hooks/useIdentity";
@@ -20,8 +20,13 @@ import { InstallationTable } from "./InstallationTable";
 
 export const Identity: React.FC = () => {
   useBodyClass("main-flex-layout");
+  const { setNavbar } = useAppState();
+
+  useEffect(() => {
+    setNavbar(true);
+  }, []);
+
   const { client } = useClient();
-  const navigate = useNavigate();
   const {
     installations,
     revokeAllOtherInstallations,
@@ -41,12 +46,6 @@ export const Identity: React.FC = () => {
       setRevokeInstallationError((error as Error).message || "Unknown error");
     }
   };
-
-  useEffect(() => {
-    if (!client) {
-      void navigate("/");
-    }
-  }, [client]);
 
   return (
     <>

@@ -1,10 +1,9 @@
 import { AppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router";
 import { AppFooter } from "@/components/App/AppFooter";
 import { AppHeader } from "@/components/App/AppHeader";
 import { ErrorModal } from "@/components/App/ErrorModal";
+import { useAppState } from "@/contexts/AppState";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useRedirects } from "@/hooks/useRedirects";
 import { Main } from "@/routes/Main";
@@ -15,19 +14,7 @@ export const App: React.FC = () => {
   useRedirects();
   useAnalytics();
   const [opened, { toggle }] = useDisclosure();
-  const [collapsed, setCollapsed] = useState(true);
-  const location = useLocation();
-
-  useEffect(() => {
-    if (
-      location.pathname.startsWith("/conversations") ||
-      location.pathname.startsWith("/identity")
-    ) {
-      setCollapsed(false);
-    } else {
-      setCollapsed(true);
-    }
-  }, [location.pathname]);
+  const { navbar } = useAppState();
 
   return (
     <>
@@ -40,11 +27,11 @@ export const App: React.FC = () => {
         navbar={{
           width: { base: 300, lg: 420 },
           breakpoint: "sm",
-          collapsed: { desktop: collapsed, mobile: !opened },
+          collapsed: { desktop: !navbar, mobile: !opened },
         }}
         padding="md">
         <AppShell.Header>
-          <AppHeader opened={opened} toggle={toggle} collapsed={collapsed} />
+          <AppHeader opened={opened} toggle={toggle} collapsed={!navbar} />
         </AppShell.Header>
         <AppShell.Navbar className={classes.navbar}>
           <Navbar />

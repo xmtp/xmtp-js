@@ -10,9 +10,16 @@ import {
 } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import type { XmtpEnv } from "@xmtp/browser-sdk";
+import { useEffect } from "react";
+import { useAppState } from "@/contexts/AppState";
 import { useRefManager } from "@/contexts/RefManager";
 
 export const Welcome = () => {
+  const { setNavbar } = useAppState();
+  useEffect(() => {
+    setNavbar(false);
+  }, []);
+
   const { getRef } = useRefManager();
   const [network] = useLocalStorage<XmtpEnv>({
     key: "XMTP_NETWORK",
