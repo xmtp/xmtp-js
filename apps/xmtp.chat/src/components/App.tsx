@@ -29,25 +29,25 @@ export const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!client && location.pathname !== "/") {
-      void navigate("/");
-      return;
-    }
+  // useEffect(() => {
+  //   if (!client && location.pathname !== "/") {
+  //     void navigate("/");
+  //     return;
+  //   }
 
-    if (
-      location.pathname.startsWith("/conversations") ||
-      location.pathname.startsWith("/identity")
-    ) {
-      setCollapsed(false);
-    } else {
-      setCollapsed(true);
-    }
+  //   if (
+  //     location.pathname.startsWith("/conversations") ||
+  //     location.pathname.startsWith("/identity")
+  //   ) {
+  //     setCollapsed(false);
+  //   } else {
+  //     setCollapsed(true);
+  //   }
 
-    if (location.pathname === "/" && client) {
-      void navigate("/conversations");
-    }
-  }, [location.pathname, client, navigate]);
+  //   if (location.pathname === "/" && client) {
+  //     void navigate("/conversations");
+  //   }
+  // }, [location.pathname, client, navigate]);
 
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
