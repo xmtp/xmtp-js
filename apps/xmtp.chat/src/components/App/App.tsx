@@ -1,30 +1,20 @@
-import {
-  AppShell,
-  Button,
-  Group,
-  Modal,
-  ScrollArea,
-  Stack,
-  Title,
-} from "@mantine/core";
+import { AppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import Plausible from "plausible-tracker";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { AppFooter } from "@/components/App/AppFooter";
 import { AppHeader } from "@/components/App/AppHeader";
-import { CodeWithCopy } from "@/components/CodeWithCopy";
+import { ErrorModal } from "@/components/App/ErrorModal";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useClient } from "@/hooks/useClient";
 import { Main } from "@/routes/Main";
 import { Navbar } from "@/routes/Navbar";
 import classes from "./App.module.css";
 
 export const App: React.FC = () => {
+  useAnalytics();
   const [opened, { toggle }] = useDisclosure();
   const [collapsed, setCollapsed] = useState(true);
-  const [unhandledRejectionError, setUnhandledRejectionError] = useState<
-    string | null
-  >(null);
   const { client } = useClient();
   const location = useLocation();
   const navigate = useNavigate();
@@ -52,68 +42,9 @@ export const App: React.FC = () => {
     }
   }, [location.pathname, client, navigate]);
 
-  useEffect(() => {
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      setUnhandledRejectionError(
-        (event.reason as Error).message || "Unknown error",
-      );
-    };
-    window.addEventListener("unhandledrejection", handleUnhandledRejection);
-    return () => {
-      window.removeEventListener(
-        "unhandledrejection",
-        handleUnhandledRejection,
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    const plausible = Plausible({
-      domain: "xmtp.chat",
-    });
-    const cleanupAutoPageviews = plausible.enableAutoPageviews();
-    const cleanupAutoOutboundTracking = plausible.enableAutoOutboundTracking();
-    return () => {
-      cleanupAutoPageviews();
-      cleanupAutoOutboundTracking();
-    };
-  }, []);
-
   return (
     <>
-      {unhandledRejectionError && (
-        <Modal
-          opened={!!unhandledRejectionError}
-          onClose={() => {
-            setUnhandledRejectionError(null);
-          }}
-          withCloseButton={false}
-          centered>
-          <Stack gap="md">
-            <Title order={4}>Application error</Title>
-            <ScrollArea>
-              <CodeWithCopy
-                code={JSON.stringify(unhandledRejectionError, null, 2)}
-              />
-            </ScrollArea>
-            <Group justify="space-between">
-              <Button
-                variant="default"
-                component="a"
-                href="https://github.com/xmtp/xmtp-js/issues/new/choose"
-                target="_blank">
-                Report issue
-              </Button>
-              <Button
-                onClick={() => {
-                  setUnhandledRejectionError(null);
-                }}>
-                OK
-              </Button>
-            </Group>
-          </Stack>
-        </Modal>
-      )}
+      <ErrorModal />
       <AppShell
         header={{ height: 68 }}
         footer={{
