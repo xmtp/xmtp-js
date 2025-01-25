@@ -1,6 +1,7 @@
 import {
   AppShell,
   Badge,
+  Box,
   Button,
   Group,
   LoadingOverlay,
@@ -48,7 +49,15 @@ export const ConversationsNavbar: React.FC = () => {
         display="flex"
         style={{ flexDirection: "column" }}>
         {conversations.length === 0 ? (
-          <Text>No conversations found</Text>
+          <Box
+            display="flex"
+            style={{
+              flexGrow: 1,
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+            <Text>No conversations found</Text>
+          </Box>
         ) : (
           <Virtuoso
             style={{ flexGrow: 1 }}
