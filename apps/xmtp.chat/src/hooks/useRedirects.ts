@@ -9,7 +9,8 @@ export const useRedirects = () => {
   useEffect(() => {
     if (
       !client &&
-      (location.pathname !== "/" || !location.pathname.startsWith("/dm"))
+      location.pathname !== "/" &&
+      !location.pathname.startsWith("/dm")
     ) {
       void navigate("/");
       return;
