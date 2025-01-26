@@ -1,6 +1,6 @@
 import { Badge, Flex, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
-import { shortAddress } from "../helpers/address";
+import { shortAddress } from "@/helpers/address";
 
 export type AddressTooltipLabelProps = {
   address: string;

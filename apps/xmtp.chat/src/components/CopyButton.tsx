@@ -1,6 +1,6 @@
 import { Button, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
-import { IconCopy } from "../icons/IconCopy";
+import { IconCopy } from "@/icons/IconCopy";
 import classes from "./CopyButton.module.css";
 
 type CopyButtonProps = {
