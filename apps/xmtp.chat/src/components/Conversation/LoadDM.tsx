@@ -1,6 +1,6 @@
 import { Badge, Box, Button, Stack, Title } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
-import { Utils, type XmtpEnv } from "@xmtp/browser-sdk";
+import { type XmtpEnv } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
@@ -8,7 +8,6 @@ import { useAppState } from "@/contexts/AppState";
 import { useRefManager } from "@/contexts/RefManager";
 import { useBodyClass } from "@/hooks/useBodyClass";
 import { useClient } from "@/hooks/useClient";
-import { useConversations } from "@/hooks/useConversations";
 
 export const LoadDM: React.FC = () => {
   useBodyClass("main-flex-layout");
@@ -18,12 +17,15 @@ export const LoadDM: React.FC = () => {
   }, []);
   const [message, setMessage] = useState("");
   const { getRef } = useRefManager();
-  const [network] = useLocalStorage<XmtpEnv>({
+  const [network, setNetwork] = useLocalStorage<XmtpEnv>({
     key: "XMTP_NETWORK",
-    defaultValue: "dev",
+    defaultValue: "production",
   });
+  const location = window.location;
+  const queryParams = new URLSearchParams(location.search);
+  const env = queryParams.get("env");
+
   const { address } = useParams();
-  const { newDm } = useConversations();
   const { client } = useClient();
   const navigate = useNavigate();
 
@@ -40,9 +42,16 @@ export const LoadDM: React.FC = () => {
       }
 
       try {
+        setMessage("Setting network...");
+        if (env === "production" || env === "dev" || env === "local") {
+          setNetwork(env);
+        } else {
+          setNetwork("production");
+        }
         setMessage("Verifying address...");
-        const inboxId = await new Utils().getInboxIdForAddress(address);
+        const inboxId = await client.findInboxIdByAddress(address);
         // no inbox ID, redirect to root
+
         if (!inboxId) {
           setMessage("Invalid address, redirecting...");
           setTimeout(() => {
@@ -54,14 +63,17 @@ export const LoadDM: React.FC = () => {
         // look for existing DM group
         setMessage("Looking for existing DM...");
         const dm = await client.conversations.getDmByInboxId(inboxId);
-        if (!dm) {
+        let dmId = dm?.id;
+        if (dmId === undefined) {
           // no DM group, create it
           setMessage("Creating new DM...");
-          const dmGroup = await newDm(inboxId);
+          const dmGroup = await client.conversations.newDm(address);
+          dmId = dmGroup.id;
           // go to new DM group
-          void navigate(`/conversations/${dmGroup.id}`);
         }
+        void navigate(`/conversations/${dmId}`);
       } catch (e) {
+        console.error(e);
         setMessage("Error loading DM, redirecting...");
         // if any errors occur during this process, redirect to root
         setTimeout(() => {
