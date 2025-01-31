@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 931c4a4: Upgrade node bindings
+- 931c4a4: Updated `createDm` to return an existing DM group, if it exists
 
 ## 0.0.40
 
