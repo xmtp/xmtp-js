@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.41
+
+### Patch Changes
+
+- 931c4a4: Upgrade node bindings
+
 ## 0.0.40
 
 ### Patch Changes
