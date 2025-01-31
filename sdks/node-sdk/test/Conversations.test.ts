@@ -42,7 +42,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupPinnedFrameUrlPolicy: 0,
-      updateMessageExpirationMsPolicy: 2,
+      updateMessageDisappearingPolicy: 2,
     });
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
     expect((await conversation.messages()).length).toBe(1);
@@ -97,7 +97,7 @@ describe.concurrent("Conversations", () => {
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupNamePolicy: 0,
       updateGroupPinnedFrameUrlPolicy: 0,
-      updateMessageExpirationMsPolicy: 0,
+      updateMessageDisappearingPolicy: 0,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(0);
@@ -138,6 +138,10 @@ describe.concurrent("Conversations", () => {
     const dm2 = client2.conversations.getDmByInboxId(client1.inboxId);
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
+
+    const group3 = await client1.conversations.newDm(user2.account.address);
+    expect(group3).toBeDefined();
+    expect(group3.id).toBe(group.id);
   });
 
   it("should get a group by ID", async () => {
@@ -231,7 +235,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
       updateGroupPinnedFrameUrlPolicy: 2,
-      updateMessageExpirationMsPolicy: 2,
+      updateMessageDisappearingPolicy: 2,
     });
 
     const groupWithDescription = await client1.conversations.newGroup(
@@ -276,7 +280,7 @@ describe.concurrent("Conversations", () => {
           updateGroupDescriptionPolicy: 1,
           updateGroupImageUrlSquarePolicy: 1,
           updateGroupPinnedFrameUrlPolicy: 1,
-          updateMessageExpirationMsPolicy: 2,
+          updateMessageDisappearingPolicy: 2,
         },
       },
     );
@@ -293,7 +297,7 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 1,
       updateGroupImageUrlSquarePolicy: 1,
       updateGroupPinnedFrameUrlPolicy: 1,
-      updateMessageExpirationMsPolicy: 2,
+      updateMessageDisappearingPolicy: 2,
     });
   });
 
