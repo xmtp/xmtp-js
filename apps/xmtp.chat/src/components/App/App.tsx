@@ -1,10 +1,16 @@
-import { AppShell } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { AppShell, Loader } from "@mantine/core";
+import { useDisclosure, useLocalStorage } from "@mantine/hooks";
+import type { ClientOptions, XmtpEnv } from "@xmtp/browser-sdk";
+import { useEffect } from "react";
+import { hexToUint8Array, uint8ArrayToHex } from "uint8array-extras";
+import type { Hex } from "viem";
 import { AppFooter } from "@/components/App/AppFooter";
 import { AppHeader } from "@/components/App/AppHeader";
 import { ErrorModal } from "@/components/App/ErrorModal";
 import { useAppState } from "@/contexts/AppState";
+import { createEphemeralSigner } from "@/helpers/createSigner";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useClient } from "@/hooks/useClient";
 import { useRedirects } from "@/hooks/useRedirects";
 import { Main } from "@/routes/Main";
 import { Navbar } from "@/routes/Navbar";
@@ -14,7 +20,43 @@ export const App: React.FC = () => {
   useRedirects();
   useAnalytics();
   const [opened, { toggle }] = useDisclosure();
+  const { initialize, initializing } = useClient();
+  const [env] = useLocalStorage<XmtpEnv>({
+    key: "XMTP_NETWORK",
+    defaultValue: "dev",
+  });
+  const [ephemeralAccountKey] = useLocalStorage<Hex | null>({
+    key: "XMTP_EPHEMERAL_ACCOUNT_KEY",
+    defaultValue: null,
+  });
+  const [encryptionKey] = useLocalStorage({
+    key: "XMTP_ENCRYPTION_KEY",
+    defaultValue: uint8ArrayToHex(crypto.getRandomValues(new Uint8Array(32))),
+  });
+  const [checked] = useLocalStorage({
+    key: "XMTP_USE_EPHEMERAL_ACCOUNT",
+    defaultValue: false,
+  });
+  const [loggingLevel] = useLocalStorage<ClientOptions["loggingLevel"]>({
+    key: "XMTP_LOGGING_LEVEL",
+    defaultValue: "off",
+  });
   const { navbar } = useAppState();
+
+  useEffect(() => {
+    const maybeConnect = async () => {
+      if (checked && ephemeralAccountKey && encryptionKey) {
+        const signer = createEphemeralSigner(ephemeralAccountKey);
+        await initialize({
+          encryptionKey: hexToUint8Array(encryptionKey),
+          env,
+          loggingLevel,
+          signer,
+        });
+      }
+    };
+    void maybeConnect();
+  }, [checked, ephemeralAccountKey, encryptionKey, env, loggingLevel]);
 
   return (
     <>
@@ -37,7 +79,7 @@ export const App: React.FC = () => {
           <Navbar />
         </AppShell.Navbar>
         <AppShell.Main className={classes.main}>
-          <Main />
+          {initializing ? <Loader /> : <Main />}
         </AppShell.Main>
         <AppShell.Footer display="flex" className={classes.footer}>
           <AppFooter />
