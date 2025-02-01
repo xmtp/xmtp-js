@@ -2,7 +2,7 @@ import { Badge, Box, Button, Stack, Title } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { type XmtpEnv } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useAppState } from "@/contexts/AppState";
 import { useRefManager } from "@/contexts/RefManager";
@@ -21,13 +21,17 @@ export const LoadDM: React.FC = () => {
     key: "XMTP_NETWORK",
     defaultValue: "production",
   });
-  const location = window.location;
-  const queryParams = new URLSearchParams(location.search);
-  const env = queryParams.get("env");
-
   const { address } = useParams();
+  const [searchParams] = useSearchParams();
   const { client } = useClient();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const env = searchParams.get("env");
+    if (env === "production" || env === "dev" || env === "local") {
+      setNetwork(env);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadDm = async () => {
@@ -42,12 +46,6 @@ export const LoadDM: React.FC = () => {
       }
 
       try {
-        setMessage("Setting network...");
-        if (env === "production" || env === "dev" || env === "local") {
-          setNetwork(env);
-        } else {
-          setNetwork("production");
-        }
         setMessage("Verifying address...");
         const inboxId = await client.findInboxIdByAddress(address);
         // no inbox ID, redirect to root
