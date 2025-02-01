@@ -1,6 +1,5 @@
 import type { SafeInstallation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
-import { ClientNotFoundError } from "../helpers/errors";
 import { useClient } from "./useClient";
 
 export const useIdentity = (syncOnMount: boolean = false) => {
@@ -20,7 +19,7 @@ export const useIdentity = (syncOnMount: boolean = false) => {
 
   const sync = async () => {
     if (!client) {
-      throw new ClientNotFoundError("syncing");
+      return;
     }
 
     setSyncing(true);
@@ -41,7 +40,7 @@ export const useIdentity = (syncOnMount: boolean = false) => {
 
   const revokeInstallation = async (installationIdBytes: Uint8Array) => {
     if (!client) {
-      throw new ClientNotFoundError("revoking an installation");
+      return;
     }
 
     setRevoking(true);
@@ -55,7 +54,7 @@ export const useIdentity = (syncOnMount: boolean = false) => {
 
   const revokeAllOtherInstallations = async () => {
     if (!client) {
-      throw new ClientNotFoundError("revoking all other installations");
+      return;
     }
 
     setRevoking(true);

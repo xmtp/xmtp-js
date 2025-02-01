@@ -3,7 +3,6 @@ import type {
   SafeListConversationsOptions,
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
-import { ClientNotFoundError } from "../helpers/errors";
 import { useClient } from "./useClient";
 
 export const useConversations = () => {
@@ -16,7 +15,7 @@ export const useConversations = () => {
     syncFromNetwork: boolean = false,
   ) => {
     if (!client) {
-      throw new ClientNotFoundError("fetching conversations");
+      return;
     }
 
     if (syncFromNetwork) {
@@ -35,7 +34,7 @@ export const useConversations = () => {
 
   const sync = async () => {
     if (!client) {
-      throw new ClientNotFoundError("syncing conversations");
+      return;
     }
 
     setSyncing(true);
@@ -49,7 +48,7 @@ export const useConversations = () => {
 
   const getConversationById = async (conversationId: string) => {
     if (!client) {
-      throw new ClientNotFoundError("fetching a conversation by ID");
+      return;
     }
 
     setLoading(true);
@@ -65,7 +64,7 @@ export const useConversations = () => {
 
   const getMessageById = async (messageId: string) => {
     if (!client) {
-      throw new ClientNotFoundError("fetching a message by ID");
+      return;
     }
 
     setLoading(true);
@@ -83,7 +82,7 @@ export const useConversations = () => {
     options: SafeCreateGroupOptions,
   ) => {
     if (!client) {
-      throw new ClientNotFoundError("creating a new group");
+      return;
     }
 
     setLoading(true);
@@ -101,7 +100,7 @@ export const useConversations = () => {
 
   const newDm = async (member: string) => {
     if (!client) {
-      throw new ClientNotFoundError("creating a new DM");
+      return;
     }
 
     setLoading(true);

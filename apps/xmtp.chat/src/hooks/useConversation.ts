@@ -4,7 +4,6 @@ import type {
   SafeListMessagesOptions,
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
-import { ClientNotFoundError } from "../helpers/errors";
 import { useClient } from "./useClient";
 
 export const useConversation = (conversation?: Conversation) => {
@@ -19,7 +18,7 @@ export const useConversation = (conversation?: Conversation) => {
     syncFromNetwork: boolean = false,
   ) => {
     if (!client) {
-      throw new ClientNotFoundError("fetching messages");
+      return;
     }
 
     if (syncFromNetwork) {
@@ -39,7 +38,7 @@ export const useConversation = (conversation?: Conversation) => {
 
   const sync = async () => {
     if (!client) {
-      throw new ClientNotFoundError("syncing messages");
+      return;
     }
 
     setSyncing(true);
@@ -53,7 +52,7 @@ export const useConversation = (conversation?: Conversation) => {
 
   const send = async (message: string) => {
     if (!client) {
-      throw new ClientNotFoundError("sending message");
+      return;
     }
 
     setSending(true);
