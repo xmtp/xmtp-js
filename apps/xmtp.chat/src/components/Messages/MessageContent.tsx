@@ -1,4 +1,4 @@
-import { Code, Paper } from "@mantine/core";
+import { Code, Paper, Text } from "@mantine/core";
 
 export type MessageContentProps = {
   content: string;
@@ -12,7 +12,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content }) => {
       py="xs"
       px="sm"
       radius="md">
-      {content}
+      <Text style={{ whiteSpace: "pre-wrap" }}>{content}</Text>
     </Paper>
   ) : (
     <Code block maw={420}>
