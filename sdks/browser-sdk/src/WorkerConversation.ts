@@ -53,14 +53,6 @@ export class WorkerConversation {
     return this.#group.updateGroupDescription(description);
   }
 
-  get pinnedFrameUrl() {
-    return this.#group.groupPinnedFrameUrl();
-  }
-
-  async updatePinnedFrameUrl(pinnedFrameUrl: string) {
-    return this.#group.updateGroupPinnedFrameUrl(pinnedFrameUrl);
-  }
-
   get isActive() {
     return this.#group.isActive();
   }

@@ -25,8 +25,6 @@ export class Conversation {
 
   #description?: SafeConversation["description"];
 
-  #pinnedFrameUrl?: SafeConversation["pinnedFrameUrl"];
-
   #isActive?: SafeConversation["isActive"];
 
   #addedByInboxId?: SafeConversation["addedByInboxId"];
@@ -49,7 +47,6 @@ export class Conversation {
     this.#name = data?.name ?? "";
     this.#imageUrl = data?.imageUrl ?? "";
     this.#description = data?.description ?? "";
-    this.#pinnedFrameUrl = data?.pinnedFrameUrl ?? "";
     this.#isActive = data?.isActive ?? undefined;
     this.#addedByInboxId = data?.addedByInboxId ?? "";
     this.#metadata = data?.metadata ?? undefined;
@@ -96,18 +93,6 @@ export class Conversation {
       description,
     });
     this.#description = description;
-  }
-
-  get pinnedFrameUrl() {
-    return this.#pinnedFrameUrl;
-  }
-
-  async updatePinnedFrameUrl(pinnedFrameUrl: string) {
-    await this.#client.sendMessage("updateGroupPinnedFrameUrl", {
-      id: this.#id,
-      pinnedFrameUrl,
-    });
-    this.#pinnedFrameUrl = pinnedFrameUrl;
   }
 
   get isActive() {

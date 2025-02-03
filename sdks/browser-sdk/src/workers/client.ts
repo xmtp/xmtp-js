@@ -466,24 +466,6 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         }
         break;
       }
-      case "updateGroupPinnedFrameUrl": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.updatePinnedFrameUrl(data.pinnedFrameUrl);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
-        break;
-      }
       case "sendGroupMessage": {
         const group = client.conversations.getConversationById(data.id);
         if (group) {

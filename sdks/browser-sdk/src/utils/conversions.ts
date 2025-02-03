@@ -210,8 +210,7 @@ export type SafePermissionPolicySet = {
   updateGroupDescriptionPolicy: PermissionPolicy;
   updateGroupImageUrlSquarePolicy: PermissionPolicy;
   updateGroupNamePolicy: PermissionPolicy;
-  updateGroupPinnedFrameUrlPolicy: PermissionPolicy;
-  updateMessageExpirationPolicy: PermissionPolicy;
+  updateMessageDisappearingPolicy: PermissionPolicy;
 };
 
 export const toSafePermissionPolicySet = (
@@ -224,8 +223,7 @@ export const toSafePermissionPolicySet = (
   updateGroupDescriptionPolicy: policySet.updateGroupDescriptionPolicy,
   updateGroupImageUrlSquarePolicy: policySet.updateGroupImageUrlSquarePolicy,
   updateGroupNamePolicy: policySet.updateGroupNamePolicy,
-  updateGroupPinnedFrameUrlPolicy: policySet.updateGroupPinnedFrameUrlPolicy,
-  updateMessageExpirationPolicy: policySet.updateMessageExpirationPolicy,
+  updateMessageDisappearingPolicy: policySet.updateMessageDisappearingPolicy,
 });
 
 export const fromSafePermissionPolicySet = (
@@ -239,8 +237,7 @@ export const fromSafePermissionPolicySet = (
     policySet.updateGroupNamePolicy,
     policySet.updateGroupDescriptionPolicy,
     policySet.updateGroupImageUrlSquarePolicy,
-    policySet.updateGroupPinnedFrameUrlPolicy,
-    policySet.updateMessageExpirationPolicy,
+    policySet.updateMessageDisappearingPolicy,
   );
 
 export type SafeCreateGroupOptions = {
@@ -249,7 +246,6 @@ export type SafeCreateGroupOptions = {
   imageUrlSquare?: string;
   name?: string;
   permissions?: GroupPermissionsOptions;
-  pinnedFrameUrl?: string;
 };
 
 export const toSafeCreateGroupOptions = (
@@ -258,7 +254,6 @@ export const toSafeCreateGroupOptions = (
   description: options.groupDescription,
   imageUrlSquare: options.groupImageUrlSquare,
   name: options.groupName,
-  pinnedFrameUrl: options.groupPinnedFrameUrl,
   permissions: options.permissions,
   customPermissionPolicySet: options.customPermissionPolicySet,
 });
@@ -271,7 +266,6 @@ export const fromSafeCreateGroupOptions = (
     options.name,
     options.imageUrlSquare,
     options.description,
-    options.pinnedFrameUrl,
     // only include custom policy set if permissions are set to CustomPolicy
     options.customPermissionPolicySet &&
     options.permissions === GroupPermissionsOptions.CustomPolicy
@@ -284,7 +278,6 @@ export type SafeConversation = {
   name: string;
   imageUrl: string;
   description: string;
-  pinnedFrameUrl: string;
   permissions: {
     policyType: GroupPermissionsOptions;
     policySet: {
@@ -295,8 +288,7 @@ export type SafeConversation = {
       updateGroupDescriptionPolicy: PermissionPolicy;
       updateGroupImageUrlSquarePolicy: PermissionPolicy;
       updateGroupNamePolicy: PermissionPolicy;
-      updateGroupPinnedFrameUrlPolicy: PermissionPolicy;
-      updateMessageExpirationPolicy: PermissionPolicy;
+      updateMessageDisappearingPolicy: PermissionPolicy;
     };
   };
   isActive: boolean;
@@ -317,7 +309,6 @@ export const toSafeConversation = async (
   const name = conversation.name;
   const imageUrl = conversation.imageUrl;
   const description = conversation.description;
-  const pinnedFrameUrl = conversation.pinnedFrameUrl;
   const permissions = conversation.permissions;
   const isActive = conversation.isActive;
   const addedByInboxId = conversation.addedByInboxId;
@@ -332,7 +323,6 @@ export const toSafeConversation = async (
     name,
     imageUrl,
     description,
-    pinnedFrameUrl,
     permissions: {
       policyType,
       policySet: {
@@ -344,9 +334,8 @@ export const toSafeConversation = async (
         updateGroupImageUrlSquarePolicy:
           policySet.updateGroupImageUrlSquarePolicy,
         updateGroupNamePolicy: policySet.updateGroupNamePolicy,
-        updateGroupPinnedFrameUrlPolicy:
-          policySet.updateGroupPinnedFrameUrlPolicy,
-        updateMessageExpirationPolicy: policySet.updateMessageExpirationPolicy,
+        updateMessageDisappearingPolicy:
+          policySet.updateMessageDisappearingPolicy,
       },
     },
     isActive,

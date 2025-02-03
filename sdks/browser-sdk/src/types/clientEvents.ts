@@ -471,15 +471,6 @@ export type ClientEvents =
       };
     }
   | {
-      action: "updateGroupPinnedFrameUrl";
-      id: string;
-      result: undefined;
-      data: {
-        id: string;
-        pinnedFrameUrl: string;
-      };
-    }
-  | {
       action: "getGroupConsentState";
       id: string;
       result: ConsentState;
