@@ -51,8 +51,7 @@ export const NewConversation: React.FC = () => {
     updateGroupDescriptionPolicy: PermissionPolicy.Allow,
     updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
     updateGroupNamePolicy: PermissionPolicy.Allow,
-    updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
-    updateMessageExpirationPolicy: PermissionPolicy.Allow,
+    updateMessageDisappearingPolicy: PermissionPolicy.Allow,
   });
   const [createConversationError, setCreateConversationError] = useState<
     string | null
@@ -61,7 +60,6 @@ export const NewConversation: React.FC = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [pinnedFrameUrl, setPinnedFrameUrl] = useState("");
 
   const policyTooltip = useMemo(() => {
     if (permissionsPolicy === GroupPermissionsOptions.Default) {
@@ -85,8 +83,7 @@ export const NewConversation: React.FC = () => {
         updateGroupDescriptionPolicy: PermissionPolicy.Allow,
         updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
         updateGroupNamePolicy: PermissionPolicy.Allow,
-        updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
-        updateMessageExpirationPolicy: PermissionPolicy.Admin,
+        updateMessageDisappearingPolicy: PermissionPolicy.Admin,
       });
     } else {
       setPolicySet({
@@ -97,8 +94,7 @@ export const NewConversation: React.FC = () => {
         updateGroupDescriptionPolicy: PermissionPolicy.Admin,
         updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
         updateGroupNamePolicy: PermissionPolicy.Admin,
-        updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
-        updateMessageExpirationPolicy: PermissionPolicy.Admin,
+        updateMessageDisappearingPolicy: PermissionPolicy.Admin,
       });
     }
   }, [permissionsPolicy]);
@@ -125,7 +121,6 @@ export const NewConversation: React.FC = () => {
       : await newGroup(members, {
           description,
           imageUrlSquare: imageUrl,
-          pinnedFrameUrl,
           name,
           permissions: permissionsPolicy,
           customPermissionPolicySet:
@@ -133,6 +128,13 @@ export const NewConversation: React.FC = () => {
               ? policySet
               : undefined,
         });
+
+    // this won't happen due to another guard
+    // TODO: remove once other guard is refactored
+    if (!conversation) {
+      return;
+    }
+
     // automatically sync when creating a group with no members
     if (!isDmGroup && members.length === 0) {
       await conversation.sync();
@@ -229,17 +231,6 @@ export const NewConversation: React.FC = () => {
                       value={imageUrl}
                       onChange={(event) => {
                         setImageUrl(event.target.value);
-                      }}
-                    />
-                  </Group>
-                  <Group gap="md" align="center" wrap="nowrap">
-                    <Text flex="1 1 40%">Pinned frame URL</Text>
-                    <TextInput
-                      flex="1 1 60%"
-                      disabled={isDmGroup}
-                      value={pinnedFrameUrl}
-                      onChange={(event) => {
-                        setPinnedFrameUrl(event.target.value);
                       }}
                     />
                   </Group>
@@ -437,32 +428,6 @@ export const NewConversation: React.FC = () => {
                         setPolicySet({
                           ...policySet,
                           updateGroupImageUrlSquarePolicy: parseInt(
-                            event.currentTarget.value,
-                            10,
-                          ) as PermissionPolicy,
-                        });
-                      }}
-                      data={[
-                        { value: "0", label: "Everyone" },
-                        { value: "1", label: "Disabled" },
-                        { value: "2", label: "Admins only" },
-                        { value: "3", label: "Super admins only" },
-                      ]}
-                    />
-                  </Group>
-                  <Group gap="md" justify="space-between" align="center">
-                    <Text>Update group pinned frame</Text>
-                    <NativeSelect
-                      disabled={
-                        isDmGroup ||
-                        permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
-                      }
-                      value={policySet.updateGroupPinnedFrameUrlPolicy}
-                      onChange={(event) => {
-                        setPolicySet({
-                          ...policySet,
-                          updateGroupPinnedFrameUrlPolicy: parseInt(
                             event.currentTarget.value,
                             10,
                           ) as PermissionPolicy,
