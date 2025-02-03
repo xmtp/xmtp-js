@@ -7,7 +7,7 @@ To keep up with the latest SDK developments, see the [Issues tab](https://githu
 To learn more about XMTP and get answers to frequently asked questions, see the [XMTP documentation](https://xmtp.org/docs).
 
 > [!CAUTION]
-> This SDK is currently in alpha. The API is subject to change and it is not yet recommended for production use.
+> This SDK is in beta status and ready for you to build with in production. Software in this status may change based on feedback.
 
 ## Requirements
 
