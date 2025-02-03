@@ -94,33 +94,6 @@ describe.concurrent("Conversation", () => {
     expect(messages2.length).toBe(1);
   });
 
-  it("should update conversation pinned frame URL", async () => {
-    const user1 = createUser();
-    const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newGroup([
-      user2.account.address,
-    ]);
-    const pinnedFrameUrl = "https://foo/bar";
-    await conversation.updatePinnedFrameUrl(pinnedFrameUrl);
-    expect(conversation.pinnedFrameUrl).toBe(pinnedFrameUrl);
-    const messages = await conversation.messages();
-    expect(messages.length).toBe(2);
-
-    await client2.conversations.sync();
-    const conversations = client2.conversations.list();
-    expect(conversations.length).toBe(1);
-
-    const conversation2 = conversations[0];
-    expect(conversation2).toBeDefined();
-    await conversation2.sync();
-    expect(conversation2.id).toBe(conversation.id);
-    expect(conversation2.pinnedFrameUrl).toBe(pinnedFrameUrl);
-    const messages2 = await conversation2.messages();
-    expect(messages2.length).toBe(1);
-  });
-
   it("should add and remove members", async () => {
     const user1 = createUser();
     const user2 = createUser();
@@ -450,7 +423,6 @@ describe.concurrent("Conversation", () => {
       updateGroupNamePolicy: 0,
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
-      updateGroupPinnedFrameUrlPolicy: 0,
       updateMessageDisappearingPolicy: 2,
     });
 
@@ -492,12 +464,6 @@ describe.concurrent("Conversation", () => {
       MetadataField.ImageUrlSquare,
     );
 
-    await conversation.updatePermission(
-      PermissionUpdateType.UpdateMetadata,
-      PermissionPolicy.Admin,
-      MetadataField.PinnedFrameUrl,
-    );
-
     expect(conversation.permissions.policySet).toEqual({
       addMemberPolicy: 2,
       removeMemberPolicy: 3,
@@ -506,7 +472,6 @@ describe.concurrent("Conversation", () => {
       updateGroupNamePolicy: 2,
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
-      updateGroupPinnedFrameUrlPolicy: 2,
       updateMessageDisappearingPolicy: 2,
     });
   });
