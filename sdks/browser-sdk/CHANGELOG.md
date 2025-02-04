@@ -1,5 +1,14 @@
 # @xmtp/browser-sdk
 
+## 0.0.18
+
+### Patch Changes
+
+- ec5cd41:
+  - Added streaming methods
+  - Removed group pinned frame URL metadata
+  - Fixed DB locking issues
+
 ## 0.0.17
 
 ### Patch Changes
