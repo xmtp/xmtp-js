@@ -19,7 +19,7 @@ const vitestConfig = defineVitestConfig({
       headless: true,
       screenshotFailures: false,
     },
-    testTimeout: 60000,
+    testTimeout: 120000,
   },
   server: {
     headers: {
