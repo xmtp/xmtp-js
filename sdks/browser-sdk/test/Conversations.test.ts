@@ -342,7 +342,9 @@ describe.concurrent("Conversations", () => {
     expect(convos2[0].id).toBe(group.id);
     expect(convos2[1].id).toBe(group2.id);
   });
+});
 
+describe("Conversations streaming", () => {
   it("should stream new conversations", async () => {
     const user1 = createUser();
     const user2 = createUser();
