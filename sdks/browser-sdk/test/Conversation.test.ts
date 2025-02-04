@@ -95,33 +95,6 @@ describe.concurrent("Conversation", () => {
     expect(messages2.length).toBe(1);
   });
 
-  it("should update conversation pinned frame URL", async () => {
-    const user1 = createUser();
-    const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const conversation = await client1.conversations.newGroup([
-      user2.account.address,
-    ]);
-    const pinnedFrameUrl = "https://foo/bar";
-    await conversation.updatePinnedFrameUrl(pinnedFrameUrl);
-    expect(conversation.pinnedFrameUrl).toBe(pinnedFrameUrl);
-    const messages = await conversation.messages();
-    expect(messages.length).toBe(2);
-
-    await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
-    expect(conversations.length).toBe(1);
-
-    const conversation2 = conversations[0];
-    expect(conversation2).toBeDefined();
-    await conversation2.sync();
-    expect(conversation2.id).toBe(conversation.id);
-    expect(conversation2.pinnedFrameUrl).toBe(pinnedFrameUrl);
-    const messages2 = await conversation2.messages();
-    expect(messages2.length).toBe(1);
-  });
-
   it("should add and remove members", async () => {
     const user1 = createUser();
     const user2 = createUser();
@@ -431,8 +404,7 @@ describe.concurrent("Conversation", () => {
       updateGroupNamePolicy: 0,
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
-      updateGroupPinnedFrameUrlPolicy: 0,
-      updateMessageExpirationPolicy: 2,
+      updateMessageDisappearingPolicy: 2,
     });
 
     await conversation.updatePermission(
@@ -473,12 +445,6 @@ describe.concurrent("Conversation", () => {
       MetadataField.ImageUrlSquare,
     );
 
-    await conversation.updatePermission(
-      PermissionUpdateType.UpdateMetadata,
-      PermissionPolicy.Admin,
-      MetadataField.PinnedFrameUrl,
-    );
-
     const permissions2 = await conversation.permissions();
     expect(permissions2.policySet).toEqual({
       addMemberPolicy: 2,
@@ -488,8 +454,7 @@ describe.concurrent("Conversation", () => {
       updateGroupNamePolicy: 2,
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
-      updateGroupPinnedFrameUrlPolicy: 2,
-      updateMessageExpirationPolicy: 2,
+      updateMessageDisappearingPolicy: 2,
     });
 
     const conversation2 = await client1.conversations.newGroup([], {
@@ -505,8 +470,7 @@ describe.concurrent("Conversation", () => {
       updateGroupNamePolicy: 2,
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
-      updateGroupPinnedFrameUrlPolicy: 2,
-      updateMessageExpirationPolicy: 2,
+      updateMessageDisappearingPolicy: 2,
     });
 
     // required when group has no members
@@ -526,8 +490,46 @@ describe.concurrent("Conversation", () => {
       updateGroupNamePolicy: 2,
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
-      updateGroupPinnedFrameUrlPolicy: 2,
-      updateMessageExpirationPolicy: 2,
+      updateMessageDisappearingPolicy: 2,
     });
+  });
+
+  it("should stream messages", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const conversation = await client1.conversations.newGroup([
+      user2.account.address,
+    ]);
+
+    await client2.conversations.sync();
+
+    const conversation2 = await client2.conversations.list();
+    expect(conversation2.length).toBe(1);
+    expect(conversation2[0].id).toBe(conversation.id);
+
+    const streamedMessages: string[] = [];
+    const stream = await conversation2[0].stream((_, message) => {
+      streamedMessages.push(message!.content as string);
+    });
+
+    await conversation.send("gm");
+    await conversation.send("gm2");
+
+    let count = 0;
+    for await (const message of stream) {
+      count++;
+      expect(message).toBeDefined();
+      if (count === 1) {
+        expect(message!.content).toBe("gm");
+      }
+      if (count === 2) {
+        expect(message!.content).toBe("gm2");
+        break;
+      }
+    }
+
+    expect(streamedMessages).toEqual(["gm", "gm2"]);
   });
 });

@@ -6,11 +6,14 @@ import type {
   PermissionPolicy,
   PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
+import { v4 } from "uuid";
+import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
   SafeConversation,
   SafeListMessagesOptions,
+  SafeMessage,
 } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
 
@@ -24,8 +27,6 @@ export class Conversation {
   #imageUrl?: SafeConversation["imageUrl"];
 
   #description?: SafeConversation["description"];
-
-  #pinnedFrameUrl?: SafeConversation["pinnedFrameUrl"];
 
   #isActive?: SafeConversation["isActive"];
 
@@ -49,7 +50,6 @@ export class Conversation {
     this.#name = data?.name ?? "";
     this.#imageUrl = data?.imageUrl ?? "";
     this.#description = data?.description ?? "";
-    this.#pinnedFrameUrl = data?.pinnedFrameUrl ?? "";
     this.#isActive = data?.isActive ?? undefined;
     this.#addedByInboxId = data?.addedByInboxId ?? "";
     this.#metadata = data?.metadata ?? undefined;
@@ -96,18 +96,6 @@ export class Conversation {
       description,
     });
     this.#description = description;
-  }
-
-  get pinnedFrameUrl() {
-    return this.#pinnedFrameUrl;
-  }
-
-  async updatePinnedFrameUrl(pinnedFrameUrl: string) {
-    await this.#client.sendMessage("updateGroupPinnedFrameUrl", {
-      id: this.#id,
-      pinnedFrameUrl,
-    });
-    this.#pinnedFrameUrl = pinnedFrameUrl;
   }
 
   get isActive() {
@@ -320,5 +308,31 @@ export class Conversation {
     return this.#client.sendMessage("getDmPeerInboxId", {
       id: this.#id,
     });
+  }
+
+  async stream(callback?: StreamCallback<DecodedMessage>) {
+    const streamId = v4();
+    const asyncStream = new AsyncStream<DecodedMessage>();
+    const endStream = this.#client.handleStreamMessage<SafeMessage>(
+      streamId,
+      (error, value) => {
+        const decodedMessage = value
+          ? new DecodedMessage(this.#client, value)
+          : undefined;
+        void asyncStream.callback(error, decodedMessage);
+        void callback?.(error, decodedMessage);
+      },
+    );
+    await this.#client.sendMessage("streamGroupMessages", {
+      groupId: this.#id,
+      streamId,
+    });
+    asyncStream.onReturn = () => {
+      void this.#client.sendMessage("endStream", {
+        streamId,
+      });
+      endStream();
+    };
+    return asyncStream;
   }
 }

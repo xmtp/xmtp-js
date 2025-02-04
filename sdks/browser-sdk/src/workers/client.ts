@@ -1,9 +1,15 @@
+import type { Conversation, Message, StreamCloser } from "@xmtp/wasm-bindings";
 import type {
   ClientEventsActions,
   ClientEventsClientMessageData,
   ClientEventsErrorData,
   ClientEventsWorkerPostMessageData,
 } from "@/types";
+import type {
+  ClientStreamEventsErrorData,
+  ClientStreamEventsTypes,
+  ClientStreamEventsWorkerPostMessageData,
+} from "@/types/clientStreamEvents";
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
@@ -13,9 +19,12 @@ import {
   toSafeMessage,
 } from "@/utils/conversions";
 import { WorkerClient } from "@/WorkerClient";
+import { WorkerConversation } from "@/WorkerConversation";
 
 let client: WorkerClient;
 let enableLogging = false;
+
+const streamClosers = new Map<string, StreamCloser>();
 
 /**
  * Type-safe postMessage
@@ -30,6 +39,22 @@ const postMessage = <A extends ClientEventsActions>(
  * Type-safe postMessage for errors
  */
 const postMessageError = (data: ClientEventsErrorData) => {
+  self.postMessage(data);
+};
+
+/**
+ * Type-safe postMessage for streams
+ */
+const postStreamMessage = <A extends ClientStreamEventsTypes>(
+  data: ClientStreamEventsWorkerPostMessageData<A>,
+) => {
+  self.postMessage(data);
+};
+
+/**
+ * Type-safe postMessage for stream errors
+ */
+const postStreamMessageError = (data: ClientStreamEventsErrorData) => {
   self.postMessage(data);
 };
 
@@ -54,6 +79,28 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
   try {
     switch (action) {
       /**
+       * Stream actions
+       */
+      case "endStream": {
+        const streamCloser = streamClosers.get(data.streamId);
+        if (streamCloser) {
+          streamCloser.end();
+          streamClosers.delete(data.streamId);
+          postMessage({
+            id,
+            action,
+            result: undefined,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: `Stream "${data.streamId}" not found`,
+          });
+        }
+        break;
+      }
+      /**
        * Client actions
        */
       case "init":
@@ -76,7 +123,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       case "createInboxSignatureText": {
-        const result = await client.createInboxSignatureText();
+        const result = client.createInboxSignatureText();
         postMessage({
           id,
           action,
@@ -266,6 +313,72 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       /**
        * Conversations actions
        */
+      case "streamAllGroups": {
+        const streamCallback = async (
+          error: Error | null,
+          value: Conversation | undefined,
+        ) => {
+          if (error) {
+            postStreamMessageError({
+              type: "group",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "group",
+              streamId: data.streamId,
+              result: value
+                ? await toSafeConversation(
+                    new WorkerConversation(client, value),
+                  )
+                : undefined,
+            });
+          }
+        };
+        const streamCloser = client.conversations.stream(
+          streamCallback,
+          data.conversationType,
+        );
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
+      case "streamAllMessages": {
+        const streamCallback = (
+          error: Error | null,
+          value: Message | undefined,
+        ) => {
+          if (error) {
+            postStreamMessageError({
+              type: "message",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "message",
+              streamId: data.streamId,
+              result: value ? toSafeMessage(value) : undefined,
+            });
+          }
+        };
+        const streamCloser = client.conversations.streamAllMessages(
+          streamCallback,
+          data.conversationType,
+        );
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
       case "getConversations": {
         const conversations = client.conversations.list(data.options);
         postMessage({
@@ -452,24 +565,6 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         const group = client.conversations.getConversationById(data.id);
         if (group) {
           await group.updateImageUrl(data.imageUrl);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
-        break;
-      }
-      case "updateGroupPinnedFrameUrl": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.updatePinnedFrameUrl(data.pinnedFrameUrl);
           postMessage({
             id,
             action,
@@ -875,6 +970,43 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             id,
             action,
             result: safeConversation.permissions,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
+        break;
+      }
+      case "streamGroupMessages": {
+        const group = client.conversations.getConversationById(data.groupId);
+        if (group) {
+          const streamCallback = (
+            error: Error | null,
+            value: Message | undefined,
+          ) => {
+            if (error) {
+              postStreamMessageError({
+                type: "message",
+                streamId: data.streamId,
+                error: error.message,
+              });
+            } else {
+              postStreamMessage({
+                type: "message",
+                streamId: data.streamId,
+                result: value ? toSafeMessage(value) : undefined,
+              });
+            }
+          };
+          const streamCloser = group.stream(streamCallback);
+          streamClosers.set(data.streamId, streamCloser);
+          postMessage({
+            id,
+            action,
+            result: undefined,
           });
         } else {
           postMessageError({

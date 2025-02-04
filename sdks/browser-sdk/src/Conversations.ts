@@ -1,9 +1,14 @@
+import { ConversationType } from "@xmtp/wasm-bindings";
+import { v4 } from "uuid";
+import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
+  SafeConversation,
   SafeCreateGroupOptions,
   SafeListConversationsOptions,
+  SafeMessage,
 } from "@/utils/conversions";
 
 export class Conversations {
@@ -98,5 +103,79 @@ export class Conversations {
 
   async getHmacKeys() {
     return this.#client.sendMessage("getHmacKeys", undefined);
+  }
+
+  async stream(
+    callback?: StreamCallback<Conversation>,
+    conversationType?: ConversationType,
+  ) {
+    const streamId = v4();
+    const asyncStream = new AsyncStream<Conversation>();
+    const endStream = this.#client.handleStreamMessage<SafeConversation>(
+      streamId,
+      (error, value) => {
+        const conversation = value
+          ? new Conversation(this.#client, value.id, value)
+          : undefined;
+        void asyncStream.callback(error, conversation);
+        void callback?.(error, conversation);
+      },
+    );
+    await this.#client.sendMessage("streamAllGroups", {
+      streamId,
+      conversationType,
+    });
+    asyncStream.onReturn = () => {
+      void this.#client.sendMessage("endStream", {
+        streamId,
+      });
+      endStream();
+    };
+    return asyncStream;
+  }
+
+  async streamGroups(callback?: StreamCallback<Conversation>) {
+    return this.stream(callback, ConversationType.Group);
+  }
+
+  async streamDms(callback?: StreamCallback<Conversation>) {
+    return this.stream(callback, ConversationType.Dm);
+  }
+
+  async streamAllMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    conversationType?: ConversationType,
+  ) {
+    const streamId = v4();
+    const asyncStream = new AsyncStream<DecodedMessage>();
+    const endStream = this.#client.handleStreamMessage<SafeMessage>(
+      streamId,
+      (error, value) => {
+        const decodedMessage = value
+          ? new DecodedMessage(this.#client, value)
+          : undefined;
+        void asyncStream.callback(error, decodedMessage);
+        void callback?.(error, decodedMessage);
+      },
+    );
+    await this.#client.sendMessage("streamAllMessages", {
+      streamId,
+      conversationType,
+    });
+    asyncStream.onReturn = () => {
+      void this.#client.sendMessage("endStream", {
+        streamId,
+      });
+      endStream();
+    };
+    return asyncStream;
+  }
+
+  async streamAllGroupMessages(callback?: StreamCallback<DecodedMessage>) {
+    return this.streamAllMessages(callback, ConversationType.Group);
+  }
+
+  async streamAllDmMessages(callback?: StreamCallback<DecodedMessage>) {
+    return this.streamAllMessages(callback, ConversationType.Dm);
   }
 }

@@ -47,8 +47,7 @@ const defaultPolicySet: PolicySet = {
   updateGroupNamePolicy: PermissionPolicy.Allow,
   updateGroupDescriptionPolicy: PermissionPolicy.Allow,
   updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
-  updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Allow,
-  updateMessageExpirationPolicy: PermissionPolicy.Admin,
+  updateMessageDisappearingPolicy: PermissionPolicy.Admin,
 };
 
 const adminPolicySet: PolicySet = {
@@ -59,8 +58,7 @@ const adminPolicySet: PolicySet = {
   updateGroupNamePolicy: PermissionPolicy.Admin,
   updateGroupDescriptionPolicy: PermissionPolicy.Admin,
   updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
-  updateGroupPinnedFrameUrlPolicy: PermissionPolicy.Admin,
-  updateMessageExpirationPolicy: PermissionPolicy.Admin,
+  updateMessageDisappearingPolicy: PermissionPolicy.Admin,
 };
 
 export const ManageConversation: React.FC = () => {
@@ -87,7 +85,6 @@ export const ManageConversation: React.FC = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [pinnedFrameUrl, setPinnedFrameUrl] = useState("");
 
   const policyTooltip = useMemo(() => {
     if (permissionsPolicy === GroupPermissionsOptions.Default) {
@@ -134,9 +131,6 @@ export const ManageConversation: React.FC = () => {
       }
       if (imageUrl !== conversation?.imageUrl) {
         await conversation?.updateImageUrl(imageUrl);
-      }
-      if (pinnedFrameUrl !== conversation?.pinnedFrameUrl) {
-        await conversation?.updatePinnedFrameUrl(pinnedFrameUrl);
       }
       if (addedMembers.length > 0) {
         await conversation?.addMembers(addedMembers);
@@ -189,11 +183,6 @@ export const ManageConversation: React.FC = () => {
               defaultPolicySet.updateGroupImageUrlSquarePolicy,
               MetadataField.ImageUrlSquare,
             );
-            await conversation?.updatePermission(
-              PermissionUpdateType.UpdateMetadata,
-              defaultPolicySet.updateGroupPinnedFrameUrlPolicy,
-              MetadataField.PinnedFrameUrl,
-            );
             break;
           }
           case GroupPermissionsOptions.AdminOnly: {
@@ -227,11 +216,6 @@ export const ManageConversation: React.FC = () => {
               PermissionUpdateType.UpdateMetadata,
               adminPolicySet.updateGroupImageUrlSquarePolicy,
               MetadataField.ImageUrlSquare,
-            );
-            await conversation?.updatePermission(
-              PermissionUpdateType.UpdateMetadata,
-              adminPolicySet.updateGroupPinnedFrameUrlPolicy,
-              MetadataField.PinnedFrameUrl,
             );
           }
         }
@@ -268,11 +252,6 @@ export const ManageConversation: React.FC = () => {
           policySet.updateGroupImageUrlSquarePolicy,
           MetadataField.ImageUrlSquare,
         );
-        await conversation?.updatePermission(
-          PermissionUpdateType.UpdateMetadata,
-          policySet.updateGroupPinnedFrameUrlPolicy,
-          MetadataField.PinnedFrameUrl,
-        );
       }
       void navigate(`/conversations/${conversationId}`);
     } catch (error) {
@@ -299,7 +278,6 @@ export const ManageConversation: React.FC = () => {
           setName(conversation.name ?? "");
           setDescription(conversation.description ?? "");
           setImageUrl(conversation.imageUrl ?? "");
-          setPinnedFrameUrl(conversation.pinnedFrameUrl ?? "");
           const consentState = await conversation.consentState();
           setConsentState(consentState);
           consentStateRef.current = consentState;
@@ -405,17 +383,6 @@ export const ManageConversation: React.FC = () => {
                         value={imageUrl}
                         onChange={(event) => {
                           setImageUrl(event.target.value);
-                        }}
-                      />
-                    </Group>
-                    <Group gap="md" align="center" wrap="nowrap">
-                      <Text flex="1 1 40%">Pinned frame URL</Text>
-                      <TextInput
-                        size="md"
-                        flex="1 1 60%"
-                        value={pinnedFrameUrl}
-                        onChange={(event) => {
-                          setPinnedFrameUrl(event.target.value);
                         }}
                       />
                     </Group>
@@ -642,32 +609,6 @@ export const ManageConversation: React.FC = () => {
                         setPolicySet({
                           ...policySet,
                           updateGroupImageUrlSquarePolicy: parseInt(
-                            event.currentTarget.value,
-                            10,
-                          ) as PermissionPolicy,
-                        });
-                      }}
-                      data={[
-                        { value: "0", label: "Everyone" },
-                        { value: "1", label: "Disabled" },
-                        { value: "2", label: "Admins only" },
-                        { value: "3", label: "Super admins only" },
-                      ]}
-                    />
-                  </Group>
-                  <Group gap="md" justify="space-between" align="center">
-                    <Text>Update group pinned frame</Text>
-                    <NativeSelect
-                      disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
-                        permissionsPolicy !==
-                          GroupPermissionsOptions.CustomPolicy
-                      }
-                      value={policySet.updateGroupPinnedFrameUrlPolicy}
-                      onChange={(event) => {
-                        setPolicySet({
-                          ...policySet,
-                          updateGroupPinnedFrameUrlPolicy: parseInt(
                             event.currentTarget.value,
                             10,
                           ) as PermissionPolicy,

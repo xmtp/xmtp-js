@@ -1,4 +1,10 @@
-import type { Conversation, Conversations } from "@xmtp/wasm-bindings";
+import {
+  ConversationType,
+  type Conversation,
+  type Conversations,
+  type Message,
+} from "@xmtp/wasm-bindings";
+import type { StreamCallback } from "@/AsyncStream";
 import {
   fromSafeCreateGroupOptions,
   fromSafeListConversationsOptions,
@@ -93,5 +99,45 @@ export class WorkerConversations {
 
   getHmacKeys() {
     return this.#conversations.getHmacKeys() as HmacKeys;
+  }
+
+  stream(
+    callback?: StreamCallback<Conversation>,
+    conversationType?: ConversationType,
+  ) {
+    const on_conversation = (conversation: Conversation) => {
+      void callback?.(null, conversation);
+    };
+    const on_error = (error: Error | null) => {
+      void callback?.(error, undefined);
+    };
+    return this.#conversations.stream(
+      { on_conversation, on_error },
+      conversationType,
+    );
+  }
+
+  streamGroups(callback?: StreamCallback<Conversation>) {
+    return this.#conversations.stream(callback, ConversationType.Group);
+  }
+
+  streamDms(callback?: StreamCallback<Conversation>) {
+    return this.#conversations.stream(callback, ConversationType.Dm);
+  }
+
+  streamAllMessages(
+    callback?: StreamCallback<Message>,
+    conversationType?: ConversationType,
+  ) {
+    const on_message = (message: Message) => {
+      void callback?.(null, message);
+    };
+    const on_error = (error: Error | null) => {
+      void callback?.(error, undefined);
+    };
+    return this.#conversations.streamAllMessages(
+      { on_message, on_error },
+      conversationType,
+    );
   }
 }

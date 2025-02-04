@@ -41,7 +41,6 @@ describe.concurrent("Conversations", () => {
       updateGroupNamePolicy: 0,
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
-      updateGroupPinnedFrameUrlPolicy: 0,
       updateMessageDisappearingPolicy: 2,
     });
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
@@ -96,7 +95,6 @@ describe.concurrent("Conversations", () => {
       updateGroupDescriptionPolicy: 0,
       updateGroupImageUrlSquarePolicy: 0,
       updateGroupNamePolicy: 0,
-      updateGroupPinnedFrameUrlPolicy: 0,
       updateMessageDisappearingPolicy: 0,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
@@ -234,7 +232,6 @@ describe.concurrent("Conversations", () => {
       updateGroupNamePolicy: 2,
       updateGroupDescriptionPolicy: 2,
       updateGroupImageUrlSquarePolicy: 2,
-      updateGroupPinnedFrameUrlPolicy: 2,
       updateMessageDisappearingPolicy: 2,
     });
 
@@ -248,18 +245,6 @@ describe.concurrent("Conversations", () => {
     expect(groupWithDescription.name).toBe("");
     expect(groupWithDescription.imageUrl).toBe("");
     expect(groupWithDescription.description).toBe("foo");
-
-    const groupWithPinnedFrameUrl = await client1.conversations.newGroup(
-      [user2.account.address],
-      {
-        groupPinnedFrameUrl: "https://foo/bar",
-      },
-    );
-    expect(groupWithPinnedFrameUrl).toBeDefined();
-    expect(groupWithPinnedFrameUrl.name).toBe("");
-    expect(groupWithPinnedFrameUrl.imageUrl).toBe("");
-    expect(groupWithPinnedFrameUrl.description).toBe("");
-    expect(groupWithPinnedFrameUrl.pinnedFrameUrl).toBe("https://foo/bar");
   });
 
   it("should create a group with custom permissions", async () => {
@@ -279,7 +264,6 @@ describe.concurrent("Conversations", () => {
           updateGroupNamePolicy: 1,
           updateGroupDescriptionPolicy: 1,
           updateGroupImageUrlSquarePolicy: 1,
-          updateGroupPinnedFrameUrlPolicy: 1,
           updateMessageDisappearingPolicy: 2,
         },
       },
@@ -296,7 +280,6 @@ describe.concurrent("Conversations", () => {
       updateGroupNamePolicy: 1,
       updateGroupDescriptionPolicy: 1,
       updateGroupImageUrlSquarePolicy: 1,
-      updateGroupPinnedFrameUrlPolicy: 1,
       updateMessageDisappearingPolicy: 2,
     });
   });
