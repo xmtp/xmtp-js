@@ -6,6 +6,10 @@ import type {
   ClientEventsWorkerMessageData,
   ClientSendMessageData,
 } from "@/types";
+import type {
+  ClientStreamEvents,
+  ClientStreamEventsErrorData,
+} from "@/types/clientStreamEvents";
 
 const handleError = (event: ErrorEvent) => {
   console.error(`Worker error on line ${event.lineno} in "${event.filename}"`);
@@ -61,6 +65,30 @@ export class ClientWorkerClass {
         promise.resolve(eventData.result);
       }
     }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  handleStreamMessage = <T extends ClientStreamEvents["result"]>(
+    streamId: string,
+    callback: (error: Error | null, value: T | null) => void,
+  ) => {
+    const streamHandler = (
+      event: MessageEvent<ClientStreamEvents | ClientStreamEventsErrorData>,
+    ) => {
+      const eventData = event.data;
+      if (eventData.streamId === streamId) {
+        if ("error" in eventData) {
+          callback(new Error(eventData.error), null);
+        } else {
+          callback(null, eventData.result as T);
+        }
+      }
+    };
+    this.#worker.addEventListener("message", streamHandler);
+
+    return () => {
+      this.#worker.removeEventListener("message", streamHandler);
+    };
   };
 
   close() {

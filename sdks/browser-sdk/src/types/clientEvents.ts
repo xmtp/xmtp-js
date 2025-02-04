@@ -1,6 +1,7 @@
 import type {
   ConsentEntityType,
   ConsentState,
+  ConversationType,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
@@ -30,6 +31,17 @@ import type {
 } from "@/utils/conversions";
 
 export type ClientEvents =
+  /**
+   * Stream actions
+   */
+  | {
+      action: "endStream";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+      };
+    }
   /**
    * Client actions
    */
@@ -283,6 +295,24 @@ export type ClientEvents =
       result: SafeHmacKeys;
       data: undefined;
     }
+  | {
+      action: "streamAllGroups";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+        conversationType?: ConversationType;
+      };
+    }
+  | {
+      action: "streamAllMessages";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+        conversationType?: ConversationType;
+      };
+    }
   /**
    * Group actions
    */
@@ -512,6 +542,15 @@ export type ClientEvents =
       result: SafeConversation["permissions"];
       data: {
         id: string;
+      };
+    }
+  | {
+      action: "streamGroupMessages";
+      id: string;
+      result: undefined;
+      data: {
+        groupId: string;
+        streamId: string;
       };
     };
 

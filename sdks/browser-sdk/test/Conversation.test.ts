@@ -493,4 +493,43 @@ describe.concurrent("Conversation", () => {
       updateMessageDisappearingPolicy: 2,
     });
   });
+
+  it("should stream messages", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const client1 = await createRegisteredClient(user1);
+    const client2 = await createRegisteredClient(user2);
+    const conversation = await client1.conversations.newGroup([
+      user2.account.address,
+    ]);
+
+    await client2.conversations.sync();
+
+    const conversation2 = await client2.conversations.list();
+    expect(conversation2.length).toBe(1);
+    expect(conversation2[0].id).toBe(conversation.id);
+
+    const streamedMessages: string[] = [];
+    const stream = await conversation2[0].stream((_, message) => {
+      streamedMessages.push(message!.content as string);
+    });
+
+    await conversation.send("gm");
+    await conversation.send("gm2");
+
+    let count = 0;
+    for await (const message of stream) {
+      count++;
+      expect(message).toBeDefined();
+      if (count === 1) {
+        expect(message!.content).toBe("gm");
+      }
+      if (count === 2) {
+        expect(message!.content).toBe("gm2");
+        break;
+      }
+    }
+
+    expect(streamedMessages).toEqual(["gm", "gm2"]);
+  });
 });

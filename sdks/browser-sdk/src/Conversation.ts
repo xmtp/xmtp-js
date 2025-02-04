@@ -6,11 +6,14 @@ import type {
   PermissionPolicy,
   PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
+import { v4 } from "uuid";
+import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
   SafeConversation,
   SafeListMessagesOptions,
+  SafeMessage,
 } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
 
@@ -305,5 +308,31 @@ export class Conversation {
     return this.#client.sendMessage("getDmPeerInboxId", {
       id: this.#id,
     });
+  }
+
+  async stream(callback?: StreamCallback<DecodedMessage>) {
+    const streamId = v4();
+    const asyncStream = new AsyncStream<DecodedMessage>();
+    const endStream = this.#client.handleStreamMessage<SafeMessage>(
+      streamId,
+      (error, value) => {
+        const decodedMessage = value
+          ? new DecodedMessage(this.#client, value)
+          : undefined;
+        void asyncStream.callback(error, decodedMessage);
+        void callback?.(error, decodedMessage);
+      },
+    );
+    await this.#client.sendMessage("streamGroupMessages", {
+      groupId: this.#id,
+      streamId,
+    });
+    asyncStream.onReturn = () => {
+      void this.#client.sendMessage("endStream", {
+        streamId,
+      });
+      endStream();
+    };
+    return asyncStream;
   }
 }

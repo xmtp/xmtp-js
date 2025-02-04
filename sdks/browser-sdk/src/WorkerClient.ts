@@ -51,9 +51,9 @@ export class WorkerClient {
     return this.#client.isRegistered;
   }
 
-  async createInboxSignatureText() {
+  createInboxSignatureText() {
     try {
-      return await this.#client.createInboxSignatureText();
+      return this.#client.createInboxSignatureText();
     } catch {
       return undefined;
     }

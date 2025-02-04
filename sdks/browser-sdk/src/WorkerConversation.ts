@@ -3,10 +3,12 @@ import type {
   Conversation,
   EncodedContent,
   GroupMember,
+  Message,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
+import { type StreamCallback } from "@/AsyncStream";
 import {
   fromSafeListMessagesOptions,
   toSafeGroupMember,
@@ -178,5 +180,15 @@ export class WorkerConversation {
 
   dmPeerInboxId() {
     return this.#group.dmPeerInboxId();
+  }
+
+  stream(callback?: StreamCallback<Message>) {
+    const on_message = (message: Message) => {
+      void callback?.(null, message);
+    };
+    const on_error = (error: Error | null) => {
+      void callback?.(error, undefined);
+    };
+    return this.#group.stream({ on_message, on_error });
   }
 }

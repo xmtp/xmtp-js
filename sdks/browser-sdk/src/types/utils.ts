@@ -44,3 +44,29 @@ export type EventsErrorData<Events extends GenericEvent> = {
   action: Events["action"];
   error: string;
 };
+
+export type GenericStreamEvent = {
+  type: string;
+  streamId: string;
+  result: unknown;
+};
+
+export type StreamEventsClientMessageData<Events extends GenericStreamEvent> = {
+  [Type in Events["type"]]: Omit<Extract<Events, { type: Type }>, "result">;
+}[Events["type"]];
+
+export type StreamEventsResult<
+  Events extends GenericStreamEvent,
+  Type extends Events["type"],
+> = Extract<Events, { type: Type }>["result"];
+
+export type StreamEventsClientPostMessageData<
+  Events extends GenericStreamEvent,
+  Type extends Events["type"],
+> = Extract<Events, { type: Type }>;
+
+export type StreamEventsErrorData<Events extends GenericStreamEvent> = {
+  streamId: string;
+  type: Events["type"];
+  error: string;
+};
