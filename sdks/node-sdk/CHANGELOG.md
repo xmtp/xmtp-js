@@ -1,5 +1,13 @@
 # @xmtp/node-sdk
 
+## 0.0.42
+
+### Patch Changes
+
+- ec5cd41:
+  - Removed group pinned frame URL metadata
+  - Fixed DB locking issues
+
 ## 0.0.41
 
 ### Patch Changes

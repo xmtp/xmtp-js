@@ -4848,7 +4848,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/browser-sdk@npm:^0.0.17, @xmtp/browser-sdk@workspace:sdks/browser-sdk":
+"@xmtp/browser-sdk@npm:^0.0.17":
+  version: 0.0.17
+  resolution: "@xmtp/browser-sdk@npm:0.0.17"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-text": "npm:^2.0.0"
+    "@xmtp/proto": "npm:^3.72.3"
+    "@xmtp/wasm-bindings": "npm:^0.0.13"
+    uuid: "npm:^11.0.3"
+  checksum: 10/33ea33deacc2ea5f47437b479ff9cb1346b794bd89a50c5becc2735a2cff53f247b50b34bfed67db7f7fecfbb987d8eccc15792e511be2fbcfcb22e1cc345405
+  languageName: node
+  linkType: hard
+
+"@xmtp/browser-sdk@workspace:sdks/browser-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/browser-sdk@workspace:sdks/browser-sdk"
   dependencies:
@@ -5285,6 +5299,13 @@ __metadata:
   version: 0.3.6
   resolution: "@xmtp/user-preferences-bindings-wasm@npm:0.3.6"
   checksum: 10/a7475945996142e9238b74f66ae4d8c4d04dfe758da9510933823499f52b519b53b1e5b8e807c69426e2ec73ccec20b1f388ed16e74606645cd5dc0ff28247f3
+  languageName: node
+  linkType: hard
+
+"@xmtp/wasm-bindings@npm:^0.0.13":
+  version: 0.0.13
+  resolution: "@xmtp/wasm-bindings@npm:0.0.13"
+  checksum: 10/7d5a076caf8e835fb5fedac0bb95cd0e357cdb12da461359299a3bbef63c254d3b1ffa423a78c94cf4c0a6d7f8dd81b993703e34e38eff6669bfe3e3bbfd2dd1
   languageName: node
   linkType: hard
 
