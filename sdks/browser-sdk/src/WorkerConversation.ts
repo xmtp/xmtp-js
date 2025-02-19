@@ -1,12 +1,13 @@
-import type {
-  ConsentState,
-  Conversation,
-  EncodedContent,
-  GroupMember,
-  Message,
-  MetadataField,
-  PermissionPolicy,
-  PermissionUpdateType,
+import {
+  MessageDisappearingSettings,
+  type ConsentState,
+  type Conversation,
+  type EncodedContent,
+  type GroupMember,
+  type Message,
+  type MetadataField,
+  type PermissionPolicy,
+  type PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
 import { type StreamCallback } from "@/AsyncStream";
 import {
@@ -180,6 +181,23 @@ export class WorkerConversation {
 
   dmPeerInboxId() {
     return this.#group.dmPeerInboxId();
+  }
+
+  messageDisappearingSettings() {
+    return this.#group.messageDisappearingSettings();
+  }
+
+  async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
+    const settings = new MessageDisappearingSettings(fromNs, inNs);
+    return this.#group.updateMessageDisappearingSettings(settings);
+  }
+
+  async removeMessageDisappearingSettings() {
+    return this.#group.removeMessageDisappearingSettings();
+  }
+
+  isMessageDisappearingEnabled() {
+    return this.#group.isMessageDisappearingEnabled();
   }
 
   stream(callback?: StreamCallback<Message>) {

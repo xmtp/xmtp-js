@@ -13,6 +13,9 @@ import type { Signer } from "@/utils/signer";
 
 const testEncryptionKey = window.crypto.getRandomValues(new Uint8Array(32));
 
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 export const createUser = () => {
   const key = generatePrivateKey();
   const account = privateKeyToAccount(key);
