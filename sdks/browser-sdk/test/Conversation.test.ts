@@ -15,7 +15,7 @@ import {
   TestCodec,
 } from "@test/helpers";
 
-describe.concurrent("Conversation", () => {
+describe("Conversation", () => {
   it("should update conversation name", async () => {
     const user1 = createUser();
     const user2 = createUser();
@@ -504,8 +504,8 @@ describe.concurrent("Conversation", () => {
 
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: SafeMessageDisappearingSettings = {
-      fromNs: 1_000_000n,
-      inNs: 1_000_000n,
+      fromNs: 5_000_000n,
+      inNs: 5_000_000n,
     };
 
     // create a group with message disappearing settings
@@ -518,8 +518,8 @@ describe.concurrent("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation.messageDisappearingSettings()).toEqual({
-      fromNs: 1_000_000n,
-      inNs: 1_000_000n,
+      fromNs: 5_000_000n,
+      inNs: 5_000_000n,
     });
     expect(await conversation.isMessageDisappearingEnabled()).toBe(true);
 
@@ -539,13 +539,13 @@ describe.concurrent("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation2!.messageDisappearingSettings()).toEqual({
-      fromNs: 1_000_000n,
-      inNs: 1_000_000n,
+      fromNs: 5_000_000n,
+      inNs: 5_000_000n,
     });
     expect(await conversation2!.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(2000);
+    await sleep(5000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
@@ -596,8 +596,8 @@ describe.concurrent("Conversation", () => {
 
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: SafeMessageDisappearingSettings = {
-      fromNs: 1_000_000n,
-      inNs: 1_000_000n,
+      fromNs: 5_000_000n,
+      inNs: 5_000_000n,
     };
 
     // create a group with message disappearing settings
@@ -610,8 +610,8 @@ describe.concurrent("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation.messageDisappearingSettings()).toEqual({
-      fromNs: 1_000_000n,
-      inNs: 1_000_000n,
+      fromNs: 5_000_000n,
+      inNs: 5_000_000n,
     });
     expect(await conversation.isMessageDisappearingEnabled()).toBe(true);
 
@@ -631,13 +631,13 @@ describe.concurrent("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation2!.messageDisappearingSettings()).toEqual({
-      fromNs: 1_000_000n,
-      inNs: 1_000_000n,
+      fromNs: 5_000_000n,
+      inNs: 5_000_000n,
     });
     expect(await conversation2!.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(2000);
+    await sleep(5000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
