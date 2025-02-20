@@ -20,6 +20,7 @@ import type {
 import type {
   SafeConsent,
   SafeConversation,
+  SafeCreateDmOptions,
   SafeCreateGroupOptions,
   SafeEncodedContent,
   SafeGroupMember,
@@ -28,6 +29,7 @@ import type {
   SafeListConversationsOptions,
   SafeListMessagesOptions,
   SafeMessage,
+  SafeMessageDisappearingSettings,
 } from "@/utils/conversions";
 
 export type ClientEvents =
@@ -270,11 +272,30 @@ export type ClientEvents =
       };
     }
   | {
+      action: "newGroupByInboxIds";
+      id: string;
+      result: SafeConversation;
+      data: {
+        inboxIds: string[];
+        options?: SafeCreateGroupOptions;
+      };
+    }
+  | {
       action: "newDm";
       id: string;
       result: SafeConversation;
       data: {
         accountAddress: string;
+        options?: SafeCreateDmOptions;
+      };
+    }
+  | {
+      action: "newDmByInboxId";
+      id: string;
+      result: SafeConversation;
+      data: {
+        inboxId: string;
+        options?: SafeCreateDmOptions;
       };
     }
   | {
@@ -287,7 +308,9 @@ export type ClientEvents =
       action: "syncAllConversations";
       id: string;
       result: undefined;
-      data: undefined;
+      data: {
+        consentStates?: ConsentState[];
+      };
     }
   | {
       action: "getHmacKeys";
@@ -540,6 +563,38 @@ export type ClientEvents =
       action: "getGroupPermissions";
       id: string;
       result: SafeConversation["permissions"];
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "getGroupMessageDisappearingSettings";
+      id: string;
+      result: SafeMessageDisappearingSettings | undefined;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "updateGroupMessageDisappearingSettings";
+      id: string;
+      result: undefined;
+      data: SafeMessageDisappearingSettings & {
+        id: string;
+      };
+    }
+  | {
+      action: "removeGroupMessageDisappearingSettings";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "isGroupMessageDisappearingEnabled";
+      id: string;
+      result: boolean;
       data: {
         id: string;
       };

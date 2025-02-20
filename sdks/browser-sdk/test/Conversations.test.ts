@@ -16,8 +16,10 @@ describe.concurrent("Conversations", () => {
   it("should create a new conversation", async () => {
     const user1 = createUser();
     const user2 = createUser();
+    const user3 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
     const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
@@ -30,6 +32,24 @@ describe.concurrent("Conversations", () => {
     expect(conversation.createdAt).toBeDefined();
     expect(conversation.isActive).toBe(true);
     expect(conversation.name).toBe("");
+    expect(await conversation.messageDisappearingSettings()).toBeUndefined();
+    expect(await conversation.isMessageDisappearingEnabled()).toBe(false);
+
+    const conversation2 = await client1.conversations.newGroupByInboxIds([
+      client3.inboxId!,
+    ]);
+    expect(
+      (await client1.conversations.getConversationById(conversation2.id))?.id,
+    ).toBe(conversation2.id);
+    expect(conversation2).toBeDefined();
+    expect(conversation2.id).toBeDefined();
+    expect(conversation2.createdAtNs).toBeDefined();
+    expect(conversation2.createdAt).toBeDefined();
+    expect(conversation2.isActive).toBe(true);
+    expect(conversation2.name).toBe("");
+    expect(await conversation2.messageDisappearingSettings()).toBeUndefined();
+    expect(await conversation2.isMessageDisappearingEnabled()).toBe(false);
+
     const permissions = await conversation.permissions();
     expect(permissions.policyType).toBe(GroupPermissionsOptions.Default);
     expect(permissions.policySet).toEqual({
@@ -42,22 +62,50 @@ describe.concurrent("Conversations", () => {
       updateGroupImageUrlSquarePolicy: 0,
       updateMessageDisappearingPolicy: 2,
     });
+
+    const permissions2 = await conversation2.permissions();
+    expect(permissions2.policyType).toBe(GroupPermissionsOptions.Default);
+    expect(permissions2.policySet).toEqual({
+      addMemberPolicy: 0,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 0,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateMessageDisappearingPolicy: 2,
+    });
+
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
     expect((await conversation.messages()).length).toBe(1);
+
+    expect(conversation2.addedByInboxId).toBe(client1.inboxId);
+    expect((await conversation2.messages()).length).toBe(1);
 
     const members = await conversation.members();
     expect(members.length).toBe(2);
     const memberInboxIds = members.map((member) => member.inboxId);
     expect(memberInboxIds).toContain(client1.inboxId);
     expect(memberInboxIds).toContain(client2.inboxId);
+
+    const members2 = await conversation2.members();
+    expect(members2.length).toBe(2);
+    const memberInboxIds2 = members2.map((member) => member.inboxId);
+    expect(memberInboxIds2).toContain(client1.inboxId);
+    expect(memberInboxIds2).toContain(client3.inboxId);
+
     expect(conversation.metadata).toEqual({
       conversationType: "group",
       creatorInboxId: client1.inboxId,
     });
 
+    expect(conversation2.metadata).toEqual({
+      conversationType: "group",
+      creatorInboxId: client1.inboxId,
+    });
+
     const conversations1 = await client1.conversations.list();
-    expect(conversations1.length).toBe(1);
-    expect(conversations1[0].id).toBe(conversation.id);
+    expect(conversations1.length).toBe(2);
 
     expect((await client2.conversations.list()).length).toBe(0);
 
@@ -69,13 +117,27 @@ describe.concurrent("Conversations", () => {
 
     expect((await client2.conversations.listDms()).length).toBe(0);
     expect((await client2.conversations.listGroups()).length).toBe(1);
+
+    expect((await client3.conversations.list()).length).toBe(0);
+
+    await client3.conversations.sync();
+
+    const conversations3 = await client2.conversations.list();
+    expect(conversations3.length).toBe(1);
+    expect(conversations3[0].id).toBe(conversation.id);
+
+    expect((await client3.conversations.listDms()).length).toBe(0);
+    expect((await client3.conversations.listGroups()).length).toBe(1);
   });
 
   it("should create a dm group", async () => {
     const user1 = createUser();
     const user2 = createUser();
+    const user3 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
+
     const group = await client1.conversations.newDm(user2.account.address);
     expect(group).toBeDefined();
     expect(group.id).toBeDefined();
@@ -83,6 +145,19 @@ describe.concurrent("Conversations", () => {
     expect(group.createdAt).toBeDefined();
     expect(group.isActive).toBe(true);
     expect(group.name).toBe("");
+    expect(await group.messageDisappearingSettings()).toBeUndefined();
+    expect(await group.isMessageDisappearingEnabled()).toBe(false);
+
+    const group2 = await client1.conversations.newDmByInboxId(client3.inboxId!);
+    expect(group2).toBeDefined();
+    expect(group2.id).toBeDefined();
+    expect(group2.createdAtNs).toBeDefined();
+    expect(group2.createdAt).toBeDefined();
+    expect(group2.isActive).toBe(true);
+    expect(group2.name).toBe("");
+    expect(await group2.messageDisappearingSettings()).toBeUndefined();
+    expect(await group2.isMessageDisappearingEnabled()).toBe(false);
+
     const permissions = await group.permissions();
     expect(permissions.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
     expect(permissions.policySet).toEqual({
@@ -95,37 +170,68 @@ describe.concurrent("Conversations", () => {
       updateGroupNamePolicy: 0,
       updateMessageDisappearingPolicy: 0,
     });
+
+    const permissions2 = await group2.permissions();
+    expect(permissions2.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
+    expect(permissions2.policySet).toEqual({
+      addAdminPolicy: 1,
+      addMemberPolicy: 1,
+      removeAdminPolicy: 1,
+      removeMemberPolicy: 1,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateGroupNamePolicy: 0,
+      updateMessageDisappearingPolicy: 0,
+    });
+
     expect(group.addedByInboxId).toBe(client1.inboxId);
-    expect((await group.messages()).length).toBe(0);
+    expect(group2.addedByInboxId).toBe(client1.inboxId);
+
+    expect((await group.messages()).length).toBe(1);
+    expect((await group2.messages()).length).toBe(1);
+
     const members = await group.members();
     expect(members.length).toBe(2);
     const memberInboxIds = members.map((member) => member.inboxId);
     expect(memberInboxIds).toContain(client1.inboxId);
     expect(memberInboxIds).toContain(client2.inboxId);
+
+    const members2 = await group2.members();
+    expect(members2.length).toBe(2);
+    const memberInboxIds2 = members2.map((member) => member.inboxId);
+    expect(memberInboxIds2).toContain(client1.inboxId);
+    expect(memberInboxIds2).toContain(client3.inboxId);
+
     expect(group.metadata?.conversationType).toBe("dm");
     expect(group.metadata?.creatorInboxId).toBe(client1.inboxId);
 
+    expect(group2.metadata?.conversationType).toBe("dm");
+    expect(group2.metadata?.creatorInboxId).toBe(client1.inboxId);
+
     expect(await group.consentState()).toBe(ConsentState.Allowed);
+    expect(await group2.consentState()).toBe(ConsentState.Allowed);
 
-    const group1 = await client1.conversations.list();
-    expect(group1.length).toBe(1);
-    expect(group1[0].id).toBe(group.id);
-    expect(await group1[0].dmPeerInboxId()).toBe(client2.inboxId);
-
-    expect((await client1.conversations.listDms()).length).toBe(1);
+    expect((await client1.conversations.listDms()).length).toBe(2);
     expect((await client1.conversations.listGroups()).length).toBe(0);
 
     expect((await client2.conversations.list()).length).toBe(0);
+    expect((await client3.conversations.list()).length).toBe(0);
 
     await client2.conversations.sync();
+    await client3.conversations.sync();
 
-    const group2 = await client2.conversations.list();
-    expect(group2.length).toBe(1);
-    expect(group2[0].id).toBe(group.id);
-    expect(await group2[0].dmPeerInboxId()).toBe(client1.inboxId);
+    const groups2 = await client2.conversations.list();
+    expect(groups2.length).toBe(1);
+    expect(groups2[0].id).toBe(group.id);
+    expect(await groups2[0].dmPeerInboxId()).toBe(client1.inboxId);
 
     expect((await client2.conversations.listDms()).length).toBe(1);
     expect((await client2.conversations.listGroups()).length).toBe(0);
+
+    const groups3 = await client3.conversations.list();
+    expect(groups3.length).toBe(1);
+    expect(groups3[0].id).toBe(group2.id);
+    expect(await groups3[0].dmPeerInboxId()).toBe(client1.inboxId);
 
     const dm1 = await client1.conversations.getDmByInboxId(client2.inboxId!);
     expect(dm1).toBeDefined();
@@ -142,6 +248,22 @@ describe.concurrent("Conversations", () => {
     const peerInboxId2 = await dm2?.dmPeerInboxId();
     expect(peerInboxId2).toBeDefined();
     expect(peerInboxId2).toBe(client1.inboxId);
+
+    const dm3 = await client1.conversations.getDmByInboxId(client3.inboxId!);
+    expect(dm3).toBeDefined();
+    expect(dm3!.id).toBe(group2.id);
+
+    const peerInboxId3 = await dm3?.dmPeerInboxId();
+    expect(peerInboxId3).toBeDefined();
+    expect(peerInboxId3).toBe(client3.inboxId);
+
+    const dm4 = await client3.conversations.getDmByInboxId(client1.inboxId!);
+    expect(dm4).toBeDefined();
+    expect(dm4!.id).toBe(group2.id);
+
+    const peerInboxId4 = await dm4?.dmPeerInboxId();
+    expect(peerInboxId4).toBeDefined();
+    expect(peerInboxId4).toBe(client1.inboxId);
   });
 
   it("should get a group by ID", async () => {
@@ -339,8 +461,9 @@ describe.concurrent("Conversations", () => {
     await client2.conversations.sync();
     const convos2 = await client2.conversations.list();
     expect(convos2.length).toBe(2);
-    expect(convos2[0].id).toBe(group.id);
-    expect(convos2[1].id).toBe(group2.id);
+    const convos2Ids = convos2.map((c) => c.id);
+    expect(convos2Ids).toContain(group.id);
+    expect(convos2Ids).toContain(group2.id);
   });
 });
 

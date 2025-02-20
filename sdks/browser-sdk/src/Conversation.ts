@@ -310,6 +310,32 @@ export class Conversation {
     });
   }
 
+  async messageDisappearingSettings() {
+    return this.#client.sendMessage("getGroupMessageDisappearingSettings", {
+      id: this.#id,
+    });
+  }
+
+  async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
+    return this.#client.sendMessage("updateGroupMessageDisappearingSettings", {
+      id: this.#id,
+      fromNs,
+      inNs,
+    });
+  }
+
+  async removeMessageDisappearingSettings() {
+    return this.#client.sendMessage("removeGroupMessageDisappearingSettings", {
+      id: this.#id,
+    });
+  }
+
+  async isMessageDisappearingEnabled() {
+    return this.#client.sendMessage("isGroupMessageDisappearingEnabled", {
+      id: this.#id,
+    });
+  }
+
   async stream(callback?: StreamCallback<DecodedMessage>) {
     const streamId = v4();
     const asyncStream = new AsyncStream<DecodedMessage>();

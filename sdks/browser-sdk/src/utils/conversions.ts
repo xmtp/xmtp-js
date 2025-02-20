@@ -4,11 +4,13 @@ import {
 } from "@xmtp/content-type-primitives";
 import {
   Consent,
+  CreateDMOptions,
   CreateGroupOptions,
   GroupMember,
   GroupPermissionsOptions,
   ListConversationsOptions,
   ListMessagesOptions,
+  MessageDisappearingSettings,
   PermissionPolicySet,
   ContentTypeId as WasmContentTypeId,
   EncodedContent as WasmEncodedContent,
@@ -175,9 +177,12 @@ export const fromSafeListMessagesOptions = (
 
 export type SafeListConversationsOptions = {
   allowedStates?: GroupMembershipState[];
+  consentStates?: ConsentState[];
   conversationType?: ConversationType;
   createdAfterNs?: bigint;
   createdBeforeNs?: bigint;
+  includeDuplicateDms?: boolean;
+  includeSyncGroups?: boolean;
   limit?: bigint;
 };
 
@@ -185,9 +190,12 @@ export const toSafeListConversationsOptions = (
   options: ListConversationsOptions,
 ): SafeListConversationsOptions => ({
   allowedStates: options.allowedStates,
+  consentStates: options.consentStates,
   conversationType: options.conversationType,
   createdAfterNs: options.createdAfterNs,
   createdBeforeNs: options.createdBeforeNs,
+  includeDuplicateDms: options.includeDuplicateDms,
+  includeSyncGroups: options.includeSyncGroups,
   limit: options.limit,
 });
 
@@ -196,9 +204,12 @@ export const fromSafeListConversationsOptions = (
 ): ListConversationsOptions =>
   new ListConversationsOptions(
     options.allowedStates,
+    options.consentStates,
     options.conversationType,
     options.createdAfterNs,
     options.createdBeforeNs,
+    options.includeDuplicateDms ?? false,
+    options.includeSyncGroups ?? false,
     options.limit,
   );
 
@@ -244,6 +255,7 @@ export type SafeCreateGroupOptions = {
   customPermissionPolicySet?: SafePermissionPolicySet;
   description?: string;
   imageUrlSquare?: string;
+  messageDisappearingSettings?: SafeMessageDisappearingSettings;
   name?: string;
   permissions?: GroupPermissionsOptions;
 };
@@ -251,11 +263,14 @@ export type SafeCreateGroupOptions = {
 export const toSafeCreateGroupOptions = (
   options: CreateGroupOptions,
 ): SafeCreateGroupOptions => ({
+  customPermissionPolicySet: options.customPermissionPolicySet,
   description: options.groupDescription,
   imageUrlSquare: options.groupImageUrlSquare,
+  messageDisappearingSettings: options.messageDisappearingSettings
+    ? toSafeMessageDisappearingSettings(options.messageDisappearingSettings)
+    : undefined,
   name: options.groupName,
   permissions: options.permissions,
-  customPermissionPolicySet: options.customPermissionPolicySet,
 });
 
 export const fromSafeCreateGroupOptions = (
@@ -270,6 +285,30 @@ export const fromSafeCreateGroupOptions = (
     options.customPermissionPolicySet &&
     options.permissions === GroupPermissionsOptions.CustomPolicy
       ? fromSafePermissionPolicySet(options.customPermissionPolicySet)
+      : undefined,
+    options.messageDisappearingSettings
+      ? fromSafeMessageDisappearingSettings(options.messageDisappearingSettings)
+      : undefined,
+  );
+
+export type SafeCreateDmOptions = {
+  messageDisappearingSettings?: SafeMessageDisappearingSettings;
+};
+
+export const toSafeCreateDmOptions = (
+  options: CreateDMOptions,
+): SafeCreateDmOptions => ({
+  messageDisappearingSettings: options.messageDisappearingSettings
+    ? toSafeMessageDisappearingSettings(options.messageDisappearingSettings)
+    : undefined,
+});
+
+export const fromSafeCreateDmOptions = (
+  options: SafeCreateDmOptions,
+): CreateDMOptions =>
+  new CreateDMOptions(
+    options.messageDisappearingSettings
+      ? fromSafeMessageDisappearingSettings(options.messageDisappearingSettings)
       : undefined,
   );
 
@@ -427,3 +466,20 @@ export const toSafeHmacKey = (hmacKey: HmacKey): SafeHmacKey => ({
 
 export type HmacKeys = Map<string, HmacKey[]>;
 export type SafeHmacKeys = Record<string, SafeHmacKey[]>;
+
+export type SafeMessageDisappearingSettings = {
+  fromNs: bigint;
+  inNs: bigint;
+};
+
+export const toSafeMessageDisappearingSettings = (
+  settings: MessageDisappearingSettings,
+): SafeMessageDisappearingSettings => ({
+  fromNs: settings.fromNs,
+  inNs: settings.inNs,
+});
+
+export const fromSafeMessageDisappearingSettings = (
+  settings: SafeMessageDisappearingSettings,
+): MessageDisappearingSettings =>
+  new MessageDisappearingSettings(settings.fromNs, settings.inNs);

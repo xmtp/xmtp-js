@@ -17,6 +17,7 @@ import {
   toSafeHmacKey,
   toSafeInboxState,
   toSafeMessage,
+  toSafeMessageDisappearingSettings,
 } from "@/utils/conversions";
 import { WorkerClient } from "@/WorkerClient";
 import { WorkerConversation } from "@/WorkerConversation";
@@ -430,9 +431,34 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "newGroupByInboxIds": {
+        const conversation = await client.conversations.newGroupByInboxIds(
+          data.inboxIds,
+          data.options,
+        );
+        postMessage({
+          id,
+          action,
+          result: await toSafeConversation(conversation),
+        });
+        break;
+      }
       case "newDm": {
         const conversation = await client.conversations.newDm(
           data.accountAddress,
+          data.options,
+        );
+        postMessage({
+          id,
+          action,
+          result: await toSafeConversation(conversation),
+        });
+        break;
+      }
+      case "newDmByInboxId": {
+        const conversation = await client.conversations.newDmByInboxId(
+          data.inboxId,
+          data.options,
         );
         postMessage({
           id,
@@ -451,7 +477,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "syncAllConversations": {
-        await client.conversations.syncAll();
+        await client.conversations.syncAll(data.consentStates);
         postMessage({
           id,
           action,
@@ -970,6 +996,80 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             id,
             action,
             result: safeConversation.permissions,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
+        break;
+      }
+      case "getGroupMessageDisappearingSettings": {
+        const group = client.conversations.getConversationById(data.id);
+        if (group) {
+          const result = group.messageDisappearingSettings();
+          postMessage({
+            id,
+            action,
+            result: result
+              ? toSafeMessageDisappearingSettings(result)
+              : undefined,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
+        break;
+      }
+      case "updateGroupMessageDisappearingSettings": {
+        const group = client.conversations.getConversationById(data.id);
+        if (group) {
+          await group.updateMessageDisappearingSettings(data.fromNs, data.inNs);
+          postMessage({
+            id,
+            action,
+            result: undefined,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
+        break;
+      }
+      case "removeGroupMessageDisappearingSettings": {
+        const group = client.conversations.getConversationById(data.id);
+        if (group) {
+          await group.removeMessageDisappearingSettings();
+          postMessage({
+            id,
+            action,
+            result: undefined,
+          });
+        } else {
+          postMessageError({
+            id,
+            action,
+            error: "Group not found",
+          });
+        }
+        break;
+      }
+      case "isGroupMessageDisappearingEnabled": {
+        const group = client.conversations.getConversationById(data.id);
+        if (group) {
+          const result = group.isMessageDisappearingEnabled();
+          postMessage({
+            id,
+            action,
+            result,
           });
         } else {
           postMessageError({

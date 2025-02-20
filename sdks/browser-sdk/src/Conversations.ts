@@ -1,4 +1,4 @@
-import { ConversationType } from "@xmtp/wasm-bindings";
+import { ConversationType, type ConsentState } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
@@ -6,6 +6,7 @@ import { Conversation } from "@/Conversation";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
   SafeConversation,
+  SafeCreateDmOptions,
   SafeCreateGroupOptions,
   SafeListConversationsOptions,
   SafeMessage,
@@ -22,8 +23,10 @@ export class Conversations {
     return this.#client.sendMessage("syncConversations", undefined);
   }
 
-  async syncAll() {
-    return this.#client.sendMessage("syncAllConversations", undefined);
+  async syncAll(consentStates?: ConsentState[]) {
+    return this.#client.sendMessage("syncAllConversations", {
+      consentStates,
+    });
   }
 
   async getConversationById(id: string) {
@@ -93,9 +96,31 @@ export class Conversations {
     return new Conversation(this.#client, conversation.id, conversation);
   }
 
-  async newDm(accountAddress: string) {
+  async newGroupByInboxIds(
+    inboxIds: string[],
+    options?: SafeCreateGroupOptions,
+  ) {
+    const conversation = await this.#client.sendMessage("newGroupByInboxIds", {
+      inboxIds,
+      options,
+    });
+
+    return new Conversation(this.#client, conversation.id, conversation);
+  }
+
+  async newDm(accountAddress: string, options?: SafeCreateDmOptions) {
     const conversation = await this.#client.sendMessage("newDm", {
       accountAddress,
+      options,
+    });
+
+    return new Conversation(this.#client, conversation.id, conversation);
+  }
+
+  async newDmByInboxId(inboxId: string, options?: SafeCreateDmOptions) {
+    const conversation = await this.#client.sendMessage("newDmByInboxId", {
+      inboxId,
+      options,
     });
 
     return new Conversation(this.#client, conversation.id, conversation);
