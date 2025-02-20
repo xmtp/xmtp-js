@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.19
+
+### Patch Changes
+
+- 03d2002: Upgrade WASM bindings, add new methods
+
 ## 0.0.18
 
 ### Patch Changes
