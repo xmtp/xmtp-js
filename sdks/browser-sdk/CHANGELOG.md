@@ -1,5 +1,21 @@
 # @xmtp/browser-sdk
 
+## 0.0.19
+
+### Patch Changes
+
+- 03d2002:
+  - Added `allowedStates`, `consentStates`, `includeSyncGroups`, and `includeDuplicateDms` options to `Conversations.list` method
+  - Added `consentStates` option to `Conversations.syncAll` method
+  - Added `newGroupByInboxIds` method to `Conversations`
+  - Added `newDmByInboxId` method to `Conversations`
+  - Added `messageDisappearingSettings` option for creating groups and DMs
+  - Added `updateMessageDisappearingSettings` method to `Conversation`
+  - Added `removeMessageDisappearingSettings` method to `Conversation`
+  - Added `isMessageDisappearingEnabled` method to `Conversation`
+  - Fixed invalid key package issues
+  - Fixed rate limiting issues
+
 ## 0.0.18
 
 ### Patch Changes
