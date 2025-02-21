@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.20
+
+### Patch Changes
+
+- 74ce850: Fix signer for SCW
+
 ## 0.0.19
 
 ### Patch Changes
