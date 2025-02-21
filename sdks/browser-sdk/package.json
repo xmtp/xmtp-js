@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/browser-sdk",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "XMTP client SDK for browsers written in TypeScript",
   "keywords": [
     "xmtp",
