@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 74ce850: Fix Signer for SCW
+- 74ce850: Fix signer for SCW
 
 ## 0.0.19
 
