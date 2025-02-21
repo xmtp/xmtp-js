@@ -2,7 +2,7 @@ export type SignMessage = (message: string) => Promise<Uint8Array> | Uint8Array;
 export type GetAddress = () => Promise<string> | string;
 export type GetChainId = () => bigint;
 export type GetBlockNumber = () => bigint;
-export type WalletType = () => 'EOA' | 'SCW'
+export type WalletType = () => "EOA" | "SCW";
 
 export type Signer = {
   getAddress: GetAddress;
@@ -16,6 +16,4 @@ export type SmartContractSigner = Required<Signer>;
 
 export const isSmartContractSigner = (
   signer: Signer,
-): signer is SmartContractSigner =>
-  signer.walletType?.() === 'SCW';
-  
+): signer is SmartContractSigner => signer.walletType?.() === "SCW";
