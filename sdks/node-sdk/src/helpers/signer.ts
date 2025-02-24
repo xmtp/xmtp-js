@@ -13,6 +13,6 @@ export type Signer =
       walletType: "SCW";
       getAddress: GetAddress;
       signMessage: SignMessage;
-      getBlockNumber: GetBlockNumber;
+      getBlockNumber?: GetBlockNumber;
       getChainId: GetChainId;
     };
