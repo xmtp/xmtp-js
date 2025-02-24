@@ -39,3 +39,9 @@ services:
     build: ./uploadService
     ports:
       - 3000:3000
+
+  history-server:
+    image: ghcr.io/xmtp/message-history-server:main
+    platform: linux/amd64
+    ports:
+      - 5558:5558

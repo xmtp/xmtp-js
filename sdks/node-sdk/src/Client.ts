@@ -28,6 +28,7 @@ import {
 } from "@xmtp/node-bindings";
 import { Conversations } from "@/Conversations";
 import { type Signer } from "@/helpers/signer";
+import { version } from "@/helpers/version";
 
 export const ApiUrls = {
   local: "http://localhost:5556",
@@ -496,5 +497,9 @@ export class Client {
   ): Promise<boolean> {
     const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
     return await isInstallationAuthorizedBinding(host, inboxId, installation);
+  }
+
+  static get version() {
+    return version;
   }
 }

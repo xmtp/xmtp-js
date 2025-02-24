@@ -296,4 +296,8 @@ describe.concurrent("Client", () => {
     );
     expect(notAuthorized).toBe(false);
   });
+
+  it("should return a version", () => {
+    expect(Client.version).toBeDefined();
+  });
 });
