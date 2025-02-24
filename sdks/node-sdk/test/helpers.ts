@@ -10,11 +10,14 @@ import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { Client, type ClientOptions } from "@/Client";
+import { Client, HistorySyncUrls, type ClientOptions } from "@/Client";
 import type { Signer } from "@/helpers/signer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const testEncryptionKey = getRandomValues(new Uint8Array(32));
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export const createUser = () => {
   const key = generatePrivateKey();
@@ -55,6 +58,7 @@ export const createClient = async (user: User, options?: ClientOptions) => {
     ...opts,
     disableAutoRegister: true,
     dbPath: join(__dirname, `./test-${user.uuid}.db3`),
+    historySyncUrl: HistorySyncUrls.local,
   });
 };
 
@@ -69,6 +73,7 @@ export const createRegisteredClient = async (
   return Client.create(createSigner(user), testEncryptionKey, {
     ...opts,
     dbPath: join(__dirname, `./test-${user.uuid}.db3`),
+    historySyncUrl: HistorySyncUrls.local,
   });
 };
 
