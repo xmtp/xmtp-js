@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.21
+
+### Patch Changes
+
+- f53c967: Refactored `Signer`, made `getBlockNumber` optional for SCW signers
+
 ## 0.0.20
 
 ### Patch Changes
