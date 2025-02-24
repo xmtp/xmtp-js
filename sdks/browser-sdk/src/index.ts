@@ -36,8 +36,4 @@ export {
   ContentTypeId,
   HmacKey,
 } from "@xmtp/wasm-bindings";
-export {
-  isSmartContractSigner,
-  type Signer,
-  type SmartContractSigner,
-} from "./utils/signer";
+export type { Signer } from "./utils/signer";

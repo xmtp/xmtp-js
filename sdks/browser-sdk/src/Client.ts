@@ -21,7 +21,7 @@ import {
   type SafeConsent,
   type SafeMessage,
 } from "@/utils/conversions";
-import { isSmartContractSigner, type Signer } from "@/utils/signer";
+import { type Signer } from "@/utils/signer";
 
 export class Client extends ClientWorkerClass {
   #accountAddress: string;
@@ -146,12 +146,12 @@ export class Client extends ClientWorkerClass {
   ) {
     const signature = await signer.signMessage(signatureText);
 
-    if (isSmartContractSigner(signer)) {
+    if (signer.walletType === "SCW") {
       await this.sendMessage("addScwSignature", {
         type: signatureType,
         bytes: signature,
         chainId: signer.getChainId(),
-        blockNumber: signer.getBlockNumber(),
+        blockNumber: signer.getBlockNumber?.(),
       });
     } else {
       await this.sendMessage("addSignature", {
@@ -264,6 +264,7 @@ export class Client extends ClientWorkerClass {
   static async canMessage(accountAddresses: string[], env?: XmtpEnv) {
     const accountAddress = "0x0000000000000000000000000000000000000000";
     const signer: Signer = {
+      walletType: "EOA",
       getAddress: () => accountAddress,
       signMessage: () => new Uint8Array(),
     };
