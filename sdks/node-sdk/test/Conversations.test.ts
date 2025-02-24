@@ -1,7 +1,11 @@
-import { ConsentState, GroupPermissionsOptions } from "@xmtp/node-bindings";
+import {
+  ConsentEntityType,
+  ConsentState,
+  GroupPermissionsOptions,
+} from "@xmtp/node-bindings";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
-import { createRegisteredClient, createUser } from "@test/helpers";
+import { createRegisteredClient, createUser, sleep } from "@test/helpers";
 
 describe.concurrent("Conversations", () => {
   it("should not have initial conversations", async () => {
@@ -16,8 +20,10 @@ describe.concurrent("Conversations", () => {
   it("should create a group", async () => {
     const user1 = createUser();
     const user2 = createUser();
+    const user3 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
     const conversation = await client1.conversations.newGroup([
       user2.account.address,
     ]);
@@ -70,13 +76,62 @@ describe.concurrent("Conversations", () => {
 
     expect(client2.conversations.listDms().length).toBe(0);
     expect(client2.conversations.listGroups().length).toBe(1);
+
+    const conversation2 = await client1.conversations.newGroupByInboxIds([
+      client3.inboxId,
+    ]);
+    expect(conversation2).toBeDefined();
+    expect(conversation2.id).toBeDefined();
+    expect(conversation2.createdAt).toBeDefined();
+    expect(conversation2.createdAtNs).toBeDefined();
+    expect(conversation2.isActive).toBe(true);
+    expect(conversation2.name).toBe("");
+    expect(conversation2.permissions.policyType).toBe(
+      GroupPermissionsOptions.Default,
+    );
+    expect(conversation2.permissions.policySet).toEqual({
+      addMemberPolicy: 0,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 0,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateMessageDisappearingPolicy: 2,
+    });
+    expect(conversation2.addedByInboxId).toBe(client1.inboxId);
+    expect((await conversation2.messages()).length).toBe(1);
+
+    const members2 = await conversation2.members();
+    expect(members2.length).toBe(2);
+    const memberInboxIds2 = members2.map((member) => member.inboxId);
+    expect(memberInboxIds2).toContain(client1.inboxId);
+    expect(memberInboxIds2).toContain(client3.inboxId);
+    expect(await conversation2.metadata()).toEqual({
+      conversationType: "group",
+      creatorInboxId: client1.inboxId,
+    });
+
+    const conversations3 = client3.conversations.list();
+    expect(conversations3.length).toBe(0);
+
+    await client3.conversations.sync();
+
+    const conversations4 = client3.conversations.list();
+    expect(conversations4.length).toBe(1);
+    expect(conversations4[0].id).toBe(conversation2.id);
+
+    expect(client2.conversations.listDms().length).toBe(0);
+    expect(client2.conversations.listGroups().length).toBe(1);
   });
 
   it("should create a dm", async () => {
     const user1 = createUser();
     const user2 = createUser();
+    const user3 = createUser();
     const client1 = await createRegisteredClient(user1);
     const client2 = await createRegisteredClient(user2);
+    const client3 = await createRegisteredClient(user3);
     const group = await client1.conversations.newDm(user2.account.address);
     expect(group).toBeDefined();
     expect(group.id).toBeDefined();
@@ -98,7 +153,7 @@ describe.concurrent("Conversations", () => {
       updateMessageDisappearingPolicy: 0,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
-    expect((await group.messages()).length).toBe(0);
+    expect((await group.messages()).length).toBe(1);
     const members = await group.members();
     expect(members.length).toBe(2);
     const memberInboxIds = members.map((member) => member.inboxId);
@@ -137,9 +192,41 @@ describe.concurrent("Conversations", () => {
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
 
-    const group3 = await client1.conversations.newDm(user2.account.address);
+    const group3 = await client1.conversations.newDmByInboxId(client3.inboxId);
     expect(group3).toBeDefined();
-    expect(group3.id).toBe(group.id);
+    expect(group3.id).toBeDefined();
+    expect(group3.dmPeerInboxId).toBe(client3.inboxId);
+    expect(group3.addedByInboxId).toBe(client1.inboxId);
+    expect((await group3.messages()).length).toBe(1);
+    const members3 = await group3.members();
+    expect(members3.length).toBe(2);
+    const memberInboxIds3 = members3.map((member) => member.inboxId);
+    expect(memberInboxIds3).toContain(client1.inboxId);
+    expect(memberInboxIds3).toContain(client3.inboxId);
+    expect(await group3.metadata()).toEqual({
+      conversationType: "dm",
+      creatorInboxId: client1.inboxId,
+    });
+
+    expect(client3.conversations.list().length).toBe(0);
+
+    await client3.conversations.sync();
+
+    const groups4 = client3.conversations.list();
+    expect(groups4.length).toBe(1);
+    expect(groups4[0].id).toBe(group3.id);
+    expect(groups4[0].dmPeerInboxId).toBe(client1.inboxId);
+
+    expect(client3.conversations.listDms().length).toBe(1);
+    expect(client3.conversations.listGroups().length).toBe(0);
+
+    const dm3 = client1.conversations.getDmByInboxId(client3.inboxId);
+    expect(dm3).toBeDefined();
+    expect(dm3!.id).toBe(group3.id);
+
+    const dm4 = client3.conversations.getDmByInboxId(client1.inboxId);
+    expect(dm4).toBeDefined();
+    expect(dm4!.id).toBe(group3.id);
   });
 
   it("should get a group by ID", async () => {
@@ -541,7 +628,106 @@ describe.concurrent("Conversations", () => {
     await client2.conversations.sync();
     const convos2 = client2.conversations.list();
     expect(convos2.length).toBe(2);
-    expect(convos2[0].id).toBe(group.id);
-    expect(convos2[1].id).toBe(group2.id);
+    const convos2Ids = convos2.map((c) => c.id);
+    expect(convos2Ids).toContain(group.id);
+    expect(convos2Ids).toContain(group2.id);
+  });
+
+  it("should stream consent updates", async () => {
+    const user = createUser();
+    const user2 = createUser();
+    const client = await createRegisteredClient(user);
+    const client2 = await createRegisteredClient(user2);
+    const group = await client.conversations.newGroup([user2.account.address]);
+    const stream = client.conversations.streamConsent();
+
+    group.updateConsentState(ConsentState.Denied);
+
+    await sleep(1000);
+
+    await client.setConsentStates([
+      {
+        entity: group.id,
+        entityType: ConsentEntityType.GroupId,
+        state: ConsentState.Allowed,
+      },
+    ]);
+
+    await sleep(1000);
+    await client.setConsentStates([
+      {
+        entity: user2.account.address,
+        entityType: ConsentEntityType.Address,
+        state: ConsentState.Denied,
+      },
+      {
+        entity: client2.inboxId,
+        entityType: ConsentEntityType.InboxId,
+        state: ConsentState.Allowed,
+      },
+    ]);
+
+    let count = 0;
+    for await (const updates of stream) {
+      count++;
+      expect(updates).toBeDefined();
+      if (count === 1) {
+        expect(updates!.length).toBe(1);
+        expect(updates![0].state).toBe(ConsentState.Denied);
+        expect(updates![0].entity).toBe(group.id);
+        expect(updates![0].entityType).toBe(ConsentEntityType.GroupId);
+        break;
+      } else if (count === 2) {
+        expect(updates!.length).toBe(1);
+        expect(updates![0].state).toBe(ConsentState.Allowed);
+        expect(updates![0].entity).toBe(group.id);
+        expect(updates![0].entityType).toBe(ConsentEntityType.GroupId);
+        break;
+      } else if (count === 3) {
+        expect(updates!.length).toBe(2);
+        expect(updates![0].state).toBe(ConsentState.Denied);
+        expect(updates![0].entity).toBe(user2.account.address);
+        expect(updates![0].entityType).toBe(ConsentEntityType.Address);
+        expect(updates![1].state).toBe(ConsentState.Allowed);
+        expect(updates![1].entity).toBe(client2.inboxId);
+        expect(updates![1].entityType).toBe(ConsentEntityType.InboxId);
+        break;
+      }
+    }
+  });
+
+  it("should stream preferences", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    const stream = client.conversations.streamPreferences();
+
+    await sleep(2000);
+
+    user.uuid = v4();
+    const client2 = await createRegisteredClient(user);
+
+    user.uuid = v4();
+    const client3 = await createRegisteredClient(user);
+
+    await client3.conversations.syncAll();
+    await sleep(2000);
+    await client.conversations.syncAll();
+    await sleep(2000);
+    await client2.conversations.syncAll();
+    await sleep(2000);
+
+    let count = 0;
+    for await (const preferences of stream) {
+      count++;
+      expect(preferences).toBeDefined();
+      expect(preferences?.type).toBeDefined();
+      expect(preferences?.HmacKeyUpdate).toBeDefined();
+      expect(preferences?.HmacKeyUpdate?.key).toBeDefined();
+
+      if (count === 2) {
+        break;
+      }
+    }
+    expect(count).toBe(2);
   });
 });

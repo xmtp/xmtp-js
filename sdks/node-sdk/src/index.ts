@@ -8,6 +8,7 @@ export type {
 export { Client, ApiUrls, HistorySyncUrls } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
+export type { PreferenceUpdate } from "./Conversations";
 export { DecodedMessage } from "./DecodedMessage";
 export type { StreamCallback } from "./AsyncStream";
 export type {

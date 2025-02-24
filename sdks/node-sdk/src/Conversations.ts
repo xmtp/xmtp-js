@@ -1,4 +1,7 @@
 import type {
+  Consent,
+  ConsentState,
+  CreateDmOptions,
   CreateGroupOptions,
   ListConversationsOptions,
   Conversations as NodeConversations,
@@ -7,6 +10,13 @@ import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
 import { DecodedMessage } from "@/DecodedMessage";
+
+export type PreferenceUpdate = {
+  type: string;
+  HmacKeyUpdate?: {
+    key: Uint8Array;
+  };
+};
 
 export class Conversations {
   #client: Client;
@@ -56,32 +66,51 @@ export class Conversations {
     return conversation;
   }
 
-  async newDm(accountAddress: string) {
-    const group = await this.#conversations.createDm(accountAddress);
+  async newGroupByInboxIds(inboxIds: string[], options?: CreateGroupOptions) {
+    const group = await this.#conversations.createGroupByInboxId(
+      inboxIds,
+      options,
+    );
+    const conversation = new Conversation(this.#client, group);
+    return conversation;
+  }
+
+  async newDm(accountAddress: string, options?: CreateDmOptions) {
+    const group = await this.#conversations.createDm(accountAddress, options);
+    const conversation = new Conversation(this.#client, group);
+    return conversation;
+  }
+
+  async newDmByInboxId(inboxId: string, options?: CreateDmOptions) {
+    const group = await this.#conversations.createDmByInboxId(inboxId, options);
     const conversation = new Conversation(this.#client, group);
     return conversation;
   }
 
   list(options?: ListConversationsOptions) {
     const groups = this.#conversations.list(options);
-    return groups.map((group) => {
-      const conversation = new Conversation(this.#client, group);
+    return groups.map((item) => {
+      const conversation = new Conversation(
+        this.#client,
+        item.conversation,
+        item.lastMessage,
+      );
       return conversation;
     });
   }
 
   listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.listGroups(options);
-    return groups.map((group) => {
-      const conversation = new Conversation(this.#client, group);
+    return groups.map((item) => {
+      const conversation = new Conversation(this.#client, item.conversation);
       return conversation;
     });
   }
 
   listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.listDms(options);
-    return groups.map((group) => {
-      const conversation = new Conversation(this.#client, group);
+    return groups.map((item) => {
+      const conversation = new Conversation(this.#client, item.conversation);
       return conversation;
     });
   }
@@ -90,8 +119,8 @@ export class Conversations {
     return this.#conversations.sync();
   }
 
-  async syncAll() {
-    return this.#conversations.syncAllConversations();
+  async syncAll(consentStates?: ConsentState[]) {
+    return this.#conversations.syncAllConversations(consentStates);
   }
 
   stream(callback?: StreamCallback<Conversation>) {
@@ -201,5 +230,32 @@ export class Conversations {
 
   hmacKeys() {
     return this.#conversations.getHmacKeys();
+  }
+
+  streamConsent(callback?: StreamCallback<Consent[]>) {
+    const asyncStream = new AsyncStream<Consent[]>();
+
+    const stream = this.#conversations.streamConsent((err, value) => {
+      asyncStream.callback(err, value);
+      callback?.(err, value);
+    });
+
+    asyncStream.onReturn = stream.end.bind(stream);
+
+    return asyncStream;
+  }
+
+  streamPreferences(callback?: StreamCallback<PreferenceUpdate>) {
+    const asyncStream = new AsyncStream<PreferenceUpdate>();
+
+    const stream = this.#conversations.streamPreferences((err, value) => {
+      // TODO: remove this once the node bindings type is updated
+      asyncStream.callback(err, value as unknown as PreferenceUpdate);
+      callback?.(err, value as unknown as PreferenceUpdate);
+    });
+
+    asyncStream.onReturn = stream.end.bind(stream);
+
+    return asyncStream;
   }
 }
