@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.45
+
+### Patch Changes
+
+- 5221111: Update Node SDK with latest bindings
+
 ## 0.0.44
 
 ### Patch Changes
