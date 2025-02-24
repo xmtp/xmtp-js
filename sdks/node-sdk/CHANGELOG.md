@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- c63d8af: Make getBlockNumber optional for SCWs
+- c63d8af: Make `getBlockNumber` optional for SCW signers
 
 ## 0.0.43
 
