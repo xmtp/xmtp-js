@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 68b0200: Fix SCW wallet type
+- 68b0200: Refactored `Signer` type
 
 ## 0.0.42
 
