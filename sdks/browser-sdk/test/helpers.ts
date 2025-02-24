@@ -33,6 +33,7 @@ export const createUser = () => {
 
 export const createSigner = (user: User): Signer => {
   return {
+    walletType: "EOA",
     getAddress: () => user.account.address,
     signMessage: async (message: string) => {
       const signature = await user.wallet.signMessage({
