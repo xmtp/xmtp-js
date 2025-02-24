@@ -64,5 +64,38 @@ export const useConversation = (conversation?: Conversation) => {
     }
   };
 
-  return { sync, loading, syncing, getMessages, send, sending, messages };
+  const streamMessages = async () => {
+    const noop = () => {};
+    if (!client) {
+      return noop;
+    }
+
+    const onMessage = (
+      error: Error | null,
+      message: DecodedMessage | undefined,
+    ) => {
+      if (message) {
+        setMessages((prev) => [...prev, message]);
+      }
+    };
+
+    const stream = await conversation?.stream(onMessage);
+
+    return stream
+      ? () => {
+          void stream.return(undefined);
+        }
+      : noop;
+  };
+
+  return {
+    getMessages,
+    loading,
+    messages,
+    send,
+    sending,
+    streamMessages,
+    sync,
+    syncing,
+  };
 };

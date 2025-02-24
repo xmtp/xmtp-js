@@ -3,7 +3,6 @@ import {
   Flex,
   Group,
   LoadingOverlay,
-  ScrollArea,
   Stack,
   Text,
   Title,
@@ -31,6 +30,7 @@ export const Conversation: React.FC<ConversationProps> = ({
     getMessages,
     loading: conversationLoading,
     syncing: conversationSyncing,
+    streamMessages,
   } = useConversation(conversation);
 
   useEffect(() => {
@@ -43,6 +43,17 @@ export const Conversation: React.FC<ConversationProps> = ({
   const handleSync = async () => {
     await getMessages(undefined, true);
   };
+
+  useEffect(() => {
+    let stopStream = () => {};
+    const startStream = async () => {
+      stopStream = await streamMessages();
+    };
+    void startStream();
+    return () => {
+      stopStream();
+    };
+  }, [conversation?.id]);
 
   return (
     <>
@@ -87,9 +98,7 @@ export const Conversation: React.FC<ConversationProps> = ({
                   {messages.length === 0 && <Text>No messages</Text>}
                 </Stack>
               ) : (
-                <ScrollArea type="scroll" className="scrollfade">
-                  <Messages messages={messages} />
-                </ScrollArea>
+                <Messages messages={messages} />
               )}
             </Stack>
             <Composer conversation={conversation} />

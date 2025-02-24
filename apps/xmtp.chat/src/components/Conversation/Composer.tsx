@@ -1,6 +1,6 @@
 import { Button, Flex, TextInput } from "@mantine/core";
 import type { Conversation } from "@xmtp/browser-sdk";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useConversation } from "@/hooks/useConversation";
 
 export type ComposerProps = {
@@ -10,15 +10,20 @@ export type ComposerProps = {
 export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
   const { send, sending } = useConversation(conversation);
   const [message, setMessage] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = async () => {
     await send(message);
     setMessage("");
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
   };
 
   return (
     <Flex align="center" gap="xs" p="md">
       <TextInput
+        ref={inputRef}
         disabled={sending}
         size="md"
         placeholder="Type a message..."
