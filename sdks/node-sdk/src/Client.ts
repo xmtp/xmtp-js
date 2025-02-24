@@ -27,7 +27,7 @@ import {
   type Client as NodeClient,
 } from "@xmtp/node-bindings";
 import { Conversations } from "@/Conversations";
-import { isSmartContractSigner, type Signer } from "@/helpers/signer";
+import { type Signer } from "@/helpers/signer";
 
 export const ApiUrls = {
   local: "http://localhost:5556",
@@ -242,7 +242,7 @@ export class Client {
   ) {
     const signature = await signer.signMessage(signatureText);
 
-    if (isSmartContractSigner(signer)) {
+    if (signer.walletType === "SCW") {
       await this.#innerClient.addScwSignature(
         signatureType,
         signature,
@@ -359,6 +359,7 @@ export class Client {
       (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
       generateInboxId(accountAddress);
     const signer: Signer = {
+      walletType: "EOA",
       getAddress: () => accountAddress,
       signMessage: () => new Uint8Array(),
     };

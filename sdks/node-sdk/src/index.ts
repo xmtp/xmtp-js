@@ -44,8 +44,4 @@ export {
   SortDirection,
 } from "@xmtp/node-bindings";
 export { generateInboxId, getInboxIdForAddress } from "./helpers/inboxId";
-export {
-  isSmartContractSigner,
-  type Signer,
-  type SmartContractSigner,
-} from "./helpers/signer";
+export type { Signer } from "./helpers/signer";

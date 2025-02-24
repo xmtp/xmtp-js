@@ -11,6 +11,7 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client, type ClientOptions } from "@/Client";
+import type { Signer } from "@/helpers/signer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const testEncryptionKey = getRandomValues(new Uint8Array(32));
@@ -30,8 +31,9 @@ export const createUser = () => {
   };
 };
 
-export const createSigner = (user: User) => {
+export const createSigner = (user: User): Signer => {
   return {
+    walletType: "EOA",
     getAddress: () => user.account.address,
     signMessage: async (message: string) => {
       const signature = await user.wallet.signMessage({
