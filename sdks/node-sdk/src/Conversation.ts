@@ -223,4 +223,20 @@ export class Conversation {
   get dmPeerInboxId() {
     return this.#group.dmPeerInboxId();
   }
+
+  messageDisappearingSettings() {
+    return this.#group.messageDisappearingSettings() ?? undefined;
+  }
+
+  async updateMessageDisappearingSettings(fromNs: number, inNs: number) {
+    return this.#group.updateMessageDisappearingSettings({ fromNs, inNs });
+  }
+
+  async removeMessageDisappearingSettings() {
+    return this.#group.removeMessageDisappearingSettings();
+  }
+
+  isMessageDisappearingEnabled() {
+    return this.#group.isMessageDisappearingEnabled();
+  }
 }
