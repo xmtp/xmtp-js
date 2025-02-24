@@ -1,4 +1,7 @@
 import { Client, type ClientOptions, type Signer } from "@xmtp/browser-sdk";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
 import { useCallback, useContext, useRef, useState } from "react";
 import { XMTPContext } from "../contexts/XMTPContext";
 
@@ -53,6 +56,11 @@ export const useClient = (onError?: (error: Error) => void) => {
           xmtpClient = await Client.create(signer, encryptionKey, {
             env,
             loggingLevel,
+            codecs: [
+              new ReactionCodec(),
+              new ReplyCodec(),
+              new RemoteAttachmentCodec(),
+            ],
           });
           setClient(xmtpClient);
         } catch (e) {
