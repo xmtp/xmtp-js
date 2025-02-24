@@ -247,7 +247,7 @@ export class Client {
         signatureType,
         signature,
         signer.getChainId(),
-        signer.getBlockNumber(),
+        signer.getBlockNumber?.(),
       );
     } else {
       await this.#innerClient.addSignature(signatureType, signature);
