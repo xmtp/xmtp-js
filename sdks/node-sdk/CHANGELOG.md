@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.44
+
+### Patch Changes
+
+- c63d8af: Make `getBlockNumber` optional for SCW signers
+
 ## 0.0.43
 
 ### Patch Changes
