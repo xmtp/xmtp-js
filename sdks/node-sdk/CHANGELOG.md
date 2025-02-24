@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 0.0.43
+
+### Patch Changes
+
+- 68b0200: Fix SCW wallet type
+
 ## 0.0.42
 
 ### Patch Changes
