@@ -5,6 +5,7 @@ import { createWalletClient, http, toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
+import type { Signer } from "@/helpers/signer";
 
 export const createUser = (key: string) => {
   const account = privateKeyToAccount(key as `0x${string}`);
@@ -21,8 +22,9 @@ export const createUser = (key: string) => {
 
 type User = ReturnType<typeof createUser>;
 
-export const createSigner = (user: User) => {
+export const createSigner = (user: User): Signer => {
   return {
+    walletType: "EOA",
     getAddress: () => user.account.address,
     signMessage: async (message: string) => {
       const signature = await user.wallet.signMessage({
