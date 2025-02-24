@@ -15,7 +15,7 @@ export const useConversations = () => {
     syncFromNetwork: boolean = false,
   ) => {
     if (!client) {
-      return;
+      return [];
     }
 
     if (syncFromNetwork) {
