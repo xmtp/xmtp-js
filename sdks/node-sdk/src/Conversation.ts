@@ -4,6 +4,7 @@ import type {
   ConsentState,
   Conversation as Group,
   ListMessagesOptions,
+  Message,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
@@ -16,10 +17,14 @@ import { nsToDate } from "@/helpers/date";
 export class Conversation {
   #client: Client;
   #group: Group;
+  #lastMessage?: DecodedMessage;
 
-  constructor(client: Client, group: Group) {
+  constructor(client: Client, group: Group, lastMessage?: Message | null) {
     this.#client = client;
     this.#group = group;
+    this.#lastMessage = lastMessage
+      ? new DecodedMessage(client, lastMessage)
+      : undefined;
   }
 
   get id() {
@@ -28,6 +33,10 @@ export class Conversation {
 
   get name() {
     return this.#group.groupName();
+  }
+
+  get lastMessage() {
+    return this.#lastMessage;
   }
 
   async updateName(name: string) {
