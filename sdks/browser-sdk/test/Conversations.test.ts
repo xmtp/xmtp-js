@@ -1,7 +1,11 @@
-import { ConsentState, GroupPermissionsOptions } from "@xmtp/wasm-bindings";
+import {
+  ConsentEntityType,
+  ConsentState,
+  GroupPermissionsOptions,
+} from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
-import { createRegisteredClient, createUser } from "@test/helpers";
+import { createRegisteredClient, createUser, sleep } from "@test/helpers";
 
 describe.concurrent("Conversations", () => {
   it("should not have initial conversations", async () => {
@@ -685,5 +689,88 @@ describe("Conversations streaming", () => {
         break;
       }
     }
+  });
+
+  it.only("should stream consent updates", async () => {
+    const user = createUser();
+    const user2 = createUser();
+    const client = await createRegisteredClient(user);
+    const client2 = await createRegisteredClient(user2);
+    const group = await client.conversations.newGroup([user2.account.address]);
+    const stream = client.conversations.streamConsent();
+
+    await group.updateConsentState(ConsentState.Denied);
+
+    await sleep(1000);
+
+    await client.setConsentStates([
+      {
+        entity: group.id,
+        entityType: ConsentEntityType.GroupId,
+        state: ConsentState.Allowed,
+      },
+    ]);
+
+    await sleep(1000);
+    await client.setConsentStates([
+      {
+        entity: user2.account.address,
+        entityType: ConsentEntityType.Address,
+        state: ConsentState.Denied,
+      },
+      {
+        entity: client2.inboxId!,
+        entityType: ConsentEntityType.InboxId,
+        state: ConsentState.Allowed,
+      },
+    ]);
+
+    let count = 0;
+    for await (const updates of await stream) {
+      count++;
+      console.log(updates);
+      expect(updates).toBeDefined();
+      if (count === 3) {
+        break;
+      }
+    }
+  });
+
+  it("should stream preferences", async () => {
+    const user = createUser();
+    const client = await createRegisteredClient(user);
+    const stream = client.conversations.streamPreferences();
+
+    await sleep(2000);
+
+    user.uuid = v4();
+    const client2 = await createRegisteredClient(user);
+
+    user.uuid = v4();
+    const client3 = await createRegisteredClient(user);
+
+    await client3.conversations.syncAll();
+    await sleep(2000);
+    await client.conversations.syncAll();
+    await sleep(2000);
+    await client2.conversations.syncAll();
+    await sleep(2000);
+
+    let count = 0;
+    for await (const preferences of await stream) {
+      count++;
+
+      console.log(preferences);
+      expect(preferences).toBeDefined();
+      expect(preferences?.length).toBe(1);
+      if (preferences?.[0].type === "HmacKeyUpdate") {
+        expect(preferences[0].key).toBeDefined();
+      }
+
+      if (count === 2) {
+        break;
+      }
+    }
+    expect(count).toBe(2);
   });
 });

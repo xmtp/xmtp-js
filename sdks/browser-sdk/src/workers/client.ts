@@ -380,6 +380,59 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "streamConsent": {
+        const streamCallback = (error: Error | null, value: any) => {
+          if (error) {
+            postStreamMessageError({
+              type: "consent",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "consent",
+              streamId: data.streamId,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              result: value,
+            });
+          }
+        };
+        const streamCloser = client.conversations.streamConsent(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
+      case "streamPreferences": {
+        const streamCallback = (error: Error | null, value: any) => {
+          if (error) {
+            postStreamMessageError({
+              type: "preferences",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "preferences",
+              streamId: data.streamId,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              result: value,
+            });
+          }
+        };
+        const streamCloser =
+          client.conversations.streamPreferences(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
       case "getConversations": {
         const conversations = client.conversations.list(data.options);
         postMessage({

@@ -15,6 +15,16 @@ export type ClientStreamEvents =
       type: "group";
       streamId: string;
       result: SafeConversation | undefined;
+    }
+  | {
+      type: "consent";
+      streamId: string;
+      result: any;
+    }
+  | {
+      type: "preferences";
+      streamId: string;
+      result: any;
     };
 
 export type ClientStreamEventsTypes = ClientStreamEvents["type"];

@@ -336,6 +336,22 @@ export type ClientEvents =
         conversationType?: ConversationType;
       };
     }
+  | {
+      action: "streamConsent";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+      };
+    }
+  | {
+      action: "streamPreferences";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+      };
+    }
   /**
    * Group actions
    */

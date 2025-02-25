@@ -5,6 +5,7 @@ import {
   type ConversationListItem,
   type Conversations,
   type Message,
+  type UserPreference,
 } from "@xmtp/wasm-bindings";
 import type { StreamCallback } from "@/AsyncStream";
 import {
@@ -171,5 +172,28 @@ export class WorkerConversations {
       { on_message, on_error },
       conversationType,
     );
+  }
+
+  streamConsent(callback?: StreamCallback<any>) {
+    const on_consent_update = (consent: any) => {
+      void callback?.(null, consent);
+    };
+    const on_error = (error: Error | null) => {
+      void callback?.(error, undefined);
+    };
+    return this.#conversations.streamConsent({ on_consent_update, on_error });
+  }
+
+  streamPreferences(callback?: StreamCallback<UserPreference[]>) {
+    const on_user_preference_update = (preference: UserPreference[]) => {
+      void callback?.(null, preference);
+    };
+    const on_error = (error: Error | null) => {
+      void callback?.(error, undefined);
+    };
+    return this.#conversations.streamPreferences({
+      on_user_preference_update,
+      on_error,
+    });
   }
 }
