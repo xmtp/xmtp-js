@@ -1,5 +1,20 @@
 # @xmtp/node-sdk
 
+## 0.0.45
+
+### Patch Changes
+
+- 5221111:
+  - Added new methods to create groups by inbox ID
+  - Added consent states option to `syncAllConversations`
+  - Updated list conversations options to include `consentStates` and `includeDuplicateDms`
+  - Removed automatic message filtering from DM groups
+  - Added disappearing messages methods to conversations
+  - Added optional `listMessage` property to `Conversation`
+  - Added consent streaming
+  - Added preferences streaming
+  - Added `Client.version` static getter
+
 ## 0.0.44
 
 ### Patch Changes
