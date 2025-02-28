@@ -5085,9 +5085,31 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-transaction-reference@workspace:content-types/content-type-transaction-reference":
+"@xmtp/content-type-transaction-reference@npm:^2.0.0, @xmtp/content-type-transaction-reference@workspace:content-types/content-type-transaction-reference":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-transaction-reference@workspace:content-types/content-type-transaction-reference"
+  dependencies:
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
+    "@types/node": "npm:^22.10.6"
+    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/xmtp-js": "npm:^11.6.3"
+    buffer: "npm:^6.0.3"
+    ethers: "npm:^6.11.1"
+    happy-dom: "npm:^16.6.0"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.30.1"
+    rollup-plugin-dts: "npm:^6.1.1"
+    rollup-plugin-filesize: "npm:^10.0.0"
+    typescript: "npm:^5.7.3"
+    vite: "npm:^6.0.7"
+    vitest: "npm:^2.1.3"
+  languageName: unknown
+  linkType: soft
+
+"@xmtp/content-type-wallet-send-calls@npm:^0.0.1, @xmtp/content-type-wallet-send-calls@workspace:content-types/content-type-wallet-send-calls":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/content-type-wallet-send-calls@workspace:content-types/content-type-wallet-send-calls"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
@@ -5390,6 +5412,8 @@ __metadata:
     "@xmtp/content-type-remote-attachment": "npm:^2.0.0"
     "@xmtp/content-type-reply": "npm:^2.0.0"
     "@xmtp/content-type-text": "npm:^2.0.0"
+    "@xmtp/content-type-transaction-reference": "npm:^2.0.0"
+    "@xmtp/content-type-wallet-send-calls": "npm:^0.0.1"
     date-fns: "npm:^4.1.0"
     plausible-tracker: "npm:^0.3.9"
     postcss: "npm:^8.5.1"

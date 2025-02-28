@@ -1,12 +1,15 @@
 import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
+import {
+  ContentTypeTransactionReference,
+  type TransactionReference,
+} from "@xmtp/content-type-transaction-reference";
 import { intlFormat } from "date-fns";
-import { useNavigate } from "react-router";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
 import { useClient } from "@/hooks/useClient";
-import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
+import { TransactionReferenceUI } from "./TransactionReference";
 
 export type MessageProps = {
   message: DecodedMessage;
@@ -16,30 +19,11 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
   const { client } = useClient();
   const isSender = client?.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
-  const navigate = useNavigate();
 
   return (
     <Box pb="sm" px="md">
       <Flex justify={align === "left" ? "flex-start" : "flex-end"}>
-        <Paper
-          p="md"
-          withBorder
-          shadow="md"
-          maw="80%"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              void navigate(
-                `/conversations/${message.conversationId}/message/${message.id}`,
-              );
-            }
-          }}
-          className={classes.root}
-          onClick={() =>
-            void navigate(
-              `/conversations/${message.conversationId}/message/${message.id}`,
-            )
-          }>
+        <Paper p="md" withBorder shadow="md" maw="80%" tabIndex={0}>
           <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
             <Flex
               align="center"
@@ -59,7 +43,20 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                 })}
               </Text>
             </Flex>
-            <MessageContent content={message.content as string} />
+            <span>
+              Message Content Type: {JSON.stringify(message.contentType)}
+            </span>
+            <span>
+              Transaction Reference Content Type:{" "}
+              {JSON.stringify(ContentTypeTransactionReference)}
+            </span>
+            {message.contentType.sameAs(ContentTypeTransactionReference) ? (
+              <TransactionReferenceUI
+                content={message.content as TransactionReference}
+              />
+            ) : (
+              <MessageContent content={message.content as string} />
+            )}
           </Stack>
         </Paper>
       </Flex>
