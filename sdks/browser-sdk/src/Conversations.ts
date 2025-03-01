@@ -9,6 +9,7 @@ import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
+  SafeConsent,
   SafeConversation,
   SafeCreateDmOptions,
   SafeCreateGroupOptions,
@@ -208,14 +209,14 @@ export class Conversations {
     return this.streamAllMessages(callback, ConversationType.Dm);
   }
 
-  async streamConsent(callback?: StreamCallback<any>) {
+  async streamConsent(callback?: StreamCallback<SafeConsent[]>) {
     const streamId = v4();
-    const asyncStream = new AsyncStream<any>();
-    const endStream = this.#client.handleStreamMessage<any>(
+    const asyncStream = new AsyncStream<SafeConsent[]>();
+    const endStream = this.#client.handleStreamMessage<SafeConsent[]>(
       streamId,
       (error, value) => {
-        void asyncStream.callback(error, value);
-        void callback?.(error, value);
+        void asyncStream.callback(error, value ?? undefined);
+        void callback?.(error, value ?? undefined);
       },
     );
     await this.#client.sendMessage("streamConsent", {

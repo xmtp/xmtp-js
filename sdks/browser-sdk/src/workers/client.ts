@@ -1,4 +1,10 @@
-import type { Conversation, Message, StreamCloser } from "@xmtp/wasm-bindings";
+import type {
+  Consent,
+  Conversation,
+  Message,
+  StreamCloser,
+  UserPreference,
+} from "@xmtp/wasm-bindings";
 import type {
   ClientEventsActions,
   ClientEventsClientMessageData,
@@ -13,6 +19,7 @@ import type {
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
+  toSafeConsent,
   toSafeConversation,
   toSafeHmacKey,
   toSafeInboxState,
@@ -381,7 +388,10 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "streamConsent": {
-        const streamCallback = (error: Error | null, value: any) => {
+        const streamCallback = (
+          error: Error | null,
+          value: Consent[] | undefined,
+        ) => {
           if (error) {
             postStreamMessageError({
               type: "consent",
@@ -392,8 +402,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             postStreamMessage({
               type: "consent",
               streamId: data.streamId,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              result: value,
+              result: value?.map(toSafeConsent) ?? [],
             });
           }
         };
@@ -407,7 +416,10 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "streamPreferences": {
-        const streamCallback = (error: Error | null, value: any) => {
+        const streamCallback = (
+          error: Error | null,
+          value: UserPreference[] | undefined,
+        ) => {
           if (error) {
             postStreamMessageError({
               type: "preferences",
@@ -418,8 +430,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             postStreamMessage({
               type: "preferences",
               streamId: data.streamId,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              result: value,
+              result: value ?? undefined,
             });
           }
         };

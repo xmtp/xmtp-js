@@ -676,13 +676,11 @@ describe.concurrent("Conversations", () => {
         expect(updates![0].state).toBe(ConsentState.Denied);
         expect(updates![0].entity).toBe(group.id);
         expect(updates![0].entityType).toBe(ConsentEntityType.GroupId);
-        break;
       } else if (count === 2) {
         expect(updates!.length).toBe(1);
         expect(updates![0].state).toBe(ConsentState.Allowed);
         expect(updates![0].entity).toBe(group.id);
         expect(updates![0].entityType).toBe(ConsentEntityType.GroupId);
-        break;
       } else if (count === 3) {
         expect(updates!.length).toBe(2);
         expect(updates![0].state).toBe(ConsentState.Denied);

@@ -1,5 +1,6 @@
 import {
   ConversationType,
+  type Consent,
   type ConsentState,
   type Conversation,
   type ConversationListItem,
@@ -174,8 +175,8 @@ export class WorkerConversations {
     );
   }
 
-  streamConsent(callback?: StreamCallback<any>) {
-    const on_consent_update = (consent: any) => {
+  streamConsent(callback?: StreamCallback<Consent[]>) {
+    const on_consent_update = (consent: Consent[]) => {
       void callback?.(null, consent);
     };
     const on_error = (error: Error | null) => {
@@ -185,8 +186,8 @@ export class WorkerConversations {
   }
 
   streamPreferences(callback?: StreamCallback<UserPreference[]>) {
-    const on_user_preference_update = (preference: UserPreference[]) => {
-      void callback?.(null, preference);
+    const on_user_preference_update = (preferences: UserPreference[]) => {
+      void callback?.(null, preferences);
     };
     const on_error = (error: Error | null) => {
       void callback?.(error, undefined);

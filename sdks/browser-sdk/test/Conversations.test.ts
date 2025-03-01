@@ -730,6 +730,29 @@ describe("Conversations streaming", () => {
       count++;
       console.log(updates);
       expect(updates).toBeDefined();
+      // if (count === 1) {
+      //   expect(updates?.length).toBe(1);
+      //   expect(updates?.[0].entity).toBe(group.id);
+      //   expect(updates?.[0].entityType).toBe(ConsentEntityType.GroupId);
+      //   expect(updates?.[0].state).toBe(ConsentState.Denied);
+      // }
+      // if (count === 2) {
+      //   expect(updates?.length).toBe(1);
+      //   expect(updates?.[0].entity).toBe(group.id);
+      //   expect(updates?.[0].entityType).toBe(ConsentEntityType.GroupId);
+      //   expect(updates?.[0].state).toBe(ConsentState.Allowed);
+      // }
+      // if (count === 3) {
+      //   expect(updates?.length).toBe(2);
+      //   expect(updates?.[0].entity).toBe(user2.account.address);
+      //   expect(updates?.[0].entityType).toBe(ConsentEntityType.Address);
+      //   expect(updates?.[0].state).toBe(ConsentState.Denied);
+      //   expect(updates?.[1].entity).toBe(client2.inboxId!);
+      //   expect(updates?.[1].entityType).toBe(ConsentEntityType.InboxId);
+      //   expect(updates?.[1].state).toBe(ConsentState.Allowed);
+      //   break;
+      // }
+
       if (count === 3) {
         break;
       }
@@ -759,8 +782,6 @@ describe("Conversations streaming", () => {
     let count = 0;
     for await (const preferences of await stream) {
       count++;
-
-      console.log(preferences);
       expect(preferences).toBeDefined();
       expect(preferences?.length).toBe(1);
       if (preferences?.[0].type === "HmacKeyUpdate") {

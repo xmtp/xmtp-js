@@ -1,9 +1,14 @@
+import type { UserPreference } from "@xmtp/wasm-bindings";
 import type {
   StreamEventsClientPostMessageData,
   StreamEventsErrorData,
   StreamEventsResult,
 } from "@/types";
-import type { SafeConversation, SafeMessage } from "@/utils/conversions";
+import type {
+  SafeConsent,
+  SafeConversation,
+  SafeMessage,
+} from "@/utils/conversions";
 
 export type ClientStreamEvents =
   | {
@@ -19,12 +24,12 @@ export type ClientStreamEvents =
   | {
       type: "consent";
       streamId: string;
-      result: any;
+      result: SafeConsent[] | undefined;
     }
   | {
       type: "preferences";
       streamId: string;
-      result: any;
+      result: UserPreference[] | undefined;
     };
 
 export type ClientStreamEventsTypes = ClientStreamEvents["type"];
