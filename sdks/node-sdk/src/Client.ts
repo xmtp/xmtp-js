@@ -190,7 +190,7 @@ export class Client {
       const signatureText = await this.#innerClient.createInboxSignatureText();
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
@@ -200,7 +200,7 @@ export class Client {
         await this.#innerClient.addWalletSignatureText(newAccountAddress);
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
@@ -210,7 +210,7 @@ export class Client {
         await this.#innerClient.revokeWalletSignatureText(accountAddress);
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
@@ -220,7 +220,7 @@ export class Client {
         await this.#innerClient.revokeAllOtherInstallationsSignatureText();
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
@@ -232,7 +232,7 @@ export class Client {
         );
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
