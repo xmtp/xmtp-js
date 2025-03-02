@@ -276,7 +276,29 @@ export class Client {
     return this.#innerClient.registerIdentity();
   }
 
-  async addAccount(newAccountSigner: Signer) {
+  /**
+   * This function should be used with caution. Adding a wallet already
+   * associated with an inboxId will cause the wallet to lose access to
+   * that inbox.
+   *
+   * The `allowInboxReassign` parameter must be true to reassign an inbox
+   * already associated with a different account.
+   */
+  async addAccount(
+    newAccountSigner: Signer,
+    allowInboxReassign: boolean = false,
+  ) {
+    // check for existing inbox id
+    const existingInboxId = await this.getInboxIdByAddress(
+      await newAccountSigner.getAddress(),
+    );
+
+    if (existingInboxId && !allowInboxReassign) {
+      throw new Error(
+        `Signer address already associated with inbox ${existingInboxId}`,
+      );
+    }
+
     const signatureText = await this.addAccountSignatureText(
       await newAccountSigner.getAddress(),
     );
