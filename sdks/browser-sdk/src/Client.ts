@@ -112,34 +112,34 @@ export class Client extends ClientWorkerClass {
     return this.#installationIdBytes;
   }
 
-  async #createInboxSignatureText() {
+  async createInboxSignatureText() {
     return this.sendMessage("createInboxSignatureText", undefined);
   }
 
-  async #addAccountSignatureText(newAccountAddress: string) {
+  async addAccountSignatureText(newAccountAddress: string) {
     return this.sendMessage("addAccountSignatureText", {
       newAccountAddress,
     });
   }
 
-  async #removeAccountSignatureText(accountAddress: string) {
+  async removeAccountSignatureText(accountAddress: string) {
     return this.sendMessage("removeAccountSignatureText", { accountAddress });
   }
 
-  async #revokeAllOtherInstallationsSignatureText() {
+  async revokeAllOtherInstallationsSignatureText() {
     return this.sendMessage(
       "revokeAllOtherInstallationsSignatureText",
       undefined,
     );
   }
 
-  async #revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+  async revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
     return this.sendMessage("revokeInstallationsSignatureText", {
       installationIds,
     });
   }
 
-  async #addSignature(
+  async addSignature(
     signatureType: SignatureRequestType,
     signatureText: string,
     signer: Signer,
@@ -161,19 +161,19 @@ export class Client extends ClientWorkerClass {
     }
   }
 
-  async #applySignatures() {
+  async applySignatures() {
     return this.sendMessage("applySignatures", undefined);
   }
 
   async register() {
-    const signatureText = await this.#createInboxSignatureText();
+    const signatureText = await this.createInboxSignatureText();
 
     // if the signature text is not available, the client is already registered
     if (!signatureText) {
       return;
     }
 
-    await this.#addSignature(
+    await this.addSignature(
       SignatureRequestType.CreateInbox,
       signatureText,
       this.#signer,
@@ -183,7 +183,7 @@ export class Client extends ClientWorkerClass {
   }
 
   async addAccount(newAccountSigner: Signer) {
-    const signatureText = await this.#addAccountSignatureText(
+    const signatureText = await this.addAccountSignatureText(
       await newAccountSigner.getAddress(),
     );
 
@@ -191,35 +191,33 @@ export class Client extends ClientWorkerClass {
       throw new Error("Unable to generate add account signature text");
     }
 
-    await this.#addSignature(
+    await this.addSignature(
       SignatureRequestType.AddWallet,
       signatureText,
       newAccountSigner,
     );
 
-    await this.#applySignatures();
+    await this.applySignatures();
   }
 
   async removeAccount(accountAddress: string) {
-    const signatureText =
-      await this.#removeAccountSignatureText(accountAddress);
+    const signatureText = await this.removeAccountSignatureText(accountAddress);
 
     if (!signatureText) {
       throw new Error("Unable to generate remove account signature text");
     }
 
-    await this.#addSignature(
+    await this.addSignature(
       SignatureRequestType.RevokeWallet,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.applySignatures();
   }
 
   async revokeAllOtherInstallations() {
-    const signatureText =
-      await this.#revokeAllOtherInstallationsSignatureText();
+    const signatureText = await this.revokeAllOtherInstallationsSignatureText();
 
     if (!signatureText) {
       throw new Error(
@@ -227,30 +225,30 @@ export class Client extends ClientWorkerClass {
       );
     }
 
-    await this.#addSignature(
+    await this.addSignature(
       SignatureRequestType.RevokeInstallations,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.applySignatures();
   }
 
   async revokeInstallations(installationIds: Uint8Array[]) {
     const signatureText =
-      await this.#revokeInstallationsSignatureText(installationIds);
+      await this.revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
       throw new Error("Unable to generate revoke installations signature text");
     }
 
-    await this.#addSignature(
+    await this.addSignature(
       SignatureRequestType.RevokeInstallations,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.applySignatures();
   }
 
   async isRegistered() {
