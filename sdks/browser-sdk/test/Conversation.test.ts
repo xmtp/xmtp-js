@@ -303,23 +303,23 @@ describe("Conversation", () => {
     ]);
 
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
-    await conversation.syncSuperAdmins();
+    await conversation.listSuperAdmins();
     expect(conversation.superAdmins.length).toBe(1);
     expect(conversation.superAdmins).toContain(client1.inboxId);
     expect(await conversation.isAdmin(client1.inboxId!)).toBe(false);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(false);
-    await conversation.syncAdmins();
+    await conversation.listAdmins();
     expect(conversation.admins.length).toBe(0);
 
     await conversation.addAdmin(client2.inboxId!);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(true);
-    await conversation.syncAdmins();
+    await conversation.listAdmins();
     expect(conversation.admins.length).toBe(1);
     expect(conversation.admins).toContain(client2.inboxId);
 
     await conversation.removeAdmin(client2.inboxId!);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(false);
-    await conversation.syncAdmins();
+    await conversation.listAdmins();
     expect(conversation.admins.length).toBe(0);
   });
 
@@ -335,14 +335,14 @@ describe("Conversation", () => {
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(false);
 
-    await conversation.syncSuperAdmins();
+    await conversation.listSuperAdmins();
     expect(conversation.superAdmins.length).toBe(1);
     expect(conversation.superAdmins).toContain(client1.inboxId);
 
     await conversation.addSuperAdmin(client2.inboxId!);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(true);
 
-    await conversation.syncSuperAdmins();
+    await conversation.listSuperAdmins();
     expect(conversation.superAdmins.length).toBe(2);
     expect(conversation.superAdmins).toContain(client1.inboxId);
     expect(conversation.superAdmins).toContain(client2.inboxId);
@@ -350,7 +350,7 @@ describe("Conversation", () => {
     await conversation.removeSuperAdmin(client2.inboxId!);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(false);
 
-    await conversation.syncSuperAdmins();
+    await conversation.listSuperAdmins();
     expect(conversation.superAdmins.length).toBe(1);
     expect(conversation.superAdmins).toContain(client1.inboxId);
   });

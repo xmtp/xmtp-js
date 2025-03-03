@@ -108,7 +108,7 @@ describe.concurrent("Client", () => {
     const client = await createRegisteredClient(user);
     const signer2 = createSigner(user2);
 
-    await client.addAccount(signer2);
+    await client.unsafe_addAccount(signer2);
 
     const inboxState = await client.inboxState();
     expect(inboxState.accountAddresses.length).toEqual(2);
@@ -126,7 +126,7 @@ describe.concurrent("Client", () => {
     const client = await createRegisteredClient(user);
     const signer2 = createSigner(user2);
 
-    await client.addAccount(signer2);
+    await client.unsafe_addAccount(signer2);
     await client.removeAccount(user2.account.address);
 
     const inboxState = await client.inboxState();

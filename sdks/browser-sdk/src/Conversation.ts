@@ -132,18 +132,20 @@ export class Conversation {
     return this.#superAdmins;
   }
 
-  async syncAdmins() {
+  async listAdmins() {
     const admins = await this.#client.sendMessage("getGroupAdmins", {
       id: this.#id,
     });
     this.#admins = admins;
+    return admins;
   }
 
-  async syncSuperAdmins() {
+  async listSuperAdmins() {
     const superAdmins = await this.#client.sendMessage("getGroupSuperAdmins", {
       id: this.#id,
     });
     this.#superAdmins = superAdmins;
+    return superAdmins;
   }
 
   async permissions() {
@@ -166,13 +168,13 @@ export class Conversation {
   }
 
   async isAdmin(inboxId: string) {
-    await this.syncAdmins();
-    return this.#admins.includes(inboxId);
+    const admins = await this.listAdmins();
+    return admins.includes(inboxId);
   }
 
   async isSuperAdmin(inboxId: string) {
-    await this.syncSuperAdmins();
-    return this.#superAdmins.includes(inboxId);
+    const superAdmins = await this.listSuperAdmins();
+    return superAdmins.includes(inboxId);
   }
 
   async sync() {

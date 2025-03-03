@@ -112,34 +112,91 @@ export class Client extends ClientWorkerClass {
     return this.#installationIdBytes;
   }
 
-  async #createInboxSignatureText() {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register` function instead.
+   */
+  async unsafe_createInboxSignatureText() {
     return this.sendMessage("createInboxSignatureText", undefined);
   }
 
-  async #addAccountSignatureText(newAccountAddress: string) {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `unsafe_addAccount` function instead.
+   *
+   * The `allowInboxReassign` parameter must be true or this function will
+   * throw an error.
+   */
+  async unsafe_addAccountSignatureText(
+    newAccountAddress: string,
+    allowInboxReassign: boolean = false,
+  ) {
+    if (!allowInboxReassign) {
+      throw new Error(
+        "Unable to create add account signature text, `allowInboxReassign` must be true",
+      );
+    }
+
     return this.sendMessage("addAccountSignatureText", {
       newAccountAddress,
     });
   }
 
-  async #removeAccountSignatureText(accountAddress: string) {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `removeAccount` function instead.
+   */
+  async unsafe_removeAccountSignatureText(accountAddress: string) {
     return this.sendMessage("removeAccountSignatureText", { accountAddress });
   }
 
-  async #revokeAllOtherInstallationsSignatureText() {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `revokeAllOtherInstallations` function
+   * instead.
+   */
+  async unsafe_revokeAllOtherInstallationsSignatureText() {
     return this.sendMessage(
       "revokeAllOtherInstallationsSignatureText",
       undefined,
     );
   }
 
-  async #revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `revokeInstallations` function instead.
+   */
+  async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
     return this.sendMessage("revokeInstallationsSignatureText", {
       installationIds,
     });
   }
 
-  async #addSignature(
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `addAccount`,
+   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
+   * functions instead.
+   */
+  async unsafe_addSignature(
     signatureType: SignatureRequestType,
     signatureText: string,
     signer: Signer,
@@ -161,19 +218,28 @@ export class Client extends ClientWorkerClass {
     }
   }
 
-  async #applySignatures() {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `addAccount`,
+   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
+   * functions instead.
+   */
+  async unsafe_applySignatures() {
     return this.sendMessage("applySignatures", undefined);
   }
 
   async register() {
-    const signatureText = await this.#createInboxSignatureText();
+    const signatureText = await this.unsafe_createInboxSignatureText();
 
     // if the signature text is not available, the client is already registered
     if (!signatureText) {
       return;
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.CreateInbox,
       signatureText,
       this.#signer,
@@ -182,44 +248,67 @@ export class Client extends ClientWorkerClass {
     return this.sendMessage("registerIdentity", undefined);
   }
 
-  async addAccount(newAccountSigner: Signer) {
-    const signatureText = await this.#addAccountSignatureText(
+  /**
+   * WARNING: This function should be used with caution. Adding a wallet already
+   * associated with an inboxId will cause the wallet to lose access to
+   * that inbox.
+   *
+   * The `allowInboxReassign` parameter must be true to reassign an inbox
+   * already associated with a different account.
+   */
+  async unsafe_addAccount(
+    newAccountSigner: Signer,
+    allowInboxReassign: boolean = false,
+  ) {
+    // check for existing inbox id
+    const existingInboxId = await this.findInboxIdByAddress(
       await newAccountSigner.getAddress(),
+    );
+
+    if (existingInboxId && !allowInboxReassign) {
+      throw new Error(
+        `Signer address already associated with inbox ${existingInboxId}`,
+      );
+    }
+
+    const signatureText = await this.unsafe_addAccountSignatureText(
+      await newAccountSigner.getAddress(),
+      true,
     );
 
     if (!signatureText) {
       throw new Error("Unable to generate add account signature text");
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.AddWallet,
       signatureText,
       newAccountSigner,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
   async removeAccount(accountAddress: string) {
     const signatureText =
-      await this.#removeAccountSignatureText(accountAddress);
+      await this.unsafe_removeAccountSignatureText(accountAddress);
 
     if (!signatureText) {
       throw new Error("Unable to generate remove account signature text");
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.RevokeWallet,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
   async revokeAllOtherInstallations() {
     const signatureText =
-      await this.#revokeAllOtherInstallationsSignatureText();
+      await this.unsafe_revokeAllOtherInstallationsSignatureText();
 
     if (!signatureText) {
       throw new Error(
@@ -227,30 +316,30 @@ export class Client extends ClientWorkerClass {
       );
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.RevokeInstallations,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
   async revokeInstallations(installationIds: Uint8Array[]) {
     const signatureText =
-      await this.#revokeInstallationsSignatureText(installationIds);
+      await this.unsafe_revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
       throw new Error("Unable to generate revoke installations signature text");
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.RevokeInstallations,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
   async isRegistered() {
