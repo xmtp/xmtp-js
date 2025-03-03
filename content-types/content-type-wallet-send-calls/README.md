@@ -25,15 +25,15 @@ const walletSendCalls: WalletSendCallsParams = {
   calls: [
     {
       to: "0x456...def",
-      value: 100000000000000,
+      value: "0x5AF3107A4000",
       metadata: {
         description: "Send 0.0001 ETH on base to 0x456...def",
         transactionType: "transfer",
         currency: "ETH",
         amount: 100000000000000,
         decimals: 18,
-        toAddress: "0x456...def"
-      }
+        toAddress: "0x456...def",
+      },
     },
     {
       to: "0x789...cba",
@@ -45,8 +45,8 @@ const walletSendCalls: WalletSendCallsParams = {
         amount: 10000000,
         decimals: 6,
         platform: "morpho",
-        apy: "8.5"
-      }
+        apy: "8.5",
+      },
     },
   ],
 };

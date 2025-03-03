@@ -3,6 +3,7 @@ import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
 import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import { useCallback, useContext, useRef, useState } from "react";
 import { XMTPContext } from "../contexts/XMTPContext";
 
@@ -62,6 +63,7 @@ export const useClient = (onError?: (error: Error) => void) => {
               new ReplyCodec(),
               new RemoteAttachmentCodec(),
               new TransactionReferenceCodec(),
+              new WalletSendCallsCodec(),
             ],
           });
           setClient(xmtpClient);

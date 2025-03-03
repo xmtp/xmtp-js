@@ -55,17 +55,20 @@ export const Conversation: React.FC<ConversationProps> = ({
     };
   }, [conversation?.id]);
 
-  return (
-    <>
-      <Stack
-        style={{
-          overflow: "hidden",
-          margin: "calc(var(--mantine-spacing-md) * -1)",
-        }}
-        pos="relative"
-        gap="lg"
-        flex={1}>
-        {conversation && (
+  if (conversation) {
+    const sendMessage: XmtpConversation["send"] = (content, contentType) => {
+      return conversation.send(content, contentType);
+    };
+    return (
+      <>
+        <Stack
+          style={{
+            overflow: "hidden",
+            margin: "calc(var(--mantine-spacing-md) * -1)",
+          }}
+          pos="relative"
+          gap="lg"
+          flex={1}>
           <>
             <Flex align="center" gap="xs" justify="space-between" p="md">
               {conversation.name ? (
@@ -98,15 +101,15 @@ export const Conversation: React.FC<ConversationProps> = ({
                   {messages.length === 0 && <Text>No messages</Text>}
                 </Stack>
               ) : (
-                <Messages messages={messages} />
+                <Messages messages={messages} sendMessage={sendMessage} />
               )}
             </Stack>
             <Composer conversation={conversation} />
             <LoadingOverlay visible={loading || conversationLoading} />
           </>
-        )}
-      </Stack>
-      <Outlet />
-    </>
-  );
+        </Stack>
+        <Outlet />
+      </>
+    );
+  }
 };

@@ -1,21 +1,27 @@
 import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
-import type { DecodedMessage } from "@xmtp/browser-sdk";
+import type { Conversation, DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
+import {
+  ContentTypeWalletSendCalls,
+  type WalletSendCallsParams,
+} from "@xmtp/content-type-wallet-send-calls";
 import { intlFormat } from "date-fns";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
 import { useClient } from "@/hooks/useClient";
 import { MessageContent } from "./MessageContent";
 import { TransactionReferenceUI } from "./TransactionReference";
+import { WalletSendCallsUI } from "./WalletSendCalls";
 
 export type MessageProps = {
   message: DecodedMessage;
+  sendMessage: Conversation["send"];
 };
 
-export const Message: React.FC<MessageProps> = ({ message }) => {
+export const Message: React.FC<MessageProps> = ({ message, sendMessage }) => {
   const { client } = useClient();
   const isSender = client?.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
@@ -43,16 +49,14 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                 })}
               </Text>
             </Flex>
-            <span>
-              Message Content Type: {JSON.stringify(message.contentType)}
-            </span>
-            <span>
-              Transaction Reference Content Type:{" "}
-              {JSON.stringify(ContentTypeTransactionReference)}
-            </span>
             {message.contentType.sameAs(ContentTypeTransactionReference) ? (
               <TransactionReferenceUI
                 content={message.content as TransactionReference}
+              />
+            ) : message.contentType.sameAs(ContentTypeWalletSendCalls) ? (
+              <WalletSendCallsUI
+                content={message.content as WalletSendCallsParams}
+                sendMessage={sendMessage}
               />
             ) : (
               <MessageContent content={message.content as string} />
