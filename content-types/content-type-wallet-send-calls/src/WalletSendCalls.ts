@@ -20,6 +20,7 @@ export type WalletSendCallsParams = {
     to?: `0x${string}` | undefined;
     data?: `0x${string}` | undefined;
     value?: `0x${string}` | undefined; // Hex value
+    gas?: `0x${string}` | undefined;
     metadata?: {
       description: string;
       transactionType: string;
