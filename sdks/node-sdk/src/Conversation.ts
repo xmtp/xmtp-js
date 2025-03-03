@@ -2,12 +2,9 @@ import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type {
   ConsentState,
-  Conversation as Group,
   ListMessagesOptions,
   Message,
-  MetadataField,
-  PermissionPolicy,
-  PermissionUpdateType,
+  Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
@@ -16,59 +13,35 @@ import { nsToDate } from "@/helpers/date";
 
 export class Conversation {
   #client: Client;
-  #group: Group;
+  #conversation: XmtpConversation;
   #lastMessage?: DecodedMessage;
 
-  constructor(client: Client, group: Group, lastMessage?: Message | null) {
+  constructor(
+    client: Client,
+    conversation: XmtpConversation,
+    lastMessage?: Message | null,
+  ) {
     this.#client = client;
-    this.#group = group;
+    this.#conversation = conversation;
     this.#lastMessage = lastMessage
       ? new DecodedMessage(client, lastMessage)
       : undefined;
   }
 
   get id() {
-    return this.#group.id();
-  }
-
-  get name() {
-    return this.#group.groupName();
-  }
-
-  get lastMessage() {
-    return this.#lastMessage;
-  }
-
-  async updateName(name: string) {
-    return this.#group.updateGroupName(name);
-  }
-
-  get imageUrl() {
-    return this.#group.groupImageUrlSquare();
-  }
-
-  async updateImageUrl(imageUrl: string) {
-    return this.#group.updateGroupImageUrlSquare(imageUrl);
-  }
-
-  get description() {
-    return this.#group.groupDescription();
-  }
-
-  async updateDescription(description: string) {
-    return this.#group.updateGroupDescription(description);
+    return this.#conversation.id();
   }
 
   get isActive() {
-    return this.#group.isActive();
+    return this.#conversation.isActive();
   }
 
   get addedByInboxId() {
-    return this.#group.addedByInboxId();
+    return this.#conversation.addedByInboxId();
   }
 
   get createdAtNs() {
-    return this.#group.createdAtNs();
+    return this.#conversation.createdAtNs();
   }
 
   get createdAt() {
@@ -76,7 +49,7 @@ export class Conversation {
   }
 
   async metadata() {
-    const metadata = await this.#group.groupMetadata();
+    const metadata = await this.#conversation.groupMetadata();
     return {
       creatorInboxId: metadata.creatorInboxId(),
       conversationType: metadata.conversationType(),
@@ -84,53 +57,17 @@ export class Conversation {
   }
 
   async members() {
-    return this.#group.listMembers();
-  }
-
-  get admins() {
-    return this.#group.adminList();
-  }
-
-  get superAdmins() {
-    return this.#group.superAdminList();
-  }
-
-  get permissions() {
-    const permissions = this.#group.groupPermissions();
-    return {
-      policyType: permissions.policyType(),
-      policySet: permissions.policySet(),
-    };
-  }
-
-  async updatePermission(
-    permissionType: PermissionUpdateType,
-    policy: PermissionPolicy,
-    metadataField?: MetadataField,
-  ) {
-    return this.#group.updatePermissionPolicy(
-      permissionType,
-      policy,
-      metadataField,
-    );
-  }
-
-  isAdmin(inboxId: string) {
-    return this.#group.isAdmin(inboxId);
-  }
-
-  isSuperAdmin(inboxId: string) {
-    return this.#group.isSuperAdmin(inboxId);
+    return this.#conversation.listMembers();
   }
 
   async sync() {
-    return this.#group.sync();
+    return this.#conversation.sync();
   }
 
   stream(callback?: StreamCallback<DecodedMessage>) {
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#group.stream((error, value) => {
+    const stream = this.#conversation.stream((error, value) => {
       const message = value
         ? new DecodedMessage(this.#client, value)
         : undefined;
@@ -143,40 +80,8 @@ export class Conversation {
     return asyncStream;
   }
 
-  async addMembers(accountAddresses: string[]) {
-    return this.#group.addMembers(accountAddresses);
-  }
-
-  async addMembersByInboxId(inboxIds: string[]) {
-    return this.#group.addMembersByInboxId(inboxIds);
-  }
-
-  async removeMembers(accountAddresses: string[]) {
-    return this.#group.removeMembers(accountAddresses);
-  }
-
-  async removeMembersByInboxId(inboxIds: string[]) {
-    return this.#group.removeMembersByInboxId(inboxIds);
-  }
-
-  async addAdmin(inboxId: string) {
-    return this.#group.addAdmin(inboxId);
-  }
-
-  async removeAdmin(inboxId: string) {
-    return this.#group.removeAdmin(inboxId);
-  }
-
-  async addSuperAdmin(inboxId: string) {
-    return this.#group.addSuperAdmin(inboxId);
-  }
-
-  async removeSuperAdmin(inboxId: string) {
-    return this.#group.removeSuperAdmin(inboxId);
-  }
-
   async publishMessages() {
-    return this.#group.publishMessages();
+    return this.#conversation.publishMessages();
   }
 
   sendOptimistic(content: any, contentType?: ContentTypeId) {
@@ -192,7 +97,7 @@ export class Conversation {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#group.sendOptimistic(encodedContent);
+    return this.#conversation.sendOptimistic(encodedContent);
   }
 
   async send(content: any, contentType?: ContentTypeId) {
@@ -208,11 +113,11 @@ export class Conversation {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#group.send(encodedContent);
+    return this.#conversation.send(encodedContent);
   }
 
   async messages(options?: ListMessagesOptions): Promise<DecodedMessage[]> {
-    const messages = await this.#group.findMessages(options);
+    const messages = await this.#conversation.findMessages(options);
     return (
       messages
         .map((message) => new DecodedMessage(this.#client, message))
@@ -221,31 +126,34 @@ export class Conversation {
     );
   }
 
+  async lastMessage() {
+    return this.#lastMessage ?? (await this.messages({ limit: 1 }))[0];
+  }
+
   get consentState() {
-    return this.#group.consentState();
+    return this.#conversation.consentState();
   }
 
   updateConsentState(consentState: ConsentState) {
-    this.#group.updateConsentState(consentState);
-  }
-
-  get dmPeerInboxId() {
-    return this.#group.dmPeerInboxId();
+    this.#conversation.updateConsentState(consentState);
   }
 
   messageDisappearingSettings() {
-    return this.#group.messageDisappearingSettings() ?? undefined;
+    return this.#conversation.messageDisappearingSettings() ?? undefined;
   }
 
   async updateMessageDisappearingSettings(fromNs: number, inNs: number) {
-    return this.#group.updateMessageDisappearingSettings({ fromNs, inNs });
+    return this.#conversation.updateMessageDisappearingSettings({
+      fromNs,
+      inNs,
+    });
   }
 
   async removeMessageDisappearingSettings() {
-    return this.#group.removeMessageDisappearingSettings();
+    return this.#conversation.removeMessageDisappearingSettings();
   }
 
   isMessageDisappearingEnabled() {
-    return this.#group.isMessageDisappearingEnabled();
+    return this.#conversation.isMessageDisappearingEnabled();
   }
 }
