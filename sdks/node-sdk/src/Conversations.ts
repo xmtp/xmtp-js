@@ -4,12 +4,13 @@ import type {
   CreateDmOptions,
   CreateGroupOptions,
   ListConversationsOptions,
-  Conversations as NodeConversations,
+  Conversations as XmtpConversations,
 } from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
-import { Conversation } from "@/Conversation";
 import { DecodedMessage } from "@/DecodedMessage";
+import { Dm } from "@/Dm";
+import { Group } from "@/Group";
 
 export type PreferenceUpdate = {
   type: string;
@@ -20,20 +21,23 @@ export type PreferenceUpdate = {
 
 export class Conversations {
   #client: Client;
-  #conversations: NodeConversations;
+  #conversations: XmtpConversations;
 
-  constructor(client: Client, conversations: NodeConversations) {
+  constructor(client: Client, conversations: XmtpConversations) {
     this.#client = client;
     this.#conversations = conversations;
   }
 
-  getConversationById(id: string) {
+  async getConversationById(id: string) {
     try {
       // findGroupById will throw if group is not found
       const group = this.#conversations.findGroupById(id);
-      return new Conversation(this.#client, group);
+      const metadata = await group.groupMetadata();
+      return metadata.conversationType() === "group"
+        ? new Group(this.#client, group)
+        : new Dm(this.#client, group);
     } catch {
-      return null;
+      return undefined;
     }
   }
 
@@ -41,9 +45,9 @@ export class Conversations {
     try {
       // findDmByTargetInboxId will throw if group is not found
       const group = this.#conversations.findDmByTargetInboxId(inboxId);
-      return new Conversation(this.#client, group);
+      return new Dm(this.#client, group);
     } catch {
-      return null;
+      return undefined;
     }
   }
 
@@ -53,7 +57,7 @@ export class Conversations {
       const message = this.#conversations.findMessageById(id);
       return new DecodedMessage<T>(this.#client, message);
     } catch {
-      return null;
+      return undefined;
     }
   }
 
@@ -62,7 +66,7 @@ export class Conversations {
       accountAddresses,
       options,
     );
-    const conversation = new Conversation(this.#client, group);
+    const conversation = new Group(this.#client, group);
     return conversation;
   }
 
@@ -71,26 +75,38 @@ export class Conversations {
       inboxIds,
       options,
     );
-    const conversation = new Conversation(this.#client, group);
+    const conversation = new Group(this.#client, group);
     return conversation;
   }
 
   async newDm(accountAddress: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDm(accountAddress, options);
-    const conversation = new Conversation(this.#client, group);
+    const conversation = new Dm(this.#client, group);
     return conversation;
   }
 
   async newDmByInboxId(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
-    const conversation = new Conversation(this.#client, group);
+    const conversation = new Dm(this.#client, group);
     return conversation;
   }
 
-  list(options?: ListConversationsOptions) {
+  async list(options?: ListConversationsOptions) {
     const groups = this.#conversations.list(options);
+    return Promise.all(
+      groups.map(async (item) => {
+        const metadata = await item.conversation.groupMetadata();
+        return metadata.conversationType() === "dm"
+          ? new Dm(this.#client, item.conversation, item.lastMessage)
+          : new Group(this.#client, item.conversation, item.lastMessage);
+      }),
+    );
+  }
+
+  listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
+    const groups = this.#conversations.listGroups(options);
     return groups.map((item) => {
-      const conversation = new Conversation(
+      const conversation = new Group(
         this.#client,
         item.conversation,
         item.lastMessage,
@@ -99,18 +115,14 @@ export class Conversations {
     });
   }
 
-  listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
-    const groups = this.#conversations.listGroups(options);
-    return groups.map((item) => {
-      const conversation = new Conversation(this.#client, item.conversation);
-      return conversation;
-    });
-  }
-
   listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.listDms(options);
     return groups.map((item) => {
-      const conversation = new Conversation(this.#client, item.conversation);
+      const conversation = new Dm(
+        this.#client,
+        item.conversation,
+        item.lastMessage,
+      );
       return conversation;
     });
   }
@@ -123,15 +135,30 @@ export class Conversations {
     return this.#conversations.syncAllConversations(consentStates);
   }
 
-  stream(callback?: StreamCallback<Conversation>) {
-    const asyncStream = new AsyncStream<Conversation>();
+  stream(callback?: StreamCallback<Group | Dm>) {
+    const asyncStream = new AsyncStream<Group | Dm>();
 
     const stream = this.#conversations.stream((err, value) => {
-      const conversation = value
-        ? new Conversation(this.#client, value)
-        : undefined;
-      asyncStream.callback(err, conversation);
-      callback?.(err, conversation);
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
+      value
+        ?.groupMetadata()
+        .then((metadata) => {
+          const conversation =
+            metadata.conversationType() === "dm"
+              ? new Dm(this.#client, value)
+              : new Group(this.#client, value);
+          asyncStream.callback(null, conversation);
+          callback?.(null, conversation);
+        })
+        .catch((error: unknown) => {
+          asyncStream.callback(error as Error, undefined);
+          callback?.(error as Error, undefined);
+        });
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -139,15 +166,19 @@ export class Conversations {
     return asyncStream;
   }
 
-  streamGroups(callback?: StreamCallback<Conversation>) {
-    const asyncStream = new AsyncStream<Conversation>();
+  streamGroups(callback?: StreamCallback<Group>) {
+    const asyncStream = new AsyncStream<Group>();
 
     const stream = this.#conversations.streamGroups((err, value) => {
-      const conversation = value
-        ? new Conversation(this.#client, value)
-        : undefined;
-      asyncStream.callback(err, conversation);
-      callback?.(err, conversation);
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
+      const conversation = value ? new Group(this.#client, value) : undefined;
+      asyncStream.callback(null, conversation);
+      callback?.(null, conversation);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -155,15 +186,19 @@ export class Conversations {
     return asyncStream;
   }
 
-  streamDms(callback?: StreamCallback<Conversation>) {
-    const asyncStream = new AsyncStream<Conversation>();
+  streamDms(callback?: StreamCallback<Dm>) {
+    const asyncStream = new AsyncStream<Dm>();
 
     const stream = this.#conversations.streamDms((err, value) => {
-      const conversation = value
-        ? new Conversation(this.#client, value)
-        : undefined;
-      asyncStream.callback(err, conversation);
-      callback?.(err, conversation);
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
+      const conversation = value ? new Dm(this.#client, value) : undefined;
+      asyncStream.callback(null, conversation);
+      callback?.(null, conversation);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -178,11 +213,17 @@ export class Conversations {
     const asyncStream = new AsyncStream<DecodedMessage>();
 
     const stream = this.#conversations.streamAllMessages((err, value) => {
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
       const decodedMessage = value
         ? new DecodedMessage(this.#client, value)
         : undefined;
-      asyncStream.callback(err, decodedMessage);
-      callback?.(err, decodedMessage);
+      asyncStream.callback(null, decodedMessage);
+      callback?.(null, decodedMessage);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -197,11 +238,17 @@ export class Conversations {
     const asyncStream = new AsyncStream<DecodedMessage>();
 
     const stream = this.#conversations.streamAllGroupMessages((err, value) => {
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
       const decodedMessage = value
         ? new DecodedMessage(this.#client, value)
         : undefined;
-      asyncStream.callback(err, decodedMessage);
-      callback?.(err, decodedMessage);
+      asyncStream.callback(null, decodedMessage);
+      callback?.(null, decodedMessage);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -216,11 +263,17 @@ export class Conversations {
     const asyncStream = new AsyncStream<DecodedMessage>();
 
     const stream = this.#conversations.streamAllDmMessages((err, value) => {
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
       const decodedMessage = value
         ? new DecodedMessage(this.#client, value)
         : undefined;
-      asyncStream.callback(err, decodedMessage);
-      callback?.(err, decodedMessage);
+      asyncStream.callback(null, decodedMessage);
+      callback?.(null, decodedMessage);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -236,8 +289,14 @@ export class Conversations {
     const asyncStream = new AsyncStream<Consent[]>();
 
     const stream = this.#conversations.streamConsent((err, value) => {
-      asyncStream.callback(err, value);
-      callback?.(err, value);
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
+      asyncStream.callback(null, value);
+      callback?.(null, value);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -249,9 +308,15 @@ export class Conversations {
     const asyncStream = new AsyncStream<PreferenceUpdate>();
 
     const stream = this.#conversations.streamPreferences((err, value) => {
+      if (err) {
+        asyncStream.callback(err, undefined);
+        callback?.(err, undefined);
+        return;
+      }
+
       // TODO: remove this once the node bindings type is updated
-      asyncStream.callback(err, value as unknown as PreferenceUpdate);
-      callback?.(err, value as unknown as PreferenceUpdate);
+      asyncStream.callback(null, value as unknown as PreferenceUpdate);
+      callback?.(null, value as unknown as PreferenceUpdate);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);

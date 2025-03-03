@@ -197,7 +197,7 @@ describe.concurrent("Client", () => {
     const group = await client1.conversations.newGroup([user2.account.address]);
 
     await client2.conversations.sync();
-    const group2 = client2.conversations.getConversationById(group.id);
+    const group2 = await client2.conversations.getConversationById(group.id);
 
     expect(group2).not.toBeNull();
 

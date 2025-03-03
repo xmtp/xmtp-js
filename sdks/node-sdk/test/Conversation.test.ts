@@ -30,7 +30,7 @@ describe.concurrent("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = client2.conversations.list();
+    const conversations = client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -57,7 +57,7 @@ describe.concurrent("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = client2.conversations.list();
+    const conversations = client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -84,7 +84,7 @@ describe.concurrent("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = client2.conversations.list();
+    const conversations = client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -190,7 +190,7 @@ describe.concurrent("Conversation", () => {
     expect(messages[1].content).toBe(text);
 
     await client2.conversations.sync();
-    const conversations = client2.conversations.list();
+    const conversations = client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -238,7 +238,7 @@ describe.concurrent("Conversation", () => {
     expect(messages[1].content).toBe(text);
 
     await client2.conversations.sync();
-    const conversations = client2.conversations.list();
+    const conversations = client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -300,7 +300,7 @@ describe.concurrent("Conversation", () => {
     ]);
 
     await client2.conversations.sync();
-    const conversation2 = client2.conversations.list();
+    const conversation2 = client2.conversations.listGroups();
     expect(conversation2.length).toBe(1);
     expect(conversation2[0].id).toBe(conversation.id);
 
@@ -394,18 +394,20 @@ describe.concurrent("Conversation", () => {
     expect(dmGroup).toBeDefined();
 
     await client2.conversations.sync();
-    const group2 = client2.conversations.getConversationById(group.id);
+    const group2 = await client2.conversations.getConversationById(group.id);
     expect(group2).toBeDefined();
     expect(group2!.consentState).toBe(ConsentState.Unknown);
     await group2!.send("gm!");
     expect(group2!.consentState).toBe(ConsentState.Allowed);
 
     await client3.conversations.sync();
-    const dmGroup2 = client3.conversations.getConversationById(dmGroup.id);
+    const dmGroup2 = await client3.conversations.getConversationById(
+      dmGroup.id,
+    );
     expect(dmGroup2).toBeDefined();
-    expect(dmGroup2!.consentState).toBe(ConsentState.Unknown);
-    await dmGroup2!.send("gm!");
-    expect(dmGroup2!.consentState).toBe(ConsentState.Allowed);
+    expect(dmGroup2?.consentState).toBe(ConsentState.Unknown);
+    await dmGroup2?.send("gm!");
+    expect(dmGroup2?.consentState).toBe(ConsentState.Allowed);
   });
 
   it("should update group permissions", async () => {
@@ -514,17 +516,17 @@ describe.concurrent("Conversation", () => {
 
     // sync the messages to the other client
     await client2.conversations.sync();
-    const conversation2 = client2.conversations.getConversationById(
+    const conversation2 = await client2.conversations.getConversationById(
       conversation.id,
     );
-    await conversation2!.sync();
+    await conversation2?.sync();
 
     // verify that the message disappearing settings are set and enabled
     expect(conversation2!.messageDisappearingSettings()).toEqual({
       fromNs: 10_000_000,
       inNs: 10_000_000,
     });
-    expect(conversation2!.isMessageDisappearingEnabled()).toBe(true);
+    expect(conversation2?.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
     await sleep(10000);
@@ -533,7 +535,7 @@ describe.concurrent("Conversation", () => {
     expect((await conversation.messages()).length).toBe(1);
 
     // verify that the messages are deleted on the other client
-    expect((await conversation2!.messages()).length).toBe(0);
+    expect((await conversation2?.messages())?.length).toBe(0);
 
     // remove the message disappearing settings
     await conversation.removeMessageDisappearingSettings();
@@ -547,21 +549,21 @@ describe.concurrent("Conversation", () => {
     expect(conversation.isMessageDisappearingEnabled()).toBe(false);
 
     // sync other group
-    await conversation2!.sync();
+    await conversation2?.sync();
 
     // verify that the message disappearing settings are set and disabled
-    expect(conversation2!.messageDisappearingSettings()).toEqual({
+    expect(conversation2?.messageDisappearingSettings()).toEqual({
       fromNs: 0,
       inNs: 0,
     });
-    expect(conversation2!.isMessageDisappearingEnabled()).toBe(false);
+    expect(conversation2?.isMessageDisappearingEnabled()).toBe(false);
 
     // send messages to the group
-    await conversation2!.send("gm");
-    await conversation2!.send("gm2");
+    await conversation2?.send("gm");
+    await conversation2?.send("gm2");
 
     // verify that the messages are sent
-    expect((await conversation2!.messages()).length).toBe(4);
+    expect((await conversation2?.messages())?.length).toBe(4);
 
     // sync original group
     await conversation.sync();
@@ -606,17 +608,17 @@ describe.concurrent("Conversation", () => {
 
     // sync the messages to the other client
     await client2.conversations.sync();
-    const conversation2 = client2.conversations.getConversationById(
+    const conversation2 = await client2.conversations.getConversationById(
       conversation.id,
     );
-    await conversation2!.sync();
+    await conversation2?.sync();
 
     // verify that the message disappearing settings are set and enabled
     expect(conversation2!.messageDisappearingSettings()).toEqual({
       fromNs: 10_000_000,
       inNs: 10_000_000,
     });
-    expect(conversation2!.isMessageDisappearingEnabled()).toBe(true);
+    expect(conversation2?.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
     await sleep(10000);
@@ -625,7 +627,7 @@ describe.concurrent("Conversation", () => {
     expect((await conversation.messages()).length).toBe(1);
 
     // verify that the messages are deleted on the other client
-    expect((await conversation2!.messages()).length).toBe(0);
+    expect((await conversation2?.messages())?.length).toBe(0);
 
     // remove the message disappearing settings
     await conversation.removeMessageDisappearingSettings();
@@ -639,21 +641,21 @@ describe.concurrent("Conversation", () => {
     expect(conversation.isMessageDisappearingEnabled()).toBe(false);
 
     // sync other group
-    await conversation2!.sync();
+    await conversation2?.sync();
 
     // verify that the message disappearing settings are set and disabled
-    expect(conversation2!.messageDisappearingSettings()).toEqual({
+    expect(conversation2?.messageDisappearingSettings()).toEqual({
       fromNs: 0,
       inNs: 0,
     });
-    expect(conversation2!.isMessageDisappearingEnabled()).toBe(false);
+    expect(conversation2?.isMessageDisappearingEnabled()).toBe(false);
 
     // send messages to the group
-    await conversation2!.send("gm");
-    await conversation2!.send("gm2");
+    await conversation2?.send("gm");
+    await conversation2?.send("gm2");
 
     // verify that the messages are sent
-    expect((await conversation2!.messages()).length).toBe(4);
+    expect((await conversation2?.messages())?.length).toBe(4);
 
     // sync original group
     await conversation.sync();
