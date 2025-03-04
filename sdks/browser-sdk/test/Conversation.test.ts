@@ -31,7 +31,7 @@ describe("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = await client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -58,7 +58,7 @@ describe("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = await client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
@@ -85,7 +85,7 @@ describe("Conversation", () => {
     expect(messages.length).toBe(2);
 
     await client2.conversations.sync();
-    const conversations = await client2.conversations.list();
+    const conversations = await client2.conversations.listGroups();
     expect(conversations.length).toBe(1);
 
     const conversation2 = conversations[0];
