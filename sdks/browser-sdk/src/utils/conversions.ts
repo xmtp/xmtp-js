@@ -16,9 +16,7 @@ import {
   EncodedContent as WasmEncodedContent,
   type ConsentEntityType,
   type ConsentState,
-  type ConversationType,
   type DeliveryStatus,
-  type GroupMembershipState,
   type GroupMessageKind,
   type HmacKey,
   type InboxState,
@@ -176,26 +174,20 @@ export const fromSafeListMessagesOptions = (
   );
 
 export type SafeListConversationsOptions = {
-  allowedStates?: GroupMembershipState[];
   consentStates?: ConsentState[];
-  conversationType?: ConversationType;
   createdAfterNs?: bigint;
   createdBeforeNs?: bigint;
   includeDuplicateDms?: boolean;
-  includeSyncGroups?: boolean;
   limit?: bigint;
 };
 
 export const toSafeListConversationsOptions = (
   options: ListConversationsOptions,
 ): SafeListConversationsOptions => ({
-  allowedStates: options.allowedStates,
   consentStates: options.consentStates,
-  conversationType: options.conversationType,
   createdAfterNs: options.createdAfterNs,
   createdBeforeNs: options.createdBeforeNs,
   includeDuplicateDms: options.includeDuplicateDms,
-  includeSyncGroups: options.includeSyncGroups,
   limit: options.limit,
 });
 
@@ -203,13 +195,10 @@ export const fromSafeListConversationsOptions = (
   options: SafeListConversationsOptions,
 ): ListConversationsOptions =>
   new ListConversationsOptions(
-    options.allowedStates,
     options.consentStates,
-    options.conversationType,
     options.createdAfterNs,
     options.createdBeforeNs,
     options.includeDuplicateDms ?? false,
-    options.includeSyncGroups ?? false,
     options.limit,
   );
 
