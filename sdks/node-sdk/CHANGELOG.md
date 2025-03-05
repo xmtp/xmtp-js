@@ -1,5 +1,19 @@
 # @xmtp/node-sdk
 
+## 0.0.46
+
+### Patch Changes
+
+- 3cf6dd9:
+  - Exposed all client signature methods
+  - Refactored client signature methods to return `undefined` instead of `null`
+  - Added guard to `Client.addAccount` to prevent automatic reassignment of inboxes
+  - Removed `allowedStates`, `conversationType`, and `includeSyncGroups` from `ListConversationsOptions`
+  - Added `contentTypes` option to `ListMessagesOptions`
+  - Added more exports from the bindings
+  - Added `Group` and `Dm` classes
+  - Refactored some functions to use the new `Group` and `Dm` classes
+
 ## 0.0.45
 
 ### Patch Changes
