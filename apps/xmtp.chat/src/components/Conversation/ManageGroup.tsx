@@ -21,16 +21,15 @@ import {
   PermissionPolicy,
   PermissionUpdateType,
   type ConsentState,
-  type Conversation,
   type PermissionPolicySet,
   type SafeGroupMember,
+  type Group as XmtpGroup,
 } from "@xmtp/browser-sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate } from "react-router";
 import { isValidLongWalletAddress } from "@/helpers/address";
 import { useBodyClass } from "@/hooks/useBodyClass";
 import { useClient } from "@/hooks/useClient";
-import { useConversations } from "@/hooks/useConversations";
 import { BadgeWithCopy } from "../BadgeWithCopy";
 
 type AnyFn = (...args: unknown[]) => unknown;
@@ -61,11 +60,13 @@ const adminPolicySet: PolicySet = {
   updateMessageDisappearingPolicy: PermissionPolicy.Admin,
 };
 
-export const ManageConversation: React.FC = () => {
+export type ManageGroupProps = {
+  group: XmtpGroup;
+};
+
+export const ManageGroup: React.FC<ManageGroupProps> = ({ group }) => {
   useBodyClass("main-flex-layout");
-  const { conversationId } = useParams();
   const { client } = useClient();
-  const { getConversationById, loading } = useConversations();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [address, setAddress] = useState("");
@@ -81,7 +82,6 @@ export const ManageConversation: React.FC = () => {
   >(null);
   const consentStateRef = useRef<ConsentState>(0);
   const [consentState, setConsentState] = useState<ConsentState>(0);
-  const [conversation, setConversation] = useState<Conversation | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -123,62 +123,62 @@ export const ManageConversation: React.FC = () => {
     }
     setIsLoading(true);
     try {
-      if (name !== conversation?.name) {
-        await conversation?.updateName(name);
+      if (name !== group.name) {
+        await group.updateName(name);
       }
-      if (description !== conversation?.description) {
-        await conversation?.updateDescription(description);
+      if (description !== group.description) {
+        await group.updateDescription(description);
       }
-      if (imageUrl !== conversation?.imageUrl) {
-        await conversation?.updateImageUrl(imageUrl);
+      if (imageUrl !== group.imageUrl) {
+        await group.updateImageUrl(imageUrl);
       }
       if (addedMembers.length > 0) {
-        await conversation?.addMembers(addedMembers);
+        await group.addMembers(addedMembers);
       }
       if (removedMembers.length > 0) {
-        await conversation?.removeMembersByInboxId(
+        await group.removeMembersByInboxId(
           removedMembers.map((member) => member.inboxId),
         );
       }
 
       if (consentState !== consentStateRef.current) {
-        await conversation?.updateConsentState(consentState);
+        await group.updateConsentState(consentState);
       }
 
-      const permissions = await conversation?.permissions();
+      const permissions = await group.permissions();
       if (
-        permissions?.policyType !== permissionsPolicy &&
+        permissions.policyType !== permissionsPolicy &&
         permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
       ) {
         switch (permissionsPolicy) {
           case GroupPermissionsOptions.Default: {
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.AddMember,
               defaultPolicySet.addMemberPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.RemoveMember,
               defaultPolicySet.removeMemberPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.AddAdmin,
               defaultPolicySet.addAdminPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.RemoveAdmin,
               defaultPolicySet.removeAdminPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.UpdateMetadata,
               defaultPolicySet.updateGroupNamePolicy,
               MetadataField.GroupName,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.UpdateMetadata,
               defaultPolicySet.updateGroupDescriptionPolicy,
               MetadataField.Description,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.UpdateMetadata,
               defaultPolicySet.updateGroupImageUrlSquarePolicy,
               MetadataField.ImageUrlSquare,
@@ -186,33 +186,33 @@ export const ManageConversation: React.FC = () => {
             break;
           }
           case GroupPermissionsOptions.AdminOnly: {
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.AddMember,
               adminPolicySet.addMemberPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.RemoveMember,
               adminPolicySet.removeMemberPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.AddAdmin,
               adminPolicySet.addAdminPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.RemoveAdmin,
               adminPolicySet.removeAdminPolicy,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.UpdateMetadata,
               adminPolicySet.updateGroupNamePolicy,
               MetadataField.GroupName,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.UpdateMetadata,
               adminPolicySet.updateGroupDescriptionPolicy,
               MetadataField.Description,
             );
-            await conversation?.updatePermission(
+            await group.updatePermission(
               PermissionUpdateType.UpdateMetadata,
               adminPolicySet.updateGroupImageUrlSquarePolicy,
               MetadataField.ImageUrlSquare,
@@ -221,39 +221,39 @@ export const ManageConversation: React.FC = () => {
         }
       }
       if (permissionsPolicy === GroupPermissionsOptions.CustomPolicy) {
-        await conversation?.updatePermission(
+        await group.updatePermission(
           PermissionUpdateType.AddMember,
           policySet.addMemberPolicy,
         );
-        await conversation?.updatePermission(
+        await group.updatePermission(
           PermissionUpdateType.RemoveMember,
           policySet.removeMemberPolicy,
         );
-        await conversation?.updatePermission(
+        await group.updatePermission(
           PermissionUpdateType.AddAdmin,
           policySet.addAdminPolicy,
         );
-        await conversation?.updatePermission(
+        await group.updatePermission(
           PermissionUpdateType.RemoveAdmin,
           policySet.removeAdminPolicy,
         );
-        await conversation?.updatePermission(
+        await group.updatePermission(
           PermissionUpdateType.UpdateMetadata,
           policySet.updateGroupNamePolicy,
           MetadataField.GroupName,
         );
-        await conversation?.updatePermission(
+        await group.updatePermission(
           PermissionUpdateType.UpdateMetadata,
           policySet.updateGroupDescriptionPolicy,
           MetadataField.Description,
         );
-        await conversation?.updatePermission(
+        await group.updatePermission(
           PermissionUpdateType.UpdateMetadata,
           policySet.updateGroupImageUrlSquarePolicy,
           MetadataField.ImageUrlSquare,
         );
       }
-      void navigate(`/conversations/${conversationId}`);
+      void navigate(`/conversations/${group.id}`);
     } catch (error) {
       setUpdateConversationError(
         `Failed to update conversation: ${error as Error}`,
@@ -270,44 +270,34 @@ export const ManageConversation: React.FC = () => {
   };
 
   useEffect(() => {
-    const loadConversation = async () => {
-      if (client && conversationId) {
-        const conversation = await getConversationById(conversationId);
-        if (conversation) {
-          setConversation(conversation);
-          setName(conversation.name ?? "");
-          setDescription(conversation.description ?? "");
-          setImageUrl(conversation.imageUrl ?? "");
-          const consentState = await conversation.consentState();
-          setConsentState(consentState);
-          consentStateRef.current = consentState;
-          const members = await conversation.members();
-          setMembers(members);
-          const permissions = await conversation.permissions();
-          const policyType = permissions.policyType;
-          switch (policyType) {
-            case GroupPermissionsOptions.Default:
-              setPermissionsPolicy(GroupPermissionsOptions.Default);
-              setPolicySet(defaultPolicySet);
-              break;
-            case GroupPermissionsOptions.AdminOnly:
-              setPermissionsPolicy(GroupPermissionsOptions.AdminOnly);
-              setPolicySet(adminPolicySet);
-              break;
-            case GroupPermissionsOptions.CustomPolicy:
-              setPermissionsPolicy(GroupPermissionsOptions.CustomPolicy);
-              setPolicySet(permissions.policySet);
-              break;
-          }
-        } else {
-          void navigate("/conversations");
-        }
-      } else {
-        void navigate("/conversations");
+    const loadGroup = async () => {
+      setName(group.name ?? "");
+      setDescription(group.description ?? "");
+      setImageUrl(group.imageUrl ?? "");
+      const consentState = await group.consentState();
+      setConsentState(consentState);
+      consentStateRef.current = consentState;
+      const members = await group.members();
+      setMembers(members);
+      const permissions = await group.permissions();
+      const policyType = permissions.policyType;
+      switch (policyType) {
+        case GroupPermissionsOptions.Default:
+          setPermissionsPolicy(GroupPermissionsOptions.Default);
+          setPolicySet(defaultPolicySet);
+          break;
+        case GroupPermissionsOptions.AdminOnly:
+          setPermissionsPolicy(GroupPermissionsOptions.AdminOnly);
+          setPolicySet(adminPolicySet);
+          break;
+        case GroupPermissionsOptions.CustomPolicy:
+          setPermissionsPolicy(GroupPermissionsOptions.CustomPolicy);
+          setPolicySet(permissions.policySet);
+          break;
       }
     };
-    void loadConversation();
-  }, [client, conversationId]);
+    void loadGroup();
+  }, [group.id]);
 
   return (
     <>
@@ -343,13 +333,13 @@ export const ManageConversation: React.FC = () => {
             overflow: "hidden",
             margin: "calc(var(--mantine-spacing-md) * -1)",
           }}>
-          <LoadingOverlay visible={isLoading || loading} />
-          <Title order={3} c={conversation?.name !== "" ? undefined : "dimmed"}>
-            {conversation?.name || "Untitled"}
+          <LoadingOverlay visible={isLoading} />
+          <Title order={3} c={group.name !== "" ? undefined : "dimmed"}>
+            {group.name || "Untitled"}
           </Title>
           <ScrollArea type="scroll" className="scrollfade">
             <Stack gap="lg" py="md">
-              {conversation?.metadata?.conversationType !== "dm" && (
+              {group.metadata?.conversationType !== "dm" && (
                 <Paper p="md" radius="md" withBorder>
                   <Stack gap="md">
                     <Title order={4}>Properties</Title>
@@ -423,9 +413,7 @@ export const ManageConversation: React.FC = () => {
                       <Text>Policy</Text>
                       <Tooltip withArrow label={policyTooltip}>
                         <NativeSelect
-                          disabled={
-                            conversation?.metadata?.conversationType === "dm"
-                          }
+                          disabled={group.metadata?.conversationType === "dm"}
                           value={permissionsPolicy}
                           onChange={(event) => {
                             setPermissionsPolicy(
@@ -448,7 +436,7 @@ export const ManageConversation: React.FC = () => {
                     <Text>Add members</Text>
                     <NativeSelect
                       disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
+                        group.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
                           GroupPermissionsOptions.CustomPolicy
                       }
@@ -473,7 +461,7 @@ export const ManageConversation: React.FC = () => {
                     <Text>Remove members</Text>
                     <NativeSelect
                       disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
+                        group.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
                           GroupPermissionsOptions.CustomPolicy
                       }
@@ -498,7 +486,7 @@ export const ManageConversation: React.FC = () => {
                     <Text>Add admins</Text>
                     <NativeSelect
                       disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
+                        group.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
                           GroupPermissionsOptions.CustomPolicy
                       }
@@ -523,7 +511,7 @@ export const ManageConversation: React.FC = () => {
                     <Text>Remove admins</Text>
                     <NativeSelect
                       disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
+                        group.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
                           GroupPermissionsOptions.CustomPolicy
                       }
@@ -548,7 +536,7 @@ export const ManageConversation: React.FC = () => {
                     <Text>Update group name</Text>
                     <NativeSelect
                       disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
+                        group.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
                           GroupPermissionsOptions.CustomPolicy
                       }
@@ -574,7 +562,7 @@ export const ManageConversation: React.FC = () => {
                     <Text>Update group description</Text>
                     <NativeSelect
                       disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
+                        group.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
                           GroupPermissionsOptions.CustomPolicy
                       }
@@ -600,7 +588,7 @@ export const ManageConversation: React.FC = () => {
                     <Text>Update group image</Text>
                     <NativeSelect
                       disabled={
-                        conversation?.metadata?.conversationType === "dm" ||
+                        group.metadata?.conversationType === "dm" ||
                         permissionsPolicy !==
                           GroupPermissionsOptions.CustomPolicy
                       }
@@ -627,7 +615,7 @@ export const ManageConversation: React.FC = () => {
               <Paper p="md" radius="md" withBorder>
                 <Stack gap="md">
                   <Title order={4}>Members</Title>
-                  {conversation?.metadata?.conversationType !== "dm" && (
+                  {group.metadata?.conversationType !== "dm" && (
                     <>
                       <Group gap="xs" align="flex-start">
                         <Stack flex={1} gap="xs">
@@ -732,8 +720,7 @@ export const ManageConversation: React.FC = () => {
                               align="center"
                               wrap="nowrap">
                               <BadgeWithCopy value={member.inboxId} />
-                              {conversation?.metadata?.conversationType !==
-                                "dm" && (
+                              {group.metadata?.conversationType !== "dm" && (
                                 <Button
                                   flex="0 0 auto"
                                   size="xs"
@@ -763,7 +750,7 @@ export const ManageConversation: React.FC = () => {
           <Group gap="xs" justify="flex-end">
             <Button
               variant="default"
-              onClick={() => void navigate(`/conversations/${conversationId}`)}>
+              onClick={() => void navigate(`/conversations/${group.id}`)}>
               Cancel
             </Button>
             <Button onClick={() => void handleUpdate()}>Update</Button>
