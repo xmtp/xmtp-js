@@ -7,24 +7,33 @@ export { Utils } from "./Utils";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types";
 export * from "./utils/conversions";
+export type { UserPreference } from "@xmtp/wasm-bindings";
 export {
+  Consent,
   ConsentEntityType,
   ConsentState,
+  ContentType,
+  ContentTypeId,
+  ConversationListItem,
   ConversationType,
+  CreateDMOptions,
   CreateGroupOptions,
   DeliveryStatus,
-  GroupMembershipState,
   EncodedContent,
   GroupMember,
+  GroupMembershipState,
+  GroupMessageKind,
   GroupMetadata,
   GroupPermissions,
-  GroupMessageKind,
   GroupPermissionsOptions,
+  HmacKey,
   InboxState,
   Installation,
   ListConversationsOptions,
   ListMessagesOptions,
+  LogOptions,
   Message,
+  MessageDisappearingSettings,
   MetadataField,
   PermissionLevel,
   PermissionPolicy,
@@ -32,8 +41,5 @@ export {
   PermissionUpdateType,
   SignatureRequestType,
   SortDirection,
-  Consent,
-  ContentTypeId,
-  HmacKey,
 } from "@xmtp/wasm-bindings";
 export type { Signer } from "./utils/signer";

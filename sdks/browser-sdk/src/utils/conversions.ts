@@ -16,9 +16,8 @@ import {
   EncodedContent as WasmEncodedContent,
   type ConsentEntityType,
   type ConsentState,
-  type ConversationType,
+  type ContentType,
   type DeliveryStatus,
-  type GroupMembershipState,
   type GroupMessageKind,
   type HmacKey,
   type InboxState,
@@ -147,6 +146,7 @@ export const toSafeMessage = (message: Message): SafeMessage => ({
 });
 
 export type SafeListMessagesOptions = {
+  contentTypes?: ContentType[];
   deliveryStatus?: DeliveryStatus;
   direction?: SortDirection;
   limit?: bigint;
@@ -157,6 +157,7 @@ export type SafeListMessagesOptions = {
 export const toSafeListMessagesOptions = (
   options: ListMessagesOptions,
 ): SafeListMessagesOptions => ({
+  contentTypes: options.contentTypes,
   deliveryStatus: options.deliveryStatus,
   direction: options.direction,
   limit: options.limit,
@@ -173,29 +174,24 @@ export const fromSafeListMessagesOptions = (
     options.limit,
     options.deliveryStatus,
     options.direction,
+    options.contentTypes,
   );
 
 export type SafeListConversationsOptions = {
-  allowedStates?: GroupMembershipState[];
   consentStates?: ConsentState[];
-  conversationType?: ConversationType;
   createdAfterNs?: bigint;
   createdBeforeNs?: bigint;
   includeDuplicateDms?: boolean;
-  includeSyncGroups?: boolean;
   limit?: bigint;
 };
 
 export const toSafeListConversationsOptions = (
   options: ListConversationsOptions,
 ): SafeListConversationsOptions => ({
-  allowedStates: options.allowedStates,
   consentStates: options.consentStates,
-  conversationType: options.conversationType,
   createdAfterNs: options.createdAfterNs,
   createdBeforeNs: options.createdBeforeNs,
   includeDuplicateDms: options.includeDuplicateDms,
-  includeSyncGroups: options.includeSyncGroups,
   limit: options.limit,
 });
 
@@ -203,13 +199,10 @@ export const fromSafeListConversationsOptions = (
   options: SafeListConversationsOptions,
 ): ListConversationsOptions =>
   new ListConversationsOptions(
-    options.allowedStates,
     options.consentStates,
-    options.conversationType,
     options.createdAfterNs,
     options.createdBeforeNs,
     options.includeDuplicateDms ?? false,
-    options.includeSyncGroups ?? false,
     options.limit,
   );
 

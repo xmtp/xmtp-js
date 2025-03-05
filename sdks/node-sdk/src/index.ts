@@ -13,18 +13,22 @@ export { DecodedMessage } from "./DecodedMessage";
 export type { StreamCallback } from "./AsyncStream";
 export type {
   Consent,
+  ContentType,
   ContentTypeId,
+  ConversationListItem,
+  CreateDmOptions,
   CreateGroupOptions,
   EncodedContent,
+  HmacKey,
   InboxState,
   Installation,
   ListConversationsOptions,
   ListMessagesOptions,
   LogOptions,
   Message,
+  MessageDisappearingSettings,
   PermissionPolicySet,
 } from "@xmtp/node-bindings";
-export type { HmacKey } from "@xmtp/node-bindings";
 export {
   ConsentEntityType,
   ConsentState,
