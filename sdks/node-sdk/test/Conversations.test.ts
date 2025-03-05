@@ -385,18 +385,26 @@ describe.concurrent("Conversations", () => {
     const conversation2 = await client2.conversations.newGroup([
       user3.account.address,
     ]);
+
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
+
     let count = 0;
     for await (const convo of stream) {
+      if (convo === undefined) {
+        break;
+      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
-        expect(convo!.id).toBe(conversation1.id);
+        expect(convo.id).toBe(conversation1.id);
       }
       if (count === 2) {
-        expect(convo!.id).toBe(conversation2.id);
-        break;
+        expect(convo.id).toBe(conversation2.id);
       }
     }
+    expect(count).toBe(2);
     expect(
       client3.conversations.getConversationById(conversation1.id)?.id,
     ).toBe(conversation1.id);
@@ -422,18 +430,26 @@ describe.concurrent("Conversations", () => {
     const group2 = await client2.conversations.newGroup([
       user3.account.address,
     ]);
+
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
+
     let count = 0;
     for await (const convo of stream) {
+      if (convo === undefined) {
+        break;
+      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
-        expect(convo!.id).toBe(group1.id);
+        expect(convo.id).toBe(group1.id);
       }
       if (count === 2) {
-        expect(convo!.id).toBe(group2.id);
-        break;
+        expect(convo.id).toBe(group2.id);
       }
     }
+    expect(count).toBe(2);
   });
 
   it("should only stream dm conversations", async () => {
@@ -449,13 +465,20 @@ describe.concurrent("Conversations", () => {
     await client1.conversations.newGroup([user3.account.address]);
     await client2.conversations.newGroup([user3.account.address]);
     const group3 = await client4.conversations.newDm(user3.account.address);
+
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
+
     let count = 0;
     for await (const convo of stream) {
+      if (convo === undefined) {
+        break;
+      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
-        expect(convo!.id).toBe(group3.id);
-        break;
+        expect(convo.id).toBe(group3.id);
       }
     }
     expect(count).toBe(1);
@@ -482,19 +505,25 @@ describe.concurrent("Conversations", () => {
     await groups2[0].send("gm!");
     await groups3[0].send("gm2!");
 
-    let count = 0;
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
 
+    let count = 0;
     for await (const message of stream) {
+      if (message === undefined) {
+        break;
+      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
-        expect(message!.senderInboxId).toBe(client2.inboxId);
+        expect(message.senderInboxId).toBe(client2.inboxId);
       }
       if (count === 2) {
-        expect(message!.senderInboxId).toBe(client3.inboxId);
-        break;
+        expect(message.senderInboxId).toBe(client3.inboxId);
       }
     }
+    expect(count).toBe(2);
   });
 
   it("should only stream group conversation messages", async () => {
@@ -528,19 +557,25 @@ describe.concurrent("Conversations", () => {
     await groupsList2[0].send("gm!");
     await groupsList3[0].send("gm2!");
 
-    let count = 0;
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
 
+    let count = 0;
     for await (const message of stream) {
+      if (message === undefined) {
+        break;
+      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
-        expect(message!.senderInboxId).toBe(client2.inboxId);
+        expect(message.senderInboxId).toBe(client2.inboxId);
       }
       if (count === 2) {
-        expect(message!.senderInboxId).toBe(client3.inboxId);
-        break;
+        expect(message.senderInboxId).toBe(client3.inboxId);
       }
     }
+    expect(count).toBe(2);
   });
 
   it("should only stream dm messages", async () => {
@@ -574,15 +609,21 @@ describe.concurrent("Conversations", () => {
     await groupsList3[0].send("gm2!");
     await groupsList4[0].send("gm3!");
 
-    let count = 0;
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
 
+    let count = 0;
     for await (const message of stream) {
+      if (message === undefined) {
+        break;
+      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
-        expect(message!.senderInboxId).toBe(client4.inboxId);
-        break;
+        expect(message.senderInboxId).toBe(client4.inboxId);
       }
+      expect(count).toBe(1);
     }
   });
 
@@ -667,33 +708,40 @@ describe.concurrent("Conversations", () => {
       },
     ]);
 
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
+
     let count = 0;
     for await (const updates of stream) {
-      count++;
-      expect(updates).toBeDefined();
-      if (count === 1) {
-        expect(updates!.length).toBe(1);
-        expect(updates![0].state).toBe(ConsentState.Denied);
-        expect(updates![0].entity).toBe(group.id);
-        expect(updates![0].entityType).toBe(ConsentEntityType.GroupId);
-        break;
-      } else if (count === 2) {
-        expect(updates!.length).toBe(1);
-        expect(updates![0].state).toBe(ConsentState.Allowed);
-        expect(updates![0].entity).toBe(group.id);
-        expect(updates![0].entityType).toBe(ConsentEntityType.GroupId);
-        break;
-      } else if (count === 3) {
-        expect(updates!.length).toBe(2);
-        expect(updates![0].state).toBe(ConsentState.Denied);
-        expect(updates![0].entity).toBe(user2.account.address);
-        expect(updates![0].entityType).toBe(ConsentEntityType.Address);
-        expect(updates![1].state).toBe(ConsentState.Allowed);
-        expect(updates![1].entity).toBe(client2.inboxId);
-        expect(updates![1].entityType).toBe(ConsentEntityType.InboxId);
+      if (updates === undefined) {
         break;
       }
+      count++;
+      if (count === 1) {
+        expect(updates.length).toBe(1);
+        expect(updates[0].state).toBe(ConsentState.Denied);
+        expect(updates[0].entity).toBe(group.id);
+        expect(updates[0].entityType).toBe(ConsentEntityType.GroupId);
+      } else if (count === 2) {
+        expect(updates.length).toBe(1);
+        expect(updates[0].state).toBe(ConsentState.Allowed);
+        expect(updates[0].entity).toBe(group.id);
+        expect(updates[0].entityType).toBe(ConsentEntityType.GroupId);
+      } else if (count === 3) {
+        expect(updates.length).toBe(3);
+        expect(updates[0].state).toBe(ConsentState.Denied);
+        expect(updates[0].entity).toBe(client2.inboxId);
+        expect(updates[0].entityType).toBe(ConsentEntityType.InboxId);
+        expect(updates[1].state).toBe(ConsentState.Denied);
+        expect(updates[1].entity).toBe(user2.account.address);
+        expect(updates[1].entityType).toBe(ConsentEntityType.Address);
+        expect(updates[2].state).toBe(ConsentState.Allowed);
+        expect(updates[2].entity).toBe(client2.inboxId);
+        expect(updates[2].entityType).toBe(ConsentEntityType.InboxId);
+      }
     }
+    expect(count).toBe(3);
   });
 
   it("should stream preferences", async () => {
@@ -716,18 +764,21 @@ describe.concurrent("Conversations", () => {
     await client2.conversations.syncAll();
     await sleep(2000);
 
+    setTimeout(() => {
+      stream.callback(null, undefined);
+    }, 2000);
+
     let count = 0;
     for await (const preferences of stream) {
-      count++;
-      expect(preferences).toBeDefined();
-      expect(preferences?.type).toBeDefined();
-      expect(preferences?.HmacKeyUpdate).toBeDefined();
-      expect(preferences?.HmacKeyUpdate?.key).toBeDefined();
-
-      if (count === 2) {
+      if (preferences === undefined) {
         break;
       }
+      count++;
+      expect(preferences).toBeDefined();
+      expect(preferences.type).toBeDefined();
+      expect(preferences.HmacKeyUpdate).toBeDefined();
+      expect(preferences.HmacKeyUpdate?.key).toBeDefined();
     }
-    expect(count).toBe(2);
+    expect(count).toBe(3);
   });
 });
