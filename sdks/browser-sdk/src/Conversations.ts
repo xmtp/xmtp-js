@@ -1,10 +1,15 @@
-import { ConversationType, type ConsentState } from "@xmtp/wasm-bindings";
+import {
+  ConversationType,
+  type ConsentState,
+  type UserPreference,
+} from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
+  SafeConsent,
   SafeConversation,
   SafeCreateDmOptions,
   SafeCreateGroupOptions,
@@ -202,5 +207,49 @@ export class Conversations {
 
   async streamAllDmMessages(callback?: StreamCallback<DecodedMessage>) {
     return this.streamAllMessages(callback, ConversationType.Dm);
+  }
+
+  async streamConsent(callback?: StreamCallback<SafeConsent[]>) {
+    const streamId = v4();
+    const asyncStream = new AsyncStream<SafeConsent[]>();
+    const endStream = this.#client.handleStreamMessage<SafeConsent[]>(
+      streamId,
+      (error, value) => {
+        void asyncStream.callback(error, value ?? undefined);
+        void callback?.(error, value ?? undefined);
+      },
+    );
+    await this.#client.sendMessage("streamConsent", {
+      streamId,
+    });
+    asyncStream.onReturn = () => {
+      void this.#client.sendMessage("endStream", {
+        streamId,
+      });
+      endStream();
+    };
+    return asyncStream;
+  }
+
+  async streamPreferences(callback?: StreamCallback<UserPreference[]>) {
+    const streamId = v4();
+    const asyncStream = new AsyncStream<UserPreference[]>();
+    const endStream = this.#client.handleStreamMessage<UserPreference[]>(
+      streamId,
+      (error, value) => {
+        void asyncStream.callback(error, value ?? undefined);
+        void callback?.(error, value ?? undefined);
+      },
+    );
+    await this.#client.sendMessage("streamPreferences", {
+      streamId,
+    });
+    asyncStream.onReturn = () => {
+      void this.#client.sendMessage("endStream", {
+        streamId,
+      });
+      endStream();
+    };
+    return asyncStream;
   }
 }

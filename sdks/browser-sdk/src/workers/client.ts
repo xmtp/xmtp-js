@@ -1,4 +1,10 @@
-import type { Conversation, Message, StreamCloser } from "@xmtp/wasm-bindings";
+import type {
+  Consent,
+  Conversation,
+  Message,
+  StreamCloser,
+  UserPreference,
+} from "@xmtp/wasm-bindings";
 import type {
   ClientEventsActions,
   ClientEventsClientMessageData,
@@ -13,6 +19,7 @@ import type {
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
+  toSafeConsent,
   toSafeConversation,
   toSafeHmacKey,
   toSafeInboxState,
@@ -298,6 +305,63 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "streamConsent": {
+        const streamCallback = (
+          error: Error | null,
+          value: Consent[] | undefined,
+        ) => {
+          if (error) {
+            postStreamMessageError({
+              type: "consent",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "consent",
+              streamId: data.streamId,
+              result: value?.map(toSafeConsent) ?? [],
+            });
+          }
+        };
+        const streamCloser = client.conversations.streamConsent(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
+      case "streamPreferences": {
+        const streamCallback = (
+          error: Error | null,
+          value: UserPreference[] | undefined,
+        ) => {
+          if (error) {
+            postStreamMessageError({
+              type: "preferences",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "preferences",
+              streamId: data.streamId,
+              result: value ?? undefined,
+            });
+          }
+        };
+        const streamCloser =
+          client.conversations.streamPreferences(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
         break;
       }
       case "getConversations": {
