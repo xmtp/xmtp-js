@@ -16,6 +16,7 @@ import {
   EncodedContent as WasmEncodedContent,
   type ConsentEntityType,
   type ConsentState,
+  type ContentType,
   type DeliveryStatus,
   type GroupMessageKind,
   type HmacKey,
@@ -145,6 +146,7 @@ export const toSafeMessage = (message: Message): SafeMessage => ({
 });
 
 export type SafeListMessagesOptions = {
+  contentTypes?: ContentType[];
   deliveryStatus?: DeliveryStatus;
   direction?: SortDirection;
   limit?: bigint;
@@ -155,6 +157,7 @@ export type SafeListMessagesOptions = {
 export const toSafeListMessagesOptions = (
   options: ListMessagesOptions,
 ): SafeListMessagesOptions => ({
+  contentTypes: options.contentTypes,
   deliveryStatus: options.deliveryStatus,
   direction: options.direction,
   limit: options.limit,
@@ -171,6 +174,7 @@ export const fromSafeListMessagesOptions = (
     options.limit,
     options.deliveryStatus,
     options.direction,
+    options.contentTypes,
   );
 
 export type SafeListConversationsOptions = {
