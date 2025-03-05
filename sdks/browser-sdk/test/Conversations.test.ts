@@ -148,7 +148,6 @@ describe.concurrent("Conversations", () => {
     expect(group.createdAtNs).toBeDefined();
     expect(group.createdAt).toBeDefined();
     expect(group.isActive).toBe(true);
-    expect(group.name).toBe("");
     expect(await group.messageDisappearingSettings()).toBeUndefined();
     expect(await group.isMessageDisappearingEnabled()).toBe(false);
 
@@ -158,35 +157,8 @@ describe.concurrent("Conversations", () => {
     expect(group2.createdAtNs).toBeDefined();
     expect(group2.createdAt).toBeDefined();
     expect(group2.isActive).toBe(true);
-    expect(group2.name).toBe("");
     expect(await group2.messageDisappearingSettings()).toBeUndefined();
     expect(await group2.isMessageDisappearingEnabled()).toBe(false);
-
-    const permissions = await group.permissions();
-    expect(permissions.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
-    expect(permissions.policySet).toEqual({
-      addAdminPolicy: 1,
-      addMemberPolicy: 1,
-      removeAdminPolicy: 1,
-      removeMemberPolicy: 1,
-      updateGroupDescriptionPolicy: 0,
-      updateGroupImageUrlSquarePolicy: 0,
-      updateGroupNamePolicy: 0,
-      updateMessageDisappearingPolicy: 0,
-    });
-
-    const permissions2 = await group2.permissions();
-    expect(permissions2.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
-    expect(permissions2.policySet).toEqual({
-      addAdminPolicy: 1,
-      addMemberPolicy: 1,
-      removeAdminPolicy: 1,
-      removeMemberPolicy: 1,
-      updateGroupDescriptionPolicy: 0,
-      updateGroupImageUrlSquarePolicy: 0,
-      updateGroupNamePolicy: 0,
-      updateMessageDisappearingPolicy: 0,
-    });
 
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect(group2.addedByInboxId).toBe(client1.inboxId);
@@ -224,24 +196,24 @@ describe.concurrent("Conversations", () => {
     await client2.conversations.sync();
     await client3.conversations.sync();
 
-    const groups2 = await client2.conversations.list();
+    const groups2 = await client2.conversations.listDms();
     expect(groups2.length).toBe(1);
     expect(groups2[0].id).toBe(group.id);
-    expect(await groups2[0].dmPeerInboxId()).toBe(client1.inboxId);
+    expect(await groups2[0].peerInboxId()).toBe(client1.inboxId);
 
     expect((await client2.conversations.listDms()).length).toBe(1);
     expect((await client2.conversations.listGroups()).length).toBe(0);
 
-    const groups3 = await client3.conversations.list();
+    const groups3 = await client3.conversations.listDms();
     expect(groups3.length).toBe(1);
     expect(groups3[0].id).toBe(group2.id);
-    expect(await groups3[0].dmPeerInboxId()).toBe(client1.inboxId);
+    expect(await groups3[0].peerInboxId()).toBe(client1.inboxId);
 
     const dm1 = await client1.conversations.getDmByInboxId(client2.inboxId!);
     expect(dm1).toBeDefined();
     expect(dm1!.id).toBe(group.id);
 
-    const peerInboxId = await dm1?.dmPeerInboxId();
+    const peerInboxId = await dm1?.peerInboxId();
     expect(peerInboxId).toBeDefined();
     expect(peerInboxId).toBe(client2.inboxId);
 
@@ -249,7 +221,7 @@ describe.concurrent("Conversations", () => {
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
 
-    const peerInboxId2 = await dm2?.dmPeerInboxId();
+    const peerInboxId2 = await dm2?.peerInboxId();
     expect(peerInboxId2).toBeDefined();
     expect(peerInboxId2).toBe(client1.inboxId);
 
@@ -257,7 +229,7 @@ describe.concurrent("Conversations", () => {
     expect(dm3).toBeDefined();
     expect(dm3!.id).toBe(group2.id);
 
-    const peerInboxId3 = await dm3?.dmPeerInboxId();
+    const peerInboxId3 = await dm3?.peerInboxId();
     expect(peerInboxId3).toBeDefined();
     expect(peerInboxId3).toBe(client3.inboxId);
 
@@ -265,7 +237,7 @@ describe.concurrent("Conversations", () => {
     expect(dm4).toBeDefined();
     expect(dm4!.id).toBe(group2.id);
 
-    const peerInboxId4 = await dm4?.dmPeerInboxId();
+    const peerInboxId4 = await dm4?.peerInboxId();
     expect(peerInboxId4).toBeDefined();
     expect(peerInboxId4).toBe(client1.inboxId);
   });
