@@ -1,5 +1,21 @@
 # @xmtp/browser-sdk
 
+## 0.0.22
+
+### Patch Changes
+
+- 3cf6dd9:
+  - Exposed all client signature methods
+  - Added guard to `Client.addAccount` to prevent automatic reassignment of inboxes
+  - Renamed `syncAdmins` to `listAdmins` and `syncSuperAdmins` to `listSuperAdmins`
+  - Added consent and preference streaming
+  - Removed `allowedStates`, `conversationType`, and `includeSyncGroups` from `ListConversationsOptions`
+  - Added `contentTypes` option to `ListMessagesOptions`
+  - Changed OPFS VFS to SyncAccessHandle Pool
+  - Added more exports from the bindings
+  - Added `Group` and `Dm` classes
+  - Refactored some functions to use the new `Group` and `Dm` classes
+
 ## 0.0.21
 
 ### Patch Changes
