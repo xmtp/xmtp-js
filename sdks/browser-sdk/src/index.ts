@@ -1,6 +1,8 @@
 export { Client } from "./Client";
 export { Conversations } from "./Conversations";
 export { Conversation } from "./Conversation";
+export { Dm } from "./Dm";
+export { Group } from "./Group";
 export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
 export { Utils } from "./Utils";

@@ -8,6 +8,8 @@ export type {
 export { Client, ApiUrls, HistorySyncUrls } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
+export { Dm } from "./Dm";
+export { Group } from "./Group";
 export type { PreferenceUpdate } from "./Conversations";
 export { DecodedMessage } from "./DecodedMessage";
 export type { StreamCallback } from "./AsyncStream";
