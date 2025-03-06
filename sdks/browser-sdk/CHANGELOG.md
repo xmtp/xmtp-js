@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 0.0.23
+
+### Patch Changes
+
+- dd1a33a: Fixed stream errors
+
 ## 0.0.22
 
 ### Patch Changes
