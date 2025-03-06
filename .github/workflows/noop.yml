@@ -21,7 +21,7 @@ on:
       - "!.nvmrc"
       - "!.yarnrc.yml"
       - "!turbo.json"
-      - "!yarn.lock"
+      - "yarn.lock"
 
 jobs:
   typecheck:
