@@ -1,5 +1,13 @@
 # @xmtp/node-sdk
 
+## 0.0.47
+
+### Patch Changes
+
+- dd1a33a:
+  - Fixed stream errors
+  - Fixed build for later node versions
+
 ## 0.0.46
 
 ### Patch Changes
