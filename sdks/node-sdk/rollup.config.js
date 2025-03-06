@@ -12,8 +12,8 @@ const external = [
   "@xmtp/content-type-primitives",
   "@xmtp/content-type-text",
   "@xmtp/node-bindings",
+  "@xmtp/node-bindings/version.json",
   "@xmtp/proto",
-  "@xmtp/xmtp-js",
 ];
 
 const plugins = [
@@ -37,6 +37,7 @@ export default defineConfig([
       file: "dist/index.js",
       format: "es",
       sourcemap: true,
+      importAttributesKey: "with",
     },
     plugins,
     external,
