@@ -156,4 +156,8 @@ export class Conversation {
   isMessageDisappearingEnabled() {
     return this.#conversation.isMessageDisappearingEnabled();
   }
+
+  pausedForVersion() {
+    return this.#conversation.pausedForVersion() ?? undefined;
+  }
 }

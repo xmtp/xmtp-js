@@ -698,4 +698,15 @@ describe.concurrent("Conversation", () => {
     // verify that the messages are not deleted
     expect((await conversation.messages()).length).toBe(5);
   });
+
+  it("should return paused for version", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newDm(client2.inboxId);
+    expect(conversation.pausedForVersion()).toBeUndefined();
+  });
 });
