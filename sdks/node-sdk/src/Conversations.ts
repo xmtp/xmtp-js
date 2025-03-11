@@ -3,6 +3,7 @@ import type {
   ConsentState,
   CreateDmOptions,
   CreateGroupOptions,
+  Identifier,
   ListConversationsOptions,
   Conversations as XmtpConversations,
 } from "@xmtp/node-bindings";
@@ -61,16 +62,16 @@ export class Conversations {
     }
   }
 
-  async newGroup(accountAddresses: string[], options?: CreateGroupOptions) {
-    const group = await this.#conversations.createGroup(
-      accountAddresses,
-      options,
-    );
+  async newGroupByIdentifiers(
+    identifiers: Identifier[],
+    options?: CreateGroupOptions,
+  ) {
+    const group = await this.#conversations.createGroup(identifiers, options);
     const conversation = new Group(this.#client, group);
     return conversation;
   }
 
-  async newGroupByInboxIds(inboxIds: string[], options?: CreateGroupOptions) {
+  async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxId(
       inboxIds,
       options,
@@ -79,13 +80,13 @@ export class Conversations {
     return conversation;
   }
 
-  async newDm(accountAddress: string, options?: CreateDmOptions) {
-    const group = await this.#conversations.createDm(accountAddress, options);
+  async newDmByIdentifier(identifier: Identifier, options?: CreateDmOptions) {
+    const group = await this.#conversations.createDm(identifier, options);
     const conversation = new Dm(this.#client, group);
     return conversation;
   }
 
-  async newDmByInboxId(inboxId: string, options?: CreateDmOptions) {
+  async newDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
     const conversation = new Dm(this.#client, group);
     return conversation;

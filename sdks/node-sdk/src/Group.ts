@@ -1,4 +1,5 @@
 import type {
+  Identifier,
   Message,
   MetadataField,
   PermissionPolicy,
@@ -80,16 +81,16 @@ export class Group extends Conversation {
     return this.#conversation.isSuperAdmin(inboxId);
   }
 
-  async addMembers(accountAddresses: string[]) {
-    return this.#conversation.addMembers(accountAddresses);
+  async addMembers(identifiers: Identifier[]) {
+    return this.#conversation.addMembers(identifiers);
   }
 
   async addMembersByInboxId(inboxIds: string[]) {
     return this.#conversation.addMembersByInboxId(inboxIds);
   }
 
-  async removeMembers(accountAddresses: string[]) {
-    return this.#conversation.removeMembers(accountAddresses);
+  async removeMembers(identifiers: Identifier[]) {
+    return this.#conversation.removeMembers(identifiers);
   }
 
   async removeMembersByInboxId(inboxIds: string[]) {
