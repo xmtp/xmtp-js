@@ -13,8 +13,9 @@ import { TextCodec } from "@xmtp/content-type-text";
 import {
   createClient,
   generateInboxId,
-  getInboxIdForAddress,
+  getInboxIdForIdentifier,
   GroupMessageKind,
+  IdentifierKind,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   LogLevel,
@@ -22,6 +23,7 @@ import {
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
   type Consent,
   type ConsentEntityType,
+  type Identifier,
   type LogOptions,
   type Message,
   type Client as NodeClient,
@@ -121,25 +123,19 @@ export class Client {
     encryptionKey: Uint8Array,
     options?: ClientOptions,
   ) {
-    const accountAddress = await signer.getAddress();
     const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
     const isSecure = host.startsWith("https");
+    const identifier = await signer.getIdentifier();
+    const inboxId =
+      (await getInboxIdForIdentifier(host, isSecure, identifier)) ||
+      generateInboxId(identifier);
     const dbPath =
       options?.dbPath ||
-      join(
-        process.cwd(),
-        `xmtp-${options?.env || "dev"}-${accountAddress}.db3`,
-      );
-
-    const inboxId =
-      (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
-      generateInboxId(accountAddress);
-
+      join(process.cwd(), `xmtp-${options?.env || "dev"}-${inboxId}.db3`);
     const logOptions: LogOptions = {
       structured: options?.structuredLogging ?? false,
       level: options?.loggingLevel ?? LogLevel.off,
     };
-
     const historySyncUrl =
       options?.historySyncUrl || HistorySyncUrls[options?.env || "dev"];
 
@@ -149,7 +145,7 @@ export class Client {
         isSecure,
         dbPath,
         inboxId,
-        accountAddress,
+        identifier,
         encryptionKey,
         historySyncUrl,
         logOptions,
@@ -165,8 +161,8 @@ export class Client {
     return client;
   }
 
-  get accountAddress() {
-    return this.#innerClient.accountAddress;
+  get identifier() {
+    return this.#innerClient.accountIdentifier;
   }
 
   get inboxId() {
@@ -212,18 +208,20 @@ export class Client {
    * throw an error.
    */
   async unsafe_addAccountSignatureText(
-    newAccountAddress: string,
+    newAccountIdentifier: Identifier,
     allowInboxReassign: boolean = false,
   ) {
     if (!allowInboxReassign) {
       throw new Error(
-        "Unable to create add account signature text, `allowInboxReassign` must be true",
+        "Unable to create add identifier signature text, `allowInboxReassign` must be true",
       );
     }
 
     try {
       const signatureText =
-        await this.#innerClient.addWalletSignatureText(newAccountAddress);
+        await this.#innerClient.addIdentifierSignatureText(
+          newAccountIdentifier,
+        );
       return signatureText;
     } catch {
       return undefined;
@@ -237,10 +235,10 @@ export class Client {
    *
    * It is highly recommended to use the `removeAccount` function instead.
    */
-  async unsafe_removeAccountSignatureText(accountAddress: string) {
+  async unsafe_removeAccountSignatureText(identifier: Identifier) {
     try {
       const signatureText =
-        await this.#innerClient.revokeWalletSignatureText(accountAddress);
+        await this.#innerClient.revokeIdentifierSignatureText(identifier);
       return signatureText;
     } catch {
       return undefined;
@@ -298,17 +296,21 @@ export class Client {
     signatureText: string,
     signer: Signer,
   ) {
-    const signature = await signer.signMessage(signatureText);
-
-    if (signer.walletType === "SCW") {
-      await this.#innerClient.addScwSignature(
-        signatureType,
-        signature,
-        signer.getChainId(),
-        signer.getBlockNumber?.(),
-      );
-    } else {
-      await this.#innerClient.addSignature(signatureType, signature);
+    switch (signer.type) {
+      case "SCW":
+        await this.#innerClient.addScwSignature(
+          signatureType,
+          await signer.signMessage(signatureText),
+          signer.getChainId(),
+          signer.getBlockNumber?.(),
+        );
+        break;
+      case "EOA":
+        await this.#innerClient.addEcdsaSignature(
+          signatureType,
+          await signer.signMessage(signatureText),
+        );
+        break;
     }
   }
 
@@ -355,9 +357,8 @@ export class Client {
     allowInboxReassign: boolean = false,
   ) {
     // check for existing inbox id
-    const existingInboxId = await this.getInboxIdByAddress(
-      await newAccountSigner.getAddress(),
-    );
+    const identifier = await newAccountSigner.getIdentifier();
+    const existingInboxId = await this.getInboxIdByIdentifier(identifier);
 
     if (existingInboxId && !allowInboxReassign) {
       throw new Error(
@@ -366,7 +367,7 @@ export class Client {
     }
 
     const signatureText = await this.unsafe_addAccountSignatureText(
-      await newAccountSigner.getAddress(),
+      identifier,
       true,
     );
 
@@ -383,9 +384,9 @@ export class Client {
     await this.unsafe_applySignatures();
   }
 
-  async removeAccount(accountAddress: string) {
+  async removeAccount(identifier: Identifier) {
     const signatureText =
-      await this.unsafe_removeAccountSignatureText(accountAddress);
+      await this.unsafe_removeAccountSignatureText(identifier);
 
     if (!signatureText) {
       throw new Error("Unable to generate remove account signature text");
@@ -436,29 +437,33 @@ export class Client {
     await this.unsafe_applySignatures();
   }
 
-  async canMessage(accountAddresses: string[]) {
-    const canMessage = await this.#innerClient.canMessage(accountAddresses);
+  async canMessage(identifiers: Identifier[]) {
+    const canMessage = await this.#innerClient.canMessage(identifiers);
     return new Map(Object.entries(canMessage));
   }
 
-  static async canMessage(accountAddresses: string[], env?: XmtpEnv) {
+  static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
     const accountAddress = "0x0000000000000000000000000000000000000000";
     const host = ApiUrls[env || "dev"];
     const isSecure = host.startsWith("https");
+    const identifier: Identifier = {
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: accountAddress,
+    };
     const inboxId =
-      (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
-      generateInboxId(accountAddress);
+      (await getInboxIdForIdentifier(host, isSecure, identifier)) ||
+      generateInboxId(identifier);
     const signer: Signer = {
-      walletType: "EOA",
-      getAddress: () => accountAddress,
+      type: "EOA",
+      getIdentifier: () => identifier,
       signMessage: () => new Uint8Array(),
     };
     const client = new Client(
-      await createClient(host, isSecure, undefined, inboxId, accountAddress),
+      await createClient(host, isSecure, undefined, inboxId, identifier),
       signer,
       [],
     );
-    return client.canMessage(accountAddresses);
+    return client.canMessage(identifiers);
   }
 
   get conversations() {
@@ -504,8 +509,8 @@ export class Client {
     return this.#innerClient.sendHistorySyncRequest();
   }
 
-  async getInboxIdByAddress(accountAddress: string) {
-    return this.#innerClient.findInboxIdByAddress(accountAddress);
+  async getInboxIdByIdentifier(identifier: Identifier) {
+    return this.#innerClient.findInboxIdByIdentifier(identifier);
   }
 
   async inboxState(refreshFromNetwork: boolean = false) {
