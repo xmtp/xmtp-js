@@ -22,6 +22,8 @@ export type {
   CreateGroupOptions,
   EncodedContent,
   HmacKey,
+  Identifier,
+  IdentifierKind,
   InboxState,
   Installation,
   ListConversationsOptions,
@@ -50,5 +52,5 @@ export {
   SignatureRequestType,
   SortDirection,
 } from "@xmtp/node-bindings";
-export { generateInboxId, getInboxIdForAddress } from "./helpers/inboxId";
+export { generateInboxId, getInboxIdForIdentifier } from "./helpers/inboxId";
 export type { Signer } from "./helpers/signer";
