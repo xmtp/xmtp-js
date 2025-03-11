@@ -124,7 +124,7 @@ describe.concurrent("Conversation", () => {
     expect(memberInboxIds).toContain(client2.inboxId);
     expect(memberInboxIds).not.toContain(client3.inboxId);
 
-    await conversation.addMembers([await signer3.getIdentifier()]);
+    await conversation.addMembers([client3.inboxId]);
 
     const members2 = await conversation.members();
     expect(members2.length).toBe(3);
@@ -134,7 +134,7 @@ describe.concurrent("Conversation", () => {
     expect(memberInboxIds2).toContain(client2.inboxId);
     expect(memberInboxIds2).toContain(client3.inboxId);
 
-    await conversation.removeMembers([await signer2.getIdentifier()]);
+    await conversation.removeMembers([client2.inboxId]);
 
     const members3 = await conversation.members();
     expect(members3.length).toBe(2);
@@ -165,7 +165,7 @@ describe.concurrent("Conversation", () => {
     expect(memberInboxIds).toContain(client2.inboxId);
     expect(memberInboxIds).not.toContain(client3.inboxId);
 
-    await conversation.addMembersByInboxId([client3.inboxId]);
+    await conversation.addMembers([client3.inboxId]);
 
     const members2 = await conversation.members();
     expect(members2.length).toBe(3);
@@ -175,7 +175,7 @@ describe.concurrent("Conversation", () => {
     expect(memberInboxIds2).toContain(client2.inboxId);
     expect(memberInboxIds2).toContain(client3.inboxId);
 
-    await conversation.removeMembersByInboxId([client2.inboxId]);
+    await conversation.removeMembers([client2.inboxId]);
 
     const members3 = await conversation.members();
     expect(members3.length).toBe(2);
