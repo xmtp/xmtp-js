@@ -81,19 +81,19 @@ export class Group extends Conversation {
     return this.#conversation.isSuperAdmin(inboxId);
   }
 
-  async addMembers(identifiers: Identifier[]) {
+  async addMembersByIdentifiers(identifiers: Identifier[]) {
     return this.#conversation.addMembers(identifiers);
   }
 
-  async addMembersByInboxId(inboxIds: string[]) {
+  async addMembers(inboxIds: string[]) {
     return this.#conversation.addMembersByInboxId(inboxIds);
   }
 
-  async removeMembers(identifiers: Identifier[]) {
+  async removeMembersByIdentifiers(identifiers: Identifier[]) {
     return this.#conversation.removeMembers(identifiers);
   }
 
-  async removeMembersByInboxId(inboxIds: string[]) {
+  async removeMembers(inboxIds: string[]) {
     return this.#conversation.removeMembersByInboxId(inboxIds);
   }
 
