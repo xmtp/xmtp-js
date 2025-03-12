@@ -20,6 +20,7 @@ import {
   type DeliveryStatus,
   type GroupMessageKind,
   type HmacKey,
+  type Identifier,
   type InboxState,
   type Installation,
   type Message,
@@ -394,17 +395,17 @@ export const toSafeInstallation = (
 });
 
 export type SafeInboxState = {
-  accountAddresses: string[];
+  accountIdentifiers: Identifier[];
   inboxId: string;
   installations: SafeInstallation[];
-  recoveryAddress: string;
+  recoveryIdentifier: Identifier;
 };
 
 export const toSafeInboxState = (inboxState: InboxState): SafeInboxState => ({
-  accountAddresses: inboxState.accountAddresses,
+  accountIdentifiers: inboxState.accountIdentifiers,
   inboxId: inboxState.inboxId,
   installations: inboxState.installations.map(toSafeInstallation),
-  recoveryAddress: inboxState.recoveryAddress,
+  recoveryIdentifier: inboxState.recoveryIdentifier,
 });
 
 export type SafeConsent = {
@@ -423,7 +424,7 @@ export const fromSafeConsent = (consent: SafeConsent): Consent =>
   new Consent(consent.entityType, consent.state, consent.entity);
 
 export type SafeGroupMember = {
-  accountAddresses: string[];
+  accountIdentifiers: Identifier[];
   consentState: ConsentState;
   inboxId: string;
   installationIds: string[];
@@ -431,7 +432,7 @@ export type SafeGroupMember = {
 };
 
 export const toSafeGroupMember = (member: GroupMember): SafeGroupMember => ({
-  accountAddresses: member.accountAddresses,
+  accountIdentifiers: member.accountIdentifiers,
   consentState: member.consentState,
   inboxId: member.inboxId,
   installationIds: member.installationIds,
@@ -441,7 +442,7 @@ export const toSafeGroupMember = (member: GroupMember): SafeGroupMember => ({
 export const fromSafeGroupMember = (member: SafeGroupMember): GroupMember =>
   new GroupMember(
     member.inboxId,
-    member.accountAddresses,
+    member.accountIdentifiers,
     member.installationIds,
     member.permissionLevel,
     member.consentState,

@@ -5,12 +5,18 @@ import {
 } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
-import { createRegisteredClient, createUser, sleep } from "@test/helpers";
+import {
+  createRegisteredClient,
+  createSigner,
+  createUser,
+  sleep,
+} from "@test/helpers";
 
 describe.concurrent("Conversations", () => {
   it("should not have initial conversations", async () => {
     const user = createUser();
-    const client = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
 
     expect((await client.conversations.list()).length).toBe(0);
     expect((await client.conversations.listDms()).length).toBe(0);
@@ -21,11 +27,14 @@ describe.concurrent("Conversations", () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
     expect(conversation).toBeDefined();
     expect(
@@ -39,7 +48,7 @@ describe.concurrent("Conversations", () => {
     expect(await conversation.messageDisappearingSettings()).toBeUndefined();
     expect(await conversation.isMessageDisappearingEnabled()).toBe(false);
 
-    const conversation2 = await client1.conversations.newGroupByInboxIds([
+    const conversation2 = await client1.conversations.newGroup([
       client3.inboxId!,
     ]);
     expect(
@@ -138,11 +147,14 @@ describe.concurrent("Conversations", () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
 
-    const group = await client1.conversations.newDm(user2.account.address);
+    const group = await client1.conversations.newDm(client2.inboxId!);
     expect(group).toBeDefined();
     expect(group.id).toBeDefined();
     expect(group.createdAtNs).toBeDefined();
@@ -151,7 +163,7 @@ describe.concurrent("Conversations", () => {
     expect(await group.messageDisappearingSettings()).toBeUndefined();
     expect(await group.isMessageDisappearingEnabled()).toBe(false);
 
-    const group2 = await client1.conversations.newDmByInboxId(client3.inboxId!);
+    const group2 = await client1.conversations.newDm(client3.inboxId!);
     expect(group2).toBeDefined();
     expect(group2.id).toBeDefined();
     expect(group2.createdAtNs).toBeDefined();
@@ -245,9 +257,11 @@ describe.concurrent("Conversations", () => {
   it("should get a group by ID", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    await createRegisteredClient(user2);
-    const group = await client1.conversations.newGroup([user2.account.address]);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client1.conversations.newGroup([client2.inboxId!]);
     expect(group).toBeDefined();
     expect(group.id).toBeDefined();
     const foundGroup = await client1.conversations.getConversationById(
@@ -260,9 +274,11 @@ describe.concurrent("Conversations", () => {
   it("should get a message by ID", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    await createRegisteredClient(user2);
-    const group = await client1.conversations.newGroup([user2.account.address]);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client1.conversations.newGroup([client2.inboxId!]);
     const messageId = await group.send("gm!");
     expect(messageId).toBeDefined();
 
@@ -276,14 +292,16 @@ describe.concurrent("Conversations", () => {
     const user2 = createUser();
     const user3 = createUser();
     const user4 = createUser();
-    const user5 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    await createRegisteredClient(user2);
-    await createRegisteredClient(user3);
-    await createRegisteredClient(user4);
-    await createRegisteredClient(user5);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const signer4 = createSigner(user4);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const client4 = await createRegisteredClient(signer4);
     const groupWithName = await client1.conversations.newGroup(
-      [user2.account.address],
+      [client2.inboxId!],
       {
         name: "foo",
       },
@@ -293,7 +311,7 @@ describe.concurrent("Conversations", () => {
     expect(groupWithName.imageUrl).toBe("");
 
     const groupWithImageUrl = await client1.conversations.newGroup(
-      [user3.account.address],
+      [client3.inboxId!],
       {
         imageUrlSquare: "https://foo/bar.png",
       },
@@ -303,7 +321,7 @@ describe.concurrent("Conversations", () => {
     expect(groupWithImageUrl.imageUrl).toBe("https://foo/bar.png");
 
     const groupWithNameAndImageUrl = await client1.conversations.newGroup(
-      [user4.account.address],
+      [client4.inboxId!],
       {
         imageUrlSquare: "https://foo/bar.png",
         name: "foo",
@@ -314,7 +332,7 @@ describe.concurrent("Conversations", () => {
     expect(groupWithNameAndImageUrl.imageUrl).toBe("https://foo/bar.png");
 
     const groupWithPermissions = await client1.conversations.newGroup(
-      [user4.account.address],
+      [client4.inboxId!],
       {
         permissions: GroupPermissionsOptions.AdminOnly,
       },
@@ -337,7 +355,7 @@ describe.concurrent("Conversations", () => {
     });
 
     const groupWithDescription = await client1.conversations.newGroup(
-      [user2.account.address],
+      [client2.inboxId!],
       {
         description: "foo",
       },
@@ -351,24 +369,23 @@ describe.concurrent("Conversations", () => {
   it("should create a group with custom permissions", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    await createRegisteredClient(user2);
-    const group = await client1.conversations.newGroup(
-      [user2.account.address],
-      {
-        permissions: GroupPermissionsOptions.CustomPolicy,
-        customPermissionPolicySet: {
-          addAdminPolicy: 1,
-          addMemberPolicy: 0,
-          removeAdminPolicy: 1,
-          removeMemberPolicy: 1,
-          updateGroupNamePolicy: 1,
-          updateGroupDescriptionPolicy: 1,
-          updateGroupImageUrlSquarePolicy: 1,
-          updateMessageDisappearingPolicy: 1,
-        },
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client1.conversations.newGroup([client2.inboxId!], {
+      permissions: GroupPermissionsOptions.CustomPolicy,
+      customPermissionPolicySet: {
+        addAdminPolicy: 1,
+        addMemberPolicy: 0,
+        removeAdminPolicy: 1,
+        removeMemberPolicy: 1,
+        updateGroupNamePolicy: 1,
+        updateGroupDescriptionPolicy: 1,
+        updateGroupImageUrlSquarePolicy: 1,
+        updateMessageDisappearingPolicy: 1,
       },
-    );
+    });
     expect(group).toBeDefined();
 
     const permissions = await group.permissions();
@@ -390,19 +407,17 @@ describe.concurrent("Conversations", () => {
     const user2 = createUser();
     const user3 = createUser();
     const user4 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    await createRegisteredClient(user2);
-    await createRegisteredClient(user3);
-    await createRegisteredClient(user4);
-    const group1 = await client1.conversations.newGroup([
-      user2.account.address,
-    ]);
-    const group2 = await client1.conversations.newGroup([
-      user3.account.address,
-    ]);
-    const group3 = await client1.conversations.newGroup([
-      user4.account.address,
-    ]);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const signer4 = createSigner(user4);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const client4 = await createRegisteredClient(signer4);
+    const group1 = await client1.conversations.newGroup([client2.inboxId!]);
+    const group2 = await client1.conversations.newGroup([client3.inboxId!]);
+    const group3 = await client1.conversations.newGroup([client4.inboxId!]);
     const hmacKeys = await client1.conversations.getHmacKeys();
     expect(hmacKeys).toBeDefined();
     const groupIds = Object.keys(hmacKeys);
@@ -421,19 +436,22 @@ describe.concurrent("Conversations", () => {
 
   it("should sync groups across installations", async () => {
     const user = createUser();
-    const client = await createRegisteredClient(user);
-    user.uuid = v4();
-    const client2 = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
     const user2 = createUser();
-    await createRegisteredClient(user2);
+    const signer2 = createSigner(user2);
+    await createRegisteredClient(signer2);
 
-    const group = await client.conversations.newGroup([user2.account.address]);
+    const group = await client.conversations.newGroup([client2.inboxId!]);
     await client2.conversations.sync();
     const convos = await client2.conversations.list();
     expect(convos.length).toBe(1);
     expect(convos[0].id).toBe(group.id);
 
-    const group2 = await client.conversations.newDm(user2.account.address);
+    const group2 = await client.conversations.newDm(client2.inboxId!);
     await client2.conversations.sync();
     const convos2 = await client2.conversations.list();
     expect(convos2.length).toBe(2);
@@ -448,15 +466,18 @@ describe("Conversations streaming", () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
     const stream = await client3.conversations.stream();
     const conversation1 = await client1.conversations.newGroup([
-      user3.account.address,
+      client3.inboxId!,
     ]);
     const conversation2 = await client2.conversations.newGroup([
-      user3.account.address,
+      client3.inboxId!,
     ]);
 
     setTimeout(() => {
@@ -496,18 +517,18 @@ describe("Conversations streaming", () => {
     const user2 = createUser();
     const user3 = createUser();
     const user4 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
-    const client4 = await createRegisteredClient(user4);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const signer4 = createSigner(user4);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const client4 = await createRegisteredClient(signer4);
     const stream = await client3.conversations.streamGroups();
-    await client4.conversations.newDm(user3.account.address);
-    const group1 = await client1.conversations.newGroup([
-      user3.account.address,
-    ]);
-    const group2 = await client2.conversations.newGroup([
-      user3.account.address,
-    ]);
+    await client4.conversations.newDm(client3.inboxId!);
+    const group1 = await client1.conversations.newGroup([client3.inboxId!]);
+    const group2 = await client2.conversations.newGroup([client3.inboxId!]);
 
     setTimeout(() => {
       void stream.callback(null, undefined);
@@ -535,14 +556,18 @@ describe("Conversations streaming", () => {
     const user2 = createUser();
     const user3 = createUser();
     const user4 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
-    const client4 = await createRegisteredClient(user4);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const signer4 = createSigner(user4);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const client4 = await createRegisteredClient(signer4);
     const stream = await client3.conversations.streamDms();
-    await client1.conversations.newGroup([user3.account.address]);
-    await client2.conversations.newGroup([user3.account.address]);
-    const group3 = await client4.conversations.newDm(user3.account.address);
+    await client1.conversations.newGroup([client3.inboxId!]);
+    await client2.conversations.newGroup([client3.inboxId!]);
+    const group3 = await client4.conversations.newDm(client3.inboxId!);
 
     setTimeout(() => {
       void stream.callback(null, undefined);
@@ -566,11 +591,14 @@ describe("Conversations streaming", () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
-    await client1.conversations.newGroup([user2.account.address]);
-    await client1.conversations.newGroup([user3.account.address]);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    await client1.conversations.newGroup([client2.inboxId!]);
+    await client1.conversations.newGroup([client3.inboxId!]);
 
     const stream = await client1.conversations.streamAllMessages();
 
@@ -609,13 +637,17 @@ describe("Conversations streaming", () => {
     const user2 = createUser();
     const user3 = createUser();
     const user4 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
-    const client4 = await createRegisteredClient(user4);
-    await client1.conversations.newGroup([user2.account.address]);
-    await client1.conversations.newGroup([user3.account.address]);
-    await client1.conversations.newDm(user4.account.address);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const signer4 = createSigner(user4);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const client4 = await createRegisteredClient(signer4);
+    await client1.conversations.newGroup([client2.inboxId!]);
+    await client1.conversations.newGroup([client3.inboxId!]);
+    await client1.conversations.newDm(client4.inboxId!);
 
     const stream = await client1.conversations.streamAllGroupMessages();
 
@@ -661,13 +693,17 @@ describe("Conversations streaming", () => {
     const user2 = createUser();
     const user3 = createUser();
     const user4 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
-    const client4 = await createRegisteredClient(user4);
-    await client1.conversations.newGroup([user2.account.address]);
-    await client1.conversations.newGroup([user3.account.address]);
-    await client1.conversations.newDm(user4.account.address);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const signer4 = createSigner(user4);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const client4 = await createRegisteredClient(signer4);
+    await client1.conversations.newGroup([client2.inboxId!]);
+    await client1.conversations.newGroup([client3.inboxId!]);
+    await client1.conversations.newDm(client4.inboxId!);
 
     const stream = await client1.conversations.streamAllDmMessages();
 
@@ -708,9 +744,11 @@ describe("Conversations streaming", () => {
   it("should stream consent updates", async () => {
     const user = createUser();
     const user2 = createUser();
-    const client = await createRegisteredClient(user);
-    const client2 = await createRegisteredClient(user2);
-    const group = await client.conversations.newGroup([user2.account.address]);
+    const signer1 = createSigner(user);
+    const signer2 = createSigner(user2);
+    const client = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client.conversations.newGroup([client2.inboxId!]);
     const stream = await client.conversations.streamConsent();
 
     await group.updateConsentState(ConsentState.Denied);
@@ -728,8 +766,8 @@ describe("Conversations streaming", () => {
     await sleep(1000);
     await client.setConsentStates([
       {
-        entity: user2.account.address,
-        entityType: ConsentEntityType.Address,
+        entity: group.id,
+        entityType: ConsentEntityType.GroupId,
         state: ConsentState.Denied,
       },
       {
@@ -762,16 +800,13 @@ describe("Conversations streaming", () => {
         expect(updates[0].state).toBe(ConsentState.Allowed);
       }
       if (count === 3) {
-        expect(updates.length).toBe(3);
-        expect(updates[0].entity).toBe(client2.inboxId!);
-        expect(updates[0].entityType).toBe(ConsentEntityType.InboxId);
+        expect(updates.length).toBe(2);
+        expect(updates[0].entity).toBe(group.id);
+        expect(updates[0].entityType).toBe(ConsentEntityType.GroupId);
         expect(updates[0].state).toBe(ConsentState.Denied);
-        expect(updates[1].entity).toBe(user2.account.address);
-        expect(updates[1].entityType).toBe(ConsentEntityType.Address);
-        expect(updates[1].state).toBe(ConsentState.Denied);
-        expect(updates[2].entity).toBe(client2.inboxId!);
-        expect(updates[2].entityType).toBe(ConsentEntityType.InboxId);
-        expect(updates[2].state).toBe(ConsentState.Allowed);
+        expect(updates[1].entity).toBe(client2.inboxId!);
+        expect(updates[1].entityType).toBe(ConsentEntityType.InboxId);
+        expect(updates[1].state).toBe(ConsentState.Allowed);
       }
     }
     expect(count).toBe(3);
@@ -779,16 +814,18 @@ describe("Conversations streaming", () => {
 
   it("should stream preferences", async () => {
     const user = createUser();
-    const client = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
     const stream = await client.conversations.streamPreferences();
 
     await sleep(2000);
 
-    user.uuid = v4();
-    const client2 = await createRegisteredClient(user);
-
-    user.uuid = v4();
-    const client3 = await createRegisteredClient(user);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
 
     await client3.conversations.syncAll();
     await sleep(2000);

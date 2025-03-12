@@ -199,4 +199,10 @@ export class Conversation {
     };
     return asyncStream;
   }
+
+  async pausedForVersion() {
+    return this.#client.sendMessage("getGroupPausedForVersion", {
+      id: this.#id,
+    });
+  }
 }

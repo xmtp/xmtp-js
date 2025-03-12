@@ -1,4 +1,5 @@
 import type {
+  Identifier,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
@@ -132,28 +133,28 @@ export class Group extends Conversation {
     return superAdmins.includes(inboxId);
   }
 
-  async addMembers(accountAddresses: string[]) {
+  async addMembersByIdentifiers(identifiers: Identifier[]) {
     return this.#client.sendMessage("addGroupMembers", {
       id: this.#id,
-      accountAddresses,
+      identifiers,
     });
   }
 
-  async addMembersByInboxId(inboxIds: string[]) {
+  async addMembers(inboxIds: string[]) {
     return this.#client.sendMessage("addGroupMembersByInboxId", {
       id: this.#id,
       inboxIds,
     });
   }
 
-  async removeMembers(accountAddresses: string[]) {
+  async removeMembersByIdentifiers(identifiers: Identifier[]) {
     return this.#client.sendMessage("removeGroupMembers", {
       id: this.#id,
-      accountAddresses,
+      identifiers,
     });
   }
 
-  async removeMembersByInboxId(inboxIds: string[]) {
+  async removeMembers(inboxIds: string[]) {
     return this.#client.sendMessage("removeGroupMembersByInboxId", {
       id: this.#id,
       inboxIds,

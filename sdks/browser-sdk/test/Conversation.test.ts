@@ -10,6 +10,7 @@ import type { SafeMessageDisappearingSettings } from "@/utils/conversions";
 import {
   ContentTypeTest,
   createRegisteredClient,
+  createSigner,
   createUser,
   sleep,
   TestCodec,
@@ -19,10 +20,12 @@ describe("Conversation", () => {
   it("should update conversation name", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
     const newName = "foo";
     await conversation.updateName(newName);
@@ -46,10 +49,12 @@ describe("Conversation", () => {
   it("should update conversation image URL", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
     const imageUrl = "https://foo/bar.jpg";
     await conversation.updateImageUrl(imageUrl);
@@ -73,10 +78,12 @@ describe("Conversation", () => {
   it("should update conversation description", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
     const newDescription = "foo";
     await conversation.updateDescription(newDescription);
@@ -101,11 +108,14 @@ describe("Conversation", () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     const members = await conversation.members();
@@ -115,7 +125,7 @@ describe("Conversation", () => {
     expect(memberInboxIds).toContain(client2.inboxId);
     expect(memberInboxIds).not.toContain(client3.inboxId);
 
-    await conversation.addMembers([user3.account.address]);
+    await conversation.addMembers([client3.inboxId!]);
 
     const members2 = await conversation.members();
     expect(members2.length).toBe(3);
@@ -125,7 +135,7 @@ describe("Conversation", () => {
     expect(memberInboxIds2).toContain(client2.inboxId);
     expect(memberInboxIds2).toContain(client3.inboxId);
 
-    await conversation.removeMembers([user2.account.address]);
+    await conversation.removeMembers([client2.inboxId!]);
 
     const members3 = await conversation.members();
     expect(members3.length).toBe(2);
@@ -140,11 +150,14 @@ describe("Conversation", () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     const members = await conversation.members();
@@ -153,7 +166,7 @@ describe("Conversation", () => {
     expect(memberInboxIds).toContain(client2.inboxId);
     expect(memberInboxIds).not.toContain(client3.inboxId);
 
-    await conversation.addMembersByInboxId([client3.inboxId!]);
+    await conversation.addMembers([client3.inboxId!]);
 
     const members2 = await conversation.members();
     expect(members2.length).toBe(3);
@@ -163,7 +176,7 @@ describe("Conversation", () => {
     expect(memberInboxIds2).toContain(client2.inboxId);
     expect(memberInboxIds2).toContain(client3.inboxId);
 
-    await conversation.removeMembersByInboxId([client2.inboxId!]);
+    await conversation.removeMembers([client2.inboxId!]);
 
     const members3 = await conversation.members();
     expect(members3.length).toBe(2);
@@ -177,10 +190,12 @@ describe("Conversation", () => {
   it("should send and list messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     const text = "gm";
@@ -207,12 +222,14 @@ describe("Conversation", () => {
   it("should require content type when sending non-string content", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1, {
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1, {
       codecs: [new TestCodec()],
     });
-    await createRegisteredClient(user2);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     await expect(() => conversation.send(1)).rejects.toThrow();
@@ -225,10 +242,12 @@ describe("Conversation", () => {
   it("should optimistically send and list messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     const text = "gm";
@@ -262,12 +281,14 @@ describe("Conversation", () => {
   it("should require content type when optimistically sending non-string content", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1, {
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1, {
       codecs: [new TestCodec()],
     });
-    await createRegisteredClient(user2);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     await expect(() => conversation.sendOptimistic(1)).rejects.toThrow();
@@ -282,10 +303,12 @@ describe("Conversation", () => {
   it("should throw when sending content without a codec", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     await expect(
@@ -296,10 +319,12 @@ describe("Conversation", () => {
   it("should add and remove admins", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
@@ -326,10 +351,12 @@ describe("Conversation", () => {
   it("should add and remove super admins", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
@@ -359,12 +386,15 @@ describe("Conversation", () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const client3 = await createRegisteredClient(user3);
-    const group = await client1.conversations.newGroup([user2.account.address]);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const group = await client1.conversations.newGroup([client2.inboxId!]);
     expect(group).toBeDefined();
-    const dmGroup = await client1.conversations.newDm(user3.account.address);
+    const dmGroup = await client1.conversations.newDm(client3.inboxId!);
     expect(dmGroup).toBeDefined();
 
     await client2.conversations.sync();
@@ -389,12 +419,12 @@ describe("Conversation", () => {
   it("should update group permission policy", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const user3 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    await createRegisteredClient(user2);
-    await createRegisteredClient(user3);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     const permissions = await conversation.permissions();
@@ -499,8 +529,10 @@ describe("Conversation", () => {
   it("should handle disappearing messages in a group", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
 
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: SafeMessageDisappearingSettings = {
@@ -510,7 +542,7 @@ describe("Conversation", () => {
 
     // create a group with message disappearing settings
     const conversation = await client1.conversations.newGroup(
-      [user2.account.address],
+      [client2.inboxId!],
       {
         messageDisappearingSettings,
       },
@@ -591,8 +623,10 @@ describe("Conversation", () => {
   it("should handle disappearing messages in a DM group", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
 
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: SafeMessageDisappearingSettings = {
@@ -601,12 +635,9 @@ describe("Conversation", () => {
     };
 
     // create a group with message disappearing settings
-    const conversation = await client1.conversations.newDm(
-      user2.account.address,
-      {
-        messageDisappearingSettings,
-      },
-    );
+    const conversation = await client1.conversations.newDm(client2.inboxId!, {
+      messageDisappearingSettings,
+    });
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation.messageDisappearingSettings()).toEqual({
@@ -683,10 +714,12 @@ describe("Conversation", () => {
   it("should stream messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
     const conversation = await client1.conversations.newGroup([
-      user2.account.address,
+      client2.inboxId!,
     ]);
 
     await client2.conversations.sync();

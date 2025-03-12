@@ -1,9 +1,9 @@
-import type {
-  Consent,
-  Conversation,
-  Message,
-  StreamCloser,
-  UserPreference,
+import init, {
+  type Consent,
+  type Conversation,
+  type Message,
+  type StreamCloser,
+  type UserPreference,
 } from "@xmtp/wasm-bindings";
 import type {
   ClientEventsActions,
@@ -73,11 +73,14 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
     console.log("client worker received event data", event.data);
   }
 
+  // initialize WASM module
+  await init();
+
   try {
     // init is a special action that initializes the client
     if (action === "init" && !maybeClient) {
       maybeClient = await WorkerClient.create(
-        data.address,
+        data.identifier,
         data.encryptionKey,
         data.options,
       );
@@ -138,16 +141,12 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "addAccountSignatureText": {
-        const result = await client.addAccountSignatureText(
-          data.newAccountAddress,
-        );
+        const result = await client.addAccountSignatureText(data.newIdentifier);
         postMessage({ id, action, result });
         break;
       }
       case "removeAccountSignatureText": {
-        const result = await client.removeAccountSignatureText(
-          data.accountAddress,
-        );
+        const result = await client.removeAccountSignatureText(data.identifier);
         postMessage({ id, action, result });
         break;
       }
@@ -163,8 +162,8 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
-      case "addSignature":
-        await client.addSignature(data.type, data.bytes);
+      case "addEcdsaSignature":
+        await client.addEcdsaSignature(data.type, data.bytes);
         postMessage({ id, action, result: undefined });
         break;
       case "addScwSignature":
@@ -190,7 +189,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "canMessage": {
-        const result = await client.canMessage(data.accountAddresses);
+        const result = await client.canMessage(data.identifiers);
         postMessage({ id, action, result });
         break;
       }
@@ -219,8 +218,8 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
-      case "findInboxIdByAddress": {
-        const result = await client.findInboxIdByAddress(data.address);
+      case "findInboxIdByIdentifier": {
+        const result = await client.findInboxIdByIdentifier(data.identifier);
         postMessage({ id, action, result });
         break;
       }
@@ -388,17 +387,17 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
-      case "newGroup": {
-        const conversation = await client.conversations.newGroup(
-          data.accountAddresses,
+      case "newGroupWithIdentifiers": {
+        const conversation = await client.conversations.newGroupWithIdentifiers(
+          data.identifiers,
           data.options,
         );
         const result = await toSafeConversation(conversation);
         postMessage({ id, action, result });
         break;
       }
-      case "newGroupByInboxIds": {
-        const conversation = await client.conversations.newGroupByInboxIds(
+      case "newGroupWithInboxIds": {
+        const conversation = await client.conversations.newGroup(
           data.inboxIds,
           data.options,
         );
@@ -406,17 +405,17 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
-      case "newDm": {
-        const conversation = await client.conversations.newDm(
-          data.accountAddress,
+      case "newDmWithIdentifier": {
+        const conversation = await client.conversations.newDmWithIdentifier(
+          data.identifier,
           data.options,
         );
         const result = await toSafeConversation(conversation);
         postMessage({ id, action, result });
         break;
       }
-      case "newDmByInboxId": {
-        const conversation = await client.conversations.newDmByInboxId(
+      case "newDmWithInboxId": {
+        const conversation = await client.conversations.newDm(
           data.inboxId,
           data.options,
         );
@@ -588,25 +587,25 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       }
       case "addGroupMembers": {
         const group = getGroup(data.id);
-        await group.addMembers(data.accountAddresses);
+        await group.addMembersByIdentifiers(data.identifiers);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "removeGroupMembers": {
         const group = getGroup(data.id);
-        await group.removeMembers(data.accountAddresses);
+        await group.removeMembersByIdentifiers(data.identifiers);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "addGroupMembersByInboxId": {
         const group = getGroup(data.id);
-        await group.addMembersByInboxId(data.inboxIds);
+        await group.addMembers(data.inboxIds);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "removeGroupMembersByInboxId": {
         const group = getGroup(data.id);
-        await group.removeMembersByInboxId(data.inboxIds);
+        await group.removeMembers(data.inboxIds);
         postMessage({ id, action, result: undefined });
         break;
       }
@@ -695,6 +694,12 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         const streamCloser = group.stream(streamCallback);
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "getGroupPausedForVersion": {
+        const group = getGroup(data.id);
+        const result = group.pausedForVersion();
+        postMessage({ id, action, result });
         break;
       }
     }

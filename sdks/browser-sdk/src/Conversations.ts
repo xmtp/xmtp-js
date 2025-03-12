@@ -1,6 +1,7 @@
 import {
   ConversationType,
   type ConsentState,
+  type Identifier,
   type UserPreference,
 } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
@@ -97,38 +98,47 @@ export class Conversations {
     );
   }
 
-  async newGroup(accountAddresses: string[], options?: SafeCreateGroupOptions) {
-    const conversation = await this.#client.sendMessage("newGroup", {
-      accountAddresses,
-      options,
-    });
-
-    return new Group(this.#client, conversation.id, conversation);
-  }
-
-  async newGroupByInboxIds(
-    inboxIds: string[],
+  async newGroupWithIdentifiers(
+    identifiers: Identifier[],
     options?: SafeCreateGroupOptions,
   ) {
-    const conversation = await this.#client.sendMessage("newGroupByInboxIds", {
-      inboxIds,
-      options,
-    });
+    const conversation = await this.#client.sendMessage(
+      "newGroupWithIdentifiers",
+      {
+        identifiers,
+        options,
+      },
+    );
 
     return new Group(this.#client, conversation.id, conversation);
   }
 
-  async newDm(accountAddress: string, options?: SafeCreateDmOptions) {
-    const conversation = await this.#client.sendMessage("newDm", {
-      accountAddress,
+  async newGroup(inboxIds: string[], options?: SafeCreateGroupOptions) {
+    const conversation = await this.#client.sendMessage(
+      "newGroupWithInboxIds",
+      {
+        inboxIds,
+        options,
+      },
+    );
+
+    return new Group(this.#client, conversation.id, conversation);
+  }
+
+  async newDmWithIdentifier(
+    identifier: Identifier,
+    options?: SafeCreateDmOptions,
+  ) {
+    const conversation = await this.#client.sendMessage("newDmWithIdentifier", {
+      identifier,
       options,
     });
 
     return new Dm(this.#client, conversation.id, conversation);
   }
 
-  async newDmByInboxId(inboxId: string, options?: SafeCreateDmOptions) {
-    const conversation = await this.#client.sendMessage("newDmByInboxId", {
+  async newDm(inboxId: string, options?: SafeCreateDmOptions) {
+    const conversation = await this.#client.sendMessage("newDmWithInboxId", {
       inboxId,
       options,
     });

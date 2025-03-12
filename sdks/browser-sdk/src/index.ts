@@ -9,7 +9,7 @@ export { Utils } from "./Utils";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types";
 export * from "./utils/conversions";
-export type { UserPreference } from "@xmtp/wasm-bindings";
+export type { LogOptions, UserPreference } from "@xmtp/wasm-bindings";
 export {
   Consent,
   ConsentEntityType,
@@ -33,7 +33,6 @@ export {
   Installation,
   ListConversationsOptions,
   ListMessagesOptions,
-  LogOptions,
   Message,
   MessageDisappearingSettings,
   MetadataField,
