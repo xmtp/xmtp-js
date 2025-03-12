@@ -26,7 +26,7 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client, HistorySyncUrls, type ClientOptions } from "@/Client";
-import type { Signer } from "@/helpers/signer";
+import type { SignedData, Signer } from "@/helpers/signer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const testEncryptionKey = getRandomValues(new Uint8Array(32));
@@ -59,7 +59,7 @@ export const createSigner = (user: User): Signer => {
       const signature = await user.wallet.signMessage({
         message,
       });
-      return toBytes(signature);
+      return { signature: toBytes(signature) };
     },
   };
 };
@@ -131,6 +131,29 @@ export class TestCodec implements ContentCodec<Record<string, string>> {
   }
 }
 
+export const createPasskeySigner = (): Signer => {
+  const passkeyAuthenticator = new PasskeyAuthenticator();
+
+  return {
+    type: "PASSKEY",
+    getIdentifier: (): Identifier => ({
+      identifierKind: IdentifierKind.Passkey,
+      identifier: passkeyAuthenticator.publicKeyString,
+    }),
+    signMessage: (message: string): SignedData => {
+      const { clientDataJson, authenticatorData, signature } =
+        passkeyAuthenticator.sign(message);
+
+      return {
+        signature,
+        publicKey: passkeyAuthenticator.publicKey,
+        authenticatorData: authenticatorData,
+        clientDataJson: clientDataJson,
+      };
+    },
+  };
+};
+
 export class PasskeyAuthenticator {
   #keyPair: KeyPairKeyObjectResult;
 
@@ -171,9 +194,14 @@ export class PasskeyAuthenticator {
       type: "webauthn.get",
       origin: "https://xmtp.chat",
       crossOrigin: false,
-      challenge: uint8ArrayToBase64(messageBytes),
+      challenge: uint8ArrayToBase64(messageBytes)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, ""), // ✅ Force Base64Url encoding
     };
-    return new TextEncoder().encode(JSON.stringify(json));
+
+    const jsonString = JSON.stringify(json);
+    return new TextEncoder().encode(jsonString);
   }
 
   #generateAuthenticatorData() {

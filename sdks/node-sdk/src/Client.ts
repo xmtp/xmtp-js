@@ -19,6 +19,7 @@ import {
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   LogLevel,
+  PasskeySignature,
   SignatureRequestType,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
   type Consent,
@@ -296,20 +297,32 @@ export class Client {
     signatureText: string,
     signer: Signer,
   ) {
+    const signedData = await signer.signMessage(signatureText);
+
     switch (signer.type) {
       case "SCW":
         await this.#innerClient.addScwSignature(
           signatureType,
-          await signer.signMessage(signatureText),
+          signedData.signature,
           signer.getChainId(),
           signer.getBlockNumber?.(),
         );
         break;
+
       case "EOA":
         await this.#innerClient.addEcdsaSignature(
           signatureType,
-          await signer.signMessage(signatureText),
+          signedData.signature,
         );
+        break;
+
+      case "PASSKEY":
+        await this.#innerClient.addPasskeySignature(signatureType, {
+          signature: Array.from(signedData.signature),
+          publicKey: Array.from(signedData.publicKey),
+          clientDataJson: Array.from(signedData.clientDataJson),
+          authenticatorData: Array.from(signedData.authenticatorData),
+        } as PasskeySignature);
         break;
     }
   }
