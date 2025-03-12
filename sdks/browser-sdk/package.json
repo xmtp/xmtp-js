@@ -44,6 +44,7 @@
     "clean:dist": "rm -rf dist",
     "dev": "yarn clean:dist && yarn rollup -c --watch",
     "test": "vitest run",
+    "test:debug": "vitest run --inspect-brk --no-file-parallelism",
     "typecheck": "tsc",
     "typedoc": "typedoc"
   },
