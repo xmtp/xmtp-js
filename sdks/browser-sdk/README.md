@@ -28,7 +28,8 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   optimizeDeps: {
-    exclude: ["@xmtp/wasm-bindings"],
+    exclude: ["@xmtp/wasm-bindings", "@xmtp/browser-sdk"],
+    include: ["@xmtp/proto"],
   },
 });
 ```
