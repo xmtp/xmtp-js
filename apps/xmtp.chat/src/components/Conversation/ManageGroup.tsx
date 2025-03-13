@@ -107,7 +107,7 @@ export const ManageGroup: React.FC<ManageGroupProps> = ({ group }) => {
   }, [permissionsPolicy]);
 
   useEffect(() => {
-    if (members.some((member) => member.accountAddresses.includes(address))) {
+    if (members.some((member) => member.accountIdentifiers.some((identifier) => identifier.identifier.toLowerCase() === address.toLowerCase()))) {
       setAddressError("Duplicate address");
     } else if (address && !isValidLongWalletAddress(address)) {
       setAddressError("Invalid address");
@@ -133,10 +133,13 @@ export const ManageGroup: React.FC<ManageGroupProps> = ({ group }) => {
         await group.updateImageUrl(imageUrl);
       }
       if (addedMembers.length > 0) {
-        await group.addMembers(addedMembers);
+        await group.addMembersByIdentifiers(addedMembers.map((member) => ({
+          identifier: member.toLowerCase(),
+          identifierKind: "Ethereum",
+        })));
       }
       if (removedMembers.length > 0) {
-        await group.removeMembersByInboxId(
+        await group.removeMembers(
           removedMembers.map((member) => member.inboxId),
         );
       }
@@ -264,7 +267,7 @@ export const ManageGroup: React.FC<ManageGroupProps> = ({ group }) => {
   };
 
   const handleAddMember = () => {
-    setAddedMembers([...addedMembers, address]);
+    setAddedMembers([...addedMembers, address.toLowerCase()]);
     setAddress("");
     setAddressError(null);
   };
@@ -684,7 +687,7 @@ export const ManageGroup: React.FC<ManageGroupProps> = ({ group }) => {
                               justify="space-between"
                               align="center">
                               <Text truncate="end" flex={1}>
-                                {member.accountAddresses.join(", ")}
+                                {member.accountIdentifiers.map((identifier) => identifier.identifier).join(", ")}
                               </Text>
                               <Button
                                 onClick={() => {
