@@ -9,7 +9,11 @@ export { Utils } from "./Utils";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types";
 export * from "./utils/conversions";
-export type { UserPreference } from "@xmtp/wasm-bindings";
+export type {
+  Identifier,
+  IdentifierKind,
+  UserPreference,
+} from "@xmtp/wasm-bindings";
 export {
   Consent,
   ConsentEntityType,

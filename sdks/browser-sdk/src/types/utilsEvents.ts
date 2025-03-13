@@ -1,3 +1,4 @@
+import type { Identifier } from "@xmtp/wasm-bindings";
 import type {
   EventsClientMessageData,
   EventsClientPostMessageData,
@@ -15,16 +16,16 @@ export type UtilsEvents =
       id: string;
       result: string;
       data: {
-        address: string;
+        identifier: Identifier;
         enableLogging: boolean;
       };
     }
   | {
-      action: "getInboxIdForAddress";
+      action: "getInboxIdForIdentifier";
       id: string;
       result: string | undefined;
       data: {
-        address: string;
+        identifier: Identifier;
         env?: XmtpEnv;
         enableLogging: boolean;
       };

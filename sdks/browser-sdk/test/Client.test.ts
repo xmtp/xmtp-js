@@ -12,8 +12,12 @@ import {
 describe.concurrent("Client", () => {
   it("should create a client", async () => {
     const user = createUser();
-    const client = await createClient(user);
-    expect(client.accountAddress).toBe(user.account.address);
+    const signer = createSigner(user);
+    const client = await createClient(signer);
+    expect(await client.accountIdentifier()).toEqual({
+      identifier: user.account.address.toLowerCase(),
+      identifierKind: "Ethereum",
+    });
     expect(await client.isRegistered()).toBe(false);
     expect(client.inboxId).toBeDefined();
     expect(client.installationId).toBeDefined();
@@ -21,15 +25,17 @@ describe.concurrent("Client", () => {
 
   it("should register an identity", async () => {
     const user = createUser();
-    await createRegisteredClient(user);
-    const client2 = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer);
     expect(await client2.isRegistered()).toBe(true);
   });
 
   it("should be able to message registered identity", async () => {
     const user = createUser();
-    const client = await createRegisteredClient(user);
-    const canMessage = await client.canMessage([user.account.address]);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const canMessage = await client.canMessage([await signer.getIdentifier()]);
     expect(Object.fromEntries(canMessage)).toEqual({
       [user.account.address.toLowerCase()]: true,
     });
@@ -37,8 +43,12 @@ describe.concurrent("Client", () => {
 
   it("should be able to check if can message without client instance", async () => {
     const user = createUser();
-    await createRegisteredClient(user);
-    const canMessage = await Client.canMessage([user.account.address], "local");
+    const signer = createSigner(user);
+    await createRegisteredClient(signer);
+    const canMessage = await Client.canMessage(
+      [await signer.getIdentifier()],
+      "local",
+    );
     expect(Object.fromEntries(canMessage)).toEqual({
       [user.account.address.toLowerCase()]: true,
     });
@@ -46,26 +56,31 @@ describe.concurrent("Client", () => {
 
   it("should get an inbox ID from an address", async () => {
     const user = createUser();
-    const client = await createRegisteredClient(user);
-    const inboxId = await client.findInboxIdByAddress(user.account.address);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const inboxId = await client.findInboxIdByIdentifier(
+      await signer.getIdentifier(),
+    );
     expect(inboxId).toBe(client.inboxId);
   });
 
   it("should return the correct inbox state", async () => {
     const user = createUser();
-    const client = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
     const inboxState = await client.inboxState(false);
     expect(inboxState.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.map((install) => install.id)).toEqual([
       client.installationId,
     ]);
-    expect(inboxState.accountAddresses).toEqual([
-      user.account.address.toLowerCase(),
+    expect(inboxState.accountIdentifiers).toEqual([
+      await signer.getIdentifier(),
     ]);
-    expect(inboxState.recoveryAddress).toBe(user.account.address.toLowerCase());
+    expect(inboxState.recoveryIdentifier).toEqual(await signer.getIdentifier());
 
     const user2 = createUser();
-    const client2 = await createClient(user2);
+    const signer2 = createSigner(user2);
+    const client2 = await createClient(signer2);
     const inboxState2 = await client2.getLatestInboxState(client.inboxId!);
     expect(inboxState2.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.length).toBe(1);
@@ -73,53 +88,62 @@ describe.concurrent("Client", () => {
     expect(inboxState.installations[0].bytes).toEqual(
       client.installationIdBytes,
     );
-    expect(inboxState2.accountAddresses).toEqual([
-      user.account.address.toLowerCase(),
+    expect(inboxState2.accountIdentifiers).toEqual([
+      await signer.getIdentifier(),
     ]);
-    expect(inboxState2.recoveryAddress).toBe(
-      user.account.address.toLowerCase(),
+    expect(inboxState2.recoveryIdentifier).toEqual(
+      await signer.getIdentifier(),
     );
   });
 
   it("should add a wallet association to the client", async () => {
     const user = createUser();
-    const user2 = createUser();
-    const client = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
 
-    await client.unsafe_addAccount(createSigner(user2));
+    const user2 = createUser();
+    const signer2 = createSigner(user2);
+
+    await client.unsafe_addAccount(signer2);
 
     const inboxState = await client.inboxState();
-    expect(inboxState.accountAddresses.length).toEqual(2);
-    expect(inboxState.accountAddresses).toContain(
-      user.account.address.toLowerCase(),
+    expect(inboxState.accountIdentifiers.length).toEqual(2);
+    expect(inboxState.accountIdentifiers).toContainEqual(
+      await signer.getIdentifier(),
     );
-    expect(inboxState.accountAddresses).toContain(
-      user2.account.address.toLowerCase(),
+    expect(inboxState.accountIdentifiers).toContainEqual(
+      await signer2.getIdentifier(),
     );
   });
 
   it("should revoke a wallet association from the client", async () => {
     const user = createUser();
-    const user2 = createUser();
-    const client = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
 
-    await client.unsafe_addAccount(createSigner(user2));
-    await client.removeAccount(user2.account.address);
+    const user2 = createUser();
+    const signer2 = createSigner(user2);
+
+    await client.unsafe_addAccount(signer2);
+    await client.removeAccount(await signer2.getIdentifier());
 
     const inboxState = await client.inboxState();
-    expect(inboxState.accountAddresses).toEqual([
-      user.account.address.toLowerCase(),
+    expect(inboxState.accountIdentifiers).toEqual([
+      await signer.getIdentifier(),
     ]);
   });
 
   it("should revoke all other installations", async () => {
     const user = createUser();
+    const signer = createSigner(user);
 
-    const client = await createRegisteredClient(user);
-    user.uuid = v4();
-    const client2 = await createRegisteredClient(user);
-    user.uuid = v4();
-    const client3 = await createRegisteredClient(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
 
     const inboxState = await client3.inboxState(true);
     expect(inboxState.installations.length).toBe(3);
@@ -139,12 +163,14 @@ describe.concurrent("Client", () => {
 
   it("should revoke specific installations", async () => {
     const user = createUser();
-
-    const client = await createRegisteredClient(user);
-    user.uuid = v4();
-    const client2 = await createRegisteredClient(user);
-    user.uuid = v4();
-    const client3 = await createRegisteredClient(user);
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
 
     const inboxState = await client3.inboxState(true);
     expect(inboxState.installations.length).toBe(3);
@@ -169,9 +195,11 @@ describe.concurrent("Client", () => {
   it("should manage consent states", async () => {
     const user1 = createUser();
     const user2 = createUser();
-    const client1 = await createRegisteredClient(user1);
-    const client2 = await createRegisteredClient(user2);
-    const group = await client1.conversations.newGroup([user2.account.address]);
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client1.conversations.newGroup([client2.inboxId!]);
 
     await client2.conversations.sync();
     const group2 = await client2.conversations.getConversationById(group.id);

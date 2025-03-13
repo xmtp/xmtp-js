@@ -44,6 +44,7 @@
     "clean:dist": "rm -rf dist",
     "dev": "yarn clean:dist && yarn rollup -c --watch",
     "test": "vitest run",
+    "test:debug": "vitest run --inspect-brk --no-file-parallelism",
     "typecheck": "tsc",
     "typedoc": "typedoc"
   },
@@ -64,7 +65,7 @@
     "@xmtp/content-type-primitives": "^2.0.0",
     "@xmtp/content-type-text": "^2.0.0",
     "@xmtp/proto": "^3.72.3",
-    "@xmtp/wasm-bindings": "^0.0.21",
+    "@xmtp/wasm-bindings": "^1.0.0-rc4",
     "uuid": "^11.0.3"
   },
   "devDependencies": {
