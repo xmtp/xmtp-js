@@ -1,4 +1,4 @@
-import init, { ConsentEntityType, ConsentState } from "@xmtp/wasm-bindings";
+import { ConsentEntityType, ConsentState } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
@@ -11,7 +11,6 @@ import {
 
 describe.concurrent("Client", () => {
   it("should create a client", async () => {
-    await init();
     const user = createUser();
     const signer = createSigner(user);
     const client = await createClient(signer);
