@@ -29,13 +29,15 @@ export const Identity: React.FC = () => {
     sync,
     syncing,
   } = useIdentity(true);
-  
+
   const [revokeInstallationError, setRevokeInstallationError] = useState<
     string | null
   >(null);
-  
+
   // Add state for account identifier
-  const [accountIdentifier, setAccountIdentifier] = useState<string | null>(null);
+  const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
+    null,
+  );
   const [isLoadingIdentifier, setIsLoadingIdentifier] = useState(false);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export const Identity: React.FC = () => {
   useEffect(() => {
     const fetchAccountIdentifier = async () => {
       if (!client) return;
-      
+
       setIsLoadingIdentifier(true);
       try {
         const identifier = await client.accountIdentifier();
@@ -116,9 +118,11 @@ export const Identity: React.FC = () => {
                         Address
                       </Text>
                       {isLoadingIdentifier ? (
-                        <Text size="sm" c="dimmed">Loading...</Text>
+                        <Text size="sm" c="dimmed">
+                          Loading...
+                        </Text>
                       ) : (
-                        <BadgeWithCopy value={accountIdentifier || ''} />
+                        <BadgeWithCopy value={accountIdentifier || ""} />
                       )}
                     </Group>
                     <Group gap="md" wrap="nowrap">

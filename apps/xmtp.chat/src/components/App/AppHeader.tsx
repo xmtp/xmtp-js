@@ -1,6 +1,6 @@
 import { Burger, Button, Flex, Skeleton } from "@mantine/core";
-import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { shortAddress } from "@/helpers/address";
 import { useClient } from "@/hooks/useClient";
 import { Actions } from "./Actions";
@@ -20,13 +20,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const { client } = useClient();
   const navigate = useNavigate();
-  const [accountIdentifier, setAccountIdentifier] = useState<string | null>(null);
+  const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
+    null,
+  );
   const [isLoadingIdentifier, setIsLoadingIdentifier] = useState(false);
 
   useEffect(() => {
     const fetchAccountIdentifier = async () => {
       if (!client) return;
-      
+
       setIsLoadingIdentifier(true);
       try {
         const identifier = await client.accountIdentifier();
@@ -52,19 +54,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
         )}
         <Flex align="center" flex={1}>
-          {client && (
-            isLoadingIdentifier ? (
+          {client &&
+            (isLoadingIdentifier ? (
               <Skeleton height={36} width={120} radius="sm" />
             ) : (
               <Button
                 variant="default"
-                aria-label={accountIdentifier || ''}
+                aria-label={accountIdentifier || ""}
                 className={classes.button}
                 onClick={handleClick}>
-                {accountIdentifier ? shortAddress(accountIdentifier) : '...'}
+                {accountIdentifier ? shortAddress(accountIdentifier) : "..."}
               </Button>
-            )
-          )}
+            ))}
         </Flex>
       </Flex>
       <Flex align="center" justify="space-between" gap="xs" p="md" flex={1}>

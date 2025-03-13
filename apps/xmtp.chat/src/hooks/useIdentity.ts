@@ -7,8 +7,11 @@ export const useIdentity = (syncOnMount: boolean = false) => {
   const [syncing, setSyncing] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [inboxId, setInboxId] = useState<string | null>(null);
-  const [recoveryIdentifier, setRecoveryIdentifier] = useState<Identifier | null>(null);
-  const [accountIdentifiers, setAccountIdentifiers] = useState<Identifier[]>([]);
+  const [recoveryIdentifier, setRecoveryIdentifier] =
+    useState<Identifier | null>(null);
+  const [accountIdentifiers, setAccountIdentifiers] = useState<Identifier[]>(
+    [],
+  );
   const [installations, setInstallations] = useState<SafeInstallation[]>([]);
 
   useEffect(() => {
