@@ -1,5 +1,13 @@
 # @xmtp/browser-sdk
 
+## 1.0.0-rc1
+
+- Updated `Signer` type
+- Replaced address parameters with inbox IDs or identifiers
+- Added new methods to use with identifiers
+- Added `pausedForVersion` to `Conversation`
+- Updated exports
+
 ## 0.0.23
 
 ### Patch Changes
