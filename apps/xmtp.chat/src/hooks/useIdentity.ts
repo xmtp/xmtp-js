@@ -1,4 +1,4 @@
-import type { SafeIdentifier, SafeInstallation } from "@xmtp/browser-sdk";
+import type { Identifier, SafeInstallation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useClient } from "./useClient";
 
@@ -7,8 +7,8 @@ export const useIdentity = (syncOnMount: boolean = false) => {
   const [syncing, setSyncing] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [inboxId, setInboxId] = useState<string | null>(null);
-  const [recoveryIdentifier, setRecoveryIdentifier] = useState<SafeIdentifier | null>(null);
-  const [accountIdentifiers, setAccountIdentifiers] = useState<SafeIdentifier[]>([]);
+  const [recoveryIdentifier, setRecoveryIdentifier] = useState<Identifier | null>(null);
+  const [accountIdentifiers, setAccountIdentifiers] = useState<Identifier[]>([]);
   const [installations, setInstallations] = useState<SafeInstallation[]>([]);
 
   useEffect(() => {
