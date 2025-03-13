@@ -82,7 +82,10 @@ export const useClient = (onError?: (error: Error) => void) => {
   );
 
   const disconnect = useCallback(() => {
-    setClient(undefined);
+    if (client) {
+      client.close();
+      setClient(undefined);
+    }
   }, [client, setClient]);
 
   return {

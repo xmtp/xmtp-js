@@ -47,7 +47,10 @@ export const LoadDM: React.FC = () => {
 
       try {
         setMessage("Verifying address...");
-        const inboxId = await client.findInboxIdByAddress(address);
+        const inboxId = await client.findInboxIdByIdentifier({
+          identifier: address.toLowerCase(),
+          identifierKind: "Ethereum",
+        });
         // no inbox ID, redirect to root
 
         if (!inboxId) {
@@ -65,7 +68,10 @@ export const LoadDM: React.FC = () => {
         if (dmId === undefined) {
           // no DM group, create it
           setMessage("Creating new DM...");
-          const dmGroup = await client.conversations.newDm(address);
+          const dmGroup = await client.conversations.newDmWithIdentifier({
+            identifier: address.toLowerCase(),
+            identifierKind: "Ethereum",
+          });
           dmId = dmGroup.id;
           // go to new DM group
         }

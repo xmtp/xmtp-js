@@ -1,4 +1,4 @@
-import type { SafeInstallation } from "@xmtp/browser-sdk";
+import type { Identifier, SafeInstallation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useClient } from "./useClient";
 
@@ -7,8 +7,11 @@ export const useIdentity = (syncOnMount: boolean = false) => {
   const [syncing, setSyncing] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [inboxId, setInboxId] = useState<string | null>(null);
-  const [recoveryAddress, setRecoveryAddress] = useState<string | null>(null);
-  const [accountAddresses, setAccountAddresses] = useState<string[]>([]);
+  const [recoveryIdentifier, setRecoveryIdentifier] =
+    useState<Identifier | null>(null);
+  const [accountIdentifiers, setAccountIdentifiers] = useState<Identifier[]>(
+    [],
+  );
   const [installations, setInstallations] = useState<SafeInstallation[]>([]);
 
   useEffect(() => {
@@ -27,8 +30,8 @@ export const useIdentity = (syncOnMount: boolean = false) => {
     try {
       const inboxState = await client.inboxState(true);
       setInboxId(inboxState.inboxId);
-      setAccountAddresses(inboxState.accountAddresses);
-      setRecoveryAddress(inboxState.recoveryAddress);
+      setAccountIdentifiers(inboxState.accountIdentifiers);
+      setRecoveryIdentifier(inboxState.recoveryIdentifier);
       const installations = inboxState.installations.filter(
         (installation) => installation.id !== client.installationId,
       );
@@ -67,10 +70,10 @@ export const useIdentity = (syncOnMount: boolean = false) => {
   };
 
   return {
-    accountAddresses,
+    accountIdentifiers,
     inboxId,
     installations,
-    recoveryAddress,
+    recoveryIdentifier,
     revokeAllOtherInstallations,
     revokeInstallation,
     revoking,

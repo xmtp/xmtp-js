@@ -1,4 +1,5 @@
-import { Burger, Button, Flex } from "@mantine/core";
+import { Burger, Button, Flex, Skeleton } from "@mantine/core";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { shortAddress } from "@/helpers/address";
 import { useClient } from "@/hooks/useClient";
@@ -19,6 +20,28 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const { client } = useClient();
   const navigate = useNavigate();
+  const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
+    null,
+  );
+  const [isLoadingIdentifier, setIsLoadingIdentifier] = useState(false);
+
+  useEffect(() => {
+    const fetchAccountIdentifier = async () => {
+      if (!client) return;
+
+      setIsLoadingIdentifier(true);
+      try {
+        const identifier = await client.accountIdentifier();
+        setAccountIdentifier(identifier.identifier.toLowerCase());
+      } catch (error) {
+        console.error("Failed to fetch account identifier:", error);
+      } finally {
+        setIsLoadingIdentifier(false);
+      }
+    };
+
+    void fetchAccountIdentifier();
+  }, [client]);
 
   const handleClick = () => {
     void navigate("/identity");
@@ -31,15 +54,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
         )}
         <Flex align="center" flex={1}>
-          {client && (
-            <Button
-              variant="default"
-              aria-label={client.accountAddress}
-              className={classes.button}
-              onClick={handleClick}>
-              {shortAddress(client.accountAddress)}
-            </Button>
-          )}
+          {client &&
+            (isLoadingIdentifier ? (
+              <Skeleton height={36} width={120} radius="sm" />
+            ) : (
+              <Button
+                variant="default"
+                aria-label={accountIdentifier || ""}
+                className={classes.button}
+                onClick={handleClick}>
+                {accountIdentifier ? shortAddress(accountIdentifier) : "..."}
+              </Button>
+            ))}
         </Flex>
       </Flex>
       <Flex align="center" justify="space-between" gap="xs" p="md" flex={1}>

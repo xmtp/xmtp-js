@@ -88,8 +88,11 @@ export const useConversations = () => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newGroup(
-        members,
+      const conversation = await client.conversations.newGroupWithIdentifiers(
+        members.map((member) => ({
+          identifier: member.toLowerCase(),
+          identifierKind: "Ethereum",
+        })),
         options,
       );
       return conversation;
@@ -106,7 +109,10 @@ export const useConversations = () => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newDm(member);
+      const conversation = await client.conversations.newDmWithIdentifier({
+        identifier: member.toLowerCase(),
+        identifierKind: "Ethereum",
+      });
       return conversation;
     } finally {
       setLoading(false);
