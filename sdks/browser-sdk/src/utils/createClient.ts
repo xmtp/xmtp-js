@@ -2,6 +2,7 @@ import {
   createClient as createWasmClient,
   generateInboxId,
   getInboxIdForIdentifier,
+  LogOptions,
   type Identifier,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
@@ -35,11 +36,11 @@ export const createClient = async (
     encryptionKey,
     historySyncUrl,
     isLogging
-      ? {
-          structured: options.structuredLogging ?? false,
-          performance: options.performanceLogging ?? false,
-          level: options.loggingLevel,
-        }
+      ? new LogOptions(
+          options.structuredLogging ?? false,
+          options.performanceLogging ?? false,
+          options.loggingLevel,
+        )
       : undefined,
   );
 };
