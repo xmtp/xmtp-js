@@ -5,7 +5,11 @@ import { privateKeyToAccount } from "viem/accounts";
 export const createEphemeralSigner = (privateKey: Hex): Signer => {
   const account = privateKeyToAccount(privateKey);
   return {
-    getAddress: () => account.address,
+    type: "EOA",
+    getIdentifier: () => ({
+      identifier: account.address,
+      identifierKind: "Ethereum",
+    }),
     signMessage: async (message: string) => {
       const signature = await account.signMessage({
         message,
@@ -20,7 +24,11 @@ export const createSigner = (
   walletClient: WalletClient,
 ): Signer => {
   return {
-    getAddress: () => address,
+    type: "EOA",
+    getIdentifier: () => ({
+      identifier: address,
+      identifierKind: "Ethereum",
+    }),
     signMessage: async (message: string) => {
       const signature = await walletClient.signMessage({
         account: address,
