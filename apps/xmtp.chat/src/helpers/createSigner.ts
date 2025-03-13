@@ -7,7 +7,7 @@ export const createEphemeralSigner = (privateKey: Hex): Signer => {
   return {
     type: "EOA",
     getIdentifier: () => ({
-      identifier: account.address,
+      identifier: account.address.toLowerCase(),
       identifierKind: "Ethereum",
     }),
     signMessage: async (message: string) => {
@@ -26,7 +26,7 @@ export const createSigner = (
   return {
     type: "EOA",
     getIdentifier: () => ({
-      identifier: address,
+      identifier: address.toLowerCase(),
       identifierKind: "Ethereum",
     }),
     signMessage: async (message: string) => {
