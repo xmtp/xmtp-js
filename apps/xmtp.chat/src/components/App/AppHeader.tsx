@@ -1,8 +1,8 @@
 import { Burger, Button, Flex, Skeleton } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/address";
-import { useClient } from "@/hooks/useClient";
 import { Actions } from "./Actions";
 import classes from "./AppHeader.module.css";
 import { Connection } from "./Connection";
@@ -18,7 +18,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   opened,
   toggle,
 }) => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   const navigate = useNavigate();
   const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
     null,

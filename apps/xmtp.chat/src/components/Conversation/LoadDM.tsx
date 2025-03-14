@@ -6,8 +6,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useAppState } from "@/contexts/AppState";
 import { useRefManager } from "@/contexts/RefManager";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { useBodyClass } from "@/hooks/useBodyClass";
-import { useClient } from "@/hooks/useClient";
 
 export const LoadDM: React.FC = () => {
   useBodyClass("main-flex-layout");
@@ -23,7 +23,7 @@ export const LoadDM: React.FC = () => {
   });
   const { address } = useParams();
   const [searchParams] = useSearchParams();
-  const { client } = useClient();
+  const { client } = useXMTP();
   const navigate = useNavigate();
 
   useEffect(() => {

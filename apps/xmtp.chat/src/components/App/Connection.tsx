@@ -9,14 +9,14 @@ import { useConnect, useDisconnect, useWalletClient } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { Settings } from "@/components/Settings/Settings";
 import { useRefManager } from "@/contexts/RefManager";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { createEphemeralSigner, createSigner } from "@/helpers/createSigner";
-import { useClient } from "@/hooks/useClient";
 import { IconLogout } from "@/icons/IconLogout";
 import { IconUser } from "@/icons/IconUser";
 
 export const Disconnect: React.FC = () => {
   const { disconnect } = useDisconnect();
-  const { disconnect: disconnectClient } = useClient();
+  const { disconnect: disconnectClient } = useXMTP();
   const label: React.ReactNode = useMatches({
     base: <IconLogout size={24} />,
     sm: "Disconnect",
@@ -43,7 +43,7 @@ export const Disconnect: React.FC = () => {
 export const Connect: React.FC = () => {
   const { setRef } = useRefManager();
   const ref = useRef<HTMLButtonElement>(null);
-  const { initialize, initializing } = useClient();
+  const { initialize, initializing } = useXMTP();
   const [encryptionKey] = useLocalStorage({
     key: "XMTP_ENCRYPTION_KEY",
     defaultValue: uint8ArrayToHex(crypto.getRandomValues(new Uint8Array(32))),
@@ -125,7 +125,7 @@ export const Connect: React.FC = () => {
 };
 
 export const Connection: React.FC = () => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   return (
     <Flex align="center" gap="xs" ml="auto">
       {!client && <Connect />}

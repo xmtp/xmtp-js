@@ -2,11 +2,11 @@ import { Flex, NativeSelect, Text, Tooltip } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { ApiUrls, type XmtpEnv } from "@xmtp/browser-sdk";
 import { useDisconnect } from "wagmi";
-import { useClient } from "@/hooks/useClient";
+import { useXMTP } from "@/contexts/XMTPContext";
 
 export const NetworkSelect: React.FC = () => {
   const { disconnect } = useDisconnect();
-  const { disconnect: disconnectClient } = useClient();
+  const { disconnect: disconnectClient } = useXMTP();
   const [network, setNetwork] = useLocalStorage<XmtpEnv>({
     key: "XMTP_NETWORK",
     defaultValue: "dev",

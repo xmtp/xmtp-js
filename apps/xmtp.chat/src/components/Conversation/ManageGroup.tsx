@@ -27,9 +27,9 @@ import {
 } from "@xmtp/browser-sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { isValidLongWalletAddress } from "@/helpers/address";
 import { useBodyClass } from "@/hooks/useBodyClass";
-import { useClient } from "@/hooks/useClient";
 import { BadgeWithCopy } from "../BadgeWithCopy";
 
 type AnyFn = (...args: unknown[]) => unknown;
@@ -66,7 +66,7 @@ export type ManageGroupProps = {
 
 export const ManageGroup: React.FC<ManageGroupProps> = ({ group }) => {
   useBodyClass("main-flex-layout");
-  const { client } = useClient();
+  const { client } = useXMTP();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [address, setAddress] = useState("");

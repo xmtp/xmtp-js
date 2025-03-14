@@ -1,9 +1,9 @@
 import type { Identifier, SafeInstallation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
-import { useClient } from "./useClient";
+import { useXMTP } from "@/contexts/XMTPContext";
 
 export const useIdentity = (syncOnMount: boolean = false) => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   const [syncing, setSyncing] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [inboxId, setInboxId] = useState<string | null>(null);

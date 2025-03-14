@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router";
-import { useClient } from "@/hooks/useClient";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { useDelayedEffect } from "@/hooks/useDelayedEffect";
 
 export const useRedirects = () => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   const navigate = useNavigate();
 
   useDelayedEffect(
@@ -21,7 +21,7 @@ export const useRedirects = () => {
         void navigate("/conversations");
       }
     },
-    1000,
+    500,
     [location.pathname, client, navigate],
   );
 };
