@@ -1,5 +1,10 @@
 # @xmtp/node-sdk
 
+## 1.0.0-rc2
+
+- Renamed `newGroupByIdentifiers` to `newGroupWithIdentifiers`
+- Renamed `newDmByIdentifier` to `newDmWithIdentifier`
+
 ## 1.0.0-rc1
 
 - Updated `Signer` type
