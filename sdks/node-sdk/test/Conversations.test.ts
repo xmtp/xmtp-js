@@ -227,6 +227,26 @@ describe.concurrent("Conversations", () => {
     expect(dm4!.id).toBe(group3.id);
   });
 
+  it("should create groups with identifiers", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const user3 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const signer3 = createSigner(user3);
+    const client1 = await createRegisteredClient(signer1);
+    await createRegisteredClient(signer2);
+    await createRegisteredClient(signer3);
+    const group = await client1.conversations.newGroupWithIdentifiers([
+      await signer2.getIdentifier(),
+    ]);
+    expect(group).toBeDefined();
+    const dm = await client1.conversations.newDmWithIdentifier(
+      await signer3.getIdentifier(),
+    );
+    expect(dm).toBeDefined();
+  });
+
   it("should get a group by ID", async () => {
     const user1 = createUser();
     const user2 = createUser();
