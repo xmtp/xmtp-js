@@ -2,11 +2,11 @@ import { Button, Flex, useMatches } from "@mantine/core";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useRefManager } from "@/contexts/RefManager";
-import { useClient } from "@/hooks/useClient";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { IconMessagePlus } from "@/icons/IconMessagePlus";
 
 export const Actions: React.FC = () => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   const navigate = useNavigate();
   const { setRef } = useRefManager();
   const ref = useRef<HTMLButtonElement>(null);

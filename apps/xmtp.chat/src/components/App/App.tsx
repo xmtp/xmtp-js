@@ -8,9 +8,9 @@ import { AppFooter } from "@/components/App/AppFooter";
 import { AppHeader } from "@/components/App/AppHeader";
 import { ErrorModal } from "@/components/App/ErrorModal";
 import { useAppState } from "@/contexts/AppState";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { createEphemeralSigner } from "@/helpers/createSigner";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { useClient } from "@/hooks/useClient";
 import { useRedirects } from "@/hooks/useRedirects";
 import { Main } from "@/routes/Main";
 import { Navbar } from "@/routes/Navbar";
@@ -20,7 +20,7 @@ export const App: React.FC = () => {
   useRedirects();
   useAnalytics();
   const [opened, { toggle }] = useDisclosure();
-  const { initialize, initializing } = useClient();
+  const { initialize, initializing } = useXMTP();
   const [env] = useLocalStorage<XmtpEnv>({
     key: "XMTP_NETWORK",
     defaultValue: "dev",

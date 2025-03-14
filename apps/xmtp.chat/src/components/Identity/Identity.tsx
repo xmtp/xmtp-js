@@ -13,15 +13,15 @@ import {
 import { useEffect, useState } from "react";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { useAppState } from "@/contexts/AppState";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { useBodyClass } from "@/hooks/useBodyClass";
-import { useClient } from "@/hooks/useClient";
 import { useIdentity } from "@/hooks/useIdentity";
 import { InstallationTable } from "./InstallationTable";
 
 export const Identity: React.FC = () => {
   useBodyClass("main-flex-layout");
   const { setNavbar } = useAppState();
-  const { client } = useClient();
+  const { client } = useXMTP();
   const {
     installations,
     revokeAllOtherInstallations,

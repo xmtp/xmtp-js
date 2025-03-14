@@ -2,9 +2,9 @@ import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { intlFormat } from "date-fns";
 import { useNavigate } from "react-router";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
-import { useClient } from "@/hooks/useClient";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
 
@@ -13,7 +13,7 @@ export type MessageProps = {
 };
 
 export const Message: React.FC<MessageProps> = ({ message }) => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   const isSender = client?.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
   const navigate = useNavigate();

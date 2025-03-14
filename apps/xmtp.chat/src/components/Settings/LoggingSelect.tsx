@@ -2,11 +2,11 @@ import { Flex, NativeSelect, Text } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { type ClientOptions } from "@xmtp/browser-sdk";
 import { useDisconnect } from "wagmi";
-import { useClient } from "@/hooks/useClient";
+import { useXMTP } from "@/contexts/XMTPContext";
 
 export const LoggingSelect: React.FC = () => {
   const { disconnect } = useDisconnect();
-  const { disconnect: disconnectClient } = useClient();
+  const { disconnect: disconnectClient } = useXMTP();
   const [logging, setLogging] = useLocalStorage<ClientOptions["loggingLevel"]>({
     key: "XMTP_LOGGING_LEVEL",
     defaultValue: "off",
