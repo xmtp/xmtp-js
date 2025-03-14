@@ -62,7 +62,7 @@ export class Conversations {
     }
   }
 
-  async newGroupByIdentifiers(
+  async newGroupWithIdentifiers(
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
@@ -80,7 +80,7 @@ export class Conversations {
     return conversation;
   }
 
-  async newDmByIdentifier(identifier: Identifier, options?: CreateDmOptions) {
+  async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
     const group = await this.#conversations.createDm(identifier, options);
     const conversation = new Dm(this.#client, group);
     return conversation;
