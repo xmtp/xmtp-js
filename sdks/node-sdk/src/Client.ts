@@ -21,8 +21,6 @@ import {
   LogLevel,
   SignatureRequestType,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
-  type Consent,
-  type ConsentEntityType,
   type Identifier,
   type LogOptions,
   type Message,
@@ -31,6 +29,7 @@ import {
 import { Conversations } from "@/Conversations";
 import { type Signer } from "@/helpers/signer";
 import { version } from "@/helpers/version";
+import { Preferences } from "@/Preferences";
 
 export const ApiUrls = {
   local: "http://localhost:5556",
@@ -106,12 +105,15 @@ export type ClientOptions = NetworkOptions &
 export class Client {
   #innerClient: NodeClient;
   #conversations: Conversations;
+  #preferences: Preferences;
   #signer: Signer;
   #codecs: Map<string, ContentCodec>;
 
   constructor(client: NodeClient, signer: Signer, codecs: ContentCodec[]) {
     this.#innerClient = client;
-    this.#conversations = new Conversations(this, client.conversations());
+    const conversations = client.conversations();
+    this.#conversations = new Conversations(this, conversations);
+    this.#preferences = new Preferences(client, conversations);
     this.#signer = signer;
     this.#codecs = new Map(
       codecs.map((codec) => [codec.contentType.toString(), codec]),
@@ -179,6 +181,14 @@ export class Client {
 
   get isRegistered() {
     return this.#innerClient.isRegistered();
+  }
+
+  get conversations() {
+    return this.#conversations;
+  }
+
+  get preferences() {
+    return this.#preferences;
   }
 
   /**
@@ -466,10 +476,6 @@ export class Client {
     return client.canMessage(identifiers);
   }
 
-  get conversations() {
-    return this.#conversations;
-  }
-
   codecFor(contentType: ContentTypeId) {
     return this.#codecs.get(contentType.toString());
   }
@@ -511,32 +517,6 @@ export class Client {
 
   async getInboxIdByIdentifier(identifier: Identifier) {
     return this.#innerClient.findInboxIdByIdentifier(identifier);
-  }
-
-  async inboxState(refreshFromNetwork: boolean = false) {
-    return this.#innerClient.inboxState(refreshFromNetwork);
-  }
-
-  async getLatestInboxState(inboxId: string) {
-    return this.#innerClient.getLatestInboxState(inboxId);
-  }
-
-  async inboxStateFromInboxIds(
-    inboxIds: string[],
-    refreshFromNetwork?: boolean,
-  ) {
-    return this.#innerClient.addressesFromInboxId(
-      refreshFromNetwork ?? false,
-      inboxIds,
-    );
-  }
-
-  async setConsentStates(consentStates: Consent[]) {
-    return this.#innerClient.setConsentStates(consentStates);
-  }
-
-  async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.#innerClient.getConsentState(entityType, entity);
   }
 
   signWithInstallationKey(signatureText: string) {
