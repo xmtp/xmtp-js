@@ -1,5 +1,19 @@
 # @xmtp/node-sdk
 
+## 1.0.0
+
+### Major Changes
+
+- Updated `Signer` type
+- Replaced address parameters with inbox IDs or identifiers
+- Added new methods to use with identifiers
+- Added `pausedForVersion` to `Conversation`
+- Added new `Preferences` class accessible from `client.preferences`
+- Renamed `newGroupByIdentifiers` to `newGroupWithIdentifiers`
+- Renamed `newDmByIdentifier` to `newDmWithIdentifier`
+- Updated exports
+- Improved DM group stitching
+
 ## 1.0.0-rc2
 
 - Renamed `newGroupByIdentifiers` to `newGroupWithIdentifiers`
