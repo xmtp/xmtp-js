@@ -722,6 +722,37 @@ describe.concurrent("Conversations", () => {
     expect(convos2Ids).toContain(group2.id);
   });
 
+  it("should stitch DM groups together", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const dm1 = await client1.conversations.newDm(client2.inboxId);
+    const dm2 = await client2.conversations.newDm(client1.inboxId);
+
+    await dm1.send("hi");
+    // since this is the last message sent, the stitched group ID will be
+    // this group ID
+    await dm2.send("hi");
+
+    await client1.conversations.sync();
+    await client2.conversations.sync();
+    await dm1.sync();
+    await dm2.sync();
+
+    const dm1_2 = await client1.conversations.getConversationById(dm1.id);
+    const dm2_2 = await client2.conversations.getConversationById(dm2.id);
+    expect(dm1_2?.id).toBe(dm2.id);
+    expect(dm2_2?.id).toBe(dm2.id);
+
+    const dms1 = client1.conversations.listDms();
+    const dms2 = client2.conversations.listDms();
+    expect(dms1[0].id).toBe(dm2.id);
+    expect(dms2[0].id).toBe(dm2.id);
+  });
+
   it("should stream consent updates", async () => {
     const user = createUser();
     const user2 = createUser();
