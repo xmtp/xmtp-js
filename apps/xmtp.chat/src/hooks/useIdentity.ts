@@ -28,7 +28,7 @@ export const useIdentity = (syncOnMount: boolean = false) => {
     setSyncing(true);
 
     try {
-      const inboxState = await client.inboxState(true);
+      const inboxState = await client.preferences.inboxState(true);
       setInboxId(inboxState.inboxId);
       setAccountIdentifiers(inboxState.accountIdentifiers);
       setRecoveryIdentifier(inboxState.recoveryIdentifier);
