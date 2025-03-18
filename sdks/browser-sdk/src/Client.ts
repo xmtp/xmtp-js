@@ -10,16 +10,15 @@ import { TextCodec } from "@xmtp/content-type-text";
 import {
   GroupMessageKind,
   SignatureRequestType,
-  type ConsentEntityType,
   type Identifier,
 } from "@xmtp/wasm-bindings";
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
+import { Preferences } from "@/Preferences";
 import type { ClientOptions, XmtpEnv } from "@/types";
 import {
   fromSafeEncodedContent,
   toSafeEncodedContent,
-  type SafeConsent,
   type SafeMessage,
 } from "@/utils/conversions";
 import { type Signer } from "@/utils/signer";
@@ -32,6 +31,7 @@ export class Client extends ClientWorkerClass {
   #installationId: string | undefined;
   #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
+  #preferences: Preferences;
   #signer: Signer;
   options?: ClientOptions;
 
@@ -51,6 +51,7 @@ export class Client extends ClientWorkerClass {
     this.#encryptionKey = encryptionKey;
     this.#signer = signer;
     this.#conversations = new Conversations(this);
+    this.#preferences = new Preferences(this);
     const codecs = [
       new GroupUpdatedCodec(),
       new TextCodec(),
@@ -107,6 +108,14 @@ export class Client extends ClientWorkerClass {
 
   get installationIdBytes() {
     return this.#installationIdBytes;
+  }
+
+  get conversations() {
+    return this.#conversations;
+  }
+
+  get preferences() {
+    return this.#preferences;
   }
 
   /**
@@ -374,28 +383,6 @@ export class Client extends ClientWorkerClass {
 
   async findInboxIdByIdentifier(identifier: Identifier) {
     return this.sendMessage("findInboxIdByIdentifier", { identifier });
-  }
-
-  async inboxState(refreshFromNetwork?: boolean) {
-    return this.sendMessage("inboxState", {
-      refreshFromNetwork: refreshFromNetwork ?? false,
-    });
-  }
-
-  async getLatestInboxState(inboxId: string) {
-    return this.sendMessage("getLatestInboxState", { inboxId });
-  }
-
-  async setConsentStates(records: SafeConsent[]) {
-    return this.sendMessage("setConsentStates", { records });
-  }
-
-  async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.sendMessage("getConsentState", { entityType, entity });
-  }
-
-  get conversations() {
-    return this.#conversations;
   }
 
   codecFor(contentType: ContentTypeId) {

@@ -1,23 +1,24 @@
 import {
   verifySignedWithPublicKey,
   type Client,
-  type ConsentEntityType,
   type Identifier,
   type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types";
-import { fromSafeConsent, type SafeConsent } from "@/utils/conversions";
 import { createClient } from "@/utils/createClient";
 import { WorkerConversations } from "@/WorkerConversations";
+import { WorkerPreferences } from "@/WorkerPreferences";
 
 export class WorkerClient {
   #client: Client;
-
   #conversations: WorkerConversations;
+  #preferences: WorkerPreferences;
 
   constructor(client: Client) {
     this.#client = client;
-    this.#conversations = new WorkerConversations(this, client.conversations());
+    const conversations = client.conversations();
+    this.#conversations = new WorkerConversations(this, conversations);
+    this.#preferences = new WorkerPreferences(client, conversations);
   }
 
   static async create(
@@ -47,6 +48,14 @@ export class WorkerClient {
 
   get isRegistered() {
     return this.#client.isRegistered;
+  }
+
+  get conversations() {
+    return this.#conversations;
+  }
+
+  get preferences() {
+    return this.#preferences;
   }
 
   createInboxSignatureText() {
@@ -120,26 +129,6 @@ export class WorkerClient {
 
   async findInboxIdByIdentifier(identifier: Identifier) {
     return this.#client.findInboxIdByIdentifier(identifier);
-  }
-
-  async inboxState(refreshFromNetwork: boolean) {
-    return this.#client.inboxState(refreshFromNetwork);
-  }
-
-  async getLatestInboxState(inboxId: string) {
-    return this.#client.getLatestInboxState(inboxId);
-  }
-
-  async setConsentStates(records: SafeConsent[]) {
-    return this.#client.setConsentStates(records.map(fromSafeConsent));
-  }
-
-  async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.#client.getConsentState(entityType, entity);
-  }
-
-  get conversations() {
-    return this.#conversations;
   }
 
   signWithInstallationKey(signatureText: string) {

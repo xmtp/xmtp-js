@@ -194,24 +194,28 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         break;
       }
       case "inboxState": {
-        const inboxState = await client.inboxState(data.refreshFromNetwork);
+        const inboxState = await client.preferences.inboxState(
+          data.refreshFromNetwork,
+        );
         const result = toSafeInboxState(inboxState);
         postMessage({ id, action, result });
         break;
       }
       case "getLatestInboxState": {
-        const inboxState = await client.getLatestInboxState(data.inboxId);
+        const inboxState = await client.preferences.getLatestInboxState(
+          data.inboxId,
+        );
         const result = toSafeInboxState(inboxState);
         postMessage({ id, action, result });
         break;
       }
       case "setConsentStates": {
-        await client.setConsentStates(data.records);
+        await client.preferences.setConsentStates(data.records);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "getConsentState": {
-        const result = await client.getConsentState(
+        const result = await client.preferences.getConsentState(
           data.entityType,
           data.entity,
         );
@@ -325,7 +329,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             });
           }
         };
-        const streamCloser = client.conversations.streamConsent(streamCallback);
+        const streamCloser = client.preferences.streamConsent(streamCallback);
         streamClosers.set(data.streamId, streamCloser);
         postMessage({
           id,
@@ -354,7 +358,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           }
         };
         const streamCloser =
-          client.conversations.streamPreferences(streamCallback);
+          client.preferences.streamPreferences(streamCallback);
         streamClosers.set(data.streamId, streamCloser);
         postMessage({
           id,
