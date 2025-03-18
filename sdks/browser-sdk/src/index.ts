@@ -41,6 +41,7 @@ export {
   Message,
   MessageDisappearingSettings,
   MetadataField,
+  Opfs,
   PermissionLevel,
   PermissionPolicy,
   PermissionPolicySet,
