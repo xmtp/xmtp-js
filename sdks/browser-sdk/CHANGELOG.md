@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 1.1.0
+
+### Minor Changes
+
+- 999bb78: Added `inboxStateFromInboxIds` to `Preferences`
+
 ## 1.0.0
 
 ### Major Changes
