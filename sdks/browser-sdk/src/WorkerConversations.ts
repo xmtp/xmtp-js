@@ -4,6 +4,7 @@ import {
   type Conversation,
   type ConversationListItem,
   type Conversations,
+  type Identifier,
   type Message,
 } from "@xmtp/wasm-bindings";
 import type { StreamCallback } from "@/AsyncStream";
@@ -94,18 +95,18 @@ export class WorkerConversations {
     );
   }
 
-  async newGroup(accountAddresses: string[], options?: SafeCreateGroupOptions) {
+  async newGroupWithIdentifiers(
+    identifiers: Identifier[],
+    options?: SafeCreateGroupOptions,
+  ) {
     const group = await this.#conversations.createGroup(
-      accountAddresses,
+      identifiers,
       options ? fromSafeCreateGroupOptions(options) : undefined,
     );
     return new WorkerConversation(this.#client, group);
   }
 
-  async newGroupByInboxIds(
-    inboxIds: string[],
-    options?: SafeCreateGroupOptions,
-  ) {
+  async newGroup(inboxIds: string[], options?: SafeCreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxIds(
       inboxIds,
       options ? fromSafeCreateGroupOptions(options) : undefined,
@@ -113,15 +114,18 @@ export class WorkerConversations {
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDm(accountAddress: string, options?: SafeCreateDmOptions) {
+  async newDmWithIdentifier(
+    identifier: Identifier,
+    options?: SafeCreateDmOptions,
+  ) {
     const group = await this.#conversations.createDm(
-      accountAddress,
+      identifier,
       options ? fromSafeCreateDmOptions(options) : undefined,
     );
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDmByInboxId(inboxId: string, options?: SafeCreateDmOptions) {
+  async newDm(inboxId: string, options?: SafeCreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(
       inboxId,
       options ? fromSafeCreateDmOptions(options) : undefined,

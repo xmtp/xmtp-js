@@ -2,6 +2,7 @@ import type {
   ConsentEntityType,
   ConsentState,
   ConversationType,
+  Identifier,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
@@ -56,7 +57,7 @@ export type ClientEvents =
         installationIdBytes: Uint8Array;
       };
       data: {
-        address: string;
+        identifier: Identifier;
         encryptionKey: Uint8Array;
         options?: ClientOptions;
       };
@@ -72,7 +73,7 @@ export type ClientEvents =
       id: string;
       result: string | undefined;
       data: {
-        newAccountAddress: string;
+        newIdentifier: Identifier;
       };
     }
   | {
@@ -80,7 +81,7 @@ export type ClientEvents =
       id: string;
       result: string | undefined;
       data: {
-        accountAddress: string;
+        identifier: Identifier;
       };
     }
   | {
@@ -98,7 +99,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "addSignature";
+      action: "addEcdsaSignature";
       id: string;
       result: undefined;
       data: {
@@ -140,7 +141,7 @@ export type ClientEvents =
       id: string;
       result: Map<string, boolean>;
       data: {
-        accountAddresses: string[];
+        identifiers: Identifier[];
       };
     }
   | {
@@ -148,6 +149,15 @@ export type ClientEvents =
       id: string;
       result: SafeInboxState;
       data: {
+        refreshFromNetwork: boolean;
+      };
+    }
+  | {
+      action: "inboxStateFromInboxIds";
+      id: string;
+      result: SafeInboxState[];
+      data: {
+        inboxIds: string[];
         refreshFromNetwork: boolean;
       };
     }
@@ -177,11 +187,11 @@ export type ClientEvents =
       };
     }
   | {
-      action: "findInboxIdByAddress";
+      action: "findInboxIdByIdentifier";
       id: string;
       result: string | undefined;
       data: {
-        address: string;
+        identifier: Identifier;
       };
     }
   | {
@@ -263,16 +273,16 @@ export type ClientEvents =
       };
     }
   | {
-      action: "newGroup";
+      action: "newGroupWithIdentifiers";
       id: string;
       result: SafeConversation;
       data: {
-        accountAddresses: string[];
+        identifiers: Identifier[];
         options?: SafeCreateGroupOptions;
       };
     }
   | {
-      action: "newGroupByInboxIds";
+      action: "newGroupWithInboxIds";
       id: string;
       result: SafeConversation;
       data: {
@@ -281,16 +291,16 @@ export type ClientEvents =
       };
     }
   | {
-      action: "newDm";
+      action: "newDmWithIdentifier";
       id: string;
       result: SafeConversation;
       data: {
-        accountAddress: string;
+        identifier: Identifier;
         options?: SafeCreateDmOptions;
       };
     }
   | {
-      action: "newDmByInboxId";
+      action: "newDmWithInboxId";
       id: string;
       result: SafeConversation;
       data: {
@@ -334,6 +344,22 @@ export type ClientEvents =
       data: {
         streamId: string;
         conversationType?: ConversationType;
+      };
+    }
+  | {
+      action: "streamConsent";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+      };
+    }
+  | {
+      action: "streamPreferences";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
       };
     }
   /**
@@ -430,7 +456,7 @@ export type ClientEvents =
       result: undefined;
       data: {
         id: string;
-        accountAddresses: string[];
+        identifiers: Identifier[];
       };
     }
   | {
@@ -439,7 +465,7 @@ export type ClientEvents =
       result: undefined;
       data: {
         id: string;
-        accountAddresses: string[];
+        identifiers: Identifier[];
       };
     }
   | {
@@ -606,6 +632,14 @@ export type ClientEvents =
       data: {
         groupId: string;
         streamId: string;
+      };
+    }
+  | {
+      action: "getGroupPausedForVersion";
+      id: string;
+      result: string | undefined;
+      data: {
+        id: string;
       };
     };
 

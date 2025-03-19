@@ -1,5 +1,53 @@
 # @xmtp/browser-sdk
 
+## 1.1.0
+
+### Minor Changes
+
+- 999bb78: Added `inboxStateFromInboxIds` to `Preferences`
+
+## 1.0.0
+
+### Major Changes
+
+- Updated `Signer` type
+- Replaced address parameters with inbox IDs or identifiers
+- Added new methods to use with identifiers
+- Added `pausedForVersion` to `Conversation`
+- Added new `Preferences` class accessible from `client.preferences`
+- Updated exports
+- Improved DM group stitching
+
+## 1.0.0-rc1
+
+- Updated `Signer` type
+- Replaced address parameters with inbox IDs or identifiers
+- Added new methods to use with identifiers
+- Added `pausedForVersion` to `Conversation`
+- Updated exports
+
+## 0.0.23
+
+### Patch Changes
+
+- dd1a33a: Fixed stream errors
+
+## 0.0.22
+
+### Patch Changes
+
+- 3cf6dd9:
+  - Exposed all client signature methods
+  - Added guard to `Client.addAccount` to prevent automatic reassignment of inboxes
+  - Renamed `syncAdmins` to `listAdmins` and `syncSuperAdmins` to `listSuperAdmins`
+  - Added consent and preference streaming
+  - Removed `allowedStates`, `conversationType`, and `includeSyncGroups` from `ListConversationsOptions`
+  - Added `contentTypes` option to `ListMessagesOptions`
+  - Changed OPFS VFS to SyncAccessHandle Pool
+  - Added more exports from the bindings
+  - Added `Group` and `Dm` classes
+  - Refactored some functions to use the new `Group` and `Dm` classes
+
 ## 0.0.21
 
 ### Patch Changes

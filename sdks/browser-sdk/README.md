@@ -9,62 +9,11 @@ To learn more about XMTP and get answers to frequently asked questions, see theÂ
 > [!CAUTION]
 > This SDK is in beta status and ready for you to build with in production. Software in this status may change based on feedback.
 
-## Requirements
+## Limitations
 
-### Response headers
+This SDK uses the [origin private file system](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) (OPFS) to persist a SQLite database and the [SyncAccessHandle Pool VFS](https://sqlite.org/wasm/doc/trunk/persistence.md#vfs-opfs-sahpool) to access it. This VFS does not support multiple simultaneous connections.
 
-Server response headers must be set to the following values:
-
-- `Cross-Origin-Embedder-Policy: require-corp`
-- `Cross-Origin-Opener-Policy: same-origin`
-
-#### Vite
-
-Add the following to `vite.config.ts`:
-
-```typescript
-import { defineConfig } from "vite";
-
-export default defineConfig({
-  server: {
-    headers: {
-      "Cross-Origin-Embedder-Policy": "require-corp",
-      "Cross-Origin-Opener-Policy": "same-origin",
-    },
-  },
-});
-```
-
-#### Next.js
-
-Add the following to `next.config.ts`:
-
-```typescript
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  async headers() {
-    return [
-      {
-        // adjust ":path*" as needed
-        source: "/:path*",
-        headers: [
-          {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
-          },
-          {
-            key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
-          },
-        ],
-      },
-    ];
-  },
-};
-
-export default nextConfig;
-```
+This means that when using this SDK in your application, you must prevent multiple browser tabs or windows from accessing your application at the same time.
 
 ### Bundlers
 
@@ -79,7 +28,8 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   optimizeDeps: {
-    exclude: ["@xmtp/wasm-bindings"],
+    exclude: ["@xmtp/wasm-bindings", "@xmtp/browser-sdk"],
+    include: ["@xmtp/proto"],
   },
 });
 ```

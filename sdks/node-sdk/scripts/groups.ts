@@ -1,39 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { createWalletClient, http, toBytes } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { sepolia } from "viem/chains";
+import { IdentifierKind } from "@xmtp/node-bindings";
 import { Client } from "@/Client";
-import type { Signer } from "@/helpers/signer";
-
-export const createUser = (key: string) => {
-  const account = privateKeyToAccount(key as `0x${string}`);
-  return {
-    key,
-    account,
-    wallet: createWalletClient({
-      account,
-      chain: sepolia,
-      transport: http(),
-    }),
-  };
-};
-
-type User = ReturnType<typeof createUser>;
-
-export const createSigner = (user: User): Signer => {
-  return {
-    walletType: "EOA",
-    getAddress: () => user.account.address,
-    signMessage: async (message: string) => {
-      const signature = await user.wallet.signMessage({
-        message,
-      });
-      return toBytes(signature);
-    },
-  };
-};
+import { createSigner, createUser, type User } from "@test/helpers";
 
 export const createRegisteredClient = async (user: User, dbPath?: string) => {
   return Client.create(createSigner(user), randomBytes(32), {
@@ -55,14 +25,14 @@ const accounts: Account[] = Object.entries(parsedAccounts).map(
 const primaryAccount = accounts.shift() as Account;
 
 const primaryAccountClient = await createRegisteredClient(
-  createUser(primaryAccount.key),
+  createUser(primaryAccount.key as `0x${string}`),
   "./test.db3",
 );
 
 console.log("Registering accounts...");
 
 for (const a of accounts) {
-  await createRegisteredClient(createUser(a.key));
+  await createRegisteredClient(createUser(a.key as `0x${string}`));
 }
 
 const groups = [];
@@ -72,9 +42,13 @@ console.log("Creating groups...");
 // create a bunch of groups
 while (accounts.length > 200) {
   const groupsAccounts = accounts.splice(0, 4);
-  const group = await primaryAccountClient.conversations.newGroup(
-    groupsAccounts.map((a) => a.address),
-  );
+  const group =
+    await primaryAccountClient.conversations.newGroupWithIdentifiers(
+      groupsAccounts.map((a) => ({
+        identifierKind: IdentifierKind.Ethereum,
+        identifier: a.address,
+      })),
+    );
   groups.push(group);
 }
 
@@ -91,9 +65,10 @@ console.log("Creating DM groups...");
 const dmGroups = [];
 
 while (accounts.length > 0) {
-  const dmGroup = await primaryAccountClient.conversations.newDm(
-    (accounts.pop() as Account).address,
-  );
+  const dmGroup = await primaryAccountClient.conversations.newDmWithIdentifier({
+    identifierKind: IdentifierKind.Ethereum,
+    identifier: (accounts.pop() as Account).address,
+  });
   dmGroups.push(dmGroup);
 }
 

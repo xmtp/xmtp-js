@@ -6,8 +6,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useAppState } from "@/contexts/AppState";
 import { useRefManager } from "@/contexts/RefManager";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { useBodyClass } from "@/hooks/useBodyClass";
-import { useClient } from "@/hooks/useClient";
 
 export const LoadDM: React.FC = () => {
   useBodyClass("main-flex-layout");
@@ -23,7 +23,7 @@ export const LoadDM: React.FC = () => {
   });
   const { address } = useParams();
   const [searchParams] = useSearchParams();
-  const { client } = useClient();
+  const { client } = useXMTP();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,7 +47,10 @@ export const LoadDM: React.FC = () => {
 
       try {
         setMessage("Verifying address...");
-        const inboxId = await client.findInboxIdByAddress(address);
+        const inboxId = await client.findInboxIdByIdentifier({
+          identifier: address.toLowerCase(),
+          identifierKind: "Ethereum",
+        });
         // no inbox ID, redirect to root
 
         if (!inboxId) {
@@ -65,7 +68,10 @@ export const LoadDM: React.FC = () => {
         if (dmId === undefined) {
           // no DM group, create it
           setMessage("Creating new DM...");
-          const dmGroup = await client.conversations.newDm(address);
+          const dmGroup = await client.conversations.newDmWithIdentifier({
+            identifier: address.toLowerCase(),
+            identifierKind: "Ethereum",
+          });
           dmId = dmGroup.id;
           // go to new DM group
         }

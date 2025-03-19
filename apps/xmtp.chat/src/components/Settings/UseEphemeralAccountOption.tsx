@@ -2,7 +2,7 @@ import { Box, Flex, Switch, Text, Tooltip } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import React from "react";
 import { useDisconnect } from "wagmi";
-import { useClient } from "@/hooks/useClient";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { IconInfoCircle } from "@/icons/IconInfoCircle";
 
 const UseEphemeralAccountLabel = () => {
@@ -25,7 +25,7 @@ const UseEphemeralAccountLabel = () => {
 
 export const UseEphemeralAccountOption: React.FC = () => {
   const { disconnect } = useDisconnect();
-  const { disconnect: disconnectClient } = useClient();
+  const { disconnect: disconnectClient } = useXMTP();
   const [checked, setChecked] = useLocalStorage({
     key: "XMTP_USE_EPHEMERAL_ACCOUNT",
     defaultValue: false,

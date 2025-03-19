@@ -13,15 +13,15 @@ import { TextCodec } from "@xmtp/content-type-text";
 import {
   createClient,
   generateInboxId,
-  getInboxIdForAddress,
+  getInboxIdForIdentifier,
   GroupMessageKind,
+  IdentifierKind,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   LogLevel,
   SignatureRequestType,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
-  type Consent,
-  type ConsentEntityType,
+  type Identifier,
   type LogOptions,
   type Message,
   type Client as NodeClient,
@@ -29,6 +29,7 @@ import {
 import { Conversations } from "@/Conversations";
 import { type Signer } from "@/helpers/signer";
 import { version } from "@/helpers/version";
+import { Preferences } from "@/Preferences";
 
 export const ApiUrls = {
   local: "http://localhost:5556",
@@ -104,12 +105,15 @@ export type ClientOptions = NetworkOptions &
 export class Client {
   #innerClient: NodeClient;
   #conversations: Conversations;
+  #preferences: Preferences;
   #signer: Signer;
   #codecs: Map<string, ContentCodec>;
 
   constructor(client: NodeClient, signer: Signer, codecs: ContentCodec[]) {
     this.#innerClient = client;
-    this.#conversations = new Conversations(this, client.conversations());
+    const conversations = client.conversations();
+    this.#conversations = new Conversations(this, conversations);
+    this.#preferences = new Preferences(client, conversations);
     this.#signer = signer;
     this.#codecs = new Map(
       codecs.map((codec) => [codec.contentType.toString(), codec]),
@@ -121,25 +125,19 @@ export class Client {
     encryptionKey: Uint8Array,
     options?: ClientOptions,
   ) {
-    const accountAddress = await signer.getAddress();
     const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
     const isSecure = host.startsWith("https");
+    const identifier = await signer.getIdentifier();
+    const inboxId =
+      (await getInboxIdForIdentifier(host, isSecure, identifier)) ||
+      generateInboxId(identifier);
     const dbPath =
       options?.dbPath ||
-      join(
-        process.cwd(),
-        `xmtp-${options?.env || "dev"}-${accountAddress}.db3`,
-      );
-
-    const inboxId =
-      (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
-      generateInboxId(accountAddress);
-
+      join(process.cwd(), `xmtp-${options?.env || "dev"}-${inboxId}.db3`);
     const logOptions: LogOptions = {
       structured: options?.structuredLogging ?? false,
       level: options?.loggingLevel ?? LogLevel.off,
     };
-
     const historySyncUrl =
       options?.historySyncUrl || HistorySyncUrls[options?.env || "dev"];
 
@@ -149,7 +147,7 @@ export class Client {
         isSecure,
         dbPath,
         inboxId,
-        accountAddress,
+        identifier,
         encryptionKey,
         historySyncUrl,
         logOptions,
@@ -165,8 +163,8 @@ export class Client {
     return client;
   }
 
-  get accountAddress() {
-    return this.#innerClient.accountAddress;
+  get identifier() {
+    return this.#innerClient.accountIdentifier;
   }
 
   get inboxId() {
@@ -185,46 +183,104 @@ export class Client {
     return this.#innerClient.isRegistered();
   }
 
-  async #createInboxSignatureText() {
+  get conversations() {
+    return this.#conversations;
+  }
+
+  get preferences() {
+    return this.#preferences;
+  }
+
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register` function instead.
+   */
+  async unsafe_createInboxSignatureText() {
     try {
       const signatureText = await this.#innerClient.createInboxSignatureText();
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
-  async #addAccountSignatureText(newAccountAddress: string) {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `unsafe_addAccount` function instead.
+   *
+   * The `allowInboxReassign` parameter must be true or this function will
+   * throw an error.
+   */
+  async unsafe_addAccountSignatureText(
+    newAccountIdentifier: Identifier,
+    allowInboxReassign: boolean = false,
+  ) {
+    if (!allowInboxReassign) {
+      throw new Error(
+        "Unable to create add identifier signature text, `allowInboxReassign` must be true",
+      );
+    }
+
     try {
       const signatureText =
-        await this.#innerClient.addWalletSignatureText(newAccountAddress);
+        await this.#innerClient.addIdentifierSignatureText(
+          newAccountIdentifier,
+        );
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
-  async #removeAccountSignatureText(accountAddress: string) {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `removeAccount` function instead.
+   */
+  async unsafe_removeAccountSignatureText(identifier: Identifier) {
     try {
       const signatureText =
-        await this.#innerClient.revokeWalletSignatureText(accountAddress);
+        await this.#innerClient.revokeIdentifierSignatureText(identifier);
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
-  async #revokeAllOtherInstallationsSignatureText() {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `revokeAllOtherInstallations` function
+   * instead.
+   */
+  async unsafe_revokeAllOtherInstallationsSignatureText() {
     try {
       const signatureText =
         await this.#innerClient.revokeAllOtherInstallationsSignatureText();
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
-  async #revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `revokeInstallations` function instead.
+   */
+  async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
     try {
       const signatureText =
         await this.#innerClient.revokeInstallationsSignatureText(
@@ -232,42 +288,64 @@ export class Client {
         );
       return signatureText;
     } catch {
-      return null;
+      return undefined;
     }
   }
 
-  async #addSignature(
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `addAccount`,
+   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
+   * functions instead.
+   */
+  async unsafe_addSignature(
     signatureType: SignatureRequestType,
     signatureText: string,
     signer: Signer,
   ) {
-    const signature = await signer.signMessage(signatureText);
-
-    if (signer.walletType === "SCW") {
-      await this.#innerClient.addScwSignature(
-        signatureType,
-        signature,
-        signer.getChainId(),
-        signer.getBlockNumber?.(),
-      );
-    } else {
-      await this.#innerClient.addSignature(signatureType, signature);
+    switch (signer.type) {
+      case "SCW":
+        await this.#innerClient.addScwSignature(
+          signatureType,
+          await signer.signMessage(signatureText),
+          signer.getChainId(),
+          signer.getBlockNumber?.(),
+        );
+        break;
+      case "EOA":
+        await this.#innerClient.addEcdsaSignature(
+          signatureType,
+          await signer.signMessage(signatureText),
+        );
+        break;
     }
   }
 
-  async #applySignatures() {
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `addAccount`,
+   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
+   * functions instead.
+   */
+  async unsafe_applySignatures() {
     return this.#innerClient.applySignatureRequests();
   }
 
   async register() {
-    const signatureText = await this.#createInboxSignatureText();
+    const signatureText = await this.unsafe_createInboxSignatureText();
 
     // if the signature text is not available, the client is already registered
     if (!signatureText) {
       return;
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.CreateInbox,
       signatureText,
       this.#signer,
@@ -276,44 +354,66 @@ export class Client {
     return this.#innerClient.registerIdentity();
   }
 
-  async addAccount(newAccountSigner: Signer) {
-    const signatureText = await this.#addAccountSignatureText(
-      await newAccountSigner.getAddress(),
+  /**
+   * WARNING: This function should be used with caution. Adding a wallet already
+   * associated with an inboxId will cause the wallet to lose access to
+   * that inbox.
+   *
+   * The `allowInboxReassign` parameter must be true to reassign an inbox
+   * already associated with a different account.
+   */
+  async unsafe_addAccount(
+    newAccountSigner: Signer,
+    allowInboxReassign: boolean = false,
+  ) {
+    // check for existing inbox id
+    const identifier = await newAccountSigner.getIdentifier();
+    const existingInboxId = await this.getInboxIdByIdentifier(identifier);
+
+    if (existingInboxId && !allowInboxReassign) {
+      throw new Error(
+        `Signer address already associated with inbox ${existingInboxId}`,
+      );
+    }
+
+    const signatureText = await this.unsafe_addAccountSignatureText(
+      identifier,
+      true,
     );
 
     if (!signatureText) {
       throw new Error("Unable to generate add account signature text");
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.AddWallet,
       signatureText,
       newAccountSigner,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
-  async removeAccount(accountAddress: string) {
+  async removeAccount(identifier: Identifier) {
     const signatureText =
-      await this.#removeAccountSignatureText(accountAddress);
+      await this.unsafe_removeAccountSignatureText(identifier);
 
     if (!signatureText) {
       throw new Error("Unable to generate remove account signature text");
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.RevokeWallet,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
   async revokeAllOtherInstallations() {
     const signatureText =
-      await this.#revokeAllOtherInstallationsSignatureText();
+      await this.unsafe_revokeAllOtherInstallationsSignatureText();
 
     if (!signatureText) {
       throw new Error(
@@ -321,59 +421,59 @@ export class Client {
       );
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.RevokeInstallations,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
   async revokeInstallations(installationIds: Uint8Array[]) {
     const signatureText =
-      await this.#revokeInstallationsSignatureText(installationIds);
+      await this.unsafe_revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
       throw new Error("Unable to generate revoke installations signature text");
     }
 
-    await this.#addSignature(
+    await this.unsafe_addSignature(
       SignatureRequestType.RevokeInstallations,
       signatureText,
       this.#signer,
     );
 
-    await this.#applySignatures();
+    await this.unsafe_applySignatures();
   }
 
-  async canMessage(accountAddresses: string[]) {
-    const canMessage = await this.#innerClient.canMessage(accountAddresses);
+  async canMessage(identifiers: Identifier[]) {
+    const canMessage = await this.#innerClient.canMessage(identifiers);
     return new Map(Object.entries(canMessage));
   }
 
-  static async canMessage(accountAddresses: string[], env?: XmtpEnv) {
+  static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
     const accountAddress = "0x0000000000000000000000000000000000000000";
     const host = ApiUrls[env || "dev"];
     const isSecure = host.startsWith("https");
+    const identifier: Identifier = {
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: accountAddress,
+    };
     const inboxId =
-      (await getInboxIdForAddress(host, isSecure, accountAddress)) ||
-      generateInboxId(accountAddress);
+      (await getInboxIdForIdentifier(host, isSecure, identifier)) ||
+      generateInboxId(identifier);
     const signer: Signer = {
-      walletType: "EOA",
-      getAddress: () => accountAddress,
+      type: "EOA",
+      getIdentifier: () => identifier,
       signMessage: () => new Uint8Array(),
     };
     const client = new Client(
-      await createClient(host, isSecure, undefined, inboxId, accountAddress),
+      await createClient(host, isSecure, undefined, inboxId, identifier),
       signer,
       [],
     );
-    return client.canMessage(accountAddresses);
-  }
-
-  get conversations() {
-    return this.#conversations;
+    return client.canMessage(identifiers);
   }
 
   codecFor(contentType: ContentTypeId) {
@@ -415,34 +515,8 @@ export class Client {
     return this.#innerClient.sendHistorySyncRequest();
   }
 
-  async getInboxIdByAddress(accountAddress: string) {
-    return this.#innerClient.findInboxIdByAddress(accountAddress);
-  }
-
-  async inboxState(refreshFromNetwork: boolean = false) {
-    return this.#innerClient.inboxState(refreshFromNetwork);
-  }
-
-  async getLatestInboxState(inboxId: string) {
-    return this.#innerClient.getLatestInboxState(inboxId);
-  }
-
-  async inboxStateFromInboxIds(
-    inboxIds: string[],
-    refreshFromNetwork?: boolean,
-  ) {
-    return this.#innerClient.addressesFromInboxId(
-      refreshFromNetwork ?? false,
-      inboxIds,
-    );
-  }
-
-  async setConsentStates(consentStates: Consent[]) {
-    return this.#innerClient.setConsentStates(consentStates);
-  }
-
-  async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.#innerClient.getConsentState(entityType, entity);
+  async getInboxIdByIdentifier(identifier: Identifier) {
+    return this.#innerClient.findInboxIdByIdentifier(identifier);
   }
 
   signWithInstallationKey(signatureText: string) {

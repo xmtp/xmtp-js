@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/node-sdk",
-  "version": "0.0.45",
+  "version": "1.0.0",
   "description": "XMTP Node client SDK for interacting with XMTP networks",
   "keywords": [
     "xmtp",
@@ -53,7 +53,7 @@
     "@xmtp/content-type-group-updated": "^2.0.0",
     "@xmtp/content-type-primitives": "^2.0.0",
     "@xmtp/content-type-text": "^2.0.0",
-    "@xmtp/node-bindings": "^0.0.38",
+    "@xmtp/node-bindings": "^1.0.0",
     "@xmtp/proto": "^3.72.3"
   },
   "devDependencies": {
@@ -64,7 +64,7 @@
     "@xmtp/xmtp-js": "workspace:^",
     "fast-glob": "^3.3.3",
     "rimraf": "^6.0.1",
-    "rollup": "^4.30.1",
+    "rollup": "^4.34.9",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",

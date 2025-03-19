@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { generateInboxId, getInboxIdForAddress } from "@/helpers/inboxId";
-import { createRegisteredClient, createUser } from "@test/helpers";
+import { generateInboxId, getInboxIdForIdentifier } from "@/helpers/inboxId";
+import {
+  createRegisteredClient,
+  createSigner,
+  createUser,
+} from "@test/helpers";
 
 describe("generateInboxId", () => {
-  it("should generate an inbox id", () => {
+  it("should generate an inbox id", async () => {
     const user = createUser();
-    const inboxId = generateInboxId(user.account.address);
+    const signer = createSigner(user);
+    const inboxId = generateInboxId(await signer.getIdentifier());
     expect(inboxId).toBeDefined();
   });
 });
@@ -13,14 +18,22 @@ describe("generateInboxId", () => {
 describe("getInboxIdForAddress", () => {
   it("should return `null` inbox ID for unregistered address", async () => {
     const user = createUser();
-    const inboxId = await getInboxIdForAddress(user.account.address, "local");
+    const signer = createSigner(user);
+    const inboxId = await getInboxIdForIdentifier(
+      await signer.getIdentifier(),
+      "local",
+    );
     expect(inboxId).toBe(null);
   });
 
   it("should return inbox ID for registered address", async () => {
     const user = createUser();
-    const client = await createRegisteredClient(user);
-    const inboxId = await getInboxIdForAddress(user.account.address, "local");
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const inboxId = await getInboxIdForIdentifier(
+      await signer.getIdentifier(),
+      "local",
+    );
     expect(inboxId).toBe(client.inboxId);
   });
 });

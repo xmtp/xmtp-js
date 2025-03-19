@@ -1,28 +1,24 @@
-import init, {
+import {
   createClient as createWasmClient,
   generateInboxId,
-  getInboxIdForAddress,
+  getInboxIdForIdentifier,
   LogOptions,
+  type Identifier,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types";
 
 export const createClient = async (
-  accountAddress: string,
+  identifier: Identifier,
   encryptionKey: Uint8Array,
   options?: Omit<ClientOptions, "codecs">,
 ) => {
-  // initialize WASM module
-  await init();
-
   const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
-  const dbPath =
-    options?.dbPath || `xmtp-${options?.env || "dev"}-${accountAddress}.db3`;
-
   const inboxId =
-    (await getInboxIdForAddress(host, accountAddress)) ||
-    generateInboxId(accountAddress);
-
+    (await getInboxIdForIdentifier(host, identifier)) ||
+    generateInboxId(identifier);
+  const dbPath =
+    options?.dbPath || `xmtp-${options?.env || "dev"}-${inboxId}.db3`;
   const isLogging =
     options &&
     (options.loggingLevel !== undefined ||
@@ -35,7 +31,7 @@ export const createClient = async (
   return createWasmClient(
     host,
     inboxId,
-    accountAddress,
+    identifier,
     dbPath,
     encryptionKey,
     historySyncUrl,

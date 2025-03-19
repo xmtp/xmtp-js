@@ -21,12 +21,6 @@ const vitestConfig = defineVitestConfig({
     },
     testTimeout: 120000,
   },
-  server: {
-    headers: {
-      "Cross-Origin-Embedder-Policy": "require-corp",
-      "Cross-Origin-Opener-Policy": "same-origin",
-    },
-  },
 });
 
 export default mergeConfig(viteConfig, vitestConfig);

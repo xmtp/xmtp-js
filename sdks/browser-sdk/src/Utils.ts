@@ -1,3 +1,4 @@
+import type { Identifier } from "@xmtp/wasm-bindings";
 import type { XmtpEnv } from "@/types/options";
 import { UtilsWorkerClass } from "@/UtilsWorkerClass";
 
@@ -11,16 +12,16 @@ export class Utils extends UtilsWorkerClass {
     this.#enableLogging = enableLogging ?? false;
   }
 
-  async generateInboxId(address: string) {
+  async generateInboxId(identifier: Identifier) {
     return this.sendMessage("generateInboxId", {
-      address,
+      identifier,
       enableLogging: this.#enableLogging,
     });
   }
 
-  async getInboxIdForAddress(address: string, env?: XmtpEnv) {
-    return this.sendMessage("getInboxIdForAddress", {
-      address,
+  async getInboxIdForIdentifier(identifier: Identifier, env?: XmtpEnv) {
+    return this.sendMessage("getInboxIdForIdentifier", {
+      identifier,
       env,
       enableLogging: this.#enableLogging,
     });

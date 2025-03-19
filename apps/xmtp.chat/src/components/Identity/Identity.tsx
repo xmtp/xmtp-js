@@ -13,20 +13,15 @@ import {
 import { useEffect, useState } from "react";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { useAppState } from "@/contexts/AppState";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { useBodyClass } from "@/hooks/useBodyClass";
-import { useClient } from "@/hooks/useClient";
 import { useIdentity } from "@/hooks/useIdentity";
 import { InstallationTable } from "./InstallationTable";
 
 export const Identity: React.FC = () => {
   useBodyClass("main-flex-layout");
   const { setNavbar } = useAppState();
-
-  useEffect(() => {
-    setNavbar(true);
-  }, []);
-
-  const { client } = useClient();
+  const { client } = useXMTP();
   const {
     installations,
     revokeAllOtherInstallations,
@@ -34,9 +29,39 @@ export const Identity: React.FC = () => {
     sync,
     syncing,
   } = useIdentity(true);
+
   const [revokeInstallationError, setRevokeInstallationError] = useState<
     string | null
   >(null);
+
+  // Add state for account identifier
+  const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
+    null,
+  );
+  const [isLoadingIdentifier, setIsLoadingIdentifier] = useState(false);
+
+  useEffect(() => {
+    setNavbar(true);
+  }, []);
+
+  // Fetch account identifier when client is available
+  useEffect(() => {
+    const fetchAccountIdentifier = async () => {
+      if (!client) return;
+
+      setIsLoadingIdentifier(true);
+      try {
+        const identifier = await client.accountIdentifier();
+        setAccountIdentifier(identifier.identifier.toLowerCase());
+      } catch (error) {
+        console.error("Failed to fetch account identifier:", error);
+      } finally {
+        setIsLoadingIdentifier(false);
+      }
+    };
+
+    void fetchAccountIdentifier();
+  }, [client]);
 
   const handleRevokeAllOtherInstallations = async () => {
     try {
@@ -92,7 +117,13 @@ export const Identity: React.FC = () => {
                       <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                         Address
                       </Text>
-                      <BadgeWithCopy value={client.accountAddress} />
+                      {isLoadingIdentifier ? (
+                        <Text size="sm" c="dimmed">
+                          Loading...
+                        </Text>
+                      ) : (
+                        <BadgeWithCopy value={accountIdentifier || ""} />
+                      )}
                     </Group>
                     <Group gap="md" wrap="nowrap">
                       <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>

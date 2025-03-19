@@ -16,11 +16,11 @@ import {
   EncodedContent as WasmEncodedContent,
   type ConsentEntityType,
   type ConsentState,
-  type ConversationType,
+  type ContentType,
   type DeliveryStatus,
-  type GroupMembershipState,
   type GroupMessageKind,
   type HmacKey,
+  type Identifier,
   type InboxState,
   type Installation,
   type Message,
@@ -147,6 +147,7 @@ export const toSafeMessage = (message: Message): SafeMessage => ({
 });
 
 export type SafeListMessagesOptions = {
+  contentTypes?: ContentType[];
   deliveryStatus?: DeliveryStatus;
   direction?: SortDirection;
   limit?: bigint;
@@ -157,6 +158,7 @@ export type SafeListMessagesOptions = {
 export const toSafeListMessagesOptions = (
   options: ListMessagesOptions,
 ): SafeListMessagesOptions => ({
+  contentTypes: options.contentTypes,
   deliveryStatus: options.deliveryStatus,
   direction: options.direction,
   limit: options.limit,
@@ -173,29 +175,24 @@ export const fromSafeListMessagesOptions = (
     options.limit,
     options.deliveryStatus,
     options.direction,
+    options.contentTypes,
   );
 
 export type SafeListConversationsOptions = {
-  allowedStates?: GroupMembershipState[];
   consentStates?: ConsentState[];
-  conversationType?: ConversationType;
   createdAfterNs?: bigint;
   createdBeforeNs?: bigint;
   includeDuplicateDms?: boolean;
-  includeSyncGroups?: boolean;
   limit?: bigint;
 };
 
 export const toSafeListConversationsOptions = (
   options: ListConversationsOptions,
 ): SafeListConversationsOptions => ({
-  allowedStates: options.allowedStates,
   consentStates: options.consentStates,
-  conversationType: options.conversationType,
   createdAfterNs: options.createdAfterNs,
   createdBeforeNs: options.createdBeforeNs,
   includeDuplicateDms: options.includeDuplicateDms,
-  includeSyncGroups: options.includeSyncGroups,
   limit: options.limit,
 });
 
@@ -203,13 +200,10 @@ export const fromSafeListConversationsOptions = (
   options: SafeListConversationsOptions,
 ): ListConversationsOptions =>
   new ListConversationsOptions(
-    options.allowedStates,
     options.consentStates,
-    options.conversationType,
     options.createdAfterNs,
     options.createdBeforeNs,
     options.includeDuplicateDms ?? false,
-    options.includeSyncGroups ?? false,
     options.limit,
   );
 
@@ -401,17 +395,17 @@ export const toSafeInstallation = (
 });
 
 export type SafeInboxState = {
-  accountAddresses: string[];
+  accountIdentifiers: Identifier[];
   inboxId: string;
   installations: SafeInstallation[];
-  recoveryAddress: string;
+  recoveryIdentifier: Identifier;
 };
 
 export const toSafeInboxState = (inboxState: InboxState): SafeInboxState => ({
-  accountAddresses: inboxState.accountAddresses,
+  accountIdentifiers: inboxState.accountIdentifiers,
   inboxId: inboxState.inboxId,
   installations: inboxState.installations.map(toSafeInstallation),
-  recoveryAddress: inboxState.recoveryAddress,
+  recoveryIdentifier: inboxState.recoveryIdentifier,
 });
 
 export type SafeConsent = {
@@ -430,7 +424,7 @@ export const fromSafeConsent = (consent: SafeConsent): Consent =>
   new Consent(consent.entityType, consent.state, consent.entity);
 
 export type SafeGroupMember = {
-  accountAddresses: string[];
+  accountIdentifiers: Identifier[];
   consentState: ConsentState;
   inboxId: string;
   installationIds: string[];
@@ -438,7 +432,7 @@ export type SafeGroupMember = {
 };
 
 export const toSafeGroupMember = (member: GroupMember): SafeGroupMember => ({
-  accountAddresses: member.accountAddresses,
+  accountIdentifiers: member.accountIdentifiers,
   consentState: member.consentState,
   inboxId: member.inboxId,
   installationIds: member.installationIds,
@@ -448,7 +442,7 @@ export const toSafeGroupMember = (member: GroupMember): SafeGroupMember => ({
 export const fromSafeGroupMember = (member: SafeGroupMember): GroupMember =>
   new GroupMember(
     member.inboxId,
-    member.accountAddresses,
+    member.accountIdentifiers,
     member.installationIds,
     member.permissionLevel,
     member.consentState,

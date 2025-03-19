@@ -8,10 +8,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["@xmtp/wasm-bindings"],
   },
-  server: {
-    headers: {
-      "Cross-Origin-Embedder-Policy": "require-corp",
-      "Cross-Origin-Opener-Policy": "same-origin",
-    },
-  },
 });

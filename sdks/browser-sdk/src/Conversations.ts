@@ -1,9 +1,14 @@
-import { ConversationType, type ConsentState } from "@xmtp/wasm-bindings";
+import {
+  ConversationType,
+  type ConsentState,
+  type Identifier,
+} from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
-import { Conversation } from "@/Conversation";
 import { DecodedMessage } from "@/DecodedMessage";
+import { Dm } from "@/Dm";
+import { Group } from "@/Group";
 import type {
   SafeConversation,
   SafeCreateDmOptions,
@@ -33,7 +38,12 @@ export class Conversations {
     const data = await this.#client.sendMessage("getConversationById", {
       id,
     });
-    return data ? new Conversation(this.#client, id, data) : undefined;
+    if (data) {
+      return data.metadata.conversationType === "group"
+        ? new Group(this.#client, data.id, data)
+        : new Dm(this.#client, data.id, data);
+    }
+    return undefined;
   }
 
   async getMessageById(id: string) {
@@ -47,7 +57,7 @@ export class Conversations {
     const data = await this.#client.sendMessage("getDmByInboxId", {
       inboxId,
     });
-    return data ? new Conversation(this.#client, data.id, data) : undefined;
+    return data ? new Dm(this.#client, data.id, data) : undefined;
   }
 
   async list(options?: SafeListConversationsOptions) {
@@ -55,9 +65,10 @@ export class Conversations {
       options,
     });
 
-    return conversations.map(
-      (conversation) =>
-        new Conversation(this.#client, conversation.id, conversation),
+    return conversations.map((conversation) =>
+      conversation.metadata.conversationType === "group"
+        ? new Group(this.#client, conversation.id, conversation)
+        : new Dm(this.#client, conversation.id, conversation),
     );
   }
 
@@ -69,8 +80,7 @@ export class Conversations {
     });
 
     return conversations.map(
-      (conversation) =>
-        new Conversation(this.#client, conversation.id, conversation),
+      (conversation) => new Group(this.#client, conversation.id, conversation),
     );
   }
 
@@ -82,68 +92,88 @@ export class Conversations {
     });
 
     return conversations.map(
-      (conversation) =>
-        new Conversation(this.#client, conversation.id, conversation),
+      (conversation) => new Dm(this.#client, conversation.id, conversation),
     );
   }
 
-  async newGroup(accountAddresses: string[], options?: SafeCreateGroupOptions) {
-    const conversation = await this.#client.sendMessage("newGroup", {
-      accountAddresses,
-      options,
-    });
-
-    return new Conversation(this.#client, conversation.id, conversation);
-  }
-
-  async newGroupByInboxIds(
-    inboxIds: string[],
+  async newGroupWithIdentifiers(
+    identifiers: Identifier[],
     options?: SafeCreateGroupOptions,
   ) {
-    const conversation = await this.#client.sendMessage("newGroupByInboxIds", {
-      inboxIds,
+    const conversation = await this.#client.sendMessage(
+      "newGroupWithIdentifiers",
+      {
+        identifiers,
+        options,
+      },
+    );
+
+    return new Group(this.#client, conversation.id, conversation);
+  }
+
+  async newGroup(inboxIds: string[], options?: SafeCreateGroupOptions) {
+    const conversation = await this.#client.sendMessage(
+      "newGroupWithInboxIds",
+      {
+        inboxIds,
+        options,
+      },
+    );
+
+    return new Group(this.#client, conversation.id, conversation);
+  }
+
+  async newDmWithIdentifier(
+    identifier: Identifier,
+    options?: SafeCreateDmOptions,
+  ) {
+    const conversation = await this.#client.sendMessage("newDmWithIdentifier", {
+      identifier,
       options,
     });
 
-    return new Conversation(this.#client, conversation.id, conversation);
+    return new Dm(this.#client, conversation.id, conversation);
   }
 
-  async newDm(accountAddress: string, options?: SafeCreateDmOptions) {
-    const conversation = await this.#client.sendMessage("newDm", {
-      accountAddress,
-      options,
-    });
-
-    return new Conversation(this.#client, conversation.id, conversation);
-  }
-
-  async newDmByInboxId(inboxId: string, options?: SafeCreateDmOptions) {
-    const conversation = await this.#client.sendMessage("newDmByInboxId", {
+  async newDm(inboxId: string, options?: SafeCreateDmOptions) {
+    const conversation = await this.#client.sendMessage("newDmWithInboxId", {
       inboxId,
       options,
     });
 
-    return new Conversation(this.#client, conversation.id, conversation);
+    return new Dm(this.#client, conversation.id, conversation);
   }
 
   async getHmacKeys() {
     return this.#client.sendMessage("getHmacKeys", undefined);
   }
 
-  async stream(
-    callback?: StreamCallback<Conversation>,
+  async stream<T extends Group | Dm = Group | Dm>(
+    callback?: StreamCallback<T>,
     conversationType?: ConversationType,
   ) {
     const streamId = v4();
-    const asyncStream = new AsyncStream<Conversation>();
+    const asyncStream = new AsyncStream<T>();
     const endStream = this.#client.handleStreamMessage<SafeConversation>(
       streamId,
       (error, value) => {
-        const conversation = value
-          ? new Conversation(this.#client, value.id, value)
-          : undefined;
-        void asyncStream.callback(error, conversation);
-        void callback?.(error, conversation);
+        if (error) {
+          void asyncStream.callback(error, undefined);
+          void callback?.(error, undefined);
+          return;
+        }
+
+        let streamValue: T | undefined = undefined;
+
+        if (value) {
+          streamValue =
+            value.metadata.conversationType === "group"
+              ? (new Group(this.#client, value.id, value) as T)
+              : (new Dm(this.#client, value.id, value) as T);
+        }
+
+        void asyncStream.callback(null, streamValue);
+        void callback?.(null, streamValue);
       },
     );
     await this.#client.sendMessage("streamAllGroups", {
@@ -159,12 +189,12 @@ export class Conversations {
     return asyncStream;
   }
 
-  async streamGroups(callback?: StreamCallback<Conversation>) {
-    return this.stream(callback, ConversationType.Group);
+  async streamGroups(callback?: StreamCallback<Group>) {
+    return this.stream<Group>(callback, ConversationType.Group);
   }
 
-  async streamDms(callback?: StreamCallback<Conversation>) {
-    return this.stream(callback, ConversationType.Dm);
+  async streamDms(callback?: StreamCallback<Dm>) {
+    return this.stream<Dm>(callback, ConversationType.Dm);
   }
 
   async streamAllMessages(
@@ -176,11 +206,17 @@ export class Conversations {
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
       streamId,
       (error, value) => {
+        if (error) {
+          void asyncStream.callback(error, undefined);
+          void callback?.(error, undefined);
+          return;
+        }
+
         const decodedMessage = value
           ? new DecodedMessage(this.#client, value)
           : undefined;
-        void asyncStream.callback(error, decodedMessage);
-        void callback?.(error, decodedMessage);
+        void asyncStream.callback(null, decodedMessage);
+        void callback?.(null, decodedMessage);
       },
     );
     await this.#client.sendMessage("streamAllMessages", {

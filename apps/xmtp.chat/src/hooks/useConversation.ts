@@ -4,10 +4,10 @@ import type {
   SafeListMessagesOptions,
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
-import { useClient } from "./useClient";
+import { useXMTP } from "@/contexts/XMTPContext";
 
 export const useConversation = (conversation?: Conversation) => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [sending, setSending] = useState(false);

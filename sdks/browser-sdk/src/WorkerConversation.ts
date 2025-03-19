@@ -4,6 +4,7 @@ import {
   type Conversation,
   type EncodedContent,
   type GroupMember,
+  type Identifier,
   type Message,
   type MetadataField,
   type PermissionPolicy,
@@ -121,19 +122,19 @@ export class WorkerConversation {
     return this.#group.sync();
   }
 
-  async addMembers(accountAddresses: string[]) {
-    return this.#group.addMembers(accountAddresses);
+  async addMembersByIdentifiers(identifiers: Identifier[]) {
+    return this.#group.addMembers(identifiers);
   }
 
-  async addMembersByInboxId(inboxIds: string[]) {
+  async addMembers(inboxIds: string[]) {
     return this.#group.addMembersByInboxId(inboxIds);
   }
 
-  async removeMembers(accountAddresses: string[]) {
-    return this.#group.removeMembers(accountAddresses);
+  async removeMembersByIdentifiers(identifiers: Identifier[]) {
+    return this.#group.removeMembers(identifiers);
   }
 
-  async removeMembersByInboxId(inboxIds: string[]) {
+  async removeMembers(inboxIds: string[]) {
     return this.#group.removeMembersByInboxId(inboxIds);
   }
 
@@ -208,5 +209,9 @@ export class WorkerConversation {
       void callback?.(error, undefined);
     };
     return this.#group.stream({ on_message, on_error });
+  }
+
+  pausedForVersion() {
+    return this.#group.pausedForVersion();
   }
 }

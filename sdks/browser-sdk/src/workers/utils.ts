@@ -1,6 +1,7 @@
 import init, {
-  generateInboxId as generate_inbox_id,
-  getInboxIdForAddress as get_inbox_id_for_address,
+  generateInboxId,
+  getInboxIdForIdentifier as get_inbox_id_for_identifier,
+  type Identifier,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls } from "@/constants";
 import type {
@@ -27,15 +28,12 @@ const postMessageError = (data: UtilsEventsErrorData) => {
   self.postMessage(data);
 };
 
-export const generateInboxId = async (address: string) => {
-  await init();
-  return generate_inbox_id(address);
-};
-
-export const getInboxIdForAddress = async (address: string, env?: XmtpEnv) => {
-  await init();
+const getInboxIdForIdentifier = async (
+  identifier: Identifier,
+  env?: XmtpEnv,
+) => {
   const host = env ? ApiUrls[env] : ApiUrls.dev;
-  return get_inbox_id_for_address(host, address);
+  return get_inbox_id_for_identifier(host, identifier);
 };
 
 self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
@@ -44,20 +42,23 @@ self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
     console.log("utils worker received event data", event.data);
   }
 
+  // initialize WASM module
+  await init();
+
   try {
     switch (action) {
       case "generateInboxId":
         postMessage({
           id,
           action,
-          result: await generateInboxId(data.address),
+          result: generateInboxId(data.identifier),
         });
         break;
-      case "getInboxIdForAddress":
+      case "getInboxIdForIdentifier":
         postMessage({
           id,
           action,
-          result: await getInboxIdForAddress(data.address, data.env),
+          result: await getInboxIdForIdentifier(data.identifier, data.env),
         });
         break;
       // no default

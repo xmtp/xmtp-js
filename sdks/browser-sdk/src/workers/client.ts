@@ -1,4 +1,10 @@
-import type { Conversation, Message, StreamCloser } from "@xmtp/wasm-bindings";
+import init, {
+  type Consent,
+  type Conversation,
+  type Message,
+  type StreamCloser,
+  type UserPreference,
+} from "@xmtp/wasm-bindings";
 import type {
   ClientEventsActions,
   ClientEventsClientMessageData,
@@ -13,6 +19,7 @@ import type {
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
+  toSafeConsent,
   toSafeConversation,
   toSafeHmacKey,
   toSafeInboxState,
@@ -22,7 +29,7 @@ import {
 import { WorkerClient } from "@/WorkerClient";
 import { WorkerConversation } from "@/WorkerConversation";
 
-let client: WorkerClient;
+let maybeClient: WorkerClient | undefined;
 let enableLogging = false;
 
 const streamClosers = new Map<string, StreamCloser>();
@@ -66,18 +73,50 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
     console.log("client worker received event data", event.data);
   }
 
-  // a client is required for all actions except init
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (action !== "init" && !client) {
-    postMessageError({
-      id,
-      action,
-      error: "Client not initialized",
-    });
-    return;
-  }
+  // initialize WASM module
+  await init();
 
   try {
+    // init is a special action that initializes the client
+    if (action === "init" && !maybeClient) {
+      maybeClient = await WorkerClient.create(
+        data.identifier,
+        data.encryptionKey,
+        data.options,
+      );
+      enableLogging =
+        data.options?.loggingLevel !== undefined &&
+        data.options.loggingLevel !== "off";
+      postMessage({
+        id,
+        action,
+        result: {
+          inboxId: maybeClient.inboxId,
+          installationId: maybeClient.installationId,
+          installationIdBytes: maybeClient.installationIdBytes,
+        },
+      });
+      return;
+    }
+
+    // a client is required for all other actions
+    if (!maybeClient) {
+      throw new Error("Client not initialized");
+    }
+
+    // let typescript know that a client will be available for the rest
+    // of this code block
+    const client = maybeClient;
+
+    // helper function that throws an error if the group is not found
+    const getGroup = (groupId: string) => {
+      const group = client.conversations.getConversationById(groupId);
+      if (!group) {
+        throw new Error(`Group "${groupId}" not found`);
+      }
+      return group;
+    };
+
     switch (action) {
       /**
        * Stream actions
@@ -87,100 +126,45 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         if (streamCloser) {
           streamCloser.end();
           streamClosers.delete(data.streamId);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
+          postMessage({ id, action, result: undefined });
         } else {
-          postMessageError({
-            id,
-            action,
-            error: `Stream "${data.streamId}" not found`,
-          });
+          throw new Error(`Stream "${data.streamId}" not found`);
         }
         break;
       }
       /**
        * Client actions
        */
-      case "init":
-        client = await WorkerClient.create(
-          data.address,
-          data.encryptionKey,
-          data.options,
-        );
-        enableLogging =
-          data.options?.loggingLevel !== undefined &&
-          data.options.loggingLevel !== "off";
-        postMessage({
-          id,
-          action,
-          result: {
-            inboxId: client.inboxId,
-            installationId: client.installationId,
-            installationIdBytes: client.installationIdBytes,
-          },
-        });
-        break;
       case "createInboxSignatureText": {
         const result = client.createInboxSignatureText();
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
       case "addAccountSignatureText": {
-        const result = await client.addAccountSignatureText(
-          data.newAccountAddress,
-        );
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        const result = await client.addAccountSignatureText(data.newIdentifier);
+        postMessage({ id, action, result });
         break;
       }
       case "removeAccountSignatureText": {
-        const result = await client.removeAccountSignatureText(
-          data.accountAddress,
-        );
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        const result = await client.removeAccountSignatureText(data.identifier);
+        postMessage({ id, action, result });
         break;
       }
       case "revokeAllOtherInstallationsSignatureText": {
         const result = await client.revokeAllAOtherInstallationsSignatureText();
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
       case "revokeInstallationsSignatureText": {
         const result = await client.revokeInstallationsSignatureText(
           data.installationIds,
         );
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
-      case "addSignature":
-        await client.addSignature(data.type, data.bytes);
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+      case "addEcdsaSignature":
+        await client.addEcdsaSignature(data.type, data.bytes);
+        postMessage({ id, action, result: undefined });
         break;
       case "addScwSignature":
         await client.addScwSignature(
@@ -189,101 +173,72 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           data.chainId,
           data.blockNumber,
         );
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+        postMessage({ id, action, result: undefined });
         break;
       case "applySignatures":
         await client.applySignatures();
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+        postMessage({ id, action, result: undefined });
         break;
       case "registerIdentity":
         await client.registerIdentity();
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+        postMessage({ id, action, result: undefined });
         break;
       case "isRegistered": {
         const result = client.isRegistered;
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
       case "canMessage": {
-        const result = await client.canMessage(data.accountAddresses);
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        const result = await client.canMessage(data.identifiers);
+        postMessage({ id, action, result });
         break;
       }
       case "inboxState": {
-        const result = await client.inboxState(data.refreshFromNetwork);
-        postMessage({
-          id,
-          action,
-          result: toSafeInboxState(result),
-        });
+        const inboxState = await client.preferences.inboxState(
+          data.refreshFromNetwork,
+        );
+        const result = toSafeInboxState(inboxState);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "inboxStateFromInboxIds": {
+        const inboxStates = await client.preferences.inboxStateFromInboxIds(
+          data.inboxIds,
+          data.refreshFromNetwork,
+        );
+        const result = inboxStates.map(toSafeInboxState);
+        postMessage({ id, action, result });
         break;
       }
       case "getLatestInboxState": {
-        const result = await client.getLatestInboxState(data.inboxId);
-        postMessage({
-          id,
-          action,
-          result: toSafeInboxState(result),
-        });
+        const inboxState = await client.preferences.getLatestInboxState(
+          data.inboxId,
+        );
+        const result = toSafeInboxState(inboxState);
+        postMessage({ id, action, result });
         break;
       }
       case "setConsentStates": {
-        await client.setConsentStates(data.records);
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+        await client.preferences.setConsentStates(data.records);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "getConsentState": {
-        const result = await client.getConsentState(
+        const result = await client.preferences.getConsentState(
           data.entityType,
           data.entity,
         );
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
-      case "findInboxIdByAddress": {
-        const result = await client.findInboxIdByAddress(data.address);
-        postMessage({
-          id,
-          action,
-          result,
-        });
+      case "findInboxIdByIdentifier": {
+        const result = await client.findInboxIdByIdentifier(data.identifier);
+        postMessage({ id, action, result });
         break;
       }
       case "signWithInstallationKey": {
         const result = client.signWithInstallationKey(data.signatureText);
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
       case "verifySignedWithInstallationKey": {
@@ -291,11 +246,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           data.signatureText,
           data.signatureBytes,
         );
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
       case "verifySignedWithPublicKey": {
@@ -304,11 +255,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           data.signatureBytes,
           data.publicKey,
         );
-        postMessage({
-          id,
-          action,
-          result,
-        });
+        postMessage({ id, action, result });
         break;
       }
       /**
@@ -342,11 +289,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           data.conversationType,
         );
         streamClosers.set(data.streamId, streamCloser);
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "streamAllMessages": {
@@ -373,6 +316,59 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           data.conversationType,
         );
         streamClosers.set(data.streamId, streamCloser);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "streamConsent": {
+        const streamCallback = (
+          error: Error | null,
+          value: Consent[] | undefined,
+        ) => {
+          if (error) {
+            postStreamMessageError({
+              type: "consent",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "consent",
+              streamId: data.streamId,
+              result: value?.map(toSafeConsent) ?? [],
+            });
+          }
+        };
+        const streamCloser = client.preferences.streamConsent(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
+      case "streamPreferences": {
+        const streamCallback = (
+          error: Error | null,
+          value: UserPreference[] | undefined,
+        ) => {
+          if (error) {
+            postStreamMessageError({
+              type: "preferences",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "preferences",
+              streamId: data.streamId,
+              result: value ?? undefined,
+            });
+          }
+        };
+        const streamCloser =
+          client.preferences.streamPreferences(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
         postMessage({
           id,
           action,
@@ -382,89 +378,62 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       }
       case "getConversations": {
         const conversations = client.conversations.list(data.options);
-        postMessage({
-          id,
-          action,
-          result: await Promise.all(
-            conversations.map((conversation) =>
-              toSafeConversation(conversation),
-            ),
-          ),
-        });
+        const result = await Promise.all(
+          conversations.map((conversation) => toSafeConversation(conversation)),
+        );
+        postMessage({ id, action, result });
         break;
       }
       case "getGroups": {
         const conversations = client.conversations.listGroups(data.options);
-        postMessage({
-          id,
-          action,
-          result: await Promise.all(
-            conversations.map((conversation) =>
-              toSafeConversation(conversation),
-            ),
-          ),
-        });
+        const result = await Promise.all(
+          conversations.map((conversation) => toSafeConversation(conversation)),
+        );
+        postMessage({ id, action, result });
         break;
       }
       case "getDms": {
         const conversations = client.conversations.listDms(data.options);
-        postMessage({
-          id,
-          action,
-          result: await Promise.all(
-            conversations.map((conversation) =>
-              toSafeConversation(conversation),
-            ),
-          ),
-        });
+        const result = await Promise.all(
+          conversations.map((conversation) => toSafeConversation(conversation)),
+        );
+        postMessage({ id, action, result });
         break;
       }
-      case "newGroup": {
-        const conversation = await client.conversations.newGroup(
-          data.accountAddresses,
+      case "newGroupWithIdentifiers": {
+        const conversation = await client.conversations.newGroupWithIdentifiers(
+          data.identifiers,
           data.options,
         );
-        postMessage({
-          id,
-          action,
-          result: await toSafeConversation(conversation),
-        });
+        const result = await toSafeConversation(conversation);
+        postMessage({ id, action, result });
         break;
       }
-      case "newGroupByInboxIds": {
-        const conversation = await client.conversations.newGroupByInboxIds(
+      case "newGroupWithInboxIds": {
+        const conversation = await client.conversations.newGroup(
           data.inboxIds,
           data.options,
         );
-        postMessage({
-          id,
-          action,
-          result: await toSafeConversation(conversation),
-        });
+        const result = await toSafeConversation(conversation);
+        postMessage({ id, action, result });
         break;
       }
-      case "newDm": {
-        const conversation = await client.conversations.newDm(
-          data.accountAddress,
+      case "newDmWithIdentifier": {
+        const conversation = await client.conversations.newDmWithIdentifier(
+          data.identifier,
           data.options,
         );
-        postMessage({
-          id,
-          action,
-          result: await toSafeConversation(conversation),
-        });
+        const result = await toSafeConversation(conversation);
+        postMessage({ id, action, result });
         break;
       }
-      case "newDmByInboxId": {
-        const conversation = await client.conversations.newDmByInboxId(
+      case "newDmWithInboxId": {
+        const conversation = await client.conversations.newDm(
           data.inboxId,
           data.options,
         );
-        postMessage({
-          id,
-          action,
-          result: await toSafeConversation(conversation),
-        });
+        const result = await toSafeConversation(conversation);
+        postMessage({ id, action, result });
         break;
       }
       case "syncConversations": {
@@ -487,634 +456,263 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       }
       case "getConversationById": {
         const conversation = client.conversations.getConversationById(data.id);
-        postMessage({
-          id,
-          action,
-          result: conversation
-            ? await toSafeConversation(conversation)
-            : undefined,
-        });
+        const result = conversation
+          ? await toSafeConversation(conversation)
+          : undefined;
+        postMessage({ id, action, result });
         break;
       }
       case "getMessageById": {
         const message = client.conversations.getMessageById(data.id);
-        postMessage({
-          id,
-          action,
-          result: message ? toSafeMessage(message) : undefined,
-        });
+        const result = message ? toSafeMessage(message) : undefined;
+        postMessage({ id, action, result });
         break;
       }
       case "getDmByInboxId": {
         const conversation = client.conversations.getDmByInboxId(data.inboxId);
-        postMessage({
-          id,
-          action,
-          result: conversation
-            ? await toSafeConversation(conversation)
-            : undefined,
-        });
+        const result = conversation
+          ? await toSafeConversation(conversation)
+          : undefined;
+        postMessage({ id, action, result });
         break;
       }
       case "getHmacKeys": {
-        const result = client.conversations.getHmacKeys();
-        postMessage({
-          id,
-          action,
-          result: Object.fromEntries(
-            Array.from(result.entries()).map(([groupId, hmacKeys]) => [
-              groupId,
-              hmacKeys.map(toSafeHmacKey),
-            ]),
-          ),
-        });
+        const hmacKeys = client.conversations.getHmacKeys();
+        const result = Object.fromEntries(
+          Array.from(hmacKeys.entries()).map(([groupId, hmacKeys]) => [
+            groupId,
+            hmacKeys.map(toSafeHmacKey),
+          ]),
+        );
+        postMessage({ id, action, result });
         break;
       }
       /**
        * Group actions
        */
       case "syncGroup": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.sync();
-          postMessage({
-            id,
-            action,
-            result: await toSafeConversation(group),
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.sync();
+        const result = await toSafeConversation(group);
+        postMessage({ id, action, result });
         break;
       }
       case "updateGroupName": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.updateName(data.name);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.updateName(data.name);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "updateGroupDescription": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.updateDescription(data.description);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.updateDescription(data.description);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "updateGroupImageUrlSquare": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.updateImageUrl(data.imageUrl);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.updateImageUrl(data.imageUrl);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "sendGroupMessage": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = await group.send(
-            fromEncodedContent(fromSafeEncodedContent(data.content)),
-          );
-          postMessage({
-            id,
-            action,
-            result,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = await group.send(
+          fromEncodedContent(fromSafeEncodedContent(data.content)),
+        );
+        postMessage({ id, action, result });
         break;
       }
       case "sendOptimisticGroupMessage": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = group.sendOptimistic(
-            fromEncodedContent(fromSafeEncodedContent(data.content)),
-          );
-          postMessage({
-            id,
-            action,
-            result,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.sendOptimistic(
+          fromEncodedContent(fromSafeEncodedContent(data.content)),
+        );
+        postMessage({ id, action, result });
         break;
       }
       case "publishGroupMessages": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.publishMessages();
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.publishMessages();
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "getGroupMessages": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const messages = await group.messages(data.options);
-          postMessage({
-            id,
-            action,
-            result: messages.map((message) => toSafeMessage(message)),
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const messages = await group.messages(data.options);
+        const result = messages.map((message) => toSafeMessage(message));
+        postMessage({ id, action, result });
         break;
       }
       case "getGroupMembers": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = await group.members();
-          postMessage({
-            id,
-            action,
-            result,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = await group.members();
+        postMessage({ id, action, result });
         break;
       }
       case "getGroupAdmins": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          postMessage({
-            id,
-            action,
-            result: group.admins,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.admins;
+        postMessage({ id, action, result });
         break;
       }
       case "getGroupSuperAdmins": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          postMessage({
-            id,
-            action,
-            result: group.superAdmins,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.superAdmins;
+        postMessage({ id, action, result });
         break;
       }
       case "getGroupConsentState": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          postMessage({
-            id,
-            action,
-            result: group.consentState,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.consentState;
+        postMessage({ id, action, result });
         break;
       }
       case "updateGroupConsentState": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          group.updateConsentState(data.state);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        group.updateConsentState(data.state);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "addGroupAdmin": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.addAdmin(data.inboxId);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.addAdmin(data.inboxId);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "removeGroupAdmin": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.removeAdmin(data.inboxId);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.removeAdmin(data.inboxId);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "addGroupSuperAdmin": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.addSuperAdmin(data.inboxId);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.addSuperAdmin(data.inboxId);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "removeGroupSuperAdmin": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.removeSuperAdmin(data.inboxId);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.removeSuperAdmin(data.inboxId);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "addGroupMembers": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.addMembers(data.accountAddresses);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.addMembersByIdentifiers(data.identifiers);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "removeGroupMembers": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.removeMembers(data.accountAddresses);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.removeMembersByIdentifiers(data.identifiers);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "addGroupMembersByInboxId": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.addMembersByInboxId(data.inboxIds);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.addMembers(data.inboxIds);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "removeGroupMembersByInboxId": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.removeMembersByInboxId(data.inboxIds);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.removeMembers(data.inboxIds);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "isGroupAdmin": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = group.isAdmin(data.inboxId);
-          postMessage({
-            id,
-            action,
-            result,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.isAdmin(data.inboxId);
+        postMessage({ id, action, result });
         break;
       }
       case "isGroupSuperAdmin": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = group.isSuperAdmin(data.inboxId);
-          postMessage({
-            id,
-            action,
-            result,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.isSuperAdmin(data.inboxId);
+        postMessage({ id, action, result });
         break;
       }
       case "getDmPeerInboxId": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = group.dmPeerInboxId();
-          postMessage({
-            id,
-            action,
-            result,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.dmPeerInboxId();
+        postMessage({ id, action, result });
         break;
       }
       case "updateGroupPermissionPolicy": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.updatePermission(
-            data.permissionType,
-            data.policy,
-            data.metadataField,
-          );
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.updatePermission(
+          data.permissionType,
+          data.policy,
+          data.metadataField,
+        );
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "getGroupPermissions": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const safeConversation = await toSafeConversation(group);
-          postMessage({
-            id,
-            action,
-            result: safeConversation.permissions,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const safeConversation = await toSafeConversation(group);
+        const result = safeConversation.permissions;
+        postMessage({ id, action, result });
         break;
       }
       case "getGroupMessageDisappearingSettings": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = group.messageDisappearingSettings();
-          postMessage({
-            id,
-            action,
-            result: result
-              ? toSafeMessageDisappearingSettings(result)
-              : undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const settings = group.messageDisappearingSettings();
+        const result = settings
+          ? toSafeMessageDisappearingSettings(settings)
+          : undefined;
+        postMessage({ id, action, result });
         break;
       }
       case "updateGroupMessageDisappearingSettings": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.updateMessageDisappearingSettings(data.fromNs, data.inNs);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.updateMessageDisappearingSettings(data.fromNs, data.inNs);
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "removeGroupMessageDisappearingSettings": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          await group.removeMessageDisappearingSettings();
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        await group.removeMessageDisappearingSettings();
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "isGroupMessageDisappearingEnabled": {
-        const group = client.conversations.getConversationById(data.id);
-        if (group) {
-          const result = group.isMessageDisappearingEnabled();
-          postMessage({
-            id,
-            action,
-            result,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.id);
+        const result = group.isMessageDisappearingEnabled();
+        postMessage({ id, action, result });
         break;
       }
       case "streamGroupMessages": {
-        const group = client.conversations.getConversationById(data.groupId);
-        if (group) {
-          const streamCallback = (
-            error: Error | null,
-            value: Message | undefined,
-          ) => {
-            if (error) {
-              postStreamMessageError({
-                type: "message",
-                streamId: data.streamId,
-                error: error.message,
-              });
-            } else {
-              postStreamMessage({
-                type: "message",
-                streamId: data.streamId,
-                result: value ? toSafeMessage(value) : undefined,
-              });
-            }
-          };
-          const streamCloser = group.stream(streamCallback);
-          streamClosers.set(data.streamId, streamCloser);
-          postMessage({
-            id,
-            action,
-            result: undefined,
-          });
-        } else {
-          postMessageError({
-            id,
-            action,
-            error: "Group not found",
-          });
-        }
+        const group = getGroup(data.groupId);
+        const streamCallback = (
+          error: Error | null,
+          value: Message | undefined,
+        ) => {
+          if (error) {
+            postStreamMessageError({
+              type: "message",
+              streamId: data.streamId,
+              error: error.message,
+            });
+          } else {
+            postStreamMessage({
+              type: "message",
+              streamId: data.streamId,
+              result: value ? toSafeMessage(value) : undefined,
+            });
+          }
+        };
+        const streamCloser = group.stream(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "getGroupPausedForVersion": {
+        const group = getGroup(data.id);
+        const result = group.pausedForVersion();
+        postMessage({ id, action, result });
         break;
       }
     }

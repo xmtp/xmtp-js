@@ -1,38 +1,37 @@
 import {
   verifySignedWithPublicKey,
   type Client,
-  type ConsentEntityType,
+  type Identifier,
   type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types";
-import { fromSafeConsent, type SafeConsent } from "@/utils/conversions";
 import { createClient } from "@/utils/createClient";
 import { WorkerConversations } from "@/WorkerConversations";
+import { WorkerPreferences } from "@/WorkerPreferences";
 
 export class WorkerClient {
   #client: Client;
-
   #conversations: WorkerConversations;
-
-  #accountAddress: string;
+  #preferences: WorkerPreferences;
 
   constructor(client: Client) {
     this.#client = client;
-    this.#accountAddress = client.accountAddress;
-    this.#conversations = new WorkerConversations(this, client.conversations());
+    const conversations = client.conversations();
+    this.#conversations = new WorkerConversations(this, conversations);
+    this.#preferences = new WorkerPreferences(client, conversations);
   }
 
   static async create(
-    accountAddress: string,
+    identifier: Identifier,
     encryptionKey: Uint8Array,
     options?: Omit<ClientOptions, "codecs">,
   ) {
-    const client = await createClient(accountAddress, encryptionKey, options);
+    const client = await createClient(identifier, encryptionKey, options);
     return new WorkerClient(client);
   }
 
-  get accountAddress() {
-    return this.#accountAddress;
+  get accountIdentifier() {
+    return this.#client.accountIdentifier;
   }
 
   get inboxId() {
@@ -51,6 +50,14 @@ export class WorkerClient {
     return this.#client.isRegistered;
   }
 
+  get conversations() {
+    return this.#conversations;
+  }
+
+  get preferences() {
+    return this.#preferences;
+  }
+
   createInboxSignatureText() {
     try {
       return this.#client.createInboxSignatureText();
@@ -59,17 +66,17 @@ export class WorkerClient {
     }
   }
 
-  async addAccountSignatureText(accountAddress: string) {
+  async addAccountSignatureText(identifier: Identifier) {
     try {
-      return await this.#client.addWalletSignatureText(accountAddress);
+      return await this.#client.addWalletSignatureText(identifier);
     } catch {
       return undefined;
     }
   }
 
-  async removeAccountSignatureText(accountAddress: string) {
+  async removeAccountSignatureText(identifier: Identifier) {
     try {
-      return await this.#client.revokeWalletSignatureText(accountAddress);
+      return await this.#client.revokeWalletSignatureText(identifier);
     } catch {
       return undefined;
     }
@@ -93,8 +100,8 @@ export class WorkerClient {
     }
   }
 
-  async addSignature(type: SignatureRequestType, bytes: Uint8Array) {
-    return this.#client.addSignature(type, bytes);
+  async addEcdsaSignature(type: SignatureRequestType, bytes: Uint8Array) {
+    return this.#client.addEcdsaSignature(type, bytes);
   }
 
   async addScwSignature(
@@ -110,8 +117,8 @@ export class WorkerClient {
     return this.#client.applySignatureRequests();
   }
 
-  async canMessage(accountAddresses: string[]) {
-    return this.#client.canMessage(accountAddresses) as Promise<
+  async canMessage(identifiers: Identifier[]) {
+    return this.#client.canMessage(identifiers) as Promise<
       Map<string, boolean>
     >;
   }
@@ -120,28 +127,8 @@ export class WorkerClient {
     return this.#client.registerIdentity();
   }
 
-  async findInboxIdByAddress(address: string) {
-    return this.#client.findInboxIdByAddress(address);
-  }
-
-  async inboxState(refreshFromNetwork: boolean) {
-    return this.#client.inboxState(refreshFromNetwork);
-  }
-
-  async getLatestInboxState(inboxId: string) {
-    return this.#client.getLatestInboxState(inboxId);
-  }
-
-  async setConsentStates(records: SafeConsent[]) {
-    return this.#client.setConsentStates(records.map(fromSafeConsent));
-  }
-
-  async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.#client.getConsentState(entityType, entity);
-  }
-
-  get conversations() {
-    return this.#conversations;
+  async findInboxIdByIdentifier(identifier: Identifier) {
+    return this.#client.findInboxIdByIdentifier(identifier);
   }
 
   signWithInstallationKey(signatureText: string) {

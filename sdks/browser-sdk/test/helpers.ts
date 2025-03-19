@@ -33,8 +33,11 @@ export const createUser = () => {
 
 export const createSigner = (user: User): Signer => {
   return {
-    walletType: "EOA",
-    getAddress: () => user.account.address,
+    type: "EOA",
+    getIdentifier: () => ({
+      identifier: user.account.address.toLowerCase(),
+      identifierKind: "Ethereum",
+    }),
     signMessage: async (message: string) => {
       const signature = await user.wallet.signMessage({
         message,
@@ -46,29 +49,31 @@ export const createSigner = (user: User): Signer => {
 
 export type User = ReturnType<typeof createUser>;
 
-export const createClient = async (user: User, options?: ClientOptions) => {
+export const createClient = async (signer: Signer, options?: ClientOptions) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.create(createSigner(user), testEncryptionKey, {
+  const identifier = await signer.getIdentifier();
+  return Client.create(signer, testEncryptionKey, {
     ...opts,
     disableAutoRegister: true,
-    dbPath: `./test-${user.uuid}.db3`,
+    dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });
 };
 
 export const createRegisteredClient = async (
-  user: User,
+  signer: Signer,
   options?: ClientOptions,
 ) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.create(createSigner(user), testEncryptionKey, {
+  const identifier = await signer.getIdentifier();
+  return Client.create(signer, testEncryptionKey, {
     ...opts,
-    dbPath: `./test-${user.uuid}.db3`,
+    dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });
 };
 

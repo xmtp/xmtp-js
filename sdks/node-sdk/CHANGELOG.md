@@ -1,5 +1,54 @@
 # @xmtp/node-sdk
 
+## 1.0.0
+
+### Major Changes
+
+- Updated `Signer` type
+- Replaced address parameters with inbox IDs or identifiers
+- Added new methods to use with identifiers
+- Added `pausedForVersion` to `Conversation`
+- Added new `Preferences` class accessible from `client.preferences`
+- Renamed `newGroupByIdentifiers` to `newGroupWithIdentifiers`
+- Renamed `newDmByIdentifier` to `newDmWithIdentifier`
+- Updated exports
+- Improved DM group stitching
+
+## 1.0.0-rc2
+
+- Renamed `newGroupByIdentifiers` to `newGroupWithIdentifiers`
+- Renamed `newDmByIdentifier` to `newDmWithIdentifier`
+
+## 1.0.0-rc1
+
+- Updated `Signer` type
+- Replaced address parameters with inbox IDs or identifiers
+- Added new methods to use with identifiers
+- Added `pausedForVersion` to `Conversation`
+- Updated exports
+
+## 0.0.47
+
+### Patch Changes
+
+- dd1a33a:
+  - Fixed stream errors
+  - Fixed build for later node versions
+
+## 0.0.46
+
+### Patch Changes
+
+- 3cf6dd9:
+  - Exposed all client signature methods
+  - Refactored client signature methods to return `undefined` instead of `null`
+  - Added guard to `Client.addAccount` to prevent automatic reassignment of inboxes
+  - Removed `allowedStates`, `conversationType`, and `includeSyncGroups` from `ListConversationsOptions`
+  - Added `contentTypes` option to `ListMessagesOptions`
+  - Added more exports from the bindings
+  - Added `Group` and `Dm` classes
+  - Refactored some functions to use the new `Group` and `Dm` classes
+
 ## 0.0.45
 
 ### Patch Changes

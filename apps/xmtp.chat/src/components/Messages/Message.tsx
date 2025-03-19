@@ -9,9 +9,9 @@ import {
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
 import { intlFormat } from "date-fns";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
-import { useClient } from "@/hooks/useClient";
 import { MessageContent } from "./MessageContent";
 import { TransactionReferenceUI } from "./TransactionReference";
 import { WalletSendCallsUI } from "./WalletSendCalls";
@@ -22,7 +22,7 @@ export type MessageProps = {
 };
 
 export const Message: React.FC<MessageProps> = ({ message, sendMessage }) => {
-  const { client } = useClient();
+  const { client } = useXMTP();
   const isSender = client?.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
 
