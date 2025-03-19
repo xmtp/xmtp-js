@@ -201,6 +201,15 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
+      case "inboxStateFromInboxIds": {
+        const inboxStates = await client.preferences.inboxStateFromInboxIds(
+          data.inboxIds,
+          data.refreshFromNetwork,
+        );
+        const result = inboxStates.map(toSafeInboxState);
+        postMessage({ id, action, result });
+        break;
+      }
       case "getLatestInboxState": {
         const inboxState = await client.preferences.getLatestInboxState(
           data.inboxId,

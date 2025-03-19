@@ -153,6 +153,15 @@ export type ClientEvents =
       };
     }
   | {
+      action: "inboxStateFromInboxIds";
+      id: string;
+      result: SafeInboxState[];
+      data: {
+        inboxIds: string[];
+        refreshFromNetwork: boolean;
+      };
+    }
+  | {
       action: "getLatestInboxState";
       id: string;
       result: SafeInboxState;

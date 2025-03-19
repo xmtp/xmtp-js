@@ -44,6 +44,23 @@ describe.concurrent("Preferences", () => {
     );
   });
 
+  it("should get inbox state from inbox ids", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const inboxState = await client1.preferences.inboxStateFromInboxIds(
+      [client1.inboxId!, client2.inboxId!],
+      true,
+    );
+    expect(inboxState.length).toBe(2);
+    const inboxIds = inboxState.map((state) => state.inboxId);
+    expect(inboxIds).toContain(client1.inboxId!);
+    expect(inboxIds).toContain(client2.inboxId!);
+  });
+
   it("should manage consent states", async () => {
     const user1 = createUser();
     const user2 = createUser();
