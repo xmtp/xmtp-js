@@ -17,6 +17,16 @@ export class Preferences {
     });
   }
 
+  async inboxStateFromInboxIds(
+    inboxIds: string[],
+    refreshFromNetwork?: boolean,
+  ) {
+    return this.#client.sendMessage("inboxStateFromInboxIds", {
+      inboxIds,
+      refreshFromNetwork: refreshFromNetwork ?? false,
+    });
+  }
+
   async getLatestInboxState(inboxId: string) {
     return this.#client.sendMessage("getLatestInboxState", { inboxId });
   }

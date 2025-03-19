@@ -21,6 +21,16 @@ export class WorkerPreferences {
     return this.#client.inboxState(refreshFromNetwork);
   }
 
+  async inboxStateFromInboxIds(
+    inboxIds: string[],
+    refreshFromNetwork?: boolean,
+  ) {
+    return this.#client.inboxStateFromInboxIds(
+      inboxIds,
+      refreshFromNetwork ?? false,
+    );
+  }
+
   async getLatestInboxState(inboxId: string) {
     return this.#client.getLatestInboxState(inboxId);
   }
