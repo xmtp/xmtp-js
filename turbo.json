@@ -20,18 +20,11 @@
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
       "outputs": []
     },
     "typecheck": {
       "dependsOn": ["^build"],
-      "outputs": []
-    },
-    "@xmtp/content-type-reply#test": {
-      "dependsOn": ["@xmtp/content-type-remote-attachment#build"],
-      "outputs": []
-    },
-    "@xmtp/content-type-remote-attachment#test": {
       "outputs": []
     }
   }
