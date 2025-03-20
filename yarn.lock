@@ -4424,7 +4424,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-remote-attachment@npm:^2.0.0, @xmtp/content-type-remote-attachment@workspace:*, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
+"@xmtp/content-type-remote-attachment@npm:^2.0.0, @xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment"
   dependencies:
@@ -4454,12 +4454,10 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.10.6"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
-    "@xmtp/content-type-remote-attachment": "workspace:*"
+    "@xmtp/content-type-remote-attachment": "workspace:^"
+    "@xmtp/content-type-text": "workspace:^"
+    "@xmtp/node-sdk": "workspace:^"
     "@xmtp/proto": "npm:^3.72.0"
-    "@xmtp/xmtp-js": "npm:^11.6.3"
-    buffer: "npm:^6.0.3"
-    ethers: "npm:^6.11.1"
-    happy-dom: "npm:^16.6.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.34.9"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4470,7 +4468,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-text@npm:^2.0.0, @xmtp/content-type-text@workspace:content-types/content-type-text":
+"@xmtp/content-type-text@npm:^2.0.0, @xmtp/content-type-text@workspace:^, @xmtp/content-type-text@workspace:content-types/content-type-text":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-text@workspace:content-types/content-type-text"
   dependencies:
