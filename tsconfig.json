@@ -1,7 +1,15 @@
 {
-  "extends": ["tsconfig/node.json"],
   "compilerOptions": {
-    "allowJs": true
+    "allowJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNext"
   },
   "include": [".prettierrc.cjs", "eslint.config.js", "dev/uploadService/*"]
 }
