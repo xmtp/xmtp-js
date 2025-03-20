@@ -8,8 +8,7 @@
     "content-types/*",
     "examples/*",
     "packages/*",
-    "sdks/*",
-    "shared/*"
+    "sdks/*"
   ],
   "scripts": {
     "build": "turbo run build",

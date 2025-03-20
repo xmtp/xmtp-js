@@ -4257,7 +4257,6 @@ __metadata:
     rollup-plugin-dts: "npm:^6.1.1"
     rollup-plugin-filesize: "npm:^10.0.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
-    tsconfig: "workspace:*"
     typedoc: "npm:^0.26.11"
     typescript: "npm:^5.8.2"
     uuid: "npm:^11.0.3"
@@ -4536,7 +4535,6 @@ __metadata:
     react-dom: "npm:^18.3.1"
     react-router: "npm:^7.1.1"
     react-virtuoso: "npm:^4.12.3"
-    tsconfig: "workspace:*"
     typescript: "npm:^5.8.2"
     uint8array-extras: "npm:^1.4.0"
     viem: "npm:^2.21.52"
@@ -11157,12 +11155,6 @@ __metadata:
   checksum: 10/4fb02e75ff374a82052b4800970bebe4466b5a6e7193d74e7b875cc8225acb5037fb4e7dcd4a5cd751c22129360cb13b4d5536897eae131d69c1a20fb18a99b4
   languageName: node
   linkType: hard
-
-"tsconfig@workspace:*, tsconfig@workspace:shared/tsconfig":
-  version: 0.0.0-use.local
-  resolution: "tsconfig@workspace:shared/tsconfig"
-  languageName: unknown
-  linkType: soft
 
 "tslib@npm:1.14.1":
   version: 1.14.1
