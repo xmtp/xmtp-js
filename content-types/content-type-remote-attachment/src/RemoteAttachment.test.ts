@@ -1,11 +1,38 @@
-import { Client } from "@xmtp/xmtp-js";
-import { Wallet } from "ethers";
+import { getRandomValues } from "node:crypto";
+import { Client, IdentifierKind, type Signer } from "@xmtp/node-sdk";
+import { createWalletClient, http, toBytes } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
 import { AttachmentCodec, type Attachment } from "./Attachment";
 import {
   ContentTypeRemoteAttachment,
   RemoteAttachmentCodec,
   type RemoteAttachment,
 } from "./RemoteAttachment";
+
+const testEncryptionKey = getRandomValues(new Uint8Array(32));
+
+export const createSigner = (): Signer => {
+  const account = privateKeyToAccount(generatePrivateKey());
+  const wallet = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http(),
+  });
+  return {
+    type: "EOA",
+    getIdentifier: () => ({
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: account.address.toLowerCase(),
+    }),
+    signMessage: async (message: string) => {
+      const signature = await wallet.signMessage({
+        message,
+      });
+      return toBytes(signature);
+    },
+  };
+};
 
 test("content type exists", () => {
   expect(ContentTypeRemoteAttachment.authorityId).toBe("xmtp.org");
@@ -15,23 +42,19 @@ test("content type exists", () => {
 });
 
 test("can create a remote attachment", async () => {
-  const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, {
+  const signer1 = createSigner();
+  const client1 = await Client.create(signer1, testEncryptionKey, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
-  await aliceClient.publishUserContact();
 
-  const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, {
+  const signer2 = createSigner();
+  const client2 = await Client.create(signer2, testEncryptionKey, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
-  await bobClient.publishUserContact();
 
-  const conversation = await aliceClient.conversations.newConversation(
-    bobWallet.address,
-  );
+  const dm = await client1.conversations.newDm(client2.inboxId);
 
   const attachment: Attachment = {
     filename: "test.txt",
@@ -66,15 +89,15 @@ test("can create a remote attachment", async () => {
     filename: "test.txt",
   };
 
-  await conversation.send(remoteAttachment, {
-    contentType: ContentTypeRemoteAttachment,
-  });
+  await dm.send(remoteAttachment, ContentTypeRemoteAttachment);
 
-  const bobConversation = await bobClient.conversations.newConversation(
-    aliceWallet.address,
-  );
-  const messages = await bobConversation.messages();
+  await client2.conversations.sync();
+  const dms = client2.conversations.listDms();
 
+  expect(dms.length).toBe(1);
+
+  await dms[0].sync();
+  const messages = await dms[0].messages();
   expect(messages.length).toBe(1);
 
   const message = messages[0];
@@ -85,7 +108,7 @@ test("can create a remote attachment", async () => {
 
   const content = await RemoteAttachmentCodec.load<Attachment>(
     messageContent,
-    bobClient,
+    client2,
   );
   expect(content.filename).toBe("test.txt");
   expect(content.mimeType).toBe("text/plain");
@@ -93,23 +116,19 @@ test("can create a remote attachment", async () => {
 });
 
 test("fails if url is not https", async () => {
-  const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, {
+  const signer1 = createSigner();
+  const client1 = await Client.create(signer1, testEncryptionKey, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
-  await aliceClient.publishUserContact();
 
-  const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, {
+  const signer2 = createSigner();
+  const client2 = await Client.create(signer2, testEncryptionKey, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
-  await bobClient.publishUserContact();
 
-  const conversation = await aliceClient.conversations.newConversation(
-    bobWallet.address,
-  );
+  const dm = await client1.conversations.newDm(client2.inboxId);
 
   const attachment: Attachment = {
     filename: "test.txt",
@@ -133,30 +152,24 @@ test("fails if url is not https", async () => {
   };
 
   await expect(
-    conversation.send(remoteAttachment, {
-      contentType: ContentTypeRemoteAttachment,
-    }),
+    dm.send(remoteAttachment, ContentTypeRemoteAttachment),
   ).rejects.toThrow("scheme must be https");
 });
 
 test("fails if content digest does not match", async () => {
-  const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, {
+  const signer1 = createSigner();
+  const client1 = await Client.create(signer1, testEncryptionKey, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
-  await aliceClient.publishUserContact();
 
-  const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, {
+  const signer2 = createSigner();
+  const client2 = await Client.create(signer2, testEncryptionKey, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
-  await bobClient.publishUserContact();
 
-  const conversation = await aliceClient.conversations.newConversation(
-    bobWallet.address,
-  );
+  const dm = await client1.conversations.newDm(client2.inboxId);
 
   const attachment: Attachment = {
     filename: "test.txt",
@@ -191,14 +204,17 @@ test("fails if content digest does not match", async () => {
     filename: "test.txt",
   };
 
-  await conversation.send(remoteAttachment, {
-    contentType: ContentTypeRemoteAttachment,
-  });
+  await dm.send(remoteAttachment, ContentTypeRemoteAttachment);
 
-  const bobConversation = await bobClient.conversations.newConversation(
-    aliceWallet.address,
-  );
-  const messages = await bobConversation.messages();
+  await client2.conversations.sync();
+  const dms = client2.conversations.listDms();
+
+  expect(dms.length).toBe(1);
+
+  await dms[0].sync();
+  const messages = await dms[0].messages();
+  expect(messages.length).toBe(1);
+
   const message = messages[0];
 
   const encryptedEncoded2 = await RemoteAttachmentCodec.encodeEncrypted(
@@ -214,7 +230,7 @@ test("fails if content digest does not match", async () => {
   });
 
   await expect(
-    RemoteAttachmentCodec.load(message.content as RemoteAttachment, bobClient),
+    RemoteAttachmentCodec.load(message.content as RemoteAttachment, client2),
   ).rejects.toThrow("content digest does not match");
 });
 
