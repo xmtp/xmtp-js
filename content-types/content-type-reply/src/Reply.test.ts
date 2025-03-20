@@ -1,11 +1,39 @@
+import { getRandomValues } from "node:crypto";
 import {
   AttachmentCodec,
   ContentTypeAttachment,
   type Attachment,
 } from "@xmtp/content-type-remote-attachment";
-import { Client, ContentTypeText } from "@xmtp/xmtp-js";
-import { Wallet } from "ethers";
+import { ContentTypeText } from "@xmtp/content-type-text";
+import { Client, IdentifierKind, type Signer } from "@xmtp/node-sdk";
+import { createWalletClient, http, toBytes } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
 import { ContentTypeReply, ReplyCodec, type Reply } from "./Reply";
+
+const testEncryptionKey = getRandomValues(new Uint8Array(32));
+
+export const createSigner = (): Signer => {
+  const account = privateKeyToAccount(generatePrivateKey());
+  const wallet = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http(),
+  });
+  return {
+    type: "EOA",
+    getIdentifier: () => ({
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: account.address.toLowerCase(),
+    }),
+    signMessage: async (message: string) => {
+      const signature = await wallet.signMessage({
+        message,
+      });
+      return toBytes(signature);
+    },
+  };
+};
 
 describe("ReplyContentType", () => {
   it("has the right content type", () => {
@@ -16,67 +44,61 @@ describe("ReplyContentType", () => {
   });
 
   it("can send a text reply", async () => {
-    const aliceWallet = Wallet.createRandom();
-    const aliceClient = await Client.create(aliceWallet, {
+    const signer1 = createSigner();
+    const client1 = await Client.create(signer1, testEncryptionKey, {
       codecs: [new ReplyCodec()],
       env: "local",
     });
-    await aliceClient.publishUserContact();
 
-    const bobWallet = Wallet.createRandom();
-    const bobClient = await Client.create(bobWallet, {
+    const signer2 = createSigner();
+    const client2 = await Client.create(signer2, testEncryptionKey, {
       codecs: [new ReplyCodec()],
       env: "local",
     });
-    await bobClient.publishUserContact();
 
-    const conversation = await aliceClient.conversations.newConversation(
-      bobWallet.address,
-    );
+    const dm = await client1.conversations.newDm(client2.inboxId);
 
-    const originalMessage = await conversation.send("test");
+    const originalMessage = await dm.send("test");
 
     const reply: Reply = {
       content: "LGTM",
       contentType: ContentTypeText,
-      reference: originalMessage.id,
+      reference: originalMessage,
     };
 
-    await conversation.send(reply, { contentType: ContentTypeReply });
+    await dm.send(reply, ContentTypeReply);
 
-    const bobConversation = await bobClient.conversations.newConversation(
-      aliceWallet.address,
-    );
-    const messages = await bobConversation.messages();
+    await client2.conversations.sync();
+    const dms = client2.conversations.listDms();
 
+    expect(dms.length).toBe(1);
+
+    await dms[0].sync();
+    const messages = await dms[0].messages();
     expect(messages.length).toBe(2);
 
     const replyMessage = messages[1];
     const messageContent = replyMessage.content as Reply;
     expect(messageContent.content).toBe("LGTM");
-    expect(messageContent.reference).toBe(originalMessage.id);
+    expect(messageContent.reference).toBe(originalMessage);
   });
 
   it("can send an attachment reply", async () => {
-    const aliceWallet = Wallet.createRandom();
-    const aliceClient = await Client.create(aliceWallet, {
+    const signer1 = createSigner();
+    const client1 = await Client.create(signer1, testEncryptionKey, {
       codecs: [new ReplyCodec(), new AttachmentCodec()],
       env: "local",
     });
-    await aliceClient.publishUserContact();
 
-    const bobWallet = Wallet.createRandom();
-    const bobClient = await Client.create(bobWallet, {
+    const signer2 = createSigner();
+    const client2 = await Client.create(signer2, testEncryptionKey, {
       codecs: [new ReplyCodec(), new AttachmentCodec()],
       env: "local",
     });
-    await bobClient.publishUserContact();
 
-    const conversation = await aliceClient.conversations.newConversation(
-      bobWallet.address,
-    );
+    const dm = await client1.conversations.newDm(client2.inboxId);
 
-    const originalMessage = await conversation.send("test");
+    const originalMessage = await dm.send("test");
 
     const attachment: Attachment = {
       filename: "test.png",
@@ -87,16 +109,18 @@ describe("ReplyContentType", () => {
     const reply: Reply = {
       content: attachment,
       contentType: ContentTypeAttachment,
-      reference: originalMessage.id,
+      reference: originalMessage,
     };
 
-    await conversation.send(reply, { contentType: ContentTypeReply });
+    await dm.send(reply, ContentTypeReply);
 
-    const bobConversation = await bobClient.conversations.newConversation(
-      aliceWallet.address,
-    );
-    const messages = await bobConversation.messages();
+    await client2.conversations.sync();
+    const dms = client2.conversations.listDms();
 
+    expect(dms.length).toBe(1);
+
+    await dms[0].sync();
+    const messages = await dms[0].messages();
     expect(messages.length).toBe(2);
 
     const replyMessage = messages[1];
@@ -107,7 +131,7 @@ describe("ReplyContentType", () => {
       mimeType: "image/png",
       data: Uint8Array.from([5, 4, 3, 2, 1]),
     });
-    expect(messageContent.reference).toBe(originalMessage.id);
+    expect(messageContent.reference).toBe(originalMessage);
   });
 
   it("has a proper shouldPush value", () => {
