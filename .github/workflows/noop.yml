@@ -10,7 +10,6 @@ on:
       - ".changeset/config.json"
       - ".changeset/*.md"
       - ".github/**"
-      - "!.github/workflows/js-sdk.yml"
       - "!.github/workflows/node-sdk.yml"
       - "!.github/workflows/content-types.yml"
       - ".vscode/**"
