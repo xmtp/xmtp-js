@@ -65,7 +65,7 @@
     "@xmtp/content-type-text": "^2.0.0",
     "@xmtp/proto": "^3.78.0",
     "@xmtp/wasm-bindings": "^1.1.0",
-    "uuid": "^11.0.3"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",

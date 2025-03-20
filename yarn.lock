@@ -3812,7 +3812,7 @@ __metadata:
     rollup-plugin-filesize: "npm:^10.0.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.8.2"
-    uuid: "npm:^11.0.3"
+    uuid: "npm:^11.1.0"
     viem: "npm:^2.23.13"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
@@ -4006,7 +4006,7 @@ __metadata:
     tsx: "npm:^4.19.3"
     typescript: "npm:^5.8.2"
     uint8array-extras: "npm:^1.4.0"
-    uuid: "npm:^11.0.3"
+    uuid: "npm:^11.1.0"
     viem: "npm:^2.23.13"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
@@ -11020,12 +11020,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.0.3":
-  version: 11.0.3
-  resolution: "uuid@npm:11.0.3"
+"uuid@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "uuid@npm:11.1.0"
   bin:
     uuid: dist/esm/bin/uuid
-  checksum: 10/251385563195709eb0697c74a834764eef28e1656d61174e35edbd129288acb4d95a43f4ce8a77b8c2fc128e2b55924296a0945f964b05b9173469d045625ff2
+  checksum: 10/d2da43b49b154d154574891ced66d0c83fc70caaad87e043400cf644423b067542d6f3eb641b7c819224a7cd3b4c2f21906acbedd6ec9c6a05887aa9115a9cf5
   languageName: node
   linkType: hard
 
