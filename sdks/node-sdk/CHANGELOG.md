@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 607ae92: Fixed build to export `IdentifierKind` enum
+- 607ae92: Fixed `IdentifierKind` enum export in build
 
 ## 1.0.0
 
