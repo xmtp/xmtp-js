@@ -47,7 +47,7 @@
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^5.8.2",
-    "vite": "^6.0.7",
+    "vite": "^6.2.2",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }
