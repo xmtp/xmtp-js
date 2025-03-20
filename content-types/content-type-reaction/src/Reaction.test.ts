@@ -1,6 +1,33 @@
-import { Client } from "@xmtp/xmtp-js";
-import { Wallet } from "ethers";
+import { getRandomValues } from "node:crypto";
+import { Client, IdentifierKind, type Signer } from "@xmtp/node-sdk";
+import { createWalletClient, http, toBytes } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
 import { ContentTypeReaction, ReactionCodec, type Reaction } from "./Reaction";
+
+const testEncryptionKey = getRandomValues(new Uint8Array(32));
+
+export const createSigner = (): Signer => {
+  const account = privateKeyToAccount(generatePrivateKey());
+  const wallet = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http(),
+  });
+  return {
+    type: "EOA",
+    getIdentifier: () => ({
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: account.address.toLowerCase(),
+    }),
+    signMessage: async (message: string) => {
+      const signature = await wallet.signMessage({
+        message,
+      });
+      return toBytes(signature);
+    },
+  };
+};
 
 describe("ReactionContentType", () => {
   it("has the right content type", () => {
@@ -53,47 +80,45 @@ describe("ReactionContentType", () => {
   });
 
   it("can send a reaction", async () => {
-    const aliceWallet = Wallet.createRandom();
-    const aliceClient = await Client.create(aliceWallet, {
+    const signer1 = createSigner();
+    const client1 = await Client.create(signer1, testEncryptionKey, {
       codecs: [new ReactionCodec()],
       env: "local",
     });
-    await aliceClient.publishUserContact();
 
-    const bobWallet = Wallet.createRandom();
-    const bobClient = await Client.create(bobWallet, {
+    const signer2 = createSigner();
+    const client2 = await Client.create(signer2, testEncryptionKey, {
       codecs: [new ReactionCodec()],
       env: "local",
     });
-    await bobClient.publishUserContact();
 
-    const conversation = await aliceClient.conversations.newConversation(
-      bobWallet.address,
-    );
+    const dm = await client1.conversations.newDm(client2.inboxId);
 
-    const originalMessage = await conversation.send("test");
+    const originalMessage = await dm.send("test");
 
     const reaction: Reaction = {
       action: "added",
       content: "smile",
-      reference: originalMessage.id,
+      reference: originalMessage,
       schema: "shortcode",
     };
 
-    await conversation.send(reaction, { contentType: ContentTypeReaction });
+    await dm.send(reaction, ContentTypeReaction);
 
-    const bobConversation = await bobClient.conversations.newConversation(
-      aliceWallet.address,
-    );
-    const messages = await bobConversation.messages();
+    await client2.conversations.sync();
+    const dms = client2.conversations.listDms();
 
+    expect(dms.length).toBe(1);
+
+    await dms[0].sync();
+    const messages = await dms[0].messages();
     expect(messages.length).toBe(2);
 
     const reactionMessage = messages[1];
     const messageContent = reactionMessage.content as Reaction;
     expect(messageContent.action).toBe("added");
     expect(messageContent.content).toBe("smile");
-    expect(messageContent.reference).toBe(originalMessage.id);
+    expect(messageContent.reference).toBe(originalMessage);
     expect(messageContent.schema).toBe("shortcode");
   });
 
