@@ -63,7 +63,7 @@ export class RemoteAttachmentCodec
     const digestBytes = new Uint8Array(
       await crypto.subtle.digest("SHA-256", payload),
     );
-    const digest = secp.utils.bytesToHex(digestBytes);
+    const digest = secp.etc.bytesToHex(digestBytes);
 
     if (digest !== remoteAttachment.contentDigest) {
       throw new Error("content digest does not match");
@@ -122,7 +122,7 @@ export class RemoteAttachmentCodec
     const digestBytes = new Uint8Array(
       await crypto.subtle.digest("SHA-256", payload),
     );
-    const digest = secp.utils.bytesToHex(digestBytes);
+    const digest = secp.etc.bytesToHex(digestBytes);
 
     return {
       digest,
@@ -146,9 +146,9 @@ export class RemoteAttachmentCodec
       type: ContentTypeRemoteAttachment,
       parameters: {
         contentDigest: content.contentDigest,
-        salt: secp.utils.bytesToHex(content.salt),
-        nonce: secp.utils.bytesToHex(content.nonce),
-        secret: secp.utils.bytesToHex(content.secret),
+        salt: secp.etc.bytesToHex(content.salt),
+        nonce: secp.etc.bytesToHex(content.nonce),
+        secret: secp.etc.bytesToHex(content.secret),
         scheme: content.scheme,
         contentLength: String(content.contentLength),
         filename: content.filename,
@@ -163,9 +163,9 @@ export class RemoteAttachmentCodec
     return {
       url: new TextDecoder().decode(content.content),
       contentDigest: content.parameters.contentDigest,
-      salt: secp.utils.hexToBytes(content.parameters.salt),
-      nonce: secp.utils.hexToBytes(content.parameters.nonce),
-      secret: secp.utils.hexToBytes(content.parameters.secret),
+      salt: secp.etc.hexToBytes(content.parameters.salt),
+      nonce: secp.etc.hexToBytes(content.parameters.nonce),
+      secret: secp.etc.hexToBytes(content.parameters.secret),
       scheme: content.parameters.scheme,
       contentLength: parseInt(content.parameters.contentLength, 10),
       filename: content.parameters.filename,

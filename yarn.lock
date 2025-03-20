@@ -1894,10 +1894,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/secp256k1@npm:^1.7.1":
-  version: 1.7.1
-  resolution: "@noble/secp256k1@npm:1.7.1"
-  checksum: 10/214d4756c20ed20809d948d0cc161e95664198cb127266faf747fd7deffe5444901f05fe9f833787738f2c6e60b09e544c2f737f42f73b3699e3999ba15b1b63
+"@noble/secp256k1@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "@noble/secp256k1@npm:2.2.3"
+  checksum: 10/ea2947063136819f07e3c1493888c778c49555432322b11f50030daa297fe5c0446f672711728aef695b51ff4d9be8747b065793b95396c2ed8dd826fa08941c
   languageName: node
   linkType: hard
 
@@ -3900,7 +3900,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment"
   dependencies:
-    "@noble/secp256k1": "npm:^1.7.1"
+    "@noble/secp256k1": "npm:^2.2.3"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
