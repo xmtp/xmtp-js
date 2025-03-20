@@ -37,7 +37,7 @@
     "react-virtuoso": "^4.12.5",
     "uint8array-extras": "^1.4.0",
     "viem": "^2.23.13",
-    "wagmi": "^2.13.2"
+    "wagmi": "^2.14.15"
   },
   "devDependencies": {
     "@types/react": "^19.0.12",
