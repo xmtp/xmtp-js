@@ -3804,7 +3804,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.0"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/content-type-text": "npm:^2.0.0"
-    "@xmtp/proto": "npm:^3.72.3"
+    "@xmtp/proto": "npm:^3.78.0"
     "@xmtp/wasm-bindings": "npm:^1.1.0"
     playwright: "npm:^1.51.1"
     rollup: "npm:^4.34.9"
@@ -3828,7 +3828,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
-    "@xmtp/proto": "npm:^3.72.0"
+    "@xmtp/proto": "npm:^3.78.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.34.9"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3846,7 +3846,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/proto": "npm:^3.72.0"
+    "@xmtp/proto": "npm:^3.78.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.34.9"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3906,7 +3906,7 @@ __metadata:
     "@types/node": "npm:^22.13.10"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/node-sdk": "workspace:^"
-    "@xmtp/proto": "npm:^3.72.0"
+    "@xmtp/proto": "npm:^3.78.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.34.9"
@@ -3929,7 +3929,7 @@ __metadata:
     "@xmtp/content-type-remote-attachment": "workspace:^"
     "@xmtp/content-type-text": "workspace:^"
     "@xmtp/node-sdk": "workspace:^"
-    "@xmtp/proto": "npm:^3.72.0"
+    "@xmtp/proto": "npm:^3.78.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.34.9"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3996,7 +3996,7 @@ __metadata:
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/content-type-text": "npm:^2.0.0"
     "@xmtp/node-bindings": "npm:^1.0.0"
-    "@xmtp/proto": "npm:^3.72.3"
+    "@xmtp/proto": "npm:^3.78.0"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.34.9"
@@ -4014,27 +4014,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:^3.72.0":
-  version: 3.72.0
-  resolution: "@xmtp/proto@npm:3.72.0"
+"@xmtp/proto@npm:^3.78.0":
+  version: 3.78.0
+  resolution: "@xmtp/proto@npm:3.78.0"
   dependencies:
     long: "npm:^5.2.0"
     protobufjs: "npm:^7.0.0"
     rxjs: "npm:^7.8.0"
     undici: "npm:^5.8.1"
-  checksum: 10/a60df6fa60a9523978c7ad52696ed393179060ed91fb521dfc2cace3127fcd070527a03c5be99089df6c73aead06c8ce74e86e31b9353cfb2a36986fbb7fc645
-  languageName: node
-  linkType: hard
-
-"@xmtp/proto@npm:^3.72.3":
-  version: 3.72.3
-  resolution: "@xmtp/proto@npm:3.72.3"
-  dependencies:
-    long: "npm:^5.2.0"
-    protobufjs: "npm:^7.0.0"
-    rxjs: "npm:^7.8.0"
-    undici: "npm:^5.8.1"
-  checksum: 10/fc2f1ff57527a09eff400bef96dfd870790201893746270a13bad35d94d5f3166cf4a527ed955c05f0341ecd8e156c4421869b522789b6800840b17989cb1098
+  checksum: 10/11ed8017c5d59fe64f647dd27395241dc644c517263bbc0c729826def08c0cd569db79bae06445fff84cc417d4a4dabd28b87789e3de1e937409598b11c7f213
   languageName: node
   linkType: hard
 
