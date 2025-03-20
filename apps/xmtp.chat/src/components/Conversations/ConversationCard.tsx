@@ -1,5 +1,5 @@
 import { Box, Card, Flex, Stack, Text } from "@mantine/core";
-import { type Conversation } from "@xmtp/browser-sdk";
+import { Dm, Group, type Conversation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import styles from "./ConversationCard.module.css";
@@ -12,6 +12,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   conversation,
 }) => {
   const [memberCount, setMemberCount] = useState(0);
+  const [name, setName] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +20,17 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
       setMemberCount(members.length);
     });
   }, [conversation.id]);
+
+  useEffect(() => {
+    if (conversation instanceof Group) {
+      setName(conversation.name ?? "");
+    }
+    if (conversation instanceof Dm) {
+      void conversation.peerInboxId().then((inboxId) => {
+        setName(inboxId);
+      });
+    }
+  }, [conversation]);
 
   return (
     <Box pb="sm" px="sm">
@@ -38,11 +50,8 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
         classNames={{ root: styles.root }}>
         <Stack gap="0">
           <Flex align="center">
-            <Text
-              fw={700}
-              c={conversation.name ? "text.primary" : "dimmed"}
-              truncate="end">
-              {conversation.name || "Untitled"}
+            <Text fw={700} c={name ? "text.primary" : "dimmed"} truncate="end">
+              {name || "Untitled"}
             </Text>
           </Flex>
           <Text size="sm">
