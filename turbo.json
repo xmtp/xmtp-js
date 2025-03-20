@@ -32,22 +32,6 @@
       "outputs": []
     },
     "@xmtp/content-type-remote-attachment#test": {
-      "dependsOn": ["@xmtp/consent-proof-signature#build"],
-      "outputs": []
-    },
-    "@xmtp/frames-client#test": {
-      "dependsOn": [
-        "@xmtp/consent-proof-signature#build",
-        "@xmtp/content-type-text#build",
-        "@xmtp/node-sdk#build"
-      ],
-      "outputs": []
-    },
-    "@xmtp/frames-validator#test": {
-      "dependsOn": [
-        "@xmtp/content-type-text#build",
-        "@xmtp/frames-client#build"
-      ],
       "outputs": []
     }
   }
