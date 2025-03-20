@@ -45,8 +45,7 @@
     "dev": "yarn clean:dist && yarn rollup -c --watch",
     "test": "vitest run",
     "test:debug": "vitest run --inspect-brk --no-file-parallelism",
-    "typecheck": "tsc",
-    "typedoc": "typedoc"
+    "typecheck": "tsc"
   },
   "browserslist": {
     "production": [
@@ -82,7 +81,6 @@
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
-    "typedoc": "^0.26.11",
     "typescript": "^5.8.2",
     "viem": "^2.17.4",
     "vite": "^6.2.2",
