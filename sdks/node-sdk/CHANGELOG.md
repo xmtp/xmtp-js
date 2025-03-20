@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 1.0.1
+
+### Patch Changes
+
+- 607ae92: Fixed `IdentifierKind` enum export in build
+
 ## 1.0.0
 
 ### Major Changes
