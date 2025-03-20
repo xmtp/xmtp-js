@@ -3954,7 +3954,7 @@ __metadata:
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.8.2"
     uuid: "npm:^11.0.3"
-    viem: "npm:^2.17.4"
+    viem: "npm:^2.23.13"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^2.1.9"
@@ -4148,7 +4148,7 @@ __metadata:
     typescript: "npm:^5.8.2"
     uint8array-extras: "npm:^1.4.0"
     uuid: "npm:^11.0.3"
-    viem: "npm:^2.13.6"
+    viem: "npm:^2.23.13"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^2.1.9"
@@ -4231,7 +4231,7 @@ __metadata:
     react-virtuoso: "npm:^4.12.5"
     typescript: "npm:^5.8.2"
     uint8array-extras: "npm:^1.4.0"
-    viem: "npm:^2.21.52"
+    viem: "npm:^2.23.13"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
     wagmi: "npm:^2.13.2"
@@ -8386,26 +8386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ox@npm:0.1.2":
-  version: 0.1.2
-  resolution: "ox@npm:0.1.2"
-  dependencies:
-    "@adraffy/ens-normalize": "npm:^1.10.1"
-    "@noble/curves": "npm:^1.6.0"
-    "@noble/hashes": "npm:^1.5.0"
-    "@scure/bip32": "npm:^1.5.0"
-    "@scure/bip39": "npm:^1.4.0"
-    abitype: "npm:^1.0.6"
-    eventemitter3: "npm:5.0.1"
-  peerDependencies:
-    typescript: ">=5.4.0"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10/cba00f13289599ff03cee3dbc19167c1d0f01829379d119f962b4e951ee2bf0d14491c7a45974e6a2a745117b13b22e9e4131d285e1f5247ea4e1cbc43c5c3d8
-  languageName: node
-  linkType: hard
-
 "ox@npm:0.6.9":
   version: 0.6.9
   resolution: "ox@npm:0.6.9"
@@ -11235,72 +11215,6 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/1fe36236c802a512a359c4710d98e627c04795cdf62bb0341c9ac6ab8afc5626431a1b471062ac29f5e2f23bca6ce933d552858f55ad1968514aaea1fb74324d
-  languageName: node
-  linkType: hard
-
-"viem@npm:^2.13.6":
-  version: 2.21.28
-  resolution: "viem@npm:2.21.28"
-  dependencies:
-    "@adraffy/ens-normalize": "npm:1.11.0"
-    "@noble/curves": "npm:1.6.0"
-    "@noble/hashes": "npm:1.5.0"
-    "@scure/bip32": "npm:1.5.0"
-    "@scure/bip39": "npm:1.4.0"
-    abitype: "npm:1.0.6"
-    isows: "npm:1.0.6"
-    webauthn-p256: "npm:0.0.10"
-    ws: "npm:8.18.0"
-  peerDependencies:
-    typescript: ">=5.0.4"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10/191b97d26afa587297f3d940d6ee8e2724944ddd0beae417d235412dedeeef35247b2c02d5ae38904066151378101f0a271557d79625711c1c0ce155e9c8e88f
-  languageName: node
-  linkType: hard
-
-"viem@npm:^2.17.4":
-  version: 2.21.53
-  resolution: "viem@npm:2.21.53"
-  dependencies:
-    "@noble/curves": "npm:1.6.0"
-    "@noble/hashes": "npm:1.5.0"
-    "@scure/bip32": "npm:1.5.0"
-    "@scure/bip39": "npm:1.4.0"
-    abitype: "npm:1.0.6"
-    isows: "npm:1.0.6"
-    ox: "npm:0.1.2"
-    webauthn-p256: "npm:0.0.10"
-    ws: "npm:8.18.0"
-  peerDependencies:
-    typescript: ">=5.0.4"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10/fe41684a63b4d493b7cfb7f30451d5275c51dda196047c949710f05cf920bb22d5f3ff16375d1854797b0f0c8f5c31c0dd8720826f135e2b3040e2067d18b88f
-  languageName: node
-  linkType: hard
-
-"viem@npm:^2.21.52":
-  version: 2.21.52
-  resolution: "viem@npm:2.21.52"
-  dependencies:
-    "@noble/curves": "npm:1.6.0"
-    "@noble/hashes": "npm:1.5.0"
-    "@scure/bip32": "npm:1.5.0"
-    "@scure/bip39": "npm:1.4.0"
-    abitype: "npm:1.0.6"
-    isows: "npm:1.0.6"
-    ox: "npm:0.1.2"
-    webauthn-p256: "npm:0.0.10"
-    ws: "npm:8.18.0"
-  peerDependencies:
-    typescript: ">=5.0.4"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10/d30346ebc74237a922a62704780bbf7f49cfa11477e743aa8a2c0c9c184c7f290f93c5c5f34e357ae88fee08ea81e108fe8bea44bf61f9774d4d515f5038b9d4
   languageName: node
   linkType: hard
 

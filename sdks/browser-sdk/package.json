@@ -82,7 +82,7 @@
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.8.2",
-    "viem": "^2.17.4",
+    "viem": "^2.23.13",
     "vite": "^6.2.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^2.1.9"
