@@ -1,5 +1,14 @@
 # @xmtp/content-type-remote-attachment
 
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [340fcf4]
+  - @xmtp/content-type-primitives@2.0.1
+  - @xmtp/proto@3.78.0
+  - @noble/secp256k1@2.2.3
+
 ## 2.0.0
 
 ### Major Changes
