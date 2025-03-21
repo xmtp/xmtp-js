@@ -48,7 +48,7 @@ export const Welcome = () => {
               size="xs"
               px={6}
               onClick={() => {
-                getRef("connect-wallet-button")?.current?.click();
+                getRef("connect-wallet-button")?.current.click();
               }}>
               Connect
             </Button>{" "}
@@ -65,7 +65,7 @@ export const Welcome = () => {
               px={6}
               variant="default"
               onClick={() => {
-                getRef("settings-button")?.current?.click();
+                getRef("settings-button")?.current.click();
               }}>
               Settings
             </Button>
