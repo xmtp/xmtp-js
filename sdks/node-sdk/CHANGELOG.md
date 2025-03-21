@@ -1,5 +1,15 @@
 # @xmtp/node-sdk
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [340fcf4]
+  - @xmtp/content-type-group-updated@2.0.1
+  - @xmtp/content-type-primitives@2.0.1
+  - @xmtp/content-type-text@2.0.1
+  - @xmtp/proto@3.78.0
+
 ## 1.0.1
 
 ### Patch Changes
