@@ -77,7 +77,7 @@
     "typescript": "^5.8.2",
     "viem": "^2.23.13",
     "vite": "^6.2.2",
-    "vitest": "^2.1.9"
+    "vitest": "^3.0.9"
   },
   "publishConfig": {
     "access": "public",
