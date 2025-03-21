@@ -3421,7 +3421,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/proto": "npm:^3.78.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.36.0"
@@ -3433,7 +3433,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:^2.0.0, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:^2.0.0, @xmtp/content-type-primitives@npm:^2.0.1, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -3458,7 +3458,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.36.0"
@@ -3478,7 +3478,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.36.0"
@@ -3498,7 +3498,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     "@xmtp/proto": "npm:^3.78.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
@@ -3519,7 +3519,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/content-type-remote-attachment": "workspace:^"
     "@xmtp/content-type-text": "workspace:^"
     "@xmtp/node-sdk": "workspace:^"
@@ -3541,7 +3541,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.36.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3559,7 +3559,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
     "@types/node": "npm:^22.13.10"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.36.0"
