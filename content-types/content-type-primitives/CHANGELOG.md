@@ -1,5 +1,11 @@
 # @xmtp/content-type-primitives
 
+## 2.0.1
+
+### Patch Changes
+
+- 340fcf4: Upgraded `@xmtp/proto` dependency
+
 ## 2.0.0
 
 ### Major Changes
