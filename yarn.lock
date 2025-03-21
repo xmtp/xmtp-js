@@ -3406,21 +3406,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/browser-sdk@npm:1.1.0":
-  version: 1.1.0
-  resolution: "@xmtp/browser-sdk@npm:1.1.0"
-  dependencies:
-    "@xmtp/content-type-group-updated": "npm:^2.0.0"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
-    "@xmtp/content-type-text": "npm:^2.0.0"
-    "@xmtp/proto": "npm:^3.72.3"
-    "@xmtp/wasm-bindings": "npm:^1.1.0"
-    uuid: "npm:^11.0.3"
-  checksum: 10/220dffb75594d16ded0bbf6448a3923c55e4e0b26b253aa663df3ebae372378735c24d0268c9f76a17da0a87ad5e7aab0b2fdf59666e759332676391c2c3c57e
-  languageName: node
-  linkType: hard
-
-"@xmtp/browser-sdk@workspace:sdks/browser-sdk":
+"@xmtp/browser-sdk@npm:1.1.1, @xmtp/browser-sdk@workspace:sdks/browser-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/browser-sdk@workspace:sdks/browser-sdk"
   dependencies:
@@ -3645,7 +3631,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:^3.72.3, @xmtp/proto@npm:^3.78.0":
+"@xmtp/proto@npm:^3.78.0":
   version: 3.78.0
   resolution: "@xmtp/proto@npm:3.78.0"
   dependencies:
@@ -3690,7 +3676,7 @@ __metadata:
     "@types/react": "npm:^19.0.12"
     "@types/react-dom": "npm:^19.0.4"
     "@vitejs/plugin-react": "npm:^4.3.4"
-    "@xmtp/browser-sdk": "npm:1.1.0"
+    "@xmtp/browser-sdk": "npm:1.1.1"
     "@xmtp/content-type-group-updated": "npm:^2.0.0"
     "@xmtp/content-type-primitives": "npm:^2.0.0"
     "@xmtp/content-type-reaction": "npm:^2.0.0"
@@ -10423,7 +10409,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.0.3, uuid@npm:^11.1.0":
+"uuid@npm:^11.1.0":
   version: 11.1.0
   resolution: "uuid@npm:11.1.0"
   bin:
