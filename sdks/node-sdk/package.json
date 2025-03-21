@@ -54,27 +54,27 @@
     "@xmtp/content-type-primitives": "^2.0.0",
     "@xmtp/content-type-text": "^2.0.0",
     "@xmtp/node-bindings": "^1.0.0",
-    "@xmtp/proto": "^3.72.3"
+    "@xmtp/proto": "^3.78.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "^22.13.10",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^3.0.9",
     "fast-glob": "^3.3.3",
     "rimraf": "^6.0.1",
-    "rollup": "^4.34.9",
+    "rollup": "^4.36.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "uint8array-extras": "^1.4.0",
-    "uuid": "^11.0.3",
-    "viem": "^2.13.6",
+    "uuid": "^11.1.0",
+    "viem": "^2.23.13",
     "vite": "^6.2.2",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^2.1.9"
+    "vitest": "^3.0.9"
   },
   "packageManager": "yarn@4.5.0",
   "engines": {

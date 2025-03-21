@@ -45,8 +45,7 @@
     "dev": "yarn clean:dist && yarn rollup -c --watch",
     "test": "vitest run",
     "test:debug": "vitest run --inspect-brk --no-file-parallelism",
-    "typecheck": "tsc",
-    "typedoc": "typedoc"
+    "typecheck": "tsc"
   },
   "browserslist": {
     "production": [
@@ -64,9 +63,9 @@
     "@xmtp/content-type-group-updated": "^2.0.0",
     "@xmtp/content-type-primitives": "^2.0.0",
     "@xmtp/content-type-text": "^2.0.0",
-    "@xmtp/proto": "^3.72.3",
+    "@xmtp/proto": "^3.78.0",
     "@xmtp/wasm-bindings": "^1.1.0",
-    "uuid": "^11.0.3"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
@@ -74,20 +73,19 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/uuid": "^10.0.0",
-    "@vitest/browser": "^2.1.9",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/browser": "^3.0.9",
+    "@vitest/coverage-v8": "^3.0.9",
     "@web/rollup-plugin-copy": "^0.5.1",
     "playwright": "^1.51.1",
-    "rollup": "^4.34.9",
+    "rollup": "^4.36.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
-    "typedoc": "^0.26.11",
     "typescript": "^5.8.2",
-    "viem": "^2.17.4",
+    "viem": "^2.23.13",
     "vite": "^6.2.2",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^2.1.9"
+    "vitest": "^3.0.9"
   },
   "engines": {
     "node": ">=20"

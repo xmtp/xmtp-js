@@ -104,7 +104,7 @@ export const LoadDM: React.FC = () => {
             size="xs"
             px={6}
             onClick={() => {
-              getRef("connect-wallet-button")?.current?.click();
+              getRef("connect-wallet-button")?.current.click();
             }}>
             Connect
           </Button>{" "}
