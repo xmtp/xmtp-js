@@ -16,34 +16,32 @@ export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
   content,
   sendMessage,
 }) => {
-  const { sendTransaction } = useSendTransaction();
+  const { sendTransactionAsync } = useSendTransaction();
 
   function handleSubmit() {
-    content.calls.forEach((call) => {
-      const wagmiTxData = {
-        ...call,
-        value: BigInt(parseInt(call.value || "0x0", 16)),
-        chainId: parseInt(content.chainId, 16),
-        gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
-      };
-      sendTransaction(wagmiTxData, {
-        onError(error) {
-          if (error.name === "TransactionExecutionError") {
+    void (async () => {
+      for (const call of content.calls) {
+        const wagmiTxData = {
+          ...call,
+          value: BigInt(parseInt(call.value || "0x0", 16)),
+          chainId: parseInt(content.chainId, 16),
+          gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
+        };
+        const txHash = await sendTransactionAsync(wagmiTxData, {
+          onError(error) {
             console.error(error);
-          }
-        },
-        onSuccess(txHash) {
-          const transactionReference: TransactionReference = {
-            networkId: content.chainId,
-            reference: txHash,
-          };
-          void sendMessage(
-            transactionReference,
-            ContentTypeTransactionReference,
-          );
-        },
-      });
-    });
+          },
+        });
+        const transactionReference: TransactionReference = {
+          networkId: content.chainId,
+          reference: txHash,
+        };
+        await sendMessage(
+          transactionReference,
+          ContentTypeTransactionReference,
+        );
+      }
+    })();
   }
 
   return (
