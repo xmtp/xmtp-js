@@ -24,6 +24,7 @@ export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
         ...call,
         value: BigInt(parseInt(call.value || "0x0", 16)),
         chainId: parseInt(content.chainId, 16),
+        gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
       };
       sendTransaction(wagmiTxData, {
         onError(error) {
