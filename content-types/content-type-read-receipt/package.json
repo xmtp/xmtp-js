@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-read-receipt",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "An XMTP content type to support read receipts",
   "keywords": [
     "xmtp",
@@ -43,13 +43,12 @@
   ],
   "scripts": {
     "build": "yarn clean:dist && yarn rollup -c",
-    "clean": "yarn clean:dist && rimraf .turbo node_modules",
+    "clean": "yarn clean:dist && yarn clean:dbs && rimraf .turbo node_modules",
+    "clean:dbs": "rimraf *.db3* ||:",
     "clean:dist": "rimraf dist",
     "dev": "yarn clean:dist && yarn rollup -c --watch",
-    "test": "yarn test:node && yarn test:jsdom",
-    "test:jsdom": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment happy-dom",
-    "test:node": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
-    "typecheck": "tsc --noEmit"
+    "test": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
+    "typecheck": "tsc"
   },
   "browserslist": {
     "production": [
@@ -64,23 +63,20 @@
     ]
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "^2.0.0"
+    "@xmtp/content-type-primitives": "^2.0.1"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
-    "@types/node": "^22.10.6",
-    "@xmtp/xmtp-js": "^11.6.3",
-    "buffer": "^6.0.3",
-    "ethers": "^6.11.1",
-    "happy-dom": "^16.6.0",
+    "@types/node": "^22.13.10",
+    "@xmtp/node-sdk": "workspace:^",
     "rimraf": "^6.0.1",
-    "rollup": "^4.34.9",
+    "rollup": "^4.36.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
-    "typescript": "^5.7.3",
-    "vite": "^6.0.7",
-    "vitest": "^2.1.3"
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2",
+    "vitest": "^3.0.9"
   },
   "publishConfig": {
     "access": "public",

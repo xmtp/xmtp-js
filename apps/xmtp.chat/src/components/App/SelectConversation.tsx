@@ -19,7 +19,7 @@ export const SelectConversation = () => {
             size="xs"
             px={6}
             onClick={() => {
-              getRef("new-conversation-button")?.current?.click();
+              getRef("new-conversation-button")?.current.click();
             }}>
             New conversation
           </Button>{" "}

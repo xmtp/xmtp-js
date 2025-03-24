@@ -1,10 +1,37 @@
-import { Client } from "@xmtp/xmtp-js";
-import { Wallet } from "ethers";
+import { getRandomValues } from "node:crypto";
+import { Client, IdentifierKind, type Signer } from "@xmtp/node-sdk";
+import { createWalletClient, http, toBytes } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
 import {
   AttachmentCodec,
   ContentTypeAttachment,
   type Attachment,
 } from "./Attachment";
+
+const testEncryptionKey = getRandomValues(new Uint8Array(32));
+
+export const createSigner = (): Signer => {
+  const account = privateKeyToAccount(generatePrivateKey());
+  const wallet = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http(),
+  });
+  return {
+    type: "EOA",
+    getIdentifier: () => ({
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: account.address.toLowerCase(),
+    }),
+    signMessage: async (message: string) => {
+      const signature = await wallet.signMessage({
+        message,
+      });
+      return toBytes(signature);
+    },
+  };
+};
 
 test("content type exists", () => {
   expect(ContentTypeAttachment.authorityId).toBe("xmtp.org");
@@ -14,23 +41,19 @@ test("content type exists", () => {
 });
 
 test("can send an attachment", async () => {
-  const aliceWallet = Wallet.createRandom();
-  const aliceClient = await Client.create(aliceWallet, {
+  const signer1 = createSigner();
+  const client1 = await Client.create(signer1, testEncryptionKey, {
     codecs: [new AttachmentCodec()],
     env: "local",
   });
-  await aliceClient.publishUserContact();
 
-  const bobWallet = Wallet.createRandom();
-  const bobClient = await Client.create(bobWallet, {
+  const signer2 = createSigner();
+  const client2 = await Client.create(signer2, testEncryptionKey, {
     codecs: [new AttachmentCodec()],
     env: "local",
   });
-  await bobClient.publishUserContact();
 
-  const conversation = await aliceClient.conversations.newConversation(
-    bobWallet.address,
-  );
+  const dm = await client1.conversations.newDm(client2.inboxId);
 
   const attachment: Attachment = {
     filename: "test.png",
@@ -38,13 +61,15 @@ test("can send an attachment", async () => {
     data: Uint8Array.from([5, 4, 3, 2, 1]),
   };
 
-  await conversation.send(attachment, { contentType: ContentTypeAttachment });
+  await dm.send(attachment, ContentTypeAttachment);
 
-  const bobConversation = await bobClient.conversations.newConversation(
-    aliceWallet.address,
-  );
-  const messages = await bobConversation.messages();
+  await client2.conversations.sync();
+  const dms = client2.conversations.listDms();
 
+  expect(dms.length).toBe(1);
+
+  await dms[0].sync();
+  const messages = await dms[0].messages();
   expect(messages.length).toBe(1);
 
   const message = messages[0];

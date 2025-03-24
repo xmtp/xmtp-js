@@ -1,3 +1,4 @@
 CODEOWNERS
 .yarn
 .changeset/**/*.md
+sdks/node-sdk/scripts/**/*.json

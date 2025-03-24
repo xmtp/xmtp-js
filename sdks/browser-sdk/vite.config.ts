@@ -15,9 +15,13 @@ const vitestConfig = defineVitestConfig({
     browser: {
       provider: "playwright",
       enabled: true,
-      name: "chromium",
       headless: true,
       screenshotFailures: false,
+      instances: [
+        {
+          browser: "chromium",
+        },
+      ],
     },
     testTimeout: 120000,
   },
