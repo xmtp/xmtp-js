@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 1.1.2
+
+### Patch Changes
+
+- 5845617: Refactored welcome message processing to prevent key package deletion on failure
+
 ## 1.1.1
 
 ### Patch Changes
