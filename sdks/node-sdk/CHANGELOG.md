@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 1.0.3
+
+### Patch Changes
+
+- 5845617: Refactored welcome message processing to prevent key package deletion on failure
+
 ## 1.0.2
 
 ### Patch Changes
