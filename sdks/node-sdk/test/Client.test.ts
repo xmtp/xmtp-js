@@ -242,7 +242,7 @@ describe.concurrent("Client", () => {
     const inboxState = await client.preferences.inboxState();
     expect(inboxState.recoveryIdentifier).toEqual(await signer.getIdentifier());
 
-    await client.unsafe_changeRecoveryIdentiferSignatureText(
+    await client.unsafe_changeRecoveryIdentifierSignatureText(
       await signer2.getIdentifier(),
     );
 

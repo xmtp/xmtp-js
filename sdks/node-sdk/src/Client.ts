@@ -299,7 +299,7 @@ export class Client {
    *
    * It is highly recommended to use the `changeRecoveryIdentifer` function instead.
    */
-  async unsafe_changeRecoveryIdentiferSignatureText(identifier: Identifier) {
+  async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
     try {
       const signatureText =
         await this.#innerClient.changeRecoveryIdentifierSignatureText(
