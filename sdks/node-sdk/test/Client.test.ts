@@ -231,4 +231,24 @@ describe.concurrent("Client", () => {
   it("should return a version", () => {
     expect(Client.version).toBeDefined();
   });
+
+  it("should change the recovery identifier", async () => {
+    const user = createUser();
+    const user2 = createUser();
+    const signer = createSigner(user);
+    const signer2 = createSigner(user2);
+    const client = await createRegisteredClient(signer);
+
+    const inboxState = await client.preferences.inboxState();
+    expect(inboxState.recoveryIdentifier).toEqual(await signer.getIdentifier());
+
+    await client.unsafe_changeRecoveryIdentiferSignatureText(
+      await signer2.getIdentifier(),
+    );
+
+    const inboxState2 = await client.preferences.inboxState();
+    expect(inboxState2.recoveryIdentifier).toEqual(
+      await signer2.getIdentifier(),
+    );
+  });
 });

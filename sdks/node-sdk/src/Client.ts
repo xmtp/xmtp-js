@@ -297,6 +297,35 @@ export class Client {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
+   * It is highly recommended to use the `changeRecoveryIdentifer` function instead.
+   */
+  async unsafe_changeRecoveryIdentiferSignatureText(identifier: Identifier) {
+    try {
+      const signatureText =
+        await this.#innerClient.changeRecoveryIdentifierSignatureText(
+          identifier,
+        );
+      if (!signatureText) {
+        throw new Error("Unable to generate add account signature text");
+      }
+
+      await this.unsafe_addSignature(
+        SignatureRequestType.ChangeRecoveryIdentifier,
+        signatureText,
+        this.#signer,
+      );
+
+      await this.unsafe_applySignatures();
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
    * It is highly recommended to use the `register`, `addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
