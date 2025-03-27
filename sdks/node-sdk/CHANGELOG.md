@@ -1,5 +1,13 @@
 # @xmtp/node-sdk
 
+## 1.0.4
+
+### Patch Changes
+
+- 295e046:
+  - Fixed incorrect key package associations
+  - Resolved DM stitching issues for conversations without messages
+
 ## 1.0.3
 
 ### Patch Changes
