@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 1.0.5
+
+### Patch Changes
+
+- 8bd3930: Fixed removing inboxes with invalid key packages from groups
+
 ## 1.0.4
 
 ### Patch Changes
