@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 1.1.4
+
+### Patch Changes
+
+- 8bd3930: Fixed removing inboxes with invalid key packages from groups
+
 ## 1.1.3
 
 ### Patch Changes
