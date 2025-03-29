@@ -1,5 +1,4 @@
 import "@mantine/core/styles.css";
-import "@/styles/scrollfade.css";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
