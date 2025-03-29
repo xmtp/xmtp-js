@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState } from "react";
 
 type RefManagerContextType = {
-  getRef: (id: string) => React.RefObject<HTMLElement> | undefined;
-  setRef: (id: string, ref: React.RefObject<HTMLElement>) => void;
+  getRef: (id: string) => React.RefObject<HTMLElement | null> | undefined;
+  setRef: (id: string, ref: React.RefObject<HTMLElement | null>) => void;
   removeRef: (id: string) => void;
 };
 
@@ -17,15 +17,15 @@ export const RefManagerProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [refs, setRefs] = useState<Map<string, React.RefObject<HTMLElement>>>(
-    new Map(),
-  );
+  const [refs, setRefs] = useState<
+    Map<string, React.RefObject<HTMLElement | null>>
+  >(new Map());
 
   const getRef = (id: string) => {
     return refs.get(id);
   };
 
-  const setRef = (id: string, ref: React.RefObject<HTMLElement>) => {
+  const setRef = (id: string, ref: React.RefObject<HTMLElement | null>) => {
     setRefs((prevRefs) => {
       const newRefs = new Map(prevRefs);
       newRefs.set(id, ref);
