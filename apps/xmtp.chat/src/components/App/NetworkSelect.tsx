@@ -1,12 +1,14 @@
 import { Flex, NativeSelect, Text, Tooltip } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { ApiUrls, type XmtpEnv } from "@xmtp/browser-sdk";
-import { useDisconnect } from "wagmi";
-import { useXMTP } from "@/contexts/XMTPContext";
 
-export const NetworkSelect: React.FC = () => {
-  const { disconnect } = useDisconnect();
-  const { disconnect: disconnectClient } = useXMTP();
+export type NetworkSelectProps = {
+  disabled?: boolean;
+};
+
+export const NetworkSelect: React.FC<NetworkSelectProps> = ({
+  disabled = false,
+}) => {
   const [network, setNetwork] = useLocalStorage<XmtpEnv>({
     key: "XMTP_NETWORK",
     defaultValue: "dev",
@@ -14,15 +16,10 @@ export const NetworkSelect: React.FC = () => {
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setNetwork(event.currentTarget.value as XmtpEnv);
-    disconnect(undefined, {
-      onSuccess: () => {
-        disconnectClient();
-      },
-    });
   };
 
   return (
-    <Flex align="center" gap="xs" justify="space-between" w="100%">
+    <Flex align="center" gap="xs" justify="space-between">
       <Text size="sm" fw={700}>
         NETWORK
       </Text>
@@ -31,10 +28,10 @@ export const NetworkSelect: React.FC = () => {
         withArrow
         events={{ hover: true, focus: true, touch: true }}>
         <NativeSelect
-          variant="filled"
           data={["local", "dev", "production"]}
           value={network}
           onChange={handleChange}
+          disabled={disabled}
         />
       </Tooltip>
     </Flex>

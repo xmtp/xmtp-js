@@ -3,15 +3,15 @@ import logo from "@/assets/xmtp-icon.png";
 
 export const AppFooter: React.FC = () => {
   return (
-    <>
-      <Box w={{ base: 300, lg: 420 }}>
+    <Group justify="space-between" align="center" wrap="nowrap">
+      <Box>
         <Anchor
           href="https://xmtp.org"
           underline="never"
           c="var(--mantine-color-text)"
           target="_blank"
           flex={0}>
-          <Flex align="center" p="md" display="inline-flex">
+          <Flex align="center" py="md" display="inline-flex">
             <Image src={logo} alt="XMTP" w="24px" h="24px" fit="contain" />
             <Text size="xl" fw={700} ml="xs">
               XMTP
@@ -19,7 +19,7 @@ export const AppFooter: React.FC = () => {
           </Flex>
         </Anchor>
       </Box>
-      <Group gap="xs" p="md" align="center" ml="auto">
+      <Group gap="xs">
         <Anchor
           display="block"
           target="_blank"
@@ -62,6 +62,6 @@ export const AppFooter: React.FC = () => {
           Forums
         </Anchor>
       </Group>
-    </>
+    </Group>
   );
 };

@@ -1,12 +1,11 @@
 import { Button, Flex, useMatches } from "@mantine/core";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
+import { DisconnectButton } from "@/components/App/DisconnectButton";
 import { useRefManager } from "@/contexts/RefManager";
-import { useXMTP } from "@/contexts/XMTPContext";
 import { IconMessagePlus } from "@/icons/IconMessagePlus";
 
 export const Actions: React.FC = () => {
-  const { client } = useXMTP();
   const navigate = useNavigate();
   const { setRef } = useRefManager();
   const ref = useRef<HTMLButtonElement>(null);
@@ -27,12 +26,11 @@ export const Actions: React.FC = () => {
   }, []);
 
   return (
-    client && (
-      <Flex align="center" gap="xs">
-        <Button px={px} onClick={handleClick} ref={ref}>
-          {label}
-        </Button>
-      </Flex>
-    )
+    <Flex align="center" gap="xs">
+      <Button px={px} onClick={handleClick} ref={ref}>
+        {label}
+      </Button>
+      <DisconnectButton />
+    </Flex>
   );
 };

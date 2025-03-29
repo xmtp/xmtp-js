@@ -1,15 +1,11 @@
-import { Button, Stack, Text, Title, useMatches } from "@mantine/core";
+import { Button, Stack, Text, Title } from "@mantine/core";
 import { useRefManager } from "@/contexts/RefManager";
 
 export const SelectConversation = () => {
   const { getRef } = useRefManager();
-  const px = useMatches({
-    base: "5%",
-    sm: "10%",
-  });
 
   return (
-    <Stack gap={60} py={40} px={px} align="center">
+    <Stack gap={60} p="md" align="center">
       <Stack gap="lg">
         <Title order={3}>No conversation selected</Title>
         <Text>
@@ -19,7 +15,7 @@ export const SelectConversation = () => {
             size="xs"
             px={6}
             onClick={() => {
-              getRef("new-conversation-button")?.current.click();
+              getRef("new-conversation-button")?.current?.click();
             }}>
             New conversation
           </Button>{" "}

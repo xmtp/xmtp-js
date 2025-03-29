@@ -1,8 +1,7 @@
 import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
-import type { DecodedMessage } from "@xmtp/browser-sdk";
+import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
 import { intlFormat } from "date-fns";
-import { useNavigate } from "react-router";
-import { useXMTP } from "@/contexts/XMTPContext";
+import { useNavigate, useOutletContext } from "react-router";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
 import classes from "./Message.module.css";
@@ -13,13 +12,13 @@ export type MessageProps = {
 };
 
 export const Message: React.FC<MessageProps> = ({ message }) => {
-  const { client } = useXMTP();
-  const isSender = client?.inboxId === message.senderInboxId;
+  const client = useOutletContext<Client>();
+  const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
   const navigate = useNavigate();
 
   return (
-    <Box pb="sm" px="md">
+    <Box px="md">
       <Flex justify={align === "left" ? "flex-start" : "flex-end"}>
         <Paper
           p="md"

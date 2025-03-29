@@ -1,85 +1,53 @@
-import {
-  Anchor,
-  Badge,
-  Button,
-  List,
-  Stack,
-  Text,
-  Title,
-  useMatches,
-} from "@mantine/core";
-import { useLocalStorage } from "@mantine/hooks";
-import type { XmtpEnv } from "@xmtp/browser-sdk";
-import { useEffect } from "react";
-import { useAppState } from "@/contexts/AppState";
-import { useRefManager } from "@/contexts/RefManager";
+import { Anchor, Stack, Text, Title, useMatches } from "@mantine/core";
+import { Connect } from "@/components/App/Connect";
 
 export const Welcome = () => {
-  const { setNavbar } = useAppState();
-  useEffect(() => {
-    setNavbar(false);
-  }, []);
-
-  const { getRef } = useRefManager();
-  const [network] = useLocalStorage<XmtpEnv>({
-    key: "XMTP_NETWORK",
-    defaultValue: "dev",
-  });
-
   const px = useMatches({
     base: "5%",
     sm: "10%",
   });
 
   return (
-    <Stack gap={60} py={40} px={px} align="center">
-      <Stack gap="lg" align="center">
-        <Title order={1}>XMTP.chat is built for devs, by devs</Title>
-        <Title order={2} fw={400} fs="italic">
-          Learn to build with XMTP—using an app built with XMTP
-        </Title>
+    <Stack gap="xl" py={40} px={px} align="center">
+      <Stack gap="md" align="center">
+        <Title order={1}>XMTP.chat is built for developers</Title>
+        <Text fs="italic" size="xl">
+          Learn to build with XMTP — using an app built with XMTP
+        </Text>
       </Stack>
       <Stack gap="lg">
-        <Title order={3}>Get started</Title>
-        <List type="ordered" withPadding>
-          <List.Item>
-            Click{" "}
-            <Button
-              size="xs"
-              px={6}
-              onClick={() => {
-                getRef("connect-wallet-button")?.current.click();
-              }}>
-              Connect
-            </Button>{" "}
-            to connect a wallet to the{" "}
-            <Badge variant="default" size="lg" radius="md">
-              {network}
-            </Badge>{" "}
-            network
-          </List.Item>
-          <List.Item>
-            To use an ephemeral wallet, switch networks, or enable logging click{" "}
-            <Button
-              size="xs"
-              px={6}
-              variant="default"
-              onClick={() => {
-                getRef("settings-button")?.current.click();
-              }}>
-              Settings
-            </Button>
-          </List.Item>
-        </List>
-        <Title order={3}>Feedback</Title>
+        <Title order={3}>Connect</Title>
         <Text>
-          Your feedback is incredibly important to the success of this tool. If
-          you find any bugs or have suggestions, please let us know by{" "}
-          <Anchor href="https://github.com/xmtp/xmtp-js/issues/new/choose">
-            filing an issue
-          </Anchor>{" "}
-          on GitHub.
+          To get started, connect your account or use an ephemeral one.
         </Text>
+        <Connect />
+        <Title order={3}>Feedback</Title>
+        <Stack gap="md">
+          <Text>
+            Your feedback is incredibly important to the success of this tool.
+            If you find any bugs or have suggestions, please let us know by{" "}
+            <Anchor
+              href="https://github.com/xmtp/xmtp-js/issues/new/choose"
+              target="_blank">
+              filing an issue
+            </Anchor>{" "}
+            on GitHub.
+          </Text>
+          <Text>
+            Check out the official{" "}
+            <Anchor href="https://docs.xmtp.org/" target="_blank">
+              documentation
+            </Anchor>{" "}
+            for more information on how to build with XMTP.
+          </Text>
+          <Text>
+            If you have other questions about XMTP, visit our{" "}
+            <Anchor href="https://community.xmtp.org/" target="_blank">
+              community forums
+            </Anchor>
+            .
+          </Text>
+        </Stack>
       </Stack>
     </Stack>
   );

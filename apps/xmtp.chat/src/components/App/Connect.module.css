@@ -1,0 +1,22 @@
+.root {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-md);
+}
+
+.root > *:not(:first-child):not(:last-child) {
+  border-left: 1px solid var(--mantine-color-gray-7);
+  border-right: 1px solid var(--mantine-color-gray-7);
+  border-bottom: 1px solid var(--mantine-color-gray-7);
+}
+
+.root > *:first-child {
+  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
+  border: 1px solid var(--mantine-color-gray-7);
+}
+
+.root > *:last-child {
+  border-radius: 0 0 var(--mantine-radius-md) var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-gray-7);
+  border-top: none;
+}

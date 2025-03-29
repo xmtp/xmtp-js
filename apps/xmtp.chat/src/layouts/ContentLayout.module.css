@@ -1,0 +1,81 @@
+:root {
+  --header-padding: var(--mantine-spacing-md);
+  --header-button-height: rem(36px);
+  --header-border-width: 1px;
+  --header-height: calc(
+    var(--header-padding) * 2 + var(--header-button-height) +
+      var(--header-border-width)
+  );
+  --header-border-color: var(--mantine-color-gray-7);
+  --content-gradient-color-light: var(--mantine-color-gray-0);
+  --content-gradient-color-dark: var(--mantine-color-dark-7);
+}
+
+.root {
+  position: relative;
+  flex-grow: 1;
+}
+
+.header {
+  flex-shrink: 0;
+  position: relative;
+  padding: var(--header-padding);
+  border-bottom: var(--header-border-width) solid var(--header-border-color);
+  height: var(--header-height);
+}
+
+.headerActions {
+  flex-shrink: 0;
+}
+
+.content {
+  position: relative;
+  height: 0;
+  min-height: 100px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  --gradient-color: light-dark(
+    var(--content-gradient-color-light),
+    var(--content-gradient-color-dark)
+  );
+}
+
+.content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to top, transparent, var(--gradient-color) 20px);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
+}
+
+.content::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--gradient-color) 20px
+  );
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 0 0 var(--mantine-radius-md) var(--mantine-radius-md);
+}
+
+.scrollArea {
+  flex-grow: 1;
+}
+
+.footer {
+  position: relative;
+  flex-shrink: 0;
+}

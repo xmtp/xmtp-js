@@ -1,18 +1,9 @@
-import {
-  AppShell,
-  Badge,
-  Box,
-  Button,
-  Group,
-  LoadingOverlay,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Badge, Box, Button, Group, Text } from "@mantine/core";
 import type { Conversation } from "@xmtp/browser-sdk";
-import { useState } from "react";
-import { Virtuoso } from "react-virtuoso";
+import { useEffect, useState } from "react";
+import { ConversationsList } from "@/components/Conversations/ConversationList";
 import { useConversations } from "@/hooks/useConversations";
-import { ConversationCard } from "./ConversationCard";
+import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
   const { list, loading, syncing } = useConversations();
@@ -23,51 +14,46 @@ export const ConversationsNavbar: React.FC = () => {
     setConversations(conversations);
   };
 
+  useEffect(() => {
+    const loadConversations = async () => {
+      const conversations = await list(undefined);
+      setConversations(conversations);
+    };
+    void loadConversations();
+  }, []);
+
   return (
-    <>
-      {loading && <LoadingOverlay visible={true} />}
-      <AppShell.Section p="md">
-        <Stack gap="xs">
-          <Group align="center" gap="xs" justify="space-between">
-            <Group align="center" gap="xs">
-              <Text size="lg" fw={700}>
-                Conversations
-              </Text>
-              <Badge color="gray" size="lg">
-                {conversations.length}
-              </Badge>
-            </Group>
-            <Button loading={syncing} onClick={() => void handleSync()}>
-              Sync
-            </Button>
-          </Group>
-        </Stack>
-      </AppShell.Section>
-      <AppShell.Section
-        grow
-        my="md"
-        display="flex"
-        style={{ flexDirection: "column" }}>
-        {conversations.length === 0 ? (
-          <Box
-            display="flex"
-            style={{
-              flexGrow: 1,
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-            <Text>No conversations found</Text>
-          </Box>
-        ) : (
-          <Virtuoso
-            style={{ flexGrow: 1 }}
-            data={conversations}
-            itemContent={(_, conversation) => (
-              <ConversationCard conversation={conversation} />
-            )}
-          />
-        )}
-      </AppShell.Section>
-    </>
+    <ContentLayout
+      title={
+        <Group align="center" gap="xs">
+          <Text size="md" fw={700}>
+            Conversations
+          </Text>
+          <Badge color="gray" size="lg">
+            {conversations.length}
+          </Badge>
+        </Group>
+      }
+      loading={loading}
+      headerActions={
+        <Button loading={syncing} onClick={() => void handleSync()}>
+          Sync
+        </Button>
+      }
+      withScrollArea={false}>
+      {conversations.length === 0 ? (
+        <Box
+          display="flex"
+          style={{
+            flexGrow: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+          <Text>No conversations found</Text>
+        </Box>
+      ) : (
+        <ConversationsList conversations={conversations} />
+      )}
+    </ContentLayout>
   );
 };

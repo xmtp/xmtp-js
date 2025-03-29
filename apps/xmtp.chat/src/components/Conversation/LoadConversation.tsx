@@ -1,12 +1,10 @@
 import type { Dm, Group } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { useBodyClass } from "@/hooks/useBodyClass";
 import { useConversations } from "@/hooks/useConversations";
 import { Conversation } from "./Conversation";
 
 export const LoadConversation: React.FC = () => {
-  useBodyClass("main-flex-layout");
   const { conversationId } = useParams();
   const { getConversationById, loading } = useConversations();
   const [conversation, setConversation] = useState<Group | Dm | undefined>(

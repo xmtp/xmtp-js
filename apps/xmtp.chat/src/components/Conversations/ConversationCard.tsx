@@ -33,7 +33,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   }, [conversation]);
 
   return (
-    <Box pb="sm" px="sm">
+    <Box px="sm">
       <Card
         shadow="sm"
         padding="sm"
@@ -47,10 +47,10 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
         }}
         onClick={() => void navigate(`/conversations/${conversation.id}`)}
         style={{ cursor: "pointer" }}
-        classNames={{ root: styles.root }}>
+        className={styles.root}>
         <Stack gap="0">
           <Flex align="center">
-            <Text fw={700} c={name ? "text.primary" : "dimmed"} truncate="end">
+            <Text fw={700} truncate>
               {name || "Untitled"}
             </Text>
           </Flex>

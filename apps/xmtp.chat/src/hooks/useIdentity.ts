@@ -32,9 +32,18 @@ export const useIdentity = (syncOnMount: boolean = false) => {
       setInboxId(inboxState.inboxId);
       setAccountIdentifiers(inboxState.accountIdentifiers);
       setRecoveryIdentifier(inboxState.recoveryIdentifier);
-      const installations = inboxState.installations.filter(
-        (installation) => installation.id !== client.installationId,
-      );
+      const installations = inboxState.installations
+        .filter((installation) => installation.id !== client.installationId)
+        .sort((a, b) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          if (a.clientTimestampNs! > b.clientTimestampNs!) {
+            return -1;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          } else if (a.clientTimestampNs! < b.clientTimestampNs!) {
+            return 1;
+          }
+          return 0;
+        });
       setInstallations(installations);
     } finally {
       setSyncing(false);

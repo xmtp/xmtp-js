@@ -72,7 +72,7 @@ export const InstallationTable: React.FC<InstallationTableProps> = ({
   setRevokeInstallationError,
 }) => {
   return (
-    <Table striped>
+    <Table>
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Installation ID</Table.Th>
