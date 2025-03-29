@@ -12,7 +12,6 @@ import {
   walletConnect,
 } from "wagmi/connectors";
 import { App } from "@/components/App/App";
-import { AppStateProvider } from "@/contexts/AppState";
 import { RefManagerProvider } from "@/contexts/RefManager";
 import { XMTPProvider } from "@/contexts/XMTPContext";
 
@@ -39,9 +38,7 @@ createRoot(document.getElementById("root") as HTMLElement).render(
         <XMTPProvider>
           <BrowserRouter>
             <RefManagerProvider>
-              <AppStateProvider>
-                <App />
-              </AppStateProvider>
+              <App />
             </RefManagerProvider>
           </BrowserRouter>
         </XMTPProvider>

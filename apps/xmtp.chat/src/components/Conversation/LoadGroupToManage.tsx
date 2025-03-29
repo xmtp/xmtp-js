@@ -3,11 +3,9 @@ import { Group } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ManageGroup } from "@/components/Conversation/ManageGroup";
-import { useBodyClass } from "@/hooks/useBodyClass";
 import { useConversations } from "@/hooks/useConversations";
 
 export const LoadGroupToManage: React.FC = () => {
-  useBodyClass("main-flex-layout");
   const { conversationId } = useParams();
   const navigate = useNavigate();
   const { getConversationById, loading } = useConversations();

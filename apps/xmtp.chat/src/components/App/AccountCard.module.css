@@ -1,0 +1,7 @@
+.root {
+  cursor: pointer;
+}
+
+.root:hover {
+  background-color: var(--mantine-primary-color-light-hover);
+}
