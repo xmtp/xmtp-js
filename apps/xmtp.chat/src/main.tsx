@@ -5,6 +5,12 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { base, mainnet } from "wagmi/chains";
+import {
+  coinbaseWallet,
+  injected,
+  metaMask,
+  walletConnect,
+} from "wagmi/connectors";
 import { App } from "@/components/App/App";
 import { AppStateProvider } from "@/contexts/AppState";
 import { RefManagerProvider } from "@/contexts/RefManager";
@@ -13,7 +19,13 @@ import { XMTPProvider } from "@/contexts/XMTPContext";
 const queryClient = new QueryClient();
 
 export const config = createConfig({
-  chains: [mainnet],
+  connectors: [
+    injected(),
+    coinbaseWallet(),
+    metaMask(),
+    walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID }),
+  ],
+  chains: [mainnet, base],
   transports: {
     [mainnet.id]: http(),
     [base.id]: http(),
