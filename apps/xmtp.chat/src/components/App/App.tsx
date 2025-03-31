@@ -19,10 +19,13 @@ export const App: React.FC = () => {
     <>
       <ErrorModal />
       <Routes>
-        <Route path="/" element={<AppLayout />}>
+        <Route path="/welcome" element={<WelcomeLayout />}>
+          <Route index element={<Welcome />} />
+        </Route>
+        <Route path="/*" element={<AppLayout />}>
           <Route index element={<Navigate to="/conversations" />} />
           <Route path="identity" element={<Identity />} />
-          <Route path="/dm/:address" element={<LoadDM />} />
+          <Route path="dm/:address" element={<LoadDM />} />
           <Route path="conversations">
             <Route index element={<SelectConversation />} />
             <Route path="new" element={<NewConversation />} />
@@ -34,9 +37,6 @@ export const App: React.FC = () => {
               element={<LoadGroupToManage />}
             />
           </Route>
-        </Route>
-        <Route path="/" element={<WelcomeLayout />}>
-          <Route path="welcome" element={<Welcome />} />
         </Route>
       </Routes>
     </>
