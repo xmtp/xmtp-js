@@ -73,8 +73,8 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/uuid": "^10.0.0",
-    "@vitest/browser": "^3.0.9",
-    "@vitest/coverage-v8": "^3.0.9",
+    "@vitest/browser": "^3.1.1",
+    "@vitest/coverage-v8": "^3.1.1",
     "@web/rollup-plugin-copy": "^0.5.1",
     "playwright": "^1.51.1",
     "rollup": "^4.36.0",
@@ -83,9 +83,9 @@
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.8.2",
     "viem": "^2.24.2",
-    "vite": "^6.2.2",
+    "vite": "^6.2.4",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.9"
+    "vitest": "^3.1.1"
   },
   "engines": {
     "node": ">=20"
