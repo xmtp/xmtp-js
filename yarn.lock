@@ -3430,7 +3430,7 @@ __metadata:
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.8.2"
     uuid: "npm:^11.1.0"
-    viem: "npm:^2.23.13"
+    viem: "npm:^2.24.2"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.0.9"
@@ -3488,7 +3488,7 @@ __metadata:
     rollup-plugin-dts: "npm:^6.1.1"
     rollup-plugin-filesize: "npm:^10.0.0"
     typescript: "npm:^5.8.2"
-    viem: "npm:^2.23.13"
+    viem: "npm:^2.24.2"
     vite: "npm:^6.2.2"
     vitest: "npm:^3.0.9"
   languageName: unknown
@@ -3624,7 +3624,7 @@ __metadata:
     typescript: "npm:^5.8.2"
     uint8array-extras: "npm:^1.4.0"
     uuid: "npm:^11.1.0"
-    viem: "npm:^2.23.13"
+    viem: "npm:^2.24.2"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.0.9"
@@ -3695,7 +3695,7 @@ __metadata:
     react-virtuoso: "npm:^4.12.5"
     typescript: "npm:^5.8.2"
     uint8array-extras: "npm:^1.4.0"
-    viem: "npm:^2.23.13"
+    viem: "npm:^2.24.2"
     vite: "npm:^6.2.2"
     vite-tsconfig-paths: "npm:^5.1.4"
     wagmi: "npm:^2.14.15"
@@ -10514,9 +10514,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:^2.23.13":
-  version: 2.23.13
-  resolution: "viem@npm:2.23.13"
+"viem@npm:^2.24.2":
+  version: 2.24.2
+  resolution: "viem@npm:2.24.2"
   dependencies:
     "@noble/curves": "npm:1.8.1"
     "@noble/hashes": "npm:1.7.1"
@@ -10531,7 +10531,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/652f9889f975825550d598586106c2a6ae780f32e76dec6bf7ee2f47e155e9e842fb2c2a40e6d9760cbf9c903f88b01091fdcb5cdf78060eacfbe84bef378889
+  checksum: 10/8998561523b1aef54389175fed3c858696f02c66e3745129c2d65c8b7a9f08e6b9fde129d7aede7a9a09c658cd280adc63422684e81ad86512ea79e2c1ad3d3d
   languageName: node
   linkType: hard
 

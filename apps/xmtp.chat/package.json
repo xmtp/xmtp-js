@@ -36,7 +36,7 @@
     "react-router": "^7.4.0",
     "react-virtuoso": "^4.12.5",
     "uint8array-extras": "^1.4.0",
-    "viem": "^2.23.13",
+    "viem": "^2.24.2",
     "wagmi": "^2.14.15"
   },
   "devDependencies": {
