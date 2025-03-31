@@ -2602,12 +2602,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.13.10":
-  version: 22.13.10
-  resolution: "@types/node@npm:22.13.10"
+"@types/node@npm:^22.13.14":
+  version: 22.13.14
+  resolution: "@types/node@npm:22.13.14"
   dependencies:
     undici-types: "npm:~6.20.0"
-  checksum: 10/57dc6a5e0110ca9edea8d7047082e649fa7fa813f79e4a901653b9174141c622f4336435648baced5b38d9f39843f404fa2d8d7a10981610da26066bc8caab48
+  checksum: 10/5fafad441c7bb27f963aa8fdfa0787ffb1142b27f4dd2047a2cc27a39f981b432acc71a9b5a428a258f93daeb72f12b7468ab9163a41fe4f98584bc5d42ade6e
   languageName: node
   linkType: hard
 
@@ -3314,7 +3314,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/proto": "npm:^3.78.0"
     rimraf: "npm:^6.0.1"
@@ -3333,7 +3333,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/proto": "npm:^3.78.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.36.0"
@@ -3351,7 +3351,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     rimraf: "npm:^6.0.1"
@@ -3371,7 +3371,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     rimraf: "npm:^6.0.1"
@@ -3391,7 +3391,7 @@ __metadata:
     "@noble/secp256k1": "npm:^2.2.3"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     "@xmtp/proto": "npm:^3.78.0"
@@ -3412,7 +3412,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/content-type-remote-attachment": "workspace:^"
     "@xmtp/content-type-text": "workspace:^"
@@ -3434,7 +3434,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.36.0"
@@ -3452,7 +3452,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/node-sdk": "workspace:^"
     rimraf: "npm:^6.0.1"
@@ -3478,7 +3478,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.2"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     "@vitest/coverage-v8": "npm:^3.1.1"
     "@xmtp/content-type-group-updated": "npm:^2.0.1"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
@@ -10683,7 +10683,7 @@ __metadata:
     "@eslint/compat": "npm:^1.2.7"
     "@eslint/js": "npm:^9.23.0"
     "@ianvs/prettier-plugin-sort-imports": "npm:^4.4.1"
-    "@types/node": "npm:^22.13.10"
+    "@types/node": "npm:^22.13.14"
     eslint: "npm:^9.23.0"
     eslint-config-prettier: "npm:^10.1.1"
     eslint-plugin-prettier: "npm:^5.2.5"
