@@ -104,22 +104,24 @@ export const Connect = () => {
   useEffect(() => {
     const initClient = async () => {
       const connector = account.connector;
-      const provider = (await connector?.getProvider()) as
-        | undefined
-        | {
-            connectionType: string;
-          };
-      if (data?.account && connector && provider) {
-        const isSCW = provider.connectionType === "scw_connection_type";
-        const chainId = await connector.getChainId();
-        void initialize({
-          encryptionKey: hexToUint8Array(encryptionKey),
-          env: environment,
-          loggingLevel,
-          signer: isSCW
-            ? createSCWSigner(data.account.address, data, BigInt(chainId))
-            : createEOASigner(data.account.address, data),
-        });
+      if (data?.account && connector) {
+        const provider = (await connector.getProvider()) as
+          | undefined
+          | {
+              connectionType: string;
+            };
+        if (provider) {
+          const isSCW = provider.connectionType === "scw_connection_type";
+          const chainId = await connector.getChainId();
+          void initialize({
+            encryptionKey: hexToUint8Array(encryptionKey),
+            env: environment,
+            loggingLevel,
+            signer: isSCW
+              ? createSCWSigner(data.account.address, data, BigInt(chainId))
+              : createEOASigner(data.account.address, data),
+          });
+        }
       }
     };
     void initClient();
