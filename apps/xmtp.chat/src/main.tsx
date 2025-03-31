@@ -20,7 +20,9 @@ const queryClient = new QueryClient();
 export const config = createConfig({
   connectors: [
     injected(),
-    coinbaseWallet(),
+    coinbaseWallet({
+      appName: "xmtp.chat",
+    }),
     metaMask(),
     walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID }),
   ],

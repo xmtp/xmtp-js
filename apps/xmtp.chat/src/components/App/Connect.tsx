@@ -3,13 +3,17 @@ import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array, uint8ArrayToHex } from "uint8array-extras";
 import { generatePrivateKey } from "viem/accounts";
-import { useConnect, useConnectors, useWalletClient } from "wagmi";
+import { useAccount, useConnect, useConnectors, useWalletClient } from "wagmi";
 import { AccountCard } from "@/components/App/AccountCard";
 import { DisableAnalytics } from "@/components/App/DisableAnalytics";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { useXMTP } from "@/contexts/XMTPContext";
-import { createEphemeralSigner, createSigner } from "@/helpers/createSigner";
+import {
+  createEOASigner,
+  createEphemeralSigner,
+  createSCWSigner,
+} from "@/helpers/createSigner";
 import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 import { CoinbaseWallet } from "@/icons/CoinbaseWallet";
@@ -28,6 +32,7 @@ type ConnectorString =
 export const Connect = () => {
   const { connect, status } = useConnect();
   const { data } = useWalletClient();
+  const account = useAccount();
   const connectors = useConnectors();
   const navigate = useNavigate();
   const { redirectUrl, setRedirectUrl } = useRedirect();
@@ -97,15 +102,28 @@ export const Connect = () => {
 
   // look for wallet connection
   useEffect(() => {
-    if (data?.account) {
-      void initialize({
-        encryptionKey: hexToUint8Array(encryptionKey),
-        env: environment,
-        loggingLevel,
-        signer: createSigner(data.account.address, data),
-      });
-    }
-  }, [data?.account]);
+    const initClient = async () => {
+      const connector = account.connector;
+      const provider = (await connector?.getProvider()) as
+        | undefined
+        | {
+            connectionType: string;
+          };
+      if (data?.account && connector && provider) {
+        const isSCW = provider.connectionType === "scw_connection_type";
+        const chainId = await connector.getChainId();
+        void initialize({
+          encryptionKey: hexToUint8Array(encryptionKey),
+          env: environment,
+          loggingLevel,
+          signer: isSCW
+            ? createSCWSigner(data.account.address, data, BigInt(chainId))
+            : createEOASigner(data.account.address, data),
+        });
+      }
+    };
+    void initClient();
+  }, [account.address, data?.account]);
 
   useEffect(() => {
     if (client) {
