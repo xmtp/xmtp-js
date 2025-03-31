@@ -1,20 +1,32 @@
 import "@mantine/core/styles.css";
-import "@/styles/scrollfade.css";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { base, mainnet } from "wagmi/chains";
+import {
+  coinbaseWallet,
+  injected,
+  metaMask,
+  walletConnect,
+} from "wagmi/connectors";
 import { App } from "@/components/App/App";
-import { AppStateProvider } from "@/contexts/AppState";
 import { RefManagerProvider } from "@/contexts/RefManager";
 import { XMTPProvider } from "@/contexts/XMTPContext";
 
 const queryClient = new QueryClient();
 
 export const config = createConfig({
-  chains: [mainnet],
+  connectors: [
+    injected(),
+    coinbaseWallet({
+      appName: "xmtp.chat",
+    }),
+    metaMask(),
+    walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID }),
+  ],
+  chains: [mainnet, base],
   transports: {
     [mainnet.id]: http(),
     [base.id]: http(),
@@ -28,9 +40,7 @@ createRoot(document.getElementById("root") as HTMLElement).render(
         <XMTPProvider>
           <BrowserRouter>
             <RefManagerProvider>
-              <AppStateProvider>
-                <App />
-              </AppStateProvider>
+              <App />
             </RefManagerProvider>
           </BrowserRouter>
         </XMTPProvider>

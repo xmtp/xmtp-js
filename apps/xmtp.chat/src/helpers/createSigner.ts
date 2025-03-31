@@ -19,7 +19,7 @@ export const createEphemeralSigner = (privateKey: Hex): Signer => {
   };
 };
 
-export const createSigner = (
+export const createEOASigner = (
   address: `0x${string}`,
   walletClient: WalletClient,
 ): Signer => {
@@ -35,6 +35,30 @@ export const createSigner = (
         message,
       });
       return toBytes(signature);
+    },
+  };
+};
+
+export const createSCWSigner = (
+  address: `0x${string}`,
+  walletClient: WalletClient,
+  chainId: bigint,
+): Signer => {
+  return {
+    type: "SCW",
+    getIdentifier: () => ({
+      identifier: address.toLowerCase(),
+      identifierKind: "Ethereum",
+    }),
+    signMessage: async (message: string) => {
+      const signature = await walletClient.signMessage({
+        account: address,
+        message,
+      });
+      return toBytes(signature);
+    },
+    getChainId: () => {
+      return chainId;
     },
   };
 };

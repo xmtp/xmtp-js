@@ -1,4 +1,4 @@
-import { Button, Flex, TextInput } from "@mantine/core";
+import { Button, Group, TextInput } from "@mantine/core";
 import type { Conversation } from "@xmtp/browser-sdk";
 import { useRef, useState } from "react";
 import { useConversation } from "@/hooks/useConversation";
@@ -21,7 +21,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
   };
 
   return (
-    <Flex align="center" gap="xs" p="md">
+    <Group align="center" gap="xs" flex={1} wrap="nowrap" p="md">
       <TextInput
         ref={inputRef}
         disabled={sending}
@@ -45,6 +45,6 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
         onClick={() => void handleSend()}>
         Send
       </Button>
-    </Flex>
+    </Group>
   );
 };
