@@ -93,8 +93,10 @@ export const Connect = () => {
     if (ephemeralAccountEnabled && ephemeralAccountKey && encryptionKey) {
       handleEphemeralConnect();
     }
+  }, []);
 
-    // are we connected to a wallet?
+  // look for wallet connection
+  useEffect(() => {
     if (data?.account) {
       void initialize({
         encryptionKey: hexToUint8Array(encryptionKey),
@@ -103,7 +105,7 @@ export const Connect = () => {
         signer: createSigner(data.account.address, data),
       });
     }
-  }, []);
+  }, [data?.account]);
 
   useEffect(() => {
     if (client) {
