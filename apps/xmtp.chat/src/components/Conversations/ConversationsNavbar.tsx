@@ -1,15 +1,21 @@
-import { Badge, Box, Button, Group, Text } from "@mantine/core";
+import { Badge, Box, Group, Text } from "@mantine/core";
 import { useCallback, useEffect } from "react";
 import { ConversationsList } from "@/components/Conversations/ConversationList";
+import { ConversationsMenu } from "@/components/Conversations/ConversationsMenu";
 import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
-  const { list, loading, syncing, conversations, stream } = useConversations();
+  const { list, loading, syncing, conversations, stream, syncAll } =
+    useConversations();
 
   const handleSync = useCallback(async () => {
     await list(undefined, true);
   }, [list]);
+
+  const handleSyncAll = useCallback(async () => {
+    await syncAll();
+  }, [syncAll]);
 
   // loading conversations on mount
   useEffect(() => {
@@ -45,9 +51,11 @@ export const ConversationsNavbar: React.FC = () => {
       }
       loading={loading}
       headerActions={
-        <Button loading={syncing} onClick={() => void handleSync()}>
-          Sync
-        </Button>
+        <ConversationsMenu
+          onSync={() => void handleSync()}
+          onSyncAll={() => void handleSyncAll()}
+          disabled={syncing}
+        />
       }
       withScrollArea={false}>
       {conversations.length === 0 ? (
