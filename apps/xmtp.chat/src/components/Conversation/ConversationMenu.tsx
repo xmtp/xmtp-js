@@ -1,5 +1,5 @@
-import { Anchor, Button, Menu } from "@mantine/core";
-import { Link } from "react-router";
+import { Button, Menu } from "@mantine/core";
+import { useNavigate } from "react-router";
 import { IconDots } from "@/icons/IconDots";
 
 export type ConversationMenuProps = {
@@ -13,6 +13,8 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
   onSync,
   disabled,
 }) => {
+  const navigate = useNavigate();
+
   return (
     <Menu shadow="md" disabled={disabled}>
       <Menu.Target>
@@ -24,21 +26,17 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
           <IconDots />
         </Button>
       </Menu.Target>
-
-      <Menu.Dropdown>
-        <Menu.Label>Actions</Menu.Label>
+      <Menu.Dropdown miw={200}>
+        <Menu.Label>Manage</Menu.Label>
         {type === "group" && (
-          <Menu.Item>
-            <Anchor
-              component={Link}
-              to="manage"
-              underline="never"
-              c="var(--mantine-color-text)"
-              size="sm">
-              Manage
-            </Anchor>
+          <Menu.Item onClick={() => void navigate("manage/group")}>
+            Group
           </Menu.Item>
         )}
+        <Menu.Item onClick={() => void navigate("manage/consent")}>
+          Consent
+        </Menu.Item>
+        <Menu.Label>Actions</Menu.Label>
         <Menu.Item onClick={onSync}>Sync</Menu.Item>
       </Menu.Dropdown>
     </Menu>
