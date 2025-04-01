@@ -1,25 +1,34 @@
 import { Badge, Box, Button, Group, Text } from "@mantine/core";
-import type { Conversation } from "@xmtp/browser-sdk";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { ConversationsList } from "@/components/Conversations/ConversationList";
 import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
-  const { list, loading, syncing } = useConversations();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { list, loading, syncing, conversations, stream } = useConversations();
 
-  const handleSync = async () => {
-    const conversations = await list(undefined, true);
-    setConversations(conversations);
-  };
+  const handleSync = useCallback(async () => {
+    await list(undefined, true);
+  }, [list]);
 
+  // loading conversations on mount
   useEffect(() => {
     const loadConversations = async () => {
-      const conversations = await list(undefined);
-      setConversations(conversations);
+      await list(undefined);
     };
     void loadConversations();
+  }, []);
+
+  // start streaming new conversations on mount
+  useEffect(() => {
+    let stopStream = () => {};
+    const startStream = async () => {
+      stopStream = await stream();
+    };
+    void startStream();
+    return () => {
+      stopStream();
+    };
   }, []);
 
   return (
