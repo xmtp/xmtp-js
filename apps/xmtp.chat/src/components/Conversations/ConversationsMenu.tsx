@@ -23,8 +23,7 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
           <IconDots />
         </Button>
       </Menu.Target>
-
-      <Menu.Dropdown>
+      <Menu.Dropdown miw={200}>
         <Menu.Label>Actions</Menu.Label>
         <Menu.Item onClick={onSync}>Sync</Menu.Item>
         <Menu.Item onClick={onSyncAll}>Sync All</Menu.Item>
