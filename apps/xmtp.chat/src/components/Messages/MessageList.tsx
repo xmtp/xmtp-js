@@ -21,6 +21,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
       components={{
         List,
       }}
+      initialTopMostItemIndex={messages.length - 1}
       data={messages}
       itemContent={(_, message) => (
         <Message key={message.id} message={message} />

@@ -1,4 +1,5 @@
 import type {
+  Conversation,
   SafeCreateGroupOptions,
   SafeListConversationsOptions,
 } from "@xmtp/browser-sdk";
@@ -9,6 +10,7 @@ export const useConversations = () => {
   const { client } = useXMTP();
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   const list = async (
     options?: SafeListConversationsOptions,
@@ -26,6 +28,7 @@ export const useConversations = () => {
 
     try {
       const convos = await client.conversations.list(options);
+      setConversations(convos);
       return convos;
     } finally {
       setLoading(false);
@@ -119,13 +122,36 @@ export const useConversations = () => {
     }
   };
 
+  const stream = async () => {
+    if (!client) {
+      return () => {};
+    }
+
+    const onConversation = (
+      error: Error | null,
+      conversation: Conversation | undefined,
+    ) => {
+      if (conversation) {
+        setConversations((prev) => [conversation, ...prev]);
+      }
+    };
+
+    const stream = await client.conversations.stream(onConversation);
+
+    return () => {
+      void stream.return(undefined);
+    };
+  };
+
   return {
+    conversations,
     getConversationById,
     getMessageById,
     list,
     loading,
     newDm,
     newGroup,
+    stream,
     sync,
     syncing,
   };
