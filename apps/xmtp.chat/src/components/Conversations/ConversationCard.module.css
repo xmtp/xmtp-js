@@ -1,8 +1,16 @@
-.root:hover {
-  background-color: var(--mantine-color-default-hover);
+.root {
   cursor: pointer;
 }
 
+.root:hover {
+  background-color: var(--mantine-color-default-hover);
+}
+
 .root:focus {
+  border-color: var(--mantine-primary-color-filled);
+}
+
+.selected {
+  background-color: var(--mantine-color-default-hover);
   border-color: var(--mantine-primary-color-filled);
 }
