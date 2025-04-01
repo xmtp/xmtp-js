@@ -1,7 +1,14 @@
-import { Button, Group, NativeSelect, Text } from "@mantine/core";
+import { Group, NativeSelect, Text } from "@mantine/core";
 import { ConsentState, Dm, Group as XmtpGroup } from "@xmtp/browser-sdk";
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { Link, Outlet } from "react-router";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+} from "react";
+import { Outlet } from "react-router";
+import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
@@ -38,23 +45,27 @@ export const Conversation: React.FC<ConversationProps> = ({
     }
   }, [conversation?.id]);
 
-  const handleConsentStateChange = async (
-    event: ChangeEvent<HTMLSelectElement>,
-  ) => {
-    if (conversation instanceof Dm) {
-      const currentValue = consentState;
-      const newValue = parseInt(event.currentTarget.value, 10) as ConsentState;
-      setConsentState(newValue);
-      setConsentStateLoading(true);
-      try {
-        await conversation.updateConsentState(newValue);
-      } catch {
-        setConsentState(currentValue);
-      } finally {
-        setConsentStateLoading(false);
+  const handleConsentStateChange = useCallback(
+    async (event: ChangeEvent<HTMLSelectElement>) => {
+      if (conversation instanceof Dm) {
+        const currentValue = consentState;
+        const newValue = parseInt(
+          event.currentTarget.value,
+          10,
+        ) as ConsentState;
+        setConsentState(newValue);
+        setConsentStateLoading(true);
+        try {
+          await conversation.updateConsentState(newValue);
+        } catch {
+          setConsentState(currentValue);
+        } finally {
+          setConsentStateLoading(false);
+        }
       }
-    }
-  };
+    },
+    [conversation?.id],
+  );
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -63,9 +74,9 @@ export const Conversation: React.FC<ConversationProps> = ({
     void loadMessages();
   }, [conversation?.id]);
 
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
     await getMessages(undefined, true);
-  };
+  }, [getMessages]);
 
   useEffect(() => {
     let stopStream = () => {};
@@ -95,11 +106,7 @@ export const Conversation: React.FC<ConversationProps> = ({
         loading={loading || conversationLoading}
         headerActions={
           <Group gap="xs">
-            {conversation instanceof XmtpGroup ? (
-              <Button component={Link} to="manage">
-                Manage
-              </Button>
-            ) : (
+            {conversation instanceof Dm && (
               <Group gap="md" align="center" wrap="nowrap">
                 <Text flex="1 1 40%">Consent state</Text>
                 <NativeSelect
@@ -117,11 +124,11 @@ export const Conversation: React.FC<ConversationProps> = ({
                 />
               </Group>
             )}
-            <Button
-              loading={conversationSyncing}
-              onClick={() => void handleSync()}>
-              Sync
-            </Button>
+            <ConversationMenu
+              type={conversation instanceof XmtpGroup ? "group" : "dm"}
+              onSync={() => void handleSync()}
+              disabled={conversationSyncing}
+            />
           </Group>
         }
         footer={conversation && <Composer conversation={conversation} />}
