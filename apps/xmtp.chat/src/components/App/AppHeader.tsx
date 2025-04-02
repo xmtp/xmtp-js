@@ -2,8 +2,8 @@ import { Burger, Button, Flex, Skeleton } from "@mantine/core";
 import type { Client } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { AppMenu } from "@/components/App/AppMenu";
 import { shortAddress } from "@/helpers/address";
-import { Actions } from "./Actions";
 import classes from "./AppHeader.module.css";
 
 export type AppHeaderProps = {
@@ -63,7 +63,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         </Flex>
       </Flex>
-      <Actions />
+      <AppMenu />
     </Flex>
   );
 };

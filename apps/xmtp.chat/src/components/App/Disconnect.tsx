@@ -1,35 +1,32 @@
-import { Button, useMatches } from "@mantine/core";
+import { LoadingOverlay } from "@mantine/core";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { useDisconnect } from "wagmi";
 import { useXMTP } from "@/contexts/XMTPContext";
 import { useSettings } from "@/hooks/useSettings";
-import { IconLogout } from "@/icons/IconLogout";
+import { CenteredLayout } from "@/layouts/CenteredLayout";
 
-export const DisconnectButton: React.FC = () => {
+export const Disconnect: React.FC = () => {
+  const navigate = useNavigate();
   const { disconnect } = useDisconnect();
   const { setEphemeralAccountEnabled, ephemeralAccountEnabled } = useSettings();
   const { disconnect: disconnectClient } = useXMTP();
-  const label: React.ReactNode = useMatches({
-    base: <IconLogout size={24} />,
-    sm: "Disconnect",
-  });
-  const px = useMatches({
-    base: "xs",
-    sm: "md",
-  });
 
-  const handleDisconnect = () => {
+  useEffect(() => {
     if (ephemeralAccountEnabled) {
       setEphemeralAccountEnabled(false);
     }
     disconnect(undefined, {
       onSuccess: () => {
         disconnectClient();
+        void navigate("/");
       },
     });
-  };
+  }, []);
+
   return (
-    <Button onClick={handleDisconnect} px={px}>
-      {label}
-    </Button>
+    <CenteredLayout>
+      <LoadingOverlay visible={true} />
+    </CenteredLayout>
   );
 };

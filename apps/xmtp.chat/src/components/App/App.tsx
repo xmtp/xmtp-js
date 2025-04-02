@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router";
 import { AppLayout } from "@/components/App/AppLayout";
+import { Disconnect } from "@/components/App/Disconnect";
 import { ErrorModal } from "@/components/App/ErrorModal";
 import { SelectConversation } from "@/components/App/SelectConversation";
 import { Welcome } from "@/components/App/Welcome";
@@ -46,6 +47,7 @@ export const App: React.FC = () => {
               </Route>
             </Route>
           </Route>
+          <Route path="disconnect" element={<Disconnect />} />
         </Route>
       </Routes>
     </>

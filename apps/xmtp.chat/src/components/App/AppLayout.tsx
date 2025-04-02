@@ -26,7 +26,12 @@ export const AppLayout: React.FC = () => {
   useEffect(() => {
     if (!client) {
       // save the current path to redirect to it after the client is initialized
-      setRedirectUrl(location.pathname);
+      if (
+        location.pathname !== "/welcome" &&
+        location.pathname !== "/disconnect"
+      ) {
+        setRedirectUrl(location.pathname);
+      }
       void navigate("/welcome");
     }
   }, [client]);
