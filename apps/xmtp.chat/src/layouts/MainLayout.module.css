@@ -18,7 +18,7 @@
       calc(var(--mantine-font-size-xl) * var(--mantine-line-height-xl)) +
       var(--main-border-width)
   );
-  --main-border-color: var(--mantine-color-gray-7);
+  --main-border-color: var(--mantine-color-default-border);
 }
 
 .root {
