@@ -34,7 +34,7 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
 }) => {
   return (
     <FocusTrap>
-      <Stack className={classes.root} gap={0} mah={maxHeight}>
+      <Stack className={classes.root} gap={0}>
         <LoadingOverlay visible={loading} />
         {(title || headerActions) && (
           <Group
@@ -65,7 +65,7 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
               type="scroll"
               className={classes.scrollArea}
               px={withScrollAreaPadding ? "md" : 0}>
-              {children}
+              <Box mah={maxHeight}>{children}</Box>
             </ScrollArea>
           ) : (
             <>{children}</>
