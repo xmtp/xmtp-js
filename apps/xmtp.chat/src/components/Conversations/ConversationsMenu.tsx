@@ -13,7 +13,7 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
   disabled,
 }) => {
   return (
-    <Menu shadow="md" disabled={disabled}>
+    <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
         <Button
           px="var(--mantine-spacing-xxxs)"
