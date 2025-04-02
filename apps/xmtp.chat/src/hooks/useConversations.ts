@@ -49,6 +49,20 @@ export const useConversations = () => {
     }
   };
 
+  const syncAll = async () => {
+    if (!client) {
+      return;
+    }
+
+    setSyncing(true);
+
+    try {
+      await client.conversations.syncAll();
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const getConversationById = async (conversationId: string) => {
     if (!client) {
       return;
@@ -153,6 +167,7 @@ export const useConversations = () => {
     newGroup,
     stream,
     sync,
+    syncAll,
     syncing,
   };
 };

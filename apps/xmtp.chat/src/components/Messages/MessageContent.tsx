@@ -15,7 +15,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({ content }) => {
       <Text style={{ whiteSpace: "pre-wrap" }}>{content}</Text>
     </Paper>
   ) : (
-    <Code block maw={420}>
+    <Code block maw={420} w="100%">
       {JSON.stringify(content, null, 2)}
     </Code>
   );

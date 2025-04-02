@@ -62,7 +62,7 @@
 .aside {
   position: fixed;
   top: var(--header-height);
-  bottom: var(--footer-height);
+  bottom: calc(var(--footer-height) + var(--mantine-spacing-md));
   left: 0;
   width: var(--nav-dynamic-width);
   z-index: 100;
@@ -111,6 +111,11 @@
     margin-left: 0;
     max-width: none;
     border: none;
+  }
+
+  .aside {
+    top: 0;
+    bottom: 0;
   }
 
   .asideNav {

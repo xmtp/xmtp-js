@@ -145,6 +145,7 @@ export const Connect = () => {
       <Stack gap="0" className={classes.root}>
         {isBusy && <LoadingOverlay visible />}
         <Group
+          className={classes.options}
           bg="gray.8"
           align="center"
           justify="space-between"

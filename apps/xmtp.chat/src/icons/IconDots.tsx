@@ -1,13 +1,9 @@
-export type IconArrowLeftProps = {
-  size?: number;
-};
-
-export const IconArrowLeft: React.FC<IconArrowLeftProps> = ({ size = 16 }) => {
+export const IconDots = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -15,9 +11,9 @@ export const IconArrowLeft: React.FC<IconArrowLeftProps> = ({ size = 16 }) => {
       strokeLinecap="round"
       strokeLinejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-      <path d="M5 12l14 0" />
-      <path d="M5 12l6 6" />
-      <path d="M5 12l6 -6" />
+      <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+      <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+      <path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
     </svg>
   );
 };
