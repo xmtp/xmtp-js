@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-wallet-send-calls",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "An XMTP content type to support sending transactions to wallet for execution",
   "keywords": [
     "xmtp",
