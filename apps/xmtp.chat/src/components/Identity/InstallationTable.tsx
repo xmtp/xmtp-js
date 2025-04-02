@@ -8,25 +8,17 @@ import { useIdentity } from "@/hooks/useIdentity";
 type InstallationTableRowProps = {
   installation: SafeInstallation;
   refreshInstallations: () => Promise<void>;
-  setRevokeInstallationError: React.Dispatch<
-    React.SetStateAction<string | null>
-  >;
 };
 
 const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
   installation,
   refreshInstallations,
-  setRevokeInstallationError,
 }) => {
   const { revokeInstallation, revoking } = useIdentity();
 
   const handleRevokeInstallation = async (installationIdBytes: Uint8Array) => {
-    try {
-      await revokeInstallation(installationIdBytes);
-      await refreshInstallations();
-    } catch (error) {
-      setRevokeInstallationError((error as Error).message || "Unknown error");
-    }
+    await revokeInstallation(installationIdBytes);
+    await refreshInstallations();
   };
 
   const maw = useMatches({
@@ -61,15 +53,11 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
 type InstallationTableProps = {
   installations: SafeInstallation[];
   refreshInstallations: () => Promise<void>;
-  setRevokeInstallationError: React.Dispatch<
-    React.SetStateAction<string | null>
-  >;
 };
 
 export const InstallationTable: React.FC<InstallationTableProps> = ({
   installations,
   refreshInstallations,
-  setRevokeInstallationError,
 }) => {
   return (
     <Table>
@@ -86,7 +74,6 @@ export const InstallationTable: React.FC<InstallationTableProps> = ({
             key={installation.id}
             installation={installation}
             refreshInstallations={refreshInstallations}
-            setRevokeInstallationError={setRevokeInstallationError}
           />
         ))}
       </Table.Tbody>

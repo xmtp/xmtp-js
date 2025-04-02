@@ -1,7 +1,7 @@
 import { LoadingOverlay } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect } from "react";
-import { Outlet, Route, Routes, useLocation, useNavigate } from "react-router";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import { AppFooter } from "@/components/App/AppFooter";
 import { AppHeader } from "@/components/App/AppHeader";
 import { ConversationsNavbar } from "@/components/Conversations/ConversationsNavbar";
@@ -26,7 +26,12 @@ export const AppLayout: React.FC = () => {
   useEffect(() => {
     if (!client) {
       // save the current path to redirect to it after the client is initialized
-      setRedirectUrl(location.pathname);
+      if (
+        location.pathname !== "/welcome" &&
+        location.pathname !== "/disconnect"
+      ) {
+        setRedirectUrl(location.pathname);
+      }
       void navigate("/welcome");
     }
   }, [client]);
@@ -41,16 +46,10 @@ export const AppLayout: React.FC = () => {
         <AppHeader client={client} opened={opened} toggle={toggle} />
       </MainLayoutHeader>
       <MainLayoutNav opened={opened} toggle={toggle}>
-        <Routes>
-          <Route path="/" element={null} />
-          <Route path="/conversations/new" element={null} />
-          <Route path="/conversations/:conversationId/manage" element={null} />
-          <Route path="/conversations/*" element={<ConversationsNavbar />} />
-          <Route path="/identity" element={null} />
-        </Routes>
+        <ConversationsNavbar />
       </MainLayoutNav>
       <MainLayoutContent>
-        <Outlet context={client} />
+        <Outlet context={{ client }} />
       </MainLayoutContent>
       <MainLayoutFooter>
         <AppFooter />

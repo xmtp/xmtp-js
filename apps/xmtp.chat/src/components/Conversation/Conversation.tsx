@@ -1,26 +1,24 @@
-import { Button, Group, NativeSelect, Text } from "@mantine/core";
+import { Group } from "@mantine/core";
 import {
-  ConsentState,
-  Dm,
   Group as XmtpGroup,
+  type Client,
   type Conversation as XmtpConversation,
 } from "@xmtp/browser-sdk";
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { Link, Outlet } from "react-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Outlet, useOutletContext } from "react-router";
+import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
 
 export type ConversationProps = {
-  conversation?: XmtpGroup | Dm;
-  loading: boolean;
+  conversation: XmtpConversation;
 };
 
-export const Conversation: React.FC<ConversationProps> = ({
-  conversation,
-  loading,
-}) => {
+export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
+  const { client } = useOutletContext<{ client: Client }>();
+  const [title, setTitle] = useState("");
   const {
     messages,
     getMessages,
@@ -28,117 +26,71 @@ export const Conversation: React.FC<ConversationProps> = ({
     syncing: conversationSyncing,
     streamMessages,
   } = useConversation(conversation);
-  const [consentState, setConsentState] = useState<ConsentState>(
-    ConsentState.Unknown,
-  );
-  const [consentStateLoading, setConsentStateLoading] = useState(false);
+  const stopStreamRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    if (conversation instanceof Dm) {
-      const loadConsentState = async () => {
-        const consentState = await conversation.consentState();
-        setConsentState(consentState);
-      };
-      void loadConsentState();
-    }
-  }, [conversation?.id]);
+  const startStream = useCallback(async () => {
+    stopStreamRef.current = await streamMessages();
+  }, [streamMessages]);
 
-  const handleConsentStateChange = async (
-    event: ChangeEvent<HTMLSelectElement>,
-  ) => {
-    if (conversation instanceof Dm) {
-      const currentValue = consentState;
-      const newValue = parseInt(event.currentTarget.value, 10) as ConsentState;
-      setConsentState(newValue);
-      setConsentStateLoading(true);
-      try {
-        await conversation.updateConsentState(newValue);
-      } catch {
-        setConsentState(currentValue);
-      } finally {
-        setConsentStateLoading(false);
-      }
-    }
-  };
+  const stopStream = useCallback(() => {
+    stopStreamRef.current?.();
+    stopStreamRef.current = null;
+  }, []);
 
   useEffect(() => {
     const loadMessages = async () => {
+      stopStream();
       await getMessages(undefined, true);
+      await startStream();
     };
     void loadMessages();
-  }, [conversation?.id]);
+  }, [conversation.id]);
 
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
+    stopStream();
     await getMessages(undefined, true);
-  };
+    await startStream();
+    if (conversation instanceof XmtpGroup) {
+      setTitle(conversation.name || "Untitled");
+    }
+  }, [getMessages, conversation.id, startStream, stopStream]);
 
   useEffect(() => {
-    let stopStream = () => {};
-    const startStream = async () => {
-      stopStream = await streamMessages();
-    };
-    void startStream();
     return () => {
       stopStream();
     };
-  }, [conversation?.id]);
+  }, []);
 
-  const title = useMemo(() => {
-    if (!conversation) {
-      return "";
-    }
+  useEffect(() => {
     if (conversation instanceof XmtpGroup) {
-      return conversation.name || "Untitled";
+      setTitle(conversation.name || "Untitled");
+    } else {
+      setTitle("Direct message");
     }
-    return "Direct message";
-  }, [conversation]);
+  }, [conversation.id]);
 
-  if (conversation) {
-    const sendMessage: XmtpConversation["send"] = (content, contentType) => {
-      return conversation.send(content, contentType);
-    };
-    return (
-      <>
-        <ContentLayout
-          title={title}
-          loading={loading || conversationLoading}
-          headerActions={
-            <Group gap="xs">
-              {conversation instanceof XmtpGroup ? (
-                <Button component={Link} to="manage">
-                  Manage
-                </Button>
-              ) : (
-                <Group gap="md" align="center" wrap="nowrap">
-                  <Text flex="1 1 40%">Consent state</Text>
-                  <NativeSelect
-                    size="sm"
-                    disabled={consentStateLoading}
-                    value={consentState}
-                    onChange={(event) => {
-                      void handleConsentStateChange(event);
-                    }}
-                    data={[
-                      { value: "0", label: "Unknown" },
-                      { value: "1", label: "Allowed" },
-                      { value: "2", label: "Denied" },
-                    ]}
-                  />
-                </Group>
-              )}
-              <Button
-                loading={conversationSyncing}
-                onClick={() => void handleSync()}>
-                Sync
-              </Button>
-            </Group>
-          }
-          footer=<Composer conversation={conversation} />
-          withScrollArea={false}>
-          <Messages messages={messages} sendMessage={sendMessage} />
-        </ContentLayout>
-        <Outlet />
-      </>
-    );
-  }
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const sendMessage = conversation.send;
+
+  return (
+    <>
+      <ContentLayout
+        title={title}
+        loading={conversationLoading}
+        headerActions={
+          <Group gap="xs">
+            <ConversationMenu
+              type={conversation instanceof XmtpGroup ? "group" : "dm"}
+              onSync={() => void handleSync()}
+              disabled={conversationSyncing}
+            />
+          </Group>
+        }
+        footer={<Composer conversation={conversation} />}
+        withScrollArea={false}>
+        <Messages messages={messages} sendMessage={sendMessage} />
+      </ContentLayout>
+      <Outlet context={{ conversation, client }} />
+    </>
+  );
 };

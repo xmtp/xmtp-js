@@ -15,7 +15,7 @@ export const LoadDM: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { setEnvironment } = useSettings();
   const navigate = useNavigate();
-  const client = useOutletContext<Client>();
+  const { client } = useOutletContext<{ client: Client }>();
 
   useEffect(() => {
     const env = searchParams.get("env");

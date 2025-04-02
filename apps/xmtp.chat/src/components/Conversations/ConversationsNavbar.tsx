@@ -1,31 +1,47 @@
-import { Badge, Box, Button, Group, Text } from "@mantine/core";
-import { useCallback, useEffect } from "react";
+import { Badge, Box, Group, Text } from "@mantine/core";
+import { useCallback, useEffect, useRef } from "react";
 import { ConversationsList } from "@/components/Conversations/ConversationList";
+import { ConversationsMenu } from "@/components/Conversations/ConversationsMenu";
 import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
-  const { list, loading, syncing, conversations, stream } = useConversations();
+  const { list, loading, syncing, conversations, stream, syncAll } =
+    useConversations();
+  const stopStreamRef = useRef<(() => void) | null>(null);
+
+  const startStream = useCallback(async () => {
+    stopStreamRef.current = await stream();
+  }, [stream]);
+
+  const stopStream = useCallback(() => {
+    stopStreamRef.current?.();
+    stopStreamRef.current = null;
+  }, []);
 
   const handleSync = useCallback(async () => {
+    stopStream();
     await list(undefined, true);
-  }, [list]);
+    await startStream();
+  }, [list, startStream, stopStream]);
 
-  // loading conversations on mount
+  const handleSyncAll = useCallback(async () => {
+    stopStream();
+    await syncAll();
+    await startStream();
+  }, [syncAll, startStream, stopStream]);
+
+  // loading conversations on mount, and start streaming
   useEffect(() => {
     const loadConversations = async () => {
       await list(undefined);
+      await startStream();
     };
     void loadConversations();
   }, []);
 
-  // start streaming new conversations on mount
+  // stop streaming on unmount
   useEffect(() => {
-    let stopStream = () => {};
-    const startStream = async () => {
-      stopStream = await stream();
-    };
-    void startStream();
     return () => {
       stopStream();
     };
@@ -45,9 +61,11 @@ export const ConversationsNavbar: React.FC = () => {
       }
       loading={loading}
       headerActions={
-        <Button loading={syncing} onClick={() => void handleSync()}>
-          Sync
-        </Button>
+        <ConversationsMenu
+          onSync={() => void handleSync()}
+          onSyncAll={() => void handleSyncAll()}
+          disabled={syncing}
+        />
       }
       withScrollArea={false}>
       {conversations.length === 0 ? (

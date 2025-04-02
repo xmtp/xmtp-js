@@ -1,16 +1,9 @@
-import {
-  Center,
-  Modal,
-  ScrollArea,
-  Stack,
-  Tabs,
-  Text,
-  useMatches,
-} from "@mantine/core";
+import { Center, Modal, ScrollArea, Stack, Tabs, Text } from "@mantine/core";
 import { type DecodedMessage } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { CodeWithCopy } from "@/components/CodeWithCopy";
+import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
 import { MessageProperties } from "./MessageProperties";
 
@@ -20,15 +13,8 @@ export const MessageModal: React.FC = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState<DecodedMessage | undefined>(undefined);
 
-  const fullScreen = useMatches({
-    base: true,
-    sm: false,
-  });
-
-  const contentHeight = useMatches({
-    base: "auto",
-    sm: 500,
-  });
+  const fullScreen = useCollapsedMediaQuery();
+  const contentHeight = fullScreen ? "auto" : 500;
 
   useEffect(() => {
     if (!messageId) return;

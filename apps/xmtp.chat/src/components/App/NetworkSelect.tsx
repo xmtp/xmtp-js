@@ -1,6 +1,6 @@
 import { Flex, NativeSelect, Text, Tooltip } from "@mantine/core";
-import { useLocalStorage } from "@mantine/hooks";
 import { ApiUrls, type XmtpEnv } from "@xmtp/browser-sdk";
+import { useSettings } from "@/hooks/useSettings";
 
 export type NetworkSelectProps = {
   disabled?: boolean;
@@ -9,13 +9,10 @@ export type NetworkSelectProps = {
 export const NetworkSelect: React.FC<NetworkSelectProps> = ({
   disabled = false,
 }) => {
-  const [network, setNetwork] = useLocalStorage<XmtpEnv>({
-    key: "XMTP_NETWORK",
-    defaultValue: "dev",
-  });
+  const { environment, setEnvironment } = useSettings();
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setNetwork(event.currentTarget.value as XmtpEnv);
+    setEnvironment(event.currentTarget.value as XmtpEnv);
   };
 
   return (
@@ -24,12 +21,12 @@ export const NetworkSelect: React.FC<NetworkSelectProps> = ({
         NETWORK
       </Text>
       <Tooltip
-        label={ApiUrls[network]}
+        label={ApiUrls[environment]}
         withArrow
         events={{ hover: true, focus: true, touch: true }}>
         <NativeSelect
           data={["local", "dev", "production"]}
-          value={network}
+          value={environment}
           onChange={handleChange}
           disabled={disabled}
         />

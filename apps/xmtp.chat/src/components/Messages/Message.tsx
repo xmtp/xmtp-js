@@ -22,7 +22,7 @@ export type MessageProps = {
 };
 
 export const Message: React.FC<MessageProps> = ({ message, sendMessage }) => {
-  const client = useOutletContext<Client>();
+  const { client } = useOutletContext<{ client: Client }>();
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
 
