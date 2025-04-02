@@ -3,7 +3,7 @@ import {
   Group as XmtpGroup,
   type Conversation as XmtpConversation,
 } from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
@@ -16,6 +16,7 @@ export type ConversationProps = {
 };
 
 export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
+  const [title, setTitle] = useState("");
   const {
     messages,
     getMessages,
@@ -33,7 +34,10 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
 
   const handleSync = useCallback(async () => {
     await getMessages(undefined, true);
-  }, [getMessages]);
+    if (conversation instanceof XmtpGroup) {
+      setTitle(conversation.name || "Untitled");
+    }
+  }, [getMessages, conversation.id]);
 
   useEffect(() => {
     let stopStream = () => {};
@@ -46,12 +50,13 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
     };
   }, [conversation.id]);
 
-  const title = useMemo(() => {
+  useEffect(() => {
     if (conversation instanceof XmtpGroup) {
-      return conversation.name || "Untitled";
+      setTitle(conversation.name || "Untitled");
+    } else {
+      setTitle("Direct message");
     }
-    return "Direct message";
-  }, [conversation]);
+  }, [conversation.id]);
 
   return (
     <>
