@@ -53,7 +53,7 @@ export const ManageConsentModal: React.FC = () => {
     } finally {
       setConsentStateLoading(false);
     }
-  }, [conversation.id, consentState]);
+  }, [conversation.id, consentState, handleClose]);
 
   const footer = useMemo(() => {
     return (
