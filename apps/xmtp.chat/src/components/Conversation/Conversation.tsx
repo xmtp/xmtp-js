@@ -4,7 +4,7 @@ import {
   type Client,
   type Conversation as XmtpConversation,
 } from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
@@ -26,31 +26,40 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
     syncing: conversationSyncing,
     streamMessages,
   } = useConversation(conversation);
+  const stopStreamRef = useRef<(() => void) | null>(null);
+
+  const startStream = useCallback(async () => {
+    stopStreamRef.current = await streamMessages();
+  }, [streamMessages]);
+
+  const stopStream = useCallback(() => {
+    stopStreamRef.current?.();
+    stopStreamRef.current = null;
+  }, []);
 
   useEffect(() => {
     const loadMessages = async () => {
+      stopStream();
       await getMessages(undefined, true);
+      await startStream();
     };
     void loadMessages();
   }, [conversation.id]);
 
   const handleSync = useCallback(async () => {
+    stopStream();
     await getMessages(undefined, true);
+    await startStream();
     if (conversation instanceof XmtpGroup) {
       setTitle(conversation.name || "Untitled");
     }
-  }, [getMessages, conversation.id]);
+  }, [getMessages, conversation.id, startStream, stopStream]);
 
   useEffect(() => {
-    let stopStream = () => {};
-    const startStream = async () => {
-      stopStream = await streamMessages();
-    };
-    void startStream();
     return () => {
       stopStream();
     };
-  }, [conversation.id]);
+  }, []);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {
