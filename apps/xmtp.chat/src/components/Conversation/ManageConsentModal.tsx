@@ -65,7 +65,7 @@ export const ManageConsentModal: React.FC = () => {
   const footer = useMemo(() => {
     return (
       <Group justify="flex-end" flex={1} p="md">
-        <Button variant="default" onClick={() => void navigate(-1)}>
+        <Button variant="default" onClick={handleClose}>
           Cancel
         </Button>
         <Button
