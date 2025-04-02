@@ -50,7 +50,7 @@ export const ManageMetadataModal: React.FC = () => {
         setIsLoading(false);
       }
     }
-  }, [conversation.id, name, description, imageUrl]);
+  }, [conversation.id, name, description, imageUrl, navigate]);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {
@@ -84,7 +84,7 @@ export const ManageMetadataModal: React.FC = () => {
         </Button>
       </Group>
     );
-  }, [isLoading, handleUpdate]);
+  }, [isLoading, handleUpdate, handleClose]);
 
   return (
     <Modal
