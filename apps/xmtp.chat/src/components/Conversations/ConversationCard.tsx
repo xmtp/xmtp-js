@@ -1,7 +1,7 @@
 import { Box, Card, Flex, Stack, Text } from "@mantine/core";
 import { Dm, Group, type Conversation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import styles from "./ConversationCard.module.css";
 
 export type ConversationCardProps = {
@@ -14,6 +14,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   const [memberCount, setMemberCount] = useState(0);
   const [name, setName] = useState("");
   const navigate = useNavigate();
+  const { conversationId } = useParams();
 
   useEffect(() => {
     void conversation.members().then((members) => {
@@ -33,7 +34,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   }, [conversation]);
 
   return (
-    <Box pb="sm" px="sm">
+    <Box px="sm">
       <Card
         shadow="sm"
         padding="sm"
@@ -46,11 +47,13 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
           }
         }}
         onClick={() => void navigate(`/conversations/${conversation.id}`)}
-        style={{ cursor: "pointer" }}
-        classNames={{ root: styles.root }}>
+        className={[
+          styles.root,
+          conversation.id === conversationId && styles.selected,
+        ].join(" ")}>
         <Stack gap="0">
           <Flex align="center">
-            <Text fw={700} c={name ? "text.primary" : "dimmed"} truncate="end">
+            <Text fw={700} truncate>
               {name || "Untitled"}
             </Text>
           </Flex>

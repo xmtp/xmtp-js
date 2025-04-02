@@ -1,24 +1,22 @@
 import { Burger, Button, Flex, Skeleton } from "@mantine/core";
+import type { Client } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useXMTP } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/address";
 import { Actions } from "./Actions";
 import classes from "./AppHeader.module.css";
-import { Connection } from "./Connection";
 
 export type AppHeaderProps = {
-  collapsed?: boolean;
-  opened: boolean;
-  toggle: () => void;
+  client: Client;
+  opened?: boolean;
+  toggle?: () => void;
 };
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-  collapsed,
+  client,
   opened,
   toggle,
 }) => {
-  const { client } = useXMTP();
   const navigate = useNavigate();
   const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
     null,
@@ -27,8 +25,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   useEffect(() => {
     const fetchAccountIdentifier = async () => {
-      if (!client) return;
-
       setIsLoadingIdentifier(true);
       try {
         const identifier = await client.accountIdentifier();
@@ -48,30 +44,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <Flex align="center">
-      <Flex align="center" gap="md" p="md" w={{ base: 300, lg: 420 }}>
-        {!collapsed && (
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-        )}
+    <Flex align="center" justify="space-between">
+      <Flex align="center" gap="md" className={classes.header}>
+        <div className={classes.burger}>
+          <Burger opened={opened} onClick={toggle} size="sm" />
+        </div>
         <Flex align="center" flex={1}>
-          {client &&
-            (isLoadingIdentifier ? (
-              <Skeleton height={36} width={120} radius="sm" />
-            ) : (
-              <Button
-                variant="default"
-                aria-label={accountIdentifier || ""}
-                className={classes.button}
-                onClick={handleClick}>
-                {accountIdentifier ? shortAddress(accountIdentifier) : "..."}
-              </Button>
-            ))}
+          {isLoadingIdentifier ? (
+            <Skeleton height={36} width={120} radius="sm" />
+          ) : (
+            <Button
+              variant="default"
+              aria-label={accountIdentifier || ""}
+              className={classes.button}
+              onClick={handleClick}>
+              {accountIdentifier ? shortAddress(accountIdentifier) : "..."}
+            </Button>
+          )}
         </Flex>
       </Flex>
-      <Flex align="center" justify="space-between" gap="xs" p="md" flex={1}>
-        <Actions />
-        <Connection />
-      </Flex>
+      <Actions />
     </Flex>
   );
 };

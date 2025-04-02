@@ -1,5 +1,25 @@
 # @xmtp/browser-sdk
 
+## 1.1.4
+
+### Patch Changes
+
+- 8bd3930: Fixed removing inboxes with invalid key packages from groups
+
+## 1.1.3
+
+### Patch Changes
+
+- 295e046:
+  - Fixed incorrect key package associations
+  - Resolved DM stitching issues for conversations without messages
+
+## 1.1.2
+
+### Patch Changes
+
+- 5845617: Refactored welcome message processing to prevent key package deletion on failure
+
 ## 1.1.1
 
 ### Patch Changes

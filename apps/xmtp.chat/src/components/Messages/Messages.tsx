@@ -1,7 +1,6 @@
 import { Box, Text } from "@mantine/core";
 import type { Conversation, DecodedMessage } from "@xmtp/browser-sdk";
-import { Virtuoso } from "react-virtuoso";
-import { Message } from "./Message";
+import { MessageList } from "./MessageList";
 
 export type ConversationProps = {
   messages: DecodedMessage[];
@@ -23,14 +22,6 @@ export const Messages: React.FC<ConversationProps> = ({
       <Text>No messages</Text>
     </Box>
   ) : (
-    <Virtuoso
-      alignToBottom
-      followOutput="auto"
-      style={{ flexGrow: 1 }}
-      data={messages}
-      itemContent={(_, message) => (
-        <Message key={message.id} message={message} sendMessage={sendMessage} />
-      )}
-    />
+    <MessageList messages={messages} sendMessage={sendMessage} />
   );
 };

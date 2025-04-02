@@ -1,0 +1,125 @@
+:root {
+  --main-width: 70ch;
+  --nav-width: 300px;
+  --nav-dynamic-width: max(
+    calc((100dvw - var(--main-width)) / 2),
+    var(--nav-width)
+  );
+  --header-padding: var(--mantine-spacing-md);
+  --footer-padding: var(--mantine-spacing-md);
+  --header-button-height: rem(36px);
+  --main-border-width: 1px;
+  --header-height: calc(
+    var(--header-padding) * 2 + var(--header-button-height) +
+      var(--main-border-width)
+  );
+  --footer-height: calc(
+    var(--footer-padding) * 2 +
+      calc(var(--mantine-font-size-xl) * var(--mantine-line-height-xl)) +
+      var(--main-border-width)
+  );
+  --main-border-color: var(--mantine-color-gray-7);
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.header {
+  height: var(--header-height);
+  padding: var(--header-padding) 0;
+  max-width: var(--main-width);
+  margin-left: var(--nav-dynamic-width);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.headerContent {
+  padding: 0 var(--header-padding);
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: var(--main-width);
+  margin-left: var(--nav-dynamic-width);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  border: var(--main-border-width) solid var(--main-border-color);
+  border-radius: var(--mantine-radius-md);
+}
+
+.mainContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.aside {
+  position: fixed;
+  top: var(--header-height);
+  bottom: var(--footer-height);
+  left: 0;
+  width: var(--nav-dynamic-width);
+  z-index: 100;
+  background-color: var(--mantine-color-body);
+  transition: left 0.1s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.showNavbar {
+  left: 0 !important;
+}
+
+.asideNav {
+  margin-top: 1px;
+  width: var(--nav-width);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.footer {
+  flex-shrink: 0;
+  height: var(--footer-height);
+  max-width: var(--main-width);
+  margin-left: var(--nav-dynamic-width);
+  z-index: 1;
+}
+
+.footerContent {
+  padding: 0 var(--footer-padding);
+}
+
+@media screen and (max-width: 1080px) {
+  .aside {
+    left: calc(var(--nav-dynamic-width) * -1);
+  }
+
+  .header {
+    margin-left: 0;
+    max-width: none;
+  }
+
+  .main {
+    margin-left: 0;
+    max-width: none;
+    border: none;
+  }
+
+  .asideNav {
+    margin-top: 0;
+    border-right: var(--main-border-width) solid var(--main-border-color);
+  }
+
+  .footer {
+    margin-left: 0;
+    max-width: none;
+  }
+}

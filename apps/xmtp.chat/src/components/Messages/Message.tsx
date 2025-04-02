@@ -1,5 +1,5 @@
 import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
-import type { Conversation, DecodedMessage } from "@xmtp/browser-sdk";
+import type { Client, Conversation, DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
@@ -9,7 +9,7 @@ import {
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
 import { intlFormat } from "date-fns";
-import { useXMTP } from "@/contexts/XMTPContext";
+import { useOutletContext } from "react-router";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
 import { MessageContent } from "./MessageContent";
@@ -22,12 +22,12 @@ export type MessageProps = {
 };
 
 export const Message: React.FC<MessageProps> = ({ message, sendMessage }) => {
-  const { client } = useXMTP();
-  const isSender = client?.inboxId === message.senderInboxId;
+  const client = useOutletContext<Client>();
+  const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
 
   return (
-    <Box pb="sm" px="md">
+    <Box px="md">
       <Flex justify={align === "left" ? "flex-start" : "flex-end"}>
         <Paper p="md" withBorder shadow="md" maw="80%" tabIndex={0}>
           <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>

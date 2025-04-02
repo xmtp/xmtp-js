@@ -21,12 +21,6 @@ To learn more about the contents of this repository, see this README and the REA
 - [`content-type-text`](content-types/content-type-text): Content type for plain text messages
 - [`content-type-transaction-reference`](content-types/content-type-transaction-reference): Content type for on-chain transaction references
 
-### Packages
-
-- [`consent-proof-signature`](https://github.com/xmtp/xmtp-js/blob/main/packages/consent-proof-signature): Lightweight package for creating consent proofs
-- [`frames-client`](https://github.com/xmtp/xmtp-js/blob/main/packages/frames-client): XMTP Open Frames client
-- [`frames-validator`](https://github.com/xmtp/xmtp-js/blob/main/packages/frames-validator): Tools for validating POST payloads from XMTP Open Frames
-
 ## Contributing
 
 See our [contribution guide](./CONTRIBUTING.md) to learn more about contributing to this project.

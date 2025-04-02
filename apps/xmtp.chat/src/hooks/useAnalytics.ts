@@ -7,10 +7,8 @@ export const useAnalytics = () => {
       domain: "xmtp.chat",
     });
     const cleanupAutoPageviews = plausible.enableAutoPageviews();
-    const cleanupAutoOutboundTracking = plausible.enableAutoOutboundTracking();
     return () => {
       cleanupAutoPageviews();
-      cleanupAutoOutboundTracking();
     };
   }, []);
 };

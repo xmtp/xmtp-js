@@ -1,19 +1,15 @@
+import { Button, Group, NativeSelect, Text } from "@mantine/core";
 import {
-  Button,
-  Flex,
-  Group,
-  LoadingOverlay,
-  NativeSelect,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import { ConsentState, Dm, Group as XmtpGroup } from "@xmtp/browser-sdk";
-import { useEffect, useState, type ChangeEvent } from "react";
+  ConsentState,
+  Dm,
+  Group as XmtpGroup,
+  type Conversation as XmtpConversation,
+} from "@xmtp/browser-sdk";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { Link, Outlet } from "react-router";
 import { Messages } from "@/components/Messages/Messages";
-import { useBodyClass } from "@/hooks/useBodyClass";
 import { useConversation } from "@/hooks/useConversation";
+import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
 
 export type ConversationProps = {
@@ -25,7 +21,6 @@ export const Conversation: React.FC<ConversationProps> = ({
   conversation,
   loading,
 }) => {
-  useBodyClass("main-flex-layout");
   const {
     messages,
     getMessages,
@@ -68,7 +63,7 @@ export const Conversation: React.FC<ConversationProps> = ({
 
   useEffect(() => {
     const loadMessages = async () => {
-      await getMessages();
+      await getMessages(undefined, true);
     };
     void loadMessages();
   }, [conversation?.id]);
@@ -88,79 +83,60 @@ export const Conversation: React.FC<ConversationProps> = ({
     };
   }, [conversation?.id]);
 
+  const title = useMemo(() => {
+    if (!conversation) {
+      return "";
+    }
+    if (conversation instanceof XmtpGroup) {
+      return conversation.name || "Untitled";
+    }
+    return "Direct message";
+  }, [conversation]);
+
   if (conversation) {
     const sendMessage: XmtpConversation["send"] = (content, contentType) => {
       return conversation.send(content, contentType);
     };
     return (
       <>
-        <Stack
-          style={{
-            overflow: "hidden",
-            margin: "calc(var(--mantine-spacing-md) * -1)",
-          }}
-          pos="relative"
-          gap="lg"
-          flex={1}>
-          <>
-            <Flex align="center" gap="xs" justify="space-between" p="md">
+        <ContentLayout
+          title={title}
+          loading={loading || conversationLoading}
+          headerActions={
+            <Group gap="xs">
               {conversation instanceof XmtpGroup ? (
-                <Title order={3}>{conversation.name}</Title>
-              ) : (
-                <Text size="lg" fw={700} c="dimmed">
-                  Direct message
-                </Text>
-              )}
-              <Group gap="xs">
-                {conversation instanceof XmtpGroup && (
-                  <Button component={Link} to="manage">
-                    Manage
-                  </Button>
-                )}
-                {conversation instanceof Dm && (
-                  <Group gap="md" align="center" wrap="nowrap">
-                    <Text flex="1 1 40%">Consent state</Text>
-                    <NativeSelect
-                      size="sm"
-                      disabled={consentStateLoading}
-                      value={consentState}
-                      onChange={(event) => {
-                        void handleConsentStateChange(event);
-                      }}
-                      data={[
-                        { value: "0", label: "Unknown" },
-                        { value: "1", label: "Allowed" },
-                        { value: "2", label: "Denied" },
-                      ]}
-                    />
-                  </Group>
-                )}
-                <Button
-                  loading={conversationSyncing}
-                  onClick={() => void handleSync()}>
-                  Sync
+                <Button component={Link} to="manage">
+                  Manage
                 </Button>
-              </Group>
-            </Flex>
-            <Stack flex={1} style={{ overflow: "hidden" }}>
-              {loading || conversationLoading || messages.length === 0 ? (
-                <Stack
-                  style={{
-                    margin: "calc(var(--mantine-spacing-md) * -1)",
-                  }}
-                  flex={1}
-                  align="center"
-                  justify="center">
-                  {messages.length === 0 && <Text>No messages</Text>}
-                </Stack>
               ) : (
-                <Messages messages={messages} sendMessage={sendMessage} />
+                <Group gap="md" align="center" wrap="nowrap">
+                  <Text flex="1 1 40%">Consent state</Text>
+                  <NativeSelect
+                    size="sm"
+                    disabled={consentStateLoading}
+                    value={consentState}
+                    onChange={(event) => {
+                      void handleConsentStateChange(event);
+                    }}
+                    data={[
+                      { value: "0", label: "Unknown" },
+                      { value: "1", label: "Allowed" },
+                      { value: "2", label: "Denied" },
+                    ]}
+                  />
+                </Group>
               )}
-            </Stack>
-            <Composer conversation={conversation} />
-            <LoadingOverlay visible={loading || conversationLoading} />
-          </>
-        </Stack>
+              <Button
+                loading={conversationSyncing}
+                onClick={() => void handleSync()}>
+                Sync
+              </Button>
+            </Group>
+          }
+          footer=<Composer conversation={conversation} />
+          withScrollArea={false}>
+          <Messages messages={messages} sendMessage={sendMessage} />
+        </ContentLayout>
         <Outlet />
       </>
     );
