@@ -69,9 +69,6 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
     }
   }, [conversation.id]);
 
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const sendMessage = conversation.send;
-
   return (
     <>
       <ContentLayout
@@ -88,7 +85,7 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
         }
         footer={<Composer conversation={conversation} />}
         withScrollArea={false}>
-        <Messages messages={messages} sendMessage={sendMessage} />
+        <Messages messages={messages} />
       </ContentLayout>
       <Outlet context={{ conversation, client }} />
     </>

@@ -1,5 +1,5 @@
 import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
-import type { Client, Conversation, DecodedMessage } from "@xmtp/browser-sdk";
+import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
@@ -18,10 +18,9 @@ import { WalletSendCallsUI } from "./WalletSendCalls";
 
 export type MessageProps = {
   message: DecodedMessage;
-  sendMessage: Conversation["send"];
 };
 
-export const Message: React.FC<MessageProps> = ({ message, sendMessage }) => {
+export const Message: React.FC<MessageProps> = ({ message }) => {
   const { client } = useOutletContext<{ client: Client }>();
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
@@ -56,7 +55,6 @@ export const Message: React.FC<MessageProps> = ({ message, sendMessage }) => {
             ) : message.contentType.sameAs(ContentTypeWalletSendCalls) ? (
               <WalletSendCallsUI
                 content={message.content as WalletSendCallsParams}
-                sendMessage={sendMessage}
               />
             ) : (
               <MessageContent content={message.content as string} />

@@ -1,21 +1,21 @@
 import { Button } from "@mantine/core";
-import type { Conversation } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
 import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
+import { useOutletContext } from "react-router";
 import { useSendTransaction } from "wagmi";
+import type { ConversationOutletContext } from "../Conversation/ConversationOutletContext";
 
 export type WalletSendCallsProps = {
   content: WalletSendCallsParams;
-  sendMessage: Conversation["send"];
 };
 
 export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
   content,
-  sendMessage,
 }) => {
+  const { conversation } = useOutletContext<ConversationOutletContext>();
   const { sendTransactionAsync } = useSendTransaction();
 
   function handleSubmit() {
@@ -36,7 +36,7 @@ export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
           networkId: content.chainId,
           reference: txHash,
         };
-        await sendMessage(
+        await conversation.send(
           transactionReference,
           ContentTypeTransactionReference,
         );

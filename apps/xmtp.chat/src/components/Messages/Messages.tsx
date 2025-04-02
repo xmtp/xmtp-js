@@ -1,16 +1,12 @@
 import { Box, Text } from "@mantine/core";
-import type { Conversation, DecodedMessage } from "@xmtp/browser-sdk";
+import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { MessageList } from "./MessageList";
 
 export type ConversationProps = {
   messages: DecodedMessage[];
-  sendMessage: Conversation["send"];
 };
 
-export const Messages: React.FC<ConversationProps> = ({
-  messages,
-  sendMessage,
-}) => {
+export const Messages: React.FC<ConversationProps> = ({ messages }) => {
   return messages.length === 0 ? (
     <Box
       display="flex"
@@ -22,6 +18,6 @@ export const Messages: React.FC<ConversationProps> = ({
       <Text>No messages</Text>
     </Box>
   ) : (
-    <MessageList messages={messages} sendMessage={sendMessage} />
+    <MessageList messages={messages} />
   );
 };

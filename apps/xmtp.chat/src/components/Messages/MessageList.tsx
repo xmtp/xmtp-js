@@ -1,4 +1,4 @@
-import type { Conversation, DecodedMessage } from "@xmtp/browser-sdk";
+import type { DecodedMessage } from "@xmtp/browser-sdk";
 import type { ComponentProps } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { Message } from "./Message";
@@ -10,13 +10,9 @@ const List = (props: ComponentProps<"div">) => {
 
 export type MessageListProps = {
   messages: DecodedMessage[];
-  sendMessage: Conversation["send"];
 };
 
-export const MessageList: React.FC<MessageListProps> = ({
-  messages,
-  sendMessage,
-}) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   return (
     <Virtuoso
       alignToBottom
@@ -28,7 +24,7 @@ export const MessageList: React.FC<MessageListProps> = ({
       initialTopMostItemIndex={messages.length - 1}
       data={messages}
       itemContent={(_, message) => (
-        <Message key={message.id} message={message} sendMessage={sendMessage} />
+        <Message key={message.id} message={message} />
       )}
     />
   );
