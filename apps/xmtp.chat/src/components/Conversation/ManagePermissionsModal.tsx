@@ -259,13 +259,9 @@ export const ManagePermissionsModal: React.FC = () => {
       fullScreen={fullScreen}
       onClose={handleClose}
       size="auto"
-      padding={0}
-      title={
-        <Text size="lg" fw={700} c="text.primary" p="md">
-          Manage permissions
-        </Text>
-      }>
+      padding={0}>
       <ContentLayout
+        title="Manage permissions"
         maxHeight={contentHeight}
         footer={footer}
         withScrollAreaPadding={false}>

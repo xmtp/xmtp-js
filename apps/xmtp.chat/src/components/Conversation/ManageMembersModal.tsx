@@ -122,13 +122,9 @@ export const ManageMembersModal: React.FC = () => {
       fullScreen={fullScreen}
       onClose={handleClose}
       size="auto"
-      padding={0}
-      title={
-        <Text size="lg" fw={700} c="text.primary" p="md">
-          Manage members
-        </Text>
-      }>
+      padding={0}>
       <ContentLayout
+        title="Manage members"
         maxHeight={contentHeight}
         footer={footer}
         withScrollAreaPadding={false}>

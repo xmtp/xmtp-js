@@ -96,13 +96,9 @@ export const ManagePropertiesModal: React.FC = () => {
       fullScreen={fullScreen}
       onClose={handleClose}
       size="md"
-      padding={0}
-      title={
-        <Text size="lg" fw={700} c="text.primary" p="md">
-          Manage properties
-        </Text>
-      }>
+      padding={0}>
       <ContentLayout
+        title="Manage properties"
         maxHeight={contentHeight}
         footer={footer}
         withScrollFade={false}

@@ -1,4 +1,13 @@
-import { Button, Group, Modal, Paper, Stack, Text, Title } from "@mantine/core";
+import {
+  Button,
+  CloseButton,
+  Group,
+  Modal,
+  Paper,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import type { Client } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
@@ -57,16 +66,19 @@ export const IdentityModal: React.FC = () => {
         fullScreen={fullScreen}
         onClose={handleClose}
         size="auto"
-        padding={0}
-        title={
-          <Text size="lg" fw={700} c="text.primary" p="md">
-            Identity
-          </Text>
-        }>
+        padding={0}>
         <ContentLayout
           maxHeight={contentHeight}
           loading={revoking || syncing}
-          withScrollAreaPadding={false}>
+          withScrollAreaPadding={false}
+          title={
+            <Group justify="space-between" align="center" flex={1}>
+              <Text size="lg" fw={700} c="text.primary">
+                Identity
+              </Text>
+              <CloseButton size="md" onClick={handleClose} />
+            </Group>
+          }>
           <Stack gap="md" p="md">
             <Paper p="md" radius="md" withBorder>
               <Stack gap="md">
