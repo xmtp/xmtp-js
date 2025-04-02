@@ -17,7 +17,7 @@ export type ConversationProps = {
 };
 
 export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
-  const client = useOutletContext<Client>();
+  const { client } = useOutletContext<{ client: Client }>();
   const [title, setTitle] = useState("");
   const {
     messages,
