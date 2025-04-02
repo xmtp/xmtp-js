@@ -4,7 +4,6 @@ import {
   Group,
   Modal,
   NativeSelect,
-  ScrollArea,
   Stack,
   Text,
   Tooltip,
@@ -261,7 +260,6 @@ export const ManagePermissionsModal: React.FC = () => {
       onClose={handleClose}
       size="md"
       padding={0}
-      scrollAreaComponent={ScrollArea.Autosize}
       title={
         <Text size="lg" fw={700} c="text.primary" p="md">
           Manage permissions

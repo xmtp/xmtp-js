@@ -7,7 +7,7 @@ import { WelcomeLayout } from "@/components/App/WelcomeLayout";
 import { LoadConversation } from "@/components/Conversation/LoadConversation";
 import { LoadDM } from "@/components/Conversation/LoadDM";
 import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal";
-import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissions";
+import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissionsModal";
 import { ManagePropertiesModal } from "@/components/Conversation/ManagePropertiesModal";
 import { NewConversation } from "@/components/Conversation/NewConversation";
 import { Identity } from "@/components/Identity/Identity";
