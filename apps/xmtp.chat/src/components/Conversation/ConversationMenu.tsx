@@ -28,19 +28,23 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
       </Menu.Target>
       <Menu.Dropdown miw={200}>
         <Menu.Label>Manage</Menu.Label>
+        <Menu.Item onClick={() => void navigate("manage/consent")}>
+          Consent
+        </Menu.Item>
         {type === "group" && (
           <>
-            <Menu.Item onClick={() => void navigate("manage/properties")}>
-              Properties
+            <Menu.Item onClick={() => void navigate("manage/members")}>
+              Members
             </Menu.Item>
             <Menu.Item onClick={() => void navigate("manage/permissions")}>
               Permissions
             </Menu.Item>
+            <Menu.Item onClick={() => void navigate("manage/properties")}>
+              Properties
+            </Menu.Item>
           </>
         )}
-        <Menu.Item onClick={() => void navigate("manage/consent")}>
-          Consent
-        </Menu.Item>
+
         <Menu.Label>Actions</Menu.Label>
         <Menu.Item onClick={onSync}>Sync</Menu.Item>
       </Menu.Dropdown>

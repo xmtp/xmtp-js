@@ -7,6 +7,7 @@ import { WelcomeLayout } from "@/components/App/WelcomeLayout";
 import { LoadConversation } from "@/components/Conversation/LoadConversation";
 import { LoadDM } from "@/components/Conversation/LoadDM";
 import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal";
+import { ManageMembersModal } from "@/components/Conversation/ManageMembersModal";
 import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissionsModal";
 import { ManagePropertiesModal } from "@/components/Conversation/ManagePropertiesModal";
 import { NewConversation } from "@/components/Conversation/NewConversation";
@@ -35,11 +36,12 @@ export const App: React.FC = () => {
               <Route path="message/:messageId" element={<MessageModal />} />
               <Route path="manage">
                 <Route path="consent" element={<ManageConsentModal />} />
-                <Route path="properties" element={<ManagePropertiesModal />} />
+                <Route path="members" element={<ManageMembersModal />} />
                 <Route
                   path="permissions"
                   element={<ManagePermissionsModal />}
                 />
+                <Route path="properties" element={<ManagePropertiesModal />} />
               </Route>
             </Route>
           </Route>
