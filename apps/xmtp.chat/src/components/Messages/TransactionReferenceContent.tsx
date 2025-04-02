@@ -3,13 +3,13 @@ import type { TransactionReference } from "@xmtp/content-type-transaction-refere
 import { useMemo } from "react";
 import * as viemChains from "viem/chains";
 
-export type TransactionReferenceProps = {
+export type TransactionReferenceContentProps = {
   content: TransactionReference;
 };
 
-export const TransactionReferenceUI: React.FC<TransactionReferenceProps> = ({
-  content,
-}) => {
+export const TransactionReferenceContent: React.FC<
+  TransactionReferenceContentProps
+> = ({ content }) => {
   const chain = useMemo(() => {
     const chains = Object.values(viemChains);
     const chainId =

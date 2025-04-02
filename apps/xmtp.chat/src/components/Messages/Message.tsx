@@ -13,8 +13,8 @@ import { useOutletContext } from "react-router";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
 import { MessageContent } from "./MessageContent";
-import { TransactionReferenceUI } from "./TransactionReference";
-import { WalletSendCallsUI } from "./WalletSendCalls";
+import { TransactionReferenceContent } from "./TransactionReferenceContent";
+import { WalletSendCallsContent } from "./WalletSendCallsContent";
 
 export type MessageProps = {
   message: DecodedMessage;
@@ -49,11 +49,11 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
               </Text>
             </Flex>
             {message.contentType.sameAs(ContentTypeTransactionReference) ? (
-              <TransactionReferenceUI
+              <TransactionReferenceContent
                 content={message.content as TransactionReference}
               />
             ) : message.contentType.sameAs(ContentTypeWalletSendCalls) ? (
-              <WalletSendCallsUI
+              <WalletSendCallsContent
                 content={message.content as WalletSendCallsParams}
               />
             ) : (

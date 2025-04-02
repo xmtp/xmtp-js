@@ -9,11 +9,11 @@ import { useOutletContext } from "react-router";
 import { useSendTransaction } from "wagmi";
 import type { ConversationOutletContext } from "../Conversation/ConversationOutletContext";
 
-export type WalletSendCallsProps = {
+export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
 };
 
-export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
+export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   content,
 }) => {
   const { conversation } = useOutletContext<ConversationOutletContext>();
