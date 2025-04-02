@@ -16,7 +16,7 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
   const navigate = useNavigate();
 
   return (
-    <Menu shadow="md" disabled={disabled}>
+    <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
         <Button
           px="var(--mantine-spacing-xxxs)"
@@ -29,9 +29,14 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
       <Menu.Dropdown miw={200}>
         <Menu.Label>Manage</Menu.Label>
         {type === "group" && (
-          <Menu.Item onClick={() => void navigate("manage/group")}>
-            Group
-          </Menu.Item>
+          <>
+            <Menu.Item onClick={() => void navigate("manage/group")}>
+              Group
+            </Menu.Item>
+            <Menu.Item onClick={() => void navigate("manage/properties")}>
+              Properties
+            </Menu.Item>
+          </>
         )}
         <Menu.Item onClick={() => void navigate("manage/consent")}>
           Consent
