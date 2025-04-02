@@ -4,6 +4,7 @@ import {
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
 import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
+import { useCallback } from "react";
 import { useOutletContext } from "react-router";
 import { useSendTransaction } from "wagmi";
 import type { ConversationOutletContext } from "../Conversation/ConversationOutletContext";
@@ -18,7 +19,7 @@ export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
   const { conversation } = useOutletContext<ConversationOutletContext>();
   const { sendTransactionAsync } = useSendTransaction();
 
-  function handleSubmit() {
+  const handleSubmit = useCallback(() => {
     void (async () => {
       for (const call of content.calls) {
         const wagmiTxData = {
@@ -42,7 +43,7 @@ export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
         );
       }
     })();
-  }
+  }, [content, sendTransactionAsync, conversation]);
 
   return (
     <Box flex="flex">
