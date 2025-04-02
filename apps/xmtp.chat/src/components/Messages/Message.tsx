@@ -9,9 +9,10 @@ import {
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
 import { intlFormat } from "date-fns";
-import { useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
+import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
 import { TransactionReferenceContent } from "./TransactionReferenceContent";
 import { WalletSendCallsContent } from "./WalletSendCallsContent";
@@ -24,11 +25,30 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
   const { client } = useOutletContext<{ client: Client }>();
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
+  const navigate = useNavigate();
 
   return (
     <Box px="md">
       <Flex justify={align === "left" ? "flex-start" : "flex-end"}>
-        <Paper p="md" withBorder shadow="md" maw="80%" tabIndex={0}>
+        <Paper
+          p="md"
+          withBorder
+          shadow="md"
+          maw="80%"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              void navigate(
+                `/conversations/${message.conversationId}/message/${message.id}`,
+              );
+            }
+          }}
+          className={classes.root}
+          onClick={() =>
+            void navigate(
+              `/conversations/${message.conversationId}/message/${message.id}`,
+            )
+          }>
           <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
             <Flex
               align="center"

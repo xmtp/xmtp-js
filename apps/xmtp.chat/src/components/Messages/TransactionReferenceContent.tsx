@@ -30,7 +30,10 @@ export const TransactionReferenceContent: React.FC<
     <Anchor
       href={`${chain.blockExplorers?.default.url}/tx/${content.reference}`}
       target="_blank"
-      underline="hover">
+      underline="hover"
+      onClick={(event) => {
+        event.stopPropagation();
+      }}>
       View in explorer
     </Anchor>
   );

@@ -19,30 +19,28 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   const { conversation } = useOutletContext<ConversationOutletContext>();
   const { sendTransactionAsync } = useSendTransaction();
 
-  const handleSubmit = useCallback(() => {
-    void (async () => {
-      for (const call of content.calls) {
-        const wagmiTxData = {
-          ...call,
-          value: BigInt(parseInt(call.value || "0x0", 16)),
-          chainId: parseInt(content.chainId, 16),
-          gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
-        };
-        const txHash = await sendTransactionAsync(wagmiTxData, {
-          onError(error) {
-            console.error(error);
-          },
-        });
-        const transactionReference: TransactionReference = {
-          networkId: content.chainId,
-          reference: txHash,
-        };
-        await conversation.send(
-          transactionReference,
-          ContentTypeTransactionReference,
-        );
-      }
-    })();
+  const handleSubmit = useCallback(async () => {
+    for (const call of content.calls) {
+      const wagmiTxData = {
+        ...call,
+        value: BigInt(parseInt(call.value || "0x0", 16)),
+        chainId: parseInt(content.chainId, 16),
+        gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
+      };
+      const txHash = await sendTransactionAsync(wagmiTxData, {
+        onError(error) {
+          console.error(error);
+        },
+      });
+      const transactionReference: TransactionReference = {
+        networkId: content.chainId,
+        reference: txHash,
+      };
+      await conversation.send(
+        transactionReference,
+        ContentTypeTransactionReference,
+      );
+    }
   }, [content, sendTransactionAsync, conversation]);
 
   return (
@@ -54,7 +52,12 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
         ))}
       </List>
       <Space h="md" />
-      <Button fullWidth onClick={handleSubmit}>
+      <Button
+        fullWidth
+        onClick={(event) => {
+          event.stopPropagation();
+          void handleSubmit();
+        }}>
         Submit
       </Button>
     </Box>
