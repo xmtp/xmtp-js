@@ -14,7 +14,7 @@ import type { ConversationOutletContext } from "@/components/Conversation/Conver
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
-export const ManagePropertiesModal: React.FC = () => {
+export const ManageMetadataModal: React.FC = () => {
   const { conversation } = useOutletContext<ConversationOutletContext>();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
@@ -98,7 +98,7 @@ export const ManagePropertiesModal: React.FC = () => {
       size="md"
       padding={0}>
       <ContentLayout
-        title="Manage properties"
+        title="Manage metadata"
         maxHeight={contentHeight}
         footer={footer}
         withScrollFade={false}

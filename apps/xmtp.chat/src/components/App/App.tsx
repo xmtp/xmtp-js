@@ -9,8 +9,8 @@ import { LoadConversation } from "@/components/Conversation/LoadConversation";
 import { LoadDM } from "@/components/Conversation/LoadDM";
 import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal";
 import { ManageMembersModal } from "@/components/Conversation/ManageMembersModal";
+import { ManageMetadataModal } from "@/components/Conversation/ManageMetadataModal";
 import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissionsModal";
-import { ManagePropertiesModal } from "@/components/Conversation/ManagePropertiesModal";
 import { NewConversation } from "@/components/Conversation/NewConversation";
 import { IdentityModal } from "@/components/Identity/IdentityModal";
 import { MessageModal } from "@/components/Messages/MessageModal";
@@ -43,7 +43,7 @@ export const App: React.FC = () => {
                   path="permissions"
                   element={<ManagePermissionsModal />}
                 />
-                <Route path="properties" element={<ManagePropertiesModal />} />
+                <Route path="metadata" element={<ManageMetadataModal />} />
               </Route>
             </Route>
           </Route>
