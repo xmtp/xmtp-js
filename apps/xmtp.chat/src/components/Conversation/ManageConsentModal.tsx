@@ -89,7 +89,7 @@ export const ManageConsentModal: React.FC = () => {
       centered
       fullScreen={fullScreen}
       onClose={handleClose}
-      size="md"
+      size="xs"
       padding={0}
       scrollAreaComponent={ScrollArea.Autosize}
       title={

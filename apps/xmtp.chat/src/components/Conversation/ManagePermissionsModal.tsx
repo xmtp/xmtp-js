@@ -258,7 +258,7 @@ export const ManagePermissionsModal: React.FC = () => {
       centered
       fullScreen={fullScreen}
       onClose={handleClose}
-      size="md"
+      size="auto"
       padding={0}
       title={
         <Text size="lg" fw={700} c="text.primary" p="md">
