@@ -40,7 +40,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, [client]);
 
   const handleClick = () => {
-    void navigate("/identity");
+    void navigate("identity");
   };
 
   return (
