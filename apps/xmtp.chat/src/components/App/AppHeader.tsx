@@ -21,7 +21,7 @@ const GlowingCircle = () => {
     <Box
       w={6}
       h={6}
-      bg="green.9"
+      bg="green.6"
       style={{
         borderRadius: "50%",
         boxShadow: "0px 0px 2px 2px var(--mantine-color-green-9)",
@@ -89,10 +89,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </Flex>
       </Flex>
       <Group align="center" gap="xs">
-        <Badge size="xl" radius="md" variant="outline" color="gray.7" p={0}>
+        <Badge size="xl" radius="md" variant="default" p={0}>
           <Group align="center" gap="xs" px="sm">
             <GlowingCircle />
-            <Text size="xs" fw={700} c="gray.1">
+            <Text size="xs" fw={700}>
               {environment}
             </Text>
           </Group>

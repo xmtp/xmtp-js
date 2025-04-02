@@ -1,4 +1,4 @@
-import { Group, LoadingOverlay, Stack } from "@mantine/core";
+import { Box, Group, LoadingOverlay, Stack } from "@mantine/core";
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array, uint8ArrayToHex } from "uint8array-extras";
@@ -146,7 +146,6 @@ export const Connect = () => {
         {isBusy && <LoadingOverlay visible />}
         <Group
           className={classes.options}
-          bg="gray.8"
           align="center"
           justify="space-between"
           py="xs"
@@ -180,7 +179,9 @@ export const Connect = () => {
           label="WalletConnect"
           onClick={handleWalletConnect("WalletConnect")}
         />
-        <DisableAnalytics />
+        <Box className={classes.options}>
+          <DisableAnalytics />
+        </Box>
       </Stack>
     </Stack>
   );

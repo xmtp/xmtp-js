@@ -1,24 +1,33 @@
+:root {
+  --connect-border-radius: var(--mantine-radius-md);
+  --connect-border-color: var(--mantine-color-default-border);
+}
+
 .root {
   position: relative;
   overflow: hidden;
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--connect-border-radius);
 }
 
 .root > *:not(:first-child):not(:last-child) {
-  border-left: 1px solid var(--mantine-color-gray-7);
-  border-right: 1px solid var(--mantine-color-gray-7);
-  border-bottom: 1px solid var(--mantine-color-gray-7);
+  border-left: 1px solid var(--connect-border-color);
+  border-right: 1px solid var(--connect-border-color);
+  border-bottom: 1px solid var(--connect-border-color);
 }
 
 .root > *:first-child {
-  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
-  border: 1px solid var(--mantine-color-gray-7);
+  border-radius: var(--connect-border-radius) var(--connect-border-radius) 0 0;
+  border: 1px solid var(--connect-border-color);
 }
 
 .root > *:last-child {
-  border-radius: 0 0 var(--mantine-radius-md) var(--mantine-radius-md);
-  border: 1px solid var(--mantine-color-gray-7);
+  border-radius: 0 0 var(--connect-border-radius) var(--connect-border-radius);
+  border: 1px solid var(--connect-border-color);
   border-top: none;
+}
+
+.options {
+  background-color: var(--mantine-color-gray-light);
 }
 
 @media screen and (max-width: 500px) {
