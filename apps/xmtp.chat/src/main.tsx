@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { base, mainnet } from "wagmi/chains";
+import { base, baseSepolia, mainnet, sepolia } from "wagmi/chains";
 import {
   coinbaseWallet,
   injected,
@@ -27,10 +27,12 @@ export const config = createConfig({
     metaMask(),
     walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID }),
   ],
-  chains: [mainnet, base],
+  chains: [mainnet, base, sepolia, baseSepolia],
   transports: {
     [mainnet.id]: http(),
+    [sepolia.id]: http(),
     [base.id]: http(),
+    [baseSepolia.id]: http(),
   },
 });
 
