@@ -1,4 +1,4 @@
-import { Anchor } from "@mantine/core";
+import { Anchor, Box, Text } from "@mantine/core";
 import type { TransactionReference } from "@xmtp/content-type-transaction-reference";
 import * as viemChains from "viem/chains";
 
@@ -17,12 +17,10 @@ export const TransactionReferenceUI: React.FC<TransactionReferenceProps> = ({
   const chain = chains.find((chain) => chain.id === chainId);
   if (!chain) {
     return (
-      <div>
-        <span>Chain Id: {content.networkId}</span>
-        <br />
-        <span>Transaction Hash: {content.reference}</span>
-        <br />
-      </div>
+      <Box>
+        <Text>Chain Id: {content.networkId}</Text>
+        <Text>Transaction Hash: {content.reference}</Text>
+      </Box>
     );
   }
   return (

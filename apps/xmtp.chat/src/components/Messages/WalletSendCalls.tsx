@@ -1,4 +1,4 @@
-import { Button } from "@mantine/core";
+import { Box, Button, List, Space, Text } from "@mantine/core";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
@@ -45,13 +45,17 @@ export const WalletSendCallsUI: React.FC<WalletSendCallsProps> = ({
   }
 
   return (
-    <div>
-      Review the following transactions:
-      <br />
-      {content.calls.map((call) => (
-        <p>{call.metadata?.description}</p>
-      ))}
-      <Button onClick={handleSubmit}>Submit</Button>
-    </div>
+    <Box flex="flex">
+      <Text size="sm">Review the following transactions:</Text>
+      <List size="sm">
+        {content.calls.map((call) => (
+          <List.Item>{call.metadata?.description}</List.Item>
+        ))}
+      </List>
+      <Space h="md" />
+      <Button fullWidth onClick={handleSubmit}>
+        Submit
+      </Button>
+    </Box>
   );
 };
