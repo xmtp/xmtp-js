@@ -8,14 +8,15 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { Group as XmtpGroup, type Conversation } from "@xmtp/browser-sdk";
+import { Group as XmtpGroup } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ManagePropertiesModal: React.FC = () => {
-  const conversation = useOutletContext<Conversation>();
+  const { conversation } = useOutletContext<ConversationOutletContext>();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
   const [name, setName] = useState("");

@@ -14,11 +14,11 @@ import {
   PermissionPolicy,
   PermissionUpdateType,
   Group as XmtpGroup,
-  type Conversation,
   type PermissionPolicySet,
 } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
@@ -56,7 +56,7 @@ export const ManagePermissionsModal: React.FC = () => {
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
   const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
 
-  const conversation = useOutletContext<Conversation>();
+  const { conversation } = useOutletContext<ConversationOutletContext>();
   const navigate = useNavigate();
 
   const fullScreen = useCollapsedMediaQuery();

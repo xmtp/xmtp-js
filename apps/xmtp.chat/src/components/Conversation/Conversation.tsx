@@ -1,10 +1,11 @@
 import { Group } from "@mantine/core";
 import {
   Group as XmtpGroup,
+  type Client,
   type Conversation as XmtpConversation,
 } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
-import { Outlet } from "react-router";
+import { Outlet, useOutletContext } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
 import { useConversation } from "@/hooks/useConversation";
@@ -16,6 +17,7 @@ export type ConversationProps = {
 };
 
 export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
+  const client = useOutletContext<Client>();
   const [title, setTitle] = useState("");
   const {
     messages,
@@ -76,7 +78,7 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
         withScrollArea={false}>
         <Messages messages={messages} />
       </ContentLayout>
-      <Outlet context={conversation} />
+      <Outlet context={{ conversation, client }} />
     </>
   );
 };

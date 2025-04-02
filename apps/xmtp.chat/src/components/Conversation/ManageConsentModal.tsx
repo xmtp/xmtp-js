@@ -7,7 +7,7 @@ import {
   ScrollArea,
   Text,
 } from "@mantine/core";
-import { ConsentState, type Conversation } from "@xmtp/browser-sdk";
+import { ConsentState } from "@xmtp/browser-sdk";
 import {
   useCallback,
   useEffect,
@@ -19,9 +19,10 @@ import {
 import { useNavigate, useOutletContext } from "react-router";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import type { ConversationOutletContext } from "./ConversationOutletContext";
 
 export const ManageConsentModal: React.FC = () => {
-  const conversation = useOutletContext<Conversation>();
+  const { conversation } = useOutletContext<ConversationOutletContext>();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
