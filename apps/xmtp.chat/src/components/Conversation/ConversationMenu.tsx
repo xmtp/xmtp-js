@@ -36,6 +36,9 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
             <Menu.Item onClick={() => void navigate("manage/properties")}>
               Properties
             </Menu.Item>
+            <Menu.Item onClick={() => void navigate("manage/permissions")}>
+              Permissions
+            </Menu.Item>
           </>
         )}
         <Menu.Item onClick={() => void navigate("manage/consent")}>
