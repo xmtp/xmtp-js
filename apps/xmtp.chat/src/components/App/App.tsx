@@ -8,6 +8,7 @@ import { LoadConversation } from "@/components/Conversation/LoadConversation";
 import { LoadDM } from "@/components/Conversation/LoadDM";
 import { LoadGroupToManage } from "@/components/Conversation/LoadGroupToManage";
 import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal";
+import { ManagePropertiesModal } from "@/components/Conversation/ManagePropertiesModal";
 import { NewConversation } from "@/components/Conversation/NewConversation";
 import { Identity } from "@/components/Identity/Identity";
 import { MessageModal } from "@/components/Messages/MessageModal";
@@ -35,6 +36,7 @@ export const App: React.FC = () => {
               <Route path="manage">
                 <Route path="group" element={<LoadGroupToManage />} />
                 <Route path="consent" element={<ManageConsentModal />} />
+                <Route path="properties" element={<ManagePropertiesModal />} />
               </Route>
             </Route>
           </Route>
