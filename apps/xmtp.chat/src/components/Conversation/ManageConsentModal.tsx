@@ -1,12 +1,4 @@
-import {
-  Box,
-  Button,
-  Group,
-  Modal,
-  NativeSelect,
-  ScrollArea,
-  Text,
-} from "@mantine/core";
+import { Box, Button, Group, Modal, NativeSelect, Text } from "@mantine/core";
 import { ConsentState } from "@xmtp/browser-sdk";
 import {
   useCallback,
@@ -91,7 +83,6 @@ export const ManageConsentModal: React.FC = () => {
       onClose={handleClose}
       size="xs"
       padding={0}
-      scrollAreaComponent={ScrollArea.Autosize}
       title={
         <Text size="lg" fw={700} c="text.primary" p="md">
           Manage consent

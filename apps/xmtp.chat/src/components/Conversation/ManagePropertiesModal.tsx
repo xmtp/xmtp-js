@@ -2,7 +2,6 @@ import {
   Button,
   Group,
   Modal,
-  ScrollArea,
   Stack,
   Text,
   Textarea,
@@ -98,7 +97,6 @@ export const ManagePropertiesModal: React.FC = () => {
       onClose={handleClose}
       size="md"
       padding={0}
-      scrollAreaComponent={ScrollArea.Autosize}
       title={
         <Text size="lg" fw={700} c="text.primary" p="md">
           Manage properties
