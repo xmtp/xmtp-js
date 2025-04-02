@@ -12,14 +12,14 @@ export const useConversations = () => {
   const [syncing, setSyncing] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
+  if (!client) {
+    throw new Error("XMTP client not initialized");
+  }
+
   const list = async (
     options?: SafeListConversationsOptions,
     syncFromNetwork: boolean = false,
   ) => {
-    if (!client) {
-      return [];
-    }
-
     if (syncFromNetwork) {
       await sync();
     }
@@ -36,10 +36,6 @@ export const useConversations = () => {
   };
 
   const sync = async () => {
-    if (!client) {
-      return;
-    }
-
     setSyncing(true);
 
     try {
@@ -50,10 +46,6 @@ export const useConversations = () => {
   };
 
   const syncAll = async () => {
-    if (!client) {
-      return;
-    }
-
     setSyncing(true);
 
     try {
@@ -64,10 +56,6 @@ export const useConversations = () => {
   };
 
   const getConversationById = async (conversationId: string) => {
-    if (!client) {
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -80,10 +68,6 @@ export const useConversations = () => {
   };
 
   const getMessageById = async (messageId: string) => {
-    if (!client) {
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -98,10 +82,6 @@ export const useConversations = () => {
     members: string[],
     options: SafeCreateGroupOptions,
   ) => {
-    if (!client) {
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -119,10 +99,6 @@ export const useConversations = () => {
   };
 
   const newDm = async (member: string) => {
-    if (!client) {
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -137,10 +113,6 @@ export const useConversations = () => {
   };
 
   const stream = async () => {
-    if (!client) {
-      return () => {};
-    }
-
     const onConversation = (
       error: Error | null,
       conversation: Conversation | undefined,
