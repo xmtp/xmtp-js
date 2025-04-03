@@ -10,8 +10,8 @@ import {
 } from "@xmtp/content-type-wallet-send-calls";
 import { intlFormat } from "date-fns";
 import { useNavigate, useOutletContext } from "react-router";
-import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
+import { shortAddress } from "@/helpers/strings";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
 import { TransactionReferenceContent } from "./TransactionReferenceContent";

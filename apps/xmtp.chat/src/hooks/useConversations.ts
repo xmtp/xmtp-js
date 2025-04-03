@@ -1,5 +1,6 @@
 import type {
   Conversation,
+  Identifier,
   SafeCreateGroupOptions,
   SafeListConversationsOptions,
 } from "@xmtp/browser-sdk";
@@ -12,14 +13,14 @@ export const useConversations = () => {
   const [syncing, setSyncing] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
+  if (!client) {
+    throw new Error("XMTP client not initialized");
+  }
+
   const list = async (
     options?: SafeListConversationsOptions,
     syncFromNetwork: boolean = false,
   ) => {
-    if (!client) {
-      return [];
-    }
-
     if (syncFromNetwork) {
       await sync();
     }
@@ -36,10 +37,6 @@ export const useConversations = () => {
   };
 
   const sync = async () => {
-    if (!client) {
-      return;
-    }
-
     setSyncing(true);
 
     try {
@@ -50,10 +47,6 @@ export const useConversations = () => {
   };
 
   const syncAll = async () => {
-    if (!client) {
-      return;
-    }
-
     setSyncing(true);
 
     try {
@@ -64,10 +57,6 @@ export const useConversations = () => {
   };
 
   const getConversationById = async (conversationId: string) => {
-    if (!client) {
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -80,10 +69,6 @@ export const useConversations = () => {
   };
 
   const getMessageById = async (messageId: string) => {
-    if (!client) {
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -95,21 +80,14 @@ export const useConversations = () => {
   };
 
   const newGroup = async (
-    members: string[],
-    options: SafeCreateGroupOptions,
+    inboxIds: string[],
+    options?: SafeCreateGroupOptions,
   ) => {
-    if (!client) {
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newGroupWithIdentifiers(
-        members.map((member) => ({
-          identifier: member.toLowerCase(),
-          identifierKind: "Ethereum",
-        })),
+      const conversation = await client.conversations.newGroup(
+        inboxIds,
         options,
       );
       return conversation;
@@ -118,18 +96,40 @@ export const useConversations = () => {
     }
   };
 
-  const newDm = async (member: string) => {
-    if (!client) {
-      return;
-    }
-
+  const newGroupWithIdentifiers = async (
+    identifiers: Identifier[],
+    options?: SafeCreateGroupOptions,
+  ) => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newDmWithIdentifier({
-        identifier: member.toLowerCase(),
-        identifierKind: "Ethereum",
-      });
+      const conversation = await client.conversations.newGroupWithIdentifiers(
+        identifiers,
+        options,
+      );
+      return conversation;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const newDm = async (inboxId: string) => {
+    setLoading(true);
+
+    try {
+      const conversation = await client.conversations.newDm(inboxId);
+      return conversation;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const newDmWithIdentifier = async (identifier: Identifier) => {
+    setLoading(true);
+
+    try {
+      const conversation =
+        await client.conversations.newDmWithIdentifier(identifier);
       return conversation;
     } finally {
       setLoading(false);
@@ -137,10 +137,6 @@ export const useConversations = () => {
   };
 
   const stream = async () => {
-    if (!client) {
-      return () => {};
-    }
-
     const onConversation = (
       error: Error | null,
       conversation: Conversation | undefined,
@@ -164,7 +160,9 @@ export const useConversations = () => {
     list,
     loading,
     newDm,
+    newDmWithIdentifier,
     newGroup,
+    newGroupWithIdentifiers,
     stream,
     sync,
     syncAll,

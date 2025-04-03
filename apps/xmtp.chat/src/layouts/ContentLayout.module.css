@@ -6,7 +6,7 @@
     var(--header-padding) * 2 + var(--header-button-height) +
       var(--header-border-width)
   );
-  --header-border-color: var(--mantine-color-gray-7);
+  --header-border-color: var(--mantine-color-default-border);
   --content-gradient-color-light: var(--mantine-color-gray-0);
   --content-gradient-color-dark: var(--mantine-color-dark-7);
 }
