@@ -241,7 +241,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
               }}
               data={[
                 { value: "0", label: "Default" },
-                { value: "1", label: "Admins only" },
+                { value: "1", label: "Admin only" },
                 { value: "2", label: "Custom policy" },
               ]}
             />
@@ -265,8 +265,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
             }}
             data={[
               { value: "1", label: "Disabled" },
-              { value: "2", label: "Admins only" },
-              { value: "3", label: "Super admins only" },
+              { value: "2", label: "Admin only" },
+              { value: "3", label: "Super admin only" },
             ]}
           />
         </Group>
@@ -288,8 +288,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
             }}
             data={[
               { value: "1", label: "Disabled" },
-              { value: "2", label: "Admins only" },
-              { value: "3", label: "Super admins only" },
+              { value: "2", label: "Admin only" },
+              { value: "3", label: "Super admin only" },
             ]}
           />
         </Group>
@@ -311,8 +311,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
             }}
             data={[
               { value: "1", label: "Disabled" },
-              { value: "2", label: "Admins only" },
-              { value: "3", label: "Super admins only" },
+              { value: "2", label: "Admin only" },
+              { value: "3", label: "Super admin only" },
             ]}
           />
         </Group>
@@ -334,8 +334,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
             }}
             data={[
               { value: "1", label: "Disabled" },
-              { value: "2", label: "Admins only" },
-              { value: "3", label: "Super admins only" },
+              { value: "2", label: "Admin only" },
+              { value: "3", label: "Super admin only" },
             ]}
           />
         </Group>
@@ -358,8 +358,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
             data={[
               { value: "0", label: "Everyone" },
               { value: "1", label: "Disabled" },
-              { value: "2", label: "Admins only" },
-              { value: "3", label: "Super admins only" },
+              { value: "2", label: "Admin only" },
+              { value: "3", label: "Super admin only" },
             ]}
           />
         </Group>
@@ -382,8 +382,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
             data={[
               { value: "0", label: "Everyone" },
               { value: "1", label: "Disabled" },
-              { value: "2", label: "Admins only" },
-              { value: "3", label: "Super admins only" },
+              { value: "2", label: "Admin only" },
+              { value: "3", label: "Super admin only" },
             ]}
           />
         </Group>
@@ -406,8 +406,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
             data={[
               { value: "0", label: "Everyone" },
               { value: "1", label: "Disabled" },
-              { value: "2", label: "Admins only" },
-              { value: "3", label: "Super admins only" },
+              { value: "2", label: "Admin only" },
+              { value: "3", label: "Super admin only" },
             ]}
           />
         </Group>
