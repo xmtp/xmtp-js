@@ -16,6 +16,7 @@ import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, XmtpEnv } from "@/types";
+import { Utils } from "@/Utils";
 import {
   fromSafeEncodedContent,
   toSafeEncodedContent,
@@ -351,19 +352,14 @@ export class Client extends ClientWorkerClass {
   }
 
   static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
-    const signer: Signer = {
-      type: "EOA",
-      getIdentifier: () => ({
-        identifier: "0x0000000000000000000000000000000000000000",
-        identifierKind: "Ethereum",
-      }),
-      signMessage: () => new Uint8Array(),
-    };
-    const client = await Client.create(signer, {
-      disableAutoRegister: true,
-      env,
-    });
-    return client.canMessage(identifiers);
+    const canMessageMap = new Map<string, boolean>();
+    const utils = new Utils();
+    for (const identifier of identifiers) {
+      const inboxId = await utils.getInboxIdForIdentifier(identifier, env);
+      canMessageMap.set(identifier.identifier, inboxId !== undefined);
+    }
+    utils.close();
+    return canMessageMap;
   }
 
   async findInboxIdByIdentifier(identifier: Identifier) {
