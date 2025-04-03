@@ -108,26 +108,29 @@ export const Members: React.FC<MembersProps> = ({
 
   return (
     <Stack gap="md" p="md">
-      <Group gap="xs" align="flex-start">
-        <Stack flex={1} gap="xs">
-          <TextInput
-            size="sm"
-            label="Address or inbox ID"
-            error={memberIdError}
-            value={memberId}
-            onChange={(event) => {
-              setMemberId(event.target.value);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && memberIdError === null) {
-                handleAddMember();
-              }
-            }}
-          />
-        </Stack>
+      <Group gap="xs" align="flex-end">
+        <TextInput
+          flex={1}
+          size="sm"
+          label="Address or inbox ID"
+          styles={{
+            label: {
+              marginBottom: "var(--mantine-spacing-xxs)",
+            },
+          }}
+          error={memberIdError}
+          value={memberId}
+          onChange={(event) => {
+            setMemberId(event.target.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && memberIdError === null) {
+              handleAddMember();
+            }
+          }}
+        />
         <Button
           size="sm"
-          mt="1.5rem"
           disabled={memberIdError !== null}
           onClick={handleAddMember}>
           Add
