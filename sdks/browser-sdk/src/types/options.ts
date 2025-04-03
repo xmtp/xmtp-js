@@ -37,7 +37,7 @@ export type StorageOptions = {
   /**
    * Path to the local DB
    */
-  dbPath?: string;
+  dbPath?: string | null;
 };
 
 export type OtherOptions = {
