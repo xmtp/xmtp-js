@@ -13,7 +13,6 @@ import {
   walletConnect,
 } from "wagmi/connectors";
 import { App } from "@/components/App/App";
-import { RefManagerProvider } from "@/contexts/RefManager";
 import { XMTPProvider } from "@/contexts/XMTPContext";
 
 const queryClient = new QueryClient();
@@ -42,9 +41,7 @@ createRoot(document.getElementById("root") as HTMLElement).render(
       <MantineProvider defaultColorScheme="auto">
         <XMTPProvider>
           <BrowserRouter>
-            <RefManagerProvider>
-              <App />
-            </RefManagerProvider>
+            <App />
           </BrowserRouter>
         </XMTPProvider>
       </MantineProvider>

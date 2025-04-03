@@ -12,7 +12,7 @@ import type { Client } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { AppMenu } from "@/components/App/AppMenu";
-import { shortAddress } from "@/helpers/address";
+import { shortAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 import classes from "./AppHeader.module.css";
 
