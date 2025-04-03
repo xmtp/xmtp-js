@@ -158,6 +158,13 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
+      case "changeRecoveryIdentifierSignatureText": {
+        const result = await client.changeRecoveryIdentifierSignatureText(
+          data.identifier,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
       case "addEcdsaSignature":
         await client.addEcdsaSignature(data.type, data.bytes);
         postMessage({ id, action, result: undefined });

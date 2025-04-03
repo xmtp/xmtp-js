@@ -98,6 +98,14 @@ export type ClientEvents =
       };
     }
   | {
+      action: "changeRecoveryIdentifierSignatureText";
+      id: string;
+      result: string | undefined;
+      data: {
+        identifier: Identifier;
+      };
+    }
+  | {
       action: "addEcdsaSignature";
       id: string;
       result: undefined;

@@ -190,6 +190,19 @@ export class Client extends ClientWorkerClass {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
+   * It is highly recommended to use the `changeRecoveryIdentifer` function instead.
+   */
+  async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
+    return this.sendMessage("changeRecoveryIdentifierSignatureText", {
+      identifier,
+    });
+  }
+
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
    * It is highly recommended to use the `register`, `unsafe_addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
@@ -336,6 +349,25 @@ export class Client extends ClientWorkerClass {
 
     await this.unsafe_addSignature(
       SignatureRequestType.RevokeInstallations,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.unsafe_applySignatures();
+  }
+
+  async changeRecoveryIdentifier(identifier: Identifier) {
+    const signatureText =
+      await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
+
+    if (!signatureText) {
+      throw new Error(
+        "Unable to generate change recovery identifier signature text",
+      );
+    }
+
+    await this.unsafe_addSignature(
+      SignatureRequestType.ChangeRecoveryIdentifier,
       signatureText,
       this.#signer,
     );

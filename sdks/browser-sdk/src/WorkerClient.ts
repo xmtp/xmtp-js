@@ -99,6 +99,16 @@ export class WorkerClient {
     }
   }
 
+  async changeRecoveryIdentifierSignatureText(identifier: Identifier) {
+    try {
+      return await this.#client.changeRecoveryIdentifierSignatureText(
+        identifier,
+      );
+    } catch {
+      return undefined;
+    }
+  }
+
   async addEcdsaSignature(type: SignatureRequestType, bytes: Uint8Array) {
     return this.#client.addEcdsaSignature(type, bytes);
   }
