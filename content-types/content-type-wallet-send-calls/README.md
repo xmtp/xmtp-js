@@ -75,7 +75,7 @@ if (!message.contentType.sameAs(ContentTypeWalletSendCalls)) {
   return;
 }
 
-const : WalletSendCallsParams = message.content;
+const walletSendCalls: WalletSendCallsParams = message.content;
 // Process the transaction request here
 ```
 
