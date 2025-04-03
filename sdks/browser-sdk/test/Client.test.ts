@@ -192,4 +192,21 @@ describe.concurrent("Client", () => {
     expect(installationIds2).toContain(client3.installationId);
     expect(installationIds2).not.toContain(client.installationId);
   });
+
+  it("should change the recovery identifier", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const user2 = createUser();
+    const signer2 = createSigner(user2);
+    await createRegisteredClient(signer2);
+
+    await client.changeRecoveryIdentifier(await signer2.getIdentifier());
+
+    const inboxState = await client.preferences.inboxState();
+    expect(inboxState.recoveryIdentifier).toEqual(
+      await signer2.getIdentifier(),
+    );
+  });
 });
