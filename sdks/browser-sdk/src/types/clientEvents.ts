@@ -25,6 +25,7 @@ import type {
   SafeCreateGroupOptions,
   SafeEncodedContent,
   SafeGroupMember,
+  SafeHmacKey,
   SafeHmacKeys,
   SafeInboxState,
   SafeKeyPackageStatus,
@@ -657,8 +658,15 @@ export type ClientEvents =
       data: {
         id: string;
       };
+    }
+  | {
+      action: "getGroupHmacKeys";
+      id: string;
+      result: SafeHmacKey[];
+      data: {
+        id: string;
+      };
     };
-
 export type ClientEventsActions = ClientEvents["action"];
 
 export type ClientEventsClientMessageData =
