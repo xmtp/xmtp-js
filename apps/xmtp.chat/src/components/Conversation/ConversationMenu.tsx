@@ -44,7 +44,6 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
             </Menu.Item>
           </>
         )}
-
         <Menu.Label>Actions</Menu.Label>
         <Menu.Item onClick={onSync}>Sync</Menu.Item>
       </Menu.Dropdown>
