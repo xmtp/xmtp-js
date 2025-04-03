@@ -205,4 +205,10 @@ export class Conversation {
       id: this.#id,
     });
   }
+
+  async getHmacKeys() {
+    return this.#client.sendMessage("getGroupHmacKeys", {
+      id: this.#id,
+    });
+  }
 }

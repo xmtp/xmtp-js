@@ -4,6 +4,7 @@ import {
   type Conversation,
   type EncodedContent,
   type GroupMember,
+  type HmacKey,
   type Identifier,
   type Message,
   type MetadataField,
@@ -213,5 +214,9 @@ export class WorkerConversation {
 
   pausedForVersion() {
     return this.#group.pausedForVersion();
+  }
+
+  getHmacKeys() {
+    return this.#group.getHmacKeys() as HmacKey[];
   }
 }

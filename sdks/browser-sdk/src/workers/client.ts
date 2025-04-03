@@ -736,6 +736,12 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
+      case "getGroupHmacKeys": {
+        const group = getGroup(data.id);
+        const result = group.getHmacKeys();
+        postMessage({ id, action, result });
+        break;
+      }
     }
   } catch (e) {
     postMessageError({
