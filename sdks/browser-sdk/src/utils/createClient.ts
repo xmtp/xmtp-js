@@ -17,7 +17,9 @@ export const createClient = async (
     (await getInboxIdForIdentifier(host, identifier)) ||
     generateInboxId(identifier);
   const dbPath =
-    options?.dbPath || `xmtp-${options?.env || "dev"}-${inboxId}.db3`;
+    options?.dbPath === undefined
+      ? `xmtp-${options?.env || "dev"}-${inboxId}.db3`
+      : options.dbPath;
   const isLogging =
     options &&
     (options.loggingLevel !== undefined ||
