@@ -7,7 +7,7 @@ import {
 import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
 import { useCallback } from "react";
 import { useOutletContext } from "react-router";
-import { useSendTransaction } from "wagmi";
+import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
@@ -20,13 +20,23 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
 }) => {
   const { client } = useOutletContext<{ client: Client }>();
   const { sendTransactionAsync } = useSendTransaction();
+  const { switchChainAsync } = useSwitchChain();
+  const wagmiChainId = useChainId();
 
   const handleSubmit = useCallback(async () => {
+    const chainId = parseInt(content.chainId, 16);
+    if (chainId !== wagmiChainId) {
+      console.log(
+        `Current Chain Id (${wagmiChainId}) doesn't match; switching to Chain Id ${chainId}.`,
+      );
+      await switchChainAsync({ chainId });
+      await new Promise((r) => setTimeout(r, 300)); // Metamask requires some delay
+    }
     for (const call of content.calls) {
       const wagmiTxData = {
         ...call,
         value: BigInt(parseInt(call.value || "0x0", 16)),
-        chainId: parseInt(content.chainId, 16),
+        chainId,
         gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
       };
       const txHash = await sendTransactionAsync(wagmiTxData, {
