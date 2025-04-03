@@ -11,6 +11,7 @@ import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal
 import { ManageMembersModal } from "@/components/Conversation/ManageMembersModal";
 import { ManageMetadataModal } from "@/components/Conversation/ManageMetadataModal";
 import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissionsModal";
+import { CreateDmModal } from "@/components/Conversations/CreateDmModal";
 import { IdentityModal } from "@/components/Identity/IdentityModal";
 import { MessageModal } from "@/components/Messages/MessageModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -33,6 +34,7 @@ export const App: React.FC = () => {
             <Route path="identity" element={<IdentityModal />} />
             <Route path=":conversationId" element={<LoadConversation />}>
               <Route path="identity" element={<IdentityModal />} />
+              <Route path="new-dm" element={<CreateDmModal />} />
               <Route path="message/:messageId" element={<MessageModal />} />
               <Route path="manage">
                 <Route path="consent" element={<ManageConsentModal />} />
