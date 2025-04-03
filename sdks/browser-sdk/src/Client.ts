@@ -26,7 +26,6 @@ import { type Signer } from "@/utils/signer";
 export class Client extends ClientWorkerClass {
   #codecs: Map<string, ContentCodec>;
   #conversations: Conversations;
-  #encryptionKey: Uint8Array;
   #inboxId: string | undefined;
   #installationId: string | undefined;
   #installationIdBytes: Uint8Array | undefined;
@@ -35,11 +34,7 @@ export class Client extends ClientWorkerClass {
   #signer: Signer;
   options?: ClientOptions;
 
-  constructor(
-    signer: Signer,
-    encryptionKey: Uint8Array,
-    options?: ClientOptions,
-  ) {
+  constructor(signer: Signer, options?: ClientOptions) {
     const worker = new Worker(new URL("./workers/client", import.meta.url), {
       type: "module",
     });
@@ -48,7 +43,6 @@ export class Client extends ClientWorkerClass {
       options?.loggingLevel !== undefined && options.loggingLevel !== "off",
     );
     this.options = options;
-    this.#encryptionKey = encryptionKey;
     this.#signer = signer;
     this.#conversations = new Conversations(this);
     this.#preferences = new Preferences(this);
@@ -65,7 +59,6 @@ export class Client extends ClientWorkerClass {
   async init() {
     const result = await this.sendMessage("init", {
       identifier: await this.#signer.getIdentifier(),
-      encryptionKey: this.#encryptionKey,
       options: this.options,
     });
     this.#inboxId = result.inboxId;
@@ -74,12 +67,8 @@ export class Client extends ClientWorkerClass {
     this.#isReady = true;
   }
 
-  static async create(
-    signer: Signer,
-    encryptionKey: Uint8Array,
-    options?: ClientOptions,
-  ) {
-    const client = new Client(signer, encryptionKey, options);
+  static async create(signer: Signer, options?: ClientOptions) {
+    const client = new Client(signer, options);
 
     await client.init();
 
@@ -370,14 +359,10 @@ export class Client extends ClientWorkerClass {
       }),
       signMessage: () => new Uint8Array(),
     };
-    const client = await Client.create(
-      signer,
-      window.crypto.getRandomValues(new Uint8Array(32)),
-      {
-        disableAutoRegister: true,
-        env,
-      },
-    );
+    const client = await Client.create(signer, {
+      disableAutoRegister: true,
+      env,
+    });
     return client.canMessage(identifiers);
   }
 

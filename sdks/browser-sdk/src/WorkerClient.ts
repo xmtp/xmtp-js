@@ -23,10 +23,9 @@ export class WorkerClient {
 
   static async create(
     identifier: Identifier,
-    encryptionKey: Uint8Array,
     options?: Omit<ClientOptions, "codecs">,
   ) {
-    const client = await createClient(identifier, encryptionKey, options);
+    const client = await createClient(identifier, options);
     return new WorkerClient(client);
   }
 

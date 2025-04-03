@@ -79,11 +79,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
   try {
     // init is a special action that initializes the client
     if (action === "init" && !maybeClient) {
-      maybeClient = await WorkerClient.create(
-        data.identifier,
-        data.encryptionKey,
-        data.options,
-      );
+      maybeClient = await WorkerClient.create(data.identifier, data.options);
       enableLogging =
         data.options?.loggingLevel !== undefined &&
         data.options.loggingLevel !== "off";
