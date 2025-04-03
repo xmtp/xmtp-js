@@ -1,4 +1,5 @@
 import { Box, Button, List, Space, Text } from "@mantine/core";
+import type { Client } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
@@ -7,16 +8,17 @@ import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls
 import { useCallback } from "react";
 import { useOutletContext } from "react-router";
 import { useSendTransaction } from "wagmi";
-import type { ConversationOutletContext } from "../Conversation/ConversationOutletContext";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
+  conversationId: string;
 };
 
 export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   content,
+  conversationId,
 }) => {
-  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { client } = useOutletContext<{ client: Client }>();
   const { sendTransactionAsync } = useSendTransaction();
 
   const handleSubmit = useCallback(async () => {
@@ -36,12 +38,18 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
         networkId: content.chainId,
         reference: txHash,
       };
+      const conversation =
+        await client.conversations.getConversationById(conversationId);
+      if (!conversation) {
+        console.error("Couldn't find conversation by Id");
+        return;
+      }
       await conversation.send(
         transactionReference,
         ContentTypeTransactionReference,
       );
     }
-  }, [content, sendTransactionAsync, conversation]);
+  }, [content, sendTransactionAsync, client, conversationId]);
 
   return (
     <Box flex="flex">

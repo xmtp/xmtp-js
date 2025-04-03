@@ -75,6 +75,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
             ) : message.contentType.sameAs(ContentTypeWalletSendCalls) ? (
               <WalletSendCallsContent
                 content={message.content as WalletSendCallsParams}
+                conversationId={message.conversationId}
               />
             ) : (
               <MessageContent content={message.content as string} />
