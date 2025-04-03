@@ -27,6 +27,7 @@ import type {
   SafeGroupMember,
   SafeHmacKeys,
   SafeInboxState,
+  SafeKeyPackageStatus,
   SafeListConversationsOptions,
   SafeListMessagesOptions,
   SafeMessage,
@@ -226,6 +227,14 @@ export type ClientEvents =
         signatureText: string;
         signatureBytes: Uint8Array;
         publicKey: Uint8Array;
+      };
+    }
+  | {
+      action: "getKeyPackageStatusesForInstallationIds";
+      id: string;
+      result: Map<string, SafeKeyPackageStatus>;
+      data: {
+        installationIds: string[];
       };
     }
   /**
