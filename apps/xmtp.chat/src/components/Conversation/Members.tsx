@@ -1,11 +1,13 @@
 import { Badge, Button, Group, Stack, Text, TextInput } from "@mantine/core";
 import {
+  Utils,
   Group as XmtpGroup,
   type Conversation,
   type SafeGroupMember,
 } from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
+import { useSettings } from "@/hooks/useSettings";
 import { BadgeWithCopy } from "../BadgeWithCopy";
 
 export type MembersProps = {
@@ -26,6 +28,8 @@ export const Members: React.FC<MembersProps> = ({
   const [members, setMembers] = useState<SafeGroupMember[]>([]);
   const [addedMembers, setAddedMembers] = useState<string[]>([]);
   const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
+  const { environment } = useSettings();
+  const utilsRef = useRef<Utils | null>(null);
 
   const handleAddMember = useCallback(() => {
     const newAddedMembers = [...addedMembers, memberId.toLowerCase()];
@@ -79,18 +83,46 @@ export const Members: React.FC<MembersProps> = ({
   }, [members]);
 
   useEffect(() => {
-    if (!memberId) {
-      setMemberIdError(null);
-      return;
-    }
+    const utils = new Utils();
+    utilsRef.current = utils;
+    return () => {
+      utils.close();
+    };
+  }, []);
 
-    if (memberIds.includes(memberId.toLowerCase())) {
-      setMemberIdError("Duplicate address or inbox ID");
-    } else if (!isValidEthereumAddress(memberId) && !isValidInboxId(memberId)) {
-      setMemberIdError("Invalid address or inbox ID");
-    } else {
-      setMemberIdError(null);
-    }
+  useEffect(() => {
+    const checkMemberId = async () => {
+      if (!memberId) {
+        setMemberIdError(null);
+        return;
+      }
+
+      if (memberIds.includes(memberId.toLowerCase())) {
+        setMemberIdError("Duplicate address or inbox ID");
+      } else if (
+        !isValidEthereumAddress(memberId) &&
+        !isValidInboxId(memberId)
+      ) {
+        setMemberIdError("Invalid address or inbox ID");
+      } else if (isValidEthereumAddress(memberId) && utilsRef.current) {
+        const inboxId = await utilsRef.current.getInboxIdForIdentifier(
+          {
+            identifier: memberId.toLowerCase(),
+            identifierKind: "Ethereum",
+          },
+          environment,
+        );
+        if (!inboxId) {
+          setMemberIdError("Address not registered on XMTP");
+        } else {
+          setMemberIdError(null);
+        }
+      } else {
+        setMemberIdError(null);
+      }
+    };
+
+    void checkMemberId();
   }, [memberIds, memberId]);
 
   useEffect(() => {
@@ -108,7 +140,7 @@ export const Members: React.FC<MembersProps> = ({
 
   return (
     <Stack gap="md" p="md">
-      <Group gap="xs" align="flex-end">
+      <Group gap="xs" align="flex-start">
         <TextInput
           flex={1}
           size="sm"
@@ -131,6 +163,7 @@ export const Members: React.FC<MembersProps> = ({
         />
         <Button
           size="sm"
+          mt="32px"
           disabled={memberIdError !== null}
           onClick={handleAddMember}>
           Add
