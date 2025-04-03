@@ -463,4 +463,10 @@ export class Client extends ClientWorkerClass {
       publicKey,
     });
   }
+
+  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+    return this.sendMessage("getKeyPackageStatusesForInstallationIds", {
+      installationIds,
+    });
+  }
 }

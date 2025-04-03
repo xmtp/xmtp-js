@@ -209,4 +209,20 @@ describe.concurrent("Client", () => {
       await signer2.getIdentifier(),
     );
   });
+
+  it("should get key package statuses for installation ids", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const statuses = await client.getKeyPackageStatusesForInstallationIds([
+      client.installationId!,
+    ]);
+    expect(statuses.size).toBe(1);
+
+    const status = statuses.get(client.installationId!);
+    expect(status).toBeDefined();
+    expect(status?.lifetime).toBeDefined();
+    expect(status?.validationError).toBeUndefined();
+  });
 });

@@ -23,6 +23,7 @@ import {
   type Identifier,
   type InboxState,
   type Installation,
+  type KeyPackageStatus,
   type Message,
   type PermissionLevel,
   type PermissionPolicy,
@@ -477,3 +478,23 @@ export const fromSafeMessageDisappearingSettings = (
   settings: SafeMessageDisappearingSettings,
 ): MessageDisappearingSettings =>
   new MessageDisappearingSettings(settings.fromNs, settings.inNs);
+
+export type SafeKeyPackageStatus = {
+  lifetime?: {
+    notBefore: bigint;
+    notAfter: bigint;
+  };
+  validationError?: string;
+};
+
+export const toSafeKeyPackageStatus = (
+  status: KeyPackageStatus,
+): SafeKeyPackageStatus => ({
+  lifetime: status.lifetime
+    ? {
+        notBefore: status.lifetime.not_before,
+        notAfter: status.lifetime.not_after,
+      }
+    : undefined,
+  validationError: status.validationError,
+});

@@ -2,6 +2,7 @@ import {
   verifySignedWithPublicKey,
   type Client,
   type Identifier,
+  type KeyPackageStatus,
   type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types";
@@ -170,5 +171,11 @@ export class WorkerClient {
     } catch {
       return false;
     }
+  }
+
+  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+    return this.#client.getKeyPackageStatusesForInstallationIds(
+      installationIds,
+    ) as Promise<Map<string, KeyPackageStatus>>;
   }
 }

@@ -23,6 +23,7 @@ import {
   toSafeConversation,
   toSafeHmacKey,
   toSafeInboxState,
+  toSafeKeyPackageStatus,
   toSafeMessage,
   toSafeMessageDisappearingSettings,
 } from "@/utils/conversions";
@@ -259,6 +260,23 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           data.publicKey,
         );
         postMessage({ id, action, result });
+        break;
+      }
+      case "getKeyPackageStatusesForInstallationIds": {
+        const result = await client.getKeyPackageStatusesForInstallationIds(
+          data.installationIds,
+        );
+        const safeResult = new Map(
+          Array.from(result.entries()).map(([installationId, status]) => [
+            installationId,
+            toSafeKeyPackageStatus(status),
+          ]),
+        );
+        postMessage({
+          id,
+          action,
+          result: safeResult,
+        });
         break;
       }
       /**
