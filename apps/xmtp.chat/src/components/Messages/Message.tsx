@@ -2,8 +2,8 @@ import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
 import { intlFormat } from "date-fns";
 import { useNavigate, useOutletContext } from "react-router";
-import { shortAddress } from "@/helpers/address";
 import { nsToDate } from "@/helpers/date";
+import { shortAddress } from "@/helpers/strings";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
 
