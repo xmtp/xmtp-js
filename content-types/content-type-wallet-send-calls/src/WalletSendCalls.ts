@@ -54,7 +54,7 @@ export class WalletSendCallsCodec
   }
 
   fallback(content: WalletSendCallsParams): string | undefined {
-    return `[Crypto transaction request generated]: ${JSON.stringify(content)}`;
+    return `[Transaction request generated]: ${JSON.stringify(content)}`;
   }
 
   shouldPush() {
