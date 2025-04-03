@@ -190,7 +190,7 @@ export class Client extends ClientWorkerClass {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
-   * It is highly recommended to use the `register`, `addAccount`,
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
    */
@@ -224,7 +224,7 @@ export class Client extends ClientWorkerClass {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
-   * It is highly recommended to use the `register`, `addAccount`,
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
    */
