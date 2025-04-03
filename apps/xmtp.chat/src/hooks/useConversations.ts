@@ -1,5 +1,6 @@
 import type {
   Conversation,
+  Identifier,
   SafeCreateGroupOptions,
   SafeListConversationsOptions,
 } from "@xmtp/browser-sdk";
@@ -79,17 +80,14 @@ export const useConversations = () => {
   };
 
   const newGroup = async (
-    members: string[],
-    options: SafeCreateGroupOptions,
+    inboxIds: string[],
+    options?: SafeCreateGroupOptions,
   ) => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newGroupWithIdentifiers(
-        members.map((member) => ({
-          identifier: member.toLowerCase(),
-          identifierKind: "Ethereum",
-        })),
+      const conversation = await client.conversations.newGroup(
+        inboxIds,
         options,
       );
       return conversation;
@@ -98,14 +96,40 @@ export const useConversations = () => {
     }
   };
 
-  const newDm = async (member: string) => {
+  const newGroupWithIdentifiers = async (
+    identifiers: Identifier[],
+    options?: SafeCreateGroupOptions,
+  ) => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newDmWithIdentifier({
-        identifier: member.toLowerCase(),
-        identifierKind: "Ethereum",
-      });
+      const conversation = await client.conversations.newGroupWithIdentifiers(
+        identifiers,
+        options,
+      );
+      return conversation;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const newDm = async (inboxId: string) => {
+    setLoading(true);
+
+    try {
+      const conversation = await client.conversations.newDm(inboxId);
+      return conversation;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const newDmWithIdentifier = async (identifier: Identifier) => {
+    setLoading(true);
+
+    try {
+      const conversation =
+        await client.conversations.newDmWithIdentifier(identifier);
       return conversation;
     } finally {
       setLoading(false);
@@ -136,7 +160,9 @@ export const useConversations = () => {
     list,
     loading,
     newDm,
+    newDmWithIdentifier,
     newGroup,
+    newGroupWithIdentifiers,
     stream,
     sync,
     syncAll,
