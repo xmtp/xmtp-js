@@ -11,14 +11,22 @@ export const SelectConversation = () => {
           Select a conversation in the left sidebar to display its messages,
           or...
         </Text>
-        <Button
-          size="xs"
-          px={6}
-          onClick={() => {
-            void navigate("/conversations/new");
-          }}>
-          Create a new conversation
-        </Button>
+        <Stack gap="xs">
+          <Button
+            size="xs"
+            onClick={() => {
+              void navigate("/conversations/new-group");
+            }}>
+            Create a new group
+          </Button>
+          <Button
+            size="xs"
+            onClick={() => {
+              void navigate("/conversations/new-dm");
+            }}>
+            Create a new direct message
+          </Button>
+        </Stack>
       </Stack>
     </Stack>
   );
