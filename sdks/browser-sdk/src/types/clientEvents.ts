@@ -58,7 +58,6 @@ export type ClientEvents =
       };
       data: {
         identifier: Identifier;
-        encryptionKey: Uint8Array;
         options?: ClientOptions;
       };
     }

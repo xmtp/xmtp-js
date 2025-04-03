@@ -11,8 +11,6 @@ import { Client } from "@/Client";
 import type { ClientOptions } from "@/types";
 import type { Signer } from "@/utils/signer";
 
-const testEncryptionKey = window.crypto.getRandomValues(new Uint8Array(32));
-
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -55,7 +53,7 @@ export const createClient = async (signer: Signer, options?: ClientOptions) => {
     env: options?.env ?? "local",
   };
   const identifier = await signer.getIdentifier();
-  return Client.create(signer, testEncryptionKey, {
+  return Client.create(signer, {
     ...opts,
     disableAutoRegister: true,
     dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
@@ -71,7 +69,7 @@ export const createRegisteredClient = async (
     env: options?.env ?? "local",
   };
   const identifier = await signer.getIdentifier();
-  return Client.create(signer, testEncryptionKey, {
+  return Client.create(signer, {
     ...opts,
     dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });

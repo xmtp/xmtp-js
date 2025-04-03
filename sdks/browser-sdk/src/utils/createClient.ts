@@ -10,7 +10,6 @@ import type { ClientOptions } from "@/types";
 
 export const createClient = async (
   identifier: Identifier,
-  encryptionKey: Uint8Array,
   options?: Omit<ClientOptions, "codecs">,
 ) => {
   const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
@@ -33,7 +32,7 @@ export const createClient = async (
     inboxId,
     identifier,
     dbPath,
-    encryptionKey,
+    null,
     historySyncUrl,
     isLogging
       ? new LogOptions(
