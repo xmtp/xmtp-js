@@ -12,12 +12,19 @@ import type {
 
 export type UtilsEvents =
   | {
+      action: "init";
+      id: string;
+      result: undefined;
+      data: {
+        enableLogging: boolean;
+      };
+    }
+  | {
       action: "generateInboxId";
       id: string;
       result: string;
       data: {
         identifier: Identifier;
-        enableLogging: boolean;
       };
     }
   | {
@@ -27,7 +34,6 @@ export type UtilsEvents =
       data: {
         identifier: Identifier;
         env?: XmtpEnv;
-        enableLogging: boolean;
       };
     };
 

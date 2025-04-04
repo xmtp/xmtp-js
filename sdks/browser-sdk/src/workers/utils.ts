@@ -36,9 +36,12 @@ const getInboxIdForIdentifier = async (
   return get_inbox_id_for_identifier(host, identifier);
 };
 
+let enableLogging = false;
+
 self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
   const { action, id, data } = event.data;
-  if (data.enableLogging) {
+
+  if (enableLogging) {
     console.log("utils worker received event data", event.data);
   }
 
@@ -47,6 +50,14 @@ self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
 
   try {
     switch (action) {
+      case "init":
+        enableLogging = data.enableLogging;
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
       case "generateInboxId":
         postMessage({
           id,
@@ -61,7 +72,6 @@ self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
           result: await getInboxIdForIdentifier(data.identifier, data.env),
         });
         break;
-      // no default
     }
   } catch (e) {
     postMessageError({
