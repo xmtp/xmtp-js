@@ -3,6 +3,7 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
+import type { Identifier } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -29,13 +30,16 @@ export const createUser = () => {
   };
 };
 
+export const createIdentifier = (user: User): Identifier => ({
+  identifier: user.account.address.toLowerCase(),
+  identifierKind: "Ethereum",
+});
+
 export const createSigner = (user: User): Signer => {
+  const identifier = createIdentifier(user);
   return {
     type: "EOA",
-    getIdentifier: () => ({
-      identifier: user.account.address.toLowerCase(),
-      identifierKind: "Ethereum",
-    }),
+    getIdentifier: () => identifier,
     signMessage: async (message: string) => {
       const signature = await user.wallet.signMessage({
         message,
@@ -46,6 +50,20 @@ export const createSigner = (user: User): Signer => {
 };
 
 export type User = ReturnType<typeof createUser>;
+
+export const buildClient = async (
+  identifier: Identifier,
+  options?: ClientOptions,
+) => {
+  const opts = {
+    ...options,
+    env: options?.env ?? "local",
+  };
+  return Client.build(identifier, {
+    ...opts,
+    dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
+  });
+};
 
 export const createClient = async (signer: Signer, options?: ClientOptions) => {
   const opts = {
