@@ -25,6 +25,7 @@ import type {
   SafeCreateGroupOptions,
   SafeEncodedContent,
   SafeGroupMember,
+  SafeHmacKey,
   SafeHmacKeys,
   SafeInboxState,
   SafeListConversationsOptions,
@@ -640,6 +641,100 @@ export type ClientEvents =
       result: string | undefined;
       data: {
         id: string;
+      };
+    }
+  | {
+      action: "getGroupHmacKeys";
+      id: string;
+      result: SafeHmacKey[];
+      data: {
+        id: string;
+      };
+    }
+  /**
+   * OPFS actions
+   */
+  | {
+      action: "Opfs.init_sqlite_opfs";
+      id: string;
+      result: undefined;
+      data: undefined;
+    }
+  | {
+      action: "Opfs.exists";
+      id: string;
+      result: boolean;
+      data: undefined;
+    }
+  | {
+      action: "Opfs.error";
+      id: string;
+      result: string | undefined;
+      data: undefined;
+    }
+  | {
+      action: "Opfs.wipeFiles";
+      id: string;
+      result: undefined;
+      data: undefined;
+    }
+  | {
+      action: "Opfs.rm";
+      id: string;
+      result: boolean;
+      data: {
+        name: string;
+      };
+    }
+  | {
+      action: "Opfs.getFileNames";
+      id: string;
+      result: string[];
+      data: undefined;
+    }
+  | {
+      action: "Opfs.importDb";
+      id: string;
+      result: undefined;
+      data: {
+        path: string;
+        bytes: Uint8Array;
+      };
+    }
+  | {
+      action: "Opfs.exportFile";
+      id: string;
+      result: Uint8Array;
+      data: {
+        name: string;
+      };
+    }
+  | {
+      action: "Opfs.getFileCount";
+      id: string;
+      result: number;
+      data: undefined;
+    }
+  | {
+      action: "Opfs.getCapacity";
+      id: string;
+      result: number;
+      data: undefined;
+    }
+  | {
+      action: "Opfs.addCapacity";
+      id: string;
+      result: number;
+      data: {
+        numEntries: number;
+      };
+    }
+  | {
+      action: "Opfs.reduceCapacity";
+      id: string;
+      result: number;
+      data: {
+        numEntries: number;
       };
     };
 

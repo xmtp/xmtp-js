@@ -14,6 +14,7 @@ import {
 } from "@xmtp/wasm-bindings";
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
+import { Opfs } from "@/Opfs";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, XmtpEnv } from "@/types";
 import {
@@ -33,6 +34,7 @@ export class Client extends ClientWorkerClass {
   #isReady = false;
   #preferences: Preferences;
   #signer: Signer;
+  opfs: Opfs;
   options?: ClientOptions;
 
   constructor(
@@ -48,6 +50,7 @@ export class Client extends ClientWorkerClass {
       options?.loggingLevel !== undefined && options.loggingLevel !== "off",
     );
     this.options = options;
+    this.opfs = new Opfs(this);
     this.#encryptionKey = encryptionKey;
     this.#signer = signer;
     this.#conversations = new Conversations(this);

@@ -1,4 +1,5 @@
 import init, {
+  Opfs,
   type Consent,
   type Conversation,
   type Message,
@@ -97,6 +98,70 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         },
       });
       return;
+    }
+
+    // allow OPFS actions without a client
+    switch (action) {
+      case "Opfs.init_sqlite_opfs": {
+        await Opfs.init_sqlite_opfs();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "Opfs.exists": {
+        const result = Opfs.exists();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "Opfs.error": {
+        const result = Opfs.error();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "Opfs.wipeFiles": {
+        await Opfs.wipeFiles();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "Opfs.rm": {
+        Opfs.rm(data.name);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "Opfs.getFileNames": {
+        const result = Opfs.getFileNames();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "Opfs.importDb": {
+        Opfs.importDb(data.path, data.bytes);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "Opfs.exportFile": {
+        const result = Opfs.exportFile(data.name);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "Opfs.getFileCount": {
+        const result = Opfs.getFileCount();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "Opfs.getCapacity": {
+        const result = Opfs.getCapacity();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "Opfs.addCapacity": {
+        const result = await Opfs.addCapacity(data.numEntries);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "Opfs.reduceCapacity": {
+        const result = await Opfs.reduceCapacity(data.numEntries);
+        postMessage({ id, action, result });
+        break;
+      }
     }
 
     // a client is required for all other actions
