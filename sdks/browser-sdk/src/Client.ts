@@ -22,6 +22,14 @@ import {
   toSafeEncodedContent,
   type SafeMessage,
 } from "@/utils/conversions";
+import {
+  AccountAlreadyAssociatedError,
+  CodecNotFoundError,
+  GenerateSignatureError,
+  InboxReassignError,
+  InvalidGroupMembershipChangeError,
+  SignerUnavailableError,
+} from "@/utils/errors";
 import { type Signer } from "@/utils/signer";
 
 export class Client extends ClientWorkerClass {
@@ -134,9 +142,7 @@ export class Client extends ClientWorkerClass {
     allowInboxReassign: boolean = false,
   ) {
     if (!allowInboxReassign) {
-      throw new Error(
-        "Unable to create add account signature text, `allowInboxReassign` must be true",
-      );
+      throw new InboxReassignError();
     }
 
     return this.sendMessage("addAccountSignatureText", {
@@ -280,9 +286,7 @@ export class Client extends ClientWorkerClass {
     );
 
     if (existingInboxId && !allowInboxReassign) {
-      throw new Error(
-        `Signer address already associated with inbox ${existingInboxId}`,
-      );
+      throw new AccountAlreadyAssociatedError(existingInboxId);
     }
 
     const signatureText = await this.unsafe_addAccountSignatureText(
@@ -291,7 +295,7 @@ export class Client extends ClientWorkerClass {
     );
 
     if (!signatureText) {
-      throw new Error("Unable to generate add account signature text");
+      throw new GenerateSignatureError(SignatureRequestType.AddWallet);
     }
 
     await this.unsafe_addSignature(
@@ -308,7 +312,7 @@ export class Client extends ClientWorkerClass {
       await this.unsafe_removeAccountSignatureText(accountIdentifier);
 
     if (!signatureText) {
-      throw new Error("Unable to generate remove account signature text");
+      throw new GenerateSignatureError(SignatureRequestType.RevokeWallet);
     }
 
     await this.unsafe_addSignature(
@@ -325,8 +329,8 @@ export class Client extends ClientWorkerClass {
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
 
     if (!signatureText) {
-      throw new Error(
-        "Unable to generate revoke all other installations signature text",
+      throw new GenerateSignatureError(
+        SignatureRequestType.RevokeInstallations,
       );
     }
 
@@ -344,7 +348,9 @@ export class Client extends ClientWorkerClass {
       await this.unsafe_revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
-      throw new Error("Unable to generate revoke installations signature text");
+      throw new GenerateSignatureError(
+        SignatureRequestType.RevokeInstallations,
+      );
     }
 
     await this.unsafe_addSignature(
@@ -361,8 +367,8 @@ export class Client extends ClientWorkerClass {
       await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
 
     if (!signatureText) {
-      throw new Error(
-        "Unable to generate change recovery identifier signature text",
+      throw new GenerateSignatureError(
+        SignatureRequestType.ChangeRecoveryIdentifier,
       );
     }
 
@@ -405,9 +411,7 @@ export class Client extends ClientWorkerClass {
   encodeContent(content: any, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
-      throw new Error(
-        `Codec not found for "${contentType.toString()}" content type`,
-      );
+      throw new CodecNotFoundError(contentType);
     }
     const encoded = codec.encode(content, this);
     const fallback = codec.fallback(content);
@@ -420,9 +424,7 @@ export class Client extends ClientWorkerClass {
   decodeContent(message: SafeMessage, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
-      throw new Error(
-        `Codec not found for "${contentType.toString()}" content type`,
-      );
+      throw new CodecNotFoundError(contentType);
     }
 
     // throw an error if there's an invalid group membership change message
@@ -430,7 +432,7 @@ export class Client extends ClientWorkerClass {
       contentType.sameAs(ContentTypeGroupUpdated) &&
       message.kind !== GroupMessageKind.MembershipChange
     ) {
-      throw new Error("Error decoding group membership change");
+      throw new InvalidGroupMembershipChangeError(message.id);
     }
 
     const encodedContent = fromSafeEncodedContent(message.content);
