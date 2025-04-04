@@ -35,15 +35,16 @@ import { type Signer } from "@/utils/signer";
 export class Client extends ClientWorkerClass {
   #codecs: Map<string, ContentCodec>;
   #conversations: Conversations;
+  #identifier?: Identifier;
   #inboxId: string | undefined;
   #installationId: string | undefined;
   #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
   #preferences: Preferences;
-  #signer: Signer;
+  #signer?: Signer;
   options?: ClientOptions;
 
-  constructor(signer: Signer, options?: ClientOptions) {
+  constructor(options?: ClientOptions) {
     const worker = new Worker(new URL("./workers/client", import.meta.url), {
       type: "module",
     });
@@ -52,7 +53,6 @@ export class Client extends ClientWorkerClass {
       options?.loggingLevel !== undefined && options.loggingLevel !== "off",
     );
     this.options = options;
-    this.#signer = signer;
     this.#conversations = new Conversations(this);
     this.#preferences = new Preferences(this);
     const codecs = [
@@ -65,9 +65,9 @@ export class Client extends ClientWorkerClass {
     );
   }
 
-  async init() {
+  async init(identifier: Identifier) {
     const result = await this.sendMessage("init", {
-      identifier: await this.#signer.getIdentifier(),
+      identifier,
       options: this.options,
     });
     this.#inboxId = result.inboxId;
@@ -77,14 +77,22 @@ export class Client extends ClientWorkerClass {
   }
 
   static async create(signer: Signer, options?: ClientOptions) {
-    const client = new Client(signer, options);
+    const client = new Client(options);
+    client.#signer = signer;
 
-    await client.init();
+    await client.init(await signer.getIdentifier());
 
     if (!options?.disableAutoRegister) {
       await client.register();
     }
 
+    return client;
+  }
+
+  static async build(identifier: Identifier, options?: ClientOptions) {
+    const client = new Client(options);
+    client.#identifier = identifier;
+    await client.init(identifier);
     return client;
   }
 
@@ -97,7 +105,7 @@ export class Client extends ClientWorkerClass {
   }
 
   async accountIdentifier() {
-    return this.#signer.getIdentifier();
+    return this.#identifier ?? (await this.#signer?.getIdentifier());
   }
 
   get installationId() {
@@ -252,6 +260,10 @@ export class Client extends ClientWorkerClass {
   }
 
   async register() {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText = await this.unsafe_createInboxSignatureText();
 
     // if the signature text is not available, the client is already registered
@@ -308,6 +320,10 @@ export class Client extends ClientWorkerClass {
   }
 
   async removeAccount(accountIdentifier: Identifier) {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_removeAccountSignatureText(accountIdentifier);
 
@@ -325,6 +341,10 @@ export class Client extends ClientWorkerClass {
   }
 
   async revokeAllOtherInstallations() {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
 
@@ -344,6 +364,10 @@ export class Client extends ClientWorkerClass {
   }
 
   async revokeInstallations(installationIds: Uint8Array[]) {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_revokeInstallationsSignatureText(installationIds);
 
@@ -363,6 +387,10 @@ export class Client extends ClientWorkerClass {
   }
 
   async changeRecoveryIdentifier(identifier: Identifier) {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
 
