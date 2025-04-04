@@ -31,6 +31,7 @@ export type {
   Message,
   MessageDisappearingSettings,
   PermissionPolicySet,
+  KeyPackageStatus,
 } from "@xmtp/node-bindings";
 export {
   ConsentEntityType,
