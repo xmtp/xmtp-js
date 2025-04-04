@@ -27,6 +27,11 @@ import {
   toSafeMessage,
   toSafeMessageDisappearingSettings,
 } from "@/utils/conversions";
+import {
+  ClientNotInitializedError,
+  GroupNotFoundError,
+  StreamNotFoundError,
+} from "@/utils/errors";
 import { WorkerClient } from "@/WorkerClient";
 import { WorkerConversation } from "@/WorkerConversation";
 
@@ -98,7 +103,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
 
     // a client is required for all other actions
     if (!maybeClient) {
-      throw new Error("Client not initialized");
+      throw new ClientNotInitializedError();
     }
 
     // let typescript know that a client will be available for the rest
@@ -109,7 +114,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
     const getGroup = (groupId: string) => {
       const group = client.conversations.getConversationById(groupId);
       if (!group) {
-        throw new Error(`Group "${groupId}" not found`);
+        throw new GroupNotFoundError(groupId);
       }
       return group;
     };
@@ -125,7 +130,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           streamClosers.delete(data.streamId);
           postMessage({ id, action, result: undefined });
         } else {
-          throw new Error(`Stream "${data.streamId}" not found`);
+          throw new StreamNotFoundError(data.streamId);
         }
         break;
       }

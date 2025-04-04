@@ -11,6 +11,7 @@ import type {
   SafeMessage,
 } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
+import { MissingContentTypeError } from "@/utils/errors";
 
 export class Conversation {
   #client: Client;
@@ -84,9 +85,7 @@ export class Conversation {
 
   async sendOptimistic(content: any, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
-      throw new Error(
-        "Content type is required when sending content other than text",
-      );
+      throw new MissingContentTypeError();
     }
 
     const safeEncodedContent =
@@ -103,9 +102,7 @@ export class Conversation {
 
   async send(content: any, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
-      throw new Error(
-        "Content type is required when sending content other than text",
-      );
+      throw new MissingContentTypeError();
     }
 
     const safeEncodedContent =
