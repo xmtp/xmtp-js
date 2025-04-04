@@ -2,6 +2,8 @@ import { Client, type ClientOptions, type Signer } from "@xmtp/browser-sdk";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
+import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import {
   createContext,
   useCallback,
@@ -95,6 +97,8 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
               new ReactionCodec(),
               new ReplyCodec(),
               new RemoteAttachmentCodec(),
+              new TransactionReferenceCodec(),
+              new WalletSendCallsCodec(),
             ],
           });
           setClient(xmtpClient);
