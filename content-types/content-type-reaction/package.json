@@ -76,7 +76,7 @@
     "rollup-plugin-filesize": "^10.0.0",
     "typescript": "^5.8.2",
     "viem": "^2.24.2",
-    "vite": "^6.2.4",
+    "vite": "^6.2.5",
     "vitest": "^3.1.1"
   },
   "publishConfig": {
