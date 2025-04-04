@@ -3780,10 +3780,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.2.0-dev.3d6d1ef":
-  version: 1.2.0-dev.3d6d1ef
-  resolution: "@xmtp/node-bindings@npm:1.2.0-dev.3d6d1ef"
-  checksum: 10/fbe4f2c5299cd5fe821df29e382816809a64a60e847c302eb63c2b04bb972ebffebd09fae9729ff89665cffc06141b5058f7122be2f4a2ec5a870b64a93a947f
+"@xmtp/node-bindings@npm:^1.2.0-dev.bed98df":
+  version: 1.2.0-dev.bed98df
+  resolution: "@xmtp/node-bindings@npm:1.2.0-dev.bed98df"
+  checksum: 10/a7e57fb3a1fa462ba49be33ad4ec05e3f164cfd198b5011a12968e57f477abe822c754a74a6fb7b529789408caee38ed1291e1e0165b4f5f3969e50ce98d1e15
   languageName: node
   linkType: hard
 
@@ -3798,7 +3798,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.1"
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/content-type-text": "npm:^2.0.1"
-    "@xmtp/node-bindings": "npm:1.2.0-dev.3d6d1ef"
+    "@xmtp/node-bindings": "npm:^1.2.0-dev.bed98df"
     "@xmtp/proto": "npm:^3.78.0"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"

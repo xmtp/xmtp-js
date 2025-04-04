@@ -251,4 +251,28 @@ describe.concurrent("Client", () => {
       await signer2.getIdentifier(),
     );
   });
+
+  it("should read key package lifetime for specific installations", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    const inboxState = await client3.preferences.inboxState(true);
+    expect(inboxState.installations.length).toBe(3);
+
+    const keyPackageStatuses = await Client.keyPackageStatusForInstallations(
+      [client.installationId, client2.installationId, client3.installationId],
+      "local",
+    );
+    expect(
+      (keyPackageStatuses[client.installationId]?.lifetime?.notAfter ?? 0n) -
+        (keyPackageStatuses[client.installationId]?.lifetime?.notBefore ?? 0n),
+    ).toEqual(BigInt(3600 * 24 * 28 * 3 + 3600));
+  });
 });
