@@ -27,6 +27,13 @@ export class UtilsWorkerClass {
     this.#worker.addEventListener("message", this.handleMessage);
     this.#worker.addEventListener("error", handleError);
     this.#enableLogging = enableLogging;
+    void this.init(enableLogging);
+  }
+
+  async init(enableLogging: boolean) {
+    return this.sendMessage("init", {
+      enableLogging,
+    });
   }
 
   sendMessage<A extends UtilsEventsActions>(

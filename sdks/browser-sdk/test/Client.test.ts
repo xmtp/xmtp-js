@@ -1,8 +1,11 @@
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
+import { SignerUnavailableError } from "@/utils/errors";
 import {
+  buildClient,
   createClient,
+  createIdentifier,
   createRegisteredClient,
   createSigner,
   createUser,
@@ -191,5 +194,72 @@ describe.concurrent("Client", () => {
     expect(installationIds2).toContain(client2.installationId);
     expect(installationIds2).toContain(client3.installationId);
     expect(installationIds2).not.toContain(client.installationId);
+  });
+
+  it("should change the recovery identifier", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const user2 = createUser();
+    const signer2 = createSigner(user2);
+    await createRegisteredClient(signer2);
+
+    await client.changeRecoveryIdentifier(await signer2.getIdentifier());
+
+    const inboxState = await client.preferences.inboxState();
+    expect(inboxState.recoveryIdentifier).toEqual(
+      await signer2.getIdentifier(),
+    );
+  });
+
+  it("should get key package statuses for installation ids", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const statuses = await client.getKeyPackageStatusesForInstallationIds([
+      client.installationId!,
+    ]);
+    expect(statuses.size).toBe(1);
+
+    const status = statuses.get(client.installationId!);
+    expect(status).toBeDefined();
+    expect(status?.lifetime).toBeDefined();
+    expect(status?.validationError).toBeUndefined();
+  });
+
+  it("should create a client without a signer", async () => {
+    const user = createUser();
+    const identifier = createIdentifier(user);
+    const client = await buildClient(identifier);
+    expect(client).toBeDefined();
+    expect(await client.accountIdentifier()).toEqual(identifier);
+    expect(await client.isRegistered()).toBe(false);
+    expect(client.inboxId).toBeDefined();
+    expect(client.installationId).toBeDefined();
+
+    const user2 = createUser();
+    const signer2 = createSigner(user2);
+
+    await expect(() => client.register()).rejects.toThrow(
+      new SignerUnavailableError(),
+    );
+
+    await expect(async () =>
+      client.removeAccount(await signer2.getIdentifier()),
+    ).rejects.toThrow(new SignerUnavailableError());
+
+    await expect(() => client.revokeInstallations([])).rejects.toThrow(
+      new SignerUnavailableError(),
+    );
+
+    await expect(() => client.revokeAllOtherInstallations()).rejects.toThrow(
+      new SignerUnavailableError(),
+    );
+
+    await expect(async () =>
+      client.changeRecoveryIdentifier(await signer2.getIdentifier()),
+    ).rejects.toThrow(new SignerUnavailableError());
   });
 });

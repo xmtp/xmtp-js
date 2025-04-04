@@ -16,30 +16,35 @@ import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, XmtpEnv } from "@/types";
+import { Utils } from "@/Utils";
 import {
   fromSafeEncodedContent,
   toSafeEncodedContent,
   type SafeMessage,
 } from "@/utils/conversions";
+import {
+  AccountAlreadyAssociatedError,
+  CodecNotFoundError,
+  GenerateSignatureError,
+  InboxReassignError,
+  InvalidGroupMembershipChangeError,
+  SignerUnavailableError,
+} from "@/utils/errors";
 import { type Signer } from "@/utils/signer";
 
 export class Client extends ClientWorkerClass {
   #codecs: Map<string, ContentCodec>;
   #conversations: Conversations;
-  #encryptionKey: Uint8Array;
+  #identifier?: Identifier;
   #inboxId: string | undefined;
   #installationId: string | undefined;
   #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
   #preferences: Preferences;
-  #signer: Signer;
+  #signer?: Signer;
   options?: ClientOptions;
 
-  constructor(
-    signer: Signer,
-    encryptionKey: Uint8Array,
-    options?: ClientOptions,
-  ) {
+  constructor(options?: ClientOptions) {
     const worker = new Worker(new URL("./workers/client", import.meta.url), {
       type: "module",
     });
@@ -48,8 +53,6 @@ export class Client extends ClientWorkerClass {
       options?.loggingLevel !== undefined && options.loggingLevel !== "off",
     );
     this.options = options;
-    this.#encryptionKey = encryptionKey;
-    this.#signer = signer;
     this.#conversations = new Conversations(this);
     this.#preferences = new Preferences(this);
     const codecs = [
@@ -62,10 +65,9 @@ export class Client extends ClientWorkerClass {
     );
   }
 
-  async init() {
+  async init(identifier: Identifier) {
     const result = await this.sendMessage("init", {
-      identifier: await this.#signer.getIdentifier(),
-      encryptionKey: this.#encryptionKey,
+      identifier,
       options: this.options,
     });
     this.#inboxId = result.inboxId;
@@ -74,19 +76,23 @@ export class Client extends ClientWorkerClass {
     this.#isReady = true;
   }
 
-  static async create(
-    signer: Signer,
-    encryptionKey: Uint8Array,
-    options?: ClientOptions,
-  ) {
-    const client = new Client(signer, encryptionKey, options);
+  static async create(signer: Signer, options?: ClientOptions) {
+    const client = new Client(options);
+    client.#signer = signer;
 
-    await client.init();
+    await client.init(await signer.getIdentifier());
 
     if (!options?.disableAutoRegister) {
       await client.register();
     }
 
+    return client;
+  }
+
+  static async build(identifier: Identifier, options?: ClientOptions) {
+    const client = new Client(options);
+    client.#identifier = identifier;
+    await client.init(identifier);
     return client;
   }
 
@@ -99,7 +105,7 @@ export class Client extends ClientWorkerClass {
   }
 
   async accountIdentifier() {
-    return this.#signer.getIdentifier();
+    return this.#identifier ?? (await this.#signer?.getIdentifier());
   }
 
   get installationId() {
@@ -144,9 +150,7 @@ export class Client extends ClientWorkerClass {
     allowInboxReassign: boolean = false,
   ) {
     if (!allowInboxReassign) {
-      throw new Error(
-        "Unable to create add account signature text, `allowInboxReassign` must be true",
-      );
+      throw new InboxReassignError();
     }
 
     return this.sendMessage("addAccountSignatureText", {
@@ -200,7 +204,20 @@ export class Client extends ClientWorkerClass {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
-   * It is highly recommended to use the `register`, `addAccount`,
+   * It is highly recommended to use the `changeRecoveryIdentifer` function instead.
+   */
+  async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
+    return this.sendMessage("changeRecoveryIdentifierSignatureText", {
+      identifier,
+    });
+  }
+
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
    */
@@ -234,7 +251,7 @@ export class Client extends ClientWorkerClass {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
-   * It is highly recommended to use the `register`, `addAccount`,
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
    */
@@ -243,6 +260,10 @@ export class Client extends ClientWorkerClass {
   }
 
   async register() {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText = await this.unsafe_createInboxSignatureText();
 
     // if the signature text is not available, the client is already registered
@@ -277,9 +298,7 @@ export class Client extends ClientWorkerClass {
     );
 
     if (existingInboxId && !allowInboxReassign) {
-      throw new Error(
-        `Signer address already associated with inbox ${existingInboxId}`,
-      );
+      throw new AccountAlreadyAssociatedError(existingInboxId);
     }
 
     const signatureText = await this.unsafe_addAccountSignatureText(
@@ -288,7 +307,7 @@ export class Client extends ClientWorkerClass {
     );
 
     if (!signatureText) {
-      throw new Error("Unable to generate add account signature text");
+      throw new GenerateSignatureError(SignatureRequestType.AddWallet);
     }
 
     await this.unsafe_addSignature(
@@ -301,11 +320,15 @@ export class Client extends ClientWorkerClass {
   }
 
   async removeAccount(accountIdentifier: Identifier) {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_removeAccountSignatureText(accountIdentifier);
 
     if (!signatureText) {
-      throw new Error("Unable to generate remove account signature text");
+      throw new GenerateSignatureError(SignatureRequestType.RevokeWallet);
     }
 
     await this.unsafe_addSignature(
@@ -318,12 +341,16 @@ export class Client extends ClientWorkerClass {
   }
 
   async revokeAllOtherInstallations() {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
 
     if (!signatureText) {
-      throw new Error(
-        "Unable to generate revoke all other installations signature text",
+      throw new GenerateSignatureError(
+        SignatureRequestType.RevokeInstallations,
       );
     }
 
@@ -337,15 +364,44 @@ export class Client extends ClientWorkerClass {
   }
 
   async revokeInstallations(installationIds: Uint8Array[]) {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
-      throw new Error("Unable to generate revoke installations signature text");
+      throw new GenerateSignatureError(
+        SignatureRequestType.RevokeInstallations,
+      );
     }
 
     await this.unsafe_addSignature(
       SignatureRequestType.RevokeInstallations,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.unsafe_applySignatures();
+  }
+
+  async changeRecoveryIdentifier(identifier: Identifier) {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
+    const signatureText =
+      await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
+
+    if (!signatureText) {
+      throw new GenerateSignatureError(
+        SignatureRequestType.ChangeRecoveryIdentifier,
+      );
+    }
+
+    await this.unsafe_addSignature(
+      SignatureRequestType.ChangeRecoveryIdentifier,
       signatureText,
       this.#signer,
     );
@@ -362,23 +418,14 @@ export class Client extends ClientWorkerClass {
   }
 
   static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
-    const signer: Signer = {
-      type: "EOA",
-      getIdentifier: () => ({
-        identifier: "0x0000000000000000000000000000000000000000",
-        identifierKind: "Ethereum",
-      }),
-      signMessage: () => new Uint8Array(),
-    };
-    const client = await Client.create(
-      signer,
-      window.crypto.getRandomValues(new Uint8Array(32)),
-      {
-        disableAutoRegister: true,
-        env,
-      },
-    );
-    return client.canMessage(identifiers);
+    const canMessageMap = new Map<string, boolean>();
+    const utils = new Utils();
+    for (const identifier of identifiers) {
+      const inboxId = await utils.getInboxIdForIdentifier(identifier, env);
+      canMessageMap.set(identifier.identifier, inboxId !== undefined);
+    }
+    utils.close();
+    return canMessageMap;
   }
 
   async findInboxIdByIdentifier(identifier: Identifier) {
@@ -392,9 +439,7 @@ export class Client extends ClientWorkerClass {
   encodeContent(content: any, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
-      throw new Error(
-        `Codec not found for "${contentType.toString()}" content type`,
-      );
+      throw new CodecNotFoundError(contentType);
     }
     const encoded = codec.encode(content, this);
     const fallback = codec.fallback(content);
@@ -407,9 +452,7 @@ export class Client extends ClientWorkerClass {
   decodeContent(message: SafeMessage, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
-      throw new Error(
-        `Codec not found for "${contentType.toString()}" content type`,
-      );
+      throw new CodecNotFoundError(contentType);
     }
 
     // throw an error if there's an invalid group membership change message
@@ -417,7 +460,7 @@ export class Client extends ClientWorkerClass {
       contentType.sameAs(ContentTypeGroupUpdated) &&
       message.kind !== GroupMessageKind.MembershipChange
     ) {
-      throw new Error("Error decoding group membership change");
+      throw new InvalidGroupMembershipChangeError(message.id);
     }
 
     const encodedContent = fromSafeEncodedContent(message.content);
@@ -448,6 +491,12 @@ export class Client extends ClientWorkerClass {
       signatureText,
       signatureBytes,
       publicKey,
+    });
+  }
+
+  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+    return this.sendMessage("getKeyPackageStatusesForInstallationIds", {
+      installationIds,
     });
   }
 }

@@ -25,8 +25,10 @@ import type {
   SafeCreateGroupOptions,
   SafeEncodedContent,
   SafeGroupMember,
+  SafeHmacKey,
   SafeHmacKeys,
   SafeInboxState,
+  SafeKeyPackageStatus,
   SafeListConversationsOptions,
   SafeListMessagesOptions,
   SafeMessage,
@@ -58,7 +60,6 @@ export type ClientEvents =
       };
       data: {
         identifier: Identifier;
-        encryptionKey: Uint8Array;
         options?: ClientOptions;
       };
     }
@@ -96,6 +97,14 @@ export type ClientEvents =
       result: string | undefined;
       data: {
         installationIds: Uint8Array[];
+      };
+    }
+  | {
+      action: "changeRecoveryIdentifierSignatureText";
+      id: string;
+      result: string | undefined;
+      data: {
+        identifier: Identifier;
       };
     }
   | {
@@ -219,6 +228,14 @@ export type ClientEvents =
         signatureText: string;
         signatureBytes: Uint8Array;
         publicKey: Uint8Array;
+      };
+    }
+  | {
+      action: "getKeyPackageStatusesForInstallationIds";
+      id: string;
+      result: Map<string, SafeKeyPackageStatus>;
+      data: {
+        installationIds: string[];
       };
     }
   /**
@@ -641,8 +658,15 @@ export type ClientEvents =
       data: {
         id: string;
       };
+    }
+  | {
+      action: "getGroupHmacKeys";
+      id: string;
+      result: SafeHmacKey[];
+      data: {
+        id: string;
+      };
     };
-
 export type ClientEventsActions = ClientEvents["action"];
 
 export type ClientEventsClientMessageData =

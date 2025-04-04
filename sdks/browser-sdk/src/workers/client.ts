@@ -23,9 +23,15 @@ import {
   toSafeConversation,
   toSafeHmacKey,
   toSafeInboxState,
+  toSafeKeyPackageStatus,
   toSafeMessage,
   toSafeMessageDisappearingSettings,
 } from "@/utils/conversions";
+import {
+  ClientNotInitializedError,
+  GroupNotFoundError,
+  StreamNotFoundError,
+} from "@/utils/errors";
 import { WorkerClient } from "@/WorkerClient";
 import { WorkerConversation } from "@/WorkerConversation";
 
@@ -79,11 +85,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
   try {
     // init is a special action that initializes the client
     if (action === "init" && !maybeClient) {
-      maybeClient = await WorkerClient.create(
-        data.identifier,
-        data.encryptionKey,
-        data.options,
-      );
+      maybeClient = await WorkerClient.create(data.identifier, data.options);
       enableLogging =
         data.options?.loggingLevel !== undefined &&
         data.options.loggingLevel !== "off";
@@ -101,7 +103,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
 
     // a client is required for all other actions
     if (!maybeClient) {
-      throw new Error("Client not initialized");
+      throw new ClientNotInitializedError();
     }
 
     // let typescript know that a client will be available for the rest
@@ -112,7 +114,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
     const getGroup = (groupId: string) => {
       const group = client.conversations.getConversationById(groupId);
       if (!group) {
-        throw new Error(`Group "${groupId}" not found`);
+        throw new GroupNotFoundError(groupId);
       }
       return group;
     };
@@ -128,7 +130,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           streamClosers.delete(data.streamId);
           postMessage({ id, action, result: undefined });
         } else {
-          throw new Error(`Stream "${data.streamId}" not found`);
+          throw new StreamNotFoundError(data.streamId);
         }
         break;
       }
@@ -158,6 +160,13 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       case "revokeInstallationsSignatureText": {
         const result = await client.revokeInstallationsSignatureText(
           data.installationIds,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "changeRecoveryIdentifierSignatureText": {
+        const result = await client.changeRecoveryIdentifierSignatureText(
+          data.identifier,
         );
         postMessage({ id, action, result });
         break;
@@ -256,6 +265,23 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
           data.publicKey,
         );
         postMessage({ id, action, result });
+        break;
+      }
+      case "getKeyPackageStatusesForInstallationIds": {
+        const result = await client.getKeyPackageStatusesForInstallationIds(
+          data.installationIds,
+        );
+        const safeResult = new Map(
+          Array.from(result.entries()).map(([installationId, status]) => [
+            installationId,
+            toSafeKeyPackageStatus(status),
+          ]),
+        );
+        postMessage({
+          id,
+          action,
+          result: safeResult,
+        });
         break;
       }
       /**
@@ -712,6 +738,12 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       case "getGroupPausedForVersion": {
         const group = getGroup(data.id);
         const result = group.pausedForVersion();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "getGroupHmacKeys": {
+        const group = getGroup(data.id);
+        const result = group.getHmacKeys();
         postMessage({ id, action, result });
         break;
       }
