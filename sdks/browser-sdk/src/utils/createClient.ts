@@ -34,7 +34,7 @@ export const createClient = async (
     inboxId,
     identifier,
     dbPath,
-    null,
+    options?.dbEncryptionKey,
     historySyncUrl,
     isLogging
       ? new LogOptions(
