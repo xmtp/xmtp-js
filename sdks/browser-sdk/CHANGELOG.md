@@ -4,7 +4,7 @@
 
 This release focuses on new features, stability, and performance.
 
-## Upgrade from 1.x to 2.0.0
+## Upgrade from 1.1.4 to 2.0.0
 
 Use the information in these release notes to upgrade from `@xmtp/browser-sdk` 1.1.4 to 2.0.0.
 
