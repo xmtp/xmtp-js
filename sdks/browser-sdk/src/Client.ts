@@ -45,7 +45,7 @@ export class Client extends ClientWorkerClass {
   #isReady = false;
   #preferences: Preferences;
   #signer?: Signer;
-  options?: ClientOptions;
+  #options?: ClientOptions;
 
   /**
    * Creates a new XMTP client instance
@@ -63,7 +63,7 @@ export class Client extends ClientWorkerClass {
       worker,
       options?.loggingLevel !== undefined && options.loggingLevel !== "off",
     );
-    this.options = options;
+    this.#options = options;
     this.#conversations = new Conversations(this);
     this.#preferences = new Preferences(this);
     const codecs = [
@@ -87,7 +87,7 @@ export class Client extends ClientWorkerClass {
   async init(identifier: Identifier) {
     const result = await this.sendMessage("init", {
       identifier,
-      options: this.options,
+      options: this.#options,
     });
     this.#inboxId = result.inboxId;
     this.#installationId = result.installationId;
@@ -130,6 +130,13 @@ export class Client extends ClientWorkerClass {
     client.#identifier = identifier;
     await client.init(identifier);
     return client;
+  }
+
+  /**
+   * Gets the client options
+   */
+  get options() {
+    return this.#options;
   }
 
   /**
