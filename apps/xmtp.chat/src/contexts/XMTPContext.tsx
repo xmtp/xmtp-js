@@ -14,7 +14,7 @@ import {
 } from "react";
 
 export type InitializeClientOptions = {
-  encryptionKey: Uint8Array;
+  dbEncryptionKey?: Uint8Array;
   env?: ClientOptions["env"];
   loggingLevel?: ClientOptions["loggingLevel"];
   signer: Signer;
@@ -66,7 +66,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
    */
   const initialize = useCallback(
     async ({
-      encryptionKey,
+      dbEncryptionKey,
       env,
       loggingLevel,
       signer,
@@ -90,9 +90,10 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
 
         try {
           // create a new XMTP client
-          xmtpClient = await Client.create(signer, encryptionKey, {
+          xmtpClient = await Client.create(signer, {
             env,
             loggingLevel,
+            dbEncryptionKey,
             codecs: [
               new ReactionCodec(),
               new ReplyCodec(),

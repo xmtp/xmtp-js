@@ -1,7 +1,7 @@
 import { Box, Group, LoadingOverlay, Stack } from "@mantine/core";
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { hexToUint8Array, uint8ArrayToHex } from "uint8array-extras";
+import { hexToUint8Array } from "uint8array-extras";
 import { generatePrivateKey } from "viem/accounts";
 import { useAccount, useConnect, useConnectors, useWalletClient } from "wagmi";
 import { AccountCard } from "@/components/App/AccountCard";
@@ -43,7 +43,6 @@ export const Connect = () => {
     ephemeralAccountKey,
     setEphemeralAccountKey,
     encryptionKey,
-    setEncryptionKey,
     environment,
     loggingLevel,
   } = useSettings();
@@ -55,17 +54,12 @@ export const Connect = () => {
       accountKey = generatePrivateKey();
       setEphemeralAccountKey(accountKey);
     }
-    let dbEncryptionKey = encryptionKey;
-    if (!dbEncryptionKey) {
-      dbEncryptionKey = uint8ArrayToHex(
-        crypto.getRandomValues(new Uint8Array(32)),
-      );
-      setEncryptionKey(dbEncryptionKey);
-    }
 
     const signer = createEphemeralSigner(accountKey);
     void initialize({
-      encryptionKey: hexToUint8Array(dbEncryptionKey),
+      dbEncryptionKey: encryptionKey
+        ? hexToUint8Array(encryptionKey)
+        : undefined,
       env: environment,
       loggingLevel,
       signer,
@@ -95,7 +89,7 @@ export const Connect = () => {
   // maybe initialize an XMTP client on mount
   useEffect(() => {
     // are we using an ephemeral account?
-    if (ephemeralAccountEnabled && ephemeralAccountKey && encryptionKey) {
+    if (ephemeralAccountEnabled && ephemeralAccountKey) {
       handleEphemeralConnect();
     }
   }, []);
@@ -114,7 +108,9 @@ export const Connect = () => {
           const isSCW = provider.connectionType === "scw_connection_type";
           const chainId = await connector.getChainId();
           void initialize({
-            encryptionKey: hexToUint8Array(encryptionKey),
+            dbEncryptionKey: encryptionKey
+              ? hexToUint8Array(encryptionKey)
+              : undefined,
             env: environment,
             loggingLevel,
             signer: isSCW

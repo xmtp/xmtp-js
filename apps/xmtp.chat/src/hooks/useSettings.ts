@@ -1,6 +1,5 @@
 import { useLocalStorage } from "@mantine/hooks";
 import { type ClientOptions, type XmtpEnv } from "@xmtp/browser-sdk";
-import { uint8ArrayToHex } from "uint8array-extras";
 import type { Hex } from "viem";
 
 export const useSettings = () => {
@@ -17,7 +16,7 @@ export const useSettings = () => {
     });
   const [encryptionKey, setEncryptionKey] = useLocalStorage({
     key: "XMTP_ENCRYPTION_KEY",
-    defaultValue: uint8ArrayToHex(crypto.getRandomValues(new Uint8Array(32))),
+    defaultValue: "",
     getInitialValueInEffect: false,
   });
   const [ephemeralAccountEnabled, setEphemeralAccountEnabled] = useLocalStorage(

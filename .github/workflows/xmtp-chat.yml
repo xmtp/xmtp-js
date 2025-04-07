@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - "apps/xmtp.chat/**"
+      - "sdks/browser-sdk/**"
       - ".github/workflows/xmtp-chat.yml"
       - "dev/**"
       - ".node-version"
