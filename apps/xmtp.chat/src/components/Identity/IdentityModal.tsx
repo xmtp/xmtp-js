@@ -30,23 +30,15 @@ export const IdentityModal: React.FC = () => {
   const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
     null,
   );
-  const [isLoadingIdentifier, setIsLoadingIdentifier] = useState(false);
 
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 600;
 
   useEffect(() => {
-    const fetchAccountIdentifier = async () => {
-      setIsLoadingIdentifier(true);
-      try {
-        const identifier = await client.accountIdentifier();
-        setAccountIdentifier(identifier?.identifier.toLowerCase() ?? null);
-      } finally {
-        setIsLoadingIdentifier(false);
-      }
-    };
-    void fetchAccountIdentifier();
-  }, []);
+    setAccountIdentifier(
+      client.accountIdentifier?.identifier.toLowerCase() ?? null,
+    );
+  }, [client.accountIdentifier]);
 
   const handleRevokeAllOtherInstallations = useCallback(async () => {
     await revokeAllOtherInstallations();
@@ -86,13 +78,7 @@ export const IdentityModal: React.FC = () => {
                   <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                     Address
                   </Text>
-                  {isLoadingIdentifier ? (
-                    <Text size="sm" c="dimmed">
-                      Loading...
-                    </Text>
-                  ) : (
-                    <BadgeWithCopy value={accountIdentifier || ""} />
-                  )}
+                  <BadgeWithCopy value={accountIdentifier || ""} />
                 </Group>
                 <Group gap="md" wrap="nowrap">
                   <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>

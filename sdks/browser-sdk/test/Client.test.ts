@@ -16,7 +16,7 @@ describe.concurrent("Client", () => {
     const user = createUser();
     const signer = createSigner(user);
     const client = await createClient(signer);
-    expect(await client.accountIdentifier()).toEqual({
+    expect(client.accountIdentifier).toEqual({
       identifier: user.account.address.toLowerCase(),
       identifierKind: "Ethereum",
     });
@@ -234,7 +234,7 @@ describe.concurrent("Client", () => {
     const identifier = createIdentifier(user);
     const client = await buildClient(identifier);
     expect(client).toBeDefined();
-    expect(await client.accountIdentifier()).toEqual(identifier);
+    expect(client.accountIdentifier).toEqual(identifier);
     expect(await client.isRegistered()).toBe(false);
     expect(client.inboxId).toBeDefined();
     expect(client.installationId).toBeDefined();
