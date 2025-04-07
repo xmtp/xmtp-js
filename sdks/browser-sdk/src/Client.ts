@@ -127,7 +127,10 @@ export class Client extends ClientWorkerClass {
    * @returns A new client instance
    */
   static async build(identifier: Identifier, options?: ClientOptions) {
-    const client = new Client(options);
+    const client = new Client({
+      ...options,
+      disableAutoRegister: true,
+    });
     await client.init(identifier);
     return client;
   }
