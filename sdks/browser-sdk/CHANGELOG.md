@@ -8,8 +8,6 @@ This release focuses on new features, stability, and performance.
 
 Use the information in these release notes to upgrade from `@xmtp/browser-sdk` 1.1.4 to 2.0.0.
 
-> [!IMPORTANT]  
-> **Upgrading from a legacy XMTP V2 SDK?** Legacy XMTP V2 SDKs include JavaScript SDK vx.x.x. To learn how to upgrade to stable XMTP V3, be sure to also see important dates and considerations in [Upgrade from a legacy XMTP V2 SDK](https://docs.xmtp.org/upgrade-from-legacy-V2).
 
 ## Breaking changes
 
