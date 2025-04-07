@@ -10,7 +10,6 @@ import type { ClientOptions } from "@/types";
 
 export const createClient = async (
   identifier: Identifier,
-  encryptionKey: Uint8Array,
   options?: Omit<ClientOptions, "codecs">,
 ) => {
   const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
@@ -18,7 +17,9 @@ export const createClient = async (
     (await getInboxIdForIdentifier(host, identifier)) ||
     generateInboxId(identifier);
   const dbPath =
-    options?.dbPath || `xmtp-${options?.env || "dev"}-${inboxId}.db3`;
+    options?.dbPath === undefined
+      ? `xmtp-${options?.env || "dev"}-${inboxId}.db3`
+      : options.dbPath;
   const isLogging =
     options &&
     (options.loggingLevel !== undefined ||
@@ -33,7 +34,7 @@ export const createClient = async (
     inboxId,
     identifier,
     dbPath,
-    encryptionKey,
+    options?.dbEncryptionKey,
     historySyncUrl,
     isLogging
       ? new LogOptions(

@@ -53,7 +53,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       setIsLoadingIdentifier(true);
       try {
         const identifier = await client.accountIdentifier();
-        setAccountIdentifier(identifier.identifier.toLowerCase());
+        setAccountIdentifier(identifier?.identifier.toLowerCase() ?? null);
       } catch (error) {
         console.error("Failed to fetch account identifier:", error);
       } finally {

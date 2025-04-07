@@ -11,20 +11,28 @@ import type {
   SafeMessage,
 } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
+import { MissingContentTypeError } from "@/utils/errors";
 
+/**
+ * Represents a conversation
+ *
+ * This class is not intended to be initialized directly.
+ */
 export class Conversation {
-  #client: Client;
-
-  #id: string;
-
-  #isActive?: SafeConversation["isActive"];
-
   #addedByInboxId?: SafeConversation["addedByInboxId"];
-
+  #client: Client;
+  #createdAtNs?: SafeConversation["createdAtNs"];
+  #id: string;
+  #isActive?: SafeConversation["isActive"];
   #metadata?: SafeConversation["metadata"];
 
-  #createdAtNs?: SafeConversation["createdAtNs"];
-
+  /**
+   * Creates a new conversation instance
+   *
+   * @param client - The client instance managing the conversation
+   * @param id - The unique identifier for this conversation
+   * @param data - Optional conversation data to initialize with
+   */
   constructor(client: Client, id: string, data?: SafeConversation) {
     this.#client = client;
     this.#id = id;
@@ -62,12 +70,22 @@ export class Conversation {
     return this.#metadata;
   }
 
+  /**
+   * Gets the conversation members
+   *
+   * @returns Promise that resolves with the conversation members
+   */
   async members() {
     return this.#client.sendMessage("getGroupMembers", {
       id: this.#id,
     });
   }
 
+  /**
+   * Synchronizes conversation data from the network
+   *
+   * @returns Promise that resolves with the updated conversation data
+   */
   async sync() {
     const data = await this.#client.sendMessage("syncGroup", {
       id: this.#id,
@@ -76,17 +94,28 @@ export class Conversation {
     return data;
   }
 
+  /**
+   * Publishes pending messages that were sent optimistically
+   *
+   * @returns Promise that resolves when publishing is complete
+   */
   async publishMessages() {
     return this.#client.sendMessage("publishGroupMessages", {
       id: this.#id,
     });
   }
 
+  /**
+   * Sends a message optimistically
+   *
+   * @param content - The content to send
+   * @param contentType - Optional content type of the message content
+   * @returns Promise that resolves with the message ID
+   * @throws {MissingContentTypeError} When content type is required but not provided
+   */
   async sendOptimistic(content: any, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
-      throw new Error(
-        "Content type is required when sending content other than text",
-      );
+      throw new MissingContentTypeError();
     }
 
     const safeEncodedContent =
@@ -101,11 +130,17 @@ export class Conversation {
     });
   }
 
+  /**
+   * Sends a message
+   *
+   * @param content - The content to send
+   * @param contentType - Optional content type of the message content
+   * @returns Promise that resolves with the message ID after it has been sent
+   * @throws {MissingContentTypeError} When content type is required but not provided
+   */
   async send(content: any, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
-      throw new Error(
-        "Content type is required when sending content other than text",
-      );
+      throw new MissingContentTypeError();
     }
 
     const safeEncodedContent =
@@ -120,6 +155,12 @@ export class Conversation {
     });
   }
 
+  /**
+   * Lists messages in this conversation
+   *
+   * @param options - Optional filtering and pagination options
+   * @returns Promise that resolves with an array of decoded messages
+   */
   async messages(options?: SafeListMessagesOptions) {
     const messages = await this.#client.sendMessage("getGroupMessages", {
       id: this.#id,
@@ -129,12 +170,23 @@ export class Conversation {
     return messages.map((message) => new DecodedMessage(this.#client, message));
   }
 
+  /**
+   * Gets the consent state for this conversation
+   *
+   * @returns Promise that resolves with the current consent state
+   */
   async consentState() {
     return this.#client.sendMessage("getGroupConsentState", {
       id: this.#id,
     });
   }
 
+  /**
+   * Updates the consent state for this conversation
+   *
+   * @param state - The new consent state to set
+   * @returns Promise that resolves when the update is complete
+   */
   async updateConsentState(state: ConsentState) {
     return this.#client.sendMessage("updateGroupConsentState", {
       id: this.#id,
@@ -142,12 +194,24 @@ export class Conversation {
     });
   }
 
+  /**
+   * Gets the message disappearing settings for this conversation
+   *
+   * @returns Promise that resolves with the current message disappearing settings
+   */
   async messageDisappearingSettings() {
     return this.#client.sendMessage("getGroupMessageDisappearingSettings", {
       id: this.#id,
     });
   }
 
+  /**
+   * Updates message disappearing settings for this conversation
+   *
+   * @param fromNs - The timestamp from which messages should start disappearing
+   * @param inNs - The duration after which messages should disappear
+   * @returns Promise that resolves when the update is complete
+   */
   async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
     return this.#client.sendMessage("updateGroupMessageDisappearingSettings", {
       id: this.#id,
@@ -156,18 +220,34 @@ export class Conversation {
     });
   }
 
+  /**
+   * Removes message disappearing settings from this conversation
+   *
+   * @returns Promise that resolves when the settings are removed
+   */
   async removeMessageDisappearingSettings() {
     return this.#client.sendMessage("removeGroupMessageDisappearingSettings", {
       id: this.#id,
     });
   }
 
+  /**
+   * Checks if message disappearing is enabled for this conversation
+   *
+   * @returns Promise that resolves with whether message disappearing is enabled
+   */
   async isMessageDisappearingEnabled() {
     return this.#client.sendMessage("isGroupMessageDisappearingEnabled", {
       id: this.#id,
     });
   }
 
+  /**
+   * Creates a stream for new messages in this conversation
+   *
+   * @param callback - Optional callback function for handling new stream values
+   * @returns AsyncStream instance for new messages
+   */
   async stream(callback?: StreamCallback<DecodedMessage>) {
     const streamId = v4();
     const asyncStream = new AsyncStream<DecodedMessage>();
@@ -202,6 +282,17 @@ export class Conversation {
 
   async pausedForVersion() {
     return this.#client.sendMessage("getGroupPausedForVersion", {
+      id: this.#id,
+    });
+  }
+
+  /**
+   * Retrieves HMAC keys for this conversation
+   *
+   * @returns Promise that resolves with the HMAC keys
+   */
+  async getHmacKeys() {
+    return this.#client.sendMessage("getGroupHmacKeys", {
       id: this.#id,
     });
   }

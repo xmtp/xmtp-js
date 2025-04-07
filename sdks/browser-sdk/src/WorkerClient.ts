@@ -2,6 +2,7 @@ import {
   verifySignedWithPublicKey,
   type Client,
   type Identifier,
+  type KeyPackageStatus,
   type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types";
@@ -23,10 +24,9 @@ export class WorkerClient {
 
   static async create(
     identifier: Identifier,
-    encryptionKey: Uint8Array,
     options?: Omit<ClientOptions, "codecs">,
   ) {
-    const client = await createClient(identifier, encryptionKey, options);
+    const client = await createClient(identifier, options);
     return new WorkerClient(client);
   }
 
@@ -100,6 +100,16 @@ export class WorkerClient {
     }
   }
 
+  async changeRecoveryIdentifierSignatureText(identifier: Identifier) {
+    try {
+      return await this.#client.changeRecoveryIdentifierSignatureText(
+        identifier,
+      );
+    } catch {
+      return undefined;
+    }
+  }
+
   async addEcdsaSignature(type: SignatureRequestType, bytes: Uint8Array) {
     return this.#client.addEcdsaSignature(type, bytes);
   }
@@ -161,5 +171,11 @@ export class WorkerClient {
     } catch {
       return false;
     }
+  }
+
+  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+    return this.#client.getKeyPackageStatusesForInstallationIds(
+      installationIds,
+    ) as Promise<Map<string, KeyPackageStatus>>;
   }
 }

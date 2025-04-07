@@ -3573,7 +3573,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/browser-sdk@npm:1.1.4, @xmtp/browser-sdk@workspace:sdks/browser-sdk":
+"@xmtp/browser-sdk@workspace:^, @xmtp/browser-sdk@workspace:sdks/browser-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/browser-sdk@workspace:sdks/browser-sdk"
   dependencies:
@@ -3589,7 +3589,7 @@ __metadata:
     "@xmtp/content-type-primitives": "npm:^2.0.1"
     "@xmtp/content-type-text": "npm:^2.0.1"
     "@xmtp/proto": "npm:^3.78.0"
-    "@xmtp/wasm-bindings": "npm:^1.1.3"
+    "@xmtp/wasm-bindings": "npm:1.2.0-dev.125e5bf"
     playwright: "npm:^1.51.1"
     rollup: "npm:^4.38.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3604,7 +3604,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-group-updated@npm:^2.0.0, @xmtp/content-type-group-updated@npm:^2.0.1, @xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated":
+"@xmtp/content-type-group-updated@npm:^2.0.1, @xmtp/content-type-group-updated@workspace:^, @xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated"
   dependencies:
@@ -3623,7 +3623,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:^2.0.0, @xmtp/content-type-primitives@npm:^2.0.1, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:^2.0.1, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -3641,7 +3641,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reaction@npm:^2.0.0, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
+"@xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction"
   dependencies:
@@ -3680,7 +3680,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-remote-attachment@npm:^2.0.0, @xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
+"@xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment"
   dependencies:
@@ -3702,7 +3702,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reply@npm:^2.0.0, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
+"@xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
@@ -3724,7 +3724,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-text@npm:^2.0.0, @xmtp/content-type-text@npm:^2.0.1, @xmtp/content-type-text@workspace:^, @xmtp/content-type-text@workspace:content-types/content-type-text":
+"@xmtp/content-type-text@npm:^2.0.1, @xmtp/content-type-text@workspace:^, @xmtp/content-type-text@workspace:content-types/content-type-text":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-text@workspace:content-types/content-type-text"
   dependencies:
@@ -3842,10 +3842,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "@xmtp/wasm-bindings@npm:1.1.3"
-  checksum: 10/89533703654dc093bdfb946d9993e8f918911ac0a66104f45e3505d3acfc313dca9af3d2147562bf81f555153ef09b670b322a7637842636274e0e972eec7317
+"@xmtp/wasm-bindings@npm:1.2.0-dev.125e5bf":
+  version: 1.2.0-dev.125e5bf
+  resolution: "@xmtp/wasm-bindings@npm:1.2.0-dev.125e5bf"
+  checksum: 10/1361ae5a50774de3871b1ca0cff8f7356271cc3e8fa03e2b407e9438518c03df2cc1ac2388f71bd425429e8a14ceb581a42f9dfcb620afccd4533d80ed23ce78
   languageName: node
   linkType: hard
 
@@ -3862,13 +3862,13 @@ __metadata:
     "@types/react": "npm:^19.0.12"
     "@types/react-dom": "npm:^19.0.4"
     "@vitejs/plugin-react": "npm:^4.3.4"
-    "@xmtp/browser-sdk": "npm:1.1.4"
-    "@xmtp/content-type-group-updated": "npm:^2.0.0"
-    "@xmtp/content-type-primitives": "npm:^2.0.0"
-    "@xmtp/content-type-reaction": "npm:^2.0.0"
-    "@xmtp/content-type-remote-attachment": "npm:^2.0.0"
-    "@xmtp/content-type-reply": "npm:^2.0.0"
-    "@xmtp/content-type-text": "npm:^2.0.0"
+    "@xmtp/browser-sdk": "workspace:^"
+    "@xmtp/content-type-group-updated": "workspace:^"
+    "@xmtp/content-type-primitives": "workspace:^"
+    "@xmtp/content-type-reaction": "workspace:^"
+    "@xmtp/content-type-remote-attachment": "workspace:^"
+    "@xmtp/content-type-reply": "workspace:^"
+    "@xmtp/content-type-text": "workspace:^"
     "@xmtp/content-type-transaction-reference": "workspace:^"
     "@xmtp/content-type-wallet-send-calls": "workspace:^"
     date-fns: "npm:^4.1.0"

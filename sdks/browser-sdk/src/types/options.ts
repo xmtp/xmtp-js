@@ -37,7 +37,11 @@ export type StorageOptions = {
   /**
    * Path to the local DB
    */
-  dbPath?: string;
+  dbPath?: string | null;
+  /**
+   * Encryption key for the local DB
+   */
+  dbEncryptionKey?: Uint8Array;
 };
 
 export type OtherOptions = {

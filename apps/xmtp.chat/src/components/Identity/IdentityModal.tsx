@@ -40,7 +40,7 @@ export const IdentityModal: React.FC = () => {
       setIsLoadingIdentifier(true);
       try {
         const identifier = await client.accountIdentifier();
-        setAccountIdentifier(identifier.identifier.toLowerCase());
+        setAccountIdentifier(identifier?.identifier.toLowerCase() ?? null);
       } finally {
         setIsLoadingIdentifier(false);
       }
