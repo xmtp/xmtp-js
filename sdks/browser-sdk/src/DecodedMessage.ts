@@ -6,31 +6,39 @@ import { fromSafeContentTypeId, type SafeMessage } from "@/utils/conversions";
 export type MessageKind = "application" | "membership_change";
 export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
 
+/**
+ * Represents a decoded XMTP message
+ *
+ * This class transforms network messages into a structured format with
+ * content decoding.
+ *
+ * @class
+ * @property {any} content - The decoded content of the message
+ * @property {ContentTypeId} contentType - The content type of the message content
+ * @property {string} conversationId - Unique identifier for the conversation
+ * @property {MessageDeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
+ * @property {string} [fallback] - Optional fallback text for the message
+ * @property {number} [compression] - Optional compression level applied to the message
+ * @property {string} id - Unique identifier for the message
+ * @property {MessageKind} kind - Type of message ("application" | "membership_change")
+ * @property {Map<string, string>} parameters - Additional parameters associated with the message
+ * @property {SafeMessage["content"]} encodedContent - Raw encoded content of the message
+ * @property {string} senderInboxId - Identifier for the sender's inbox
+ * @property {bigint} sentAtNs - Timestamp when the message was sent (in nanoseconds)
+ */
 export class DecodedMessage {
   #client: Client;
-
   content: any;
-
   contentType: ContentTypeId;
-
   conversationId: string;
-
   deliveryStatus: MessageDeliveryStatus;
-
   fallback?: string;
-
   compression?: number;
-
   id: string;
-
   kind: MessageKind;
-
   parameters: Map<string, string>;
-
   encodedContent: SafeMessage["content"];
-
   senderInboxId: string;
-
   sentAtNs: bigint;
 
   constructor(client: Client, message: SafeMessage) {
