@@ -89,6 +89,7 @@ export class Client extends ClientWorkerClass {
       identifier,
       options: this.#options,
     });
+    this.#identifier = identifier;
     this.#inboxId = result.inboxId;
     this.#installationId = result.installationId;
     this.#installationIdBytes = result.installationIdBytes;
@@ -127,7 +128,6 @@ export class Client extends ClientWorkerClass {
    */
   static async build(identifier: Identifier, options?: ClientOptions) {
     const client = new Client(options);
-    client.#identifier = identifier;
     await client.init(identifier);
     return client;
   }
@@ -155,11 +155,9 @@ export class Client extends ClientWorkerClass {
 
   /**
    * Gets the account identifier for this client
-   *
-   * @returns The account identifier
    */
-  async accountIdentifier() {
-    return this.#identifier ?? (await this.#signer?.getIdentifier());
+  get accountIdentifier() {
+    return this.#identifier;
   }
 
   /**

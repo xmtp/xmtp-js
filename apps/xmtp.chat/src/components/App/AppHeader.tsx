@@ -1,13 +1,4 @@
-import {
-  Badge,
-  Box,
-  Burger,
-  Button,
-  Flex,
-  Group,
-  Skeleton,
-  Text,
-} from "@mantine/core";
+import { Badge, Box, Burger, Button, Flex, Group, Text } from "@mantine/core";
 import type { Client } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -46,23 +37,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const [accountIdentifier, setAccountIdentifier] = useState<string | null>(
     null,
   );
-  const [isLoadingIdentifier, setIsLoadingIdentifier] = useState(false);
 
   useEffect(() => {
-    const fetchAccountIdentifier = async () => {
-      setIsLoadingIdentifier(true);
-      try {
-        const identifier = await client.accountIdentifier();
-        setAccountIdentifier(identifier?.identifier.toLowerCase() ?? null);
-      } catch (error) {
-        console.error("Failed to fetch account identifier:", error);
-      } finally {
-        setIsLoadingIdentifier(false);
-      }
-    };
-
-    void fetchAccountIdentifier();
-  }, [client]);
+    setAccountIdentifier(
+      client.accountIdentifier?.identifier.toLowerCase() ?? null,
+    );
+  }, [client.accountIdentifier]);
 
   const handleClick = () => {
     void navigate("identity");
@@ -75,17 +55,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <Burger opened={opened} onClick={toggle} size="sm" />
         </div>
         <Flex align="center" flex={1}>
-          {isLoadingIdentifier ? (
-            <Skeleton height={36} width={120} radius="sm" />
-          ) : (
-            <Button
-              variant="default"
-              aria-label={accountIdentifier || ""}
-              className={classes.button}
-              onClick={handleClick}>
-              {accountIdentifier ? shortAddress(accountIdentifier) : "..."}
-            </Button>
-          )}
+          <Button
+            variant="default"
+            aria-label={accountIdentifier || ""}
+            className={classes.button}
+            onClick={handleClick}>
+            {accountIdentifier ? shortAddress(accountIdentifier) : "..."}
+          </Button>
         </Flex>
       </Flex>
       <Group align="center" gap="xs">
