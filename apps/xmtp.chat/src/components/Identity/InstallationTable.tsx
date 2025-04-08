@@ -1,4 +1,4 @@
-import { Button, Table, Text, useMatches } from "@mantine/core";
+import { Button, Table, Text, Tooltip, useMatches } from "@mantine/core";
 import type { SafeInstallation } from "@xmtp/browser-sdk";
 import { formatDistanceToNow } from "date-fns";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
@@ -26,17 +26,21 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
     sm: "20rem",
   });
 
+  const createdAt = nsToDate(installation.clientTimestampNs ?? 0n);
+
   return (
     <Table.Tr>
       <Table.Td maw={maw}>
         <BadgeWithCopy value={installation.id} />
       </Table.Td>
       <Table.Td>
-        <Text style={{ whiteSpace: "nowrap" }}>
-          {formatDistanceToNow(nsToDate(installation.clientTimestampNs ?? 0n), {
-            addSuffix: true,
-          })}
-        </Text>
+        <Tooltip label={createdAt.toISOString()}>
+          <Text style={{ whiteSpace: "nowrap" }}>
+            {formatDistanceToNow(createdAt, {
+              addSuffix: true,
+            })}
+          </Text>
+        </Tooltip>
       </Table.Td>
       <Table.Td w="100">
         <Button

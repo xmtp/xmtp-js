@@ -1,4 +1,8 @@
-import type { Identifier, SafeInstallation } from "@xmtp/browser-sdk";
+import type {
+  Identifier,
+  SafeInstallation,
+  SafeKeyPackageStatus,
+} from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useXMTP } from "@/contexts/XMTPContext";
 
@@ -13,6 +17,9 @@ export const useIdentity = (syncOnMount: boolean = false) => {
     [],
   );
   const [installations, setInstallations] = useState<SafeInstallation[]>([]);
+  const [keyPackageStatuses, setKeyPackageStatuses] = useState<
+    [string, SafeKeyPackageStatus][]
+  >([]);
 
   useEffect(() => {
     if (syncOnMount) {
@@ -45,6 +52,26 @@ export const useIdentity = (syncOnMount: boolean = false) => {
           return 0;
         });
       setInstallations(installations);
+      const keyPackageStatuses =
+        await client.getKeyPackageStatusesForInstallationIds(
+          installations.map((installation) => installation.id),
+        );
+      setKeyPackageStatuses(
+        Array.from(keyPackageStatuses.entries()).sort((a, b) => {
+          if (
+            Number(a[1].lifetime?.notAfter ?? 0n) >
+            Number(b[1].lifetime?.notAfter ?? 0n)
+          ) {
+            return -1;
+          } else if (
+            Number(a[1].lifetime?.notAfter ?? 0n) <
+            Number(b[1].lifetime?.notAfter ?? 0n)
+          ) {
+            return 1;
+          }
+          return 0;
+        }),
+      );
     } finally {
       setSyncing(false);
     }
@@ -82,6 +109,7 @@ export const useIdentity = (syncOnMount: boolean = false) => {
     accountIdentifiers,
     inboxId,
     installations,
+    keyPackageStatuses,
     recoveryIdentifier,
     revokeAllOtherInstallations,
     revokeInstallation,
