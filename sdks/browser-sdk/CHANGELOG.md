@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 7e7fad4: Fix AsyncStream
+- 7e7fad4: Fixed error handling in `AsyncStream`
 
 ## 2.0.0
 
