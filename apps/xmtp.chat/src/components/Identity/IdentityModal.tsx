@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { InstallationTable } from "@/components/Identity/InstallationTable";
+import { KeyPackageStatusTable } from "@/components/Identity/KeyPackageStatusTable";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useIdentity } from "@/hooks/useIdentity";
 import { ContentLayout } from "@/layouts/ContentLayout";
@@ -23,6 +24,7 @@ export const IdentityModal: React.FC = () => {
   const {
     installations,
     revokeAllOtherInstallations,
+    keyPackageStatuses,
     revoking,
     sync,
     syncing,
@@ -32,7 +34,7 @@ export const IdentityModal: React.FC = () => {
   );
 
   const fullScreen = useCollapsedMediaQuery();
-  const contentHeight = fullScreen ? "auto" : 600;
+  const contentHeight = fullScreen ? "auto" : "70dvh";
 
   useEffect(() => {
     setAccountIdentifier(
@@ -96,7 +98,9 @@ export const IdentityModal: React.FC = () => {
                 </Group>
               </Stack>
             </Paper>
-            <Title order={4}>Installations</Title>
+            <Title order={4} ml="md">
+              Installations
+            </Title>
             <Paper p="md" radius="md" withBorder>
               <Stack gap="md">
                 {installations.length === 0 && (
@@ -119,6 +123,21 @@ export const IdentityModal: React.FC = () => {
                       </Button>
                     </Group>
                   </>
+                )}
+              </Stack>
+            </Paper>
+            <Title order={4} ml="md">
+              Key Package Status
+            </Title>
+            <Paper p="md" radius="md" withBorder>
+              <Stack gap="md">
+                {keyPackageStatuses.length === 0 && (
+                  <Text>No key package statuses found</Text>
+                )}
+                {keyPackageStatuses.length > 0 && (
+                  <KeyPackageStatusTable
+                    keyPackageStatuses={keyPackageStatuses}
+                  />
                 )}
               </Stack>
             </Paper>
