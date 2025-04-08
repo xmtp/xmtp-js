@@ -297,7 +297,26 @@ export class Client {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
-   * It is highly recommended to use the `register`, `addAccount`,
+   * It is highly recommended to use the `changeRecoveryIdentifer` function instead.
+   */
+  async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
+    try {
+      const signatureText =
+        await this.#innerClient.changeRecoveryIdentifierSignatureText(
+          identifier,
+        );
+      return signatureText;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
    */
@@ -329,7 +348,7 @@ export class Client {
    * for use in special cases where the provided workflows do not meet the
    * requirements of an application.
    *
-   * It is highly recommended to use the `register`, `addAccount`,
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
    * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
    * functions instead.
    */
@@ -447,6 +466,25 @@ export class Client {
     await this.unsafe_applySignatures();
   }
 
+  async changeRecoveryIdentifier(identifier: Identifier) {
+    const signatureText =
+      await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
+
+    if (!signatureText) {
+      throw new Error(
+        "Unable to generate change recovery identifier signature text",
+      );
+    }
+
+    await this.unsafe_addSignature(
+      SignatureRequestType.ChangeRecoveryIdentifier,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.unsafe_applySignatures();
+  }
+
   async canMessage(identifiers: Identifier[]) {
     const canMessage = await this.#innerClient.canMessage(identifiers);
     return new Map(Object.entries(canMessage));
@@ -474,6 +512,12 @@ export class Client {
       [],
     );
     return client.canMessage(identifiers);
+  }
+
+  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+    return this.#innerClient.getKeyPackageStatusesForInstallationIds(
+      installationIds,
+    );
   }
 
   codecFor(contentType: ContentTypeId) {

@@ -25,6 +25,8 @@ export type {
   Identifier,
   InboxState,
   Installation,
+  KeyPackageStatus,
+  Lifetime,
   ListConversationsOptions,
   ListMessagesOptions,
   LogOptions,

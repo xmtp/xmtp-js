@@ -231,4 +231,48 @@ describe.concurrent("Client", () => {
   it("should return a version", () => {
     expect(Client.version).toBeDefined();
   });
+
+  it("should change the recovery identifier", async () => {
+    const user = createUser();
+    const user2 = createUser();
+    const signer = createSigner(user);
+    const signer2 = createSigner(user2);
+    const client = await createRegisteredClient(signer);
+
+    const inboxState = await client.preferences.inboxState();
+    expect(inboxState.recoveryIdentifier).toEqual(await signer.getIdentifier());
+
+    await client.changeRecoveryIdentifier(await signer2.getIdentifier());
+
+    const inboxState2 = await client.preferences.inboxState();
+    expect(inboxState2.recoveryIdentifier).toEqual(
+      await signer2.getIdentifier(),
+    );
+  });
+
+  it("should read key package lifetime for specific installations", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    const inboxState = await client3.preferences.inboxState(true);
+    expect(inboxState.installations.length).toBe(3);
+
+    const keyPackageStatuses =
+      await client3.getKeyPackageStatusesForInstallationIds([
+        client.installationId,
+        client2.installationId,
+        client3.installationId,
+      ]);
+    expect(
+      (keyPackageStatuses[client.installationId].lifetime?.notAfter ?? 0n) -
+        (keyPackageStatuses[client.installationId].lifetime?.notBefore ?? 0n),
+    ).toEqual(BigInt(3600 * 24 * 28 * 3 + 3600));
+  });
 });
