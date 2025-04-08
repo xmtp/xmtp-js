@@ -18,7 +18,6 @@ import {
   IdentifierKind,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
-  KeyPackageStatus,
   LogLevel,
   SignatureRequestType,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
@@ -515,35 +514,10 @@ export class Client {
     return client.canMessage(identifiers);
   }
 
-  static async keyPackageStatusForInstallations(
-    installationIds: string[],
-    env?: XmtpEnv,
-  ): Promise<Record<string, KeyPackageStatus | undefined>> {
-    const accountAddress = "0x0000000000000000000000000000000000000000";
-    const host = ApiUrls[env || "dev"];
-    const isSecure = host.startsWith("https");
-    const identifier: Identifier = {
-      identifierKind: IdentifierKind.Ethereum,
-      identifier: accountAddress,
-    };
-    const inboxId =
-      (await getInboxIdForIdentifier(host, isSecure, identifier)) ||
-      generateInboxId(identifier);
-    const signer: Signer = {
-      type: "EOA",
-      getIdentifier: () => identifier,
-      signMessage: () => new Uint8Array(),
-    };
-    const client = new Client(
-      await createClient(host, isSecure, undefined, inboxId, identifier),
-      signer,
-      [],
+  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+    return this.#innerClient.getKeyPackageStatusesForInstallationIds(
+      installationIds,
     );
-    const map =
-      await client.#innerClient.getKeyPackageStatusesForInstallationIds(
-        installationIds,
-      );
-    return map;
   }
 
   codecFor(contentType: ContentTypeId) {

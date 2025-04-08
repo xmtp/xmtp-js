@@ -264,13 +264,15 @@ describe.concurrent("Client", () => {
     const inboxState = await client3.preferences.inboxState(true);
     expect(inboxState.installations.length).toBe(3);
 
-    const keyPackageStatuses = await Client.keyPackageStatusForInstallations(
-      [client.installationId, client2.installationId, client3.installationId],
-      "local",
-    );
+    const keyPackageStatuses =
+      await client3.getKeyPackageStatusesForInstallationIds([
+        client.installationId,
+        client2.installationId,
+        client3.installationId,
+      ]);
     expect(
-      (keyPackageStatuses[client.installationId]?.lifetime?.notAfter ?? 0n) -
-        (keyPackageStatuses[client.installationId]?.lifetime?.notBefore ?? 0n),
+      (keyPackageStatuses[client.installationId].lifetime?.notAfter ?? 0n) -
+        (keyPackageStatuses[client.installationId].lifetime?.notBefore ?? 0n),
     ).toEqual(BigInt(3600 * 24 * 28 * 3 + 3600));
   });
 });
