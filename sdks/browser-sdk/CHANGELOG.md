@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.1
+
+### Patch Changes
+
+- 7e7fad4: Fix AsyncStream
+
 ## 2.0.0
 
 This release focuses on new features, stability, and performance.

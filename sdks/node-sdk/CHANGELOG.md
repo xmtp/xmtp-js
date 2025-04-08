@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 1.1.1
+
+### Patch Changes
+
+- 7e7fad4: Fix AsyncStream
+
 ## 1.1.0
 
 ### Minor Changes
