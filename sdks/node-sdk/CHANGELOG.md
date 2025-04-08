@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 1.1.0
+
+### Minor Changes
+
+- 88e6ff6: Add changeRecoveryIdentifier, getKeyPackageStatusesForInstallationIds to Node SDK
+
 ## 1.0.5
 
 ### Patch Changes
