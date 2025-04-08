@@ -306,17 +306,7 @@ export class Client {
         await this.#innerClient.changeRecoveryIdentifierSignatureText(
           identifier,
         );
-      if (!signatureText) {
-        throw new Error("Unable to generate add account signature text");
-      }
-
-      await this.unsafe_addSignature(
-        SignatureRequestType.ChangeRecoveryIdentifier,
-        signatureText,
-        this.#signer,
-      );
-
-      await this.unsafe_applySignatures();
+      return signatureText;
     } catch {
       return undefined;
     }
@@ -470,6 +460,25 @@ export class Client {
 
     await this.unsafe_addSignature(
       SignatureRequestType.RevokeInstallations,
+      signatureText,
+      this.#signer,
+    );
+
+    await this.unsafe_applySignatures();
+  }
+
+  async changeRecoveryIdentifier(identifier: Identifier) {
+    const signatureText =
+      await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
+
+    if (!signatureText) {
+      throw new Error(
+        "Unable to generate change recovery identifier signature text",
+      );
+    }
+
+    await this.unsafe_addSignature(
+      SignatureRequestType.ChangeRecoveryIdentifier,
       signatureText,
       this.#signer,
     );
