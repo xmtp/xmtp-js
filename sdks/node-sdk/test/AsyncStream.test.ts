@@ -30,6 +30,7 @@ describe("AsyncStream", () => {
       count++;
     }
     expect(onReturnCalled).toBe(true);
+    expect(stream.isDone).toBe(true);
   });
 
   it("should catch an error thrown in the for..await loop", async () => {
@@ -47,30 +48,48 @@ describe("AsyncStream", () => {
       }
     } catch (error) {
       expect(error).toBe(testError);
-      expect((error as Error).message).toBe("test");
     }
     expect(onReturnCalled).toBe(true);
+    expect(stream.isDone).toBe(true);
   });
 
   it("should catch an error passed to callback", async () => {
-    const runTest = async () => {
-      const stream = new AsyncStream<number>();
-      let onReturnCalled = false;
-      stream.onReturn = () => {
-        onReturnCalled = true;
-      };
-      stream.callback(testError, 1);
-      try {
-        for await (const _value of stream) {
-          // this block should never be reached
-        }
-      } catch (error) {
-        expect(error).toBe(testError);
-        expect((error as Error).message).toBe("test");
-      }
-      expect(onReturnCalled).toBe(true);
+    const stream = new AsyncStream<number>();
+    let onErrorCalled = false;
+    stream.onError = () => {
+      onErrorCalled = true;
     };
+    stream.callback(testError, 1);
+    try {
+      for await (const _value of stream) {
+        // this block should never be reached
+      }
+    } catch (error) {
+      expect(error).toBe(testError);
+    }
+    expect(onErrorCalled).toBe(true);
+    expect(stream.isDone).toBe(true);
+    expect(stream.error).toBe(testError);
+  });
 
-    await expect(runTest()).rejects.toThrow(testError);
+  it("should catch an error passed to callback (delayed)", async () => {
+    const stream = new AsyncStream<number>();
+    let onErrorCalled = false;
+    stream.onError = () => {
+      onErrorCalled = true;
+    };
+    setTimeout(() => {
+      stream.callback(testError, 1);
+    }, 100);
+    try {
+      for await (const _value of stream) {
+        // this block should never be reached
+      }
+    } catch (error) {
+      expect(error).toBe(testError);
+    }
+    expect(onErrorCalled).toBe(true);
+    expect(stream.isDone).toBe(true);
+    expect(stream.error).toBe(testError);
   });
 });
