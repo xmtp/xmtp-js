@@ -4,7 +4,10 @@
 
 ### Minor Changes
 
-- 88e6ff6: Add changeRecoveryIdentifier, getKeyPackageStatusesForInstallationIds to Node SDK
+- 88e6ff6:
+  - Added `unsafe_changeRecoveryIdentifierSignatureText` method to client
+  - Added `changeRecoveryIdentifier` method to client
+  - Added `getKeyPackageStatusesForInstallationIds` method to client
 
 ## 1.0.5
 
