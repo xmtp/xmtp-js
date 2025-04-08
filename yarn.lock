@@ -3454,6 +3454,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/content-type-eth-sign-typed-data@workspace:^, @xmtp/content-type-eth-sign-typed-data@workspace:content-types/content-type-eth-sign-typed-data":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/content-type-eth-sign-typed-data@workspace:content-types/content-type-eth-sign-typed-data"
+  dependencies:
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
+    "@types/node": "npm:^22.14.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
+    "@xmtp/node-sdk": "workspace:^"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.39.0"
+    rollup-plugin-dts: "npm:^6.1.1"
+    rollup-plugin-filesize: "npm:^10.0.0"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^6.2.5"
+    vitest: "npm:^3.1.1"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/content-type-group-updated@npm:^2.0.1, @xmtp/content-type-group-updated@workspace:^, @xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated"
@@ -3713,6 +3732,7 @@ __metadata:
     "@types/react-dom": "npm:^19.1.2"
     "@vitejs/plugin-react": "npm:^4.3.4"
     "@xmtp/browser-sdk": "workspace:^"
+    "@xmtp/content-type-eth-sign-typed-data": "workspace:^"
     "@xmtp/content-type-group-updated": "workspace:^"
     "@xmtp/content-type-primitives": "workspace:^"
     "@xmtp/content-type-reaction": "workspace:^"

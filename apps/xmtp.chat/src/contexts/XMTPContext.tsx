@@ -1,4 +1,5 @@
 import { Client, type ClientOptions, type Signer } from "@xmtp/browser-sdk";
+import { EthSignTypedDataCodec } from "@xmtp/content-type-eth-sign-typed-data";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
@@ -95,6 +96,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
             loggingLevel,
             dbEncryptionKey,
             codecs: [
+              new EthSignTypedDataCodec(),
               new ReactionCodec(),
               new ReplyCodec(),
               new RemoteAttachmentCodec(),

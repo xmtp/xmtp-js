@@ -1,6 +1,10 @@
 import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
 import {
+  ContentTypeEthSignTypedData,
+  type EthSignTypedDataParams,
+} from "@xmtp/content-type-eth-sign-typed-data";
+import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
@@ -12,6 +16,7 @@ import { intlFormat } from "date-fns";
 import { useNavigate, useOutletContext } from "react-router";
 import { nsToDate } from "@/helpers/date";
 import { shortAddress } from "@/helpers/strings";
+import { EthSignTypedDataContent } from "./EthSignTypedDataContent";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
 import { TransactionReferenceContent } from "./TransactionReferenceContent";
@@ -75,6 +80,11 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
             ) : message.contentType.sameAs(ContentTypeWalletSendCalls) ? (
               <WalletSendCallsContent
                 content={message.content as WalletSendCallsParams}
+                conversationId={message.conversationId}
+              />
+            ) : message.contentType.sameAs(ContentTypeEthSignTypedData) ? (
+              <EthSignTypedDataContent
+                content={message.content as EthSignTypedDataParams}
                 conversationId={message.conversationId}
               />
             ) : (

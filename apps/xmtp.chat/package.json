@@ -22,6 +22,7 @@
     "@mantine/notifications": "^7.17.4",
     "@tanstack/react-query": "^5.72.2",
     "@xmtp/browser-sdk": "workspace:^",
+    "@xmtp/content-type-eth-sign-typed-data": "workspace:^",
     "@xmtp/content-type-group-updated": "workspace:^",
     "@xmtp/content-type-primitives": "workspace:^",
     "@xmtp/content-type-reaction": "workspace:^",
