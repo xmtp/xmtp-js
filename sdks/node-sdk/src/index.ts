@@ -25,13 +25,14 @@ export type {
   Identifier,
   InboxState,
   Installation,
+  KeyPackageStatus,
+  Lifetime,
   ListConversationsOptions,
   ListMessagesOptions,
   LogOptions,
   Message,
   MessageDisappearingSettings,
   PermissionPolicySet,
-  KeyPackageStatus,
 } from "@xmtp/node-bindings";
 export {
   ConsentEntityType,
