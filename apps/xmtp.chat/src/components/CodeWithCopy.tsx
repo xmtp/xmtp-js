@@ -9,10 +9,15 @@ export const CodeWithCopy: React.FC<CodeWithCopyProps> = ({ code }) => {
   return (
     <Box pos="relative">
       <Code
-        p="md"
         pt="xl"
+        pl="md"
+        pr="md"
+        pb="md"
         block
-        maw="calc(var(--modal-size) - calc(var(--mantine-spacing-md) * 2))">
+        style={{
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}>
         {code}
       </Code>
       <Box pos="absolute" top={0} right={0} px="xs">

@@ -6,6 +6,10 @@ import type {
 import { useEffect, useState } from "react";
 import { useXMTP } from "@/contexts/XMTPContext";
 
+export type Installation = SafeInstallation & {
+  keyPackageStatus: SafeKeyPackageStatus | undefined;
+};
+
 export const useIdentity = (syncOnMount: boolean = false) => {
   const { client } = useXMTP();
   const [syncing, setSyncing] = useState(false);
@@ -16,10 +20,7 @@ export const useIdentity = (syncOnMount: boolean = false) => {
   const [accountIdentifiers, setAccountIdentifiers] = useState<Identifier[]>(
     [],
   );
-  const [installations, setInstallations] = useState<SafeInstallation[]>([]);
-  const [keyPackageStatuses, setKeyPackageStatuses] = useState<
-    [string, SafeKeyPackageStatus][]
-  >([]);
+  const [installations, setInstallations] = useState<Installation[]>([]);
 
   useEffect(() => {
     if (syncOnMount) {
@@ -39,38 +40,25 @@ export const useIdentity = (syncOnMount: boolean = false) => {
       setInboxId(inboxState.inboxId);
       setAccountIdentifiers(inboxState.accountIdentifiers);
       setRecoveryIdentifier(inboxState.recoveryIdentifier);
-      const installations = inboxState.installations
-        .filter((installation) => installation.id !== client.installationId)
-        .sort((a, b) => {
+      const installations = inboxState.installations.sort((a, b) => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        if (a.clientTimestampNs! > b.clientTimestampNs!) {
+          return -1;
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          if (a.clientTimestampNs! > b.clientTimestampNs!) {
-            return -1;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          } else if (a.clientTimestampNs! < b.clientTimestampNs!) {
-            return 1;
-          }
-          return 0;
-        });
-      setInstallations(installations);
+        } else if (a.clientTimestampNs! < b.clientTimestampNs!) {
+          return 1;
+        }
+        return 0;
+      });
       const keyPackageStatuses =
         await client.getKeyPackageStatusesForInstallationIds(
           installations.map((installation) => installation.id),
         );
-      setKeyPackageStatuses(
-        Array.from(keyPackageStatuses.entries()).sort((a, b) => {
-          if (
-            Number(a[1].lifetime?.notAfter ?? 0n) >
-            Number(b[1].lifetime?.notAfter ?? 0n)
-          ) {
-            return -1;
-          } else if (
-            Number(a[1].lifetime?.notAfter ?? 0n) <
-            Number(b[1].lifetime?.notAfter ?? 0n)
-          ) {
-            return 1;
-          }
-          return 0;
-        }),
+      setInstallations(
+        installations.map((installation) => ({
+          ...installation,
+          keyPackageStatus: keyPackageStatuses.get(installation.id),
+        })),
       );
     } finally {
       setSyncing(false);
@@ -109,7 +97,6 @@ export const useIdentity = (syncOnMount: boolean = false) => {
     accountIdentifiers,
     inboxId,
     installations,
-    keyPackageStatuses,
     recoveryIdentifier,
     revokeAllOtherInstallations,
     revokeInstallation,

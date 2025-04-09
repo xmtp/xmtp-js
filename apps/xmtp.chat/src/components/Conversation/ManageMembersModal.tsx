@@ -1,9 +1,10 @@
-import { Button, Group, Modal } from "@mantine/core";
+import { Button, Group } from "@mantine/core";
 import { Group as XmtpGroup, type SafeGroupMember } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { Members } from "@/components/Conversation/Members";
+import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";

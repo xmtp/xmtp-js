@@ -1,12 +1,4 @@
-import {
-  Accordion,
-  Badge,
-  Button,
-  Group,
-  Modal,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Accordion, Badge, Button, Group, Stack, Text } from "@mantine/core";
 import { GroupPermissionsOptions, type Client } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
@@ -16,6 +8,7 @@ import {
   defaultPolicySet,
   Permissions,
 } from "@/components/Conversation/Permissions";
+import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";

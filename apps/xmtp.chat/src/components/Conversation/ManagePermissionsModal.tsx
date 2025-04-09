@@ -1,4 +1,4 @@
-import { Button, Group, Modal } from "@mantine/core";
+import { Button, Group } from "@mantine/core";
 import { GroupPermissionsOptions, Group as XmtpGroup } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
@@ -8,6 +8,7 @@ import {
   Permissions,
   processPermissionsUpdate,
 } from "@/components/Conversation/Permissions";
+import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import type { PolicySet } from "@/types";
