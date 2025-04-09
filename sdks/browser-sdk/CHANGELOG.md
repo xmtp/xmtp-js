@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.2
+
+### Patch Changes
+
+- f021255: Fixed missing key package status error
+
 ## 2.0.1
 
 ### Patch Changes
