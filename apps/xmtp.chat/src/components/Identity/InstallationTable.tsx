@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Popover,
   Table,
@@ -36,9 +37,9 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
   });
 
   const createdAt = nsToDate(installation.clientTimestampNs ?? 0n);
-  const notAfter = new Date(
-    Number(installation.keyPackageStatus?.lifetime?.notAfter ?? 0n) * 1000,
-  );
+  const notAfter = installation.keyPackageStatus?.lifetime?.notAfter
+    ? new Date(Number(installation.keyPackageStatus.lifetime.notAfter) * 1000)
+    : undefined;
 
   return (
     <Table.Tr>
@@ -55,13 +56,17 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
         </Tooltip>
       </Table.Td>
       <Table.Td>
-        <Tooltip label={notAfter.toISOString()}>
-          <Text size="sm" style={{ whiteSpace: "nowrap" }}>
-            {formatDistanceToNow(notAfter, {
-              addSuffix: true,
-            })}
-          </Text>
-        </Tooltip>
+        {notAfter ? (
+          <Tooltip label={notAfter.toISOString()}>
+            <Text size="sm" style={{ whiteSpace: "nowrap" }}>
+              {formatDistanceToNow(notAfter, {
+                addSuffix: true,
+              })}
+            </Text>
+          </Tooltip>
+        ) : (
+          <Text size="sm">Error</Text>
+        )}
       </Table.Td>
       <Table.Td w="100">
         {installation.keyPackageStatus?.validationError ? (
@@ -72,10 +77,11 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
               </Button>
             </Popover.Target>
             <Popover.Dropdown>
-              <CodeWithCopy
-                code={installation.keyPackageStatus.validationError}
-                maw="300"
-              />
+              <Box maw="300">
+                <CodeWithCopy
+                  code={installation.keyPackageStatus.validationError}
+                />
+              </Box>
             </Popover.Dropdown>
           </Popover>
         ) : (
