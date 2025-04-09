@@ -4,8 +4,9 @@ export type {
   NetworkOptions,
   StorageOptions,
   XmtpEnv,
-} from "./Client";
-export { Client, ApiUrls, HistorySyncUrls } from "./Client";
+} from "./types";
+export { ApiUrls, HistorySyncUrls } from "./constants";
+export { Client } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
 export { Dm } from "./Dm";
@@ -54,5 +55,5 @@ export {
   SignatureRequestType,
   SortDirection,
 } from "@xmtp/node-bindings";
-export { generateInboxId, getInboxIdForIdentifier } from "./helpers/inboxId";
-export type { Signer } from "./helpers/signer";
+export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
+export type { Signer } from "./utils/signer";
