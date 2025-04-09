@@ -1,5 +1,13 @@
 # @xmtp/node-sdk
 
+## 1.2.0
+
+### Minor Changes
+
+- d35fbc1:
+  - Added `getHmacKeys` to `Conversation`
+  - Added custom errors
+
 ## 1.1.1
 
 ### Patch Changes
