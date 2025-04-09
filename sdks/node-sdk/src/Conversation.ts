@@ -160,4 +160,8 @@ export class Conversation {
   pausedForVersion() {
     return this.#conversation.pausedForVersion() ?? undefined;
   }
+
+  getHmacKeys() {
+    return this.#conversation.getHmacKeys();
+  }
 }
