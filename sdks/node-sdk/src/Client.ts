@@ -1,5 +1,3 @@
-import { join } from "node:path";
-import process from "node:process";
 import {
   ContentTypeGroupUpdated,
   GroupUpdatedCodec,
@@ -11,23 +9,19 @@ import type {
 } from "@xmtp/content-type-primitives";
 import { TextCodec } from "@xmtp/content-type-text";
 import {
-  createClient,
-  generateInboxId,
-  getInboxIdForIdentifier,
   GroupMessageKind,
-  IdentifierKind,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
-  LogLevel,
   SignatureRequestType,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
   type Identifier,
-  type LogOptions,
   type Message,
   type Client as NodeClient,
 } from "@xmtp/node-bindings";
-import { ApiUrls, HistorySyncUrls } from "@/constants";
+import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
+import { createClient } from "@/helpers/createClient";
+import { getInboxIdForIdentifier } from "@/helpers/inboxId";
 import { type Signer } from "@/helpers/signer";
 import { version } from "@/helpers/version";
 import { Preferences } from "@/Preferences";
@@ -56,42 +50,20 @@ export class Client {
     encryptionKey: Uint8Array,
     options?: ClientOptions,
   ) {
-    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
-    const isSecure = host.startsWith("https");
     const identifier = await signer.getIdentifier();
-    const inboxId =
-      (await getInboxIdForIdentifier(host, isSecure, identifier)) ||
-      generateInboxId(identifier);
-    const dbPath =
-      options?.dbPath ||
-      join(process.cwd(), `xmtp-${options?.env || "dev"}-${inboxId}.db3`);
-    const logOptions: LogOptions = {
-      structured: options?.structuredLogging ?? false,
-      level: options?.loggingLevel ?? LogLevel.off,
-    };
-    const historySyncUrl =
-      options?.historySyncUrl || HistorySyncUrls[options?.env || "dev"];
+    const client = await createClient(identifier, encryptionKey, options);
 
-    const client = new Client(
-      await createClient(
-        host,
-        isSecure,
-        dbPath,
-        inboxId,
-        identifier,
-        encryptionKey,
-        historySyncUrl,
-        logOptions,
-      ),
-      signer,
-      [new GroupUpdatedCodec(), new TextCodec(), ...(options?.codecs ?? [])],
-    );
+    const clientInstance = new Client(client, signer, [
+      new GroupUpdatedCodec(),
+      new TextCodec(),
+      ...(options?.codecs ?? []),
+    ]);
 
     if (!options?.disableAutoRegister) {
-      await client.register();
+      await clientInstance.register();
     }
 
-    return client;
+    return clientInstance;
   }
 
   get identifier() {
@@ -422,27 +394,12 @@ export class Client {
   }
 
   static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
-    const accountAddress = "0x0000000000000000000000000000000000000000";
-    const host = ApiUrls[env || "dev"];
-    const isSecure = host.startsWith("https");
-    const identifier: Identifier = {
-      identifierKind: IdentifierKind.Ethereum,
-      identifier: accountAddress,
-    };
-    const inboxId =
-      (await getInboxIdForIdentifier(host, isSecure, identifier)) ||
-      generateInboxId(identifier);
-    const signer: Signer = {
-      type: "EOA",
-      getIdentifier: () => identifier,
-      signMessage: () => new Uint8Array(),
-    };
-    const client = new Client(
-      await createClient(host, isSecure, undefined, inboxId, identifier),
-      signer,
-      [],
-    );
-    return client.canMessage(identifiers);
+    const canMessageMap = new Map<string, boolean>();
+    for (const identifier of identifiers) {
+      const inboxId = await getInboxIdForIdentifier(identifier, env);
+      canMessageMap.set(identifier.identifier, inboxId !== null);
+    }
+    return canMessageMap;
   }
 
   async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
