@@ -1,4 +1,4 @@
-import { Box, Button, Group, Modal, NativeSelect } from "@mantine/core";
+import { Box, Button, Group, NativeSelect } from "@mantine/core";
 import { ConsentState } from "@xmtp/browser-sdk";
 import {
   useCallback,
@@ -9,6 +9,7 @@ import {
   type ChangeEvent,
 } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import type { ConversationOutletContext } from "./ConversationOutletContext";

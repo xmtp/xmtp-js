@@ -1,7 +1,8 @@
-import { Box, Button, Group, Modal, TextInput } from "@mantine/core";
+import { Box, Button, Group, TextInput } from "@mantine/core";
 import { Utils, type Conversation } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
