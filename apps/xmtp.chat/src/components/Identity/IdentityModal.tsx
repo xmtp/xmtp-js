@@ -2,7 +2,6 @@ import {
   Button,
   CloseButton,
   Group,
-  Modal,
   Paper,
   Stack,
   Text,
@@ -13,7 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { InstallationTable } from "@/components/Identity/InstallationTable";
-import { KeyPackageStatusTable } from "@/components/Identity/KeyPackageStatusTable";
+import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useIdentity } from "@/hooks/useIdentity";
 import { ContentLayout } from "@/layouts/ContentLayout";
@@ -24,7 +23,6 @@ export const IdentityModal: React.FC = () => {
   const {
     installations,
     revokeAllOtherInstallations,
-    keyPackageStatuses,
     revoking,
     sync,
     syncing,
@@ -109,6 +107,8 @@ export const IdentityModal: React.FC = () => {
                 {installations.length > 0 && (
                   <>
                     <InstallationTable
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      clientInstallationId={client.installationId!}
                       installations={installations}
                       refreshInstallations={sync}
                     />
@@ -123,21 +123,6 @@ export const IdentityModal: React.FC = () => {
                       </Button>
                     </Group>
                   </>
-                )}
-              </Stack>
-            </Paper>
-            <Title order={4} ml="md">
-              Key Package Status
-            </Title>
-            <Paper p="md" radius="md" withBorder>
-              <Stack gap="md">
-                {keyPackageStatuses.length === 0 && (
-                  <Text>No key package statuses found</Text>
-                )}
-                {keyPackageStatuses.length > 0 && (
-                  <KeyPackageStatusTable
-                    keyPackageStatuses={keyPackageStatuses}
-                  />
                 )}
               </Stack>
             </Paper>

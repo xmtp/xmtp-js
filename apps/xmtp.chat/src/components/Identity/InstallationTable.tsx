@@ -1,16 +1,25 @@
-import { Button, Table, Text, Tooltip, useMatches } from "@mantine/core";
-import type { SafeInstallation } from "@xmtp/browser-sdk";
+import {
+  Button,
+  Popover,
+  Table,
+  Text,
+  Tooltip,
+  useMatches,
+} from "@mantine/core";
 import { formatDistanceToNow } from "date-fns";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
+import { CodeWithCopy } from "@/components/CodeWithCopy";
 import { nsToDate } from "@/helpers/date";
-import { useIdentity } from "@/hooks/useIdentity";
+import { useIdentity, type Installation } from "@/hooks/useIdentity";
 
 type InstallationTableRowProps = {
-  installation: SafeInstallation;
+  clientInstallationId: string;
+  installation: Installation;
   refreshInstallations: () => Promise<void>;
 };
 
 const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
+  clientInstallationId,
   installation,
   refreshInstallations,
 }) => {
@@ -27,6 +36,9 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
   });
 
   const createdAt = nsToDate(installation.clientTimestampNs ?? 0n);
+  const notAfter = new Date(
+    Number(installation.keyPackageStatus?.lifetime?.notAfter ?? 0n) * 1000,
+  );
 
   return (
     <Table.Tr>
@@ -35,31 +47,63 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
       </Table.Td>
       <Table.Td>
         <Tooltip label={createdAt.toISOString()}>
-          <Text style={{ whiteSpace: "nowrap" }}>
+          <Text size="sm" style={{ whiteSpace: "nowrap" }}>
             {formatDistanceToNow(createdAt, {
               addSuffix: true,
             })}
           </Text>
         </Tooltip>
       </Table.Td>
+      <Table.Td>
+        <Tooltip label={notAfter.toISOString()}>
+          <Text size="sm" style={{ whiteSpace: "nowrap" }}>
+            {formatDistanceToNow(notAfter, {
+              addSuffix: true,
+            })}
+          </Text>
+        </Tooltip>
+      </Table.Td>
       <Table.Td w="100">
-        <Button
-          size="xs"
-          loading={revoking}
-          onClick={() => void handleRevokeInstallation(installation.bytes)}>
-          Revoke
-        </Button>
+        {installation.keyPackageStatus?.validationError ? (
+          <Popover width={200} position="bottom" withArrow shadow="md">
+            <Popover.Target>
+              <Button color="red" size="xs">
+                Details
+              </Button>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <CodeWithCopy
+                code={installation.keyPackageStatus.validationError}
+                maw="300"
+              />
+            </Popover.Dropdown>
+          </Popover>
+        ) : (
+          <Text size="sm">None</Text>
+        )}
+      </Table.Td>
+      <Table.Td w="100">
+        {installation.id !== clientInstallationId && (
+          <Button
+            size="xs"
+            loading={revoking}
+            onClick={() => void handleRevokeInstallation(installation.bytes)}>
+            Revoke
+          </Button>
+        )}
       </Table.Td>
     </Table.Tr>
   );
 };
 
 type InstallationTableProps = {
-  installations: SafeInstallation[];
+  clientInstallationId: string;
+  installations: Installation[];
   refreshInstallations: () => Promise<void>;
 };
 
 export const InstallationTable: React.FC<InstallationTableProps> = ({
+  clientInstallationId,
   installations,
   refreshInstallations,
 }) => {
@@ -69,6 +113,8 @@ export const InstallationTable: React.FC<InstallationTableProps> = ({
         <Table.Tr>
           <Table.Th>Installation ID</Table.Th>
           <Table.Th>Created</Table.Th>
+          <Table.Th>Expires</Table.Th>
+          <Table.Th>Error</Table.Th>
           <Table.Th></Table.Th>
         </Table.Tr>
       </Table.Thead>
@@ -76,6 +122,7 @@ export const InstallationTable: React.FC<InstallationTableProps> = ({
         {installations.map((installation) => (
           <InstallationTableRow
             key={installation.id}
+            clientInstallationId={clientInstallationId}
             installation={installation}
             refreshInstallations={refreshInstallations}
           />
