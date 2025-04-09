@@ -9,6 +9,7 @@ on:
     paths:
       - ".changeset/config.json"
       - ".changeset/*.md"
+      - ".cursor/**"
       - ".github/**"
       - "!.github/workflows/node-sdk.yml"
       - "!.github/workflows/content-types.yml"

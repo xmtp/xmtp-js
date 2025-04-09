@@ -1,0 +1,41 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# TypeScript Rules
+
+## File Patterns
+
+- **/*.ts
+- **/*.tsx
+
+## Code Style and Structure
+
+- Always use ES module syntax
+- Maintain consistent naming conventions
+- Focus on writing correct, best practice, DRY code
+- Use early returns to avoid nested conditions and improve readability
+- Use constants instead of functions where possible
+- Use descriptive names for variables and functions
+- Use custom error types when appropriate
+- Favor named exports over default exports
+- Use efficient data structures
+- Use efficient algorithms
+- Keep performance in mind but do not over-optimize at the cost of readability
+- Write code that is easy to test and maintain
+- Write comprehensive tests for all new features
+- Document code with JSDoc comments
+- Do not remove any existing code unless necessary
+- Do not remove my comments or commented-out code unless necessary
+- Use lowercase in single line comments
+
+## TypeScript Guidelines
+
+- Use type inference where possible
+- Avoid enums, use const enums when necessary
+- Do not define function return types unless necessary
+- Prefer types over interfaces
+- Use proper type annotations
+- Prefer `unknown` type over `any`
+- Follow the project's TypeScript patterns

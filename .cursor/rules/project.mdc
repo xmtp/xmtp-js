@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Rules
+
+## Project Structure
+
+- SDKs are located in the `sdks/` directory
+- Content types are in `content-types/` directory
+- Example apps are in `apps/` directory
+- Use workspace dependencies for internal packages
