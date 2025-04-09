@@ -3,7 +3,8 @@ import {
   getInboxIdForIdentifier as getInboxIdForIdentifierBinding,
   type Identifier,
 } from "@xmtp/node-bindings";
-import { ApiUrls, type XmtpEnv } from "@/Client";
+import { ApiUrls } from "@/constants";
+import type { XmtpEnv } from "@/types";
 
 export const generateInboxId = (identifier: Identifier): string => {
   return generateInboxIdBinding(identifier);

@@ -4,8 +4,9 @@ export type {
   NetworkOptions,
   StorageOptions,
   XmtpEnv,
-} from "./Client";
-export { Client, ApiUrls, HistorySyncUrls } from "./Client";
+} from "./types";
+export { ApiUrls, HistorySyncUrls } from "./constants";
+export { Client } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
 export { Dm } from "./Dm";

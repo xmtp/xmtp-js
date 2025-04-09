@@ -26,81 +26,12 @@ import {
   type Message,
   type Client as NodeClient,
 } from "@xmtp/node-bindings";
+import { ApiUrls, HistorySyncUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { type Signer } from "@/helpers/signer";
 import { version } from "@/helpers/version";
 import { Preferences } from "@/Preferences";
-
-export const ApiUrls = {
-  local: "http://localhost:5556",
-  dev: "https://grpc.dev.xmtp.network:443",
-  production: "https://grpc.production.xmtp.network:443",
-} as const;
-
-export const HistorySyncUrls = {
-  local: "http://localhost:5558",
-  dev: "https://message-history.dev.ephemera.network",
-  production: "https://message-history.production.ephemera.network",
-} as const;
-
-export type XmtpEnv = keyof typeof ApiUrls;
-
-/**
- * Network options
- */
-export type NetworkOptions = {
-  /**
-   * Specify which XMTP environment to connect to. (default: `dev`)
-   */
-  env?: XmtpEnv;
-  /**
-   * apiUrl can be used to override the `env` flag and connect to a
-   * specific endpoint
-   */
-  apiUrl?: string;
-  /**
-   * historySyncUrl can be used to override the `env` flag and connect to a
-   * specific endpoint for syncing history
-   */
-  historySyncUrl?: string;
-};
-
-/**
- * Storage options
- */
-export type StorageOptions = {
-  /**
-   * Path to the local DB
-   */
-  dbPath?: string;
-};
-
-export type ContentOptions = {
-  /**
-   * Allow configuring codecs for additional content types
-   */
-  codecs?: ContentCodec[];
-};
-
-export type OtherOptions = {
-  /**
-   * Enable structured JSON logging
-   */
-  structuredLogging?: boolean;
-  /**
-   * Logging level
-   */
-  loggingLevel?: LogLevel;
-  /**
-   * Disable automatic registration when creating a client
-   */
-  disableAutoRegister?: boolean;
-};
-
-export type ClientOptions = NetworkOptions &
-  StorageOptions &
-  ContentOptions &
-  OtherOptions;
+import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
 
 export class Client {
   #innerClient: NodeClient;

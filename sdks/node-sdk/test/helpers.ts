@@ -10,8 +10,10 @@ import { generateInboxId, IdentifierKind } from "@xmtp/node-bindings";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { Client, HistorySyncUrls, type ClientOptions } from "@/Client";
+import { Client } from "@/Client";
+import { HistorySyncUrls } from "@/constants";
 import type { Signer } from "@/helpers/signer";
+import type { ClientOptions } from "@/types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const testEncryptionKey = getRandomValues(new Uint8Array(32));
