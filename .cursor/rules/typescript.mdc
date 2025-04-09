@@ -12,6 +12,7 @@ alwaysApply: true
 
 ## Code Style and Structure
 
+- Always use ES module syntax
 - Maintain consistent naming conventions
 - Focus on writing correct, best practice, DRY code
 - Use early returns to avoid nested conditions and improve readability
