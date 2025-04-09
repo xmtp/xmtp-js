@@ -20,12 +20,12 @@ import {
 } from "@xmtp/node-bindings";
 import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
-import { createClient } from "@/helpers/createClient";
-import { getInboxIdForIdentifier } from "@/helpers/inboxId";
-import { type Signer } from "@/helpers/signer";
-import { version } from "@/helpers/version";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
+import { createClient } from "@/utils/createClient";
+import { getInboxIdForIdentifier } from "@/utils/inboxId";
+import { type Signer } from "@/utils/signer";
+import { version } from "@/utils/version";
 
 export class Client {
   #innerClient: NodeClient;

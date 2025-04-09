@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateInboxId, getInboxIdForIdentifier } from "@/helpers/inboxId";
+import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
 import {
   createRegisteredClient,
   createSigner,

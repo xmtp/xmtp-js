@@ -55,5 +55,5 @@ export {
   SignatureRequestType,
   SortDirection,
 } from "@xmtp/node-bindings";
-export { generateInboxId, getInboxIdForIdentifier } from "./helpers/inboxId";
-export type { Signer } from "./helpers/signer";
+export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
+export type { Signer } from "./utils/signer";

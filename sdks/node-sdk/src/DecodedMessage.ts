@@ -5,7 +5,7 @@ import {
   type Message,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
-import { nsToDate } from "@/helpers/date";
+import { nsToDate } from "@/utils/date";
 
 export type MessageKind = "application" | "membership_change";
 export type MessageDeliveryStatus = "unpublished" | "published" | "failed";

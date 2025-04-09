@@ -7,8 +7,8 @@ import {
   type LogOptions,
 } from "@xmtp/node-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
-import { generateInboxId, getInboxIdForIdentifier } from "@/helpers/inboxId";
 import type { ClientOptions } from "@/types";
+import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
 
 export const createClient = async (
   identifier: Identifier,

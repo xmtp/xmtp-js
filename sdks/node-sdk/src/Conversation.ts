@@ -9,7 +9,7 @@ import type {
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
-import { nsToDate } from "@/helpers/date";
+import { nsToDate } from "@/utils/date";
 
 export class Conversation {
   #client: Client;
