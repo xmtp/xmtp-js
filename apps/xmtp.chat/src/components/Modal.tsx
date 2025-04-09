@@ -8,12 +8,11 @@ export const Modal: React.FC<ModalProps> = ({ children, ...props }) => {
         content: {
           display: "flex",
           flexDirection: "column",
-          flex: 1,
         },
         body: {
           display: "flex",
           flexDirection: "column",
-          flex: 1,
+          flexGrow: 1,
         },
       }}>
       {children}
