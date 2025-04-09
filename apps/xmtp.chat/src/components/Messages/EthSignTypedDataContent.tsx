@@ -2,9 +2,9 @@ import { Box, Button, Space, Text } from "@mantine/core";
 import type { Client } from "@xmtp/browser-sdk";
 import type { EthSignTypedDataParams } from "@xmtp/content-type-eth-sign-typed-data";
 import {
-  ContentTypeTransactionReference,
-  type TransactionReference,
-} from "@xmtp/content-type-transaction-reference";
+  ContentTypeOffChainSignature,
+  type OffChainSignature,
+} from "@xmtp/content-type-off-chain-signature";
 import { useCallback } from "react";
 import { useOutletContext } from "react-router";
 import { useChainId, useSignTypedData, useSwitchChain } from "wagmi";
@@ -40,9 +40,9 @@ export const EthSignTypedDataContent: React.FC<
         console.error(error);
       },
     });
-    const transactionReference: TransactionReference = {
+    const offChainSignature: OffChainSignature = {
       networkId: content.domain?.chainId ? Number(content.domain.chainId) : 1,
-      reference: signature,
+      signature,
     };
     const conversation =
       await client.conversations.getConversationById(conversationId);
@@ -50,10 +50,7 @@ export const EthSignTypedDataContent: React.FC<
       console.error("Couldn't find conversation by Id");
       return;
     }
-    await conversation.send(
-      transactionReference,
-      ContentTypeTransactionReference,
-    );
+    await conversation.send(offChainSignature, ContentTypeOffChainSignature);
   }, [content, signTypedDataAsync, client, conversationId]);
 
   return (

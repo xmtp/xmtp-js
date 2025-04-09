@@ -3492,6 +3492,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/content-type-off-chain-signature@workspace:^, @xmtp/content-type-off-chain-signature@workspace:content-types/content-type-off-chain-signature":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/content-type-off-chain-signature@workspace:content-types/content-type-off-chain-signature"
+  dependencies:
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
+    "@types/node": "npm:^22.14.0"
+    "@xmtp/content-type-primitives": "npm:^2.0.1"
+    "@xmtp/node-sdk": "workspace:^"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.39.0"
+    rollup-plugin-dts: "npm:^6.1.1"
+    rollup-plugin-filesize: "npm:^10.0.0"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^6.2.5"
+    vitest: "npm:^3.1.1"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/content-type-primitives@npm:^2.0.1, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
@@ -3734,6 +3753,7 @@ __metadata:
     "@xmtp/browser-sdk": "workspace:^"
     "@xmtp/content-type-eth-sign-typed-data": "workspace:^"
     "@xmtp/content-type-group-updated": "workspace:^"
+    "@xmtp/content-type-off-chain-signature": "workspace:^"
     "@xmtp/content-type-primitives": "workspace:^"
     "@xmtp/content-type-reaction": "workspace:^"
     "@xmtp/content-type-remote-attachment": "workspace:^"

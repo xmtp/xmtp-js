@@ -5,6 +5,10 @@ import {
   type EthSignTypedDataParams,
 } from "@xmtp/content-type-eth-sign-typed-data";
 import {
+  ContentTypeOffChainSignature,
+  type OffChainSignature,
+} from "@xmtp/content-type-off-chain-signature";
+import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
@@ -19,6 +23,7 @@ import { shortAddress } from "@/helpers/strings";
 import { EthSignTypedDataContent } from "./EthSignTypedDataContent";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
+import { OffChainSignatureContent } from "./OffChainSignatureContent";
 import { TransactionReferenceContent } from "./TransactionReferenceContent";
 import { WalletSendCallsContent } from "./WalletSendCallsContent";
 
@@ -86,6 +91,10 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
               <EthSignTypedDataContent
                 content={message.content as EthSignTypedDataParams}
                 conversationId={message.conversationId}
+              />
+            ) : message.contentType.sameAs(ContentTypeOffChainSignature) ? (
+              <OffChainSignatureContent
+                content={message.content as OffChainSignature}
               />
             ) : (
               <MessageContent content={message.content as string} />

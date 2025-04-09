@@ -24,6 +24,7 @@
     "@xmtp/browser-sdk": "workspace:^",
     "@xmtp/content-type-eth-sign-typed-data": "workspace:^",
     "@xmtp/content-type-group-updated": "workspace:^",
+    "@xmtp/content-type-off-chain-signature": "workspace:^",
     "@xmtp/content-type-primitives": "workspace:^",
     "@xmtp/content-type-reaction": "workspace:^",
     "@xmtp/content-type-remote-attachment": "workspace:^",
