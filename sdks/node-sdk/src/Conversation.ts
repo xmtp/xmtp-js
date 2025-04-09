@@ -10,6 +10,7 @@ import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { nsToDate } from "@/utils/date";
+import { MissingContentTypeError } from "@/utils/errors";
 
 export class Conversation {
   #client: Client;
@@ -86,9 +87,7 @@ export class Conversation {
 
   sendOptimistic(content: any, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
-      throw new Error(
-        "Content type is required when sending content other than text",
-      );
+      throw new MissingContentTypeError();
     }
 
     const encodedContent =
@@ -102,9 +101,7 @@ export class Conversation {
 
   async send(content: any, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
-      throw new Error(
-        "Content type is required when sending content other than text",
-      );
+      throw new MissingContentTypeError();
     }
 
     const encodedContent =

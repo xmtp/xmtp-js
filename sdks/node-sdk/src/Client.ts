@@ -23,6 +23,13 @@ import { Conversations } from "@/Conversations";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
 import { createClient } from "@/utils/createClient";
+import {
+  AccountAlreadyAssociatedError,
+  CodecNotFoundError,
+  GenerateSignatureError,
+  InboxReassignError,
+  InvalidGroupMembershipChangeError,
+} from "@/utils/errors";
 import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
 import { version } from "@/utils/version";
@@ -125,9 +132,7 @@ export class Client {
     allowInboxReassign: boolean = false,
   ) {
     if (!allowInboxReassign) {
-      throw new Error(
-        "Unable to create add identifier signature text, `allowInboxReassign` must be true",
-      );
+      throw new InboxReassignError();
     }
 
     try {
@@ -293,9 +298,7 @@ export class Client {
     const existingInboxId = await this.getInboxIdByIdentifier(identifier);
 
     if (existingInboxId && !allowInboxReassign) {
-      throw new Error(
-        `Signer address already associated with inbox ${existingInboxId}`,
-      );
+      throw new AccountAlreadyAssociatedError(existingInboxId);
     }
 
     const signatureText = await this.unsafe_addAccountSignatureText(
@@ -304,7 +307,7 @@ export class Client {
     );
 
     if (!signatureText) {
-      throw new Error("Unable to generate add account signature text");
+      throw new GenerateSignatureError(SignatureRequestType.AddWallet);
     }
 
     await this.unsafe_addSignature(
@@ -321,7 +324,7 @@ export class Client {
       await this.unsafe_removeAccountSignatureText(identifier);
 
     if (!signatureText) {
-      throw new Error("Unable to generate remove account signature text");
+      throw new GenerateSignatureError(SignatureRequestType.RevokeWallet);
     }
 
     await this.unsafe_addSignature(
@@ -338,8 +341,8 @@ export class Client {
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
 
     if (!signatureText) {
-      throw new Error(
-        "Unable to generate revoke all other installations signature text",
+      throw new GenerateSignatureError(
+        SignatureRequestType.RevokeInstallations,
       );
     }
 
@@ -357,7 +360,9 @@ export class Client {
       await this.unsafe_revokeInstallationsSignatureText(installationIds);
 
     if (!signatureText) {
-      throw new Error("Unable to generate revoke installations signature text");
+      throw new GenerateSignatureError(
+        SignatureRequestType.RevokeInstallations,
+      );
     }
 
     await this.unsafe_addSignature(
@@ -374,8 +379,8 @@ export class Client {
       await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
 
     if (!signatureText) {
-      throw new Error(
-        "Unable to generate change recovery identifier signature text",
+      throw new GenerateSignatureError(
+        SignatureRequestType.ChangeRecoveryIdentifier,
       );
     }
 
@@ -415,7 +420,7 @@ export class Client {
   encodeContent(content: any, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
-      throw new Error(`no codec for ${contentType.toString()}`);
+      throw new CodecNotFoundError(contentType);
     }
     const encoded = codec.encode(content, this);
     const fallback = codec.fallback(content);
@@ -428,7 +433,7 @@ export class Client {
   decodeContent(message: Message, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
-      throw new Error(`no codec for ${contentType.toString()}`);
+      throw new CodecNotFoundError(contentType);
     }
 
     // throw an error if there's an invalid group membership change message
@@ -436,7 +441,7 @@ export class Client {
       contentType.sameAs(ContentTypeGroupUpdated) &&
       message.kind !== GroupMessageKind.MembershipChange
     ) {
-      throw new Error("Error decoding group membership change");
+      throw new InvalidGroupMembershipChangeError(message.id);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
