@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 1.2.0
+
+### Minor Changes
+
+- d35fbc1: Add `getHmacKeys` to `Conversation`, refactor `Client.canMessage`
+
 ## 1.1.1
 
 ### Patch Changes
