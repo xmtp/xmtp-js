@@ -4,7 +4,9 @@
 
 ### Minor Changes
 
-- d35fbc1: Add `getHmacKeys` to `Conversation`, refactor `Client.canMessage`
+- d35fbc1:
+  - Added `getHmacKeys` to `Conversation`
+  - Added custom errors
 
 ## 1.1.1
 
