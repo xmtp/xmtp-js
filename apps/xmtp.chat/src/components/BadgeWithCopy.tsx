@@ -1,5 +1,6 @@
 import { Badge, Button, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
+import React from "react";
 import { IconCopy } from "@/icons/IconCopy";
 import classes from "./BadgeWithCopy.module.css";
 
@@ -10,7 +11,12 @@ type CopyIconProps = {
 const CopyIcon: React.FC<CopyIconProps> = ({ value }) => {
   const clipboard = useClipboard({ timeout: 1000 });
 
-  const handleCopy = () => {
+  const handleCopy = (
+    event:
+      | React.MouseEvent<HTMLButtonElement>
+      | React.KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    event.stopPropagation();
     clipboard.copy(value);
   };
 
@@ -18,7 +24,7 @@ const CopyIcon: React.FC<CopyIconProps> = ({ value }) => {
     event: React.KeyboardEvent<HTMLButtonElement>,
   ) => {
     if (event.key === "Enter" || event.key === " ") {
-      handleCopy();
+      handleCopy(event);
     }
   };
 
