@@ -1,4 +1,5 @@
 import { Box, Button, List, Space, Text } from "@mantine/core";
+import { getCapabilities } from "@wagmi/core/experimental";
 import type { Client } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
@@ -10,14 +11,11 @@ import { useOutletContext } from "react-router";
 import {
   useAccount,
   useChainId,
+  useConfig,
   useSendTransaction,
   useSwitchChain,
 } from "wagmi";
-import {
-  useCapabilities,
-  useSendCalls,
-  useWaitForCallsStatus,
-} from "wagmi/experimental";
+import { useSendCalls, useWaitForCallsStatus } from "wagmi/experimental";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
@@ -31,6 +29,7 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   const { client } = useOutletContext<{ client: Client }>();
   const { sendTransactionAsync } = useSendTransaction();
   const wagmiAccount = useAccount();
+  const wagmiConfig = useConfig();
   const { sendCalls } = useSendCalls();
   const [callsId, setCallsId] = useState<string>();
   const { data: callsStatus } = useWaitForCallsStatus({
@@ -43,14 +42,16 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();
   type OptionalCapability = { supported: boolean } | undefined;
-  const { data: availableCapabilities } = useCapabilities();
 
-  const isBatchingSupported = (txChainId: number): boolean => {
-    return !!(
-      availableCapabilities &&
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Necessary because Viem type definition is bad and availableCapabilities is {} in case of an EOA wallet.
-      (availableCapabilities[txChainId]?.atomicBatch as OptionalCapability)
-    )?.supported;
+  const isBatchingSupported = async (txChainId: number): Promise<boolean> => {
+    try {
+      const availableCapabilities = await getCapabilities(wagmiConfig);
+      return !!(
+        availableCapabilities[txChainId].atomicBatch as OptionalCapability
+      )?.supported;
+    } catch {
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
       await switchChainAsync({ chainId });
       await new Promise((r) => setTimeout(r, 300)); // Metamask requires some delay
     }
-    if (isBatchingSupported(chainId)) {
+    if (await isBatchingSupported(chainId)) {
       sendCalls(
         {
           calls: content.calls,
