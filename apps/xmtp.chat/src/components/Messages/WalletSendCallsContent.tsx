@@ -57,7 +57,6 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
     if (!callsStatus?.receipts) return;
     // Exactly one receipt is expected since sendCalls is used only when atomic batching is supported
     const receipt = callsStatus.receipts[0];
-    console.log("setting tx hash");
     setTxHash(receipt.transactionHash);
   }, [callsStatus?.status]);
 
@@ -98,7 +97,6 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
         },
         {
           onSuccess({ id }) {
-            console.log("Send Calls Id:", id);
             setCallsId(id);
           },
           onError(error) {
