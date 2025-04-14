@@ -16,4 +16,4 @@ alwaysApply: true
 - Use `const` instead of `function` for components
 - Ensure all components have a TypeScript interface using `React.FC`
 - Prefix event handler functions with "handle" (e.g., handleClick, handleKeyDown)
-
+- Component props should have a defined type that matches the component name and ends in `Props`
