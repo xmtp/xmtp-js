@@ -93,7 +93,7 @@ export class Conversation {
     return this.#conversation.publishMessages();
   }
 
-  sendOptimistic(content: any, contentType?: ContentTypeId) {
+  sendOptimistic(content: unknown, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -107,7 +107,7 @@ export class Conversation {
     return this.#conversation.sendOptimistic(encodedContent);
   }
 
-  async send(content: any, contentType?: ContentTypeId) {
+  async send(content: unknown, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }

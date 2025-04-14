@@ -44,7 +44,7 @@ export class Conversations {
     }
   }
 
-  getMessageById<T = any>(id: string) {
+  getMessageById<T = unknown>(id: string) {
     try {
       // findMessageById will throw if message is not found
       const message = this.#conversations.findMessageById(id);

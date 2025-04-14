@@ -10,9 +10,9 @@ import { nsToDate } from "@/utils/date";
 export type MessageKind = "application" | "membership_change";
 export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
 
-export class DecodedMessage<T = any> {
+export class DecodedMessage<T = unknown> {
   #client: Client;
-  content: T;
+  content: T | undefined;
   contentType: ContentTypeId | undefined;
   conversationId: string;
   deliveryStatus: MessageDeliveryStatus;

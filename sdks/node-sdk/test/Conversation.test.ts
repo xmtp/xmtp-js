@@ -329,9 +329,8 @@ describe.concurrent("Conversation", () => {
     expect(conversation2.length).toBe(1);
     expect(conversation2[0].id).toBe(conversation.id);
 
-    const streamedMessages: string[] = [];
+    const streamedMessages: unknown[] = [];
     const stream = conversation2[0].stream((_, message) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       streamedMessages.push(message!.content);
     });
 

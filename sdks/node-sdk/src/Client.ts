@@ -535,11 +535,13 @@ export class Client {
     );
   }
 
-  codecFor(contentType: ContentTypeId) {
-    return this.#codecs.get(contentType.toString());
+  codecFor<T = unknown>(contentType: ContentTypeId) {
+    return this.#codecs.get(contentType.toString()) as
+      | ContentCodec<T>
+      | undefined;
   }
 
-  encodeContent(content: any, contentType: ContentTypeId) {
+  encodeContent(content: unknown, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
@@ -552,8 +554,8 @@ export class Client {
     return encoded;
   }
 
-  decodeContent(message: Message, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
+  decodeContent<T = unknown>(message: Message, contentType: ContentTypeId) {
+    const codec = this.codecFor<T>(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
     }
@@ -566,7 +568,6 @@ export class Client {
       throw new InvalidGroupMembershipChangeError(message.id);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return codec.decode(message.content as EncodedContent, this);
   }
 
