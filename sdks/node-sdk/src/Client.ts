@@ -570,14 +570,6 @@ export class Client {
     return codec.decode(message.content as EncodedContent, this);
   }
 
-  async requestHistorySync() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-
-    return this.#client.sendHistorySyncRequest();
-  }
-
   async getInboxIdByIdentifier(identifier: Identifier) {
     if (!this.#client) {
       throw new ClientNotInitializedError();

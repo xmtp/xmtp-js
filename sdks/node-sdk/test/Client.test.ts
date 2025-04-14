@@ -385,9 +385,6 @@ describe.concurrent("Client", () => {
     await expect(async () =>
       client.getKeyPackageStatusesForInstallationIds([]),
     ).rejects.toThrow(new ClientNotInitializedError());
-    await expect(async () => client.requestHistorySync()).rejects.toThrow(
-      new ClientNotInitializedError(),
-    );
     await expect(async () =>
       client.getInboxIdByIdentifier(createIdentifier(createUser())),
     ).rejects.toThrow(new ClientNotInitializedError());
