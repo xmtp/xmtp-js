@@ -46,17 +46,17 @@ export type EncodedContent<Parameters = Record<string, string>> = {
 };
 
 export type ContentCodec<
-  ContentType = any,
+  ContentType = unknown,
   Parameters = Record<string, string>,
 > = {
   contentType: ContentTypeId;
   encode(
     content: ContentType,
-    registry: CodecRegistry<ContentType>,
+    registry: CodecRegistry,
   ): EncodedContent<Parameters>;
   decode(
     content: EncodedContent<Parameters>,
-    registry: CodecRegistry<ContentType>,
+    registry: CodecRegistry,
   ): ContentType;
   fallback(content: ContentType): string | undefined;
   shouldPush: (content: ContentType) => boolean;
@@ -64,10 +64,9 @@ export type ContentCodec<
 
 /**
  * An interface implemented for accessing codecs by content type.
- * @deprecated
  */
-export interface CodecRegistry<T = any> {
+export interface CodecRegistry<T = unknown> {
   codecFor(contentType: ContentTypeId): ContentCodec<T> | undefined;
 }
 
-export type CodecMap<T = any> = Map<string, ContentCodec<T>>;
+export type CodecMap<T = unknown> = Map<string, ContentCodec<T>>;
