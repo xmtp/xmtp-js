@@ -162,16 +162,20 @@ export class Conversations {
   streamGroups(callback?: StreamCallback<Group>) {
     const asyncStream = new AsyncStream<Group>();
 
-    const stream = this.#conversations.streamGroups((err, value) => {
-      if (err) {
-        asyncStream.callback(err, undefined);
-        callback?.(err, undefined);
-        return;
+    const stream = this.#conversations.streamGroups((error, value) => {
+      let err: Error | null = error;
+      let group: Group | undefined;
+
+      if (value) {
+        try {
+          group = new Group(this.#client, value);
+        } catch (error) {
+          err = error as Error;
+        }
       }
 
-      const conversation = value ? new Group(this.#client, value) : undefined;
-      asyncStream.callback(null, conversation);
-      callback?.(null, conversation);
+      asyncStream.callback(err, group);
+      callback?.(err, group);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -182,16 +186,20 @@ export class Conversations {
   streamDms(callback?: StreamCallback<Dm>) {
     const asyncStream = new AsyncStream<Dm>();
 
-    const stream = this.#conversations.streamDms((err, value) => {
-      if (err) {
-        asyncStream.callback(err, undefined);
-        callback?.(err, undefined);
-        return;
+    const stream = this.#conversations.streamDms((error, value) => {
+      let err: Error | null = error;
+      let dm: Dm | undefined;
+
+      if (value) {
+        try {
+          dm = new Dm(this.#client, value);
+        } catch (error) {
+          err = error as Error;
+        }
       }
 
-      const conversation = value ? new Dm(this.#client, value) : undefined;
-      asyncStream.callback(null, conversation);
-      callback?.(null, conversation);
+      asyncStream.callback(err, dm);
+      callback?.(err, dm);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -205,18 +213,20 @@ export class Conversations {
 
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#conversations.streamAllMessages((err, value) => {
-      if (err) {
-        asyncStream.callback(err, undefined);
-        callback?.(err, undefined);
-        return;
+    const stream = this.#conversations.streamAllMessages((error, value) => {
+      let err: Error | null = error;
+      let message: DecodedMessage | undefined;
+
+      if (value) {
+        try {
+          message = new DecodedMessage(this.#client, value);
+        } catch (error) {
+          err = error as Error;
+        }
       }
 
-      const decodedMessage = value
-        ? new DecodedMessage(this.#client, value)
-        : undefined;
-      asyncStream.callback(null, decodedMessage);
-      callback?.(null, decodedMessage);
+      asyncStream.callback(err, message);
+      callback?.(err, message);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -230,19 +240,23 @@ export class Conversations {
 
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#conversations.streamAllGroupMessages((err, value) => {
-      if (err) {
-        asyncStream.callback(err, undefined);
-        callback?.(err, undefined);
-        return;
-      }
+    const stream = this.#conversations.streamAllGroupMessages(
+      (error, value) => {
+        let err: Error | null = error;
+        let message: DecodedMessage | undefined;
 
-      const decodedMessage = value
-        ? new DecodedMessage(this.#client, value)
-        : undefined;
-      asyncStream.callback(null, decodedMessage);
-      callback?.(null, decodedMessage);
-    });
+        if (value) {
+          try {
+            message = new DecodedMessage(this.#client, value);
+          } catch (error) {
+            err = error as Error;
+          }
+        }
+
+        asyncStream.callback(err, message);
+        callback?.(err, message);
+      },
+    );
 
     asyncStream.onReturn = stream.end.bind(stream);
 
@@ -255,18 +269,20 @@ export class Conversations {
 
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#conversations.streamAllDmMessages((err, value) => {
-      if (err) {
-        asyncStream.callback(err, undefined);
-        callback?.(err, undefined);
-        return;
+    const stream = this.#conversations.streamAllDmMessages((error, value) => {
+      let err: Error | null = error;
+      let message: DecodedMessage | undefined;
+
+      if (value) {
+        try {
+          message = new DecodedMessage(this.#client, value);
+        } catch (error) {
+          err = error as Error;
+        }
       }
 
-      const decodedMessage = value
-        ? new DecodedMessage(this.#client, value)
-        : undefined;
-      asyncStream.callback(null, decodedMessage);
-      callback?.(null, decodedMessage);
+      asyncStream.callback(err, message);
+      callback?.(err, message);
     });
 
     asyncStream.onReturn = stream.end.bind(stream);

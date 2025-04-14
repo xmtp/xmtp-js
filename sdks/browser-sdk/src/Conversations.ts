@@ -256,23 +256,22 @@ export class Conversations {
     const endStream = this.#client.handleStreamMessage<SafeConversation>(
       streamId,
       (error, value) => {
-        if (error) {
-          void asyncStream.callback(error, undefined);
-          void callback?.(error, undefined);
-          return;
-        }
-
-        let streamValue: T | undefined = undefined;
+        let err: Error | null = error;
+        let streamValue: T | undefined;
 
         if (value) {
-          streamValue =
-            value.metadata.conversationType === "group"
-              ? (new Group(this.#client, value.id, value) as T)
-              : (new Dm(this.#client, value.id, value) as T);
+          try {
+            streamValue =
+              value.metadata.conversationType === "group"
+                ? (new Group(this.#client, value.id, value) as T)
+                : (new Dm(this.#client, value.id, value) as T);
+          } catch (error) {
+            err = error as Error;
+          }
         }
 
-        void asyncStream.callback(null, streamValue);
-        void callback?.(null, streamValue);
+        void asyncStream.callback(err, streamValue);
+        void callback?.(err, streamValue);
       },
     );
     await this.#client.sendMessage("streamAllGroups", {
@@ -324,17 +323,19 @@ export class Conversations {
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
       streamId,
       (error, value) => {
-        if (error) {
-          void asyncStream.callback(error, undefined);
-          void callback?.(error, undefined);
-          return;
+        let err: Error | null = error;
+        let message: DecodedMessage | undefined;
+
+        if (value) {
+          try {
+            message = new DecodedMessage(this.#client, value);
+          } catch (error) {
+            err = error as Error;
+          }
         }
 
-        const decodedMessage = value
-          ? new DecodedMessage(this.#client, value)
-          : undefined;
-        void asyncStream.callback(null, decodedMessage);
-        void callback?.(null, decodedMessage);
+        void asyncStream.callback(err, message);
+        void callback?.(err, message);
       },
     );
     await this.#client.sendMessage("streamAllMessages", {

@@ -254,17 +254,19 @@ export class Conversation {
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
       streamId,
       (error, value) => {
-        if (error) {
-          void asyncStream.callback(error, undefined);
-          void callback?.(error, undefined);
-          return;
+        let err: Error | null = error;
+        let message: DecodedMessage | undefined;
+
+        if (value) {
+          try {
+            message = new DecodedMessage(this.#client, value);
+          } catch (error) {
+            err = error as Error;
+          }
         }
 
-        const decodedMessage = value
-          ? new DecodedMessage(this.#client, value)
-          : undefined;
-        void asyncStream.callback(null, decodedMessage);
-        void callback?.(null, decodedMessage);
+        void asyncStream.callback(err, message);
+        void callback?.(err, message);
       },
     );
     await this.#client.sendMessage("streamGroupMessages", {
