@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 6e54926: Expose message decoding error in streams
+- 6e54926: Exposed message decoding errors in streams
 
 ## 2.0.2
 
