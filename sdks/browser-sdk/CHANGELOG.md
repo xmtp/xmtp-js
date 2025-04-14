@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.3
+
+### Patch Changes
+
+- 6e54926: Expose message decoding error in streams
+
 ## 2.0.2
 
 ### Patch Changes

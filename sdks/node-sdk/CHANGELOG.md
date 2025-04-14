@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 1.2.1
+
+### Patch Changes
+
+- 6e54926: Expose message decoding error in streams
+
 ## 1.2.0
 
 ### Minor Changes
