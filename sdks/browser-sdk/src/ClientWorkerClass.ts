@@ -67,7 +67,6 @@ export class ClientWorkerClass {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   handleStreamMessage = <T extends ClientStreamEvents["result"]>(
     streamId: string,
     callback: (error: Error | null, value: T | null) => void,
