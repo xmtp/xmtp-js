@@ -1,5 +1,110 @@
 # @xmtp/node-sdk
 
+## 2.0.0
+
+This release focuses on new features, stability, and performance.
+
+### Upgrade from 1.2.1 to 2.0.0
+
+Use the information in these release notes to upgrade from `@xmtp/node-sdk` version `1.2.1` to `2.0.0`.
+
+### Breaking changes
+
+#### Refactored `Client.create`
+
+The database encryption key parameter was removed from the static `Client.create` method. To use a database encryption key, add it to the client options.
+
+`1.x` code:
+
+```typescript
+import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = { ... };
+const dbEncryptionKey = MY_ENCRYPTION_KEY;
+const signer: Signer = { ... };
+const client = await Client.create(signer, dbEncryptionKey, clientOptions);
+```
+
+`2.0.0` code:
+
+```typescript
+import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = {
+  dbEncryptionKey: MY_ENCRYPTION_KEY,
+};
+const signer: Signer = { ... };
+const client = await Client.create(signer, clientOptions);
+```
+
+#### Refactored `Client` constructor
+
+The `Client` constructor now only accepts a single parameter: client options. It's no longer possible to create a client with a signer using the constructor. Use `Client.create` to create a new client with a signer.
+
+`1.x` code:
+
+```typescript
+import { Client, type Signer } from "@xmtp/node-sdk";
+
+const signer: Signer = { ... };
+const client = new Client(XMTPClient, signer, codecs);
+```
+
+`2.0.0` code:
+
+```typescript
+import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = {
+  dbEncryptionKey: MY_ENCRYPTION_KEY,
+};
+const signer: Signer = { ... };
+const client = await Client.create(signer, clientOptions);
+```
+
+#### Client `identifier` property is now `accountIdentifier`
+
+`1.x` code:
+
+```typescript
+const identifier = await client.identifier;
+```
+
+`2.0.0` code:
+
+```typescript
+const identifier = client.accountIdentifier;
+```
+
+#### Removed `requestHistorySync` method from client
+
+Device sync is being refactored and this method will not be compatible with a future version. Removing it now with these breaking changes so we don't need to bump the major version in the near future.
+
+### New features
+
+#### Added `Client.build` static method
+
+It's now possible to create a client without a signer using the new `Client.build` method. A signer is not required if an account is already registered on the XMTP network. Keep in mind, some client methods still require a signer.
+
+```typescript
+import { Client, IdentifierKind, type ClientOptions, type Identifier } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = { ... };
+const identifier: Identifier = {
+  identifier: "0x1234567890abcdef1234567890abcdef12345678",
+  identifierKind: IdentifierKind.Ethereum,
+};
+const client = await Client.build(identifier, clientOptions);
+```
+
+### Other changes
+
+- Updated `dbPath` client option to allow `null` value
+- Added more custom error types
+- Added `dbEncryptionKey` option to client options
+- Added `options` property to client
+- Added `signer` property to client
+
 ## 1.2.1
 
 ### Patch Changes
