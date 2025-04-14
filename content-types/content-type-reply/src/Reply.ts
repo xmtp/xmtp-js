@@ -27,7 +27,7 @@ export type Reply = {
   /**
    * The content of the reply
    */
-  content: any;
+  content: unknown;
   /**
    * The content type of the reply
    */
@@ -45,7 +45,10 @@ export class ReplyCodec implements ContentCodec<Reply, ReplyParameters> {
     return ContentTypeReply;
   }
 
-  encode(content: Reply, registry: CodecRegistry) {
+  encode(
+    content: Reply,
+    registry: CodecRegistry,
+  ): EncodedContent<ReplyParameters> {
     const codec = registry.codecFor(content.contentType);
     if (!codec) {
       throw new Error(
@@ -94,7 +97,6 @@ export class ReplyCodec implements ContentCodec<Reply, ReplyParameters> {
       reference: content.parameters.reference,
       referenceInboxId: content.parameters.referenceInboxId,
       contentType,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       content: codec.decode(decodedContent as EncodedContent, registry),
     };
   }
