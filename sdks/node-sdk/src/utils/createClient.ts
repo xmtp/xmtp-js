@@ -12,7 +12,6 @@ import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
 
 export const createClient = async (
   identifier: Identifier,
-  encryptionKey?: Uint8Array,
   options?: ClientOptions,
 ) => {
   const env = options?.env || "dev";
@@ -22,7 +21,10 @@ export const createClient = async (
     (await getInboxIdForIdentifier(identifier, env)) ||
     generateInboxId(identifier);
   const dbPath =
-    options?.dbPath || join(process.cwd(), `xmtp-${env}-${inboxId}.db3`);
+    options?.dbPath === undefined
+      ? join(process.cwd(), `xmtp-${env}-${inboxId}.db3`)
+      : options.dbPath;
+
   const logOptions: LogOptions = {
     structured: options?.structuredLogging ?? false,
     level: options?.loggingLevel ?? LogLevel.off,
@@ -35,7 +37,7 @@ export const createClient = async (
     dbPath,
     inboxId,
     identifier,
-    encryptionKey,
+    options?.dbEncryptionKey,
     historySyncUrl,
     logOptions,
   );

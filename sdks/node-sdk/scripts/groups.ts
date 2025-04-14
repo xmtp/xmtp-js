@@ -1,12 +1,14 @@
-import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { Client } from "@/Client";
 import { createSigner, createUser, type User } from "@test/helpers";
 
-export const createRegisteredClient = async (user: User, dbPath?: string) => {
-  return Client.create(createSigner(user), randomBytes(32), {
+export const createRegisteredClient = async (
+  user: User,
+  dbPath?: string | null,
+) => {
+  return Client.create(createSigner(user), {
     env: "local",
     dbPath,
   });
@@ -32,7 +34,7 @@ const primaryAccountClient = await createRegisteredClient(
 console.log("Registering accounts...");
 
 for (const a of accounts) {
-  await createRegisteredClient(createUser(a.key as `0x${string}`));
+  await createRegisteredClient(createUser(a.key as `0x${string}`), null);
 }
 
 const groups = [];

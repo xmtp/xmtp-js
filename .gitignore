@@ -71,3 +71,6 @@ next-env.d.ts
 
 # Benchmark results
 sdks/js-sdk/bench/results
+
+# local database files
+**/*.db3*
