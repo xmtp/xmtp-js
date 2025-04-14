@@ -1,10 +1,16 @@
-import { IdentifierKind } from "@xmtp/node-bindings";
+import { IdentifierKind, SignatureRequestType } from "@xmtp/node-bindings";
 import { uint8ArrayToHex } from "uint8array-extras";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
 import {
+  ClientNotInitializedError,
+  SignerUnavailableError,
+} from "@/utils/errors";
+import {
+  buildClient,
   createClient,
+  createIdentifier,
   createRegisteredClient,
   createSigner,
   createUser,
@@ -15,13 +21,17 @@ describe.concurrent("Client", () => {
     const user = createUser();
     const signer = createSigner(user);
     const client = await createClient(signer);
-    expect(client.identifier.identifierKind).toBe(IdentifierKind.Ethereum);
-    expect(client.identifier.identifier).toBe(
+    expect(client.accountIdentifier?.identifierKind).toBe(
+      IdentifierKind.Ethereum,
+    );
+    expect(client.accountIdentifier?.identifier).toBe(
       user.account.address.toLowerCase(),
     );
     expect(client.isRegistered).toBe(false);
     expect(client.inboxId).toBeDefined();
     expect(client.installationId).toBeDefined();
+    expect(client.options).toBeDefined();
+    expect(client.signer).toBe(signer);
   });
 
   it("should register an identity", async () => {
@@ -274,5 +284,128 @@ describe.concurrent("Client", () => {
       (keyPackageStatuses[client.installationId].lifetime?.notAfter ?? 0n) -
         (keyPackageStatuses[client.installationId].lifetime?.notBefore ?? 0n),
     ).toEqual(BigInt(3600 * 24 * 28 * 3 + 3600));
+  });
+
+  it("should create a client without a signer", async () => {
+    const user = createUser();
+    const identifier = createIdentifier(user);
+    const client = await buildClient(identifier);
+    expect(client).toBeDefined();
+    expect(client.accountIdentifier).toEqual(identifier);
+    expect(client.isRegistered).toBe(false);
+    expect(client.inboxId).toBeDefined();
+    expect(client.installationId).toBeDefined();
+    expect(client.signer).toBeUndefined();
+
+    const user2 = createUser();
+    const signer2 = createSigner(user2);
+
+    await expect(() => client.register()).rejects.toThrow(
+      new SignerUnavailableError(),
+    );
+
+    await expect(async () =>
+      client.removeAccount(await signer2.getIdentifier()),
+    ).rejects.toThrow(new SignerUnavailableError());
+
+    await expect(() => client.revokeInstallations([])).rejects.toThrow(
+      new SignerUnavailableError(),
+    );
+
+    await expect(() => client.revokeAllOtherInstallations()).rejects.toThrow(
+      new SignerUnavailableError(),
+    );
+
+    await expect(async () =>
+      client.changeRecoveryIdentifier(await signer2.getIdentifier()),
+    ).rejects.toThrow(new SignerUnavailableError());
+  });
+
+  it("should throw errors when client is not initialized", async () => {
+    const client = new Client({ env: "local" });
+
+    await expect(async () =>
+      client.unsafe_createInboxSignatureText(),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.unsafe_addAccountSignatureText(createIdentifier(createUser())),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.unsafe_removeAccountSignatureText(createIdentifier(createUser())),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.unsafe_revokeAllOtherInstallationsSignatureText(),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.unsafe_revokeInstallationsSignatureText([new Uint8Array()]),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.unsafe_changeRecoveryIdentifierSignatureText(
+        createIdentifier(createUser()),
+      ),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.unsafe_addSignature(
+        SignatureRequestType.CreateInbox,
+        "gm1",
+        createSigner(createUser()),
+      ),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.unsafe_addSignature(
+        SignatureRequestType.CreateInbox,
+        "gm1",
+        createSigner(createUser()),
+      ),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () => client.unsafe_applySignatures()).rejects.toThrow(
+      new ClientNotInitializedError(),
+    );
+    await expect(async () =>
+      client.unsafe_addAccount(createSigner(createUser())),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.changeRecoveryIdentifier(createIdentifier(createUser())),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.removeAccount(createIdentifier(createUser())),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.revokeAllOtherInstallations(),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.revokeInstallations([new Uint8Array()]),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () => client.register()).rejects.toThrow(
+      new ClientNotInitializedError(),
+    );
+    await expect(async () =>
+      client.canMessage([createIdentifier(createUser())]),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () =>
+      client.getKeyPackageStatusesForInstallationIds([]),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () => client.requestHistorySync()).rejects.toThrow(
+      new ClientNotInitializedError(),
+    );
+    await expect(async () =>
+      client.getInboxIdByIdentifier(createIdentifier(createUser())),
+    ).rejects.toThrow(new ClientNotInitializedError());
+    expect(() => client.signWithInstallationKey("gm1")).toThrow(
+      new ClientNotInitializedError(),
+    );
+    expect(() =>
+      client.verifySignedWithInstallationKey("gm1", new Uint8Array()),
+    ).toThrow(new ClientNotInitializedError());
+    expect(() => client.conversations).toThrow(new ClientNotInitializedError());
+    expect(() => client.preferences).toThrow(new ClientNotInitializedError());
+    expect(() => client.inboxId).toThrow(new ClientNotInitializedError());
+    expect(() => client.installationId).toThrow(
+      new ClientNotInitializedError(),
+    );
+    expect(() => client.installationIdBytes).toThrow(
+      new ClientNotInitializedError(),
+    );
+    expect(() => client.isRegistered).toThrow(new ClientNotInitializedError());
   });
 });

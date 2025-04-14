@@ -25,79 +25,123 @@ import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
 import { createClient } from "@/utils/createClient";
 import {
   AccountAlreadyAssociatedError,
+  ClientNotInitializedError,
   CodecNotFoundError,
   GenerateSignatureError,
   InboxReassignError,
   InvalidGroupMembershipChangeError,
+  SignerUnavailableError,
 } from "@/utils/errors";
 import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
 import { version } from "@/utils/version";
 
 export class Client {
-  #innerClient: NodeClient;
-  #conversations: Conversations;
-  #preferences: Preferences;
-  #signer: Signer;
+  #client?: NodeClient;
+  #conversations?: Conversations;
+  #preferences?: Preferences;
+  #signer?: Signer;
   #codecs: Map<string, ContentCodec>;
+  #identifier?: Identifier;
+  #options?: ClientOptions;
 
-  constructor(client: NodeClient, signer: Signer, codecs: ContentCodec[]) {
-    this.#innerClient = client;
-    const conversations = client.conversations();
-    this.#conversations = new Conversations(this, conversations);
-    this.#preferences = new Preferences(client, conversations);
-    this.#signer = signer;
+  constructor(options?: ClientOptions) {
+    this.#options = options;
+    const codecs = [
+      new GroupUpdatedCodec(),
+      new TextCodec(),
+      ...(options?.codecs ?? []),
+    ];
     this.#codecs = new Map(
       codecs.map((codec) => [codec.contentType.toString(), codec]),
     );
   }
 
-  static async create(
-    signer: Signer,
-    encryptionKey: Uint8Array,
-    options?: ClientOptions,
-  ) {
-    const identifier = await signer.getIdentifier();
-    const client = await createClient(identifier, encryptionKey, options);
-
-    const clientInstance = new Client(client, signer, [
-      new GroupUpdatedCodec(),
-      new TextCodec(),
-      ...(options?.codecs ?? []),
-    ]);
-
-    if (!options?.disableAutoRegister) {
-      await clientInstance.register();
+  async init(identifier: Identifier) {
+    if (this.#client) {
+      return;
     }
 
-    return clientInstance;
+    this.#identifier = identifier;
+    this.#client = await createClient(identifier, this.#options);
+    const conversations = this.#client.conversations();
+    this.#conversations = new Conversations(this, conversations);
+    this.#preferences = new Preferences(this.#client, conversations);
   }
 
-  get identifier() {
-    return this.#innerClient.accountIdentifier;
+  static async create(signer: Signer, options?: ClientOptions) {
+    const identifier = await signer.getIdentifier();
+    const client = new Client(options);
+    client.#signer = signer;
+    await client.init(identifier);
+
+    if (!options?.disableAutoRegister) {
+      await client.register();
+    }
+
+    return client;
+  }
+
+  static async build(identifier: Identifier, options?: ClientOptions) {
+    const client = new Client({
+      ...options,
+      disableAutoRegister: true,
+    });
+    await client.init(identifier);
+    return client;
+  }
+
+  get options() {
+    return this.#options;
+  }
+
+  get signer() {
+    return this.#signer;
+  }
+
+  get accountIdentifier() {
+    return this.#identifier;
   }
 
   get inboxId() {
-    return this.#innerClient.inboxId();
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.inboxId();
   }
 
   get installationId() {
-    return this.#innerClient.installationId();
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.installationId();
   }
 
   get installationIdBytes() {
-    return this.#innerClient.installationIdBytes();
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.installationIdBytes();
   }
 
   get isRegistered() {
-    return this.#innerClient.isRegistered();
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.isRegistered();
   }
 
   get conversations() {
+    if (!this.#conversations) {
+      throw new ClientNotInitializedError();
+    }
     return this.#conversations;
   }
 
   get preferences() {
+    if (!this.#preferences) {
+      throw new ClientNotInitializedError();
+    }
     return this.#preferences;
   }
 
@@ -109,8 +153,12 @@ export class Client {
    * It is highly recommended to use the `register` function instead.
    */
   async unsafe_createInboxSignatureText() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     try {
-      const signatureText = await this.#innerClient.createInboxSignatureText();
+      const signatureText = await this.#client.createInboxSignatureText();
       return signatureText;
     } catch {
       return undefined;
@@ -131,15 +179,17 @@ export class Client {
     newAccountIdentifier: Identifier,
     allowInboxReassign: boolean = false,
   ) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     if (!allowInboxReassign) {
       throw new InboxReassignError();
     }
 
     try {
       const signatureText =
-        await this.#innerClient.addIdentifierSignatureText(
-          newAccountIdentifier,
-        );
+        await this.#client.addIdentifierSignatureText(newAccountIdentifier);
       return signatureText;
     } catch {
       return undefined;
@@ -154,9 +204,13 @@ export class Client {
    * It is highly recommended to use the `removeAccount` function instead.
    */
   async unsafe_removeAccountSignatureText(identifier: Identifier) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     try {
       const signatureText =
-        await this.#innerClient.revokeIdentifierSignatureText(identifier);
+        await this.#client.revokeIdentifierSignatureText(identifier);
       return signatureText;
     } catch {
       return undefined;
@@ -172,9 +226,13 @@ export class Client {
    * instead.
    */
   async unsafe_revokeAllOtherInstallationsSignatureText() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     try {
       const signatureText =
-        await this.#innerClient.revokeAllOtherInstallationsSignatureText();
+        await this.#client.revokeAllOtherInstallationsSignatureText();
       return signatureText;
     } catch {
       return undefined;
@@ -189,11 +247,13 @@ export class Client {
    * It is highly recommended to use the `revokeInstallations` function instead.
    */
   async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     try {
       const signatureText =
-        await this.#innerClient.revokeInstallationsSignatureText(
-          installationIds,
-        );
+        await this.#client.revokeInstallationsSignatureText(installationIds);
       return signatureText;
     } catch {
       return undefined;
@@ -208,11 +268,13 @@ export class Client {
    * It is highly recommended to use the `changeRecoveryIdentifer` function instead.
    */
   async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     try {
       const signatureText =
-        await this.#innerClient.changeRecoveryIdentifierSignatureText(
-          identifier,
-        );
+        await this.#client.changeRecoveryIdentifierSignatureText(identifier);
       return signatureText;
     } catch {
       return undefined;
@@ -233,9 +295,13 @@ export class Client {
     signatureText: string,
     signer: Signer,
   ) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     switch (signer.type) {
       case "SCW":
-        await this.#innerClient.addScwSignature(
+        await this.#client.addScwSignature(
           signatureType,
           await signer.signMessage(signatureText),
           signer.getChainId(),
@@ -243,7 +309,7 @@ export class Client {
         );
         break;
       case "EOA":
-        await this.#innerClient.addEcdsaSignature(
+        await this.#client.addEcdsaSignature(
           signatureType,
           await signer.signMessage(signatureText),
         );
@@ -261,10 +327,22 @@ export class Client {
    * functions instead.
    */
   async unsafe_applySignatures() {
-    return this.#innerClient.applySignatureRequests();
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.applySignatureRequests();
   }
 
   async register() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText = await this.unsafe_createInboxSignatureText();
 
     // if the signature text is not available, the client is already registered
@@ -278,7 +356,7 @@ export class Client {
       this.#signer,
     );
 
-    return this.#innerClient.registerIdentity();
+    return this.#client.registerIdentity();
   }
 
   /**
@@ -293,6 +371,10 @@ export class Client {
     newAccountSigner: Signer,
     allowInboxReassign: boolean = false,
   ) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     // check for existing inbox id
     const identifier = await newAccountSigner.getIdentifier();
     const existingInboxId = await this.getInboxIdByIdentifier(identifier);
@@ -320,6 +402,14 @@ export class Client {
   }
 
   async removeAccount(identifier: Identifier) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_removeAccountSignatureText(identifier);
 
@@ -337,6 +427,14 @@ export class Client {
   }
 
   async revokeAllOtherInstallations() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
 
@@ -356,6 +454,14 @@ export class Client {
   }
 
   async revokeInstallations(installationIds: Uint8Array[]) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_revokeInstallationsSignatureText(installationIds);
 
@@ -375,6 +481,14 @@ export class Client {
   }
 
   async changeRecoveryIdentifier(identifier: Identifier) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
     const signatureText =
       await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
 
@@ -394,7 +508,11 @@ export class Client {
   }
 
   async canMessage(identifiers: Identifier[]) {
-    const canMessage = await this.#innerClient.canMessage(identifiers);
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    const canMessage = await this.#client.canMessage(identifiers);
     return new Map(Object.entries(canMessage));
   }
 
@@ -408,7 +526,11 @@ export class Client {
   }
 
   async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
-    return this.#innerClient.getKeyPackageStatusesForInstallationIds(
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.getKeyPackageStatusesForInstallationIds(
       installationIds,
     );
   }
@@ -449,23 +571,39 @@ export class Client {
   }
 
   async requestHistorySync() {
-    return this.#innerClient.sendHistorySyncRequest();
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.sendHistorySyncRequest();
   }
 
   async getInboxIdByIdentifier(identifier: Identifier) {
-    return this.#innerClient.findInboxIdByIdentifier(identifier);
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.findInboxIdByIdentifier(identifier);
   }
 
   signWithInstallationKey(signatureText: string) {
-    return this.#innerClient.signWithInstallationKey(signatureText);
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.signWithInstallationKey(signatureText);
   }
 
   verifySignedWithInstallationKey(
     signatureText: string,
     signatureBytes: Uint8Array,
   ) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
     try {
-      this.#innerClient.verifySignedWithInstallationKey(
+      this.#client.verifySignedWithInstallationKey(
         signatureText,
         signatureBytes,
       );

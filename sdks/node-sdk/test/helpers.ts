@@ -1,4 +1,3 @@
-import { getRandomValues } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -6,7 +5,11 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { generateInboxId, IdentifierKind } from "@xmtp/node-bindings";
+import {
+  generateInboxId,
+  IdentifierKind,
+  type Identifier,
+} from "@xmtp/node-bindings";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -16,7 +19,6 @@ import type { ClientOptions } from "@/types";
 import type { Signer } from "@/utils/signer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const testEncryptionKey = getRandomValues(new Uint8Array(32));
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,13 +37,16 @@ export const createUser = (key?: `0x${string}`) => {
   };
 };
 
+export const createIdentifier = (user: User): Identifier => ({
+  identifier: user.account.address.toLowerCase(),
+  identifierKind: IdentifierKind.Ethereum,
+});
+
 export const createSigner = (user: User): Signer => {
+  const identifier = createIdentifier(user);
   return {
     type: "EOA",
-    getIdentifier: () => ({
-      identifierKind: IdentifierKind.Ethereum,
-      identifier: user.account.address.toLowerCase(),
-    }),
+    getIdentifier: () => identifier,
     signMessage: async (message: string) => {
       const signature = await user.wallet.signMessage({
         message,
@@ -53,13 +58,27 @@ export const createSigner = (user: User): Signer => {
 
 export type User = ReturnType<typeof createUser>;
 
+export const buildClient = async (
+  identifier: Identifier,
+  options?: ClientOptions,
+) => {
+  const opts = {
+    ...options,
+    env: options?.env ?? "local",
+  };
+  return Client.build(identifier, {
+    ...opts,
+    dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
+  });
+};
+
 export const createClient = async (signer: Signer, options?: ClientOptions) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
   const inboxId = generateInboxId(await signer.getIdentifier());
-  return Client.create(signer, testEncryptionKey, {
+  return Client.create(signer, {
     ...opts,
     disableAutoRegister: true,
     dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
@@ -76,7 +95,7 @@ export const createRegisteredClient = async (
     env: options?.env ?? "local",
   };
   const inboxId = generateInboxId(await signer.getIdentifier());
-  return Client.create(signer, testEncryptionKey, {
+  return Client.create(signer, {
     ...opts,
     dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
     historySyncUrl: HistorySyncUrls.local,
