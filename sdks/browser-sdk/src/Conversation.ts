@@ -113,7 +113,7 @@ export class Conversation {
    * @returns Promise that resolves with the message ID
    * @throws {MissingContentTypeError} When content type is required but not provided
    */
-  async sendOptimistic(content: any, contentType?: ContentTypeId) {
+  async sendOptimistic(content: unknown, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -138,7 +138,7 @@ export class Conversation {
    * @returns Promise that resolves with the message ID after it has been sent
    * @throws {MissingContentTypeError} When content type is required but not provided
    */
-  async send(content: any, contentType?: ContentTypeId) {
+  async send(content: unknown, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }

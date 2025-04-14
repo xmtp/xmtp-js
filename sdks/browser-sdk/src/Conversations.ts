@@ -81,11 +81,11 @@ export class Conversations {
    * @param id - The message ID to look up
    * @returns Promise that resolves with the decoded message, if found
    */
-  async getMessageById(id: string) {
+  async getMessageById<T = unknown>(id: string) {
     const data = await this.#client.sendMessage("getMessageById", {
       id,
     });
-    return data ? new DecodedMessage(this.#client, data) : undefined;
+    return data ? new DecodedMessage<T>(this.#client, data) : undefined;
   }
 
   /**
