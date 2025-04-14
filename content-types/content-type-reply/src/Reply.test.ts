@@ -1,4 +1,3 @@
-import { getRandomValues } from "node:crypto";
 import {
   AttachmentCodec,
   ContentTypeAttachment,
@@ -10,8 +9,6 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { ContentTypeReply, ReplyCodec, type Reply } from "./Reply";
-
-const testEncryptionKey = getRandomValues(new Uint8Array(32));
 
 export const createSigner = (): Signer => {
   const account = privateKeyToAccount(generatePrivateKey());
@@ -45,13 +42,13 @@ describe("ReplyContentType", () => {
 
   it("can send a text reply", async () => {
     const signer1 = createSigner();
-    const client1 = await Client.create(signer1, testEncryptionKey, {
+    const client1 = await Client.create(signer1, {
       codecs: [new ReplyCodec()],
       env: "local",
     });
 
     const signer2 = createSigner();
-    const client2 = await Client.create(signer2, testEncryptionKey, {
+    const client2 = await Client.create(signer2, {
       codecs: [new ReplyCodec()],
       env: "local",
     });
@@ -85,13 +82,13 @@ describe("ReplyContentType", () => {
 
   it("can send an attachment reply", async () => {
     const signer1 = createSigner();
-    const client1 = await Client.create(signer1, testEncryptionKey, {
+    const client1 = await Client.create(signer1, {
       codecs: [new ReplyCodec(), new AttachmentCodec()],
       env: "local",
     });
 
     const signer2 = createSigner();
-    const client2 = await Client.create(signer2, testEncryptionKey, {
+    const client2 = await Client.create(signer2, {
       codecs: [new ReplyCodec(), new AttachmentCodec()],
       env: "local",
     });
