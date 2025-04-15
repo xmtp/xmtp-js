@@ -143,6 +143,13 @@ export class Client extends ClientWorkerClass {
   }
 
   /**
+   * Gets the signer associated with this client
+   */
+  get signer() {
+    return this.#signer;
+  }
+
+  /**
    * Gets whether the client has been initialized
    */
   get isReady() {
