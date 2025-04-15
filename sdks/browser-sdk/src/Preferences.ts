@@ -85,7 +85,7 @@ export class Preferences {
    * Creates a stream of consent state updates
    *
    * @param callback - Optional callback function for handling stream updates
-   * @returns AsyncStream instance for consent updates
+   * @returns Stream instance for consent updates
    */
   async streamConsent(callback?: StreamCallback<SafeConsent[]>) {
     const streamId = v4();
@@ -113,7 +113,7 @@ export class Preferences {
    * Creates a stream of user preference updates
    *
    * @param callback - Optional callback function for handling stream updates
-   * @returns AsyncStream instance for preference updates
+   * @returns Stream instance for preference updates
    */
   async streamPreferences(callback?: StreamCallback<UserPreference[]>) {
     const streamId = v4();
