@@ -4,7 +4,10 @@
 
 ### Patch Changes
 
-- 592b5ff: Updated types
+- 592b5ff:
+  - Converted `any` types to `unknown`
+  - Removed `@deprecated` tag from `CodecRegistry` type
+  - Refactored `registry` type of the `encode` and `decode` codec methods
 
 ## 2.0.1
 
