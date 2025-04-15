@@ -1,5 +1,11 @@
 # @xmtp/content-type-primitives
 
+## 2.0.2
+
+### Patch Changes
+
+- 592b5ff: Updated types
+
 ## 2.0.1
 
 ### Patch Changes
