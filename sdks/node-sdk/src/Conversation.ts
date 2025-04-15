@@ -198,12 +198,7 @@ export class Conversation {
    */
   async messages(options?: ListMessagesOptions): Promise<DecodedMessage[]> {
     const messages = await this.#conversation.findMessages(options);
-    return (
-      messages
-        .map((message) => new DecodedMessage(this.#client, message))
-        // filter out messages without content
-        .filter((message) => message.content !== undefined)
-    );
+    return messages.map((message) => new DecodedMessage(this.#client, message));
   }
 
   /**
