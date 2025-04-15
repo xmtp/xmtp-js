@@ -1,5 +1,19 @@
 # @xmtp/browser-sdk
 
+## 2.0.4
+
+### Patch Changes
+
+- Converted all `any` types to `unknown`
+- Added generics for types with `unknown` where applicable
+- Prevented `CodecNotFoundError` from throwing when instantiating `DecodedMessage`
+- Added missing `signer` property to `Client`
+- Updated code comments
+- Updated dependencies [63e5276]
+  - @xmtp/content-type-group-updated@2.0.2
+  - @xmtp/content-type-primitives@2.0.2
+  - @xmtp/content-type-text@2.0.2
+
 ## 2.0.3
 
 ### Patch Changes
