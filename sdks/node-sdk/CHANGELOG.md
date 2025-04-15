@@ -1,5 +1,19 @@
 # @xmtp/node-sdk
 
+## 2.0.1
+
+### Patch Changes
+
+- Removed filter for messages when content is `undefined`
+- Converted all `any` types to `unknown`
+- Added generics for types with `unknown` where applicable
+- Prevented `CodecNotFoundError` from throwing when instantiating `DecodedMessage`
+- Added code comments
+- Updated dependencies
+  - @xmtp/content-type-group-updated@2.0.2
+  - @xmtp/content-type-primitives@2.0.2
+  - @xmtp/content-type-text@2.0.2
+
 ## 2.0.0
 
 This release focuses on new features, stability, and performance.
