@@ -709,7 +709,7 @@ export class Client {
     const canMessageMap = new Map<string, boolean>();
     for (const identifier of identifiers) {
       const inboxId = await getInboxIdForIdentifier(identifier, env);
-      canMessageMap.set(identifier.identifier, inboxId !== null);
+      canMessageMap.set(identifier.identifier.toLowerCase(), inboxId !== null);
     }
     return canMessageMap;
   }

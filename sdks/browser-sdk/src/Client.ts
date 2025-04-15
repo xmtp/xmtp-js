@@ -603,7 +603,10 @@ export class Client extends ClientWorkerClass {
     const utils = new Utils();
     for (const identifier of identifiers) {
       const inboxId = await utils.getInboxIdForIdentifier(identifier, env);
-      canMessageMap.set(identifier.identifier, inboxId !== undefined);
+      canMessageMap.set(
+        identifier.identifier.toLowerCase(),
+        inboxId !== undefined,
+      );
     }
     utils.close();
     return canMessageMap;
