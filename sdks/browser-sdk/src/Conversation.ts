@@ -106,14 +106,14 @@ export class Conversation {
   }
 
   /**
-   * Sends a message optimistically
+   * Prepares a message to be published
    *
    * @param content - The content to send
    * @param contentType - Optional content type of the message content
    * @returns Promise that resolves with the message ID
-   * @throws {MissingContentTypeError} When content type is required but not provided
+   * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async sendOptimistic(content: any, contentType?: ContentTypeId) {
+  async sendOptimistic(content: unknown, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -131,14 +131,14 @@ export class Conversation {
   }
 
   /**
-   * Sends a message
+   * Publishes a new message
    *
    * @param content - The content to send
    * @param contentType - Optional content type of the message content
    * @returns Promise that resolves with the message ID after it has been sent
-   * @throws {MissingContentTypeError} When content type is required but not provided
+   * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async send(content: any, contentType?: ContentTypeId) {
+  async send(content: unknown, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -246,7 +246,7 @@ export class Conversation {
    * Creates a stream for new messages in this conversation
    *
    * @param callback - Optional callback function for handling new stream values
-   * @returns AsyncStream instance for new messages
+   * @returns Stream instance for new messages
    */
   async stream(callback?: StreamCallback<DecodedMessage>) {
     const streamId = v4();

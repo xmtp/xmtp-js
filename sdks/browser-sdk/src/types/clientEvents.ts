@@ -667,6 +667,7 @@ export type ClientEvents =
         id: string;
       };
     };
+
 export type ClientEventsActions = ClientEvents["action"];
 
 export type ClientEventsClientMessageData =

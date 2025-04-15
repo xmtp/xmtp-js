@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - "content-types/**"
+      - "sdks/node-sdk/src/**"
       - ".github/workflows/content-types.yml"
       - "dev/**"
       - ".node-version"

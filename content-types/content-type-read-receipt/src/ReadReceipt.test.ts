@@ -1,4 +1,3 @@
-import { getRandomValues } from "node:crypto";
 import { Client, IdentifierKind, type Signer } from "@xmtp/node-sdk";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -8,8 +7,6 @@ import {
   ReadReceiptCodec,
   type ReadReceipt,
 } from "./ReadReceipt";
-
-const testEncryptionKey = getRandomValues(new Uint8Array(32));
 
 export const createSigner = (): Signer => {
   const account = privateKeyToAccount(generatePrivateKey());
@@ -43,13 +40,13 @@ describe("ReadReceiptContentType", () => {
 
   it("can send a read receipt", async () => {
     const signer1 = createSigner();
-    const client1 = await Client.create(signer1, testEncryptionKey, {
+    const client1 = await Client.create(signer1, {
       codecs: [new ReadReceiptCodec()],
       env: "local",
     });
 
     const signer2 = createSigner();
-    const client2 = await Client.create(signer2, testEncryptionKey, {
+    const client2 = await Client.create(signer2, {
       codecs: [new ReadReceiptCodec()],
       env: "local",
     });

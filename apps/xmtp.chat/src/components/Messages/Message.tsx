@@ -1,21 +1,11 @@
 import { Box, Flex, Paper, Stack, Text } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
-import {
-  ContentTypeTransactionReference,
-  type TransactionReference,
-} from "@xmtp/content-type-transaction-reference";
-import {
-  ContentTypeWalletSendCalls,
-  type WalletSendCallsParams,
-} from "@xmtp/content-type-wallet-send-calls";
 import { intlFormat } from "date-fns";
 import { useNavigate, useOutletContext } from "react-router";
 import { nsToDate } from "@/helpers/date";
 import { shortAddress } from "@/helpers/strings";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
-import { TransactionReferenceContent } from "./TransactionReferenceContent";
-import { WalletSendCallsContent } from "./WalletSendCallsContent";
 
 export type MessageProps = {
   message: DecodedMessage;
@@ -68,18 +58,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                 })}
               </Text>
             </Flex>
-            {message.contentType.sameAs(ContentTypeTransactionReference) ? (
-              <TransactionReferenceContent
-                content={message.content as TransactionReference}
-              />
-            ) : message.contentType.sameAs(ContentTypeWalletSendCalls) ? (
-              <WalletSendCallsContent
-                content={message.content as WalletSendCallsParams}
-                conversationId={message.conversationId}
-              />
-            ) : (
-              <MessageContent content={message.content as string} />
-            )}
+            <MessageContent message={message} />
           </Stack>
         </Paper>
       </Flex>

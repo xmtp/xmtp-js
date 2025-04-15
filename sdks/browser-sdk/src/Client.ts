@@ -143,6 +143,13 @@ export class Client extends ClientWorkerClass {
   }
 
   /**
+   * Gets the signer associated with this client
+   */
+  get signer() {
+    return this.#signer;
+  }
+
+  /**
    * Gets whether the client has been initialized
    */
   get isReady() {
@@ -618,8 +625,10 @@ export class Client extends ClientWorkerClass {
    * @param contentType - The content type to get the codec for
    * @returns The codec, if found
    */
-  codecFor(contentType: ContentTypeId) {
-    return this.#codecs.get(contentType.toString());
+  codecFor<T = unknown>(contentType: ContentTypeId) {
+    return this.#codecs.get(contentType.toString()) as
+      | ContentCodec<T>
+      | undefined;
   }
 
   /**
@@ -630,7 +639,7 @@ export class Client extends ClientWorkerClass {
    * @returns The encoded content
    * @throws {CodecNotFoundError} if no codec is found for the content type
    */
-  encodeContent(content: any, contentType: ContentTypeId) {
+  encodeContent(content: unknown, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
@@ -652,8 +661,8 @@ export class Client extends ClientWorkerClass {
    * @throws {CodecNotFoundError} if no codec is found for the content type
    * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
    */
-  decodeContent(message: SafeMessage, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
+  decodeContent<T = unknown>(message: SafeMessage, contentType: ContentTypeId) {
+    const codec = this.codecFor<T>(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
     }
@@ -667,7 +676,7 @@ export class Client extends ClientWorkerClass {
     }
 
     const encodedContent = fromSafeEncodedContent(message.content);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     return codec.decode(encodedContent, this);
   }
 

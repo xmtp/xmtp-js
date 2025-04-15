@@ -1,11 +1,14 @@
-import { getRandomValues } from "node:crypto";
+import type { EncodedContent } from "@xmtp/content-type-primitives";
 import { Client, IdentifierKind, type Signer } from "@xmtp/node-sdk";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { ContentTypeReaction, ReactionCodec, type Reaction } from "./Reaction";
-
-const testEncryptionKey = getRandomValues(new Uint8Array(32));
+import {
+  ContentTypeReaction,
+  ReactionCodec,
+  type LegacyReactionParameters,
+  type Reaction,
+} from "./Reaction";
 
 export const createSigner = (): Signer => {
   const account = privateKeyToAccount(generatePrivateKey());
@@ -41,7 +44,13 @@ describe("ReactionContentType", () => {
     const codec = new ReactionCodec();
 
     // This is how clients send reactions now.
-    const canonicalEncoded = {
+    const canonicalEncoded: EncodedContent<LegacyReactionParameters> = {
+      parameters: {
+        action: "added",
+        reference: "abc123",
+        schema: "shortcode",
+        encoding: "UTF-8",
+      },
       type: ContentTypeReaction,
       content: new TextEncoder().encode(
         JSON.stringify({
@@ -55,20 +64,19 @@ describe("ReactionContentType", () => {
 
     // Previously, some clients sent reactions like this.
     // So we test here to make sure we can still decode them.
-    const legacyEncoded = {
+    const legacyEncoded: EncodedContent<LegacyReactionParameters> = {
       type: ContentTypeReaction,
       parameters: {
         action: "added",
         reference: "abc123",
         schema: "shortcode",
+        encoding: "UTF-8",
       },
       content: new TextEncoder().encode("smile"),
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const canonical = codec.decode(canonicalEncoded as any);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const legacy = codec.decode(legacyEncoded as any);
+    const canonical = codec.decode(canonicalEncoded);
+    const legacy = codec.decode(legacyEncoded);
     expect(canonical.action).toBe("added");
     expect(legacy.action).toBe("added");
     expect(canonical.content).toBe("smile");
@@ -81,13 +89,13 @@ describe("ReactionContentType", () => {
 
   it("can send a reaction", async () => {
     const signer1 = createSigner();
-    const client1 = await Client.create(signer1, testEncryptionKey, {
+    const client1 = await Client.create(signer1, {
       codecs: [new ReactionCodec()],
       env: "local",
     });
 
     const signer2 = createSigner();
-    const client2 = await Client.create(signer2, testEncryptionKey, {
+    const client2 = await Client.create(signer2, {
       codecs: [new ReactionCodec()],
       env: "local",
     });

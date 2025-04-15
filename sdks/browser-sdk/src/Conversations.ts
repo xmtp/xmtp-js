@@ -81,11 +81,11 @@ export class Conversations {
    * @param id - The message ID to look up
    * @returns Promise that resolves with the decoded message, if found
    */
-  async getMessageById(id: string) {
+  async getMessageById<T = unknown>(id: string) {
     const data = await this.#client.sendMessage("getMessageById", {
       id,
     });
-    return data ? new DecodedMessage(this.#client, data) : undefined;
+    return data ? new DecodedMessage<T>(this.#client, data) : undefined;
   }
 
   /**
@@ -245,7 +245,7 @@ export class Conversations {
    *
    * @param callback - Optional callback function for handling new stream value
    * @param conversationType - Optional type to filter conversations
-   * @returns AsyncStream instance for new conversations
+   * @returns Stream instance for new conversations
    */
   async stream<T extends Group | Dm = Group | Dm>(
     callback?: StreamCallback<T>,
@@ -291,7 +291,7 @@ export class Conversations {
    * Creates a stream for new group conversations
    *
    * @param callback - Optional callback function for handling new stream value
-   * @returns AsyncStream instance for new group conversations
+   * @returns Stream instance for new group conversations
    */
   async streamGroups(callback?: StreamCallback<Group>) {
     return this.stream<Group>(callback, ConversationType.Group);
@@ -301,7 +301,7 @@ export class Conversations {
    * Creates a stream for new DM conversations
    *
    * @param callback - Optional callback function for handling new stream value
-   * @returns AsyncStream instance for new DM conversations
+   * @returns Stream instance for new DM conversations
    */
   async streamDms(callback?: StreamCallback<Dm>) {
     return this.stream<Dm>(callback, ConversationType.Dm);
@@ -312,7 +312,7 @@ export class Conversations {
    *
    * @param callback - Optional callback function for handling new stream value
    * @param conversationType - Optional conversation type to filter messages
-   * @returns AsyncStream instance for new messages
+   * @returns Stream instance for new messages
    */
   async streamAllMessages(
     callback?: StreamCallback<DecodedMessage>,
@@ -355,7 +355,7 @@ export class Conversations {
    * Creates a stream for all new group messages
    *
    * @param callback - Optional callback function for handling new stream value
-   * @returns AsyncStream instance for new group messages
+   * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(callback?: StreamCallback<DecodedMessage>) {
     return this.streamAllMessages(callback, ConversationType.Group);
@@ -365,7 +365,7 @@ export class Conversations {
    * Creates a stream for all new DM messages
    *
    * @param callback - Optional callback function for handling new stream value
-   * @returns AsyncStream instance for new DM messages
+   * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(callback?: StreamCallback<DecodedMessage>) {
     return this.streamAllMessages(callback, ConversationType.Dm);

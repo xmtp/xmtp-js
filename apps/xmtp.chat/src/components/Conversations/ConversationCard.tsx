@@ -31,7 +31,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
         setName(inboxId);
       });
     }
-  }, [conversation]);
+  }, [conversation.id]);
 
   return (
     <Box px="sm">

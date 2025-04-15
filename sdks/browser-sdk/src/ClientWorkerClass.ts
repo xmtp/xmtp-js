@@ -23,7 +23,10 @@ export class ClientWorkerClass {
 
   #promises = new Map<
     string,
-    { resolve: (value: any) => void; reject: (reason?: any) => void }
+    {
+      resolve: (value: unknown) => void;
+      reject: (reason?: unknown) => void;
+    }
   >();
 
   constructor(worker: Worker, enableLogging: boolean) {
@@ -44,7 +47,10 @@ export class ClientWorkerClass {
       data,
     });
     const promise = new Promise<ClientEventsResult<A>>((resolve, reject) => {
-      this.#promises.set(promiseId, { resolve, reject });
+      this.#promises.set(promiseId, {
+        resolve: resolve as (value: unknown) => void,
+        reject,
+      });
     });
     return promise;
   }
@@ -67,7 +73,6 @@ export class ClientWorkerClass {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   handleStreamMessage = <T extends ClientStreamEvents["result"]>(
     streamId: string,
     callback: (error: Error | null, value: T | null) => void,
