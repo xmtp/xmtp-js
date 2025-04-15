@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.5
+
+### Patch Changes
+
+- f0a43c4: Lowercase Ethereum addresses on static Client.canMessage calls
+
 ## 2.0.4
 
 ### Patch Changes
