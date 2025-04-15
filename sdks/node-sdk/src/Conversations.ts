@@ -12,15 +12,32 @@ import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
 
+/**
+ * Manages conversations
+ *
+ * This class is not intended to be initialized directly.
+ */
 export class Conversations {
   #client: Client;
   #conversations: XmtpConversations;
 
+  /**
+   * Creates a new conversations instance
+   *
+   * @param client - The client instance managing the conversations
+   * @param conversations - The underlying conversations instance
+   */
   constructor(client: Client, conversations: XmtpConversations) {
     this.#client = client;
     this.#conversations = conversations;
   }
 
+  /**
+   * Retrieves a conversation by its ID
+   *
+   * @param id - The conversation ID to look up
+   * @returns The conversation if found, undefined otherwise
+   */
   async getConversationById(id: string) {
     try {
       // findGroupById will throw if group is not found
@@ -34,6 +51,12 @@ export class Conversations {
     }
   }
 
+  /**
+   * Retrieves a DM by inbox ID
+   *
+   * @param inboxId - The inbox ID to look up
+   * @returns The DM if found, undefined otherwise
+   */
   getDmByInboxId(inboxId: string) {
     try {
       // findDmByTargetInboxId will throw if group is not found
@@ -44,6 +67,12 @@ export class Conversations {
     }
   }
 
+  /**
+   * Retrieves a message by its ID
+   *
+   * @param id - The message ID to look up
+   * @returns The decoded message if found, undefined otherwise
+   */
   getMessageById<T = unknown>(id: string) {
     try {
       // findMessageById will throw if message is not found
@@ -54,6 +83,13 @@ export class Conversations {
     }
   }
 
+  /**
+   * Creates a new group conversation with the specified identifiers
+   *
+   * @param identifiers - Array of identifiers for group members
+   * @param options - Optional group creation options
+   * @returns The new group
+   */
   async newGroupWithIdentifiers(
     identifiers: Identifier[],
     options?: CreateGroupOptions,
@@ -63,6 +99,13 @@ export class Conversations {
     return conversation;
   }
 
+  /**
+   * Creates a new group conversation with the specified inbox IDs
+   *
+   * @param inboxIds - Array of inbox IDs for group members
+   * @param options - Optional group creation options
+   * @returns The new group
+   */
   async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxId(
       inboxIds,
@@ -72,18 +115,38 @@ export class Conversations {
     return conversation;
   }
 
+  /**
+   * Creates a new DM conversation with the specified identifier
+   *
+   * @param identifier - Identifier for the DM recipient
+   * @param options - Optional DM creation options
+   * @returns The new DM
+   */
   async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
     const group = await this.#conversations.createDm(identifier, options);
     const conversation = new Dm(this.#client, group);
     return conversation;
   }
 
+  /**
+   * Creates a new DM conversation with the specified inbox ID
+   *
+   * @param inboxId - Inbox ID for the DM recipient
+   * @param options - Optional DM creation options
+   * @returns The new DM
+   */
   async newDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
     const conversation = new Dm(this.#client, group);
     return conversation;
   }
 
+  /**
+   * Lists all conversations with optional filtering
+   *
+   * @param options - Optional filtering and pagination options
+   * @returns Array of conversations
+   */
   async list(options?: ListConversationsOptions) {
     const groups = this.#conversations.list(options);
     return Promise.all(
@@ -96,6 +159,12 @@ export class Conversations {
     );
   }
 
+  /**
+   * Lists all groups with optional filtering
+   *
+   * @param options - Optional filtering and pagination options
+   * @returns Array of groups
+   */
   listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.listGroups(options);
     return groups.map((item) => {
@@ -108,6 +177,12 @@ export class Conversations {
     });
   }
 
+  /**
+   * Lists all DMs with optional filtering
+   *
+   * @param options - Optional filtering and pagination options
+   * @returns Array of DMs
+   */
   listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.listDms(options);
     return groups.map((item) => {
@@ -120,14 +195,32 @@ export class Conversations {
     });
   }
 
+  /**
+   * Synchronizes conversations for the current client from the network
+   *
+   * @returns Promise that resolves when sync is complete
+   */
   async sync() {
     return this.#conversations.sync();
   }
 
+  /**
+   * Synchronizes all conversations and messages from the network with optional
+   * consent state filtering
+   *
+   * @param consentStates - Optional array of consent states to filter by
+   * @returns Promise that resolves when sync is complete
+   */
   async syncAll(consentStates?: ConsentState[]) {
     return this.#conversations.syncAllConversations(consentStates);
   }
 
+  /**
+   * Creates a stream for new conversations
+   *
+   * @param callback - Optional callback function for handling new stream value
+   * @returns Stream instance for new conversations
+   */
   stream(callback?: StreamCallback<Group | Dm>) {
     const asyncStream = new AsyncStream<Group | Dm>();
 
@@ -159,6 +252,12 @@ export class Conversations {
     return asyncStream;
   }
 
+  /**
+   * Creates a stream for new group conversations
+   *
+   * @param callback - Optional callback function for handling new stream value
+   * @returns Stream instance for new group conversations
+   */
   streamGroups(callback?: StreamCallback<Group>) {
     const asyncStream = new AsyncStream<Group>();
 
@@ -183,6 +282,12 @@ export class Conversations {
     return asyncStream;
   }
 
+  /**
+   * Creates a stream for new DM conversations
+   *
+   * @param callback - Optional callback function for handling new stream value
+   * @returns Stream instance for new DM conversations
+   */
   streamDms(callback?: StreamCallback<Dm>) {
     const asyncStream = new AsyncStream<Dm>();
 
@@ -207,6 +312,12 @@ export class Conversations {
     return asyncStream;
   }
 
+  /**
+   * Creates a stream for all new messages
+   *
+   * @param callback - Optional callback function for handling new stream value
+   * @returns Stream instance for new messages
+   */
   async streamAllMessages(callback?: StreamCallback<DecodedMessage>) {
     // sync conversations first
     await this.sync();
@@ -234,6 +345,12 @@ export class Conversations {
     return asyncStream;
   }
 
+  /**
+   * Creates a stream for all new group messages
+   *
+   * @param callback - Optional callback function for handling new stream value
+   * @returns Stream instance for new group messages
+   */
   async streamAllGroupMessages(callback?: StreamCallback<DecodedMessage>) {
     // sync conversations first
     await this.sync();
@@ -263,6 +380,12 @@ export class Conversations {
     return asyncStream;
   }
 
+  /**
+   * Creates a stream for all new DM messages
+   *
+   * @param callback - Optional callback function for handling new stream value
+   * @returns Stream instance for new DM messages
+   */
   async streamAllDmMessages(callback?: StreamCallback<DecodedMessage>) {
     // sync conversations first
     await this.sync();
@@ -290,6 +413,11 @@ export class Conversations {
     return asyncStream;
   }
 
+  /**
+   * Retrieves HMAC keys for all conversations
+   *
+   * @returns The HMAC keys for all conversations
+   */
   hmacKeys() {
     return this.#conversations.getHmacKeys();
   }
