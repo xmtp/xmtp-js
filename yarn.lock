@@ -3439,7 +3439,7 @@ __metadata:
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
     "@xmtp/proto": "npm:^3.78.0"
-    "@xmtp/wasm-bindings": "npm:1.2.0-dev.878fd38"
+    "@xmtp/wasm-bindings": "npm:1.2.0-dev.b600c5c"
     playwright: "npm:^1.51.1"
     rollup: "npm:^4.39.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3630,10 +3630,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:^1.2.0-dev.bed98df":
-  version: 1.2.0-dev.bed98df
-  resolution: "@xmtp/node-bindings@npm:1.2.0-dev.bed98df"
-  checksum: 10/a7e57fb3a1fa462ba49be33ad4ec05e3f164cfd198b5011a12968e57f477abe822c754a74a6fb7b529789408caee38ed1291e1e0165b4f5f3969e50ce98d1e15
+"@xmtp/node-bindings@npm:1.2.0-dev.c24af30":
+  version: 1.2.0-dev.c24af30
+  resolution: "@xmtp/node-bindings@npm:1.2.0-dev.c24af30"
+  checksum: 10/51ba1d46bbf6016e9eaa6c9909f39392ea3bc48826f61514b9b68dcc706f9d3318c0eb283cdcba30bc5fc65e8c6f3614610231b92548bc2722e0aa70090d655b
   languageName: node
   linkType: hard
 
@@ -3648,7 +3648,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/node-bindings": "npm:^1.2.0-dev.bed98df"
+    "@xmtp/node-bindings": "npm:1.2.0-dev.c24af30"
     "@xmtp/proto": "npm:^3.78.0"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
@@ -3692,10 +3692,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.2.0-dev.878fd38":
-  version: 1.2.0-dev.878fd38
-  resolution: "@xmtp/wasm-bindings@npm:1.2.0-dev.878fd38"
-  checksum: 10/962101000ec1ae93dd3a2e9ee2e2988297129d8adc22dd5a4de251f1273205eb5cc0e0d6e766f14e22fdbbc7f9c3149ac162f3acf64e0d1c669183e908f0ceb0
+"@xmtp/wasm-bindings@npm:1.2.0-dev.b600c5c":
+  version: 1.2.0-dev.b600c5c
+  resolution: "@xmtp/wasm-bindings@npm:1.2.0-dev.b600c5c"
+  checksum: 10/98deae5efd5f38eead79f574415357871da5f7ca6349a56724843a06ac07b9bbbede6a0d0b74b5bf96821b91513ba4bd0ea25a7694c751e3e0159fd8a32e304e
   languageName: node
   linkType: hard
 
