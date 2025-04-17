@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- b7a3001: Fixes message processing issue that could sometimes fork groups
+- b7a3001: Fixed message processing issue that could sometimes fork groups
 
 ## 2.0.2
 
