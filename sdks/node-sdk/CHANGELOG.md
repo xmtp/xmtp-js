@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.0.3
+
+### Patch Changes
+
+- b7a3001: Fixes message processing issue that could sometimes fork groups
+
 ## 2.0.2
 
 ### Patch Changes
