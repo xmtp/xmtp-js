@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.6
+
+### Patch Changes
+
+- b7a3001: Fixed message processing issue that could sometimes fork groups
+
 ## 2.0.5
 
 ### Patch Changes
