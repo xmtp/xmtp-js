@@ -12,17 +12,29 @@ export const ContentTypeMiniApp = new ContentTypeId({
   versionMinor: 0,
 });
 
-export type MiniApp = {
-  author: string;
-  version: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  url?: string;
-  appStoreUrl?: string;
-  senderInboxId: string;
-  action: MiniAppAction;
-};
+export type MiniApp =
+  | {
+      type: "action";
+      metadata: {
+        id?: string;
+        author: string;
+        version: string;
+        name: string;
+        description?: string;
+        icon?: string;
+        url?: string;
+        appStoreUrl?: string;
+        fromInboxId?: string;
+      };
+      action: MiniAppAction;
+    }
+  | {
+      type: "response";
+      metadata: {
+        actionId?: string;
+      };
+      data: Uint8Array;
+    };
 
 export class MiniAppCodec implements ContentCodec<MiniApp> {
   get contentType(): ContentTypeId {

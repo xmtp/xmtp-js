@@ -1,30 +1,20 @@
 import type { Component } from "@/content-types/mini-app/types/components";
 
-export type SendGroupMessageAction = {
-  type: "send-group-message";
-  groupId: string;
-  message: string;
-};
-
-export type SendDirectMessageAction = {
-  type: "send-direct-message";
-  inboxIds: string[];
-  message: string;
-};
-
 export type SendDataAction = {
   type: "send-data";
-  dataType: string;
-  data: Uint8Array;
+  data: string[];
 };
 
 export type TransactionAction = {
   type: "transaction";
+  description?: string;
   amount: number;
   quantity?: number;
   chainId: string;
   recipientAddress: string;
 };
+
+export type ButtonAction = SendDataAction | TransactionAction;
 
 export type RenderAction = {
   type: "render";
@@ -48,14 +38,4 @@ export type HelpAction = {
   commands: HelpCommand[];
 };
 
-export type ButtonAction =
-  | SendGroupMessageAction
-  | SendDirectMessageAction
-  | TransactionAction;
-
-export type MiniAppAction =
-  | SendGroupMessageAction
-  | SendDirectMessageAction
-  | TransactionAction
-  | HelpAction
-  | RenderAction;
+export type MiniAppAction = HelpAction | RenderAction;

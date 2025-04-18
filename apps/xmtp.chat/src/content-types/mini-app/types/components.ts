@@ -79,6 +79,25 @@ export type ImageComponent = BaseComponent & {
   };
 };
 
+export type InputComponent = BaseComponent & {
+  type: "input";
+  props: BaseComponentProps & {
+    label?: string;
+    type: "text" | "textarea" | "number" | "email" | "date" | "time";
+    placeholder?: string;
+    required?: boolean;
+  };
+};
+
+export type SelectComponent = BaseComponent & {
+  type: "select";
+  props: BaseComponentProps & {
+    label?: string;
+    multiple?: boolean;
+    options: string[];
+  };
+};
+
 export type Component =
   | ButtonComponent
   | TextComponent
@@ -86,4 +105,5 @@ export type Component =
   | RowLayoutComponent
   | StackLayoutComponent
   | FragmentComponent
-  | ContainerComponent;
+  | ContainerComponent
+  | InputComponent;
