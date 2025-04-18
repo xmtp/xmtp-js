@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 5a676b1: Propagate original error from workers
+- 5a676b1: Propagated original error from workers
 
 ## 2.0.6
 
