@@ -42,7 +42,7 @@ export type EventsClientPostMessageData<
 export type EventsErrorData<Events extends GenericEvent> = {
   id: string;
   action: Events["action"];
-  error: string;
+  error: Error;
 };
 
 export type GenericStreamEvent = {
@@ -68,5 +68,5 @@ export type StreamEventsClientPostMessageData<
 export type StreamEventsErrorData<Events extends GenericStreamEvent> = {
   streamId: string;
   type: Events["type"];
-  error: string;
+  error: Error;
 };

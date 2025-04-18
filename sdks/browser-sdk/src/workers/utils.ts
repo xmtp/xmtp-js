@@ -77,7 +77,7 @@ self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
     postMessageError({
       id,
       action,
-      error: (e as Error).message,
+      error: e as Error,
     });
   }
 };

@@ -1,6 +1,6 @@
 import { Button, Group } from "@mantine/core";
 import { Group as XmtpGroup } from "@xmtp/browser-sdk";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { Metadata } from "@/components/Conversation/Metadata";
@@ -45,6 +45,14 @@ export const ManageMetadataModal: React.FC = () => {
       }
     }
   }, [conversation.id, name, description, imageUrl, navigate]);
+
+  useEffect(() => {
+    if (conversation instanceof XmtpGroup) {
+      initialName.current = conversation.name ?? "";
+      initialDescription.current = conversation.description ?? "";
+      initialImageUrl.current = conversation.imageUrl ?? "";
+    }
+  }, [conversation]);
 
   const footer = useMemo(() => {
     return (

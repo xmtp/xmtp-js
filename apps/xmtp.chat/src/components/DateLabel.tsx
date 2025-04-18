@@ -19,18 +19,31 @@ export const DateLabelTooltip: React.FC<DateLabelTooltipProps> = ({ date }) => {
 
 export type DateLabelProps = {
   date: Date;
+  size?: "sm" | "xs" | "md" | "lg" | "xl";
+  align?: "left" | "right" | "center";
+  padding?: "xs" | "sm" | "md" | "lg" | "xl";
 };
 
-export const DateLabel: React.FC<DateLabelProps> = ({ date }) => {
+export const DateLabel: React.FC<DateLabelProps> = ({
+  date,
+  size = "sm",
+  align = "left",
+  padding,
+}) => {
   const clipboard = useClipboard({ timeout: 1000 });
 
-  const handleCopy = () => {
+  const handleCopy = (
+    event:
+      | React.MouseEvent<HTMLDivElement>
+      | React.KeyboardEvent<HTMLDivElement>,
+  ) => {
+    event.stopPropagation();
     clipboard.copy(formatRFC3339(date, { fractionDigits: 3 }));
   };
 
   const handleKeyboardCopy = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
-      handleCopy();
+      handleCopy(event);
     }
   };
 
@@ -46,7 +59,9 @@ export const DateLabel: React.FC<DateLabelProps> = ({ date }) => {
       withArrow
       events={{ hover: true, focus: true, touch: true }}>
       <Text
-        size="sm"
+        p={padding}
+        size={size}
+        ta={align}
         onKeyDown={handleKeyboardCopy}
         onClick={handleCopy}
         miw={100}
