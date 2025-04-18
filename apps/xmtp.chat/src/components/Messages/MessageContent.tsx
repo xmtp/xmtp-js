@@ -1,6 +1,10 @@
 import { Box, Code, Flex, Group, Paper, Stack, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import {
+  ContentTypeGroupUpdated,
+  type GroupUpdated,
+} from "@xmtp/content-type-group-updated";
+import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
@@ -10,6 +14,7 @@ import {
 } from "@xmtp/content-type-wallet-send-calls";
 import { AddressBadge } from "@/components/AddressBadge";
 import { DateLabel } from "@/components/DateLabel";
+import { GroupUpdatedContent } from "@/components/Messages/GroupUpdatedContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
 import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsContent";
 import { nsToDate } from "@/helpers/date";
@@ -80,6 +85,15 @@ export const MessageContent: React.FC<MessageContentProps> = ({
           conversationId={message.conversationId}
         />
       </MessageContentWrapper>
+    );
+  }
+
+  if (message.contentType.sameAs(ContentTypeGroupUpdated)) {
+    return (
+      <GroupUpdatedContent
+        content={message.content as GroupUpdated}
+        sentAtNs={message.sentAtNs}
+      />
     );
   }
 
