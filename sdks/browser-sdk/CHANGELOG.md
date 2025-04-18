@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.7
+
+### Patch Changes
+
+- 5a676b1: Propagate original error from workers
+
 ## 2.0.6
 
 ### Patch Changes
