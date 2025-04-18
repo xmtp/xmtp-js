@@ -296,7 +296,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             postStreamMessageError({
               type: "group",
               streamId: data.streamId,
-              error: error.message,
+              error,
             });
           } else {
             postStreamMessage({
@@ -327,7 +327,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             postStreamMessageError({
               type: "message",
               streamId: data.streamId,
-              error: error.message,
+              error,
             });
           } else {
             postStreamMessage({
@@ -354,7 +354,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             postStreamMessageError({
               type: "consent",
               streamId: data.streamId,
-              error: error.message,
+              error,
             });
           } else {
             postStreamMessage({
@@ -382,7 +382,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             postStreamMessageError({
               type: "preferences",
               streamId: data.streamId,
-              error: error.message,
+              error,
             });
           } else {
             postStreamMessage({
@@ -720,7 +720,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
             postStreamMessageError({
               type: "message",
               streamId: data.streamId,
-              error: error.message,
+              error,
             });
           } else {
             postStreamMessage({
@@ -752,7 +752,7 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
     postMessageError({
       id,
       action,
-      error: (e as Error).message,
+      error: e as Error,
     });
   }
 };

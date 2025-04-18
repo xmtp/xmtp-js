@@ -66,7 +66,7 @@ export class ClientWorkerClass {
     if (promise) {
       this.#promises.delete(eventData.id);
       if ("error" in eventData) {
-        promise.reject(new Error(eventData.error));
+        promise.reject(eventData.error);
       } else {
         promise.resolve(eventData.result);
       }
@@ -83,7 +83,7 @@ export class ClientWorkerClass {
       const eventData = event.data;
       if (eventData.streamId === streamId) {
         if ("error" in eventData) {
-          callback(new Error(eventData.error), null);
+          callback(eventData.error, null);
         } else {
           callback(null, eventData.result as T);
         }
