@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.8
+
+### Patch Changes
+
+- fbce324: Fix new group processing issue that could lead incorrect group state
+
 ## 2.0.7
 
 ### Patch Changes

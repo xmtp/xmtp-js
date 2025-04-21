@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.0.4
+
+### Patch Changes
+
+- fbce324: Fix new group processing issue that could lead incorrect group state
+
 ## 2.0.3
 
 ### Patch Changes
