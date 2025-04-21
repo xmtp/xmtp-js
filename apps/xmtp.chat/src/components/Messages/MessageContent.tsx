@@ -44,7 +44,7 @@ const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
           <DateLabel date={nsToDate(sentAtNs)} />
           {senderInboxId && <AddressBadge address={senderInboxId} size="lg" />}
         </Flex>
-        <Box maw="80%">{children}</Box>
+        <Box>{children}</Box>
       </Stack>
     </Group>
   );
@@ -113,7 +113,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
           py="xs"
           px="sm"
           radius="md">
-          <Text style={{ whiteSpace: "pre-wrap" }}>{message.content}</Text>
+          <Text style={{ wordBreak: "break-all" }}>{message.content}</Text>
         </Paper>
       </MessageContentWrapper>
     );
