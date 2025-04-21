@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- fbce324: Fix new group processing issue that could lead incorrect group state
+- fbce324: Fix welcome processing issue that could lead to incorrect group state
 
 ## 2.0.7
 
