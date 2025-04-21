@@ -2,6 +2,7 @@ import "@mantine/core/styles.css";
 import "./globals.css";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import pkg from "@xmtp/browser-sdk/package.json";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
@@ -48,3 +49,5 @@ createRoot(document.getElementById("root") as HTMLElement).render(
     </QueryClientProvider>
   </WagmiProvider>,
 );
+
+console.log("[xmtp.chat] XMTP Browser SDK version:", pkg.version);
