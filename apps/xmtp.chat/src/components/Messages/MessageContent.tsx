@@ -113,7 +113,15 @@ export const MessageContent: React.FC<MessageContentProps> = ({
           py="xs"
           px="sm"
           radius="md">
-          <Text style={{ wordBreak: "break-all" }}>{message.content}</Text>
+          <Text
+            component="pre"
+            style={{
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-all",
+              fontFamily: "inherit",
+            }}>
+            {message.content}
+          </Text>
         </Paper>
       </MessageContentWrapper>
     );
@@ -127,7 +135,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
       <Code
         block
         w="100%"
-        style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+        style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
         {JSON.stringify(message.content ?? message.fallback, null, 2)}
       </Code>
     </MessageContentWrapper>
