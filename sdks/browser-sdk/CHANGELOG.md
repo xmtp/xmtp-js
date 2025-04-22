@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 4035fb5: Remove sync groups from conversations.list
+- 4035fb5: Removed special sync groups from conversation list results
 
 ## 2.0.8
 
