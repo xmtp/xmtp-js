@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.9
+
+### Patch Changes
+
+- 4035fb5: Removed special sync groups from conversation list results
+
 ## 2.0.8
 
 ### Patch Changes
