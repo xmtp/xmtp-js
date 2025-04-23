@@ -1,9 +1,13 @@
-import { Box, Code, Flex, Group, Paper, Stack, Text } from "@mantine/core";
+import { Code, Paper, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeGroupUpdated,
   type GroupUpdated,
 } from "@xmtp/content-type-group-updated";
+import {
+  ContentTypeMiniApp,
+  type MiniAppContent as MiniAppContentType,
+} from "@xmtp/content-type-mini-app";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
@@ -12,46 +16,18 @@ import {
   ContentTypeWalletSendCalls,
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
-import { AddressBadge } from "@/components/AddressBadge";
-import { DateLabel } from "@/components/DateLabel";
 import { GroupUpdatedContent } from "@/components/Messages/GroupUpdatedContent";
+import {
+  MessageContentWrapper,
+  type MessageContentAlign,
+} from "@/components/Messages/MessageContentWrapper";
+import { MiniAppContent } from "@/components/Messages/MiniAppContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
 import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsContent";
-import { nsToDate } from "@/helpers/date";
 import classes from "./MessageContent.module.css";
 
-type MessageAlign = "left" | "right";
-
-type MessageContentWrapperProps = React.PropsWithChildren<{
-  align: MessageAlign;
-  senderInboxId?: string;
-  sentAtNs: bigint;
-}>;
-
-const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
-  align,
-  senderInboxId,
-  children,
-  sentAtNs,
-}) => {
-  return (
-    <Group justify={align === "left" ? "flex-start" : "flex-end"}>
-      <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
-        <Flex
-          gap="xs"
-          direction={align === "right" ? "row" : "row-reverse"}
-          align="center">
-          <DateLabel date={nsToDate(sentAtNs)} />
-          {senderInboxId && <AddressBadge address={senderInboxId} size="lg" />}
-        </Flex>
-        <Box>{children}</Box>
-      </Stack>
-    </Group>
-  );
-};
-
 export type MessageContentProps = {
-  align: MessageAlign;
+  align: MessageContentAlign;
   senderInboxId: string;
   message: DecodedMessage;
 };
@@ -124,6 +100,17 @@ export const MessageContent: React.FC<MessageContentProps> = ({
           </Text>
         </Paper>
       </MessageContentWrapper>
+    );
+  }
+
+  if (message.contentType.sameAs(ContentTypeMiniApp)) {
+    return (
+      <MiniAppContent
+        align={align}
+        senderInboxId={senderInboxId}
+        content={message.content as MiniAppContentType}
+        sentAtNs={message.sentAtNs}
+      />
     );
   }
 

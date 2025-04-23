@@ -1,0 +1,109 @@
+import type { Client } from "@xmtp/browser-sdk";
+import React, { useCallback, useMemo, useState, type FC } from "react";
+import {
+  defaultDataActionHandler,
+  hydrateActionData,
+  type ValidData,
+} from "../data";
+import type {
+  ButtonAction,
+  ButtonActionHandler,
+  UIAction,
+} from "../types/actions";
+import type { Component } from "../types/components";
+import type { MiniAppActionContent } from "../types/content";
+import { MiniAppContext } from "./context";
+import type { ButtonActionMap, ComponentMap } from "./types";
+
+export const defaultButtonActionMap: ButtonActionMap = {
+  data: defaultDataActionHandler,
+  transaction: () => {},
+};
+
+export type MiniAppRendererProps = {
+  buttonActionMap?: ButtonActionMap;
+  client: Client;
+  componentMap: ComponentMap;
+  senderInboxId: string;
+  content: MiniAppActionContent<UIAction>;
+  debug?: boolean;
+};
+
+export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
+  buttonActionMap = defaultButtonActionMap,
+  client,
+  componentMap,
+  senderInboxId,
+  content,
+  debug = false,
+}) => {
+  const [inputData, setInputData] = useState<Record<string, ValidData>>({});
+  const renderComponent = useCallback(
+    (component: Component) => {
+      if (debug) {
+        console.log("[MiniAppRenderer] Rendering component", component);
+      }
+      const Component = componentMap[component.type] as FC<Component["props"]>;
+      return <Component {...component.props} />;
+    },
+    [componentMap],
+  );
+  const handleAction = useCallback(
+    async (action: ButtonAction) => {
+      if (debug) {
+        console.log(
+          "[MiniAppRenderer] Handling action",
+          action,
+          content.action.payload.data,
+          inputData,
+          senderInboxId,
+        );
+      }
+      const handler = buttonActionMap[action.type] as ButtonActionHandler;
+      await handler(
+        hydrateActionData(
+          action,
+          content.action.payload.data,
+          inputData,
+        ) as ButtonAction["payload"],
+        content,
+        client,
+        senderInboxId,
+      );
+    },
+    [buttonActionMap, content.action.payload.data, inputData],
+  );
+  const handleInputChange = useCallback((id: string, value: ValidData) => {
+    if (debug) {
+      console.log("[MiniAppRenderer] Handling input change", id, value);
+    }
+    setInputData((prev) => ({ ...prev, [id]: value }));
+  }, []);
+  const value = useMemo(
+    () => ({
+      buttonActionMap,
+      client,
+      componentMap,
+      data: content.action.payload.data,
+      renderComponent,
+      handleAction,
+      handleInputChange,
+      senderInboxId,
+    }),
+    [
+      buttonActionMap,
+      client,
+      componentMap,
+      content.action.payload.data,
+      renderComponent,
+      handleAction,
+      handleInputChange,
+      senderInboxId,
+    ],
+  );
+  return (
+    <MiniAppContext.Provider value={value}>
+      {renderComponent(content.action.payload.root)}
+    </MiniAppContext.Provider>
+  );
+};
