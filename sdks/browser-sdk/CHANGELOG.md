@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 581d465: Prevent unexpected conversation types
+- 581d465: Added guard to prevent unexpected conversation types
 
 ## 2.0.9
 
