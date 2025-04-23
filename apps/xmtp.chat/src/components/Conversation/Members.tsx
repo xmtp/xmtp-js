@@ -9,12 +9,52 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 import { BadgeWithCopy } from "../BadgeWithCopy";
+import { AddressBadge } from "../AddressBadge";
 
 export type MembersProps = {
   conversation?: Conversation;
   inboxId: string;
   onMembersAdded: (members: string[]) => void;
   onMembersRemoved?: (members: SafeGroupMember[]) => void;
+};
+
+type MemberDisplayProps = {
+  member: string | SafeGroupMember;
+  showAddresses?: boolean;
+};
+
+const MemberDisplay: React.FC<MemberDisplayProps> = ({ member, showAddresses = true }) => {
+  if (typeof member === "string") {
+    // For newly added members (string format)
+    return (
+      <Stack gap="xs">
+        <BadgeWithCopy value={member} />
+      </Stack>
+    );
+  }
+
+  // For existing members (SafeGroupMember format)
+  // Filter for Ethereum identifiers
+  const ethAddresses = member.accountIdentifiers
+    .filter((identifier: { identifierKind: string; identifier: string }) =>
+      identifier.identifierKind === "Ethereum"
+    )
+    .map((identifier: { identifierKind: string; identifier: string }) =>
+      identifier.identifier
+    );
+
+  return (
+    <Stack gap="xs">
+      <BadgeWithCopy value={member.inboxId} />
+      {showAddresses && ethAddresses.length > 0 && (
+        <Group gap="xs" ml="md">
+          {ethAddresses.map((address: string) => (
+            <AddressBadge key={address} address={address} />
+          ))}
+        </Group>
+      )}
+    </Stack>
+  );
 };
 
 export const Members: React.FC<MembersProps> = ({
@@ -71,10 +111,10 @@ export const Members: React.FC<MembersProps> = ({
   );
 
   const memberIds = useMemo(() => {
-    return members.reduce<string[]>((ids, member) => {
+    return members.reduce<string[]>((ids: string[], member: SafeGroupMember) => {
       return [
         ...ids,
-        ...member.accountIdentifiers.map((identifier) =>
+        ...member.accountIdentifiers.map((identifier: { identifierKind: string; identifier: string }) =>
           identifier.identifier.toLowerCase(),
         ),
         member.inboxId,
@@ -183,7 +223,7 @@ export const Members: React.FC<MembersProps> = ({
               justify="space-between"
               align="center"
               wrap="nowrap">
-              <BadgeWithCopy value={member} />
+              <MemberDisplay member={member} showAddresses={false} />
               <Button
                 flex="0 0 auto"
                 size="xs"
@@ -212,7 +252,7 @@ export const Members: React.FC<MembersProps> = ({
                   justify="space-between"
                   align="center"
                   wrap="nowrap">
-                  <BadgeWithCopy value={member.inboxId} />
+                  <MemberDisplay member={member} />
                   <Button
                     flex="0 0 auto"
                     size="xs"
@@ -241,7 +281,7 @@ export const Members: React.FC<MembersProps> = ({
                       justify="space-between"
                       align="center"
                       wrap="nowrap">
-                      <BadgeWithCopy value={member.inboxId} />
+                      <MemberDisplay member={member} />
                       <Button
                         flex="0 0 auto"
                         size="xs"
