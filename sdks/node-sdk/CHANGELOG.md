@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.0.5
+
+### Patch Changes
+
+- 581d465: Added guard to prevent unexpected conversation types
+
 ## 2.0.4
 
 ### Patch Changes
