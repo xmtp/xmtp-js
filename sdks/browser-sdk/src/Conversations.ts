@@ -112,11 +112,18 @@ export class Conversations {
       options,
     });
 
-    return conversations.map((conversation) =>
-      conversation.metadata.conversationType === "group"
-        ? new Group(this.#client, conversation.id, conversation)
-        : new Dm(this.#client, conversation.id, conversation),
-    );
+    return conversations
+      .map((conversation) => {
+        switch (conversation.metadata.conversationType) {
+          case "dm":
+            return new Dm(this.#client, conversation.id, conversation);
+          case "group":
+            return new Group(this.#client, conversation.id, conversation);
+          default:
+            return undefined;
+        }
+      })
+      .filter((conversation) => conversation !== undefined);
   }
 
   /**

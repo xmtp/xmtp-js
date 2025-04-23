@@ -149,14 +149,21 @@ export class Conversations {
    */
   async list(options?: ListConversationsOptions) {
     const groups = this.#conversations.list(options);
-    return Promise.all(
+    const conversations = await Promise.all(
       groups.map(async (item) => {
         const metadata = await item.conversation.groupMetadata();
-        return metadata.conversationType() === "dm"
-          ? new Dm(this.#client, item.conversation, item.lastMessage)
-          : new Group(this.#client, item.conversation, item.lastMessage);
+        const conversationType = metadata.conversationType();
+        switch (conversationType) {
+          case "dm":
+            return new Dm(this.#client, item.conversation, item.lastMessage);
+          case "group":
+            return new Group(this.#client, item.conversation, item.lastMessage);
+          default:
+            return undefined;
+        }
       }),
     );
+    return conversations.filter((conversation) => conversation !== undefined);
   }
 
   /**
