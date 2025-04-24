@@ -29,51 +29,56 @@ export const MiniAppContent: React.FC<MiniAppContentProps> = ({
   sentAtNs,
 }) => {
   const { client } = useOutletContext<{ client: Client }>();
+  const isUI = content.type === "action" && content.action.type === "ui";
 
-  return content.type === "action" && content.action.type === "ui" ? (
+  return (
     <MessageContentWrapper
       align={align}
       senderInboxId={senderInboxId}
       sentAtNs={sentAtNs}
-      stopClickPropagation>
-      <Stack gap="0">
-        <Group
-          align="center"
-          justify="space-between"
-          gap="xs"
-          p="xs"
-          className={classes.header}>
-          <Group gap="xs">
-            {content.manifest.icon && (
-              <Image
-                src={content.manifest.icon}
-                alt="XMTP logo"
-                w="24"
-                h="24"
-              />
-            )}
-            <Text size="sm" fw={700}>
-              {content.manifest.name}
-            </Text>
+      stopClickPropagation={isUI}>
+      {isUI ? (
+        <Stack gap="0">
+          <Group
+            align="center"
+            justify="space-between"
+            gap="xs"
+            p="xs"
+            className={classes.header}>
+            <Group gap="xs">
+              {content.manifest.icon && (
+                <Image
+                  src={content.manifest.icon}
+                  alt="XMTP logo"
+                  w="24"
+                  h="24"
+                />
+              )}
+              <Text size="sm" fw={700}>
+                {content.manifest.name}
+              </Text>
+            </Group>
+            <IconInfo />
           </Group>
-          <IconInfo />
-        </Group>
-        <Box className={classes.content}>
-          <MiniAppRenderer
-            debug
-            client={client}
-            actionMap={{
-              data: (data, content) => {
-                console.log(data, content);
-              },
-              transaction: () => {},
-            }}
-            componentMap={componentMap}
-            senderInboxId={senderInboxId}
-            content={content as MiniAppActionContent<UIAction>}
-          />
-        </Box>
-      </Stack>
+          <Box className={classes.content}>
+            <MiniAppRenderer
+              debug
+              client={client}
+              buttonActionMap={{
+                data: (data, content) => {
+                  console.log(data, content);
+                },
+                transaction: () => {},
+              }}
+              componentMap={componentMap}
+              senderInboxId={senderInboxId}
+              content={content as MiniAppActionContent<UIAction>}
+            />
+          </Box>
+        </Stack>
+      ) : (
+        <Text>This is a mini app message not intended for display</Text>
+      )}
     </MessageContentWrapper>
-  ) : null;
+  );
 };

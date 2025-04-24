@@ -3671,6 +3671,31 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/mini-games@workspace:apps/mini-games":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/mini-games@workspace:apps/mini-games"
+  dependencies:
+    "@rollup/plugin-typescript": "npm:^12.1.2"
+    "@types/node": "npm:^22.14.0"
+    "@xmtp/content-type-group-updated": "workspace:^"
+    "@xmtp/content-type-mini-app": "workspace:^"
+    "@xmtp/content-type-text": "workspace:^"
+    "@xmtp/node-sdk": "workspace:^"
+    dotenv: "npm:^16.5.0"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.39.0"
+    rollup-plugin-dts: "npm:^6.1.1"
+    rollup-plugin-filesize: "npm:^10.0.0"
+    tsx: "npm:^4.19.3"
+    typescript: "npm:^5.8.3"
+    uint8array-extras: "npm:^1.4.0"
+    uuid: "npm:^11.1.0"
+    viem: "npm:^2.28.0"
+    vite: "npm:^6.2.5"
+    vitest: "npm:^3.1.1"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/node-bindings@npm:1.2.0-dev.b96f93d":
   version: 1.2.0-dev.b96f93d
   resolution: "@xmtp/node-bindings@npm:1.2.0-dev.b96f93d"
@@ -4920,6 +4945,13 @@ __metadata:
     "@babel/runtime": "npm:^7.8.7"
     csstype: "npm:^3.0.2"
   checksum: 10/bed2341adf8864bf932b3289c24f35fdd99930af77df46688abf2d753ff291df49a15850c874d686d9be6ec4e1c6835673906e64dbd8b2839d227f117a11fd41
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^16.5.0":
+  version: 16.5.0
+  resolution: "dotenv@npm:16.5.0"
+  checksum: 10/e68a16834f1a41cc2dfb01563bc150668ad675e6cd09191211467b5c0806b6ecd6ec438e021aa8e01cd0e72d2b70ef4302bec7cc0fe15b6955f85230b62dc8a9
   languageName: node
   linkType: hard
 

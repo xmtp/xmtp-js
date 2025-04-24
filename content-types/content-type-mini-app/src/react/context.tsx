@@ -41,5 +41,5 @@ export const MiniAppContext = createContext<MiniAppContextValue>({
 
 export const useMiniAppContext = () => {
   return useContext(MiniAppContext) as MiniAppContextValue &
-    Required<Pick<MiniAppContextValue, "client" | "senderInboxId">>;
+    Required<Pick<MiniAppContextValue, "client" | "senderInboxId" | "uuid">>;
 };

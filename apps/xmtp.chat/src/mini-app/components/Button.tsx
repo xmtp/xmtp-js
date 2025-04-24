@@ -6,7 +6,7 @@ import { useBorderStyles } from "@/mini-app/useBorderStyles";
 import { useFlexStyles } from "@/mini-app/useFlexStyles";
 
 export const Button: React.FC<ButtonComponent["props"]> = ({ ...props }) => {
-  const { handleAction } = useMiniAppContext();
+  const { handleAction, completed } = useMiniAppContext();
   const flexStyles = useFlexStyles(props.grow, props.shrink, props.basis);
   const borderStyles = useBorderStyles(props.border, props.radius);
   const handleClick = useCallback(() => {
@@ -24,7 +24,8 @@ export const Button: React.FC<ButtonComponent["props"]> = ({ ...props }) => {
       radius={props.radius}
       color={props.color}
       bg={props.backgroundColor}
-      onClick={handleClick}>
+      onClick={handleClick}
+      disabled={completed}>
       {props.label}
     </MantineButton>
   );
