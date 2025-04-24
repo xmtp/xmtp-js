@@ -14,17 +14,25 @@ import { useFlexStyles } from "@/mini-app/useFlexStyles";
 export const Input: React.FC<InputComponent["props"]> = ({ ...props }) => {
   const { handleInputChange } = useMiniAppContext();
   const initialValue = useMemo(() => {
+    let defaultValue: string | number | string[] | boolean = "";
     switch (props.type) {
+      case "text":
+      case "textarea":
+      case "select":
+        defaultValue = "";
+        break;
       case "checkbox":
-        return false;
+        defaultValue = false;
+        break;
       case "multi-select":
-        return [];
+        defaultValue = [];
+        break;
       case "number":
-        return 0;
-      default:
-        return "";
+        defaultValue = 0;
+        break;
     }
-  }, [props.type]);
+    return props.initialValue ?? defaultValue;
+  }, [props.type, props.initialValue]);
   const [value, setValue] = useState<string | number | string[] | boolean>(
     initialValue,
   );
@@ -136,7 +144,7 @@ export const Input: React.FC<InputComponent["props"]> = ({ ...props }) => {
           label={props.label}
           description={props.description}
           required={props.required}
-          data={props.data}
+          data={props.options}
           size={props.size}
           value={value as string}
         />
@@ -149,7 +157,7 @@ export const Input: React.FC<InputComponent["props"]> = ({ ...props }) => {
           label={props.label}
           description={props.description}
           required={props.required}
-          data={props.data}
+          data={props.options}
           clearable
           searchable
           size={props.size}

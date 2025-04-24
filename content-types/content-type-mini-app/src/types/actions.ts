@@ -43,6 +43,7 @@ export type ButtonActionHandler<T extends ButtonAction = ButtonAction> = (
 export type UIAction = {
   type: "ui";
   payload: {
+    uuid: string;
     data?: Record<string, ValidValue>;
     root: Component;
   };

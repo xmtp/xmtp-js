@@ -26,6 +26,7 @@ export type MiniAppActionContent<T extends MiniAppAction = MiniAppAction> = {
 export type MiniAppResponseContent = {
   type: "response";
   metadata?: MiniAppActionMetadata;
+  uuid: string;
   data: Uint8Array;
 };
 

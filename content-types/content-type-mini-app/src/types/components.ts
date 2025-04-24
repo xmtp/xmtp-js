@@ -64,6 +64,9 @@ export type TextComponent = {
   type: "text";
   props: BaseComponentProps & {
     text: string;
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
     size?: string;
   };
 };

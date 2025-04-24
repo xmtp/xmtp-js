@@ -14,6 +14,7 @@ import type { Component } from "../types/components";
 import type { MiniAppActionContent } from "../types/content";
 import { MiniAppContext } from "./context";
 import type { ButtonActionMap, ComponentMap } from "./types";
+import { useAction } from "./useAction";
 
 export const defaultButtonActionMap: ButtonActionMap = {
   data: defaultDataActionHandler,
@@ -37,6 +38,7 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
   content,
   debug = false,
 }) => {
+  const { completed, setCompleted } = useAction(content.action.payload.uuid);
   const [inputData, setInputData] = useState<Record<string, ValidData>>({});
   const renderComponent = useCallback(
     (component: Component) => {
@@ -53,11 +55,22 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
       if (debug) {
         console.log(
           "[MiniAppRenderer] Handling action",
+          content.action.payload.uuid,
           action,
           content.action.payload.data,
           inputData,
           senderInboxId,
         );
+      }
+      if (completed) {
+        if (debug) {
+          console.log(
+            "[MiniAppRenderer] Action already completed",
+            content.action.payload.uuid,
+            action,
+          );
+        }
+        return;
       }
       const handler = buttonActionMap[action.type] as ButtonActionHandler;
       await handler(
@@ -70,12 +83,18 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
         client,
         senderInboxId,
       );
+      await setCompleted(true);
     },
     [buttonActionMap, content.action.payload.data, inputData],
   );
   const handleInputChange = useCallback((id: string, value: ValidData) => {
     if (debug) {
-      console.log("[MiniAppRenderer] Handling input change", id, value);
+      console.log(
+        "[MiniAppRenderer] Handling input change",
+        content.action.payload.uuid,
+        id,
+        value,
+      );
     }
     setInputData((prev) => ({ ...prev, [id]: value }));
   }, []);
@@ -89,6 +108,8 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
       handleAction,
       handleInputChange,
       senderInboxId,
+      uuid: content.action.payload.uuid,
+      completed,
     }),
     [
       buttonActionMap,
@@ -99,6 +120,8 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
       handleAction,
       handleInputChange,
       senderInboxId,
+      content.action.payload.uuid,
+      completed,
     ],
   );
   return (

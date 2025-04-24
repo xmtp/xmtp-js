@@ -12,7 +12,10 @@ export const Text: React.FC<TextComponent["props"]> = ({ ...props }) => {
       w={props.width}
       h={props.height}
       size={props.size}
-      c={props.color}>
+      c={props.color}
+      fw={props.bold ? "bold" : undefined}
+      fs={props.italic ? "italic" : undefined}
+      td={props.underline ? "underline" : undefined}>
       {props.text}
     </MantineText>
   );

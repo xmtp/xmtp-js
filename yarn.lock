@@ -3498,6 +3498,8 @@ __metadata:
     "@types/node": "npm:^22.14.0"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/node-sdk": "workspace:^"
+    dexie: "npm:^4.0.11"
+    dexie-react-hooks: "npm:^1.1.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.39.0"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -4860,6 +4862,24 @@ __metadata:
   version: 1.1.0
   resolution: "detect-node-es@npm:1.1.0"
   checksum: 10/e46307d7264644975b71c104b9f028ed1d3d34b83a15b8a22373640ce5ea630e5640b1078b8ea15f202b54641da71e4aa7597093bd4b91f113db520a26a37449
+  languageName: node
+  linkType: hard
+
+"dexie-react-hooks@npm:^1.1.7":
+  version: 1.1.7
+  resolution: "dexie-react-hooks@npm:1.1.7"
+  peerDependencies:
+    "@types/react": ">=16"
+    dexie: ^3.2 || ^4.0.1-alpha
+    react: ">=16"
+  checksum: 10/6f64ce678d8aec39ac50b9ee6b9298dc48f2d6d0b1adb80c8826c3b19ea5571001449fcf2bbe9f744dd6b054cc42ce840eab284aa698786a760ba4a530924aa9
+  languageName: node
+  linkType: hard
+
+"dexie@npm:^4.0.11":
+  version: 4.0.11
+  resolution: "dexie@npm:4.0.11"
+  checksum: 10/52011f03655ce90aa6701f1e0724a10a3fd6b33d6e1ec72ba27b4392f500df54788e6ed23fd692a62eb50a21ab4fe146e08a85ceca19bbeb62e12269b124b4e2
   languageName: node
   linkType: hard
 

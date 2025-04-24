@@ -14,6 +14,8 @@ export type MiniAppContextValue = {
   handleInputChange: (id: string, value: ValidData) => void;
   renderComponent: (component: Component) => React.JSX.Element;
   senderInboxId?: string;
+  uuid?: string;
+  completed: boolean;
 };
 
 export const MiniAppContext = createContext<MiniAppContextValue>({
@@ -34,6 +36,7 @@ export const MiniAppContext = createContext<MiniAppContextValue>({
   handleAction: () => {},
   handleInputChange: () => {},
   renderComponent: () => <></>,
+  completed: false,
 });
 
 export const useMiniAppContext = () => {

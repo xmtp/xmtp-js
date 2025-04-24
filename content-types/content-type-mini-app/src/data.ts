@@ -71,6 +71,7 @@ export const defaultDataActionHandler: ButtonActionHandler<DataAction> = async (
     metadata: {
       id: content.metadata?.id,
     },
+    uuid: content.action.payload.uuid,
     data: new TextEncoder().encode(JSON.stringify(data)),
   };
   const dm = await client.conversations.newDm(senderInboxId);
