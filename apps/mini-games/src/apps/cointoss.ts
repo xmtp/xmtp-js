@@ -20,6 +20,7 @@ export const uiCointossPlay = (uuid: string): UIAction => {
             {
               type: "row-layout",
               props: {
+                gap: "xs",
                 children: [
                   {
                     type: "button",
@@ -28,7 +29,8 @@ export const uiCointossPlay = (uuid: string): UIAction => {
                       action: {
                         type: "data",
                         payload: {
-                          action: "heads",
+                          type: "cointoss",
+                          move: "heads",
                         },
                       },
                     },
@@ -40,7 +42,8 @@ export const uiCointossPlay = (uuid: string): UIAction => {
                       action: {
                         type: "data",
                         payload: {
-                          action: "tails",
+                          type: "cointoss",
+                          move: "tails",
                         },
                       },
                     },
@@ -84,15 +87,37 @@ export const uiCointossResult = (
               },
             },
             {
-              type: "button",
+              type: "row-layout",
               props: {
-                label: "Play again",
-                action: {
-                  type: "data",
-                  payload: {
-                    action: "play",
+                gap: "xs",
+                children: [
+                  {
+                    type: "button",
+                    props: {
+                      label: "Play again",
+                      action: {
+                        type: "data",
+                        payload: {
+                          type: "action",
+                          action: "cointoss",
+                        },
+                      },
+                    },
                   },
-                },
+                  {
+                    type: "button",
+                    props: {
+                      label: "Play another game",
+                      action: {
+                        type: "data",
+                        payload: {
+                          type: "action",
+                          action: "play",
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             },
           ],

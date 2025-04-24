@@ -37,6 +37,7 @@ export const uiWelcome = (uuid: string, inboxId?: string): UIAction => {
                     action: {
                       type: "data",
                       payload: {
+                        type: "action",
                         action: "register",
                       },
                     },
@@ -54,6 +55,7 @@ export const uiWelcome = (uuid: string, inboxId?: string): UIAction => {
                           action: {
                             type: "data",
                             payload: {
+                              type: "action",
                               action: "cointoss",
                             },
                           },

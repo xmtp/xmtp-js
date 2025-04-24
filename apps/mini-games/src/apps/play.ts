@@ -28,6 +28,7 @@ export const uiPlay = (uuid: string): UIAction => {
                       action: {
                         type: "data",
                         payload: {
+                          type: "action",
                           action: "cointoss",
                         },
                       },

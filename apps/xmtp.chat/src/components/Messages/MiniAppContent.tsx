@@ -64,12 +64,6 @@ export const MiniAppContent: React.FC<MiniAppContentProps> = ({
             <MiniAppRenderer
               debug
               client={client}
-              buttonActionMap={{
-                data: (data, content) => {
-                  console.log(data, content);
-                },
-                transaction: () => {},
-              }}
               componentMap={componentMap}
               senderInboxId={senderInboxId}
               content={content as MiniAppActionContent<UIAction>}

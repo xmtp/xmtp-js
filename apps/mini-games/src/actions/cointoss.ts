@@ -23,7 +23,6 @@ export const startCointoss = async (inboxId: string) => {
 export const playCointoss = async (
   actionUuid: string,
   inboxId: string,
-  groupId: string,
   move: "heads" | "tails",
 ) => {
   const action = actions.get(actionUuid);
@@ -39,7 +38,6 @@ export const playCointoss = async (
     move,
     result,
     player: inboxId,
-    groupId,
     createdAt: Date.now(),
   });
   actions.set(actionUuid, {
@@ -47,20 +45,20 @@ export const playCointoss = async (
     type: "cointoss",
     completed: true,
   });
-  await sendCointossResult(actionUuid, inboxId, result, move === result);
+  await sendCointossResult(inboxId, result, move === result);
 };
 
 export const sendCointossResult = async (
-  actionUuid: string,
   inboxId: string,
   result: "heads" | "tails",
   win: boolean,
 ) => {
+  const uuid = v4();
   const dm = await client.conversations.newDm(inboxId);
   const message: MiniAppContent = {
     type: "action",
     manifest,
-    action: uiCointossResult(actionUuid, win, result),
+    action: uiCointossResult(uuid, win, result),
   };
   await dm.send(message, ContentTypeMiniApp);
 };

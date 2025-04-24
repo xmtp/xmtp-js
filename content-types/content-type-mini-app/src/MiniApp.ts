@@ -3,6 +3,8 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
+import { hexToUint8Array, uint8ArrayToHex } from "uint8array-extras";
+import type { ValidData } from "./data";
 import type { MiniAppContent } from "./types/content";
 
 export const ContentTypeMiniApp = new ContentTypeId({
@@ -18,10 +20,16 @@ export class MiniAppCodec implements ContentCodec<MiniAppContent> {
   }
 
   encode(content: MiniAppContent): EncodedContent {
+    const finalContent = content;
+    if (finalContent.type === "response") {
+      finalContent.data = uint8ArrayToHex(
+        new TextEncoder().encode(JSON.stringify(finalContent.data)),
+      );
+    }
     return {
       type: this.contentType,
       parameters: {},
-      content: new TextEncoder().encode(JSON.stringify(content)),
+      content: new TextEncoder().encode(JSON.stringify(finalContent)),
       // compress content using gzip
       compression: 1,
     };
@@ -31,7 +39,13 @@ export class MiniAppCodec implements ContentCodec<MiniAppContent> {
     const decodedContent = new TextDecoder().decode(encodedContent.content);
 
     try {
-      return JSON.parse(decodedContent) as MiniAppContent;
+      const parsedContent = JSON.parse(decodedContent) as MiniAppContent;
+      if (parsedContent.type === "response") {
+        const data = hexToUint8Array(parsedContent.data as string);
+        const decodedData = new TextDecoder().decode(data);
+        parsedContent.data = JSON.parse(decodedData) as ValidData;
+      }
+      return parsedContent;
     } catch {
       throw new Error("[MiniAppCodec] Failed to decode content");
     }

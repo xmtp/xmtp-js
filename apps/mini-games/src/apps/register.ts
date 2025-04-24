@@ -14,7 +14,7 @@ export const uiRegister = (uuid: string): UIAction => {
             {
               type: "text",
               props: {
-                text: "Before you can play, you need to register a name so it's easier to identify you.",
+                text: "Enter a name so it's easier to identify you.",
               },
             },
             {
@@ -32,6 +32,7 @@ export const uiRegister = (uuid: string): UIAction => {
                 action: {
                   type: "data",
                   payload: {
+                    type: "register",
                     name: "#name",
                   },
                 },
@@ -68,6 +69,7 @@ export const uiRegisterSuccess = (uuid: string, name: string): UIAction => {
                 action: {
                   type: "data",
                   payload: {
+                    type: "action",
                     action: "play",
                   },
                 },

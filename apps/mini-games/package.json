@@ -53,7 +53,6 @@
     "@xmtp/content-type-text": "workspace:^",
     "@xmtp/node-sdk": "workspace:^",
     "dotenv": "^16.5.0",
-    "uint8array-extras": "^1.4.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@ type Game = {
   result: "heads" | "tails";
   player: string;
   move: "heads" | "tails";
-  groupId: string;
+  groupId?: string;
   createdAt: number;
 };
 
@@ -30,3 +30,17 @@ export const isRegistered = (inboxId: string) => {
 export const getPlayerName = (inboxId: string) => {
   return players.get(inboxId)?.name;
 };
+
+export type MiniGamesResponseData =
+  | {
+      type: "action";
+      action: "cointoss" | "register" | "play";
+    }
+  | {
+      type: "register";
+      name: string;
+    }
+  | {
+      type: "cointoss";
+      move: "heads" | "tails";
+    };

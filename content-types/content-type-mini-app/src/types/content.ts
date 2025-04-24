@@ -1,3 +1,4 @@
+import type { ValidData } from "../data";
 import type { MiniAppAction } from "./actions";
 
 export type MiniAppActionMetadata = {
@@ -27,7 +28,7 @@ export type MiniAppResponseContent = {
   type: "response";
   metadata?: MiniAppActionMetadata;
   uuid: string;
-  data: Uint8Array;
+  data: ValidData;
 };
 
 export type MiniAppContent = MiniAppActionContent | MiniAppResponseContent;
