@@ -1,19 +1,24 @@
 import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
-import { dts } from "rollup-plugin-dts";
-import filesize from "rollup-plugin-filesize";
 
 const plugins = [
   typescript({
     declaration: false,
     declarationMap: false,
   }),
-  filesize({
-    showMinifiedSize: false,
-  }),
 ];
 
-const external = [];
+const external = [
+  "dotenv/config",
+  "@xmtp/content-type-mini-app",
+  "@xmtp/content-type-text",
+  "@xmtp/node-sdk",
+  "uint8array-extras",
+  "viem",
+  "viem/accounts",
+  "viem/chains",
+  "uuid",
+];
 
 export default defineConfig([
   {
@@ -25,13 +30,5 @@ export default defineConfig([
     },
     plugins,
     external,
-  },
-  {
-    input: "src/index.ts",
-    output: {
-      file: "dist/index.d.ts",
-      format: "es",
-    },
-    plugins: [dts()],
   },
 ]);
