@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.0.6
+
+### Patch Changes
+
+- 5bc5a85: Update to the libxmtp stable release version
+
 ## 2.0.5
 
 ### Patch Changes

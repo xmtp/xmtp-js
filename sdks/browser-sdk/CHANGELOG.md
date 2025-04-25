@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.11
+
+### Patch Changes
+
+- 5bc5a85: Update to the libxmtp stable release version
+
 ## 2.0.10
 
 ### Patch Changes
