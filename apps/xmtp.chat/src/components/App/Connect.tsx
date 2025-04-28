@@ -113,7 +113,6 @@ export const Connect = () => {
             };
         if (provider) {
           const isSCW = provider.connectionType === "scw_connection_type";
-          console.log("isSCW", isSCW, provider.connectionType);
           void initialize({
             dbEncryptionKey: encryptionKey
               ? hexToUint8Array(encryptionKey)
