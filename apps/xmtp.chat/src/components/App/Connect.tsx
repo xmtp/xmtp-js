@@ -16,7 +16,11 @@ import { DisableAnalytics } from "@/components/App/DisableAnalytics";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { useXMTP } from "@/contexts/XMTPContext";
-import { createEphemeralSigner, createSCWSigner } from "@/helpers/createSigner";
+import {
+  createEOASigner,
+  createEphemeralSigner,
+  createSCWSigner,
+} from "@/helpers/createSigner";
 import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 import { CoinbaseWallet } from "@/icons/CoinbaseWallet";
@@ -102,46 +106,33 @@ export const Connect = () => {
     const initClient = async () => {
       const connector = account.connector;
       if (data?.account && connector) {
-        try {
-          const provider = (await connector.getProvider()) as
-            | undefined
-            | {
-                connectionType: string;
-              };
-          if (provider) {
-            const _isSCW = provider.connectionType === "scw_connection_type";
-            // Use SCW signer for SCW wallets or regular EOA
-            const signer = createSCWSigner(
-              data.account.address,
-              signMessageAsync,
-              BigInt(mainnet.id),
-            );
-
-            console.log("Initializing XMTP client with SCW signer");
-            await initialize({
-              dbEncryptionKey: encryptionKey
-                ? hexToUint8Array(encryptionKey)
-                : undefined,
-              env: environment,
-              loggingLevel,
-              signer,
-            });
-          }
-        } catch (error) {
-          console.error("Error initializing XMTP client:", error);
+        const provider = (await connector.getProvider()) as
+          | undefined
+          | {
+              connectionType: string;
+            };
+        if (provider) {
+          const isSCW = provider.connectionType === "scw_connection_type";
+          console.log("isSCW", isSCW, provider.connectionType);
+          void initialize({
+            dbEncryptionKey: encryptionKey
+              ? hexToUint8Array(encryptionKey)
+              : undefined,
+            env: environment,
+            loggingLevel,
+            signer: isSCW
+              ? createSCWSigner(
+                  data.account.address,
+                  signMessageAsync,
+                  BigInt(mainnet.id),
+                )
+              : createEOASigner(data.account.address, data),
+          });
         }
       }
     };
     void initClient();
-  }, [
-    account.address,
-    data?.account,
-    initialize,
-    encryptionKey,
-    environment,
-    loggingLevel,
-    signMessageAsync,
-  ]);
+  }, [account.address, data?.account]);
 
   useEffect(() => {
     if (client) {
