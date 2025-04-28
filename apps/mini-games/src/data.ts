@@ -31,10 +31,25 @@ export const getPlayerName = (inboxId: string) => {
   return players.get(inboxId)?.name;
 };
 
+export const getCointossPlayerStats = (inboxId: string) => {
+  const playerGames = games
+    .entries()
+    .filter(([_id, game]) => game.player === inboxId)
+    .toArray();
+
+  const totalGames = playerGames.length;
+  const totalWins = playerGames.filter(
+    ([_id, game]) => game.move === game.result,
+  ).length;
+  const winPercentage = (totalWins / totalGames) * 100;
+
+  return { totalGames, totalWins, winPercentage };
+};
+
 export type MiniGamesResponseData =
   | {
       type: "action";
-      action: "cointoss" | "register" | "play";
+      action: "cointoss" | "register" | "play" | "cointoss-stats";
     }
   | {
       type: "register";

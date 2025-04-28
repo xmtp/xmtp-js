@@ -1,10 +1,10 @@
-import { Group } from "@mantine/core";
-import type { RowLayoutComponent } from "@xmtp/content-type-mini-app";
+import { Flex } from "@mantine/core";
+import type { LayoutComponent } from "@xmtp/content-type-mini-app";
 import { useMiniAppContext } from "@xmtp/content-type-mini-app/react";
 import { useBorderStyles } from "@/mini-app/useBorderStyles";
 import { useFlexStyles } from "@/mini-app/useFlexStyles";
 
-export const RowLayout: React.FC<RowLayoutComponent["props"]> = ({
+export const Layout: React.FC<LayoutComponent["props"]> = ({
   children,
   ...props
 }) => {
@@ -12,17 +12,17 @@ export const RowLayout: React.FC<RowLayoutComponent["props"]> = ({
   const flexStyles = useFlexStyles(props.grow, props.shrink, props.basis);
   const borderStyles = useBorderStyles(props.border, props.radius);
   return (
-    <Group
+    <Flex
+      direction={props.layout === "row" ? "row" : "column"}
       style={{ ...flexStyles, ...borderStyles }}
       p={props.padding}
       m={props.margin}
       gap={props.gap}
       justify={props.justify}
       align={props.align}
-      wrap={props.wrap ? "wrap" : "nowrap"}
       color={props.color}
       bg={props.backgroundColor}>
       {children.map((child) => renderComponent(child))}
-    </Group>
+    </Flex>
   );
 };

@@ -6,8 +6,9 @@ export const uiPlay = (uuid: string): UIAction => {
     payload: {
       uuid,
       root: {
-        type: "stack-layout",
+        type: "layout",
         props: {
+          layout: "column",
           gap: "xs",
           padding: "md",
           children: [
@@ -18,8 +19,9 @@ export const uiPlay = (uuid: string): UIAction => {
               },
             },
             {
-              type: "row-layout",
+              type: "layout",
               props: {
+                layout: "row",
                 children: [
                   {
                     type: "button",

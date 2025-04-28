@@ -8,8 +8,9 @@ export const uiWelcome = (uuid: string, inboxId?: string): UIAction => {
     payload: {
       uuid,
       root: {
-        type: "stack-layout",
+        type: "layout",
         props: {
+          layout: "column",
           gap: "xs",
           padding: "md",
           children: [
@@ -44,8 +45,9 @@ export const uiWelcome = (uuid: string, inboxId?: string): UIAction => {
                   },
                 }
               : {
-                  type: "row-layout",
+                  type: "layout",
                   props: {
+                    layout: "row",
                     gap: "xs",
                     children: [
                       {

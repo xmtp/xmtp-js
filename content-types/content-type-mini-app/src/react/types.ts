@@ -1,9 +1,11 @@
 import type { FC } from "react";
 import type { ButtonAction, ButtonActionHandler } from "../types/actions";
-import type { Component } from "../types/components";
+import type { ChromeComponent, Component } from "../types/components";
 
 export type ComponentMap<T extends Component = Component> = {
   [K in T["type"]]: FC<Extract<T, { type: K }>["props"]>;
+} & {
+  chrome: FC<ChromeComponent["props"]>;
 };
 
 export type ButtonActionMap<T extends ButtonAction = ButtonAction> = {

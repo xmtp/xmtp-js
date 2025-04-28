@@ -1,4 +1,4 @@
-import { Box, Group, Image, Stack, Text } from "@mantine/core";
+import { Text } from "@mantine/core";
 import type { Client } from "@xmtp/browser-sdk";
 import {
   type MiniAppActionContent,
@@ -11,9 +11,7 @@ import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
-import { IconInfo } from "@/icons/IconInfo";
 import componentMap from "@/mini-app/componentMap";
-import classes from "./MiniAppContent.module.css";
 
 export type MiniAppContentProps = {
   align: MessageContentAlign;
@@ -38,38 +36,14 @@ export const MiniAppContent: React.FC<MiniAppContentProps> = ({
       sentAtNs={sentAtNs}
       stopClickPropagation={isUI}>
       {isUI ? (
-        <Stack gap="0">
-          <Group
-            align="center"
-            justify="space-between"
-            gap="xs"
-            p="xs"
-            className={classes.header}>
-            <Group gap="xs">
-              {content.manifest.icon && (
-                <Image
-                  src={content.manifest.icon}
-                  alt="XMTP logo"
-                  w="24"
-                  h="24"
-                />
-              )}
-              <Text size="sm" fw={700}>
-                {content.manifest.name}
-              </Text>
-            </Group>
-            <IconInfo />
-          </Group>
-          <Box className={classes.content}>
-            <MiniAppRenderer
-              debug
-              client={client}
-              componentMap={componentMap}
-              senderInboxId={senderInboxId}
-              content={content as MiniAppActionContent<UIAction>}
-            />
-          </Box>
-        </Stack>
+        <MiniAppRenderer
+          debug
+          client={client}
+          componentMap={componentMap}
+          manifest={content.manifest}
+          senderInboxId={senderInboxId}
+          content={content as MiniAppActionContent<UIAction>}
+        />
       ) : (
         <Text>This is a mini app message not intended for display</Text>
       )}

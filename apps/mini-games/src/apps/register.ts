@@ -6,8 +6,9 @@ export const uiRegister = (uuid: string): UIAction => {
     payload: {
       uuid,
       root: {
-        type: "stack-layout",
+        type: "layout",
         props: {
+          layout: "column",
           gap: "xs",
           padding: "md",
           children: [
@@ -51,8 +52,9 @@ export const uiRegisterSuccess = (uuid: string, name: string): UIAction => {
     payload: {
       uuid,
       root: {
-        type: "stack-layout",
+        type: "layout",
         props: {
+          layout: "column",
           gap: "xs",
           padding: "md",
           children: [

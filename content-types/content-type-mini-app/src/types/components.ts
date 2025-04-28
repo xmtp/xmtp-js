@@ -1,4 +1,5 @@
 import type { ButtonAction } from "./actions";
+import type { MiniAppManifest } from "./content";
 
 export type BaseComponentProps = {
   id?: string;
@@ -16,23 +17,14 @@ export type BaseComponentProps = {
   size?: string;
 };
 
-export type LayoutComponentProps = BaseComponentProps & {
-  gap?: number | string;
-  justify?: "start" | "end" | "center" | "between" | "around";
-  align?: "start" | "end" | "center" | "stretch";
-};
-
-export type RowLayoutComponent = {
-  type: "row-layout";
-  props: LayoutComponentProps & {
+export type LayoutComponent = {
+  type: "layout";
+  props: BaseComponentProps & {
+    layout: "row" | "column";
+    gap?: number | string;
+    justify?: "start" | "end" | "center" | "between" | "around";
+    align?: "start" | "end" | "center" | "stretch";
     wrap?: boolean;
-    children: Component[];
-  };
-};
-
-export type StackLayoutComponent = {
-  type: "stack-layout";
-  props: LayoutComponentProps & {
     children: Component[];
   };
 };
@@ -101,12 +93,19 @@ export type InputComponent = {
   };
 };
 
+export type ChromeComponent = {
+  type: "chrome";
+  props: {
+    manifest: MiniAppManifest;
+    root: Component;
+  };
+};
+
 export type Component =
   | ButtonComponent
   | TextComponent
   | ImageComponent
-  | RowLayoutComponent
-  | StackLayoutComponent
+  | LayoutComponent
   | FragmentComponent
   | ContainerComponent
   | InputComponent;

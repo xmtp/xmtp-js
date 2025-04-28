@@ -3,6 +3,8 @@ import React, { createContext, useContext } from "react";
 import { type ValidData, type ValidValue } from "../data";
 import type { ButtonAction } from "../types/actions";
 import type { Component } from "../types/components";
+import type { MiniAppManifest } from "../types/content";
+import { DefaultChrome } from "./defaults";
 import type { ButtonActionMap, ComponentMap } from "./types";
 
 export type MiniAppContextValue = {
@@ -10,6 +12,7 @@ export type MiniAppContextValue = {
   client?: Client;
   componentMap: ComponentMap;
   data?: Record<string, ValidValue>;
+  manifest?: MiniAppManifest;
   handleAction: (action: ButtonAction) => Promise<void> | void;
   handleInputChange: (id: string, value: ValidData) => void;
   renderComponent: (component: Component) => React.JSX.Element;
@@ -24,8 +27,8 @@ export const MiniAppContext = createContext<MiniAppContextValue>({
     data: () => {},
   },
   componentMap: {
-    "row-layout": () => <></>,
-    "stack-layout": () => <></>,
+    chrome: DefaultChrome,
+    layout: () => <></>,
     fragment: () => <></>,
     container: () => <></>,
     button: () => <></>,
@@ -41,5 +44,10 @@ export const MiniAppContext = createContext<MiniAppContextValue>({
 
 export const useMiniAppContext = () => {
   return useContext(MiniAppContext) as MiniAppContextValue &
-    Required<Pick<MiniAppContextValue, "client" | "senderInboxId" | "uuid">>;
+    Required<
+      Pick<
+        MiniAppContextValue,
+        "client" | "senderInboxId" | "uuid" | "manifest"
+      >
+    >;
 };

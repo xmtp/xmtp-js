@@ -1,30 +1,23 @@
 import type { Client } from "@xmtp/browser-sdk";
 import React, { useCallback, useMemo, useState, type FC } from "react";
-import {
-  defaultDataActionHandler,
-  hydrateActionData,
-  type ValidData,
-} from "../data";
+import { hydrateActionData, type ValidData } from "../data";
 import type {
   ButtonAction,
   ButtonActionHandler,
   UIAction,
 } from "../types/actions";
 import type { Component } from "../types/components";
-import type { MiniAppActionContent } from "../types/content";
+import type { MiniAppActionContent, MiniAppManifest } from "../types/content";
 import { MiniAppContext } from "./context";
+import { defaultButtonActionMap } from "./defaults";
 import type { ButtonActionMap, ComponentMap } from "./types";
 import { useAction } from "./useAction";
-
-export const defaultButtonActionMap: ButtonActionMap = {
-  data: defaultDataActionHandler,
-  transaction: () => {},
-};
 
 export type MiniAppRendererProps = {
   buttonActionMap?: ButtonActionMap;
   client: Client;
   componentMap: ComponentMap;
+  manifest: MiniAppManifest;
   senderInboxId: string;
   content: MiniAppActionContent<UIAction>;
   debug?: boolean;
@@ -34,6 +27,7 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
   buttonActionMap = defaultButtonActionMap,
   client,
   componentMap,
+  manifest,
   senderInboxId,
   content,
   debug = false,
@@ -110,6 +104,7 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
       senderInboxId,
       uuid: content.action.payload.uuid,
       completed,
+      manifest,
     }),
     [
       buttonActionMap,
@@ -122,11 +117,13 @@ export const MiniAppRenderer: FC<MiniAppRendererProps> = ({
       senderInboxId,
       content.action.payload.uuid,
       completed,
+      manifest,
     ],
   );
+  const Chrome = componentMap.chrome;
   return (
     <MiniAppContext.Provider value={value}>
-      {renderComponent(content.action.payload.root)}
+      <Chrome manifest={manifest} root={content.action.payload.root} />
     </MiniAppContext.Provider>
   );
 };

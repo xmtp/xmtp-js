@@ -16,3 +16,7 @@
   border-bottom: 1px solid var(--mini-app-content-border-color);
   background-color: var(--mantine-color-body);
 }
+
+.info {
+  cursor: pointer;
+}

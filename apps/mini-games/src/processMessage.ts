@@ -4,7 +4,11 @@ import {
 } from "@xmtp/content-type-mini-app";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { DecodedMessage } from "@xmtp/node-sdk";
-import { playCointoss, startCointoss } from "./actions/cointoss";
+import {
+  playCointoss,
+  sendCointossStats,
+  startCointoss,
+} from "./actions/cointoss";
 import { play } from "./actions/play";
 import {
   register,
@@ -35,6 +39,13 @@ export const processMessage = async (message: DecodedMessage) => {
                   return;
                 }
                 await startCointoss(message.senderInboxId);
+                break;
+              case "cointoss-stats":
+                if (!isRegistered(message.senderInboxId)) {
+                  await startRegistration(message.senderInboxId);
+                  return;
+                }
+                await sendCointossStats(message.senderInboxId);
                 break;
               case "play":
                 if (!isRegistered(message.senderInboxId)) {

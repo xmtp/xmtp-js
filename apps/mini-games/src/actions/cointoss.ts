@@ -3,7 +3,11 @@ import {
   type MiniAppContent,
 } from "@xmtp/content-type-mini-app";
 import { v4 } from "uuid";
-import { uiCointossPlay, uiCointossResult } from "../apps/cointoss";
+import {
+  uiCointossPlay,
+  uiCointossResult,
+  uiCointossStats,
+} from "../apps/cointoss";
 import { client } from "../client";
 import { actions, games } from "../data";
 import { manifest } from "../manifest";
@@ -59,6 +63,17 @@ export const sendCointossResult = async (
     type: "action",
     manifest,
     action: uiCointossResult(uuid, win, result),
+  };
+  await dm.send(message, ContentTypeMiniApp);
+};
+
+export const sendCointossStats = async (inboxId: string) => {
+  const uuid = v4();
+  const dm = await client.conversations.newDm(inboxId);
+  const message: MiniAppContent = {
+    type: "action",
+    manifest,
+    action: uiCointossStats(uuid, inboxId),
   };
   await dm.send(message, ContentTypeMiniApp);
 };
