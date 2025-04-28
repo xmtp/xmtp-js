@@ -172,7 +172,7 @@ export const Connect = () => {
         />
         <AccountCard
           icon={<CoinbaseWallet />}
-          label="Coinbase"
+          label="Coinbase Smart Wallet"
           onClick={handleWalletConnect("Coinbase Wallet")}
         />
         <AccountCard
