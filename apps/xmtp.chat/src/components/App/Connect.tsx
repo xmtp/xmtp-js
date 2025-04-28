@@ -3,17 +3,20 @@ import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
 import { generatePrivateKey } from "viem/accounts";
-import { useAccount, useConnect, useConnectors, useWalletClient } from "wagmi";
+import { mainnet } from "viem/chains";
+import {
+  useAccount,
+  useConnect,
+  useConnectors,
+  useSignMessage,
+  useWalletClient,
+} from "wagmi";
 import { AccountCard } from "@/components/App/AccountCard";
 import { DisableAnalytics } from "@/components/App/DisableAnalytics";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { useXMTP } from "@/contexts/XMTPContext";
-import {
-  createEOASigner,
-  createEphemeralSigner,
-  createSCWSigner,
-} from "@/helpers/createSigner";
+import { createEphemeralSigner, createSCWSigner } from "@/helpers/createSigner";
 import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 import { CoinbaseWallet } from "@/icons/CoinbaseWallet";
@@ -46,7 +49,7 @@ export const Connect = () => {
     environment,
     loggingLevel,
   } = useSettings();
-
+  const { signMessageAsync } = useSignMessage();
   const handleEphemeralConnect = useCallback(() => {
     setEphemeralAccountEnabled(true);
     let accountKey = ephemeralAccountKey;
@@ -99,29 +102,46 @@ export const Connect = () => {
     const initClient = async () => {
       const connector = account.connector;
       if (data?.account && connector) {
-        const provider = (await connector.getProvider()) as
-          | undefined
-          | {
-              connectionType: string;
-            };
-        if (provider) {
-          const isSCW = provider.connectionType === "scw_connection_type";
-          const chainId = await connector.getChainId();
-          void initialize({
-            dbEncryptionKey: encryptionKey
-              ? hexToUint8Array(encryptionKey)
-              : undefined,
-            env: environment,
-            loggingLevel,
-            signer: isSCW
-              ? createSCWSigner(data.account.address, data, BigInt(chainId))
-              : createEOASigner(data.account.address, data),
-          });
+        try {
+          const provider = (await connector.getProvider()) as
+            | undefined
+            | {
+                connectionType: string;
+              };
+          if (provider) {
+            const _isSCW = provider.connectionType === "scw_connection_type";
+            // Use SCW signer for SCW wallets or regular EOA
+            const signer = createSCWSigner(
+              data.account.address,
+              signMessageAsync,
+              BigInt(mainnet.id),
+            );
+
+            console.log("Initializing XMTP client with SCW signer");
+            await initialize({
+              dbEncryptionKey: encryptionKey
+                ? hexToUint8Array(encryptionKey)
+                : undefined,
+              env: environment,
+              loggingLevel,
+              signer,
+            });
+          }
+        } catch (error) {
+          console.error("Error initializing XMTP client:", error);
         }
       }
     };
     void initClient();
-  }, [account.address, data?.account]);
+  }, [
+    account.address,
+    data?.account,
+    initialize,
+    encryptionKey,
+    environment,
+    loggingLevel,
+    signMessageAsync,
+  ]);
 
   useEffect(() => {
     if (client) {
