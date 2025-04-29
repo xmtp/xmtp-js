@@ -8,6 +8,7 @@ import {
   useAccount,
   useConnect,
   useConnectors,
+  useReadContract,
   useSignMessage,
   useWalletClient,
 } from "wagmi";
@@ -39,6 +40,10 @@ type ConnectorString =
 export const Connect = () => {
   const { connect, status } = useConnect();
   const { data } = useWalletClient();
+  const { data: code } = useReadContract({
+    address: data?.account.address,
+    functionName: "code",
+  });
   const account = useAccount();
   const connectors = useConnectors();
   const navigate = useNavigate();
@@ -104,34 +109,26 @@ export const Connect = () => {
   // look for wallet connection
   useEffect(() => {
     const initClient = async () => {
-      const connector = account.connector;
-      if (data?.account && connector) {
-        const provider = (await connector.getProvider()) as
-          | undefined
-          | {
-              connectionType: string;
-            };
-        if (provider) {
-          console.log("connection type", provider.connectionType);
-          const isSCW = provider.connectionType === "scw_connection_type";
-          console.log("using smart contract wallet", isSCW);
-          void initialize({
-            dbEncryptionKey: encryptionKey
-              ? hexToUint8Array(encryptionKey)
-              : undefined,
-            env: environment,
-            loggingLevel,
-            signer: isSCW
-              ? createSCWSigner(
-                  data.account.address,
-                  (message: string) => signMessageAsync({ message }),
-                  mainnet.id,
-                )
-              : createEOASigner(data.account.address, (message: string) =>
-                  signMessageAsync({ message }),
-                ),
-          });
-        }
+      if (data?.account) {
+        console.log("checking if address is a smart contract wallet");
+        const isSCW = code !== "0x";
+        console.log("using smart contract wallet", isSCW);
+        await initialize({
+          dbEncryptionKey: encryptionKey
+            ? hexToUint8Array(encryptionKey)
+            : undefined,
+          env: environment,
+          loggingLevel,
+          signer: isSCW
+            ? createSCWSigner(
+                data.account.address,
+                (message: string) => signMessageAsync({ message }),
+                mainnet.id,
+              )
+            : createEOASigner(data.account.address, (message: string) =>
+                signMessageAsync({ message }),
+              ),
+        });
       }
     };
     void initClient();
