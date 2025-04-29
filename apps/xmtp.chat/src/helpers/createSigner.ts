@@ -1,5 +1,5 @@
 import type { Signer } from "@xmtp/browser-sdk";
-import { toBytes, type Hex, type WalletClient } from "viem";
+import { toBytes, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const createEphemeralSigner = (privateKey: Hex): Signer => {
@@ -21,7 +21,7 @@ export const createEphemeralSigner = (privateKey: Hex): Signer => {
 
 export const createEOASigner = (
   address: `0x${string}`,
-  walletClient: WalletClient,
+  signMessage: (message: string) => Promise<string> | string,
 ): Signer => {
   return {
     type: "EOA",
@@ -30,10 +30,7 @@ export const createEOASigner = (
       identifierKind: "Ethereum",
     }),
     signMessage: async (message: string) => {
-      const signature = await walletClient.signMessage({
-        account: address,
-        message,
-      });
+      const signature = await signMessage(message);
       return toBytes(signature);
     },
   };
@@ -41,40 +38,20 @@ export const createEOASigner = (
 
 export const createSCWSigner = (
   address: `0x${string}`,
-  signMessageAsync: (args: { message: string }) => Promise<`0x${string}`>,
-  chainId: bigint | number = 1,
+  signMessage: (message: string) => Promise<string> | string,
+  chainId: number = 1,
 ): Signer => {
-  console.log("Creating Smart Contract Wallet signer for address:", address);
-
   return {
-    // Mark this as a Smart Contract Wallet signer
     type: "SCW",
     getIdentifier: () => ({
       identifier: address.toLowerCase(),
       identifierKind: "Ethereum",
     }),
     signMessage: async (message: string) => {
-      // Sign the message using the smart contract wallet
-      console.log("Smart Contract Wallet signing message");
-      try {
-        const signature = await signMessageAsync({ message });
-        console.log("Smart Contract Wallet signature received:", signature);
-
-        const signatureBytes = toBytes(signature);
-        console.log("Signature bytes length:", signatureBytes.length);
-
-        return signatureBytes;
-      } catch (error) {
-        console.error("Error in Smart Contract Wallet signMessage:", error);
-        throw error;
-      }
+      const signature = await signMessage(message);
+      const signatureBytes = toBytes(signature);
+      return signatureBytes;
     },
-    // Include getChainId for SCW compatibility
-    getChainId: () => {
-      console.log("SCW getChainId called, value:", chainId);
-      return typeof chainId === "undefined"
-        ? BigInt(1)
-        : BigInt(chainId.toString());
-    },
+    getChainId: () => BigInt(chainId),
   };
 };

@@ -122,16 +122,18 @@ export const Connect = () => {
             signer: isSCW
               ? createSCWSigner(
                   data.account.address,
-                  signMessageAsync,
-                  BigInt(mainnet.id),
+                  (message: string) => signMessageAsync({ message }),
+                  mainnet.id,
                 )
-              : createEOASigner(data.account.address, data),
+              : createEOASigner(data.account.address, (message: string) =>
+                  signMessageAsync({ message }),
+                ),
           });
         }
       }
     };
     void initClient();
-  }, [account.address, data?.account]);
+  }, [account.address, data?.account, signMessageAsync]);
 
   useEffect(() => {
     if (client) {
@@ -172,7 +174,7 @@ export const Connect = () => {
         />
         <AccountCard
           icon={<CoinbaseWallet />}
-          label="Coinbase Smart Wallet"
+          label="Coinbase Wallet"
           onClick={handleWalletConnect("Coinbase Wallet")}
         />
         <AccountCard
