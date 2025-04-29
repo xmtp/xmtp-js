@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.0.7
+
+### Patch Changes
+
+- 616fdec: Added `null` option to `historySyncUrl` client option to allow disabling of history sync
+
 ## 2.0.6
 
 ### Patch Changes

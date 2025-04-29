@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.12
+
+### Patch Changes
+
+- 616fdec: Added `null` option to `historySyncUrl` client option to allow disabling of history sync
+
 ## 2.0.11
 
 ### Patch Changes
