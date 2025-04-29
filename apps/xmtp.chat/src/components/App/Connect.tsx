@@ -42,7 +42,6 @@ export const Connect = () => {
   const { data } = useWalletClient();
   const { data: code } = useReadContract({
     address: data?.account.address,
-    functionName: "code",
   });
   const account = useAccount();
   const connectors = useConnectors();
