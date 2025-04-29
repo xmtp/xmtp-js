@@ -112,6 +112,7 @@ export const Connect = () => {
               connectionType: string;
             };
         if (provider) {
+          console.log("connection type", provider.connectionType);
           const isSCW = provider.connectionType === "scw_connection_type";
           console.log("using smart contract wallet", isSCW);
           void initialize({
