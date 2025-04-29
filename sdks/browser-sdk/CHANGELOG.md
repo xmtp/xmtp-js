@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.0.12
+
+### Patch Changes
+
+- 616fdec: Allow null historySyncUrl
+
 ## 2.0.11
 
 ### Patch Changes
