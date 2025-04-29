@@ -24,7 +24,7 @@ export type NetworkOptions = {
    * historySyncUrl can be used to override the `env` flag and connect to a
    * specific endpoint for syncing history
    */
-  historySyncUrl?: string;
+  historySyncUrl?: string | null;
 };
 
 /**
