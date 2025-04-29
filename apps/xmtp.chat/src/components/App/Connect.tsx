@@ -113,6 +113,7 @@ export const Connect = () => {
             };
         if (provider) {
           const isSCW = provider.connectionType === "scw_connection_type";
+          console.log("using smart contract wallet", isSCW);
           void initialize({
             dbEncryptionKey: encryptionKey
               ? hexToUint8Array(encryptionKey)
