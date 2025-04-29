@@ -110,7 +110,7 @@ export const Connect = () => {
   useEffect(() => {
     const initClient = async () => {
       if (data?.account) {
-        console.log("checking if address is a smart contract wallet");
+        console.log("checking if address is a smart contract wallet", code);
         const isSCW = code !== "0x";
         console.log("using smart contract wallet", isSCW);
         await initialize({
