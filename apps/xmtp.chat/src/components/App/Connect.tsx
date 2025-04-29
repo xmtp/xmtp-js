@@ -42,6 +42,7 @@ export const Connect = () => {
   const { data } = useWalletClient();
   const { data: code } = useReadContract({
     address: data?.account.address,
+    functionName: "code",
   });
   const account = useAccount();
   const connectors = useConnectors();
@@ -109,6 +110,7 @@ export const Connect = () => {
   useEffect(() => {
     const initClient = async () => {
       if (data?.account) {
+        console.log("chain ID", data.chain.id);
         console.log("checking if address is a smart contract wallet", code);
         const isSCW = code !== "0x";
         console.log("using smart contract wallet", isSCW);
