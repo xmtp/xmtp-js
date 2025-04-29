@@ -1,5 +1,5 @@
 import type { Signer } from "@xmtp/browser-sdk";
-import { toBytes, type Hex, type WalletClient } from "viem";
+import { toBytes, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const createEphemeralSigner = (privateKey: Hex): Signer => {
@@ -21,7 +21,7 @@ export const createEphemeralSigner = (privateKey: Hex): Signer => {
 
 export const createEOASigner = (
   address: `0x${string}`,
-  walletClient: WalletClient,
+  signMessage: (message: string) => Promise<string> | string,
 ): Signer => {
   return {
     type: "EOA",
@@ -30,10 +30,7 @@ export const createEOASigner = (
       identifierKind: "Ethereum",
     }),
     signMessage: async (message: string) => {
-      const signature = await walletClient.signMessage({
-        account: address,
-        message,
-      });
+      const signature = await signMessage(message);
       return toBytes(signature);
     },
   };
@@ -41,8 +38,8 @@ export const createEOASigner = (
 
 export const createSCWSigner = (
   address: `0x${string}`,
-  walletClient: WalletClient,
-  chainId: bigint,
+  signMessage: (message: string) => Promise<string> | string,
+  chainId: number = 1,
 ): Signer => {
   return {
     type: "SCW",
@@ -51,14 +48,10 @@ export const createSCWSigner = (
       identifierKind: "Ethereum",
     }),
     signMessage: async (message: string) => {
-      const signature = await walletClient.signMessage({
-        account: address,
-        message,
-      });
-      return toBytes(signature);
+      const signature = await signMessage(message);
+      const signatureBytes = toBytes(signature);
+      return signatureBytes;
     },
-    getChainId: () => {
-      return chainId;
-    },
+    getChainId: () => BigInt(chainId),
   };
 };

@@ -3,7 +3,14 @@ import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
 import { generatePrivateKey } from "viem/accounts";
-import { useAccount, useConnect, useConnectors, useWalletClient } from "wagmi";
+import { mainnet } from "viem/chains";
+import {
+  useAccount,
+  useConnect,
+  useConnectors,
+  useSignMessage,
+  useWalletClient,
+} from "wagmi";
 import { AccountCard } from "@/components/App/AccountCard";
 import { DisableAnalytics } from "@/components/App/DisableAnalytics";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
@@ -46,7 +53,7 @@ export const Connect = () => {
     environment,
     loggingLevel,
   } = useSettings();
-
+  const { signMessageAsync } = useSignMessage();
   const handleEphemeralConnect = useCallback(() => {
     setEphemeralAccountEnabled(true);
     let accountKey = ephemeralAccountKey;
@@ -106,7 +113,6 @@ export const Connect = () => {
             };
         if (provider) {
           const isSCW = provider.connectionType === "scw_connection_type";
-          const chainId = await connector.getChainId();
           void initialize({
             dbEncryptionKey: encryptionKey
               ? hexToUint8Array(encryptionKey)
@@ -114,14 +120,20 @@ export const Connect = () => {
             env: environment,
             loggingLevel,
             signer: isSCW
-              ? createSCWSigner(data.account.address, data, BigInt(chainId))
-              : createEOASigner(data.account.address, data),
+              ? createSCWSigner(
+                  data.account.address,
+                  (message: string) => signMessageAsync({ message }),
+                  mainnet.id,
+                )
+              : createEOASigner(data.account.address, (message: string) =>
+                  signMessageAsync({ message }),
+                ),
           });
         }
       }
     };
     void initClient();
-  }, [account.address, data?.account]);
+  }, [account.address, data?.account, signMessageAsync]);
 
   useEffect(() => {
     if (client) {
@@ -162,7 +174,7 @@ export const Connect = () => {
         />
         <AccountCard
           icon={<CoinbaseWallet />}
-          label="Coinbase"
+          label="Coinbase Wallet"
           onClick={handleWalletConnect("Coinbase Wallet")}
         />
         <AccountCard
