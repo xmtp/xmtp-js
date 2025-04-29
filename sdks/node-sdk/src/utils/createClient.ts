@@ -29,7 +29,10 @@ export const createClient = async (
     structured: options?.structuredLogging ?? false,
     level: options?.loggingLevel ?? LogLevel.off,
   };
-  const historySyncUrl = options?.historySyncUrl || HistorySyncUrls[env];
+  const historySyncUrl =
+    options?.historySyncUrl === undefined
+      ? HistorySyncUrls[env]
+      : options.historySyncUrl;
 
   return createNodeClient(
     host,
