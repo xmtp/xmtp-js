@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 616fdec: Allow null historySyncUrl
+- 616fdec: Added `null` option to `historySyncUrl` client option to allow disabling of history sync
 
 ## 2.0.11
 
