@@ -14,6 +14,10 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = async () => {
+    if (message.length === 0 || sending) {
+      return;
+    }
+
     await send(message);
     setMessage("");
     setTimeout(() => {
