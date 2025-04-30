@@ -25,6 +25,7 @@ export const useConversation = (conversation?: Conversation) => {
       await sync();
     }
 
+    setMessages([]);
     setLoading(true);
 
     try {

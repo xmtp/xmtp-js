@@ -6,9 +6,13 @@ import { MessageContent } from "./MessageContent";
 
 export type MessageProps = {
   message: DecodedMessage;
+  scrollToMessage: (id: string) => void;
 };
 
-export const Message: React.FC<MessageProps> = ({ message }) => {
+export const Message: React.FC<MessageProps> = ({
+  message,
+  scrollToMessage,
+}) => {
   const { client } = useOutletContext<{ client: Client }>();
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
@@ -34,6 +38,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
         message={message}
         align={align}
         senderInboxId={message.senderInboxId}
+        scrollToMessage={scrollToMessage}
       />
     </Box>
   );
