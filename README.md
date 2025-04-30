@@ -1,6 +1,4 @@
-# XMTP TypeScript
-
-This is the official repository for XMTP client SDKs, content types, and packages, written in TypeScript and powered by [Turborepo](https://turbo.build/repo).
+This is the official repository for XMTP client SDKs and content types for browsers and Node, written in TypeScript.
 
 To learn more about the contents of this repository, see this README and the READMEs provided in each workspace directory.
 
@@ -8,12 +6,13 @@ To learn more about the contents of this repository, see this README and the REA
 
 ### SDKs
 
-- [`node-sdk`](https://github.com/xmtp/xmtp-js/blob/main/sdks/node-sdk): XMTP client SDK for Node (V3 only)
-- [`browser-sdk`](https://github.com/xmtp/xmtp-js/blob/main/sdks/browser-sdk): XMTP client SDK for browsers (V3 only)
+- [`browser-sdk`](sdks/browser-sdk): XMTP client SDK for browsers
+- [`node-sdk`](sdks/node-sdk): XMTP client SDK for Node
 
 ### Content types
 
 - [`content-type-primitives`](content-types/content-type-primitives): Primitives for building custom XMTP content types
+- [`content-type-group-updated`](content-types/content-type-group-updated): Content type for group update messages
 - [`content-type-reaction`](content-types/content-type-reaction): Content type for reactions to messages
 - [`content-type-read-receipt`](content-types/content-type-read-receipt): Content type for read receipts for messages
 - [`content-type-remote-attachment`](content-types/content-type-remote-attachment): Content type for sending file attachments that are stored off-network
