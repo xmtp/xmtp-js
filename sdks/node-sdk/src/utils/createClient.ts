@@ -43,7 +43,7 @@ export const createClient = async (
     identifier,
     options?.dbEncryptionKey,
     historySyncUrl,
-    SyncWorkerMode.disabled,
+    null,
     logOptions,
   );
 };
