@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/node-sdk",
-  "version": "2.0.7",
+  "version": "2.0.8-dev.154cca2.2",
   "description": "XMTP Node client SDK for interacting with XMTP networks",
   "keywords": [
     "xmtp",
@@ -53,7 +53,7 @@
     "@xmtp/content-type-group-updated": "^2.0.2",
     "@xmtp/content-type-primitives": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/node-bindings": "1.1.6",
+    "@xmtp/node-bindings": "1.2.0-dev.154cca2",
     "@xmtp/proto": "^3.78.0"
   },
   "devDependencies": {
@@ -82,7 +82,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true,
+    "provenance": false,
     "registry": "https://registry.npmjs.org/"
   }
 }
