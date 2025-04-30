@@ -12,6 +12,7 @@ import {
   ContentTypeWalletSendCalls,
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
+import { FallbackContent } from "@/components/Messages/FallbackContent";
 import { GroupUpdatedContent } from "@/components/Messages/GroupUpdatedContent";
 import {
   MessageContentWrapper,
@@ -76,6 +77,17 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         senderInboxId={senderInboxId}
         sentAtNs={message.sentAtNs}>
         <TextContent text={message.content} />
+      </MessageContentWrapper>
+    );
+  }
+
+  if (typeof message.fallback === "string") {
+    return (
+      <MessageContentWrapper
+        align={align}
+        senderInboxId={senderInboxId}
+        sentAtNs={message.sentAtNs}>
+        <FallbackContent text={message.fallback} />
       </MessageContentWrapper>
     );
   }
