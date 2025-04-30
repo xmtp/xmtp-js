@@ -25,6 +25,7 @@ export type MessageContentProps = {
   align: MessageContentAlign;
   senderInboxId: string;
   message: DecodedMessage;
+  scrollToMessage: (id: string) => void;
 };
 
 export const MessageContent: React.FC<MessageContentProps> = ({
