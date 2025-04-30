@@ -1,4 +1,4 @@
-import { Code, Paper, Text } from "@mantine/core";
+import { Code } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeGroupUpdated,
@@ -17,9 +17,9 @@ import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
+import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
 import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsContent";
-import classes from "./MessageContent.module.css";
 
 export type MessageContentProps = {
   align: MessageContentAlign;
@@ -74,26 +74,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         align={align}
         senderInboxId={senderInboxId}
         sentAtNs={message.sentAtNs}>
-        <Paper
-          className={classes.text}
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-          bg="var(--mantine-color-blue-filled)"
-          c="white"
-          py="xs"
-          px="sm"
-          radius="md">
-          <Text
-            component="pre"
-            style={{
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-all",
-              fontFamily: "inherit",
-            }}>
-            {message.content}
-          </Text>
-        </Paper>
+        <TextContent text={message.content} />
       </MessageContentWrapper>
     );
   }
