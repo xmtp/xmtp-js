@@ -4,6 +4,7 @@ import {
   ContentTypeGroupUpdated,
   type GroupUpdated,
 } from "@xmtp/content-type-group-updated";
+import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
@@ -18,6 +19,7 @@ import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
+import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
 import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsContent";
@@ -33,6 +35,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
   message,
   align,
   senderInboxId,
+  scrollToMessage,
 }) => {
   if (message.contentType.sameAs(ContentTypeTransactionReference)) {
     return (
@@ -67,6 +70,21 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         content={message.content as GroupUpdated}
         sentAtNs={message.sentAtNs}
       />
+    );
+  }
+
+  if (message.contentType.sameAs(ContentTypeReply)) {
+    return (
+      <MessageContentWrapper
+        align={align}
+        senderInboxId={senderInboxId}
+        sentAtNs={message.sentAtNs}>
+        <ReplyContent
+          align={align}
+          message={message as DecodedMessage<Reply>}
+          scrollToMessage={scrollToMessage}
+        />
+      </MessageContentWrapper>
     );
   }
 
