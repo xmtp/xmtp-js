@@ -13,7 +13,7 @@ export { Dm } from "./Dm";
 export { Group } from "./Group";
 export type { PreferenceUpdate } from "./Preferences";
 export { DecodedMessage } from "./DecodedMessage";
-export type { StreamCallback } from "./AsyncStream";
+export type { AsyncStream, StreamCallback } from "./AsyncStream";
 export type {
   Consent,
   ContentType,
