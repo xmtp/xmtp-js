@@ -1,4 +1,4 @@
-import { Box, Group, LoadingOverlay, Stack } from "@mantine/core";
+import { Group, LoadingOverlay, Stack } from "@mantine/core";
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
@@ -13,6 +13,7 @@ import {
 } from "wagmi";
 import { AccountCard } from "@/components/App/AccountCard";
 import { DisableAnalytics } from "@/components/App/DisableAnalytics";
+import { ForceSCW } from "@/components/App/ForceSCW";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { useXMTP } from "@/contexts/XMTPContext";
@@ -52,6 +53,7 @@ export const Connect = () => {
     encryptionKey,
     environment,
     loggingLevel,
+    forceSCW,
   } = useSettings();
   const { signMessageAsync } = useSignMessage();
   const handleEphemeralConnect = useCallback(() => {
@@ -112,7 +114,8 @@ export const Connect = () => {
               connectionType: string;
             };
         if (provider) {
-          const isSCW = provider.connectionType === "scw_connection_type";
+          const isSCW =
+            forceSCW || provider.connectionType === "scw_connection_type";
           void initialize({
             dbEncryptionKey: encryptionKey
               ? hexToUint8Array(encryptionKey)
@@ -187,9 +190,8 @@ export const Connect = () => {
           label="WalletConnect"
           onClick={handleWalletConnect("WalletConnect")}
         />
-        <Box className={classes.options}>
-          <DisableAnalytics />
-        </Box>
+        <ForceSCW />
+        <DisableAnalytics />
       </Stack>
     </Stack>
   );

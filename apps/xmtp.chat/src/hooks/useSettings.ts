@@ -33,17 +33,24 @@ export const useSettings = () => {
     defaultValue: "off",
     getInitialValueInEffect: false,
   });
+  const [forceSCW, setForceSCW] = useLocalStorage<boolean>({
+    key: "XMTP_FORCE_SCW",
+    defaultValue: false,
+    getInitialValueInEffect: false,
+  });
 
   return {
     encryptionKey,
     environment,
     ephemeralAccountEnabled,
     ephemeralAccountKey,
+    forceSCW,
     loggingLevel,
     setEncryptionKey,
     setEnvironment,
     setEphemeralAccountEnabled,
     setEphemeralAccountKey,
+    setForceSCW,
     setLoggingLevel,
   };
 };

@@ -58,7 +58,7 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
                 size="sm"
                 style={{
                   whiteSpace: "pre-wrap",
-                  wordBreak: "break-all",
+                  wordBreak: "break-word",
                   fontFamily: "inherit",
                 }}>
                 {originalMessage?.content}
