@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.0.8
+
+### Patch Changes
+
+- 609b509: Do not stop stream on benign message processing errors
+
 ## 2.0.7
 
 ### Patch Changes
