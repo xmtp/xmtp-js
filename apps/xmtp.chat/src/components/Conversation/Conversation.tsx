@@ -44,6 +44,9 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
       await startStream();
     };
     void loadMessages();
+    return () => {
+      stopStream();
+    };
   }, [conversation.id]);
 
   const handleSync = useCallback(async () => {
@@ -54,12 +57,6 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
       setTitle(conversation.name || "Untitled");
     }
   }, [getMessages, conversation.id, startStream, stopStream]);
-
-  useEffect(() => {
-    return () => {
-      stopStream();
-    };
-  }, []);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {

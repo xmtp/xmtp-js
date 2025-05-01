@@ -21,7 +21,7 @@ export const TextContent: React.FC<TextContentProps> = ({ text }) => {
         component="pre"
         style={{
           whiteSpace: "pre-wrap",
-          wordBreak: "break-all",
+          wordBreak: "break-word",
           fontFamily: "inherit",
         }}>
         {text}
