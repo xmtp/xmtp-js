@@ -26,10 +26,6 @@
   border-top: none;
 }
 
-.options {
-  background-color: var(--mantine-color-gray-light);
-}
-
 @media screen and (max-width: 500px) {
   .options {
     flex-direction: column;

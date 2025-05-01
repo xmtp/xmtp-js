@@ -13,7 +13,7 @@ export const DisableAnalytics: React.FC = () => {
   };
 
   return (
-    <Stack p="md">
+    <Stack p="md" bg="var(--mantine-color-gray-light)">
       <Group gap="xs" justify="space-between">
         <Text>Disable analytics</Text>
         <Switch size="md" checked={checked} onChange={handleChange} />
