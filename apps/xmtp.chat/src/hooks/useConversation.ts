@@ -21,12 +21,12 @@ export const useConversation = (conversation?: Conversation) => {
       return;
     }
 
+    setMessages([]);
+    setLoading(true);
+
     if (syncFromNetwork) {
       await sync();
     }
-
-    setMessages([]);
-    setLoading(true);
 
     try {
       const msgs = (await conversation?.messages(options)) ?? [];
