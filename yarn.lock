@@ -2736,21 +2736,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.72.2":
-  version: 5.72.2
-  resolution: "@tanstack/query-core@npm:5.72.2"
-  checksum: 10/c262412162653e6a6aabd76c526fd3565217ba008f9ecfaed58b9d6e648b8ee0a3006465c9851f120089492d848bec64cbe209f026b610813dc186d483ba8ece
+"@tanstack/query-core@npm:5.75.0":
+  version: 5.75.0
+  resolution: "@tanstack/query-core@npm:5.75.0"
+  checksum: 10/4dd986efe81a36816998dcf2cc535e6f21b4453d967e568f44999fdc6e022dc5997383bd6fb5a427b1b7d582a468cebdb79cfae09c9d07c7cecd09b596c7bbe4
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^5.72.2":
-  version: 5.72.2
-  resolution: "@tanstack/react-query@npm:5.72.2"
+"@tanstack/react-query@npm:^5.75.2":
+  version: 5.75.2
+  resolution: "@tanstack/react-query@npm:5.75.2"
   dependencies:
-    "@tanstack/query-core": "npm:5.72.2"
+    "@tanstack/query-core": "npm:5.75.0"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10/b0f07cc9925b4439d6ada184d4ddb2c4786c7dcb16d839b40fb2d9d5750d8635d0cbea9c7c3ff38bec5022bcd2d29fbccd9142eaf156e6b8524bd66d33dde85a
+  checksum: 10/c0c3ab5ac003b47a7754f2453a21a9682abd6b9ac5e8bc9447c02b0bafd87e54fe670f3bf7f4db543ca7d6e5ac0b76a21540151ccf59771b7168007b2ac0b20b
   languageName: node
   linkType: hard
 
@@ -2863,13 +2863,6 @@ __metadata:
   dependencies:
     "@babel/types": "npm:^7.20.7"
   checksum: 10/63d13a3789aa1e783b87a8b03d9fb2c2c90078de7782422feff1631b8c2a25db626e63a63ac5a1465d47359201c73069dacb4b52149d17c568187625da3064ae
-  languageName: node
-  linkType: hard
-
-"@types/cookie@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@types/cookie@npm:0.6.0"
-  checksum: 10/b883348d5bf88695fbc2c2276b1c49859267a55cae3cf11ea1dccc1b3be15b466e637ce3242109ba27d616c77c6aa4efe521e3d557110b4fdd9bc332a12445c2
   languageName: node
   linkType: hard
 
@@ -3885,7 +3878,7 @@ __metadata:
     "@mantine/hooks": "npm:^7.17.4"
     "@mantine/modals": "npm:^7.17.4"
     "@mantine/notifications": "npm:^7.17.4"
-    "@tanstack/react-query": "npm:^5.72.2"
+    "@tanstack/react-query": "npm:^5.75.2"
     "@types/react": "npm:^19.1.2"
     "@types/react-dom": "npm:^19.1.3"
     "@vitejs/plugin-react": "npm:^4.4.1"
@@ -3906,8 +3899,8 @@ __metadata:
     react: "npm:^19.1.0"
     react-18-blockies: "npm:^1.0.6"
     react-dom: "npm:^19.1.0"
-    react-router: "npm:^7.5.0"
-    react-virtuoso: "npm:^4.12.6"
+    react-router: "npm:^7.5.3"
+    react-virtuoso: "npm:^4.12.7"
     typescript: "npm:^5.8.3"
     uint8array-extras: "npm:^1.4.0"
     viem: "npm:^2.26.2"
@@ -9069,11 +9062,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:^7.5.0":
-  version: 7.5.0
-  resolution: "react-router@npm:7.5.0"
+"react-router@npm:^7.5.3":
+  version: 7.5.3
+  resolution: "react-router@npm:7.5.3"
   dependencies:
-    "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^1.0.1"
     set-cookie-parser: "npm:^2.6.0"
     turbo-stream: "npm:2.4.0"
@@ -9083,7 +9075,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10/ff1c889a1eb78dbff034bffa9efc29c72031c20b6358d557312ae7aaff58bb8c1596b8dcc8b8c259a30ed9f15806763e5534904a1b44fd33179ed12be9a9aebe
+  checksum: 10/bfcbe4d9c95032b805edbb2615f6672adbb4cb0d72a146c99895d92596880cdc90146ab37c049957c113b28b15cf1fdf4b822c7d277ec8e12740343d67b6a494
   languageName: node
   linkType: hard
 
@@ -9148,13 +9140,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtuoso@npm:^4.12.6":
-  version: 4.12.6
-  resolution: "react-virtuoso@npm:4.12.6"
+"react-virtuoso@npm:^4.12.7":
+  version: 4.12.7
+  resolution: "react-virtuoso@npm:4.12.7"
   peerDependencies:
     react: ">=16 || >=17 || >= 18 || >= 19"
     react-dom: ">=16 || >=17 || >= 18 || >=19"
-  checksum: 10/97e388f0a5df90a8e5410e6c9e37458bec322a9b3b84a4bdf08154584b47e8ef72699aca40cb45568cf7243958dd00e8687b755eadb1f7989fd1899c6dc2d823
+  checksum: 10/9c6eeaa351d2ec2b489764065d47a0cc92867ed77f354c9364cabcb74001b13528fdf5dd4efa41ef94157cc8a13b924ed04d2626b90e819dbd3301e65758faee
   languageName: node
   linkType: hard
 
