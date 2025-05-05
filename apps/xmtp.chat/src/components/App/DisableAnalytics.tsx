@@ -16,7 +16,12 @@ export const DisableAnalytics: React.FC = () => {
     <Stack p="md" bg="var(--mantine-color-gray-light)">
       <Group gap="xs" justify="space-between">
         <Text>Disable analytics</Text>
-        <Switch size="md" checked={checked} onChange={handleChange} />
+        <Switch
+          size="md"
+          checked={checked}
+          onChange={handleChange}
+          withThumbIndicator={false}
+        />
       </Group>
       <Text size="sm">
         We use{" "}

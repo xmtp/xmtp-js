@@ -13,7 +13,12 @@ export const ForceSCW: React.FC = () => {
     <Stack p="md" bg="var(--mantine-color-gray-light)">
       <Group gap="xs" justify="space-between">
         <Text>Force use of Smart Contract Wallet signatures</Text>
-        <Switch size="md" checked={forceSCW} onChange={handleChange} />
+        <Switch
+          size="md"
+          checked={forceSCW}
+          onChange={handleChange}
+          withThumbIndicator={false}
+        />
       </Group>
       <Text size="sm">
         Use this option if you are experiencing issues when signing with your
