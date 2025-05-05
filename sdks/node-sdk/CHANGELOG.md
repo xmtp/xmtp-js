@@ -1,5 +1,14 @@
 # @xmtp/node-sdk
 
+## 2.0.9
+
+### Patch Changes
+
+- 441a029: `AsyncStream` updates
+  - Changed signature of `return` to allow no argument (e.g. `stream.return()`)
+  - Added `end` alias that calls `return` without an argument
+  - Added `AsyncStream` to exports
+
 ## 2.0.8
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @xmtp/browser-sdk
 
+## 2.0.13
+
+### Patch Changes
+
+- 441a029: `AsyncStream` updates
+  - Changed signature of `return` to allow no argument (e.g. `stream.return()`)
+  - Added `end` alias that calls `return` without an argument
+  - Added `AsyncStream` and `StreamCallback` to exports
+
 ## 2.0.12
 
 ### Patch Changes
