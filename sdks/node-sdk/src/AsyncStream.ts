@@ -96,7 +96,7 @@ export class AsyncStream<T> {
     });
   };
 
-  return = (value: T | undefined) => {
+  return = (value?: T) => {
     this.#endStream();
     this.onReturn?.();
     return Promise.resolve({
@@ -104,6 +104,8 @@ export class AsyncStream<T> {
       value,
     });
   };
+
+  end = () => this.return();
 
   [Symbol.asyncIterator]() {
     return this;

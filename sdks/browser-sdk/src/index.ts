@@ -9,6 +9,7 @@ export { Utils } from "./Utils";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types";
 export * from "./utils/conversions";
+export type { AsyncStream, StreamCallback } from "./AsyncStream";
 export type {
   Identifier,
   IdentifierKind,
