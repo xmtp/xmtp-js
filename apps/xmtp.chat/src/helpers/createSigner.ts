@@ -41,6 +41,7 @@ export const createSCWSigner = (
   signMessage: (message: string) => Promise<string> | string,
   chainId: number = 1,
 ): Signer => {
+  console.log("Creating SCW signer with chain ID:", chainId);
   return {
     type: "SCW",
     getIdentifier: () => ({
