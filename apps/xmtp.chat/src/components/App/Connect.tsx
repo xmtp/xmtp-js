@@ -3,7 +3,6 @@ import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
 import { generatePrivateKey } from "viem/accounts";
-import { mainnet } from "viem/chains";
 import {
   useAccount,
   useConnect,
@@ -126,7 +125,7 @@ export const Connect = () => {
               ? createSCWSigner(
                   data.account.address,
                   (message: string) => signMessageAsync({ message }),
-                  mainnet.id,
+                  account.chainId,
                 )
               : createEOASigner(data.account.address, (message: string) =>
                   signMessageAsync({ message }),
@@ -136,7 +135,7 @@ export const Connect = () => {
       }
     };
     void initClient();
-  }, [account.address, data?.account, signMessageAsync]);
+  }, [account.address, account.chainId, data?.account, signMessageAsync]);
 
   useEffect(() => {
     if (client) {
