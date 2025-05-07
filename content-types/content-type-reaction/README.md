@@ -5,7 +5,7 @@
 This package provides an XMTP content type to support reactions to messages.
 
 > **Open for feedback**  
-> You are welcome to provide feedback on this implementation by commenting on the [Proposal for emoji reactions content type](https://github.com/orgs/xmtp/discussions/36).
+> You are welcome to provide feedback on this implementation by commenting on the [Proposal for emoji reactions content type](https://github.com/xmtp/xmtp/discussions/36).
 
 ## What’s a reaction?
 
