@@ -46,13 +46,7 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
             Replied to
           </Text>
           <Tooltip label="Click to scroll to the original message">
-            <Paper
-              withBorder
-              c="white"
-              py="xs"
-              px="sm"
-              radius="md"
-              onClick={handleClick}>
+            <Paper withBorder py="xs" px="sm" radius="md" onClick={handleClick}>
               <Text
                 component="pre"
                 size="sm"

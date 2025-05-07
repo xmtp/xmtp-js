@@ -1,4 +1,14 @@
-import { Badge, Button, Group, Stack, Text, TextInput } from "@mantine/core";
+import {
+  Badge,
+  Button,
+  Divider,
+  Group,
+  SegmentedControl,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import {
   Utils,
   Group as XmtpGroup,
@@ -17,6 +27,8 @@ export type MembersProps = {
   onMembersRemoved?: (members: SafeGroupMember[]) => void;
 };
 
+type MemberType = "inboxID" | "address";
+
 export const Members: React.FC<MembersProps> = ({
   conversation,
   inboxId,
@@ -28,6 +40,7 @@ export const Members: React.FC<MembersProps> = ({
   const [members, setMembers] = useState<SafeGroupMember[]>([]);
   const [addedMembers, setAddedMembers] = useState<string[]>([]);
   const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
+  const [memberType, setMemberType] = useState<MemberType>("inboxID");
   const { environment } = useSettings();
   const utilsRef = useRef<Utils | null>(null);
 
@@ -199,6 +212,27 @@ export const Members: React.FC<MembersProps> = ({
       {conversation && (
         <>
           <Stack gap="xs">
+            <Group justify="space-between" gap="xs">
+              <Title order={4}>Existing members</Title>
+              <SegmentedControl
+                withItemsBorders={false}
+                value={memberType}
+                onChange={(value) => {
+                  setMemberType(value as MemberType);
+                }}
+                data={[
+                  {
+                    label: "Inbox ID",
+                    value: "inboxID",
+                  },
+                  {
+                    label: "Address",
+                    value: "address",
+                  },
+                ]}
+              />
+            </Group>
+            <Divider mb="md" />
             <Group gap="xs">
               <Text fw={700}>Removed members</Text>
               <Badge color="gray" size="lg">
@@ -208,11 +242,17 @@ export const Members: React.FC<MembersProps> = ({
             <Stack gap="4px">
               {removedMembers.map((member) => (
                 <Group
-                  key={member.inboxId}
+                  key={`${member.inboxId}-removed`}
                   justify="space-between"
                   align="center"
                   wrap="nowrap">
-                  <BadgeWithCopy value={member.inboxId} />
+                  <BadgeWithCopy
+                    value={
+                      memberType === "inboxID"
+                        ? member.inboxId
+                        : member.accountIdentifiers[0].identifier
+                    }
+                  />
                   <Button
                     flex="0 0 auto"
                     size="xs"
@@ -241,7 +281,13 @@ export const Members: React.FC<MembersProps> = ({
                       justify="space-between"
                       align="center"
                       wrap="nowrap">
-                      <BadgeWithCopy value={member.inboxId} />
+                      <BadgeWithCopy
+                        value={
+                          memberType === "inboxID"
+                            ? member.inboxId
+                            : member.accountIdentifiers[0].identifier
+                        }
+                      />
                       <Button
                         flex="0 0 auto"
                         size="xs"
