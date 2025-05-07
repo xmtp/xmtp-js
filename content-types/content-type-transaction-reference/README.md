@@ -5,7 +5,7 @@
 This package provides an XMTP content type to support on-chain transaction references.
 
 > **Open for feedback**  
-> You are welcome to provide feedback on this implementation by commenting on the [Proposal for on-chain transaction reference content type](https://github.com/orgs/xmtp/discussions/37).
+> You are welcome to provide feedback on this implementation by commenting on the [Proposal for on-chain transaction reference content type](https://github.com/xmtp/xmtp/discussions/37).
 
 ## What’s a transaction reference?
 
