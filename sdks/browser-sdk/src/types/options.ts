@@ -61,6 +61,10 @@ export type OtherOptions = {
    * Disable automatic registration when creating a client
    */
   disableAutoRegister?: boolean;
+  /**
+   * Disable device sync
+   */
+  disableDeviceSync?: boolean;
 };
 
 export type ClientOptions = NetworkOptions &

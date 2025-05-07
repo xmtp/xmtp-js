@@ -32,6 +32,10 @@ export const createClient = async (
       ? HistorySyncUrls[env]
       : options.historySyncUrl;
 
+  const deviceSyncWorkerMode = options?.disableDeviceSync
+    ? "disabled"
+    : "enabled";
+
   return createWasmClient(
     host,
     inboxId,
@@ -39,6 +43,7 @@ export const createClient = async (
     dbPath,
     options?.dbEncryptionKey,
     historySyncUrl,
+    deviceSyncWorkerMode,
     isLogging
       ? new LogOptions(
           options.structuredLogging ?? false,
