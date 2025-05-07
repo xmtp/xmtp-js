@@ -290,6 +290,14 @@ export type ClientEvents =
       };
     }
   | {
+      action: "newGroupOptimistic";
+      id: string;
+      result: SafeConversation;
+      data: {
+        options?: SafeCreateGroupOptions;
+      };
+    }
+  | {
       action: "newGroupWithIdentifiers";
       id: string;
       result: SafeConversation;

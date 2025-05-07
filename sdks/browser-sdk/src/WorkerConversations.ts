@@ -99,6 +99,13 @@ export class WorkerConversations {
     );
   }
 
+  newGroupOptimistic(options?: SafeCreateGroupOptions) {
+    const group = this.#conversations.createGroupOptimistic(
+      options ? fromSafeCreateGroupOptions(options) : undefined,
+    );
+    return new WorkerConversation(this.#client, group);
+  }
+
   async newGroupWithIdentifiers(
     identifiers: Identifier[],
     options?: SafeCreateGroupOptions,

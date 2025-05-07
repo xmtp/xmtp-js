@@ -426,6 +426,14 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
+      case "newGroupOptimistic": {
+        const conversation = client.conversations.newGroupOptimistic(
+          data.options,
+        );
+        const result = await toSafeConversation(conversation);
+        postMessage({ id, action, result });
+        break;
+      }
       case "newGroupWithIdentifiers": {
         const conversation = await client.conversations.newGroupWithIdentifiers(
           data.identifiers,

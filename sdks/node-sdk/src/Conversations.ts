@@ -85,6 +85,17 @@ export class Conversations {
   }
 
   /**
+   * Creates a new group conversation without syncing to the network
+   *
+   * @param options - Optional group creation options
+   * @returns The new group
+   */
+  newGroupOptimistic(options?: CreateGroupOptions) {
+    const group = this.#conversations.createGroupOptimistic(options);
+    return new Group(this.#client, group);
+  }
+
+  /**
    * Creates a new group conversation with the specified identifiers
    *
    * @param identifiers - Array of identifiers for group members

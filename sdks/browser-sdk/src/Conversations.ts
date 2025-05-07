@@ -167,6 +167,20 @@ export class Conversations {
   }
 
   /**
+   * Creates a new group without syncing to the network
+   *
+   * @param options - Optional group creation options
+   * @returns Promise that resolves with the new group
+   */
+  async newGroupOptimistic(options?: SafeCreateGroupOptions) {
+    const conversation = await this.#client.sendMessage("newGroupOptimistic", {
+      options,
+    });
+
+    return new Group(this.#client, conversation.id, conversation);
+  }
+
+  /**
    * Creates a new group conversation with the specified identifiers
    *
    * @param identifiers - Array of identifiers for group members
