@@ -324,6 +324,7 @@ export class Conversations {
   async streamAllMessages(
     callback?: StreamCallback<DecodedMessage>,
     conversationType?: ConversationType,
+    consentStates?: ConsentState[],
   ) {
     const streamId = v4();
     const asyncStream = new AsyncStream<DecodedMessage>();
@@ -348,6 +349,7 @@ export class Conversations {
     await this.#client.sendMessage("streamAllMessages", {
       streamId,
       conversationType,
+      consentStates,
     });
     asyncStream.onReturn = () => {
       void this.#client.sendMessage("endStream", {
@@ -364,8 +366,15 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group messages
    */
-  async streamAllGroupMessages(callback?: StreamCallback<DecodedMessage>) {
-    return this.streamAllMessages(callback, ConversationType.Group);
+  async streamAllGroupMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    consentStates?: ConsentState[],
+  ) {
+    return this.streamAllMessages(
+      callback,
+      ConversationType.Group,
+      consentStates,
+    );
   }
 
   /**
@@ -374,7 +383,10 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM messages
    */
-  async streamAllDmMessages(callback?: StreamCallback<DecodedMessage>) {
-    return this.streamAllMessages(callback, ConversationType.Dm);
+  async streamAllDmMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    consentStates?: ConsentState[],
+  ) {
+    return this.streamAllMessages(callback, ConversationType.Dm, consentStates);
   }
 }

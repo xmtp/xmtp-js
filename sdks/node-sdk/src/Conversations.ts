@@ -1,10 +1,11 @@
-import type {
-  ConsentState,
-  CreateDmOptions,
-  CreateGroupOptions,
-  Identifier,
-  ListConversationsOptions,
-  Conversations as XmtpConversations,
+import {
+  ConversationType,
+  type ConsentState,
+  type CreateDmOptions,
+  type CreateGroupOptions,
+  type Identifier,
+  type ListConversationsOptions,
+  type Conversations as XmtpConversations,
 } from "@xmtp/node-bindings";
 import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
@@ -325,46 +326,17 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new messages
    */
-  async streamAllMessages(callback?: StreamCallback<DecodedMessage>) {
+  async streamAllMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    conversationType?: ConversationType,
+    consentStates?: ConsentState[],
+  ) {
     // sync conversations first
     await this.sync();
 
     const asyncStream = new AsyncStream<DecodedMessage>();
 
-    const stream = this.#conversations.streamAllMessages((error, value) => {
-      let err: Error | null = error;
-      let message: DecodedMessage | undefined;
-
-      if (value) {
-        try {
-          message = new DecodedMessage(this.#client, value);
-        } catch (error) {
-          err = error as Error;
-        }
-      }
-
-      asyncStream.callback(err, message);
-      callback?.(err, message);
-    });
-
-    asyncStream.onReturn = stream.end.bind(stream);
-
-    return asyncStream;
-  }
-
-  /**
-   * Creates a stream for all new group messages
-   *
-   * @param callback - Optional callback function for handling new stream value
-   * @returns Stream instance for new group messages
-   */
-  async streamAllGroupMessages(callback?: StreamCallback<DecodedMessage>) {
-    // sync conversations first
-    await this.sync();
-
-    const asyncStream = new AsyncStream<DecodedMessage>();
-
-    const stream = this.#conversations.streamAllGroupMessages(
+    const stream = this.#conversations.streamAllMessages(
       (error, value) => {
         let err: Error | null = error;
         let message: DecodedMessage | undefined;
@@ -380,6 +352,8 @@ export class Conversations {
         asyncStream.callback(err, message);
         callback?.(err, message);
       },
+      conversationType,
+      consentStates,
     );
 
     asyncStream.onReturn = stream.end.bind(stream);
@@ -388,36 +362,33 @@ export class Conversations {
   }
 
   /**
+   * Creates a stream for all new group messages
+   *
+   * @param callback - Optional callback function for handling new stream value
+   * @returns Stream instance for new group messages
+   */
+  async streamAllGroupMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    consentStates?: ConsentState[],
+  ) {
+    return this.streamAllMessages(
+      callback,
+      ConversationType.Group,
+      consentStates,
+    );
+  }
+
+  /**
    * Creates a stream for all new DM messages
    *
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM messages
    */
-  async streamAllDmMessages(callback?: StreamCallback<DecodedMessage>) {
-    // sync conversations first
-    await this.sync();
-
-    const asyncStream = new AsyncStream<DecodedMessage>();
-
-    const stream = this.#conversations.streamAllDmMessages((error, value) => {
-      let err: Error | null = error;
-      let message: DecodedMessage | undefined;
-
-      if (value) {
-        try {
-          message = new DecodedMessage(this.#client, value);
-        } catch (error) {
-          err = error as Error;
-        }
-      }
-
-      asyncStream.callback(err, message);
-      callback?.(err, message);
-    });
-
-    asyncStream.onReturn = stream.end.bind(stream);
-
-    return asyncStream;
+  async streamAllDmMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    consentStates?: ConsentState[],
+  ) {
+    return this.streamAllMessages(callback, ConversationType.Dm, consentStates);
   }
 
   /**

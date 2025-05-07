@@ -361,6 +361,7 @@ export type ClientEvents =
       data: {
         streamId: string;
         conversationType?: ConversationType;
+        consentStates?: ConsentState[];
       };
     }
   | {
