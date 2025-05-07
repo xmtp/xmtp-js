@@ -23,8 +23,7 @@ export const InboxIdBadge: React.FC<InboxIdBadgeProps> = ({
       shadow="md"
       trapFocus
       opened={opened}
-      onChange={setOpened}
-      closeOnEscape>
+      onChange={setOpened}>
       <Popover.Target>
         <Button
           variant="default"
@@ -38,7 +37,11 @@ export const InboxIdBadge: React.FC<InboxIdBadgeProps> = ({
           {shortAddress(inboxId)}
         </Button>
       </Popover.Target>
-      <Popover.Dropdown p="xs">
+      <Popover.Dropdown
+        p="xs"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}>
         <Stack gap="xs">
           <Text truncate size="sm" ml="xs">
             Inbox ID
