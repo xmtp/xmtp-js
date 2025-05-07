@@ -480,6 +480,15 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         });
         break;
       }
+      case "syncDevice": {
+        await client.conversations.syncDevice();
+        postMessage({
+          id,
+          action,
+          result: undefined,
+        });
+        break;
+      }
       case "getConversationById": {
         const conversation = client.conversations.getConversationById(data.id);
         const result = conversation

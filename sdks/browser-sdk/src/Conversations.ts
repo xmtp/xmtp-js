@@ -57,6 +57,10 @@ export class Conversations {
     });
   }
 
+  async syncDevice() {
+    return this.#client.sendMessage("syncDevice", undefined);
+  }
+
   /**
    * Retrieves a conversation by its ID
    *

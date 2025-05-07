@@ -340,6 +340,12 @@ export type ClientEvents =
       };
     }
   | {
+      action: "syncDevice";
+      id: string;
+      result: undefined;
+      data: undefined;
+    }
+  | {
       action: "getHmacKeys";
       id: string;
       result: SafeHmacKeys;
