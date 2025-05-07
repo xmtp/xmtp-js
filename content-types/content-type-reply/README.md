@@ -5,7 +5,7 @@
 This package provides an XMTP content type to support direct replies to messages.
 
 > **Open for feedback**  
-> You are welcome to provide feedback on this implementation by commenting on the [Proposal for Reply content type](https://github.com/orgs/xmtp/discussions/35).
+> You are welcome to provide feedback on this implementation by commenting on the [Proposal for Reply content type](https://github.com/xmtp/xmtp/discussions/35).
 
 ## What’s a reply?
 
