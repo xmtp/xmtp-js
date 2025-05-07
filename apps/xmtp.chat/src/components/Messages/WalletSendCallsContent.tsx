@@ -1,13 +1,21 @@
 import { Box, Button, List, Space, Text } from "@mantine/core";
+import { getCapabilities } from "@wagmi/core/experimental";
 import type { Client } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
 import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
-import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useConfig,
+  useSendTransaction,
+  useSwitchChain,
+} from "wagmi";
+import { useSendCalls, useWaitForCallsStatus } from "wagmi/experimental";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
@@ -20,30 +28,42 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
 }) => {
   const { client } = useOutletContext<{ client: Client }>();
   const { sendTransactionAsync } = useSendTransaction();
+  const wagmiAccount = useAccount();
+  const wagmiConfig = useConfig();
+  const { sendCalls } = useSendCalls();
+  const [callsId, setCallsId] = useState<string>();
+  const { data: callsStatus } = useWaitForCallsStatus({
+    id: callsId,
+    query: {
+      enabled: !!callsId,
+    },
+  });
+  const [txHash, setTxHash] = useState<`0x${string}`>();
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();
+  type OptionalCapability = { supported: boolean } | undefined;
 
-  const handleSubmit = useCallback(async () => {
-    const chainId = parseInt(content.chainId, 16);
-    if (chainId !== wagmiChainId) {
-      console.log(
-        `Current Chain Id (${wagmiChainId}) doesn't match; switching to Chain Id ${chainId}.`,
-      );
-      await switchChainAsync({ chainId });
-      await new Promise((r) => setTimeout(r, 300)); // Metamask requires some delay
+  const isBatchingSupported = async (txChainId: number): Promise<boolean> => {
+    try {
+      const availableCapabilities = await getCapabilities(wagmiConfig);
+      return !!(
+        availableCapabilities[txChainId].atomicBatch as OptionalCapability
+      )?.supported;
+    } catch {
+      return false;
     }
-    for (const call of content.calls) {
-      const wagmiTxData = {
-        ...call,
-        value: BigInt(parseInt(call.value || "0x0", 16)),
-        chainId,
-        gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
-      };
-      const txHash = await sendTransactionAsync(wagmiTxData, {
-        onError(error) {
-          console.error(error);
-        },
-      });
+  };
+
+  useEffect(() => {
+    if (!callsStatus?.receipts) return;
+    // Exactly one receipt is expected since sendCalls is used only when atomic batching is supported
+    const receipt = callsStatus.receipts[0];
+    setTxHash(receipt.transactionHash);
+  }, [callsStatus?.status]);
+
+  useEffect(() => {
+    if (!txHash) return;
+    void (async () => {
       const transactionReference: TransactionReference = {
         networkId: content.chainId,
         reference: txHash,
@@ -58,8 +78,57 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
         transactionReference,
         ContentTypeTransactionReference,
       );
+    })();
+  }, [txHash]);
+
+  const handleSubmit = useCallback(async () => {
+    const chainId = parseInt(content.chainId, 16);
+    if (chainId !== wagmiChainId) {
+      console.log(
+        `Current Chain Id (${wagmiChainId}) doesn't match; switching to Chain Id ${chainId}.`,
+      );
+      await switchChainAsync({ chainId });
+      await new Promise((r) => setTimeout(r, 300)); // Metamask requires some delay
     }
-  }, [content, sendTransactionAsync, client, conversationId]);
+    if (await isBatchingSupported(chainId)) {
+      sendCalls(
+        {
+          calls: content.calls,
+          chainId,
+        },
+        {
+          onSuccess({ id }) {
+            setCallsId(id);
+          },
+          onError(error) {
+            console.error(error);
+          },
+        },
+      );
+    } else {
+      for (const call of content.calls) {
+        const wagmiTxData = {
+          ...call,
+          value: BigInt(parseInt(call.value || "0x0", 16)),
+          chainId,
+          gas: call.gas ? BigInt(parseInt(call.gas, 16)) : undefined,
+        };
+        const txHash = await sendTransactionAsync(wagmiTxData, {
+          onError(error) {
+            console.error(error);
+          },
+        });
+        setTxHash(txHash);
+      }
+    }
+  }, [
+    content,
+    sendTransactionAsync,
+    client,
+    conversationId,
+    wagmiAccount.isConnected,
+    wagmiAccount.connector,
+  ]);
 
   return (
     <Box flex="flex">
