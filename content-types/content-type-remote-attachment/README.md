@@ -90,7 +90,7 @@ const cid = await web3Storage.put([upload]);
 const url = `https://${cid}.ipfs.w3s.link/XMTPEncryptedContent`;
 ```
 
-_([Upload](https://github.com/xmtp-labs/xmtp-inbox-web/blob/5b45e05efbe0b0f49c17d66d7547be2c13a51eab/hooks/useSendMessage.ts#L15-L33) is a small class that implements Web3Storage's `Filelike` interface for uploading)_
+_([Upload](https://github.com/xmtp/xmtp-web/blob/b87015c6f3e626ed985c6cf63dd94a68eaf9712c/packages/react-sdk/src/hooks/useSendMessage.ts##L15-L33) is a small class that implements Web3Storage's `Filelike` interface for uploading)_
 
 ## Create a remote attachment
 
