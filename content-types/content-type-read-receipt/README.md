@@ -2,11 +2,6 @@
 
 This package provides an XMTP content type to support read receipts to messages.
 
-> [!IMPORTANT]
-> This standards-track content type is in **Alpha** status as this implementation doesn't work efficiently with the current protocol architecture. This inefficiency will be addressed in a future protocol release.
-
-Until then, if you must support read receipts, we recommend that you use this implementation and **not build your own custom content type.**
-
 ## What’s a read receipt?
 
 A read receipt is a message sent to confirm that a previously sent message has been read by the recipient. With XMTP, read receipts are special messages with the `ReadReceipt` content type. They contain a timestamp of when the original message was read.
