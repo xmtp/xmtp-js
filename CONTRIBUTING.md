@@ -63,18 +63,10 @@ This repository uses the [Yarn package manager](https://yarnpkg.com/). To use it
 - `yarn lint`: Lint with ESLint
 - `yarn typecheck`: Typecheck with `tsc`
 
-### Testing and validation
+### Testing
 
 Please add unit tests when appropriate and ensure that all unit tests are passing before submitting a pull request. Note that some unit tests require a backend node to be running locally. The `test:setup` command can be run a single time to start the node in the background using Docker.
-
-Manual validation requires setting up a client app such as the [example app](https://github.com/xmtp/example-chat-react). Once you have cloned and run the example app, it will use a published npm version of `xmtp-js` by default. You can point it to your local `xmtp-js` repository by using `yarn link` or `npm link` from the `example-chat-react` directory, which will update its `package.json`. Once the example app is running, any further changes you make to `xmtp-js` will be reflected in the app after you run `yarn build` in the `xmtp-js` directory and then reload the app.
 
 ## 🚢 Publishing
 
 This repository uses [changesets](https://github.com/changesets/changesets) to publish updates. Pull requests must contain a changeset in order for changes to be published. The [changeset-bot](https://github.com/apps/changeset-bot) will guide you through this process.
-
-### Beta releases
-
-To begin development on a beta release, make sure the `beta` branch is up to date with the `main` branch. Create a new branch from the `beta` branch. After merging your changes into the `beta` branch, you must create a PR from the `beta` branch into the `releases/beta` branch. Once merged, a beta release will be published to the NPM registry.
-
-After the beta period has ended, merge the latest `beta` branch into `main` to publish a production release with the changes.

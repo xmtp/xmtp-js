@@ -1,5 +1,10 @@
 # Wallet Send Calls content type
 
+This package provides an XMTP content type to support wallet transactions using the `wallet_sendCalls` RPC specification from [EIP-5792](https://eips.ethereum.org/EIPS/eip-5792).
+
+> **Open for feedback**  
+> You are welcome to provide feedback on this implementation by commenting on [XIP-59: Trigger on-chain calls via wallet_sendCalls](https://community.xmtp.org/t/xip-59-trigger-on-chain-calls-via-wallet-sendcalls/889).
+
 ## Install the package
 
 ```bash
@@ -15,7 +20,7 @@ pnpm i @xmtp/content-type-wallet-send-calls
 
 ## Create a transaction request
 
-With XMTP, a transaction request is represented using `wallet_sendCalls` RPC specification from [EIP-5792](https://eips.ethereum.org/EIPS/eip-5792) with additional metadata for display:
+With XMTP, a transaction request is represented using `wallet_sendCalls` with additional metadata for display:
 
 ```tsx
 const walletSendCalls: WalletSendCallsParams = {
@@ -83,19 +88,4 @@ const walletSendCalls: WalletSendCallsParams = message.content;
 
 Run `yarn dev` to build the content type and watch for changes, which will trigger a rebuild.
 
-## Testing
-
-Before running unit tests, start the required Docker container at the root of this repository. For more info, see [Running tests](../../README.md#running-tests).
-
-## Useful commands
-
-- `yarn build`: Builds the content type
-- `yarn clean`: Removes `node_modules`, `dist`, and `.turbo` folders
-- `yarn dev`: Builds the content type and watches for changes, which will trigger a rebuild
-- `yarn format`: Runs Prettier format and write changes
-- `yarn format:check`: Runs Prettier format check
-- `yarn lint`: Runs ESLint
-- `yarn test:setup`: Starts a necessary Docker container for testing
-- `yarn test:teardown`: Stops Docker container for testing
-- `yarn test`: Runs all unit tests
-- `yarn typecheck`: Runs `tsc`
+For more information on contributing to this repository, see our [contributing guidelines](../../CONTRIBUTING.md).
