@@ -298,4 +298,15 @@ export class Conversation {
       id: this.#id,
     });
   }
+
+  /**
+   * Retrieves information for this conversation to help with debugging
+   *
+   * @returns The debug information for this conversation
+   */
+  async debugInfo() {
+    return this.#client.sendMessage("getGroupDebugInfo", {
+      id: this.#id,
+    });
+  }
 }

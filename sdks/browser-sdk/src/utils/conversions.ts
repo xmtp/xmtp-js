@@ -17,6 +17,7 @@ import {
   type ConsentEntityType,
   type ConsentState,
   type ContentType,
+  type ConversationDebugInfo,
   type DeliveryStatus,
   type GroupMessageKind,
   type HmacKey,
@@ -497,4 +498,18 @@ export const toSafeKeyPackageStatus = (
       }
     : undefined,
   validationError: status.validationError,
+});
+
+export type SafeConversationDebugInfo = {
+  epoch: bigint;
+  maybeForked: boolean;
+  forkDetails: string;
+};
+
+export const toSafeConversationDebugInfo = (
+  debugInfo: ConversationDebugInfo,
+): SafeConversationDebugInfo => ({
+  epoch: debugInfo.epoch,
+  maybeForked: debugInfo.maybeForked,
+  forkDetails: debugInfo.forkDetails,
 });

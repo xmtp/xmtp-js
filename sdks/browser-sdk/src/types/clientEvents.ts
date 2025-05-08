@@ -21,6 +21,7 @@ import type {
 import type {
   SafeConsent,
   SafeConversation,
+  SafeConversationDebugInfo,
   SafeCreateDmOptions,
   SafeCreateGroupOptions,
   SafeEncodedContent,
@@ -678,6 +679,22 @@ export type ClientEvents =
       action: "getGroupHmacKeys";
       id: string;
       result: SafeHmacKey[];
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "getDuplicateDms";
+      id: string;
+      result: SafeConversation[];
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "getGroupDebugInfo";
+      id: string;
+      result: SafeConversationDebugInfo;
       data: {
         id: string;
       };

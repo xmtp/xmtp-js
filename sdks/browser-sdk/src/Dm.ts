@@ -34,4 +34,10 @@ export class Dm extends Conversation {
       id: this.#id,
     });
   }
+
+  async getDuplicateDms() {
+    return this.#client.sendMessage("getDuplicateDms", {
+      id: this.#id,
+    });
+  }
 }

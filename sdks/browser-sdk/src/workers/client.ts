@@ -21,6 +21,7 @@ import {
   fromSafeEncodedContent,
   toSafeConsent,
   toSafeConversation,
+  toSafeConversationDebugInfo,
   toSafeHmacKey,
   toSafeInboxState,
   toSafeKeyPackageStatus,
@@ -761,6 +762,22 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       case "getGroupHmacKeys": {
         const group = getGroup(data.id);
         const result = group.getHmacKeys();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "getDuplicateDms": {
+        const group = getGroup(data.id);
+        const dms = await group.getDuplicateDms();
+        const result = await Promise.all(
+          dms.map((dm) => toSafeConversation(dm)),
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "getGroupDebugInfo": {
+        const group = getGroup(data.id);
+        const debugInfo = await group.debugInfo();
+        const result = toSafeConversationDebugInfo(debugInfo);
         postMessage({ id, action, result });
         break;
       }

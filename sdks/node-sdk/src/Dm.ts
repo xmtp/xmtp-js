@@ -11,6 +11,7 @@ import { Conversation } from "@/Conversation";
  * This class is not intended to be initialized directly.
  */
 export class Dm extends Conversation {
+  #client: Client;
   #conversation: XmtpConversation;
 
   /**
@@ -26,6 +27,7 @@ export class Dm extends Conversation {
     lastMessage?: Message | null,
   ) {
     super(client, conversation, lastMessage);
+    this.#client = client;
     this.#conversation = conversation;
   }
 
@@ -36,5 +38,10 @@ export class Dm extends Conversation {
    */
   get peerInboxId() {
     return this.#conversation.dmPeerInboxId();
+  }
+
+  async getDuplicateDms() {
+    const duplicateDms = await this.#conversation.findDuplicateDms();
+    return duplicateDms.map((dm) => new Dm(this.#client, dm));
   }
 }
