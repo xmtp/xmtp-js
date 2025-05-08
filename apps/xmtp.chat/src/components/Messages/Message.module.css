@@ -1,5 +1,8 @@
 .root:hover {
-  background-color: var(--mantine-color-default-hover);
+  background-color: light-dark(
+    var(--mantine-color-dark-light-hover),
+    var(--mantine-color-dark-6)
+  );
   cursor: pointer;
 }
 

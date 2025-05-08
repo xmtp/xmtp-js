@@ -7,13 +7,7 @@ export type FallbackContentProps = {
 
 export const FallbackContent: React.FC<FallbackContentProps> = ({ text }) => {
   return (
-    <Paper
-      className={classes.text}
-      withBorder
-      c="white"
-      py="xs"
-      px="sm"
-      radius="md">
+    <Paper className={classes.text} withBorder py="xs" px="sm" radius="md">
       <Text
         component="pre"
         style={{
