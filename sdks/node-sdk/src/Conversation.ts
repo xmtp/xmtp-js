@@ -279,4 +279,13 @@ export class Conversation {
   getHmacKeys() {
     return this.#conversation.getHmacKeys();
   }
+
+  /**
+   * Retrieves information for this conversation to help with debugging
+   *
+   * @returns The debug information for this conversation
+   */
+  async debugInfo() {
+    return this.#conversation.debugInfo();
+  }
 }

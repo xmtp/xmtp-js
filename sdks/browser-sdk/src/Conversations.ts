@@ -163,6 +163,20 @@ export class Conversations {
   }
 
   /**
+   * Creates a new group without syncing to the network
+   *
+   * @param options - Optional group creation options
+   * @returns Promise that resolves with the new group
+   */
+  async newGroupOptimistic(options?: SafeCreateGroupOptions) {
+    const conversation = await this.#client.sendMessage("newGroupOptimistic", {
+      options,
+    });
+
+    return new Group(this.#client, conversation.id, conversation);
+  }
+
+  /**
    * Creates a new group conversation with the specified identifiers
    *
    * @param identifiers - Array of identifiers for group members
@@ -324,6 +338,7 @@ export class Conversations {
   async streamAllMessages(
     callback?: StreamCallback<DecodedMessage>,
     conversationType?: ConversationType,
+    consentStates?: ConsentState[],
   ) {
     const streamId = v4();
     const asyncStream = new AsyncStream<DecodedMessage>();
@@ -348,6 +363,7 @@ export class Conversations {
     await this.#client.sendMessage("streamAllMessages", {
       streamId,
       conversationType,
+      consentStates,
     });
     asyncStream.onReturn = () => {
       void this.#client.sendMessage("endStream", {
@@ -364,8 +380,15 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group messages
    */
-  async streamAllGroupMessages(callback?: StreamCallback<DecodedMessage>) {
-    return this.streamAllMessages(callback, ConversationType.Group);
+  async streamAllGroupMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    consentStates?: ConsentState[],
+  ) {
+    return this.streamAllMessages(
+      callback,
+      ConversationType.Group,
+      consentStates,
+    );
   }
 
   /**
@@ -374,7 +397,10 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM messages
    */
-  async streamAllDmMessages(callback?: StreamCallback<DecodedMessage>) {
-    return this.streamAllMessages(callback, ConversationType.Dm);
+  async streamAllDmMessages(
+    callback?: StreamCallback<DecodedMessage>,
+    consentStates?: ConsentState[],
+  ) {
+    return this.streamAllMessages(callback, ConversationType.Dm, consentStates);
   }
 }

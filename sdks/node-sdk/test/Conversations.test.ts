@@ -220,6 +220,11 @@ describe.concurrent("Conversations", () => {
     const dm4 = client3.conversations.getDmByInboxId(client1.inboxId);
     expect(dm4).toBeDefined();
     expect(dm4!.id).toBe(group3.id);
+
+    const dupeDms1 = await group.getDuplicateDms();
+    const dupeDms2 = await group3.getDuplicateDms();
+    expect(dupeDms1.length).toEqual(0);
+    expect(dupeDms2.length).toEqual(0);
   });
 
   it("should create groups with identifiers", async () => {
@@ -746,5 +751,88 @@ describe.concurrent("Conversations", () => {
     const dms2 = client2.conversations.listDms();
     expect(dms1[0].id).toBe(dm2.id);
     expect(dms2[0].id).toBe(dm2.id);
+
+    const dupeDms1 = await dms1[0].getDuplicateDms();
+    const dupeDms2 = await dms2[0].getDuplicateDms();
+    expect(dupeDms1.length).toBe(1);
+    expect(dupeDms2.length).toBe(1);
+    expect(dupeDms1[0].id).toBe(dm1.id);
+    expect(dupeDms2[0].id).toBe(dm1.id);
+  });
+
+  it("should create optimistic groups", async () => {
+    const user1 = createUser();
+    const signer1 = createSigner(user1);
+    const client1 = await createRegisteredClient(signer1);
+    const group = client1.conversations.newGroupOptimistic();
+    expect(group).toBeDefined();
+    expect(group.id).toBeDefined();
+    expect(group.createdAtNs).toBeDefined();
+    expect(group.createdAt).toBeDefined();
+    expect(group.isActive).toBe(true);
+    expect(group.name).toBe("");
+    expect(group.permissions.policyType).toBe(GroupPermissionsOptions.Default);
+    expect(group.permissions.policySet).toEqual({
+      addMemberPolicy: 0,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 0,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateMessageDisappearingPolicy: 2,
+    });
+    expect(group.addedByInboxId).toBe(client1.inboxId);
+    expect((await group.messages()).length).toBe(0);
+
+    const group2 = client1.conversations.newGroupOptimistic({
+      groupName: "test",
+      groupDescription: "test",
+      groupImageUrlSquare: "test",
+      permissions: GroupPermissionsOptions.CustomPolicy,
+      customPermissionPolicySet: {
+        addAdminPolicy: 1,
+        addMemberPolicy: 0,
+        removeAdminPolicy: 1,
+        removeMemberPolicy: 1,
+        updateGroupNamePolicy: 1,
+        updateGroupDescriptionPolicy: 1,
+        updateGroupImageUrlSquarePolicy: 1,
+        updateMessageDisappearingPolicy: 2,
+      },
+      messageDisappearingSettings: {
+        fromNs: 1000,
+        inNs: 1000,
+      },
+    });
+    expect(group2).toBeDefined();
+    expect(group2.id).toBeDefined();
+    expect(group2.createdAtNs).toBeDefined();
+    expect(group2.createdAt).toBeDefined();
+    expect(group2.isActive).toBe(true);
+    expect(group2.name).toBe("test");
+    expect(group2.description).toBe("test");
+    expect(group2.imageUrl).toBe("test");
+    expect(group2.addedByInboxId).toBe(client1.inboxId);
+    expect(group2.permissions.policyType).toBe(
+      GroupPermissionsOptions.CustomPolicy,
+    );
+    expect(group2.permissions.policySet).toEqual({
+      addAdminPolicy: 1,
+      addMemberPolicy: 0,
+      removeAdminPolicy: 1,
+      removeMemberPolicy: 1,
+      updateGroupNamePolicy: 1,
+      updateGroupDescriptionPolicy: 1,
+      updateGroupImageUrlSquarePolicy: 1,
+      updateMessageDisappearingPolicy: 2,
+    });
+    expect(group2.isMessageDisappearingEnabled()).toBe(true);
+    expect(group2.messageDisappearingSettings()).toEqual({
+      fromNs: 1000,
+      inNs: 1000,
+    });
+
+    expect((await group2.messages()).length).toBe(0);
   });
 });

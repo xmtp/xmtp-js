@@ -21,6 +21,7 @@ import {
   fromSafeEncodedContent,
   toSafeConsent,
   toSafeConversation,
+  toSafeConversationDebugInfo,
   toSafeHmacKey,
   toSafeInboxState,
   toSafeKeyPackageStatus,
@@ -426,6 +427,14 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         postMessage({ id, action, result });
         break;
       }
+      case "newGroupOptimistic": {
+        const conversation = client.conversations.newGroupOptimistic(
+          data.options,
+        );
+        const result = await toSafeConversation(conversation);
+        postMessage({ id, action, result });
+        break;
+      }
       case "newGroupWithIdentifiers": {
         const conversation = await client.conversations.newGroupWithIdentifiers(
           data.identifiers,
@@ -464,20 +473,17 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       }
       case "syncConversations": {
         await client.conversations.sync();
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+        postMessage({ id, action, result: undefined });
         break;
       }
       case "syncAllConversations": {
         await client.conversations.syncAll(data.consentStates);
-        postMessage({
-          id,
-          action,
-          result: undefined,
-        });
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "syncPreferences": {
+        const result = await client.preferences.sync();
+        postMessage({ id, action, result });
         break;
       }
       case "getConversationById": {
@@ -744,6 +750,22 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
       case "getGroupHmacKeys": {
         const group = getGroup(data.id);
         const result = group.getHmacKeys();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "getDuplicateDms": {
+        const group = getGroup(data.id);
+        const dms = await group.getDuplicateDms();
+        const result = await Promise.all(
+          dms.map((dm) => toSafeConversation(dm)),
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "getGroupDebugInfo": {
+        const group = getGroup(data.id);
+        const debugInfo = await group.debugInfo();
+        const result = toSafeConversationDebugInfo(debugInfo);
         postMessage({ id, action, result });
         break;
       }

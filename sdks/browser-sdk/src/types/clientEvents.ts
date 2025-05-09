@@ -21,6 +21,7 @@ import type {
 import type {
   SafeConsent,
   SafeConversation,
+  SafeConversationDebugInfo,
   SafeCreateDmOptions,
   SafeCreateGroupOptions,
   SafeEncodedContent,
@@ -290,6 +291,14 @@ export type ClientEvents =
       };
     }
   | {
+      action: "newGroupOptimistic";
+      id: string;
+      result: SafeConversation;
+      data: {
+        options?: SafeCreateGroupOptions;
+      };
+    }
+  | {
       action: "newGroupWithIdentifiers";
       id: string;
       result: SafeConversation;
@@ -340,6 +349,12 @@ export type ClientEvents =
       };
     }
   | {
+      action: "syncPreferences";
+      id: string;
+      result: number;
+      data: undefined;
+    }
+  | {
       action: "getHmacKeys";
       id: string;
       result: SafeHmacKeys;
@@ -361,6 +376,7 @@ export type ClientEvents =
       data: {
         streamId: string;
         conversationType?: ConversationType;
+        consentStates?: ConsentState[];
       };
     }
   | {
@@ -663,6 +679,22 @@ export type ClientEvents =
       action: "getGroupHmacKeys";
       id: string;
       result: SafeHmacKey[];
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "getDuplicateDms";
+      id: string;
+      result: SafeConversation[];
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "getGroupDebugInfo";
+      id: string;
+      result: SafeConversationDebugInfo;
       data: {
         id: string;
       };

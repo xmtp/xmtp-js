@@ -2,6 +2,7 @@ import {
   MessageDisappearingSettings,
   type ConsentState,
   type Conversation,
+  type ConversationDebugInfo,
   type EncodedContent,
   type GroupMember,
   type HmacKey,
@@ -20,7 +21,6 @@ import {
 import type { WorkerClient } from "@/WorkerClient";
 
 export class WorkerConversation {
-  // eslint-disable-next-line no-unused-private-class-members
   #client: WorkerClient;
 
   #group: Conversation;
@@ -218,5 +218,14 @@ export class WorkerConversation {
 
   getHmacKeys() {
     return this.#group.getHmacKeys() as HmacKey[];
+  }
+
+  async debugInfo() {
+    return (await this.#group.getDebugInfo()) as ConversationDebugInfo;
+  }
+
+  async getDuplicateDms() {
+    const dms = await this.#group.findDuplicateDms();
+    return dms.map((dm) => new WorkerConversation(this.#client, dm));
   }
 }
