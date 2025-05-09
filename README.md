@@ -19,6 +19,7 @@ To learn more about the contents of this repository, see this README and the REA
 - [`content-type-reply`](content-types/content-type-reply): Content type for direct replies to messages
 - [`content-type-text`](content-types/content-type-text): Content type for plain text messages
 - [`content-type-transaction-reference`](content-types/content-type-transaction-reference): Content type for on-chain transaction references
+- [`content-types/content-type-wallet-send-calls`](content-types/content-type-wallet-send-calls): Content type to support wallet transactions 
 
 ## Contributing
 
