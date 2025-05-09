@@ -18,6 +18,7 @@ import {
   type ConsentState,
   type ContentType,
   type ConversationDebugInfo,
+  type ConversationType,
   type DeliveryStatus,
   type GroupMessageKind,
   type HmacKey,
@@ -182,6 +183,7 @@ export const fromSafeListMessagesOptions = (
 
 export type SafeListConversationsOptions = {
   consentStates?: ConsentState[];
+  conversationType?: ConversationType;
   createdAfterNs?: bigint;
   createdBeforeNs?: bigint;
   includeDuplicateDms?: boolean;
@@ -192,6 +194,7 @@ export const toSafeListConversationsOptions = (
   options: ListConversationsOptions,
 ): SafeListConversationsOptions => ({
   consentStates: options.consentStates,
+  conversationType: options.conversationType,
   createdAfterNs: options.createdAfterNs,
   createdBeforeNs: options.createdBeforeNs,
   includeDuplicateDms: options.includeDuplicateDms,
@@ -203,6 +206,7 @@ export const fromSafeListConversationsOptions = (
 ): ListConversationsOptions =>
   new ListConversationsOptions(
     options.consentStates,
+    options.conversationType,
     options.createdAfterNs,
     options.createdBeforeNs,
     options.includeDuplicateDms ?? false,

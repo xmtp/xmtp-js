@@ -82,8 +82,11 @@ export class WorkerConversations {
   listGroups(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    const groups = this.#conversations.listGroups(
-      options ? fromSafeListConversationsOptions(options) : undefined,
+    const groups = this.#conversations.list(
+      fromSafeListConversationsOptions({
+        ...(options ?? {}),
+        conversationType: ConversationType.Group,
+      }),
     ) as ConversationListItem[];
     return groups.map(
       (item) => new WorkerConversation(this.#client, item.conversation),
@@ -91,8 +94,11 @@ export class WorkerConversations {
   }
 
   listDms(options?: Omit<SafeListConversationsOptions, "conversation_type">) {
-    const groups = this.#conversations.listDms(
-      options ? fromSafeListConversationsOptions(options) : undefined,
+    const groups = this.#conversations.list(
+      fromSafeListConversationsOptions({
+        ...(options ?? {}),
+        conversationType: ConversationType.Dm,
+      }),
     ) as ConversationListItem[];
     return groups.map(
       (item) => new WorkerConversation(this.#client, item.conversation),
