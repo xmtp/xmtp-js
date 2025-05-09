@@ -185,7 +185,10 @@ export class Conversations {
    * @returns Array of groups
    */
   listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
-    const groups = this.#conversations.listGroups(options);
+    const groups = this.#conversations.list({
+      ...(options ?? {}),
+      conversationType: ConversationType.Group,
+    });
     return groups.map((item) => {
       const conversation = new Group(
         this.#client,
@@ -203,7 +206,10 @@ export class Conversations {
    * @returns Array of DMs
    */
   listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
-    const groups = this.#conversations.listDms(options);
+    const groups = this.#conversations.list({
+      ...(options ?? {}),
+      conversationType: ConversationType.Dm,
+    });
     return groups.map((item) => {
       const conversation = new Dm(
         this.#client,
@@ -284,7 +290,7 @@ export class Conversations {
   streamGroups(callback?: StreamCallback<Group>) {
     const asyncStream = new AsyncStream<Group>();
 
-    const stream = this.#conversations.streamGroups((error, value) => {
+    const stream = this.#conversations.stream((error, value) => {
       let err: Error | null = error;
       let group: Group | undefined;
 
@@ -298,7 +304,7 @@ export class Conversations {
 
       asyncStream.callback(err, group);
       callback?.(err, group);
-    });
+    }, ConversationType.Group);
 
     asyncStream.onReturn = stream.end.bind(stream);
 
@@ -314,7 +320,7 @@ export class Conversations {
   streamDms(callback?: StreamCallback<Dm>) {
     const asyncStream = new AsyncStream<Dm>();
 
-    const stream = this.#conversations.streamDms((error, value) => {
+    const stream = this.#conversations.stream((error, value) => {
       let err: Error | null = error;
       let dm: Dm | undefined;
 
@@ -328,7 +334,7 @@ export class Conversations {
 
       asyncStream.callback(err, dm);
       callback?.(err, dm);
-    });
+    }, ConversationType.Dm);
 
     asyncStream.onReturn = stream.end.bind(stream);
 
