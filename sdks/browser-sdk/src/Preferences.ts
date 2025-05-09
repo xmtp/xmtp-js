@@ -21,6 +21,10 @@ export class Preferences {
     this.#client = client;
   }
 
+  sync() {
+    return this.#client.sendMessage("syncPreferences", undefined);
+  }
+
   /**
    * Retrieves the current inbox state
    *

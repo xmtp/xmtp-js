@@ -349,9 +349,9 @@ export type ClientEvents =
       };
     }
   | {
-      action: "syncDevice";
+      action: "syncPreferences";
       id: string;
-      result: undefined;
+      result: number;
       data: undefined;
     }
   | {

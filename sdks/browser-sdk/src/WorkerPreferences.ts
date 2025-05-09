@@ -17,6 +17,10 @@ export class WorkerPreferences {
     this.#conversations = conversations;
   }
 
+  sync() {
+    return this.#client.syncPreferences();
+  }
+
   async inboxState(refreshFromNetwork: boolean) {
     return this.#client.inboxState(refreshFromNetwork);
   }

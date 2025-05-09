@@ -33,6 +33,10 @@ export class Preferences {
     this.#conversations = conversations;
   }
 
+  sync() {
+    return this.#client.syncPreferences();
+  }
+
   /**
    * Retrieves the current inbox state
    *
