@@ -247,6 +247,11 @@ describe.concurrent("Conversations", () => {
     const peerInboxId4 = await dm4?.peerInboxId();
     expect(peerInboxId4).toBeDefined();
     expect(peerInboxId4).toBe(client1.inboxId);
+
+    const dupeDms1 = await group.getDuplicateDms();
+    const dupeDms2 = await group2.getDuplicateDms();
+    expect(dupeDms1.length).toEqual(0);
+    expect(dupeDms2.length).toEqual(0);
   });
 
   it("should get a group by ID", async () => {
@@ -484,6 +489,13 @@ describe.concurrent("Conversations", () => {
     const dms2 = await client2.conversations.listDms();
     expect(dms1[0].id).toBe(dm2.id);
     expect(dms2[0].id).toBe(dm2.id);
+
+    const dupeDms1 = await dms1[0].getDuplicateDms();
+    const dupeDms2 = await dms2[0].getDuplicateDms();
+    expect(dupeDms1.length).toBe(1);
+    expect(dupeDms2.length).toBe(1);
+    expect(dupeDms1[0].id).toBe(dm1.id);
+    expect(dupeDms2[0].id).toBe(dm1.id);
   });
 });
 

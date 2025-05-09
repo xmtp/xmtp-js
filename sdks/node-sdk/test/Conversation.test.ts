@@ -1,5 +1,6 @@
 import {
   ConsentState,
+  ContentType,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
@@ -727,5 +728,44 @@ describe.concurrent("Conversation", () => {
       expect(hmacKey.key).toBeDefined();
       expect(hmacKey.epoch).toBeDefined();
     }
+  });
+
+  it("should get conversation debug info", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId,
+    ]);
+    const debugInfo = await conversation.debugInfo();
+    expect(debugInfo).toBeDefined();
+    expect(debugInfo.epoch).toBeDefined();
+    expect(debugInfo.maybeForked).toBe(false);
+    expect(debugInfo.forkDetails).toBe("");
+  });
+
+  it("should filter messages by content type", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId,
+    ]);
+
+    await conversation.send("gm");
+
+    const messages = await conversation.messages();
+    expect(messages.length).toBe(2);
+
+    const filteredMessages = await conversation.messages({
+      contentTypes: [ContentType.Text],
+    });
+    expect(filteredMessages.length).toBe(1);
   });
 });

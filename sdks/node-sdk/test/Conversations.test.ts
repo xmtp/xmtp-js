@@ -220,6 +220,11 @@ describe.concurrent("Conversations", () => {
     const dm4 = client3.conversations.getDmByInboxId(client1.inboxId);
     expect(dm4).toBeDefined();
     expect(dm4!.id).toBe(group3.id);
+
+    const dupeDms1 = await group.getDuplicateDms();
+    const dupeDms2 = await group3.getDuplicateDms();
+    expect(dupeDms1.length).toEqual(0);
+    expect(dupeDms2.length).toEqual(0);
   });
 
   it("should create groups with identifiers", async () => {
@@ -746,6 +751,13 @@ describe.concurrent("Conversations", () => {
     const dms2 = client2.conversations.listDms();
     expect(dms1[0].id).toBe(dm2.id);
     expect(dms2[0].id).toBe(dm2.id);
+
+    const dupeDms1 = await dms1[0].getDuplicateDms();
+    const dupeDms2 = await dms2[0].getDuplicateDms();
+    expect(dupeDms1.length).toBe(1);
+    expect(dupeDms2.length).toBe(1);
+    expect(dupeDms1[0].id).toBe(dm1.id);
+    expect(dupeDms2[0].id).toBe(dm1.id);
   });
 
   it("should create optimistic groups", async () => {
