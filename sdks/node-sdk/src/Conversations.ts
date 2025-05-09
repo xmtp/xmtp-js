@@ -240,10 +240,6 @@ export class Conversations {
     return this.#conversations.syncAllConversations(consentStates);
   }
 
-  async syncDevice() {
-    return this.#conversations.syncDeviceSync();
-  }
-
   /**
    * Creates a stream for new conversations
    *

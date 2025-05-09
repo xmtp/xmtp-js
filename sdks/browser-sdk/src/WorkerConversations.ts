@@ -38,10 +38,6 @@ export class WorkerConversations {
     return this.#conversations.syncAllConversations(consentStates);
   }
 
-  async syncDevice() {
-    return this.#conversations.syncDeviceSync();
-  }
-
   getConversationById(id: string) {
     try {
       const group = this.#conversations.findGroupById(id);
