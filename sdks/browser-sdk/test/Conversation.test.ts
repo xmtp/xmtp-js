@@ -785,9 +785,9 @@ describe("Conversation", () => {
     ]);
     const debugInfo = await conversation.debugInfo();
     expect(debugInfo).toBeDefined();
-    expect(debugInfo.epoch).toBeDefined();
-    expect(debugInfo.maybeForked).toBeUndefined();
-    expect(debugInfo.forkDetails).toBeUndefined();
+    expect(debugInfo.epoch).toBeTypeOf("bigint");
+    expect(debugInfo.maybeForked).toBe(false);
+    expect(debugInfo.forkDetails).toBe("");
   });
 
   it("should filter messages by content type", async () => {
