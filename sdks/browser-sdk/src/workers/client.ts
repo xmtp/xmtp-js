@@ -433,6 +433,7 @@ self.onmessage = async (
         const streamCloser = client.conversations.streamAllMessages(
           streamCallback,
           data.conversationType,
+          data.consentStates,
         );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
