@@ -1,5 +1,5 @@
-import { Button, Stack } from "@mantine/core";
-import { useCallback, useEffect } from "react";
+import { Button, CloseButton, Group, Stack, Text } from "@mantine/core";
+import { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
 import { generatePrivateKey } from "viem/accounts";
@@ -145,6 +145,12 @@ export const ConnectModal = () => {
   }, [navigate]);
 
   const contentHeight = fullScreen ? "auto" : "70dvh";
+  const title = useMemo(() => {
+    if (useSCW) {
+      return "Connect a smart contract wallet";
+    }
+    return "Connect a wallet";
+  }, [useSCW]);
 
   return (
     <Modal
@@ -156,7 +162,18 @@ export const ConnectModal = () => {
       size="md"
       padding={0}>
       <ContentLayout
-        title="Connect a wallet"
+        title={
+          <Group justify="space-between" align="center" flex={1}>
+            <Text size="lg" fw={700} c="text.primary">
+              {title}
+            </Text>
+            <CloseButton
+              size="md"
+              onClick={handleClose}
+              mr="calc(var(--mantine-spacing-md) * -1)"
+            />
+          </Group>
+        }
         maxHeight={contentHeight}
         withScrollArea={false}
         withScrollAreaPadding={false}
