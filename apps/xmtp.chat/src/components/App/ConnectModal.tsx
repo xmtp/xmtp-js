@@ -194,11 +194,6 @@ export const ConnectModal = () => {
                 }
               />
               <AccountCard
-                icon={<InjectedWallet />}
-                label="Browser injected"
-                onClick={handleWalletConnect("Injected")}
-              />
-              <AccountCard
                 icon={<MetamaskWallet />}
                 label="MetaMask"
                 onClick={handleWalletConnect("MetaMask")}
@@ -206,6 +201,11 @@ export const ConnectModal = () => {
             </>
           )}
           {useSCW && <BlockchainSelect />}
+          <AccountCard
+            icon={<InjectedWallet />}
+            label="Browser injected"
+            onClick={handleWalletConnect("Injected")}
+          />
           <AccountCard
             icon={<CoinbaseWallet />}
             label="Coinbase Wallet"
