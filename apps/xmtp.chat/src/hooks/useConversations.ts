@@ -142,7 +142,12 @@ export const useConversations = () => {
       conversation: Conversation | undefined,
     ) => {
       if (conversation) {
-        setConversations((prev) => [conversation, ...prev]);
+        const shouldAdd =
+          conversation.metadata?.conversationType === "dm" ||
+          conversation.metadata?.conversationType === "group";
+        if (shouldAdd) {
+          setConversations((prev) => [conversation, ...prev]);
+        }
       }
     };
 
