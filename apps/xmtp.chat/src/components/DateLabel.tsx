@@ -72,10 +72,8 @@ export const DateLabel: React.FC<DateLabelProps> = ({
           day: "2-digit",
           hour: "2-digit",
           minute: "2-digit",
+          second: "2-digit",
         })}
-        <Text component="span" ml={4} c="dimmed">
-          {date.getSeconds().toString().padStart(2, "0")}s
-        </Text>
       </Text>
     </Tooltip>
   );
