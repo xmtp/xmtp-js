@@ -23,6 +23,12 @@ export const MessageProperties: React.FC<MessagePropertiesProps> = ({
     }
   }, [message]);
 
+  // Get only the seconds part of the sent timestamp
+  const sentSeconds = useMemo(() => {
+    const date = nsToDate(message.sentAtNs);
+    return date.getSeconds().toString().padStart(2, "0");
+  }, [message.sentAtNs]);
+
   const messageKind = useMemo(() => {
     switch (message.kind) {
       case "application":
@@ -75,6 +81,7 @@ export const MessageProperties: React.FC<MessagePropertiesProps> = ({
             day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
+            second: "2-digit",
           })}
         />
       </Stack>
