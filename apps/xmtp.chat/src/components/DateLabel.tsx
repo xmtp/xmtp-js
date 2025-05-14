@@ -47,20 +47,6 @@ export const DateLabel: React.FC<DateLabelProps> = ({
     }
   };
 
-  // Format date and time parts separately
-  const dateFormatted = intlFormat(date, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  const timeFormatted = intlFormat(date, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  const seconds = date.getSeconds().toString().padStart(2, "0");
-
   return (
     <Tooltip
       label={
@@ -80,9 +66,15 @@ export const DateLabel: React.FC<DateLabelProps> = ({
         onClick={handleCopy}
         miw={100}
         tabIndex={0}>
-        {dateFormatted} {timeFormatted}{" "}
-        <Text component="span" c="dimmed">
-          {seconds}s
+        {intlFormat(date, {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+        <Text component="span" ml={4} c="dimmed">
+          {date.getSeconds().toString().padStart(2, "0")}s
         </Text>
       </Text>
     </Tooltip>
