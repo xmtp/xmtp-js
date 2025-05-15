@@ -46,13 +46,15 @@ export class UtilsWorkerClass {
       id: promiseId,
       data,
     });
-    const promise = new Promise<UtilsEventsResult<A>>((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       this.#promises.set(promiseId, {
         resolve: resolve as (value: unknown) => void,
         reject,
       });
     });
-    return promise;
+    return promise as [UtilsEventsResult<A>] extends [undefined]
+      ? Promise<void>
+      : Promise<UtilsEventsResult<A>>;
   }
 
   handleMessage = (

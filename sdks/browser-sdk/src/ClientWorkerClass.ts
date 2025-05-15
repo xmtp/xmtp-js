@@ -46,13 +46,15 @@ export class ClientWorkerClass {
       id: promiseId,
       data,
     });
-    const promise = new Promise<ClientEventsResult<A>>((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       this.#promises.set(promiseId, {
         resolve: resolve as (value: unknown) => void,
         reject,
       });
     });
-    return promise;
+    return promise as [ClientEventsResult<A>] extends [undefined]
+      ? Promise<void>
+      : Promise<ClientEventsResult<A>>;
   }
 
   handleMessage = (
