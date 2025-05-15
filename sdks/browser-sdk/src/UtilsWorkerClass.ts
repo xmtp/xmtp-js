@@ -12,6 +12,16 @@ const handleError = (event: ErrorEvent) => {
   console.error(event.message);
 };
 
+/**
+ * Class that sets up a worker and provides communications for utility functions
+ *
+ * This class is not meant to be used directly, it is extended by the Utils class
+ * to provide an interface to the worker.
+ *
+ * @param worker - The worker to use for the utils class
+ * @param enableLogging - Whether to enable logging in the worker
+ * @returns A new UtilsWorkerClass instance
+ */
 export class UtilsWorkerClass {
   #worker: Worker;
 
@@ -30,12 +40,25 @@ export class UtilsWorkerClass {
     void this.init(enableLogging);
   }
 
+  /**
+   * Initializes the utils worker
+   *
+   * @param enableLogging - Whether to enable logging in the worker
+   * @returns A promise that resolves when the worker is initialized
+   */
   async init(enableLogging: boolean) {
     return this.sendMessage("init", {
       enableLogging,
     });
   }
 
+  /**
+   * Sends an action message to the utils worker
+   *
+   * @param action - The action to send to the worker
+   * @param data - The data to send to the worker
+   * @returns A promise that resolves when the action is completed
+   */
   sendMessage<A extends UtilsEventsActions>(
     action: A,
     data: UtilsSendMessageData<A>,
@@ -57,6 +80,11 @@ export class UtilsWorkerClass {
       : Promise<UtilsEventsResult<A>>;
   }
 
+  /**
+   * Handles a message from the utils worker
+   *
+   * @param event - The event to handle
+   */
   handleMessage = (
     event: MessageEvent<UtilsEventsWorkerMessageData | UtilsEventsErrorData>,
   ) => {
@@ -75,6 +103,9 @@ export class UtilsWorkerClass {
     }
   };
 
+  /**
+   * Removes all event listeners and terminates the worker
+   */
   close() {
     this.#worker.removeEventListener("message", this.handleMessage);
     this.#worker.removeEventListener("error", handleError);

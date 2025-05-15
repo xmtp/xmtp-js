@@ -16,6 +16,16 @@ const handleError = (event: ErrorEvent) => {
   console.error(event.message);
 };
 
+/**
+ * Class that sets up a worker and provides communications for client functions
+ *
+ * This class is not meant to be used directly, it is extended by the Client class
+ * to provide an interface to the worker.
+ *
+ * @param worker - The worker to use for the client class
+ * @param enableLogging - Whether to enable logging in the worker
+ * @returns A new ClientWorkerClass instance
+ */
 export class ClientWorkerClass {
   #worker: Worker;
 
@@ -36,6 +46,13 @@ export class ClientWorkerClass {
     this.#enableLogging = enableLogging;
   }
 
+  /**
+   * Sends an action message to the client worker
+   *
+   * @param action - The action to send to the worker
+   * @param data - The data to send to the worker
+   * @returns A promise that resolves when the action is completed
+   */
   sendMessage<A extends ClientEventsActions>(
     action: A,
     data: ClientSendMessageData<A>,
@@ -57,6 +74,11 @@ export class ClientWorkerClass {
       : Promise<ClientEventsResult<A>>;
   }
 
+  /**
+   * Handles a message from the client worker
+   *
+   * @param event - The event to handle
+   */
   handleMessage = (
     event: MessageEvent<ClientEventsWorkerMessageData | ClientEventsErrorData>,
   ) => {
@@ -75,6 +97,13 @@ export class ClientWorkerClass {
     }
   };
 
+  /**
+   * Handles a stream message from the client worker
+   *
+   * @param streamId - The ID of the stream to handle
+   * @param callback - The callback to handle the stream message
+   * @returns A function to remove the stream handler
+   */
   handleStreamMessage = <T extends ClientStreamEvents["result"]>(
     streamId: string,
     callback: (error: Error | null, value: T | null) => void,
@@ -98,6 +127,9 @@ export class ClientWorkerClass {
     };
   };
 
+  /**
+   * Removes all event listeners and terminates the worker
+   */
   close() {
     this.#worker.removeEventListener("message", this.handleMessage);
     this.#worker.removeEventListener("error", handleError);
