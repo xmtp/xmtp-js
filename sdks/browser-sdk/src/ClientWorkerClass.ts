@@ -1,15 +1,16 @@
 import { v4 } from "uuid";
 import type {
-  ClientEventsActions,
-  ClientEventsErrorData,
-  ClientEventsResult,
-  ClientEventsWorkerMessageData,
-  ClientSendMessageData,
-} from "@/types";
+  ActionErrorData,
+  ActionName,
+  ActionWithoutData,
+  ClientWorkerAction,
+  ExtractActionData,
+  ExtractActionResult,
+} from "@/types/actions";
 import type {
-  ClientStreamEvents,
-  ClientStreamEventsErrorData,
-} from "@/types/clientStreamEvents";
+  StreamAction,
+  StreamActionErrorData,
+} from "@/types/actions/streams";
 
 const handleError = (event: ErrorEvent) => {
   console.error(event.message);
@@ -54,9 +55,9 @@ export class ClientWorkerClass {
    * @param data - The data to send to the worker
    * @returns A promise that resolves when the action is completed
    */
-  sendMessage<A extends ClientEventsActions>(
+  sendMessage<A extends ActionName<ClientWorkerAction>>(
     action: A,
-    data: ClientSendMessageData<A>,
+    data: ExtractActionData<ClientWorkerAction, A>,
   ) {
     const promiseId = v4();
     this.#worker.postMessage({
@@ -70,9 +71,11 @@ export class ClientWorkerClass {
         reject,
       });
     });
-    return promise as [ClientEventsResult<A>] extends [undefined]
+    return promise as [ExtractActionResult<ClientWorkerAction, A>] extends [
+      undefined,
+    ]
       ? Promise<void>
-      : Promise<ClientEventsResult<A>>;
+      : Promise<ExtractActionResult<ClientWorkerAction, A>>;
   }
 
   /**
@@ -81,7 +84,10 @@ export class ClientWorkerClass {
    * @param event - The event to handle
    */
   handleMessage = (
-    event: MessageEvent<ClientEventsWorkerMessageData | ClientEventsErrorData>,
+    event: MessageEvent<
+      | ActionWithoutData<ClientWorkerAction>
+      | ActionErrorData<ClientWorkerAction>
+    >,
   ) => {
     const eventData = event.data;
     if (this.#enableLogging) {
@@ -105,12 +111,12 @@ export class ClientWorkerClass {
    * @param callback - The callback to handle the stream message
    * @returns A function to remove the stream handler
    */
-  handleStreamMessage = <T extends ClientStreamEvents["result"]>(
+  handleStreamMessage = <T extends StreamAction["result"]>(
     streamId: string,
     callback: (error: Error | null, value: T | null) => void,
   ) => {
     const streamHandler = (
-      event: MessageEvent<ClientStreamEvents | ClientStreamEventsErrorData>,
+      event: MessageEvent<StreamAction | StreamActionErrorData>,
     ) => {
       const eventData = event.data;
       if (eventData.streamId === streamId) {

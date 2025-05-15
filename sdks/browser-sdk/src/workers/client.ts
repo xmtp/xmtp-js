@@ -6,16 +6,17 @@ import init, {
   type UserPreference,
 } from "@xmtp/wasm-bindings";
 import type {
-  ClientEventsActions,
-  ClientEventsClientMessageData,
-  ClientEventsErrorData,
-  ClientEventsWorkerPostMessageData,
-} from "@/types";
+  ActionErrorData,
+  ActionName,
+  ActionWithoutResult,
+  ClientWorkerAction,
+  ExtractActionWithoutData,
+} from "@/types/actions";
 import type {
-  ClientStreamEventsErrorData,
-  ClientStreamEventsTypes,
-  ClientStreamEventsWorkerPostMessageData,
-} from "@/types/clientStreamEvents";
+  ExtractStreamAction,
+  StreamActionErrorData,
+  StreamActionName,
+} from "@/types/actions/streams";
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
@@ -44,8 +45,8 @@ const streamClosers = new Map<string, StreamCloser>();
 /**
  * Type-safe postMessage
  */
-const postMessage = <A extends ClientEventsActions>(
-  data: ClientEventsWorkerPostMessageData<A>,
+const postMessage = <A extends ActionName<ClientWorkerAction>>(
+  data: ExtractActionWithoutData<ClientWorkerAction, A>,
 ) => {
   self.postMessage(data);
 };
@@ -53,15 +54,15 @@ const postMessage = <A extends ClientEventsActions>(
 /**
  * Type-safe postMessage for errors
  */
-const postMessageError = (data: ClientEventsErrorData) => {
+const postMessageError = (data: ActionErrorData<ClientWorkerAction>) => {
   self.postMessage(data);
 };
 
 /**
  * Type-safe postMessage for streams
  */
-const postStreamMessage = <A extends ClientStreamEventsTypes>(
-  data: ClientStreamEventsWorkerPostMessageData<A>,
+const postStreamMessage = <A extends StreamActionName>(
+  data: ExtractStreamAction<A>,
 ) => {
   self.postMessage(data);
 };
@@ -69,11 +70,13 @@ const postStreamMessage = <A extends ClientStreamEventsTypes>(
 /**
  * Type-safe postMessage for stream errors
  */
-const postStreamMessageError = (data: ClientStreamEventsErrorData) => {
+const postStreamMessageError = (data: StreamActionErrorData) => {
   self.postMessage(data);
 };
 
-self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
+self.onmessage = async (
+  event: MessageEvent<ActionWithoutResult<ClientWorkerAction>>,
+) => {
   const { action, id, data } = event.data;
 
   if (enableLogging) {
@@ -300,13 +303,13 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         ) => {
           if (error) {
             postStreamMessageError({
-              type: "consent",
+              action: "stream.consent",
               streamId: data.streamId,
               error,
             });
           } else {
             postStreamMessage({
-              type: "consent",
+              action: "stream.consent",
               streamId: data.streamId,
               result: value?.map(toSafeConsent) ?? [],
             });
@@ -328,13 +331,13 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         ) => {
           if (error) {
             postStreamMessageError({
-              type: "preferences",
+              action: "stream.preferences",
               streamId: data.streamId,
               error,
             });
           } else {
             postStreamMessage({
-              type: "preferences",
+              action: "stream.preferences",
               streamId: data.streamId,
               result: value ?? undefined,
             });
@@ -360,13 +363,13 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         ) => {
           if (error) {
             postStreamMessageError({
-              type: "group",
+              action: "stream.conversation",
               streamId: data.streamId,
               error,
             });
           } else {
             postStreamMessage({
-              type: "group",
+              action: "stream.conversation",
               streamId: data.streamId,
               result: value
                 ? await toSafeConversation(
@@ -391,13 +394,13 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         ) => {
           if (error) {
             postStreamMessageError({
-              type: "message",
+              action: "stream.message",
               streamId: data.streamId,
               error,
             });
           } else {
             postStreamMessage({
-              type: "message",
+              action: "stream.message",
               streamId: data.streamId,
               result: value ? toSafeMessage(value) : undefined,
             });
@@ -727,13 +730,13 @@ self.onmessage = async (event: MessageEvent<ClientEventsClientMessageData>) => {
         ) => {
           if (error) {
             postStreamMessageError({
-              type: "message",
+              action: "stream.message",
               streamId: data.streamId,
               error,
             });
           } else {
             postStreamMessage({
-              type: "message",
+              action: "stream.message",
               streamId: data.streamId,
               result: value ? toSafeMessage(value) : undefined,
             });

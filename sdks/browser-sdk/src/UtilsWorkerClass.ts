@@ -1,11 +1,12 @@
 import { v4 } from "uuid";
 import type {
-  UtilsEventsActions,
-  UtilsEventsErrorData,
-  UtilsEventsResult,
-  UtilsEventsWorkerMessageData,
-  UtilsSendMessageData,
-} from "@/types";
+  ActionErrorData,
+  ActionName,
+  ActionWithoutData,
+  ExtractActionData,
+  ExtractActionResult,
+} from "@/types/actions";
+import type { UtilsWorkerAction } from "@/types/actions/utils";
 
 const handleError = (event: ErrorEvent) => {
   console.error(event.message);
@@ -48,7 +49,7 @@ export class UtilsWorkerClass {
    * @returns A promise that resolves when the worker is initialized
    */
   async init(enableLogging: boolean) {
-    return this.sendMessage("init", {
+    return this.sendMessage("utils.init", {
       enableLogging,
     });
   }
@@ -60,9 +61,9 @@ export class UtilsWorkerClass {
    * @param data - The data to send to the worker
    * @returns A promise that resolves when the action is completed
    */
-  sendMessage<A extends UtilsEventsActions>(
+  sendMessage<A extends ActionName<UtilsWorkerAction>>(
     action: A,
-    data: UtilsSendMessageData<A>,
+    data: ExtractActionData<UtilsWorkerAction, A>,
   ) {
     const promiseId = v4();
     this.#worker.postMessage({
@@ -76,9 +77,11 @@ export class UtilsWorkerClass {
         reject,
       });
     });
-    return promise as [UtilsEventsResult<A>] extends [undefined]
+    return promise as [ExtractActionResult<UtilsWorkerAction, A>] extends [
+      undefined,
+    ]
       ? Promise<void>
-      : Promise<UtilsEventsResult<A>>;
+      : Promise<ExtractActionResult<UtilsWorkerAction, A>>;
   }
 
   /**
@@ -87,7 +90,9 @@ export class UtilsWorkerClass {
    * @param event - The event to handle
    */
   handleMessage = (
-    event: MessageEvent<UtilsEventsWorkerMessageData | UtilsEventsErrorData>,
+    event: MessageEvent<
+      ActionWithoutData<UtilsWorkerAction> | ActionErrorData<UtilsWorkerAction>
+    >,
   ) => {
     const eventData = event.data;
     if (this.#enableLogging) {

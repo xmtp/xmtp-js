@@ -7,7 +7,7 @@ export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
 export { Utils } from "./Utils";
 export { ApiUrls, HistorySyncUrls } from "./constants";
-export type * from "./types";
+export type * from "./types/options";
 export * from "./utils/conversions";
 export type { AsyncStream, StreamCallback } from "./AsyncStream";
 export type {

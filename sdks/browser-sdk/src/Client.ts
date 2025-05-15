@@ -15,7 +15,7 @@ import {
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
 import { Preferences } from "@/Preferences";
-import type { ClientOptions, XmtpEnv } from "@/types";
+import type { ClientOptions, XmtpEnv } from "@/types/options";
 import { Utils } from "@/Utils";
 import {
   fromSafeEncodedContent,

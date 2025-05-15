@@ -5,7 +5,7 @@ import {
   type KeyPackageStatus,
   type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
-import type { ClientOptions } from "@/types";
+import type { ClientOptions } from "@/types/options";
 import { createClient } from "@/utils/createClient";
 import { WorkerConversations } from "@/WorkerConversations";
 import { WorkerPreferences } from "@/WorkerPreferences";
