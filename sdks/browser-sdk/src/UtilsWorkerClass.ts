@@ -8,7 +8,6 @@ import type {
 } from "@/types";
 
 const handleError = (event: ErrorEvent) => {
-  console.error(`Worker error on line ${event.lineno} in "${event.filename}"`);
   console.error(event.message);
 };
 
@@ -35,7 +34,9 @@ export class UtilsWorkerClass {
   constructor(worker: Worker, enableLogging: boolean) {
     this.#worker = worker;
     this.#worker.addEventListener("message", this.handleMessage);
-    this.#worker.addEventListener("error", handleError);
+    if (enableLogging) {
+      this.#worker.addEventListener("error", handleError);
+    }
     this.#enableLogging = enableLogging;
     void this.init(enableLogging);
   }
@@ -108,7 +109,9 @@ export class UtilsWorkerClass {
    */
   close() {
     this.#worker.removeEventListener("message", this.handleMessage);
-    this.#worker.removeEventListener("error", handleError);
+    if (this.#enableLogging) {
+      this.#worker.removeEventListener("error", handleError);
+    }
     this.#worker.terminate();
   }
 }

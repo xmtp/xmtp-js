@@ -12,7 +12,6 @@ import type {
 } from "@/types/clientStreamEvents";
 
 const handleError = (event: ErrorEvent) => {
-  console.error(`Worker error on line ${event.lineno} in "${event.filename}"`);
   console.error(event.message);
 };
 
@@ -42,7 +41,9 @@ export class ClientWorkerClass {
   constructor(worker: Worker, enableLogging: boolean) {
     this.#worker = worker;
     this.#worker.addEventListener("message", this.handleMessage);
-    this.#worker.addEventListener("error", handleError);
+    if (enableLogging) {
+      this.#worker.addEventListener("error", handleError);
+    }
     this.#enableLogging = enableLogging;
   }
 
@@ -132,7 +133,9 @@ export class ClientWorkerClass {
    */
   close() {
     this.#worker.removeEventListener("message", this.handleMessage);
-    this.#worker.removeEventListener("error", handleError);
+    if (this.#enableLogging) {
+      this.#worker.removeEventListener("error", handleError);
+    }
     this.#worker.terminate();
   }
 }
