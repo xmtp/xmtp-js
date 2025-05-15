@@ -30,13 +30,13 @@ export class Dm extends Conversation {
    * @returns Promise that resolves with the peer's inbox ID
    */
   async peerInboxId() {
-    return this.#client.sendMessage("getDmPeerInboxId", {
+    return this.#client.sendMessage("dm.peerInboxId", {
       id: this.#id,
     });
   }
 
   async getDuplicateDms() {
-    return this.#client.sendMessage("getDuplicateDms", {
+    return this.#client.sendMessage("dm.getDuplicateDms", {
       id: this.#id,
     });
   }

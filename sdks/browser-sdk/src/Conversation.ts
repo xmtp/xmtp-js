@@ -76,7 +76,7 @@ export class Conversation {
    * @returns Promise that resolves with the conversation members
    */
   async members() {
-    return this.#client.sendMessage("getGroupMembers", {
+    return this.#client.sendMessage("conversation.members", {
       id: this.#id,
     });
   }
@@ -87,7 +87,7 @@ export class Conversation {
    * @returns Promise that resolves with the updated conversation data
    */
   async sync() {
-    const data = await this.#client.sendMessage("syncGroup", {
+    const data = await this.#client.sendMessage("conversation.sync", {
       id: this.#id,
     });
     this.#syncData(data);
@@ -100,7 +100,7 @@ export class Conversation {
    * @returns Promise that resolves when publishing is complete
    */
   async publishMessages() {
-    return this.#client.sendMessage("publishGroupMessages", {
+    return this.#client.sendMessage("conversation.publishMessages", {
       id: this.#id,
     });
   }
@@ -124,7 +124,7 @@ export class Conversation {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#client.sendMessage("sendOptimisticGroupMessage", {
+    return this.#client.sendMessage("conversation.sendOptimistic", {
       id: this.#id,
       content: safeEncodedContent,
     });
@@ -149,7 +149,7 @@ export class Conversation {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#client.sendMessage("sendGroupMessage", {
+    return this.#client.sendMessage("conversation.send", {
       id: this.#id,
       content: safeEncodedContent,
     });
@@ -162,7 +162,7 @@ export class Conversation {
    * @returns Promise that resolves with an array of decoded messages
    */
   async messages(options?: SafeListMessagesOptions) {
-    const messages = await this.#client.sendMessage("getGroupMessages", {
+    const messages = await this.#client.sendMessage("conversation.messages", {
       id: this.#id,
       options,
     });
@@ -176,7 +176,7 @@ export class Conversation {
    * @returns Promise that resolves with the current consent state
    */
   async consentState() {
-    return this.#client.sendMessage("getGroupConsentState", {
+    return this.#client.sendMessage("conversation.consentState", {
       id: this.#id,
     });
   }
@@ -188,7 +188,7 @@ export class Conversation {
    * @returns Promise that resolves when the update is complete
    */
   async updateConsentState(state: ConsentState) {
-    return this.#client.sendMessage("updateGroupConsentState", {
+    return this.#client.sendMessage("conversation.updateConsentState", {
       id: this.#id,
       state,
     });
@@ -200,9 +200,12 @@ export class Conversation {
    * @returns Promise that resolves with the current message disappearing settings
    */
   async messageDisappearingSettings() {
-    return this.#client.sendMessage("getGroupMessageDisappearingSettings", {
-      id: this.#id,
-    });
+    return this.#client.sendMessage(
+      "conversation.messageDisappearingSettings",
+      {
+        id: this.#id,
+      },
+    );
   }
 
   /**
@@ -213,11 +216,14 @@ export class Conversation {
    * @returns Promise that resolves when the update is complete
    */
   async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
-    return this.#client.sendMessage("updateGroupMessageDisappearingSettings", {
-      id: this.#id,
-      fromNs,
-      inNs,
-    });
+    return this.#client.sendMessage(
+      "conversation.updateMessageDisappearingSettings",
+      {
+        id: this.#id,
+        fromNs,
+        inNs,
+      },
+    );
   }
 
   /**
@@ -226,9 +232,12 @@ export class Conversation {
    * @returns Promise that resolves when the settings are removed
    */
   async removeMessageDisappearingSettings() {
-    return this.#client.sendMessage("removeGroupMessageDisappearingSettings", {
-      id: this.#id,
-    });
+    return this.#client.sendMessage(
+      "conversation.removeMessageDisappearingSettings",
+      {
+        id: this.#id,
+      },
+    );
   }
 
   /**
@@ -237,9 +246,12 @@ export class Conversation {
    * @returns Promise that resolves with whether message disappearing is enabled
    */
   async isMessageDisappearingEnabled() {
-    return this.#client.sendMessage("isGroupMessageDisappearingEnabled", {
-      id: this.#id,
-    });
+    return this.#client.sendMessage(
+      "conversation.isMessageDisappearingEnabled",
+      {
+        id: this.#id,
+      },
+    );
   }
 
   /**
@@ -269,7 +281,7 @@ export class Conversation {
         void callback?.(err, message);
       },
     );
-    await this.#client.sendMessage("streamGroupMessages", {
+    await this.#client.sendMessage("conversation.stream", {
       groupId: this.#id,
       streamId,
     });
@@ -283,7 +295,7 @@ export class Conversation {
   }
 
   async pausedForVersion() {
-    return this.#client.sendMessage("getGroupPausedForVersion", {
+    return this.#client.sendMessage("conversation.pausedForVersion", {
       id: this.#id,
     });
   }
@@ -294,7 +306,7 @@ export class Conversation {
    * @returns Promise that resolves with the HMAC keys
    */
   async getHmacKeys() {
-    return this.#client.sendMessage("getGroupHmacKeys", {
+    return this.#client.sendMessage("conversation.getHmacKeys", {
       id: this.#id,
     });
   }
@@ -305,7 +317,7 @@ export class Conversation {
    * @returns The debug information for this conversation
    */
   async debugInfo() {
-    return this.#client.sendMessage("getGroupDebugInfo", {
+    return this.#client.sendMessage("conversation.debugInfo", {
       id: this.#id,
     });
   }

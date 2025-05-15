@@ -22,7 +22,7 @@ export class Preferences {
   }
 
   sync() {
-    return this.#client.sendMessage("syncPreferences", undefined);
+    return this.#client.sendMessage("preferences.sync", undefined);
   }
 
   /**
@@ -32,7 +32,7 @@ export class Preferences {
    * @returns Promise that resolves with the inbox state
    */
   async inboxState(refreshFromNetwork?: boolean) {
-    return this.#client.sendMessage("inboxState", {
+    return this.#client.sendMessage("preferences.inboxState", {
       refreshFromNetwork: refreshFromNetwork ?? false,
     });
   }
@@ -48,7 +48,7 @@ export class Preferences {
     inboxIds: string[],
     refreshFromNetwork?: boolean,
   ) {
-    return this.#client.sendMessage("inboxStateFromInboxIds", {
+    return this.#client.sendMessage("preferences.inboxStateFromInboxIds", {
       inboxIds,
       refreshFromNetwork: refreshFromNetwork ?? false,
     });
@@ -61,7 +61,9 @@ export class Preferences {
    * @returns Promise that resolves with the latest inbox state
    */
   async getLatestInboxState(inboxId: string) {
-    return this.#client.sendMessage("getLatestInboxState", { inboxId });
+    return this.#client.sendMessage("preferences.getLatestInboxState", {
+      inboxId,
+    });
   }
 
   /**
@@ -71,7 +73,9 @@ export class Preferences {
    * @returns Promise that resolves when consent states are updated
    */
   async setConsentStates(records: SafeConsent[]) {
-    return this.#client.sendMessage("setConsentStates", { records });
+    return this.#client.sendMessage("preferences.setConsentStates", {
+      records,
+    });
   }
 
   /**
@@ -82,7 +86,10 @@ export class Preferences {
    * @returns Promise that resolves with the consent state
    */
   async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.#client.sendMessage("getConsentState", { entityType, entity });
+    return this.#client.sendMessage("preferences.getConsentState", {
+      entityType,
+      entity,
+    });
   }
 
   /**
@@ -101,7 +108,7 @@ export class Preferences {
         void callback?.(error, value ?? undefined);
       },
     );
-    await this.#client.sendMessage("streamConsent", {
+    await this.#client.sendMessage("preferences.streamConsent", {
       streamId,
     });
     asyncStream.onReturn = () => {
@@ -129,7 +136,7 @@ export class Preferences {
         void callback?.(error, value ?? undefined);
       },
     );
-    await this.#client.sendMessage("streamPreferences", {
+    await this.#client.sendMessage("preferences.streamPreferences", {
       streamId,
     });
     asyncStream.onReturn = () => {

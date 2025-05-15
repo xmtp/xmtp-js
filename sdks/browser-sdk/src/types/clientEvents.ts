@@ -52,7 +52,7 @@ export type ClientEvents =
    * Client actions
    */
   | {
-      action: "init";
+      action: "client.init";
       id: string;
       result: {
         inboxId: string;
@@ -65,13 +65,13 @@ export type ClientEvents =
       };
     }
   | {
-      action: "createInboxSignatureText";
+      action: "client.createInboxSignatureText";
       id: string;
       result: string | undefined;
       data: undefined;
     }
   | {
-      action: "addAccountSignatureText";
+      action: "client.addAccountSignatureText";
       id: string;
       result: string | undefined;
       data: {
@@ -79,7 +79,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "removeAccountSignatureText";
+      action: "client.removeAccountSignatureText";
       id: string;
       result: string | undefined;
       data: {
@@ -87,13 +87,13 @@ export type ClientEvents =
       };
     }
   | {
-      action: "revokeAllOtherInstallationsSignatureText";
+      action: "client.revokeAllOtherInstallationsSignatureText";
       id: string;
       result: string | undefined;
       data: undefined;
     }
   | {
-      action: "revokeInstallationsSignatureText";
+      action: "client.revokeInstallationsSignatureText";
       id: string;
       result: string | undefined;
       data: {
@@ -101,7 +101,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "changeRecoveryIdentifierSignatureText";
+      action: "client.changeRecoveryIdentifierSignatureText";
       id: string;
       result: string | undefined;
       data: {
@@ -109,7 +109,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "addEcdsaSignature";
+      action: "client.addEcdsaSignature";
       id: string;
       result: undefined;
       data: {
@@ -118,7 +118,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "addScwSignature";
+      action: "client.addScwSignature";
       id: string;
       result: undefined;
       data: {
@@ -129,25 +129,25 @@ export type ClientEvents =
       };
     }
   | {
-      action: "applySignatures";
+      action: "client.applySignatures";
       id: string;
       result: undefined;
       data: undefined;
     }
   | {
-      action: "registerIdentity";
+      action: "client.registerIdentity";
       id: string;
       result: undefined;
       data: undefined;
     }
   | {
-      action: "isRegistered";
+      action: "client.isRegistered";
       id: string;
       result: boolean;
       data: undefined;
     }
   | {
-      action: "canMessage";
+      action: "client.canMessage";
       id: string;
       result: Map<string, boolean>;
       data: {
@@ -155,49 +155,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "inboxState";
-      id: string;
-      result: SafeInboxState;
-      data: {
-        refreshFromNetwork: boolean;
-      };
-    }
-  | {
-      action: "inboxStateFromInboxIds";
-      id: string;
-      result: SafeInboxState[];
-      data: {
-        inboxIds: string[];
-        refreshFromNetwork: boolean;
-      };
-    }
-  | {
-      action: "getLatestInboxState";
-      id: string;
-      result: SafeInboxState;
-      data: {
-        inboxId: string;
-      };
-    }
-  | {
-      action: "setConsentStates";
-      id: string;
-      result: undefined;
-      data: {
-        records: SafeConsent[];
-      };
-    }
-  | {
-      action: "getConsentState";
-      id: string;
-      result: ConsentState;
-      data: {
-        entityType: ConsentEntityType;
-        entity: string;
-      };
-    }
-  | {
-      action: "findInboxIdByIdentifier";
+      action: "client.findInboxIdByIdentifier";
       id: string;
       result: string | undefined;
       data: {
@@ -205,7 +163,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "signWithInstallationKey";
+      action: "client.signWithInstallationKey";
       id: string;
       result: Uint8Array;
       data: {
@@ -213,7 +171,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "verifySignedWithInstallationKey";
+      action: "client.verifySignedWithInstallationKey";
       id: string;
       result: boolean;
       data: {
@@ -222,7 +180,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "verifySignedWithPublicKey";
+      action: "client.verifySignedWithPublicKey";
       id: string;
       result: boolean;
       data: {
@@ -232,7 +190,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getKeyPackageStatusesForInstallationIds";
+      action: "client.getKeyPackageStatusesForInstallationIds";
       id: string;
       result: Map<string, SafeKeyPackageStatus>;
       data: {
@@ -240,10 +198,77 @@ export type ClientEvents =
       };
     }
   /**
+   * Preferences actions
+   */
+  | {
+      action: "preferences.inboxState";
+      id: string;
+      result: SafeInboxState;
+      data: {
+        refreshFromNetwork: boolean;
+      };
+    }
+  | {
+      action: "preferences.inboxStateFromInboxIds";
+      id: string;
+      result: SafeInboxState[];
+      data: {
+        inboxIds: string[];
+        refreshFromNetwork: boolean;
+      };
+    }
+  | {
+      action: "preferences.getLatestInboxState";
+      id: string;
+      result: SafeInboxState;
+      data: {
+        inboxId: string;
+      };
+    }
+  | {
+      action: "preferences.setConsentStates";
+      id: string;
+      result: undefined;
+      data: {
+        records: SafeConsent[];
+      };
+    }
+  | {
+      action: "preferences.getConsentState";
+      id: string;
+      result: ConsentState;
+      data: {
+        entityType: ConsentEntityType;
+        entity: string;
+      };
+    }
+  | {
+      action: "preferences.sync";
+      id: string;
+      result: number;
+      data: undefined;
+    }
+  | {
+      action: "preferences.streamConsent";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+      };
+    }
+  | {
+      action: "preferences.streamPreferences";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+      };
+    }
+  /**
    * Conversations actions
    */
   | {
-      action: "getConversationById";
+      action: "conversations.getConversationById";
       id: string;
       result: SafeConversation | undefined;
       data: {
@@ -251,7 +276,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getMessageById";
+      action: "conversations.getMessageById";
       id: string;
       result: SafeMessage | undefined;
       data: {
@@ -259,7 +284,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getDmByInboxId";
+      action: "conversations.getDmByInboxId";
       id: string;
       result: SafeConversation | undefined;
       data: {
@@ -267,7 +292,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getConversations";
+      action: "conversations.list";
       id: string;
       result: SafeConversation[];
       data: {
@@ -275,7 +300,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getGroups";
+      action: "conversations.listGroups";
       id: string;
       result: SafeConversation[];
       data: {
@@ -283,7 +308,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getDms";
+      action: "conversations.listDms";
       id: string;
       result: SafeConversation[];
       data: {
@@ -291,7 +316,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "newGroupOptimistic";
+      action: "conversations.newGroupOptimistic";
       id: string;
       result: SafeConversation;
       data: {
@@ -299,7 +324,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "newGroupWithIdentifiers";
+      action: "conversations.newGroupWithIdentifiers";
       id: string;
       result: SafeConversation;
       data: {
@@ -308,7 +333,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "newGroupWithInboxIds";
+      action: "conversations.newGroup";
       id: string;
       result: SafeConversation;
       data: {
@@ -317,7 +342,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "newDmWithIdentifier";
+      action: "conversations.newDmWithIdentifier";
       id: string;
       result: SafeConversation;
       data: {
@@ -326,7 +351,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "newDmWithInboxId";
+      action: "conversations.newDm";
       id: string;
       result: SafeConversation;
       data: {
@@ -335,13 +360,13 @@ export type ClientEvents =
       };
     }
   | {
-      action: "syncConversations";
+      action: "conversations.sync";
       id: string;
       result: undefined;
       data: undefined;
     }
   | {
-      action: "syncAllConversations";
+      action: "conversations.syncAll";
       id: string;
       result: undefined;
       data: {
@@ -349,19 +374,13 @@ export type ClientEvents =
       };
     }
   | {
-      action: "syncPreferences";
-      id: string;
-      result: number;
-      data: undefined;
-    }
-  | {
-      action: "getHmacKeys";
+      action: "conversations.getHmacKeys";
       id: string;
       result: SafeHmacKeys;
       data: undefined;
     }
   | {
-      action: "streamAllGroups";
+      action: "conversations.stream";
       id: string;
       result: undefined;
       data: {
@@ -370,7 +389,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "streamAllMessages";
+      action: "conversations.streamAllMessages";
       id: string;
       result: undefined;
       data: {
@@ -379,27 +398,11 @@ export type ClientEvents =
         consentStates?: ConsentState[];
       };
     }
-  | {
-      action: "streamConsent";
-      id: string;
-      result: undefined;
-      data: {
-        streamId: string;
-      };
-    }
-  | {
-      action: "streamPreferences";
-      id: string;
-      result: undefined;
-      data: {
-        streamId: string;
-      };
-    }
   /**
-   * Group actions
+   * Conversation actions
    */
   | {
-      action: "syncGroup";
+      action: "conversation.sync";
       id: string;
       result: SafeConversation;
       data: {
@@ -407,7 +410,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "sendGroupMessage";
+      action: "conversation.send";
       id: string;
       result: string;
       data: {
@@ -416,7 +419,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "sendOptimisticGroupMessage";
+      action: "conversation.sendOptimistic";
       id: string;
       result: string;
       data: {
@@ -425,7 +428,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "publishGroupMessages";
+      action: "conversation.publishMessages";
       id: string;
       result: undefined;
       data: {
@@ -433,7 +436,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getGroupMessages";
+      action: "conversation.messages";
       id: string;
       result: SafeMessage[];
       data: {
@@ -442,7 +445,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getGroupMembers";
+      action: "conversation.members";
       id: string;
       result: SafeGroupMember[];
       data: {
@@ -450,7 +453,92 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getGroupAdmins";
+      action: "conversation.messageDisappearingSettings";
+      id: string;
+      result: SafeMessageDisappearingSettings | undefined;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.updateMessageDisappearingSettings";
+      id: string;
+      result: undefined;
+      data: SafeMessageDisappearingSettings & {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.removeMessageDisappearingSettings";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.isMessageDisappearingEnabled";
+      id: string;
+      result: boolean;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.stream";
+      id: string;
+      result: undefined;
+      data: {
+        groupId: string;
+        streamId: string;
+      };
+    }
+  | {
+      action: "conversation.pausedForVersion";
+      id: string;
+      result: string | undefined;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.getHmacKeys";
+      id: string;
+      result: SafeHmacKey[];
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.debugInfo";
+      id: string;
+      result: SafeConversationDebugInfo;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.consentState";
+      id: string;
+      result: ConsentState;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.updateConsentState";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+        state: ConsentState;
+      };
+    }
+  /**
+   * Group actions
+   */
+  | {
+      action: "group.listAdmins";
       id: string;
       result: string[];
       data: {
@@ -458,7 +546,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getGroupSuperAdmins";
+      action: "group.listSuperAdmins";
       id: string;
       result: string[];
       data: {
@@ -466,7 +554,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "isGroupAdmin";
+      action: "group.isAdmin";
       id: string;
       result: boolean;
       data: {
@@ -475,7 +563,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "isGroupSuperAdmin";
+      action: "group.isSuperAdmin";
       id: string;
       result: boolean;
       data: {
@@ -484,7 +572,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "addGroupMembers";
+      action: "group.addMembersByIdentifiers";
       id: string;
       result: undefined;
       data: {
@@ -493,7 +581,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "removeGroupMembers";
+      action: "group.removeMembersByIdentifiers";
       id: string;
       result: undefined;
       data: {
@@ -502,7 +590,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "addGroupMembersByInboxId";
+      action: "group.addMembers";
       id: string;
       result: undefined;
       data: {
@@ -511,7 +599,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "removeGroupMembersByInboxId";
+      action: "group.removeMembers";
       id: string;
       result: undefined;
       data: {
@@ -520,7 +608,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "addGroupAdmin";
+      action: "group.addAdmin";
       id: string;
       result: undefined;
       data: {
@@ -529,7 +617,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "removeGroupAdmin";
+      action: "group.removeAdmin";
       id: string;
       result: undefined;
       data: {
@@ -538,7 +626,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "addGroupSuperAdmin";
+      action: "group.addSuperAdmin";
       id: string;
       result: undefined;
       data: {
@@ -547,7 +635,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "removeGroupSuperAdmin";
+      action: "group.removeSuperAdmin";
       id: string;
       result: undefined;
       data: {
@@ -556,7 +644,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "updateGroupName";
+      action: "group.updateName";
       id: string;
       result: undefined;
       data: {
@@ -565,7 +653,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "updateGroupDescription";
+      action: "group.updateDescription";
       id: string;
       result: undefined;
       data: {
@@ -574,7 +662,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "updateGroupImageUrlSquare";
+      action: "group.updateImageUrl";
       id: string;
       result: undefined;
       data: {
@@ -583,32 +671,7 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getGroupConsentState";
-      id: string;
-      result: ConsentState;
-      data: {
-        id: string;
-      };
-    }
-  | {
-      action: "updateGroupConsentState";
-      id: string;
-      result: undefined;
-      data: {
-        id: string;
-        state: ConsentState;
-      };
-    }
-  | {
-      action: "getDmPeerInboxId";
-      id: string;
-      result: string;
-      data: {
-        id: string;
-      };
-    }
-  | {
-      action: "updateGroupPermissionPolicy";
+      action: "group.updatePermission";
       id: string;
       result: undefined;
       data: {
@@ -619,82 +682,28 @@ export type ClientEvents =
       };
     }
   | {
-      action: "getGroupPermissions";
+      action: "group.permissions";
       id: string;
       result: SafeConversation["permissions"];
       data: {
         id: string;
       };
     }
+  /**
+   * DM actions
+   */
   | {
-      action: "getGroupMessageDisappearingSettings";
+      action: "dm.peerInboxId";
       id: string;
-      result: SafeMessageDisappearingSettings | undefined;
+      result: string;
       data: {
         id: string;
       };
     }
   | {
-      action: "updateGroupMessageDisappearingSettings";
-      id: string;
-      result: undefined;
-      data: SafeMessageDisappearingSettings & {
-        id: string;
-      };
-    }
-  | {
-      action: "removeGroupMessageDisappearingSettings";
-      id: string;
-      result: undefined;
-      data: {
-        id: string;
-      };
-    }
-  | {
-      action: "isGroupMessageDisappearingEnabled";
-      id: string;
-      result: boolean;
-      data: {
-        id: string;
-      };
-    }
-  | {
-      action: "streamGroupMessages";
-      id: string;
-      result: undefined;
-      data: {
-        groupId: string;
-        streamId: string;
-      };
-    }
-  | {
-      action: "getGroupPausedForVersion";
-      id: string;
-      result: string | undefined;
-      data: {
-        id: string;
-      };
-    }
-  | {
-      action: "getGroupHmacKeys";
-      id: string;
-      result: SafeHmacKey[];
-      data: {
-        id: string;
-      };
-    }
-  | {
-      action: "getDuplicateDms";
+      action: "dm.getDuplicateDms";
       id: string;
       result: SafeConversation[];
-      data: {
-        id: string;
-      };
-    }
-  | {
-      action: "getGroupDebugInfo";
-      id: string;
-      result: SafeConversationDebugInfo;
       data: {
         id: string;
       };
