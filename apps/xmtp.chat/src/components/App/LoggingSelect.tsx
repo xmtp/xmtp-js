@@ -1,12 +1,8 @@
-import { Flex, NativeSelect, Text } from "@mantine/core";
+import { Group, NativeSelect, Stack, Text } from "@mantine/core";
 import { type ClientOptions } from "@xmtp/browser-sdk";
 import { useSettings } from "@/hooks/useSettings";
 
-export type LoggingSelectProps = {
-  disabled?: boolean;
-};
-
-export const LoggingSelect: React.FC<LoggingSelectProps> = ({ disabled }) => {
+export const LoggingSelect: React.FC = () => {
   const { loggingLevel, setLoggingLevel } = useSettings();
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -14,16 +10,16 @@ export const LoggingSelect: React.FC<LoggingSelectProps> = ({ disabled }) => {
   };
 
   return (
-    <Flex align="center" gap="xs">
-      <Text size="sm" fw={700}>
-        LOGGING
-      </Text>
-      <NativeSelect
-        data={["off", "error", "warn", "info", "debug", "trace"]}
-        value={loggingLevel}
-        onChange={handleChange}
-        disabled={disabled}
-      />
-    </Flex>
+    <Stack p="md">
+      <Group gap="xs" justify="space-between">
+        <Text fw="bold">Logging level</Text>
+        <NativeSelect
+          data={["off", "error", "warn", "info", "debug", "trace"]}
+          value={loggingLevel}
+          onChange={handleChange}
+        />
+      </Group>
+      <Text size="sm">Enable logging to help debug issues.</Text>
+    </Stack>
   );
 };
