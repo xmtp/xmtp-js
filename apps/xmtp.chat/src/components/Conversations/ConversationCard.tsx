@@ -1,8 +1,18 @@
 import { Box, Card, Flex, Stack, Text } from "@mantine/core";
-import { Dm, Group, type Conversation } from "@xmtp/browser-sdk";
+import { type Conversation, type Dm, type Group } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import styles from "./ConversationCard.module.css";
+
+const isGroupConversation = (
+  conversation: Conversation,
+): conversation is Group => {
+  return conversation.metadata?.conversationType === "group";
+};
+
+const isDmConversation = (conversation: Conversation): conversation is Dm => {
+  return conversation.metadata?.conversationType === "dm";
+};
 
 export type ConversationCardProps = {
   conversation: Conversation;
@@ -23,10 +33,10 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   }, [conversation.id]);
 
   useEffect(() => {
-    if (conversation instanceof Group) {
+    if (isGroupConversation(conversation)) {
       setName(conversation.name ?? "");
     }
-    if (conversation instanceof Dm) {
+    if (isDmConversation(conversation)) {
       void conversation.peerInboxId().then((inboxId) => {
         setName(inboxId);
       });
