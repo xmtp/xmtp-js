@@ -6,7 +6,7 @@ import {
   type Identifier,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
-import type { ClientOptions } from "@/types";
+import type { ClientOptions } from "@/types/options";
 
 export const createClient = async (
   identifier: Identifier,

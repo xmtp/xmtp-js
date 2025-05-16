@@ -40,7 +40,7 @@ export class Conversations {
    * @returns Promise that resolves when sync is complete
    */
   async sync() {
-    return this.#client.sendMessage("syncConversations", undefined);
+    return this.#client.sendMessage("conversations.sync", undefined);
   }
 
   /**
@@ -52,7 +52,7 @@ export class Conversations {
    * @returns Promise that resolves when sync is complete
    */
   async syncAll(consentStates?: ConsentState[]) {
-    return this.#client.sendMessage("syncAllConversations", {
+    return this.#client.sendMessage("conversations.syncAll", {
       consentStates,
     });
   }
@@ -64,9 +64,12 @@ export class Conversations {
    * @returns Promise that resolves with the conversation, if found
    */
   async getConversationById(id: string) {
-    const data = await this.#client.sendMessage("getConversationById", {
-      id,
-    });
+    const data = await this.#client.sendMessage(
+      "conversations.getConversationById",
+      {
+        id,
+      },
+    );
     if (data) {
       return data.metadata.conversationType === "group"
         ? new Group(this.#client, data.id, data)
@@ -82,9 +85,12 @@ export class Conversations {
    * @returns Promise that resolves with the decoded message, if found
    */
   async getMessageById<T = unknown>(id: string) {
-    const data = await this.#client.sendMessage("getMessageById", {
-      id,
-    });
+    const data = await this.#client.sendMessage(
+      "conversations.getMessageById",
+      {
+        id,
+      },
+    );
     return data ? new DecodedMessage<T>(this.#client, data) : undefined;
   }
 
@@ -95,9 +101,12 @@ export class Conversations {
    * @returns Promise that resolves with the DM, if found
    */
   async getDmByInboxId(inboxId: string) {
-    const data = await this.#client.sendMessage("getDmByInboxId", {
-      inboxId,
-    });
+    const data = await this.#client.sendMessage(
+      "conversations.getDmByInboxId",
+      {
+        inboxId,
+      },
+    );
     return data ? new Dm(this.#client, data.id, data) : undefined;
   }
 
@@ -108,7 +117,7 @@ export class Conversations {
    * @returns Promise that resolves with an array of conversations
    */
   async list(options?: SafeListConversationsOptions) {
-    const conversations = await this.#client.sendMessage("getConversations", {
+    const conversations = await this.#client.sendMessage("conversations.list", {
       options,
     });
 
@@ -135,9 +144,12 @@ export class Conversations {
   async listGroups(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    const conversations = await this.#client.sendMessage("getGroups", {
-      options,
-    });
+    const conversations = await this.#client.sendMessage(
+      "conversations.listGroups",
+      {
+        options,
+      },
+    );
 
     return conversations.map(
       (conversation) => new Group(this.#client, conversation.id, conversation),
@@ -153,9 +165,12 @@ export class Conversations {
   async listDms(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    const conversations = await this.#client.sendMessage("getDms", {
-      options,
-    });
+    const conversations = await this.#client.sendMessage(
+      "conversations.listDms",
+      {
+        options,
+      },
+    );
 
     return conversations.map(
       (conversation) => new Dm(this.#client, conversation.id, conversation),
@@ -169,9 +184,12 @@ export class Conversations {
    * @returns Promise that resolves with the new group
    */
   async newGroupOptimistic(options?: SafeCreateGroupOptions) {
-    const conversation = await this.#client.sendMessage("newGroupOptimistic", {
-      options,
-    });
+    const conversation = await this.#client.sendMessage(
+      "conversations.newGroupOptimistic",
+      {
+        options,
+      },
+    );
 
     return new Group(this.#client, conversation.id, conversation);
   }
@@ -188,7 +206,7 @@ export class Conversations {
     options?: SafeCreateGroupOptions,
   ) {
     const conversation = await this.#client.sendMessage(
-      "newGroupWithIdentifiers",
+      "conversations.newGroupWithIdentifiers",
       {
         identifiers,
         options,
@@ -207,7 +225,7 @@ export class Conversations {
    */
   async newGroup(inboxIds: string[], options?: SafeCreateGroupOptions) {
     const conversation = await this.#client.sendMessage(
-      "newGroupWithInboxIds",
+      "conversations.newGroup",
       {
         inboxIds,
         options,
@@ -228,10 +246,13 @@ export class Conversations {
     identifier: Identifier,
     options?: SafeCreateDmOptions,
   ) {
-    const conversation = await this.#client.sendMessage("newDmWithIdentifier", {
-      identifier,
-      options,
-    });
+    const conversation = await this.#client.sendMessage(
+      "conversations.newDmWithIdentifier",
+      {
+        identifier,
+        options,
+      },
+    );
 
     return new Dm(this.#client, conversation.id, conversation);
   }
@@ -244,7 +265,7 @@ export class Conversations {
    * @returns Promise that resolves with the new DM
    */
   async newDm(inboxId: string, options?: SafeCreateDmOptions) {
-    const conversation = await this.#client.sendMessage("newDmWithInboxId", {
+    const conversation = await this.#client.sendMessage("conversations.newDm", {
       inboxId,
       options,
     });
@@ -258,7 +279,7 @@ export class Conversations {
    * @returns Promise that resolves with the HMAC keys for all conversations
    */
   async getHmacKeys() {
-    return this.#client.sendMessage("getHmacKeys", undefined);
+    return this.#client.sendMessage("conversations.getHmacKeys", undefined);
   }
 
   /**
@@ -295,7 +316,7 @@ export class Conversations {
         void callback?.(err, streamValue);
       },
     );
-    await this.#client.sendMessage("streamAllGroups", {
+    await this.#client.sendMessage("conversations.stream", {
       streamId,
       conversationType,
     });
@@ -360,7 +381,7 @@ export class Conversations {
         void callback?.(err, message);
       },
     );
-    await this.#client.sendMessage("streamAllMessages", {
+    await this.#client.sendMessage("conversations.streamAllMessages", {
       streamId,
       conversationType,
       consentStates,

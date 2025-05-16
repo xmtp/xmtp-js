@@ -5,18 +5,19 @@ import init, {
 } from "@xmtp/wasm-bindings";
 import { ApiUrls } from "@/constants";
 import type {
-  UtilsEventsActions,
-  UtilsEventsClientMessageData,
-  UtilsEventsErrorData,
-  UtilsEventsWorkerPostMessageData,
-  XmtpEnv,
-} from "@/types";
+  ActionErrorData,
+  ActionName,
+  ActionWithoutResult,
+  ExtractActionWithoutData,
+} from "@/types/actions";
+import type { UtilsWorkerAction } from "@/types/actions/utils";
+import type { XmtpEnv } from "@/types/options";
 
 /**
  * Type-safe postMessage
  */
-const postMessage = <A extends UtilsEventsActions>(
-  data: UtilsEventsWorkerPostMessageData<A>,
+const postMessage = <A extends ActionName<UtilsWorkerAction>>(
+  data: ExtractActionWithoutData<UtilsWorkerAction, A>,
 ) => {
   self.postMessage(data);
 };
@@ -24,7 +25,7 @@ const postMessage = <A extends UtilsEventsActions>(
 /**
  * Type-safe postMessage for errors
  */
-const postMessageError = (data: UtilsEventsErrorData) => {
+const postMessageError = (data: ActionErrorData<UtilsWorkerAction>) => {
   self.postMessage(data);
 };
 
@@ -38,7 +39,9 @@ const getInboxIdForIdentifier = async (
 
 let enableLogging = false;
 
-self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
+self.onmessage = async (
+  event: MessageEvent<ActionWithoutResult<UtilsWorkerAction>>,
+) => {
   const { action, id, data } = event.data;
 
   if (enableLogging) {
@@ -50,34 +53,27 @@ self.onmessage = async (event: MessageEvent<UtilsEventsClientMessageData>) => {
 
   try {
     switch (action) {
-      case "init":
+      case "utils.init": {
         enableLogging = data.enableLogging;
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "utils.generateInboxId": {
+        const result = generateInboxId(data.identifier);
         postMessage({
           id,
           action,
-          result: undefined,
+          result,
         });
         break;
-      case "generateInboxId":
-        postMessage({
-          id,
-          action,
-          result: generateInboxId(data.identifier),
-        });
+      }
+      case "utils.getInboxIdForIdentifier": {
+        const result = await getInboxIdForIdentifier(data.identifier, data.env);
+        postMessage({ id, action, result });
         break;
-      case "getInboxIdForIdentifier":
-        postMessage({
-          id,
-          action,
-          result: await getInboxIdForIdentifier(data.identifier, data.env),
-        });
-        break;
+      }
     }
   } catch (e) {
-    postMessageError({
-      id,
-      action,
-      error: e as Error,
-    });
+    postMessageError({ id, action, error: e as Error });
   }
 };

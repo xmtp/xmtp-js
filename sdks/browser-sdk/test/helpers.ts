@@ -9,7 +9,7 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
-import type { ClientOptions } from "@/types";
+import type { ClientOptions } from "@/types/options";
 import type { Signer } from "@/utils/signer";
 
 export const sleep = (ms: number) =>

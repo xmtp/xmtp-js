@@ -1,17 +1,27 @@
 import { v4 } from "uuid";
 import type {
-  UtilsEventsActions,
-  UtilsEventsErrorData,
-  UtilsEventsResult,
-  UtilsEventsWorkerMessageData,
-  UtilsSendMessageData,
-} from "@/types";
+  ActionErrorData,
+  ActionName,
+  ActionWithoutData,
+  ExtractActionData,
+  ExtractActionResult,
+} from "@/types/actions";
+import type { UtilsWorkerAction } from "@/types/actions/utils";
 
 const handleError = (event: ErrorEvent) => {
-  console.error(`Worker error on line ${event.lineno} in "${event.filename}"`);
   console.error(event.message);
 };
 
+/**
+ * Class that sets up a worker and provides communications for utility functions
+ *
+ * This class is not meant to be used directly, it is extended by the Utils class
+ * to provide an interface to the worker.
+ *
+ * @param worker - The worker to use for the utils class
+ * @param enableLogging - Whether to enable logging in the worker
+ * @returns A new UtilsWorkerClass instance
+ */
 export class UtilsWorkerClass {
   #worker: Worker;
 
@@ -25,20 +35,35 @@ export class UtilsWorkerClass {
   constructor(worker: Worker, enableLogging: boolean) {
     this.#worker = worker;
     this.#worker.addEventListener("message", this.handleMessage);
-    this.#worker.addEventListener("error", handleError);
+    if (enableLogging) {
+      this.#worker.addEventListener("error", handleError);
+    }
     this.#enableLogging = enableLogging;
     void this.init(enableLogging);
   }
 
+  /**
+   * Initializes the utils worker
+   *
+   * @param enableLogging - Whether to enable logging in the worker
+   * @returns A promise that resolves when the worker is initialized
+   */
   async init(enableLogging: boolean) {
-    return this.sendMessage("init", {
+    return this.sendMessage("utils.init", {
       enableLogging,
     });
   }
 
-  sendMessage<A extends UtilsEventsActions>(
+  /**
+   * Sends an action message to the utils worker
+   *
+   * @param action - The action to send to the worker
+   * @param data - The data to send to the worker
+   * @returns A promise that resolves when the action is completed
+   */
+  sendMessage<A extends ActionName<UtilsWorkerAction>>(
     action: A,
-    data: UtilsSendMessageData<A>,
+    data: ExtractActionData<UtilsWorkerAction, A>,
   ) {
     const promiseId = v4();
     this.#worker.postMessage({
@@ -46,17 +71,28 @@ export class UtilsWorkerClass {
       id: promiseId,
       data,
     });
-    const promise = new Promise<UtilsEventsResult<A>>((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       this.#promises.set(promiseId, {
         resolve: resolve as (value: unknown) => void,
         reject,
       });
     });
-    return promise;
+    return promise as [ExtractActionResult<UtilsWorkerAction, A>] extends [
+      undefined,
+    ]
+      ? Promise<void>
+      : Promise<ExtractActionResult<UtilsWorkerAction, A>>;
   }
 
+  /**
+   * Handles a message from the utils worker
+   *
+   * @param event - The event to handle
+   */
   handleMessage = (
-    event: MessageEvent<UtilsEventsWorkerMessageData | UtilsEventsErrorData>,
+    event: MessageEvent<
+      ActionWithoutData<UtilsWorkerAction> | ActionErrorData<UtilsWorkerAction>
+    >,
   ) => {
     const eventData = event.data;
     if (this.#enableLogging) {
@@ -73,9 +109,14 @@ export class UtilsWorkerClass {
     }
   };
 
+  /**
+   * Removes all event listeners and terminates the worker
+   */
   close() {
     this.#worker.removeEventListener("message", this.handleMessage);
-    this.#worker.removeEventListener("error", handleError);
+    if (this.#enableLogging) {
+      this.#worker.removeEventListener("error", handleError);
+    }
     this.#worker.terminate();
   }
 }

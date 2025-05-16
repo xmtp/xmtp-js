@@ -25,7 +25,7 @@ export class Utils extends UtilsWorkerClass {
    * @returns Promise that resolves with the generated inbox ID
    */
   async generateInboxId(identifier: Identifier) {
-    return this.sendMessage("generateInboxId", {
+    return this.sendMessage("utils.generateInboxId", {
       identifier,
     });
   }
@@ -38,7 +38,7 @@ export class Utils extends UtilsWorkerClass {
    * @returns Promise that resolves with the inbox ID for the identifier
    */
   async getInboxIdForIdentifier(identifier: Identifier, env?: XmtpEnv) {
-    return this.sendMessage("getInboxIdForIdentifier", {
+    return this.sendMessage("utils.getInboxIdForIdentifier", {
       identifier,
       env,
     });
