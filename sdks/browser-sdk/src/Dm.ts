@@ -7,8 +7,8 @@ import type { SafeConversation } from "@/utils/conversions";
  *
  * This class is not intended to be initialized directly.
  */
-export class Dm extends Conversation {
-  #client: Client;
+export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
+  #client: Client<ContentTypes>;
   #id: string;
 
   /**
@@ -18,7 +18,11 @@ export class Dm extends Conversation {
    * @param id - Identifier for the direct message conversation
    * @param data - Optional conversation data to initialize with
    */
-  constructor(client: Client, id: string, data?: SafeConversation) {
+  constructor(
+    client: Client<ContentTypes>,
+    id: string,
+    data?: SafeConversation,
+  ) {
     super(client, id, data);
     this.#client = client;
     this.#id = id;

@@ -13,9 +13,9 @@ import type { SafeConversation } from "@/utils/conversions";
  *
  * This class is not intended to be initialized directly.
  */
-export class Group extends Conversation {
+export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   #admins: SafeConversation["admins"] = [];
-  #client: Client;
+  #client: Client<ContentTypes>;
   #description?: SafeConversation["description"];
   #id: string;
   #imageUrl?: SafeConversation["imageUrl"];
@@ -37,7 +37,11 @@ export class Group extends Conversation {
    * @param id - Identifier for the group conversation
    * @param data - Optional conversation data to initialize with
    */
-  constructor(client: Client, id: string, data?: SafeConversation) {
+  constructor(
+    client: Client<ContentTypes>,
+    id: string,
+    data?: SafeConversation,
+  ) {
     super(client, id, data);
     this.#client = client;
     this.#id = id;

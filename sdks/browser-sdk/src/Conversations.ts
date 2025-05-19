@@ -22,15 +22,15 @@ import type {
  *
  * This class is not intended to be initialized directly.
  */
-export class Conversations {
-  #client: Client;
+export class Conversations<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
 
   /**
    * Creates a new conversations instance
    *
    * @param client - The client instance managing the conversations
    */
-  constructor(client: Client) {
+  constructor(client: Client<ContentTypes>) {
     this.#client = client;
   }
 
@@ -72,8 +72,8 @@ export class Conversations {
     );
     if (data) {
       return data.metadata.conversationType === "group"
-        ? new Group(this.#client, data.id, data)
-        : new Dm(this.#client, data.id, data);
+        ? new Group<ContentTypes>(this.#client, data.id, data)
+        : new Dm<ContentTypes>(this.#client, data.id, data);
     }
     return undefined;
   }
@@ -84,14 +84,16 @@ export class Conversations {
    * @param id - The message ID to look up
    * @returns Promise that resolves with the decoded message, if found
    */
-  async getMessageById<T = unknown>(id: string) {
+  async getMessageById(id: string) {
     const data = await this.#client.sendMessage(
       "conversations.getMessageById",
       {
         id,
       },
     );
-    return data ? new DecodedMessage<T>(this.#client, data) : undefined;
+    return data
+      ? new DecodedMessage<ContentTypes>(this.#client, data)
+      : undefined;
   }
 
   /**
@@ -107,7 +109,7 @@ export class Conversations {
         inboxId,
       },
     );
-    return data ? new Dm(this.#client, data.id, data) : undefined;
+    return data ? new Dm<ContentTypes>(this.#client, data.id, data) : undefined;
   }
 
   /**
@@ -357,21 +359,21 @@ export class Conversations {
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
   ) {
     const streamId = v4();
-    const asyncStream = new AsyncStream<DecodedMessage>();
+    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
       streamId,
       (error, value) => {
         let err: Error | null = error;
-        let message: DecodedMessage | undefined;
+        let message: DecodedMessage<ContentTypes> | undefined;
 
         if (value) {
           try {
-            message = new DecodedMessage(this.#client, value);
+            message = new DecodedMessage<ContentTypes>(this.#client, value);
           } catch (error) {
             err = error as Error;
           }
@@ -402,7 +404,7 @@ export class Conversations {
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
     return this.streamAllMessages(
@@ -419,7 +421,7 @@ export class Conversations {
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
     return this.streamAllMessages(callback, ConversationType.Dm, consentStates);

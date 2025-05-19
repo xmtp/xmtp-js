@@ -51,43 +51,54 @@ export const createSigner = (user: User): Signer => {
 
 export type User = ReturnType<typeof createUser>;
 
-export const buildClient = async (
+export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
   identifier: Identifier,
-  options?: ClientOptions,
+  options?: ClientOptions & {
+    codecs?: ContentCodecs;
+  },
 ) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.build(identifier, {
+  return Client.build<ContentCodecs>(identifier, {
     ...opts,
     dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });
 };
 
-export const createClient = async (signer: Signer, options?: ClientOptions) => {
+export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
+  signer: Signer,
+  options?: ClientOptions & {
+    codecs?: ContentCodecs;
+  },
+) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
   const identifier = await signer.getIdentifier();
-  return Client.create(signer, {
+  return Client.create<ContentCodecs>(signer, {
     ...opts,
     disableAutoRegister: true,
     dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });
 };
 
-export const createRegisteredClient = async (
+export const createRegisteredClient = async <
+  ContentCodecs extends ContentCodec[] = [],
+>(
   signer: Signer,
-  options?: ClientOptions,
+  options?: ClientOptions & {
+    codecs?: ContentCodecs;
+  },
 ) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
   const identifier = await signer.getIdentifier();
-  return Client.create(signer, {
+  return Client.create<ContentCodecs>(signer, {
     ...opts,
     dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });
@@ -113,7 +124,7 @@ export class TestCodec implements ContentCodec {
     };
   }
 
-  decode(content: EncodedContent) {
+  decode(content: EncodedContent): Record<string, string> {
     const decoded = new TextDecoder().decode(content.content);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(decoded);

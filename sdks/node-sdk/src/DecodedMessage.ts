@@ -31,7 +31,7 @@ export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
  * @property {number} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
 export class DecodedMessage<T = unknown> {
-  #client: Client;
+  #client: Client<T>;
   content: T | undefined;
   contentType: ContentTypeId | undefined;
   conversationId: string;
@@ -45,7 +45,7 @@ export class DecodedMessage<T = unknown> {
   sentAt: Date;
   sentAtNs: number;
 
-  constructor(client: Client, message: Message) {
+  constructor(client: Client<T>, message: Message) {
     this.#client = client;
     this.id = message.id;
     this.sentAtNs = message.sentAtNs;

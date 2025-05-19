@@ -32,12 +32,14 @@ import {
 } from "@/utils/errors";
 import { type Signer } from "@/utils/signer";
 
+type ExtractCodecContentType<C> = C extends ContentCodec<infer T> ? T : never;
+
 /**
  * Client for interacting with the XMTP network
  */
-export class Client extends ClientWorkerClass {
+export class Client<ContentTypes = unknown> extends ClientWorkerClass {
   #codecs: Map<string, ContentCodec>;
-  #conversations: Conversations;
+  #conversations: Conversations<ContentTypes>;
   #identifier?: Identifier;
   #inboxId: string | undefined;
   #installationId: string | undefined;
@@ -64,7 +66,7 @@ export class Client extends ClientWorkerClass {
       options?.loggingLevel !== undefined && options.loggingLevel !== "off",
     );
     this.#options = options;
-    this.#conversations = new Conversations(this);
+    this.#conversations = new Conversations<ContentTypes>(this);
     this.#preferences = new Preferences(this);
     const codecs = [
       new GroupUpdatedCodec(),
@@ -103,8 +105,17 @@ export class Client extends ClientWorkerClass {
    * @param options - Optional configuration for the client
    * @returns A new client instance
    */
-  static async create(signer: Signer, options?: ClientOptions) {
-    const client = new Client(options);
+  static async create<ContentCodecs extends ContentCodec[] = []>(
+    signer: Signer,
+    options?: Omit<ClientOptions, "codecs"> & {
+      codecs?: ContentCodecs;
+    },
+  ) {
+    const client = new Client<
+      ExtractCodecContentType<
+        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
+      >
+    >(options);
     client.#signer = signer;
 
     await client.init(await signer.getIdentifier());
@@ -126,8 +137,17 @@ export class Client extends ClientWorkerClass {
    * @param options - Optional configuration for the client
    * @returns A new client instance
    */
-  static async build(identifier: Identifier, options?: ClientOptions) {
-    const client = new Client({
+  static async build<ContentCodecs extends ContentCodec[] = []>(
+    identifier: Identifier,
+    options?: Omit<ClientOptions, "codecs"> & {
+      codecs?: ContentCodecs;
+    },
+  ) {
+    const client = new Client<
+      ExtractCodecContentType<
+        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
+      >
+    >({
       ...options,
       disableAutoRegister: true,
     });

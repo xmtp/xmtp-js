@@ -58,44 +58,56 @@ export const createSigner = (user: User): Signer => {
 
 export type User = ReturnType<typeof createUser>;
 
-export const buildClient = async (
+export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
   identifier: Identifier,
-  options?: ClientOptions,
+  options?: ClientOptions & {
+    codecs?: ContentCodecs;
+  },
 ) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.build(identifier, {
+  return Client.build<ContentCodecs>(identifier, {
     ...opts,
     dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });
 };
 
-export const createClient = async (signer: Signer, options?: ClientOptions) => {
-  const opts = {
-    ...options,
-    env: options?.env ?? "local",
-  };
-  const inboxId = generateInboxId(await signer.getIdentifier());
-  return Client.create(signer, {
-    ...opts,
-    disableAutoRegister: true,
-    dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
-    historySyncUrl: HistorySyncUrls.local,
-  });
-};
-
-export const createRegisteredClient = async (
+export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
   signer: Signer,
-  options?: ClientOptions,
+  options?: Omit<ClientOptions, "codecs"> & {
+    codecs?: ContentCodecs;
+  },
 ) => {
   const opts = {
     ...options,
     env: options?.env ?? "local",
   };
   const inboxId = generateInboxId(await signer.getIdentifier());
-  return Client.create(signer, {
+  const client = await Client.create<ContentCodecs>(signer, {
+    ...opts,
+    disableAutoRegister: true,
+    dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
+    historySyncUrl: HistorySyncUrls.local,
+  });
+  return client;
+};
+
+export const createRegisteredClient = async <
+  ContentCodecs extends ContentCodec[] = [],
+>(
+  signer: Signer,
+  options?: Omit<ClientOptions, "codecs"> & {
+    codecs?: ContentCodecs;
+  },
+) => {
+  const opts = {
+    ...options,
+    env: options?.env ?? "local",
+  };
+  const inboxId = generateInboxId(await signer.getIdentifier());
+  return Client.create<ContentCodecs>(signer, {
     ...opts,
     dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
     historySyncUrl: HistorySyncUrls.local,
@@ -109,12 +121,16 @@ export const ContentTypeTest = new ContentTypeId({
   versionMinor: 0,
 });
 
-export class TestCodec implements ContentCodec<Record<string, string>> {
+export class TestCodec
+  implements ContentCodec<Record<string, string>, Record<string, never>>
+{
   get contentType(): ContentTypeId {
     return ContentTypeTest;
   }
 
-  encode(content: Record<string, string>): EncodedContent {
+  encode(
+    content: Record<string, string>,
+  ): EncodedContent<Record<string, never>> {
     return {
       type: this.contentType,
       parameters: {},
@@ -122,7 +138,9 @@ export class TestCodec implements ContentCodec<Record<string, string>> {
     };
   }
 
-  decode(content: EncodedContent) {
+  decode(
+    content: EncodedContent<Record<string, never>>,
+  ): Record<string, string> {
     const decoded = new TextDecoder().decode(content.content);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(decoded);

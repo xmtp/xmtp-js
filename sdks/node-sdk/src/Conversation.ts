@@ -17,10 +17,10 @@ import { MissingContentTypeError } from "@/utils/errors";
  *
  * This class is not intended to be initialized directly.
  */
-export class Conversation {
-  #client: Client;
+export class Conversation<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
   #conversation: XmtpConversation;
-  #lastMessage?: DecodedMessage;
+  #lastMessage?: DecodedMessage<ContentTypes>;
 
   /**
    * Creates a new conversation instance
@@ -30,14 +30,14 @@ export class Conversation {
    * @param lastMessage - Optional last message in the conversation
    */
   constructor(
-    client: Client,
+    client: Client<ContentTypes>,
     conversation: XmtpConversation,
     lastMessage?: Message | null,
   ) {
     this.#client = client;
     this.#conversation = conversation;
     this.#lastMessage = lastMessage
-      ? new DecodedMessage(client, lastMessage)
+      ? new DecodedMessage<ContentTypes>(client, lastMessage)
       : undefined;
   }
 
@@ -113,16 +113,16 @@ export class Conversation {
    * @param callback - Optional callback function for handling new stream values
    * @returns Stream instance for new messages
    */
-  stream(callback?: StreamCallback<DecodedMessage>) {
-    const asyncStream = new AsyncStream<DecodedMessage>();
+  stream(callback?: StreamCallback<DecodedMessage<ContentTypes>>) {
+    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
 
     const stream = this.#conversation.stream((error, value) => {
       let err: Error | null = error;
-      let message: DecodedMessage | undefined;
+      let message: DecodedMessage<ContentTypes> | undefined;
 
       if (value) {
         try {
-          message = new DecodedMessage(this.#client, value);
+          message = new DecodedMessage<ContentTypes>(this.#client, value);
         } catch (error) {
           err = error as Error;
         }
@@ -154,7 +154,7 @@ export class Conversation {
    * @returns Promise that resolves with the message ID
    * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  sendOptimistic(content: unknown, contentType?: ContentTypeId) {
+  sendOptimistic(content: ContentTypes, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -176,7 +176,7 @@ export class Conversation {
    * @returns Promise that resolves with the message ID after it has been sent
    * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async send(content: unknown, contentType?: ContentTypeId) {
+  async send(content: ContentTypes, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -196,9 +196,13 @@ export class Conversation {
    * @param options - Optional filtering and pagination options
    * @returns Promise that resolves with an array of decoded messages
    */
-  async messages(options?: ListMessagesOptions): Promise<DecodedMessage[]> {
+  async messages(
+    options?: ListMessagesOptions,
+  ): Promise<DecodedMessage<ContentTypes>[]> {
     const messages = await this.#conversation.findMessages(options);
-    return messages.map((message) => new DecodedMessage(this.#client, message));
+    return messages.map(
+      (message) => new DecodedMessage<ContentTypes>(this.#client, message),
+    );
   }
 
   /**
