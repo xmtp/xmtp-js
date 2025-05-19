@@ -2,20 +2,23 @@ import { Box, Card, Flex, Stack, Text } from "@mantine/core";
 import { type Conversation, type Dm, type Group } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 import styles from "./ConversationCard.module.css";
 
 const isGroupConversation = (
-  conversation: Conversation,
-): conversation is Group => {
+  conversation: Conversation<ContentTypes>,
+): conversation is Group<ContentTypes> => {
   return conversation.metadata?.conversationType === "group";
 };
 
-const isDmConversation = (conversation: Conversation): conversation is Dm => {
+const isDmConversation = (
+  conversation: Conversation<ContentTypes>,
+): conversation is Dm<ContentTypes> => {
   return conversation.metadata?.conversationType === "dm";
 };
 
 export type ConversationCardProps = {
-  conversation: Conversation;
+  conversation: Conversation<ContentTypes>;
 };
 
 export const ConversationCard: React.FC<ConversationCardProps> = ({

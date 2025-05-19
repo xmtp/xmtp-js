@@ -3,6 +3,7 @@ import { Utils, type Conversation } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Modal } from "@/components/Modal";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
@@ -28,7 +29,7 @@ export const CreateDmModal: React.FC = () => {
     setLoading(true);
 
     try {
-      let conversation: Conversation;
+      let conversation: Conversation<ContentTypes>;
 
       if (isValidEthereumAddress(memberId)) {
         conversation = await newDmWithIdentifier({

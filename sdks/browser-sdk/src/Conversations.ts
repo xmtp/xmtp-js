@@ -289,10 +289,11 @@ export class Conversations<ContentTypes = unknown> {
    * @param conversationType - Optional type to filter conversations
    * @returns Stream instance for new conversations
    */
-  async stream<T extends Group | Dm = Group | Dm>(
-    callback?: StreamCallback<T>,
-    conversationType?: ConversationType,
-  ) {
+  async stream<
+    T extends Group<ContentTypes> | Dm<ContentTypes> =
+      | Group<ContentTypes>
+      | Dm<ContentTypes>,
+  >(callback?: StreamCallback<T>, conversationType?: ConversationType) {
     const streamId = v4();
     const asyncStream = new AsyncStream<T>();
     const endStream = this.#client.handleStreamMessage<SafeConversation>(

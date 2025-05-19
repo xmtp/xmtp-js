@@ -9,16 +9,17 @@ import { Outlet, useOutletContext } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
 import { ConversationProvider } from "@/contexts/ConversationContext";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
 
 export type ConversationProps = {
-  conversation: XmtpConversation;
+  conversation: XmtpConversation<ContentTypes>;
 };
 
 export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
-  const { client } = useOutletContext<{ client: Client }>();
+  const { client } = useOutletContext<{ client: Client<ContentTypes> }>();
   const [title, setTitle] = useState("");
   const {
     messages,

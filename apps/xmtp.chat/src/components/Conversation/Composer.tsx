@@ -1,11 +1,12 @@
 import { Button, Group, TextInput } from "@mantine/core";
 import type { Conversation } from "@xmtp/browser-sdk";
 import { useRef, useState } from "react";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
 import classes from "./Composer.module.css";
 
 export type ComposerProps = {
-  conversation: Conversation;
+  conversation: Conversation<ContentTypes>;
 };
 
 export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
