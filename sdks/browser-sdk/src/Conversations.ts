@@ -336,8 +336,8 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group conversations
    */
-  async streamGroups(callback?: StreamCallback<Group>) {
-    return this.stream<Group>(callback, ConversationType.Group);
+  async streamGroups(callback?: StreamCallback<Group<ContentTypes>>) {
+    return this.stream(callback, ConversationType.Group);
   }
 
   /**
@@ -346,8 +346,8 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM conversations
    */
-  async streamDms(callback?: StreamCallback<Dm>) {
-    return this.stream<Dm>(callback, ConversationType.Dm);
+  async streamDms(callback?: StreamCallback<Dm<ContentTypes>>) {
+    return this.stream(callback, ConversationType.Dm);
   }
 
   /**

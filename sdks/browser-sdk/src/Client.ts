@@ -648,9 +648,9 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
    * @param contentType - The content type to get the codec for
    * @returns The codec, if found
    */
-  codecFor<T = unknown>(contentType: ContentTypeId) {
+  codecFor<ContentType = unknown>(contentType: ContentTypeId) {
     return this.#codecs.get(contentType.toString()) as
-      | ContentCodec<T>
+      | ContentCodec<ContentType>
       | undefined;
   }
 
@@ -662,7 +662,7 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
    * @returns The encoded content
    * @throws {CodecNotFoundError} if no codec is found for the content type
    */
-  encodeContent(content: unknown, contentType: ContentTypeId) {
+  encodeContent(content: ContentTypes, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
@@ -684,8 +684,11 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
    * @throws {CodecNotFoundError} if no codec is found for the content type
    * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
    */
-  decodeContent<T = unknown>(message: SafeMessage, contentType: ContentTypeId) {
-    const codec = this.codecFor<T>(contentType);
+  decodeContent<ContentType = unknown>(
+    message: SafeMessage,
+    contentType: ContentTypeId,
+  ) {
+    const codec = this.codecFor<ContentType>(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
     }

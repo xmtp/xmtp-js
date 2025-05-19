@@ -26,9 +26,9 @@ export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
  * @property {string} senderInboxId - Identifier for the sender's inbox
  * @property {bigint} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
-export class DecodedMessage<T = unknown> {
-  #client: Client<T>;
-  content: T | undefined;
+export class DecodedMessage<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
+  content: ContentTypes | undefined;
   contentType: ContentTypeId;
   conversationId: string;
   deliveryStatus: MessageDeliveryStatus;
@@ -41,7 +41,7 @@ export class DecodedMessage<T = unknown> {
   senderInboxId: string;
   sentAtNs: bigint;
 
-  constructor(client: Client<T>, message: SafeMessage) {
+  constructor(client: Client<ContentTypes>, message: SafeMessage) {
     this.#client = client;
     this.id = message.id;
     this.sentAtNs = message.sentAtNs;
@@ -78,7 +78,10 @@ export class DecodedMessage<T = unknown> {
     this.compression = message.content.compression;
 
     try {
-      this.content = this.#client.decodeContent<T>(message, this.contentType);
+      this.content = this.#client.decodeContent<ContentTypes>(
+        message,
+        this.contentType,
+      );
     } catch {
       this.content = undefined;
     }

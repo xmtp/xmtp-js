@@ -30,9 +30,9 @@ export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
  * @property {Date} sentAt - Timestamp when the message was sent
  * @property {number} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
-export class DecodedMessage<T = unknown> {
-  #client: Client<T>;
-  content: T | undefined;
+export class DecodedMessage<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
+  content: ContentTypes | undefined;
   contentType: ContentTypeId | undefined;
   conversationId: string;
   deliveryStatus: MessageDeliveryStatus;
@@ -45,7 +45,7 @@ export class DecodedMessage<T = unknown> {
   sentAt: Date;
   sentAtNs: number;
 
-  constructor(client: Client<T>, message: Message) {
+  constructor(client: Client<ContentTypes>, message: Message) {
     this.#client = client;
     this.id = message.id;
     this.sentAtNs = message.sentAtNs;
@@ -86,7 +86,10 @@ export class DecodedMessage<T = unknown> {
 
     if (this.contentType) {
       try {
-        this.content = this.#client.decodeContent<T>(message, this.contentType);
+        this.content = this.#client.decodeContent<ContentTypes>(
+          message,
+          this.contentType,
+        );
       } catch {
         this.content = undefined;
       }
