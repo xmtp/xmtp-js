@@ -9,15 +9,15 @@ import type { Client } from "./Client";
  *
  * This class is not intended to be initialized directly.
  */
-export class Preferences {
-  #client: Client;
+export class Preferences<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
 
   /**
    * Creates a new preferences instance
    *
    * @param client - The client instance managing preferences
    */
-  constructor(client: Client) {
+  constructor(client: Client<ContentTypes>) {
     this.#client = client;
   }
 

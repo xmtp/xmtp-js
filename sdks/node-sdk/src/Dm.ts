@@ -42,6 +42,6 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
 
   async getDuplicateDms() {
     const duplicateDms = await this.#conversation.findDuplicateDms();
-    return duplicateDms.map((dm) => new Dm<ContentTypes>(this.#client, dm));
+    return duplicateDms.map((dm) => new Dm(this.#client, dm));
   }
 }

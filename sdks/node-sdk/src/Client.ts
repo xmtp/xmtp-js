@@ -86,7 +86,7 @@ export class Client<ContentTypes = unknown> {
     this.#identifier = identifier;
     this.#client = await createClient(identifier, this.#options);
     const conversations = this.#client.conversations();
-    this.#conversations = new Conversations<ContentTypes>(this, conversations);
+    this.#conversations = new Conversations(this, conversations);
     this.#preferences = new Preferences(this.#client, conversations);
   }
 

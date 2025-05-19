@@ -45,7 +45,7 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
   #installationId: string | undefined;
   #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
-  #preferences: Preferences;
+  #preferences: Preferences<ContentTypes>;
   #signer?: Signer;
   #options?: ClientOptions;
 
@@ -66,7 +66,7 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
       options?.loggingLevel !== undefined && options.loggingLevel !== "off",
     );
     this.#options = options;
-    this.#conversations = new Conversations<ContentTypes>(this);
+    this.#conversations = new Conversations(this);
     this.#preferences = new Preferences(this);
     const codecs = [
       new GroupUpdatedCodec(),

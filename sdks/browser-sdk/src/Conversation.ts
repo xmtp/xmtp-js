@@ -171,9 +171,7 @@ export class Conversation<ContentTypes = unknown> {
       options,
     });
 
-    return messages.map(
-      (message) => new DecodedMessage<ContentTypes>(this.#client, message),
-    );
+    return messages.map((message) => new DecodedMessage(this.#client, message));
   }
 
   /**
@@ -277,7 +275,7 @@ export class Conversation<ContentTypes = unknown> {
 
         if (value) {
           try {
-            message = new DecodedMessage<ContentTypes>(this.#client, value);
+            message = new DecodedMessage(this.#client, value);
           } catch (error) {
             err = error as Error;
           }

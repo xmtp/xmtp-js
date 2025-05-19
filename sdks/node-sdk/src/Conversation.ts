@@ -37,7 +37,7 @@ export class Conversation<ContentTypes = unknown> {
     this.#client = client;
     this.#conversation = conversation;
     this.#lastMessage = lastMessage
-      ? new DecodedMessage<ContentTypes>(client, lastMessage)
+      ? new DecodedMessage(client, lastMessage)
       : undefined;
   }
 
@@ -122,7 +122,7 @@ export class Conversation<ContentTypes = unknown> {
 
       if (value) {
         try {
-          message = new DecodedMessage<ContentTypes>(this.#client, value);
+          message = new DecodedMessage(this.#client, value);
         } catch (error) {
           err = error as Error;
         }
@@ -196,13 +196,9 @@ export class Conversation<ContentTypes = unknown> {
    * @param options - Optional filtering and pagination options
    * @returns Promise that resolves with an array of decoded messages
    */
-  async messages(
-    options?: ListMessagesOptions,
-  ): Promise<DecodedMessage<ContentTypes>[]> {
+  async messages(options?: ListMessagesOptions) {
     const messages = await this.#conversation.findMessages(options);
-    return messages.map(
-      (message) => new DecodedMessage<ContentTypes>(this.#client, message),
-    );
+    return messages.map((message) => new DecodedMessage(this.#client, message));
   }
 
   /**

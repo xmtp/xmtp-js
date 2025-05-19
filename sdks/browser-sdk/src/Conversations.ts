@@ -72,8 +72,8 @@ export class Conversations<ContentTypes = unknown> {
     );
     if (data) {
       return data.metadata.conversationType === "group"
-        ? new Group<ContentTypes>(this.#client, data.id, data)
-        : new Dm<ContentTypes>(this.#client, data.id, data);
+        ? new Group(this.#client, data.id, data)
+        : new Dm(this.#client, data.id, data);
     }
     return undefined;
   }
@@ -91,9 +91,7 @@ export class Conversations<ContentTypes = unknown> {
         id,
       },
     );
-    return data
-      ? new DecodedMessage<ContentTypes>(this.#client, data)
-      : undefined;
+    return data ? new DecodedMessage(this.#client, data) : undefined;
   }
 
   /**
@@ -109,7 +107,7 @@ export class Conversations<ContentTypes = unknown> {
         inboxId,
       },
     );
-    return data ? new Dm<ContentTypes>(this.#client, data.id, data) : undefined;
+    return data ? new Dm(this.#client, data.id, data) : undefined;
   }
 
   /**
@@ -373,7 +371,7 @@ export class Conversations<ContentTypes = unknown> {
 
         if (value) {
           try {
-            message = new DecodedMessage<ContentTypes>(this.#client, value);
+            message = new DecodedMessage(this.#client, value);
           } catch (error) {
             err = error as Error;
           }

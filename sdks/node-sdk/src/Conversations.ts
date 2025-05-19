@@ -45,8 +45,8 @@ export class Conversations<ContentTypes = unknown> {
       const group = this.#conversations.findGroupById(id);
       const metadata = await group.groupMetadata();
       return metadata.conversationType() === "group"
-        ? new Group<ContentTypes>(this.#client, group)
-        : new Dm<ContentTypes>(this.#client, group);
+        ? new Group(this.#client, group)
+        : new Dm(this.#client, group);
     } catch {
       return undefined;
     }
@@ -62,7 +62,7 @@ export class Conversations<ContentTypes = unknown> {
     try {
       // findDmByTargetInboxId will throw if group is not found
       const group = this.#conversations.findDmByTargetInboxId(inboxId);
-      return new Dm<ContentTypes>(this.#client, group);
+      return new Dm(this.#client, group);
     } catch {
       return undefined;
     }
@@ -78,7 +78,7 @@ export class Conversations<ContentTypes = unknown> {
     try {
       // findMessageById will throw if message is not found
       const message = this.#conversations.findMessageById(id);
-      return new DecodedMessage<ContentTypes>(this.#client, message);
+      return new DecodedMessage(this.#client, message);
     } catch {
       return undefined;
     }
@@ -370,7 +370,7 @@ export class Conversations<ContentTypes = unknown> {
 
         if (value) {
           try {
-            message = new DecodedMessage<ContentTypes>(this.#client, value);
+            message = new DecodedMessage(this.#client, value);
           } catch (error) {
             err = error as Error;
           }
