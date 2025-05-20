@@ -2,27 +2,26 @@ import { Group, Stack, Switch, Text } from "@mantine/core";
 import React from "react";
 import { useSettings } from "@/hooks/useSettings";
 
-export const ForceSCW: React.FC = () => {
-  const { forceSCW, setForceSCW } = useSettings();
+export const UseSCW: React.FC = () => {
+  const { useSCW, setUseSCW } = useSettings();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setForceSCW(event.currentTarget.checked);
+    setUseSCW(event.currentTarget.checked);
   };
 
   return (
-    <Stack p="md" bg="var(--mantine-color-gray-light)">
+    <Stack p="md">
       <Group gap="xs" justify="space-between">
-        <Text>Force use of Smart Contract Wallet signatures</Text>
+        <Text fw="bold">Use smart contract wallet</Text>
         <Switch
           size="md"
-          checked={forceSCW}
+          checked={useSCW}
           onChange={handleChange}
           withThumbIndicator={false}
         />
       </Group>
       <Text size="sm">
-        Use this option if you are experiencing issues when signing with your
-        smart contract wallet.
+        Enable this option if you're connecting with a smart contract wallet.
       </Text>
     </Stack>
   );
