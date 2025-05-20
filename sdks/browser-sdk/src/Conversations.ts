@@ -22,15 +22,15 @@ import type {
  *
  * This class is not intended to be initialized directly.
  */
-export class Conversations {
-  #client: Client;
+export class Conversations<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
 
   /**
    * Creates a new conversations instance
    *
    * @param client - The client instance managing the conversations
    */
-  constructor(client: Client) {
+  constructor(client: Client<ContentTypes>) {
     this.#client = client;
   }
 
@@ -84,14 +84,14 @@ export class Conversations {
    * @param id - The message ID to look up
    * @returns Promise that resolves with the decoded message, if found
    */
-  async getMessageById<T = unknown>(id: string) {
+  async getMessageById(id: string) {
     const data = await this.#client.sendMessage(
       "conversations.getMessageById",
       {
         id,
       },
     );
-    return data ? new DecodedMessage<T>(this.#client, data) : undefined;
+    return data ? new DecodedMessage(this.#client, data) : undefined;
   }
 
   /**
@@ -289,10 +289,11 @@ export class Conversations {
    * @param conversationType - Optional type to filter conversations
    * @returns Stream instance for new conversations
    */
-  async stream<T extends Group | Dm = Group | Dm>(
-    callback?: StreamCallback<T>,
-    conversationType?: ConversationType,
-  ) {
+  async stream<
+    T extends Group<ContentTypes> | Dm<ContentTypes> =
+      | Group<ContentTypes>
+      | Dm<ContentTypes>,
+  >(callback?: StreamCallback<T>, conversationType?: ConversationType) {
     const streamId = v4();
     const asyncStream = new AsyncStream<T>();
     const endStream = this.#client.handleStreamMessage<SafeConversation>(
@@ -335,8 +336,8 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group conversations
    */
-  async streamGroups(callback?: StreamCallback<Group>) {
-    return this.stream<Group>(callback, ConversationType.Group);
+  async streamGroups(callback?: StreamCallback<Group<ContentTypes>>) {
+    return this.stream(callback, ConversationType.Group);
   }
 
   /**
@@ -345,8 +346,8 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM conversations
    */
-  async streamDms(callback?: StreamCallback<Dm>) {
-    return this.stream<Dm>(callback, ConversationType.Dm);
+  async streamDms(callback?: StreamCallback<Dm<ContentTypes>>) {
+    return this.stream(callback, ConversationType.Dm);
   }
 
   /**
@@ -357,17 +358,17 @@ export class Conversations {
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
   ) {
     const streamId = v4();
-    const asyncStream = new AsyncStream<DecodedMessage>();
+    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
       streamId,
       (error, value) => {
         let err: Error | null = error;
-        let message: DecodedMessage | undefined;
+        let message: DecodedMessage<ContentTypes> | undefined;
 
         if (value) {
           try {
@@ -402,7 +403,7 @@ export class Conversations {
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
     return this.streamAllMessages(
@@ -419,7 +420,7 @@ export class Conversations {
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
     return this.streamAllMessages(callback, ConversationType.Dm, consentStates);

@@ -18,8 +18,8 @@ import { Group } from "@/Group";
  *
  * This class is not intended to be initialized directly.
  */
-export class Conversations {
-  #client: Client;
+export class Conversations<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
   #conversations: XmtpConversations;
 
   /**
@@ -28,7 +28,7 @@ export class Conversations {
    * @param client - The client instance managing the conversations
    * @param conversations - The underlying conversations instance
    */
-  constructor(client: Client, conversations: XmtpConversations) {
+  constructor(client: Client<ContentTypes>, conversations: XmtpConversations) {
     this.#client = client;
     this.#conversations = conversations;
   }
@@ -74,11 +74,11 @@ export class Conversations {
    * @param id - The message ID to look up
    * @returns The decoded message if found, undefined otherwise
    */
-  getMessageById<T = unknown>(id: string) {
+  getMessageById(id: string) {
     try {
       // findMessageById will throw if message is not found
       const message = this.#conversations.findMessageById(id);
-      return new DecodedMessage<T>(this.#client, message);
+      return new DecodedMessage(this.#client, message);
     } catch {
       return undefined;
     }
@@ -246,8 +246,10 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new conversations
    */
-  stream(callback?: StreamCallback<Group | Dm>) {
-    const asyncStream = new AsyncStream<Group | Dm>();
+  stream(callback?: StreamCallback<Group<ContentTypes> | Dm<ContentTypes>>) {
+    const asyncStream = new AsyncStream<
+      Group<ContentTypes> | Dm<ContentTypes>
+    >();
 
     const stream = this.#conversations.stream((err, value) => {
       if (err) {
@@ -259,12 +261,20 @@ export class Conversations {
       value
         ?.groupMetadata()
         .then((metadata) => {
-          const conversation =
-            metadata.conversationType() === "dm"
-              ? new Dm(this.#client, value)
-              : new Group(this.#client, value);
-          asyncStream.callback(null, conversation);
-          callback?.(null, conversation);
+          const conversationType = metadata.conversationType();
+          let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
+          switch (conversationType) {
+            case "dm":
+              conversation = new Dm(this.#client, value);
+              break;
+            case "group":
+              conversation = new Group(this.#client, value);
+              break;
+          }
+          if (conversation) {
+            asyncStream.callback(null, conversation);
+            callback?.(null, conversation);
+          }
         })
         .catch((error: unknown) => {
           asyncStream.callback(error as Error, undefined);
@@ -283,12 +293,12 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group conversations
    */
-  streamGroups(callback?: StreamCallback<Group>) {
-    const asyncStream = new AsyncStream<Group>();
+  streamGroups(callback?: StreamCallback<Group<ContentTypes>>) {
+    const asyncStream = new AsyncStream<Group<ContentTypes>>();
 
     const stream = this.#conversations.stream((error, value) => {
       let err: Error | null = error;
-      let group: Group | undefined;
+      let group: Group<ContentTypes> | undefined;
 
       if (value) {
         try {
@@ -313,12 +323,12 @@ export class Conversations {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM conversations
    */
-  streamDms(callback?: StreamCallback<Dm>) {
-    const asyncStream = new AsyncStream<Dm>();
+  streamDms(callback?: StreamCallback<Dm<ContentTypes>>) {
+    const asyncStream = new AsyncStream<Dm<ContentTypes>>();
 
     const stream = this.#conversations.stream((error, value) => {
       let err: Error | null = error;
-      let dm: Dm | undefined;
+      let dm: Dm<ContentTypes> | undefined;
 
       if (value) {
         try {
@@ -344,19 +354,19 @@ export class Conversations {
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
   ) {
     // sync conversations first
     await this.sync();
 
-    const asyncStream = new AsyncStream<DecodedMessage>();
+    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
 
     const stream = this.#conversations.streamAllMessages(
       (error, value) => {
         let err: Error | null = error;
-        let message: DecodedMessage | undefined;
+        let message: DecodedMessage<ContentTypes> | undefined;
 
         if (value) {
           try {
@@ -385,7 +395,7 @@ export class Conversations {
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
     return this.streamAllMessages(
@@ -402,7 +412,7 @@ export class Conversations {
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
-    callback?: StreamCallback<DecodedMessage>,
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
     return this.streamAllMessages(callback, ConversationType.Dm, consentStates);

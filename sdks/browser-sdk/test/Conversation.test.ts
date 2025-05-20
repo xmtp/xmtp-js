@@ -233,6 +233,7 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
 
+    // @ts-expect-error - testing invalid content type
     await expect(() => conversation.send(1)).rejects.toThrow();
     await expect(() => conversation.send({ foo: "bar" })).rejects.toThrow();
     await expect(
@@ -292,6 +293,7 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
 
+    // @ts-expect-error - testing invalid content type
     await expect(() => conversation.sendOptimistic(1)).rejects.toThrow();
     await expect(() =>
       conversation.sendOptimistic({ foo: "bar" }),
@@ -313,6 +315,7 @@ describe("Conversation", () => {
     ]);
 
     await expect(
+      // @ts-expect-error - testing invalid content type
       conversation.send({ foo: "bar" }, ContentTypeTest),
     ).rejects.toThrow();
   });

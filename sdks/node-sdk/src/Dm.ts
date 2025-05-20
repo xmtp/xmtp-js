@@ -10,8 +10,8 @@ import { Conversation } from "@/Conversation";
  *
  * This class is not intended to be initialized directly.
  */
-export class Dm extends Conversation {
-  #client: Client;
+export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
+  #client: Client<ContentTypes>;
   #conversation: XmtpConversation;
 
   /**
@@ -22,7 +22,7 @@ export class Dm extends Conversation {
    * @param lastMessage - Optional last message in the conversation
    */
   constructor(
-    client: Client,
+    client: Client<ContentTypes>,
     conversation: XmtpConversation,
     lastMessage?: Message | null,
   ) {

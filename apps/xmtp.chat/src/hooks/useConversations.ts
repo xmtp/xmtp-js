@@ -5,13 +5,15 @@ import type {
   SafeListConversationsOptions,
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
-import { useXMTP } from "@/contexts/XMTPContext";
+import { useXMTP, type ContentTypes } from "@/contexts/XMTPContext";
 
 export const useConversations = () => {
   const { client } = useXMTP();
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<
+    Conversation<ContentTypes>[]
+  >([]);
 
   if (!client) {
     throw new Error("XMTP client not initialized");
@@ -139,7 +141,7 @@ export const useConversations = () => {
   const stream = async () => {
     const onConversation = (
       error: Error | null,
-      conversation: Conversation | undefined,
+      conversation: Conversation<ContentTypes> | undefined,
     ) => {
       if (conversation) {
         const shouldAdd =

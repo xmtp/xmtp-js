@@ -36,12 +36,14 @@ import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
 import { version } from "@/utils/version";
 
+type ExtractCodecContentType<C> = C extends ContentCodec<infer T> ? T : never;
+
 /**
  * Client for interacting with the XMTP network
  */
-export class Client {
+export class Client<ContentTypes = unknown> {
   #client?: NodeClient;
-  #conversations?: Conversations;
+  #conversations?: Conversations<ContentTypes>;
   #preferences?: Preferences;
   #signer?: Signer;
   #codecs: Map<string, ContentCodec>;
@@ -95,9 +97,18 @@ export class Client {
    * @param options - Optional configuration for the client
    * @returns A new client instance
    */
-  static async create(signer: Signer, options?: ClientOptions) {
+  static async create<ContentCodecs extends ContentCodec[] = []>(
+    signer: Signer,
+    options?: Omit<ClientOptions, "codecs"> & {
+      codecs?: ContentCodecs;
+    },
+  ) {
     const identifier = await signer.getIdentifier();
-    const client = new Client(options);
+    const client = new Client<
+      ExtractCodecContentType<
+        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
+      >
+    >(options);
     client.#signer = signer;
     await client.init(identifier);
 
@@ -118,8 +129,17 @@ export class Client {
    * @param options - Optional configuration for the client
    * @returns A new client instance
    */
-  static async build(identifier: Identifier, options?: ClientOptions) {
-    const client = new Client({
+  static async build<ContentCodecs extends ContentCodec[] = []>(
+    identifier: Identifier,
+    options?: Omit<ClientOptions, "codecs"> & {
+      codecs?: ContentCodecs;
+    },
+  ) {
+    const client = new Client<
+      ExtractCodecContentType<
+        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
+      >
+    >({
       ...options,
       disableAutoRegister: true,
     });
@@ -737,9 +757,9 @@ export class Client {
    * @param contentType - The content type to get the codec for
    * @returns The codec, if found
    */
-  codecFor<T = unknown>(contentType: ContentTypeId) {
+  codecFor<ContentType = unknown>(contentType: ContentTypeId) {
     return this.#codecs.get(contentType.toString()) as
-      | ContentCodec<T>
+      | ContentCodec<ContentType>
       | undefined;
   }
 
@@ -751,7 +771,7 @@ export class Client {
    * @returns The encoded content
    * @throws {CodecNotFoundError} if no codec is found for the content type
    */
-  encodeContent(content: unknown, contentType: ContentTypeId) {
+  encodeContent(content: ContentTypes, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
@@ -773,8 +793,11 @@ export class Client {
    * @throws {CodecNotFoundError} if no codec is found for the content type
    * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
    */
-  decodeContent<T = unknown>(message: Message, contentType: ContentTypeId) {
-    const codec = this.codecFor<T>(contentType);
+  decodeContent<ContentType = unknown>(
+    message: Message,
+    contentType: ContentTypeId,
+  ) {
+    const codec = this.codecFor<ContentType>(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
     }

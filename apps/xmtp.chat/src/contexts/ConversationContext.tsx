@@ -1,8 +1,9 @@
 import { Group, type Conversation } from "@xmtp/browser-sdk";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 
 type ConversationContextType = {
-  conversation?: Conversation;
+  conversation?: Conversation<ContentTypes>;
   members: Map<string, string>;
 };
 
@@ -11,7 +12,7 @@ const ConversationContext = createContext<ConversationContextType>({
 });
 
 export type ConversationProviderProps = React.PropsWithChildren<{
-  conversation: Conversation;
+  conversation: Conversation<ContentTypes>;
 }>;
 
 export const ConversationProvider: React.FC<ConversationProviderProps> = ({

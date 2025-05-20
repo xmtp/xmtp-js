@@ -2,6 +2,7 @@ import type { Conversation } from "@xmtp/browser-sdk";
 import { useMemo, type ComponentProps } from "react";
 import { useParams } from "react-router";
 import { Virtuoso } from "react-virtuoso";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 import { ConversationCard } from "./ConversationCard";
 import classes from "./ConversationList.module.css";
 
@@ -10,7 +11,7 @@ const List = (props: ComponentProps<"div">) => {
 };
 
 export type ConversationsListProps = {
-  conversations: Conversation[];
+  conversations: Conversation<ContentTypes>[];
 };
 
 export const ConversationsList: React.FC<ConversationsListProps> = ({

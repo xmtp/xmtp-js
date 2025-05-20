@@ -18,9 +18,9 @@ import { MissingContentTypeError } from "@/utils/errors";
  *
  * This class is not intended to be initialized directly.
  */
-export class Conversation {
+export class Conversation<ContentTypes = unknown> {
   #addedByInboxId?: SafeConversation["addedByInboxId"];
-  #client: Client;
+  #client: Client<ContentTypes>;
   #createdAtNs?: SafeConversation["createdAtNs"];
   #id: string;
   #isActive?: SafeConversation["isActive"];
@@ -33,7 +33,11 @@ export class Conversation {
    * @param id - The unique identifier for this conversation
    * @param data - Optional conversation data to initialize with
    */
-  constructor(client: Client, id: string, data?: SafeConversation) {
+  constructor(
+    client: Client<ContentTypes>,
+    id: string,
+    data?: SafeConversation,
+  ) {
     this.#client = client;
     this.#id = id;
     this.#syncData(data);
@@ -113,7 +117,7 @@ export class Conversation {
    * @returns Promise that resolves with the message ID
    * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async sendOptimistic(content: unknown, contentType?: ContentTypeId) {
+  async sendOptimistic(content: ContentTypes, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -138,7 +142,7 @@ export class Conversation {
    * @returns Promise that resolves with the message ID after it has been sent
    * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async send(content: unknown, contentType?: ContentTypeId) {
+  async send(content: ContentTypes, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -260,14 +264,14 @@ export class Conversation {
    * @param callback - Optional callback function for handling new stream values
    * @returns Stream instance for new messages
    */
-  async stream(callback?: StreamCallback<DecodedMessage>) {
+  async stream(callback?: StreamCallback<DecodedMessage<ContentTypes>>) {
     const streamId = v4();
-    const asyncStream = new AsyncStream<DecodedMessage>();
+    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
       streamId,
       (error, value) => {
         let err: Error | null = error;
-        let message: DecodedMessage | undefined;
+        let message: DecodedMessage<ContentTypes> | undefined;
 
         if (value) {
           try {
