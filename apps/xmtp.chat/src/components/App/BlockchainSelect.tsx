@@ -7,7 +7,28 @@ import {
 } from "@mantine/core";
 import { useMemo, useState } from "react";
 import { useSwitchChain } from "wagmi";
+import {
+  arbitrum,
+  base,
+  linea,
+  mainnet,
+  optimism,
+  polygon,
+  worldchain,
+  zksync,
+} from "wagmi/chains";
 import { useSettings } from "@/hooks/useSettings";
+
+const ALLOWED_CHAINS: number[] = [
+  arbitrum.id,
+  base.id,
+  linea.id,
+  mainnet.id,
+  optimism.id,
+  polygon.id,
+  worldchain.id,
+  zksync.id,
+];
 
 export const BlockchainSelect: React.FC = () => {
   const { blockchain, setBlockchain } = useSettings();
@@ -36,10 +57,12 @@ export const BlockchainSelect: React.FC = () => {
 
   const options = useMemo(
     () =>
-      chains.map((chain) => ({
-        value: chain.id.toString(),
-        label: chain.name,
-      })),
+      chains
+        .filter((chain) => ALLOWED_CHAINS.includes(chain.id))
+        .map((chain) => ({
+          value: chain.id.toString(),
+          label: chain.name,
+        })),
     [chains],
   );
 
