@@ -11,9 +11,9 @@ import {
 } from "@test/helpers";
 
 const CHAOS_GROUPS = 10;
-const CHAOS_MESSAGES = 10;
-const CHAOS_MEMBERS = 5;
-const CHAOS_INSTALLATIONS = 3;
+const CHAOS_MESSAGES = 20;
+const CHAOS_MEMBERS = 3;
+const CHAOS_INSTALLATIONS = 5;
 const TOTAL_GROUPS = CHAOS_GROUPS * CHAOS_INSTALLATIONS;
 const TOTAL_MEMBERS = TOTAL_GROUPS * (CHAOS_MEMBERS + 1);
 const TOTAL_MESSAGES =
@@ -21,7 +21,15 @@ const TOTAL_MESSAGES =
 
 const MAX_SLEEP = 1000;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const randomSleep = () => sleep(Math.floor(Math.random() * MAX_SLEEP));
+const randomSleep = (maxSleep?: number) =>
+  sleep(Math.floor(Math.random() * (maxSleep ?? MAX_SLEEP)));
+
+const errors: {
+  error: string;
+  description: string;
+  installationId?: string;
+  groupId?: string;
+}[] = [];
 
 const createRegisteredTestClients = async (numClients: number) => {
   return Promise.all(
@@ -44,40 +52,78 @@ const createChaos = async <T = unknown>(
   // create test groups
   await Promise.all(
     Array.from({ length: numGroups }).map(async () => {
-      // copy, shuffle and slice the test clients for adding to group
-      const testClientsToAdd = testClients
-        .slice()
-        .sort(() => Math.random() - 0.5)
-        .slice(0, CHAOS_MEMBERS);
-      // create the group
-      const group = await mainClient.conversations.newGroup(
-        testClientsToAdd.map((c) => c.inboxId),
-      );
-      await randomSleep();
-      groups.push(group);
-      // sync all test clients
-      await Promise.all(testClientsToAdd.map((c) => c.conversations.sync()));
-      // get conversation on all test clients
-      const testGroups = await Promise.all(
-        testClientsToAdd.map((c) =>
-          c.conversations.getConversationById(group.id),
-        ),
-      );
-      await Promise.all(
-        testGroups.map(async (testGroup) => {
-          // get the conversation on the test client
-          if (!testGroup) {
-            console.log(`[chaos] test group ${group.id} not found`);
-            return Promise.resolve();
-          }
-          await Promise.all(
-            Array.from({ length: numMessages }).map(async () => {
-              await testGroup.send("gm");
-              await randomSleep();
-            }),
-          );
-        }),
-      );
+      try {
+        // create the group
+        const group = await mainClient.conversations.newGroup(
+          testClients.map((c) => c.inboxId),
+        );
+        await randomSleep();
+        groups.push(group);
+        // sync all test clients
+        await Promise.all(
+          testClients.map(async (c) => {
+            try {
+              await c.conversations.sync();
+            } catch (e: unknown) {
+              errors.push({
+                error: (e as Error).message,
+                description: "conversations.sync() failed",
+                installationId: c.installationId,
+              });
+            }
+          }),
+        );
+        // get conversation on all test clients
+        const testGroups = await Promise.all(
+          testClients.map(async (c) => {
+            try {
+              return await c.conversations.getConversationById(group.id);
+            } catch (e: unknown) {
+              errors.push({
+                error: (e as Error).message,
+                description: `conversations.getConversationById() failed`,
+                installationId: c.installationId,
+                groupId: group.id,
+              });
+            }
+          }),
+        );
+        await Promise.all(
+          testGroups.map(async (testGroup, idx) => {
+            // get the conversation on the test client
+            if (!testGroup) {
+              errors.push({
+                error: `group not found`,
+                description: `conversations.getConversationById() returned undefined`,
+                installationId: testClients[idx].installationId,
+                groupId: group.id,
+              });
+              return Promise.resolve();
+            }
+            await Promise.all(
+              Array.from({ length: numMessages }).map(async () => {
+                try {
+                  // await randomSleep(5000);
+                  await testGroup.send("gm");
+                } catch (e: unknown) {
+                  errors.push({
+                    error: (e as Error).message,
+                    description: `conversation.send() failed`,
+                    installationId: testClients[idx].installationId,
+                    groupId: group.id,
+                  });
+                }
+              }),
+            );
+          }),
+        );
+      } catch (e: unknown) {
+        errors.push({
+          error: (e as Error).message,
+          description: `conversations.newGroup() failed`,
+          installationId: mainClient.installationId,
+        });
+      }
     }),
   );
   return groups;
@@ -89,17 +135,35 @@ const clientSyncAll = <T = unknown>(
 ) => {
   const syncs: bigint[] = [];
   const intervalId = setInterval(() => {
-    void client.conversations.syncAll().then((sync) => {
-      syncs.push(sync);
-    });
+    client.conversations
+      .syncAll()
+      .then((sync) => {
+        syncs.push(sync);
+      })
+      .catch((e: unknown) => {
+        errors.push({
+          error: (e as Error).message,
+          description: `conversations.syncAll() failed`,
+          installationId: client.installationId,
+        });
+      });
   }, interval);
   return async () => {
     // clear the interval
     clearInterval(intervalId);
-    // sync one last time
-    const sync = await client.conversations.syncAll();
-    // return the syncs
-    return sync;
+    try {
+      // sync one last time
+      const sync = await client.conversations.syncAll();
+      // return the syncs
+      return sync;
+    } catch (e: unknown) {
+      errors.push({
+        error: (e as Error).message,
+        description: `conversations.syncAll() failed`,
+        installationId: client.installationId,
+      });
+      return syncs[syncs.length - 1] ?? BigInt(0);
+    }
   };
 };
 
@@ -111,7 +175,12 @@ const createInstallationChaos = async (signer: Signer) => {
   // start syncing the installation
   const stopSync = clientSyncAll(installation);
   // create some chaos
-  const chaos = createChaos(installation, 100, CHAOS_GROUPS, CHAOS_MESSAGES);
+  const chaos = createChaos(
+    installation,
+    CHAOS_MEMBERS,
+    CHAOS_GROUPS,
+    CHAOS_MESSAGES,
+  );
   // return the installation and chaos
   return { installation, chaos, stopSync };
 };
@@ -154,16 +223,40 @@ describe("E2E: Installation syncing", () => {
       // stop the installation syncs, get the number of synced items
       const syncs = await stopSync();
 
-      // verify sync counts
-      let extraCount = CHAOS_INSTALLATIONS;
+      console.log("================ ERROR REPORT ==================");
+      console.log(JSON.stringify(errors, null, 2));
+      console.log("================================================");
+
+      // do some logging before the assertions
+      console.log("================= SYNC REPORT ==================");
       syncs.forEach((sync, idx) => {
-        expect(Number(sync)).toBe(TOTAL_GROUPS + extraCount);
-        extraCount--;
         console.log(
-          `[sync] total syncs for installation ${installations[idx].installationId}: ${sync}`,
+          `total syncs for installation ${installations[idx].installationId}: ${sync}`,
         );
       });
+      console.log("=================================================");
 
+      console.log("============= INSTALLATION REPORT ===============");
+      await Promise.all(
+        installations.map(async (installation) => {
+          const groups = await installation.conversations.list();
+          const members = await Promise.all(groups.map((g) => g.members()));
+          const messages = await Promise.all(groups.map((g) => g.messages()));
+          console.log(
+            `installation ${installation.installationId} groups: ${groups.length}, members: ${members.flat().length}, messages: ${messages.flat().length}`,
+          );
+        }),
+      );
+      console.log("=================================================");
+
+      // verify sync counts
+      let extraCount = CHAOS_INSTALLATIONS;
+      syncs.forEach((sync) => {
+        expect(Number(sync)).toBe(TOTAL_GROUPS + extraCount);
+        extraCount--;
+      });
+
+      // verify installation groups, members, and messages
       await Promise.all(
         installations.map(async (installation) => {
           const groups = await installation.conversations.list();
@@ -174,10 +267,6 @@ describe("E2E: Installation syncing", () => {
 
           const messages = await Promise.all(groups.map((g) => g.messages()));
           expect(messages.flat().length).toBe(TOTAL_MESSAGES);
-
-          console.log(
-            `[sync] installation ${installation.installationId} groups: ${groups.length}, members: ${members.flat().length}, messages: ${messages.flat().length}`,
-          );
         }),
       );
     },
