@@ -217,7 +217,7 @@ export class WorkerConversation {
   }
 
   getHmacKeys() {
-    return this.#group.getHmacKeys() as HmacKey[];
+    return this.#group.getHmacKeys() as Map<string, HmacKey[]>;
   }
 
   async debugInfo() {

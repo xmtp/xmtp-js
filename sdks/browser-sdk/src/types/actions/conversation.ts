@@ -114,7 +114,7 @@ export type ConversationAction =
   | {
       action: "conversation.getHmacKeys";
       id: string;
-      result: SafeHmacKey[];
+      result: Map<string, SafeHmacKey[]>;
       data: {
         id: string;
       };
