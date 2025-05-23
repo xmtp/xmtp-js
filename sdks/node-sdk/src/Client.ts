@@ -18,7 +18,7 @@ import {
   type Message,
   type Client as NodeClient,
 } from "@xmtp/node-bindings";
-import { ApiUrls } from "@/constants";
+import { ApiUrls, HistorySyncUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
@@ -934,5 +934,36 @@ export class Client<ContentTypes = unknown> {
    */
   static get version() {
     return version;
+  }
+
+  apiStatistics() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.apiStatistics();
+  }
+
+  apiIdentityStatistics() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.apiIdentityStatistics();
+  }
+
+  apiAggregateStatistics() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.apiAggregateStatistics();
+  }
+
+  uploadDebugArchive(serverUrl?: string) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    const env = this.#options?.env || "dev";
+    const historySyncUrl =
+      this.#options?.historySyncUrl || HistorySyncUrls[env];
+    return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
   }
 }

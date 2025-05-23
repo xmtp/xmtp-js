@@ -405,4 +405,37 @@ describe.concurrent("Client", () => {
     );
     expect(() => client.isRegistered).toThrow(new ClientNotInitializedError());
   });
+
+  it("should return network API statistics", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const apiStats = client.apiStatistics();
+    expect(apiStats.uploadKeyPackage).toBeDefined();
+    expect(apiStats.fetchKeyPackage).toBeDefined();
+    expect(apiStats.sendGroupMessages).toBeDefined();
+    expect(apiStats.sendWelcomeMessages).toBeDefined();
+    expect(apiStats.queryGroupMessages).toBeDefined();
+    expect(apiStats.queryWelcomeMessages).toBeDefined();
+    expect(apiStats.subscribeMessages).toBeDefined();
+
+    const apiIdentityStats = client.apiIdentityStatistics();
+    expect(apiIdentityStats.getIdentityUpdatesV2).toBeDefined();
+    expect(apiIdentityStats.getInboxIds).toBeDefined();
+    expect(apiIdentityStats.publishIdentityUpdate).toBeDefined();
+    expect(apiIdentityStats.verifySmartContractWalletSignature).toBeDefined();
+
+    const apiAggregateStats = client.apiAggregateStatistics();
+    expect(apiAggregateStats).toBeDefined();
+  });
+
+  it("should upload a debug archive", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const result = await client.uploadDebugArchive();
+    expect(result).toBeDefined();
+  });
 });
