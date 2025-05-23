@@ -766,4 +766,16 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
       installationIds,
     });
   }
+
+  apiStatistics() {
+    return this.sendMessage("client.apiStatistics", undefined);
+  }
+
+  apiIdentityStatistics() {
+    return this.sendMessage("client.apiIdentityStatistics", undefined);
+  }
+
+  apiAggregateStatistics() {
+    return this.sendMessage("client.apiAggregateStatistics", undefined);
+  }
 }

@@ -178,4 +178,16 @@ export class WorkerClient {
       installationIds,
     ) as Promise<Map<string, KeyPackageStatus>>;
   }
+
+  apiStatistics() {
+    return this.#client.apiStatistics();
+  }
+
+  apiIdentityStatistics() {
+    return this.#client.apiIdentityStatistics();
+  }
+
+  apiAggregateStatistics() {
+    return this.#client.apiAggregateStatistics();
+  }
 }
