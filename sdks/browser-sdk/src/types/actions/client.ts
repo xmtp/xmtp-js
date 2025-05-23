@@ -170,4 +170,12 @@ export type ClientAction =
       id: string;
       result: string;
       data: undefined;
+    }
+  | {
+      action: "client.uploadDebugArchive";
+      id: string;
+      result: string;
+      data: {
+        serverUrl?: string;
+      };
     };

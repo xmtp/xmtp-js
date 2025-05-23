@@ -287,4 +287,13 @@ describe.concurrent("Client", () => {
     const apiAggregateStats = await client.apiAggregateStatistics();
     expect(apiAggregateStats).toBeDefined();
   });
+
+  it("should upload a debug archive", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createClient(signer);
+
+    const result = await client.uploadDebugArchive();
+    expect(result).toBeDefined();
+  });
 });

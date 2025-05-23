@@ -778,4 +778,10 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
   apiAggregateStatistics() {
     return this.sendMessage("client.apiAggregateStatistics", undefined);
   }
+
+  async uploadDebugArchive(serverUrl?: string) {
+    return this.sendMessage("client.uploadDebugArchive", {
+      serverUrl,
+    });
+  }
 }
