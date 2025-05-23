@@ -5,6 +5,7 @@ import {
   type KeyPackageStatus,
   type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
+import { HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types/options";
 import { createClient } from "@/utils/createClient";
 import { WorkerConversations } from "@/WorkerConversations";
@@ -13,13 +14,15 @@ import { WorkerPreferences } from "@/WorkerPreferences";
 export class WorkerClient {
   #client: Client;
   #conversations: WorkerConversations;
+  #options?: ClientOptions;
   #preferences: WorkerPreferences;
 
-  constructor(client: Client) {
+  constructor(client: Client, options?: ClientOptions) {
     this.#client = client;
     const conversations = client.conversations();
     this.#conversations = new WorkerConversations(this, conversations);
     this.#preferences = new WorkerPreferences(client, conversations);
+    this.#options = options;
   }
 
   static async create(
@@ -27,7 +30,7 @@ export class WorkerClient {
     options?: Omit<ClientOptions, "codecs">,
   ) {
     const client = await createClient(identifier, options);
-    return new WorkerClient(client);
+    return new WorkerClient(client, options);
   }
 
   get accountIdentifier() {
@@ -177,5 +180,24 @@ export class WorkerClient {
     return this.#client.getKeyPackageStatusesForInstallationIds(
       installationIds,
     ) as Promise<Map<string, KeyPackageStatus>>;
+  }
+
+  apiStatistics() {
+    return this.#client.apiStatistics();
+  }
+
+  apiIdentityStatistics() {
+    return this.#client.apiIdentityStatistics();
+  }
+
+  apiAggregateStatistics() {
+    return this.#client.apiAggregateStatistics();
+  }
+
+  async uploadDebugArchive(serverUrl?: string) {
+    const env = this.#options?.env || "dev";
+    const historySyncUrl =
+      this.#options?.historySyncUrl || HistorySyncUrls[env];
+    return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
   }
 }

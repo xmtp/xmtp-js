@@ -262,4 +262,38 @@ describe.concurrent("Client", () => {
       client.changeRecoveryIdentifier(await signer2.getIdentifier()),
     ).rejects.toThrow(new SignerUnavailableError());
   });
+
+  it("should return network API statistics", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createClient(signer);
+
+    const apiStats = await client.apiStatistics();
+    expect(apiStats.uploadKeyPackage).toBeDefined();
+    expect(apiStats.fetchKeyPackage).toBeDefined();
+    expect(apiStats.sendGroupMessages).toBeDefined();
+    expect(apiStats.sendWelcomeMessages).toBeDefined();
+    expect(apiStats.queryGroupMessages).toBeDefined();
+    expect(apiStats.queryWelcomeMessages).toBeDefined();
+    expect(apiStats.subscribeMessages).toBeDefined();
+    expect(apiStats.subscribeWelcomes).toBeDefined();
+
+    const apiIdentityStats = await client.apiIdentityStatistics();
+    expect(apiIdentityStats.getIdentityUpdatesV2).toBeDefined();
+    expect(apiIdentityStats.getInboxIds).toBeDefined();
+    expect(apiIdentityStats.publishIdentityUpdate).toBeDefined();
+    expect(apiIdentityStats.verifySmartContractWalletSignature).toBeDefined();
+
+    const apiAggregateStats = await client.apiAggregateStatistics();
+    expect(apiAggregateStats).toBeDefined();
+  });
+
+  it("should upload a debug archive", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createClient(signer);
+
+    const result = await client.uploadDebugArchive();
+    expect(result).toBeDefined();
+  });
 });

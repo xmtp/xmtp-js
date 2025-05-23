@@ -20,10 +20,12 @@ import type {
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
+  toSafeApiStats,
   toSafeConsent,
   toSafeConversation,
   toSafeConversationDebugInfo,
   toSafeHmacKey,
+  toSafeIdentityStats,
   toSafeInboxState,
   toSafeKeyPackageStatus,
   toSafeMessage,
@@ -248,6 +250,28 @@ self.onmessage = async (
           action,
           result: safeResult,
         });
+        break;
+      }
+      case "client.apiStatistics": {
+        const apiStats = client.apiStatistics();
+        const result = toSafeApiStats(apiStats);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.apiIdentityStatistics": {
+        const apiIdentityStats = client.apiIdentityStatistics();
+        const result = toSafeIdentityStats(apiIdentityStats);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.apiAggregateStatistics": {
+        const result = client.apiAggregateStatistics();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.uploadDebugArchive": {
+        const result = await client.uploadDebugArchive(data.serverUrl);
+        postMessage({ id, action, result });
         break;
       }
       /**
