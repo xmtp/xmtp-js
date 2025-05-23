@@ -756,8 +756,7 @@ describe("Conversation", () => {
     expect(streamedMessages).toEqual(["gm", "gm2"]);
   });
 
-  // TODO: remove skip once bindings fixed
-  it.skip("should get hmac keys", async () => {
+  it("should get hmac keys", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const signer1 = createSigner(user1);
@@ -770,10 +769,15 @@ describe("Conversation", () => {
     ]);
 
     const hmacKeys = await conversation.getHmacKeys();
-    expect(hmacKeys.length).toBe(3);
-    for (const hmacKey of hmacKeys) {
-      expect(hmacKey.key).toBeDefined();
-      expect(hmacKey.epoch).toBeDefined();
+    const groupIds = Array.from(hmacKeys.keys());
+    for (const groupId of groupIds) {
+      expect(hmacKeys.get(groupId)?.length).toBe(3);
+      expect(hmacKeys.get(groupId)?.[0].key).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[0].epoch).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[1].key).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[1].epoch).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[2].key).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[2].epoch).toBeDefined();
     }
   });
 
