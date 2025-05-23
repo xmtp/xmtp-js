@@ -726,10 +726,15 @@ describe.concurrent("Conversation", () => {
     ]);
 
     const hmacKeys = conversation.getHmacKeys();
-    expect(hmacKeys.length).toBe(3);
-    for (const hmacKey of hmacKeys) {
-      expect(hmacKey.key).toBeDefined();
-      expect(hmacKey.epoch).toBeDefined();
+    const groupIds = Object.keys(hmacKeys);
+    for (const groupId of groupIds) {
+      expect(hmacKeys[groupId].length).toBe(3);
+      expect(hmacKeys[groupId][0].key).toBeDefined();
+      expect(hmacKeys[groupId][0].epoch).toBeDefined();
+      expect(hmacKeys[groupId][1].key).toBeDefined();
+      expect(hmacKeys[groupId][1].epoch).toBeDefined();
+      expect(hmacKeys[groupId][2].key).toBeDefined();
+      expect(hmacKeys[groupId][2].epoch).toBeDefined();
     }
   });
 
