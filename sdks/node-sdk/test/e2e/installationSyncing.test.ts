@@ -1,4 +1,5 @@
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
+import { LogLevel } from "@xmtp/node-bindings";
 import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import type { Client } from "@/Client";
@@ -10,9 +11,9 @@ import {
   createUser,
 } from "@test/helpers";
 
-const CHAOS_GROUPS = 10;
+const CHAOS_GROUPS = 20;
 const CHAOS_MESSAGES = 20;
-const CHAOS_MEMBERS = 3;
+const CHAOS_MEMBERS = 5;
 const CHAOS_INSTALLATIONS = 5;
 const TOTAL_GROUPS = CHAOS_GROUPS * CHAOS_INSTALLATIONS;
 const TOTAL_MEMBERS = TOTAL_GROUPS * (CHAOS_MEMBERS + 1);
@@ -135,6 +136,7 @@ const clientSyncAll = <T = unknown>(
 ) => {
   const syncs: bigint[] = [];
   const intervalId = setInterval(() => {
+    console.log(`syncing all for ${client.installationId}`);
     client.conversations
       .syncAll()
       .then((sync) => {
@@ -171,6 +173,7 @@ const createInstallationChaos = async (signer: Signer) => {
   // create the installation
   const installation = await createRegisteredClient(signer, {
     dbPath: `./test-${v4()}.db3`,
+    loggingLevel: LogLevel.error,
   });
   // start syncing the installation
   const stopSync = clientSyncAll(installation);
@@ -245,6 +248,7 @@ describe("E2E: Installation syncing", () => {
           console.log(
             `installation ${installation.installationId} groups: ${groups.length}, members: ${members.flat().length}, messages: ${messages.flat().length}`,
           );
+          console.log(installation.apiStatistics());
         }),
       );
       console.log("=================================================");
