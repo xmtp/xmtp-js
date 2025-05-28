@@ -2,7 +2,6 @@ import json from "@rollup/plugin-json";
 import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
-import filesize from "rollup-plugin-filesize";
 import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
 const external = [
@@ -21,9 +20,6 @@ const plugins = [
   typescript({
     declaration: false,
     declarationMap: false,
-  }),
-  filesize({
-    showMinifiedSize: false,
   }),
   json({
     preferConst: true,

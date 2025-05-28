@@ -79,7 +79,6 @@
     "playwright": "^1.52.0",
     "rollup": "^4.41.1",
     "rollup-plugin-dts": "^6.1.1",
-    "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.8.3",
     "viem": "^2.30.5",

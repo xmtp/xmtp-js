@@ -3,15 +3,11 @@ import typescript from "@rollup/plugin-typescript";
 import { resolveExtensions } from "@xmtp/rollup-plugin-resolve-extensions";
 import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
-import filesize from "rollup-plugin-filesize";
 
 const plugins = [
   typescript({
     declaration: false,
     declarationMap: false,
-  }),
-  filesize({
-    showMinifiedSize: false,
   }),
 ];
 
