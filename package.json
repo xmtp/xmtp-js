@@ -25,13 +25,13 @@
   },
   "dependencies": {
     "@changesets/changelog-git": "^0.2.1",
-    "@changesets/cli": "^2.29.3"
+    "@changesets/cli": "^2.29.4"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.9",
     "@eslint/js": "^9.27.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.23",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
@@ -39,7 +39,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-packagejson": "^2.5.14",
     "rimraf": "^6.0.1",
-    "turbo": "^2.5.2",
+    "turbo": "^2.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.0"
   },

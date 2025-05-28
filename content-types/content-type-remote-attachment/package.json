@@ -70,11 +70,11 @@
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.23",
     "@xmtp/node-sdk": "workspace:^",
     "@xmtp/rollup-plugin-resolve-extensions": "^1.0.1",
     "rimraf": "^6.0.1",
-    "rollup": "^4.40.1",
+    "rollup": "^4.41.1",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-filesize": "^10.0.0",
     "typescript": "^5.8.3",
