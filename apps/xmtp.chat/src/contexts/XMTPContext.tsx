@@ -1,19 +1,14 @@
-import { Client, type ClientOptions, type Signer } from "@xmtp/browser-sdk";
-import type { GroupUpdated } from "@xmtp/content-type-group-updated";
-import { ReactionCodec, type Reaction } from "@xmtp/content-type-reaction";
 import {
-  RemoteAttachmentCodec,
-  type RemoteAttachment,
-} from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
-import {
-  TransactionReferenceCodec,
-  type TransactionReference,
-} from "@xmtp/content-type-transaction-reference";
-import {
-  WalletSendCallsCodec,
-  type WalletSendCallsParams,
-} from "@xmtp/content-type-wallet-send-calls";
+  Client,
+  type ClientOptions,
+  type ExtractCodecContentTypes,
+  type Signer,
+} from "@xmtp/browser-sdk";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
+import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import {
   createContext,
   useCallback,
@@ -23,14 +18,15 @@ import {
   useState,
 } from "react";
 
-export type ContentTypes =
-  | string
-  | GroupUpdated
-  | WalletSendCallsParams
-  | Reaction
-  | Reply
-  | RemoteAttachment
-  | TransactionReference;
+export type ContentTypes = ExtractCodecContentTypes<
+  [
+    ReactionCodec,
+    ReplyCodec,
+    RemoteAttachmentCodec,
+    TransactionReferenceCodec,
+    WalletSendCallsCodec,
+  ]
+>;
 
 export type InitializeClientOptions = {
   dbEncryptionKey?: Uint8Array;

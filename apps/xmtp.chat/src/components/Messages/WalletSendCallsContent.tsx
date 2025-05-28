@@ -8,6 +8,7 @@ import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls
 import { useCallback } from "react";
 import { useOutletContext } from "react-router";
 import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
@@ -18,7 +19,9 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   content,
   conversationId,
 }) => {
-  const { client } = useOutletContext<{ client: Client }>();
+  const { client } = useOutletContext<{
+    client: Client<ContentTypes>;
+  }>();
   const { sendTransactionAsync } = useSendTransaction();
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();
