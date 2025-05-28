@@ -17,6 +17,7 @@
     "format:check": "prettier -c .",
     "lint": "yarn build && eslint .",
     "publish": "yarn build && changeset publish",
+    "reset": "yarn clean && yarn && yarn build",
     "test": "FORCE_COLOR=1 turbo run test",
     "test:setup": "./dev/up",
     "test:teardown": "./dev/down",
