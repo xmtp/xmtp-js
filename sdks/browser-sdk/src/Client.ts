@@ -32,12 +32,17 @@ import {
 } from "@/utils/errors";
 import { type Signer } from "@/utils/signer";
 
-type ExtractCodecContentType<C> = C extends ContentCodec<infer T> ? T : never;
+export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
+  [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
+    ? T
+    : never;
 
 /**
  * Client for interacting with the XMTP network
  */
-export class Client<ContentTypes = unknown> extends ClientWorkerClass {
+export class Client<
+  ContentTypes = ExtractCodecContentTypes,
+> extends ClientWorkerClass {
   #codecs: Map<string, ContentCodec>;
   #conversations: Conversations<ContentTypes>;
   #identifier?: Identifier;
@@ -111,11 +116,7 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
       codecs?: ContentCodecs;
     },
   ) {
-    const client = new Client<
-      ExtractCodecContentType<
-        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
-      >
-    >(options);
+    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>(options);
     client.#signer = signer;
 
     await client.init(await signer.getIdentifier());
@@ -143,11 +144,7 @@ export class Client<ContentTypes = unknown> extends ClientWorkerClass {
       codecs?: ContentCodecs;
     },
   ) {
-    const client = new Client<
-      ExtractCodecContentType<
-        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
-      >
-    >({
+    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>({
       ...options,
       disableAutoRegister: true,
     });
