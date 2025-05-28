@@ -18,7 +18,6 @@ const external = [
   "@xmtp/wasm-bindings",
   "@xmtp/content-type-primitives",
   "@xmtp/content-type-group-updated",
-  "@xmtp/proto",
   "uuid",
 ];
 

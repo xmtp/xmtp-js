@@ -12,7 +12,6 @@ const external = [
   "@xmtp/content-type-text",
   "@xmtp/node-bindings",
   "@xmtp/node-bindings/version.json",
-  "@xmtp/proto",
 ];
 
 const plugins = [
