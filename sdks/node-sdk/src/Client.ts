@@ -36,12 +36,15 @@ import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
 import { version } from "@/utils/version";
 
-type ExtractCodecContentType<C> = C extends ContentCodec<infer T> ? T : never;
+export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
+  [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
+    ? T
+    : never;
 
 /**
  * Client for interacting with the XMTP network
  */
-export class Client<ContentTypes = unknown> {
+export class Client<ContentTypes = ExtractCodecContentTypes> {
   #client?: NodeClient;
   #conversations?: Conversations<ContentTypes>;
   #preferences?: Preferences;
@@ -104,11 +107,7 @@ export class Client<ContentTypes = unknown> {
     },
   ) {
     const identifier = await signer.getIdentifier();
-    const client = new Client<
-      ExtractCodecContentType<
-        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
-      >
-    >(options);
+    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>(options);
     client.#signer = signer;
     await client.init(identifier);
 
@@ -135,11 +134,7 @@ export class Client<ContentTypes = unknown> {
       codecs?: ContentCodecs;
     },
   ) {
-    const client = new Client<
-      ExtractCodecContentType<
-        [...ContentCodecs, GroupUpdatedCodec, TextCodec][number]
-      >
-    >({
+    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>({
       ...options,
       disableAutoRegister: true,
     });

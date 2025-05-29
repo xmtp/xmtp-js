@@ -1,4 +1,5 @@
 export { Client } from "./Client";
+export type { ExtractCodecContentTypes } from "./Client";
 export { Conversations } from "./Conversations";
 export { Conversation } from "./Conversation";
 export { Dm } from "./Dm";
@@ -50,3 +51,4 @@ export {
   SortDirection,
 } from "@xmtp/wasm-bindings";
 export type { Signer } from "./utils/signer";
+export * from "./utils/errors";
