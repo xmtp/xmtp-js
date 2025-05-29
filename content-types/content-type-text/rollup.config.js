@@ -2,15 +2,11 @@ import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
-import filesize from "rollup-plugin-filesize";
 
 const plugins = [
   typescript({
     declaration: false,
     declarationMap: false,
-  }),
-  filesize({
-    showMinifiedSize: false,
   }),
 ];
 
