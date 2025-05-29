@@ -300,6 +300,78 @@ describe.concurrent("Conversation", () => {
     ).not.toThrow();
   });
 
+  it("should optimistically create a group", async () => {
+    const user1 = createUser();
+    const signer1 = createSigner(user1);
+    const client1 = await createRegisteredClient(signer1);
+    const conversation = client1.conversations.newGroupOptimistic({
+      groupName: "foo",
+      groupDescription: "bar",
+    });
+
+    expect(conversation.id).toBeDefined();
+    expect(conversation.name).toBe("foo");
+    expect(conversation.description).toBe("bar");
+    expect(conversation.imageUrl).toBe("");
+    expect(conversation.addedByInboxId).toBe(client1.inboxId);
+
+    const text = "gm";
+    conversation.sendOptimistic(text);
+
+    const messages = await conversation.messages();
+    expect(messages.length).toBe(1);
+    expect(messages[0].content).toBe(text);
+    expect(messages[0].deliveryStatus).toBe("unpublished");
+
+    await conversation.publishMessages();
+
+    const messages2 = await conversation.messages();
+    expect(messages2.length).toBe(1);
+    expect(messages2[0].content).toBe(text);
+    expect(messages2[0].deliveryStatus).toBe("published");
+  });
+
+  it("should optimistically create a group with members", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = client1.conversations.newGroupOptimistic({
+      groupName: "foo",
+      groupDescription: "bar",
+    });
+
+    expect(conversation.id).toBeDefined();
+    expect(conversation.name).toBe("foo");
+    expect(conversation.description).toBe("bar");
+    expect(conversation.imageUrl).toBe("");
+    expect(conversation.addedByInboxId).toBe(client1.inboxId);
+
+    const text = "gm";
+    conversation.sendOptimistic(text);
+
+    const messages = await conversation.messages();
+    expect(messages.length).toBe(1);
+    expect(messages[0].content).toBe(text);
+    expect(messages[0].deliveryStatus).toBe("unpublished");
+
+    await conversation.addMembers([client2.inboxId]);
+
+    const members = await conversation.members();
+    const memberInboxIds = members.map((member) => member.inboxId);
+    expect(memberInboxIds.length).toBe(2);
+    expect(memberInboxIds).toContain(client1.inboxId);
+    expect(memberInboxIds).toContain(client2.inboxId);
+
+    const messages3 = await conversation.messages();
+    expect(messages3.length).toBe(2);
+    expect(messages3[0].content).toBe(text);
+    expect(messages3[0].deliveryStatus).toBe("published");
+    expect(messages3[1].deliveryStatus).toBe("published");
+  });
+
   it("should throw when sending content without a codec", async () => {
     const user1 = createUser();
     const user2 = createUser();
