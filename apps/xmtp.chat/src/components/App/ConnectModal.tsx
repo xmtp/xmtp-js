@@ -1,20 +1,11 @@
 import { Button, CloseButton, Group, Stack, Text } from "@mantine/core";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { hexToUint8Array } from "uint8array-extras";
-import { generatePrivateKey } from "viem/accounts";
-import { useAccount, useConnect, useConnectors, useSignMessage } from "wagmi";
+import { useConnect, useConnectors } from "wagmi";
 import { AccountCard } from "@/components/App/AccountCard";
 import { BlockchainSelect } from "@/components/App/BlockchainSelect";
 import { Modal } from "@/components/Modal";
-import { useXMTP } from "@/contexts/XMTPContext";
-import {
-  createEOASigner,
-  createEphemeralSigner,
-  createSCWSigner,
-} from "@/helpers/createSigner";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
-import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 import { CoinbaseWallet } from "@/icons/CoinbaseWallet";
 import { EphemeralWallet } from "@/icons/EphemeralWallet";
@@ -32,48 +23,20 @@ type ConnectorString =
 
 export const ConnectModal = () => {
   const { connect } = useConnect();
-  const account = useAccount();
   const connectors = useConnectors();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
-  const { redirectUrl, setRedirectUrl } = useRedirect();
-  const { initialize, client } = useXMTP();
   const {
     ephemeralAccountEnabled,
     setEphemeralAccountEnabled,
     ephemeralAccountKey,
     setEphemeralAccountKey,
-    encryptionKey,
-    environment,
-    loggingLevel,
     useSCW,
   } = useSettings();
-  const { signMessageAsync } = useSignMessage();
 
   const handleEphemeralConnect = useCallback(() => {
     setEphemeralAccountEnabled(true);
-    let accountKey = ephemeralAccountKey;
-    if (!accountKey) {
-      accountKey = generatePrivateKey();
-      setEphemeralAccountKey(accountKey);
-    }
-
-    const signer = createEphemeralSigner(accountKey);
-    void initialize({
-      dbEncryptionKey: encryptionKey
-        ? hexToUint8Array(encryptionKey)
-        : undefined,
-      env: environment,
-      loggingLevel,
-      signer,
-    });
-  }, [
-    ephemeralAccountEnabled,
-    ephemeralAccountKey,
-    encryptionKey,
-    environment,
-    loggingLevel,
-  ]);
+  }, []);
 
   const handleResetEphemeralAccount = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -97,48 +60,6 @@ export const ConnectModal = () => {
     },
     [connectors, connect, ephemeralAccountEnabled],
   );
-
-  useEffect(() => {
-    if (client) {
-      if (redirectUrl) {
-        setRedirectUrl("");
-        void navigate(redirectUrl);
-      } else {
-        void navigate("/");
-      }
-    }
-  }, [client]);
-
-  // maybe initialize an XMTP client on mount
-  useEffect(() => {
-    // are we using an ephemeral account?
-    if (ephemeralAccountEnabled && ephemeralAccountKey) {
-      handleEphemeralConnect();
-    }
-  }, []);
-
-  // look for wallet connection
-  useEffect(() => {
-    if (!account.address || (useSCW && !account.chainId)) {
-      return;
-    }
-    void initialize({
-      dbEncryptionKey: encryptionKey
-        ? hexToUint8Array(encryptionKey)
-        : undefined,
-      env: environment,
-      loggingLevel,
-      signer: useSCW
-        ? createSCWSigner(
-            account.address,
-            (message: string) => signMessageAsync({ message }),
-            account.chainId,
-          )
-        : createEOASigner(account.address, (message: string) =>
-            signMessageAsync({ message }),
-          ),
-    });
-  }, [account.address, account.chainId, useSCW, signMessageAsync]);
 
   const handleClose = useCallback(() => {
     void navigate(-1);
