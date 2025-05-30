@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.1.0
+
+### Minor Changes
+
+- 76cbd1d: 1.2.0 bindings, 2.1.0 release
+
 ## 2.0.9
 
 ### Patch Changes
