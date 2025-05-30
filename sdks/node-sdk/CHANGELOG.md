@@ -2,9 +2,43 @@
 
 ## 2.1.0
 
-### Minor Changes
+This release delivers enhancements to messaging performance and reliability, as well as a set of developer debugging tools, all focused on making it easier to build with XMTP.
 
-- 76cbd1d: 1.2.0 bindings, 2.1.0 release
+If you’ve been building on a previous release, this one should be a **drop-in replacement**—just update to the latest version to take advantage of everything below.
+
+### Consent-based listing, streaming, and syncing
+
+By default, `conversations.list`, `conversations.listGroups`, `conversations.listDms`, `conversations.syncAll`, `conversations.streamAllMessages`, `conversations.streamAllGroupMessages`, and `conversations.streamAllDmMessages` now filter for conversations with a consent state of `ConsentState.Allowed` or `ConsentState.Unknown`.
+
+We recommend listing `ConsentState.Allowed` conversations only. This ensures that spammy conversations with a consent state of `ConsentState.Unknown` don't degrade the user experience.
+
+To include all conversations regardless of consent state, you can pass `[ConsentState.Allowed, ConsentState.Unknown, ConsentState.Denied]`.
+
+### Optimistic group chat creation
+
+Provides faster and offline group chat creation and message preparation before adding members.
+
+### Group chat member limit
+
+**A 220-member limit is now enforced for group chats.** This helps prevent errors that oversized groups can cause and ensures consistent behavior across clients.
+
+### Preference sync
+
+Preference syncing enables you to sync the following preference-related information across multiple existing app installations:
+
+- Conversation consent preferences
+- Conversation HMAC keys (for push notifications)
+
+### Developer tooling and debugging
+
+Delivers tools and features for debugging when building with XMTP, including group chat diagnostics, file logging, and network statistics.
+
+### Reliability and performance
+
+- Reliability improvements to message history
+- Reliability improvements to [`streamAll`](https://docs.xmtp.org/inboxes/list-and-stream#stream-all-group-chat-and-dm-messages)
+- Performance improvements to `peerInboxId`
+- [Duplicate DMs](https://docs.xmtp.org/inboxes/push-notifs/understand-push-notifs#dm-stitching-considerations-for-push-notifications) removed from streams
 
 ## 2.0.9
 
