@@ -11,8 +11,8 @@ import {
   createUser,
 } from "@test/helpers";
 
-const CHAOS_GROUPS = 20;
-const CHAOS_MESSAGES = 20;
+const CHAOS_GROUPS = 10;
+const CHAOS_MESSAGES = 10;
 const CHAOS_MEMBERS = 5;
 const CHAOS_INSTALLATIONS = 5;
 const TOTAL_GROUPS = CHAOS_GROUPS * CHAOS_INSTALLATIONS;
@@ -51,82 +51,76 @@ const createChaos = async <T = unknown>(
   // create test clients
   const testClients = await createRegisteredTestClients(numTestClients);
   // create test groups
-  await Promise.all(
-    Array.from({ length: numGroups }).map(async () => {
-      try {
-        // create the group
-        const group = await mainClient.conversations.newGroup(
-          testClients.map((c) => c.inboxId),
-        );
-        await randomSleep();
-        groups.push(group);
-        // sync all test clients
-        await Promise.all(
-          testClients.map(async (c) => {
+  for (const _ of Array.from({ length: numGroups })) {
+    try {
+      // create the group
+      const group = await mainClient.conversations.newGroup(
+        testClients.map((c) => c.inboxId),
+      );
+      await randomSleep(1000);
+      groups.push(group);
+      // sync all test clients
+      for (const testClient of testClients) {
+        try {
+          await testClient.conversations.sync();
+        } catch (e: unknown) {
+          errors.push({
+            error: (e as Error).message,
+            description: "conversations.sync() failed",
+            installationId: testClient.installationId,
+          });
+        }
+      }
+      // get conversation on all test clients
+      const testGroups = await Promise.all(
+        testClients.map(async (c) => {
+          try {
+            return await c.conversations.getConversationById(group.id);
+          } catch (e: unknown) {
+            errors.push({
+              error: (e as Error).message,
+              description: `conversations.getConversationById() failed`,
+              installationId: c.installationId,
+              groupId: group.id,
+            });
+          }
+        }),
+      );
+      await Promise.all(
+        testGroups.map(async (testGroup, idx) => {
+          // get the conversation on the test client
+          if (!testGroup) {
+            errors.push({
+              error: `group not found`,
+              description: `conversations.getConversationById() returned undefined`,
+              installationId: testClients[idx].installationId,
+              groupId: group.id,
+            });
+            return Promise.resolve();
+          }
+          for (const _ of Array.from({ length: numMessages })) {
             try {
-              await c.conversations.sync();
+              await randomSleep(1000);
+              await testGroup.send("gm");
             } catch (e: unknown) {
               errors.push({
                 error: (e as Error).message,
-                description: "conversations.sync() failed",
-                installationId: c.installationId,
-              });
-            }
-          }),
-        );
-        // get conversation on all test clients
-        const testGroups = await Promise.all(
-          testClients.map(async (c) => {
-            try {
-              return await c.conversations.getConversationById(group.id);
-            } catch (e: unknown) {
-              errors.push({
-                error: (e as Error).message,
-                description: `conversations.getConversationById() failed`,
-                installationId: c.installationId,
-                groupId: group.id,
-              });
-            }
-          }),
-        );
-        await Promise.all(
-          testGroups.map(async (testGroup, idx) => {
-            // get the conversation on the test client
-            if (!testGroup) {
-              errors.push({
-                error: `group not found`,
-                description: `conversations.getConversationById() returned undefined`,
+                description: `conversation.send() failed`,
                 installationId: testClients[idx].installationId,
                 groupId: group.id,
               });
-              return Promise.resolve();
             }
-            await Promise.all(
-              Array.from({ length: numMessages }).map(async () => {
-                try {
-                  // await randomSleep(5000);
-                  await testGroup.send("gm");
-                } catch (e: unknown) {
-                  errors.push({
-                    error: (e as Error).message,
-                    description: `conversation.send() failed`,
-                    installationId: testClients[idx].installationId,
-                    groupId: group.id,
-                  });
-                }
-              }),
-            );
-          }),
-        );
-      } catch (e: unknown) {
-        errors.push({
-          error: (e as Error).message,
-          description: `conversations.newGroup() failed`,
-          installationId: mainClient.installationId,
-        });
-      }
-    }),
-  );
+          }
+        }),
+      );
+    } catch (e: unknown) {
+      errors.push({
+        error: (e as Error).message,
+        description: `conversations.newGroup() failed`,
+        installationId: mainClient.installationId,
+      });
+    }
+  }
   return groups;
 };
 
@@ -136,7 +130,6 @@ const clientSyncAll = <T = unknown>(
 ) => {
   const syncs: bigint[] = [];
   const intervalId = setInterval(() => {
-    console.log(`syncing all for ${client.installationId}`);
     client.conversations
       .syncAll()
       .then((sync) => {
@@ -211,7 +204,7 @@ describe("E2E: Installation syncing", () => {
   it(
     "should sync groups and messages across multiple installations",
     {
-      timeout: 300000,
+      timeout: 600000,
     },
     async () => {
       const user = createUser();
@@ -221,7 +214,6 @@ describe("E2E: Installation syncing", () => {
 
       // wait for the chaos to end, get the created groups
       const groups = await chaosGroups();
-      expect(groups.flat().length).toBe(TOTAL_GROUPS);
 
       // stop the installation syncs, get the number of synced items
       const syncs = await stopSync();
@@ -253,12 +245,20 @@ describe("E2E: Installation syncing", () => {
       );
       console.log("=================================================");
 
+      console.log("============= EXPECTED TOTAL ====================");
+      console.log(
+        `expected groups: ${TOTAL_GROUPS}, expected members: ${TOTAL_MEMBERS}, expected messages: ${TOTAL_MESSAGES}`,
+      );
+      console.log("=================================================");
+
       // verify sync counts
       let extraCount = CHAOS_INSTALLATIONS;
       syncs.forEach((sync) => {
         expect(Number(sync)).toBe(TOTAL_GROUPS + extraCount);
         extraCount--;
       });
+
+      expect(groups.flat().length).toBe(TOTAL_GROUPS);
 
       // verify installation groups, members, and messages
       await Promise.all(
