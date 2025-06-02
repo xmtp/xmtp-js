@@ -25,7 +25,7 @@ export class TextCodec implements ContentCodec<string, TextParameters> {
     return ContentTypeText;
   }
 
-  encode(content: string) {
+  encode(content: string): EncodedContent<TextParameters> {
     return {
       type: ContentTypeText,
       parameters: { encoding: Encoding.utf8 },
@@ -33,18 +33,18 @@ export class TextCodec implements ContentCodec<string, TextParameters> {
     };
   }
 
-  decode(content: EncodedContent<TextParameters>) {
+  decode(content: EncodedContent<TextParameters>): string {
     if (content.parameters.encoding !== Encoding.utf8) {
       throw new Error(`unrecognized encoding ${content.parameters.encoding}`);
     }
     return new TextDecoder().decode(content.content);
   }
 
-  fallback() {
+  fallback(content: string): string | undefined {
     return undefined;
   }
 
-  shouldPush() {
+  shouldPush(content: string): boolean {
     return true;
   }
 }
