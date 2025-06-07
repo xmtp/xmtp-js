@@ -2,9 +2,14 @@
 
 ## 2.1.1
 
-### Patch Changes
+### Patch Fixes
 
-- 5166560: Update @xmtp/wasm-bindings
+Fixes streaming bug that would sometimes cause streams to miss messages
+
+Fixes stream conversations bug that would hang all conversations streams upon a backend node update adding a field to welcome messages
+
+updates @xmtp/wasm-bindings to 1.2.1
+
 
 ## 2.1.0
 
