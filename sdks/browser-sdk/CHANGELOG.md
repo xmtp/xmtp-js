@@ -1,5 +1,15 @@
 # @xmtp/browser-sdk
 
+## 2.1.1
+
+### Patch Fixes
+
+Fixes streaming bug that would sometimes cause streams to miss messages
+
+Fixes stream conversations bug that would hang all conversations streams upon a backend node update adding a field to welcome messages
+
+updates @xmtp/wasm-bindings to 1.2.1
+
 ## 2.1.0
 
 This release delivers enhancements to messaging performance and reliability, as well as a set of developer debugging tools, all focused on making it easier to build with XMTP.
