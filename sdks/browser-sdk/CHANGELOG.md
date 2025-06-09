@@ -500,7 +500,7 @@ for (const conversation of conversations) {
 
 This release provides support for disappearing (ephemeral) messages. These are messages that are intended to be visible to users for only a short period of time. After the message expiration time passes, the messages are removed from the UI and deleted from local storage so the messages are no longer accessible to conversation participants.
 
-To learn more, see [Support disappearing messages with XMTP](https://docs.xmtp.org/inboxes/disappearing-messages).
+To learn more, see [Support disappearing messages with XMTP](https://docs.xmtp.org/inboxes/send-messages#support-disappearing-messages).
 
 ### Future-proofing app interoperability
 
