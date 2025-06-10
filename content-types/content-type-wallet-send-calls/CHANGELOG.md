@@ -1,5 +1,11 @@
 # @xmtp/content-type-wallet-send-calls
 
+## 2.0.0
+
+### Major Changes
+
+- 57f8dac: Update WalletSendCalls types
+
 ## 1.0.1
 
 ### Patch Changes
