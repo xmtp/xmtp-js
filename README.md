@@ -1,3 +1,5 @@
+[![Twitter](https://img.shields.io/twitter/follow/xmtp_)](https://x.com/xmtp_)
+
 This is the official repository for XMTP client SDKs and content types for browsers and Node, written in TypeScript.
 
 To learn more about the contents of this repository, see this README and the READMEs provided in each workspace directory.
