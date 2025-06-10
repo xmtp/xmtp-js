@@ -2,9 +2,13 @@
 
 ## 2.0.0
 
-### Major Changes
+### BREAKING CHANGES
 
-- 57f8dac: Update WalletSendCalls types
+- Replaced `Record<string, any>` types with `Record<string, string>`
+
+### Minor Changes
+
+- Removed redundant `| undefined` types
 
 ## 1.0.1
 
