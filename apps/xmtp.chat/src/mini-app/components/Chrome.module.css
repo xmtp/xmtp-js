@@ -1,0 +1,22 @@
+:root {
+  --mini-app-content-border-color: var(--mantine-color-dark-outline);
+}
+
+.header {
+  cursor: default;
+  background-color: var(--mantine-color-default);
+  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
+  border: 1px solid var(--mini-app-content-border-color);
+}
+
+.content {
+  cursor: default;
+  border-left: 1px solid var(--mini-app-content-border-color);
+  border-right: 1px solid var(--mini-app-content-border-color);
+  border-bottom: 1px solid var(--mini-app-content-border-color);
+  background-color: var(--mantine-color-body);
+}
+
+.info {
+  cursor: pointer;
+}

@@ -26,6 +26,14 @@
     "typecheck": {
       "dependsOn": ["^build"],
       "outputs": []
+    },
+    "@xmtp/content-type-mini-app#build": {
+      "dependsOn": ["@xmtp/browser-sdk#build"],
+      "outputs": []
+    },
+    "@xmtp/content-type-mini-app#typecheck": {
+      "dependsOn": ["@xmtp/browser-sdk#build"],
+      "outputs": []
     }
   }
 }

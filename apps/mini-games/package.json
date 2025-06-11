@@ -1,0 +1,74 @@
+{
+  "name": "@xmtp/mini-games",
+  "version": "1.0.0",
+  "description": "An XMTP app for playing social mini games",
+  "keywords": [
+    "xmtp",
+    "messaging",
+    "web3",
+    "js",
+    "ts",
+    "javascript",
+    "typescript"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/xmtp/xmtp-js.git",
+    "directory": "apps/mini-games"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": "./dist/browser/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.*"
+  ],
+  "scripts": {
+    "build": "yarn clean:dist && yarn rollup -c",
+    "clean": "yarn clean:dist && rimraf .turbo node_modules",
+    "clean:dist": "rimraf dist",
+    "generate-keys": "tsx scripts/generateKeys.ts",
+    "start": "tsx src/index.ts",
+    "test": "NODE_TLS_REJECT_UNAUTHORIZED=0 vitest run --environment node",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@xmtp/content-type-mini-app": "workspace:^",
+    "@xmtp/content-type-text": "workspace:^",
+    "@xmtp/node-sdk": "workspace:^",
+    "dotenv": "^16.5.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/node": "^22.14.0",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.39.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "viem": "^2.28.0",
+    "vite": "^6.2.5",
+    "vitest": "^3.1.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
+}

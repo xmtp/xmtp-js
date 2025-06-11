@@ -4,6 +4,10 @@ import {
   ContentTypeGroupUpdated,
   type GroupUpdated,
 } from "@xmtp/content-type-group-updated";
+import {
+  ContentTypeMiniApp,
+  type MiniAppContent as MiniAppContentType,
+} from "@xmtp/content-type-mini-app";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import {
   ContentTypeTransactionReference,
@@ -19,6 +23,7 @@ import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
+import { MiniAppContent } from "@/components/Messages/MiniAppContent";
 import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
@@ -107,6 +112,17 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         sentAtNs={message.sentAtNs}>
         <FallbackContent text={message.fallback} />
       </MessageContentWrapper>
+    );
+  }
+
+  if (message.contentType.sameAs(ContentTypeMiniApp)) {
+    return (
+      <MiniAppContent
+        align={align}
+        senderInboxId={senderInboxId}
+        content={message.content as MiniAppContentType}
+        sentAtNs={message.sentAtNs}
+      />
     );
   }
 

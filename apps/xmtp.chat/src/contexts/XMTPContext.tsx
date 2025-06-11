@@ -4,6 +4,7 @@ import {
   type ExtractCodecContentTypes,
   type Signer,
 } from "@xmtp/browser-sdk";
+import { MiniAppCodec } from "@xmtp/content-type-mini-app";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
@@ -25,6 +26,7 @@ export type ContentTypes = ExtractCodecContentTypes<
     RemoteAttachmentCodec,
     TransactionReferenceCodec,
     WalletSendCallsCodec,
+    MiniAppCodec,
   ]
 >;
 
@@ -121,6 +123,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
               new RemoteAttachmentCodec(),
               new TransactionReferenceCodec(),
               new WalletSendCallsCodec(),
+              new MiniAppCodec(),
             ],
           });
           setClient(xmtpClient);
