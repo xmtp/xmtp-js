@@ -952,6 +952,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     return this.#client.apiAggregateStatistics();
   }
 
+  clearAllStatistics() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    this.#client.clearAllStatistics();
+  }
+
   uploadDebugArchive(serverUrl?: string) {
     if (!this.#client) {
       throw new ClientNotInitializedError();

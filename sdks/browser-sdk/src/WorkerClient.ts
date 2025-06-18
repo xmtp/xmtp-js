@@ -194,6 +194,10 @@ export class WorkerClient {
     return this.#client.apiAggregateStatistics();
   }
 
+  clearAllStatistics() {
+    this.#client.clearAllStatistics();
+  }
+
   async uploadDebugArchive(serverUrl?: string) {
     const env = this.#options?.env || "dev";
     const historySyncUrl =

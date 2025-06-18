@@ -172,6 +172,12 @@ export type ClientAction =
       data: undefined;
     }
   | {
+      action: "client.clearAllStatistics";
+      id: string;
+      result: undefined;
+      data: undefined;
+    }
+  | {
       action: "client.uploadDebugArchive";
       id: string;
       result: string;
