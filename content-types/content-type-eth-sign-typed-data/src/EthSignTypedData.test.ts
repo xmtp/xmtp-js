@@ -54,7 +54,6 @@ test("should successfully send and receive a ethSignTypedData message", async ()
   const nowTimestamp = Math.floor(Date.now() / 1000);
   const period = 86400;
   const ethSignTypedData: EthSignTypedDataParams = {
-    account: "0x123...456",
     domain: {
       name: "Spend Permission Manager",
       version: "1",

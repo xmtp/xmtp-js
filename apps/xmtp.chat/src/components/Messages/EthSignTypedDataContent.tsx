@@ -37,7 +37,7 @@ export const EthSignTypedDataContent: React.FC<EthSignTypedDataContentProps> = (
         await new Promise((r) => setTimeout(r, 300)); // Metamask requires some delay
       }
     }
-    const { metadata, account, ...actualTypedData } = content;
+    const { metadata, ...actualTypedData } = content;
     console.log(actualTypedData);
     const signature = await signTypedDataAsync(actualTypedData, {
       onError(error) {

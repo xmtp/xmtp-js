@@ -21,7 +21,7 @@ With XMTP, an offline signature request is represented using `eth_signTypedData`
 const nowTimestamp = Math.floor(Date.now() / 1000);
 const period = 86400;
 const ethSignTypedData: EthSignTypedDataParams = {
-  account: "0x123...456",
+  account: "0x123...456", // Optional
   domain: {
     name: "Spend Permission Manager",
     version: "1",
