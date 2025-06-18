@@ -27,8 +27,7 @@ With XMTP, an off-chain signature is represented as an object with the following
 const offChainSignature: OffChainSignature = {
   namespace: "eip155",
   networkId: "0x2105",
-  signature:
-    "0x000...000",
+  signature: "0x000...000",
   metadata: {
     transactionType: "spend",
     fromAddress: "0x123...456",
