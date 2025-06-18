@@ -1,18 +1,8 @@
 import { Box } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
-import {
-  ContentTypeEthSignTypedData,
-  type EthSignTypedDataParams,
-} from "@xmtp/content-type-eth-sign-typed-data";
-import {
-  ContentTypeOffChainSignature,
-  type OffChainSignature,
-} from "@xmtp/content-type-off-chain-signature";
 import { useNavigate, useOutletContext } from "react-router";
-import { EthSignTypedDataContent } from "./EthSignTypedDataContent";
 import classes from "./Message.module.css";
 import { MessageContent } from "./MessageContent";
-import { OffChainSignatureContent } from "./OffChainSignatureContent";
 
 export type MessageProps = {
   message: DecodedMessage;

@@ -15,10 +15,9 @@ export type EthSignTypedDataContentProps = {
   conversationId: string;
 };
 
-export const EthSignTypedDataContent: React.FC<EthSignTypedDataContentProps> = ({
-  content,
-  conversationId,
-}) => {
+export const EthSignTypedDataContent: React.FC<
+  EthSignTypedDataContentProps
+> = ({ content, conversationId }) => {
   const { client } = useOutletContext<{
     client: Client<ContentTypes>;
   }>();

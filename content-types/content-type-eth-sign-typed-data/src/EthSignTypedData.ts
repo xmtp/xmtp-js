@@ -12,8 +12,11 @@ export const ContentTypeEthSignTypedData = new ContentTypeId({
   versionMinor: 0,
 });
 
-export type EthSignTypedDataParams = Omit<SignTypedDataParameters, 'account'> & {
-  account?: Account | Address,
+export type EthSignTypedDataParams = Omit<
+  SignTypedDataParameters,
+  "account"
+> & {
+  account?: Account | Address;
   metadata: {
     description: string;
     transactionType: string;

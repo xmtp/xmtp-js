@@ -2,7 +2,7 @@ import { Code } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeEthSignTypedData,
-  type EthSignTypedDataParams
+  type EthSignTypedDataParams,
 } from "@xmtp/content-type-eth-sign-typed-data";
 import {
   ContentTypeGroupUpdated,
@@ -10,7 +10,7 @@ import {
 } from "@xmtp/content-type-group-updated";
 import {
   ContentTypeOffChainSignature,
-  type OffChainSignature
+  type OffChainSignature,
 } from "@xmtp/content-type-off-chain-signature";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import {
