@@ -14,7 +14,7 @@ export const ContentTypeWalletSendCalls = new ContentTypeId({
 export type WalletSendCallsParams = {
   version: string;
   chainId: `0x${string}`; // Hex chain id
-  from: `0x${string}`;
+  from?: `0x${string}`;
   calls: {
     to?: `0x${string}`;
     data?: `0x${string}`;
