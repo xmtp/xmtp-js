@@ -18,37 +18,45 @@ pnpm i @xmtp/content-type-eth-sign-typed-data
 With XMTP, an offline signature request is represented using `eth_signTypedData` RPC specification from [EIP-712](https://eips.ethereum.org/EIPS/eip-712#specification-of-the-eth_signtypeddata-json-rpc) with additional metadata for display:
 
 ```tsx
+const nowTimestamp = Math.floor(Date.now() / 1000);
+const period = 86400;
 const ethSignTypedData: EthSignTypedDataParams = {
-  version: "1.0",
-  from: "0x123...abc",
-  chainId: "0x2105",
-  calls: [
-    {
-      to: "0x456...def",
-      value: "0x5AF3107A4000",
-      metadata: {
-        description: "Send 0.0001 ETH on base to 0x456...def",
-        transactionType: "transfer",
-        currency: "ETH",
-        amount: 100000000000000,
-        decimals: 18,
-        toAddress: "0x456...def",
-      },
-    },
-    {
-      to: "0x789...cba",
-      data: "0xdead...beef",
-      metadata: {
-        description: "Lend 10 USDC on base with Morpho @ 8.5% APY",
-        transactionType: "lend",
-        currency: "USDC",
-        amount: 10000000,
-        decimals: 6,
-        platform: "morpho",
-        apy: "8.5",
-      },
-    },
-  ],
+  account: "0x123...456",
+  domain: {
+    name: "Spend Permission Manager",
+    version: "1",
+    chainId: 8453,
+    verifyingContract: "0xf85210B21cC50302F477BA56686d2019dC9b67Ad",
+  },
+  types: {
+    SpendPermission: [
+      { name: "account", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "token", type: "address" },
+      { name: "allowance", type: "uint160" },
+      { name: "period", type: "uint48" },
+      { name: "start", type: "uint48" },
+      { name: "end", type: "uint48" },
+      { name: "salt", type: "uint256" },
+      { name: "extraData", type: "bytes" },
+    ],
+  },
+  primaryType: "SpendPermission",
+  message: {
+    account: "0x123...456",
+    spender: "0x789...abc",
+    token: "0xdef...123",
+    allowance: 1000000,
+    period,
+    start: nowTimestamp,
+    end: nowTimestamp + period,
+    salt: nowTimestamp.toString(),
+    extraData: "0x",
+  },
+  metadata: {
+    description: "Allow 0x789...abc to spend 1 USDC on Base",
+    transactionType: "spend",
+  },
 };
 ```
 
