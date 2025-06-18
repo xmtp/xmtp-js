@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# React Rules
+
+## File Patterns
+
+- **/*.ts
+- **/*.tsx
+
+## Code Style and Structure
+
+- Use named exports for components
+- Use `const` instead of `function` for components
+- Ensure all components have a TypeScript interface using `React.FC`
+- Prefix event handler functions with "handle" (e.g., handleClick, handleKeyDown)
+- Component props should have a defined type that matches the component name and ends in `Props`

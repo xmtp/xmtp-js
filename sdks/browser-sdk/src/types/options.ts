@@ -20,7 +20,7 @@ export type NetworkOptions = {
    * historySyncUrl can be used to override the `env` flag and connect to a
    * specific endpoint for syncing history
    */
-  historySyncUrl?: string;
+  historySyncUrl?: string | null;
 };
 
 export type ContentOptions = {
@@ -36,6 +36,20 @@ export type ContentOptions = {
 export type StorageOptions = {
   /**
    * Path to the local DB
+   *
+   * There are 3 value types that can be used to specify the database path:
+   *
+   * - `undefined` (or excluded from the client options)
+   *    The database will be created in the current working directory and is based on
+   *    the XMTP environment and client inbox ID.
+   *    Example: `xmtp-dev-<inbox-id>.db3`
+   *
+   * - `null`
+   *    No database will be created and all data will be lost once the client disconnects.
+   *
+   * - `string`
+   *    The given path will be used to create the database.
+   *    Example: `./my-db.db3`
    */
   dbPath?: string | null;
   /**
@@ -61,6 +75,10 @@ export type OtherOptions = {
    * Disable automatic registration when creating a client
    */
   disableAutoRegister?: boolean;
+  /**
+   * Disable device sync
+   */
+  disableDeviceSync?: boolean;
 };
 
 export type ClientOptions = NetworkOptions &

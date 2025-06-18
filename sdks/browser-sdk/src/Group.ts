@@ -13,9 +13,9 @@ import type { SafeConversation } from "@/utils/conversions";
  *
  * This class is not intended to be initialized directly.
  */
-export class Group extends Conversation {
+export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   #admins: SafeConversation["admins"] = [];
-  #client: Client;
+  #client: Client<ContentTypes>;
   #description?: SafeConversation["description"];
   #id: string;
   #imageUrl?: SafeConversation["imageUrl"];
@@ -37,7 +37,11 @@ export class Group extends Conversation {
    * @param id - Identifier for the group conversation
    * @param data - Optional conversation data to initialize with
    */
-  constructor(client: Client, id: string, data?: SafeConversation) {
+  constructor(
+    client: Client<ContentTypes>,
+    id: string,
+    data?: SafeConversation,
+  ) {
     super(client, id, data);
     this.#client = client;
     this.#id = id;
@@ -68,7 +72,7 @@ export class Group extends Conversation {
    * @param name The new name for the group
    */
   async updateName(name: string) {
-    await this.#client.sendMessage("updateGroupName", {
+    await this.#client.sendMessage("group.updateName", {
       id: this.#id,
       name,
     });
@@ -88,7 +92,7 @@ export class Group extends Conversation {
    * @param imageUrl The new image URL for the group
    */
   async updateImageUrl(imageUrl: string) {
-    await this.#client.sendMessage("updateGroupImageUrlSquare", {
+    await this.#client.sendMessage("group.updateImageUrl", {
       id: this.#id,
       imageUrl,
     });
@@ -108,7 +112,7 @@ export class Group extends Conversation {
    * @param description The new description for the group
    */
   async updateDescription(description: string) {
-    await this.#client.sendMessage("updateGroupDescription", {
+    await this.#client.sendMessage("group.updateDescription", {
       id: this.#id,
       description,
     });
@@ -135,7 +139,7 @@ export class Group extends Conversation {
    * @returns Array of admin inbox IDs
    */
   async listAdmins() {
-    const admins = await this.#client.sendMessage("getGroupAdmins", {
+    const admins = await this.#client.sendMessage("group.listAdmins", {
       id: this.#id,
     });
     this.#admins = admins;
@@ -148,9 +152,12 @@ export class Group extends Conversation {
    * @returns Array of super admin inbox IDs
    */
   async listSuperAdmins() {
-    const superAdmins = await this.#client.sendMessage("getGroupSuperAdmins", {
-      id: this.#id,
-    });
+    const superAdmins = await this.#client.sendMessage(
+      "group.listSuperAdmins",
+      {
+        id: this.#id,
+      },
+    );
     this.#superAdmins = superAdmins;
     return superAdmins;
   }
@@ -161,7 +168,7 @@ export class Group extends Conversation {
    * @returns The group's permissions
    */
   async permissions() {
-    return this.#client.sendMessage("getGroupPermissions", {
+    return this.#client.sendMessage("group.permissions", {
       id: this.#id,
     });
   }
@@ -178,7 +185,7 @@ export class Group extends Conversation {
     policy: PermissionPolicy,
     metadataField?: MetadataField,
   ) {
-    return this.#client.sendMessage("updateGroupPermissionPolicy", {
+    return this.#client.sendMessage("group.updatePermission", {
       id: this.#id,
       permissionType,
       policy,
@@ -214,7 +221,7 @@ export class Group extends Conversation {
    * @param identifiers Array of member identifiers to add
    */
   async addMembersByIdentifiers(identifiers: Identifier[]) {
-    return this.#client.sendMessage("addGroupMembers", {
+    return this.#client.sendMessage("group.addMembersByIdentifiers", {
       id: this.#id,
       identifiers,
     });
@@ -226,7 +233,7 @@ export class Group extends Conversation {
    * @param inboxIds Array of inbox IDs to add
    */
   async addMembers(inboxIds: string[]) {
-    return this.#client.sendMessage("addGroupMembersByInboxId", {
+    return this.#client.sendMessage("group.addMembers", {
       id: this.#id,
       inboxIds,
     });
@@ -238,7 +245,7 @@ export class Group extends Conversation {
    * @param identifiers Array of member identifiers to remove
    */
   async removeMembersByIdentifiers(identifiers: Identifier[]) {
-    return this.#client.sendMessage("removeGroupMembers", {
+    return this.#client.sendMessage("group.removeMembersByIdentifiers", {
       id: this.#id,
       identifiers,
     });
@@ -250,7 +257,7 @@ export class Group extends Conversation {
    * @param inboxIds Array of inbox IDs to remove
    */
   async removeMembers(inboxIds: string[]) {
-    return this.#client.sendMessage("removeGroupMembersByInboxId", {
+    return this.#client.sendMessage("group.removeMembers", {
       id: this.#id,
       inboxIds,
     });
@@ -262,7 +269,7 @@ export class Group extends Conversation {
    * @param inboxId The inbox ID of the member to promote
    */
   async addAdmin(inboxId: string) {
-    return this.#client.sendMessage("addGroupAdmin", {
+    return this.#client.sendMessage("group.addAdmin", {
       id: this.#id,
       inboxId,
     });
@@ -274,7 +281,7 @@ export class Group extends Conversation {
    * @param inboxId The inbox ID of the admin to demote
    */
   async removeAdmin(inboxId: string) {
-    return this.#client.sendMessage("removeGroupAdmin", {
+    return this.#client.sendMessage("group.removeAdmin", {
       id: this.#id,
       inboxId,
     });
@@ -286,7 +293,7 @@ export class Group extends Conversation {
    * @param inboxId The inbox ID of the member to promote
    */
   async addSuperAdmin(inboxId: string) {
-    return this.#client.sendMessage("addGroupSuperAdmin", {
+    return this.#client.sendMessage("group.addSuperAdmin", {
       id: this.#id,
       inboxId,
     });
@@ -298,7 +305,7 @@ export class Group extends Conversation {
    * @param inboxId The inbox ID of the super admin to demote
    */
   async removeSuperAdmin(inboxId: string) {
-    return this.#client.sendMessage("removeGroupSuperAdmin", {
+    return this.#client.sendMessage("group.removeSuperAdmin", {
       id: this.#id,
       inboxId,
     });

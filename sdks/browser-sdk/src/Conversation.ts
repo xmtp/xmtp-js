@@ -18,9 +18,9 @@ import { MissingContentTypeError } from "@/utils/errors";
  *
  * This class is not intended to be initialized directly.
  */
-export class Conversation {
+export class Conversation<ContentTypes = unknown> {
   #addedByInboxId?: SafeConversation["addedByInboxId"];
-  #client: Client;
+  #client: Client<ContentTypes>;
   #createdAtNs?: SafeConversation["createdAtNs"];
   #id: string;
   #isActive?: SafeConversation["isActive"];
@@ -33,7 +33,11 @@ export class Conversation {
    * @param id - The unique identifier for this conversation
    * @param data - Optional conversation data to initialize with
    */
-  constructor(client: Client, id: string, data?: SafeConversation) {
+  constructor(
+    client: Client<ContentTypes>,
+    id: string,
+    data?: SafeConversation,
+  ) {
     this.#client = client;
     this.#id = id;
     this.#syncData(data);
@@ -76,7 +80,7 @@ export class Conversation {
    * @returns Promise that resolves with the conversation members
    */
   async members() {
-    return this.#client.sendMessage("getGroupMembers", {
+    return this.#client.sendMessage("conversation.members", {
       id: this.#id,
     });
   }
@@ -87,7 +91,7 @@ export class Conversation {
    * @returns Promise that resolves with the updated conversation data
    */
   async sync() {
-    const data = await this.#client.sendMessage("syncGroup", {
+    const data = await this.#client.sendMessage("conversation.sync", {
       id: this.#id,
     });
     this.#syncData(data);
@@ -100,20 +104,20 @@ export class Conversation {
    * @returns Promise that resolves when publishing is complete
    */
   async publishMessages() {
-    return this.#client.sendMessage("publishGroupMessages", {
+    return this.#client.sendMessage("conversation.publishMessages", {
       id: this.#id,
     });
   }
 
   /**
-   * Sends a message optimistically
+   * Prepares a message to be published
    *
    * @param content - The content to send
    * @param contentType - Optional content type of the message content
    * @returns Promise that resolves with the message ID
-   * @throws {MissingContentTypeError} When content type is required but not provided
+   * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async sendOptimistic(content: any, contentType?: ContentTypeId) {
+  async sendOptimistic(content: ContentTypes, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -124,21 +128,21 @@ export class Conversation {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#client.sendMessage("sendOptimisticGroupMessage", {
+    return this.#client.sendMessage("conversation.sendOptimistic", {
       id: this.#id,
       content: safeEncodedContent,
     });
   }
 
   /**
-   * Sends a message
+   * Publishes a new message
    *
    * @param content - The content to send
    * @param contentType - Optional content type of the message content
    * @returns Promise that resolves with the message ID after it has been sent
-   * @throws {MissingContentTypeError} When content type is required but not provided
+   * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async send(content: any, contentType?: ContentTypeId) {
+  async send(content: ContentTypes, contentType?: ContentTypeId) {
     if (typeof content !== "string" && !contentType) {
       throw new MissingContentTypeError();
     }
@@ -149,7 +153,7 @@ export class Conversation {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#client.sendMessage("sendGroupMessage", {
+    return this.#client.sendMessage("conversation.send", {
       id: this.#id,
       content: safeEncodedContent,
     });
@@ -162,7 +166,7 @@ export class Conversation {
    * @returns Promise that resolves with an array of decoded messages
    */
   async messages(options?: SafeListMessagesOptions) {
-    const messages = await this.#client.sendMessage("getGroupMessages", {
+    const messages = await this.#client.sendMessage("conversation.messages", {
       id: this.#id,
       options,
     });
@@ -176,7 +180,7 @@ export class Conversation {
    * @returns Promise that resolves with the current consent state
    */
   async consentState() {
-    return this.#client.sendMessage("getGroupConsentState", {
+    return this.#client.sendMessage("conversation.consentState", {
       id: this.#id,
     });
   }
@@ -188,7 +192,7 @@ export class Conversation {
    * @returns Promise that resolves when the update is complete
    */
   async updateConsentState(state: ConsentState) {
-    return this.#client.sendMessage("updateGroupConsentState", {
+    return this.#client.sendMessage("conversation.updateConsentState", {
       id: this.#id,
       state,
     });
@@ -200,9 +204,12 @@ export class Conversation {
    * @returns Promise that resolves with the current message disappearing settings
    */
   async messageDisappearingSettings() {
-    return this.#client.sendMessage("getGroupMessageDisappearingSettings", {
-      id: this.#id,
-    });
+    return this.#client.sendMessage(
+      "conversation.messageDisappearingSettings",
+      {
+        id: this.#id,
+      },
+    );
   }
 
   /**
@@ -213,11 +220,14 @@ export class Conversation {
    * @returns Promise that resolves when the update is complete
    */
   async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
-    return this.#client.sendMessage("updateGroupMessageDisappearingSettings", {
-      id: this.#id,
-      fromNs,
-      inNs,
-    });
+    return this.#client.sendMessage(
+      "conversation.updateMessageDisappearingSettings",
+      {
+        id: this.#id,
+        fromNs,
+        inNs,
+      },
+    );
   }
 
   /**
@@ -226,9 +236,12 @@ export class Conversation {
    * @returns Promise that resolves when the settings are removed
    */
   async removeMessageDisappearingSettings() {
-    return this.#client.sendMessage("removeGroupMessageDisappearingSettings", {
-      id: this.#id,
-    });
+    return this.#client.sendMessage(
+      "conversation.removeMessageDisappearingSettings",
+      {
+        id: this.#id,
+      },
+    );
   }
 
   /**
@@ -237,37 +250,42 @@ export class Conversation {
    * @returns Promise that resolves with whether message disappearing is enabled
    */
   async isMessageDisappearingEnabled() {
-    return this.#client.sendMessage("isGroupMessageDisappearingEnabled", {
-      id: this.#id,
-    });
+    return this.#client.sendMessage(
+      "conversation.isMessageDisappearingEnabled",
+      {
+        id: this.#id,
+      },
+    );
   }
 
   /**
    * Creates a stream for new messages in this conversation
    *
    * @param callback - Optional callback function for handling new stream values
-   * @returns AsyncStream instance for new messages
+   * @returns Stream instance for new messages
    */
-  async stream(callback?: StreamCallback<DecodedMessage>) {
+  async stream(callback?: StreamCallback<DecodedMessage<ContentTypes>>) {
     const streamId = v4();
-    const asyncStream = new AsyncStream<DecodedMessage>();
+    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
       streamId,
       (error, value) => {
-        if (error) {
-          void asyncStream.callback(error, undefined);
-          void callback?.(error, undefined);
-          return;
+        let err: Error | null = error;
+        let message: DecodedMessage<ContentTypes> | undefined;
+
+        if (value) {
+          try {
+            message = new DecodedMessage(this.#client, value);
+          } catch (error) {
+            err = error as Error;
+          }
         }
 
-        const decodedMessage = value
-          ? new DecodedMessage(this.#client, value)
-          : undefined;
-        void asyncStream.callback(null, decodedMessage);
-        void callback?.(null, decodedMessage);
+        void asyncStream.callback(err, message);
+        void callback?.(err, message);
       },
     );
-    await this.#client.sendMessage("streamGroupMessages", {
+    await this.#client.sendMessage("conversation.stream", {
       groupId: this.#id,
       streamId,
     });
@@ -281,7 +299,7 @@ export class Conversation {
   }
 
   async pausedForVersion() {
-    return this.#client.sendMessage("getGroupPausedForVersion", {
+    return this.#client.sendMessage("conversation.pausedForVersion", {
       id: this.#id,
     });
   }
@@ -292,7 +310,18 @@ export class Conversation {
    * @returns Promise that resolves with the HMAC keys
    */
   async getHmacKeys() {
-    return this.#client.sendMessage("getGroupHmacKeys", {
+    return this.#client.sendMessage("conversation.getHmacKeys", {
+      id: this.#id,
+    });
+  }
+
+  /**
+   * Retrieves information for this conversation to help with debugging
+   *
+   * @returns The debug information for this conversation
+   */
+  async debugInfo() {
+    return this.#client.sendMessage("conversation.debugInfo", {
       id: this.#id,
     });
   }

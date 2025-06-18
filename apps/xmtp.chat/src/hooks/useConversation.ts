@@ -4,14 +4,14 @@ import type {
   SafeListMessagesOptions,
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
-import { useXMTP } from "@/contexts/XMTPContext";
+import { useXMTP, type ContentTypes } from "@/contexts/XMTPContext";
 
-export const useConversation = (conversation?: Conversation) => {
+export const useConversation = (conversation?: Conversation<ContentTypes>) => {
   const { client } = useXMTP();
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [sending, setSending] = useState(false);
-  const [messages, setMessages] = useState<DecodedMessage[]>([]);
+  const [messages, setMessages] = useState<DecodedMessage<ContentTypes>[]>([]);
 
   const getMessages = async (
     options?: SafeListMessagesOptions,
@@ -21,11 +21,12 @@ export const useConversation = (conversation?: Conversation) => {
       return;
     }
 
+    setMessages([]);
+    setLoading(true);
+
     if (syncFromNetwork) {
       await sync();
     }
-
-    setLoading(true);
 
     try {
       const msgs = (await conversation?.messages(options)) ?? [];
@@ -72,7 +73,7 @@ export const useConversation = (conversation?: Conversation) => {
 
     const onMessage = (
       error: Error | null,
-      message: DecodedMessage | undefined,
+      message: DecodedMessage<ContentTypes> | undefined,
     ) => {
       if (message) {
         setMessages((prev) => [...prev, message]);

@@ -3,6 +3,7 @@ import type { Client } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { AppMenu } from "@/components/App/AppMenu";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 import classes from "./AppHeader.module.css";
@@ -22,7 +23,7 @@ const GlowingCircle = () => {
 };
 
 export type AppHeaderProps = {
-  client: Client;
+  client: Client<ContentTypes>;
   opened?: boolean;
   toggle?: () => void;
 };

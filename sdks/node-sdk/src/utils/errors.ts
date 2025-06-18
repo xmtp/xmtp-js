@@ -58,3 +58,19 @@ export class MissingContentTypeError extends Error {
     super("Content type is required when sending content other than text");
   }
 }
+
+export class SignerUnavailableError extends Error {
+  constructor() {
+    super(
+      "Signer unavailable, use Client.create to create a client with a signer",
+    );
+  }
+}
+
+export class ClientNotInitializedError extends Error {
+  constructor() {
+    super(
+      "Client not initialized, use Client.create or Client.build to create a client",
+    );
+  }
+}

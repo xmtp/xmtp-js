@@ -1,5 +1,132 @@
 # @xmtp/browser-sdk
 
+## 2.1.1
+
+### Patch Fixes
+
+Fixes streaming bug that would sometimes cause streams to miss messages
+
+Fixes stream conversations bug that would hang all conversations streams upon a backend node update adding a field to welcome messages
+
+updates @xmtp/wasm-bindings to 1.2.1
+
+## 2.1.0
+
+This release delivers enhancements to messaging performance and reliability, as well as a set of developer debugging tools, all focused on making it easier to build with XMTP.
+
+If you’ve been building on a previous release, this one should be a **drop-in replacement**—just update to the latest version to take advantage of everything below.
+
+### Consent-based listing, streaming, and syncing
+
+By default, `conversations.list`, `conversations.listGroups`, `conversations.listDms`, `conversations.syncAll`, `conversations.streamAllMessages`, `conversations.streamAllGroupMessages`, and `conversations.streamAllDmMessages` now filter for conversations with a consent state of `ConsentState.Allowed` or `ConsentState.Unknown`.
+
+We recommend listing `ConsentState.Allowed` conversations only. This ensures that spammy conversations with a consent state of `ConsentState.Unknown` don't degrade the user experience.
+
+To include all conversations regardless of consent state, you can pass `[ConsentState.Allowed, ConsentState.Unknown, ConsentState.Denied]`.
+
+### Optimistic group chat creation
+
+Provides faster and offline group chat creation and message preparation before adding members.
+
+### Group chat member limit
+
+**A 220-member limit is now enforced for group chats.** This helps prevent errors that oversized groups can cause and ensures consistent behavior across clients.
+
+### Preference sync
+
+Preference syncing enables you to sync the following preference-related information across multiple existing app installations:
+
+- Conversation consent preferences
+- Conversation HMAC keys (for push notifications)
+
+### Developer tooling and debugging
+
+Delivers tools and features for debugging when building with XMTP, including group chat diagnostics, file logging, and network statistics.
+
+### Reliability and performance
+
+- Reliability improvements to message history
+- Reliability improvements to [`streamAll`](https://docs.xmtp.org/inboxes/list-and-stream#stream-all-group-chat-and-dm-messages)
+- Performance improvements to `peerInboxId`
+- [Duplicate DMs](https://docs.xmtp.org/inboxes/push-notifs/understand-push-notifs#dm-stitching-considerations-for-push-notifications) removed from streams
+
+## 2.0.13
+
+### Patch Changes
+
+- 441a029: `AsyncStream` updates
+  - Changed signature of `return` to allow no argument (e.g. `stream.return()`)
+  - Added `end` alias that calls `return` without an argument
+  - Added `AsyncStream` and `StreamCallback` to exports
+
+## 2.0.12
+
+### Patch Changes
+
+- 616fdec: Added `null` option to `historySyncUrl` client option to allow disabling of history sync
+
+## 2.0.11
+
+### Patch Changes
+
+- 5bc5a85: Update to the libxmtp stable release version
+
+## 2.0.10
+
+### Patch Changes
+
+- 581d465: Added guard to prevent unexpected conversation types
+
+## 2.0.9
+
+### Patch Changes
+
+- 4035fb5: Removed special sync groups from conversation list results
+
+## 2.0.8
+
+### Patch Changes
+
+- fbce324: Fix welcome processing issue that could lead to incorrect group state
+
+## 2.0.7
+
+### Patch Changes
+
+- 5a676b1: Propagated original error from workers
+
+## 2.0.6
+
+### Patch Changes
+
+- b7a3001: Fixed message processing issue that could sometimes fork groups
+
+## 2.0.5
+
+### Patch Changes
+
+- f0a43c4: Lowercase Ethereum addresses on static Client.canMessage calls
+
+## 2.0.4
+
+### Patch Changes
+
+- Converted all `any` types to `unknown`
+- Added generics for types with `unknown` where applicable
+- Prevented `CodecNotFoundError` from throwing when instantiating `DecodedMessage`
+- Added missing `signer` property to `Client`
+- Updated code comments
+- Updated dependencies [63e5276]
+  - @xmtp/content-type-group-updated@2.0.2
+  - @xmtp/content-type-primitives@2.0.2
+  - @xmtp/content-type-text@2.0.2
+
+## 2.0.3
+
+### Patch Changes
+
+- 6e54926: Exposed message decoding errors in streams
+
 ## 2.0.2
 
 ### Patch Changes

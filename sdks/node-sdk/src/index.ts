@@ -7,13 +7,14 @@ export type {
 } from "./types";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export { Client } from "./Client";
+export type { ExtractCodecContentTypes } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
 export { Dm } from "./Dm";
 export { Group } from "./Group";
 export type { PreferenceUpdate } from "./Preferences";
 export { DecodedMessage } from "./DecodedMessage";
-export type { StreamCallback } from "./AsyncStream";
+export type { AsyncStream, StreamCallback } from "./AsyncStream";
 export type {
   Consent,
   ContentType,
@@ -57,3 +58,4 @@ export {
 } from "@xmtp/node-bindings";
 export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
 export type { Signer } from "./utils/signer";
+export * from "./utils/errors";

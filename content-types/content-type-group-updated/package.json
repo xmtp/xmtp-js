@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-group-updated",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "An XMTP content type to support group updated messages",
   "keywords": [
     "xmtp",
@@ -62,20 +62,19 @@
     ]
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "^2.0.1",
+    "@xmtp/content-type-primitives": "^2.0.2",
     "@xmtp/proto": "^3.78.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.15.23",
     "rimraf": "^6.0.1",
-    "rollup": "^4.39.0",
+    "rollup": "^4.41.1",
     "rollup-plugin-dts": "^6.1.1",
-    "rollup-plugin-filesize": "^10.0.0",
     "typescript": "^5.8.3",
-    "vite": "^6.2.5",
-    "vitest": "^3.1.1"
+    "vite": "^6.3.5",
+    "vitest": "^3.1.4"
   },
   "publishConfig": {
     "access": "public",

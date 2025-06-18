@@ -14,13 +14,17 @@ import {
   PermissionPolicySet,
   ContentTypeId as WasmContentTypeId,
   EncodedContent as WasmEncodedContent,
+  type ApiStats,
   type ConsentEntityType,
   type ConsentState,
   type ContentType,
+  type ConversationDebugInfo,
+  type ConversationType,
   type DeliveryStatus,
   type GroupMessageKind,
   type HmacKey,
   type Identifier,
+  type IdentityStats,
   type InboxState,
   type Installation,
   type KeyPackageStatus,
@@ -181,6 +185,7 @@ export const fromSafeListMessagesOptions = (
 
 export type SafeListConversationsOptions = {
   consentStates?: ConsentState[];
+  conversationType?: ConversationType;
   createdAfterNs?: bigint;
   createdBeforeNs?: bigint;
   includeDuplicateDms?: boolean;
@@ -191,6 +196,7 @@ export const toSafeListConversationsOptions = (
   options: ListConversationsOptions,
 ): SafeListConversationsOptions => ({
   consentStates: options.consentStates,
+  conversationType: options.conversationType,
   createdAfterNs: options.createdAfterNs,
   createdBeforeNs: options.createdBeforeNs,
   includeDuplicateDms: options.includeDuplicateDms,
@@ -202,6 +208,7 @@ export const fromSafeListConversationsOptions = (
 ): ListConversationsOptions =>
   new ListConversationsOptions(
     options.consentStates,
+    options.conversationType,
     options.createdAfterNs,
     options.createdBeforeNs,
     options.includeDuplicateDms ?? false,
@@ -497,4 +504,57 @@ export const toSafeKeyPackageStatus = (
       }
     : undefined,
   validationError: status.validationError,
+});
+
+export type SafeConversationDebugInfo = {
+  epoch: bigint;
+  maybeForked: boolean;
+  forkDetails: string;
+};
+
+export const toSafeConversationDebugInfo = (
+  debugInfo: ConversationDebugInfo,
+): SafeConversationDebugInfo => ({
+  epoch: debugInfo.epoch,
+  maybeForked: debugInfo.maybeForked,
+  forkDetails: debugInfo.forkDetails,
+});
+
+export type SafeApiStats = {
+  fetchKeyPackage: bigint;
+  queryGroupMessages: bigint;
+  queryWelcomeMessages: bigint;
+  sendGroupMessages: bigint;
+  sendWelcomeMessages: bigint;
+  subscribeMessages: bigint;
+  subscribeWelcomes: bigint;
+  uploadKeyPackage: bigint;
+};
+
+export const toSafeApiStats = (stats: ApiStats): SafeApiStats => ({
+  uploadKeyPackage: stats.upload_key_package,
+  fetchKeyPackage: stats.fetch_key_package,
+  sendGroupMessages: stats.send_group_messages,
+  sendWelcomeMessages: stats.send_welcome_messages,
+  queryGroupMessages: stats.query_group_messages,
+  queryWelcomeMessages: stats.query_welcome_messages,
+  subscribeMessages: stats.subscribe_messages,
+  subscribeWelcomes: stats.subscribe_welcomes,
+});
+
+export type SafeIdentityStats = {
+  getIdentityUpdatesV2: bigint;
+  getInboxIds: bigint;
+  publishIdentityUpdate: bigint;
+  verifySmartContractWalletSignature: bigint;
+};
+
+export const toSafeIdentityStats = (
+  stats: IdentityStats,
+): SafeIdentityStats => ({
+  getIdentityUpdatesV2: stats.get_identity_updates_v2,
+  getInboxIds: stats.get_inbox_ids,
+  publishIdentityUpdate: stats.publish_identity_update,
+  verifySmartContractWalletSignature:
+    stats.verify_smart_contract_wallet_signature,
 });

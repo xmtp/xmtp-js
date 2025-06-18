@@ -1,4 +1,3 @@
-import { getRandomValues } from "node:crypto";
 import { Client, IdentifierKind, type Signer } from "@xmtp/node-sdk";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -9,8 +8,6 @@ import {
   RemoteAttachmentCodec,
   type RemoteAttachment,
 } from "./RemoteAttachment";
-
-const testEncryptionKey = getRandomValues(new Uint8Array(32));
 
 export const createSigner = (): Signer => {
   const account = privateKeyToAccount(generatePrivateKey());
@@ -43,13 +40,13 @@ test("content type exists", () => {
 
 test("can create a remote attachment", async () => {
   const signer1 = createSigner();
-  const client1 = await Client.create(signer1, testEncryptionKey, {
+  const client1 = await Client.create(signer1, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
 
   const signer2 = createSigner();
-  const client2 = await Client.create(signer2, testEncryptionKey, {
+  const client2 = await Client.create(signer2, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
@@ -117,13 +114,13 @@ test("can create a remote attachment", async () => {
 
 test("fails if url is not https", async () => {
   const signer1 = createSigner();
-  const client1 = await Client.create(signer1, testEncryptionKey, {
+  const client1 = await Client.create(signer1, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
 
   const signer2 = createSigner();
-  const client2 = await Client.create(signer2, testEncryptionKey, {
+  const client2 = await Client.create(signer2, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
@@ -158,13 +155,13 @@ test("fails if url is not https", async () => {
 
 test("fails if content digest does not match", async () => {
   const signer1 = createSigner();
-  const client1 = await Client.create(signer1, testEncryptionKey, {
+  const client1 = await Client.create(signer1, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });
 
   const signer2 = createSigner();
-  const client2 = await Client.create(signer2, testEncryptionKey, {
+  const client2 = await Client.create(signer2, {
     codecs: [new AttachmentCodec(), new RemoteAttachmentCodec()],
     env: "local",
   });

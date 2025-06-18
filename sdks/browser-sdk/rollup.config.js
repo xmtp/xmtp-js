@@ -2,7 +2,6 @@ import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
-import filesize from "rollup-plugin-filesize";
 import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
 const plugins = [
@@ -12,9 +11,6 @@ const plugins = [
     declarationMap: false,
   }),
   terser(),
-  filesize({
-    showMinifiedSize: false,
-  }),
 ];
 
 const external = [
@@ -22,7 +18,6 @@ const external = [
   "@xmtp/wasm-bindings",
   "@xmtp/content-type-primitives",
   "@xmtp/content-type-group-updated",
-  "@xmtp/proto",
   "uuid",
 ];
 

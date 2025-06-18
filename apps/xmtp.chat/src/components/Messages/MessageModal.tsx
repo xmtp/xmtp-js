@@ -1,4 +1,4 @@
-import { Center, ScrollArea, Stack, Tabs, Text } from "@mantine/core";
+import { Center, Code, ScrollArea, Stack, Tabs, Text } from "@mantine/core";
 import { type DecodedMessage } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -102,7 +102,21 @@ export const MessageModal: React.FC = () => {
                 flexDirection: "column",
               }}>
               <ScrollArea>
-                <CodeWithCopy code={JSON.stringify(message.content, null, 2)} />
+                {message.content !== undefined ? (
+                  <CodeWithCopy
+                    code={JSON.stringify(message.content, null, 2)}
+                  />
+                ) : (
+                  <Code
+                    p="md"
+                    block
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                    }}>
+                    The contents of this message could not be decoded.
+                  </Code>
+                )}
               </ScrollArea>
             </Tabs.Panel>
           </Tabs>

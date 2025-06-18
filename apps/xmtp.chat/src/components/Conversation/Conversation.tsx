@@ -8,16 +8,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
+import { ConversationProvider } from "@/contexts/ConversationContext";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
 
 export type ConversationProps = {
-  conversation: XmtpConversation;
+  conversation: XmtpConversation<ContentTypes>;
 };
 
 export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
-  const { client } = useOutletContext<{ client: Client }>();
+  const { client } = useOutletContext<{ client: Client<ContentTypes> }>();
   const [title, setTitle] = useState("");
   const {
     messages,
@@ -44,6 +46,9 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
       await startStream();
     };
     void loadMessages();
+    return () => {
+      stopStream();
+    };
   }, [conversation.id]);
 
   const handleSync = useCallback(async () => {
@@ -54,12 +59,6 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
       setTitle(conversation.name || "Untitled");
     }
   }, [getMessages, conversation.id, startStream, stopStream]);
-
-  useEffect(() => {
-    return () => {
-      stopStream();
-    };
-  }, []);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {
@@ -85,7 +84,9 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
         }
         footer={<Composer conversation={conversation} />}
         withScrollArea={false}>
-        <Messages messages={messages} />
+        <ConversationProvider conversation={conversation}>
+          <Messages messages={messages} />
+        </ConversationProvider>
       </ContentLayout>
       <Outlet context={{ conversation, client }} />
     </>

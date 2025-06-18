@@ -8,16 +8,20 @@ import {
 import { useCallback } from "react";
 import { useOutletContext } from "react-router";
 import { useChainId, useSignTypedData, useSwitchChain } from "wagmi";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 
 export type EthSignTypedDataContentProps = {
   content: EthSignTypedDataParams;
   conversationId: string;
 };
 
-export const EthSignTypedDataContent: React.FC<
-  EthSignTypedDataContentProps
-> = ({ content, conversationId }) => {
-  const { client } = useOutletContext<{ client: Client }>();
+export const EthSignTypedDataContent: React.FC<EthSignTypedDataContentProps> = ({
+  content,
+  conversationId,
+}) => {
+  const { client } = useOutletContext<{
+    client: Client<ContentTypes>;
+  }>();
   const { signTypedDataAsync } = useSignTypedData();
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();

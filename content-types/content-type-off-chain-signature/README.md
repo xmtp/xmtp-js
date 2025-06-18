@@ -82,19 +82,4 @@ Since this content type is useful only for agents, the UI can be minimal just to
 
 Run `yarn dev` to build the content type and watch for changes, which will trigger a rebuild.
 
-## Testing
-
-Before running unit tests, start the required Docker container at the root of this repository. For more info, see [Running tests](../../README.md#running-tests).
-
-## Useful commands
-
-- `yarn build`: Builds the content type
-- `yarn clean`: Removes `node_modules`, `dist`, and `.turbo` folders
-- `yarn dev`: Builds the content type and watches for changes, which will trigger a rebuild
-- `yarn format`: Runs Prettier format and write changes
-- `yarn format:check`: Runs Prettier format check
-- `yarn lint`: Runs ESLint
-- `yarn test:setup`: Starts a necessary Docker container for testing
-- `yarn test:teardown`: Stops Docker container for testing
-- `yarn test`: Runs all unit tests
-- `yarn typecheck`: Runs `tsc`
+For more information on contributing to this repository, see our [contributing guidelines](../../CONTRIBUTING.md).

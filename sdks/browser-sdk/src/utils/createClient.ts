@@ -6,19 +6,20 @@ import {
   type Identifier,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
-import type { ClientOptions } from "@/types";
+import type { ClientOptions } from "@/types/options";
 
 export const createClient = async (
   identifier: Identifier,
   options?: Omit<ClientOptions, "codecs">,
 ) => {
-  const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
+  const env = options?.env || "dev";
+  const host = options?.apiUrl || ApiUrls[env];
   const inboxId =
     (await getInboxIdForIdentifier(host, identifier)) ||
     generateInboxId(identifier);
   const dbPath =
     options?.dbPath === undefined
-      ? `xmtp-${options?.env || "dev"}-${inboxId}.db3`
+      ? `xmtp-${env}-${inboxId}.db3`
       : options.dbPath;
   const isLogging =
     options &&
@@ -27,7 +28,13 @@ export const createClient = async (
       options.performanceLogging);
 
   const historySyncUrl =
-    options?.historySyncUrl || HistorySyncUrls[options?.env || "dev"];
+    options?.historySyncUrl === undefined
+      ? HistorySyncUrls[env]
+      : options.historySyncUrl;
+
+  const deviceSyncWorkerMode = options?.disableDeviceSync
+    ? "disabled"
+    : "enabled";
 
   return createWasmClient(
     host,
@@ -36,6 +43,7 @@ export const createClient = async (
     dbPath,
     options?.dbEncryptionKey,
     historySyncUrl,
+    deviceSyncWorkerMode,
     isLogging
       ? new LogOptions(
           options.structuredLogging ?? false,

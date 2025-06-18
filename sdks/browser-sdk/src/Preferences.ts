@@ -9,16 +9,20 @@ import type { Client } from "./Client";
  *
  * This class is not intended to be initialized directly.
  */
-export class Preferences {
-  #client: Client;
+export class Preferences<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
 
   /**
    * Creates a new preferences instance
    *
    * @param client - The client instance managing preferences
    */
-  constructor(client: Client) {
+  constructor(client: Client<ContentTypes>) {
     this.#client = client;
+  }
+
+  sync() {
+    return this.#client.sendMessage("preferences.sync", undefined);
   }
 
   /**
@@ -28,7 +32,7 @@ export class Preferences {
    * @returns Promise that resolves with the inbox state
    */
   async inboxState(refreshFromNetwork?: boolean) {
-    return this.#client.sendMessage("inboxState", {
+    return this.#client.sendMessage("preferences.inboxState", {
       refreshFromNetwork: refreshFromNetwork ?? false,
     });
   }
@@ -44,7 +48,7 @@ export class Preferences {
     inboxIds: string[],
     refreshFromNetwork?: boolean,
   ) {
-    return this.#client.sendMessage("inboxStateFromInboxIds", {
+    return this.#client.sendMessage("preferences.inboxStateFromInboxIds", {
       inboxIds,
       refreshFromNetwork: refreshFromNetwork ?? false,
     });
@@ -57,7 +61,9 @@ export class Preferences {
    * @returns Promise that resolves with the latest inbox state
    */
   async getLatestInboxState(inboxId: string) {
-    return this.#client.sendMessage("getLatestInboxState", { inboxId });
+    return this.#client.sendMessage("preferences.getLatestInboxState", {
+      inboxId,
+    });
   }
 
   /**
@@ -67,7 +73,9 @@ export class Preferences {
    * @returns Promise that resolves when consent states are updated
    */
   async setConsentStates(records: SafeConsent[]) {
-    return this.#client.sendMessage("setConsentStates", { records });
+    return this.#client.sendMessage("preferences.setConsentStates", {
+      records,
+    });
   }
 
   /**
@@ -78,14 +86,17 @@ export class Preferences {
    * @returns Promise that resolves with the consent state
    */
   async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.#client.sendMessage("getConsentState", { entityType, entity });
+    return this.#client.sendMessage("preferences.getConsentState", {
+      entityType,
+      entity,
+    });
   }
 
   /**
    * Creates a stream of consent state updates
    *
    * @param callback - Optional callback function for handling stream updates
-   * @returns AsyncStream instance for consent updates
+   * @returns Stream instance for consent updates
    */
   async streamConsent(callback?: StreamCallback<SafeConsent[]>) {
     const streamId = v4();
@@ -97,7 +108,7 @@ export class Preferences {
         void callback?.(error, value ?? undefined);
       },
     );
-    await this.#client.sendMessage("streamConsent", {
+    await this.#client.sendMessage("preferences.streamConsent", {
       streamId,
     });
     asyncStream.onReturn = () => {
@@ -113,7 +124,7 @@ export class Preferences {
    * Creates a stream of user preference updates
    *
    * @param callback - Optional callback function for handling stream updates
-   * @returns AsyncStream instance for preference updates
+   * @returns Stream instance for preference updates
    */
   async streamPreferences(callback?: StreamCallback<UserPreference[]>) {
     const streamId = v4();
@@ -125,7 +136,7 @@ export class Preferences {
         void callback?.(error, value ?? undefined);
       },
     );
-    await this.#client.sendMessage("streamPreferences", {
+    await this.#client.sendMessage("preferences.streamPreferences", {
       streamId,
     });
     asyncStream.onReturn = () => {

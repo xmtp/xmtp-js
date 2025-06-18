@@ -78,8 +78,11 @@ export class WorkerConversations {
   listGroups(
     options?: Omit<SafeListConversationsOptions, "conversation_type">,
   ) {
-    const groups = this.#conversations.listGroups(
-      options ? fromSafeListConversationsOptions(options) : undefined,
+    const groups = this.#conversations.list(
+      fromSafeListConversationsOptions({
+        ...(options ?? {}),
+        conversationType: ConversationType.Group,
+      }),
     ) as ConversationListItem[];
     return groups.map(
       (item) => new WorkerConversation(this.#client, item.conversation),
@@ -87,12 +90,22 @@ export class WorkerConversations {
   }
 
   listDms(options?: Omit<SafeListConversationsOptions, "conversation_type">) {
-    const groups = this.#conversations.listDms(
-      options ? fromSafeListConversationsOptions(options) : undefined,
+    const groups = this.#conversations.list(
+      fromSafeListConversationsOptions({
+        ...(options ?? {}),
+        conversationType: ConversationType.Dm,
+      }),
     ) as ConversationListItem[];
     return groups.map(
       (item) => new WorkerConversation(this.#client, item.conversation),
     );
+  }
+
+  newGroupOptimistic(options?: SafeCreateGroupOptions) {
+    const group = this.#conversations.createGroupOptimistic(
+      options ? fromSafeCreateGroupOptions(options) : undefined,
+    );
+    return new WorkerConversation(this.#client, group);
   }
 
   async newGroupWithIdentifiers(
@@ -164,6 +177,7 @@ export class WorkerConversations {
   streamAllMessages(
     callback?: StreamCallback<Message>,
     conversationType?: ConversationType,
+    consentStates?: ConsentState[],
   ) {
     const on_message = (message: Message) => {
       void callback?.(null, message);
@@ -174,6 +188,7 @@ export class WorkerConversations {
     return this.#conversations.streamAllMessages(
       { on_message, on_error },
       conversationType,
+      consentStates,
     );
   }
 }

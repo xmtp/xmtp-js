@@ -15,7 +15,7 @@ import {
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
 import { Preferences } from "@/Preferences";
-import type { ClientOptions, XmtpEnv } from "@/types";
+import type { ClientOptions, XmtpEnv } from "@/types/options";
 import { Utils } from "@/Utils";
 import {
   fromSafeEncodedContent,
@@ -32,18 +32,25 @@ import {
 } from "@/utils/errors";
 import { type Signer } from "@/utils/signer";
 
+export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
+  [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
+    ? T
+    : never;
+
 /**
  * Client for interacting with the XMTP network
  */
-export class Client extends ClientWorkerClass {
+export class Client<
+  ContentTypes = ExtractCodecContentTypes,
+> extends ClientWorkerClass {
   #codecs: Map<string, ContentCodec>;
-  #conversations: Conversations;
+  #conversations: Conversations<ContentTypes>;
   #identifier?: Identifier;
   #inboxId: string | undefined;
   #installationId: string | undefined;
   #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
-  #preferences: Preferences;
+  #preferences: Preferences<ContentTypes>;
   #signer?: Signer;
   #options?: ClientOptions;
 
@@ -85,7 +92,7 @@ export class Client extends ClientWorkerClass {
    * @param identifier - The identifier to initialize the client with
    */
   async init(identifier: Identifier) {
-    const result = await this.sendMessage("init", {
+    const result = await this.sendMessage("client.init", {
       identifier,
       options: this.#options,
     });
@@ -103,8 +110,13 @@ export class Client extends ClientWorkerClass {
    * @param options - Optional configuration for the client
    * @returns A new client instance
    */
-  static async create(signer: Signer, options?: ClientOptions) {
-    const client = new Client(options);
+  static async create<ContentCodecs extends ContentCodec[] = []>(
+    signer: Signer,
+    options?: Omit<ClientOptions, "codecs"> & {
+      codecs?: ContentCodecs;
+    },
+  ) {
+    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>(options);
     client.#signer = signer;
 
     await client.init(await signer.getIdentifier());
@@ -126,8 +138,13 @@ export class Client extends ClientWorkerClass {
    * @param options - Optional configuration for the client
    * @returns A new client instance
    */
-  static async build(identifier: Identifier, options?: ClientOptions) {
-    const client = new Client({
+  static async build<ContentCodecs extends ContentCodec[] = []>(
+    identifier: Identifier,
+    options?: Omit<ClientOptions, "codecs"> & {
+      codecs?: ContentCodecs;
+    },
+  ) {
+    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>({
       ...options,
       disableAutoRegister: true,
     });
@@ -140,6 +157,13 @@ export class Client extends ClientWorkerClass {
    */
   get options() {
     return this.#options;
+  }
+
+  /**
+   * Gets the signer associated with this client
+   */
+  get signer() {
+    return this.#signer;
   }
 
   /**
@@ -203,7 +227,7 @@ export class Client extends ClientWorkerClass {
    * @returns The signature text
    */
   async unsafe_createInboxSignatureText() {
-    return this.sendMessage("createInboxSignatureText", undefined);
+    return this.sendMessage("client.createInboxSignatureText", undefined);
   }
 
   /**
@@ -227,7 +251,7 @@ export class Client extends ClientWorkerClass {
       throw new InboxReassignError();
     }
 
-    return this.sendMessage("addAccountSignatureText", {
+    return this.sendMessage("client.addAccountSignatureText", {
       newIdentifier,
     });
   }
@@ -245,7 +269,7 @@ export class Client extends ClientWorkerClass {
    * @returns The signature text
    */
   async unsafe_removeAccountSignatureText(identifier: Identifier) {
-    return this.sendMessage("removeAccountSignatureText", {
+    return this.sendMessage("client.removeAccountSignatureText", {
       identifier,
     });
   }
@@ -264,7 +288,7 @@ export class Client extends ClientWorkerClass {
    */
   async unsafe_revokeAllOtherInstallationsSignatureText() {
     return this.sendMessage(
-      "revokeAllOtherInstallationsSignatureText",
+      "client.revokeAllOtherInstallationsSignatureText",
       undefined,
     );
   }
@@ -283,7 +307,7 @@ export class Client extends ClientWorkerClass {
    * @returns The signature text
    */
   async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
-    return this.sendMessage("revokeInstallationsSignatureText", {
+    return this.sendMessage("client.revokeInstallationsSignatureText", {
       installationIds,
     });
   }
@@ -302,7 +326,7 @@ export class Client extends ClientWorkerClass {
    * @returns The signature text
    */
   async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
-    return this.sendMessage("changeRecoveryIdentifierSignatureText", {
+    return this.sendMessage("client.changeRecoveryIdentifierSignatureText", {
       identifier,
     });
   }
@@ -332,7 +356,7 @@ export class Client extends ClientWorkerClass {
 
     switch (signer.type) {
       case "SCW":
-        await this.sendMessage("addScwSignature", {
+        await this.sendMessage("client.addScwSignature", {
           type: signatureType,
           bytes: signature,
           chainId: signer.getChainId(),
@@ -340,7 +364,7 @@ export class Client extends ClientWorkerClass {
         });
         break;
       case "EOA":
-        await this.sendMessage("addEcdsaSignature", {
+        await this.sendMessage("client.addEcdsaSignature", {
           type: signatureType,
           bytes: signature,
         });
@@ -360,7 +384,7 @@ export class Client extends ClientWorkerClass {
    * methods instead.
    */
   async unsafe_applySignatures() {
-    return this.sendMessage("applySignatures", undefined);
+    return this.sendMessage("client.applySignatures", undefined);
   }
 
   /**
@@ -388,7 +412,7 @@ export class Client extends ClientWorkerClass {
       this.#signer,
     );
 
-    return this.sendMessage("registerIdentity", undefined);
+    return this.sendMessage("client.registerIdentity", undefined);
   }
 
   /**
@@ -571,7 +595,7 @@ export class Client extends ClientWorkerClass {
    * @returns Whether the client is registered
    */
   async isRegistered() {
-    return this.sendMessage("isRegistered", undefined);
+    return this.sendMessage("client.isRegistered", undefined);
   }
 
   /**
@@ -581,7 +605,7 @@ export class Client extends ClientWorkerClass {
    * @returns Whether the client can message the identifiers
    */
   async canMessage(identifiers: Identifier[]) {
-    return this.sendMessage("canMessage", { identifiers });
+    return this.sendMessage("client.canMessage", { identifiers });
   }
 
   /**
@@ -596,7 +620,10 @@ export class Client extends ClientWorkerClass {
     const utils = new Utils();
     for (const identifier of identifiers) {
       const inboxId = await utils.getInboxIdForIdentifier(identifier, env);
-      canMessageMap.set(identifier.identifier, inboxId !== undefined);
+      canMessageMap.set(
+        identifier.identifier.toLowerCase(),
+        inboxId !== undefined,
+      );
     }
     utils.close();
     return canMessageMap;
@@ -609,7 +636,7 @@ export class Client extends ClientWorkerClass {
    * @returns The inbox ID, if found
    */
   async findInboxIdByIdentifier(identifier: Identifier) {
-    return this.sendMessage("findInboxIdByIdentifier", { identifier });
+    return this.sendMessage("client.findInboxIdByIdentifier", { identifier });
   }
 
   /**
@@ -618,8 +645,10 @@ export class Client extends ClientWorkerClass {
    * @param contentType - The content type to get the codec for
    * @returns The codec, if found
    */
-  codecFor(contentType: ContentTypeId) {
-    return this.#codecs.get(contentType.toString());
+  codecFor<ContentType = unknown>(contentType: ContentTypeId) {
+    return this.#codecs.get(contentType.toString()) as
+      | ContentCodec<ContentType>
+      | undefined;
   }
 
   /**
@@ -630,7 +659,7 @@ export class Client extends ClientWorkerClass {
    * @returns The encoded content
    * @throws {CodecNotFoundError} if no codec is found for the content type
    */
-  encodeContent(content: any, contentType: ContentTypeId) {
+  encodeContent(content: ContentTypes, contentType: ContentTypeId) {
     const codec = this.codecFor(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
@@ -652,8 +681,11 @@ export class Client extends ClientWorkerClass {
    * @throws {CodecNotFoundError} if no codec is found for the content type
    * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
    */
-  decodeContent(message: SafeMessage, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
+  decodeContent<ContentType = unknown>(
+    message: SafeMessage,
+    contentType: ContentTypeId,
+  ) {
+    const codec = this.codecFor<ContentType>(contentType);
     if (!codec) {
       throw new CodecNotFoundError(contentType);
     }
@@ -667,7 +699,7 @@ export class Client extends ClientWorkerClass {
     }
 
     const encodedContent = fromSafeEncodedContent(message.content);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     return codec.decode(encodedContent, this);
   }
 
@@ -678,7 +710,9 @@ export class Client extends ClientWorkerClass {
    * @returns The signature
    */
   signWithInstallationKey(signatureText: string) {
-    return this.sendMessage("signWithInstallationKey", { signatureText });
+    return this.sendMessage("client.signWithInstallationKey", {
+      signatureText,
+    });
   }
 
   /**
@@ -692,7 +726,7 @@ export class Client extends ClientWorkerClass {
     signatureText: string,
     signatureBytes: Uint8Array,
   ) {
-    return this.sendMessage("verifySignedWithInstallationKey", {
+    return this.sendMessage("client.verifySignedWithInstallationKey", {
       signatureText,
       signatureBytes,
     });
@@ -711,7 +745,7 @@ export class Client extends ClientWorkerClass {
     signatureBytes: Uint8Array,
     publicKey: Uint8Array,
   ) {
-    return this.sendMessage("verifySignedWithPublicKey", {
+    return this.sendMessage("client.verifySignedWithPublicKey", {
       signatureText,
       signatureBytes,
       publicKey,
@@ -725,8 +759,26 @@ export class Client extends ClientWorkerClass {
    * @returns The key package statuses
    */
   async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
-    return this.sendMessage("getKeyPackageStatusesForInstallationIds", {
+    return this.sendMessage("client.getKeyPackageStatusesForInstallationIds", {
       installationIds,
+    });
+  }
+
+  apiStatistics() {
+    return this.sendMessage("client.apiStatistics", undefined);
+  }
+
+  apiIdentityStatistics() {
+    return this.sendMessage("client.apiIdentityStatistics", undefined);
+  }
+
+  apiAggregateStatistics() {
+    return this.sendMessage("client.apiAggregateStatistics", undefined);
+  }
+
+  async uploadDebugArchive(serverUrl?: string) {
+    return this.sendMessage("client.uploadDebugArchive", {
+      serverUrl,
     });
   }
 }

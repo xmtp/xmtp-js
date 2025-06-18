@@ -1,5 +1,6 @@
 import { Badge, Flex, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
+import { useCallback } from "react";
 import { shortAddress } from "@/helpers/strings";
 
 export type AddressTooltipLabelProps = {
@@ -21,20 +22,35 @@ export const AddressTooltipLabel: React.FC<AddressTooltipLabelProps> = ({
 
 export type AddressBadgeProps = {
   address: string;
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
 };
 
-export const AddressBadge: React.FC<AddressBadgeProps> = ({ address }) => {
+export const AddressBadge: React.FC<AddressBadgeProps> = ({
+  address,
+  size = "lg",
+}) => {
   const clipboard = useClipboard({ timeout: 1000 });
 
-  const handleCopy = () => {
-    clipboard.copy(address);
-  };
+  const handleCopy = useCallback(
+    (
+      event:
+        | React.MouseEvent<HTMLDivElement>
+        | React.KeyboardEvent<HTMLDivElement>,
+    ) => {
+      event.stopPropagation();
+      clipboard.copy(address);
+    },
+    [clipboard, address],
+  );
 
-  const handleKeyboardCopy = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      handleCopy();
-    }
-  };
+  const handleKeyboardCopy = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        handleCopy(event);
+      }
+    },
+    [handleCopy],
+  );
 
   return (
     <Tooltip
@@ -49,7 +65,7 @@ export const AddressBadge: React.FC<AddressBadgeProps> = ({ address }) => {
       events={{ hover: true, focus: true, touch: true }}>
       <Badge
         variant="default"
-        size="lg"
+        size={size}
         radius="md"
         onKeyDown={handleKeyboardCopy}
         onClick={handleCopy}
@@ -59,8 +75,7 @@ export const AddressBadge: React.FC<AddressBadgeProps> = ({ address }) => {
           label: {
             textTransform: "none",
           },
-        }}
-        flex="1 0">
+        }}>
         {shortAddress(address)}
       </Badge>
     </Tooltip>

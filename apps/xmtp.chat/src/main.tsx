@@ -2,10 +2,28 @@ import "@mantine/core/styles.css";
 import "./globals.css";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import pkg from "@xmtp/browser-sdk/package.json";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { base, baseSepolia, mainnet, sepolia } from "wagmi/chains";
+import {
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  linea,
+  lineaSepolia,
+  mainnet,
+  optimism,
+  optimismSepolia,
+  polygon,
+  polygonAmoy,
+  sepolia,
+  worldchain,
+  worldchainSepolia,
+  zksync,
+  zksyncSepoliaTestnet,
+} from "wagmi/chains";
 import {
   coinbaseWallet,
   injected,
@@ -26,12 +44,41 @@ export const config = createConfig({
     metaMask(),
     walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID }),
   ],
-  chains: [mainnet, base, sepolia, baseSepolia],
+  chains: [
+    arbitrum,
+    arbitrumSepolia,
+    base,
+    baseSepolia,
+    linea,
+    lineaSepolia,
+    mainnet,
+    optimism,
+    optimismSepolia,
+    polygon,
+    polygonAmoy,
+    sepolia,
+    worldchain,
+    worldchainSepolia,
+    zksync,
+    zksyncSepoliaTestnet,
+  ],
   transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
+    [arbitrum.id]: http(),
+    [arbitrumSepolia.id]: http(),
     [base.id]: http(),
     [baseSepolia.id]: http(),
+    [linea.id]: http(),
+    [lineaSepolia.id]: http(),
+    [mainnet.id]: http(),
+    [optimism.id]: http(),
+    [optimismSepolia.id]: http(),
+    [polygon.id]: http(),
+    [polygonAmoy.id]: http(),
+    [sepolia.id]: http(),
+    [worldchain.id]: http(),
+    [worldchainSepolia.id]: http(),
+    [zksync.id]: http(),
+    [zksyncSepoliaTestnet.id]: http(),
   },
 });
 
@@ -48,3 +95,5 @@ createRoot(document.getElementById("root") as HTMLElement).render(
     </QueryClientProvider>
   </WagmiProvider>,
 );
+
+console.log("[xmtp.chat] XMTP Browser SDK version:", pkg.version);

@@ -1,5 +1,221 @@
 # @xmtp/node-sdk
 
+## 2.1.0
+
+This release delivers enhancements to messaging performance and reliability, as well as a set of developer debugging tools, all focused on making it easier to build with XMTP.
+
+If you’ve been building on a previous release, this one should be a **drop-in replacement**—just update to the latest version to take advantage of everything below.
+
+### Consent-based listing, streaming, and syncing
+
+By default, `conversations.list`, `conversations.listGroups`, `conversations.listDms`, `conversations.syncAll`, `conversations.streamAllMessages`, `conversations.streamAllGroupMessages`, and `conversations.streamAllDmMessages` now filter for conversations with a consent state of `ConsentState.Allowed` or `ConsentState.Unknown`.
+
+We recommend listing `ConsentState.Allowed` conversations only. This ensures that spammy conversations with a consent state of `ConsentState.Unknown` don't degrade the user experience.
+
+To include all conversations regardless of consent state, you can pass `[ConsentState.Allowed, ConsentState.Unknown, ConsentState.Denied]`.
+
+### Optimistic group chat creation
+
+Provides faster and offline group chat creation and message preparation before adding members.
+
+### Group chat member limit
+
+**A 220-member limit is now enforced for group chats.** This helps prevent errors that oversized groups can cause and ensures consistent behavior across clients.
+
+### Preference sync
+
+Preference syncing enables you to sync the following preference-related information across multiple existing app installations:
+
+- Conversation consent preferences
+- Conversation HMAC keys (for push notifications)
+
+### Developer tooling and debugging
+
+Delivers tools and features for debugging when building with XMTP, including group chat diagnostics, file logging, and network statistics.
+
+### Reliability and performance
+
+- Reliability improvements to message history
+- Reliability improvements to [`streamAll`](https://docs.xmtp.org/inboxes/list-and-stream#stream-all-group-chat-and-dm-messages)
+- Performance improvements to `peerInboxId`
+- [Duplicate DMs](https://docs.xmtp.org/inboxes/push-notifs/understand-push-notifs#dm-stitching-considerations-for-push-notifications) removed from streams
+
+## 2.0.9
+
+### Patch Changes
+
+- 441a029: `AsyncStream` updates
+  - Changed signature of `return` to allow no argument (e.g. `stream.return()`)
+  - Added `end` alias that calls `return` without an argument
+  - Added `AsyncStream` to exports
+
+## 2.0.8
+
+### Patch Changes
+
+- 609b509: Do not stop stream on benign message processing errors
+
+## 2.0.7
+
+### Patch Changes
+
+- 616fdec: Added `null` option to `historySyncUrl` client option to allow disabling of history sync
+
+## 2.0.6
+
+### Patch Changes
+
+- 5bc5a85: Update to the libxmtp stable release version
+
+## 2.0.5
+
+### Patch Changes
+
+- 581d465: Added guard to prevent unexpected conversation types
+
+## 2.0.4
+
+### Patch Changes
+
+- fbce324: Fix welcome processing issue that could lead to incorrect group state
+
+## 2.0.3
+
+### Patch Changes
+
+- b7a3001: Fixed message processing issue that could sometimes fork groups
+
+## 2.0.2
+
+### Patch Changes
+
+- f0a43c4: Lowercase Ethereum addresses on static Client.canMessage calls
+
+## 2.0.1
+
+### Patch Changes
+
+- Removed filter for messages when content is `undefined`
+- Converted all `any` types to `unknown`
+- Added generics for types with `unknown` where applicable
+- Prevented `CodecNotFoundError` from throwing when instantiating `DecodedMessage`
+- Added code comments
+- Updated dependencies
+  - @xmtp/content-type-group-updated@2.0.2
+  - @xmtp/content-type-primitives@2.0.2
+  - @xmtp/content-type-text@2.0.2
+
+## 2.0.0
+
+This release focuses on new features, stability, and performance.
+
+### Upgrade from 1.2.1 to 2.0.0
+
+Use the information in these release notes to upgrade from `@xmtp/node-sdk` version `1.2.1` to `2.0.0`.
+
+### Breaking changes
+
+#### Refactored `Client.create`
+
+The database encryption key parameter was removed from the static `Client.create` method. To use a database encryption key, add it to the client options.
+
+`1.x` code:
+
+```typescript
+import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = { ... };
+const dbEncryptionKey = MY_ENCRYPTION_KEY;
+const signer: Signer = { ... };
+const client = await Client.create(signer, dbEncryptionKey, clientOptions);
+```
+
+`2.0.0` code:
+
+```typescript
+import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = {
+  dbEncryptionKey: MY_ENCRYPTION_KEY,
+};
+const signer: Signer = { ... };
+const client = await Client.create(signer, clientOptions);
+```
+
+#### Refactored `Client` constructor
+
+The `Client` constructor now only accepts a single parameter: client options. It's no longer possible to create a client with a signer using the constructor. Use `Client.create` to create a new client with a signer.
+
+`1.x` code:
+
+```typescript
+import { Client, type Signer } from "@xmtp/node-sdk";
+
+const signer: Signer = { ... };
+const client = new Client(XMTPClient, signer, codecs);
+```
+
+`2.0.0` code:
+
+```typescript
+import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = {
+  dbEncryptionKey: MY_ENCRYPTION_KEY,
+};
+const signer: Signer = { ... };
+const client = await Client.create(signer, clientOptions);
+```
+
+#### Client `identifier` property is now `accountIdentifier`
+
+`1.x` code:
+
+```typescript
+const identifier = await client.identifier;
+```
+
+`2.0.0` code:
+
+```typescript
+const identifier = client.accountIdentifier;
+```
+
+#### Removed `requestHistorySync` method from client
+
+Device sync is being refactored and this method will not be compatible with a future version. Removing it now with these breaking changes so we don't need to bump the major version in the near future.
+
+### New features
+
+#### Added `Client.build` static method
+
+It's now possible to create a client without a signer using the new `Client.build` method. A signer is not required if an account is already registered on the XMTP network. Keep in mind, some client methods still require a signer.
+
+```typescript
+import { Client, IdentifierKind, type ClientOptions, type Identifier } from "@xmtp/node-sdk";
+
+const clientOptions: ClientOptions = { ... };
+const identifier: Identifier = {
+  identifier: "0x1234567890abcdef1234567890abcdef12345678",
+  identifierKind: IdentifierKind.Ethereum,
+};
+const client = await Client.build(identifier, clientOptions);
+```
+
+### Other changes
+
+- Updated `dbPath` client option to allow `null` value
+- Added more custom error types
+- Added `dbEncryptionKey` option to client options
+- Added `options` property to client
+- Added `signer` property to client
+
+## 1.2.1
+
+### Patch Changes
+
+- 6e54926: Exposed message decoding errors in streams
+
 ## 1.2.0
 
 ### Minor Changes

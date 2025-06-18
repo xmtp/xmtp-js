@@ -3,6 +3,7 @@ import process from "node:process";
 import {
   createClient as createNodeClient,
   LogLevel,
+  SyncWorkerMode,
   type Identifier,
   type LogOptions,
 } from "@xmtp/node-bindings";
@@ -12,7 +13,6 @@ import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
 
 export const createClient = async (
   identifier: Identifier,
-  encryptionKey?: Uint8Array,
   options?: ClientOptions,
 ) => {
   const env = options?.env || "dev";
@@ -22,12 +22,22 @@ export const createClient = async (
     (await getInboxIdForIdentifier(identifier, env)) ||
     generateInboxId(identifier);
   const dbPath =
-    options?.dbPath || join(process.cwd(), `xmtp-${env}-${inboxId}.db3`);
+    options?.dbPath === undefined
+      ? join(process.cwd(), `xmtp-${env}-${inboxId}.db3`)
+      : options.dbPath;
+
   const logOptions: LogOptions = {
     structured: options?.structuredLogging ?? false,
     level: options?.loggingLevel ?? LogLevel.off,
   };
-  const historySyncUrl = options?.historySyncUrl || HistorySyncUrls[env];
+  const historySyncUrl =
+    options?.historySyncUrl === undefined
+      ? HistorySyncUrls[env]
+      : options.historySyncUrl;
+
+  const deviceSyncWorkerMode = options?.disableDeviceSync
+    ? SyncWorkerMode.disabled
+    : SyncWorkerMode.enabled;
 
   return createNodeClient(
     host,
@@ -35,8 +45,9 @@ export const createClient = async (
     dbPath,
     inboxId,
     identifier,
-    encryptionKey,
+    options?.dbEncryptionKey,
     historySyncUrl,
+    deviceSyncWorkerMode,
     logOptions,
   );
 };

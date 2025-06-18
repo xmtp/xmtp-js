@@ -1,4 +1,5 @@
 export { Client } from "./Client";
+export type { ExtractCodecContentTypes } from "./Client";
 export { Conversations } from "./Conversations";
 export { Conversation } from "./Conversation";
 export { Dm } from "./Dm";
@@ -7,8 +8,9 @@ export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
 export { Utils } from "./Utils";
 export { ApiUrls, HistorySyncUrls } from "./constants";
-export type * from "./types";
+export type * from "./types/options";
 export * from "./utils/conversions";
+export type { AsyncStream, StreamCallback } from "./AsyncStream";
 export type {
   Identifier,
   IdentifierKind,
@@ -49,3 +51,4 @@ export {
   SortDirection,
 } from "@xmtp/wasm-bindings";
 export type { Signer } from "./utils/signer";
+export * from "./utils/errors";

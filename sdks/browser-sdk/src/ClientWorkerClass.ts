@@ -1,21 +1,31 @@
 import { v4 } from "uuid";
 import type {
-  ClientEventsActions,
-  ClientEventsErrorData,
-  ClientEventsResult,
-  ClientEventsWorkerMessageData,
-  ClientSendMessageData,
-} from "@/types";
+  ActionErrorData,
+  ActionName,
+  ActionWithoutData,
+  ClientWorkerAction,
+  ExtractActionData,
+  ExtractActionResult,
+} from "@/types/actions";
 import type {
-  ClientStreamEvents,
-  ClientStreamEventsErrorData,
-} from "@/types/clientStreamEvents";
+  StreamAction,
+  StreamActionErrorData,
+} from "@/types/actions/streams";
 
 const handleError = (event: ErrorEvent) => {
-  console.error(`Worker error on line ${event.lineno} in "${event.filename}"`);
   console.error(event.message);
 };
 
+/**
+ * Class that sets up a worker and provides communications for client functions
+ *
+ * This class is not meant to be used directly, it is extended by the Client class
+ * to provide an interface to the worker.
+ *
+ * @param worker - The worker to use for the client class
+ * @param enableLogging - Whether to enable logging in the worker
+ * @returns A new ClientWorkerClass instance
+ */
 export class ClientWorkerClass {
   #worker: Worker;
 
@@ -23,19 +33,31 @@ export class ClientWorkerClass {
 
   #promises = new Map<
     string,
-    { resolve: (value: any) => void; reject: (reason?: any) => void }
+    {
+      resolve: (value: unknown) => void;
+      reject: (reason?: unknown) => void;
+    }
   >();
 
   constructor(worker: Worker, enableLogging: boolean) {
     this.#worker = worker;
     this.#worker.addEventListener("message", this.handleMessage);
-    this.#worker.addEventListener("error", handleError);
+    if (enableLogging) {
+      this.#worker.addEventListener("error", handleError);
+    }
     this.#enableLogging = enableLogging;
   }
 
-  sendMessage<A extends ClientEventsActions>(
+  /**
+   * Sends an action message to the client worker
+   *
+   * @param action - The action to send to the worker
+   * @param data - The data to send to the worker
+   * @returns A promise that resolves when the action is completed
+   */
+  sendMessage<A extends ActionName<ClientWorkerAction>>(
     action: A,
-    data: ClientSendMessageData<A>,
+    data: ExtractActionData<ClientWorkerAction, A>,
   ) {
     const promiseId = v4();
     this.#worker.postMessage({
@@ -43,14 +65,29 @@ export class ClientWorkerClass {
       id: promiseId,
       data,
     });
-    const promise = new Promise<ClientEventsResult<A>>((resolve, reject) => {
-      this.#promises.set(promiseId, { resolve, reject });
+    const promise = new Promise((resolve, reject) => {
+      this.#promises.set(promiseId, {
+        resolve: resolve as (value: unknown) => void,
+        reject,
+      });
     });
-    return promise;
+    return promise as [ExtractActionResult<ClientWorkerAction, A>] extends [
+      undefined,
+    ]
+      ? Promise<void>
+      : Promise<ExtractActionResult<ClientWorkerAction, A>>;
   }
 
+  /**
+   * Handles a message from the client worker
+   *
+   * @param event - The event to handle
+   */
   handleMessage = (
-    event: MessageEvent<ClientEventsWorkerMessageData | ClientEventsErrorData>,
+    event: MessageEvent<
+      | ActionWithoutData<ClientWorkerAction>
+      | ActionErrorData<ClientWorkerAction>
+    >,
   ) => {
     const eventData = event.data;
     if (this.#enableLogging) {
@@ -60,25 +97,31 @@ export class ClientWorkerClass {
     if (promise) {
       this.#promises.delete(eventData.id);
       if ("error" in eventData) {
-        promise.reject(new Error(eventData.error));
+        promise.reject(eventData.error);
       } else {
         promise.resolve(eventData.result);
       }
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  handleStreamMessage = <T extends ClientStreamEvents["result"]>(
+  /**
+   * Handles a stream message from the client worker
+   *
+   * @param streamId - The ID of the stream to handle
+   * @param callback - The callback to handle the stream message
+   * @returns A function to remove the stream handler
+   */
+  handleStreamMessage = <T extends StreamAction["result"]>(
     streamId: string,
     callback: (error: Error | null, value: T | null) => void,
   ) => {
     const streamHandler = (
-      event: MessageEvent<ClientStreamEvents | ClientStreamEventsErrorData>,
+      event: MessageEvent<StreamAction | StreamActionErrorData>,
     ) => {
       const eventData = event.data;
       if (eventData.streamId === streamId) {
         if ("error" in eventData) {
-          callback(new Error(eventData.error), null);
+          callback(eventData.error, null);
         } else {
           callback(null, eventData.result as T);
         }
@@ -91,9 +134,14 @@ export class ClientWorkerClass {
     };
   };
 
+  /**
+   * Removes all event listeners and terminates the worker
+   */
   close() {
     this.#worker.removeEventListener("message", this.handleMessage);
-    this.#worker.removeEventListener("error", handleError);
+    if (this.#enableLogging) {
+      this.#worker.removeEventListener("error", handleError);
+    }
     this.#worker.terminate();
   }
 }

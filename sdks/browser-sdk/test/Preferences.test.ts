@@ -219,7 +219,7 @@ describe.concurrent("Preferences", () => {
           expect(preferences[0].key).toBeDefined();
         }
       }
-      expect(count).toBe(3);
+      expect(count).toBe(2);
     });
   });
 });

@@ -33,17 +33,38 @@ export const useSettings = () => {
     defaultValue: "off",
     getInitialValueInEffect: false,
   });
+  const [forceSCW, setForceSCW] = useLocalStorage<boolean>({
+    key: "XMTP_FORCE_SCW",
+    defaultValue: false,
+    getInitialValueInEffect: false,
+  });
+  const [useSCW, setUseSCW] = useLocalStorage<boolean>({
+    key: "XMTP_USE_SCW",
+    defaultValue: false,
+    getInitialValueInEffect: false,
+  });
+  const [blockchain, setBlockchain] = useLocalStorage<number>({
+    key: "XMTP_BLOCKCHAIN",
+    defaultValue: 1,
+    getInitialValueInEffect: false,
+  });
 
   return {
+    blockchain,
     encryptionKey,
     environment,
     ephemeralAccountEnabled,
     ephemeralAccountKey,
+    forceSCW,
     loggingLevel,
+    useSCW,
+    setBlockchain,
     setEncryptionKey,
     setEnvironment,
     setEphemeralAccountEnabled,
     setEphemeralAccountKey,
+    setForceSCW,
     setLoggingLevel,
+    setUseSCW,
   };
 };

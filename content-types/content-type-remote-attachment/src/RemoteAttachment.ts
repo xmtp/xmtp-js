@@ -47,9 +47,9 @@ export type RemoteAttachmentParameters = {
 export class RemoteAttachmentCodec
   implements ContentCodec<RemoteAttachment, RemoteAttachmentParameters>
 {
-  static async load<T>(
+  static async load<T = unknown>(
     remoteAttachment: RemoteAttachment,
-    codecRegistry: CodecRegistry<T>,
+    codecRegistry: CodecRegistry,
   ): Promise<T> {
     const response = await fetch(remoteAttachment.url);
     const payload = new Uint8Array(await response.arrayBuffer());
@@ -95,7 +95,7 @@ export class RemoteAttachmentCodec
       throw new Error(`no codec found for ${encodedContent.type.typeId}`);
     }
 
-    return codec.decode(encodedContent as EncodedContent, codecRegistry);
+    return codec.decode(encodedContent as EncodedContent, codecRegistry) as T;
   }
 
   static async encodeEncrypted<T>(

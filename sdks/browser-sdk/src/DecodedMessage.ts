@@ -26,9 +26,9 @@ export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
  * @property {string} senderInboxId - Identifier for the sender's inbox
  * @property {bigint} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
-export class DecodedMessage {
-  #client: Client;
-  content: any;
+export class DecodedMessage<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
+  content: ContentTypes | undefined;
   contentType: ContentTypeId;
   conversationId: string;
   deliveryStatus: MessageDeliveryStatus;
@@ -41,7 +41,7 @@ export class DecodedMessage {
   senderInboxId: string;
   sentAtNs: bigint;
 
-  constructor(client: Client, message: SafeMessage) {
+  constructor(client: Client<ContentTypes>, message: SafeMessage) {
     this.#client = client;
     this.id = message.id;
     this.sentAtNs = message.sentAtNs;
@@ -76,7 +76,14 @@ export class DecodedMessage {
     this.parameters = new Map(Object.entries(message.content.parameters));
     this.fallback = message.content.fallback;
     this.compression = message.content.compression;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.content = this.#client.decodeContent(message, this.contentType);
+
+    try {
+      this.content = this.#client.decodeContent<ContentTypes>(
+        message,
+        this.contentType,
+      );
+    } catch {
+      this.content = undefined;
+    }
   }
 }

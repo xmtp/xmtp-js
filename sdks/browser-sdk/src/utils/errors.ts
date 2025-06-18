@@ -3,7 +3,9 @@ import { SignatureRequestType } from "@xmtp/wasm-bindings";
 
 export class ClientNotInitializedError extends Error {
   constructor() {
-    super("Client not initialized");
+    super(
+      "Client not initialized, use Client.create or Client.build to create a client",
+    );
   }
 }
 

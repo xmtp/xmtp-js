@@ -1,4 +1,9 @@
-import { Client, type ClientOptions, type Signer } from "@xmtp/browser-sdk";
+import {
+  Client,
+  type ClientOptions,
+  type ExtractCodecContentTypes,
+  type Signer,
+} from "@xmtp/browser-sdk";
 import { EthSignTypedDataCodec } from "@xmtp/content-type-eth-sign-typed-data";
 import { OffChainSignatureCodec } from "@xmtp/content-type-off-chain-signature";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
@@ -15,6 +20,18 @@ import {
   useState,
 } from "react";
 
+export type ContentTypes = ExtractCodecContentTypes<
+  [
+    EthSignTypedDataCodec,
+    OffChainSignatureCodec,
+    ReactionCodec,
+    ReplyCodec,
+    RemoteAttachmentCodec,
+    TransactionReferenceCodec,
+    WalletSendCallsCodec,
+  ]
+>;
+
 export type InitializeClientOptions = {
   dbEncryptionKey?: Uint8Array;
   env?: ClientOptions["env"];
@@ -26,12 +43,16 @@ export type XMTPContextValue = {
   /**
    * The XMTP client instance
    */
-  client?: Client;
+  client?: Client<ContentTypes>;
   /**
    * Set the XMTP client instance
    */
-  setClient: React.Dispatch<React.SetStateAction<Client | undefined>>;
-  initialize: (options: InitializeClientOptions) => Promise<Client | undefined>;
+  setClient: React.Dispatch<
+    React.SetStateAction<Client<ContentTypes> | undefined>
+  >;
+  initialize: (
+    options: InitializeClientOptions,
+  ) => Promise<Client<ContentTypes> | undefined>;
   initializing: boolean;
   error: Error | null;
   disconnect: () => void;
@@ -49,14 +70,16 @@ export type XMTPProviderProps = React.PropsWithChildren & {
   /**
    * Initial XMTP client instance
    */
-  client?: Client;
+  client?: Client<ContentTypes>;
 };
 
 export const XMTPProvider: React.FC<XMTPProviderProps> = ({
   children,
   client: initialClient,
 }) => {
-  const [client, setClient] = useState<Client | undefined>(initialClient);
+  const [client, setClient] = useState<Client<ContentTypes> | undefined>(
+    initialClient,
+  );
 
   const [initializing, setInitializing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -88,7 +111,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
         // reset initializing state
         setInitializing(true);
 
-        let xmtpClient: Client;
+        let xmtpClient: Client<ContentTypes>;
 
         try {
           // create a new XMTP client

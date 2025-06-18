@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ContentTypeId,
   type ContentCodec,
@@ -17,16 +16,16 @@ export type WalletSendCallsParams = {
   chainId: `0x${string}`; // Hex chain id
   from: `0x${string}`;
   calls: {
-    to?: `0x${string}` | undefined;
-    data?: `0x${string}` | undefined;
-    value?: `0x${string}` | undefined; // Hex value
-    gas?: `0x${string}` | undefined;
+    to?: `0x${string}`;
+    data?: `0x${string}`;
+    value?: `0x${string}`; // Hex value
+    gas?: `0x${string}`;
     metadata?: {
       description: string;
       transactionType: string;
-    } & Record<string, any>;
+    } & Record<string, string>;
   }[];
-  capabilities?: Record<string, any> | undefined;
+  capabilities?: Record<string, string>;
 };
 
 export class WalletSendCallsCodec

@@ -1,5 +1,6 @@
 import {
   ConsentState,
+  ContentType,
   GroupPermissionsOptions,
   MetadataField,
   PermissionPolicy,
@@ -232,6 +233,7 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
 
+    // @ts-expect-error - testing invalid content type
     await expect(() => conversation.send(1)).rejects.toThrow();
     await expect(() => conversation.send({ foo: "bar" })).rejects.toThrow();
     await expect(
@@ -291,6 +293,7 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
 
+    // @ts-expect-error - testing invalid content type
     await expect(() => conversation.sendOptimistic(1)).rejects.toThrow();
     await expect(() =>
       conversation.sendOptimistic({ foo: "bar" }),
@@ -298,6 +301,78 @@ describe("Conversation", () => {
     await expect(
       conversation.sendOptimistic({ foo: "bar" }, ContentTypeTest),
     ).resolves.not.toThrow();
+  });
+
+  it("should optimistically create a group", async () => {
+    const user1 = createUser();
+    const signer1 = createSigner(user1);
+    const client1 = await createRegisteredClient(signer1);
+    const conversation = await client1.conversations.newGroupOptimistic({
+      name: "foo",
+      description: "bar",
+    });
+
+    expect(conversation.id).toBeDefined();
+    expect(conversation.name).toBe("foo");
+    expect(conversation.description).toBe("bar");
+    expect(conversation.imageUrl).toBe("");
+    expect(conversation.addedByInboxId).toBe(client1.inboxId);
+
+    const text = "gm";
+    await conversation.sendOptimistic(text);
+
+    const messages = await conversation.messages();
+    expect(messages.length).toBe(1);
+    expect(messages[0].content).toBe(text);
+    expect(messages[0].deliveryStatus).toBe("unpublished");
+
+    await conversation.publishMessages();
+
+    const messages2 = await conversation.messages();
+    expect(messages2.length).toBe(1);
+    expect(messages2[0].content).toBe(text);
+    expect(messages2[0].deliveryStatus).toBe("published");
+  });
+
+  it("should optimistically create a group with members", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroupOptimistic({
+      name: "foo",
+      description: "bar",
+    });
+
+    expect(conversation.id).toBeDefined();
+    expect(conversation.name).toBe("foo");
+    expect(conversation.description).toBe("bar");
+    expect(conversation.imageUrl).toBe("");
+    expect(conversation.addedByInboxId).toBe(client1.inboxId);
+
+    const text = "gm";
+    await conversation.sendOptimistic(text);
+
+    const messages = await conversation.messages();
+    expect(messages.length).toBe(1);
+    expect(messages[0].content).toBe(text);
+    expect(messages[0].deliveryStatus).toBe("unpublished");
+
+    await conversation.addMembers([client2.inboxId!]);
+
+    const members = await conversation.members();
+    const memberInboxIds = members.map((member) => member.inboxId);
+    expect(memberInboxIds.length).toBe(2);
+    expect(memberInboxIds).toContain(client1.inboxId);
+    expect(memberInboxIds).toContain(client2.inboxId);
+
+    const messages3 = await conversation.messages();
+    expect(messages3.length).toBe(2);
+    expect(messages3[0].content).toBe(text);
+    expect(messages3[0].deliveryStatus).toBe("published");
+    expect(messages3[1].deliveryStatus).toBe("published");
   });
 
   it("should throw when sending content without a codec", async () => {
@@ -312,6 +387,7 @@ describe("Conversation", () => {
     ]);
 
     await expect(
+      // @ts-expect-error - testing invalid content type
       conversation.send({ foo: "bar" }, ContentTypeTest),
     ).rejects.toThrow();
   });
@@ -765,10 +841,54 @@ describe("Conversation", () => {
     ]);
 
     const hmacKeys = await conversation.getHmacKeys();
-    expect(hmacKeys.length).toBe(3);
-    for (const hmacKey of hmacKeys) {
-      expect(hmacKey.key).toBeDefined();
-      expect(hmacKey.epoch).toBeDefined();
+    const groupIds = Array.from(hmacKeys.keys());
+    for (const groupId of groupIds) {
+      expect(hmacKeys.get(groupId)?.length).toBe(3);
+      expect(hmacKeys.get(groupId)?.[0].key).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[0].epoch).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[1].key).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[1].epoch).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[2].key).toBeDefined();
+      expect(hmacKeys.get(groupId)?.[2].epoch).toBeDefined();
     }
+  });
+
+  it("should get conversation debug info", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId!,
+    ]);
+    const debugInfo = await conversation.debugInfo();
+    expect(debugInfo).toBeDefined();
+    expect(debugInfo.epoch).toBeDefined();
+    expect(debugInfo.maybeForked).toBe(false);
+    expect(debugInfo.forkDetails).toBe("");
+  });
+
+  it("should filter messages by content type", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId!,
+    ]);
+
+    await conversation.send("gm");
+
+    const messages = await conversation.messages();
+    expect(messages.length).toBe(2);
+
+    const filteredMessages = await conversation.messages({
+      contentTypes: [ContentType.Text],
+    });
+    expect(filteredMessages.length).toBe(1);
   });
 });

@@ -1,5 +1,14 @@
 # @xmtp/content-type-primitives
 
+## 2.0.2
+
+### Patch Changes
+
+- 592b5ff:
+  - Converted `any` types to `unknown`
+  - Removed `@deprecated` tag from `CodecRegistry` type
+  - Refactored `registry` type of the `encode` and `decode` codec methods
+
 ## 2.0.1
 
 ### Patch Changes

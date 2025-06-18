@@ -1,0 +1,21 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Documentation Rules
+
+## File Patterns
+
+- **/*.md
+
+## Documentation Guidelines
+
+- Use proper Markdown formatting
+- Include GitHub style markdown when appropriate
+- Include code examples where appropriate
+- Keep documentation up to date
+- Follow the project's documentation style
+- Use clear and concise explanations
+- Link to related documentation
+- Use sentence case in headings

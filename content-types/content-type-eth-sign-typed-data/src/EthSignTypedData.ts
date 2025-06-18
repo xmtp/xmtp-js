@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ContentTypeId,
   type ContentCodec,
@@ -17,7 +16,7 @@ export type EthSignTypedDataParams = SignTypedDataParameters & {
   metadata: {
     description: string;
     transactionType: string;
-  } & Record<string, any>;
+  } & Record<string, string>;
 };
 
 export class EthSignTypedDataCodec

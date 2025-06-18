@@ -219,6 +219,6 @@ describe.concurrent("Preferences", () => {
       expect(preferences.HmacKeyUpdate).toBeDefined();
       expect(preferences.HmacKeyUpdate?.key).toBeDefined();
     }
-    expect(count).toBe(3);
+    expect(count).toBe(2);
   });
 });

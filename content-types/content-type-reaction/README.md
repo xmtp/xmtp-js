@@ -1,11 +1,9 @@
 # Reaction content type
 
-![Status](https://img.shields.io/badge/Content_type_status-Standards--track-yellow) ![Status](https://img.shields.io/badge/Reference_implementation_status-Beta-yellow)
-
 This package provides an XMTP content type to support reactions to messages.
 
 > **Open for feedback**  
-> You are welcome to provide feedback on this implementation by commenting on the [Proposal for emoji reactions content type](https://github.com/orgs/xmtp/discussions/36).
+> You are welcome to provide feedback on this implementation by commenting on [XIP-20: Reactions content type](https://community.xmtp.org/t/xip-20-reactions-content-type/524).
 
 ## What’s a reaction?
 
@@ -82,17 +80,4 @@ Generally, reactions should be interpreted as emoji. So, `smile` would translate
 
 Run `yarn dev` to build the content type and watch for changes, which will trigger a rebuild.
 
-## Testing
-
-Before running unit tests, start the required Docker container at the root of this repository. For more info, see [Running tests](../../README.md#running-tests).
-
-## Useful commands
-
-- `yarn build`: Builds the content type
-- `yarn clean`: Removes `node_modules`, `dist`, and `.turbo` folders
-- `yarn dev`: Builds the content type and watches for changes, which will trigger a rebuild
-- `yarn lint`: Runs ESLint
-- `yarn test:setup`: Starts a necessary docker container for testing
-- `yarn test:teardown`: Stops docker container for testing
-- `yarn test`: Runs all unit tests
-- `yarn typecheck`: Runs `tsc`
+For more information on contributing to this repository, see our [contributing guidelines](../../CONTRIBUTING.md).

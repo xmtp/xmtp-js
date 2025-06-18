@@ -247,6 +247,11 @@ describe.concurrent("Conversations", () => {
     const peerInboxId4 = await dm4?.peerInboxId();
     expect(peerInboxId4).toBeDefined();
     expect(peerInboxId4).toBe(client1.inboxId);
+
+    const dupeDms1 = await group.getDuplicateDms();
+    const dupeDms2 = await group2.getDuplicateDms();
+    expect(dupeDms1.length).toEqual(0);
+    expect(dupeDms2.length).toEqual(0);
   });
 
   it("should get a group by ID", async () => {
@@ -484,6 +489,13 @@ describe.concurrent("Conversations", () => {
     const dms2 = await client2.conversations.listDms();
     expect(dms1[0].id).toBe(dm2.id);
     expect(dms2[0].id).toBe(dm2.id);
+
+    const dupeDms1 = await dms1[0].getDuplicateDms();
+    const dupeDms2 = await dms2[0].getDuplicateDms();
+    expect(dupeDms1.length).toBe(1);
+    expect(dupeDms2.length).toBe(1);
+    expect(dupeDms1[0].id).toBe(dm1.id);
+    expect(dupeDms2[0].id).toBe(dm1.id);
   });
 });
 
@@ -765,5 +777,80 @@ describe("Streaming", () => {
       }
     }
     expect(count).toBe(1);
+  });
+  it("should create optimistic groups", async () => {
+    const user1 = createUser();
+    const signer1 = createSigner(user1);
+    const client1 = await createRegisteredClient(signer1);
+    const group = await client1.conversations.newGroupOptimistic();
+    expect(group).toBeDefined();
+    expect(group.id).toBeDefined();
+    expect(group.createdAtNs).toBeDefined();
+    expect(group.createdAt).toBeDefined();
+    expect(group.isActive).toBe(true);
+    expect(group.name).toBe("");
+    const permissions = await group.permissions();
+    expect(permissions.policyType).toBe(GroupPermissionsOptions.Default);
+    expect(permissions.policySet).toEqual({
+      addMemberPolicy: 0,
+      removeMemberPolicy: 2,
+      addAdminPolicy: 3,
+      removeAdminPolicy: 3,
+      updateGroupNamePolicy: 0,
+      updateGroupDescriptionPolicy: 0,
+      updateGroupImageUrlSquarePolicy: 0,
+      updateMessageDisappearingPolicy: 2,
+    });
+    expect(group.addedByInboxId).toBe(client1.inboxId);
+    expect((await group.messages()).length).toBe(0);
+
+    const group2 = await client1.conversations.newGroupOptimistic({
+      name: "test",
+      description: "test",
+      imageUrlSquare: "test",
+      permissions: GroupPermissionsOptions.CustomPolicy,
+      customPermissionPolicySet: {
+        addAdminPolicy: 1,
+        addMemberPolicy: 0,
+        removeAdminPolicy: 1,
+        removeMemberPolicy: 1,
+        updateGroupNamePolicy: 1,
+        updateGroupDescriptionPolicy: 1,
+        updateGroupImageUrlSquarePolicy: 1,
+        updateMessageDisappearingPolicy: 2,
+      },
+      messageDisappearingSettings: {
+        fromNs: 1000n,
+        inNs: 1000n,
+      },
+    });
+    expect(group2).toBeDefined();
+    expect(group2.id).toBeDefined();
+    expect(group2.createdAtNs).toBeDefined();
+    expect(group2.createdAt).toBeDefined();
+    expect(group2.isActive).toBe(true);
+    expect(group2.name).toBe("test");
+    expect(group2.description).toBe("test");
+    expect(group2.imageUrl).toBe("test");
+    expect(group2.addedByInboxId).toBe(client1.inboxId);
+    const permissions2 = await group2.permissions();
+    expect(permissions2.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
+    expect(permissions2.policySet).toEqual({
+      addAdminPolicy: 1,
+      addMemberPolicy: 0,
+      removeAdminPolicy: 1,
+      removeMemberPolicy: 1,
+      updateGroupNamePolicy: 1,
+      updateGroupDescriptionPolicy: 1,
+      updateGroupImageUrlSquarePolicy: 1,
+      updateMessageDisappearingPolicy: 2,
+    });
+    expect(await group2.isMessageDisappearingEnabled()).toBe(true);
+    expect(await group2.messageDisappearingSettings()).toEqual({
+      fromNs: 1000n,
+      inNs: 1000n,
+    });
+
+    expect((await group2.messages()).length).toBe(0);
   });
 });
