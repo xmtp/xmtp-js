@@ -3,7 +3,7 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import type { Account, SignTypedDataParameters } from "viem";
+import type { Account, Address, SignTypedDataParameters } from "viem";
 
 export const ContentTypeEthSignTypedData = new ContentTypeId({
   authorityId: "xmtp.org",
@@ -13,7 +13,7 @@ export const ContentTypeEthSignTypedData = new ContentTypeId({
 });
 
 export type EthSignTypedDataParams = Omit<SignTypedDataParameters, 'account'> & {
-  account?: Account,
+  account?: Account | Address,
   metadata: {
     description: string;
     transactionType: string;
