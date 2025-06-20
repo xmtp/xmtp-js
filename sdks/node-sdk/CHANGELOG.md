@@ -1,5 +1,39 @@
 # @xmtp/node-sdk
 
+## 2.2.0
+
+This update introduces several targeted enhancements and clarifications related to managing client builds, network statistics, installations, and group chats.
+
+If you’ve been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Reset network statistics for debugging
+
+A new helper, `clearAllStatistics()`, lets you reset all API/identity/stream network statistics counters.
+
+Use it to get a clean baseline between test runs or free memory on devices where cached gRPC stats grow over time.
+
+To learn more, see [Network statistics](https://docs.xmtp.org/inboxes/debug-your-app#network-statistics).
+
+### Support installation limits and more targeted revocations
+
+XMTP now enforces up to 5 app installations per inbox ID.
+
+When the installation limit is reached, you can revoke an installation to free up a slot.
+
+To learn more, see [Revoke installations](https://docs.xmtp.org/inboxes/manage-inboxes#revoke-installations).
+
+### Support slightly larger group chats
+
+The maximum group chat size has been raised from 220 to 250 members.
+
+To learn more, see [Create a new group chat](https://docs.xmtp.org/inboxes/create-conversations#create-a-new-group-chat).
+
+### Reduced risk of group chat forks
+
+Additional safeguards have been added to minimize the chance of unintended group chat forks.
+
+To learn about what group chat forks are and how they can occur, see [MLS Group State Forks: What, Why, How](https://cryspen.com/post/mls-fork-resolution/).
+
 ## 2.1.0
 
 This release delivers enhancements to messaging performance and reliability, as well as a set of developer debugging tools, all focused on making it easier to build with XMTP.
