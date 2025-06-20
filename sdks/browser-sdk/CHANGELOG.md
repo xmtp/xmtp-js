@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.2.0
+
+### Minor Changes
+
+- c5e3303: Fork fixes, group limit update, installation limit added, clear network stats method added
+
 ## 2.1.1
 
 ### Patch Fixes

@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 2.2.0
+
+### Minor Changes
+
+- c5e3303: Fork fixes, group limit update, installation limit added, clear network stats method added
+
 ## 2.1.0
 
 This release delivers enhancements to messaging performance and reliability, as well as a set of developer debugging tools, all focused on making it easier to build with XMTP.
