@@ -53,6 +53,7 @@ export type User = ReturnType<typeof createUser>;
 
 export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
   identifier: Identifier,
+  inboxId?: string,
   options?: ClientOptions & {
     codecs?: ContentCodecs;
   },
@@ -61,7 +62,7 @@ export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
     ...options,
     env: options?.env ?? "local",
   };
-  return Client.build<ContentCodecs>(identifier, {
+  return Client.build<ContentCodecs>(identifier, inboxId, {
     ...opts,
     dbPath: opts.dbPath ?? `./test-${identifier.identifier}.db3`,
   });

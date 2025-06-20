@@ -6,6 +6,7 @@ import { glob } from "fast-glob";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const teardown = async () => {
-  const files = await glob("**/*.db3*", { cwd: __dirname });
-  await Promise.all(files.map((file) => unlink(join(__dirname, file))));
+  // const files = await glob("**/*.db3*", { cwd: __dirname });
+  // await Promise.all(files.map((file) => unlink(join(__dirname, file))));
+  console.log("teardown");
 };

@@ -9,6 +9,7 @@ import {
   createRegisteredClient,
   createSigner,
   createUser,
+  sleep,
 } from "@test/helpers";
 
 describe.concurrent("Client", () => {
@@ -31,6 +32,28 @@ describe.concurrent("Client", () => {
     await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer);
     expect(await client2.isRegistered()).toBe(true);
+  });
+
+  it.only("should build a client offline", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await buildClient(await signer.getIdentifier());
+
+    console.log(await client.apiAggregateStatistics());
+    console.log(await client2.apiAggregateStatistics());
+
+    await sleep(10000);
+
+    const client3 = await buildClient(
+      await signer.getIdentifier(),
+      client.inboxId,
+      {
+        disableDeviceSync: true,
+      },
+    );
+
+    console.log(await client3.apiAggregateStatistics());
   });
 
   it("should be able to message registered identity", async () => {

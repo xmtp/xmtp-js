@@ -10,11 +10,13 @@ import type { ClientOptions } from "@/types/options";
 
 export const createClient = async (
   identifier: Identifier,
+  inboxId?: string,
   options?: Omit<ClientOptions, "codecs">,
 ) => {
   const env = options?.env || "dev";
   const host = options?.apiUrl || ApiUrls[env];
-  const inboxId =
+  const finalInboxId =
+    inboxId ||
     (await getInboxIdForIdentifier(host, identifier)) ||
     generateInboxId(identifier);
   const dbPath =
@@ -36,9 +38,15 @@ export const createClient = async (
     ? "disabled"
     : "enabled";
 
+  const allowOffline = !!inboxId;
+
+  console.log("finalInboxId", finalInboxId);
+  console.log("allowOffline", allowOffline);
+  console.log("deviceSyncWorkerMode", deviceSyncWorkerMode);
+
   return createWasmClient(
     host,
-    inboxId,
+    finalInboxId,
     identifier,
     dbPath,
     options?.dbEncryptionKey,
@@ -51,5 +59,6 @@ export const createClient = async (
           options.loggingLevel,
         )
       : undefined,
+    allowOffline,
   );
 };

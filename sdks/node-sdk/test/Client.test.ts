@@ -34,6 +34,28 @@ describe.concurrent("Client", () => {
     expect(client.signer).toBe(signer);
   });
 
+  it.only("should build a client offline", async () => {
+    // const user = createUser();
+    // const signer = createSigner(user);
+    // const client = await createRegisteredClient(signer);
+    // console.log(client.apiAggregateStatistics());
+    // const client2 = await buildClient(await signer.getIdentifier());
+    // console.log(client2.apiAggregateStatistics());
+
+    const client3 = await buildClient(
+      {
+        identifier: "0xa899b0c4377a8dab170fed292e7157f18904cce8",
+        identifierKind: IdentifierKind.Ethereum,
+      },
+      "f3d776c05fe1c1558ebe37e80bdaffc42ed60ce42e2c0a6e1ae5d09845ca347d",
+      {
+        disableDeviceSync: true,
+      },
+    );
+
+    console.log(client3.apiAggregateStatistics());
+  });
+
   it("should register an identity", async () => {
     const user = createUser();
     const signer = createSigner(user);

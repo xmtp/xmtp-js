@@ -18,6 +18,7 @@ export type ClientAction =
       data: {
         identifier: Identifier;
         options?: ClientOptions;
+        inboxId?: string;
       };
     }
   | {

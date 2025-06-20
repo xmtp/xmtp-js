@@ -13,18 +13,12 @@ import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
 
 export const createClient = async (
   identifier: Identifier,
+  inboxId?: string,
   options?: ClientOptions,
 ) => {
   const env = options?.env || "dev";
   const host = options?.apiUrl || ApiUrls[env];
   const isSecure = host.startsWith("https");
-  const inboxId =
-    (await getInboxIdForIdentifier(identifier, env)) ||
-    generateInboxId(identifier);
-  const dbPath =
-    options?.dbPath === undefined
-      ? join(process.cwd(), `xmtp-${env}-${inboxId}.db3`)
-      : options.dbPath;
 
   const logOptions: LogOptions = {
     structured: options?.structuredLogging ?? false,
@@ -39,15 +33,33 @@ export const createClient = async (
     ? SyncWorkerMode.disabled
     : SyncWorkerMode.enabled;
 
+  const allowOffline = !!inboxId;
+
+  const finalInboxId =
+    inboxId ||
+    (await getInboxIdForIdentifier(identifier, env)) ||
+    generateInboxId(identifier);
+
+  const dbPath =
+    options?.dbPath === undefined
+      ? join(process.cwd(), `xmtp-${env}-${inboxId}.db3`)
+      : options.dbPath;
+
+  console.log("dbPath", dbPath);
+  console.log("finalInboxId", finalInboxId);
+  console.log("allowOffline", allowOffline);
+  console.log("deviceSyncWorkerMode", deviceSyncWorkerMode);
+
   return createNodeClient(
     host,
     isSecure,
     dbPath,
-    inboxId,
+    finalInboxId,
     identifier,
     options?.dbEncryptionKey,
     historySyncUrl,
     deviceSyncWorkerMode,
     logOptions,
+    allowOffline,
   );
 };

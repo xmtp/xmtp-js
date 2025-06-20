@@ -91,10 +91,11 @@ export class Client<
    *
    * @param identifier - The identifier to initialize the client with
    */
-  async init(identifier: Identifier) {
+  async init(identifier: Identifier, inboxId?: string) {
     const result = await this.sendMessage("client.init", {
       identifier,
       options: this.#options,
+      inboxId,
     });
     this.#identifier = identifier;
     this.#inboxId = result.inboxId;
@@ -140,6 +141,7 @@ export class Client<
    */
   static async build<ContentCodecs extends ContentCodec[] = []>(
     identifier: Identifier,
+    inboxId?: string,
     options?: Omit<ClientOptions, "codecs"> & {
       codecs?: ContentCodecs;
     },
@@ -148,7 +150,7 @@ export class Client<
       ...options,
       disableAutoRegister: true,
     });
-    await client.init(identifier);
+    await client.init(identifier, inboxId);
     return client;
   }
 

@@ -27,9 +27,10 @@ export class WorkerClient {
 
   static async create(
     identifier: Identifier,
+    inboxId?: string,
     options?: Omit<ClientOptions, "codecs">,
   ) {
-    const client = await createClient(identifier, options);
+    const client = await createClient(identifier, inboxId, options);
     return new WorkerClient(client, options);
   }
 

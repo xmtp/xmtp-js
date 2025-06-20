@@ -81,13 +81,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    *
    * @param identifier - The identifier to initialize the client with
    */
-  async init(identifier: Identifier) {
+  async init(identifier: Identifier, inboxId?: string) {
     if (this.#client) {
       return;
     }
 
     this.#identifier = identifier;
-    this.#client = await createClient(identifier, this.#options);
+    this.#client = await createClient(identifier, inboxId, this.#options);
     const conversations = this.#client.conversations();
     this.#conversations = new Conversations(this, conversations);
     this.#preferences = new Preferences(this.#client, conversations);
@@ -102,7 +102,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   static async create<ContentCodecs extends ContentCodec[] = []>(
     signer: Signer,
-    options?: Omit<ClientOptions, "codecs"> & {
+    options?: Omit<ClientOptions, "codecs" | "allowOffline"> & {
       codecs?: ContentCodecs;
     },
   ) {
@@ -130,15 +130,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   static async build<ContentCodecs extends ContentCodec[] = []>(
     identifier: Identifier,
+    inboxId?: string,
     options?: Omit<ClientOptions, "codecs"> & {
       codecs?: ContentCodecs;
     },
   ) {
-    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>({
-      ...options,
-      disableAutoRegister: true,
-    });
-    await client.init(identifier);
+    const client = new Client<ExtractCodecContentTypes<ContentCodecs>>(options);
+    await client.init(identifier, inboxId);
     return client;
   }
 
