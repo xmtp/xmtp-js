@@ -196,6 +196,57 @@ describe.concurrent("Client", () => {
     expect(installationIds2).not.toContain(client.installationId);
   });
 
+  it("should throw when trying to create more than 5 installations", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client4 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client5 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    const inboxState = await client3.preferences.inboxState(true);
+    expect(inboxState.installations.length).toBe(5);
+
+    const installationIds = inboxState.installations.map((i) => i.id);
+    expect(installationIds).toContain(client.installationId);
+    expect(installationIds).toContain(client2.installationId);
+    expect(installationIds).toContain(client3.installationId);
+    expect(installationIds).toContain(client4.installationId);
+    expect(installationIds).toContain(client5.installationId);
+
+    await expect(
+      createRegisteredClient(signer, {
+        dbPath: `./test-${v4()}.db3`,
+      }),
+    ).rejects.toThrow();
+
+    await client3.revokeAllOtherInstallations();
+
+    const inboxState2 = await client3.preferences.inboxState(true);
+
+    expect(inboxState2.installations.length).toBe(1);
+    expect(inboxState2.installations[0].id).toBe(client3.installationId);
+
+    const client6 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    const inboxState3 = await client6.preferences.inboxState(true);
+    expect(inboxState3.installations.length).toBe(2);
+    const installationIds3 = inboxState3.installations.map((i) => i.id);
+    expect(installationIds3).toContain(client3.installationId);
+    expect(installationIds3).toContain(client6.installationId);
+  });
+
   it("should change the recovery identifier", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -266,23 +317,41 @@ describe.concurrent("Client", () => {
   it("should return network API statistics", async () => {
     const user = createUser();
     const signer = createSigner(user);
-    const client = await createClient(signer);
+    const client = await createRegisteredClient(signer);
 
     const apiStats = await client.apiStatistics();
-    expect(apiStats.uploadKeyPackage).toBeDefined();
-    expect(apiStats.fetchKeyPackage).toBeDefined();
-    expect(apiStats.sendGroupMessages).toBeDefined();
-    expect(apiStats.sendWelcomeMessages).toBeDefined();
-    expect(apiStats.queryGroupMessages).toBeDefined();
-    expect(apiStats.queryWelcomeMessages).toBeDefined();
-    expect(apiStats.subscribeMessages).toBeDefined();
-    expect(apiStats.subscribeWelcomes).toBeDefined();
+    expect(apiStats.fetchKeyPackage).toBe(0n);
+    expect(apiStats.queryGroupMessages).toBe(0n);
+    expect(apiStats.queryWelcomeMessages).toBe(0n);
+    expect(apiStats.sendGroupMessages).toBe(0n);
+    expect(apiStats.sendWelcomeMessages).toBe(0n);
+    expect(apiStats.subscribeMessages).toBe(0n);
+    expect(apiStats.subscribeWelcomes).toBe(0n);
+    expect(apiStats.uploadKeyPackage).toBe(1n);
 
     const apiIdentityStats = await client.apiIdentityStatistics();
-    expect(apiIdentityStats.getIdentityUpdatesV2).toBeDefined();
-    expect(apiIdentityStats.getInboxIds).toBeDefined();
-    expect(apiIdentityStats.publishIdentityUpdate).toBeDefined();
-    expect(apiIdentityStats.verifySmartContractWalletSignature).toBeDefined();
+    expect(apiIdentityStats.getIdentityUpdatesV2).toBe(2n);
+    expect(apiIdentityStats.getInboxIds).toBe(1n);
+    expect(apiIdentityStats.publishIdentityUpdate).toBe(1n);
+    expect(apiIdentityStats.verifySmartContractWalletSignature).toBe(0n);
+
+    await client.clearAllStatistics();
+
+    const apiStats2 = await client.apiStatistics();
+    expect(apiStats2.fetchKeyPackage).toBe(0n);
+    expect(apiStats2.queryGroupMessages).toBe(0n);
+    expect(apiStats2.queryWelcomeMessages).toBe(0n);
+    expect(apiStats2.sendGroupMessages).toBe(0n);
+    expect(apiStats2.sendWelcomeMessages).toBe(0n);
+    expect(apiStats2.subscribeMessages).toBe(0n);
+    expect(apiStats2.subscribeWelcomes).toBe(0n);
+    expect(apiStats2.uploadKeyPackage).toBe(0n);
+
+    const apiIdentityStats2 = await client.apiIdentityStatistics();
+    expect(apiIdentityStats2.getIdentityUpdatesV2).toBe(0n);
+    expect(apiIdentityStats2.getInboxIds).toBe(0n);
+    expect(apiIdentityStats2.publishIdentityUpdate).toBe(0n);
+    expect(apiIdentityStats2.verifySmartContractWalletSignature).toBe(0n);
 
     const apiAggregateStats = await client.apiAggregateStatistics();
     expect(apiAggregateStats).toBeDefined();

@@ -776,6 +776,10 @@ export class Client<
     return this.sendMessage("client.apiAggregateStatistics", undefined);
   }
 
+  clearAllStatistics() {
+    return this.sendMessage("client.clearAllStatistics", undefined);
+  }
+
   async uploadDebugArchive(serverUrl?: string) {
     return this.sendMessage("client.uploadDebugArchive", {
       serverUrl,

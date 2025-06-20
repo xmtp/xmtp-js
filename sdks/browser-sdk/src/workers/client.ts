@@ -269,6 +269,11 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
+      case "client.clearAllStatistics": {
+        client.clearAllStatistics();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "client.uploadDebugArchive": {
         const result = await client.uploadDebugArchive(data.serverUrl);
         postMessage({ id, action, result });
