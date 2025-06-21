@@ -92,4 +92,15 @@ describe("AsyncStream", () => {
     expect(stream.isDone).toBe(true);
     expect(stream.error).toBe(testError);
   });
+
+  it("should end for await..of loop when stream is ended", async () => {
+    const stream = new AsyncStream<number>();
+    setTimeout(() => {
+      void stream.end();
+    }, 100);
+    for await (const _value of stream) {
+      // this block intentionally left blank
+    }
+    expect(stream.isDone).toBe(true);
+  });
 });

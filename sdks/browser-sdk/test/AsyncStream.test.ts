@@ -10,9 +10,9 @@ describe("AsyncStream", () => {
     stream.onReturn = () => {
       onReturnCalled = true;
     };
-    void stream.callback(null, 1);
-    void stream.callback(null, 2);
-    void stream.callback(null, 3);
+    stream.callback(null, 1);
+    stream.callback(null, 2);
+    stream.callback(null, 3);
 
     let count = 0;
 
@@ -39,7 +39,7 @@ describe("AsyncStream", () => {
     stream.onReturn = () => {
       onReturnCalled = true;
     };
-    void stream.callback(null, 1);
+    stream.callback(null, 1);
 
     try {
       for await (const value of stream) {
@@ -59,7 +59,7 @@ describe("AsyncStream", () => {
     stream.onError = () => {
       onErrorCalled = true;
     };
-    void stream.callback(testError, 1);
+    stream.callback(testError, 1);
     try {
       for await (const _value of stream) {
         // this block should never be reached
@@ -79,7 +79,7 @@ describe("AsyncStream", () => {
       onErrorCalled = true;
     };
     setTimeout(() => {
-      void stream.callback(testError, 1);
+      stream.callback(testError, 1);
     }, 100);
     try {
       for await (const _value of stream) {
@@ -91,5 +91,16 @@ describe("AsyncStream", () => {
     expect(onErrorCalled).toBe(true);
     expect(stream.isDone).toBe(true);
     expect(stream.error).toBe(testError);
+  });
+
+  it("should end for await..of loop when stream is ended", async () => {
+    const stream = new AsyncStream<number>();
+    setTimeout(() => {
+      void stream.end();
+    }, 100);
+    for await (const _value of stream) {
+      // this block intentionally left blank
+    }
+    expect(stream.isDone).toBe(true);
   });
 });
