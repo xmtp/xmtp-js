@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 2.2.1
+
+### Patch Changes
+
+- e86b0c9: Fixed async iterator exit when calling `end()` on `AsyncStream`
+
 ## 2.2.0
 
 This update introduces several targeted enhancements and clarifications related to managing client builds, network statistics, installations, and group chats.
