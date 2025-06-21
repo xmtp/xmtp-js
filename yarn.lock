@@ -3662,6 +3662,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/content-type-eth-sign-typed-data@workspace:^, @xmtp/content-type-eth-sign-typed-data@workspace:content-types/content-type-eth-sign-typed-data":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/content-type-eth-sign-typed-data@workspace:content-types/content-type-eth-sign-typed-data"
+  dependencies:
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
+    "@types/node": "npm:^22.15.23"
+    "@xmtp/content-type-primitives": "npm:^2.0.2"
+    "@xmtp/node-sdk": "workspace:^"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.41.1"
+    rollup-plugin-dts: "npm:^6.1.1"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^6.3.5"
+    vitest: "npm:^3.1.4"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/content-type-group-updated@npm:^2.0.2, @xmtp/content-type-group-updated@workspace:^, @xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-group-updated@workspace:content-types/content-type-group-updated"
@@ -3671,6 +3689,24 @@ __metadata:
     "@types/node": "npm:^22.15.23"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/proto": "npm:^3.78.0"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.41.1"
+    rollup-plugin-dts: "npm:^6.1.1"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^6.3.5"
+    vitest: "npm:^3.1.4"
+  languageName: unknown
+  linkType: soft
+
+"@xmtp/content-type-off-chain-signature@workspace:^, @xmtp/content-type-off-chain-signature@workspace:content-types/content-type-off-chain-signature":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/content-type-off-chain-signature@workspace:content-types/content-type-off-chain-signature"
+  dependencies:
+    "@rollup/plugin-terser": "npm:^0.4.4"
+    "@rollup/plugin-typescript": "npm:^12.1.2"
+    "@types/node": "npm:^22.15.23"
+    "@xmtp/content-type-primitives": "npm:^2.0.2"
+    "@xmtp/node-sdk": "workspace:^"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.41.1"
     rollup-plugin-dts: "npm:^6.1.1"
@@ -3910,7 +3946,9 @@ __metadata:
     "@types/react-dom": "npm:^19.1.5"
     "@vitejs/plugin-react": "npm:^4.5.0"
     "@xmtp/browser-sdk": "workspace:^"
+    "@xmtp/content-type-eth-sign-typed-data": "workspace:^"
     "@xmtp/content-type-group-updated": "workspace:^"
+    "@xmtp/content-type-off-chain-signature": "workspace:^"
     "@xmtp/content-type-primitives": "workspace:^"
     "@xmtp/content-type-reaction": "workspace:^"
     "@xmtp/content-type-remote-attachment": "workspace:^"
