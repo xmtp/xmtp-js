@@ -1,9 +1,17 @@
 import { Code } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import {
+  ContentTypeEthSignTypedData,
+  type EthSignTypedDataParams,
+} from "@xmtp/content-type-eth-sign-typed-data";
+import {
   ContentTypeGroupUpdated,
   type GroupUpdated,
 } from "@xmtp/content-type-group-updated";
+import {
+  ContentTypeOffChainSignature,
+  type OffChainSignature,
+} from "@xmtp/content-type-off-chain-signature";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import {
   ContentTypeTransactionReference,
@@ -13,12 +21,14 @@ import {
   ContentTypeWalletSendCalls,
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
+import { EthSignTypedDataContent } from "@/components/Messages/EthSignTypedDataContent";
 import { FallbackContent } from "@/components/Messages/FallbackContent";
 import { GroupUpdatedContent } from "@/components/Messages/GroupUpdatedContent";
 import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
+import { OffChainSignatureContent } from "@/components/Messages/OffChainSignatureContent";
 import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
@@ -59,6 +69,33 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         <WalletSendCallsContent
           content={message.content as WalletSendCallsParams}
           conversationId={message.conversationId}
+        />
+      </MessageContentWrapper>
+    );
+  }
+
+  if (message.contentType.sameAs(ContentTypeEthSignTypedData)) {
+    return (
+      <MessageContentWrapper
+        align={align}
+        senderInboxId={senderInboxId}
+        sentAtNs={message.sentAtNs}>
+        <EthSignTypedDataContent
+          content={message.content as EthSignTypedDataParams}
+          conversationId={message.conversationId}
+        />
+      </MessageContentWrapper>
+    );
+  }
+
+  if (message.contentType.sameAs(ContentTypeOffChainSignature)) {
+    return (
+      <MessageContentWrapper
+        align={align}
+        senderInboxId={senderInboxId}
+        sentAtNs={message.sentAtNs}>
+        <OffChainSignatureContent
+          content={message.content as OffChainSignature}
         />
       </MessageContentWrapper>
     );

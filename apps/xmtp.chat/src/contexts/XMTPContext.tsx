@@ -4,6 +4,8 @@ import {
   type ExtractCodecContentTypes,
   type Signer,
 } from "@xmtp/browser-sdk";
+import { EthSignTypedDataCodec } from "@xmtp/content-type-eth-sign-typed-data";
+import { OffChainSignatureCodec } from "@xmtp/content-type-off-chain-signature";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
@@ -20,6 +22,8 @@ import {
 
 export type ContentTypes = ExtractCodecContentTypes<
   [
+    EthSignTypedDataCodec,
+    OffChainSignatureCodec,
     ReactionCodec,
     ReplyCodec,
     RemoteAttachmentCodec,
@@ -116,6 +120,8 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
             loggingLevel,
             dbEncryptionKey,
             codecs: [
+              new EthSignTypedDataCodec(),
+              new OffChainSignatureCodec(),
               new ReactionCodec(),
               new ReplyCodec(),
               new RemoteAttachmentCodec(),
