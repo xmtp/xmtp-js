@@ -11,27 +11,24 @@ export type StreamCallback<T> = (
 ) => void | Promise<void>;
 
 export class AsyncStream<T> {
-  #done = false;
-  #resolveNext: ResolveNext<T> | null;
-  #rejectNext: ((error: Error) => void) | null;
+  #isDone = false;
+  #resolveNext: ResolveNext<T> | undefined;
+  #rejectNext: ((error: Error) => void) | undefined;
   #queue: (T | undefined)[];
-  #error: Error | null;
-  onReturn: (() => void) | undefined = undefined;
-  onError: ((error: Error) => void) | undefined = undefined;
+  #error: Error | undefined;
+  onReturn: (() => void) | undefined;
+  onError: ((error: Error) => void) | undefined;
 
   constructor() {
     this.#queue = [];
-    this.#resolveNext = null;
-    this.#rejectNext = null;
-    this.#error = null;
-    this.#done = false;
+    this.#isDone = false;
   }
 
-  #endStream() {
+  #done() {
     this.#queue = [];
-    this.#resolveNext = null;
-    this.#rejectNext = null;
-    this.#done = true;
+    this.#resolveNext = undefined;
+    this.#rejectNext = undefined;
+    this.#isDone = true;
   }
 
   get error() {
@@ -39,21 +36,21 @@ export class AsyncStream<T> {
   }
 
   get isDone() {
-    return this.#done;
+    return this.#isDone;
   }
 
   callback: StreamCallback<T> = (error, value) => {
+    if (this.#isDone) {
+      return;
+    }
+
     if (error) {
       this.#error = error;
       if (this.#rejectNext) {
         this.#rejectNext(error);
-        this.#endStream();
+        this.#done();
         this.onError?.(error);
       }
-      return;
-    }
-
-    if (this.#done) {
       return;
     }
 
@@ -62,7 +59,8 @@ export class AsyncStream<T> {
         done: false,
         value,
       });
-      this.#resolveNext = null;
+      this.#resolveNext = undefined;
+      this.#rejectNext = undefined;
     } else {
       this.#queue.push(value);
     }
@@ -70,7 +68,7 @@ export class AsyncStream<T> {
 
   next = (): Promise<ResolveValue<T>> => {
     if (this.#error) {
-      this.#endStream();
+      this.#done();
       this.onError?.(this.#error);
       return Promise.reject(this.#error);
     }
@@ -82,13 +80,6 @@ export class AsyncStream<T> {
       });
     }
 
-    if (this.#done) {
-      return Promise.resolve({
-        done: true,
-        value: undefined,
-      });
-    }
-
     return new Promise((resolve, reject) => {
       this.#resolveNext = resolve;
       this.#rejectNext = reject;
@@ -96,12 +87,16 @@ export class AsyncStream<T> {
   };
 
   return = (value?: T) => {
-    this.#endStream();
-    this.onReturn?.();
-    return Promise.resolve({
+    this.#resolveNext?.({
       done: true,
       value,
     });
+    this.onReturn?.();
+    this.#done();
+    return {
+      done: true,
+      value,
+    };
   };
 
   end = () => this.return();
