@@ -10,9 +10,9 @@ describe("AsyncStream", () => {
     stream.onReturn = () => {
       onReturnCalled = true;
     };
-    stream.callback(null, 1);
-    stream.callback(null, 2);
-    stream.callback(null, 3);
+    void stream.callback(null, 1);
+    void stream.callback(null, 2);
+    void stream.callback(null, 3);
 
     let count = 0;
 
@@ -39,7 +39,7 @@ describe("AsyncStream", () => {
     stream.onReturn = () => {
       onReturnCalled = true;
     };
-    stream.callback(null, 1);
+    void stream.callback(null, 1);
 
     try {
       for await (const value of stream) {
@@ -59,7 +59,7 @@ describe("AsyncStream", () => {
     stream.onError = () => {
       onErrorCalled = true;
     };
-    stream.callback(testError, 1);
+    void stream.callback(testError, 1);
     try {
       for await (const _value of stream) {
         // this block should never be reached
@@ -79,7 +79,7 @@ describe("AsyncStream", () => {
       onErrorCalled = true;
     };
     setTimeout(() => {
-      stream.callback(testError, 1);
+      void stream.callback(testError, 1);
     }, 100);
     try {
       for await (const _value of stream) {

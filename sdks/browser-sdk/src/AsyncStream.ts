@@ -8,7 +8,7 @@ type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
 export type StreamCallback<T> = (
   err: Error | null,
   value: T | undefined,
-) => void;
+) => void | Promise<void>;
 
 export class AsyncStream<T> {
   #isDone = false;
