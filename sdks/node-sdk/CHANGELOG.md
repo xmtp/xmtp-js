@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- e86b0c9: Fix AsyncStream ending
+- e86b0c9: Fixed async iterator exit when calling `end()` on `AsyncStream`
 
 ## 2.2.0
 
