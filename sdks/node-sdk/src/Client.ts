@@ -961,4 +961,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       this.#options?.historySyncUrl || HistorySyncUrls[env];
     return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
   }
+
+  /**
+   * Retrieves information for this conversation to help with debugging
+   *
+   * @returns The debug information for this conversation
+   */
+  async unknownDebugInfo() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    const canMessage = await this.#client.unknownDebugInfo();
+    return canMessage;
+  }
 }
