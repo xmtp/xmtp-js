@@ -53,7 +53,7 @@ export {
   PermissionLevel,
   PermissionPolicy,
   PermissionUpdateType,
-  SignatureRequestType,
+  SignatureRequestHandle,
   SortDirection,
 } from "@xmtp/node-bindings";
 export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";

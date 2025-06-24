@@ -9,17 +9,20 @@ import type {
 } from "@xmtp/content-type-primitives";
 import { TextCodec } from "@xmtp/content-type-text";
 import {
+  applySignatureRequest,
   GroupMessageKind,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
-  SignatureRequestType,
+  revokeInstallationsSignatureRequest,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
   type Identifier,
   type Message,
   type Client as NodeClient,
+  type SignatureRequestHandle,
 } from "@xmtp/node-bindings";
-import { ApiUrls, HistorySyncUrls } from "@/constants";
+import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
+import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
 import { createClient } from "@/utils/createClient";
@@ -27,7 +30,6 @@ import {
   AccountAlreadyAssociatedError,
   ClientNotInitializedError,
   CodecNotFoundError,
-  GenerateSignatureError,
   InboxReassignError,
   InvalidGroupMembershipChangeError,
   SignerUnavailableError,
@@ -47,6 +49,7 @@ export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
 export class Client<ContentTypes = ExtractCodecContentTypes> {
   #client?: NodeClient;
   #conversations?: Conversations<ContentTypes>;
+  #debugInformation?: DebugInformation;
   #preferences?: Preferences;
   #signer?: Signer;
   #codecs: Map<string, ContentCodec>;
@@ -90,6 +93,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     this.#client = await createClient(identifier, this.#options);
     const conversations = this.#client.conversations();
     this.#conversations = new Conversations(this, conversations);
+    this.#debugInformation = new DebugInformation(this.#client, this.#options);
     this.#preferences = new Preferences(this.#client, conversations);
   }
 
@@ -218,6 +222,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Gets the debug information helpersfor this client
+   *
+   * @throws {ClientNotInitializedError} if the client is not initialized
+   */
+  get debugInformation() {
+    if (!this.#debugInformation) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#debugInformation;
+  }
+
+  /**
    * Gets the preferences manager for this client
    *
    * @throws {ClientNotInitializedError} if the client is not initialized
@@ -230,7 +246,48 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Creates signature text for creating a new inbox
+   * Adds a signature to a signature request using the client's signer (or the
+   * provided signer)
+   *
+   * @param signatureRequest - The signature request to add the signature to
+   * @throws {ClientNotInitializedError} if the client is not initialized
+   * @throws {SignerUnavailableError} if no signer is available
+   */
+  async addSignature(
+    signatureRequest: SignatureRequestHandle,
+    signer?: Signer,
+  ) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
+    const finalSigner = signer ?? this.#signer;
+    const signature = await finalSigner.signMessage(
+      await signatureRequest.signatureText(),
+    );
+    const identifier = await finalSigner.getIdentifier();
+
+    switch (finalSigner.type) {
+      case "SCW":
+        await signatureRequest.addScwSignature(
+          identifier,
+          signature,
+          finalSigner.getChainId(),
+          finalSigner.getBlockNumber?.(),
+        );
+        break;
+      case "EOA":
+        await signatureRequest.addEcdsaSignature(signature);
+        break;
+    }
+  }
+
+  /**
+   * Returns a signature request handler for creating a new inbox
    *
    * WARNING: This function should be used with caution. It is only provided
    * for use in special cases where the provided workflows do not meet the
@@ -241,21 +298,17 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The signature text
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async unsafe_createInboxSignatureText() {
+  async unsafe_createInboxSignatureRequest() {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    try {
-      const signatureText = await this.#client.createInboxSignatureText();
-      return signatureText;
-    } catch {
-      return undefined;
-    }
+    return this.#client.createInboxSignatureRequest();
   }
 
   /**
-   * Creates signature text for adding a new account to the client's inbox
+   * Returns a signature request handler for adding a new account to the
+   * client's inbox
    *
    * WARNING: This function should be used with caution. It is only provided
    * for use in special cases where the provided workflows do not meet the
@@ -271,7 +324,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The signature text
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async unsafe_addAccountSignatureText(
+  async unsafe_addAccountSignatureRequest(
     newAccountIdentifier: Identifier,
     allowInboxReassign: boolean = false,
   ) {
@@ -283,17 +336,12 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       throw new InboxReassignError();
     }
 
-    try {
-      const signatureText =
-        await this.#client.addIdentifierSignatureText(newAccountIdentifier);
-      return signatureText;
-    } catch {
-      return undefined;
-    }
+    return this.#client.addIdentifierSignatureRequest(newAccountIdentifier);
   }
 
   /**
-   * Creates signature text for removing an account from the client's inbox
+   * Returns a signature request handler for removing an account from the
+   * client's inbox
    *
    * WARNING: This function should be used with caution. It is only provided
    * for use in special cases where the provided workflows do not meet the
@@ -305,23 +353,17 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The signature text
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async unsafe_removeAccountSignatureText(identifier: Identifier) {
+  async unsafe_removeAccountSignatureRequest(identifier: Identifier) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    try {
-      const signatureText =
-        await this.#client.revokeIdentifierSignatureText(identifier);
-      return signatureText;
-    } catch {
-      return undefined;
-    }
+    return this.#client.revokeIdentifierSignatureRequest(identifier);
   }
 
   /**
-   * Creates signature text for revoking all other installations of the
-   * client's inbox
+   * Returns a signature request handler for revoking all other installations
+   * of the client's inbox
    *
    * WARNING: This function should be used with caution. It is only provided
    * for use in special cases where the provided workflows do not meet the
@@ -332,23 +374,17 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The signature text
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async unsafe_revokeAllOtherInstallationsSignatureText() {
+  async unsafe_revokeAllOtherInstallationsSignatureRequest() {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    try {
-      const signatureText =
-        await this.#client.revokeAllOtherInstallationsSignatureText();
-      return signatureText;
-    } catch {
-      return undefined;
-    }
+    return this.#client.revokeAllOtherInstallationsSignatureRequest();
   }
 
   /**
-   * Creates signature text for revoking specific installations of the
-   * client's inbox
+   * Returns a signature request handler for revoking specific installations
+   * of the client's inbox
    *
    * WARNING: This function should be used with caution. It is only provided
    * for use in special cases where the provided workflows do not meet the
@@ -360,23 +396,19 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The signature text
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
+  async unsafe_revokeInstallationsSignatureRequest(
+    installationIds: Uint8Array[],
+  ) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    try {
-      const signatureText =
-        await this.#client.revokeInstallationsSignatureText(installationIds);
-      return signatureText;
-    } catch {
-      return undefined;
-    }
+    return this.#client.revokeInstallationsSignatureRequest(installationIds);
   }
 
   /**
-   * Creates signature text for changing the recovery identifier for this
-   * client's inbox
+   * Returns a signature request handler for changing the recovery identifier
+   * for this client's inbox
    *
    * WARNING: This function should be used with caution. It is only provided
    * for use in special cases where the provided workflows do not meet the
@@ -388,65 +420,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The signature text
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-
-    try {
-      const signatureText =
-        await this.#client.changeRecoveryIdentifierSignatureText(identifier);
-      return signatureText;
-    } catch {
-      return undefined;
-    }
-  }
-
-  /**
-   * Adds a signature for a specific request type
-   *
-   * WARNING: This function should be used with caution. It is only provided
-   * for use in special cases where the provided workflows do not meet the
-   * requirements of an application.
-   *
-   * It is highly recommended to use the `register`, `unsafe_addAccount`,
-   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
-   * methods instead.
-   *
-   * @param signatureType - The type of signature request
-   * @param signatureText - The text to sign
-   * @param signer - The signer to use
-   * @throws {ClientNotInitializedError} if the client is not initialized
-   */
-  async unsafe_addSignature(
-    signatureType: SignatureRequestType,
-    signatureText: string,
-    signer: Signer,
+  async unsafe_changeRecoveryIdentifierSignatureRequest(
+    identifier: Identifier,
   ) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    switch (signer.type) {
-      case "SCW":
-        await this.#client.addScwSignature(
-          signatureType,
-          await signer.signMessage(signatureText),
-          signer.getChainId(),
-          signer.getBlockNumber?.(),
-        );
-        break;
-      case "EOA":
-        await this.#client.addEcdsaSignature(
-          signatureType,
-          await signer.signMessage(signatureText),
-        );
-        break;
-    }
+    return this.#client.changeRecoveryIdentifierSignatureRequest(identifier);
   }
 
   /**
-   * Applies all pending signatures
+   * Applies a signature request to the client
    *
    * WARNING: This function should be used with caution. It is only provided
    * for use in special cases where the provided workflows do not meet the
@@ -458,12 +443,12 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    *
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async unsafe_applySignatures() {
+  async unsafe_applySignatureRequest(signatureRequest: SignatureRequestHandle) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.applySignatureRequests();
+    return this.#client.applySignatureRequest(signatureRequest);
   }
 
   /**
@@ -475,28 +460,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @throws {SignerUnavailableError} if no signer is available
    */
   async register() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-
-    if (!this.#signer) {
-      throw new SignerUnavailableError();
-    }
-
-    const signatureText = await this.unsafe_createInboxSignatureText();
-
-    // if the signature text is not available, the client is already registered
-    if (!signatureText) {
+    const signatureRequest = await this.unsafe_createInboxSignatureRequest();
+    if (!signatureRequest) {
       return;
     }
 
-    await this.unsafe_addSignature(
-      SignatureRequestType.CreateInbox,
-      signatureText,
-      this.#signer,
-    );
-
-    return this.#client.registerIdentity();
+    await this.addSignature(signatureRequest);
+    await this.#client?.registerIdentity(signatureRequest);
   }
 
   /**
@@ -513,19 +483,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    *
    * @param newAccountSigner - The signer for the new account
    * @param allowInboxReassign - Whether to allow inbox reassignment
-   * @throws {ClientNotInitializedError} if the client is not initialized
    * @throws {AccountAlreadyAssociatedError} if the account is already associated with an inbox ID
-   * @throws {GenerateSignatureError} if the signature cannot be generated
+   * @throws {ClientNotInitializedError} if the client is not initialized
    * @throws {SignerUnavailableError} if no signer is available
    */
   async unsafe_addAccount(
     newAccountSigner: Signer,
     allowInboxReassign: boolean = false,
   ) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-
     // check for existing inbox id
     const identifier = await newAccountSigner.getIdentifier();
     const existingInboxId = await this.getInboxIdByIdentifier(identifier);
@@ -534,22 +499,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       throw new AccountAlreadyAssociatedError(existingInboxId);
     }
 
-    const signatureText = await this.unsafe_addAccountSignatureText(
+    const signatureRequest = await this.unsafe_addAccountSignatureRequest(
       identifier,
-      true,
+      allowInboxReassign,
     );
 
-    if (!signatureText) {
-      throw new GenerateSignatureError(SignatureRequestType.AddWallet);
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.AddWallet,
-      signatureText,
-      newAccountSigner,
-    );
-
-    await this.unsafe_applySignatures();
+    await this.addSignature(signatureRequest, newAccountSigner);
+    await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
   /**
@@ -559,32 +515,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    *
    * @param identifier - The identifier of the account to remove
    * @throws {ClientNotInitializedError} if the client is not initialized
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    * @throws {SignerUnavailableError} if no signer is available
    */
   async removeAccount(identifier: Identifier) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
+    const signatureRequest =
+      await this.unsafe_removeAccountSignatureRequest(identifier);
 
-    if (!this.#signer) {
-      throw new SignerUnavailableError();
-    }
-
-    const signatureText =
-      await this.unsafe_removeAccountSignatureText(identifier);
-
-    if (!signatureText) {
-      throw new GenerateSignatureError(SignatureRequestType.RevokeWallet);
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.RevokeWallet,
-      signatureText,
-      this.#signer,
-    );
-
-    await this.unsafe_applySignatures();
+    await this.addSignature(signatureRequest);
+    await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
   /**
@@ -593,34 +531,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * Requires a signer, use `Client.create` to create a client with a signer.
    *
    * @throws {ClientNotInitializedError} if the client is not initialized
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    * @throws {SignerUnavailableError} if no signer is available
    */
   async revokeAllOtherInstallations() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
+    const signatureRequest =
+      await this.unsafe_revokeAllOtherInstallationsSignatureRequest();
 
-    if (!this.#signer) {
-      throw new SignerUnavailableError();
-    }
-
-    const signatureText =
-      await this.unsafe_revokeAllOtherInstallationsSignatureText();
-
-    if (!signatureText) {
-      throw new GenerateSignatureError(
-        SignatureRequestType.RevokeInstallations,
-      );
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.RevokeInstallations,
-      signatureText,
-      this.#signer,
-    );
-
-    await this.unsafe_applySignatures();
+    await this.addSignature(signatureRequest);
+    await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
   /**
@@ -631,33 +549,55 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @param installationIds - The installation IDs to revoke
    * @throws {ClientNotInitializedError} if the client is not initialized
    * @throws {SignerUnavailableError} if no signer is available
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    */
   async revokeInstallations(installationIds: Uint8Array[]) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
+    const signatureRequest =
+      await this.unsafe_revokeInstallationsSignatureRequest(installationIds);
 
-    if (!this.#signer) {
-      throw new SignerUnavailableError();
-    }
+    await this.addSignature(signatureRequest);
+    await this.unsafe_applySignatureRequest(signatureRequest);
+  }
 
-    const signatureText =
-      await this.unsafe_revokeInstallationsSignatureText(installationIds);
-
-    if (!signatureText) {
-      throw new GenerateSignatureError(
-        SignatureRequestType.RevokeInstallations,
-      );
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.RevokeInstallations,
-      signatureText,
-      this.#signer,
+  /**
+   * Revokes specific installations of the client's inbox without a client
+   *
+   * @param signer - The signer to use
+   * @param inboxId - The inbox ID to revoke installations for
+   * @param installationIds - The installation IDs to revoke
+   * @param env - The environment to use
+   */
+  static async revokeInstallations(
+    env: XmtpEnv,
+    signer: Signer,
+    inboxId: string,
+    installationIds: Uint8Array[],
+  ) {
+    const host = ApiUrls[env];
+    const identifier = await signer.getIdentifier();
+    const signatureRequest = await revokeInstallationsSignatureRequest(
+      host,
+      identifier,
+      inboxId,
+      installationIds,
     );
+    const signatureText = await signatureRequest.signatureText();
+    const signature = await signer.signMessage(signatureText);
 
-    await this.unsafe_applySignatures();
+    switch (signer.type) {
+      case "SCW":
+        await signatureRequest.addScwSignature(
+          identifier,
+          signature,
+          signer.getChainId(),
+          signer.getBlockNumber?.(),
+        );
+        break;
+      case "EOA":
+        await signatureRequest.addEcdsaSignature(signature);
+        break;
+    }
+
+    await applySignatureRequest(host, signatureRequest);
   }
 
   /**
@@ -668,33 +608,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @param identifier - The new recovery identifier
    * @throws {ClientNotInitializedError} if the client is not initialized
    * @throws {SignerUnavailableError} if no signer is available
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    */
   async changeRecoveryIdentifier(identifier: Identifier) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
+    const signatureRequest =
+      await this.unsafe_changeRecoveryIdentifierSignatureRequest(identifier);
 
-    if (!this.#signer) {
-      throw new SignerUnavailableError();
-    }
-
-    const signatureText =
-      await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
-
-    if (!signatureText) {
-      throw new GenerateSignatureError(
-        SignatureRequestType.ChangeRecoveryIdentifier,
-      );
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.ChangeRecoveryIdentifier,
-      signatureText,
-      this.#signer,
-    );
-
-    await this.unsafe_applySignatures();
+    await this.addSignature(signatureRequest);
+    await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
   /**
@@ -929,43 +849,5 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   static get version() {
     return version;
-  }
-
-  apiStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    return this.#client.apiStatistics();
-  }
-
-  apiIdentityStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    return this.#client.apiIdentityStatistics();
-  }
-
-  apiAggregateStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    return this.#client.apiAggregateStatistics();
-  }
-
-  clearAllStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    this.#client.clearAllStatistics();
-  }
-
-  uploadDebugArchive(serverUrl?: string) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    const env = this.#options?.env || "dev";
-    const historySyncUrl =
-      this.#options?.historySyncUrl || HistorySyncUrls[env];
-    return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
   }
 }
