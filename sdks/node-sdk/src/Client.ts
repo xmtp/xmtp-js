@@ -20,8 +20,9 @@ import {
   type Client as NodeClient,
   type SignatureRequestHandle,
 } from "@xmtp/node-bindings";
-import { ApiUrls, HistorySyncUrls } from "@/constants";
+import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
+import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
 import { createClient } from "@/utils/createClient";
@@ -48,6 +49,7 @@ export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
 export class Client<ContentTypes = ExtractCodecContentTypes> {
   #client?: NodeClient;
   #conversations?: Conversations<ContentTypes>;
+  #debugInformation?: DebugInformation;
   #preferences?: Preferences;
   #signer?: Signer;
   #codecs: Map<string, ContentCodec>;
@@ -91,6 +93,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     this.#client = await createClient(identifier, this.#options);
     const conversations = this.#client.conversations();
     this.#conversations = new Conversations(this, conversations);
+    this.#debugInformation = new DebugInformation(this.#client, this.#options);
     this.#preferences = new Preferences(this.#client, conversations);
   }
 
@@ -216,6 +219,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       throw new ClientNotInitializedError();
     }
     return this.#conversations;
+  }
+
+  /**
+   * Gets the debug information helpersfor this client
+   *
+   * @throws {ClientNotInitializedError} if the client is not initialized
+   */
+  get debugInformation() {
+    if (!this.#debugInformation) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#debugInformation;
   }
 
   /**
@@ -833,43 +848,5 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   static get version() {
     return version;
-  }
-
-  apiStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    return this.#client.apiStatistics();
-  }
-
-  apiIdentityStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    return this.#client.apiIdentityStatistics();
-  }
-
-  apiAggregateStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    return this.#client.apiAggregateStatistics();
-  }
-
-  clearAllStatistics() {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    this.#client.clearAllStatistics();
-  }
-
-  uploadDebugArchive(serverUrl?: string) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    const env = this.#options?.env || "dev";
-    const historySyncUrl =
-      this.#options?.historySyncUrl || HistorySyncUrls[env];
-    return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
   }
 }
