@@ -265,18 +265,19 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       throw new SignerUnavailableError();
     }
 
-    const signature = await (signer ?? this.#signer).signMessage(
+    const finalSigner = signer ?? this.#signer;
+    const signature = await finalSigner.signMessage(
       await signatureRequest.signatureText(),
     );
-    const identifier = await this.#signer.getIdentifier();
+    const identifier = await finalSigner.getIdentifier();
 
-    switch (this.#signer.type) {
+    switch (finalSigner.type) {
       case "SCW":
         await signatureRequest.addScwSignature(
           identifier,
           signature,
-          this.#signer.getChainId(),
-          this.#signer.getBlockNumber?.(),
+          finalSigner.getChainId(),
+          finalSigner.getBlockNumber?.(),
         );
         break;
       case "EOA":
