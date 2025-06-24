@@ -5,24 +5,24 @@ import {
   type KeyPackageStatus,
   type SignatureRequestType,
 } from "@xmtp/wasm-bindings";
-import { HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types/options";
 import { createClient } from "@/utils/createClient";
 import { WorkerConversations } from "@/WorkerConversations";
+import { WorkerDebugInformation } from "@/WorkerDebugInformation";
 import { WorkerPreferences } from "@/WorkerPreferences";
 
 export class WorkerClient {
   #client: Client;
   #conversations: WorkerConversations;
-  #options?: ClientOptions;
+  #debugInformation: WorkerDebugInformation;
   #preferences: WorkerPreferences;
 
   constructor(client: Client, options?: ClientOptions) {
     this.#client = client;
     const conversations = client.conversations();
     this.#conversations = new WorkerConversations(this, conversations);
+    this.#debugInformation = new WorkerDebugInformation(client, options);
     this.#preferences = new WorkerPreferences(client, conversations);
-    this.#options = options;
   }
 
   static async create(
@@ -55,6 +55,10 @@ export class WorkerClient {
 
   get conversations() {
     return this.#conversations;
+  }
+
+  get debugInformation() {
+    return this.#debugInformation;
   }
 
   get preferences() {
@@ -180,28 +184,5 @@ export class WorkerClient {
     return this.#client.getKeyPackageStatusesForInstallationIds(
       installationIds,
     ) as Promise<Map<string, KeyPackageStatus>>;
-  }
-
-  apiStatistics() {
-    return this.#client.apiStatistics();
-  }
-
-  apiIdentityStatistics() {
-    return this.#client.apiIdentityStatistics();
-  }
-
-  apiAggregateStatistics() {
-    return this.#client.apiAggregateStatistics();
-  }
-
-  clearAllStatistics() {
-    this.#client.clearAllStatistics();
-  }
-
-  async uploadDebugArchive(serverUrl?: string) {
-    const env = this.#options?.env || "dev";
-    const historySyncUrl =
-      this.#options?.historySyncUrl || HistorySyncUrls[env];
-    return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
   }
 }

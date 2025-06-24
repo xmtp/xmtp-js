@@ -252,30 +252,36 @@ self.onmessage = async (
         });
         break;
       }
-      case "client.apiStatistics": {
-        const apiStats = client.apiStatistics();
+      /**
+       * Debug information actions
+       */
+      case "debugInformation.apiStatistics": {
+        const apiStats = client.debugInformation.apiStatistics();
         const result = toSafeApiStats(apiStats);
         postMessage({ id, action, result });
         break;
       }
-      case "client.apiIdentityStatistics": {
-        const apiIdentityStats = client.apiIdentityStatistics();
+      case "debugInformation.apiIdentityStatistics": {
+        const apiIdentityStats =
+          client.debugInformation.apiIdentityStatistics();
         const result = toSafeIdentityStats(apiIdentityStats);
         postMessage({ id, action, result });
         break;
       }
-      case "client.apiAggregateStatistics": {
-        const result = client.apiAggregateStatistics();
+      case "debugInformation.apiAggregateStatistics": {
+        const result = client.debugInformation.apiAggregateStatistics();
         postMessage({ id, action, result });
         break;
       }
-      case "client.clearAllStatistics": {
-        client.clearAllStatistics();
+      case "debugInformation.clearAllStatistics": {
+        client.debugInformation.clearAllStatistics();
         postMessage({ id, action, result: undefined });
         break;
       }
-      case "client.uploadDebugArchive": {
-        const result = await client.uploadDebugArchive(data.serverUrl);
+      case "debugInformation.uploadDebugArchive": {
+        const result = await client.debugInformation.uploadDebugArchive(
+          data.serverUrl,
+        );
         postMessage({ id, action, result });
         break;
       }

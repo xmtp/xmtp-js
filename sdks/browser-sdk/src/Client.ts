@@ -7,13 +7,10 @@ import type {
   ContentTypeId,
 } from "@xmtp/content-type-primitives";
 import { TextCodec } from "@xmtp/content-type-text";
-import {
-  GroupMessageKind,
-  SignatureRequestType,
-  type Identifier,
-} from "@xmtp/wasm-bindings";
+import { GroupMessageKind, type Identifier } from "@xmtp/wasm-bindings";
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
+import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, XmtpEnv } from "@/types/options";
 import { Utils } from "@/Utils";
@@ -45,6 +42,7 @@ export class Client<
 > extends ClientWorkerClass {
   #codecs: Map<string, ContentCodec>;
   #conversations: Conversations<ContentTypes>;
+  #debugInformation: DebugInformation<ContentTypes>;
   #identifier?: Identifier;
   #inboxId: string | undefined;
   #installationId: string | undefined;
@@ -72,6 +70,7 @@ export class Client<
     );
     this.#options = options;
     this.#conversations = new Conversations(this);
+    this.#debugInformation = new DebugInformation(this);
     this.#preferences = new Preferences(this);
     const codecs = [
       new GroupUpdatedCodec(),
@@ -206,6 +205,13 @@ export class Client<
    */
   get conversations() {
     return this.#conversations;
+  }
+
+  /**
+   * Gets the debug information helpers for this client
+   */
+  get debugInformation() {
+    return this.#debugInformation;
   }
 
   /**
@@ -761,28 +767,6 @@ export class Client<
   async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
     return this.sendMessage("client.getKeyPackageStatusesForInstallationIds", {
       installationIds,
-    });
-  }
-
-  apiStatistics() {
-    return this.sendMessage("client.apiStatistics", undefined);
-  }
-
-  apiIdentityStatistics() {
-    return this.sendMessage("client.apiIdentityStatistics", undefined);
-  }
-
-  apiAggregateStatistics() {
-    return this.sendMessage("client.apiAggregateStatistics", undefined);
-  }
-
-  clearAllStatistics() {
-    return this.sendMessage("client.clearAllStatistics", undefined);
-  }
-
-  async uploadDebugArchive(serverUrl?: string) {
-    return this.sendMessage("client.uploadDebugArchive", {
-      serverUrl,
     });
   }
 }

@@ -1,10 +1,6 @@
 import type { Identifier, SignatureRequestType } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types/options";
-import type {
-  SafeApiStats,
-  SafeIdentityStats,
-  SafeKeyPackageStatus,
-} from "@/utils/conversions";
+import type { SafeKeyPackageStatus } from "@/utils/conversions";
 
 export type ClientAction =
   | {
@@ -151,37 +147,5 @@ export type ClientAction =
       result: Map<string, SafeKeyPackageStatus>;
       data: {
         installationIds: string[];
-      };
-    }
-  | {
-      action: "client.apiStatistics";
-      id: string;
-      result: SafeApiStats;
-      data: undefined;
-    }
-  | {
-      action: "client.apiIdentityStatistics";
-      id: string;
-      result: SafeIdentityStats;
-      data: undefined;
-    }
-  | {
-      action: "client.apiAggregateStatistics";
-      id: string;
-      result: string;
-      data: undefined;
-    }
-  | {
-      action: "client.clearAllStatistics";
-      id: string;
-      result: undefined;
-      data: undefined;
-    }
-  | {
-      action: "client.uploadDebugArchive";
-      id: string;
-      result: string;
-      data: {
-        serverUrl?: string;
       };
     };
