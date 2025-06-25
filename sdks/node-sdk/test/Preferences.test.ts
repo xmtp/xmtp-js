@@ -9,7 +9,7 @@ import {
   sleep,
 } from "@test/helpers";
 
-describe.concurrent("Preferences", () => {
+describe("Preferences", () => {
   it("should return the correct inbox state", async () => {
     const user = createUser();
     const signer = createSigner(user);

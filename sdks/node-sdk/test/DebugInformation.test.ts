@@ -5,7 +5,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("DebugInformation", () => {
+describe("DebugInformation", () => {
   it("should return network API statistics", async () => {
     const user = createUser();
     const signer = createSigner(user);

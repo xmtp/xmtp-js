@@ -16,7 +16,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("Client", () => {
+describe("Client", () => {
   it("should create a client", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -469,5 +469,29 @@ describe.concurrent("Client", () => {
       new ClientNotInitializedError(),
     );
     expect(() => client.isRegistered).toThrow(new ClientNotInitializedError());
+  });
+
+  it("should get inbox states from inbox IDs without a client", async () => {
+    const user = createUser();
+    const user2 = createUser();
+    const signer = createSigner(user);
+    const signer2 = createSigner(user2);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer2);
+    const inboxStates = await Client.inboxStateFromInboxIds("local", [
+      client.inboxId,
+    ]);
+    expect(inboxStates.length).toBe(1);
+    expect(inboxStates[0].inboxId).toBe(client.inboxId);
+    expect(inboxStates[0].identifiers).toEqual([await signer.getIdentifier()]);
+
+    const inboxStates2 = await Client.inboxStateFromInboxIds("local", [
+      client2.inboxId,
+    ]);
+    expect(inboxStates2.length).toBe(1);
+    expect(inboxStates2[0].inboxId).toBe(client2.inboxId);
+    expect(inboxStates2[0].identifiers).toEqual([
+      await signer2.getIdentifier(),
+    ]);
   });
 });

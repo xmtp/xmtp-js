@@ -11,6 +11,7 @@ import { TextCodec } from "@xmtp/content-type-text";
 import {
   applySignatureRequest,
   GroupMessageKind,
+  inboxStateFromInboxIds,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
@@ -598,6 +599,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     }
 
     await applySignatureRequest(host, signatureRequest);
+  }
+
+  /**
+   * Gets the inbox state for the specified inbox IDs without a client
+   *
+   * @param env - The environment to use
+   * @param inboxIds - The inbox IDs to get the state for
+   * @returns The inbox state for the specified inbox IDs
+   */
+  static async inboxStateFromInboxIds(env: XmtpEnv, inboxIds: string[]) {
+    const host = ApiUrls[env];
+    return inboxStateFromInboxIds(host, inboxIds);
   }
 
   /**
