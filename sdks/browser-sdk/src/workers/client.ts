@@ -2,6 +2,7 @@ import init, {
   type Consent,
   type Conversation,
   type Message,
+  type SignatureRequestHandle,
   type StreamCloser,
   type UserPreference,
 } from "@xmtp/wasm-bindings";
@@ -43,6 +44,12 @@ let maybeClient: WorkerClient | undefined;
 let enableLogging = false;
 
 const streamClosers = new Map<string, StreamCloser>();
+const signatureRequests = new Map<string, SignatureRequestHandle>();
+
+type SignatureRequestResult = {
+  signatureText: string;
+  signatureRequestId: string;
+};
 
 /**
  * Type-safe postMessage
@@ -143,61 +150,151 @@ self.onmessage = async (
       /**
        * Client actions
        */
+      case "client.applySignatureRequest": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.processSignatureRequest(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "client.createInboxSignatureText": {
-        const result = client.createInboxSignatureText();
+        const signatureRequest = client.createInboxSignatureRequest();
+        const result: Partial<SignatureRequestResult> = {
+          signatureText: undefined,
+          signatureRequestId: undefined,
+        };
+        if (signatureRequest) {
+          result.signatureText = await signatureRequest.signatureText();
+          result.signatureRequestId = data.signatureRequestId;
+          signatureRequests.set(data.signatureRequestId, signatureRequest);
+        }
         postMessage({ id, action, result });
         break;
       }
       case "client.addAccountSignatureText": {
-        const result = await client.addAccountSignatureText(data.newIdentifier);
+        const signatureRequest = await client.addAccountSignatureRequest(
+          data.newIdentifier,
+        );
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
       case "client.removeAccountSignatureText": {
-        const result = await client.removeAccountSignatureText(data.identifier);
+        const signatureRequest = await client.removeAccountSignatureRequest(
+          data.identifier,
+        );
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
       case "client.revokeAllOtherInstallationsSignatureText": {
-        const result = await client.revokeAllAOtherInstallationsSignatureText();
+        const signatureRequest =
+          await client.revokeAllOtherInstallationsSignatureRequest();
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
       case "client.revokeInstallationsSignatureText": {
-        const result = await client.revokeInstallationsSignatureText(
-          data.installationIds,
-        );
+        const signatureRequest =
+          await client.revokeInstallationsSignatureRequest(
+            data.installationIds,
+          );
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
       case "client.changeRecoveryIdentifierSignatureText": {
-        const result = await client.changeRecoveryIdentifierSignatureText(
-          data.identifier,
-        );
+        const signatureRequest =
+          await client.changeRecoveryIdentifierSignatureRequest(
+            data.identifier,
+          );
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
-      case "client.addEcdsaSignature":
-        await client.addEcdsaSignature(data.type, data.bytes);
+      case "client.registerIdentity": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.registerIdentity(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
-      case "client.addScwSignature":
-        await client.addScwSignature(
-          data.type,
-          data.bytes,
-          data.chainId,
-          data.blockNumber,
-        );
+      }
+      case "client.addAccount": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.processSignatureRequest(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
-      case "client.applySignatures":
-        await client.applySignatures();
+      }
+      case "client.removeAccount": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.processSignatureRequest(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
-      case "client.registerIdentity":
-        await client.registerIdentity();
+      }
+      case "client.revokeAllOtherInstallations": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.processSignatureRequest(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
+      }
+      case "client.revokeInstallations": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.processSignatureRequest(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "client.changeRecoveryIdentifier": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.processSignatureRequest(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "client.isRegistered": {
         const result = client.isRegistered;
         postMessage({ id, action, result });
@@ -252,25 +349,36 @@ self.onmessage = async (
         });
         break;
       }
-      case "client.apiStatistics": {
-        const apiStats = client.apiStatistics();
+      /**
+       * Debug information actions
+       */
+      case "debugInformation.apiStatistics": {
+        const apiStats = client.debugInformation.apiStatistics();
         const result = toSafeApiStats(apiStats);
         postMessage({ id, action, result });
         break;
       }
-      case "client.apiIdentityStatistics": {
-        const apiIdentityStats = client.apiIdentityStatistics();
+      case "debugInformation.apiIdentityStatistics": {
+        const apiIdentityStats =
+          client.debugInformation.apiIdentityStatistics();
         const result = toSafeIdentityStats(apiIdentityStats);
         postMessage({ id, action, result });
         break;
       }
-      case "client.apiAggregateStatistics": {
-        const result = client.apiAggregateStatistics();
+      case "debugInformation.apiAggregateStatistics": {
+        const result = client.debugInformation.apiAggregateStatistics();
         postMessage({ id, action, result });
         break;
       }
-      case "client.uploadDebugArchive": {
-        const result = await client.uploadDebugArchive(data.serverUrl);
+      case "debugInformation.clearAllStatistics": {
+        client.debugInformation.clearAllStatistics();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "debugInformation.uploadDebugArchive": {
+        const result = await client.debugInformation.uploadDebugArchive(
+          data.serverUrl,
+        );
         postMessage({ id, action, result });
         break;
       }

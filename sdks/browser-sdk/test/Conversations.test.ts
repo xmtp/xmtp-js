@@ -7,7 +7,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("Conversations", () => {
+describe("Conversations", () => {
   it("should not have initial conversations", async () => {
     const user = createUser();
     const signer = createSigner(user);

@@ -11,7 +11,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("Client", () => {
+describe("Client", () => {
   it("should create a client", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -108,8 +108,7 @@ describe.concurrent("Client", () => {
     const user2 = createUser();
     const signer2 = createSigner(user2);
 
-    await client.unsafe_addAccount(signer2);
-
+    await client.unsafe_addAccount(signer2, true);
     const inboxState = await client.preferences.inboxState();
     expect(inboxState.accountIdentifiers.length).toEqual(2);
     expect(inboxState.accountIdentifiers).toContainEqual(
@@ -128,7 +127,7 @@ describe.concurrent("Client", () => {
     const user2 = createUser();
     const signer2 = createSigner(user2);
 
-    await client.unsafe_addAccount(signer2);
+    await client.unsafe_addAccount(signer2, true);
     await client.removeAccount(await signer2.getIdentifier());
 
     const inboxState = await client.preferences.inboxState();
@@ -196,6 +195,57 @@ describe.concurrent("Client", () => {
     expect(installationIds2).not.toContain(client.installationId);
   });
 
+  it("should throw when trying to create more than 5 installations", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client4 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client5 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    const inboxState = await client3.preferences.inboxState(true);
+    expect(inboxState.installations.length).toBe(5);
+
+    const installationIds = inboxState.installations.map((i) => i.id);
+    expect(installationIds).toContain(client.installationId);
+    expect(installationIds).toContain(client2.installationId);
+    expect(installationIds).toContain(client3.installationId);
+    expect(installationIds).toContain(client4.installationId);
+    expect(installationIds).toContain(client5.installationId);
+
+    await expect(
+      createRegisteredClient(signer, {
+        dbPath: `./test-${v4()}.db3`,
+      }),
+    ).rejects.toThrow();
+
+    await client3.revokeAllOtherInstallations();
+
+    const inboxState2 = await client3.preferences.inboxState(true);
+
+    expect(inboxState2.installations.length).toBe(1);
+    expect(inboxState2.installations[0].id).toBe(client3.installationId);
+
+    const client6 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    const inboxState3 = await client6.preferences.inboxState(true);
+    expect(inboxState3.installations.length).toBe(2);
+    const installationIds3 = inboxState3.installations.map((i) => i.id);
+    expect(installationIds3).toContain(client3.installationId);
+    expect(installationIds3).toContain(client6.installationId);
+  });
+
   it("should change the recovery identifier", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -261,39 +311,5 @@ describe.concurrent("Client", () => {
     await expect(async () =>
       client.changeRecoveryIdentifier(await signer2.getIdentifier()),
     ).rejects.toThrow(new SignerUnavailableError());
-  });
-
-  it("should return network API statistics", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createClient(signer);
-
-    const apiStats = await client.apiStatistics();
-    expect(apiStats.uploadKeyPackage).toBeDefined();
-    expect(apiStats.fetchKeyPackage).toBeDefined();
-    expect(apiStats.sendGroupMessages).toBeDefined();
-    expect(apiStats.sendWelcomeMessages).toBeDefined();
-    expect(apiStats.queryGroupMessages).toBeDefined();
-    expect(apiStats.queryWelcomeMessages).toBeDefined();
-    expect(apiStats.subscribeMessages).toBeDefined();
-    expect(apiStats.subscribeWelcomes).toBeDefined();
-
-    const apiIdentityStats = await client.apiIdentityStatistics();
-    expect(apiIdentityStats.getIdentityUpdatesV2).toBeDefined();
-    expect(apiIdentityStats.getInboxIds).toBeDefined();
-    expect(apiIdentityStats.publishIdentityUpdate).toBeDefined();
-    expect(apiIdentityStats.verifySmartContractWalletSignature).toBeDefined();
-
-    const apiAggregateStats = await client.apiAggregateStatistics();
-    expect(apiAggregateStats).toBeDefined();
-  });
-
-  it("should upload a debug archive", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createClient(signer);
-
-    const result = await client.uploadDebugArchive();
-    expect(result).toBeDefined();
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/node-sdk",
-  "version": "2.1.0",
+  "version": "2.2.1",
   "description": "XMTP Node client SDK for interacting with XMTP networks",
   "keywords": [
     "xmtp",
@@ -37,11 +37,10 @@
   ],
   "scripts": {
     "build": "yarn clean:dist && rollup -c",
-    "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps && yarn clean:tests",
-    "clean:dbs": "rimraf *.db3* ||:",
+    "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps",
+    "clean:dbs": "rimraf **/*.db3* ||:",
     "clean:deps": "rimraf node_modules",
     "clean:dist": "rimraf dist",
-    "clean:tests": "rimraf test/*.db3* ||:",
     "dev": "yarn build --watch",
     "generate:accounts": "tsx scripts/accounts.ts",
     "generate:groups": "tsx scripts/groups.ts",
@@ -53,7 +52,7 @@
     "@xmtp/content-type-group-updated": "^2.0.2",
     "@xmtp/content-type-primitives": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/node-bindings": "1.2.0"
+    "@xmtp/node-bindings": "1.2.3"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
