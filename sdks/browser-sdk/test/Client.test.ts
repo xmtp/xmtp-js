@@ -11,7 +11,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("Client", () => {
+describe("Client", () => {
   it("should create a client", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -108,8 +108,7 @@ describe.concurrent("Client", () => {
     const user2 = createUser();
     const signer2 = createSigner(user2);
 
-    await client.unsafe_addAccount(signer2);
-
+    await client.unsafe_addAccount(signer2, true);
     const inboxState = await client.preferences.inboxState();
     expect(inboxState.accountIdentifiers.length).toEqual(2);
     expect(inboxState.accountIdentifiers).toContainEqual(
@@ -128,7 +127,7 @@ describe.concurrent("Client", () => {
     const user2 = createUser();
     const signer2 = createSigner(user2);
 
-    await client.unsafe_addAccount(signer2);
+    await client.unsafe_addAccount(signer2, true);
     await client.removeAccount(await signer2.getIdentifier());
 
     const inboxState = await client.preferences.inboxState();
@@ -312,57 +311,5 @@ describe.concurrent("Client", () => {
     await expect(async () =>
       client.changeRecoveryIdentifier(await signer2.getIdentifier()),
     ).rejects.toThrow(new SignerUnavailableError());
-  });
-
-  it("should return network API statistics", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createRegisteredClient(signer);
-
-    const apiStats = await client.apiStatistics();
-    expect(apiStats.fetchKeyPackage).toBe(0n);
-    expect(apiStats.queryGroupMessages).toBe(0n);
-    expect(apiStats.queryWelcomeMessages).toBe(0n);
-    expect(apiStats.sendGroupMessages).toBe(0n);
-    expect(apiStats.sendWelcomeMessages).toBe(0n);
-    expect(apiStats.subscribeMessages).toBe(0n);
-    expect(apiStats.subscribeWelcomes).toBe(0n);
-    expect(apiStats.uploadKeyPackage).toBe(1n);
-
-    const apiIdentityStats = await client.apiIdentityStatistics();
-    expect(apiIdentityStats.getIdentityUpdatesV2).toBe(2n);
-    expect(apiIdentityStats.getInboxIds).toBe(1n);
-    expect(apiIdentityStats.publishIdentityUpdate).toBe(1n);
-    expect(apiIdentityStats.verifySmartContractWalletSignature).toBe(0n);
-
-    await client.clearAllStatistics();
-
-    const apiStats2 = await client.apiStatistics();
-    expect(apiStats2.fetchKeyPackage).toBe(0n);
-    expect(apiStats2.queryGroupMessages).toBe(0n);
-    expect(apiStats2.queryWelcomeMessages).toBe(0n);
-    expect(apiStats2.sendGroupMessages).toBe(0n);
-    expect(apiStats2.sendWelcomeMessages).toBe(0n);
-    expect(apiStats2.subscribeMessages).toBe(0n);
-    expect(apiStats2.subscribeWelcomes).toBe(0n);
-    expect(apiStats2.uploadKeyPackage).toBe(0n);
-
-    const apiIdentityStats2 = await client.apiIdentityStatistics();
-    expect(apiIdentityStats2.getIdentityUpdatesV2).toBe(0n);
-    expect(apiIdentityStats2.getInboxIds).toBe(0n);
-    expect(apiIdentityStats2.publishIdentityUpdate).toBe(0n);
-    expect(apiIdentityStats2.verifySmartContractWalletSignature).toBe(0n);
-
-    const apiAggregateStats = await client.apiAggregateStatistics();
-    expect(apiAggregateStats).toBeDefined();
-  });
-
-  it("should upload a debug archive", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createClient(signer);
-
-    const result = await client.uploadDebugArchive();
-    expect(result).toBeDefined();
   });
 });
