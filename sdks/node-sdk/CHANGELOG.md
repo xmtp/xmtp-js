@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 3.0.0
+
+### Major Changes
+
+- ea34966: Added Client.revokeInstallations
+
 ## 2.2.1
 
 ### Patch Changes
