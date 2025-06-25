@@ -37,11 +37,10 @@
   ],
   "scripts": {
     "build": "yarn clean:dist && rollup -c",
-    "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps && yarn clean:tests",
-    "clean:dbs": "rimraf *.db3* ||:",
+    "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps",
+    "clean:dbs": "rimraf **/*.db3* ||:",
     "clean:deps": "rimraf node_modules",
     "clean:dist": "rimraf dist",
-    "clean:tests": "rimraf test/*.db3* ||:",
     "dev": "yarn build --watch",
     "generate:accounts": "tsx scripts/accounts.ts",
     "generate:groups": "tsx scripts/groups.ts",
