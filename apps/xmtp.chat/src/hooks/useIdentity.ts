@@ -38,7 +38,7 @@ export const useIdentity = (syncOnMount: boolean = false) => {
     try {
       const inboxState = await client.preferences.inboxState(true);
       setInboxId(inboxState.inboxId);
-      setAccountIdentifiers(inboxState.accountIdentifiers);
+      setAccountIdentifiers(inboxState.identifiers);
       setRecoveryIdentifier(inboxState.recoveryIdentifier);
       const installations = inboxState.installations.sort((a, b) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
