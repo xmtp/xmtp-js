@@ -1,6 +1,8 @@
 import init, {
+  applySignatureRequest,
   generateInboxId,
   getInboxIdForIdentifier as get_inbox_id_for_identifier,
+  revokeInstallationsSignatureRequest,
   type Identifier,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls } from "@/constants";
@@ -70,6 +72,43 @@ self.onmessage = async (
       case "utils.getInboxIdForIdentifier": {
         const result = await getInboxIdForIdentifier(data.identifier, data.env);
         postMessage({ id, action, result });
+        break;
+      }
+      case "utils.revokeInstallationsSignatureText": {
+        const host = ApiUrls[data.env];
+        const signatureRequest = await revokeInstallationsSignatureRequest(
+          host,
+          data.identifier,
+          data.inboxId,
+          data.installationIds,
+        );
+        const signatureText = await signatureRequest.signatureText();
+        postMessage({ id, action, result: signatureText });
+        break;
+      }
+      case "utils.revokeInstallations": {
+        const host = ApiUrls[data.env];
+        const signatureRequest = await revokeInstallationsSignatureRequest(
+          host,
+          data.signer.identifier,
+          data.inboxId,
+          data.installationIds,
+        );
+        switch (data.signer.type) {
+          case "EOA":
+            await signatureRequest.addEcdsaSignature(data.signer.signature);
+            break;
+          case "SCW":
+            await signatureRequest.addScwSignature(
+              data.signer.identifier,
+              data.signer.signature,
+              data.signer.chainId,
+              data.signer.blockNumber,
+            );
+            break;
+        }
+        await applySignatureRequest(host, signatureRequest);
+        postMessage({ id, action, result: undefined });
         break;
       }
     }

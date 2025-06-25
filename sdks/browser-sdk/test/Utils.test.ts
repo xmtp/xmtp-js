@@ -1,3 +1,4 @@
+import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Utils } from "@/Utils";
 import {
@@ -6,7 +7,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("Utils", () => {
+describe("Utils", () => {
   it("should generate inbox id", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -25,5 +26,35 @@ describe.concurrent("Utils", () => {
       "local",
     );
     expect(inboxId).toBe(client.inboxId);
+  });
+
+  it("should revoke installations", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    const inboxState = await client3.preferences.inboxState(true);
+    expect(inboxState.installations.length).toBe(3);
+
+    const installationIds = inboxState.installations.map((i) => i.id);
+    expect(installationIds).toContain(client.installationId);
+    expect(installationIds).toContain(client2.installationId);
+    expect(installationIds).toContain(client3.installationId);
+
+    const utils = new Utils();
+    await utils.revokeInstallations("local", signer, client.inboxId!, [
+      client2.installationIdBytes!,
+      client3.installationIdBytes!,
+    ]);
+
+    const inboxState2 = await client.preferences.inboxState(true);
+    expect(inboxState2.installations.length).toBe(1);
+    expect(inboxState2.installations[0].id).toBe(client.installationId);
   });
 });

@@ -3,10 +3,11 @@ import {
   type Client,
   type Identifier,
   type KeyPackageStatus,
-  type SignatureRequestType,
+  type SignatureRequestHandle,
 } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types/options";
 import { createClient } from "@/utils/createClient";
+import type { SafeSigner } from "@/utils/signer";
 import { WorkerConversations } from "@/WorkerConversations";
 import { WorkerDebugInformation } from "@/WorkerDebugInformation";
 import { WorkerPreferences } from "@/WorkerPreferences";
@@ -65,83 +66,107 @@ export class WorkerClient {
     return this.#preferences;
   }
 
-  createInboxSignatureText() {
-    try {
-      return this.#client.createInboxSignatureText();
-    } catch {
-      return undefined;
-    }
-  }
-
-  async addAccountSignatureText(identifier: Identifier) {
-    try {
-      return await this.#client.addWalletSignatureText(identifier);
-    } catch {
-      return undefined;
-    }
-  }
-
-  async removeAccountSignatureText(identifier: Identifier) {
-    try {
-      return await this.#client.revokeWalletSignatureText(identifier);
-    } catch {
-      return undefined;
-    }
-  }
-
-  async revokeAllAOtherInstallationsSignatureText() {
-    try {
-      return await this.#client.revokeAllOtherInstallationsSignatureText();
-    } catch {
-      return undefined;
-    }
-  }
-
-  async revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
-    try {
-      return await this.#client.revokeInstallationsSignatureText(
-        installationIds,
-      );
-    } catch {
-      return undefined;
-    }
-  }
-
-  async changeRecoveryIdentifierSignatureText(identifier: Identifier) {
-    try {
-      return await this.#client.changeRecoveryIdentifierSignatureText(
-        identifier,
-      );
-    } catch {
-      return undefined;
-    }
-  }
-
-  async addEcdsaSignature(type: SignatureRequestType, bytes: Uint8Array) {
-    return this.#client.addEcdsaSignature(type, bytes);
-  }
-
-  async addScwSignature(
-    type: SignatureRequestType,
-    bytes: Uint8Array,
-    chainId: bigint,
-    blockNumber?: bigint,
-  ) {
-    return this.#client.addScwSignature(type, bytes, chainId, blockNumber);
-  }
-
-  async applySignatures() {
-    return this.#client.applySignatureRequests();
-  }
-
   async canMessage(identifiers: Identifier[]) {
     return this.#client.canMessage(identifiers) as Promise<
       Map<string, boolean>
     >;
   }
 
-  async registerIdentity() {
-    return this.#client.registerIdentity();
+  async addSignature(
+    signatureRequest: SignatureRequestHandle,
+    signer: SafeSigner,
+  ) {
+    switch (signer.type) {
+      case "SCW":
+        await signatureRequest.addScwSignature(
+          signer.identifier,
+          signer.signature,
+          signer.chainId,
+          signer.blockNumber,
+        );
+        break;
+      case "EOA":
+        await signatureRequest.addEcdsaSignature(signer.signature);
+        break;
+    }
+  }
+
+  async applySignatureRequest(signatureRequest: SignatureRequestHandle) {
+    return this.#client.applySignatureRequest(signatureRequest);
+  }
+
+  createInboxSignatureRequest() {
+    return this.#client.createInboxSignatureRequest();
+  }
+
+  async addAccountSignatureRequest(newAccountIdentifier: Identifier) {
+    return this.#client.addWalletSignatureRequest(newAccountIdentifier);
+  }
+
+  async removeAccountSignatureRequest(identifier: Identifier) {
+    return this.#client.revokeWalletSignatureRequest(identifier);
+  }
+
+  async revokeAllOtherInstallationsSignatureRequest() {
+    return this.#client.revokeAllOtherInstallationsSignatureRequest();
+  }
+
+  async revokeInstallationsSignatureRequest(installationIds: Uint8Array[]) {
+    return this.#client.revokeInstallationsSignatureRequest(installationIds);
+  }
+
+  async changeRecoveryIdentifierSignatureRequest(identifier: Identifier) {
+    return this.#client.changeRecoveryIdentifierSignatureRequest(identifier);
+  }
+
+  async registerIdentity(signer: SafeSigner) {
+    const signatureRequest = this.createInboxSignatureRequest();
+    if (!signatureRequest) {
+      return;
+    }
+
+    await this.addSignature(signatureRequest, signer);
+    await this.#client.registerIdentity(signatureRequest);
+  }
+
+  async addAccount(newIdentifier: Identifier, signer: SafeSigner) {
+    const signatureRequest =
+      await this.addAccountSignatureRequest(newIdentifier);
+
+    await this.addSignature(signatureRequest, signer);
+    await this.applySignatureRequest(signatureRequest);
+  }
+
+  async removeAccount(identifier: Identifier, signer: SafeSigner) {
+    const signatureRequest =
+      await this.removeAccountSignatureRequest(identifier);
+
+    await this.addSignature(signatureRequest, signer);
+    await this.applySignatureRequest(signatureRequest);
+  }
+
+  async revokeAllOtherInstallations(signer: SafeSigner) {
+    const signatureRequest =
+      await this.revokeAllOtherInstallationsSignatureRequest();
+
+    await this.addSignature(signatureRequest, signer);
+    await this.applySignatureRequest(signatureRequest);
+  }
+
+  async revokeInstallations(installationIds: Uint8Array[], signer: SafeSigner) {
+    const signatureRequest =
+      await this.revokeInstallationsSignatureRequest(installationIds);
+
+    await this.addSignature(signatureRequest, signer);
+    await this.applySignatureRequest(signatureRequest);
+  }
+
+  async changeRecoveryIdentifier(identifier: Identifier, signer: SafeSigner) {
+    const signatureRequest =
+      await this.changeRecoveryIdentifierSignatureRequest(identifier);
+
+    await this.addSignature(signatureRequest, signer);
+    await this.applySignatureRequest(signatureRequest);
   }
 
   async findInboxIdByIdentifier(identifier: Identifier) {

@@ -11,7 +11,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("Client", () => {
+describe("Client", () => {
   it("should create a client", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -108,8 +108,7 @@ describe.concurrent("Client", () => {
     const user2 = createUser();
     const signer2 = createSigner(user2);
 
-    await client.unsafe_addAccount(signer2);
-
+    await client.unsafe_addAccount(signer2, true);
     const inboxState = await client.preferences.inboxState();
     expect(inboxState.accountIdentifiers.length).toEqual(2);
     expect(inboxState.accountIdentifiers).toContainEqual(
@@ -128,7 +127,7 @@ describe.concurrent("Client", () => {
     const user2 = createUser();
     const signer2 = createSigner(user2);
 
-    await client.unsafe_addAccount(signer2);
+    await client.unsafe_addAccount(signer2, true);
     await client.removeAccount(await signer2.getIdentifier());
 
     const inboxState = await client.preferences.inboxState();

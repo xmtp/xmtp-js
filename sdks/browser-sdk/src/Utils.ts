@@ -1,5 +1,6 @@
 import type { Identifier } from "@xmtp/wasm-bindings";
 import type { XmtpEnv } from "@/types/options";
+import { toSafeSigner, type Signer } from "@/utils/signer";
 import { UtilsWorkerClass } from "@/UtilsWorkerClass";
 
 /**
@@ -41,6 +42,68 @@ export class Utils extends UtilsWorkerClass {
     return this.sendMessage("utils.getInboxIdForIdentifier", {
       identifier,
       env,
+    });
+  }
+
+  /**
+   * Creates signature text for revoking installations
+   *
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `revokeInstallations` method instead.
+   *
+   * @param env - The environment to use
+   * @param identifier - The identifier to revoke installations for
+   * @param inboxId - The inbox ID to revoke installations for
+   * @param installationIds - The installation IDs to revoke
+   * @returns The signature text
+   */
+  async revokeInstallationsSignatureText(
+    env: XmtpEnv,
+    identifier: Identifier,
+    inboxId: string,
+    installationIds: Uint8Array[],
+  ) {
+    return this.sendMessage("utils.revokeInstallationsSignatureText", {
+      env,
+      identifier,
+      inboxId,
+      installationIds,
+    });
+  }
+
+  /**
+   * Revokes installations for a given inbox ID
+   *
+   * @param env - The environment to use
+   * @param signer - The signer to use
+   * @param inboxId - The inbox ID to revoke installations for
+   * @param installationIds - The installation IDs to revoke
+   * @returns Promise that resolves with the result of the revoke installations operation
+   */
+  async revokeInstallations(
+    env: XmtpEnv,
+    signer: Signer,
+    inboxId: string,
+    installationIds: Uint8Array[],
+  ) {
+    const identifier = await signer.getIdentifier();
+    const signatureText = await this.revokeInstallationsSignatureText(
+      env,
+      identifier,
+      inboxId,
+      installationIds,
+    );
+    const signature = await signer.signMessage(signatureText);
+    const safeSigner = await toSafeSigner(signer, signature);
+
+    return this.sendMessage("utils.revokeInstallations", {
+      env,
+      signer: safeSigner,
+      inboxId,
+      installationIds,
     });
   }
 }

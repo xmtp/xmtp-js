@@ -6,7 +6,7 @@ import {
   createUser,
 } from "@test/helpers";
 
-describe.concurrent("DebugInformation", () => {
+describe("DebugInformation", () => {
   it("should return network API statistics", async () => {
     const user = createUser();
     const signer = createSigner(user);
@@ -29,7 +29,7 @@ describe.concurrent("DebugInformation", () => {
     expect(apiIdentityStats.publishIdentityUpdate).toBe(1n);
     expect(apiIdentityStats.verifySmartContractWalletSignature).toBe(0n);
 
-    await client.clearAllStatistics();
+    await client.debugInformation.clearAllStatistics();
 
     const apiStats2 = await client.debugInformation.apiStatistics();
     expect(apiStats2.fetchKeyPackage).toBe(0n);
@@ -48,7 +48,8 @@ describe.concurrent("DebugInformation", () => {
     expect(apiIdentityStats2.publishIdentityUpdate).toBe(0n);
     expect(apiIdentityStats2.verifySmartContractWalletSignature).toBe(0n);
 
-    const apiAggregateStats = await client.apiAggregateStatistics();
+    const apiAggregateStats =
+      await client.debugInformation.apiAggregateStatistics();
     expect(apiAggregateStats).toBeDefined();
   });
 
@@ -57,7 +58,7 @@ describe.concurrent("DebugInformation", () => {
     const signer = createSigner(user);
     const client = await createClient(signer);
 
-    const result = await client.uploadDebugArchive();
+    const result = await client.debugInformation.uploadDebugArchive();
     expect(result).toBeDefined();
   });
 });

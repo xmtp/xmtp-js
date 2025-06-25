@@ -22,12 +22,11 @@ import {
 import {
   AccountAlreadyAssociatedError,
   CodecNotFoundError,
-  GenerateSignatureError,
   InboxReassignError,
   InvalidGroupMembershipChangeError,
   SignerUnavailableError,
 } from "@/utils/errors";
-import { type Signer } from "@/utils/signer";
+import { toSafeSigner, type Signer } from "@/utils/signer";
 
 export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
   [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
@@ -247,6 +246,7 @@ export class Client<
    *
    * @param newIdentifier - The identifier of the new account
    * @param allowInboxReassign - Whether to allow inbox reassignment
+   * @throws {InboxReassignError} if `allowInboxReassign` is false
    * @returns The signature text
    */
   async unsafe_addAccountSignatureText(
@@ -338,62 +338,6 @@ export class Client<
   }
 
   /**
-   * Adds a signature for a specific request type
-   *
-   * WARNING: This function should be used with caution. It is only provided
-   * for use in special cases where the provided workflows do not meet the
-   * requirements of an application.
-   *
-   * It is highly recommended to use the `register`, `unsafe_addAccount`,
-   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
-   * methods instead.
-   *
-   * @param signatureType - The type of signature request
-   * @param signatureText - The text to sign
-   * @param signer - The signer to use
-   * @warning This is an unsafe operation and should be used with caution
-   */
-  async unsafe_addSignature(
-    signatureType: SignatureRequestType,
-    signatureText: string,
-    signer: Signer,
-  ) {
-    const signature = await signer.signMessage(signatureText);
-
-    switch (signer.type) {
-      case "SCW":
-        await this.sendMessage("client.addScwSignature", {
-          type: signatureType,
-          bytes: signature,
-          chainId: signer.getChainId(),
-          blockNumber: signer.getBlockNumber?.(),
-        });
-        break;
-      case "EOA":
-        await this.sendMessage("client.addEcdsaSignature", {
-          type: signatureType,
-          bytes: signature,
-        });
-        break;
-    }
-  }
-
-  /**
-   * Applies all pending signatures
-   *
-   * WARNING: This function should be used with caution. It is only provided
-   * for use in special cases where the provided workflows do not meet the
-   * requirements of an application.
-   *
-   * It is highly recommended to use the `register`, `unsafe_addAccount`,
-   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
-   * methods instead.
-   */
-  async unsafe_applySignatures() {
-    return this.sendMessage("client.applySignatures", undefined);
-  }
-
-  /**
    * Registers the client with the XMTP network
    *
    * Requires a signer, use `Client.create` to create a client with a signer.
@@ -412,13 +356,12 @@ export class Client<
       return;
     }
 
-    await this.unsafe_addSignature(
-      SignatureRequestType.CreateInbox,
-      signatureText,
-      this.#signer,
-    );
+    const signature = await this.#signer.signMessage(signatureText);
+    const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.registerIdentity", undefined);
+    return this.sendMessage("client.registerIdentity", {
+      signer,
+    });
   }
 
   /**
@@ -435,20 +378,28 @@ export class Client<
    *
    * @param newAccountSigner - The signer for the new account
    * @param allowInboxReassign - Whether to allow inbox reassignment
-   * @throws {AccountAlreadyAssociatedError} if the account is already associated with an inbox ID
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    * @throws {SignerUnavailableError} if no signer is available
+   * @throws {InboxReassignError} if `allowInboxReassign` is false
+   * @throws {AccountAlreadyAssociatedError} if the account is already associated with an inbox ID
    */
   async unsafe_addAccount(
     newAccountSigner: Signer,
     allowInboxReassign: boolean = false,
   ) {
+    if (!this.#signer) {
+      throw new SignerUnavailableError();
+    }
+
+    if (!allowInboxReassign) {
+      throw new InboxReassignError();
+    }
+
     // check for existing inbox id
     const existingInboxId = await this.findInboxIdByIdentifier(
       await newAccountSigner.getIdentifier(),
     );
 
-    if (existingInboxId && !allowInboxReassign) {
+    if (existingInboxId) {
       throw new AccountAlreadyAssociatedError(existingInboxId);
     }
 
@@ -456,18 +407,12 @@ export class Client<
       await newAccountSigner.getIdentifier(),
       true,
     );
-
-    if (!signatureText) {
-      throw new GenerateSignatureError(SignatureRequestType.AddWallet);
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.AddWallet,
-      signatureText,
-      newAccountSigner,
-    );
-
-    await this.unsafe_applySignatures();
+    const signature = await newAccountSigner.signMessage(signatureText);
+    const signer = await toSafeSigner(newAccountSigner, signature);
+    return this.sendMessage("client.addAccount", {
+      identifier: signer.identifier,
+      signer,
+    });
   }
 
   /**
@@ -476,28 +421,22 @@ export class Client<
    * Requires a signer, use `Client.create` to create a client with a signer.
    *
    * @param accountIdentifier - The identifier of the account to remove
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    * @throws {SignerUnavailableError} if no signer is available
    */
-  async removeAccount(accountIdentifier: Identifier) {
+  async removeAccount(identifier: Identifier) {
     if (!this.#signer) {
       throw new SignerUnavailableError();
     }
 
     const signatureText =
-      await this.unsafe_removeAccountSignatureText(accountIdentifier);
+      await this.unsafe_removeAccountSignatureText(identifier);
+    const signature = await this.#signer.signMessage(signatureText);
+    const signer = await toSafeSigner(this.#signer, signature);
 
-    if (!signatureText) {
-      throw new GenerateSignatureError(SignatureRequestType.RevokeWallet);
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.RevokeWallet,
-      signatureText,
-      this.#signer,
-    );
-
-    await this.unsafe_applySignatures();
+    return this.sendMessage("client.removeAccount", {
+      identifier,
+      signer,
+    });
   }
 
   /**
@@ -505,7 +444,6 @@ export class Client<
    *
    * Requires a signer, use `Client.create` to create a client with a signer.
    *
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    * @throws {SignerUnavailableError} if no signer is available
    */
   async revokeAllOtherInstallations() {
@@ -515,20 +453,12 @@ export class Client<
 
     const signatureText =
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
+    const signature = await this.#signer.signMessage(signatureText);
+    const signer = await toSafeSigner(this.#signer, signature);
 
-    if (!signatureText) {
-      throw new GenerateSignatureError(
-        SignatureRequestType.RevokeInstallations,
-      );
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.RevokeInstallations,
-      signatureText,
-      this.#signer,
-    );
-
-    await this.unsafe_applySignatures();
+    return this.sendMessage("client.revokeAllOtherInstallations", {
+      signer,
+    });
   }
 
   /**
@@ -537,7 +467,6 @@ export class Client<
    * Requires a signer, use `Client.create` to create a client with a signer.
    *
    * @param installationIds - The installation IDs to revoke
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    * @throws {SignerUnavailableError} if no signer is available
    */
   async revokeInstallations(installationIds: Uint8Array[]) {
@@ -547,20 +476,32 @@ export class Client<
 
     const signatureText =
       await this.unsafe_revokeInstallationsSignatureText(installationIds);
+    const signature = await this.#signer.signMessage(signatureText);
+    const signer = await toSafeSigner(this.#signer, signature);
 
-    if (!signatureText) {
-      throw new GenerateSignatureError(
-        SignatureRequestType.RevokeInstallations,
-      );
-    }
+    return this.sendMessage("client.revokeInstallations", {
+      installationIds,
+      signer,
+    });
+  }
 
-    await this.unsafe_addSignature(
-      SignatureRequestType.RevokeInstallations,
-      signatureText,
-      this.#signer,
-    );
-
-    await this.unsafe_applySignatures();
+  /**
+   * Revokes specific installations of the client's inbox without a client
+   *
+   * @param env - The environment to use
+   * @param signer - The signer to use
+   * @param inboxId - The inbox ID to revoke installations for
+   * @param installationIds - The installation IDs to revoke
+   */
+  static async revokeInstallations(
+    env: XmtpEnv,
+    signer: Signer,
+    inboxId: string,
+    installationIds: Uint8Array[],
+  ) {
+    const utils = new Utils();
+    await utils.revokeInstallations(env, signer, inboxId, installationIds);
+    utils.close();
   }
 
   /**
@@ -569,7 +510,6 @@ export class Client<
    * Requires a signer, use `Client.create` to create a client with a signer.
    *
    * @param identifier - The new recovery identifier
-   * @throws {GenerateSignatureError} if the signature cannot be generated
    * @throws {SignerUnavailableError} if no signer is available
    */
   async changeRecoveryIdentifier(identifier: Identifier) {
@@ -579,20 +519,13 @@ export class Client<
 
     const signatureText =
       await this.unsafe_changeRecoveryIdentifierSignatureText(identifier);
+    const signature = await this.#signer.signMessage(signatureText);
+    const signer = await toSafeSigner(this.#signer, signature);
 
-    if (!signatureText) {
-      throw new GenerateSignatureError(
-        SignatureRequestType.ChangeRecoveryIdentifier,
-      );
-    }
-
-    await this.unsafe_addSignature(
-      SignatureRequestType.ChangeRecoveryIdentifier,
-      signatureText,
-      this.#signer,
-    );
-
-    await this.unsafe_applySignatures();
+    return this.sendMessage("client.changeRecoveryIdentifier", {
+      identifier,
+      signer,
+    });
   }
 
   /**

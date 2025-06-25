@@ -144,60 +144,85 @@ self.onmessage = async (
        * Client actions
        */
       case "client.createInboxSignatureText": {
-        const result = client.createInboxSignatureText();
+        const signatureRequest = client.createInboxSignatureRequest();
+        const result = signatureRequest
+          ? await signatureRequest.signatureText()
+          : undefined;
         postMessage({ id, action, result });
         break;
       }
       case "client.addAccountSignatureText": {
-        const result = await client.addAccountSignatureText(data.newIdentifier);
+        const signatureRequest = await client.addAccountSignatureRequest(
+          data.newIdentifier,
+        );
+        const result = await signatureRequest.signatureText();
         postMessage({ id, action, result });
         break;
       }
       case "client.removeAccountSignatureText": {
-        const result = await client.removeAccountSignatureText(data.identifier);
+        const signatureRequest = await client.removeAccountSignatureRequest(
+          data.identifier,
+        );
+        const result = await signatureRequest.signatureText();
         postMessage({ id, action, result });
         break;
       }
       case "client.revokeAllOtherInstallationsSignatureText": {
-        const result = await client.revokeAllAOtherInstallationsSignatureText();
+        const signatureRequest =
+          await client.revokeAllOtherInstallationsSignatureRequest();
+        const result = await signatureRequest.signatureText();
         postMessage({ id, action, result });
         break;
       }
       case "client.revokeInstallationsSignatureText": {
-        const result = await client.revokeInstallationsSignatureText(
-          data.installationIds,
-        );
+        const signatureRequest =
+          await client.revokeInstallationsSignatureRequest(
+            data.installationIds,
+          );
+        const result = await signatureRequest.signatureText();
         postMessage({ id, action, result });
         break;
       }
       case "client.changeRecoveryIdentifierSignatureText": {
-        const result = await client.changeRecoveryIdentifierSignatureText(
-          data.identifier,
-        );
+        const signatureRequest =
+          await client.changeRecoveryIdentifierSignatureRequest(
+            data.identifier,
+          );
+        const result = await signatureRequest.signatureText();
         postMessage({ id, action, result });
         break;
       }
-      case "client.addEcdsaSignature":
-        await client.addEcdsaSignature(data.type, data.bytes);
+      case "client.registerIdentity": {
+        await client.registerIdentity(data.signer);
         postMessage({ id, action, result: undefined });
         break;
-      case "client.addScwSignature":
-        await client.addScwSignature(
-          data.type,
-          data.bytes,
-          data.chainId,
-          data.blockNumber,
-        );
+      }
+      case "client.addAccount": {
+        await client.addAccount(data.identifier, data.signer);
         postMessage({ id, action, result: undefined });
         break;
-      case "client.applySignatures":
-        await client.applySignatures();
+      }
+      case "client.removeAccount": {
+        await client.removeAccount(data.identifier, data.signer);
         postMessage({ id, action, result: undefined });
         break;
-      case "client.registerIdentity":
-        await client.registerIdentity();
+      }
+      case "client.revokeAllOtherInstallations": {
+        console.log("revokeAllOtherInstallations", data.signer.identifier);
+        await client.revokeAllOtherInstallations(data.signer);
         postMessage({ id, action, result: undefined });
         break;
+      }
+      case "client.revokeInstallations": {
+        await client.revokeInstallations(data.installationIds, data.signer);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "client.changeRecoveryIdentifier": {
+        await client.changeRecoveryIdentifier(data.identifier, data.signer);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "client.isRegistered": {
         const result = client.isRegistered;
         postMessage({ id, action, result });

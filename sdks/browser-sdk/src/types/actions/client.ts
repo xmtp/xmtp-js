@@ -1,6 +1,7 @@
-import type { Identifier, SignatureRequestType } from "@xmtp/wasm-bindings";
+import type { Identifier } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types/options";
 import type { SafeKeyPackageStatus } from "@/utils/conversions";
+import type { SafeSigner } from "@/utils/signer";
 
 export type ClientAction =
   | {
@@ -25,7 +26,7 @@ export type ClientAction =
   | {
       action: "client.addAccountSignatureText";
       id: string;
-      result: string | undefined;
+      result: string;
       data: {
         newIdentifier: Identifier;
       };
@@ -33,7 +34,7 @@ export type ClientAction =
   | {
       action: "client.removeAccountSignatureText";
       id: string;
-      result: string | undefined;
+      result: string;
       data: {
         identifier: Identifier;
       };
@@ -41,13 +42,13 @@ export type ClientAction =
   | {
       action: "client.revokeAllOtherInstallationsSignatureText";
       id: string;
-      result: string | undefined;
+      result: string;
       data: undefined;
     }
   | {
       action: "client.revokeInstallationsSignatureText";
       id: string;
-      result: string | undefined;
+      result: string;
       data: {
         installationIds: Uint8Array[];
       };
@@ -55,42 +56,62 @@ export type ClientAction =
   | {
       action: "client.changeRecoveryIdentifierSignatureText";
       id: string;
-      result: string | undefined;
+      result: string;
       data: {
         identifier: Identifier;
       };
     }
   | {
-      action: "client.addEcdsaSignature";
-      id: string;
-      result: undefined;
-      data: {
-        type: SignatureRequestType;
-        bytes: Uint8Array;
-      };
-    }
-  | {
-      action: "client.addScwSignature";
-      id: string;
-      result: undefined;
-      data: {
-        type: SignatureRequestType;
-        bytes: Uint8Array;
-        chainId: bigint;
-        blockNumber?: bigint;
-      };
-    }
-  | {
-      action: "client.applySignatures";
-      id: string;
-      result: undefined;
-      data: undefined;
-    }
-  | {
       action: "client.registerIdentity";
       id: string;
       result: undefined;
-      data: undefined;
+      data: {
+        signer: SafeSigner;
+      };
+    }
+  | {
+      action: "client.addAccount";
+      id: string;
+      result: undefined;
+      data: {
+        identifier: Identifier;
+        signer: SafeSigner;
+      };
+    }
+  | {
+      action: "client.removeAccount";
+      id: string;
+      result: undefined;
+      data: {
+        identifier: Identifier;
+        signer: SafeSigner;
+      };
+    }
+  | {
+      action: "client.revokeAllOtherInstallations";
+      id: string;
+      result: undefined;
+      data: {
+        signer: SafeSigner;
+      };
+    }
+  | {
+      action: "client.changeRecoveryIdentifier";
+      id: string;
+      result: undefined;
+      data: {
+        identifier: Identifier;
+        signer: SafeSigner;
+      };
+    }
+  | {
+      action: "client.revokeInstallations";
+      id: string;
+      result: undefined;
+      data: {
+        installationIds: Uint8Array[];
+        signer: SafeSigner;
+      };
     }
   | {
       action: "client.isRegistered";

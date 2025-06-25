@@ -47,8 +47,9 @@ export {
   PermissionPolicy,
   PermissionPolicySet,
   PermissionUpdateType,
-  SignatureRequestType,
+  SignatureRequestHandle,
   SortDirection,
 } from "@xmtp/wasm-bindings";
-export type { Signer } from "./utils/signer";
+export type { Signer, SafeSigner, EOASigner, SCWSigner } from "./utils/signer";
+export { toSafeSigner } from "./utils/signer";
 export * from "./utils/errors";
