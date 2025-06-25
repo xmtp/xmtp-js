@@ -20,45 +20,71 @@ export type ClientAction =
   | {
       action: "client.createInboxSignatureText";
       id: string;
-      result: string | undefined;
-      data: undefined;
+      result: {
+        signatureText?: string;
+        signatureRequestId?: string;
+      };
+      data: {
+        signatureRequestId: string;
+      };
     }
   | {
       action: "client.addAccountSignatureText";
       id: string;
-      result: string;
+      result: {
+        signatureText: string;
+        signatureRequestId: string;
+      };
       data: {
         newIdentifier: Identifier;
+        signatureRequestId: string;
       };
     }
   | {
       action: "client.removeAccountSignatureText";
       id: string;
-      result: string;
+      result: {
+        signatureText: string;
+        signatureRequestId: string;
+      };
       data: {
         identifier: Identifier;
+        signatureRequestId: string;
       };
     }
   | {
       action: "client.revokeAllOtherInstallationsSignatureText";
       id: string;
-      result: string;
-      data: undefined;
+      result: {
+        signatureText: string;
+        signatureRequestId: string;
+      };
+      data: {
+        signatureRequestId: string;
+      };
     }
   | {
       action: "client.revokeInstallationsSignatureText";
       id: string;
-      result: string;
+      result: {
+        signatureText: string;
+        signatureRequestId: string;
+      };
       data: {
         installationIds: Uint8Array[];
+        signatureRequestId: string;
       };
     }
   | {
       action: "client.changeRecoveryIdentifierSignatureText";
       id: string;
-      result: string;
+      result: {
+        signatureText: string;
+        signatureRequestId: string;
+      };
       data: {
         identifier: Identifier;
+        signatureRequestId: string;
       };
     }
   | {
@@ -67,6 +93,7 @@ export type ClientAction =
       result: undefined;
       data: {
         signer: SafeSigner;
+        signatureRequestId: string;
       };
     }
   | {
@@ -76,6 +103,7 @@ export type ClientAction =
       data: {
         identifier: Identifier;
         signer: SafeSigner;
+        signatureRequestId: string;
       };
     }
   | {
@@ -85,6 +113,7 @@ export type ClientAction =
       data: {
         identifier: Identifier;
         signer: SafeSigner;
+        signatureRequestId: string;
       };
     }
   | {
@@ -93,6 +122,7 @@ export type ClientAction =
       result: undefined;
       data: {
         signer: SafeSigner;
+        signatureRequestId: string;
       };
     }
   | {
@@ -102,6 +132,7 @@ export type ClientAction =
       data: {
         identifier: Identifier;
         signer: SafeSigner;
+        signatureRequestId: string;
       };
     }
   | {
@@ -111,6 +142,7 @@ export type ClientAction =
       data: {
         installationIds: Uint8Array[];
         signer: SafeSigner;
+        signatureRequestId: string;
       };
     }
   | {

@@ -2,6 +2,7 @@ import init, {
   type Consent,
   type Conversation,
   type Message,
+  type SignatureRequestHandle,
   type StreamCloser,
   type UserPreference,
 } from "@xmtp/wasm-bindings";
@@ -43,6 +44,12 @@ let maybeClient: WorkerClient | undefined;
 let enableLogging = false;
 
 const streamClosers = new Map<string, StreamCloser>();
+const signatureRequests = new Map<string, SignatureRequestHandle>();
+
+type SignatureRequestResult = {
+  signatureText: string;
+  signatureRequestId: string;
+};
 
 /**
  * Type-safe postMessage
@@ -145,9 +152,15 @@ self.onmessage = async (
        */
       case "client.createInboxSignatureText": {
         const signatureRequest = client.createInboxSignatureRequest();
-        const result = signatureRequest
-          ? await signatureRequest.signatureText()
-          : undefined;
+        const result: Partial<SignatureRequestResult> = {
+          signatureText: undefined,
+          signatureRequestId: undefined,
+        };
+        if (signatureRequest) {
+          result.signatureText = await signatureRequest.signatureText();
+          result.signatureRequestId = data.signatureRequestId;
+          signatureRequests.set(data.signatureRequestId, signatureRequest);
+        }
         postMessage({ id, action, result });
         break;
       }
@@ -155,7 +168,11 @@ self.onmessage = async (
         const signatureRequest = await client.addAccountSignatureRequest(
           data.newIdentifier,
         );
-        const result = await signatureRequest.signatureText();
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
@@ -163,14 +180,22 @@ self.onmessage = async (
         const signatureRequest = await client.removeAccountSignatureRequest(
           data.identifier,
         );
-        const result = await signatureRequest.signatureText();
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
       case "client.revokeAllOtherInstallationsSignatureText": {
         const signatureRequest =
           await client.revokeAllOtherInstallationsSignatureRequest();
-        const result = await signatureRequest.signatureText();
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
@@ -179,7 +204,11 @@ self.onmessage = async (
           await client.revokeInstallationsSignatureRequest(
             data.installationIds,
           );
-        const result = await signatureRequest.signatureText();
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
@@ -188,38 +217,71 @@ self.onmessage = async (
           await client.changeRecoveryIdentifierSignatureRequest(
             data.identifier,
           );
-        const result = await signatureRequest.signatureText();
+        const result: SignatureRequestResult = {
+          signatureText: await signatureRequest.signatureText(),
+          signatureRequestId: data.signatureRequestId,
+        };
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
         postMessage({ id, action, result });
         break;
       }
       case "client.registerIdentity": {
-        await client.registerIdentity(data.signer);
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.registerIdentity(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "client.addAccount": {
-        await client.addAccount(data.identifier, data.signer);
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.addAccount(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "client.removeAccount": {
-        await client.removeAccount(data.identifier, data.signer);
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.removeAccount(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "client.revokeAllOtherInstallations": {
-        console.log("revokeAllOtherInstallations", data.signer.identifier);
-        await client.revokeAllOtherInstallations(data.signer);
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.revokeAllOtherInstallations(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "client.revokeInstallations": {
-        await client.revokeInstallations(data.installationIds, data.signer);
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.revokeInstallations(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "client.changeRecoveryIdentifier": {
-        await client.changeRecoveryIdentifier(data.identifier, data.signer);
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.changeRecoveryIdentifier(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }

@@ -119,52 +119,50 @@ export class WorkerClient {
     return this.#client.changeRecoveryIdentifierSignatureRequest(identifier);
   }
 
-  async registerIdentity(signer: SafeSigner) {
-    const signatureRequest = this.createInboxSignatureRequest();
-    if (!signatureRequest) {
-      return;
-    }
-
+  async registerIdentity(
+    signer: SafeSigner,
+    signatureRequest: SignatureRequestHandle,
+  ) {
     await this.addSignature(signatureRequest, signer);
     await this.#client.registerIdentity(signatureRequest);
   }
 
-  async addAccount(newIdentifier: Identifier, signer: SafeSigner) {
-    const signatureRequest =
-      await this.addAccountSignatureRequest(newIdentifier);
-
+  async addAccount(
+    signer: SafeSigner,
+    signatureRequest: SignatureRequestHandle,
+  ) {
     await this.addSignature(signatureRequest, signer);
     await this.applySignatureRequest(signatureRequest);
   }
 
-  async removeAccount(identifier: Identifier, signer: SafeSigner) {
-    const signatureRequest =
-      await this.removeAccountSignatureRequest(identifier);
-
+  async removeAccount(
+    signer: SafeSigner,
+    signatureRequest: SignatureRequestHandle,
+  ) {
     await this.addSignature(signatureRequest, signer);
     await this.applySignatureRequest(signatureRequest);
   }
 
-  async revokeAllOtherInstallations(signer: SafeSigner) {
-    const signatureRequest =
-      await this.revokeAllOtherInstallationsSignatureRequest();
-
+  async revokeAllOtherInstallations(
+    signer: SafeSigner,
+    signatureRequest: SignatureRequestHandle,
+  ) {
     await this.addSignature(signatureRequest, signer);
     await this.applySignatureRequest(signatureRequest);
   }
 
-  async revokeInstallations(installationIds: Uint8Array[], signer: SafeSigner) {
-    const signatureRequest =
-      await this.revokeInstallationsSignatureRequest(installationIds);
-
+  async revokeInstallations(
+    signer: SafeSigner,
+    signatureRequest: SignatureRequestHandle,
+  ) {
     await this.addSignature(signatureRequest, signer);
     await this.applySignatureRequest(signatureRequest);
   }
 
-  async changeRecoveryIdentifier(identifier: Identifier, signer: SafeSigner) {
-    const signatureRequest =
-      await this.changeRecoveryIdentifierSignatureRequest(identifier);
-
+  async changeRecoveryIdentifier(
+    signer: SafeSigner,
+    signatureRequest: SignatureRequestHandle,
+  ) {
     await this.addSignature(signatureRequest, signer);
     await this.applySignatureRequest(signatureRequest);
   }
