@@ -250,11 +250,19 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * Adds a signature to a signature request using the client's signer (or the
    * provided signer)
    *
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
+   * `removeAccount`, `revokeAllOtherInstallations`, or `revokeInstallations`
+   * methods instead.
+   *
    * @param signatureRequest - The signature request to add the signature to
    * @throws {ClientNotInitializedError} if the client is not initialized
    * @throws {SignerUnavailableError} if no signer is available
    */
-  async addSignature(
+  async unsafe_addSignature(
     signatureRequest: SignatureRequestHandle,
     signer?: Signer,
   ) {
@@ -466,7 +474,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       return;
     }
 
-    await this.addSignature(signatureRequest);
+    await this.unsafe_addSignature(signatureRequest);
     await this.#client?.registerIdentity(signatureRequest);
   }
 
@@ -505,7 +513,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       allowInboxReassign,
     );
 
-    await this.addSignature(signatureRequest, newAccountSigner);
+    await this.unsafe_addSignature(signatureRequest, newAccountSigner);
     await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
@@ -522,7 +530,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     const signatureRequest =
       await this.unsafe_removeAccountSignatureRequest(identifier);
 
-    await this.addSignature(signatureRequest);
+    await this.unsafe_addSignature(signatureRequest);
     await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
@@ -538,7 +546,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     const signatureRequest =
       await this.unsafe_revokeAllOtherInstallationsSignatureRequest();
 
-    await this.addSignature(signatureRequest);
+    await this.unsafe_addSignature(signatureRequest);
     await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
@@ -555,7 +563,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     const signatureRequest =
       await this.unsafe_revokeInstallationsSignatureRequest(installationIds);
 
-    await this.addSignature(signatureRequest);
+    await this.unsafe_addSignature(signatureRequest);
     await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
@@ -626,7 +634,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     const signatureRequest =
       await this.unsafe_changeRecoveryIdentifierSignatureRequest(identifier);
 
-    await this.addSignature(signatureRequest);
+    await this.unsafe_addSignature(signatureRequest);
     await this.unsafe_applySignatureRequest(signatureRequest);
   }
 
