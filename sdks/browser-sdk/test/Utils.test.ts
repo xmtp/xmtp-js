@@ -48,13 +48,29 @@ describe("Utils", () => {
     expect(installationIds).toContain(client3.installationId);
 
     const utils = new Utils();
-    await utils.revokeInstallations("local", signer, client.inboxId!, [
-      client2.installationIdBytes!,
-      client3.installationIdBytes!,
-    ]);
+    await utils.revokeInstallations(
+      signer,
+      client.inboxId!,
+      [client2.installationIdBytes!, client3.installationIdBytes!],
+      "local",
+    );
 
     const inboxState2 = await client.preferences.inboxState(true);
     expect(inboxState2.installations.length).toBe(1);
     expect(inboxState2.installations[0].id).toBe(client.installationId);
+  });
+
+  it("should get inbox state from inbox ids", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const utils = new Utils();
+    const inboxState = await utils.inboxStateFromInboxIds(
+      [client.inboxId!],
+      "local",
+    );
+    expect(inboxState.length).toBe(1);
+    expect(inboxState[0].inboxId).toBe(client.inboxId);
+    expect(inboxState[0].identifiers).toEqual([await signer.getIdentifier()]);
   });
 });

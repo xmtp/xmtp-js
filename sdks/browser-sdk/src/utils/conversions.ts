@@ -403,14 +403,14 @@ export const toSafeInstallation = (
 });
 
 export type SafeInboxState = {
-  accountIdentifiers: Identifier[];
+  identifiers: Identifier[];
   inboxId: string;
   installations: SafeInstallation[];
   recoveryIdentifier: Identifier;
 };
 
 export const toSafeInboxState = (inboxState: InboxState): SafeInboxState => ({
-  accountIdentifiers: inboxState.accountIdentifiers,
+  identifiers: inboxState.accountIdentifiers,
   inboxId: inboxState.inboxId,
   installations: inboxState.installations.map(toSafeInstallation),
   recoveryIdentifier: inboxState.recoveryIdentifier,

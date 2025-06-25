@@ -531,14 +531,28 @@ export class Client<
    * @param installationIds - The installation IDs to revoke
    */
   static async revokeInstallations(
-    env: XmtpEnv,
     signer: Signer,
     inboxId: string,
     installationIds: Uint8Array[],
+    env?: XmtpEnv,
   ) {
     const utils = new Utils();
-    await utils.revokeInstallations(env, signer, inboxId, installationIds);
+    await utils.revokeInstallations(signer, inboxId, installationIds, env);
     utils.close();
+  }
+
+  /**
+   * Gets the inbox state for the specified inbox IDs without a client
+   *
+   * @param inboxIds - The inbox IDs to get the state for
+   * @param env - The environment to use
+   * @returns The inbox state for the specified inbox IDs
+   */
+  static async inboxStateFromInboxIds(inboxIds: string[], env?: XmtpEnv) {
+    const utils = new Utils();
+    const result = await utils.inboxStateFromInboxIds(inboxIds, env);
+    utils.close();
+    return result;
   }
 
   /**

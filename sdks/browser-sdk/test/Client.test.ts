@@ -75,9 +75,7 @@ describe("Client", () => {
     expect(inboxState.installations.map((install) => install.id)).toEqual([
       client.installationId,
     ]);
-    expect(inboxState.accountIdentifiers).toEqual([
-      await signer.getIdentifier(),
-    ]);
+    expect(inboxState.identifiers).toEqual([await signer.getIdentifier()]);
     expect(inboxState.recoveryIdentifier).toEqual(await signer.getIdentifier());
 
     const user2 = createUser();
@@ -92,9 +90,7 @@ describe("Client", () => {
     expect(inboxState.installations[0].bytes).toEqual(
       client.installationIdBytes,
     );
-    expect(inboxState2.accountIdentifiers).toEqual([
-      await signer.getIdentifier(),
-    ]);
+    expect(inboxState2.identifiers).toEqual([await signer.getIdentifier()]);
     expect(inboxState2.recoveryIdentifier).toEqual(
       await signer.getIdentifier(),
     );
@@ -110,11 +106,9 @@ describe("Client", () => {
 
     await client.unsafe_addAccount(signer2, true);
     const inboxState = await client.preferences.inboxState();
-    expect(inboxState.accountIdentifiers.length).toEqual(2);
-    expect(inboxState.accountIdentifiers).toContainEqual(
-      await signer.getIdentifier(),
-    );
-    expect(inboxState.accountIdentifiers).toContainEqual(
+    expect(inboxState.identifiers.length).toEqual(2);
+    expect(inboxState.identifiers).toContainEqual(await signer.getIdentifier());
+    expect(inboxState.identifiers).toContainEqual(
       await signer2.getIdentifier(),
     );
   });
@@ -131,9 +125,7 @@ describe("Client", () => {
     await client.removeAccount(await signer2.getIdentifier());
 
     const inboxState = await client.preferences.inboxState();
-    expect(inboxState.accountIdentifiers).toEqual([
-      await signer.getIdentifier(),
-    ]);
+    expect(inboxState.identifiers).toEqual([await signer.getIdentifier()]);
   });
 
   it("should revoke all other installations", async () => {
@@ -311,5 +303,18 @@ describe("Client", () => {
     await expect(async () =>
       client.changeRecoveryIdentifier(await signer2.getIdentifier()),
     ).rejects.toThrow(new SignerUnavailableError());
+  });
+
+  it("should get inbox state from inbox ids without a client", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const inboxState = await Client.inboxStateFromInboxIds(
+      [client.inboxId!],
+      "local",
+    );
+    expect(inboxState.length).toBe(1);
+    expect(inboxState[0].inboxId).toBe(client.inboxId);
+    expect(inboxState[0].identifiers).toEqual([await signer.getIdentifier()]);
   });
 });
