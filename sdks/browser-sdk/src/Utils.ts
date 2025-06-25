@@ -61,10 +61,10 @@ export class Utils extends UtilsWorkerClass {
    * @returns The signature text
    */
   async revokeInstallationsSignatureText(
-    env: XmtpEnv,
     identifier: Identifier,
     inboxId: string,
     installationIds: Uint8Array[],
+    env?: XmtpEnv,
   ) {
     return this.sendMessage("utils.revokeInstallationsSignatureText", {
       env,
@@ -84,26 +84,40 @@ export class Utils extends UtilsWorkerClass {
    * @returns Promise that resolves with the result of the revoke installations operation
    */
   async revokeInstallations(
-    env: XmtpEnv,
     signer: Signer,
     inboxId: string,
     installationIds: Uint8Array[],
+    env?: XmtpEnv,
   ) {
     const identifier = await signer.getIdentifier();
     const signatureText = await this.revokeInstallationsSignatureText(
-      env,
       identifier,
       inboxId,
       installationIds,
+      env,
     );
     const signature = await signer.signMessage(signatureText);
     const safeSigner = await toSafeSigner(signer, signature);
 
     return this.sendMessage("utils.revokeInstallations", {
-      env,
       signer: safeSigner,
       inboxId,
       installationIds,
+      env,
+    });
+  }
+
+  /**
+   * Gets the inbox state for the specified inbox IDs without a client
+   *
+   * @param inboxIds - The inbox IDs to get the state for
+   * @param env - The environment to use
+   * @returns The inbox state for the specified inbox IDs
+   */
+  async inboxStateFromInboxIds(inboxIds: string[], env?: XmtpEnv) {
+    return this.sendMessage("utils.inboxStateFromInboxIds", {
+      inboxIds,
+      env,
     });
   }
 }

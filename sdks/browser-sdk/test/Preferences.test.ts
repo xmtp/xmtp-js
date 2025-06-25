@@ -19,9 +19,7 @@ describe("Preferences", () => {
     expect(inboxState.installations.map((install) => install.id)).toEqual([
       client.installationId,
     ]);
-    expect(inboxState.accountIdentifiers).toEqual([
-      await signer.getIdentifier(),
-    ]);
+    expect(inboxState.identifiers).toEqual([await signer.getIdentifier()]);
     expect(inboxState.recoveryIdentifier).toEqual(await signer.getIdentifier());
 
     const user2 = createUser();
@@ -36,9 +34,7 @@ describe("Preferences", () => {
     expect(inboxState.installations[0].bytes).toEqual(
       client.installationIdBytes,
     );
-    expect(inboxState2.accountIdentifiers).toEqual([
-      await signer.getIdentifier(),
-    ]);
+    expect(inboxState2.identifiers).toEqual([await signer.getIdentifier()]);
     expect(inboxState2.recoveryIdentifier).toEqual(
       await signer.getIdentifier(),
     );

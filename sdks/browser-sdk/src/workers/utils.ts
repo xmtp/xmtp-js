@@ -2,6 +2,7 @@ import init, {
   applySignatureRequest,
   generateInboxId,
   getInboxIdForIdentifier as get_inbox_id_for_identifier,
+  inboxStateFromInboxIds,
   revokeInstallationsSignatureRequest,
   type Identifier,
 } from "@xmtp/wasm-bindings";
@@ -14,6 +15,7 @@ import type {
 } from "@/types/actions";
 import type { UtilsWorkerAction } from "@/types/actions/utils";
 import type { XmtpEnv } from "@/types/options";
+import { toSafeInboxState } from "@/utils/conversions";
 
 /**
  * Type-safe postMessage
@@ -75,7 +77,7 @@ self.onmessage = async (
         break;
       }
       case "utils.revokeInstallationsSignatureText": {
-        const host = ApiUrls[data.env];
+        const host = ApiUrls[data.env ?? "dev"];
         const signatureRequest = await revokeInstallationsSignatureRequest(
           host,
           data.identifier,
@@ -87,7 +89,7 @@ self.onmessage = async (
         break;
       }
       case "utils.revokeInstallations": {
-        const host = ApiUrls[data.env];
+        const host = ApiUrls[data.env ?? "dev"];
         const signatureRequest = await revokeInstallationsSignatureRequest(
           host,
           data.signer.identifier,
@@ -109,6 +111,15 @@ self.onmessage = async (
         }
         await applySignatureRequest(host, signatureRequest);
         postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "utils.inboxStateFromInboxIds": {
+        const host = ApiUrls[data.env ?? "dev"];
+        const inboxStates = await inboxStateFromInboxIds(host, data.inboxIds);
+        const result = inboxStates.map((inboxState) =>
+          toSafeInboxState(inboxState),
+        );
+        postMessage({ id, action, result });
         break;
       }
     }

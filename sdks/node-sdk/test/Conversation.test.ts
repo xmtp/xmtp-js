@@ -16,7 +16,7 @@ import {
   TestCodec,
 } from "@test/helpers";
 
-describe.concurrent("Conversation", () => {
+describe("Conversation", () => {
   it("should update conversation name", async () => {
     const user1 = createUser();
     const user2 = createUser();
