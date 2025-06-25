@@ -561,10 +561,10 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   /**
    * Revokes specific installations of the client's inbox without a client
    *
+   * @param env - The environment to use
    * @param signer - The signer to use
    * @param inboxId - The inbox ID to revoke installations for
    * @param installationIds - The installation IDs to revoke
-   * @param env - The environment to use
    */
   static async revokeInstallations(
     env: XmtpEnv,
