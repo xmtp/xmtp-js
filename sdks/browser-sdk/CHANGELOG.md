@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.0.0
+
+### Major Changes
+
+- c22105f: This update introduces enhancements for managing installations without a client. It also contains breaking changes related to signature management and consistency across SDKs.
+
 ## 2.2.1
 
 ### Patch Changes
