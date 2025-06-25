@@ -18,6 +18,15 @@ export type ClientAction =
       };
     }
   | {
+      action: "client.applySignatureRequest";
+      id: string;
+      result: undefined;
+      data: {
+        signer: SafeSigner;
+        signatureRequestId: string;
+      };
+    }
+  | {
       action: "client.createInboxSignatureText";
       id: string;
       result: {

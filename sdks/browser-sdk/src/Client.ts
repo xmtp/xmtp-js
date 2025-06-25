@@ -27,7 +27,7 @@ import {
   InvalidGroupMembershipChangeError,
   SignerUnavailableError,
 } from "@/utils/errors";
-import { toSafeSigner, type Signer } from "@/utils/signer";
+import { toSafeSigner, type SafeSigner, type Signer } from "@/utils/signer";
 
 export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
   [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
@@ -340,6 +340,30 @@ export class Client<
     return this.sendMessage("client.changeRecoveryIdentifierSignatureText", {
       identifier,
       signatureRequestId: v4(),
+    });
+  }
+
+  /**
+   * Applies a signature request to the client
+   *
+   * WARNING: This function should be used with caution. It is only provided
+   * for use in special cases where the provided workflows do not meet the
+   * requirements of an application.
+   *
+   * It is highly recommended to use the `register`, `unsafe_addAccount`,
+   * `removeAccount`, `revokeAllOtherInstallations`, `revokeInstallations`,
+   * or `changeRecoveryIdentifier` method instead.
+   *
+   * @param signer - The signer to use
+   * @param signatureRequestId - The ID of the signature request to apply
+   */
+  async unsafe_applySignatureRequest(
+    signer: SafeSigner,
+    signatureRequestId: string,
+  ) {
+    return this.sendMessage("client.applySignatureRequest", {
+      signer,
+      signatureRequestId,
     });
   }
 

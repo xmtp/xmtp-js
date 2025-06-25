@@ -95,6 +95,14 @@ export class WorkerClient {
     return this.#client.applySignatureRequest(signatureRequest);
   }
 
+  async processSignatureRequest(
+    signer: SafeSigner,
+    signatureRequest: SignatureRequestHandle,
+  ) {
+    await this.addSignature(signatureRequest, signer);
+    await this.applySignatureRequest(signatureRequest);
+  }
+
   createInboxSignatureRequest() {
     return this.#client.createInboxSignatureRequest();
   }
@@ -125,46 +133,6 @@ export class WorkerClient {
   ) {
     await this.addSignature(signatureRequest, signer);
     await this.#client.registerIdentity(signatureRequest);
-  }
-
-  async addAccount(
-    signer: SafeSigner,
-    signatureRequest: SignatureRequestHandle,
-  ) {
-    await this.addSignature(signatureRequest, signer);
-    await this.applySignatureRequest(signatureRequest);
-  }
-
-  async removeAccount(
-    signer: SafeSigner,
-    signatureRequest: SignatureRequestHandle,
-  ) {
-    await this.addSignature(signatureRequest, signer);
-    await this.applySignatureRequest(signatureRequest);
-  }
-
-  async revokeAllOtherInstallations(
-    signer: SafeSigner,
-    signatureRequest: SignatureRequestHandle,
-  ) {
-    await this.addSignature(signatureRequest, signer);
-    await this.applySignatureRequest(signatureRequest);
-  }
-
-  async revokeInstallations(
-    signer: SafeSigner,
-    signatureRequest: SignatureRequestHandle,
-  ) {
-    await this.addSignature(signatureRequest, signer);
-    await this.applySignatureRequest(signatureRequest);
-  }
-
-  async changeRecoveryIdentifier(
-    signer: SafeSigner,
-    signatureRequest: SignatureRequestHandle,
-  ) {
-    await this.addSignature(signatureRequest, signer);
-    await this.applySignatureRequest(signatureRequest);
   }
 
   async findInboxIdByIdentifier(identifier: Identifier) {

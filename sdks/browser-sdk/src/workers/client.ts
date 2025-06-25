@@ -150,6 +150,16 @@ self.onmessage = async (
       /**
        * Client actions
        */
+      case "client.applySignatureRequest": {
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
+        await client.processSignatureRequest(data.signer, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "client.createInboxSignatureText": {
         const signatureRequest = client.createInboxSignatureRequest();
         const result: Partial<SignatureRequestResult> = {
@@ -240,7 +250,7 @@ self.onmessage = async (
         if (!signatureRequest) {
           throw new Error("Signature request not found");
         }
-        await client.addAccount(data.signer, signatureRequest);
+        await client.processSignatureRequest(data.signer, signatureRequest);
         signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
@@ -250,7 +260,7 @@ self.onmessage = async (
         if (!signatureRequest) {
           throw new Error("Signature request not found");
         }
-        await client.removeAccount(data.signer, signatureRequest);
+        await client.processSignatureRequest(data.signer, signatureRequest);
         signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
@@ -260,7 +270,7 @@ self.onmessage = async (
         if (!signatureRequest) {
           throw new Error("Signature request not found");
         }
-        await client.revokeAllOtherInstallations(data.signer, signatureRequest);
+        await client.processSignatureRequest(data.signer, signatureRequest);
         signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
@@ -270,7 +280,7 @@ self.onmessage = async (
         if (!signatureRequest) {
           throw new Error("Signature request not found");
         }
-        await client.revokeInstallations(data.signer, signatureRequest);
+        await client.processSignatureRequest(data.signer, signatureRequest);
         signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
@@ -280,7 +290,7 @@ self.onmessage = async (
         if (!signatureRequest) {
           throw new Error("Signature request not found");
         }
-        await client.changeRecoveryIdentifier(data.signer, signatureRequest);
+        await client.processSignatureRequest(data.signer, signatureRequest);
         signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
