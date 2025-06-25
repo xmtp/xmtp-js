@@ -1,5 +1,59 @@
 # @xmtp/browser-sdk
 
+## 3.0.0
+
+This update introduces enhancements for managing installations without a client. It also contains breaking changes related to signature management and consistency across SDKs.
+
+### BREAKING CHANGES
+
+#### Debug information has been moved to `client.debugInformation`
+
+To better align with our mobile SDKs, debug information helpers are now accessible at the `debugInformation` property of client instances.
+
+Update your calls to the following:
+
+- `client.apiStatistics()` => `client.debugInformation.apiStatistics()`
+- `client.apiIdentityStatistics()` => `client.debugInformation.apiIdentityStatistics()`
+- `client.apiAggregateStatistics()` => `client.debugInformation.apiAggregateStatistics()`
+- `client.clearAllStatistics()` => `client.debugInformation.clearAllStatistics()`
+- `client.uploadDebugArchive()` => `client.debugInformation.uploadDebugArchive()`
+
+#### Signatures are now managed through signature requests
+
+This change only affects developers who are using custom workflows with the `unsafe_*SignatureText` client methods.
+
+When using a custom signing workflow, the `unsafe_*SignatureText` client methods now return an object with the following type:
+
+```ts
+type SignatureRequestResult = {
+  signatureText: string;
+  signatureRequestId: string;
+};
+```
+
+After signing the `signatureText`, you must create a special signer and pass it to the `unsafe_applySignatureRequest` client method along with the `signatureRequestId`.
+
+**Example**
+
+```ts
+// change the recovery identifier
+const { signatureText, signatureRequestId } =
+  await this.unsafe_changeRecoveryIdentifierSignatureText(newIdentifier);
+// use a `Signer` to sign the signature text
+const signature = await signer.signMessage(signatureText);
+// `toSafeSigner` is a new export from `@xmtp/browser-sdk`
+const safeSigner = await toSafeSigner(signer, signature);
+
+await client.unsafe_applySignatureRequest(safeSigner, signatureRequestId);
+```
+
+As part of this change, the `SignatureRequestType` export has been replaced with `SignatureRequestHandle`.
+
+### Other changes
+
+- Added `Client.revokeInstallations` static method for revoking installations without a client
+- Added `Client.inboxStateFromInboxIds` static method for getting inbox state without a client
+
 ## 2.2.1
 
 ### Patch Changes
