@@ -25,7 +25,7 @@ import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
-import type { ClientOptions, NetworkOptions, XmtpEnv } from "@/types";
+import type { ClientOptions, XmtpEnv } from "@/types";
 import { createClient } from "@/utils/createClient";
 import {
   AccountAlreadyAssociatedError,
@@ -568,12 +568,12 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @param installationIds - The installation IDs to revoke
    */
   static async revokeInstallations(
-    env: XmtpEnv,
     signer: Signer,
     inboxId: string,
     installationIds: Uint8Array[],
+    env?: XmtpEnv,
   ) {
-    const host = ApiUrls[env];
+    const host = ApiUrls[env ?? "dev"];
     const identifier = await signer.getIdentifier();
     const signatureRequest = await revokeInstallationsSignatureRequest(
       host,
@@ -608,8 +608,8 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @param inboxIds - The inbox IDs to get the state for
    * @returns The inbox state for the specified inbox IDs
    */
-  static async inboxStateFromInboxIds(env: XmtpEnv, inboxIds: string[]) {
-    const host = ApiUrls[env];
+  static async inboxStateFromInboxIds(inboxIds: string[], env?: XmtpEnv) {
+    const host = ApiUrls[env ?? "dev"];
     return inboxStateFromInboxIds(host, inboxIds);
   }
 
@@ -834,9 +834,9 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   static async isAddressAuthorized(
     inboxId: string,
     address: string,
-    options?: NetworkOptions,
+    env?: XmtpEnv,
   ): Promise<boolean> {
-    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
+    const host = ApiUrls[env ?? "dev"];
     return await isAddressAuthorizedBinding(host, inboxId, address);
   }
 
@@ -851,9 +851,9 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   static async isInstallationAuthorized(
     inboxId: string,
     installation: Uint8Array,
-    options?: NetworkOptions,
+    env?: XmtpEnv,
   ): Promise<boolean> {
-    const host = options?.apiUrl || ApiUrls[options?.env || "dev"];
+    const host = ApiUrls[env ?? "dev"];
     return await isInstallationAuthorizedBinding(host, inboxId, installation);
   }
 

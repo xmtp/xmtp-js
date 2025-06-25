@@ -183,9 +183,12 @@ describe("Client", () => {
     expect(installationIds).toContain(client2.installationId);
     expect(installationIds).toContain(client3.installationId);
 
-    await Client.revokeInstallations("local", signer, client3.inboxId, [
-      client.installationIdBytes,
-    ]);
+    await Client.revokeInstallations(
+      signer,
+      client3.inboxId,
+      [client.installationIdBytes],
+      "local",
+    );
 
     const inboxState2 = await client3.preferences.inboxState(true);
 
@@ -291,14 +294,14 @@ describe("Client", () => {
     const authorized = await Client.isAddressAuthorized(
       client.inboxId,
       user.account.address.toLowerCase(),
-      { env: "local" },
+      "local",
     );
     expect(authorized).toBe(true);
 
     const notAuthorized = await Client.isAddressAuthorized(
       client.inboxId,
       "0x1234567890123456789012345678901234567890",
-      { env: "local" },
+      "local",
     );
     expect(notAuthorized).toBe(false);
   });
@@ -310,14 +313,14 @@ describe("Client", () => {
     const authorized = await Client.isInstallationAuthorized(
       client.inboxId,
       client.installationIdBytes,
-      { env: "local" },
+      "local",
     );
     expect(authorized).toBe(true);
 
     const notAuthorized = await Client.isInstallationAuthorized(
       client.inboxId,
       new Uint8Array(32),
-      { env: "local" },
+      "local",
     );
     expect(notAuthorized).toBe(false);
   });
@@ -478,16 +481,18 @@ describe("Client", () => {
     const signer2 = createSigner(user2);
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
-    const inboxStates = await Client.inboxStateFromInboxIds("local", [
-      client.inboxId,
-    ]);
+    const inboxStates = await Client.inboxStateFromInboxIds(
+      [client.inboxId],
+      "local",
+    );
     expect(inboxStates.length).toBe(1);
     expect(inboxStates[0].inboxId).toBe(client.inboxId);
     expect(inboxStates[0].identifiers).toEqual([await signer.getIdentifier()]);
 
-    const inboxStates2 = await Client.inboxStateFromInboxIds("local", [
-      client2.inboxId,
-    ]);
+    const inboxStates2 = await Client.inboxStateFromInboxIds(
+      [client2.inboxId],
+      "local",
+    );
     expect(inboxStates2.length).toBe(1);
     expect(inboxStates2[0].inboxId).toBe(client2.inboxId);
     expect(inboxStates2[0].identifiers).toEqual([
