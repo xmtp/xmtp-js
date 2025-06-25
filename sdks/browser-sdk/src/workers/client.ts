@@ -161,17 +161,20 @@ self.onmessage = async (
         break;
       }
       case "client.createInboxSignatureText": {
-        const signatureRequest = client.createInboxSignatureRequest();
         const result: Partial<SignatureRequestResult> = {
           signatureText: undefined,
           signatureRequestId: undefined,
         };
-        if (signatureRequest) {
-          result.signatureText = await signatureRequest.signatureText();
-          result.signatureRequestId = data.signatureRequestId;
-          signatureRequests.set(data.signatureRequestId, signatureRequest);
+        try {
+          const signatureRequest = client.createInboxSignatureRequest();
+          if (signatureRequest) {
+            result.signatureText = await signatureRequest.signatureText();
+            result.signatureRequestId = data.signatureRequestId;
+            signatureRequests.set(data.signatureRequestId, signatureRequest);
+          }
+        } finally {
+          postMessage({ id, action, result });
         }
-        postMessage({ id, action, result });
         break;
       }
       case "client.addAccountSignatureText": {
