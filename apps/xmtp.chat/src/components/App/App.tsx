@@ -15,6 +15,7 @@ import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissi
 import { CreateDmModal } from "@/components/Conversations/CreateDmModal";
 import { CreateGroupModal } from "@/components/Conversations/CreateGroupModal";
 import { IdentityModal } from "@/components/Identity/IdentityModal";
+import { InboxToolsModal } from "@/components/InboxTools/InboxToolsModal";
 import { MessageModal } from "@/components/Messages/MessageModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -28,6 +29,7 @@ export const App: React.FC = () => {
         <Route path="/welcome/*" element={<WelcomeLayout />}>
           <Route path="" element={<Welcome />}>
             <Route path="connect" element={<ConnectModal />} />
+            <Route path="inbox-tools" element={<InboxToolsModal />} />
           </Route>
         </Route>
         <Route path="/*" element={<AppLayout />}>
