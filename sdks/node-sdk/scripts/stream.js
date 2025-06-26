@@ -1,4 +1,4 @@
-import { Client, IdentifierKind } from "@xmtp/node-sdk";
+import { Client, IdentifierKind, LogLevel } from "@xmtp/node-sdk";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -55,6 +55,7 @@ async function main() {
   const signer = createSigner();
   const client = await Client.create(signer, {
     env: "local",
+    loggingLevel: LogLevel.trace,
   });
 
   console.log("Inbox ID:", client.inboxId);
