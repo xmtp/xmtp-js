@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.0.1
+
+### Patch Changes
+
+- 10bf2d1: Fixed some issues that may cause group forks
+
 ## 3.0.0
 
 This update introduces enhancements for managing installations without a client. It also contains breaking changes related to signature management and consistency across SDKs.
