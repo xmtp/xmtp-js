@@ -446,13 +446,19 @@ describe("Conversations", () => {
     await createRegisteredClient(signer2);
 
     const group = await client.conversations.newGroup([client2.inboxId!]);
-    await client2.conversations.sync();
+
+    await client.conversations.syncAll();
+    await client2.conversations.syncAll();
+
     const convos = await client2.conversations.list();
     expect(convos.length).toBe(1);
     expect(convos[0].id).toBe(group.id);
 
     const group2 = await client.conversations.newDm(client2.inboxId!);
-    await client2.conversations.sync();
+
+    await client.conversations.syncAll();
+    await client2.conversations.syncAll();
+
     const convos2 = await client2.conversations.list();
     expect(convos2.length).toBe(2);
     const convos2Ids = convos2.map((c) => c.id);
