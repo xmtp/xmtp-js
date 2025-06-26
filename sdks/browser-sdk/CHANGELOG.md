@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 10bf2d1: Fix forks
+- 10bf2d1: Fixed some issues that may cause group forks
 
 ## 3.0.0
 
