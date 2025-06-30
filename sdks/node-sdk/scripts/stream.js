@@ -51,6 +51,9 @@ const onMessage = (error, message) => {
   console.log("Message received in callback:", message);
 };
 
+// prevent process from exiting when stream fails
+process.stdin.resume();
+
 async function main() {
   const signer = createSigner();
   const client = await Client.create(signer, {
@@ -67,12 +70,10 @@ async function main() {
 
   console.log("Waiting for messages...");
 
-  while (true) {
-    for await (const message of stream) {
-      console.log("Message received in for await:", message);
-    }
-    console.log("Stream ended");
+  for await (const message of stream) {
+    console.log("Message received in for await:", message);
   }
+  console.log("Stream ended");
 }
 
 try {
