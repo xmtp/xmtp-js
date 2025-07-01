@@ -1,5 +1,4 @@
 import { Stack } from "@mantine/core";
-import { DisableAnalytics } from "@/components/App/DisableAnalytics";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { UseSCW } from "@/components/App/UseSCW";
@@ -11,7 +10,6 @@ export const Settings = () => {
       <NetworkSelect />
       <UseSCW />
       <LoggingSelect />
-      <DisableAnalytics />
     </Stack>
   );
 };

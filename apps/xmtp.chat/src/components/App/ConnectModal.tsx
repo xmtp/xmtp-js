@@ -1,7 +1,7 @@
 import { Button, CloseButton, Group, Stack, Text } from "@mantine/core";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { useConnect, useConnectors } from "wagmi";
+import { useAccount, useConnect, useConnectors } from "wagmi";
 import { AccountCard } from "@/components/App/AccountCard";
 import { BlockchainSelect } from "@/components/App/BlockchainSelect";
 import { Modal } from "@/components/Modal";
@@ -22,6 +22,7 @@ type ConnectorString =
   | "WalletConnect";
 
 export const ConnectModal = () => {
+  const account = useAccount();
   const { connect } = useConnect();
   const connectors = useConnectors();
   const navigate = useNavigate();
@@ -64,6 +65,12 @@ export const ConnectModal = () => {
   const handleClose = useCallback(() => {
     void navigate(-1);
   }, [navigate]);
+
+  useEffect(() => {
+    if (account.address) {
+      handleClose();
+    }
+  }, [account, handleClose]);
 
   const contentHeight = fullScreen ? "auto" : "70dvh";
   const title = useMemo(() => {

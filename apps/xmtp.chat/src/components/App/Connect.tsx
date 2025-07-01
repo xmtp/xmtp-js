@@ -5,13 +5,13 @@ import { useNavigate } from "react-router";
 export const Connect = () => {
   const navigate = useNavigate();
 
-  const handleClick = useCallback(() => {
+  const handleConnectClick = useCallback(() => {
     void navigate("/welcome/connect");
   }, [navigate]);
 
   return (
-    <Group p="md" justify="center">
-      <Button size="md" onClick={handleClick}>
+    <Group justify="center">
+      <Button size="md" onClick={handleConnectClick}>
         Connect
       </Button>
     </Group>
