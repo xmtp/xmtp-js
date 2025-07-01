@@ -46,11 +46,6 @@ let enableLogging = false;
 const streamClosers = new Map<string, StreamCloser>();
 const signatureRequests = new Map<string, SignatureRequestHandle>();
 
-type SignatureRequestResult = {
-  signatureText: string;
-  signatureRequestId: string;
-};
-
 /**
  * Type-safe postMessage
  */
@@ -161,7 +156,10 @@ self.onmessage = async (
         break;
       }
       case "client.createInboxSignatureText": {
-        const result: Partial<SignatureRequestResult> = {
+        const result: {
+          signatureText?: string;
+          signatureRequestId?: string;
+        } = {
           signatureText: undefined,
           signatureRequestId: undefined,
         };
@@ -181,7 +179,7 @@ self.onmessage = async (
         const signatureRequest = await client.addAccountSignatureRequest(
           data.newIdentifier,
         );
-        const result: SignatureRequestResult = {
+        const result = {
           signatureText: await signatureRequest.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
@@ -193,7 +191,7 @@ self.onmessage = async (
         const signatureRequest = await client.removeAccountSignatureRequest(
           data.identifier,
         );
-        const result: SignatureRequestResult = {
+        const result = {
           signatureText: await signatureRequest.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
@@ -204,7 +202,7 @@ self.onmessage = async (
       case "client.revokeAllOtherInstallationsSignatureText": {
         const signatureRequest =
           await client.revokeAllOtherInstallationsSignatureRequest();
-        const result: SignatureRequestResult = {
+        const result = {
           signatureText: await signatureRequest.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
@@ -217,7 +215,7 @@ self.onmessage = async (
           await client.revokeInstallationsSignatureRequest(
             data.installationIds,
           );
-        const result: SignatureRequestResult = {
+        const result = {
           signatureText: await signatureRequest.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
@@ -230,7 +228,7 @@ self.onmessage = async (
           await client.changeRecoveryIdentifierSignatureRequest(
             data.identifier,
           );
-        const result: SignatureRequestResult = {
+        const result = {
           signatureText: await signatureRequest.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
