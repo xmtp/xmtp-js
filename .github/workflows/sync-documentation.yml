@@ -1,0 +1,345 @@
+name: Sync Documentation
+
+on:
+  release:
+    types: [published, edited, created]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name to analyze (leave empty for latest)"
+        required: false
+        type: string
+
+env:
+  DOCS_REPO: xmtp/docs-xmtp-org
+  BRANCH_PREFIX: auto-update-js-docs
+
+jobs:
+  sync-docs:
+    name: Sync XMTP-JS Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout XMTP-JS SDK
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: xmtp-js
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "xmtp-js/.nvmrc"
+          cache: "yarn"
+        env:
+          SKIP_YARN_COREPACK_CHECK: "1"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Checkout Documentation Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.DOCS_REPO }}
+          token: ${{ secrets.DOCS_SYNC_TOKEN }}
+          path: docs-repo
+
+      - name: Determine tag to analyze
+        id: tag
+        run: |
+          cd xmtp-js
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          elif [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG=$(git describe --tags --abbrev=0)
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Analyzing tag: $TAG"
+
+      - name: Get previous tag for diff
+        id: prev_tag
+        run: |
+          cd xmtp-js
+          CURRENT_TAG="${{ steps.tag.outputs.tag }}"
+          PREV_TAG=$(git tag --sort=-version:refname | grep -A 1 "^$CURRENT_TAG$" | tail -n 1)
+          if [ "$PREV_TAG" = "$CURRENT_TAG" ] || [ -z "$PREV_TAG" ]; then
+            # If no previous tag or same tag, get the tag before current
+            PREV_TAG=$(git tag --sort=-version:refname | head -n 2 | tail -n 1)
+          fi
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous tag: $PREV_TAG"
+
+      - name: Install dependencies and build
+        run: |
+          cd xmtp-js
+          yarn
+          yarn build
+
+      - name: Create documentation analysis prompt
+        run: |
+          cat > docs-repo/analysis_prompt.md << 'EOF'
+          # XMTP-JS Documentation Sync Analysis
+
+          You are tasked with analyzing changes in the XMTP-JS SDK and updating documentation accordingly.
+
+          ## Context
+          - Current release tag: ${{ steps.tag.outputs.tag }}
+          - Previous tag: ${{ steps.prev_tag.outputs.prev_tag }}
+          - XMTP-JS SDK repo: `xmtp-js/`
+          - Documentation repo: `docs-repo/`
+
+          ## Task
+          1. Analyze the diff between the previous tag and current tag in the XMTP-JS SDK
+          2. Identify API changes, new features, deprecated methods, and breaking changes
+          3. Review documentation in `docs-repo/` for Node.js and Browser SDK related content
+          4. Focus on code samples, API references, and integration guides
+          5. Update documentation files in `docs-repo/` to match the current SDK state
+          6. Ensure all Node.js and Browser JavaScript/TypeScript code samples are accurate and use current APIs
+          7. Test code samples using the repository's linting tools when possible
+
+          ## Key SDK Areas to Analyze
+          - **Browser SDK** (`sdks/browser-sdk/`):
+            - WorkerClient vs Client usage patterns
+            - Web Worker integration
+            - Browser-specific APIs and limitations
+          - **Node SDK** (`sdks/node-sdk/`):
+            - Direct client usage
+            - Node.js specific utilities and scripts
+          - **Content Types** (`content-types/`):
+            - Text, reactions, attachments, replies
+            - Custom content type registration
+            - Codec usage patterns
+          - **Shared APIs**:
+            - Client initialization and configuration
+            - Conversation management (Groups vs DMs)
+            - Message handling and streaming
+            - User consent and preferences
+
+          ## Documentation Areas to Check
+          - Client creation and signer setup
+          - Conversation creation and management
+          - Message sending, receiving, and streaming
+          - Content type usage (text, reactions, attachments, etc.)
+          - Group vs DM patterns
+          - Error handling and debugging
+          - Authentication flows and inbox management
+          - Integration examples and quickstart guides
+          - API reference accuracy
+          - TypeScript type definitions and examples
+
+          ## Requirements
+          - All JavaScript/TypeScript code samples must be valid with the current SDK version (${{ steps.tag.outputs.tag }})
+          - Update version numbers in installation instructions
+          - Distinguish between Browser SDK and Node SDK usage where applicable
+          - Flag any breaking changes that need migration guides
+          - Maintain consistency with existing documentation style
+          - Create clear, actionable updates
+          - Use comprehensive analysis tools to ensure thorough coverage
+          - Verify documentation accuracy by cross-referencing with source code
+          - Search for related documentation files that may need updates
+          - Pay special attention to Browser vs Node.js specific patterns and examples
+          - Test code samples for syntax validity using available linting tools
+
+          ## Code Validation Strategy
+          Use the XMTP-JS repository's built-in tools to validate code samples:
+          - Run `yarn lint` to check TypeScript/JavaScript syntax
+          - Use `yarn typecheck` to verify TypeScript types
+          - Create temporary test files if needed to validate complex examples
+          - Ensure examples use proper imports from the correct SDK packages
+
+          ## Available Tools
+          You have access to comprehensive tools including:
+          - File operations (Read, Write, Edit, MultiEdit)
+          - Search tools (Glob, Grep, Task)
+          - Web tools (WebFetch, WebSearch) for additional context
+          - Organization tools (TodoRead, TodoWrite) for systematic updates
+          - Command execution (Bash) for git operations, building, and linting
+
+          Use these tools systematically to ensure comprehensive documentation updates.
+
+          ## Release Changes Summary
+          EOF
+
+          # Append the release diff to the prompt
+          cd xmtp-js
+          echo "### Changed Files:" >> ../docs-repo/analysis_prompt.md
+          git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} --name-only | head -50 >> ../docs-repo/analysis_prompt.md
+          echo "" >> ../docs-repo/analysis_prompt.md
+
+          echo "### Browser SDK API Changes:" >> ../docs-repo/analysis_prompt.md
+          git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- sdks/browser-sdk/src/ | head -200 >> ../docs-repo/analysis_prompt.md
+          echo "" >> ../docs-repo/analysis_prompt.md
+
+          echo "### Node SDK API Changes:" >> ../docs-repo/analysis_prompt.md  
+          git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- sdks/node-sdk/src/ | head -200 >> ../docs-repo/analysis_prompt.md
+          echo "" >> ../docs-repo/analysis_prompt.md
+
+          echo "### Content Types Changes:" >> ../docs-repo/analysis_prompt.md
+          git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- content-types/ | head -100 >> ../docs-repo/analysis_prompt.md
+          echo "" >> ../docs-repo/analysis_prompt.md
+
+          echo "### Package.json Changes (version updates):" >> ../docs-repo/analysis_prompt.md
+          git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- "**/package.json" | grep -E "^\+.*version|^\-.*version" | head -20 >> ../docs-repo/analysis_prompt.md
+          echo "" >> ../docs-repo/analysis_prompt.md
+
+          echo "Please analyze these changes and update the documentation files in the docs-repo/ directory accordingly." >> ../docs-repo/analysis_prompt.md
+          echo "" >> ../docs-repo/analysis_prompt.md
+          echo "## IMPORTANT: Summary Output" >> ../docs-repo/analysis_prompt.md
+          echo "After completing all documentation updates, please create a file called 'CLAUDE_SUMMARY.md' in the docs-repo directory with:" >> ../docs-repo/analysis_prompt.md
+          echo "1. A concise summary of what changes were made" >> ../docs-repo/analysis_prompt.md
+          echo "2. Key API changes or breaking changes identified" >> ../docs-repo/analysis_prompt.md
+          echo "3. Files that were updated and why" >> ../docs-repo/analysis_prompt.md
+          echo "4. Any areas that may need manual review" >> ../docs-repo/analysis_prompt.md
+          echo "5. Code samples that were validated or updated" >> ../docs-repo/analysis_prompt.md
+          echo "" >> ../docs-repo/analysis_prompt.md
+          echo "This summary will be used in the pull request description to help reviewers understand the changes." >> ../docs-repo/analysis_prompt.md
+
+      - name: Run Claude Code Documentation Analysis
+        uses: anthropics/claude-code-base-action@beta
+        with:
+          prompt_file: docs-repo/analysis_prompt.md
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_tools: "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,LS,Task,WebFetch,WebSearch,TodoRead,TodoWrite,NotebookRead,NotebookEdit"
+          max_turns: 20
+          timeout_minutes: 30
+
+      - name: Create branch and commit changes
+        id: commit
+        run: |
+          cd docs-repo
+          BRANCH_NAME="${{ env.BRANCH_PREFIX }}-${{ steps.tag.outputs.tag }}"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create and switch to new branch
+          git checkout -b "$BRANCH_NAME"
+
+          # Capture Claude's summary if it exists
+          if [ -f "CLAUDE_SUMMARY.md" ]; then
+            echo "Claude summary found, capturing for PR body"
+            # Store the summary content in a file that survives the git operations
+            cp CLAUDE_SUMMARY.md /tmp/claude_summary.md
+            echo "claude_summary_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "No Claude summary found"
+            echo "claude_summary_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Remove internal workflow files
+          rm -f analysis_prompt.md CLAUDE_SUMMARY.md
+
+          # Check if there are any changes
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No documentation changes needed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Documentation changes detected"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+            
+            # Add all changes (excluding the removed prompt and summary files)
+            git add .
+            
+            # Commit changes
+            git commit -m "Update XMTP-JS SDK documentation for release ${{ steps.tag.outputs.tag }}
+
+            Automated update based on changes in xmtp-js ${{ steps.tag.outputs.tag }}
+            
+            Changes analyzed:
+            - Browser SDK and Node SDK API modifications
+            - Content types updates and new features
+            - Code sample accuracy and syntax validation
+            - Version compatibility and installation instructions
+            - Breaking changes documentation
+            - TypeScript type definitions and examples
+            
+            Generated by Claude Code Actions"
+            
+            # Push branch
+            git push origin "$BRANCH_NAME"
+          fi
+
+      - name: Create Pull Request
+        if: steps.commit.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_SYNC_TOKEN }}
+        run: |
+          cd docs-repo
+
+          # Start building PR body
+          PR_BODY="## 🤖 Automated XMTP-JS SDK Documentation Update
+
+          This PR updates the documentation to align with XMTP-JS SDK release [\`${{ steps.tag.outputs.tag }}\`](https://github.com/xmtp/xmtp-js/releases/tag/${{ steps.tag.outputs.tag }})."
+
+          # Add Claude's summary if it exists
+          if [ "${{ steps.commit.outputs.claude_summary_exists }}" = "true" ] && [ -f "/tmp/claude_summary.md" ]; then
+            PR_BODY="$PR_BODY
+
+          ## 📋 Analysis Summary
+
+          $(cat /tmp/claude_summary.md)"
+          else
+            # Fallback to generic summary
+            PR_BODY="$PR_BODY
+
+          ### Changes Made
+          - Updated Node.js and Browser SDK code samples to match current APIs
+          - Verified JavaScript/TypeScript integration examples  
+          - Updated version references and installation instructions
+          - Addressed any breaking changes or deprecations
+          - Updated content type usage examples
+          - Verified Client, Conversation, and Message API patterns
+          - Validated code samples using repository linting tools
+          - Updated TypeScript definitions and examples
+
+          ### SDK Areas Covered
+          - 🌐 **Browser SDK**: WorkerClient, Web Worker patterns, browser-specific APIs
+          - 🖥️ **Node SDK**: Direct client usage, Node.js utilities and scripts  
+          - 📦 **Content Types**: Text, reactions, attachments, replies, custom types
+          - 🔧 **Core APIs**: Client creation, conversations, messaging, streaming
+          - 🛡️ **Authentication**: Signer setup, inbox management, user consent
+
+          ### Analysis Summary
+          Documentation analysis and updates completed using Claude Code Actions with comprehensive diff analysis between ${{ steps.prev_tag.outputs.prev_tag }} and ${{ steps.tag.outputs.tag }}."
+          fi
+
+          # Add verification checklist
+          PR_BODY="$PR_BODY
+
+          ### Verification Needed
+          - [ ] Review all JavaScript/TypeScript code samples for accuracy
+          - [ ] Test integration examples with current SDK version
+          - [ ] Verify version compatibility information across packages
+          - [ ] Check TypeScript definitions and type examples
+          - [ ] Validate Browser vs Node SDK usage patterns
+          - [ ] Check content type integration examples
+          - [ ] Verify client initialization and configuration examples
+          - [ ] Check for any missed documentation updates
+
+          ---
+          *This PR was automatically generated by Claude Code Actions*"
+
+          # Create the PR
+          gh pr create \
+            --title "📦 Update XMTP-JS SDK docs for ${{ steps.tag.outputs.tag }}" \
+            --body "$PR_BODY" \
+            --head "${{ steps.commit.outputs.branch_name }}" \
+            --base main \
+            --label "xmtp-js,automated,documentation,node-sdk,browser-sdk"
+
+      - name: Output results
+        run: |
+          if [ "${{ steps.commit.outputs.has_changes }}" = "true" ]; then
+            echo "✅ Documentation sync completed successfully"
+            echo "📝 Pull request created in ${{ env.DOCS_REPO }}"
+            echo "🔗 Check: https://github.com/${{ env.DOCS_REPO }}/pulls"
+          else
+            echo "ℹ️ No documentation changes required for this release"
+          fi
