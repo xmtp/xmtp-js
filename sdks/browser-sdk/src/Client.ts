@@ -535,8 +535,10 @@ export class Client<
     inboxId: string,
     installationIds: Uint8Array[],
     env?: XmtpEnv,
+    enableLogging?: boolean,
   ) {
-    const utils = new Utils();
+    const utils = new Utils(enableLogging);
+    await utils.init();
     await utils.revokeInstallations(signer, inboxId, installationIds, env);
     utils.close();
   }
@@ -548,8 +550,13 @@ export class Client<
    * @param env - The environment to use
    * @returns The inbox state for the specified inbox IDs
    */
-  static async inboxStateFromInboxIds(inboxIds: string[], env?: XmtpEnv) {
-    const utils = new Utils();
+  static async inboxStateFromInboxIds(
+    inboxIds: string[],
+    env?: XmtpEnv,
+    enableLogging?: boolean,
+  ) {
+    const utils = new Utils(enableLogging);
+    await utils.init();
     const result = await utils.inboxStateFromInboxIds(inboxIds, env);
     utils.close();
     return result;

@@ -39,7 +39,6 @@ export class UtilsWorkerClass {
       this.#worker.addEventListener("error", handleError);
     }
     this.#enableLogging = enableLogging;
-    void this.init(enableLogging);
   }
 
   /**
@@ -48,9 +47,9 @@ export class UtilsWorkerClass {
    * @param enableLogging - Whether to enable logging in the worker
    * @returns A promise that resolves when the worker is initialized
    */
-  async init(enableLogging: boolean) {
+  async init() {
     return this.sendMessage("utils.init", {
-      enableLogging,
+      enableLogging: this.#enableLogging,
     });
   }
 

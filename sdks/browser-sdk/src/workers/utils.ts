@@ -5,6 +5,7 @@ import init, {
   inboxStateFromInboxIds,
   revokeInstallationsSignatureRequest,
   type Identifier,
+  type SignatureRequestHandle,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls } from "@/constants";
 import type {
@@ -16,6 +17,8 @@ import type {
 import type { UtilsWorkerAction } from "@/types/actions/utils";
 import type { XmtpEnv } from "@/types/options";
 import { toSafeInboxState } from "@/utils/conversions";
+
+const signatureRequests = new Map<string, SignatureRequestHandle>();
 
 /**
  * Type-safe postMessage
@@ -85,17 +88,20 @@ self.onmessage = async (
           data.installationIds,
         );
         const signatureText = await signatureRequest.signatureText();
-        postMessage({ id, action, result: signatureText });
+        signatureRequests.set(data.signatureRequestId, signatureRequest);
+        const result = {
+          signatureText,
+          signatureRequestId: data.signatureRequestId,
+        };
+        postMessage({ id, action, result });
         break;
       }
       case "utils.revokeInstallations": {
         const host = ApiUrls[data.env ?? "dev"];
-        const signatureRequest = await revokeInstallationsSignatureRequest(
-          host,
-          data.signer.identifier,
-          data.inboxId,
-          data.installationIds,
-        );
+        const signatureRequest = signatureRequests.get(data.signatureRequestId);
+        if (!signatureRequest) {
+          throw new Error("Signature request not found");
+        }
         switch (data.signer.type) {
           case "EOA":
             await signatureRequest.addEcdsaSignature(data.signer.signature);
@@ -110,16 +116,21 @@ self.onmessage = async (
             break;
         }
         await applySignatureRequest(host, signatureRequest);
+        signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "utils.inboxStateFromInboxIds": {
         const host = ApiUrls[data.env ?? "dev"];
-        const inboxStates = await inboxStateFromInboxIds(host, data.inboxIds);
-        const result = inboxStates.map((inboxState) =>
-          toSafeInboxState(inboxState),
-        );
-        postMessage({ id, action, result });
+        try {
+          const inboxStates = await inboxStateFromInboxIds(host, data.inboxIds);
+          const result = inboxStates.map((inboxState) =>
+            toSafeInboxState(inboxState),
+          );
+          postMessage({ id, action, result });
+        } catch (e) {
+          console.error("utils received error", e);
+        }
         break;
       }
     }

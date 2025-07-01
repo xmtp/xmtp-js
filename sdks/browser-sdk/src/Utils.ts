@@ -1,4 +1,5 @@
 import type { Identifier } from "@xmtp/wasm-bindings";
+import { v4 } from "uuid";
 import type { XmtpEnv } from "@/types/options";
 import { toSafeSigner, type Signer } from "@/utils/signer";
 import { UtilsWorkerClass } from "@/UtilsWorkerClass";
@@ -58,7 +59,7 @@ export class Utils extends UtilsWorkerClass {
    * @param identifier - The identifier to revoke installations for
    * @param inboxId - The inbox ID to revoke installations for
    * @param installationIds - The installation IDs to revoke
-   * @returns The signature text
+   * @returns The signature text and signature request ID
    */
   async revokeInstallationsSignatureText(
     identifier: Identifier,
@@ -71,6 +72,7 @@ export class Utils extends UtilsWorkerClass {
       identifier,
       inboxId,
       installationIds,
+      signatureRequestId: v4(),
     });
   }
 
@@ -90,19 +92,19 @@ export class Utils extends UtilsWorkerClass {
     env?: XmtpEnv,
   ) {
     const identifier = await signer.getIdentifier();
-    const signatureText = await this.revokeInstallationsSignatureText(
-      identifier,
-      inboxId,
-      installationIds,
-      env,
-    );
+    const { signatureText, signatureRequestId } =
+      await this.revokeInstallationsSignatureText(
+        identifier,
+        inboxId,
+        installationIds,
+        env,
+      );
     const signature = await signer.signMessage(signatureText);
     const safeSigner = await toSafeSigner(signer, signature);
 
     return this.sendMessage("utils.revokeInstallations", {
       signer: safeSigner,
-      inboxId,
-      installationIds,
+      signatureRequestId,
       env,
     });
   }

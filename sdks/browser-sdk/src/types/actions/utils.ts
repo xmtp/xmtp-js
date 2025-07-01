@@ -32,12 +32,16 @@ export type UtilsWorkerAction =
   | {
       action: "utils.revokeInstallationsSignatureText";
       id: string;
-      result: string;
+      result: {
+        signatureText: string;
+        signatureRequestId: string;
+      };
       data: {
         env?: XmtpEnv;
         identifier: Identifier;
         inboxId: string;
         installationIds: Uint8Array[];
+        signatureRequestId: string;
       };
     }
   | {
@@ -47,8 +51,7 @@ export type UtilsWorkerAction =
       data: {
         env?: XmtpEnv;
         signer: SafeSigner;
-        inboxId: string;
-        installationIds: Uint8Array[];
+        signatureRequestId: string;
       };
     }
   | {
