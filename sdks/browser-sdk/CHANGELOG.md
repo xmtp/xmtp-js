@@ -1,5 +1,13 @@
 # @xmtp/browser-sdk
 
+## 3.0.3
+
+### Patch Changes
+
+- 8729f02:
+  - Increased max payload size to `25MB`
+  - Improved `syncAll` performance
+
 ## 3.0.2
 
 ### Patch Changes
