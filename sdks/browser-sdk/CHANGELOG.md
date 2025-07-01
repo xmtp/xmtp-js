@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 63c144d: Fix static installation revokation
+- 63c144d: Fixed static installation revokation
 
 ## 3.0.1
 
