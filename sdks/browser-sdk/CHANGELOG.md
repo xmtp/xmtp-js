@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.0.2
+
+### Patch Changes
+
+- 63c144d: Fixed static installation revokation
+
 ## 3.0.1
 
 ### Patch Changes
