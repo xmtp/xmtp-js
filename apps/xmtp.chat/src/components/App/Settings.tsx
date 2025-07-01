@@ -3,7 +3,7 @@ import { DisableAnalytics } from "@/components/App/DisableAnalytics";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { UseSCW } from "@/components/App/UseSCW";
-import classes from "./Connect.module.css";
+import classes from "./Settings.module.css";
 
 export const Settings = () => {
   return (
