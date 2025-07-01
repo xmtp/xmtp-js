@@ -447,8 +447,8 @@ describe("Conversations", () => {
 
     const group = await client.conversations.newGroup([client2.inboxId!]);
 
-    await client.conversations.syncAll();
-    await client2.conversations.syncAll();
+    await client.conversations.sync();
+    await client2.conversations.sync();
 
     const convos = await client2.conversations.list();
     expect(convos.length).toBe(1);
@@ -456,8 +456,8 @@ describe("Conversations", () => {
 
     const group2 = await client.conversations.newDm(client2.inboxId!);
 
-    await client.conversations.syncAll();
-    await client2.conversations.syncAll();
+    await client.conversations.sync();
+    await client2.conversations.sync();
 
     const convos2 = await client2.conversations.list();
     expect(convos2.length).toBe(2);
