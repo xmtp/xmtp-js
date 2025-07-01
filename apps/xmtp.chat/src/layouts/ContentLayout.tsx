@@ -50,7 +50,9 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
             ) : (
               title
             )}
-            <Box className={classes.headerActions}>{headerActions}</Box>
+            {headerActions && (
+              <Box className={classes.headerActions}>{headerActions}</Box>
+            )}
           </Group>
         )}
         <Box
