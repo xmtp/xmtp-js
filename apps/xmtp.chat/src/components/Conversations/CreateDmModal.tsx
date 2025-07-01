@@ -1,22 +1,19 @@
 import { Box, Button, Group, TextInput } from "@mantine/core";
-import { Utils, type Conversation } from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type Conversation } from "@xmtp/browser-sdk";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Modal } from "@/components/Modal";
 import type { ContentTypes } from "@/contexts/XMTPContext";
-import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
+import { isValidEthereumAddress } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
-import { useSettings } from "@/hooks/useSettings";
+import { useMemberId } from "@/hooks/useMemberId";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const CreateDmModal: React.FC = () => {
   const { newDm, newDmWithIdentifier } = useConversations();
   const [loading, setLoading] = useState(false);
-  const [memberId, setMemberId] = useState<string>("");
-  const [memberIdError, setMemberIdError] = useState<string | null>(null);
-  const { environment } = useSettings();
-  const utilsRef = useRef<Utils | null>(null);
+  const { memberId, setMemberId, error: memberIdError } = useMemberId();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
@@ -45,44 +42,6 @@ export const CreateDmModal: React.FC = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const utils = new Utils();
-    utilsRef.current = utils;
-    return () => {
-      utils.close();
-    };
-  }, []);
-
-  useEffect(() => {
-    const checkMemberId = async () => {
-      if (!memberId) {
-        setMemberIdError(null);
-        return;
-      }
-
-      if (!isValidEthereumAddress(memberId) && !isValidInboxId(memberId)) {
-        setMemberIdError("Invalid address or inbox ID");
-      } else if (isValidEthereumAddress(memberId) && utilsRef.current) {
-        const inboxId = await utilsRef.current.getInboxIdForIdentifier(
-          {
-            identifier: memberId.toLowerCase(),
-            identifierKind: "Ethereum",
-          },
-          environment,
-        );
-        if (!inboxId) {
-          setMemberIdError("Address not registered on XMTP");
-        } else {
-          setMemberIdError(null);
-        }
-      } else {
-        setMemberIdError(null);
-      }
-    };
-
-    void checkMemberId();
-  }, [memberId]);
 
   const footer = useMemo(() => {
     return (
