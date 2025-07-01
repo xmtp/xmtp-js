@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.0.3
+
+### Patch Changes
+
+- 8729f02: Browser SDK updates
+
 ## 3.0.2
 
 ### Patch Changes
