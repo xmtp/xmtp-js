@@ -34,6 +34,7 @@ jobs:
         with:
           node-version-file: "xmtp-js/.nvmrc"
           cache: "yarn"
+          cache-dependency-path: "xmtp-js/yarn.lock"
         env:
           SKIP_YARN_COREPACK_CHECK: "1"
 
@@ -66,11 +67,39 @@ jobs:
         run: |
           cd xmtp-js
           CURRENT_TAG="${{ steps.tag.outputs.tag }}"
-          PREV_TAG=$(git tag --sort=-version:refname | grep -A 1 "^$CURRENT_TAG$" | tail -n 1)
-          if [ "$PREV_TAG" = "$CURRENT_TAG" ] || [ -z "$PREV_TAG" ]; then
-            # If no previous tag or same tag, get the tag before current
-            PREV_TAG=$(git tag --sort=-version:refname | head -n 2 | tail -n 1)
+
+          # Determine which SDK this release is for
+          if [[ "$CURRENT_TAG" == *"@xmtp/browser-sdk@"* ]]; then
+            SDK_TYPE="browser-sdk"
+            TAG_PATTERN="@xmtp/browser-sdk@"
+          elif [[ "$CURRENT_TAG" == *"@xmtp/node-sdk@"* ]]; then
+            SDK_TYPE="node-sdk"
+            TAG_PATTERN="@xmtp/node-sdk@"
+          else
+            # Fallback for older xmtp-js tags or other patterns
+            SDK_TYPE="xmtp-js"
+            TAG_PATTERN="@xmtp/xmtp-js@"
           fi
+
+          echo "Detected SDK type: $SDK_TYPE"
+          echo "sdk_type=$SDK_TYPE" >> $GITHUB_OUTPUT
+
+          # Get previous tag for the same SDK
+          if [ "$SDK_TYPE" = "xmtp-js" ]; then
+            # For xmtp-js tags, use the existing logic
+            PREV_TAG=$(git tag --sort=-version:refname | grep -A 1 "^$CURRENT_TAG$" | tail -n 1)
+            if [ "$PREV_TAG" = "$CURRENT_TAG" ] || [ -z "$PREV_TAG" ]; then
+              PREV_TAG=$(git tag --sort=-version:refname | head -n 2 | tail -n 1)
+            fi
+          else
+            # For SDK-specific tags, find previous tag with same pattern
+            PREV_TAG=$(git tag --sort=-version:refname | grep "$TAG_PATTERN" | grep -A 1 "^$CURRENT_TAG$" | tail -n 1)
+            if [ "$PREV_TAG" = "$CURRENT_TAG" ] || [ -z "$PREV_TAG" ]; then
+              # Get the second most recent tag for this SDK
+              PREV_TAG=$(git tag --sort=-version:refname | grep "$TAG_PATTERN" | head -n 2 | tail -n 1)
+            fi
+          fi
+
           echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
           echo "Previous tag: $PREV_TAG"
 
@@ -171,13 +200,19 @@ jobs:
           git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} --name-only | head -50 >> ../docs-repo/analysis_prompt.md
           echo "" >> ../docs-repo/analysis_prompt.md
 
-          echo "### Browser SDK API Changes:" >> ../docs-repo/analysis_prompt.md
-          git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- sdks/browser-sdk/src/ | head -200 >> ../docs-repo/analysis_prompt.md
-          echo "" >> ../docs-repo/analysis_prompt.md
+          # Focus analysis on the specific SDK being released
+          SDK_TYPE="${{ steps.prev_tag.outputs.sdk_type }}"
+          if [ "$SDK_TYPE" = "browser-sdk" ] || [ "$SDK_TYPE" = "xmtp-js" ]; then
+            echo "### Browser SDK API Changes:" >> ../docs-repo/analysis_prompt.md
+            git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- sdks/browser-sdk/src/ | head -200 >> ../docs-repo/analysis_prompt.md
+            echo "" >> ../docs-repo/analysis_prompt.md
+          fi
 
-          echo "### Node SDK API Changes:" >> ../docs-repo/analysis_prompt.md  
-          git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- sdks/node-sdk/src/ | head -200 >> ../docs-repo/analysis_prompt.md
-          echo "" >> ../docs-repo/analysis_prompt.md
+          if [ "$SDK_TYPE" = "node-sdk" ] || [ "$SDK_TYPE" = "xmtp-js" ]; then
+            echo "### Node SDK API Changes:" >> ../docs-repo/analysis_prompt.md  
+            git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- sdks/node-sdk/src/ | head -200 >> ../docs-repo/analysis_prompt.md
+            echo "" >> ../docs-repo/analysis_prompt.md
+          fi
 
           echo "### Content Types Changes:" >> ../docs-repo/analysis_prompt.md
           git diff ${{ steps.prev_tag.outputs.prev_tag }}..${{ steps.tag.outputs.tag }} -- content-types/ | head -100 >> ../docs-repo/analysis_prompt.md
@@ -217,6 +252,12 @@ jobs:
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if remote branch exists and delete it if so
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+            echo "Remote branch $BRANCH_NAME exists, deleting it"
+            git push origin --delete "$BRANCH_NAME" || true
+          fi
 
           # Create and switch to new branch
           git checkout -b "$BRANCH_NAME"
@@ -331,8 +372,7 @@ jobs:
             --title "📦 Update XMTP-JS SDK docs for ${{ steps.tag.outputs.tag }}" \
             --body "$PR_BODY" \
             --head "${{ steps.commit.outputs.branch_name }}" \
-            --base main \
-            --label "xmtp-js,automated,documentation,node-sdk,browser-sdk"
+            --base main
 
       - name: Output results
         run: |
