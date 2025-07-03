@@ -429,6 +429,32 @@ describe("Conversation", () => {
     expect(streamedMessages).toEqual(["gm", "gm2"]);
   });
 
+  it.only("should call onClose when stream is closed", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId,
+    ]);
+
+    let onCloseCalled = false;
+
+    const stream = conversation.stream(undefined, () => {
+      console.log("onClose called");
+      onCloseCalled = true;
+    });
+
+    await sleep(5000);
+    stream.end();
+
+    await sleep(5000);
+
+    expect(onCloseCalled).toBe(true);
+  });
+
   it("should add and remove admins", async () => {
     const user1 = createUser();
     const user2 = createUser();

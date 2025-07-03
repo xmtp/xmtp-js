@@ -8,6 +8,7 @@ import {
 import {
   generateInboxId,
   IdentifierKind,
+  LogLevel,
   type Identifier,
 } from "@xmtp/node-bindings";
 import { createWalletClient, http, toBytes } from "viem";
@@ -111,6 +112,7 @@ export const createRegisteredClient = async <
     ...opts,
     dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
     historySyncUrl: HistorySyncUrls.local,
+    loggingLevel: LogLevel.trace,
   });
 };
 
