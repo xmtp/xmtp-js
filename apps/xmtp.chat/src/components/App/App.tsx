@@ -17,6 +17,7 @@ import { CreateGroupModal } from "@/components/Conversations/CreateGroupModal";
 import { IdentityModal } from "@/components/Identity/IdentityModal";
 import { MessageModal } from "@/components/Messages/MessageModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import RevokeInstallations from "./RevokeInstallations";
 
 export const App: React.FC = () => {
   useAnalytics();
@@ -29,6 +30,9 @@ export const App: React.FC = () => {
           <Route path="" element={<Welcome />}>
             <Route path="connect" element={<ConnectModal />} />
           </Route>
+        </Route>
+        <Route path="revoke-installations/*" element={<RevokeInstallations />}>
+          <Route path="connect" element={<ConnectModal />} />
         </Route>
         <Route path="/*" element={<AppLayout />}>
           <Route index element={<Navigate to="/conversations" />} />
