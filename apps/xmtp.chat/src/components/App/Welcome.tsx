@@ -1,5 +1,7 @@
 import {
   Anchor,
+  Button,
+  Flex,
   LoadingOverlay,
   Stack,
   Text,
@@ -19,6 +21,7 @@ import {
   createEphemeralSigner,
   createSCWSigner,
 } from "@/helpers/createSigner";
+import { extractIboxIdFromMaxInstallationsError } from "@/helpers/strings";
 import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 
@@ -102,6 +105,18 @@ export const Welcome = () => {
         : createEOASigner(account.address, (message: string) =>
             signMessageAsync({ message }),
           ),
+    }).catch((error: unknown) => {
+      const err = error as Error;
+      if (err.message.includes("Cannot register a new installation")) {
+        const inboxId = extractIboxIdFromMaxInstallationsError(err);
+        if (inboxId) {
+          void navigate(`/revoke-installations/${inboxId}`);
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
     });
   }, [account.address, account.chainId, useSCW, signMessageAsync]);
 
@@ -122,7 +137,18 @@ export const Welcome = () => {
             Settings
           </Title>
           <Settings />
-          <Connect />
+          <Flex gap="xs" columnGap={4} align="center" justify="center">
+            <Connect />
+            <Button
+              size="md"
+              variant="filled"
+              color="red"
+              onClick={() => {
+                void navigate("/revoke-installations");
+              }}>
+              Revoke Installations
+            </Button>
+          </Flex>
           <Title order={3}>Feedback</Title>
           <Stack gap="md">
             <Text>

@@ -48,14 +48,19 @@ const CopyIcon: React.FC<CopyIconProps> = ({ value }) => {
 
 export type BadgeWithCopyProps = {
   value: string;
+  maxWidth?: string | number;
 };
 
-export const BadgeWithCopy: React.FC<BadgeWithCopyProps> = ({ value }) => {
+export const BadgeWithCopy: React.FC<BadgeWithCopyProps> = ({
+  value,
+  maxWidth,
+}) => {
   return (
     <Badge
       variant="filled"
       className={classes.badge}
       w="100%"
+      maw={maxWidth}
       size="xl"
       styles={{
         label: {
