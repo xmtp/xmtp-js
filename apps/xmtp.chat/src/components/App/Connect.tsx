@@ -1,12 +1,12 @@
 import { Button, Group } from "@mantine/core";
-import { useCallback } from "react";
+import { useCallback, type FC } from "react";
 import { useNavigate } from "react-router";
 
-export const Connect = () => {
+export const Connect: FC<{ url?: string }> = ({ url = "/welcome/connect" }) => {
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
-    void navigate("/welcome/connect");
+    void navigate(url);
   }, [navigate]);
 
   return (
