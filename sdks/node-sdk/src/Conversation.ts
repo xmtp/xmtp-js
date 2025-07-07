@@ -113,26 +113,34 @@ export class Conversation<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream values
    * @returns Stream instance for new messages
    */
-  stream(callback?: StreamCallback<DecodedMessage<ContentTypes>>) {
+  stream(
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
+    onFail?: () => void,
+  ) {
     const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
 
-    const stream = this.#conversation.stream((error, value) => {
-      let err: Error | null = error;
-      let message: DecodedMessage<ContentTypes> | undefined;
+    const stream = this.#conversation.stream(
+      (error, value) => {
+        let err: Error | null = error;
+        let message: DecodedMessage<ContentTypes> | undefined;
 
-      if (value) {
-        try {
-          message = new DecodedMessage(this.#client, value);
-        } catch (error) {
-          err = error as Error;
+        if (value) {
+          try {
+            message = new DecodedMessage(this.#client, value);
+          } catch (error) {
+            err = error as Error;
+          }
         }
-      }
 
-      asyncStream.callback(err, message);
-      callback?.(err, message);
-    });
+        asyncStream.callback(err, message);
+        callback?.(err, message);
+      },
+      onFail ?? (() => {}),
+    );
 
-    asyncStream.onReturn = stream.end.bind(stream);
+    asyncStream.onReturn = () => {
+      stream.end();
+    };
 
     return asyncStream;
   }
