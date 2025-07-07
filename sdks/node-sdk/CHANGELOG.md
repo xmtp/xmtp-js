@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- b72f006: Add `onFail` callback to node SDK stream methods
+- b72f006: Added `onFail` callback option to stream methods
 
 ## 3.0.1
 
