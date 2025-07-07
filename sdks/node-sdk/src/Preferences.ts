@@ -101,19 +101,22 @@ export class Preferences {
    * @param callback - Optional callback function for handling stream updates
    * @returns Stream instance for consent updates
    */
-  streamConsent(callback?: StreamCallback<Consent[]>) {
+  streamConsent(callback?: StreamCallback<Consent[]>, onFail?: () => void) {
     const asyncStream = new AsyncStream<Consent[]>();
 
-    const stream = this.#conversations.streamConsent((err, value) => {
-      if (err) {
-        asyncStream.callback(err, undefined);
-        callback?.(err, undefined);
-        return;
-      }
+    const stream = this.#conversations.streamConsent(
+      (err, value) => {
+        if (err) {
+          asyncStream.callback(err, undefined);
+          callback?.(err, undefined);
+          return;
+        }
 
-      asyncStream.callback(null, value);
-      callback?.(null, value);
-    });
+        asyncStream.callback(null, value);
+        callback?.(null, value);
+      },
+      onFail ?? (() => {}),
+    );
 
     asyncStream.onReturn = stream.end.bind(stream);
 
@@ -126,20 +129,26 @@ export class Preferences {
    * @param callback - Optional callback function for handling stream updates
    * @returns Stream instance for preference updates
    */
-  streamPreferences(callback?: StreamCallback<PreferenceUpdate>) {
+  streamPreferences(
+    callback?: StreamCallback<PreferenceUpdate>,
+    onFail?: () => void,
+  ) {
     const asyncStream = new AsyncStream<PreferenceUpdate>();
 
-    const stream = this.#conversations.streamPreferences((err, value) => {
-      if (err) {
-        asyncStream.callback(err, undefined);
-        callback?.(err, undefined);
-        return;
-      }
+    const stream = this.#conversations.streamPreferences(
+      (err, value) => {
+        if (err) {
+          asyncStream.callback(err, undefined);
+          callback?.(err, undefined);
+          return;
+        }
 
-      // TODO: remove this once the node bindings type is updated
-      asyncStream.callback(null, value as unknown as PreferenceUpdate);
-      callback?.(null, value as unknown as PreferenceUpdate);
-    });
+        // TODO: remove this once the node bindings type is updated
+        asyncStream.callback(null, value as unknown as PreferenceUpdate);
+        callback?.(null, value as unknown as PreferenceUpdate);
+      },
+      onFail ?? (() => {}),
+    );
 
     asyncStream.onReturn = stream.end.bind(stream);
 
