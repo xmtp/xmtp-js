@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 3.1.0
+
+### Minor Changes
+
+- b72f006: Add `onFail` callback to node SDK stream methods
+
 ## 3.0.1
 
 ### Patch Changes
