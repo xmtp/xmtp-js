@@ -1,5 +1,13 @@
 # @xmtp/browser-sdk
 
+## 3.0.4
+
+### Patch Changes
+
+- e0b7745:
+  - Fixed group syncing on larger groups
+  - Fixed HTTP stream panic when subscription request fails
+
 ## 3.0.3
 
 ### Patch Changes
