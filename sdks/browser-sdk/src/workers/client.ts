@@ -1,4 +1,5 @@
 import init, {
+  Opfs,
   type Consent,
   type Conversation,
   type Message,
@@ -484,6 +485,44 @@ self.onmessage = async (
           action,
           result: undefined,
         });
+        break;
+      }
+      /**
+       * OPFS actions
+       */
+      case "opfs.listFiles": {
+        const result = Opfs.getFileNames();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "opfs.wipeFiles": {
+        await Opfs.wipeFiles();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "opfs.getCapacity": {
+        const result = Opfs.getCapacity();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "opfs.addCapacity": {
+        const result = await Opfs.addCapacity(data.n);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "opfs.reduceCapacity": {
+        const result = await Opfs.reduceCapacity(data.n);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "opfs.rm": {
+        const result = Opfs.rm(data.name);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "opfs.error": {
+        const result = Opfs.error();
+        postMessage({ id, action, result });
         break;
       }
       /**

@@ -4,6 +4,7 @@ import type { ConversationsAction } from "@/types/actions/conversations";
 import type { DebugInformationAction } from "@/types/actions/debugInformation";
 import type { DmAction } from "@/types/actions/dm";
 import type { GroupAction } from "@/types/actions/group";
+import type { OpfsAction } from "@/types/actions/opfs";
 import type { PreferencesAction } from "@/types/actions/preferences";
 
 type UnknownAction = {
@@ -28,7 +29,8 @@ export type ClientWorkerAction =
   | DmAction
   | GroupAction
   | PreferencesAction
-  | DebugInformationAction;
+  | DebugInformationAction
+  | OpfsAction;
 
 export type ActionName<T extends UnknownAction> = T["action"];
 

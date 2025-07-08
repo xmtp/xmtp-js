@@ -12,6 +12,7 @@ import { v4 } from "uuid";
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
+import { Opfs } from "@/Opfs";
 import { Preferences } from "@/Preferences";
 import type { ClientOptions, XmtpEnv } from "@/types/options";
 import { Utils } from "@/Utils";
@@ -49,6 +50,7 @@ export class Client<
   #installationIdBytes: Uint8Array | undefined;
   #isReady = false;
   #preferences: Preferences<ContentTypes>;
+  #opfs: Opfs<ContentTypes>;
   #signer?: Signer;
   #options?: ClientOptions;
 
@@ -72,6 +74,7 @@ export class Client<
     this.#conversations = new Conversations(this);
     this.#debugInformation = new DebugInformation(this);
     this.#preferences = new Preferences(this);
+    this.#opfs = new Opfs(this);
     const codecs = [
       new GroupUpdatedCodec(),
       new TextCodec(),
@@ -219,6 +222,13 @@ export class Client<
    */
   get preferences() {
     return this.#preferences;
+  }
+
+  /**
+   * Gets the OPFS manager for this client
+   */
+  get opfs() {
+    return this.#opfs;
   }
 
   /**
