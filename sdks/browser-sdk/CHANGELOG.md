@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.0.4
+
+### Patch Changes
+
+- e0b7745: Upgrade WASM bindings
+
 ## 3.0.3
 
 ### Patch Changes
