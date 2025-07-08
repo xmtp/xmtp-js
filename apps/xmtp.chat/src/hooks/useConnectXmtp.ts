@@ -75,7 +75,15 @@ export const useConnectXmtp = () => {
             signMessageAsync({ message }),
           ),
     });
-  }, [account.address, account.chainId, useSCW, signMessageAsync]);
+  }, [
+    account.address,
+    account.chainId,
+    useSCW,
+    signMessageAsync,
+    environment,
+    loggingLevel,
+    encryptionKey,
+  ]);
 
   return {
     client,
