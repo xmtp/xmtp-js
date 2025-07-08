@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- e8fbfac: Fix group syncing on larger groups (Node SDK)
+- e8fbfac: Fixed group syncing on larger groups
 
 ## 3.1.0
 
