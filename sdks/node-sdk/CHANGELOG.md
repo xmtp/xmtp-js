@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 3.1.1
+
+### Patch Changes
+
+- e8fbfac: Fix group syncing on larger groups (Node SDK)
+
 ## 3.1.0
 
 ### Minor Changes
