@@ -8,16 +8,21 @@ import {
 describe("Opfs", () => {
   it("should list files", async () => {
     const user = createUser();
+    const user2 = createUser();
     const signer = createSigner(user);
+    const signer2 = createSigner(user2);
     const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer2);
     const files = await client.opfs.listFiles();
+    const files2 = await client2.opfs.listFiles();
     console.log(files);
+    console.log(files2);
     expect(files.length).toBe(1);
     await client.opfs.wipeFiles();
     // await client.opfs.rm(files[0]);
-    const files2 = await client.opfs.listFiles();
-    console.log(files2);
-    expect(files2.length).toBe(0);
+    const files3 = await client.opfs.listFiles();
+    console.log(files3);
+    expect(files3.length).toBe(0);
     const capacity = await client.opfs.getCapacity();
     console.log(capacity);
     expect(capacity).toBeGreaterThan(0);
