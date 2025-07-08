@@ -4,7 +4,9 @@
 
 ### Patch Changes
 
-- e0b7745: Upgrade WASM bindings
+- e0b7745:
+  - Fixed group syncing on larger groups
+  - Fixed HTTP stream panic when subscription request fails
 
 ## 3.0.3
 
