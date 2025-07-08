@@ -57,13 +57,16 @@ export const InboxTools: React.FC = () => {
         return;
       }
       setLoading(true);
-      await Client.revokeInstallations(
-        signer,
-        inboxId,
-        installationIds,
-        environment,
-      );
-      setLoading(false);
+      try {
+        await Client.revokeInstallations(
+          signer,
+          inboxId,
+          installationIds,
+          environment,
+        );
+      } finally {
+        setLoading(false);
+      }
       void handleFindInstallations();
     },
     [environment, inboxId, handleFindInstallations, signer],
