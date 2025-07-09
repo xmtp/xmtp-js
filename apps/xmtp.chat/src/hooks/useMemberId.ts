@@ -31,21 +31,25 @@ export const useMemberId = () => {
       } else if (isValidEthereumAddress(memberId) && utilsRef.current) {
         setLoading(true);
 
-        const inboxId = await utilsRef.current.getInboxIdForIdentifier(
-          {
-            identifier: memberId.toLowerCase(),
-            identifierKind: "Ethereum",
-          },
-          environment,
-        );
+        try {
+          const inboxId = await utilsRef.current.getInboxIdForIdentifier(
+            {
+              identifier: memberId.toLowerCase(),
+              identifierKind: "Ethereum",
+            },
+            environment,
+          );
 
-        setLoading(false);
-
-        if (!inboxId) {
-          setError("Address not registered on XMTP");
-        } else {
-          setInboxId(inboxId);
-          setError(null);
+          if (!inboxId) {
+            setError("Address not registered on XMTP");
+          } else {
+            setInboxId(inboxId);
+            setError(null);
+          }
+        } catch (error) {
+          setError((error as Error).message);
+        } finally {
+          setLoading(false);
         }
       } else {
         setInboxId(memberId);
