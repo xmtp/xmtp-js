@@ -4,10 +4,12 @@ import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useConnectXmtp } from "@/hooks/useConnectXmtp";
+import { useSettings } from "@/hooks/useSettings";
 
 export const ConnectXMTP = () => {
   const { isConnected } = useConnectWallet();
   const { connect, loading } = useConnectXmtp();
+  const { ephemeralAccountEnabled } = useSettings();
 
   const handleConnectClick = useCallback(() => {
     connect();
@@ -21,13 +23,13 @@ export const ConnectXMTP = () => {
           <NetworkSelect />
         </Group>
         <Group justify="flex-end">
-          {!isConnected && (
+          {!isConnected && !ephemeralAccountEnabled && (
             <Text size="sm" c="dimmed">
               Wallet connection required
             </Text>
           )}
           <Button
-            disabled={!isConnected}
+            disabled={!isConnected && !ephemeralAccountEnabled}
             onClick={handleConnectClick}
             loading={loading}>
             Connect
