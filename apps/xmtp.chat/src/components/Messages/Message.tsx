@@ -2,7 +2,7 @@ import { Box } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
 import { useNavigate, useOutletContext } from "react-router";
 import classes from "./Message.module.css";
-import { MessageContent } from "./MessageContent";
+import { MessageContentWithWrapper } from "./MessageContentWithWrapper";
 
 export type MessageProps = {
   message: DecodedMessage;
@@ -34,7 +34,7 @@ export const Message: React.FC<MessageProps> = ({
           `/conversations/${message.conversationId}/message/${message.id}`,
         )
       }>
-      <MessageContent
+      <MessageContentWithWrapper
         message={message}
         align={align}
         senderInboxId={message.senderInboxId}
