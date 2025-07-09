@@ -1,28 +1,35 @@
-import { Group, Stack, Switch, Text } from "@mantine/core";
+import { Group, Switch, Text, Tooltip } from "@mantine/core";
 import React from "react";
+import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useSettings } from "@/hooks/useSettings";
 
 export const UseSCW: React.FC = () => {
-  const { useSCW, setUseSCW } = useSettings();
+  const { isConnected } = useConnectWallet();
+  const { useSCW, setUseSCW, ephemeralAccountEnabled, connector } =
+    useSettings();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUseSCW(event.currentTarget.checked);
   };
 
   return (
-    <Stack p="md">
-      <Group gap="xs" justify="space-between">
-        <Text fw="bold">Use smart contract wallet</Text>
+    <Group gap="sm" align="center" wrap="nowrap">
+      <Text size="sm" fw="bold">
+        Smart contract wallet
+      </Text>
+      <Tooltip
+        label="Enable this option if you're connecting with a smart contract wallet"
+        refProp="rootRef">
         <Switch
           size="md"
+          disabled={
+            ephemeralAccountEnabled || connector === "MetaMask" || isConnected
+          }
           checked={useSCW}
           onChange={handleChange}
           withThumbIndicator={false}
         />
-      </Group>
-      <Text size="sm">
-        Enable this option if you're connecting with a smart contract wallet.
-      </Text>
-    </Stack>
+      </Tooltip>
+    </Group>
   );
 };

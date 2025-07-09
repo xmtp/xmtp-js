@@ -1,4 +1,4 @@
-import { Group, NativeSelect, Stack, Text } from "@mantine/core";
+import { Group, NativeSelect, Text, Tooltip } from "@mantine/core";
 import { type ClientOptions } from "@xmtp/browser-sdk";
 import { useSettings } from "@/hooks/useSettings";
 
@@ -10,16 +10,17 @@ export const LoggingSelect: React.FC = () => {
   };
 
   return (
-    <Stack p="md">
-      <Group gap="xs" justify="space-between">
-        <Text fw="bold">Logging level</Text>
+    <Group gap="xs" align="center" wrap="nowrap">
+      <Text size="sm" fw="bold">
+        Logging level
+      </Text>
+      <Tooltip label="Enable logging to help debug issues">
         <NativeSelect
           data={["off", "error", "warn", "info", "debug", "trace"]}
           value={loggingLevel}
           onChange={handleChange}
         />
-      </Group>
-      <Text size="sm">Enable logging to help debug issues.</Text>
-    </Stack>
+      </Tooltip>
+    </Group>
   );
 };

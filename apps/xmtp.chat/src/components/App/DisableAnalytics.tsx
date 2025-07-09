@@ -13,9 +13,11 @@ export const DisableAnalytics: React.FC = () => {
   };
 
   return (
-    <Stack p="md">
-      <Group gap="xs" justify="space-between">
-        <Text fw="bold">Disable analytics</Text>
+    <Stack>
+      <Group gap="xs" justify="space-between" align="center">
+        <Text fw="bold" size="xl">
+          Disable analytics
+        </Text>
         <Switch
           size="md"
           checked={checked}
@@ -23,7 +25,7 @@ export const DisableAnalytics: React.FC = () => {
           withThumbIndicator={false}
         />
       </Group>
-      <Text size="sm">
+      <Text>
         We use{" "}
         <Anchor
           href="https://plausible.io/privacy-focused-web-analytics"

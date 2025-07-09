@@ -3,15 +3,19 @@ import { Client, type SafeInstallation, type Signer } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet } from "react-router";
 import { useAccount, useSignMessage } from "wagmi";
+import { WalletConnect } from "@/components/App/WalletConnect";
+import { ConnectedAddressBadge } from "@/components/ConnectedAddressBadge";
 import { InstallationTable } from "@/components/InboxTools/InstallationTable";
-import { Settings } from "@/components/InboxTools/Settings";
+import { NetworkSelect } from "@/components/InboxTools/NetworkSelect";
 import { createEOASigner, createSCWSigner } from "@/helpers/createSigner";
 import { isValidInboxId } from "@/helpers/strings";
+import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useMemberId } from "@/hooks/useMemberId";
 import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const InboxTools: React.FC = () => {
+  const { isConnected, address } = useConnectWallet();
   const account = useAccount();
   const { signMessageAsync } = useSignMessage();
   const {
@@ -95,6 +99,11 @@ export const InboxTools: React.FC = () => {
     }
   }, [inboxId]);
 
+  useEffect(() => {
+    setInstallations([]);
+    setSelectedInstallationIds([]);
+  }, [environment]);
+
   return (
     <>
       <ContentLayout
@@ -128,13 +137,17 @@ export const InboxTools: React.FC = () => {
           </Group>
         }>
         <Stack gap="md" py="md">
-          <Stack gap="xs">
+          <Group justify="space-between" align="center">
             <Title order={4} ml="sm">
-              Settings
+              Connect your wallet
             </Title>
-            <Settings />
-          </Stack>
-          <Stack gap="xs" mt="md">
+            {isConnected && address && (
+              <ConnectedAddressBadge address={address} size="sm" />
+            )}
+          </Group>
+          <WalletConnect />
+          <NetworkSelect />
+          <Stack gap="xs">
             <TextInput
               size="sm"
               label="Address or inbox ID"

@@ -1,6 +1,7 @@
 import { useLocalStorage } from "@mantine/hooks";
 import { type ClientOptions, type XmtpEnv } from "@xmtp/browser-sdk";
 import type { Hex } from "viem";
+import type { ConnectorString } from "@/hooks/useConnectWallet";
 
 export const useSettings = () => {
   const [environment, setEnvironment] = useLocalStorage<XmtpEnv>({
@@ -48,9 +49,21 @@ export const useSettings = () => {
     defaultValue: 1,
     getInitialValueInEffect: false,
   });
+  const [connector, setConnector] = useLocalStorage<ConnectorString>({
+    key: "XMTP_CONNECTOR",
+    defaultValue: "Injected",
+    getInitialValueInEffect: false,
+  });
+  const [autoConnect, setAutoConnect] = useLocalStorage<boolean>({
+    key: "XMTP_AUTO_CONNECT",
+    defaultValue: false,
+    getInitialValueInEffect: false,
+  });
 
   return {
+    autoConnect,
     blockchain,
+    connector,
     encryptionKey,
     environment,
     ephemeralAccountEnabled,
@@ -58,7 +71,9 @@ export const useSettings = () => {
     forceSCW,
     loggingLevel,
     useSCW,
+    setAutoConnect,
     setBlockchain,
+    setConnector,
     setEncryptionKey,
     setEnvironment,
     setEphemeralAccountEnabled,

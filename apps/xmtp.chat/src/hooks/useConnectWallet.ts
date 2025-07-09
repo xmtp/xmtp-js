@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useAccount, useConnect, useConnectors } from "wagmi";
+import { useAccount, useConnect, useConnectors, useDisconnect } from "wagmi";
 
 export type ConnectorString =
   | "Injected"
@@ -9,8 +9,9 @@ export type ConnectorString =
 
 export const useConnectWallet = () => {
   const account = useAccount();
-  const { connect, status } = useConnect();
+  const { connect, isPending: connectLoading } = useConnect();
   const connectors = useConnectors();
+  const { disconnect, isPending: disconnectLoading } = useDisconnect();
 
   const connectWallet = useCallback(
     (connectorString: ConnectorString) => () => {
@@ -25,7 +26,10 @@ export const useConnectWallet = () => {
 
   return {
     connect: connectWallet,
+    disconnect,
     isConnected: !!account.address,
-    loading: status === "pending",
+    loading: connectLoading || disconnectLoading,
+    address: account.address,
+    chainId: account.chainId,
   };
 };

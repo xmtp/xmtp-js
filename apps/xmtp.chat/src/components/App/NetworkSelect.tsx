@@ -1,4 +1,4 @@
-import { Group, NativeSelect, Stack, Text, Tooltip } from "@mantine/core";
+import { Group, NativeSelect, Text, Tooltip } from "@mantine/core";
 import { ApiUrls, type XmtpEnv } from "@xmtp/browser-sdk";
 import { useSettings } from "@/hooks/useSettings";
 
@@ -10,21 +10,20 @@ export const NetworkSelect: React.FC = () => {
   };
 
   return (
-    <Stack p="md">
-      <Group gap="xs" justify="space-between">
-        <Text fw="bold">XMTP network</Text>
-        <Tooltip
-          label={ApiUrls[environment]}
-          withArrow
-          events={{ hover: true, focus: true, touch: true }}>
-          <NativeSelect
-            data={["local", "dev", "production"]}
-            value={environment}
-            onChange={handleChange}
-          />
-        </Tooltip>
-      </Group>
-      <Text size="sm">Select the network you want to connect to.</Text>
-    </Stack>
+    <Group gap="xs" align="center" wrap="nowrap">
+      <Text size="sm" fw="bold">
+        Network
+      </Text>
+      <Tooltip
+        label={ApiUrls[environment]}
+        withArrow
+        events={{ hover: true, focus: true, touch: true }}>
+        <NativeSelect
+          data={["local", "dev", "production"]}
+          value={environment}
+          onChange={handleChange}
+        />
+      </Tooltip>
+    </Group>
   );
 };

@@ -1,7 +1,31 @@
 .root {
   cursor: pointer;
+  background-color: var(--mantine-color-body);
 }
 
 .root:hover {
   background-color: var(--mantine-primary-color-light-hover);
+}
+
+.disabled {
+  cursor: not-allowed;
+  background-color: var(--mantine-color-body);
+}
+
+.disabled:hover {
+  background-color: var(--mantine-color-body);
+}
+
+.selected {
+  cursor: default;
+  background-color: var(--mantine-color-default-hover);
+}
+
+.selected:hover {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.selected.disabled {
+  cursor: not-allowed;
+  background-color: inherit;
 }

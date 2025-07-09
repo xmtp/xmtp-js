@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
 import { generatePrivateKey } from "viem/accounts";
 import { useAccount, useConnect, useSignMessage } from "wagmi";
@@ -11,6 +12,7 @@ import {
 import { useSettings } from "@/hooks/useSettings";
 
 export const useConnectXmtp = () => {
+  const navigate = useNavigate();
   const { status } = useConnect();
   const { initializing, client, initialize } = useXMTP();
   const account = useAccount();
@@ -23,42 +25,43 @@ export const useConnectXmtp = () => {
     setEphemeralAccountKey,
     loggingLevel,
     useSCW,
+    autoConnect,
+    setAutoConnect,
   } = useSettings();
 
   // create client if ephemeral account is enabled
-  useEffect(() => {
-    if (client || !ephemeralAccountEnabled) {
+  const connect = useCallback(() => {
+    // if client is already connected, return
+    if (client) {
       return;
     }
 
-    let accountKey = ephemeralAccountKey;
-    if (!accountKey) {
-      accountKey = generatePrivateKey();
-      setEphemeralAccountKey(accountKey);
-    }
+    // connect ephemeral account if enabled
+    if (ephemeralAccountEnabled) {
+      let accountKey = ephemeralAccountKey;
+      if (!accountKey) {
+        accountKey = generatePrivateKey();
+        setEphemeralAccountKey(accountKey);
+      }
 
-    const signer = createEphemeralSigner(accountKey);
-    void initialize({
-      dbEncryptionKey: encryptionKey
-        ? hexToUint8Array(encryptionKey)
-        : undefined,
-      env: environment,
-      loggingLevel,
-      signer,
-    });
-  }, [
-    ephemeralAccountEnabled,
-    ephemeralAccountKey,
-    encryptionKey,
-    environment,
-    loggingLevel,
-  ]);
-
-  // create client if wallet is connected
-  useEffect(() => {
-    if (client || !account.address || (useSCW && !account.chainId)) {
+      const signer = createEphemeralSigner(accountKey);
+      void initialize({
+        dbEncryptionKey: encryptionKey
+          ? hexToUint8Array(encryptionKey)
+          : undefined,
+        env: environment,
+        loggingLevel,
+        signer,
+      });
+      setAutoConnect(true);
       return;
     }
+
+    // if wallet is not connected or SCW is enabled but chain is not set, return
+    if (!account.address || (useSCW && !account.chainId)) {
+      return;
+    }
+
     void initialize({
       dbEncryptionKey: encryptionKey
         ? hexToUint8Array(encryptionKey)
@@ -75,18 +78,31 @@ export const useConnectXmtp = () => {
             signMessageAsync({ message }),
           ),
     });
+    setAutoConnect(true);
   }, [
-    account.address,
-    account.chainId,
-    useSCW,
-    signMessageAsync,
+    ephemeralAccountEnabled,
+    ephemeralAccountKey,
+    encryptionKey,
     environment,
     loggingLevel,
-    encryptionKey,
+    useSCW,
+    account.address,
+    account.chainId,
+    signMessageAsync,
+    setAutoConnect,
   ]);
+
+  useEffect(() => {
+    if (client) {
+      void navigate("/");
+    } else if (autoConnect) {
+      connect();
+    }
+  }, [client, navigate, autoConnect, connect]);
 
   return {
     client,
     loading: status === "pending" || initializing,
+    connect,
   };
 };
