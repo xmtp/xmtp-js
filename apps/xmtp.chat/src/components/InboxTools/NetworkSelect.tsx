@@ -10,10 +10,8 @@ export const NetworkSelect: React.FC = () => {
   };
 
   return (
-    <Group gap="xs" align="center" wrap="nowrap">
-      <Text size="sm" fw="bold">
-        Network
-      </Text>
+    <Group gap="xs" justify="space-between">
+      <Text fw="bold">XMTP network</Text>
       <Tooltip
         label={ApiUrls[environment]}
         withArrow

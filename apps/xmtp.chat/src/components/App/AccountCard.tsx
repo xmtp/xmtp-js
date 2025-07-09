@@ -1,32 +1,54 @@
-import { Box, Group, Text } from "@mantine/core";
+import { Box, CheckIcon, Group, Text } from "@mantine/core";
+import { useCallback } from "react";
 import classes from "./AccountCard.module.css";
 
 export type AccountCardProps = {
+  disabled?: boolean;
   icon: React.ReactNode;
-  right?: React.ReactNode;
   label: string;
   onClick?: () => void;
+  selected?: boolean;
 };
 
 export const AccountCard: React.FC<AccountCardProps> = ({
+  disabled,
   icon,
   label,
   onClick,
-  right,
+  selected,
 }) => {
+  const classNames = [classes.root];
+  if (disabled) {
+    classNames.push(classes.disabled);
+  }
+  if (selected) {
+    classNames.push(classes.selected);
+  }
+
+  const handleClick = useCallback(() => {
+    if (!disabled && !selected) {
+      onClick?.();
+    }
+  }, [disabled, selected, onClick]);
+
   return (
     <Group
       align="center"
       p="md"
       gap="md"
-      className={classes.root}
+      className={classNames.join(" ")}
       tabIndex={0}
-      onClick={onClick}>
+      pos="relative"
+      onClick={handleClick}>
       {icon}
-      <Text size="lg" flex={1}>
+      <Text size="lg" flex={1} c={disabled ? "dimmed" : "inherit"}>
         {label}
       </Text>
-      {right && <Box ml="auto">{right}</Box>}
+      {selected && (
+        <Box pos="absolute" right="var(--mantine-spacing-md)" w={20}>
+          <CheckIcon />
+        </Box>
+      )}
     </Group>
   );
 };

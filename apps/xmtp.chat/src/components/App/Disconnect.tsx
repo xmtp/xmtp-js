@@ -9,16 +9,14 @@ import { CenteredLayout } from "@/layouts/CenteredLayout";
 export const Disconnect: React.FC = () => {
   const navigate = useNavigate();
   const { disconnect } = useDisconnect();
-  const { setEphemeralAccountEnabled, ephemeralAccountEnabled } = useSettings();
+  const { setAutoConnect } = useSettings();
   const { disconnect: disconnectClient } = useXMTP();
 
   useEffect(() => {
-    if (ephemeralAccountEnabled) {
-      setEphemeralAccountEnabled(false);
-    }
     disconnect(undefined, {
       onSuccess: () => {
         disconnectClient();
+        setAutoConnect(false);
         void navigate("/");
       },
     });

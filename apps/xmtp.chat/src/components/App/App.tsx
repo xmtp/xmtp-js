@@ -1,11 +1,10 @@
 import { Navigate, Route, Routes } from "react-router";
 import { AppLayout } from "@/components/App/AppLayout";
-import { ConnectModal } from "@/components/App/ConnectModal";
+import { BasicLayout } from "@/components/App/BasicLayout";
 import { Disconnect } from "@/components/App/Disconnect";
 import { ErrorModal } from "@/components/App/ErrorModal";
 import { SelectConversation } from "@/components/App/SelectConversation";
 import { Welcome } from "@/components/App/Welcome";
-import { WelcomeLayout } from "@/components/App/WelcomeLayout";
 import { LoadConversation } from "@/components/Conversation/LoadConversation";
 import { LoadDM } from "@/components/Conversation/LoadDM";
 import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal";
@@ -15,6 +14,8 @@ import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissi
 import { CreateDmModal } from "@/components/Conversations/CreateDmModal";
 import { CreateGroupModal } from "@/components/Conversations/CreateGroupModal";
 import { IdentityModal } from "@/components/Identity/IdentityModal";
+import { InboxTools } from "@/components/InboxTools/InboxTools";
+import { InboxToolsLayout } from "@/components/InboxTools/InboxToolsLayout";
 import { MessageModal } from "@/components/Messages/MessageModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -25,10 +26,11 @@ export const App: React.FC = () => {
     <>
       <ErrorModal />
       <Routes>
-        <Route path="/welcome/*" element={<WelcomeLayout />}>
-          <Route path="" element={<Welcome />}>
-            <Route path="connect" element={<ConnectModal />} />
-          </Route>
+        <Route path="/welcome/*" element={<BasicLayout />}>
+          <Route path="" element={<Welcome />} />
+        </Route>
+        <Route path="/inbox-tools/*" element={<InboxToolsLayout />}>
+          <Route path="" element={<InboxTools />} />
         </Route>
         <Route path="/*" element={<AppLayout />}>
           <Route index element={<Navigate to="/conversations" />} />

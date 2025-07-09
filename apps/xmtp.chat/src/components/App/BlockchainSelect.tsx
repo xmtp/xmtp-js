@@ -1,10 +1,4 @@
-import {
-  Group,
-  LoadingOverlay,
-  NativeSelect,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Group, NativeSelect, Text, Tooltip } from "@mantine/core";
 import { useMemo, useState } from "react";
 import { useSwitchChain } from "wagmi";
 import {
@@ -31,7 +25,8 @@ const ALLOWED_CHAINS: number[] = [
 ];
 
 export const BlockchainSelect: React.FC = () => {
-  const { blockchain, setBlockchain } = useSettings();
+  const { blockchain, setBlockchain, useSCW, ephemeralAccountEnabled } =
+    useSettings();
   const { chains, switchChain } = useSwitchChain();
   const [loading, setLoading] = useState(false);
 
@@ -67,21 +62,18 @@ export const BlockchainSelect: React.FC = () => {
   );
 
   return (
-    <>
-      {loading && <LoadingOverlay visible />}
-      <Stack p="md">
-        <Group gap="xs" justify="space-between">
-          <Text fw="bold">Blockchain</Text>
-          <NativeSelect
-            data={options}
-            value={blockchain.toString()}
-            onChange={handleChange}
-          />
-        </Group>
-        <Text size="sm">
-          Select the blockchain to use for signing messages.
-        </Text>
-      </Stack>
-    </>
+    <Group gap="sm" align="center" wrap="nowrap">
+      <Text fw="bold" size="sm">
+        Blockchain
+      </Text>
+      <Tooltip label="Select the blockchain to use for signing smart contract wallet messages">
+        <NativeSelect
+          disabled={loading || !useSCW || ephemeralAccountEnabled}
+          data={options}
+          value={blockchain.toString()}
+          onChange={handleChange}
+        />
+      </Tooltip>
+    </Group>
   );
 };
