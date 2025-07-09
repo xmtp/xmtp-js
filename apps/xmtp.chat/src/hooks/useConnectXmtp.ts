@@ -80,6 +80,9 @@ export const useConnectXmtp = () => {
     });
     setAutoConnect(true);
   }, [
+    client,
+    initialize,
+    setEphemeralAccountKey,
     ephemeralAccountEnabled,
     ephemeralAccountKey,
     encryptionKey,
