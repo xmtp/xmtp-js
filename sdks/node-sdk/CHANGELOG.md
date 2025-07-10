@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 3.1.2
+
+### Patch Changes
+
+- 6b2e3d4: Improve gRPC connection detection
+
 ## 3.1.1
 
 ### Patch Changes
