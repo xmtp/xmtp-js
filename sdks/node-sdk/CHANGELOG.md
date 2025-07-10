@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 6b2e3d4: Improve gRPC connection detection
+- 6b2e3d4: Improved gRPC connection detection
 
 ## 3.1.1
 
