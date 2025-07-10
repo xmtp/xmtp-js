@@ -5,8 +5,13 @@ import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useConnectXmtp } from "@/hooks/useConnectXmtp";
 import { useSettings } from "@/hooks/useSettings";
+import classes from "./ConnectXMTP.module.css";
 
-export const ConnectXMTP = () => {
+export type ConnectXMTPProps = {
+  onDisconnectWallet: () => void;
+};
+
+export const ConnectXMTP = ({ onDisconnectWallet }: ConnectXMTPProps) => {
   const { isConnected } = useConnectWallet();
   const { connect, loading } = useConnectXmtp();
   const { ephemeralAccountEnabled } = useSettings();
@@ -16,24 +21,33 @@ export const ConnectXMTP = () => {
   }, [connect]);
 
   return (
-    <Paper withBorder radius="md" p="md">
-      <Stack gap="md">
-        <Group gap="sm" align="center" justify="space-between" flex={1}>
-          <LoggingSelect />
+    <Paper withBorder radius="md">
+      <Stack gap="xs">
+        <Stack gap="md" p="md">
           <NetworkSelect />
-        </Group>
-        <Group justify="flex-end">
-          {!isConnected && !ephemeralAccountEnabled && (
-            <Text size="sm" c="dimmed">
-              Wallet connection required
-            </Text>
-          )}
-          <Button
-            disabled={!isConnected && !ephemeralAccountEnabled}
-            onClick={handleConnectClick}
-            loading={loading}>
-            Connect
+          <LoggingSelect />
+        </Stack>
+        <Group
+          justify="space-between"
+          align="center"
+          p="md"
+          className={classes.actions}>
+          <Button variant="default" onClick={onDisconnectWallet}>
+            Disconnect wallet
           </Button>
+          <Group gap="xs" align="center">
+            {!isConnected && !ephemeralAccountEnabled && (
+              <Text size="sm" c="dimmed">
+                Wallet connection required
+              </Text>
+            )}
+            <Button
+              disabled={!isConnected && !ephemeralAccountEnabled}
+              onClick={handleConnectClick}
+              loading={loading}>
+              Connect
+            </Button>
+          </Group>
         </Group>
       </Stack>
     </Paper>
