@@ -1,9 +1,11 @@
-import { Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { Button, Group, Paper, Stack } from "@mantine/core";
 import { useCallback } from "react";
+import { ConnectedAddress } from "@/components/App/ConnectedAddress";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
 import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useConnectXmtp } from "@/hooks/useConnectXmtp";
+import { useEphemeralSigner } from "@/hooks/useEphemeralSigner";
 import { useSettings } from "@/hooks/useSettings";
 import classes from "./ConnectXMTP.module.css";
 
@@ -12,7 +14,8 @@ export type ConnectXMTPProps = {
 };
 
 export const ConnectXMTP = ({ onDisconnectWallet }: ConnectXMTPProps) => {
-  const { isConnected } = useConnectWallet();
+  const { isConnected, address } = useConnectWallet();
+  const { address: ephemeralAddress } = useEphemeralSigner();
   const { connect, loading } = useConnectXmtp();
   const { ephemeralAccountEnabled } = useSettings();
 
@@ -32,15 +35,12 @@ export const ConnectXMTP = ({ onDisconnectWallet }: ConnectXMTPProps) => {
           align="center"
           p="md"
           className={classes.actions}>
-          <Button variant="default" onClick={onDisconnectWallet}>
-            Disconnect wallet
-          </Button>
+          <ConnectedAddress
+            size="sm"
+            address={address ?? ephemeralAddress}
+            onClick={onDisconnectWallet}
+          />
           <Group gap="xs" align="center">
-            {!isConnected && !ephemeralAccountEnabled && (
-              <Text size="sm" c="dimmed">
-                Wallet connection required
-              </Text>
-            )}
             <Button
               disabled={!isConnected && !ephemeralAccountEnabled}
               onClick={handleConnectClick}

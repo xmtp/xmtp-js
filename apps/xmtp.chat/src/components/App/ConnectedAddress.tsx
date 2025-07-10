@@ -1,4 +1,4 @@
-import { Box, Flex, Group, Paper, Text, Tooltip } from "@mantine/core";
+import { Box, Button, Flex, Group, Paper, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useCallback } from "react";
 import { shortAddress } from "@/helpers/strings";
@@ -34,14 +34,16 @@ export const AddressTooltipLabel: React.FC<AddressTooltipLabelProps> = ({
   );
 };
 
-export type ConnectedAddressBadgeProps = {
+export type ConnectedAddressProps = {
   address: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
+  onClick?: () => void;
 };
 
-export const ConnectedAddressBadge: React.FC<ConnectedAddressBadgeProps> = ({
+export const ConnectedAddress: React.FC<ConnectedAddressProps> = ({
   address,
   size = "lg",
+  onClick,
 }) => {
   const clipboard = useClipboard({ timeout: 1000 });
 
@@ -67,32 +69,30 @@ export const ConnectedAddressBadge: React.FC<ConnectedAddressBadgeProps> = ({
   );
 
   return (
-    <Tooltip
-      label={
-        clipboard.copied ? (
-          <Text size="xs">Copied!</Text>
-        ) : (
-          <AddressTooltipLabel address={address.toLowerCase()} />
-        )
-      }
-      withArrow
-      events={{ hover: true, focus: true, touch: true }}>
-      <Paper
-        withBorder
-        p={0}
-        variant="default"
-        radius="md"
-        onKeyDown={handleKeyboardCopy}
-        onClick={handleCopy}
-        miw={100}
-        tabIndex={0}>
-        <Group align="center" gap="xs" px="sm" py={4}>
-          <GlowingCircle />
-          <Text size={size} fw={700}>
-            {shortAddress(address.toLowerCase())}
-          </Text>
-        </Group>
-      </Paper>
-    </Tooltip>
+    <Group align="center" gap="xs">
+      <GlowingCircle />
+      <Tooltip
+        label={
+          clipboard.copied ? (
+            <Text size="xs">Copied!</Text>
+          ) : (
+            <AddressTooltipLabel address={address.toLowerCase()} />
+          )
+        }
+        withArrow
+        events={{ hover: true, focus: true, touch: true }}>
+        <Text
+          size={size}
+          fw={700}
+          onKeyDown={handleKeyboardCopy}
+          onClick={handleCopy}
+          tabIndex={0}>
+          {shortAddress(address.toLowerCase())}
+        </Text>
+      </Tooltip>
+      <Button size="xs" variant="default" onClick={onClick}>
+        Disconnect
+      </Button>
+    </Group>
   );
 };

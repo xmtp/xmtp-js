@@ -3,14 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ConnectXMTP } from "@/components/App/ConnectXMTP";
 import { WalletConnect } from "@/components/App/WalletConnect";
-import { ConnectedAddressBadge } from "@/components/ConnectedAddressBadge";
 import { useXMTP } from "@/contexts/XMTPContext";
 import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 
 export const Connect = () => {
-  const { isConnected, address, disconnect } = useConnectWallet();
+  const { isConnected, disconnect, loading } = useConnectWallet();
   const { ephemeralAccountEnabled, setEphemeralAccountEnabled } = useSettings();
   const { client } = useXMTP();
   const navigate = useNavigate();
@@ -47,13 +46,13 @@ export const Connect = () => {
 
   return (
     <Stepper active={active} onStepClick={setActive}>
-      <Stepper.Step label="Connect your wallet">
-        {isConnected && address && (
-          <ConnectedAddressBadge address={address} size="sm" />
-        )}
+      <Stepper.Step
+        label="Connect your wallet"
+        allowStepSelect={false}
+        loading={loading}>
         <WalletConnect />
       </Stepper.Step>
-      <Stepper.Step label="Connect to XMTP">
+      <Stepper.Step label="Connect to XMTP" allowStepSelect={false}>
         <ConnectXMTP onDisconnectWallet={handleDisconnectWallet} />
       </Stepper.Step>
     </Stepper>

@@ -3,8 +3,8 @@ import { Client, type SafeInstallation, type Signer } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet } from "react-router";
 import { useAccount, useSignMessage } from "wagmi";
+import { ConnectedAddress } from "@/components/App/ConnectedAddress";
 import { WalletConnect } from "@/components/App/WalletConnect";
-import { ConnectedAddressBadge } from "@/components/ConnectedAddressBadge";
 import { InstallationTable } from "@/components/InboxTools/InstallationTable";
 import { NetworkSelect } from "@/components/InboxTools/NetworkSelect";
 import { createEOASigner, createSCWSigner } from "@/helpers/createSigner";
@@ -142,7 +142,7 @@ export const InboxTools: React.FC = () => {
               Connect your wallet
             </Title>
             {isConnected && address && (
-              <ConnectedAddressBadge address={address} size="sm" />
+              <ConnectedAddress address={address} size="sm" />
             )}
           </Group>
           <WalletConnect />
