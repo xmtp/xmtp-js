@@ -79,7 +79,8 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
+    "provenance": false,
+    "registry": "https://registry.npmjs.org/",
+    "tag": "prerelease"
   }
 }
