@@ -871,4 +871,49 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   static get version() {
     return version;
   }
+
+  apiStatistics() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.apiStatistics();
+  }
+
+  apiIdentityStatistics() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.apiIdentityStatistics();
+  }
+
+  apiAggregateStatistics() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.apiAggregateStatistics();
+  }
+
+  uploadDebugArchive(serverUrl?: string) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    const env = this.#options?.env || "dev";
+    const historySyncUrl =
+      this.#options?.historySyncUrl || HistorySyncUrls[env];
+    return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
+  }
+
+  /**
+   * Retrieves information for this conversation to help with debugging
+   *
+   * @returns The debug information for this conversation
+   */
+  async unknownDebugInfo() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    const canMessage = await this.#client.unknownDebugInfo();
+    return canMessage;
+  }
 }
