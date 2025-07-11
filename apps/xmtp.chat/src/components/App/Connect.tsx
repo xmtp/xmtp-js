@@ -10,7 +10,11 @@ import { useSettings } from "@/hooks/useSettings";
 
 export const Connect = () => {
   const { isConnected, disconnect, loading } = useConnectWallet();
-  const { ephemeralAccountEnabled, setEphemeralAccountEnabled } = useSettings();
+  const {
+    ephemeralAccountEnabled,
+    setEphemeralAccountEnabled,
+    setAutoConnect,
+  } = useSettings();
   const { client } = useXMTP();
   const navigate = useNavigate();
   const { redirectUrl, setRedirectUrl } = useRedirect();
@@ -42,6 +46,7 @@ export const Connect = () => {
     } else {
       setEphemeralAccountEnabled(false);
     }
+    setAutoConnect(false);
   }, [isConnected, disconnect]);
 
   return (
