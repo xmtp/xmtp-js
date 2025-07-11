@@ -25,6 +25,7 @@ export const useConnectWallet = () => {
   );
 
   return {
+    account,
     connect: connectWallet,
     disconnect,
     isConnected: !!account.address,

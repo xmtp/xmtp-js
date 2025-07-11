@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
-import { useAccount, useConnect, useSignMessage } from "wagmi";
+import { useAccount, useSignMessage } from "wagmi";
 import { useXMTP } from "@/contexts/XMTPContext";
 import { createEOASigner, createSCWSigner } from "@/helpers/createSigner";
 import { useEphemeralSigner } from "@/hooks/useEphemeralSigner";
@@ -9,7 +9,6 @@ import { useSettings } from "@/hooks/useSettings";
 
 export const useConnectXmtp = () => {
   const navigate = useNavigate();
-  const { status } = useConnect();
   const { signer: ephemeralSigner } = useEphemeralSigner();
   const { initializing, client, initialize } = useXMTP();
   const account = useAccount();
@@ -94,7 +93,7 @@ export const useConnectXmtp = () => {
 
   return {
     client,
-    loading: status === "pending" || initializing,
+    loading: initializing,
     connect,
   };
 };
