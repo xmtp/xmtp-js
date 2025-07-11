@@ -38,11 +38,13 @@ export const UseEphemeral: React.FC = () => {
           withThumbIndicator={false}
         />
       </Tooltip>
-      {ephemeralAccountEnabled && (
-        <Button size="xs" onClick={handleResetEphemeralAccount}>
-          Reset
-        </Button>
-      )}
+      <Button
+        size="xs"
+        onClick={handleResetEphemeralAccount}
+        color="red.7"
+        variant="outline">
+        Reset
+      </Button>
     </Group>
   );
 };

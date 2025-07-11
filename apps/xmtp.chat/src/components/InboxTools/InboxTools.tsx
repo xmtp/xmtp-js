@@ -1,22 +1,38 @@
-import { Button, Group, Stack, Text, TextInput, Title } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Stack,
+  Stepper,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { Client, type SafeInstallation, type Signer } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet } from "react-router";
-import { useAccount, useSignMessage } from "wagmi";
+import { useSignMessage } from "wagmi";
+import { ConnectedAddress } from "@/components/App/ConnectedAddress";
 import { WalletConnect } from "@/components/App/WalletConnect";
-import { ConnectedAddressBadge } from "@/components/ConnectedAddressBadge";
 import { InstallationTable } from "@/components/InboxTools/InstallationTable";
 import { NetworkSelect } from "@/components/InboxTools/NetworkSelect";
 import { createEOASigner, createSCWSigner } from "@/helpers/createSigner";
 import { isValidInboxId } from "@/helpers/strings";
 import { useConnectWallet } from "@/hooks/useConnectWallet";
+import { useEphemeralSigner } from "@/hooks/useEphemeralSigner";
 import { useMemberId } from "@/hooks/useMemberId";
 import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const InboxTools: React.FC = () => {
-  const { isConnected, address } = useConnectWallet();
-  const account = useAccount();
+  const {
+    account,
+    address,
+    isConnected,
+    disconnect,
+    loading: walletLoading,
+  } = useConnectWallet();
+  const { address: ephemeralAddress, signer: ephemeralSigner } =
+    useEphemeralSigner();
   const { signMessageAsync } = useSignMessage();
   const {
     inboxId,
@@ -25,18 +41,25 @@ export const InboxTools: React.FC = () => {
     error: memberIdError,
   } = useMemberId();
   const [installations, setInstallations] = useState<SafeInstallation[]>([]);
-  const [signer, setSigner] = useState<Signer | null>(null);
   const [selectedInstallationIds, setSelectedInstallationIds] = useState<
     string[]
   >([]);
   const [loading, setLoading] = useState(false);
-  const { environment, useSCW } = useSettings();
+  const {
+    environment,
+    useSCW,
+    ephemeralAccountEnabled,
+    setEphemeralAccountEnabled,
+  } = useSettings();
+  const [active, setActive] = useState(0);
 
   const handleFindInstallations = useCallback(async () => {
     if (!isValidInboxId(inboxId)) {
       return;
     }
     setLoading(true);
+    setInstallations([]);
+    setSelectedInstallationIds([]);
     try {
       const inboxState = await Client.inboxStateFromInboxIds(
         [inboxId],
@@ -57,8 +80,24 @@ export const InboxTools: React.FC = () => {
 
   const handleRevokeInstallations = useCallback(
     async (installationIds: Uint8Array[]) => {
-      if (!signer) {
+      if (ephemeralAccountEnabled && !ephemeralAddress) {
         return;
+      } else if (!address || (useSCW && !account.chainId)) {
+        return;
+      }
+      let signer: Signer;
+      if (ephemeralAccountEnabled) {
+        signer = ephemeralSigner;
+      } else {
+        signer = useSCW
+          ? createSCWSigner(
+              address,
+              (message: string) => signMessageAsync({ message }),
+              account.chainId,
+            )
+          : createEOASigner(address, (message: string) =>
+              signMessageAsync({ message }),
+            );
       }
       setLoading(true);
       try {
@@ -73,24 +112,36 @@ export const InboxTools: React.FC = () => {
       }
       void handleFindInstallations();
     },
-    [environment, inboxId, handleFindInstallations, signer],
+    [
+      environment,
+      address,
+      account.chainId,
+      useSCW,
+      signMessageAsync,
+      inboxId,
+      handleFindInstallations,
+      ephemeralAccountEnabled,
+      ephemeralAddress,
+    ],
   );
 
-  useEffect(() => {
-    if (!account.address || (useSCW && !account.chainId)) {
-      return;
+  const handleDisconnectWallet = useCallback(() => {
+    if (isConnected) {
+      disconnect();
+    } else {
+      setEphemeralAccountEnabled(false);
     }
-    const signer = useSCW
-      ? createSCWSigner(
-          account.address,
-          (message: string) => signMessageAsync({ message }),
-          account.chainId,
-        )
-      : createEOASigner(account.address, (message: string) =>
-          signMessageAsync({ message }),
-        );
-    setSigner(signer);
-  }, [account.address, account.chainId, signMessageAsync, useSCW]);
+    setMemberId("");
+    setInstallations([]);
+    setSelectedInstallationIds([]);
+  }, [
+    isConnected,
+    disconnect,
+    setEphemeralAccountEnabled,
+    setMemberId,
+    setInstallations,
+    setSelectedInstallationIds,
+  ]);
 
   useEffect(() => {
     if (!isValidInboxId(inboxId)) {
@@ -103,6 +154,14 @@ export const InboxTools: React.FC = () => {
     setInstallations([]);
     setSelectedInstallationIds([]);
   }, [environment]);
+
+  useEffect(() => {
+    if (isConnected || ephemeralAccountEnabled) {
+      setActive(1);
+    } else {
+      setActive(0);
+    }
+  }, [isConnected, ephemeralAccountEnabled]);
 
   return (
     <>
@@ -117,13 +176,13 @@ export const InboxTools: React.FC = () => {
         }
         footer={
           <Group justify="flex-end" p="md" flex={1}>
-            {!signer && (
+            {!(address || ephemeralAddress) && (
               <Text size="sm" c="dimmed">
                 Wallet connection required
               </Text>
             )}
             <Button
-              disabled={!signer || selectedInstallationIds.length === 0}
+              disabled={selectedInstallationIds.length === 0}
               onClick={() => {
                 const installationBytes = installations
                   .filter((installation) =>
@@ -136,57 +195,75 @@ export const InboxTools: React.FC = () => {
             </Button>
           </Group>
         }>
-        <Stack gap="md" py="md">
-          <Group justify="space-between" align="center">
-            <Title order={4} ml="sm">
-              Connect your wallet
-            </Title>
-            {isConnected && address && (
-              <ConnectedAddressBadge address={address} size="sm" />
-            )}
-          </Group>
-          <WalletConnect />
-          <NetworkSelect />
-          <Stack gap="xs">
-            <TextInput
-              size="sm"
-              label="Address or inbox ID"
-              styles={{
-                label: {
-                  marginBottom: "var(--mantine-spacing-xxs)",
-                },
-              }}
-              error={!!memberIdError}
-              value={memberId}
-              onChange={(event) => {
-                setMemberId(event.target.value);
-              }}
-            />
-            <Group justify="flex-end" align="center">
-              <Text c="error" size="sm">
-                {memberIdError}
-              </Text>
-              <Button
-                disabled={!isValidInboxId(inboxId)}
-                onClick={() => {
-                  void handleFindInstallations();
-                }}>
-                Find installations
-              </Button>
-            </Group>
-          </Stack>
-          <Title order={4}>Installations</Title>
-          <Stack gap="md">
-            {installations.length === 0 && <Text>No installations found</Text>}
-            {installations.length > 0 && (
-              <InstallationTable
-                installations={installations}
-                selectedInstallationIds={selectedInstallationIds}
-                setSelectedInstallationIds={setSelectedInstallationIds}
-              />
-            )}
-          </Stack>
-        </Stack>
+        <Stepper active={active} onStepClick={setActive} mt="md">
+          <Stepper.Step
+            label="Connect your wallet"
+            allowStepSelect={false}
+            loading={walletLoading}>
+            <WalletConnect />
+          </Stepper.Step>
+          <Stepper.Step label="Manage installations" allowStepSelect={false}>
+            <Stack gap="md" py="md">
+              <Group justify="space-between" align="center">
+                <ConnectedAddress
+                  size="sm"
+                  address={address ?? ephemeralAddress}
+                  onClick={handleDisconnectWallet}
+                />
+                <NetworkSelect />
+              </Group>
+              <Stack gap="xs" mb="md">
+                <Group justify="space-between" align="center">
+                  <Text size="sm" pl={4}>
+                    Enter an address or inbox ID
+                  </Text>
+                  {memberIdError && (
+                    <Text c="red.7" size="sm">
+                      {memberIdError}
+                    </Text>
+                  )}
+                </Group>
+                <TextInput
+                  size="sm"
+                  error={!!memberIdError}
+                  value={memberId}
+                  onChange={(event) => {
+                    setMemberId(event.target.value);
+                  }}
+                />
+                <Group justify="space-between" align="center">
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      setMemberId(address ?? ephemeralAddress);
+                    }}>
+                    Use wallet address
+                  </Button>
+                  <Button
+                    disabled={!isValidInboxId(inboxId)}
+                    onClick={() => {
+                      void handleFindInstallations();
+                    }}>
+                    Find installations
+                  </Button>
+                </Group>
+              </Stack>
+              <Title order={4}>Installations</Title>
+              <Stack gap="md">
+                {installations.length === 0 && (
+                  <Text>No installations found</Text>
+                )}
+                {installations.length > 0 && (
+                  <InstallationTable
+                    installations={installations}
+                    selectedInstallationIds={selectedInstallationIds}
+                    setSelectedInstallationIds={setSelectedInstallationIds}
+                  />
+                )}
+              </Stack>
+            </Stack>
+          </Stepper.Step>
+        </Stepper>
       </ContentLayout>
       <Outlet />
     </>

@@ -1,19 +1,15 @@
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { hexToUint8Array } from "uint8array-extras";
-import { generatePrivateKey } from "viem/accounts";
-import { useAccount, useConnect, useSignMessage } from "wagmi";
+import { useAccount, useSignMessage } from "wagmi";
 import { useXMTP } from "@/contexts/XMTPContext";
-import {
-  createEOASigner,
-  createEphemeralSigner,
-  createSCWSigner,
-} from "@/helpers/createSigner";
+import { createEOASigner, createSCWSigner } from "@/helpers/createSigner";
+import { useEphemeralSigner } from "@/hooks/useEphemeralSigner";
 import { useSettings } from "@/hooks/useSettings";
 
 export const useConnectXmtp = () => {
   const navigate = useNavigate();
-  const { status } = useConnect();
+  const { signer: ephemeralSigner } = useEphemeralSigner();
   const { initializing, client, initialize } = useXMTP();
   const account = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -29,7 +25,6 @@ export const useConnectXmtp = () => {
     setAutoConnect,
   } = useSettings();
 
-  // create client if ephemeral account is enabled
   const connect = useCallback(() => {
     // if client is already connected, return
     if (client) {
@@ -38,20 +33,13 @@ export const useConnectXmtp = () => {
 
     // connect ephemeral account if enabled
     if (ephemeralAccountEnabled) {
-      let accountKey = ephemeralAccountKey;
-      if (!accountKey) {
-        accountKey = generatePrivateKey();
-        setEphemeralAccountKey(accountKey);
-      }
-
-      const signer = createEphemeralSigner(accountKey);
       void initialize({
         dbEncryptionKey: encryptionKey
           ? hexToUint8Array(encryptionKey)
           : undefined,
         env: environment,
         loggingLevel,
-        signer,
+        signer: ephemeralSigner,
       });
       setAutoConnect(true);
       return;
@@ -105,7 +93,7 @@ export const useConnectXmtp = () => {
 
   return {
     client,
-    loading: status === "pending" || initializing,
+    loading: initializing,
     connect,
   };
 };
