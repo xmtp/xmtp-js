@@ -112,7 +112,17 @@ export const InboxTools: React.FC = () => {
       }
       void handleFindInstallations();
     },
-    [environment, inboxId, handleFindInstallations],
+    [
+      environment,
+      address,
+      account.chainId,
+      useSCW,
+      signMessageAsync,
+      inboxId,
+      handleFindInstallations,
+      ephemeralAccountEnabled,
+      ephemeralAddress,
+    ],
   );
 
   const handleDisconnectWallet = useCallback(() => {
