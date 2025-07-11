@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Group, Paper, Text, Tooltip } from "@mantine/core";
+import { Box, Button, Flex, Group, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useCallback } from "react";
 import { shortAddress } from "@/helpers/strings";
