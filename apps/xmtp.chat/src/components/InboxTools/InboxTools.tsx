@@ -80,7 +80,9 @@ export const InboxTools: React.FC = () => {
 
   const handleRevokeInstallations = useCallback(
     async (installationIds: Uint8Array[]) => {
-      if (!address || !ephemeralAddress || (useSCW && !account.chainId)) {
+      if (ephemeralAccountEnabled && !ephemeralAddress) {
+        return;
+      } else if (!address || (useSCW && !account.chainId)) {
         return;
       }
       let signer: Signer;
