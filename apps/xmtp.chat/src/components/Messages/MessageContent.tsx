@@ -1,5 +1,5 @@
 import { Code } from "@mantine/core";
-import type { DecodedMessage } from "@xmtp/browser-sdk";
+import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import {
   ContentTypeTransactionReference,
@@ -19,47 +19,53 @@ import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsCon
 export type MessageContentProps = {
   align: MessageContentAlign;
   scrollToMessage: (id: string) => void;
-  message: DecodedMessage;
+  contentType: ContentTypeId;
+  content: unknown;
+  conversationId: string;
+  fallback?: string;
 };
 
 export const MessageContent: React.FC<MessageContentProps> = ({
-  message,
+  contentType,
+  content,
+  conversationId,
+  fallback,
   align,
   scrollToMessage,
 }) => {
-  if (message.contentType.sameAs(ContentTypeTransactionReference)) {
+  if (contentType.sameAs(ContentTypeTransactionReference)) {
     return (
-      <TransactionReferenceContent
-        content={message.content as TransactionReference}
-      />
+      <TransactionReferenceContent content={content as TransactionReference} />
     );
   }
 
-  if (message.contentType.sameAs(ContentTypeWalletSendCalls)) {
+  if (contentType.sameAs(ContentTypeWalletSendCalls)) {
     return (
       <WalletSendCallsContent
-        content={message.content as WalletSendCallsParams}
-        conversationId={message.conversationId}
+        content={content as WalletSendCallsParams}
+        conversationId={conversationId}
       />
     );
   }
 
-  if (message.contentType.sameAs(ContentTypeReply)) {
+  if (contentType.sameAs(ContentTypeReply)) {
     return (
       <ReplyContent
         align={align}
-        message={message as DecodedMessage<Reply>}
+        conversationId={conversationId}
+        reply={content as Reply}
+        fallback={fallback}
         scrollToMessage={scrollToMessage}
       />
     );
   }
 
-  if (typeof message.content === "string") {
-    return <TextContent text={message.content} />;
+  if (typeof content === "string") {
+    return <TextContent text={content} />;
   }
 
-  if (typeof message.fallback === "string") {
-    return <FallbackContent text={message.fallback} />;
+  if (typeof fallback === "string") {
+    return <FallbackContent text={fallback} />;
   }
 
   return (
@@ -67,7 +73,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
       block
       w="100%"
       style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-      {JSON.stringify(message.content ?? message.fallback, null, 2)}
+      {JSON.stringify(content ?? fallback, null, 2)}
     </Code>
   );
 };
