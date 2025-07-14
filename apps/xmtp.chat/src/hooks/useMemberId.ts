@@ -26,6 +26,9 @@ export const useMemberId = () => {
         return;
       }
 
+      setInboxId("");
+      setError(null);
+
       if (!isValidEthereumAddress(memberId) && !isValidInboxId(memberId)) {
         setError("Invalid address or inbox ID");
       } else if (isValidEthereumAddress(memberId) && utilsRef.current) {
@@ -44,16 +47,14 @@ export const useMemberId = () => {
             setError("Address not registered on XMTP");
           } else {
             setInboxId(inboxId);
-            setError(null);
           }
         } catch (error) {
           setError((error as Error).message);
         } finally {
           setLoading(false);
         }
-      } else {
+      } else if (isValidInboxId(memberId)) {
         setInboxId(memberId);
-        setError(null);
       }
     };
 
