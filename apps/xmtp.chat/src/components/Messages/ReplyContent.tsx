@@ -9,13 +9,17 @@ import classes from "./ReplyContent.module.css";
 
 export type ReplyContentProps = {
   align: MessageContentAlign;
-  message: DecodedMessage<Reply>;
+  conversationId: string;
+  fallback?: string;
+  reply: Reply;
   scrollToMessage: (id: string) => void;
 };
 
 export const ReplyContent: React.FC<ReplyContentProps> = ({
   align,
-  message,
+  conversationId,
+  fallback,
+  reply,
   scrollToMessage,
 }) => {
   const { getMessageById } = useConversations();
@@ -24,11 +28,10 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
   >(undefined);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    void getMessageById(message.content!.reference).then((originalMessage) => {
+    void getMessageById(reply.reference).then((originalMessage) => {
       setOriginalMessage(originalMessage as DecodedMessage);
     });
-  }, [message.content?.reference]);
+  }, [reply.reference]);
 
   const handleClick = useCallback(() => {
     if (originalMessage) {
@@ -47,7 +50,10 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
         </Tooltip>
       </Group>
       <MessageContent
-        message={message}
+        contentType={reply.contentType}
+        content={reply.content}
+        conversationId={conversationId}
+        fallback={fallback}
         align={align}
         scrollToMessage={scrollToMessage}
       />
