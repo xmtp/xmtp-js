@@ -15,17 +15,22 @@ module.exports = {
   tabWidth: 2,
   trailingComma: "all",
   useTabs: false,
-  plugins: [
-    "prettier-plugin-packagejson",
-    "@ianvs/prettier-plugin-sort-imports",
+  plugins: ["prettier-plugin-packagejson"],
+  overrides: [
+    {
+      files: "!**/*.md",
+      options: {
+        plugins: ["@ianvs/prettier-plugin-sort-imports"],
+        importOrder: [
+          "<BUILTIN_MODULES>",
+          "<THIRD_PARTY_MODULES>",
+          "^@(/.*)$",
+          "^@test(/.*)$",
+          "^@bench(/.*)$",
+          "^[.]",
+        ],
+        importOrderTypeScriptVersion: "5.8.3",
+      },
+    },
   ],
-  importOrder: [
-    "<BUILTIN_MODULES>",
-    "<THIRD_PARTY_MODULES>",
-    "^@(/.*)$",
-    "^@test(/.*)$",
-    "^@bench(/.*)$",
-    "^[.]",
-  ],
-  importOrderTypeScriptVersion: "5.6.3",
 };
