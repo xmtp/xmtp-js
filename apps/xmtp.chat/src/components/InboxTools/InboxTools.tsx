@@ -80,15 +80,22 @@ export const InboxTools: React.FC = () => {
 
   const handleRevokeInstallations = useCallback(
     async (installationIds: Uint8Array[]) => {
-      if (ephemeralAccountEnabled && !ephemeralAddress) {
-        return;
-      } else if (!address || (useSCW && !account.chainId)) {
-        return;
-      }
       let signer: Signer;
       if (ephemeralAccountEnabled) {
+        if (!ephemeralAddress) {
+          console.error("Ephemeral wallet not connected");
+          return;
+        }
         signer = ephemeralSigner;
       } else {
+        if (!address) {
+          console.error("Wallet not connected");
+          return;
+        }
+        if (useSCW && !account.chainId) {
+          console.error("Smart contract wallet chain ID not set");
+          return;
+        }
         signer = useSCW
           ? createSCWSigner(
               address,
