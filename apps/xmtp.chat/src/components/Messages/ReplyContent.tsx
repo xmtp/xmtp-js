@@ -1,10 +1,11 @@
-import { Paper, Stack, Text, Tooltip } from "@mantine/core";
+import { Group, Stack, Text, Tooltip } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { type Reply } from "@xmtp/content-type-reply";
 import { useCallback, useEffect, useState } from "react";
+import { MessageContent } from "@/components/Messages/MessageContent";
 import type { MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
-import { TextContent } from "@/components/Messages/TextContent";
 import { useConversations } from "@/hooks/useConversations";
+import classes from "./ReplyContent.module.css";
 
 export type ReplyContentProps = {
   align: MessageContentAlign;
@@ -19,13 +20,13 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
 }) => {
   const { getMessageById } = useConversations();
   const [originalMessage, setOriginalMessage] = useState<
-    DecodedMessage<string> | undefined
+    DecodedMessage | undefined
   >(undefined);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     void getMessageById(message.content!.reference).then((originalMessage) => {
-      setOriginalMessage(originalMessage as DecodedMessage<string>);
+      setOriginalMessage(originalMessage as DecodedMessage);
     });
   }, [message.content?.reference]);
 
@@ -35,35 +36,21 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
     }
   }, [originalMessage, scrollToMessage]);
 
-  if (
-    message.content?.contentType.typeId === "text" &&
-    typeof message.content.content === "string"
-  ) {
-    return (
-      <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
-        <Stack gap="4" align={align === "left" ? "flex-start" : "flex-end"}>
-          <Text size="xs" ml="xs">
-            Replied to
+  return (
+    <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
+      <Group gap={4}>
+        <Text size="xs">Replied to a</Text>
+        <Tooltip label="Click to scroll to the original message">
+          <Text size="xs" className={classes.text} onClick={handleClick}>
+            message
           </Text>
-          <Tooltip label="Click to scroll to the original message">
-            <Paper withBorder py="xs" px="sm" radius="md" onClick={handleClick}>
-              <Text
-                component="pre"
-                size="sm"
-                style={{
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  fontFamily: "inherit",
-                }}>
-                {originalMessage?.content}
-              </Text>
-            </Paper>
-          </Tooltip>
-        </Stack>
-        <TextContent text={message.content.content} />
-      </Stack>
-    );
-  }
-
-  return <Text>{message.fallback}</Text>;
+        </Tooltip>
+      </Group>
+      <MessageContent
+        message={message}
+        align={align}
+        scrollToMessage={scrollToMessage}
+      />
+    </Stack>
+  );
 };
