@@ -289,7 +289,7 @@ export class Conversation<ContentTypes = unknown> {
       groupId: this.#id,
       streamId,
     });
-    asyncStream.onReturn = () => {
+    asyncStream.onDone = () => {
       void this.#client.sendMessage("endStream", {
         streamId,
       });

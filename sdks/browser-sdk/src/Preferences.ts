@@ -111,7 +111,7 @@ export class Preferences<ContentTypes = unknown> {
     await this.#client.sendMessage("preferences.streamConsent", {
       streamId,
     });
-    asyncStream.onReturn = () => {
+    asyncStream.onDone = () => {
       void this.#client.sendMessage("endStream", {
         streamId,
       });
@@ -139,7 +139,7 @@ export class Preferences<ContentTypes = unknown> {
     await this.#client.sendMessage("preferences.streamPreferences", {
       streamId,
     });
-    asyncStream.onReturn = () => {
+    asyncStream.onDone = () => {
       void this.#client.sendMessage("endStream", {
         streamId,
       });

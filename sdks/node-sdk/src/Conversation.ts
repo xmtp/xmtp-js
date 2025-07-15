@@ -138,7 +138,7 @@ export class Conversation<ContentTypes = unknown> {
       onFail ?? (() => {}),
     );
 
-    asyncStream.onReturn = () => {
+    asyncStream.onDone = () => {
       stream.end();
     };
 

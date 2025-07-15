@@ -291,7 +291,9 @@ export class Conversations<ContentTypes = unknown> {
       onFail ?? (() => {}),
     );
 
-    asyncStream.onReturn = stream.end.bind(stream);
+    asyncStream.onDone = () => {
+      stream.end();
+    };
 
     return asyncStream;
   }
@@ -328,7 +330,9 @@ export class Conversations<ContentTypes = unknown> {
       ConversationType.Group,
     );
 
-    asyncStream.onReturn = stream.end.bind(stream);
+    asyncStream.onDone = () => {
+      stream.end();
+    };
 
     return asyncStream;
   }
@@ -362,7 +366,9 @@ export class Conversations<ContentTypes = unknown> {
       ConversationType.Dm,
     );
 
-    asyncStream.onReturn = stream.end.bind(stream);
+    asyncStream.onDone = () => {
+      stream.end();
+    };
 
     return asyncStream;
   }
@@ -405,7 +411,9 @@ export class Conversations<ContentTypes = unknown> {
       consentStates,
     );
 
-    asyncStream.onReturn = stream.end.bind(stream);
+    asyncStream.onDone = () => {
+      stream.end();
+    };
 
     return asyncStream;
   }
