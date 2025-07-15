@@ -1,5 +1,14 @@
 # @xmtp/browser-sdk
 
+## 3.0.5
+
+### Patch Changes
+
+- 3f4d125:
+  - Refactored `AsyncStream` to be more spec-compliant
+  - Added `onDone` callback to `AsyncStream`
+  - Updated stream methods to use new `onDone` callback to end streams
+
 ## 3.0.4
 
 ### Patch Changes

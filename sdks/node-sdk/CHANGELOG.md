@@ -1,5 +1,14 @@
 # @xmtp/node-sdk
 
+## 3.1.3
+
+### Patch Changes
+
+- 3f4d125:
+  - Refactored `AsyncStream` to be more spec-compliant
+  - Added `onDone` callback to `AsyncStream`
+  - Updated stream methods to use new `onDone` callback to end streams
+
 ## 3.1.2
 
 ### Patch Changes
