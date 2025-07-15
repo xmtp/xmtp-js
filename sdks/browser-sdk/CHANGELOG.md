@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.0.5
+
+### Patch Changes
+
+- 3f4d125: Refactor AsyncStream
+
 ## 3.0.4
 
 ### Patch Changes

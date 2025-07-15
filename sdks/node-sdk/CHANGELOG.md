@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 3.1.3
+
+### Patch Changes
+
+- 3f4d125: Refactor AsyncStream
+
 ## 3.1.2
 
 ### Patch Changes
