@@ -14,11 +14,11 @@ describe("AsyncStream", () => {
     stream.onDone = onDoneSpy;
     stream.onError = onErrorSpy;
 
-    stream.callback(null, 1);
-    stream.callback(null, 2);
-    stream.callback(null, 3);
-    stream.callback(null, 4);
-    stream.callback(null, 5);
+    void stream.callback(null, 1);
+    void stream.callback(null, 2);
+    void stream.callback(null, 3);
+    void stream.callback(null, 4);
+    void stream.callback(null, 5);
 
     const values: (number | Error | undefined)[] = [];
     let iterationCount = 0;
@@ -50,7 +50,7 @@ describe("AsyncStream", () => {
     stream.onDone = onDoneSpy;
     stream.onError = onErrorSpy;
 
-    stream.callback(null, 1);
+    void stream.callback(null, 1);
 
     const values: (number | Error | undefined)[] = [];
     let iterationCount = 0;
@@ -60,8 +60,8 @@ describe("AsyncStream", () => {
       iterationCount++;
 
       if (iterationCount === 1) {
-        stream.callback(null, 2);
-        stream.callback(null, 3);
+        void stream.callback(null, 2);
+        void stream.callback(null, 3);
       }
 
       if (iterationCount === 3) {
@@ -85,8 +85,8 @@ describe("AsyncStream", () => {
     stream.onReturn = onReturnSpy;
     stream.onDone = onDoneSpy;
     stream.onError = onErrorSpy;
-    stream.callback(null, 1);
-    stream.callback(null, 2);
+    void stream.callback(null, 1);
+    void stream.callback(null, 2);
 
     try {
       for await (const value of stream) {
@@ -114,8 +114,8 @@ describe("AsyncStream", () => {
     stream.onDone = onDoneSpy;
     stream.onReturn = onReturnSpy;
 
-    stream.callback(null, 1);
-    stream.callback(testError, 2);
+    void stream.callback(null, 1);
+    void stream.callback(testError, 2);
 
     const values: (number | Error)[] = [];
 
@@ -147,7 +147,7 @@ describe("AsyncStream", () => {
     stream.onReturn = onReturnSpy;
 
     setTimeout(() => {
-      stream.callback(testError, 1);
+      void stream.callback(testError, 1);
     }, 100);
 
     try {
@@ -174,8 +174,8 @@ describe("AsyncStream", () => {
     stream.onDone = onDoneSpy;
     stream.onReturn = onReturnSpy;
 
-    stream.callback(null, 1);
-    stream.callback(null, 2);
+    void stream.callback(null, 1);
+    void stream.callback(null, 2);
 
     setTimeout(() => {
       void stream.end();
@@ -201,9 +201,9 @@ describe("AsyncStream", () => {
     const nextPromise2 = stream.next();
     const nextPromise3 = stream.next();
 
-    stream.callback(null, 1);
-    stream.callback(null, 2);
-    stream.callback(null, 3);
+    void stream.callback(null, 1);
+    void stream.callback(null, 2);
+    void stream.callback(null, 3);
 
     const [result1, result2, result3] = await Promise.all([
       nextPromise1,
@@ -220,7 +220,7 @@ describe("AsyncStream", () => {
   it("should handle next() calls after stream is done", async () => {
     const stream = new AsyncStream<number>();
 
-    stream.callback(null, 1);
+    void stream.callback(null, 1);
     await stream.end();
 
     const result1 = await stream.next();
@@ -245,7 +245,7 @@ describe("AsyncStream", () => {
     const nextPromise2 = stream.next();
     const nextPromise3 = stream.next();
 
-    stream.callback(testError, 1);
+    void stream.callback(testError, 1);
 
     await expect(nextPromise1).rejects.toBe(testError);
 
@@ -298,8 +298,8 @@ describe("AsyncStream", () => {
     await stream.end();
 
     // These callbacks should be ignored
-    stream.callback(null, 1);
-    stream.callback(testError, 2);
+    void stream.callback(null, 1);
+    void stream.callback(testError, 2);
 
     for await (const _value of stream) {
       // this block should never be reached
@@ -320,7 +320,7 @@ describe("AsyncStream", () => {
     const stream = new AsyncStream<number>();
 
     for (let i = 1; i <= 5; i++) {
-      stream.callback(null, i);
+      void stream.callback(null, i);
     }
 
     const values: (number | Error | undefined)[] = [];
