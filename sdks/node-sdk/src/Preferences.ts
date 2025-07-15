@@ -118,7 +118,9 @@ export class Preferences {
       onFail ?? (() => {}),
     );
 
-    asyncStream.onReturn = stream.end.bind(stream);
+    asyncStream.onDone = () => {
+      stream.end();
+    };
 
     return asyncStream;
   }
@@ -150,7 +152,9 @@ export class Preferences {
       onFail ?? (() => {}),
     );
 
-    asyncStream.onReturn = stream.end.bind(stream);
+    asyncStream.onDone = () => {
+      stream.end();
+    };
 
     return asyncStream;
   }

@@ -321,7 +321,7 @@ export class Conversations<ContentTypes = unknown> {
       streamId,
       conversationType,
     });
-    asyncStream.onReturn = () => {
+    asyncStream.onDone = () => {
       void this.#client.sendMessage("endStream", {
         streamId,
       });
@@ -387,7 +387,7 @@ export class Conversations<ContentTypes = unknown> {
       conversationType,
       consentStates,
     });
-    asyncStream.onReturn = () => {
+    asyncStream.onDone = () => {
       void this.#client.sendMessage("endStream", {
         streamId,
       });
