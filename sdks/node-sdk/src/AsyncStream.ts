@@ -5,6 +5,11 @@ type ResolveValue<T> = {
 
 type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
 
+type PendingPromise<T> = {
+  resolve: ResolveNext<T>;
+  reject: (error: Error) => void;
+};
+
 export type StreamCallback<T> = (
   err: Error | null,
   value: T | undefined,
@@ -12,23 +17,36 @@ export type StreamCallback<T> = (
 
 export class AsyncStream<T> {
   #isDone = false;
-  #resolveNext: ResolveNext<T> | undefined;
-  #rejectNext: ((error: Error) => void) | undefined;
-  #queue: (T | undefined)[];
+  #pendingPromises: PendingPromise<T>[] = [];
+  #queue: (T | undefined | Error)[];
   #error: Error | undefined;
-  onReturn: (() => void) | undefined;
-  onError: ((error: Error) => void) | undefined;
+  #onDone: (() => void) | undefined;
+  #onReturn: (() => void) | undefined;
+  #onError: ((error: Error) => void) | undefined;
 
   constructor() {
     this.#queue = [];
     this.#isDone = false;
   }
 
-  #done() {
+  #flush(value?: T) {
+    while (this.#pendingPromises.length > 0) {
+      const nextPendingPromise = this.#pendingPromises.shift();
+      if (nextPendingPromise) {
+        nextPendingPromise.resolve({ done: true, value });
+      }
+    }
+  }
+
+  #done(value?: T) {
+    this.#flush(value);
     this.#queue = [];
-    this.#resolveNext = undefined;
-    this.#rejectNext = undefined;
+    this.#pendingPromises = [];
     this.#isDone = true;
+    this.#onDone?.();
+    if (this.#error) {
+      this.#onError?.(this.#error);
+    }
   }
 
   get error() {
@@ -39,64 +57,75 @@ export class AsyncStream<T> {
     return this.#isDone;
   }
 
+  set onReturn(callback: () => void) {
+    this.#onReturn = callback;
+  }
+
+  set onError(callback: (error: Error) => void) {
+    this.#onError = callback;
+  }
+
+  set onDone(callback: () => void) {
+    this.#onDone = callback;
+  }
+
   callback: StreamCallback<T> = (error, value) => {
     if (this.#isDone) {
       return;
     }
 
-    if (error) {
-      this.#error = error;
-      if (this.#rejectNext) {
-        this.#rejectNext(error);
+    const nextPendingPromise = this.#pendingPromises.shift();
+    if (nextPendingPromise) {
+      const { resolve, reject } = nextPendingPromise;
+      if (error) {
+        this.#error = error;
+        reject(error);
         this.#done();
-        this.onError?.(error);
+      } else {
+        resolve({
+          done: false,
+          value,
+        });
       }
-      return;
-    }
-
-    if (this.#resolveNext) {
-      this.#resolveNext({
-        done: false,
-        value,
-      });
-      this.#resolveNext = undefined;
-      this.#rejectNext = undefined;
     } else {
-      this.#queue.push(value);
+      this.#queue.push(error ?? value);
     }
   };
 
   next = (): Promise<ResolveValue<T>> => {
-    if (this.#error) {
-      this.#done();
-      this.onError?.(this.#error);
-      return Promise.reject(this.#error);
+    if (this.#isDone) {
+      return Promise.resolve({
+        done: true,
+        value: undefined,
+      });
     }
 
     if (this.#queue.length > 0) {
+      const value = this.#queue.shift();
+      if (value instanceof Error) {
+        this.#error = value;
+        this.#done();
+        return Promise.reject(value);
+      }
       return Promise.resolve({
         done: false,
-        value: this.#queue.shift(),
+        value,
       });
     }
 
     return new Promise((resolve, reject) => {
-      this.#resolveNext = resolve;
-      this.#rejectNext = reject;
+      this.#pendingPromises.push({ resolve, reject });
     });
   };
 
-  return = (value?: T) => {
-    this.#resolveNext?.({
+  return = (value?: T): Promise<ResolveValue<T>> => {
+    this.#onReturn?.();
+    this.#done(value);
+
+    return Promise.resolve({
       done: true,
       value,
     });
-    this.onReturn?.();
-    this.#done();
-    return {
-      done: true,
-      value,
-    };
   };
 
   end = () => this.return();
