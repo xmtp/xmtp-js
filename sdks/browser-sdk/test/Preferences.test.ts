@@ -173,8 +173,14 @@ describe("Preferences", () => {
           expect(updates[1].entityType).toBe(ConsentEntityType.InboxId);
           expect(updates[1].state).toBe(ConsentState.Allowed);
         }
+        if (count === 4) {
+          expect(updates.length).toBe(1);
+          expect(updates[0].entity).toBe(group.id);
+          expect(updates[0].entityType).toBe(ConsentEntityType.GroupId);
+          expect(updates[0].state).toBe(ConsentState.Allowed);
+        }
       }
-      expect(count).toBe(3);
+      expect(count).toBe(4);
     });
 
     it("should stream preferences", async () => {
@@ -215,7 +221,7 @@ describe("Preferences", () => {
           expect(preferences[0].key).toBeDefined();
         }
       }
-      expect(count).toBe(2);
+      expect(count).toBe(4);
     });
   });
 });
