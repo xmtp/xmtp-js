@@ -3488,20 +3488,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/browser-sdk@npm:3.1.0-rc2":
-  version: 3.1.0-rc2
-  resolution: "@xmtp/browser-sdk@npm:3.1.0-rc2"
-  dependencies:
-    "@xmtp/content-type-group-updated": "npm:^2.0.2"
-    "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/wasm-bindings": "npm:1.3.0-rc2"
-    uuid: "npm:^11.1.0"
-  checksum: 10/afb970af348a528f13cdef37fb64024e0efcbaa45cb1c562eadc872ac7b4fc89e6947ff90af547e9d244ec890b69b03b4e7a0c0789da91761ad8237edc765a09
-  languageName: node
-  linkType: hard
-
-"@xmtp/browser-sdk@workspace:sdks/browser-sdk":
+"@xmtp/browser-sdk@workspace:^, @xmtp/browser-sdk@workspace:sdks/browser-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/browser-sdk@workspace:sdks/browser-sdk"
   dependencies:
@@ -3516,7 +3503,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/wasm-bindings": "npm:1.2.7"
+    "@xmtp/wasm-bindings": "npm:1.3.0"
     playwright: "npm:^1.54.1"
     rollup: "npm:^4.45.0"
     rollup-plugin-dts: "npm:^6.2.1"
@@ -3714,10 +3701,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.2.8":
-  version: 1.2.8
-  resolution: "@xmtp/node-bindings@npm:1.2.8"
-  checksum: 10/80c34b8868c0ae7dbd4986398f77a7c4453ec917cbcab2e45424b837f78482714c4a8100049824414403121b8816c0e8d2f2696f0db94b42322f61fcdc010b64
+"@xmtp/node-bindings@npm:1.3.0":
+  version: 1.3.0
+  resolution: "@xmtp/node-bindings@npm:1.3.0"
+  checksum: 10/1ce331b662d4eb79d740d214bd3c6bf5aa361256bbb9be2ff49c66494156aa191528b8024e8c22f3b62c19b7ad0d4f7a3a57556fd49151aadf552a762b08f5b7
   languageName: node
   linkType: hard
 
@@ -3732,7 +3719,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/node-bindings": "npm:1.2.8"
+    "@xmtp/node-bindings": "npm:1.3.0"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.45.0"
@@ -3774,17 +3761,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.2.7":
-  version: 1.2.7
-  resolution: "@xmtp/wasm-bindings@npm:1.2.7"
-  checksum: 10/096d72ff26935c817d4714a28c075708b5a76a31831751ba7b296d28c9db413e55083bc3ee888ee8760ac53d2345ed6e0929f433f5c260f211c06043d626a709
-  languageName: node
-  linkType: hard
-
-"@xmtp/wasm-bindings@npm:1.3.0-rc2":
-  version: 1.3.0-rc2
-  resolution: "@xmtp/wasm-bindings@npm:1.3.0-rc2"
-  checksum: 10/cb5bf63f4ef182486dd01a52c45317c71c7be664c3581d844b0fdb95c2cec4ea534061eb37cd5998ee1703c35ef5d58663e3755cbf42f8bb42ba5a71c19d5f4c
+"@xmtp/wasm-bindings@npm:1.3.0":
+  version: 1.3.0
+  resolution: "@xmtp/wasm-bindings@npm:1.3.0"
+  checksum: 10/1b228631f14539d2f032fe5cd5d65df1dd070b5515e057879a6b4ab92864fbc0bdce9335f28bcf68856a6c997ae8b7c9676ab783ce275545740190b4702cf0ed
   languageName: node
   linkType: hard
 
@@ -3801,7 +3781,7 @@ __metadata:
     "@types/react": "npm:^19.1.8"
     "@types/react-dom": "npm:^19.1.6"
     "@vitejs/plugin-react": "npm:^4.6.0"
-    "@xmtp/browser-sdk": "npm:3.1.0-rc2"
+    "@xmtp/browser-sdk": "workspace:^"
     "@xmtp/content-type-group-updated": "workspace:^"
     "@xmtp/content-type-primitives": "workspace:^"
     "@xmtp/content-type-reaction": "workspace:^"

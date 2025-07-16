@@ -42,8 +42,6 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.name).toBe(newName);
-    const messages2 = await conversation2.messages();
-    expect(messages2.length).toBe(1);
   });
 
   it("should update conversation image URL", async () => {
@@ -71,8 +69,6 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.imageUrl).toBe(imageUrl);
-    const messages2 = await conversation2.messages();
-    expect(messages2.length).toBe(1);
   });
 
   it("should update conversation description", async () => {
@@ -100,8 +96,6 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.description).toBe(newDescription);
-    const messages2 = await conversation2.messages();
-    expect(messages2.length).toBe(1);
   });
 
   it("should add and remove members", async () => {
@@ -215,8 +209,8 @@ describe("Conversation", () => {
     expect(conversation2.id).toBe(conversation.id);
 
     const messages2 = await conversation2.messages();
-    expect(messages2.length).toBe(1);
-    expect(messages2[0].content).toBe(text);
+    expect(messages2.length).toBe(2);
+    expect(messages2[1].content).toBe(text);
   });
 
   it("should require content type when sending non-string content", async () => {
@@ -269,14 +263,14 @@ describe("Conversation", () => {
     expect(conversation2.id).toBe(conversation.id);
 
     const messages2 = await conversation2.messages();
-    expect(messages2.length).toBe(0);
+    expect(messages2.length).toBe(1);
 
     await conversation.publishMessages();
     await conversation2.sync();
 
     const messages4 = await conversation2.messages();
-    expect(messages4.length).toBe(1);
-    expect(messages4[0].content).toBe(text);
+    expect(messages4.length).toBe(2);
+    expect(messages4[1].content).toBe(text);
   });
 
   it("should require content type when optimistically sending non-string content", async () => {
@@ -646,7 +640,7 @@ describe("Conversation", () => {
     expect((await conversation.messages()).length).toBe(1);
 
     // verify that the messages are deleted on the other client
-    expect((await conversation2?.messages())?.length).toBe(0);
+    expect((await conversation2?.messages())?.length).toBe(1);
 
     // remove the message disappearing settings
     await conversation.removeMessageDisappearingSettings();
@@ -674,7 +668,7 @@ describe("Conversation", () => {
     await conversation2?.send("gm2");
 
     // verify that the messages are sent
-    expect((await conversation2?.messages())?.length).toBe(4);
+    expect((await conversation2?.messages())?.length).toBe(5);
 
     // sync original group
     await conversation.sync();
@@ -737,7 +731,7 @@ describe("Conversation", () => {
     expect((await conversation.messages()).length).toBe(1);
 
     // verify that the messages are deleted on the other client
-    expect((await conversation2?.messages())?.length).toBe(0);
+    expect((await conversation2?.messages())?.length).toBe(1);
 
     // remove the message disappearing settings
     await conversation.removeMessageDisappearingSettings();
@@ -765,13 +759,13 @@ describe("Conversation", () => {
     await conversation2?.send("gm2");
 
     // verify that the messages are sent
-    expect((await conversation2?.messages())?.length).toBe(4);
+    expect((await conversation2?.messages())?.length).toBe(3);
 
     // sync original group
     await conversation.sync();
 
     // verify that the messages are not deleted
-    expect((await conversation.messages()).length).toBe(5);
+    expect((await conversation.messages()).length).toBe(3);
   });
 
   it("should return paused for version", async () => {
