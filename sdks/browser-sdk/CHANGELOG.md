@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.1.0
+
+### Minor Changes
+
+- 27a6c8e: 1.3.0 bindings release
+
 ## 3.0.5
 
 ### Patch Changes
