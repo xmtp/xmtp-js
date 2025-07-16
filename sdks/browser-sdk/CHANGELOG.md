@@ -2,9 +2,45 @@
 
 ## 3.1.0
 
-### Minor Changes
+This release introduces several enhancements, including quantum-resistant encryption, improved identity management, and refined read/write rate limits.
 
-- 27a6c8e: 1.3.0 bindings release
+If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Support for quantum-resistant encryption
+
+XMTP now supports quantum-resistant encryption, providing enhanced security for message transmission and storage. This upgrade ensures your app is protected against future quantum computer attacks through post-quantum cryptography.
+
+To learn more, see [Quantum resistance](https://docs.xmtp.org/protocol/security#quantum-resistance).
+
+### Consistent identity ordering
+
+When an inbox has multiple associated identities, the `identities` array is now ordered by the `client_timestamp_ns` field, which sorts identities based on when they were added to the inbox, placing the earliest added identity first.
+
+To learn more, see [Select the identity to display](https://docs.xmtp.org/inboxes/manage-inboxes#select-the-identity-to-display).
+
+### Enhanced rate limits with separate read/write limits
+
+XMTP now provides separate rate limits for read and write operations, offering more granular control over API usage. Read operations are limited to 20,000 requests per 5-minute window, while write operations are limited to 3,000 messages per 5-minute window.
+
+To learn more, see [Observe rate limits](https://docs.xmtp.org/inboxes/rate-limits).
+
+### Improved history sync
+
+History sync has been enhanced with better consent management across installations and improved handling of denied conversations. These changes ensure a more consistent experience when users access XMTP from multiple installations.
+
+To learn more, see [Enable history sync](https://docs.xmtp.org/inboxes/history-sync).
+
+### Enhanced group chat updates
+
+Group membership changes now automatically trigger group update codec messages, ensuring all participants receive consistent information about group state changes. This improves the reliability of group chat synchronization across all devices.
+
+To learn more, see [Manage group chat membership](https://docs.xmtp.org/inboxes/group-permissions#manage-group-chat-membership).
+
+### Performance improvements and bug fixes
+
+This release includes various performance optimizations throughout the SDK, resulting in faster message processing, improved memory usage, and better overall responsiveness. The release also includes bug fixes that improve the reliability of group chats and address a performance degradation issue that could occur when creating new groups.
+
+To learn more about optimizing your XMTP implementation, see [Debug your app](https://docs.xmtp.org/inboxes/debug-your-app).
 
 ## 3.0.5
 
