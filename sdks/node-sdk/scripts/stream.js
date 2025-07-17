@@ -37,18 +37,6 @@ export const createSigner = () => {
   };
 };
 
-const onMessage = (error, message) => {
-  if (error) {
-    console.error("Error in message stream:", error);
-    return;
-  }
-  if (!message) {
-    console.log("No message received");
-    return;
-  }
-  console.log("Message received in callback:", message);
-};
-
 let retries = 5;
 const RETRY_INTERVAL = 5000;
 
@@ -78,7 +66,7 @@ const startStream = async (client) => {
   await client.conversations.sync();
 
   const stream = await client.conversations.streamAllMessages(
-    onMessage,
+    undefined,
     undefined,
     undefined,
     onFail(client),
@@ -94,7 +82,7 @@ const startStream = async (client) => {
 async function main() {
   const signer = createSigner();
   const client = await Client.create(signer, {
-    env: "local",
+    env: "production",
   });
 
   console.log("Inbox ID:", client.inboxId);
