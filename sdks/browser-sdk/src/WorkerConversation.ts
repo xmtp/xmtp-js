@@ -202,14 +202,17 @@ export class WorkerConversation {
     return this.#group.isMessageDisappearingEnabled();
   }
 
-  stream(callback?: StreamCallback<Message>) {
+  stream(callback?: StreamCallback<Message>, onFail?: () => void) {
     const on_message = (message: Message) => {
       void callback?.(null, message);
     };
     const on_error = (error: Error | null) => {
       void callback?.(error, undefined);
     };
-    return this.#group.stream({ on_message, on_error });
+    const on_close = () => {
+      onFail?.();
+    };
+    return this.#group.stream({ on_message, on_error, on_close });
   }
 
   pausedForVersion() {

@@ -114,12 +114,22 @@ export class ClientWorkerClass {
   handleStreamMessage = <T extends StreamAction["result"]>(
     streamId: string,
     callback: (error: Error | null, value: T | null) => void,
+    onFail: () => void,
   ) => {
     const streamHandler = (
       event: MessageEvent<StreamAction | StreamActionErrorData>,
     ) => {
       const eventData = event.data;
+      // only process stream messages
+      if (!eventData.action.startsWith("stream.")) {
+        return;
+      }
       if (eventData.streamId === streamId) {
+        // handle stream failures
+        if (eventData.action === "stream.fail") {
+          onFail();
+          return;
+        }
         if ("error" in eventData) {
           callback(eventData.error, null);
         } else {

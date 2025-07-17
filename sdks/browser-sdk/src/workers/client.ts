@@ -78,6 +78,14 @@ const postStreamMessageError = (data: StreamActionErrorData) => {
   self.postMessage(data);
 };
 
+const onStreamFail = (streamId: string) => () => {
+  postStreamMessageError({
+    action: "stream.fail",
+    streamId: streamId,
+    error: new Error("Stream failed"),
+  });
+};
+
 self.onmessage = async (
   event: MessageEvent<ActionWithoutResult<ClientWorkerAction>>,
 ) => {
@@ -448,7 +456,10 @@ self.onmessage = async (
             });
           }
         };
-        const streamCloser = client.preferences.streamConsent(streamCallback);
+        const streamCloser = client.preferences.streamConsent(
+          streamCallback,
+          onStreamFail(data.streamId),
+        );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({
           id,
@@ -476,8 +487,10 @@ self.onmessage = async (
             });
           }
         };
-        const streamCloser =
-          client.preferences.streamPreferences(streamCallback);
+        const streamCloser = client.preferences.streamPreferences(
+          streamCallback,
+          onStreamFail(data.streamId),
+        );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({
           id,
@@ -515,6 +528,7 @@ self.onmessage = async (
         const streamCloser = client.conversations.stream(
           streamCallback,
           data.conversationType,
+          onStreamFail(data.streamId),
         );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
@@ -543,6 +557,7 @@ self.onmessage = async (
           streamCallback,
           data.conversationType,
           data.consentStates,
+          onStreamFail(data.streamId),
         );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
@@ -876,7 +891,10 @@ self.onmessage = async (
             });
           }
         };
-        const streamCloser = group.stream(streamCallback);
+        const streamCloser = group.stream(
+          streamCallback,
+          onStreamFail(data.streamId),
+        );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
         break;

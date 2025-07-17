@@ -153,6 +153,7 @@ export class WorkerConversations {
   stream(
     callback?: StreamCallback<Conversation>,
     conversationType?: ConversationType,
+    onFail?: () => void,
   ) {
     const on_conversation = (conversation: Conversation) => {
       void callback?.(null, conversation);
@@ -160,24 +161,28 @@ export class WorkerConversations {
     const on_error = (error: Error | null) => {
       void callback?.(error, undefined);
     };
+    const on_close = () => {
+      onFail?.();
+    };
     return this.#conversations.stream(
-      { on_conversation, on_error },
+      { on_conversation, on_error, on_close },
       conversationType,
     );
   }
 
-  streamGroups(callback?: StreamCallback<Conversation>) {
-    return this.#conversations.stream(callback, ConversationType.Group);
+  streamGroups(callback?: StreamCallback<Conversation>, onFail?: () => void) {
+    return this.stream(callback, ConversationType.Group, onFail);
   }
 
-  streamDms(callback?: StreamCallback<Conversation>) {
-    return this.#conversations.stream(callback, ConversationType.Dm);
+  streamDms(callback?: StreamCallback<Conversation>, onFail?: () => void) {
+    return this.stream(callback, ConversationType.Dm, onFail);
   }
 
   streamAllMessages(
     callback?: StreamCallback<Message>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
+    onFail?: () => void,
   ) {
     const on_message = (message: Message) => {
       void callback?.(null, message);
@@ -185,8 +190,11 @@ export class WorkerConversations {
     const on_error = (error: Error | null) => {
       void callback?.(error, undefined);
     };
+    const on_close = () => {
+      onFail?.();
+    };
     return this.#conversations.streamAllMessages(
-      { on_message, on_error },
+      { on_message, on_error, on_close },
       conversationType,
       consentStates,
     );

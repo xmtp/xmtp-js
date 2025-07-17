@@ -98,7 +98,10 @@ export class Preferences<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling stream updates
    * @returns Stream instance for consent updates
    */
-  async streamConsent(callback?: StreamCallback<SafeConsent[]>) {
+  async streamConsent(
+    callback?: StreamCallback<SafeConsent[]>,
+    onFail?: () => void,
+  ) {
     const streamId = v4();
     const asyncStream = new AsyncStream<SafeConsent[]>();
     const endStream = this.#client.handleStreamMessage<SafeConsent[]>(
@@ -106,6 +109,11 @@ export class Preferences<ContentTypes = unknown> {
       (error, value) => {
         void asyncStream.callback(error, value ?? undefined);
         void callback?.(error, value ?? undefined);
+      },
+      () => {
+        void asyncStream.end().then(() => {
+          onFail?.();
+        });
       },
     );
     await this.#client.sendMessage("preferences.streamConsent", {
@@ -126,7 +134,10 @@ export class Preferences<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling stream updates
    * @returns Stream instance for preference updates
    */
-  async streamPreferences(callback?: StreamCallback<UserPreference[]>) {
+  async streamPreferences(
+    callback?: StreamCallback<UserPreference[]>,
+    onFail?: () => void,
+  ) {
     const streamId = v4();
     const asyncStream = new AsyncStream<UserPreference[]>();
     const endStream = this.#client.handleStreamMessage<UserPreference[]>(
@@ -134,6 +145,11 @@ export class Preferences<ContentTypes = unknown> {
       (error, value) => {
         void asyncStream.callback(error, value ?? undefined);
         void callback?.(error, value ?? undefined);
+      },
+      () => {
+        void asyncStream.end().then(() => {
+          onFail?.();
+        });
       },
     );
     await this.#client.sendMessage("preferences.streamPreferences", {

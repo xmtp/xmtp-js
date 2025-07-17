@@ -47,26 +47,40 @@ export class WorkerPreferences {
     return this.#client.getConsentState(entityType, entity);
   }
 
-  streamConsent(callback?: StreamCallback<Consent[]>) {
+  streamConsent(callback?: StreamCallback<Consent[]>, onFail?: () => void) {
     const on_consent_update = (consent: Consent[]) => {
       void callback?.(null, consent);
     };
     const on_error = (error: Error | null) => {
       void callback?.(error, undefined);
     };
-    return this.#conversations.streamConsent({ on_consent_update, on_error });
+    const on_close = () => {
+      onFail?.();
+    };
+    return this.#conversations.streamConsent({
+      on_consent_update,
+      on_error,
+      on_close,
+    });
   }
 
-  streamPreferences(callback?: StreamCallback<UserPreference[]>) {
+  streamPreferences(
+    callback?: StreamCallback<UserPreference[]>,
+    onFail?: () => void,
+  ) {
     const on_user_preference_update = (preferences: UserPreference[]) => {
       void callback?.(null, preferences);
     };
     const on_error = (error: Error | null) => {
       void callback?.(error, undefined);
     };
+    const on_close = () => {
+      onFail?.();
+    };
     return this.#conversations.streamPreferences({
       on_user_preference_update,
       on_error,
+      on_close,
     });
   }
 }

@@ -264,7 +264,10 @@ export class Conversation<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream values
    * @returns Stream instance for new messages
    */
-  async stream(callback?: StreamCallback<DecodedMessage<ContentTypes>>) {
+  async stream(
+    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
+    onFail?: () => void,
+  ) {
     const streamId = v4();
     const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
     const endStream = this.#client.handleStreamMessage<SafeMessage>(
@@ -283,6 +286,10 @@ export class Conversation<ContentTypes = unknown> {
 
         void asyncStream.callback(err, message);
         void callback?.(err, message);
+      },
+      () => {
+        onFail?.();
+        void asyncStream.end();
       },
     );
     await this.#client.sendMessage("conversation.stream", {

@@ -293,7 +293,11 @@ export class Conversations<ContentTypes = unknown> {
     T extends Group<ContentTypes> | Dm<ContentTypes> =
       | Group<ContentTypes>
       | Dm<ContentTypes>,
-  >(callback?: StreamCallback<T>, conversationType?: ConversationType) {
+  >(
+    callback?: StreamCallback<T>,
+    conversationType?: ConversationType,
+    onFail?: () => void,
+  ) {
     const streamId = v4();
     const asyncStream = new AsyncStream<T>();
     const endStream = this.#client.handleStreamMessage<SafeConversation>(
@@ -316,6 +320,10 @@ export class Conversations<ContentTypes = unknown> {
         void asyncStream.callback(err, streamValue);
         void callback?.(err, streamValue);
       },
+      () => {
+        onFail?.();
+        void asyncStream.end();
+      },
     );
     await this.#client.sendMessage("conversations.stream", {
       streamId,
@@ -336,8 +344,11 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group conversations
    */
-  async streamGroups(callback?: StreamCallback<Group<ContentTypes>>) {
-    return this.stream(callback, ConversationType.Group);
+  async streamGroups(
+    callback?: StreamCallback<Group<ContentTypes>>,
+    onFail?: () => void,
+  ) {
+    return this.stream(callback, ConversationType.Group, onFail);
   }
 
   /**
@@ -361,6 +372,7 @@ export class Conversations<ContentTypes = unknown> {
     callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
+    onFail?: () => void,
   ) {
     const streamId = v4();
     const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
@@ -380,6 +392,10 @@ export class Conversations<ContentTypes = unknown> {
 
         void asyncStream.callback(err, message);
         void callback?.(err, message);
+      },
+      () => {
+        onFail?.();
+        void asyncStream.end();
       },
     );
     await this.#client.sendMessage("conversations.streamAllMessages", {
@@ -405,11 +421,13 @@ export class Conversations<ContentTypes = unknown> {
   async streamAllGroupMessages(
     callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
+    onFail?: () => void,
   ) {
     return this.streamAllMessages(
       callback,
       ConversationType.Group,
       consentStates,
+      onFail,
     );
   }
 
@@ -422,7 +440,13 @@ export class Conversations<ContentTypes = unknown> {
   async streamAllDmMessages(
     callback?: StreamCallback<DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
+    onFail?: () => void,
   ) {
-    return this.streamAllMessages(callback, ConversationType.Dm, consentStates);
+    return this.streamAllMessages(
+      callback,
+      ConversationType.Dm,
+      consentStates,
+      onFail,
+    );
   }
 }
