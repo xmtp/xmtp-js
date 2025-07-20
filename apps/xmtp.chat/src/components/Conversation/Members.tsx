@@ -40,7 +40,7 @@ export const Members: React.FC<MembersProps> = ({
   const [members, setMembers] = useState<SafeGroupMember[]>([]);
   const [addedMembers, setAddedMembers] = useState<string[]>([]);
   const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
-  const [memberType, setMemberType] = useState<MemberType>("inboxID");
+  const [memberType, setMemberType] = useState<MemberType>("inboxId");
   const { environment } = useSettings();
   const utilsRef = useRef<Utils | null>(null);
 
@@ -223,7 +223,7 @@ export const Members: React.FC<MembersProps> = ({
                 data={[
                   {
                     label: "Inbox ID",
-                    value: "inboxID",
+                    value: "inboxId",
                   },
                   {
                     label: "Address",
