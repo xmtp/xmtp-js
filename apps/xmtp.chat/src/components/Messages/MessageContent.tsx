@@ -1,5 +1,6 @@
 import { Code } from "@mantine/core";
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
+import { ContentTypeReadReceipt } from "@xmtp/content-type-read-receipt";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import {
   ContentTypeTransactionReference,
@@ -11,6 +12,7 @@ import {
 } from "@xmtp/content-type-wallet-send-calls";
 import { FallbackContent } from "@/components/Messages/FallbackContent";
 import { type MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
+import { ReadReceiptContent } from "@/components/Messages/ReadReceiptContent";
 import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
@@ -58,6 +60,10 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         scrollToMessage={scrollToMessage}
       />
     );
+  }
+
+  if (contentType.sameAs(ContentTypeReadReceipt)) {
+    return <ReadReceiptContent />;
   }
 
   if (typeof content === "string") {
