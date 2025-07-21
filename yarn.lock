@@ -3588,7 +3588,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-read-receipt@workspace:content-types/content-type-read-receipt":
+"@xmtp/content-type-read-receipt@workspace:^, @xmtp/content-type-read-receipt@workspace:content-types/content-type-read-receipt":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-read-receipt@workspace:content-types/content-type-read-receipt"
   dependencies:
@@ -3785,6 +3785,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "workspace:^"
     "@xmtp/content-type-primitives": "workspace:^"
     "@xmtp/content-type-reaction": "workspace:^"
+    "@xmtp/content-type-read-receipt": "workspace:^"
     "@xmtp/content-type-remote-attachment": "workspace:^"
     "@xmtp/content-type-reply": "workspace:^"
     "@xmtp/content-type-text": "workspace:^"
