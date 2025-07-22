@@ -118,6 +118,13 @@ describe("AsyncStream", () => {
     expect(onDoneSpy).toHaveBeenCalledOnce();
     expect(onReturnSpy).toHaveBeenCalledOnce();
     expect(stream.isDone).toBe(true);
+
+    stream.push(3);
+
+    for await (const _value of stream) {
+      // this block should never be reached
+      expect(false).toBe(true);
+    }
   });
 
   it("should handle multiple concurrent next() calls", async () => {
@@ -143,20 +150,6 @@ describe("AsyncStream", () => {
     expect(stream.isDone).toBe(false);
   });
 
-  it("should handle next() calls after stream is done", async () => {
-    const stream = new AsyncStream<number>();
-
-    stream.push(1);
-    await stream.end();
-
-    const result1 = await stream.next();
-    const result2 = await stream.next();
-
-    expect(result1).toEqual({ done: true, value: undefined });
-    expect(result2).toEqual({ done: true, value: undefined });
-    expect(stream.isDone).toBe(true);
-  });
-
   it("should handle return() with pending promises", async () => {
     const stream = new AsyncStream<number>();
     const onReturnSpy = vi.fn();
@@ -166,17 +159,17 @@ describe("AsyncStream", () => {
     const nextPromise1 = stream.next();
     const nextPromise2 = stream.next();
 
-    const returnResult = await stream.return(42);
+    const returnResult = await stream.return();
 
-    expect(returnResult).toEqual({ done: true, value: 42 });
+    expect(returnResult).toEqual({ done: true, value: undefined });
     expect(onReturnSpy).toHaveBeenCalledOnce();
     expect(stream.isDone).toBe(true);
 
     const result1 = await nextPromise1;
     const result2 = await nextPromise2;
 
-    expect(result1).toEqual({ done: true, value: 42 });
-    expect(result2).toEqual({ done: true, value: 42 });
+    expect(result1).toEqual({ done: true, value: undefined });
+    expect(result2).toEqual({ done: true, value: undefined });
   });
 
   it("should not process callbacks after being done", async () => {
@@ -244,9 +237,9 @@ describe("createAsyncStreamProxy", () => {
     const ownProperties = Object.getOwnPropertyNames(proxy);
     expect(ownProperties).toHaveLength(4);
     expect(ownProperties).toContain("end");
+    expect(ownProperties).toContain("return");
     expect(ownProperties).toContain("isDone");
     expect(ownProperties).toContain("next");
-    expect(ownProperties).toContain("return");
   });
 
   it("should prevent setting properties", () => {
@@ -288,21 +281,6 @@ describe("createAsyncStreamProxy", () => {
     expect(proxy.isDone).toBe(true);
   });
 
-  it("should correctly forward return() calls to the underlying stream", async () => {
-    const stream = new AsyncStream<number>();
-    const proxy = createAsyncStreamProxy(stream);
-    const onReturnSpy = vi.fn();
-
-    stream.onReturn = onReturnSpy;
-
-    const result = await proxy.return(42);
-
-    expect(result).toEqual({ done: true, value: 42 });
-    expect(onReturnSpy).toHaveBeenCalledOnce();
-    expect(stream.isDone).toBe(true);
-    expect(proxy.isDone).toBe(true);
-  });
-
   it("should maintain async iterator functionality", async () => {
     const stream = new AsyncStream<number>();
     const proxy = createAsyncStreamProxy(stream);
@@ -311,7 +289,7 @@ describe("createAsyncStreamProxy", () => {
     stream.push(2);
     stream.push(3);
 
-    const values: (number | undefined)[] = [];
+    const values: number[] = [];
     let iterationCount = 0;
 
     for await (const value of proxy) {
@@ -328,6 +306,39 @@ describe("createAsyncStreamProxy", () => {
     expect(proxy.isDone).toBe(true);
   });
 
+  it("should end for await..of loop when proxy is ended and call onDone", async () => {
+    const stream = new AsyncStream<number>();
+    const proxy = createAsyncStreamProxy(stream);
+    const onDoneSpy = vi.fn();
+
+    stream.onDone = onDoneSpy;
+
+    stream.push(1);
+    stream.push(2);
+
+    setTimeout(() => {
+      void proxy.end();
+    }, 100);
+
+    const values: number[] = [];
+
+    for await (const value of proxy) {
+      values.push(value);
+    }
+
+    expect(values).toEqual([1, 2]);
+    expect(onDoneSpy).toHaveBeenCalledOnce();
+    expect(stream.isDone).toBe(true);
+    expect(proxy.isDone).toBe(true);
+
+    stream.push(3);
+
+    for await (const _value of proxy) {
+      // this block should never be reached
+      expect(false).toBe(true);
+    }
+  });
+
   it("should correctly implement has() trap", () => {
     const stream = new AsyncStream<number>();
     const proxy = createAsyncStreamProxy(stream);
@@ -338,7 +349,7 @@ describe("createAsyncStreamProxy", () => {
     expect("return" in proxy).toBe(true);
     expect(Symbol.asyncIterator in proxy).toBe(true);
 
-    expect("callback" in proxy).toBe(false);
+    expect("push" in proxy).toBe(false);
     expect("error" in proxy).toBe(false);
     expect("onDone" in proxy).toBe(false);
     expect("onError" in proxy).toBe(false);

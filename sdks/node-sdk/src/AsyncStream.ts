@@ -1,5 +1,5 @@
 type ResolveValue<T> = {
-  value: T | undefined;
+  value: T;
   done: boolean;
 };
 
@@ -7,7 +7,7 @@ type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
 
 export class AsyncStream<T> {
   isDone = false;
-  #pendingResolves: ResolveNext<T>[] = [];
+  #pendingResolves: ResolveNext<T | undefined>[] = [];
   #queue: T[];
   onDone: (() => void) | undefined;
   onReturn: (() => void) | undefined;
@@ -17,17 +17,17 @@ export class AsyncStream<T> {
     this.isDone = false;
   }
 
-  flush(value?: T) {
+  flush() {
     while (this.#pendingResolves.length > 0) {
       const nextResolve = this.#pendingResolves.shift();
       if (nextResolve) {
-        nextResolve({ done: true, value });
+        nextResolve({ done: true, value: undefined });
       }
     }
   }
 
-  done(value?: T) {
-    this.flush(value);
+  done() {
+    this.flush();
     this.#queue = [];
     this.#pendingResolves = [];
     this.isDone = true;
@@ -50,12 +50,9 @@ export class AsyncStream<T> {
     }
   };
 
-  next = (): Promise<ResolveValue<T>> => {
+  next = (): Promise<ResolveValue<T | undefined>> => {
     if (this.isDone) {
-      return Promise.resolve({
-        done: true,
-        value: undefined,
-      });
+      return Promise.resolve({ done: true, value: undefined });
     }
 
     if (this.#queue.length > 0) {
@@ -70,13 +67,13 @@ export class AsyncStream<T> {
     });
   };
 
-  return = (value?: T): Promise<ResolveValue<T>> => {
+  return = (): Promise<ResolveValue<T | undefined>> => {
     this.onReturn?.();
-    this.done(value);
+    this.done();
 
     return Promise.resolve({
       done: true,
-      value,
+      value: undefined,
     });
   };
 
@@ -89,8 +86,8 @@ export class AsyncStream<T> {
 
 interface AsyncStreamProxy<T> extends AsyncIterable<T> {
   next(): Promise<ResolveValue<T>>;
-  end(): Promise<ResolveValue<T>>;
-  return(value?: T): Promise<ResolveValue<T>>;
+  return(): Promise<ResolveValue<undefined>>;
+  end(): Promise<ResolveValue<undefined>>;
   isDone: boolean;
 }
 
