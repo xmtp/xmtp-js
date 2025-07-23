@@ -84,7 +84,7 @@ export class AsyncStream<T> {
   }
 }
 
-interface AsyncStreamProxy<T> extends AsyncIterable<T> {
+export interface AsyncStreamProxy<T> extends AsyncIterable<T> {
   next(): Promise<ResolveValue<T>>;
   return(): Promise<ResolveValue<undefined>>;
   end(): Promise<ResolveValue<undefined>>;
@@ -106,7 +106,7 @@ const isUsableProperty = <T>(
 
 /**
  * Creates a proxy for AsyncStream instances that only exposes the next, end,
- * and return methods, the isDone property, and the async iterator.
+ * return, isDone, and the async iterator.
  */
 export function createAsyncStreamProxy<T>(stream: AsyncStream<T>) {
   return new Proxy(stream, {
