@@ -400,7 +400,7 @@ describe("Conversation", () => {
     expect(conversation2[0].id).toBe(conversation.id);
 
     const streamedMessages: unknown[] = [];
-    const stream = conversation2[0].stream({
+    const stream = await conversation2[0].stream({
       onValue: (message) => {
         streamedMessages.push(message.content);
       },

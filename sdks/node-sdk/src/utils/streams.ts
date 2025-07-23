@@ -77,7 +77,7 @@ export type StreamValueMutator<T = unknown, V = T> = (
  * @throws {StreamInvalidRetryAttemptsError} if the retryAttempts option is less than 0 and retryOnFail is true
  * @throws {StreamFailedError} if the stream fails and can't be restarted
  */
-export const createStream = <T = unknown, V = T>(
+export const createStream = async <T = unknown, V = T>(
   streamFunction: StreamFunction<T>,
   streamValueMutator?: StreamValueMutator<T, V>,
   options?: StreamOptions<T, V>,
@@ -128,67 +128,65 @@ export const createStream = <T = unknown, V = T>(
       }
     }
   };
-  const retry = (retries: number = retryAttempts) => {
+  const retry = async (retries: number = retryAttempts) => {
     // if the stream has been retried the maximum number of times without
     // success, throw an error
     if (retries === 0) {
+      void asyncStream.end();
       throw new StreamFailedError(retryAttempts);
     }
 
     // wait for the retry delay before attempting to restart the stream
-    void wait(retryDelay).then(() => {
-      // call the onRetry callback
-      onRetry?.(retryAttempts - retries + 1, retryAttempts);
+    await wait(retryDelay);
+    // call the onRetry callback
+    onRetry?.(retryAttempts - retries + 1, retryAttempts);
+    try {
       // attempt to restart the stream
-      streamFunction(streamCallback, () => {
+      const streamCloser = await streamFunction(streamCallback, () => {
         // call the onFail callback
         onFail?.();
-        // if the stream should be retried, start the process
-        if (retryOnFail) {
-          retry();
-        } else {
-          // stream failed and should not be retried, throw an error
-          throw new StreamFailedError(0);
-        }
-      })
-        .then((streamCloser) => {
-          // when the async stream is done, end the stream
-          asyncStream.onDone = () => {
-            streamCloser.end();
-          };
-          // stream restarted, call the onRestart callback
-          onRestart?.();
-        })
-        .catch((error: unknown) => {
-          onError?.(error as Error);
-          // restart failed, try again
-          retry(retries - 1);
-        });
-    });
-  };
-
-  // create the stream
-  streamFunction(streamCallback, () => {
-    // call the onFail callback
-    onFail?.();
-
-    // if the stream should be retried, start the process
-    if (retryOnFail) {
-      retry();
-    } else {
-      // stream failed and should not be retried, throw an error
-      throw new StreamFailedError(0);
-    }
-  })
-    .then((streamCloser) => {
+        void retry();
+      });
+      await streamCloser.waitForReady();
       // when the async stream is done, end the stream
       asyncStream.onDone = () => {
         streamCloser.end();
       };
-    })
-    .catch((error: unknown) => {
+      // stream restarted, call the onRestart callback
+      onRestart?.();
+    } catch (error) {
       onError?.(error as Error);
+      // retry
+      void retry(retries - 1);
+    }
+  };
+  const startRetry = () => {
+    // if the stream should be retried, start the process
+    if (retryOnFail) {
+      void retry();
+    } else {
+      void asyncStream.end();
+      // stream failed and should not be retried, throw an error
+      throw new StreamFailedError(0);
+    }
+  };
+
+  try {
+    // create the stream
+    const streamCloser = await streamFunction(streamCallback, () => {
+      // call the onFail callback
+      onFail?.();
+      startRetry();
     });
+    await streamCloser.waitForReady();
+    // when the async stream is done, end the stream
+    asyncStream.onDone = () => {
+      streamCloser.end();
+    };
+  } catch (error) {
+    onError?.(error as Error);
+    startRetry();
+  }
 
   // return a proxy for the async stream
   return createAsyncStreamProxy(asyncStream);

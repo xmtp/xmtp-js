@@ -120,7 +120,7 @@ describe("Preferences", () => {
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
     const group = await client.conversations.newGroup([client2.inboxId]);
-    const stream = client.preferences.streamConsent();
+    const stream = await client.preferences.streamConsent();
 
     await sleep(1000);
     group.updateConsentState(ConsentState.Denied);
@@ -182,7 +182,7 @@ describe("Preferences", () => {
     const user = createUser();
     const signer = createSigner(user);
     const client = await createRegisteredClient(signer);
-    const stream = client.preferences.streamPreferences();
+    const stream = await client.preferences.streamPreferences();
 
     await sleep(2000);
 
