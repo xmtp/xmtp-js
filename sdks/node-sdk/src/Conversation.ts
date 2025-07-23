@@ -114,7 +114,7 @@ export class Conversation<ContentTypes = unknown> {
   /**
    * Creates a stream for new messages in this conversation
    *
-   * @param callback - Optional callback function for handling new stream values
+   * @param options - Optional stream options
    * @returns Stream instance for new messages
    */
   stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {

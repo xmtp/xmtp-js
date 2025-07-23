@@ -249,7 +249,8 @@ export class Conversations<ContentTypes = unknown> {
   /**
    * Creates a stream for new conversations
    *
-   * @param callback - Optional callback function for handling new stream value
+   * @param options - Optional stream options
+   * @param conversationType - Optional conversation type to filter by
    * @returns Stream instance for new conversations
    */
   stream(
@@ -287,7 +288,7 @@ export class Conversations<ContentTypes = unknown> {
   /**
    * Creates a stream for new group conversations
    *
-   * @param callback - Optional callback function for handling new stream value
+   * @param options - Optional stream options
    * @returns Stream instance for new group conversations
    */
   streamGroups(options?: StreamOptions<Conversation, Group<ContentTypes>>) {
@@ -312,7 +313,7 @@ export class Conversations<ContentTypes = unknown> {
   /**
    * Creates a stream for new DM conversations
    *
-   * @param callback - Optional callback function for handling new stream value
+   * @param options - Optional stream options
    * @returns Stream instance for new DM conversations
    */
   streamDms(options?: StreamOptions<Conversation, Dm<ContentTypes>>) {
@@ -333,7 +334,9 @@ export class Conversations<ContentTypes = unknown> {
   /**
    * Creates a stream for all new messages
    *
-   * @param callback - Optional callback function for handling new stream value
+   * @param options - Optional stream options
+   * @param conversationType - Optional conversation type to filter by
+   * @param consentStates - Optional consent states to filter by
    * @returns Stream instance for new messages
    */
   streamAllMessages(
@@ -363,7 +366,8 @@ export class Conversations<ContentTypes = unknown> {
   /**
    * Creates a stream for all new group messages
    *
-   * @param callback - Optional callback function for handling new stream value
+   * @param options - Optional stream options
+   * @param consentStates - Optional consent states to filter by
    * @returns Stream instance for new group messages
    */
   streamAllGroupMessages(
@@ -380,7 +384,8 @@ export class Conversations<ContentTypes = unknown> {
   /**
    * Creates a stream for all new DM messages
    *
-   * @param callback - Optional callback function for handling new stream value
+   * @param options - Optional stream options
+   * @param consentStates - Optional consent states to filter by
    * @returns Stream instance for new DM messages
    */
   streamAllDmMessages(
