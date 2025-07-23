@@ -9,7 +9,7 @@ To keep up with the latest SDK developments, see the [Issues tab](https://githu
 
 ## Documentation
 
-To learn how to use the XMTP client SDK for browsers and get answers to frequently asked questions, see the [XMTP documentation](https://docs.xmtp.org/).
+To learn how to use the XMTP client SDK for browsers, see [Get started with the XMTP Browser SDK](https://docs.xmtp.org/sdks/browser).
 
 ## SDK reference
 
