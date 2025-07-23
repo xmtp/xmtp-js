@@ -253,7 +253,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param conversationType - Optional conversation type to filter by
    * @returns Stream instance for new conversations
    */
-  stream(
+  async stream(
     options?: StreamOptions<
       Conversation,
       Group<ContentTypes> | Dm<ContentTypes> | undefined
@@ -291,7 +291,9 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for new group conversations
    */
-  streamGroups(options?: StreamOptions<Conversation, Group<ContentTypes>>) {
+  async streamGroups(
+    options?: StreamOptions<Conversation, Group<ContentTypes>>,
+  ) {
     const stream = async (
       callback: StreamCallback<Conversation>,
       onFail: () => void,
@@ -316,7 +318,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for new DM conversations
    */
-  streamDms(options?: StreamOptions<Conversation, Dm<ContentTypes>>) {
+  async streamDms(options?: StreamOptions<Conversation, Dm<ContentTypes>>) {
     const stream = async (
       callback: StreamCallback<Conversation>,
       onFail: () => void,
@@ -339,7 +341,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param consentStates - Optional consent states to filter by
    * @returns Stream instance for new messages
    */
-  streamAllMessages(
+  async streamAllMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
@@ -370,7 +372,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param consentStates - Optional consent states to filter by
    * @returns Stream instance for new group messages
    */
-  streamAllGroupMessages(
+  async streamAllGroupMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
@@ -388,7 +390,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param consentStates - Optional consent states to filter by
    * @returns Stream instance for new DM messages
    */
-  streamAllDmMessages(
+  async streamAllDmMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {

@@ -117,7 +117,7 @@ export class Conversation<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for new messages
    */
-  stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
+  async stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
     const stream = async (
       callback: StreamCallback<Message>,
       onFail: () => void,
