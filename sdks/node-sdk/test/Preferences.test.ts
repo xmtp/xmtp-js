@@ -122,10 +122,10 @@ describe("Preferences", () => {
     const group = await client.conversations.newGroup([client2.inboxId]);
     const stream = client.preferences.streamConsent();
 
+    await sleep(1000);
     group.updateConsentState(ConsentState.Denied);
 
     await sleep(1000);
-
     await client.preferences.setConsentStates([
       {
         entity: group.id,
