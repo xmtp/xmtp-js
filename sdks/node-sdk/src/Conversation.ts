@@ -10,7 +10,11 @@ import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { nsToDate } from "@/utils/date";
 import { MissingContentTypeError } from "@/utils/errors";
-import { createStream, type StreamOptions } from "@/utils/streams";
+import {
+  createStream,
+  type StreamCallback,
+  type StreamOptions,
+} from "@/utils/streams";
 
 /**
  * Represents a conversation
@@ -114,7 +118,13 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Stream instance for new messages
    */
   stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
-    const stream = this.#conversation.stream.bind(this.#conversation);
+    const stream = async (
+      callback: StreamCallback<Message>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversation.stream(callback, onFail);
+    };
     const convertMessage = (value: Message) => {
       return new DecodedMessage(this.#client, value);
     };
