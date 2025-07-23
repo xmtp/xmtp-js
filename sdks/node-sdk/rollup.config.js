@@ -7,6 +7,7 @@ import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 const external = [
   "node:path",
   "node:process",
+  "node:util/types",
   "@xmtp/content-type-group-updated",
   "@xmtp/content-type-primitives",
   "@xmtp/content-type-text",
