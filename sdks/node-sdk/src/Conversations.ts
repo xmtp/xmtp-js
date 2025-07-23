@@ -13,7 +13,11 @@ import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
-import { createStream, type StreamOptions } from "@/utils/streams";
+import {
+  createStream,
+  type StreamCallback,
+  type StreamOptions,
+} from "@/utils/streams";
 
 /**
  * Manages conversations
@@ -255,7 +259,13 @@ export class Conversations<ContentTypes = unknown> {
     >,
     conversationType?: ConversationType,
   ) {
-    const stream = this.#conversations.stream.bind(this.#conversations);
+    const stream = async (
+      callback: StreamCallback<Conversation>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.stream(callback, onFail, conversationType);
+    };
     const convertConversation = async (value: Conversation) => {
       const metadata = await value.groupMetadata();
       const conversationType = metadata.conversationType();
@@ -271,7 +281,7 @@ export class Conversations<ContentTypes = unknown> {
       return conversation;
     };
 
-    return createStream(stream, convertConversation, options, conversationType);
+    return createStream(stream, convertConversation, options);
   }
 
   /**
@@ -281,17 +291,22 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new group conversations
    */
   streamGroups(options?: StreamOptions<Conversation, Group<ContentTypes>>) {
-    const stream = this.#conversations.stream.bind(this.#conversations);
+    const stream = async (
+      callback: StreamCallback<Conversation>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.stream(
+        callback,
+        onFail,
+        ConversationType.Group,
+      );
+    };
     const convertConversation = (value: Conversation) => {
       return new Group(this.#client, value);
     };
 
-    return createStream(
-      stream,
-      convertConversation,
-      options,
-      ConversationType.Group,
-    );
+    return createStream(stream, convertConversation, options);
   }
 
   /**
@@ -301,17 +316,18 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new DM conversations
    */
   streamDms(options?: StreamOptions<Conversation, Dm<ContentTypes>>) {
-    const stream = this.#conversations.stream.bind(this.#conversations);
+    const stream = async (
+      callback: StreamCallback<Conversation>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.stream(callback, onFail, ConversationType.Dm);
+    };
     const convertConversation = (value: Conversation) => {
       return new Dm(this.#client, value);
     };
 
-    return createStream(
-      stream,
-      convertConversation,
-      options,
-      ConversationType.Dm,
-    );
+    return createStream(stream, convertConversation, options);
   }
 
   /**
@@ -320,28 +336,28 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new messages
    */
-  async streamAllMessages(
+  streamAllMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
   ) {
-    // sync conversations first
-    await this.sync();
-
-    const streamAllMessages = this.#conversations.streamAllMessages.bind(
-      this.#conversations,
-    );
+    const streamAllMessages = async (
+      callback: StreamCallback<Message>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.streamAllMessages(
+        callback,
+        onFail,
+        conversationType,
+        consentStates,
+      );
+    };
     const convertMessage = (value: Message) => {
       return new DecodedMessage(this.#client, value);
     };
 
-    return createStream(
-      streamAllMessages,
-      convertMessage,
-      options,
-      conversationType,
-      consentStates,
-    );
+    return createStream(streamAllMessages, convertMessage, options);
   }
 
   /**
@@ -350,7 +366,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group messages
    */
-  async streamAllGroupMessages(
+  streamAllGroupMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {
@@ -367,7 +383,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM messages
    */
-  async streamAllDmMessages(
+  streamAllDmMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
   ) {

@@ -6,7 +6,7 @@ import type {
 } from "@xmtp/node-bindings";
 import {
   createStream,
-  type StreamFunction,
+  type StreamCallback,
   type StreamOptions,
 } from "@/utils/streams";
 
@@ -106,9 +106,13 @@ export class Preferences {
    * @returns Stream instance for consent updates
    */
   streamConsent(options?: StreamOptions<Consent[]>) {
-    const streamConsent = this.#conversations.streamConsent.bind(
-      this.#conversations,
-    );
+    const streamConsent = async (
+      callback: StreamCallback<Consent[]>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.streamConsent(callback, onFail);
+    };
     return createStream(streamConsent, undefined, options);
   }
 
@@ -119,9 +123,13 @@ export class Preferences {
    * @returns Stream instance for preference updates
    */
   streamPreferences(options?: StreamOptions<PreferenceUpdate>) {
-    const streamPreferences = this.#conversations.streamPreferences.bind(
-      this.#conversations,
-    ) as StreamFunction<PreferenceUpdate>;
+    const streamPreferences = async (
+      callback: StreamCallback<PreferenceUpdate>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.streamPreferences(callback, onFail);
+    };
     return createStream(streamPreferences, undefined, options);
   }
 }
