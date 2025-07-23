@@ -6,11 +6,11 @@ import type {
   Message,
   Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
-import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { nsToDate } from "@/utils/date";
 import { MissingContentTypeError } from "@/utils/errors";
+import { createStream, type StreamOptions } from "@/utils/streams";
 
 /**
  * Represents a conversation
@@ -113,36 +113,13 @@ export class Conversation<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream values
    * @returns Stream instance for new messages
    */
-  stream(
-    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
-    onFail?: () => void,
-  ) {
-    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
-
-    const stream = this.#conversation.stream(
-      (error, value) => {
-        let err: Error | null = error;
-        let message: DecodedMessage<ContentTypes> | undefined;
-
-        if (value) {
-          try {
-            message = new DecodedMessage(this.#client, value);
-          } catch (error) {
-            err = error as Error;
-          }
-        }
-
-        asyncStream.callback(err, message);
-        callback?.(err, message);
-      },
-      onFail ?? (() => {}),
-    );
-
-    asyncStream.onDone = () => {
-      stream.end();
+  stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
+    const stream = this.#conversation.stream.bind(this.#conversation);
+    const convertMessage = (value: Message) => {
+      return new DecodedMessage(this.#client, value);
     };
 
-    return asyncStream;
+    return createStream(stream, convertMessage, options);
   }
 
   /**

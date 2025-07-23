@@ -415,7 +415,7 @@ describe("Conversations", () => {
     ]);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
@@ -460,14 +460,11 @@ describe("Conversations", () => {
     const group2 = await client2.conversations.newGroup([client3.inboxId]);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -499,14 +496,11 @@ describe("Conversations", () => {
     const group3 = await client4.conversations.newDm(client3.inboxId);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -541,14 +535,11 @@ describe("Conversations", () => {
     await groups3[0].send("gm2!");
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
@@ -597,14 +588,11 @@ describe("Conversations", () => {
     await groupsList3[0].send("gm2!");
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
@@ -653,14 +641,11 @@ describe("Conversations", () => {
     await groupsList4[0].send("gm3!");
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {

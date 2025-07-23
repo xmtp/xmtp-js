@@ -1,17 +1,19 @@
 import {
   ConversationType,
   type ConsentState,
+  type Conversation,
   type CreateDmOptions,
   type CreateGroupOptions,
   type Identifier,
   type ListConversationsOptions,
+  type Message,
   type Conversations as XmtpConversations,
 } from "@xmtp/node-bindings";
-import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
+import { createStream, type StreamOptions } from "@/utils/streams";
 
 /**
  * Manages conversations
@@ -247,55 +249,29 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new conversations
    */
   stream(
-    callback?: StreamCallback<Group<ContentTypes> | Dm<ContentTypes>>,
-    onFail?: () => void,
+    options?: StreamOptions<
+      Conversation,
+      Group<ContentTypes> | Dm<ContentTypes> | undefined
+    >,
+    conversationType?: ConversationType,
   ) {
-    const asyncStream = new AsyncStream<
-      Group<ContentTypes> | Dm<ContentTypes>
-    >();
-
-    const stream = this.#conversations.stream(
-      (err, value) => {
-        if (err) {
-          asyncStream.callback(err, undefined);
-          callback?.(err, undefined);
-          return;
-        }
-
-        value
-          ?.groupMetadata()
-          .then((metadata) => {
-            const conversationType = metadata.conversationType();
-            let conversation:
-              | Group<ContentTypes>
-              | Dm<ContentTypes>
-              | undefined;
-            switch (conversationType) {
-              case "dm":
-                conversation = new Dm(this.#client, value);
-                break;
-              case "group":
-                conversation = new Group(this.#client, value);
-                break;
-            }
-            if (conversation) {
-              asyncStream.callback(null, conversation);
-              callback?.(null, conversation);
-            }
-          })
-          .catch((error: unknown) => {
-            asyncStream.callback(error as Error, undefined);
-            callback?.(error as Error, undefined);
-          });
-      },
-      onFail ?? (() => {}),
-    );
-
-    asyncStream.onDone = () => {
-      stream.end();
+    const stream = this.#conversations.stream.bind(this.#conversations);
+    const convertConversation = async (value: Conversation) => {
+      const metadata = await value.groupMetadata();
+      const conversationType = metadata.conversationType();
+      let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
+      switch (conversationType) {
+        case "dm":
+          conversation = new Dm(this.#client, value);
+          break;
+        case "group":
+          conversation = new Group(this.#client, value);
+          break;
+      }
+      return conversation;
     };
 
-    return asyncStream;
+    return createStream(stream, convertConversation, options, conversationType);
   }
 
   /**
@@ -304,37 +280,18 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new group conversations
    */
-  streamGroups(
-    callback?: StreamCallback<Group<ContentTypes>>,
-    onFail?: () => void,
-  ) {
-    const asyncStream = new AsyncStream<Group<ContentTypes>>();
-
-    const stream = this.#conversations.stream(
-      (error, value) => {
-        let err: Error | null = error;
-        let group: Group<ContentTypes> | undefined;
-
-        if (value) {
-          try {
-            group = new Group(this.#client, value);
-          } catch (error) {
-            err = error as Error;
-          }
-        }
-
-        asyncStream.callback(err, group);
-        callback?.(err, group);
-      },
-      onFail ?? (() => {}),
-      ConversationType.Group,
-    );
-
-    asyncStream.onDone = () => {
-      stream.end();
+  streamGroups(options?: StreamOptions<Conversation, Group<ContentTypes>>) {
+    const stream = this.#conversations.stream.bind(this.#conversations);
+    const convertConversation = (value: Conversation) => {
+      return new Group(this.#client, value);
     };
 
-    return asyncStream;
+    return createStream(
+      stream,
+      convertConversation,
+      options,
+      ConversationType.Group,
+    );
   }
 
   /**
@@ -343,34 +300,18 @@ export class Conversations<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream value
    * @returns Stream instance for new DM conversations
    */
-  streamDms(callback?: StreamCallback<Dm<ContentTypes>>, onFail?: () => void) {
-    const asyncStream = new AsyncStream<Dm<ContentTypes>>();
-
-    const stream = this.#conversations.stream(
-      (error, value) => {
-        let err: Error | null = error;
-        let dm: Dm<ContentTypes> | undefined;
-
-        if (value) {
-          try {
-            dm = new Dm(this.#client, value);
-          } catch (error) {
-            err = error as Error;
-          }
-        }
-
-        asyncStream.callback(err, dm);
-        callback?.(err, dm);
-      },
-      onFail ?? (() => {}),
-      ConversationType.Dm,
-    );
-
-    asyncStream.onDone = () => {
-      stream.end();
+  streamDms(options?: StreamOptions<Conversation, Dm<ContentTypes>>) {
+    const stream = this.#conversations.stream.bind(this.#conversations);
+    const convertConversation = (value: Conversation) => {
+      return new Dm(this.#client, value);
     };
 
-    return asyncStream;
+    return createStream(
+      stream,
+      convertConversation,
+      options,
+      ConversationType.Dm,
+    );
   }
 
   /**
@@ -380,42 +321,27 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
-    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
-    onFail?: () => void,
   ) {
     // sync conversations first
     await this.sync();
 
-    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
+    const streamAllMessages = this.#conversations.streamAllMessages.bind(
+      this.#conversations,
+    );
+    const convertMessage = (value: Message) => {
+      return new DecodedMessage(this.#client, value);
+    };
 
-    const stream = this.#conversations.streamAllMessages(
-      (error, value) => {
-        let err: Error | null = error;
-        let message: DecodedMessage<ContentTypes> | undefined;
-
-        if (value) {
-          try {
-            message = new DecodedMessage(this.#client, value);
-          } catch (error) {
-            err = error as Error;
-          }
-        }
-
-        asyncStream.callback(err, message);
-        callback?.(err, message);
-      },
-      onFail ?? (() => {}),
+    return createStream(
+      streamAllMessages,
+      convertMessage,
+      options,
       conversationType,
       consentStates,
     );
-
-    asyncStream.onDone = () => {
-      stream.end();
-    };
-
-    return asyncStream;
   }
 
   /**
@@ -425,15 +351,13 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
-    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
-    onFail?: () => void,
   ) {
     return this.streamAllMessages(
-      callback,
+      options,
       ConversationType.Group,
       consentStates,
-      onFail,
     );
   }
 
@@ -444,16 +368,10 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
-    callback?: StreamCallback<DecodedMessage<ContentTypes>>,
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
     consentStates?: ConsentState[],
-    onFail?: () => void,
   ) {
-    return this.streamAllMessages(
-      callback,
-      ConversationType.Dm,
-      consentStates,
-      onFail,
-    );
+    return this.streamAllMessages(options, ConversationType.Dm, consentStates);
   }
 
   /**
