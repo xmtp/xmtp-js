@@ -149,14 +149,11 @@ describe("Preferences", () => {
     ]);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const updates of stream) {
-      if (updates === undefined) {
-        break;
-      }
       count++;
       if (count === 1) {
         expect(updates.length).toBe(1);
@@ -205,14 +202,11 @@ describe("Preferences", () => {
     await sleep(2000);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const preferences of stream) {
-      if (preferences === undefined) {
-        break;
-      }
       count++;
       expect(preferences).toBeDefined();
       expect(preferences.type).toBeDefined();
