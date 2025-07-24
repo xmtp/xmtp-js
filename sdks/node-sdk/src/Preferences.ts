@@ -119,7 +119,7 @@ export class Preferences {
   /**
    * Creates a stream of user preference updates
    *
-   * @param callback - Optional callback function for handling stream updates
+   * @param options - Optional stream options
    * @returns Stream instance for preference updates
    */
   streamPreferences(options?: StreamOptions<PreferenceUpdate>) {
