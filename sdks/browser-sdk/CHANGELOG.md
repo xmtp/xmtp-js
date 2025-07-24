@@ -1,5 +1,15 @@
 # @xmtp/browser-sdk
 
+## 3.1.1
+
+### Patch Changes
+
+- 41aeaae:
+  - Improved sync and stream performance
+  - Increased max installations to 10
+  - Fixed a known fork issue
+  - Added key package rotation every 30 days
+
 ## 3.1.0
 
 This release introduces several enhancements, including quantum-resistant encryption, improved identity management, and refined read/write rate limits.
