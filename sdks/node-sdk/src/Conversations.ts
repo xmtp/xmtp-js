@@ -250,7 +250,7 @@ export class Conversations<ContentTypes = unknown> {
    * Creates a stream for new conversations
    *
    * @param options - Optional stream options
-   * @param conversationType - Optional conversation type to filter by
+   * @param options.conversationType - Optional conversation type to filter by
    * @returns Stream instance for new conversations
    */
   async stream(
@@ -342,8 +342,8 @@ export class Conversations<ContentTypes = unknown> {
    * Creates a stream for all new messages
    *
    * @param options - Optional stream options
-   * @param conversationType - Optional conversation type to filter by
-   * @param consentStates - Optional consent states to filter by
+   * @param options.conversationType - Optional conversation type to filter by
+   * @param options.consentStates - Optional array of consent states to filter by
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
@@ -375,7 +375,7 @@ export class Conversations<ContentTypes = unknown> {
    * Creates a stream for all new group messages
    *
    * @param options - Optional stream options
-   * @param consentStates - Optional consent states to filter by
+   * @param options.consentStates - Optional array of consent states to filter by
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
@@ -394,7 +394,7 @@ export class Conversations<ContentTypes = unknown> {
    * Creates a stream for all new DM messages
    *
    * @param options - Optional stream options
-   * @param consentStates - Optional consent states to filter by
+   * @param options.consentStates - Optional array of consent states to filter by
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
