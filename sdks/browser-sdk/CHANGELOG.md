@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 3.1.1
+
+### Patch Changes
+
+- 41aeaae: 1.3.2 release
+
 ## 3.1.0
 
 This release introduces several enhancements, including quantum-resistant encryption, improved identity management, and refined read/write rate limits.
