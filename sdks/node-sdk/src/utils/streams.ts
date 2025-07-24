@@ -3,8 +3,7 @@ import type { StreamCloser } from "@xmtp/node-bindings";
 import { AsyncStream, createAsyncStreamProxy } from "@/AsyncStream";
 import { StreamFailedError, StreamInvalidRetryAttemptsError } from "./errors";
 
-export const wait = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const DEFAULT_RETRY_DELAY = 10000; // milliseconds
 export const DEFAULT_RETRY_ATTEMPTS = 6;
