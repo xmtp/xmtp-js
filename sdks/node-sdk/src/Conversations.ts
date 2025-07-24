@@ -257,15 +257,20 @@ export class Conversations<ContentTypes = unknown> {
     options?: StreamOptions<
       Conversation,
       Group<ContentTypes> | Dm<ContentTypes> | undefined
-    >,
-    conversationType?: ConversationType,
+    > & {
+      conversationType?: ConversationType;
+    },
   ) {
     const stream = async (
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
       await this.sync();
-      return this.#conversations.stream(callback, onFail, conversationType);
+      return this.#conversations.stream(
+        callback,
+        onFail,
+        options?.conversationType,
+      );
     };
     const convertConversation = async (value: Conversation) => {
       const metadata = await value.groupMetadata();
@@ -342,9 +347,10 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
-    conversationType?: ConversationType,
-    consentStates?: ConsentState[],
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+      conversationType?: ConversationType;
+      consentStates?: ConsentState[];
+    },
   ) {
     const streamAllMessages = async (
       callback: StreamCallback<Message>,
@@ -354,8 +360,8 @@ export class Conversations<ContentTypes = unknown> {
       return this.#conversations.streamAllMessages(
         callback,
         onFail,
-        conversationType,
-        consentStates,
+        options?.conversationType,
+        options?.consentStates,
       );
     };
     const convertMessage = (value: Message) => {
@@ -373,14 +379,15 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
-    consentStates?: ConsentState[],
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+      consentStates?: ConsentState[];
+    },
   ) {
-    return this.streamAllMessages(
-      options,
-      ConversationType.Group,
-      consentStates,
-    );
+    return this.streamAllMessages({
+      ...options,
+      conversationType: ConversationType.Group,
+      consentStates: options?.consentStates,
+    });
   }
 
   /**
@@ -391,10 +398,15 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>>,
-    consentStates?: ConsentState[],
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+      consentStates?: ConsentState[];
+    },
   ) {
-    return this.streamAllMessages(options, ConversationType.Dm, consentStates);
+    return this.streamAllMessages({
+      ...options,
+      conversationType: ConversationType.Dm,
+      consentStates: options?.consentStates,
+    });
   }
 
   /**
