@@ -5,6 +5,28 @@ type ResolveValue<T> = {
 
 type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
 
+/**
+ * AsyncStream provides an async iterable interface for streaming data.
+ *
+ * This class implements a producer-consumer pattern where:
+ * - Producers can push values using the `push()` method
+ * - Consumers can iterate over values asynchronously using `for await` loops or `next()`
+ * - Values are queued internally when no consumers are waiting
+ * - Consumers are resolved immediately when values are available
+ * - The stream can be terminated using `done()`, `return()`, or `end()`
+ *
+ * @example
+ * ```typescript
+ * const stream = new AsyncStream<string>();
+ *
+ * stream.push("hello");
+ * stream.push("world");
+ *
+ * for await (const value of stream) {
+ *   console.log(value); // "hello", "world"
+ * }
+ * ```
+ */
 export class AsyncStream<T> {
   isDone = false;
   #pendingResolves: ResolveNext<T | undefined>[] = [];
@@ -105,8 +127,33 @@ const isUsableProperty = <T>(
 };
 
 /**
- * Creates a proxy for AsyncStream instances that only exposes the next, end,
- * return, isDone, and the async iterator.
+ * Creates a read-only proxy for AsyncStream instances that restricts access to consumer-only methods.
+ *
+ * This proxy only exposes the following properties and methods:
+ * - `next()`: Get the next value from the stream
+ * - `end()`: Terminate the stream and stop iteration
+ * - `return()`: Same as end(), terminates the stream
+ * - `isDone`: Boolean indicating if the stream has been terminated
+ * - `Symbol.asyncIterator`: Enables `for await` loop iteration
+ *
+ * Producer methods like `push()`, `done()`, and `flush()` are hidden to prevent
+ * consumers from accidentally modifying the stream state.
+ *
+ * @param stream - The AsyncStream instance to create a proxy for
+ * @returns A read-only proxy that implements AsyncStreamProxy<T>
+ *
+ * @example
+ * ```typescript
+ * const stream = new AsyncStream<string>();
+ * const proxy = createAsyncStreamProxy(stream);
+ *
+ * stream.push("hello");
+ * stream.push("world");
+ *
+ * for await (const value of proxy) {
+ *   console.log(value); // "hello", "world"
+ * }
+ * ```
  */
 export function createAsyncStreamProxy<T>(stream: AsyncStream<T>) {
   return new Proxy(stream, {
