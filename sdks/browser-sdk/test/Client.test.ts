@@ -187,7 +187,7 @@ describe("Client", () => {
     expect(installationIds2).not.toContain(client.installationId);
   });
 
-  it("should throw when trying to create more than 5 installations", async () => {
+  it("should throw when trying to create more than 10 installations", async () => {
     const user = createUser();
     const signer = createSigner(user);
     const client = await createRegisteredClient(signer);
@@ -203,9 +203,24 @@ describe("Client", () => {
     const client5 = await createRegisteredClient(signer, {
       dbPath: `./test-${v4()}.db3`,
     });
+    const client6 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client7 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client8 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client9 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+    const client10 = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
 
     const inboxState = await client3.preferences.inboxState(true);
-    expect(inboxState.installations.length).toBe(5);
+    expect(inboxState.installations.length).toBe(10);
 
     const installationIds = inboxState.installations.map((i) => i.id);
     expect(installationIds).toContain(client.installationId);
@@ -213,6 +228,11 @@ describe("Client", () => {
     expect(installationIds).toContain(client3.installationId);
     expect(installationIds).toContain(client4.installationId);
     expect(installationIds).toContain(client5.installationId);
+    expect(installationIds).toContain(client6.installationId);
+    expect(installationIds).toContain(client7.installationId);
+    expect(installationIds).toContain(client8.installationId);
+    expect(installationIds).toContain(client9.installationId);
+    expect(installationIds).toContain(client10.installationId);
 
     await expect(
       createRegisteredClient(signer, {
@@ -227,15 +247,15 @@ describe("Client", () => {
     expect(inboxState2.installations.length).toBe(1);
     expect(inboxState2.installations[0].id).toBe(client3.installationId);
 
-    const client6 = await createRegisteredClient(signer, {
+    const client11 = await createRegisteredClient(signer, {
       dbPath: `./test-${v4()}.db3`,
     });
 
-    const inboxState3 = await client6.preferences.inboxState(true);
+    const inboxState3 = await client11.preferences.inboxState(true);
     expect(inboxState3.installations.length).toBe(2);
     const installationIds3 = inboxState3.installations.map((i) => i.id);
     expect(installationIds3).toContain(client3.installationId);
-    expect(installationIds3).toContain(client6.installationId);
+    expect(installationIds3).toContain(client11.installationId);
   });
 
   it("should change the recovery identifier", async () => {
