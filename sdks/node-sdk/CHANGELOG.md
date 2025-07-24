@@ -4,7 +4,11 @@
 
 ### Patch Changes
 
-- 41aeaae: 1.3.2 release
+- 41aeaae:
+  - Improved sync and stream performance
+  - Increased max installations to 10
+  - Fixed a known fork issue
+  - Added key package rotation every 30 days
 
 ## 3.2.0
 
