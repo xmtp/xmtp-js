@@ -1,5 +1,13 @@
 # @xmtp/browser-sdk
 
+## 3.1.2
+
+### Patch Changes
+
+- 78c6710: - Resolves issue with too many key package api requests
+  - Fixes issue causing users with old installations to sometimes not be added to groups
+  - Fixes a performance bottleneck that affects listing conversations while syncing
+
 ## 3.1.1
 
 ### Patch Changes
