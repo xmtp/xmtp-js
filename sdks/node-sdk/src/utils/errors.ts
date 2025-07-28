@@ -47,3 +47,16 @@ export class ClientNotInitializedError extends Error {
     );
   }
 }
+
+export class StreamFailedError extends Error {
+  constructor(retryAttempts: number) {
+    const times = `time${retryAttempts !== 1 ? "s" : ""}`;
+    super(`Stream failed, retried ${retryAttempts} ${times}`);
+  }
+}
+
+export class StreamInvalidRetryAttemptsError extends Error {
+  constructor() {
+    super("Stream retry attempts must be greater than 0");
+  }
+}

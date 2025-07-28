@@ -14,7 +14,7 @@ export { Dm } from "./Dm";
 export { Group } from "./Group";
 export type { PreferenceUpdate } from "./Preferences";
 export { DecodedMessage } from "./DecodedMessage";
-export type { AsyncStream, StreamCallback } from "./AsyncStream";
+export type { AsyncStreamProxy } from "./AsyncStream";
 export type {
   Consent,
   ContentType,
@@ -59,3 +59,4 @@ export {
 export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
 export type { Signer } from "./utils/signer";
 export * from "./utils/errors";
+export type * from "./utils/streams";

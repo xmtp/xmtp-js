@@ -72,9 +72,9 @@ describe("ReplyContentType", () => {
 
     await dms[0].sync();
     const messages = await dms[0].messages();
-    expect(messages.length).toBe(2);
+    expect(messages.length).toBe(3);
 
-    const replyMessage = messages[1];
+    const replyMessage = messages[2];
     const messageContent = replyMessage.content as Reply;
     expect(messageContent.content).toBe("LGTM");
     expect(messageContent.reference).toBe(originalMessage);
@@ -118,9 +118,9 @@ describe("ReplyContentType", () => {
 
     await dms[0].sync();
     const messages = await dms[0].messages();
-    expect(messages.length).toBe(2);
+    expect(messages.length).toBe(3);
 
-    const replyMessage = messages[1];
+    const replyMessage = messages[2];
     const messageContent = replyMessage.content as Reply;
     expect(ContentTypeAttachment.sameAs(messageContent.contentType)).toBe(true);
     expect(messageContent.content).toEqual({

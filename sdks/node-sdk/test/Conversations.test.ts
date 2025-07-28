@@ -406,7 +406,7 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
-    const stream = client3.conversations.stream();
+    const stream = await client3.conversations.stream();
     const conversation1 = await client1.conversations.newGroup([
       client3.inboxId,
     ]);
@@ -415,7 +415,7 @@ describe("Conversations", () => {
     ]);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
@@ -454,20 +454,17 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
     const client4 = await createRegisteredClient(signer4);
-    const stream = client3.conversations.streamGroups();
+    const stream = await client3.conversations.streamGroups();
     await client4.conversations.newDm(client3.inboxId);
     const group1 = await client1.conversations.newGroup([client3.inboxId]);
     const group2 = await client2.conversations.newGroup([client3.inboxId]);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -493,20 +490,17 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
     const client4 = await createRegisteredClient(signer4);
-    const stream = client3.conversations.streamDms();
+    const stream = await client3.conversations.streamDms();
     await client1.conversations.newGroup([client3.inboxId]);
     await client2.conversations.newGroup([client3.inboxId]);
     const group3 = await client4.conversations.newDm(client3.inboxId);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -541,14 +535,11 @@ describe("Conversations", () => {
     await groups3[0].send("gm2!");
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
@@ -597,14 +588,11 @@ describe("Conversations", () => {
     await groupsList3[0].send("gm2!");
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
@@ -653,14 +641,11 @@ describe("Conversations", () => {
     await groupsList4[0].send("gm3!");
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {

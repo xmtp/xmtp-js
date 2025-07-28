@@ -95,9 +95,9 @@ test("can create a remote attachment", async () => {
 
   await dms[0].sync();
   const messages = await dms[0].messages();
-  expect(messages.length).toBe(1);
+  expect(messages.length).toBe(2);
 
-  const message = messages[0];
+  const message = messages[1];
   const messageContent = message.content as RemoteAttachment;
   expect(messageContent.url).toBe("https://localhost:3000/test");
   expect(messageContent.filename).toBe("test.txt");
@@ -210,9 +210,9 @@ test("fails if content digest does not match", async () => {
 
   await dms[0].sync();
   const messages = await dms[0].messages();
-  expect(messages.length).toBe(1);
+  expect(messages.length).toBe(2);
 
-  const message = messages[0];
+  const message = messages[1];
 
   const encryptedEncoded2 = await RemoteAttachmentCodec.encodeEncrypted(
     attachment,

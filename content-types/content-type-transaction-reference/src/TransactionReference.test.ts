@@ -76,9 +76,9 @@ test("should successfully send and receive a TransactionReference message", asyn
 
   await dms[0].sync();
   const messages = await dms[0].messages();
-  expect(messages.length).toBe(1);
+  expect(messages.length).toBe(2);
 
-  const message = messages[0];
+  const message = messages[1];
   const messageContent = message.content as TransactionReference;
 
   expect(messageContent.namespace).toBe(transactionRefToSend.namespace);

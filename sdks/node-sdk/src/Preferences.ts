@@ -4,7 +4,11 @@ import type {
   ConsentEntityType,
   Conversations,
 } from "@xmtp/node-bindings";
-import { AsyncStream, type StreamCallback } from "@/AsyncStream";
+import {
+  createStream,
+  type StreamCallback,
+  type StreamOptions,
+} from "@/utils/streams";
 
 export type PreferenceUpdate = {
   type: string;
@@ -98,64 +102,34 @@ export class Preferences {
   /**
    * Creates a stream of consent state updates
    *
-   * @param callback - Optional callback function for handling stream updates
+   * @param options - Optional stream options
    * @returns Stream instance for consent updates
    */
-  streamConsent(callback?: StreamCallback<Consent[]>, onFail?: () => void) {
-    const asyncStream = new AsyncStream<Consent[]>();
-
-    const stream = this.#conversations.streamConsent(
-      (err, value) => {
-        if (err) {
-          asyncStream.callback(err, undefined);
-          callback?.(err, undefined);
-          return;
-        }
-
-        asyncStream.callback(null, value);
-        callback?.(null, value);
-      },
-      onFail ?? (() => {}),
-    );
-
-    asyncStream.onDone = () => {
-      stream.end();
+  streamConsent(options?: StreamOptions<Consent[]>) {
+    const streamConsent = async (
+      callback: StreamCallback<Consent[]>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.streamConsent(callback, onFail);
     };
-
-    return asyncStream;
+    return createStream(streamConsent, undefined, options);
   }
 
   /**
    * Creates a stream of user preference updates
    *
-   * @param callback - Optional callback function for handling stream updates
+   * @param options - Optional stream options
    * @returns Stream instance for preference updates
    */
-  streamPreferences(
-    callback?: StreamCallback<PreferenceUpdate>,
-    onFail?: () => void,
-  ) {
-    const asyncStream = new AsyncStream<PreferenceUpdate>();
-
-    const stream = this.#conversations.streamPreferences(
-      (err, value) => {
-        if (err) {
-          asyncStream.callback(err, undefined);
-          callback?.(err, undefined);
-          return;
-        }
-
-        // TODO: remove this once the node bindings type is updated
-        asyncStream.callback(null, value as unknown as PreferenceUpdate);
-        callback?.(null, value as unknown as PreferenceUpdate);
-      },
-      onFail ?? (() => {}),
-    );
-
-    asyncStream.onDone = () => {
-      stream.end();
+  streamPreferences(options?: StreamOptions<PreferenceUpdate>) {
+    const streamPreferences = async (
+      callback: StreamCallback<PreferenceUpdate>,
+      onFail: () => void,
+    ) => {
+      await this.sync();
+      return this.#conversations.streamPreferences(callback, onFail);
     };
-
-    return asyncStream;
+    return createStream(streamPreferences, undefined, options);
   }
 }

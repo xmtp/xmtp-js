@@ -1,130 +1,101 @@
 type ResolveValue<T> = {
-  value: T | undefined;
+  value: T;
   done: boolean;
 };
 
 type ResolveNext<T> = (resolveValue: ResolveValue<T>) => void;
 
-type PendingPromise<T> = {
-  resolve: ResolveNext<T>;
-  reject: (error: Error) => void;
-};
-
-export type StreamCallback<T> = (
-  err: Error | null,
-  value: T | undefined,
-) => void;
-
+/**
+ * AsyncStream provides an async iterable interface for streaming data.
+ *
+ * This class implements a producer-consumer pattern where:
+ * - Producers can push values using the `push()` method
+ * - Consumers can iterate over values asynchronously using `for await` loops or `next()`
+ * - Values are queued internally when no consumers are waiting
+ * - Consumers are resolved immediately when values are available
+ * - The stream can be terminated using `done()`, `return()`, or `end()`
+ *
+ * @example
+ * ```typescript
+ * const stream = new AsyncStream<string>();
+ *
+ * stream.push("hello");
+ * stream.push("world");
+ *
+ * for await (const value of stream) {
+ *   console.log(value); // "hello", "world"
+ * }
+ * ```
+ */
 export class AsyncStream<T> {
-  #isDone = false;
-  #pendingPromises: PendingPromise<T>[] = [];
-  #queue: (T | undefined | Error)[];
-  #error: Error | undefined;
-  #onDone: (() => void) | undefined;
-  #onReturn: (() => void) | undefined;
-  #onError: ((error: Error) => void) | undefined;
+  isDone = false;
+  #pendingResolves: ResolveNext<T | undefined>[] = [];
+  #queue: T[];
+  onDone: (() => void) | undefined;
+  onReturn: (() => void) | undefined;
 
   constructor() {
     this.#queue = [];
-    this.#isDone = false;
+    this.isDone = false;
   }
 
-  #flush(value?: T) {
-    while (this.#pendingPromises.length > 0) {
-      const nextPendingPromise = this.#pendingPromises.shift();
-      if (nextPendingPromise) {
-        nextPendingPromise.resolve({ done: true, value });
+  flush() {
+    while (this.#pendingResolves.length > 0) {
+      const nextResolve = this.#pendingResolves.shift();
+      if (nextResolve) {
+        nextResolve({ done: true, value: undefined });
       }
     }
   }
 
-  #done(value?: T) {
-    this.#flush(value);
+  done() {
+    this.flush();
     this.#queue = [];
-    this.#pendingPromises = [];
-    this.#isDone = true;
-    this.#onDone?.();
-    if (this.#error) {
-      this.#onError?.(this.#error);
-    }
+    this.#pendingResolves = [];
+    this.isDone = true;
+    this.onDone?.();
   }
 
-  get error() {
-    return this.#error;
-  }
-
-  get isDone() {
-    return this.#isDone;
-  }
-
-  set onReturn(callback: () => void) {
-    this.#onReturn = callback;
-  }
-
-  set onError(callback: (error: Error) => void) {
-    this.#onError = callback;
-  }
-
-  set onDone(callback: () => void) {
-    this.#onDone = callback;
-  }
-
-  callback: StreamCallback<T> = (error, value) => {
-    if (this.#isDone) {
+  push = (value: T) => {
+    if (this.isDone) {
       return;
     }
 
-    const nextPendingPromise = this.#pendingPromises.shift();
-    if (nextPendingPromise) {
-      const { resolve, reject } = nextPendingPromise;
-      if (error) {
-        this.#error = error;
-        reject(error);
-        this.#done();
-      } else {
-        resolve({
-          done: false,
-          value,
-        });
-      }
-    } else {
-      this.#queue.push(error ?? value);
-    }
-  };
-
-  next = (): Promise<ResolveValue<T>> => {
-    if (this.#isDone) {
-      return Promise.resolve({
-        done: true,
-        value: undefined,
-      });
-    }
-
-    if (this.#queue.length > 0) {
-      const value = this.#queue.shift();
-      if (value instanceof Error) {
-        this.#error = value;
-        this.#done();
-        return Promise.reject(value);
-      }
-      return Promise.resolve({
+    const nextResolve = this.#pendingResolves.shift();
+    if (nextResolve) {
+      nextResolve({
         done: false,
         value,
       });
+    } else {
+      this.#queue.push(value);
+    }
+  };
+
+  next = (): Promise<ResolveValue<T | undefined>> => {
+    if (this.isDone) {
+      return Promise.resolve({ done: true, value: undefined });
     }
 
-    return new Promise((resolve, reject) => {
-      this.#pendingPromises.push({ resolve, reject });
+    if (this.#queue.length > 0) {
+      return Promise.resolve({
+        done: false,
+        value: this.#queue.shift(),
+      });
+    }
+
+    return new Promise((resolve) => {
+      this.#pendingResolves.push(resolve);
     });
   };
 
-  return = (value?: T): Promise<ResolveValue<T>> => {
-    this.#onReturn?.();
-    this.#done(value);
+  return = (): Promise<ResolveValue<T | undefined>> => {
+    this.onReturn?.();
+    this.done();
 
     return Promise.resolve({
       done: true,
-      value,
+      value: undefined,
     });
   };
 
@@ -133,4 +104,86 @@ export class AsyncStream<T> {
   [Symbol.asyncIterator]() {
     return this;
   }
+}
+
+export interface AsyncStreamProxy<T> extends AsyncIterable<T> {
+  next(): Promise<ResolveValue<T>>;
+  return(): Promise<ResolveValue<undefined>>;
+  end(): Promise<ResolveValue<undefined>>;
+  isDone: boolean;
+}
+
+const usableProperties = [
+  "end",
+  "isDone",
+  "next",
+  "return",
+  Symbol.asyncIterator,
+];
+const isUsableProperty = <T>(
+  prop: string | symbol,
+): prop is keyof AsyncStreamProxy<T> => {
+  return usableProperties.includes(prop);
+};
+
+/**
+ * Creates a read-only proxy for AsyncStream instances that restricts access to consumer-only methods.
+ *
+ * This proxy only exposes the following properties and methods:
+ * - `next()`: Get the next value from the stream
+ * - `end()`: Terminate the stream and stop iteration
+ * - `return()`: Same as end(), terminates the stream
+ * - `isDone`: Boolean indicating if the stream has been terminated
+ * - `Symbol.asyncIterator`: Enables `for await` loop iteration
+ *
+ * Producer methods like `push()`, `done()`, and `flush()` are hidden to prevent
+ * consumers from accidentally modifying the stream state.
+ *
+ * @param stream - The AsyncStream instance to create a proxy for
+ * @returns A read-only proxy that implements AsyncStreamProxy<T>
+ *
+ * @example
+ * ```typescript
+ * const stream = new AsyncStream<string>();
+ * const proxy = createAsyncStreamProxy(stream);
+ *
+ * stream.push("hello");
+ * stream.push("world");
+ *
+ * for await (const value of proxy) {
+ *   console.log(value); // "hello", "world"
+ * }
+ * ```
+ */
+export function createAsyncStreamProxy<T>(stream: AsyncStream<T>) {
+  return new Proxy(stream, {
+    get(target, prop, receiver) {
+      if (isUsableProperty(prop)) {
+        return Reflect.get(target, prop, receiver);
+      }
+    },
+
+    set() {
+      return true;
+    },
+
+    has(_target, prop) {
+      return isUsableProperty(prop);
+    },
+
+    ownKeys() {
+      return usableProperties;
+    },
+
+    getOwnPropertyDescriptor(target, prop) {
+      if (isUsableProperty(prop)) {
+        return {
+          enumerable: true,
+          configurable: true,
+          value: Reflect.get(target, prop),
+        };
+      }
+      return undefined;
+    },
+  }) as AsyncStreamProxy<T>;
 }

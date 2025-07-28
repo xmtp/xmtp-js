@@ -120,12 +120,12 @@ describe("Preferences", () => {
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
     const group = await client.conversations.newGroup([client2.inboxId]);
-    const stream = client.preferences.streamConsent();
+    const stream = await client.preferences.streamConsent();
 
+    await sleep(1000);
     group.updateConsentState(ConsentState.Denied);
 
     await sleep(1000);
-
     await client.preferences.setConsentStates([
       {
         entity: group.id,
@@ -149,14 +149,11 @@ describe("Preferences", () => {
     ]);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const updates of stream) {
-      if (updates === undefined) {
-        break;
-      }
       count++;
       if (count === 1) {
         expect(updates.length).toBe(1);
@@ -185,7 +182,7 @@ describe("Preferences", () => {
     const user = createUser();
     const signer = createSigner(user);
     const client = await createRegisteredClient(signer);
-    const stream = client.preferences.streamPreferences();
+    const stream = await client.preferences.streamPreferences();
 
     await sleep(2000);
 
@@ -205,14 +202,11 @@ describe("Preferences", () => {
     await sleep(2000);
 
     setTimeout(() => {
-      stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const preferences of stream) {
-      if (preferences === undefined) {
-        break;
-      }
       count++;
       expect(preferences).toBeDefined();
       expect(preferences.type).toBeDefined();
