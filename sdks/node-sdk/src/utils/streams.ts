@@ -107,16 +107,20 @@ export const createStream = async <T = unknown, V = T>(
       return;
     }
     // ensure the value is not undefined
-    if (value) {
+    if (value !== undefined) {
       try {
         // if a streamValueMutator is provided, mutate the value
         if (streamValueMutator) {
           const mutatedValue = streamValueMutator(value);
           if (isPromise(mutatedValue)) {
-            void mutatedValue.then((mutatedValue) => {
-              asyncStream.push(mutatedValue);
-              onValue?.(mutatedValue);
-            });
+            void mutatedValue
+              .then((mutatedValue) => {
+                asyncStream.push(mutatedValue);
+                onValue?.(mutatedValue);
+              })
+              .catch((error: unknown) => {
+                onError?.(error as Error);
+              });
           } else {
             asyncStream.push(mutatedValue);
             onValue?.(mutatedValue);

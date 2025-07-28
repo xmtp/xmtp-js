@@ -384,7 +384,7 @@ export class Conversations<ContentTypes = unknown> {
     },
   ) {
     return this.streamAllMessages({
-      ...options,
+      ...(options ?? {}),
       conversationType: ConversationType.Group,
       consentStates: options?.consentStates,
     });
@@ -403,7 +403,7 @@ export class Conversations<ContentTypes = unknown> {
     },
   ) {
     return this.streamAllMessages({
-      ...options,
+      ...(options ?? {}),
       conversationType: ConversationType.Dm,
       consentStates: options?.consentStates,
     });
