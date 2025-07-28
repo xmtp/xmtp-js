@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.0.0
+
+### Major Changes
+
+- ed046a2: Refactor streaming methods (Node SDK)
+
 ## 3.2.2
 
 ### Patch Changes
