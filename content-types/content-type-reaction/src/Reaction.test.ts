@@ -120,9 +120,9 @@ describe("ReactionContentType", () => {
 
     await dms[0].sync();
     const messages = await dms[0].messages();
-    expect(messages.length).toBe(2);
+    expect(messages.length).toBe(3);
 
-    const reactionMessage = messages[1];
+    const reactionMessage = messages[2];
     const messageContent = reactionMessage.content as Reaction;
     expect(messageContent.action).toBe("added");
     expect(messageContent.content).toBe("smile");

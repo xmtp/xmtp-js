@@ -67,9 +67,9 @@ test("can send an attachment", async () => {
 
   await dms[0].sync();
   const messages = await dms[0].messages();
-  expect(messages.length).toBe(1);
+  expect(messages.length).toBe(2);
 
-  const message = messages[0];
+  const message = messages[1];
   const messageContent = message.content as Attachment;
   expect(messageContent.filename).toBe("test.png");
   expect(messageContent.mimeType).toBe("image/png");
