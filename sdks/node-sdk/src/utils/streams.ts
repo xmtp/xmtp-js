@@ -14,7 +14,7 @@ export type StreamOptions<T = unknown, V = T> = {
    */
   onEnd?: () => void;
   /**
-   * Called when a streamerror occurs
+   * Called when a stream error occurs
    */
   onError?: (error: Error) => void;
   /**
@@ -35,14 +35,17 @@ export type StreamOptions<T = unknown, V = T> = {
   onValue?: (value: V) => void;
   /**
    * The number of times to retry the stream
+   * (default: 6)
    */
   retryAttempts?: number;
   /**
-   * The delay between retries
+   * The delay between retries (in milliseconds)
+   * (default: 10000)
    */
   retryDelay?: number;
   /**
    * Whether to retry the stream if it fails
+   * (default: true)
    */
   retryOnFail?: boolean;
 };
