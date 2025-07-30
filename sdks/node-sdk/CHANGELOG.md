@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.0.1
+
+### Patch Changes
+
+- 3170da0: Upgrade node bindings
+
 ## 4.0.0
 
 This release introduces several enhancements to improve stream reliability. It contains breaking changes.
