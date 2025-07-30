@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 3170da0: Upgrade node bindings
+- 3170da0: Improved syncAll performance when syncing large numbers of conversations
 
 ## 4.0.0
 
