@@ -12,12 +12,12 @@ import {
   type PermissionPolicy,
   type PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
-import { type StreamCallback } from "@/AsyncStream";
 import {
   fromSafeListMessagesOptions,
   toSafeGroupMember,
   type SafeListMessagesOptions,
 } from "@/utils/conversions";
+import type { StreamCallback } from "@/utils/streams";
 import type { WorkerClient } from "@/WorkerClient";
 
 export class WorkerConversation {
@@ -202,14 +202,17 @@ export class WorkerConversation {
     return this.#group.isMessageDisappearingEnabled();
   }
 
-  stream(callback?: StreamCallback<Message>) {
+  stream(callback: StreamCallback<Message>, onFail: () => void) {
     const on_message = (message: Message) => {
-      void callback?.(null, message);
+      callback(null, message);
     };
     const on_error = (error: Error | null) => {
-      void callback?.(error, undefined);
+      callback(error, undefined);
     };
-    return this.#group.stream({ on_message, on_error });
+    const on_close = () => {
+      onFail();
+    };
+    return this.#group.stream({ on_message, on_error, on_close });
   }
 
   pausedForVersion() {

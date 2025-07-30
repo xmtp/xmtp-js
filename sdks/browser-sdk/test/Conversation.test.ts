@@ -799,23 +799,28 @@ describe("Conversation", () => {
     expect(conversation2[0].id).toBe(conversation.id);
 
     const streamedMessages: string[] = [];
-    const stream = await conversation2[0].stream((_, message) => {
-      streamedMessages.push(message!.content as string);
+    const stream = await conversation2[0].stream({
+      onValue: (message) => {
+        streamedMessages.push(message.content as string);
+      },
     });
 
     await conversation.send("gm");
     await conversation.send("gm2");
+
+    setTimeout(() => {
+      void stream.end();
+    }, 100);
 
     let count = 0;
     for await (const message of stream) {
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
-        expect(message!.content).toBe("gm");
+        expect(message.content).toBe("gm");
       }
       if (count === 2) {
-        expect(message!.content).toBe("gm2");
-        break;
+        expect(message.content).toBe("gm2");
       }
     }
 

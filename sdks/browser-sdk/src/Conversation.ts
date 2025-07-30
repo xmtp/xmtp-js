@@ -2,7 +2,6 @@ import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { ConsentState } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
-import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import type {
@@ -12,6 +11,11 @@ import type {
 } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
 import { MissingContentTypeError } from "@/utils/errors";
+import {
+  createStream,
+  type StreamCallback,
+  type StreamOptions,
+} from "@/utils/streams";
 
 /**
  * Represents a conversation
@@ -264,38 +268,35 @@ export class Conversation<ContentTypes = unknown> {
    * @param callback - Optional callback function for handling new stream values
    * @returns Stream instance for new messages
    */
-  async stream(callback?: StreamCallback<DecodedMessage<ContentTypes>>) {
-    const streamId = v4();
-    const asyncStream = new AsyncStream<DecodedMessage<ContentTypes>>();
-    const endStream = this.#client.handleStreamMessage<SafeMessage>(
-      streamId,
-      (error, value) => {
-        let err: Error | null = error;
-        let message: DecodedMessage<ContentTypes> | undefined;
-
-        if (value) {
-          try {
-            message = new DecodedMessage(this.#client, value);
-          } catch (error) {
-            err = error as Error;
-          }
-        }
-
-        void asyncStream.callback(err, message);
-        void callback?.(err, message);
-      },
-    );
-    await this.#client.sendMessage("conversation.stream", {
-      groupId: this.#id,
-      streamId,
-    });
-    asyncStream.onDone = () => {
-      void this.#client.sendMessage("endStream", {
+  async stream(
+    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>>,
+  ) {
+    const stream = async (
+      callback: StreamCallback<SafeMessage>,
+      onFail: () => void,
+    ) => {
+      const streamId = v4();
+      // sync the conversation
+      await this.sync();
+      // start the stream
+      await this.#client.sendMessage("conversation.stream", {
+        groupId: this.#id,
         streamId,
       });
-      endStream();
+      // handle stream messages
+      return this.#client.handleStreamMessage<
+        SafeMessage,
+        DecodedMessage<ContentTypes>
+      >(streamId, callback, {
+        ...options,
+        onFail,
+      });
     };
-    return asyncStream;
+    const convertMessage = (value: SafeMessage) => {
+      return new DecodedMessage(this.#client, value);
+    };
+
+    return createStream(stream, convertMessage, options);
   }
 
   async pausedForVersion() {
