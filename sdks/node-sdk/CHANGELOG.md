@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.0.1
+
+### Patch Changes
+
+- 3170da0: Improved syncAll performance when syncing large numbers of conversations
+
 ## 4.0.0
 
 This release introduces several enhancements to improve stream reliability. It contains breaking changes.
