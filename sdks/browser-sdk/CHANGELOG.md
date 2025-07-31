@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 4.0.0
+
+### Major Changes
+
+- c199b26: Refactor browser SDK streams
+
 ## 3.1.2
 
 ### Patch Changes
