@@ -143,29 +143,32 @@ export const createStream = async <T = unknown, V = T>(
     }
   };
   const retry = async (retries: number = retryAttempts) => {
-    // if the stream has been retried the maximum number of times without
-    // success, throw an error
-    if (retries === 0) {
-      void asyncStream.end();
-      throw new StreamFailedError(retryAttempts);
-    }
-
-    // wait for the retry delay before attempting to restart the stream
-    await wait(retryDelay);
-    // call the onRetry callback
-    onRetry?.(retryAttempts - retries + 1, retryAttempts);
     try {
+      // if the stream has been retried the maximum number of times without
+      // success, throw an error
+      if (retries === 0) {
+        void asyncStream.end();
+        throw new StreamFailedError(retryAttempts);
+      }
+
+      // wait for the retry delay before attempting to restart the stream
+      await wait(retryDelay);
+      // call the onRetry callback
+      onRetry?.(retryAttempts - retries + 1, retryAttempts);
+
       // attempt to restart the stream
       const streamCloser = await streamFunction(streamCallback, () => {
         // call the onFail callback
         onFail?.();
         void retry();
       });
+
       // when the async stream is done, end the stream
       asyncStream.onDone = () => {
         streamCloser();
         onEnd?.();
       };
+
       // stream restarted, call the onRestart callback
       onRestart?.();
     } catch (error) {
