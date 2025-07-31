@@ -2,9 +2,164 @@
 
 ## 4.0.0
 
-### Major Changes
+This release introduces several enhancements to improve stream reliability. It contains breaking changes.
 
-- c199b26: Refactor browser SDK streams
+### Stream reliability improvements
+
+When streams fail, an attempt to reconnect will be made automatically. By default, a stream will be retried 6 times with a 10 second delay between each retry. Maximum retries and retry delay can be configured with the `retryAttempts` and `retryDelay` options, respectively. To disable this feature, set the `retryOnFail` option to `false`.
+
+During the retry process, the `onRetry` and `onRestart` callbacks can be used to monitor progress.
+
+### BREAKING CHANGES
+
+#### All streaming methods now accept a single options argument
+
+The new argument defines streaming options:
+
+```ts
+type StreamOptions<T = unknown, V = T> = {
+  /**
+   * Called when the stream ends
+   */
+  onEnd?: () => void;
+  /**
+   * Called when a stream error occurs
+   */
+  onError?: (error: Error) => void;
+  /**
+   * Called when the stream fails
+   */
+  onFail?: () => void;
+  /**
+   * Called when the stream is restarted
+   */
+  onRestart?: () => void;
+  /**
+   * Called when the stream is retried
+   */
+  onRetry?: (attempts: number, maxAttempts: number) => void;
+  /**
+   * Called when a value is emitted from the stream
+   */
+  onValue?: (value: V) => void;
+  /**
+   * The number of times to retry the stream
+   * (default: 6)
+   */
+  retryAttempts?: number;
+  /**
+   * The delay between retries (in milliseconds)
+   * (default: 10000)
+   */
+  retryDelay?: number;
+  /**
+   * Whether to retry the stream if it fails
+   * (default: true)
+   */
+  retryOnFail?: boolean;
+};
+```
+
+In addition to these options, some streaming methods have more options. See their respective types for more details.
+
+Update your calls to each streaming method as follows:
+
+```ts
+// OLD
+const conversationStream = await client.conversations.stream(callback, onFail);
+const groupStream = await client.conversations.streamGroups(callback, onFail);
+const dmStream = await client.conversations.streamDms(callback, onFail);
+const allMessagesStream = await client.conversations.streamAllMessages(
+  callback,
+  conversationType,
+  consentStates,
+  onFail,
+);
+const allGroupMessagesStream = await client.conversations.streamAllGroupMessages(
+  callback,
+  consentStates,
+  onFail,
+);
+const allDmMessagesStream = await client.conversations.streamAllDmMessages(
+  callback,
+  consentStates,
+  onFail,
+);
+
+const consentStream = await client.preferences.streamConsent(callback, onFail);
+const preferencesStream = await client.preferences.streamPreferences(callback, onFail);
+
+const messagesStream = await conversation.stream(callback, onFail);
+
+// NEW
+const conversationStream = await client.conversations.stream({
+  onError,
+  onValue,
+  onFail
+});
+const groupStream = await client.conversations.streamGroups({
+  onError,
+  onValue,
+  onFail
+});
+const dmStream = await client.conversations.streamDms({
+  onError,
+  onValue,
+  onFail
+});
+const allMessageStream = await client.conversations.streamAllMessages({
+  consentStates,
+  conversationType
+  onError,
+  onValue,
+  onFail
+});
+const allGroupMessagesStream = await client.conversations.streamAllGroupMessages({
+  consentStates,
+  onError,
+  onValue,
+  onFail,
+});
+const allDmMessagesStream = await client.conversations.streamAllDmMessages({
+  consentStates,
+  onError,
+  onValue,
+  onFail,
+});
+
+const consentStream = await client.preferences.streamConsent({
+  onError,
+  onValue,
+  onFail,
+});
+const preferencesStream = await client.preferences.streamPreferences({
+  onError,
+  onValue,
+  onFail,
+});
+
+const messagesStream = await conversation.stream({
+  onError,
+  onValue,
+  onFail
+});
+```
+
+#### Streams no longer end on error
+
+When a stream error occurs, it's passed to the `onError` callback only. The stream will remain active.
+
+#### Stream types have changed
+
+When using the `for await..of` loop, the value will never be `undefined`.
+
+```ts
+const stream = await client.conversations.streamAllMessages();
+
+for await (const message of stream) {
+  // message will always be an instance of DecodedMessage
+}
+```
 
 ## 3.1.2
 
