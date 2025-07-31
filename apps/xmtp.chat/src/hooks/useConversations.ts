@@ -139,24 +139,21 @@ export const useConversations = () => {
   };
 
   const stream = async () => {
-    const onConversation = (
-      error: Error | null,
-      conversation: Conversation<ContentTypes> | undefined,
-    ) => {
-      if (conversation) {
-        const shouldAdd =
-          conversation.metadata?.conversationType === "dm" ||
-          conversation.metadata?.conversationType === "group";
-        if (shouldAdd) {
-          setConversations((prev) => [conversation, ...prev]);
-        }
+    const onValue = (conversation: Conversation<ContentTypes>) => {
+      const shouldAdd =
+        conversation.metadata?.conversationType === "dm" ||
+        conversation.metadata?.conversationType === "group";
+      if (shouldAdd) {
+        setConversations((prev) => [conversation, ...prev]);
       }
     };
 
-    const stream = await client.conversations.stream(onConversation);
+    const stream = await client.conversations.stream({
+      onValue,
+    });
 
     return () => {
-      void stream.return(undefined);
+      void stream.end();
     };
   };
 
