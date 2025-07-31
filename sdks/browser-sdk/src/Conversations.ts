@@ -386,6 +386,7 @@ export class Conversations<ContentTypes = unknown> {
       await this.#client.sendMessage("conversations.streamAllMessages", {
         streamId,
         conversationType: options?.conversationType,
+        consentStates: options?.consentStates,
       });
       // handle stream messages
       return this.#client.handleStreamMessage<
