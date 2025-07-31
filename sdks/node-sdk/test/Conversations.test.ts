@@ -655,6 +655,39 @@ describe("Conversations", () => {
     }
   });
 
+  it("should filter streamed messages by consent states", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group1 = await client1.conversations.newGroup([client2.inboxId]);
+
+    group1.updateConsentState(ConsentState.Denied);
+
+    const stream = await client1.conversations.streamAllMessages({
+      consentStates: [ConsentState.Denied],
+    });
+
+    await client2.conversations.sync();
+    const groupsList2 = await client2.conversations.list();
+    const group2 = groupsList2[0];
+
+    await group2.send("gm");
+
+    setTimeout(() => {
+      void stream.end();
+    }, 1000);
+
+    let count = 0;
+    for await (const message of stream) {
+      expect(message.content).toBe("gm");
+      count++;
+    }
+    expect(count).toBe(1);
+  });
+
   it("should get hmac keys", async () => {
     const user1 = createUser();
     const user2 = createUser();
