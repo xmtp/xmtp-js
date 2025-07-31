@@ -25,6 +25,11 @@ export type StreamAction =
       action: "stream.preferences";
       streamId: string;
       result: UserPreference[] | undefined;
+    }
+  | {
+      action: "stream.fail";
+      streamId: string;
+      result: undefined;
     };
 
 export type StreamActionName = StreamAction["action"];

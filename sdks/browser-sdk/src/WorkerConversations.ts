@@ -7,7 +7,6 @@ import {
   type Identifier,
   type Message,
 } from "@xmtp/wasm-bindings";
-import type { StreamCallback } from "@/AsyncStream";
 import {
   fromSafeCreateDmOptions,
   fromSafeCreateGroupOptions,
@@ -17,6 +16,7 @@ import {
   type SafeCreateGroupOptions,
   type SafeListConversationsOptions,
 } from "@/utils/conversions";
+import type { StreamCallback } from "@/utils/streams";
 import type { WorkerClient } from "@/WorkerClient";
 import { WorkerConversation } from "@/WorkerConversation";
 
@@ -151,42 +151,50 @@ export class WorkerConversations {
   }
 
   stream(
-    callback?: StreamCallback<Conversation>,
+    callback: StreamCallback<Conversation>,
+    onFail: () => void,
     conversationType?: ConversationType,
   ) {
     const on_conversation = (conversation: Conversation) => {
-      void callback?.(null, conversation);
+      callback(null, conversation);
     };
     const on_error = (error: Error | null) => {
-      void callback?.(error, undefined);
+      callback(error, undefined);
+    };
+    const on_close = () => {
+      onFail();
     };
     return this.#conversations.stream(
-      { on_conversation, on_error },
+      { on_conversation, on_error, on_close },
       conversationType,
     );
   }
 
-  streamGroups(callback?: StreamCallback<Conversation>) {
-    return this.#conversations.stream(callback, ConversationType.Group);
+  streamGroups(callback: StreamCallback<Conversation>, onFail: () => void) {
+    return this.stream(callback, onFail, ConversationType.Group);
   }
 
-  streamDms(callback?: StreamCallback<Conversation>) {
-    return this.#conversations.stream(callback, ConversationType.Dm);
+  streamDms(callback: StreamCallback<Conversation>, onFail: () => void) {
+    return this.stream(callback, onFail, ConversationType.Dm);
   }
 
   streamAllMessages(
-    callback?: StreamCallback<Message>,
+    callback: StreamCallback<Message>,
+    onFail: () => void,
     conversationType?: ConversationType,
     consentStates?: ConsentState[],
   ) {
     const on_message = (message: Message) => {
-      void callback?.(null, message);
+      callback(null, message);
     };
     const on_error = (error: Error | null) => {
-      void callback?.(error, undefined);
+      callback(error, undefined);
+    };
+    const on_close = () => {
+      onFail();
     };
     return this.#conversations.streamAllMessages(
-      { on_message, on_error },
+      { on_message, on_error, on_close },
       conversationType,
       consentStates,
     );

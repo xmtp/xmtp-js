@@ -448,7 +448,17 @@ self.onmessage = async (
             });
           }
         };
-        const streamCloser = client.preferences.streamConsent(streamCallback);
+        const streamCloser = client.preferences.streamConsent(
+          streamCallback,
+          () => {
+            streamClosers.delete(data.streamId);
+            postStreamMessage({
+              action: "stream.fail",
+              streamId: data.streamId,
+              result: undefined,
+            });
+          },
+        );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({
           id,
@@ -476,8 +486,17 @@ self.onmessage = async (
             });
           }
         };
-        const streamCloser =
-          client.preferences.streamPreferences(streamCallback);
+        const streamCloser = client.preferences.streamPreferences(
+          streamCallback,
+          () => {
+            streamClosers.delete(data.streamId);
+            postStreamMessage({
+              action: "stream.fail",
+              streamId: data.streamId,
+              result: undefined,
+            });
+          },
+        );
         streamClosers.set(data.streamId, streamCloser);
         postMessage({
           id,
@@ -490,7 +509,7 @@ self.onmessage = async (
        * Conversations actions
        */
       case "conversations.stream": {
-        const streamCallback = async (
+        const streamCallback = (
           error: Error | null,
           value: Conversation | undefined,
         ) => {
@@ -501,19 +520,41 @@ self.onmessage = async (
               error,
             });
           } else {
-            postStreamMessage({
-              action: "stream.conversation",
-              streamId: data.streamId,
-              result: value
-                ? await toSafeConversation(
-                    new WorkerConversation(client, value),
-                  )
-                : undefined,
-            });
+            if (value) {
+              toSafeConversation(new WorkerConversation(client, value))
+                .then((result) => {
+                  postStreamMessage({
+                    action: "stream.conversation",
+                    streamId: data.streamId,
+                    result,
+                  });
+                })
+                .catch((error: unknown) => {
+                  postStreamMessageError({
+                    action: "stream.conversation",
+                    streamId: data.streamId,
+                    error: error as Error,
+                  });
+                });
+            } else {
+              postStreamMessage({
+                action: "stream.conversation",
+                streamId: data.streamId,
+                result: undefined,
+              });
+            }
           }
         };
         const streamCloser = client.conversations.stream(
           streamCallback,
+          () => {
+            streamClosers.delete(data.streamId);
+            postStreamMessage({
+              action: "stream.fail",
+              streamId: data.streamId,
+              result: undefined,
+            });
+          },
           data.conversationType,
         );
         streamClosers.set(data.streamId, streamCloser);
@@ -541,6 +582,14 @@ self.onmessage = async (
         };
         const streamCloser = client.conversations.streamAllMessages(
           streamCallback,
+          () => {
+            streamClosers.delete(data.streamId);
+            postStreamMessage({
+              action: "stream.fail",
+              streamId: data.streamId,
+              result: undefined,
+            });
+          },
           data.conversationType,
           data.consentStates,
         );
@@ -876,7 +925,14 @@ self.onmessage = async (
             });
           }
         };
-        const streamCloser = group.stream(streamCallback);
+        const streamCloser = group.stream(streamCallback, () => {
+          streamClosers.delete(data.streamId);
+          postStreamMessage({
+            action: "stream.fail",
+            streamId: data.streamId,
+            result: undefined,
+          });
+        });
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
         break;

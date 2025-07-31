@@ -59,3 +59,16 @@ export class MissingContentTypeError extends Error {
     super("Content type is required when sending content other than text");
   }
 }
+
+export class StreamFailedError extends Error {
+  constructor(retryAttempts: number) {
+    const times = `time${retryAttempts !== 1 ? "s" : ""}`;
+    super(`Stream failed, retried ${retryAttempts} ${times}`);
+  }
+}
+
+export class StreamInvalidRetryAttemptsError extends Error {
+  constructor() {
+    super("Stream retry attempts must be greater than 0");
+  }
+}

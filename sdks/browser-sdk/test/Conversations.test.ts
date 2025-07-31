@@ -525,14 +525,11 @@ describe("Streaming", () => {
     ]);
 
     setTimeout(() => {
-      void stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -575,14 +572,11 @@ describe("Streaming", () => {
     const group2 = await client2.conversations.newGroup([client3.inboxId!]);
 
     setTimeout(() => {
-      void stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -614,14 +608,11 @@ describe("Streaming", () => {
     const group3 = await client4.conversations.newDm(client3.inboxId!);
 
     setTimeout(() => {
-      void stream.callback(null, undefined);
+      void stream.end();
     }, 2000);
 
     let count = 0;
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       count++;
       expect(convo).toBeDefined();
       if (count === 1) {
@@ -656,14 +647,11 @@ describe("Streaming", () => {
     await groups3[0].send("gm2!");
 
     setTimeout(() => {
-      void stream.callback(null, undefined);
-    }, 2000);
+      void stream.end();
+    }, 100);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
@@ -712,14 +700,11 @@ describe("Streaming", () => {
     await groupsList3[0].send("gm2!");
 
     setTimeout(() => {
-      void stream.callback(null, undefined);
-    }, 2000);
+      void stream.end();
+    }, 100);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
@@ -751,31 +736,25 @@ describe("Streaming", () => {
 
     const stream = await client1.conversations.streamAllDmMessages();
 
-    const groups2 = client2.conversations;
-    await groups2.sync();
-    const groupsList2 = await groups2.list();
+    await client2.conversations.sync();
+    const groupsList2 = await client2.conversations.list();
 
-    const groups3 = client3.conversations;
-    await groups3.sync();
-    const groupsList3 = await groups3.list();
+    await client3.conversations.sync();
+    const groupsList3 = await client3.conversations.list();
 
-    const groups4 = client4.conversations;
-    await groups4.sync();
-    const groupsList4 = await groups4.list();
+    await client4.conversations.sync();
+    const groupsList4 = await client4.conversations.list();
 
     await groupsList2[0].send("gm!");
     await groupsList3[0].send("gm2!");
     await groupsList4[0].send("gm3!");
 
     setTimeout(() => {
-      void stream.callback(null, undefined);
-    }, 2000);
+      void stream.end();
+    }, 100);
 
     let count = 0;
     for await (const message of stream) {
-      if (message === undefined) {
-        break;
-      }
       count++;
       expect(message).toBeDefined();
       if (count === 1) {
@@ -784,6 +763,40 @@ describe("Streaming", () => {
     }
     expect(count).toBe(1);
   });
+
+  it("should filter streamed messages by consent states", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group1 = await client1.conversations.newGroup([client2.inboxId!]);
+
+    await group1.updateConsentState(ConsentState.Denied);
+
+    const stream = await client1.conversations.streamAllMessages({
+      consentStates: [ConsentState.Denied],
+    });
+
+    await client2.conversations.sync();
+    const groupsList2 = await client2.conversations.list();
+    const group2 = groupsList2[0];
+
+    await group2.send("gm");
+
+    setTimeout(() => {
+      void stream.end();
+    }, 1000);
+
+    let count = 0;
+    for await (const message of stream) {
+      expect(message.content).toBe("gm");
+      count++;
+    }
+    expect(count).toBe(1);
+  });
+
   it("should create optimistic groups", async () => {
     const user1 = createUser();
     const signer1 = createSigner(user1);

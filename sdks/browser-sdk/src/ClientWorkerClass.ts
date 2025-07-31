@@ -11,6 +11,7 @@ import type {
   StreamAction,
   StreamActionErrorData,
 } from "@/types/actions/streams";
+import type { StreamOptions } from "@/utils/streams";
 
 const handleError = (event: ErrorEvent) => {
   console.error(event.message);
@@ -111,17 +112,24 @@ export class ClientWorkerClass {
    * @param callback - The callback to handle the stream message
    * @returns A function to remove the stream handler
    */
-  handleStreamMessage = <T extends StreamAction["result"]>(
+  handleStreamMessage = <T extends StreamAction["result"], V = T>(
     streamId: string,
-    callback: (error: Error | null, value: T | null) => void,
+    callback: (error: Error | null, value: T | undefined) => void,
+    options?: StreamOptions<T, V>,
   ) => {
     const streamHandler = (
       event: MessageEvent<StreamAction | StreamActionErrorData>,
     ) => {
       const eventData = event.data;
+      // only handle messages for the passed stream ID
       if (eventData.streamId === streamId) {
+        // if the stream failed, call the onFail callback
+        if (eventData.action === "stream.fail") {
+          options?.onFail?.();
+          return;
+        }
         if ("error" in eventData) {
-          callback(eventData.error, null);
+          callback(eventData.error, undefined);
         } else {
           callback(null, eventData.result as T);
         }
@@ -129,7 +137,10 @@ export class ClientWorkerClass {
     };
     this.#worker.addEventListener("message", streamHandler);
 
-    return () => {
+    return async () => {
+      await this.sendMessage("endStream", {
+        streamId,
+      });
       this.#worker.removeEventListener("message", streamHandler);
     };
   };

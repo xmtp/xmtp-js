@@ -10,7 +10,7 @@ export { Utils } from "./Utils";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types/options";
 export * from "./utils/conversions";
-export type { AsyncStream, StreamCallback } from "./AsyncStream";
+export type { AsyncStreamProxy } from "./AsyncStream";
 export type {
   Identifier,
   IdentifierKind,
@@ -53,3 +53,4 @@ export {
 export type { Signer, SafeSigner, EOASigner, SCWSigner } from "./utils/signer";
 export { toSafeSigner } from "./utils/signer";
 export * from "./utils/errors";
+export type * from "./utils/streams";

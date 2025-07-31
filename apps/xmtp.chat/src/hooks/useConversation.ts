@@ -71,20 +71,17 @@ export const useConversation = (conversation?: Conversation<ContentTypes>) => {
       return noop;
     }
 
-    const onMessage = (
-      error: Error | null,
-      message: DecodedMessage<ContentTypes> | undefined,
-    ) => {
-      if (message) {
-        setMessages((prev) => [...prev, message]);
-      }
+    const onValue = (message: DecodedMessage<ContentTypes>) => {
+      setMessages((prev) => [...prev, message]);
     };
 
-    const stream = await conversation?.stream(onMessage);
+    const stream = await conversation?.stream({
+      onValue,
+    });
 
     return stream
       ? () => {
-          void stream.return(undefined);
+          void stream.end();
         }
       : noop;
   };

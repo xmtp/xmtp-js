@@ -1,7 +1,11 @@
 import type { ConsentEntityType, UserPreference } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
-import { AsyncStream, type StreamCallback } from "@/AsyncStream";
 import type { SafeConsent } from "@/utils/conversions";
+import {
+  createStream,
+  type StreamCallback,
+  type StreamOptions,
+} from "@/utils/streams";
 import type { Client } from "./Client";
 
 /**
@@ -95,56 +99,64 @@ export class Preferences<ContentTypes = unknown> {
   /**
    * Creates a stream of consent state updates
    *
-   * @param callback - Optional callback function for handling stream updates
+   * @param options - Optional stream options
    * @returns Stream instance for consent updates
    */
-  async streamConsent(callback?: StreamCallback<SafeConsent[]>) {
-    const streamId = v4();
-    const asyncStream = new AsyncStream<SafeConsent[]>();
-    const endStream = this.#client.handleStreamMessage<SafeConsent[]>(
-      streamId,
-      (error, value) => {
-        void asyncStream.callback(error, value ?? undefined);
-        void callback?.(error, value ?? undefined);
-      },
-    );
-    await this.#client.sendMessage("preferences.streamConsent", {
-      streamId,
-    });
-    asyncStream.onDone = () => {
-      void this.#client.sendMessage("endStream", {
+  async streamConsent(options?: StreamOptions<SafeConsent[]>) {
+    const stream = async (
+      callback: StreamCallback<SafeConsent[]>,
+      onFail: () => void,
+    ) => {
+      const streamId = v4();
+      // sync the conversation
+      await this.sync();
+      // start the stream
+      await this.#client.sendMessage("preferences.streamConsent", {
         streamId,
       });
-      endStream();
+      // handle stream messages
+      return this.#client.handleStreamMessage<SafeConsent[]>(
+        streamId,
+        callback,
+        {
+          ...options,
+          onFail,
+        },
+      );
     };
-    return asyncStream;
+
+    return createStream(stream, undefined, options);
   }
 
   /**
    * Creates a stream of user preference updates
    *
-   * @param callback - Optional callback function for handling stream updates
+   * @param options - Optional stream options
    * @returns Stream instance for preference updates
    */
-  async streamPreferences(callback?: StreamCallback<UserPreference[]>) {
-    const streamId = v4();
-    const asyncStream = new AsyncStream<UserPreference[]>();
-    const endStream = this.#client.handleStreamMessage<UserPreference[]>(
-      streamId,
-      (error, value) => {
-        void asyncStream.callback(error, value ?? undefined);
-        void callback?.(error, value ?? undefined);
-      },
-    );
-    await this.#client.sendMessage("preferences.streamPreferences", {
-      streamId,
-    });
-    asyncStream.onDone = () => {
-      void this.#client.sendMessage("endStream", {
+  async streamPreferences(options?: StreamOptions<UserPreference[]>) {
+    const stream = async (
+      callback: StreamCallback<UserPreference[]>,
+      onFail: () => void,
+    ) => {
+      const streamId = v4();
+      // sync the conversation
+      await this.sync();
+      // start the stream
+      await this.#client.sendMessage("preferences.streamPreferences", {
         streamId,
       });
-      endStream();
+      // handle stream messages
+      return this.#client.handleStreamMessage<UserPreference[]>(
+        streamId,
+        callback,
+        {
+          ...options,
+          onFail,
+        },
+      );
     };
-    return asyncStream;
+
+    return createStream(stream, undefined, options);
   }
 }
