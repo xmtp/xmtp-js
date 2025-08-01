@@ -8,7 +8,7 @@ import {
   sleep,
 } from "@test/helpers";
 
-describe("DM stitching", () => {
+describe("message streaming", () => {
   it("scenario 1", async () => {
     const user1 = createUser();
     const user2 = createUser();
@@ -124,8 +124,8 @@ describe("DM stitching", () => {
     const client2 = await createRegisteredClient(signer2);
     const dm = await client2.conversations.newDm(client1.inboxId);
 
-    await client1.conversations.sync();
-    await client2.conversations.sync();
+    // await client1.conversations.sync();
+    // await client2.conversations.sync();
 
     const messages: string[] = [];
     const onValue = (message: DecodedMessage) => {
