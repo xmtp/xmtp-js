@@ -11,6 +11,7 @@ import {
 describe("message streaming", () => {
   /**
    * Scenario 1:
+   *
    * - create agent and client
    * - create dm between agent and client (from client to agent)
    * - create stream to listen to all messages from agent
@@ -77,29 +78,29 @@ describe("message streaming", () => {
 
   /**
    * Scenario 2:
-   * - create agent and client
-   * - create dm between agent and client (from client to agent)
+   *
+   * - create agent and 2 client installations
+   * - create dm between agent and client 1 (from client to agent)
    * - create stream to listen to all messages from agent
-   * - send 2 messages from client to agent
+   * - send 2 messages from client 1 to agent
    * - verify 2 messages were received by agent
-   * - create new installation for client
+   * - sync client 2 conversations
+   * - send 2 messages from client 2 to agent
+   * - verify 2 messages were received by agent
+   * - end stream
    */
   it("scenario 2", async () => {
-    const user1 = createUser();
-    const user2 = createUser();
-    const signer1 = createSigner(user1);
-    const signer2 = createSigner(user2);
-    const agent = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    // create new installation for client2
-    const client3 = await createRegisteredClient(signer2, {
+    const agentUser = createUser();
+    const clientUser = createUser();
+    const agentSigner = createSigner(agentUser);
+    const clientSigner = createSigner(clientUser);
+    const agent = await createRegisteredClient(agentSigner);
+    const client1 = await createRegisteredClient(clientSigner);
+    // create new installation for client1
+    const client2 = await createRegisteredClient(clientSigner, {
       dbPath: `./test-${v4()}.db3`,
     });
-    const dm = await client2.conversations.newDm(agent.inboxId);
-
-    await agent.conversations.sync();
-    await client2.conversations.sync();
-    await client3.conversations.sync();
+    const dm = await client1.conversations.newDm(agent.inboxId);
 
     const messages: string[] = [];
     const onValue = (message: DecodedMessage) => {
@@ -119,10 +120,9 @@ describe("message streaming", () => {
     expect(messages[0]).toEqual("hi1");
     expect(messages[1]).toEqual("hi2");
 
-    await client2.conversations.syncAll();
-    await client3.conversations.syncAll();
+    await client2.conversations.sync();
 
-    const dm2 = await client3.conversations.getConversationById(dm.id);
+    const dm2 = await client2.conversations.getConversationById(dm.id);
 
     expect(dm2?.id).toEqual(dm.id);
 
@@ -138,14 +138,27 @@ describe("message streaming", () => {
     await stream.end();
   });
 
+  /**
+   * Scenario 3:
+   *
+   * - create agent and client
+   * - create dm between agent and client (from client to agent)
+   * - create stream to listen to all messages from agent
+   * - send 2 messages from client to agent
+   * - verify 2 messages were received by agent
+   * - create new installation for client
+   * - run sync all on agent and new client (required and order is important)
+   * - send 2 messages from new client installation to agent
+   * - verify 2 messages were received by agent
+   */
   it("scenario 3", async () => {
-    const user1 = createUser();
-    const user2 = createUser();
-    const signer1 = createSigner(user1);
-    const signer2 = createSigner(user2);
-    const agent = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const dm = await client2.conversations.newDm(agent.inboxId);
+    const agentUser = createUser();
+    const clientUser = createUser();
+    const agentSigner = createSigner(agentUser);
+    const clientSigner = createSigner(clientUser);
+    const agent = await createRegisteredClient(agentSigner);
+    const client1 = await createRegisteredClient(clientSigner);
+    const dm = await client1.conversations.newDm(agent.inboxId);
 
     const messages: string[] = [];
     const onValue = (message: DecodedMessage) => {
@@ -165,18 +178,18 @@ describe("message streaming", () => {
     expect(messages[0]).toEqual("hi1");
     expect(messages[1]).toEqual("hi2");
 
-    // create new installation for client2
-    const client3 = await createRegisteredClient(signer2, {
+    // create new installation for client1
+    const client2 = await createRegisteredClient(clientSigner, {
       dbPath: `./test-${v4()}.db3`,
     });
 
     // required, order is important
     await agent.conversations.syncAll();
-    await client3.conversations.syncAll();
+    await client2.conversations.syncAll();
 
     await sleep(2000);
 
-    const dm2 = await client3.conversations.newDm(agent.inboxId);
+    const dm2 = await client2.conversations.newDm(agent.inboxId);
 
     expect(dm2.id).toEqual(dm.id);
 
