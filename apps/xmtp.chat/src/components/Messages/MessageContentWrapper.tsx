@@ -2,6 +2,7 @@ import { Box, Flex, Group, Stack } from "@mantine/core";
 import { DateLabel } from "@/components/DateLabel";
 import { InboxIdBadge } from "@/components/InboxId";
 import { useConversationContext } from "@/contexts/ConversationContext";
+import { useXMTP } from "@/contexts/XMTPContext";
 import { nsToDate } from "@/helpers/date";
 
 export type MessageContentAlign = "left" | "right";
@@ -21,6 +22,13 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
   stopClickPropagation = true,
 }) => {
   const { members } = useConversationContext();
+  const { client } = useXMTP();
+
+  const senderAddress =
+    senderInboxId === client?.inboxId
+      ? (client.accountIdentifier?.identifier ?? "")
+      : (members.get(senderInboxId) ?? "");
+
   return (
     <Group justify={align === "left" ? "flex-start" : "flex-end"}>
       <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
@@ -30,7 +38,7 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
           align="center">
           <DateLabel date={nsToDate(sentAtNs)} />
           <InboxIdBadge
-            address={members.get(senderInboxId) ?? ""}
+            address={senderAddress}
             inboxId={senderInboxId}
             size="xs"
           />

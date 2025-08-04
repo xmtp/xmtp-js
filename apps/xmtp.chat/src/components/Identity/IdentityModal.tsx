@@ -84,15 +84,13 @@ export const IdentityModal: React.FC = () => {
                   <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                     Inbox ID
                   </Text>
-                  {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                  <BadgeWithCopy value={client.inboxId!} />
+                  <BadgeWithCopy value={client.inboxId || ""} />
                 </Group>
                 <Group gap="md" wrap="nowrap">
                   <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                     Installation ID
                   </Text>
-                  {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                  <BadgeWithCopy value={client.installationId!} />
+                  <BadgeWithCopy value={client.installationId || ""} />
                 </Group>
               </Stack>
             </Paper>
