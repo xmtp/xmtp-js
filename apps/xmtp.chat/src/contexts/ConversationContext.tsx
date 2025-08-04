@@ -22,10 +22,6 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({
   const [members, setMembers] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
-    if (!(conversation instanceof Group)) {
-      return;
-    }
-
     const loadMembers = async () => {
       const members = await conversation.members();
       setMembers(
