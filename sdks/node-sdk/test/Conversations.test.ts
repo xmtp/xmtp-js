@@ -5,6 +5,7 @@ import {
   createRegisteredClient,
   createSigner,
   createUser,
+  sleep,
 } from "@test/helpers";
 
 describe("Conversations", () => {
@@ -523,6 +524,8 @@ describe("Conversations", () => {
     await client1.conversations.newGroup([client2.inboxId]);
     await client1.conversations.newGroup([client3.inboxId]);
 
+    await sleep(2000);
+
     const stream = await client1.conversations.streamAllMessages();
 
     await client2.conversations.sync();
@@ -568,6 +571,8 @@ describe("Conversations", () => {
     await client1.conversations.newGroup([client2.inboxId]);
     await client1.conversations.newGroup([client3.inboxId]);
     await client1.conversations.newDm(client4.inboxId);
+
+    await sleep(2000);
 
     const stream = await client1.conversations.streamAllGroupMessages();
 
@@ -621,6 +626,8 @@ describe("Conversations", () => {
     await client1.conversations.newGroup([client2.inboxId]);
     await client1.conversations.newGroup([client3.inboxId]);
     await client1.conversations.newDm(client4.inboxId);
+
+    await sleep(2000);
 
     const stream = await client1.conversations.streamAllDmMessages();
 
