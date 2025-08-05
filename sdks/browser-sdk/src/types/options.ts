@@ -79,6 +79,10 @@ export type OtherOptions = {
    * Disable device sync
    */
   disableDeviceSync?: boolean;
+  /**
+   * Custom app version
+   */
+  appVersion?: string;
 };
 
 export type ClientOptions = NetworkOptions &

@@ -51,5 +51,8 @@ export const createClient = async (
           options.loggingLevel,
         )
       : undefined,
+    undefined,
+    undefined,
+    options?.appVersion,
   );
 };

@@ -49,5 +49,8 @@ export const createClient = async (
     historySyncUrl,
     deviceSyncWorkerMode,
     logOptions,
+    undefined,
+    undefined,
+    options?.appVersion,
   );
 };
