@@ -6,6 +6,7 @@ import type { ConversationOutletContext } from "@/components/Conversation/Conver
 import { Metadata } from "@/components/Conversation/Metadata";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { triggerConversationRefresh } from "@/hooks/useConversationRefresh";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ManageMetadataModal: React.FC = () => {
@@ -39,12 +40,18 @@ export const ManageMetadataModal: React.FC = () => {
           await conversation.updateImageUrl(imageUrl);
         }
 
+        // Sync conversation data to get updated metadata
+        await conversation.sync();
+
+        // Trigger refresh of conversation list
+        triggerConversationRefresh();
+
         void navigate(`/conversations/${conversation.id}`);
       } finally {
         setIsLoading(false);
       }
     }
-  }, [conversation.id, name, description, imageUrl, navigate]);
+  }, [conversation, name, description, imageUrl, navigate]);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {

@@ -12,10 +12,12 @@ const List = (props: ComponentProps<"div">) => {
 
 export type ConversationsListProps = {
   conversations: Conversation<ContentTypes>[];
+  refreshKey?: number;
 };
 
 export const ConversationsList: React.FC<ConversationsListProps> = ({
   conversations,
+  refreshKey,
 }) => {
   const { conversationId } = useParams();
   const selectedConversationIndex = useMemo(
@@ -34,7 +36,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
       style={{ flexGrow: 1 }}
       data={conversations}
       itemContent={(_, conversation) => (
-        <ConversationCard conversation={conversation} />
+        <ConversationCard conversation={conversation} refreshKey={refreshKey} />
       )}
     />
   );

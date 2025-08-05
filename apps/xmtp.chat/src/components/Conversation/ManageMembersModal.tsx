@@ -7,6 +7,7 @@ import { Members } from "@/components/Conversation/Members";
 import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { triggerConversationRefresh } from "@/hooks/useConversationRefresh";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ManageMembersModal: React.FC = () => {
@@ -58,11 +59,17 @@ export const ManageMembersModal: React.FC = () => {
         );
       }
 
+      // Sync conversation data to get updated member info
+      await conversation.sync();
+
+      // Trigger refresh of conversation list
+      triggerConversationRefresh();
+
       void navigate(`/conversations/${conversation.id}`);
     } finally {
       setIsLoading(false);
     }
-  }, [conversation.id, addedMembers, removedMembers, navigate]);
+  }, [conversation, addedMembers, removedMembers, navigate]);
 
   const footer = useMemo(() => {
     return (

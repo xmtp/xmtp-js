@@ -19,10 +19,12 @@ const isDmConversation = (
 
 export type ConversationCardProps = {
   conversation: Conversation<ContentTypes>;
+  refreshKey?: number;
 };
 
 export const ConversationCard: React.FC<ConversationCardProps> = ({
   conversation,
+  refreshKey,
 }) => {
   const [memberCount, setMemberCount] = useState(0);
   const [name, setName] = useState("");
@@ -33,7 +35,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
     void conversation.members().then((members) => {
       setMemberCount(members.length);
     });
-  }, [conversation.id]);
+  }, [conversation.id, refreshKey]);
 
   useEffect(() => {
     if (isGroupConversation(conversation)) {
@@ -44,7 +46,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
         setName(inboxId);
       });
     }
-  }, [conversation.id]);
+  }, [conversation.id, refreshKey]);
 
   return (
     <Box px="sm">

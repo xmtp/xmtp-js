@@ -11,6 +11,7 @@ import {
 import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { triggerConversationRefresh } from "@/hooks/useConversationRefresh";
 import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import type { PolicySet } from "@/types";
@@ -74,6 +75,9 @@ export const CreateGroupModal: React.FC = () => {
           })),
         );
       }
+
+      // Trigger refresh of conversation list to show the new group
+      triggerConversationRefresh();
 
       void navigate(`/conversations/${conversation.id}`);
     } finally {
