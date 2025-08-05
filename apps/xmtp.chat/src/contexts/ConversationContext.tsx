@@ -1,6 +1,6 @@
-import type { ContentTypes } from "@/contexts/XMTPContext";
 import { type Conversation } from "@xmtp/browser-sdk";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { ContentTypes } from "@/contexts/XMTPContext";
 
 type ConversationContextType = {
   conversation?: Conversation<ContentTypes>;
