@@ -52,7 +52,7 @@ export const createClient = async (
         )
       : undefined,
     undefined,
-    undefined,
+    options?.debugEventsEnabled,
     options?.appVersion,
   );
 };
