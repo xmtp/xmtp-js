@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.0.2
+
+### Patch Changes
+
+- ffec6e0: 1.3.5 release
+
 ## 4.0.1
 
 ### Patch Changes

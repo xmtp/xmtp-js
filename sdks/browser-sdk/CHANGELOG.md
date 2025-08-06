@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 4.0.1
+
+### Patch Changes
+
+- ffec6e0: 1.3.5 release
+
 ## 4.0.0
 
 This release introduces several enhancements to improve stream reliability. It contains breaking changes.
