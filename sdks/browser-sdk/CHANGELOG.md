@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- ed36644: 1.3.6
+- ed36644: Reverted performance improvement for large inboxes that caused message streaming issues
 
 ## 4.0.1
 
