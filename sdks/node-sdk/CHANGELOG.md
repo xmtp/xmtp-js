@@ -1,5 +1,17 @@
 # @xmtp/node-sdk
 
+## 4.0.2
+
+### Patch Changes
+
+- ffec6e0:
+  - Improved performance for large inboxes
+  - Improved key package errors
+  - Added `appVersion` client option
+  - Added `debugEventsEnabled` client option
+  - Fixed DM stitching bug
+  - Added expiration to messages for disappearing messages
+
 ## 4.0.1
 
 ### Patch Changes
