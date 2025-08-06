@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- ed36644: 1.3.6
+- ed36644: Reverted performance improvement for large inboxes that caused message streaming issues
 
 ## 4.0.2
 
@@ -189,9 +189,10 @@ for await (const message of stream) {
 
 ### Patch Changes
 
-- 78c6710: - Resolves issue with too many key package api requests
-  - Fixes issue causing users with old installations to sometimes not be added to groups
-  - Fixes a performance bottleneck that affects listing conversations while syncing
+- 78c6710:
+  - Resolved issue with too many key package API requests
+  - Fixed issue causing users with old installations to sometimes not be added to groups
+  - Fixed a performance bottleneck that affected listing conversations while syncing
 
 ## 3.2.1
 
