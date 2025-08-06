@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.0.3
+
+### Patch Changes
+
+- ed36644: 1.3.6
+
 ## 4.0.2
 
 ### Patch Changes
