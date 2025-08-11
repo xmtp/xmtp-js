@@ -1,16 +1,14 @@
+import type { Signer } from "@xmtp/node-sdk";
 import * as createClient from "./createClient";
-import * as createClientEphemeral from "./createClientEphemeral";
 
-export const tasks = {
-  "Client.create": {
-    setup: createClient.setup,
-    run: createClient.run,
-  },
-  "Client.create (ephemeral)": {
-    setup: createClientEphemeral.setup,
-    run: createClientEphemeral.run,
-  },
+type Task<Data = any> = {
+  variations: string[];
+  setup: (variation: string) => Promise<Data>;
+  run: (data: Data) => Promise<void>;
 };
 
+export const tasks = {
+  "Client.create": createClient as Task<Signer>,
+} as const satisfies Record<string, Task>;
+
 export type TaskName = keyof typeof tasks;
-export type Task<T extends TaskName> = (typeof tasks)[T];

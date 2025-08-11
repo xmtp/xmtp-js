@@ -26,13 +26,15 @@
     "dist"
   ],
   "scripts": {
-    "bench": "yarn build && node dist/index.js && yarn clean:dbs",
+    "bench": "node dist/index.js",
     "build": "yarn clean:dist && rollup -c",
-    "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps",
+    "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps && yarn clean:results",
     "clean:dbs": "rimraf **/*.db3* ||:",
     "clean:deps": "rimraf node_modules",
     "clean:dist": "rimraf dist",
+    "clean:results": "rimraf results",
     "dev": "yarn build --watch",
+    "setup": "node dist/setup.js",
     "typecheck": "tsc"
   },
   "dependencies": {
@@ -42,6 +44,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/node": "^22.16.3",
+    "fast-glob": "^3.3.3",
     "rimraf": "^6.0.1",
     "rollup": "^4.45.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",

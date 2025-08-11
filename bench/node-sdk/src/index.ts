@@ -1,8 +1,16 @@
-import { benchmark, createBenchWorker } from "@/util/bench";
+import { tasks, type TaskName } from "@/tasks";
+import { benchmark, clearDbs, createBenchWorker } from "@/util/bench";
 
 const worker = createBenchWorker();
 
-await benchmark("Client.create", 100);
-await benchmark("Client.create", 100, worker);
+for (const task of Object.keys(tasks) as TaskName[]) {
+  for (const variation of tasks[task].variations) {
+    await benchmark(task, variation, 10);
+    await benchmark(task, variation, 10, worker);
+  }
+}
+
+// cleanup DB files
+await clearDbs();
 
 await worker.terminate();

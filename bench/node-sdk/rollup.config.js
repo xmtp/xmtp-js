@@ -6,12 +6,14 @@ import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 const external = [
   "@xmtp/node-sdk",
   "@xmtp/node-sdk/package.json",
+  "fast-glob",
   "viem",
   "viem/accounts",
   "viem/chains",
   "node:path",
   "node:url",
   "node:worker_threads",
+  "node:fs",
   "node:fs/promises",
   "node:process",
 ];
@@ -41,6 +43,15 @@ export default defineConfig([
       file: "dist/worker.js",
       format: "es",
       importAttributesKey: "with",
+    },
+    plugins,
+    external,
+  },
+  {
+    input: "src/setup.ts",
+    output: {
+      file: "dist/setup.js",
+      format: "es",
     },
     plugins,
     external,

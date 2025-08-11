@@ -1,6 +1,5 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { cwd } from "node:process";
 import { fileURLToPath } from "node:url";
 import packageJson from "@xmtp/node-sdk/package.json" with { type: "json" };
 
@@ -166,10 +165,12 @@ P99.9:        ${stats.p999.toFixed(2)} ms
  */
 export async function logStats(
   stats: DurationStats,
-  path: string,
+  fileName: string,
 ): Promise<void> {
+  const resultsPath = join(__dirname, "..", "results");
+  await mkdir(resultsPath, { recursive: true });
   await writeFile(
-    join(cwd(), path),
+    join(resultsPath, fileName),
     JSON.stringify(
       {
         sdkName: packageJson.name,
