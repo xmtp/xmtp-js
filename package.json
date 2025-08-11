@@ -5,6 +5,7 @@
   "type": "module",
   "workspaces": [
     "apps/*",
+    "bench/*",
     "content-types/*",
     "examples/*",
     "packages/*",

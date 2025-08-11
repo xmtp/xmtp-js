@@ -3708,6 +3708,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/node-sdk-bench@workspace:bench/node-sdk":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/node-sdk-bench@workspace:bench/node-sdk"
+  dependencies:
+    "@rollup/plugin-json": "npm:^6.1.0"
+    "@rollup/plugin-typescript": "npm:^12.1.4"
+    "@types/node": "npm:^22.16.3"
+    "@xmtp/node-sdk": "workspace:^"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.45.0"
+    rollup-plugin-tsconfig-paths: "npm:^1.5.2"
+    typescript: "npm:^5.8.3"
+    uint8array-extras: "npm:^1.4.0"
+    uuid: "npm:^11.1.0"
+    viem: "npm:^2.31.7"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
