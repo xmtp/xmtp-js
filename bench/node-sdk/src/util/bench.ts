@@ -2,7 +2,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
 import { tasks, type TaskName } from "@/tasks";
-import { calculateDurationStats, logStats } from "@/util/stats";
+import {
+  calculateDurationStats,
+  logStats,
+  printDurationStats,
+} from "@/util/stats";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -18,8 +22,7 @@ export const benchTaskWorker = (
 ): Promise<number> => {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
-      console.log("⏰ Worker timeout after 30 seconds, terminating...");
-      reject(new Error("Worker timeout"));
+      reject(new Error(`Task timeout after ${timeout}ms`));
     }, timeout);
 
     worker.once("message", (result: number) => {
@@ -46,8 +49,7 @@ export const benchTask = async (task: TaskName, timeout: number = 30000) => {
     throw new Error(`Task timeout after ${timeout}ms`);
   }, timeout);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const data = await tasks[task].setup();
+  const data = tasks[task].setup();
   const start = performance.now();
   await tasks[task].run(data);
   const duration = performance.now() - start;
@@ -63,10 +65,10 @@ export const benchmark = async (
   const results: number[] = [];
 
   try {
-    // helper function to update progress bar with memory info
+    // helper function to update progress bar
     const updateProgress = (current: number, total: number) => {
       const percentage = Math.round((current / total) * 100);
-      const barLength = 30; // shorter to make room for memory info
+      const barLength = 40;
       const filledLength = Math.round((current / total) * barLength);
       const bar =
         "█".repeat(filledLength) + "░".repeat(barLength - filledLength);
@@ -104,9 +106,8 @@ export const benchmark = async (
 
     const stats = calculateDurationStats(results);
     await logStats(stats, `bench-${thread}-${task}.json`);
+    console.log(printDurationStats(stats, task));
   } catch (error) {
     console.error("💥 Fatal error in benchWorker:", error);
   }
-
-  return results;
 };

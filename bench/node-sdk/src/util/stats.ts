@@ -131,13 +131,16 @@ export function calculateDurationStats(durations: number[]): DurationStats {
  * @param stats - Duration statistics object
  * @returns Formatted string representation
  */
-export function printDurationStats(stats: DurationStats): string {
+export function printDurationStats(
+  stats: DurationStats,
+  label: string,
+): string {
   if (stats.count === 0) {
     return "No data available";
   }
 
   return `
-Performance Statistics:
+${label} Performance Statistics:
 ========================
 Count:    ${stats.count}
 Min:      ${stats.min.toFixed(2)} ms
