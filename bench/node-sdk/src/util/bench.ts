@@ -49,6 +49,7 @@ export const benchTask = async (
   variation: string,
   timeout: number = 30000,
 ) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data = await tasks[task].setup(variation);
   const timer = setTimeout(() => {
     throw new Error(`Task timeout after ${timeout}ms`);
