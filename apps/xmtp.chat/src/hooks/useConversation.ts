@@ -3,6 +3,7 @@ import type {
   DecodedMessage,
   SafeListMessagesOptions,
 } from "@xmtp/browser-sdk";
+import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { useState } from "react";
 import { useXMTP, type ContentTypes } from "@/contexts/XMTPContext";
 
@@ -51,7 +52,7 @@ export const useConversation = (conversation?: Conversation<ContentTypes>) => {
     }
   };
 
-  const send = async (message: string) => {
+  const send = async (message: ContentTypes, contentType?: ContentTypeId) => {
     if (!client) {
       return;
     }
@@ -59,7 +60,7 @@ export const useConversation = (conversation?: Conversation<ContentTypes>) => {
     setSending(true);
 
     try {
-      await conversation?.send(message);
+      await conversation?.send(message, contentType);
     } finally {
       setSending(false);
     }
