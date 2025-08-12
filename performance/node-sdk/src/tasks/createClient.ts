@@ -1,7 +1,7 @@
 import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
 import { generatePrivateKey } from "viem/accounts";
+import testClients from "@/testClients";
 import { createSigner } from "@/util/xmtp";
-import testClients from "./testClients";
 
 const clientOptions = {
   env: "local",

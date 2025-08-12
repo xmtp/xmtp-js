@@ -41,14 +41,26 @@ export const createSigner = (key?: `0x${string}`): Signer => {
  */
 export const createClients = async (count: number, options?: ClientOptions) => {
   const clients = [];
+  const updateProgress = (count: number, total: number) => {
+    const percentage = Math.round((count / total) * 100);
+    const filled = Math.round((percentage / 100) * 40);
+    const empty = 40 - filled;
+    const bar = "█".repeat(filled) + "░".repeat(empty);
+    process.stdout.write(
+      `\r[${bar}] ${percentage}% (${count}/${total} clients)`,
+    );
+  };
+  console.log(`Creating ${count} test clients...`);
   for (let i = 0; i < count; i++) {
     const signer = createSigner();
     const client = await Client.create(signer, {
       ...options,
       dbPath: null,
     });
+    updateProgress(i + 1, count);
     clients.push(client);
   }
+  process.stdout.write("\n");
   return clients.map((client) => client.inboxId);
 };
 
@@ -56,7 +68,7 @@ export const generateTestClients = async (
   count: number,
   options?: ClientOptions,
 ) => {
-  const file = join(__dirname, "..", "tasks", "testClients.ts");
+  const file = join(__dirname, "..", "testClients.ts");
   if (!existsSync(file)) {
     const inboxIds = await createClients(count, options);
     const code = `export default ${JSON.stringify(inboxIds, null, 2)};`;
