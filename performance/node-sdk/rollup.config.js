@@ -29,9 +29,9 @@ const plugins = [
 
 export default defineConfig([
   {
-    input: "src/index.ts",
+    input: "src/bench.ts",
     output: {
-      file: "dist/index.js",
+      file: "dist/bench.js",
       format: "es",
       importAttributesKey: "with",
     },

@@ -3708,9 +3708,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk-bench@workspace:bench/node-sdk":
+"@xmtp/node-sdk-bench@workspace:performance/node-sdk":
   version: 0.0.0-use.local
-  resolution: "@xmtp/node-sdk-bench@workspace:bench/node-sdk"
+  resolution: "@xmtp/node-sdk-bench@workspace:performance/node-sdk"
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.4"
