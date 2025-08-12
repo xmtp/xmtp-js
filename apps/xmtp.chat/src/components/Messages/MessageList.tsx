@@ -10,9 +10,13 @@ const List = (props: ComponentProps<"div">) => {
 
 export type MessageListProps = {
   messages: DecodedMessage[];
+  onReply?: (message: DecodedMessage) => void;
 };
 
-export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+export const MessageList: React.FC<MessageListProps> = ({
+  messages,
+  onReply,
+}) => {
   const virtuoso = useRef<VirtuosoHandle>(null);
   const messageMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -46,6 +50,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
           key={message.id}
           message={message}
           scrollToMessage={scrollToMessage}
+          onReply={onReply}
         />
       )}
     />

@@ -4,9 +4,13 @@ import { MessageList } from "./MessageList";
 
 export type ConversationProps = {
   messages: DecodedMessage[];
+  onReply?: (message: DecodedMessage) => void;
 };
 
-export const Messages: React.FC<ConversationProps> = ({ messages }) => {
+export const Messages: React.FC<ConversationProps> = ({
+  messages,
+  onReply,
+}) => {
   return messages.length === 0 ? (
     <Box
       display="flex"
@@ -18,6 +22,6 @@ export const Messages: React.FC<ConversationProps> = ({ messages }) => {
       <Text>No messages</Text>
     </Box>
   ) : (
-    <MessageList messages={messages} />
+    <MessageList messages={messages} onReply={onReply} />
   );
 };
