@@ -1,5 +1,5 @@
 import { parentPort } from "node:worker_threads";
-import { tasks, type TaskName } from "@/tasks";
+import { tasks, type TaskName } from "@/bench/tasks";
 
 type Message = {
   taskName: TaskName;

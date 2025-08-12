@@ -1,4 +1,4 @@
-import { tasks } from "@/tasks";
+import { tasks } from "@/bench/tasks";
 import { benchmark, clearDbs, createBenchWorker } from "@/util/bench";
 
 const worker = createBenchWorker();

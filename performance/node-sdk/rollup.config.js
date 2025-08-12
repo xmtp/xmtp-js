@@ -29,7 +29,7 @@ const plugins = [
 
 export default defineConfig([
   {
-    input: "src/bench.ts",
+    input: "src/bench/bench.ts",
     output: {
       file: "dist/bench.js",
       format: "es",
@@ -39,7 +39,7 @@ export default defineConfig([
     external,
   },
   {
-    input: "src/worker.ts",
+    input: "src/bench/worker.ts",
     output: {
       file: "dist/worker.js",
       format: "es",

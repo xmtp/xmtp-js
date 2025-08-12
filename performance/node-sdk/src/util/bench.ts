@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
 import fg from "fast-glob";
-import { tasks, type TaskName } from "@/tasks";
+import { tasks, type TaskName } from "@/bench/tasks";
 import {
   calculateDurationStats,
   logStats,
