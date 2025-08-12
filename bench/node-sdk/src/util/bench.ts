@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
 import fg from "fast-glob";
 import { tasks, type TaskName } from "@/tasks";
-import { progressBar } from "@/util/progress";
 import {
   calculateDurationStats,
   logStats,
@@ -77,16 +76,15 @@ export const benchmark = async (
     }
 
     console.log(
-      `🔄 Starting benchmark on ${thread} thread with variation ${variation} and ${times} iterations...`,
+      `Running ${task} on ${thread} thread with ${variation} and ${times} iterations...`,
     );
 
-    for (let i = 0; i < times; i++) {
+    for (let i = 0; i < times + 1; i++) {
       try {
         const duration = worker
           ? await benchTaskWorker(worker, task, variation)
           : await benchTask(task, variation);
         results.push(duration);
-        progressBar(i + 1, times);
       } catch (error) {
         console.error(`❌ Error in iteration ${i + 1}:`, error);
         // continue with other iterations rather than failing completely
@@ -94,7 +92,8 @@ export const benchmark = async (
       }
     }
 
-    const stats = calculateDurationStats(results);
+    // remove first result due to cold start
+    const stats = calculateDurationStats(results.slice(1));
     await logStats(stats, `${task}-[${thread}]-(${variation}).json`);
     console.log(printDurationStats(stats, task));
   } catch (error) {

@@ -3717,9 +3717,12 @@ __metadata:
     "@types/node": "npm:^22.16.3"
     "@xmtp/node-sdk": "workspace:^"
     fast-glob: "npm:^3.3.3"
+    prettier: "npm:^3.6.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.45.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
+    simple-statistics: "npm:^7.8.8"
+    tsx: "npm:^4.20.3"
     typescript: "npm:^5.8.3"
     uint8array-extras: "npm:^1.4.0"
     uuid: "npm:^11.1.0"
@@ -8503,6 +8506,13 @@ __metadata:
   version: 4.1.0
   resolution: "signal-exit@npm:4.1.0"
   checksum: 10/c9fa63bbbd7431066174a48ba2dd9986dfd930c3a8b59de9c29d7b6854ec1c12a80d15310869ea5166d413b99f041bfa3dd80a7947bcd44ea8e6eb3ffeabfa1f
+  languageName: node
+  linkType: hard
+
+"simple-statistics@npm:^7.8.8":
+  version: 7.8.8
+  resolution: "simple-statistics@npm:7.8.8"
+  checksum: 10/48f519a1278e5d5e81ced21288b27929271fed8b7b9052392596cc131923f85b91ea0be4d68fded2d50ad8ca5388ff9313109b682728f9d509e71cb635475558
   languageName: node
   linkType: hard
 

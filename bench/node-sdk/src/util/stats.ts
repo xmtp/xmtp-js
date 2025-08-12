@@ -12,9 +12,7 @@ interface DurationStats {
   count: number;
   min: number;
   max: number;
-  mean: number;
   median: number;
-  stdDev: number;
   p50: number;
   p75: number;
   p90: number;
@@ -55,31 +53,6 @@ function calculatePercentile(array: number[], percentile: number): number {
 }
 
 /**
- * Calculate mean (average) of an array
- * @param array - Array of numbers
- * @returns The mean value
- */
-function calculateMean(array: number[]): number {
-  if (array.length === 0) return 0;
-  const sum = array.reduce((acc, val) => acc + val, 0);
-  return sum / array.length;
-}
-
-/**
- * Calculate standard deviation
- * @param array - Array of numbers
- * @param mean - Pre-calculated mean value
- * @returns The standard deviation
- */
-function calculateStdDev(array: number[], mean: number): number {
-  if (array.length <= 1) return 0;
-
-  const squaredDiffs = array.map((value) => Math.pow(value - mean, 2));
-  const avgSquaredDiff = calculateMean(squaredDiffs);
-  return Math.sqrt(avgSquaredDiff);
-}
-
-/**
  * Calculate comprehensive statistics from an array of durations
  * @param durations - Array of duration values in milliseconds
  * @returns Object containing various statistical measures
@@ -90,9 +63,7 @@ export function calculateDurationStats(durations: number[]): DurationStats {
       count: 0,
       min: 0,
       max: 0,
-      mean: 0,
       median: 0,
-      stdDev: 0,
       p50: 0,
       p75: 0,
       p90: 0,
@@ -102,10 +73,6 @@ export function calculateDurationStats(durations: number[]): DurationStats {
     };
   }
 
-  // Calculate mean and standard deviation from original array
-  const mean = calculateMean(durations);
-  const stdDev = calculateStdDev(durations, mean);
-
   // Sort once for min/max calculation
   const sorted = [...durations].sort((a, b) => a - b);
 
@@ -113,9 +80,7 @@ export function calculateDurationStats(durations: number[]): DurationStats {
     count: durations.length,
     min: Math.round(sorted[0] * 100) / 100,
     max: Math.round(sorted[sorted.length - 1] * 100) / 100,
-    mean: Math.round(mean * 100) / 100,
     median: calculatePercentile(durations, 50),
-    stdDev: Math.round(stdDev * 100) / 100,
     p50: calculatePercentile(durations, 50),
     p75: calculatePercentile(durations, 75),
     p90: calculatePercentile(durations, 90),
@@ -139,16 +104,11 @@ export function printDurationStats(
   }
 
   return `
-${label} Performance Statistics:
-========================
-Count:    ${stats.count}
-Min:      ${stats.min.toFixed(2)} ms
-Max:      ${stats.max.toFixed(2)} ms
-Mean:     ${stats.mean.toFixed(2)} ms
-Std Dev:  ${stats.stdDev.toFixed(2)} ms
-
-Percentiles:
-------------
+${label} Statistics
+=========================
+Count:        ${stats.count}
+Min:          ${stats.min.toFixed(2)} ms
+Max:          ${stats.max.toFixed(2)} ms
 P50 (Median): ${stats.p50.toFixed(2)} ms
 P75:          ${stats.p75.toFixed(2)} ms
 P90:          ${stats.p90.toFixed(2)} ms

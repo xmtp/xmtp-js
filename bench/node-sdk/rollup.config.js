@@ -7,6 +7,7 @@ const external = [
   "@xmtp/node-sdk",
   "@xmtp/node-sdk/package.json",
   "fast-glob",
+  "prettier",
   "viem",
   "viem/accounts",
   "viem/chains",
@@ -43,15 +44,6 @@ export default defineConfig([
       file: "dist/worker.js",
       format: "es",
       importAttributesKey: "with",
-    },
-    plugins,
-    external,
-  },
-  {
-    input: "src/setup.ts",
-    output: {
-      file: "dist/setup.js",
-      format: "es",
     },
     plugins,
     external,

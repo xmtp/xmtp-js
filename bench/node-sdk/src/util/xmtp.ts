@@ -4,10 +4,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+import * as prettier from "prettier";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { progressBar } from "@/util/progress";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -41,8 +41,6 @@ export const createSigner = (key?: `0x${string}`): Signer => {
  */
 export const createClients = async (count: number, options?: ClientOptions) => {
   const clients = [];
-  console.log(`Creating ${count} test clients...`);
-  progressBar(0, count);
   for (let i = 0; i < count; i++) {
     const signer = createSigner();
     const client = await Client.create(signer, {
@@ -50,7 +48,6 @@ export const createClients = async (count: number, options?: ClientOptions) => {
       dbPath: null,
     });
     clients.push(client);
-    progressBar(i + 1, count);
   }
   return clients.map((client) => client.inboxId);
 };
@@ -59,12 +56,13 @@ export const generateTestClients = async (
   count: number,
   options?: ClientOptions,
 ) => {
-  const file = join(__dirname, "testClients.ts");
+  const file = join(__dirname, "..", "tasks", "testClients.ts");
   if (!existsSync(file)) {
     const inboxIds = await createClients(count, options);
+    const code = `export default ${JSON.stringify(inboxIds, null, 2)};`;
     await writeFile(
       file,
-      `export default ${JSON.stringify(inboxIds, null, 2)};`,
+      await prettier.format(code, { parser: "typescript" }),
     );
   }
 };

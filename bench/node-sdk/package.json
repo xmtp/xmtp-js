@@ -34,7 +34,7 @@
     "clean:dist": "rimraf dist",
     "clean:results": "rimraf results",
     "dev": "yarn build --watch",
-    "setup": "node dist/setup.js",
+    "setup": "tsx src/setup.ts",
     "typecheck": "tsc"
   },
   "dependencies": {
@@ -45,9 +45,11 @@
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/node": "^22.16.3",
     "fast-glob": "^3.3.3",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "rollup": "^4.45.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "uint8array-extras": "^1.4.0",
     "uuid": "^11.1.0",

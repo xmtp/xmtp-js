@@ -5,8 +5,8 @@ const worker = createBenchWorker();
 
 for (const task of Object.keys(tasks) as TaskName[]) {
   for (const variation of tasks[task].variations) {
-    await benchmark(task, variation, 10);
-    await benchmark(task, variation, 10, worker);
+    await benchmark(task, variation, 50);
+    await benchmark(task, variation, 50, worker);
   }
 }
 
