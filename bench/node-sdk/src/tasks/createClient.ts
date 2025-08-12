@@ -8,8 +8,10 @@ const clientOptions = {
 } satisfies ClientOptions;
 
 export const variations = [
-  "base",
-  /*"100 groups" , "500 groups", "1000 groups"*/
+  "0 groups",
+  "100 groups",
+  "500 groups",
+  // "1000 groups",
 ];
 
 export const setup = async (variation: (typeof variations)[number]) => {

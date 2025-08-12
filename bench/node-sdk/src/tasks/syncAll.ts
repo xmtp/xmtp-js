@@ -7,7 +7,12 @@ const clientOptions = {
   env: "local",
 } satisfies ClientOptions;
 
-export const variations = ["base", "100 groups"];
+export const variations = [
+  "0 groups",
+  "100 groups",
+  "500 groups",
+  // "1000 groups",
+];
 
 export const setup = async (variation: (typeof variations)[number]) => {
   const key = generatePrivateKey();

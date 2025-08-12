@@ -10,6 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  */
 interface DurationStats {
   count: number;
+  durations: number[];
   min: number;
   max: number;
   median: number;
@@ -61,6 +62,7 @@ export function calculateDurationStats(durations: number[]): DurationStats {
   if (durations.length === 0) {
     return {
       count: 0,
+      durations: [],
       min: 0,
       max: 0,
       median: 0,
@@ -78,6 +80,7 @@ export function calculateDurationStats(durations: number[]): DurationStats {
 
   return {
     count: durations.length,
+    durations,
     min: Math.round(sorted[0] * 100) / 100,
     max: Math.round(sorted[sorted.length - 1] * 100) / 100,
     median: calculatePercentile(durations, 50),
@@ -107,6 +110,7 @@ export function printDurationStats(
 ${label} Statistics
 =========================
 Count:        ${stats.count}
+Durations:    [${stats.durations.map((d) => d.toFixed(2)).join(", ")}]
 Min:          ${stats.min.toFixed(2)} ms
 Max:          ${stats.max.toFixed(2)} ms
 P50 (Median): ${stats.p50.toFixed(2)} ms
