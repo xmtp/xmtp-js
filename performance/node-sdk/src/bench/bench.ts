@@ -1,5 +1,6 @@
 import { tasks } from "@/bench/tasks";
-import { benchmark, clearDbs, createBenchWorker } from "@/util/bench";
+import { benchmark, createBenchWorker } from "@/util/bench";
+import { clearDbs } from "@/util/xmtp";
 
 const worker = createBenchWorker();
 

@@ -1,15 +1,24 @@
 import { existsSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
+import { unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { Client, type ClientOptions, type Signer } from "@xmtp/node-sdk";
+import fg from "fast-glob";
 import * as prettier from "prettier";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+export const clearDbs = async () => {
+  const rootPath = join(__dirname, "..");
+  const files = await fg.glob("**/*.db3*", {
+    cwd: rootPath,
+  });
+  await Promise.all(files.map((file) => unlink(join(rootPath, file))));
+};
 
 export const createSigner = (key?: `0x${string}`): Signer => {
   const account = privateKeyToAccount(key ?? generatePrivateKey());

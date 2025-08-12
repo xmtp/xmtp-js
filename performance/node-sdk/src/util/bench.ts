@@ -1,8 +1,6 @@
-import { unlink } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
-import fg from "fast-glob";
 import { tasks, type TaskName } from "@/bench/tasks";
 import {
   calculateDurationStats,
@@ -11,14 +9,6 @@ import {
 } from "@/util/stats";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
-export const clearDbs = async () => {
-  const rootPath = join(__dirname, "..");
-  const files = await fg.glob("**/*.db3*", {
-    cwd: rootPath,
-  });
-  await Promise.all(files.map((file) => unlink(join(rootPath, file))));
-};
 
 export const createBenchWorker = () => {
   const worker = new Worker(join(__dirname, "worker.js"));

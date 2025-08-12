@@ -14,19 +14,11 @@
   "license": "MIT",
   "author": "XMTP <eng@xmtp.com>",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/bench.d.ts",
-      "default": "./dist/bench.js"
-    }
-  },
-  "main": "dist/bench.js",
-  "types": "dist/bench.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "bench": "node dist/bench.js",
+    "bench": "node dist/bench/bench.js",
     "build": "yarn clean:dist && rollup -c",
     "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps && yarn clean:results",
     "clean:dbs": "rimraf **/*.db3* ||:",

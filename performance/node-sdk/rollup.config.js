@@ -31,7 +31,7 @@ export default defineConfig([
   {
     input: "src/bench/bench.ts",
     output: {
-      file: "dist/bench.js",
+      file: "dist/bench/bench.js",
       format: "es",
       importAttributesKey: "with",
     },
@@ -41,7 +41,27 @@ export default defineConfig([
   {
     input: "src/bench/worker.ts",
     output: {
-      file: "dist/worker.js",
+      file: "dist/bench/worker.js",
+      format: "es",
+      importAttributesKey: "with",
+    },
+    plugins,
+    external,
+  },
+  {
+    input: "src/streams/messages.ts",
+    output: {
+      file: "dist/streams/messages.js",
+      format: "es",
+      importAttributesKey: "with",
+    },
+    plugins,
+    external,
+  },
+  {
+    input: "src/streams/worker.ts",
+    output: {
+      file: "dist/streams/worker.js",
       format: "es",
       importAttributesKey: "with",
     },
