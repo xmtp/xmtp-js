@@ -1,5 +1,7 @@
 import "dotenv/config";
-import { Client } from "@xmtp/node-sdk";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { Client, LogLevel } from "@xmtp/node-sdk";
 import { clearDbs, createSigner } from "@/util/xmtp";
 
 const TOTAL_MESSAGES =
@@ -29,6 +31,8 @@ const updateProgress = (
 const signer = createSigner();
 const client = await Client.create(signer, {
   env: "local",
+  loggingLevel: LogLevel.trace,
+  disableDeviceSync: true,
 });
 
 console.log(`Created client with inboxId: ${client.inboxId}`);
@@ -54,26 +58,29 @@ const calculateMessagesPerSecond = (
 };
 
 let start: number | undefined;
-let minMessagesPerSecond = 0;
-let maxMessagesPerSecond = 0;
+const minMessagesPerSecond = 0;
+const maxMessagesPerSecond = 0;
 
 for await (const message of stream) {
   const now = performance.now();
   if (!start) {
     start = now;
   }
-  messages.push(message);
-  messageTimestamps.push(now);
+  messages.push(message.id);
+  console.log(
+    `Received message [${message.id}] (${messages.length}/${TOTAL_MESSAGES})`,
+  );
+  // messageTimestamps.push(now);
 
-  const messagesPerSecond = calculateMessagesPerSecond(messageTimestamps, now);
+  // const messagesPerSecond = calculateMessagesPerSecond(messageTimestamps, now);
 
-  // Track min/max only after we have at least one message for a meaningful rate
-  if (messages.length > 1) {
-    minMessagesPerSecond = Math.min(minMessagesPerSecond, messagesPerSecond);
-    maxMessagesPerSecond = Math.max(maxMessagesPerSecond, messagesPerSecond);
-  }
+  // // Track min/max only after we have at least one message for a meaningful rate
+  // if (messages.length > 1) {
+  //   minMessagesPerSecond = Math.min(minMessagesPerSecond, messagesPerSecond);
+  //   maxMessagesPerSecond = Math.max(maxMessagesPerSecond, messagesPerSecond);
+  // }
 
-  updateProgress(messages.length, TOTAL_MESSAGES, messagesPerSecond);
+  // updateProgress(messages.length, TOTAL_MESSAGES, messagesPerSecond);
 
   if (messages.length === TOTAL_MESSAGES) {
     break;
@@ -98,3 +105,9 @@ console.log(`Max messages per second: ${maxMessagesPerSecond}`);
 
 console.log("Removing databases...");
 await clearDbs();
+
+console.log(`Writing message IDs to file "agent-messageIds.json"...`);
+await writeFile(
+  join(process.cwd(), "agent-messageIds.json"),
+  JSON.stringify(messages),
+);

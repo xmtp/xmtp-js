@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { Client } from "@xmtp/node-sdk";
+import { Client, LogLevel } from "@xmtp/node-sdk";
+import { sleep } from "@/util/sleep";
 import { createSigner } from "@/util/xmtp";
 
 const TOTAL_MESSAGES =
@@ -27,6 +28,8 @@ const updateProgress = (count: number, total: number) => {
 const signer = createSigner();
 const client = await Client.create(signer, {
   env: "local",
+  disableDeviceSync: true,
+  // loggingLevel: LogLevel.debug,
 });
 console.log(`Created client with inboxId: ${client.inboxId}`);
 
@@ -40,7 +43,9 @@ const start = performance.now();
 for (let i = 0; i < TOTAL_MESSAGES; i++) {
   const messageId = await dm.send(`${client.inboxId}-message-${i + 1}`);
   messageIds.push(messageId);
+  console.log(`Sent message [${messageId}] (${i + 1}/${TOTAL_MESSAGES})`);
   updateProgress(i + 1, TOTAL_MESSAGES);
+  await sleep(1);
 }
 const end = performance.now();
 const duration = end - start;

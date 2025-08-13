@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { createStreamWorker, startStreamWorker } from "@/util/streams";
 
 const args = process.argv.slice(2);
@@ -41,3 +43,9 @@ console.log(`Messages per second: ${(messageIds.length / duration) * 1000}`);
 
 console.log("Cleaning up workers...");
 await Promise.all(workers.map((worker) => worker.terminate()));
+
+console.log(`Writing message IDs to file "worker-messageIds.json"...`);
+await writeFile(
+  join(process.cwd(), "messageIds.json"),
+  JSON.stringify(messageIds),
+);

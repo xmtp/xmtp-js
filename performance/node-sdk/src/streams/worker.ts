@@ -11,6 +11,7 @@ const signer = createSigner();
 const client = await Client.create(signer, {
   env: "local",
   dbPath: null,
+  disableDeviceSync: true,
 });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -23,7 +24,7 @@ parentPort?.on("message", (message: Message) => {
     for (let i = 0; i < count; i++) {
       const messageId = await dm.send(`${client.inboxId}-message-${i + 1}`);
       messageIds.push(messageId);
-      await sleep(5);
+      await sleep(1);
     }
     const end = performance.now();
     const duration = end - start;
