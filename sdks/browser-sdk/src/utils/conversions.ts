@@ -341,6 +341,7 @@ export type SafeConversation = {
   admins: string[];
   superAdmins: string[];
   createdAtNs: bigint;
+  isCommitLogForked?: boolean;
 };
 
 export const toSafeConversation = async (
@@ -359,6 +360,7 @@ export const toSafeConversation = async (
   const createdAtNs = conversation.createdAtNs;
   const policyType = permissions.policyType;
   const policySet = permissions.policySet;
+  const isCommitLogForked = conversation.isCommitLogForked;
   return {
     id,
     name,
@@ -385,6 +387,7 @@ export const toSafeConversation = async (
     admins,
     superAdmins,
     createdAtNs,
+    isCommitLogForked,
   };
 };
 
@@ -510,6 +513,7 @@ export type SafeConversationDebugInfo = {
   epoch: bigint;
   maybeForked: boolean;
   forkDetails: string;
+  isCommitLogForked?: boolean;
 };
 
 export const toSafeConversationDebugInfo = (
@@ -518,6 +522,7 @@ export const toSafeConversationDebugInfo = (
   epoch: debugInfo.epoch,
   maybeForked: debugInfo.maybeForked,
   forkDetails: debugInfo.forkDetails,
+  isCommitLogForked: debugInfo.isCommitLogForked,
 });
 
 export type SafeApiStats = {

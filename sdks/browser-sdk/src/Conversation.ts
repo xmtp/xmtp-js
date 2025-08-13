@@ -29,6 +29,7 @@ export class Conversation<ContentTypes = unknown> {
   #id: string;
   #isActive?: SafeConversation["isActive"];
   #metadata?: SafeConversation["metadata"];
+  #isCommitLogForked?: SafeConversation["isCommitLogForked"];
 
   /**
    * Creates a new conversation instance
@@ -48,10 +49,11 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   #syncData(data?: SafeConversation) {
-    this.#isActive = data?.isActive ?? undefined;
-    this.#addedByInboxId = data?.addedByInboxId ?? "";
-    this.#metadata = data?.metadata ?? undefined;
-    this.#createdAtNs = data?.createdAtNs ?? undefined;
+    this.#isActive = data?.isActive;
+    this.#addedByInboxId = data?.addedByInboxId;
+    this.#metadata = data?.metadata;
+    this.#createdAtNs = data?.createdAtNs;
+    this.#isCommitLogForked = data?.isCommitLogForked;
   }
 
   get id() {
@@ -60,6 +62,10 @@ export class Conversation<ContentTypes = unknown> {
 
   get isActive() {
     return this.#isActive;
+  }
+
+  get isCommitLogForked() {
+    return this.#isCommitLogForked;
   }
 
   get addedByInboxId() {
