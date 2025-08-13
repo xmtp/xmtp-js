@@ -34,6 +34,7 @@ const client = await Client.create(signer, {
 console.log(`Created client with inboxId: ${client.inboxId}`);
 
 const messages = [];
+const messageTimestamps: number[] = [];
 const stream = await client.conversations.streamAllMessages();
 console.log(`Stream created, waiting for ${TOTAL_MESSAGES} messages...`);
 
@@ -43,13 +44,37 @@ const timer = setTimeout(() => {
   void stream.end();
 }, Number(process.env.MESSAGE_STREAM_TIMEOUT));
 
+const calculateMessagesPerSecond = (
+  timestamps: number[],
+  currentTime: number,
+): number => {
+  const oneSecondAgo = currentTime - 1000;
+  const recentTimestamps = timestamps.filter((ts) => ts >= oneSecondAgo);
+  return recentTimestamps.length;
+};
+
 let start: number | undefined;
+let minMessagesPerSecond = 0;
+let maxMessagesPerSecond = 0;
+
 for await (const message of stream) {
+  const now = performance.now();
   if (!start) {
-    start = performance.now();
+    start = now;
   }
   messages.push(message);
-  updateProgress(messages.length, TOTAL_MESSAGES);
+  messageTimestamps.push(now);
+
+  const messagesPerSecond = calculateMessagesPerSecond(messageTimestamps, now);
+
+  // Track min/max only after we have at least one message for a meaningful rate
+  if (messages.length > 1) {
+    minMessagesPerSecond = Math.min(minMessagesPerSecond, messagesPerSecond);
+    maxMessagesPerSecond = Math.max(maxMessagesPerSecond, messagesPerSecond);
+  }
+
+  updateProgress(messages.length, TOTAL_MESSAGES, messagesPerSecond);
+
   if (messages.length === TOTAL_MESSAGES) {
     break;
   }
@@ -65,7 +90,11 @@ const startedAtIso = new Date(
 ).toISOString();
 console.log(`First message received at: ${startedAtIso}`);
 console.log(`Received ${messages.length} messages in ${duration.toFixed(2)}ms`);
-console.log(`Messages per second: ${(messages.length / duration) * 1000}`);
+console.log(
+  `Average messages per second: ${(messages.length / duration) * 1000}`,
+);
+console.log(`Min messages per second: ${minMessagesPerSecond}`);
+console.log(`Max messages per second: ${maxMessagesPerSecond}`);
 
 console.log("Removing databases...");
-// await clearDbs();
+await clearDbs();

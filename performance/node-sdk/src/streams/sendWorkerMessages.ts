@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { createStreamWorker, startStreamWorker } from "@/util/streams";
-import { clearDbs } from "@/util/xmtp";
 
 const args = process.argv.slice(2);
 if (args.length !== 1) {
@@ -33,17 +32,12 @@ const end = performance.now();
 const duration = end - start;
 
 const startedAt = results.map((result) => result.startedAt.getTime()).sort()[0];
-// const durations = results.map((result) => result.duration);
-// const totalDuration = durations.reduce((acc, duration) => acc + duration, 0);
 const messageIds = results.flatMap((result) => result.messageIds);
 
 console.log(`Messages sent: ${messageIds.length}`);
 console.log(`Started at: ${new Date(startedAt).toISOString()}`);
 console.log(`Total duration: ${duration}ms`);
 console.log(`Messages per second: ${(messageIds.length / duration) * 1000}`);
-
-console.log("Removing databases...");
-await clearDbs();
 
 console.log("Cleaning up workers...");
 await Promise.all(workers.map((worker) => worker.terminate()));

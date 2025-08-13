@@ -27,7 +27,6 @@ const updateProgress = (count: number, total: number) => {
 const signer = createSigner();
 const client = await Client.create(signer, {
   env: "local",
-  dbPath: null,
 });
 console.log(`Created client with inboxId: ${client.inboxId}`);
 
@@ -51,6 +50,3 @@ const startedAtIso = new Date(performance.timeOrigin + start).toISOString();
 console.log(`Started at: ${startedAtIso}`);
 console.log(`Duration: ${duration}ms`);
 console.log(`Messages per second: ${(messageIds.length / duration) * 1000}`);
-
-// console.log("Cleaning up workers...");
-// await Promise.all(workers.map((worker) => worker.terminate()));
