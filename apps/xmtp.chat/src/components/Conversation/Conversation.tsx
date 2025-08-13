@@ -70,7 +70,7 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
 
   return (
     <>
-      <ConversationProvider conversation={conversation}>
+      <ConversationProvider key={conversation.id} conversation={conversation}>
         <ContentLayout
           title={title}
           loading={conversationLoading}
