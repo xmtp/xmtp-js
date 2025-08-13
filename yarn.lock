@@ -3716,6 +3716,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@types/node": "npm:^22.16.3"
     "@xmtp/node-sdk": "workspace:^"
+    dotenv: "npm:^17.2.1"
     fast-glob: "npm:^3.3.3"
     prettier: "npm:^3.6.2"
     rimraf: "npm:^6.0.1"
@@ -4819,6 +4820,13 @@ __metadata:
     "@babel/runtime": "npm:^7.8.7"
     csstype: "npm:^3.0.2"
   checksum: 10/bed2341adf8864bf932b3289c24f35fdd99930af77df46688abf2d753ff291df49a15850c874d686d9be6ec4e1c6835673906e64dbd8b2839d227f117a11fd41
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^17.2.1":
+  version: 17.2.1
+  resolution: "dotenv@npm:17.2.1"
+  checksum: 10/8fde672d1cc57f176095be8c93de1c5ea100ab38f2db183b50d522323fd9a6c07235e4145da624eec27fa310bb66d061aa8cb766f99e22ebe1e4a7ae78b5e56e
   languageName: node
   linkType: hard
 

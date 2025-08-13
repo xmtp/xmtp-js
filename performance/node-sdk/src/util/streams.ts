@@ -12,9 +12,9 @@ export const createStreamWorker = () => {
 
 export type StreamWorkerResult = {
   inboxId: string;
-  start: number;
-  end: number;
+  startedAt: Date;
   duration: number;
+  messageIds: string[];
 };
 
 export const startStreamWorker = (
@@ -27,6 +27,7 @@ export const startStreamWorker = (
       resolve(result);
     });
     worker.once("error", (error) => {
+      console.error(error);
       reject(error);
     });
     worker.postMessage({ count, inboxId });

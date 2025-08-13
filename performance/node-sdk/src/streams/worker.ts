@@ -13,22 +13,29 @@ const client = await Client.create(signer, {
   dbPath: null,
 });
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 parentPort?.on("message", (message: Message) => {
   const send = async (inboxId: string, count: number) => {
-    const dm = await client.conversations.newDm(inboxId);
+    const dm = await client.conversations.newGroup([inboxId]);
     const start = performance.now();
+    const messageIds = [];
     for (let i = 0; i < count; i++) {
-      await dm.send(`${client.inboxId}-message-${i + 1}`);
+      const messageId = await dm.send(`${client.inboxId}-message-${i + 1}`);
+      messageIds.push(messageId);
+      await sleep(5);
     }
     const end = performance.now();
     const duration = end - start;
-    return { start, end, duration };
+    return { start, end, duration, messageIds };
   };
   send(message.inboxId, message.count)
-    .then((duration) => {
+    .then(({ start, duration, messageIds }) => {
       parentPort?.postMessage({
         inboxId: client.inboxId,
+        startedAt: new Date(performance.timeOrigin + start),
         duration,
+        messageIds,
       });
     })
     .catch((error: unknown) => {

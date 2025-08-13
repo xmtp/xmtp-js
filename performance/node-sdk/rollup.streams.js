@@ -6,6 +6,7 @@ import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 const external = [
   "@xmtp/node-sdk",
   "@xmtp/node-sdk/package.json",
+  "dotenv/config",
   "fast-glob",
   "prettier",
   "viem",
@@ -29,29 +30,9 @@ const plugins = [
 
 export default defineConfig([
   {
-    input: "src/bench/bench.ts",
+    input: "src/streams/agent.ts",
     output: {
-      file: "dist/bench/bench.js",
-      format: "es",
-      importAttributesKey: "with",
-    },
-    plugins,
-    external,
-  },
-  {
-    input: "src/bench/worker.ts",
-    output: {
-      file: "dist/bench/worker.js",
-      format: "es",
-      importAttributesKey: "with",
-    },
-    plugins,
-    external,
-  },
-  {
-    input: "src/streams/messages.ts",
-    output: {
-      file: "dist/streams/messages.js",
+      file: "dist/streams/agent.js",
       format: "es",
       importAttributesKey: "with",
     },
@@ -62,6 +43,26 @@ export default defineConfig([
     input: "src/streams/worker.ts",
     output: {
       file: "dist/streams/worker.js",
+      format: "es",
+      importAttributesKey: "with",
+    },
+    plugins,
+    external,
+  },
+  {
+    input: "src/streams/sendMessages.ts",
+    output: {
+      file: "dist/streams/sendMessages.js",
+      format: "es",
+      importAttributesKey: "with",
+    },
+    plugins,
+    external,
+  },
+  {
+    input: "src/streams/sendWorkerMessages.ts",
+    output: {
+      file: "dist/streams/sendWorkerMessages.js",
       format: "es",
       importAttributesKey: "with",
     },

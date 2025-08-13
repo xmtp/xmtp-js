@@ -13,7 +13,7 @@ import { sepolia } from "viem/chains";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const clearDbs = async () => {
-  const rootPath = join(__dirname, "..");
+  const rootPath = join(__dirname, "..", "..");
   const files = await fg.glob("**/*.db3*", {
     cwd: rootPath,
   });

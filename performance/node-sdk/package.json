@@ -19,7 +19,9 @@
   ],
   "scripts": {
     "bench": "node dist/bench/bench.js",
-    "build": "yarn clean:dist && rollup -c",
+    "build": "yarn clean:dist && yarn build:bench && yarn build:streams",
+    "build:bench": "rollup -c rollup.bench.js",
+    "build:streams": "rollup -c rollup.streams.js",
     "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps && yarn clean:results",
     "clean:dbs": "rimraf **/*.db3* ||:",
     "clean:deps": "rimraf node_modules",
@@ -27,10 +29,14 @@
     "clean:results": "rimraf results",
     "dev": "yarn build --watch",
     "setup": "tsx src/setup.ts",
+    "stream:agent": "node dist/streams/agent.js",
+    "stream:messages": "node dist/streams/sendMessages.js",
+    "stream:messages:worker": "node dist/streams/sendWorkerMessages.js",
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "workspace:^",
+    "dotenv": "^17.2.1"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",

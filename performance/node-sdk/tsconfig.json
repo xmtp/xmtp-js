@@ -15,5 +15,5 @@
     "target": "ESNext",
     "types": ["vitest/globals"]
   },
-  "include": ["rollup.config.js", "src/**/*"]
+  "include": ["rollup.streams.js", "rollup.bench.js", "src/**/*"]
 }
