@@ -1,25 +1,20 @@
 import { ActionIcon, Box, Text } from "@mantine/core";
 import { IconArrowBackUp, IconX } from "@tabler/icons-react";
-import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { AddressBadge } from "@/components/AddressBadge";
 
 export type ReplyPreviewProps = {
-  message: DecodedMessage;
-  members: Map<string, string>;
+  previewText: string;
+  fromAddress: string;
   onCancel: () => void;
   disabled?: boolean;
 };
 
 export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
-  message,
-  members,
+  previewText,
+  fromAddress,
   onCancel,
   disabled,
 }) => {
-  const displayName =
-    members.get(message.senderInboxId) ?? message.senderInboxId;
-  const previewText = String(message.content);
-
   return (
     <>
       <Box style={{ minWidth: 0 }}>
@@ -40,7 +35,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
             Replying to
           </Text>
           <Box>
-            <AddressBadge address={displayName} />
+            <AddressBadge address={fromAddress} />
           </Box>
         </Box>
         <Text

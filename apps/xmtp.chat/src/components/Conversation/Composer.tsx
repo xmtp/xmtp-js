@@ -48,8 +48,11 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
         }}>
         {replyTarget && (
           <ReplyPreview
-            message={replyTarget}
-            members={members}
+            previewText={String(replyTarget.content)}
+            fromAddress={
+              members.get(replyTarget.senderInboxId) ??
+              replyTarget.senderInboxId
+            }
             disabled={sending}
             onCancel={() => {
               setReplyTarget(undefined);
