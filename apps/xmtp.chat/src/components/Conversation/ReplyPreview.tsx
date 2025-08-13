@@ -1,7 +1,8 @@
 import { ActionIcon, Box, Text } from "@mantine/core";
-import { IconArrowBackUp, IconX } from "@tabler/icons-react";
 import { AddressBadge } from "@/components/AddressBadge";
 import { BreakableText } from "@/components/Messages/BreakableText";
+import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
+import { IconX } from "@/icons/IconX";
 
 export type ReplyPreviewProps = {
   previewText: string;
@@ -27,11 +28,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
             minWidth: 0,
             width: "100%",
           }}>
-          <IconArrowBackUp
-            size={16}
-            stroke={2}
-            color="var(--mantine-color-dimmed)"
-          />
+          <IconArrowBackUp color="var(--mantine-color-dimmed)" />
           <Text size="sm" c="dimmed">
             Replying to
           </Text>
@@ -51,7 +48,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
           radius="xl"
           onClick={onCancel}
           disabled={disabled}>
-          <IconX size={18} stroke={2} color="white" />
+          <IconX size={18} color="white" />
         </ActionIcon>
       </Box>
     </>
