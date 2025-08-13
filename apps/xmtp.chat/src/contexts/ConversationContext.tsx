@@ -9,7 +9,7 @@ import type { ContentTypes } from "@/contexts/XMTPContext";
 type ConversationContextType = {
   conversation?: Conversation<ContentTypes>;
   members: Map<string, string>;
-  replyToMessage?: DecodedMessage;
+  replyToMessage?: DecodedMessage<ContentTypes | unknown>;
   setReplyToMessage: React.Dispatch<
     React.SetStateAction<DecodedMessage | undefined>
   >;
