@@ -1,5 +1,5 @@
 import { Text, type TextProps } from "@mantine/core";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export type BreakableTextProps = TextProps & {
   children: ReactNode;
@@ -10,13 +10,14 @@ export const BreakableText: React.FC<BreakableTextProps> = ({
   style,
   ...textProps
 }) => {
-  const baseStyle: CSSProperties = {
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-    fontFamily: "inherit",
-  };
   return (
-    <Text style={{ ...baseStyle, ...style }} {...textProps}>
+    <Text
+      style={{
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        fontFamily: "inherit",
+      }}
+      {...textProps}>
       {children}
     </Text>
   );
