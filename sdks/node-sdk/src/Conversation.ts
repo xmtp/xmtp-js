@@ -25,6 +25,7 @@ export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
   #conversation: XmtpConversation;
   #lastMessage?: DecodedMessage<ContentTypes>;
+  #isCommitLogForked: boolean | null = null;
 
   /**
    * Creates a new conversation instance
@@ -32,17 +33,20 @@ export class Conversation<ContentTypes = unknown> {
    * @param client - The client instance managing the conversation
    * @param conversation - The underlying conversation instance
    * @param lastMessage - Optional last message in the conversation
+   * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     conversation: XmtpConversation,
     lastMessage?: Message | null,
+    isCommitLogForked?: boolean | null,
   ) {
     this.#client = client;
     this.#conversation = conversation;
     this.#lastMessage = lastMessage
       ? new DecodedMessage(client, lastMessage)
       : undefined;
+    this.#isCommitLogForked = isCommitLogForked ?? null;
   }
 
   /**
@@ -57,6 +61,10 @@ export class Conversation<ContentTypes = unknown> {
    */
   get isActive() {
     return this.#conversation.isActive();
+  }
+
+  get isCommitLogForked() {
+    return this.#isCommitLogForked;
   }
 
   /**

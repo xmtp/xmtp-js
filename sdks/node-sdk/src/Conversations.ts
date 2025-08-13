@@ -173,9 +173,19 @@ export class Conversations<ContentTypes = unknown> {
         const conversationType = metadata.conversationType();
         switch (conversationType) {
           case "dm":
-            return new Dm(this.#client, item.conversation, item.lastMessage);
+            return new Dm(
+              this.#client,
+              item.conversation,
+              item.lastMessage,
+              item.isCommitLogForked,
+            );
           case "group":
-            return new Group(this.#client, item.conversation, item.lastMessage);
+            return new Group(
+              this.#client,
+              item.conversation,
+              item.lastMessage,
+              item.isCommitLogForked,
+            );
           default:
             return undefined;
         }
@@ -200,6 +210,7 @@ export class Conversations<ContentTypes = unknown> {
         this.#client,
         item.conversation,
         item.lastMessage,
+        item.isCommitLogForked,
       );
       return conversation;
     });
@@ -221,6 +232,7 @@ export class Conversations<ContentTypes = unknown> {
         this.#client,
         item.conversation,
         item.lastMessage,
+        item.isCommitLogForked,
       );
       return conversation;
     });
