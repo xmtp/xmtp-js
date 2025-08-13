@@ -1,14 +1,20 @@
-import { Group, type Conversation } from "@xmtp/browser-sdk";
+import { DecodedMessage, Group, type Conversation } from "@xmtp/browser-sdk";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 
 type ConversationContextType = {
   conversation?: Conversation<ContentTypes>;
   members: Map<string, string>;
+  replyToMessage: DecodedMessage<ContentTypes> | undefined;
+  setReplyToMessage: React.Dispatch<
+    React.SetStateAction<DecodedMessage<ContentTypes> | undefined>
+  >;
 };
 
 const ConversationContext = createContext<ConversationContextType>({
   members: new Map(),
+  replyToMessage: undefined,
+  setReplyToMessage: () => {},
 });
 
 export type ConversationProviderProps = React.PropsWithChildren<{
@@ -20,6 +26,9 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({
   conversation,
 }) => {
   const [members, setMembers] = useState<Map<string, string>>(new Map());
+  const [replyToMessage, setReplyToMessage] = useState<
+    DecodedMessage<ContentTypes> | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!(conversation instanceof Group)) {
@@ -39,8 +48,8 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({
   }, [conversation.id]);
 
   const value = useMemo(
-    () => ({ conversation, members }),
-    [conversation, members],
+    () => ({ conversation, members, replyToMessage, setReplyToMessage }),
+    [conversation, members, replyToMessage, setReplyToMessage],
   );
 
   return (
