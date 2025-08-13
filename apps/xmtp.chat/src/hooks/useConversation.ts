@@ -80,11 +80,7 @@ export const useConversation = (conversation: Conversation<ContentTypes>) => {
       onValue,
     });
 
-    return stream
-      ? () => {
-          void stream.end();
-        }
-      : noop;
+    return stream.end();
   };
 
   return {

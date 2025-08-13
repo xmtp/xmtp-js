@@ -26,6 +26,7 @@ export const Message: React.FC<MessageProps> = ({
   return (
     <Box p="md" tabIndex={0} className={classes.root}>
       <Box
+        tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             void navigate(
@@ -50,7 +51,9 @@ export const Message: React.FC<MessageProps> = ({
           <Button
             size="compact-xs"
             variant="subtle"
-            onClick={() => setReplyToMessage(message)}>
+            onClick={() => {
+              setReplyToMessage(message);
+            }}>
             Reply
           </Button>
         </Group>

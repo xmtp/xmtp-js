@@ -122,13 +122,15 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
               void handleSend();
             }
           }}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+          }}
         />
         <Button
           disabled={message.length === 0}
           loading={sending}
           size="md"
-          onClick={handleSend}>
+          onClick={() => void handleSend()}>
           Send
         </Button>
       </Box>
