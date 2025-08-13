@@ -1,6 +1,7 @@
 import { ActionIcon, Box, Text } from "@mantine/core";
 import { IconArrowBackUp, IconX } from "@tabler/icons-react";
 import { AddressBadge } from "@/components/AddressBadge";
+import { BreakableText } from "@/components/Messages/BreakableText";
 
 export type ReplyPreviewProps = {
   previewText: string;
@@ -38,14 +39,9 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
             <AddressBadge address={fromAddress} />
           </Box>
         </Box>
-        <Text
-          mt={6}
-          fw={700}
-          size="sm"
-          lineClamp={2}
-          style={{ wordBreak: "break-word", overflow: "hidden" }}>
+        <BreakableText mt={6} fw={700} size="sm" lineClamp={2}>
           {previewText}
-        </Text>
+        </BreakableText>
       </Box>
       <Box style={{ display: "grid", placeItems: "center" }}>
         <ActionIcon

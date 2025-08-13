@@ -1,4 +1,5 @@
-import { Paper, Text } from "@mantine/core";
+import { Paper } from "@mantine/core";
+import { BreakableText } from "@/components/Messages/BreakableText";
 import classes from "./TextContent.module.css";
 
 export type TextContentProps = {
@@ -17,15 +18,7 @@ export const TextContent: React.FC<TextContentProps> = ({ text }) => {
       py="xs"
       px="sm"
       radius="md">
-      <Text
-        component="pre"
-        style={{
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          fontFamily: "inherit",
-        }}>
-        {text}
-      </Text>
+      <BreakableText>{text}</BreakableText>
     </Paper>
   );
 };
