@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Group, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Box, Button, Text, TextInput } from "@mantine/core";
 import { IconArrowBackUp, IconX } from "@tabler/icons-react";
 import type { Conversation } from "@xmtp/browser-sdk";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
@@ -61,37 +61,49 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr auto",
-          columnGap: 8,
-          rowGap: 8,
+          gap: 8,
           alignItems: "center",
-          width: "100%",
         }}>
         {replyToMessage && (
           <>
-            <Box>
-              <Group gap={6} align="center" style={{ minWidth: 0 }}>
-                <IconArrowBackUp
-                  size={14}
-                  stroke={2}
-                  color="var(--mantine-color-dimmed)"
-                />
-                <Text size="xs" c="dimmed">
-                  Replying to
+            <Box style={{ minWidth: 0 }}>
+              <Box
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  minWidth: 0,
+                  width: "100%",
+                }}>
+                <Text c="dimmed">
+                  <IconArrowBackUp
+                    size={14}
+                    stroke={2}
+                    style={{ flex: "none" }}
+                  />
                 </Text>
                 <Text
                   size="xs"
                   c="dimmed"
                   style={{
+                    flex: 1,
                     minWidth: 0,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
-                  }}
-                  title={displayName}>
-                  {displayName}
+                  }}>
+                  {`Replying to ${displayName}`}
                 </Text>
-              </Group>
-              <Text mt={6} fw={700} size="sm" lineClamp={2} title={previewText}>
+              </Box>
+              <Text
+                mt={6}
+                fw={700}
+                size="sm"
+                lineClamp={2}
+                style={{
+                  wordBreak: "break-word",
+                  overflow: "hidden",
+                }}>
                 {previewText}
               </Text>
             </Box>
@@ -105,7 +117,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
                   setReplyToMessage(undefined);
                 }}
                 disabled={sending}>
-                <IconX size={18} stroke={2} color="#fff" />
+                <IconX size={18} stroke={2} color="white" />
               </ActionIcon>
             </Box>
           </>
