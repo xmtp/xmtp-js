@@ -15,7 +15,7 @@ export const Message: React.FC<MessageProps> = ({
   message,
   scrollToMessage,
 }) => {
-  const { setReplyToMessage } = useConversationContext();
+  const { setReplyTarget } = useConversationContext();
   const { client } = useOutletContext<{ client: Client }>();
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
@@ -52,7 +52,7 @@ export const Message: React.FC<MessageProps> = ({
             size="compact-xs"
             variant="subtle"
             onClick={() => {
-              setReplyToMessage(message);
+              setReplyTarget(message);
             }}>
             Reply
           </Button>

@@ -15,28 +15,27 @@ export type ComposerProps = {
 
 export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
   const { send, sending } = useConversation(conversation);
-  const { replyToMessage, setReplyToMessage, members } =
-    useConversationContext();
+  const { replyTarget, setReplyTarget, members } = useConversationContext();
   const [message, setMessage] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = useCallback(async () => {
     if (!message || sending) return;
-    if (replyToMessage) {
+    if (replyTarget) {
       const replyPayload: Reply = {
-        reference: replyToMessage.id,
-        referenceInboxId: replyToMessage.senderInboxId,
+        reference: replyTarget.id,
+        referenceInboxId: replyTarget.senderInboxId,
         contentType: ContentTypeText,
         content: message,
       };
       await send(replyPayload, ContentTypeReply);
-      setReplyToMessage(undefined);
+      setReplyTarget(undefined);
     } else {
       await send(message);
     }
     setMessage("");
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [message, sending, replyToMessage, send, setReplyToMessage]);
+  }, [message, sending, replyTarget, send, setReplyTarget]);
 
   return (
     <Box p="md" className={classes.root} style={{ width: "100%" }}>
@@ -47,13 +46,13 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
           gap: 8,
           alignItems: "center",
         }}>
-        {replyToMessage && (
+        {replyTarget && (
           <ReplyPreview
-            message={replyToMessage}
+            message={replyTarget}
             members={members}
             disabled={sending}
             onCancel={() => {
-              setReplyToMessage(undefined);
+              setReplyTarget(undefined);
             }}
           />
         )}
