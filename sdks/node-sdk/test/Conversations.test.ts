@@ -40,6 +40,7 @@ describe("Conversations", () => {
     expect(conversation.createdAt).toBeDefined();
     expect(conversation.createdAtNs).toBeDefined();
     expect(conversation.isActive).toBe(true);
+    expect(conversation.isCommitLogForked).toBe(null);
     expect(conversation.name).toBe("");
     expect(conversation.permissions.policyType).toBe(
       GroupPermissionsOptions.Default,
@@ -146,6 +147,7 @@ describe("Conversations", () => {
     expect(group.createdAtNs).toBeDefined();
     expect(group.createdAt).toBeDefined();
     expect(group.isActive).toBe(true);
+    expect(group.isCommitLogForked).toBe(null);
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(1);
     const members = await group.members();
