@@ -1,6 +1,7 @@
 import { ActionIcon, Box, Text } from "@mantine/core";
 import { IconArrowBackUp, IconX } from "@tabler/icons-react";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
+import { AddressBadge } from "@/components/AddressBadge";
 
 export type ReplyPreviewProps = {
   message: DecodedMessage;
@@ -31,27 +32,16 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
             width: "100%",
           }}>
           <IconArrowBackUp
-            size={14}
+            size={16}
             stroke={2}
             color="var(--mantine-color-dimmed)"
-            style={{ flex: "none" }}
           />
-          <Text size="xs" c="dimmed" style={{ flex: "none" }}>
+          <Text size="sm" c="dimmed">
             Replying to
           </Text>
-          <Text
-            size="xs"
-            c="dimmed"
-            style={{
-              flex: 1,
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-            title={displayName}>
-            {displayName}
-          </Text>
+          <Box>
+            <AddressBadge address={displayName} />
+          </Box>
         </Box>
         <Text
           mt={6}
