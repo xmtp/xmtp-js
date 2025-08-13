@@ -3,7 +3,7 @@ import { IconArrowBackUp, IconX } from "@tabler/icons-react";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 
 export type ReplyPreviewProps = {
-  message: DecodedMessage<unknown>;
+  message: DecodedMessage;
   members: Map<string, string>;
   onCancel: () => void;
   disabled?: boolean;

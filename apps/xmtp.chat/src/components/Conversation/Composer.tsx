@@ -52,7 +52,9 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
             message={replyToMessage}
             members={members}
             disabled={sending}
-            onCancel={() => setReplyToMessage(undefined)}
+            onCancel={() => {
+              setReplyToMessage(undefined);
+            }}
           />
         )}
         <TextInput
@@ -64,7 +66,9 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
           onKeyDown={(e) => {
             if (e.key === "Enter") void handleSend();
           }}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+          }}
         />
         <Button
           disabled={!message}
