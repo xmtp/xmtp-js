@@ -1,5 +1,4 @@
 import {
-  Group,
   type Conversation,
   type DecodedMessage,
 } from "@xmtp/browser-sdk";
