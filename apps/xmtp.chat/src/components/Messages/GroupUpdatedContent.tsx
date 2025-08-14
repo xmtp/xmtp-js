@@ -49,7 +49,7 @@ const GroupMetadataUpdatedContent: React.FC<
 
   return (
     <Group gap="4" wrap="wrap" justify="center">
-      <AddressBadge address={initiatedBy} size="lg" />
+      <AddressBadge address={initiatedBy} />
       <Text size="sm">
         {metadataFieldChange.newValue ? "changed" : "removed"} the group
       </Text>

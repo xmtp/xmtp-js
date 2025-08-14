@@ -3,10 +3,11 @@ import type {
   DecodedMessage,
   SafeListMessagesOptions,
 } from "@xmtp/browser-sdk";
+import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { useState } from "react";
 import { useXMTP, type ContentTypes } from "@/contexts/XMTPContext";
 
-export const useConversation = (conversation?: Conversation<ContentTypes>) => {
+export const useConversation = (conversation: Conversation<ContentTypes>) => {
   const { client } = useXMTP();
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -29,7 +30,7 @@ export const useConversation = (conversation?: Conversation<ContentTypes>) => {
     }
 
     try {
-      const msgs = (await conversation?.messages(options)) ?? [];
+      const msgs = await conversation.messages(options);
       setMessages(msgs);
       return msgs;
     } finally {
@@ -45,13 +46,13 @@ export const useConversation = (conversation?: Conversation<ContentTypes>) => {
     setSyncing(true);
 
     try {
-      await conversation?.sync();
+      await conversation.sync();
     } finally {
       setSyncing(false);
     }
   };
 
-  const send = async (message: string) => {
+  const send = async (message: ContentTypes, contentType?: ContentTypeId) => {
     if (!client) {
       return;
     }
@@ -59,7 +60,7 @@ export const useConversation = (conversation?: Conversation<ContentTypes>) => {
     setSending(true);
 
     try {
-      await conversation?.send(message);
+      await conversation.send(message, contentType);
     } finally {
       setSending(false);
     }
@@ -75,15 +76,11 @@ export const useConversation = (conversation?: Conversation<ContentTypes>) => {
       setMessages((prev) => [...prev, message]);
     };
 
-    const stream = await conversation?.stream({
+    const stream = await conversation.stream({
       onValue,
     });
 
-    return stream
-      ? () => {
-          void stream.end();
-        }
-      : noop;
+    return () => stream.end();
   };
 
   return {

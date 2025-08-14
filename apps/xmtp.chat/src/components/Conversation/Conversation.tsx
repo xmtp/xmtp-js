@@ -22,11 +22,11 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
   const { client } = useOutletContext<{ client: Client<ContentTypes> }>();
   const [title, setTitle] = useState("");
   const {
-    messages,
     getMessages,
     loading: conversationLoading,
-    syncing: conversationSyncing,
+    messages,
     streamMessages,
+    syncing: conversationSyncing,
   } = useConversation(conversation);
   const stopStreamRef = useRef<(() => void) | null>(null);
 
@@ -70,24 +70,24 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
 
   return (
     <>
-      <ContentLayout
-        title={title}
-        loading={conversationLoading}
-        headerActions={
-          <Group gap="xs">
-            <ConversationMenu
-              type={conversation instanceof XmtpGroup ? "group" : "dm"}
-              onSync={() => void handleSync()}
-              disabled={conversationSyncing}
-            />
-          </Group>
-        }
-        footer={<Composer conversation={conversation} />}
-        withScrollArea={false}>
-        <ConversationProvider conversation={conversation}>
+      <ConversationProvider key={conversation.id} conversation={conversation}>
+        <ContentLayout
+          title={title}
+          loading={conversationLoading}
+          headerActions={
+            <Group gap="xs">
+              <ConversationMenu
+                type={conversation instanceof XmtpGroup ? "group" : "dm"}
+                onSync={() => void handleSync()}
+                disabled={conversationSyncing}
+              />
+            </Group>
+          }
+          footer={<Composer conversation={conversation} />}
+          withScrollArea={false}>
           <Messages messages={messages} />
-        </ConversationProvider>
-      </ContentLayout>
+        </ContentLayout>
+      </ConversationProvider>
       <Outlet context={{ conversation, client }} />
     </>
   );

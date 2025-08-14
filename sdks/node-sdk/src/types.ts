@@ -79,6 +79,15 @@ export type OtherOptions = {
    * Disable device sync
    */
   disableDeviceSync?: boolean;
+  /**
+   * Custom app version
+   */
+  appVersion?: string;
+  /**
+   * Should debug events be tracked
+   * (default: false)
+   */
+  debugEventsEnabled?: boolean;
 };
 
 export type ClientOptions = NetworkOptions &

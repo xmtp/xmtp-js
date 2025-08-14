@@ -1,5 +1,23 @@
 # @xmtp/browser-sdk
 
+## 4.0.2
+
+### Patch Changes
+
+- ed36644: Reverted performance improvement for large inboxes that caused message streaming issues
+
+## 4.0.1
+
+### Patch Changes
+
+- ffec6e0:
+  - Improved performance for large inboxes
+  - Improved key package errors
+  - Added `appVersion` client option
+  - Added `debugEventsEnabled` client option
+  - Fixed DM stitching bug
+  - Added expiration to messages for disappearing messages
+
 ## 4.0.0
 
 This release introduces several enhancements to improve stream reliability. It contains breaking changes.
@@ -165,9 +183,10 @@ for await (const message of stream) {
 
 ### Patch Changes
 
-- 78c6710: - Resolves issue with too many key package api requests
-  - Fixes issue causing users with old installations to sometimes not be added to groups
-  - Fixes a performance bottleneck that affects listing conversations while syncing
+- 78c6710:
+  - Resolved issue with too many key package API requests
+  - Fixed issue causing users with old installations to sometimes not be added to groups
+  - Fixed a performance bottleneck that affected listing conversations while syncing
 
 ## 3.1.1
 
