@@ -4,6 +4,10 @@ To learn more about the contents of this repository, see this README and the REA
 
 ## What's inside?
 
+### Apps
+
+- [`xmtp.chat`](apps/xmtp.chat): A [web app for developers](https://xmtp.chat/) to experiment with the XMTP protocol
+
 ### SDKs
 
 - [`browser-sdk`](sdks/browser-sdk): XMTP client SDK for browsers
