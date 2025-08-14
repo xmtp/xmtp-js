@@ -1,8 +1,4 @@
-import {
-  Group,
-  type Conversation,
-  type DecodedMessage,
-} from "@xmtp/browser-sdk";
+import { type Conversation, type DecodedMessage } from "@xmtp/browser-sdk";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 
@@ -35,10 +31,6 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({
   );
 
   useEffect(() => {
-    if (!(conversation instanceof Group)) {
-      return;
-    }
-
     const loadMembers = async () => {
       const members = await conversation.members();
       setMembers(
