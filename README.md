@@ -6,7 +6,7 @@ To learn more about the contents of this repository, see this README and the REA
 
 ### Apps
 
-- [`xmtp.chat`](apps/xmtp.chat): A [web app for developers](https://xmtp.chat/) to experiment with the XMTP protocol
+- [`xmtp.chat`](apps/xmtp.chat): A [web app for developers](https://xmtp.chat/) to experiment with XMTP
 
 ### SDKs
 
