@@ -6,7 +6,7 @@ import { useCallback, useRef, useState } from "react";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
-import { renderPreview } from "../../helpers/renderPreview";
+import { stringifyMessage } from "../../helpers/strings";
 import classes from "./Composer.module.css";
 import { ReplyPreview } from "./ReplyPreview";
 
@@ -49,7 +49,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
         }}>
         {replyTarget && (
           <ReplyPreview
-            previewText={renderPreview(replyTarget)}
+            previewText={stringifyMessage(replyTarget)}
             fromAddress={
               members.get(replyTarget.senderInboxId) ??
               replyTarget.senderInboxId
