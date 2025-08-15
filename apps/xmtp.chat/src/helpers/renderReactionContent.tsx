@@ -1,35 +1,36 @@
+import { Image } from "@mantine/core";
 import type { Reaction } from "@xmtp/content-type-reaction";
-import React from "react";
 
-const SHORTCODE_IMAGE_MAP: Record<string, string> = {
+const SHORTCODE_MAP: { [code: string]: string } = {
   ":thumbsup:": "👍",
-};
+  ":xmtp:": "https://xmtp.chat/xmtp-icon.png",
+} as const;
 
 export const renderReactionContent = (
   schema: Reaction["schema"],
   content: string,
 ) => {
-  if (schema === "unicode") return content;
-  if (schema === "shortcode") {
-    const src = SHORTCODE_IMAGE_MAP[content];
-    if (src) {
-      if (src.startsWith("http")) {
-        return (
-          // eslint-disable-next-line jsx-a11y/alt-text
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={src}
-            alt={content}
-            style={{ width: 18, height: 18, display: "inline-block" }}
-          />
-        );
+  switch (schema) {
+    case "unicode":
+      return content;
+    case "shortcode": {
+      const replacement = SHORTCODE_MAP[content];
+      if (replacement) {
+        if (replacement.startsWith("http")) {
+          return (
+            <Image
+              src={replacement}
+              alt={content}
+              style={{ width: 18, height: 18, display: "inline-block" }}
+            />
+          );
+        }
+        return replacement;
       }
-      return src;
     }
-    return content;
+    default:
+      return content;
   }
-  // custom: for demo, just return text
-  return content;
 };
 
 export default renderReactionContent;
