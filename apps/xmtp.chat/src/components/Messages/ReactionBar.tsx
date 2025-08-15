@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Box,
   Button,
   Group,
   Popover,
@@ -7,22 +8,36 @@ import {
   TextInput,
 } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
-import type { Reaction } from "@xmtp/content-type-reaction";
+import {
+  ContentTypeReaction,
+  type Reaction,
+} from "@xmtp/content-type-reaction";
 import { useState } from "react";
-import { useReactions } from "@/contexts/ReactionsContext";
+import { useConversationContext } from "@/contexts/ConversationContext";
+import { useConversation } from "@/hooks/useConversation";
 
 const EMOJIS = ["👍", "❤️", "😂", "🔥", "😮", "🙏", "🎉", "👀"];
 
-export const ReactionBar: React.FC<{ message: DecodedMessage }> = ({
-  message,
-}) => {
-  const { toggleReaction } = useReactions();
+export type ReactionBarProps = {
+  message: DecodedMessage;
+};
+
+export const ReactionBar: React.FC<ReactionBarProps> = ({ message }) => {
+  const { conversation } = useConversationContext();
+  const { send } = useConversation(conversation);
   const [opened, setOpened] = useState(false);
   const [schema, setSchema] = useState<Reaction["schema"]>("unicode");
   const [text, setText] = useState("");
 
-  const send = async (value: string) => {
-    await toggleReaction(message, value, schema);
+  const sendReaction = async (value: string) => {
+    const payload: Reaction = {
+      action: "added",
+      reference: message.id,
+      referenceInboxId: message.senderInboxId,
+      schema,
+      content: value,
+    };
+    await send(payload, ContentTypeReaction);
     setOpened(false);
     setText("");
     setSchema("unicode");
@@ -32,7 +47,7 @@ export const ReactionBar: React.FC<{ message: DecodedMessage }> = ({
     <Popover
       opened={opened}
       onChange={setOpened}
-      width="auto"
+      width={240}
       position="top"
       withinPortal>
       <Popover.Target>
@@ -55,47 +70,53 @@ export const ReactionBar: React.FC<{ message: DecodedMessage }> = ({
           mb="xs"
           size="xs"
         />
-        {schema === "unicode" ? (
-          <Group gap={4} wrap="nowrap">
-            {EMOJIS.map((e) => (
+        <Box
+          style={{
+            height: 36,
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+          }}>
+          {schema === "unicode" ? (
+            <Group gap={4} wrap="nowrap" align="center">
+              {EMOJIS.map((e) => (
+                <ActionIcon
+                  key={e}
+                  size="sm"
+                  variant="light"
+                  onClick={() => void sendReaction(e)}>
+                  {e}
+                </ActionIcon>
+              ))}
+            </Group>
+          ) : (
+            <Group gap="xs" wrap="nowrap" align="center">
+              <TextInput
+                value={text}
+                onChange={(e) => setText(e.currentTarget.value)}
+                placeholder={schema === "shortcode" ? ":xmtp:" : "Enter custom"}
+                size="xs"
+                style={{ width: 180 }}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    (schema === "shortcode" || schema === "custom")
+                  ) {
+                    e.preventDefault();
+                    const value = text.trim();
+                    if (value) void sendReaction(value);
+                  }
+                }}
+              />
               <ActionIcon
-                key={e}
                 size="sm"
-                variant="light"
-                onClick={() => void send(e)}>
-                {e}
+                variant="filled"
+                onClick={() => text && void sendReaction(text)}>
+                ➤
               </ActionIcon>
-            ))}
-          </Group>
-        ) : (
-          <Group gap="xs" wrap="nowrap">
-            <TextInput
-              value={text}
-              onChange={(e) => setText(e.currentTarget.value)}
-              placeholder={
-                schema === "shortcode" ? ":thumbsup:" : "Enter custom"
-              }
-              size="xs"
-              style={{ width: 180 }}
-              onKeyDown={(e) => {
-                if (
-                  e.key === "Enter" &&
-                  (schema === "shortcode" || schema === "custom")
-                ) {
-                  e.preventDefault();
-                  const value = text.trim();
-                  if (value) void send(value);
-                }
-              }}
-            />
-            <ActionIcon
-              size="sm"
-              variant="filled"
-              onClick={() => text && void send(text)}>
-              ➤
-            </ActionIcon>
-          </Group>
-        )}
+            </Group>
+          )}
+        </Box>
       </Popover.Dropdown>
     </Popover>
   );
