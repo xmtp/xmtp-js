@@ -23,7 +23,7 @@ export const Message: React.FC<MessageProps> = ({
   const { setReplyTarget } = useConversationContext();
   const { client } = useOutletContext<{ client: Client }>();
 
-  // Client checks
+  // Sender checks
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
 

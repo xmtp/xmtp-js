@@ -110,7 +110,7 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
                     ["shortcode", "custom"].includes(schema)
                   ) {
                     event.preventDefault();
-                    void sendReaction(text.trim());
+                    void sendReaction(text);
                   }
                 }}
               />
