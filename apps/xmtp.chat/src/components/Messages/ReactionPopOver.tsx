@@ -22,20 +22,20 @@ export type ReactionBarProps = {
   message: DecodedMessage;
 };
 
-export const ReactionBar: React.FC<ReactionBarProps> = ({ message }) => {
+export const ReactionPopOver: React.FC<ReactionBarProps> = ({ message }) => {
   const { conversation } = useConversationContext();
   const { send } = useConversation(conversation);
   const [opened, setOpened] = useState(false);
   const [schema, setSchema] = useState<Reaction["schema"]>("unicode");
   const [text, setText] = useState("");
 
-  const sendReaction = async (value: string) => {
+  const sendReaction = async (content: string) => {
     const payload: Reaction = {
       action: "added",
       reference: message.id,
       referenceInboxId: message.senderInboxId,
       schema,
-      content: value,
+      content,
     };
     await send(payload, ContentTypeReaction);
     setOpened(false);
@@ -44,31 +44,35 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ message }) => {
   };
 
   return (
-    <Popover
-      opened={opened}
-      onChange={setOpened}
-      width={240}
-      position="top"
-      withinPortal>
+    <Popover opened={opened} onChange={setOpened} width={200} position="top">
       <Popover.Target>
         <Button
-          size="compact-xs"
+          size="compact-sm"
           variant="subtle"
-          onClick={() => setOpened((o) => !o)}>
+          onClick={() => setOpened((opened) => !opened)}>
           React
         </Button>
       </Popover.Target>
-      <Popover.Dropdown p="xs">
+      <Popover.Dropdown p="sm">
         <SegmentedControl
           value={schema}
-          onChange={(v: string) => setSchema(v as Reaction["schema"])}
+          onChange={(schema: string) => {
+            switch (schema) {
+              case "unicode":
+              case "shortcode":
+                setSchema(schema);
+                break;
+              default:
+                setSchema("custom");
+            }
+          }}
           data={[
             { label: "Unicode", value: "unicode" },
             { label: "Shortcode", value: "shortcode" },
             { label: "Custom", value: "custom" },
           ]}
-          mb="xs"
-          size="xs"
+          mb="sm"
+          size="sm"
         />
         <Box
           style={{
@@ -79,39 +83,38 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ message }) => {
           }}>
           {schema === "unicode" ? (
             <Group gap={4} wrap="nowrap" align="center">
-              {EMOJIS.map((e) => (
+              {EMOJIS.map((emoji) => (
                 <ActionIcon
-                  key={e}
+                  key={emoji}
                   size="sm"
                   variant="light"
-                  onClick={() => void sendReaction(e)}>
-                  {e}
+                  onClick={() => void sendReaction(emoji)}>
+                  {emoji}
                 </ActionIcon>
               ))}
             </Group>
           ) : (
-            <Group gap="xs" wrap="nowrap" align="center">
+            <Group gap="sm" wrap="nowrap" align="center">
               <TextInput
                 value={text}
-                onChange={(e) => setText(e.currentTarget.value)}
+                onChange={(event) => setText(event.currentTarget.value)}
                 placeholder={schema === "shortcode" ? ":xmtp:" : "Enter custom"}
-                size="xs"
+                size="sm"
                 style={{ width: 180 }}
-                onKeyDown={(e) => {
+                onKeyDown={(event) => {
                   if (
-                    e.key === "Enter" &&
-                    (schema === "shortcode" || schema === "custom")
+                    event.key === "Enter" &&
+                    ["shortcode", "custom"].includes(schema)
                   ) {
-                    e.preventDefault();
-                    const value = text.trim();
-                    if (value) void sendReaction(value);
+                    event.preventDefault();
+                    void sendReaction(text.trim());
                   }
                 }}
               />
               <ActionIcon
                 size="sm"
                 variant="filled"
-                onClick={() => text && void sendReaction(text)}>
+                onClick={() => void sendReaction(text)}>
                 ➤
               </ActionIcon>
             </Group>
