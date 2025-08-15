@@ -44,7 +44,7 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
   };
 
   return (
-    <Popover opened={opened} onChange={setOpened} width={200} position="top">
+    <Popover opened={opened} onChange={setOpened} width="auto" position="top">
       <Popover.Target>
         <Button
           size="compact-xs"
@@ -79,10 +79,9 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
             height: 36,
             display: "flex",
             alignItems: "center",
-            width: "100%",
           }}>
           {schema === "unicode" ? (
-            <Group gap={4} wrap="nowrap" align="center">
+            <Group gap={4}>
               {EMOJIS.map((emoji) => (
                 <ActionIcon
                   key={emoji}
@@ -94,7 +93,7 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
               ))}
             </Group>
           ) : (
-            <Group gap="sm" wrap="nowrap" align="center">
+            <Group gap="sm">
               <TextInput
                 value={text}
                 onChange={(event) => setText(event.currentTarget.value)}
