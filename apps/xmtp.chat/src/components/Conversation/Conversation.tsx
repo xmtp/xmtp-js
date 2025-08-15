@@ -9,6 +9,7 @@ import { Outlet, useOutletContext } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
 import { ConversationProvider } from "@/contexts/ConversationContext";
+import { ReactionsProvider } from "@/contexts/ReactionsContext";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
@@ -85,7 +86,9 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
           }
           footer={<Composer conversation={conversation} />}
           withScrollArea={false}>
-          <Messages messages={messages} />
+          <ReactionsProvider conversation={conversation}>
+            <Messages messages={messages} />
+          </ReactionsProvider>
         </ContentLayout>
       </ConversationProvider>
       <Outlet context={{ conversation, client }} />
