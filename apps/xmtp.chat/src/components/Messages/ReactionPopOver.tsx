@@ -47,7 +47,7 @@ export const ReactionPopOver: React.FC<ReactionBarProps> = ({ message }) => {
     <Popover opened={opened} onChange={setOpened} width={200} position="top">
       <Popover.Target>
         <Button
-          size="compact-sm"
+          size="compact-xs"
           variant="subtle"
           onClick={() => setOpened((opened) => !opened)}>
           React
