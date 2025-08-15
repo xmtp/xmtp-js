@@ -49,7 +49,9 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
         <Button
           size="compact-xs"
           variant="subtle"
-          onClick={() => setOpened((opened) => !opened)}>
+          onClick={() => {
+            setOpened((opened) => !opened);
+          }}>
           React
         </Button>
       </Popover.Target>
@@ -96,7 +98,9 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
             <Group gap="sm">
               <TextInput
                 value={text}
-                onChange={(event) => setText(event.currentTarget.value)}
+                onChange={(event) => {
+                  setText(event.currentTarget.value);
+                }}
                 placeholder={schema === "shortcode" ? ":xmtp:" : "Enter custom"}
                 size="sm"
                 style={{ width: 180 }}

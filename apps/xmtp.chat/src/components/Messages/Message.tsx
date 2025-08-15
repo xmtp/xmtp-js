@@ -1,4 +1,4 @@
-import { Box, Button, Group, Stack } from "@mantine/core";
+import { Box, Button, Group } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
 import { ContentTypeReaction } from "@xmtp/content-type-reaction";
 import { ContentTypeReply } from "@xmtp/content-type-reply";
