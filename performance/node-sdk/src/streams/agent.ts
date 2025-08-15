@@ -48,7 +48,7 @@ const updateProgress = (
 const signer = createSigner();
 const client = await Client.create(signer, {
   env: "local",
-  loggingLevel: LogLevel.trace,
+  loggingLevel: LogLevel.error,
   disableDeviceSync: true,
   debugEventsEnabled: false,
 });
@@ -57,7 +57,9 @@ console.log(`Created client with inboxId: ${client.inboxId}`);
 
 const messages = [];
 const messageTimestamps: number[] = [];
-const stream = await client.conversations.streamAllMessages();
+const stream = await client.conversations.streamAllMessages({
+  retryDelay: 1000,
+});
 console.log(`Stream created, waiting for ${TOTAL_MESSAGES} messages...`);
 
 const { fn: streamTimeout, cancel: cancelStreamTimeout } = debounce(() => {

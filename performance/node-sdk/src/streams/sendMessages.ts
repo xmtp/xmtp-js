@@ -1,15 +1,15 @@
 import "dotenv/config";
-import { Client, LogLevel } from "@xmtp/node-sdk";
+import { Client } from "@xmtp/node-sdk";
 import { sleep } from "@/util/sleep";
 import { createSigner } from "@/util/xmtp";
 
 const TOTAL_MESSAGES =
-  Number(process.env.MESSAGE_STREAM_WORKERS) *
-  Number(process.env.MESSAGE_STREAM_MESSAGES_PER_WORKER);
+  Number(process.env.MESSAGE_STREAM_INSTANCES) *
+  Number(process.env.MESSAGE_STREAM_MESSAGES_PER_INSTANCE);
 
 const args = process.argv.slice(2);
 if (args.length !== 1) {
-  console.error("Usage: yarn stream:messages <inboxId>");
+  console.error("Usage: sendMessages.js <inboxId>");
   process.exit(1);
 }
 const inboxId = args[0];

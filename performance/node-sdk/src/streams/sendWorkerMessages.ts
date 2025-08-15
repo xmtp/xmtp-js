@@ -5,7 +5,7 @@ import { WorkerPool } from "@/util/workerPool";
 
 const args = process.argv.slice(2);
 if (args.length !== 1) {
-  console.error("Usage: yarn stream:messages:worker <inboxId>");
+  console.error("Usage: sendWorkerMessages.js <inboxId>");
   process.exit(1);
 }
 const inboxId = args[0];
