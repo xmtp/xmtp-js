@@ -7,7 +7,7 @@ import { useNavigate, useOutletContext } from "react-router";
 import { useConversationContext } from "../../contexts/ConversationContext";
 import classes from "./Message.module.css";
 import { MessageContentWithWrapper } from "./MessageContentWithWrapper";
-import { ReactionPopOver } from "./ReactionPopOver";
+import { ReactionPopover } from "./ReactionPopover";
 
 export type MessageProps = {
   message: DecodedMessage;
@@ -58,7 +58,7 @@ export const Message: React.FC<MessageProps> = ({
       </Box>
       {showMessageAction && (
         <Group justify={align === "left" ? "flex-start" : "flex-end"} mt={4}>
-          <ReactionPopOver message={message} />
+          <ReactionPopover message={message} />
           <Button
             size="compact-xs"
             variant="subtle"

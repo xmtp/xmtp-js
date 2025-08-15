@@ -22,7 +22,7 @@ export type ReactionBarProps = {
   message: DecodedMessage;
 };
 
-export const ReactionPopOver: React.FC<ReactionBarProps> = ({ message }) => {
+export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
   const { conversation } = useConversationContext();
   const { send } = useConversation(conversation);
   const [opened, setOpened] = useState(false);
