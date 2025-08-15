@@ -31,7 +31,7 @@ export const Message: React.FC<MessageProps> = ({
   const isText = message.contentType.sameAs(ContentTypeText);
   const isReaction = message.contentType.sameAs(ContentTypeReaction);
   const isReply = message.contentType.sameAs(ContentTypeReply);
-  const showMessageInteraction = isText || isReaction || isReply;
+  const showMessageAction = isText || isReaction || isReply;
 
   return (
     <Box p="md" tabIndex={0} className={classes.root}>
@@ -56,21 +56,19 @@ export const Message: React.FC<MessageProps> = ({
           scrollToMessage={scrollToMessage}
         />
       </Box>
-      <Group justify={align === "left" ? "flex-start" : "flex-end"} mt={4}>
-        {showMessageInteraction && (
-          <>
-            <ReactionBar message={message} />
-            <Button
-              size="compact-xs"
-              variant="subtle"
-              onClick={() => {
-                setReplyTarget(message);
-              }}>
-              Reply
-            </Button>
-          </>
-        )}
-      </Group>
+      {showMessageAction && (
+        <Group justify={align === "left" ? "flex-start" : "flex-end"} mt={4}>
+          <ReactionBar message={message} />
+          <Button
+            size="compact-xs"
+            variant="subtle"
+            onClick={() => {
+              setReplyTarget(message);
+            }}>
+            Reply
+          </Button>
+        </Group>
+      )}
     </Box>
   );
 };
