@@ -18,43 +18,48 @@ export const Message: React.FC<MessageProps> = ({
   message,
   scrollToMessage,
 }) => {
+  // Hooks
+  const navigate = useNavigate();
   const { setReplyTarget } = useConversationContext();
   const { client } = useOutletContext<{ client: Client }>();
+
+  // Client checks
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
-  const navigate = useNavigate();
+
+  // Message checks
   const isText = message.contentType.sameAs(ContentTypeText);
   const isReaction = message.contentType.sameAs(ContentTypeReaction);
   const isReply = message.contentType.sameAs(ContentTypeReply);
-  const showReply = isText || isReaction || isReply;
+  const showMessageInteraction = isText || isReaction || isReply;
 
   return (
     <Box p="md" tabIndex={0} className={classes.root}>
-      <Stack gap={4}>
-        <Box
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              void navigate(
-                `/conversations/${message.conversationId}/message/${message.id}`,
-              );
-            }
-          }}
-          onClick={() =>
+      <Box
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
             void navigate(
               `/conversations/${message.conversationId}/message/${message.id}`,
-            )
-          }>
-          <MessageContentWithWrapper
-            message={message}
-            align={align}
-            senderInboxId={message.senderInboxId}
-            scrollToMessage={scrollToMessage}
-          />
-        </Box>
-        <Group justify={align === "left" ? "flex-start" : "flex-end"} gap={6}>
-          <ReactionBar message={message} />
-          {showReply && (
+            );
+          }
+        }}
+        onClick={() =>
+          void navigate(
+            `/conversations/${message.conversationId}/message/${message.id}`,
+          )
+        }>
+        <MessageContentWithWrapper
+          message={message}
+          align={align}
+          senderInboxId={message.senderInboxId}
+          scrollToMessage={scrollToMessage}
+        />
+      </Box>
+      <Group justify={align === "left" ? "flex-start" : "flex-end"} mt={4}>
+        {showMessageInteraction && (
+          <>
+            <ReactionBar message={message} />
             <Button
               size="compact-xs"
               variant="subtle"
@@ -63,9 +68,9 @@ export const Message: React.FC<MessageProps> = ({
               }}>
               Reply
             </Button>
-          )}
-        </Group>
-      </Stack>
+          </>
+        )}
+      </Group>
     </Box>
   );
 };
