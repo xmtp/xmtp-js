@@ -1,10 +1,13 @@
 import { Box, Button, Group } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
+import { ContentTypeReaction } from "@xmtp/content-type-reaction";
+import { ContentTypeReply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { useNavigate, useOutletContext } from "react-router";
 import { useConversationContext } from "../../contexts/ConversationContext";
 import classes from "./Message.module.css";
 import { MessageContentWithWrapper } from "./MessageContentWithWrapper";
+import { ReactionPopover } from "./ReactionPopover";
 
 export type MessageProps = {
   message: DecodedMessage;
@@ -15,13 +18,20 @@ export const Message: React.FC<MessageProps> = ({
   message,
   scrollToMessage,
 }) => {
+  // Hooks
+  const navigate = useNavigate();
   const { setReplyTarget } = useConversationContext();
   const { client } = useOutletContext<{ client: Client }>();
+
+  // Sender checks
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
-  const navigate = useNavigate();
+
+  // Message checks
   const isText = message.contentType.sameAs(ContentTypeText);
-  const showReply = isText;
+  const isReaction = message.contentType.sameAs(ContentTypeReaction);
+  const isReply = message.contentType.sameAs(ContentTypeReply);
+  const showMessageAction = isText || isReaction || isReply;
 
   return (
     <Box p="md" tabIndex={0} className={classes.root}>
@@ -46,8 +56,9 @@ export const Message: React.FC<MessageProps> = ({
           scrollToMessage={scrollToMessage}
         />
       </Box>
-      {showReply && (
+      {showMessageAction && (
         <Group justify={align === "left" ? "flex-start" : "flex-end"} mt={4}>
+          <ReactionPopover message={message} />
           <Button
             size="compact-xs"
             variant="subtle"
