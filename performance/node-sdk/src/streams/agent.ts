@@ -48,7 +48,7 @@ const updateProgress = (
 const signer = createSigner();
 const client = await Client.create(signer, {
   env: "local",
-  loggingLevel: LogLevel.error,
+  loggingLevel: LogLevel.trace,
   disableDeviceSync: true,
   debugEventsEnabled: false,
 });
@@ -78,18 +78,15 @@ const calculateMessagesPerSecond = (
 let start: number | undefined;
 let minMessagesPerSecond = Number.MAX_SAFE_INTEGER;
 let maxMessagesPerSecond = 0;
-const contentTypes: Record<string, number> = {};
-const messageContent: string[] = [];
 
 for await (const message of stream) {
   const now = performance.now();
   if (!start) {
     start = now;
   }
-  messages.push(message.id);
-  messageContent.push(message.content as string);
-  const contentType = message.contentType?.typeId ?? "unknown";
-  contentTypes[contentType] = (contentTypes[contentType] ?? 0) + 1;
+  const content = message.content as string;
+  const [inboxId, count] = content.split("-");
+  messages.push(`${inboxId}-${count}-${message.id}`);
   // console.log(
   //   `Received message [${message.id}] (${messages.length}/${TOTAL_MESSAGES})`,
   // );
@@ -126,11 +123,6 @@ console.log(
 );
 console.log(`Min messages per second: ${minMessagesPerSecond}`);
 console.log(`Max messages per second: ${maxMessagesPerSecond}`);
-console.log(
-  `Content types: ${Object.entries(contentTypes)
-    .map(([type, count]) => `${type}: ${count}`)
-    .join(", ")}`,
-);
 
 console.log("Removing databases...");
 await clearDbs();
@@ -138,7 +130,7 @@ await clearDbs();
 console.log(`Writing messages to file "agent-messages.txt"...`);
 await writeFile(
   join(process.cwd(), "agent-messages.txt"),
-  messageContent
+  messages
     .sort()
     .map((c, idx) => `${(idx + 1).toString().padStart(5, "0")}: "${c}"`)
     .join("\n"),

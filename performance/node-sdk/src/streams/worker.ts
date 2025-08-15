@@ -20,10 +20,10 @@ parentPort?.on("message", (message: Message) => {
     const start = performance.now();
     const messages = [];
     for (let i = 0; i < count; i++) {
-      const current = i + 1;
-      const content = `${client.inboxId}-${current.toString().padStart(4, "0")}`;
-      await dm.send(content);
-      messages.push(content);
+      const current = (i + 1).toString().padStart(4, "0");
+      const content = `${client.inboxId}-${current}`;
+      const id = await dm.send(content);
+      messages.push(`${client.inboxId}-${current}-${id}`);
     }
     const end = performance.now();
     const duration = end - start;
