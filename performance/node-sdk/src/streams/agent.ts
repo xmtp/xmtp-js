@@ -4,6 +4,23 @@ import { join } from "node:path";
 import { Client, LogLevel } from "@xmtp/node-sdk";
 import { clearDbs, createSigner } from "@/util/xmtp";
 
+const debounce = (fn: (...args: unknown[]) => void, delay: number) => {
+  let timeout: NodeJS.Timeout;
+
+  const debouncedFn = (...args: unknown[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+
+  const cancel = () => {
+    clearTimeout(timeout);
+  };
+
+  return { fn: debouncedFn, cancel };
+};
+
 const TOTAL_MESSAGES =
   Number(process.env.MESSAGE_STREAM_WORKERS) *
   Number(process.env.MESSAGE_STREAM_MESSAGES_PER_WORKER);
@@ -31,8 +48,9 @@ const updateProgress = (
 const signer = createSigner();
 const client = await Client.create(signer, {
   env: "local",
-  loggingLevel: LogLevel.trace,
+  loggingLevel: LogLevel.error,
   disableDeviceSync: true,
+  debugEventsEnabled: false,
 });
 
 console.log(`Created client with inboxId: ${client.inboxId}`);
@@ -42,7 +60,7 @@ const messageTimestamps: number[] = [];
 const stream = await client.conversations.streamAllMessages();
 console.log(`Stream created, waiting for ${TOTAL_MESSAGES} messages...`);
 
-const timer = setTimeout(() => {
+const { fn: streamTimeout, cancel: cancelStreamTimeout } = debounce(() => {
   process.stdout.write("\n");
   console.log("Stream timeout reached, ending stream...");
   void stream.end();
@@ -58,8 +76,10 @@ const calculateMessagesPerSecond = (
 };
 
 let start: number | undefined;
-const minMessagesPerSecond = 0;
-const maxMessagesPerSecond = 0;
+let minMessagesPerSecond = Number.MAX_SAFE_INTEGER;
+let maxMessagesPerSecond = 0;
+const contentTypes: Record<string, number> = {};
+const messageContent: string[] = [];
 
 for await (const message of stream) {
   const now = performance.now();
@@ -67,30 +87,34 @@ for await (const message of stream) {
     start = now;
   }
   messages.push(message.id);
-  console.log(
-    `Received message [${message.id}] (${messages.length}/${TOTAL_MESSAGES})`,
-  );
-  // messageTimestamps.push(now);
+  messageContent.push(message.content as string);
+  const contentType = message.contentType?.typeId ?? "unknown";
+  contentTypes[contentType] = (contentTypes[contentType] ?? 0) + 1;
+  // console.log(
+  //   `Received message [${message.id}] (${messages.length}/${TOTAL_MESSAGES})`,
+  // );
+  messageTimestamps.push(now);
 
-  // const messagesPerSecond = calculateMessagesPerSecond(messageTimestamps, now);
+  const messagesPerSecond = calculateMessagesPerSecond(messageTimestamps, now);
 
-  // // Track min/max only after we have at least one message for a meaningful rate
-  // if (messages.length > 1) {
-  //   minMessagesPerSecond = Math.min(minMessagesPerSecond, messagesPerSecond);
-  //   maxMessagesPerSecond = Math.max(maxMessagesPerSecond, messagesPerSecond);
-  // }
-
-  // updateProgress(messages.length, TOTAL_MESSAGES, messagesPerSecond);
-
-  if (messages.length === TOTAL_MESSAGES) {
-    break;
+  // Track min/max only after we have at least one message for a meaningful rate
+  if (messages.length > 1) {
+    minMessagesPerSecond = Math.min(minMessagesPerSecond, messagesPerSecond);
+    maxMessagesPerSecond = Math.max(maxMessagesPerSecond, messagesPerSecond);
   }
+
+  updateProgress(messages.length, TOTAL_MESSAGES * 2, messagesPerSecond);
+  streamTimeout();
+
+  // if (messages.length === TOTAL_MESSAGES) {
+  //   break;
+  // }
 }
 const end = performance.now();
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const duration = end - start!;
 
-clearTimeout(timer);
+cancelStreamTimeout();
 
 const startedAtIso = new Date(
   performance.timeOrigin + (start ?? 0),
@@ -102,12 +126,20 @@ console.log(
 );
 console.log(`Min messages per second: ${minMessagesPerSecond}`);
 console.log(`Max messages per second: ${maxMessagesPerSecond}`);
+console.log(
+  `Content types: ${Object.entries(contentTypes)
+    .map(([type, count]) => `${type}: ${count}`)
+    .join(", ")}`,
+);
 
 console.log("Removing databases...");
 await clearDbs();
 
-console.log(`Writing message IDs to file "agent-messageIds.json"...`);
+console.log(`Writing messages to file "agent-messages.txt"...`);
 await writeFile(
-  join(process.cwd(), "agent-messageIds.json"),
-  JSON.stringify(messages),
+  join(process.cwd(), "agent-messages.txt"),
+  messageContent
+    .sort()
+    .map((c, idx) => `${(idx + 1).toString().padStart(5, "0")}: "${c}"`)
+    .join("\n"),
 );

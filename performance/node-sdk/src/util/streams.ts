@@ -14,7 +14,7 @@ export type StreamWorkerResult = {
   inboxId: string;
   startedAt: Date;
   duration: number;
-  messageIds: string[];
+  messages: string[];
 };
 
 export const startStreamWorker = (

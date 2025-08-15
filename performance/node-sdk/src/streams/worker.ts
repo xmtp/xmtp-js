@@ -14,29 +14,28 @@ const client = await Client.create(signer, {
   disableDeviceSync: true,
 });
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 parentPort?.on("message", (message: Message) => {
   const send = async (inboxId: string, count: number) => {
     const dm = await client.conversations.newGroup([inboxId]);
     const start = performance.now();
-    const messageIds = [];
+    const messages = [];
     for (let i = 0; i < count; i++) {
-      const messageId = await dm.send(`${client.inboxId}-message-${i + 1}`);
-      messageIds.push(messageId);
-      await sleep(1);
+      const current = i + 1;
+      const content = `${client.inboxId}-${current.toString().padStart(4, "0")}`;
+      await dm.send(content);
+      messages.push(content);
     }
     const end = performance.now();
     const duration = end - start;
-    return { start, end, duration, messageIds };
+    return { start, end, duration, messages };
   };
   send(message.inboxId, message.count)
-    .then(({ start, duration, messageIds }) => {
+    .then(({ start, duration, messages }) => {
       parentPort?.postMessage({
         inboxId: client.inboxId,
         startedAt: new Date(performance.timeOrigin + start),
         duration,
-        messageIds,
+        messages,
       });
     })
     .catch((error: unknown) => {

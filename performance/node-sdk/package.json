@@ -19,7 +19,7 @@
   ],
   "scripts": {
     "bench": "node dist/bench/bench.js",
-    "build": "yarn clean:dist && yarn build:bench && yarn build:streams",
+    "build": "yarn clean:dist && yarn setup && yarn build:bench && yarn build:streams",
     "build:bench": "rollup -c rollup.bench.js",
     "build:streams": "rollup -c rollup.streams.js",
     "clean": "rimraf .turbo && yarn clean:dbs && yarn clean:dist && yarn clean:deps && yarn clean:results",
