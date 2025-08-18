@@ -1,4 +1,7 @@
-import { type DecodedMessage } from "@xmtp/browser-sdk";
+import { Message, type DecodedMessage } from "@xmtp/browser-sdk";
+import { ContentTypeReaction, Reaction } from "@xmtp/content-type-reaction";
+import { ContentTypeReply, Reply } from "@xmtp/content-type-reply";
+import { ContentTypeText } from "@xmtp/content-type-text";
 
 export const isValidEthereumAddress = (
   address: string,
@@ -10,12 +13,26 @@ export const isValidInboxId = (inboxId: string): inboxId is string =>
 export const shortAddress = (address: string): string =>
   `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
 
-export const stringifyMessage = (message: DecodedMessage) => {
-  if (message["content"]) {
-    if (typeof message.content === "object" && "content" in message.content) {
-      return String(message.content.content);
+export const stringifyMessage = ({
+  content,
+  fallback,
+  contentType,
+}: Pick<DecodedMessage, "content" | "fallback" | "contentType">): string => {
+  if (content) {
+    if (typeof content === "string") {
+      return content;
+    } else if (contentType.sameAs(ContentTypeReply)) {
+      // Other content types could be nested in a reply
+      return stringifyMessage({
+        content: (content as Reply).content,
+        fallback,
+        contentType,
+      });
+    } else if (contentType.sameAs(ContentTypeReaction)) {
+      return (content as Reaction).content;
+    } else if (contentType.sameAs(ContentTypeText)) {
+      return content as string;
     }
-    return String(message.content);
   }
-  return message.fallback ? message.fallback : String(message);
+  return String(fallback);
 };
