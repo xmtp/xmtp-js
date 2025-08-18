@@ -1,4 +1,4 @@
-import { type DecodedMessage } from "@xmtp/browser-sdk";
+import { DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeReaction,
   type Reaction,
@@ -11,10 +11,15 @@ export const isReaction = (
 ): m is DecodedMessage & { content: Reaction } =>
   m.contentType.sameAs(ContentTypeReaction);
 
-export const isReply = (
+export const isTextReply = (
   m: DecodedMessage,
-): m is DecodedMessage & { content: Reply } =>
-  m.contentType.sameAs(ContentTypeReply);
+): m is DecodedMessage & { content: string } => {
+  if (m.contentType.sameAs(ContentTypeReply)) {
+    const reply = m.content as Reply;
+    return typeof reply.content === "string";
+  }
+  return false;
+};
 
 export const isText = (
   m: DecodedMessage,
@@ -25,9 +30,8 @@ export const stringify = (message: DecodedMessage): string => {
   switch (true) {
     case isReaction(message):
       return message.content.content;
-    case isReply(message):
-      return String(message.content.content);
     case isText(message):
+    case isTextReply(message):
       return message.content;
     case typeof message.content === "string":
       return message.content;
