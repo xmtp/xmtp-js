@@ -18,21 +18,21 @@ export const stringifyMessage = ({
   fallback,
   contentType,
 }: Pick<DecodedMessage, "content" | "fallback" | "contentType">): string => {
-  if (content) {
-    if (typeof content === "string") {
+  switch (true) {
+    case typeof content === "string":
       return content;
-    } else if (contentType.sameAs(ContentTypeReply)) {
+    case contentType.sameAs(ContentTypeReply):
       // Other content types could be nested in a reply
       return stringifyMessage({
         content: (content as Reply).content,
         fallback,
         contentType,
       });
-    } else if (contentType.sameAs(ContentTypeReaction)) {
+    case contentType.sameAs(ContentTypeReaction):
       return (content as Reaction).content;
-    } else if (contentType.sameAs(ContentTypeText)) {
+    case contentType.sameAs(ContentTypeText):
       return content as string;
-    }
+    default:
+      return String(fallback);
   }
-  return String(fallback);
 };
