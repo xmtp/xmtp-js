@@ -16,7 +16,6 @@ export const Message: React.FC<MessageProps> = ({
   message,
   scrollToMessage,
 }) => {
-  // Hooks
   const navigate = useNavigate();
   const { setReplyTarget } = useConversationContext();
   const { client } = useOutletContext<{ client: Client }>();
