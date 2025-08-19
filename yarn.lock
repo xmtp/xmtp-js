@@ -3488,6 +3488,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/agent-sdk@workspace:sdks/agent-sdk":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
+  dependencies:
+    "@xmtp/content-type-primitives": "workspace:*"
+    "@xmtp/content-type-reaction": "workspace:*"
+    "@xmtp/content-type-reply": "workspace:*"
+    "@xmtp/node-sdk": "workspace:*"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.8.3"
+  languageName: unknown
+  linkType: soft
+
 "@xmtp/browser-sdk@workspace:^, @xmtp/browser-sdk@workspace:sdks/browser-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/browser-sdk@workspace:sdks/browser-sdk"
@@ -3552,7 +3565,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:^2.0.2, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:^2.0.2, @xmtp/content-type-primitives@workspace:*, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -3569,7 +3582,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
+"@xmtp/content-type-reaction@workspace:*, @xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction"
   dependencies:
@@ -3627,7 +3640,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
+"@xmtp/content-type-reply@workspace:*, @xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
@@ -3708,7 +3721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@workspace:*, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
