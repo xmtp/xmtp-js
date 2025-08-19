@@ -89,7 +89,7 @@ describe("stringify", () => {
     ).toBe(content.content);
   });
 
-  it("falls back to fallback string when content type is unknown", () => {
+  it("returns fallback text when the content type is unknown", () => {
     const fallback = "fallback";
     expect(
       stringify({
