@@ -11,14 +11,15 @@ export const isReaction = (
 ): m is DecodedMessage & { content: Reaction } =>
   m.contentType.sameAs(ContentTypeReaction);
 
-export const isTextReply = (
+export const isReply = (
   m: DecodedMessage,
-): m is DecodedMessage & { content: string } => {
-  if (m.contentType.sameAs(ContentTypeReply)) {
-    const reply = m.content as Reply;
-    return typeof reply.content === "string";
-  }
-  return false;
+): m is DecodedMessage & { content: Reply } =>
+  m.contentType.sameAs(ContentTypeReply);
+
+export const isTextReply = <M extends DecodedMessage>(
+  m: M,
+): m is M & { content: Reply & { content: string } } => {
+  return isReply(m) && typeof m.content.content === "string";
 };
 
 export const isText = (
@@ -29,9 +30,9 @@ export const isText = (
 export const stringify = (message: DecodedMessage): string => {
   switch (true) {
     case isReaction(message):
+    case isTextReply(message):
       return message.content.content;
     case isText(message):
-    case isTextReply(message):
       return message.content;
     case typeof message.content === "string":
       return message.content;
