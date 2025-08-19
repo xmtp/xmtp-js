@@ -3806,6 +3806,7 @@ __metadata:
     viem: "npm:^2.31.7"
     vite: "npm:^7.0.4"
     vite-tsconfig-paths: "npm:^5.1.4"
+    vitest: "npm:^3.2.4"
     wagmi: "npm:^2.15.6"
   languageName: unknown
   linkType: soft
