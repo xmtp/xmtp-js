@@ -34,6 +34,35 @@ describe("stringify", () => {
     ).toBe("hi");
   });
 
+  it("returns fallback text for a wrapped reply", async () => {
+    const wrapInReply = (content: Reply): Reply => {
+      return {
+        reference: "id",
+        referenceInboxId: "inbox",
+        content,
+        contentType: ContentTypeReply,
+      };
+    };
+
+    const content: Reply = {
+      reference: "id",
+      referenceInboxId: "inbox",
+      content: "hi",
+      contentType: ContentTypeText,
+    };
+
+    const replyReplyReply = wrapInReply(wrapInReply(wrapInReply(content)));
+    const fallback = "Not a direct reply text";
+
+    expect(
+      stringify({
+        content: replyReplyReply,
+        contentType: ContentTypeReply,
+        fallback,
+      }),
+    ).toBe(fallback);
+  });
+
   it("returns plain text for ContentTypeReaction", async () => {
     const content: Reaction = {
       action: "added",
