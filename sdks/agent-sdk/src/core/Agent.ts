@@ -13,14 +13,12 @@ export interface AgentOptions {
   client: Client;
 }
 
-type Identifier = string;
-
 export interface AgentContext {
   client: Client;
   conversation: Conversation;
   message: DecodedMessage;
   send: (text: string) => Promise<void>;
-  getSenderAddress: () => Promise<Identifier>;
+  getSenderAddress: () => Promise<string>;
 }
 
 export type MessageHandler = {
@@ -59,18 +57,15 @@ export class Agent extends EventEmitter {
 
   async start() {
     if (this.isListening) {
-      console.warn("Agent is already listening");
       return;
     }
 
     try {
-      console.log("Syncing conversations...");
       await this.client.conversations.sync();
 
       this.isListening = true;
       this.emit("start");
 
-      console.log("Waiting for messages...");
       const stream = await this.client.conversations.streamAllMessages();
       for await (const message of stream) {
         if (!this.isListening) break;
@@ -91,16 +86,11 @@ export class Agent extends EventEmitter {
     );
 
     if (!conversation) {
-      console.log(
-        `Unable to find conversation ID "${message.conversationId}", skipping message...`,
-      );
       return;
     }
 
-    // Create message context
     const ctx = await this.createContext(message, conversation);
 
-    // Process middleware
     let index = 0;
     const next = async () => {
       if (index < this.middleware.length) {
@@ -148,13 +138,11 @@ export class Agent extends EventEmitter {
   }
 
   stop() {
-    console.log("🛑 Stopping agent...");
     this.isListening = false;
     this.emit("stop");
   }
 
   private handleError(error: unknown) {
-    console.error("Agent error", error);
     this.emit("error", error);
   }
 }
