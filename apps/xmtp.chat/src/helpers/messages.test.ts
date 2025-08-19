@@ -31,6 +31,7 @@ describe("stringify", () => {
       stringify({
         content,
         contentType: ContentTypeText,
+        fallback: "fallback",
       }),
     ).toBe(content);
   });
@@ -46,8 +47,9 @@ describe("stringify", () => {
       stringify({
         content,
         contentType: ContentTypeReply,
+        fallback: "fallback",
       }),
-    ).toBe("hi");
+    ).toBe(content.content);
   });
 
   it("returns fallback text for a wrapped reply", () => {
@@ -59,7 +61,7 @@ describe("stringify", () => {
     };
 
     const wrappedReply = wrapInReply(content, 5);
-    const fallback = "Not a direct reply text";
+    const fallback = "fallback";
 
     expect(
       stringify({
@@ -82,23 +84,24 @@ describe("stringify", () => {
       stringify({
         content,
         contentType: ContentTypeReaction,
+        fallback: "fallback",
       }),
-    ).toBe("👍");
+    ).toBe(content.content);
   });
 
   it("falls back to fallback string when content type is unknown", () => {
-    const content = {};
+    const fallback = "fallback";
     expect(
       stringify({
-        content,
+        content: {},
         contentType: new ContentTypeId({
-          authorityId: "com.test",
-          typeId: "abc",
+          authorityId: "test",
+          typeId: "unknown.content.type",
           versionMajor: 3,
           versionMinor: 0,
         }),
-        fallback: "test",
+        fallback,
       }),
-    ).toBe("test");
+    ).toBe(fallback);
   });
 });
