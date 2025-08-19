@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { stringify } from "./messages";
 
 const wrapInReply = (content: Reply | string, depth = 1): Reply => {
+  if (depth < 1) throw new Error("Depth must be at least 1.");
   let current: Reply | string = content;
   for (let i = 0; i < depth; i++) {
     const wrapped: Reply = {
