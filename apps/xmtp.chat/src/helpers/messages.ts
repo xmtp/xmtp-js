@@ -1,4 +1,4 @@
-import { DecodedMessage } from "@xmtp/browser-sdk";
+import type { DecodedMessage } from "@xmtp/browser-sdk";
 import {
   ContentTypeReaction,
   type Reaction,
