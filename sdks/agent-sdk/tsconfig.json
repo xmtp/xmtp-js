@@ -6,21 +6,15 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@test/*": [
-        "./test/*"
-      ]
+      "@/*": ["./src/*"],
+      "@test/*": ["./test/*"]
     },
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "ESNext",
-    "types": [
-      "vitest/globals"
-    ]
+    "types": ["vitest/globals"]
   },
   "include": [
     "rollup.config.js",

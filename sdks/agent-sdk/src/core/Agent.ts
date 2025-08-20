@@ -1,9 +1,9 @@
 import { EventEmitter } from "node:events";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import { filters, type MessageFilter } from "../filters/MessageFilters";
+import { filters, type MessageFilter } from "@/filters/MessageFilters";
 
-export type AgentEventHandler = (ctx: AgentContext) => Promise<void> | void;
+export type AgentEventHandler = (ctx: AgentContext) => void;
 
 export type AgentMiddleware = (
   ctx: AgentContext,
@@ -94,7 +94,6 @@ export class Agent extends EventEmitter {
 
       const stream = await this.client.conversations.streamAllMessages();
       for await (const message of stream) {
-        if (!this.isListening) break;
         try {
           await this.processMessage(message);
         } catch (error: unknown) {
@@ -120,7 +119,7 @@ export class Agent extends EventEmitter {
       return;
     }
 
-    const context = await this.createContext(message, conversation);
+    const context = this.createContext(message, conversation);
 
     let middlewareIndex = 0;
     const next = async () => {
@@ -144,7 +143,7 @@ export class Agent extends EventEmitter {
     const { message } = context;
     for (const { filter, handler } of this.messageHandlers) {
       if (!filter || (await filter(message, this.client))) {
-        await handler(context);
+        handler(context);
       }
     }
   }
@@ -156,7 +155,7 @@ export class Agent extends EventEmitter {
    * @param conversation - The conversation object
    * @returns Agent context with helper methods
    */
-  private async createContext(
+  private createContext(
     message: DecodedMessage,
     conversation: NonNullable<
       Awaited<ReturnType<typeof this.client.conversations.getConversationById>>
