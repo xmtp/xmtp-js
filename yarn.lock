@@ -3492,12 +3492,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
-    "@xmtp/content-type-primitives": "workspace:*"
-    "@xmtp/content-type-reaction": "workspace:*"
-    "@xmtp/content-type-reply": "workspace:*"
-    "@xmtp/node-sdk": "workspace:*"
-    rimraf: "npm:^6.0.1"
+    "@types/node": "npm:^22.16.3"
+    "@vitest/coverage-v8": "npm:^3.2.4"
+    "@xmtp/content-type-reaction": "npm:^2.0.2"
+    "@xmtp/content-type-reply": "npm:^2.0.2"
+    "@xmtp/node-sdk": "npm:^4.0.3"
+    tsx: "npm:^4.20.3"
     typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.4"
+    vite-tsconfig-paths: "npm:^5.1.4"
+    vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
 
@@ -3565,7 +3569,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:^2.0.2, @xmtp/content-type-primitives@workspace:*, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:^2.0.2, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -3582,7 +3586,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reaction@workspace:*, @xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
+"@xmtp/content-type-reaction@npm:^2.0.2, @xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction"
   dependencies:
@@ -3640,7 +3644,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reply@workspace:*, @xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
+"@xmtp/content-type-reply@npm:^2.0.2, @xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
@@ -3721,7 +3725,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@workspace:*, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^4.0.3, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
