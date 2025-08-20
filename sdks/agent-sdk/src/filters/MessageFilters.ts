@@ -1,3 +1,4 @@
+import { ContentTypeText } from "@xmtp/content-type-text";
 import { Client, DecodedMessage } from "@xmtp/node-sdk";
 
 /**
@@ -19,9 +20,7 @@ class MessageFilters {
    */
   static notFromSelf(): MessageFilter {
     return (message: DecodedMessage, client: Client) => {
-      return (
-        message.senderInboxId.toLowerCase() !== client.inboxId.toLowerCase()
-      );
+      return message.senderInboxId !== client.inboxId;
     };
   }
 
@@ -32,9 +31,7 @@ class MessageFilters {
    */
   static fromSelf(): MessageFilter {
     return (message: DecodedMessage, client: Client) => {
-      return (
-        message.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
-      );
+      return message.senderInboxId === client.inboxId;
     };
   }
 
@@ -45,19 +42,7 @@ class MessageFilters {
    */
   static textOnly(): MessageFilter {
     return (message: DecodedMessage) => {
-      return message.contentType?.typeId === "text";
-    };
-  }
-
-  /**
-   * Creates a filter for specific content type.
-   *
-   * @param typeId - The content type identifier to match
-   * @returns Filter function
-   */
-  static contentType(typeId: string): MessageFilter {
-    return (message: DecodedMessage) => {
-      return message.contentType?.typeId === typeId;
+      return !!message.contentType?.sameAs(ContentTypeText);
     };
   }
 
@@ -71,12 +56,9 @@ class MessageFilters {
     const senderIds = Array.isArray(senderInboxId)
       ? senderInboxId
       : [senderInboxId];
-    const normalizedSenderIds = senderIds.map((senderId) =>
-      senderId.toLowerCase(),
-    );
 
     return (message: DecodedMessage) => {
-      return normalizedSenderIds.includes(message.senderInboxId.toLowerCase());
+      return senderIds.includes(message.senderInboxId);
     };
   }
 
@@ -135,7 +117,6 @@ export const filters = {
   fromSelf: MessageFilters.fromSelf(),
   textOnly: MessageFilters.textOnly(),
   // factory functions
-  contentType: MessageFilters.contentType,
   fromSender: MessageFilters.fromSender,
   // combinators
   and: MessageFilters.and,

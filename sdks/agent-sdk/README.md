@@ -24,13 +24,12 @@ agent.on("message", async (ctx) => {
 Build flexible middleware pipelines by composing the tools you need (Custom Filters, Telemetry, Analytics, …):
 
 ```ts
-// Init middleware
 const router = new CommandRouter();
+
 router.command("/start", async (ctx) => {
   await ctx.conversation.send("👋 Welcome to your XMTP agent!");
 });
 
-// Add middleware
 const agent = new Agent({ client });
 agent.use(router.middleware());
 ```
