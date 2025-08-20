@@ -1,11 +1,22 @@
 import { Client, DecodedMessage } from "@xmtp/node-sdk";
 
+/**
+ * Function type for filtering messages based on content and client state.
+ */
 export type MessageFilter = (
   message: DecodedMessage,
   client: Client,
 ) => boolean | Promise<boolean>;
 
+/**
+ * Collection of message filter factory functions.
+ */
 class MessageFilters {
+  /**
+   * Creates a filter that excludes messages from the agent itself.
+   *
+   * @returns Filter function
+   */
   static notFromSelf(): MessageFilter {
     return (message: DecodedMessage, client: Client) => {
       return (
@@ -14,6 +25,11 @@ class MessageFilters {
     };
   }
 
+  /**
+   * Creates a filter that includes only messages from the agent itself.
+   *
+   * @returns Filter function
+   */
   static fromSelf(): MessageFilter {
     return (message: DecodedMessage, client: Client) => {
       return (
@@ -22,29 +38,54 @@ class MessageFilters {
     };
   }
 
+  /**
+   * Creates a filter that includes only text messages.
+   *
+   * @returns Filter function
+   */
   static textOnly(): MessageFilter {
     return (message: DecodedMessage) => {
       return message.contentType?.typeId === "text";
     };
   }
 
+  /**
+   * Creates a filter for specific content type.
+   *
+   * @param typeId - The content type identifier to match
+   * @returns Filter function
+   */
   static contentType(typeId: string): MessageFilter {
     return (message: DecodedMessage) => {
       return message.contentType?.typeId === typeId;
     };
   }
 
+  /**
+   * Creates a filter for messages from specific senders
+   *
+   * @param senderInboxId - Single sender ID or array of sender IDs to match
+   * @returns Filter function
+   */
   static fromSender(senderInboxId: string | string[]): MessageFilter {
-    const senders = Array.isArray(senderInboxId)
+    const senderIds = Array.isArray(senderInboxId)
       ? senderInboxId
       : [senderInboxId];
-    const normalizedSenders = senders.map((sender) => sender.toLowerCase());
+    const normalizedSenderIds = senderIds.map((senderId) =>
+      senderId.toLowerCase(),
+    );
 
     return (message: DecodedMessage) => {
-      return normalizedSenders.includes(message.senderInboxId.toLowerCase());
+      return normalizedSenderIds.includes(message.senderInboxId.toLowerCase());
     };
   }
 
+  /**
+   * Creates a filter that requires all provided filters to pass
+   *
+   * @param filters - Array of filters that must all return true
+   * @returns Filter function
+   */
   static and(...filters: MessageFilter[]): MessageFilter {
     return async (message: DecodedMessage, client: Client) => {
       for (const filter of filters) {
@@ -55,6 +96,12 @@ class MessageFilters {
     };
   }
 
+  /**
+   * Creates a filter that requires at least one provided filter to pass.
+   *
+   * @param filters - Array of filters where at least one must return true
+   * @returns Filter function
+   */
   static or(...filters: MessageFilter[]): MessageFilter {
     return async (message: DecodedMessage, client: Client) => {
       for (const filter of filters) {
@@ -65,6 +112,12 @@ class MessageFilters {
     };
   }
 
+  /**
+   * Creates a filter that inverts the result of another filter.
+   *
+   * @param filter - The filter to negate
+   * @returns Filter function
+   */
   static not(filter: MessageFilter): MessageFilter {
     return async (message: DecodedMessage, client: Client) => {
       const result = await filter(message, client);
@@ -73,15 +126,18 @@ class MessageFilters {
   }
 }
 
+/**
+ * Pre-configured filter instances and factory functions for common filtering scenarios
+ */
 export const filters = {
-  // Basic filters
+  // basic filters
   notFromSelf: MessageFilters.notFromSelf(),
   fromSelf: MessageFilters.fromSelf(),
   textOnly: MessageFilters.textOnly(),
-  // Factory functions
+  // factory functions
   contentType: MessageFilters.contentType,
   fromSender: MessageFilters.fromSender,
-  // Combinators
+  // combinators
   and: MessageFilters.and,
   or: MessageFilters.or,
   not: MessageFilters.not,
