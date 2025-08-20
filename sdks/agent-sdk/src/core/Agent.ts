@@ -3,7 +3,7 @@ import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import { filters, type MessageFilter } from "@/filters/MessageFilters";
 
-export type AgentEventHandler = (ctx: AgentContext) => void;
+export type AgentEventHandler = (ctx: AgentContext) => Promise<void> | void;
 
 export type AgentMiddleware = (
   ctx: AgentContext,
@@ -73,6 +73,8 @@ export class Agent extends EventEmitter {
     if (event === "message") {
       this.messageHandlers.push({ filter, handler });
     } else {
+      // Event Handler can be asynchronous
+      // eslint-disable-next-line
       super.on(event, handler);
     }
     return this;
@@ -94,6 +96,9 @@ export class Agent extends EventEmitter {
 
       const stream = await this.client.conversations.streamAllMessages();
       for await (const message of stream) {
+        // The "stop()" method sets "isListening"
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!this.isListening) break;
         try {
           await this.processMessage(message);
         } catch (error: unknown) {
@@ -143,7 +148,7 @@ export class Agent extends EventEmitter {
     const { message } = context;
     for (const { filter, handler } of this.messageHandlers) {
       if (!filter || (await filter(message, this.client))) {
-        handler(context);
+        await handler(context);
       }
     }
   }
