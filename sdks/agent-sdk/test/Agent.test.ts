@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Agent, type AgentContext, type AgentOptions } from "../src/core/Agent";
 

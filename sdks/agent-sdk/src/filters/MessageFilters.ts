@@ -1,5 +1,5 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 
 /**
  * Function type for filtering messages based on content and client state.

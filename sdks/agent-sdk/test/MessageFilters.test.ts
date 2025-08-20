@@ -1,5 +1,5 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { ContentTypeReply } from "../../../content-types/content-type-reply/dist";
 import { filters } from "../src/filters/MessageFilters";

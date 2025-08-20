@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import { filters, type MessageFilter } from "../filters/MessageFilters";
 
 export type AgentEventHandler = (ctx: AgentContext) => Promise<void> | void;
