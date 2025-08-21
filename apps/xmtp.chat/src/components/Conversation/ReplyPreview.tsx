@@ -36,12 +36,11 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
       <Box style={{ justifySelf: "end", alignSelf: "start" }}>
         <ActionIcon
           aria-label="Cancel reply"
-          variant="filled"
-          color="dark"
+          variant="light"
           radius="xl"
           onClick={onCancel}
           disabled={disabled}>
-          <IconX size={18} color="white" />
+          <IconX size={18} />
         </ActionIcon>
       </Box>
     </>
