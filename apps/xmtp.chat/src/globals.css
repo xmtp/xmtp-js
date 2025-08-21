@@ -1,4 +1,0 @@
-:root {
-  --mantine-spacing-xxs: calc(0.5rem * var(--mantine-scale));
-  --mantine-spacing-xxxs: calc(0.25rem * var(--mantine-scale));
-}

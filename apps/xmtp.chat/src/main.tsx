@@ -1,6 +1,5 @@
 import "@mantine/core/styles.css";
-import "./globals.css";
-import { MantineProvider } from "@mantine/core";
+import { createTheme, MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import pkg from "@xmtp/browser-sdk/package.json";
 import { createRoot } from "react-dom/client";
@@ -82,10 +81,17 @@ export const config = createConfig({
   },
 });
 
+const theme = createTheme({
+  spacing: {
+    xxs: "calc(0.5rem * var(--mantine-scale))",
+    xxxs: "calc(0.25rem * var(--mantine-scale))",
+  },
+});
+
 createRoot(document.getElementById("root") as HTMLElement).render(
   <WagmiProvider config={config}>
     <QueryClientProvider client={queryClient}>
-      <MantineProvider defaultColorScheme="auto">
+      <MantineProvider defaultColorScheme="auto" theme={theme}>
         <XMTPProvider>
           <BrowserRouter>
             <App />

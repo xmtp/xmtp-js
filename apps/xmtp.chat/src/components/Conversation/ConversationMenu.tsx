@@ -18,11 +18,7 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
   return (
     <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
-        <Button
-          px="var(--mantine-spacing-xxxs)"
-          radius="md"
-          size="xs"
-          variant="default">
+        <Button px="xxxs" radius="md" size="xs" variant="default">
           <IconDots />
         </Button>
       </Menu.Target>
