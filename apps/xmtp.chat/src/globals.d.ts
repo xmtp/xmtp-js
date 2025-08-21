@@ -12,6 +12,8 @@ declare module "*.png" {
 
 interface ImportMetaEnv {
   readonly VITE_PROJECT_ID: string;
+  readonly PINATA_API_KEY: string;
+  readonly PINATA_SECRET_KEY: string;
 }
 
 interface ImportMeta {
