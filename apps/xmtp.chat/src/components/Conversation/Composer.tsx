@@ -44,7 +44,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr auto",
-          gap: 8,
+          gap: "var(--mantine-spacing-xxs)",
           alignItems: "center",
         }}>
         {replyTarget && (

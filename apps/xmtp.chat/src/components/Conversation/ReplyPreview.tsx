@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Text } from "@mantine/core";
+import { ActionIcon, Box, Group, Text } from "@mantine/core";
 import { AddressBadge } from "@/components/AddressBadge";
 import { BreakableText } from "@/components/Messages/BreakableText";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
@@ -19,15 +19,8 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
 }) => {
   return (
     <>
-      <Box style={{ minWidth: 0 }}>
-        <Box
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            minWidth: 0,
-            width: "100%",
-          }}>
+      <Box miw="0" pb="xxs">
+        <Group gap={6} align="center" w="100%" miw={0}>
           <IconArrowBackUp color="var(--mantine-color-dimmed)" />
           <Text size="sm" c="dimmed">
             Replying to
@@ -35,12 +28,12 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
           <Box>
             <AddressBadge address={fromAddress} />
           </Box>
-        </Box>
+        </Group>
         <BreakableText mt={6} fw={700} size="sm" lineClamp={2}>
           {previewText}
         </BreakableText>
       </Box>
-      <Box style={{ display: "grid", placeItems: "center" }}>
+      <Box style={{ justifySelf: "end", alignSelf: "start" }}>
         <ActionIcon
           aria-label="Cancel reply"
           variant="filled"
