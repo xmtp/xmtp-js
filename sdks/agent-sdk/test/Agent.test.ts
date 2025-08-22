@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Agent, type AgentContext, type AgentOptions } from "@/core/Agent";
+import { Agent, type AgentConfig, type AgentContext } from "@/core/Agent";
 
 const mockClient = {
   inboxId: "test-inbox-id",
@@ -29,7 +29,7 @@ const mockMessage = {
 
 describe("Agent", () => {
   let agent: Agent;
-  let options: AgentOptions;
+  let options: AgentConfig;
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -27,4 +27,4 @@ agent.on("start", () => {});
 console.log(agent.eventNames());
 
 // TODO: Overload remaining public API of EventEmitter
-// Pass down signer + options, do Client.create in Agent constr.
+// Pass down signer + options, do Client.create in Agent constructor (needs wrapping in getClient() as these calls are async)
