@@ -3499,6 +3499,7 @@ __metadata:
     "@xmtp/node-sdk": "npm:^4.0.3"
     tsx: "npm:^4.20.3"
     typescript: "npm:^5.8.3"
+    viem: "npm:^2.31.7"
     vite: "npm:^7.0.4"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"

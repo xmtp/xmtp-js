@@ -36,7 +36,8 @@
   "dependencies": {
     "@xmtp/content-type-reaction": "^2.0.2",
     "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/node-sdk": "^4.0.3"
+    "@xmtp/node-sdk": "^4.0.3",
+    "viem": "^2.31.7"
   },
   "devDependencies": {
     "@types/node": "^22.16.3",

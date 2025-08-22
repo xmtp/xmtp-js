@@ -10,12 +10,12 @@ export type AgentMiddleware = (
   next: () => Promise<void>,
 ) => Promise<void>;
 
-export interface AgentOptions {
-  client: Client;
+export interface AgentOptions<Codec> {
+  client: Client<Codec>;
 }
 
-export interface AgentContext {
-  client: Client;
+export interface AgentContext<Codec> {
+  client: Client<Codec>;
   conversation: Conversation;
   message: DecodedMessage;
   sendText: (text: string) => Promise<void>;
@@ -27,11 +27,13 @@ export type MessageHandler = {
   handler: AgentEventHandler;
 };
 
-/**
- * XMTP Agent for handling messages and events.
- */
-export class Agent extends EventEmitter {
-  private client: Client;
+export interface Agent<Codec> {
+  on(event: "start", listener: () => void): this;
+  on(event: "message", handler: AgentEventHandler, filter: MessageFilter): this;
+}
+
+export class Agent<Codec> extends EventEmitter {
+  private client: Client<Codec>;
   private middleware: AgentMiddleware[] = [];
   private messageHandlers: MessageHandler[] = [];
   private isListening = false;
