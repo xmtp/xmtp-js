@@ -1,9 +1,7 @@
-import { EventEmitter } from "node:events";
-import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import { filters, type MessageFilter } from "@/filters/MessageFilters";
-
-export type AgentEventHandler = (ctx: AgentContext) => Promise<void> | void;
+import type { Client, DecodedMessage } from "@xmtp/node-sdk";
+import { type MessageFilter } from "@/filters/MessageFilters";
+import { AgentContext } from "./AgentContext";
+import { AgentEventEmitter, AgentEventHandler } from "./AgentEventEmitter";
 
 export type AgentMiddleware = (
   ctx: AgentContext,
@@ -14,31 +12,17 @@ export interface AgentConfig {
   client: Client;
 }
 
-export interface AgentContext {
-  client: Client;
-  conversation: Conversation;
-  message: DecodedMessage;
-  sendText: (text: string) => Promise<void>;
-  getSenderAddress: () => Promise<string>;
-}
-
 export type MessageHandler = {
   filter?: MessageFilter;
   handler: AgentEventHandler;
 };
 
-export interface Agent {
-  on(event: "start", listener: () => void): this;
-  on(event: "message", handler: AgentEventHandler, filter: MessageFilter): this;
-}
-
 /**
  * XMTP Agent for handling messages and events.
  */
-export class Agent extends EventEmitter {
+export class Agent extends AgentEventEmitter {
   private client: Client;
   private middleware: AgentMiddleware[] = [];
-  private messageHandlers: MessageHandler[] = [];
   private isListening = false;
 
   /**
@@ -63,29 +47,6 @@ export class Agent extends EventEmitter {
   }
 
   /**
-   * Registers an event handler with optional message filtering.
-   *
-   * @param event - Event type to listen for
-   * @param handler - Handler function to execute
-   * @param filter - Optional filter to apply to messages
-   * @returns This agent instance for method chaining
-   */
-  override on(
-    event: string,
-    handler: AgentEventHandler,
-    filter: MessageFilter = filters.notFromSelf,
-  ) {
-    if (event === "message") {
-      this.messageHandlers.push({ filter, handler });
-    } else {
-      // Event Handler can be asynchronous
-      // eslint-disable-next-line
-      super.on(event, handler);
-    }
-    return this;
-  }
-
-  /**
    * Starts the agent to begin listening for messages.
    */
   async start() {
@@ -94,8 +55,6 @@ export class Agent extends EventEmitter {
     }
 
     try {
-      await this.client.conversations.sync();
-
       this.isListening = true;
       this.emit("start");
 
@@ -107,11 +66,11 @@ export class Agent extends EventEmitter {
         try {
           await this.processMessage(message);
         } catch (error: unknown) {
-          this.handleError(error);
+          this.emit("error", error);
         }
       }
     } catch (error: unknown) {
-      this.handleError(error);
+      this.emit("error", error);
     }
   }
 
@@ -129,7 +88,7 @@ export class Agent extends EventEmitter {
       return;
     }
 
-    const context = this.createContext(message, conversation);
+    const context = new AgentContext(message, conversation, this.client);
 
     let middlewareIndex = 0;
     const next = async () => {
@@ -137,55 +96,11 @@ export class Agent extends EventEmitter {
         const currentMiddleware = this.middleware[middlewareIndex++];
         await currentMiddleware(context, next);
       } else {
-        await this.executeHandlers(context);
+        await this.emit("message", context);
       }
     };
 
     await next();
-  }
-
-  /**
-   * Executes all registered message handlers for a given context (when their filters pass).
-   *
-   * @param context - The agent context to process
-   */
-  private async executeHandlers(context: AgentContext) {
-    const { message } = context;
-    for (const { filter, handler } of this.messageHandlers) {
-      if (!filter || (await filter(message, this.client))) {
-        await handler(context);
-      }
-    }
-  }
-
-  /**
-   * Creates an agent context from a message and conversation.
-   *
-   * @param message - The decoded message
-   * @param conversation - The conversation object
-   * @returns Agent context with helper methods
-   */
-  private createContext(
-    message: DecodedMessage,
-    conversation: NonNullable<
-      Awaited<ReturnType<typeof this.client.conversations.getConversationById>>
-    >,
-  ) {
-    const context: AgentContext = {
-      message,
-      conversation,
-      client: this.client,
-      sendText: async (text: string) => {
-        await conversation.send(text, ContentTypeText);
-      },
-      getSenderAddress: async () => {
-        const inboxState = await this.client.preferences.inboxStateFromInboxIds(
-          [message.senderInboxId],
-        );
-        return inboxState[0].identifiers[0].identifier;
-      },
-    };
-    return context;
   }
 
   /**
@@ -194,14 +109,5 @@ export class Agent extends EventEmitter {
   stop() {
     this.isListening = false;
     this.emit("stop");
-  }
-
-  /**
-   * Handles errors by emitting error events.
-   *
-   * @param error - The error that occurred
-   */
-  private handleError(error: unknown) {
-    this.emit("error", error);
   }
 }
