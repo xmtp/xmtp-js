@@ -2,22 +2,26 @@ import { ContentTypeReply, Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 
-export class AgentContext {
-  public readonly client: Client;
+export class AgentContext<ContentTypes> {
+  public readonly client: Client<ContentTypes>;
   public readonly conversation: Conversation;
   public readonly message: DecodedMessage;
 
   constructor(
     message: DecodedMessage,
     conversation: Conversation,
-    client: Client,
+    client: Client<ContentTypes>,
   ) {
     this.message = message;
     this.conversation = conversation;
     this.client = client;
   }
 
-  async sendReply(text: string) {
+  async sendText(text: string): Promise<void> {
+    await this.conversation.send(text, ContentTypeText);
+  }
+
+  async sendTextReply(text: string) {
     const reply: Reply = {
       reference: this.message.id,
       referenceInboxId: this.message.senderInboxId,
@@ -25,10 +29,6 @@ export class AgentContext {
       content: text,
     };
     await this.conversation.send(reply, ContentTypeReply);
-  }
-
-  async sendText(text: string): Promise<void> {
-    await this.conversation.send(text, ContentTypeText);
   }
 
   async getSenderAddress(): Promise<string> {

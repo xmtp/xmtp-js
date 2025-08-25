@@ -1,16 +1,19 @@
+import { Client } from "@xmtp/node-sdk";
 import type { MessageFilter } from "@/filters";
 import { AgentContext } from "./AgentContext";
 
-export type AgentEventHandler = (ctx: AgentContext) => Promise<void> | void;
+export type MessageHandler<ContentTypes = unknown> = (
+  ctx: AgentContext<ContentTypes>,
+) => Promise<void> | void;
 
 type StoredVoidHandler = {
   event: "start" | "stop";
   handler: NoopHandler;
 };
 
-type StoredMessageHandler = {
+type StoredMessageHandler<ContentTypes> = {
   event: "message";
-  handler: AgentEventHandler;
+  handler: MessageHandler<ContentTypes>;
   filter?: MessageFilter;
 };
 
@@ -23,30 +26,37 @@ type ErrorHandler = (error: unknown) => Promise<void> | void;
 
 type NoopHandler = () => Promise<void> | void;
 
-type AllHandler = AgentEventHandler | ErrorHandler | NoopHandler;
+type AllHandler<ContentTypes> =
+  | MessageHandler<ContentTypes>
+  | ErrorHandler
+  | NoopHandler;
 
 type AllEvents = "message" | "error" | "start" | "stop";
 
-export class AgentEventEmitter {
+export class AgentEventEmitter<ContentTypes = unknown> {
   private handlers: (
-    | StoredMessageHandler
+    | StoredMessageHandler<ContentTypes>
     | StoredErrorHandler
     | StoredVoidHandler
   )[] = [];
 
   on(
     event: "message",
-    handler: AgentEventHandler,
+    handler: MessageHandler<ContentTypes>,
     filter?: MessageFilter,
   ): this;
   on(event: "error", handler: ErrorHandler): this;
   on(event: "start" | "stop", handler: NoopHandler): this;
-  on(event: AllEvents, handler: AllHandler, filter?: MessageFilter): this {
+  on(
+    event: AllEvents,
+    handler: AllHandler<ContentTypes>,
+    filter?: MessageFilter,
+  ): this {
     switch (event) {
       case "message":
         this.handlers.push({
           event,
-          handler: handler as AgentEventHandler,
+          handler: handler as MessageHandler<ContentTypes>,
           filter,
         });
         break;
@@ -67,10 +77,10 @@ export class AgentEventEmitter {
     return this;
   }
 
-  off(event: "message", handler: AgentEventHandler): this;
+  off(event: "message", handler: MessageHandler<ContentTypes>): this;
   off(event: "error", handler: ErrorHandler): this;
   off(event: "start" | "stop", handler: () => void): this;
-  off(event: AllEvents, handler: AllHandler): this {
+  off(event: AllEvents, handler: AllHandler<ContentTypes>): this {
     const index = this.handlers.findIndex(
       (h) => h.event === event && h.handler === handler,
     );
@@ -80,7 +90,7 @@ export class AgentEventEmitter {
     return this;
   }
 
-  emit(event: "message", ctx: AgentContext): void;
+  emit(event: "message", ctx: AgentContext<ContentTypes>): void;
   emit(event: "error", error: unknown): void;
   emit(event: "start" | "stop"): void;
   async emit(event: AllEvents, payload?: unknown): Promise<void> {

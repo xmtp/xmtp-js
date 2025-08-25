@@ -1,15 +1,18 @@
-import { Client } from "@xmtp/node-sdk";
+import { ReplyCodec } from "@xmtp/content-type-reply";
 import { Agent } from "./core";
 import { filters } from "./filters";
 import { createSigner, createUser } from "./utils";
 
 const user = createUser();
 const signer = createSigner(user);
-const client = await Client.create(signer, {
-  env: "dev",
+// Create agent (content types inferred from codecs)
+const agent = await Agent.create({
+  signer,
+  options: {
+    env: "dev",
+    codecs: [new ReplyCodec()],
+  },
 });
-// Pass down signer + options, do Client.create in Agent constructor (needs wrapping in getClient() as these calls are async)
-const agent = new Agent({ client });
 
 agent.on("message", async (ctx) => {
   await ctx.conversation.send("Hello!");
@@ -30,6 +33,8 @@ agent.on("message", (ctx) => {
 const errorHandler = (error: unknown) => {
   console.log("Caught error", error);
 };
+
+agent.on("error", errorHandler);
 
 agent.off("error", errorHandler);
 

@@ -1,38 +1,56 @@
-import type { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { ContentCodec } from "@xmtp/content-type-primitives";
+import {
+  Client,
+  type ClientOptions,
+  type DecodedMessage,
+  type Identifier,
+  type Signer,
+} from "@xmtp/node-sdk";
 import { type MessageFilter } from "@/filters/MessageFilters";
 import { AgentContext } from "./AgentContext";
-import { AgentEventEmitter, type AgentEventHandler } from "./AgentEventEmitter";
+import { AgentEventEmitter } from "./AgentEventEmitter";
 
-export type AgentMiddleware = (
-  ctx: AgentContext,
+export type AgentMiddleware<ContentTypes> = (
+  ctx: AgentContext<ContentTypes>,
   next: () => Promise<void>,
 ) => Promise<void>;
 
-export interface AgentConfig {
-  client: Client;
-}
+type AgentConfig<ContentCodecs extends ContentCodec[] = []> =
+  | {
+      signer: Signer;
+      options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs };
+    }
+  | {
+      identifier: Identifier;
+      options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs };
+    };
 
 export type MessageHandler = {
   filter?: MessageFilter;
-  handler: AgentEventHandler;
+  handler: MessageHandler;
 };
 
 /**
  * XMTP Agent for handling messages and events.
  */
-export class Agent extends AgentEventEmitter {
-  private client: Client;
-  private middleware: AgentMiddleware[] = [];
+export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
+  private client: Client<ContentTypes>;
+  private middleware: AgentMiddleware<ContentTypes>[] = [];
   private isListening = false;
 
-  /**
-   * Creates a new agent instance.
-   *
-   * @param options - Configuration options including XMTP client
-   */
-  constructor(options: AgentConfig) {
+  constructor(client: Client<ContentTypes>) {
     super();
-    this.client = options.client;
+    this.client = client;
+  }
+
+  static async create<ContentCodecs extends ContentCodec[] = []>(
+    config: AgentConfig<ContentCodecs>,
+  ) {
+    const client =
+      "signer" in config
+        ? await Client.create(config.signer, config.options)
+        : await Client.build(config.identifier, config.options);
+    return new Agent(client);
   }
 
   /**
@@ -41,7 +59,7 @@ export class Agent extends AgentEventEmitter {
    * @param middleware - Middleware function to add
    * @returns This agent instance for method chaining
    */
-  use(middleware: AgentMiddleware) {
+  use(middleware: AgentMiddleware<ContentTypes>) {
     this.middleware.push(middleware);
     return this;
   }
