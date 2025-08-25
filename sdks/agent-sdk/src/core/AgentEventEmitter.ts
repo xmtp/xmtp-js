@@ -108,7 +108,11 @@ export class AgentEventEmitter {
         }
         case "start":
         case "stop":
-          await matchedHandler.handler();
+          try {
+            await matchedHandler.handler();
+          } catch (error: unknown) {
+            this.emit("error", error);
+          }
           break;
       }
     }
