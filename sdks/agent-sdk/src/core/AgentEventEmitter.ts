@@ -1,4 +1,4 @@
-import { MessageFilter } from "../filters";
+import type { MessageFilter } from "@/filters";
 import { AgentContext } from "./AgentContext";
 
 export type AgentEventHandler = (ctx: AgentContext) => Promise<void> | void;
@@ -19,9 +19,9 @@ type StoredErrorHandler = {
   handler: ErrorHandler;
 };
 
-type ErrorHandler = (error: unknown) => void;
+type ErrorHandler = (error: unknown) => Promise<void> | void;
 
-type NoopHandler = () => void;
+type NoopHandler = () => Promise<void> | void;
 
 type AllHandler = AgentEventHandler | ErrorHandler | NoopHandler;
 
@@ -83,24 +83,29 @@ export class AgentEventEmitter {
   emit(event: "message", ctx: AgentContext): void;
   emit(event: "error", error: unknown): void;
   emit(event: "start" | "stop"): void;
-  emit(event: AllEvents, payload?: unknown): void {
+  async emit(event: AllEvents, payload?: unknown): Promise<void> {
     const eventHandlers = this.handlers.filter((h) => h.event === event);
-    eventHandlers.forEach(async (matchedHandler) => {
+    for (const matchedHandler of eventHandlers) {
       switch (matchedHandler.event) {
-        case "message":
+        case "message": {
           const isContext = payload instanceof AgentContext;
           const passesFilter = isContext
             ? !matchedHandler.filter ||
               matchedHandler.filter(payload.message, payload.client)
             : false;
           if (isContext && passesFilter) {
-            await matchedHandler.handler(payload);
+            try {
+              await matchedHandler.handler(payload);
+            } catch (error) {
+              this.emit("error", error);
+            }
           }
           break;
+        }
         default:
           await matchedHandler.handler(payload);
           break;
       }
-    });
+    }
   }
 }

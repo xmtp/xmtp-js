@@ -12,13 +12,13 @@ const client = await Client.create(signer, {
 const agent = new Agent({ client });
 
 agent.on("message", async (ctx) => {
-  ctx.conversation.send("Hello!");
+  await ctx.conversation.send("Hello!");
 });
 
 agent.on(
   "message",
   async (ctx) => {
-    ctx.conversation.send("Hey!");
+    await ctx.conversation.send("Hey!");
   },
   filters.and(filters.notFromSelf, filters.textOnly),
 );

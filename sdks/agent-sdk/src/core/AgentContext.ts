@@ -1,5 +1,5 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 
 export class AgentContext {
   public readonly client: Client;

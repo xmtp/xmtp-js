@@ -1,7 +1,7 @@
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 import { type MessageFilter } from "@/filters/MessageFilters";
 import { AgentContext } from "./AgentContext";
-import { AgentEventEmitter, AgentEventHandler } from "./AgentEventEmitter";
+import { AgentEventEmitter, type AgentEventHandler } from "./AgentEventEmitter";
 
 export type AgentMiddleware = (
   ctx: AgentContext,
@@ -96,7 +96,7 @@ export class Agent extends AgentEventEmitter {
         const currentMiddleware = this.middleware[middlewareIndex++];
         await currentMiddleware(context, next);
       } else {
-        await this.emit("message", context);
+        this.emit("message", context);
       }
     };
 

@@ -1,4 +1,4 @@
-import { Identifier, IdentifierKind, Signer } from "@xmtp/node-sdk";
+import { IdentifierKind, type Identifier, type Signer } from "@xmtp/node-sdk";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
