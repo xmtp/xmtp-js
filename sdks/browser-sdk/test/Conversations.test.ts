@@ -40,6 +40,7 @@ describe("Conversations", () => {
     expect(conversation.createdAtNs).toBeDefined();
     expect(conversation.createdAt).toBeDefined();
     expect(conversation.isActive).toBe(true);
+    expect(conversation.isCommitLogForked).toBeUndefined();
     expect(conversation.name).toBe("");
     expect(await conversation.messageDisappearingSettings()).toBeUndefined();
     expect(await conversation.isMessageDisappearingEnabled()).toBe(false);
@@ -156,6 +157,7 @@ describe("Conversations", () => {
     expect(group.createdAtNs).toBeDefined();
     expect(group.createdAt).toBeDefined();
     expect(group.isActive).toBe(true);
+    expect(group.isCommitLogForked).toBeUndefined();
     expect(await group.messageDisappearingSettings()).toBeUndefined();
     expect(await group.isMessageDisappearingEnabled()).toBe(false);
 
