@@ -102,8 +102,13 @@ export class AgentEventEmitter {
           }
           break;
         }
-        default:
+        case "error": {
           await matchedHandler.handler(payload);
+          break;
+        }
+        case "start":
+        case "stop":
+          await matchedHandler.handler();
           break;
       }
     }
