@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 4.1.0
+
+### Minor Changes
+
+- 6035a6e: 1.4 release
+
 ## 4.0.2
 
 ### Patch Changes
