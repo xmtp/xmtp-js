@@ -1,3 +1,4 @@
+import { ContentTypeReply, Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 
@@ -14,6 +15,16 @@ export class AgentContext {
     this.message = message;
     this.conversation = conversation;
     this.client = client;
+  }
+
+  async sendReply(text: string) {
+    const reply: Reply = {
+      reference: this.message.id,
+      referenceInboxId: this.message.senderInboxId,
+      contentType: ContentTypeText,
+      content: text,
+    };
+    await this.conversation.send(reply, ContentTypeReply);
   }
 
   async sendText(text: string): Promise<void> {

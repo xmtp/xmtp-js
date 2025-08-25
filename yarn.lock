@@ -3494,7 +3494,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:^22.16.3"
     "@vitest/coverage-v8": "npm:^3.2.4"
-    "@xmtp/content-type-reaction": "npm:^2.0.2"
     "@xmtp/content-type-reply": "npm:^2.0.2"
     "@xmtp/node-sdk": "npm:^4.0.3"
     tsx: "npm:^4.20.3"
@@ -3587,7 +3586,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reaction@npm:^2.0.2, @xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
+"@xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction"
   dependencies:
