@@ -70,6 +70,7 @@ export class Agent extends AgentEventEmitter {
         }
       }
     } catch (error: unknown) {
+      this.isListening = false;
       this.emit("error", error);
     }
   }

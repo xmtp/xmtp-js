@@ -96,7 +96,7 @@ export class AgentEventEmitter {
           if (isContext && passesFilter) {
             try {
               await matchedHandler.handler(payload);
-            } catch (error) {
+            } catch (error: unknown) {
               this.emit("error", error);
             }
           }
