@@ -863,10 +863,15 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
     const debugInfo = await conversation.debugInfo();
+    console.log(debugInfo);
     expect(debugInfo).toBeDefined();
     expect(debugInfo.epoch).toBeDefined();
     expect(debugInfo.maybeForked).toBe(false);
     expect(debugInfo.forkDetails).toBe("");
+    expect(debugInfo.isCommitLogForked).toBeUndefined();
+    expect(debugInfo.localCommitLog).toBeDefined();
+    expect(debugInfo.remoteCommitLog).toBeDefined();
+    expect(debugInfo.cursor).toBeGreaterThan(0n);
   });
 
   it("should filter messages by content type", async () => {

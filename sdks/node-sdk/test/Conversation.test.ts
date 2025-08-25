@@ -824,6 +824,10 @@ describe("Conversation", () => {
     expect(debugInfo.epoch).toBeDefined();
     expect(debugInfo.maybeForked).toBe(false);
     expect(debugInfo.forkDetails).toBe("");
+    expect(debugInfo.isCommitLogForked).toBeUndefined();
+    expect(debugInfo.localCommitLog).toBeDefined();
+    expect(debugInfo.remoteCommitLog).toBeDefined();
+    expect(debugInfo.cursor).toBeGreaterThan(0);
   });
 
   it("should filter messages by content type", async () => {
