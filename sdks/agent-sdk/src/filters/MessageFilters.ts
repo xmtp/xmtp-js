@@ -4,18 +4,18 @@ import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 /**
  * Function type for filtering messages based on content and client state.
  */
-export type MessageFilter = (
+export type MessageFilter<CT> = (
   message: DecodedMessage,
-  client: Client,
-) => boolean | Promise<boolean>;
+  client: Client<CT>,
+) => boolean;
 
 /**
  * Creates a filter that excludes messages from the agent itself.
  *
  * @returns Filter function
  */
-function notFromSelf(): MessageFilter {
-  return (message: DecodedMessage, client: Client) => {
+function notFromSelf<CT>(): MessageFilter<CT> {
+  return (message: DecodedMessage, client: Client<CT>) => {
     return message.senderInboxId !== client.inboxId;
   };
 }
@@ -25,8 +25,8 @@ function notFromSelf(): MessageFilter {
  *
  * @returns Filter function
  */
-function fromSelf(): MessageFilter {
-  return (message: DecodedMessage, client: Client) => {
+function fromSelf<CT>(): MessageFilter<CT> {
+  return (message: DecodedMessage, client: Client<CT>) => {
     return message.senderInboxId === client.inboxId;
   };
 }
@@ -36,7 +36,7 @@ function fromSelf(): MessageFilter {
  *
  * @returns Filter function
  */
-function textOnly(): MessageFilter {
+function textOnly<CT>(): MessageFilter<CT> {
   return (message: DecodedMessage) => {
     return !!message.contentType?.sameAs(ContentTypeText);
   };
@@ -48,7 +48,7 @@ function textOnly(): MessageFilter {
  * @param senderInboxId - Single sender ID or array of sender IDs to match
  * @returns Filter function
  */
-function fromSender(senderInboxId: string | string[]): MessageFilter {
+function fromSender<CT>(senderInboxId: string | string[]): MessageFilter<CT> {
   const senderIds = Array.isArray(senderInboxId)
     ? senderInboxId
     : [senderInboxId];
@@ -64,10 +64,10 @@ function fromSender(senderInboxId: string | string[]): MessageFilter {
  * @param filters - Array of filters that must all return true
  * @returns Filter function
  */
-function and(...filters: MessageFilter[]): MessageFilter {
-  return async (message: DecodedMessage, client: Client) => {
+function and<CT>(...filters: MessageFilter<CT>[]): MessageFilter<CT> {
+  return (message: DecodedMessage, client: Client<CT>) => {
     for (const filter of filters) {
-      const result = await filter(message, client);
+      const result = filter(message, client);
       if (!result) return false;
     }
     return true;
@@ -80,10 +80,10 @@ function and(...filters: MessageFilter[]): MessageFilter {
  * @param filters - Array of filters where at least one must return true
  * @returns Filter function
  */
-function or(...filters: MessageFilter[]): MessageFilter {
-  return async (message: DecodedMessage, client: Client) => {
+function or<CT>(...filters: MessageFilter<CT>[]): MessageFilter<CT> {
+  return (message: DecodedMessage, client: Client<CT>) => {
     for (const filter of filters) {
-      const result = await filter(message, client);
+      const result = filter(message, client);
       if (result) return true;
     }
     return false;
@@ -96,9 +96,9 @@ function or(...filters: MessageFilter[]): MessageFilter {
  * @param filter - The filter to negate
  * @returns Filter function
  */
-function not(filter: MessageFilter): MessageFilter {
-  return async (message: DecodedMessage, client: Client) => {
-    const result = await filter(message, client);
+function not<CT>(filter: MessageFilter<CT>): MessageFilter<CT> {
+  return (message: DecodedMessage, client: Client<CT>) => {
+    const result = filter(message, client);
     return !result;
   };
 }
