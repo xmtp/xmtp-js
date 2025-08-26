@@ -1,4 +1,3 @@
-import { Client } from "@xmtp/node-sdk";
 import type { MessageFilter } from "@/filters";
 import { AgentContext } from "./AgentContext";
 
@@ -79,7 +78,7 @@ export class AgentEventEmitter<ContentTypes = unknown> {
 
   off(event: "message", handler: MessageHandler<ContentTypes>): this;
   off(event: "error", handler: ErrorHandler): this;
-  off(event: "start" | "stop", handler: () => void): this;
+  off(event: "start" | "stop", handler: NoopHandler): this;
   off(event: AllEvents, handler: AllHandler<ContentTypes>): this {
     const index = this.handlers.findIndex(
       (h) => h.event === event && h.handler === handler,
