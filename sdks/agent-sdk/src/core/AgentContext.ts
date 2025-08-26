@@ -5,10 +5,10 @@ import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 export class AgentContext<ContentTypes> {
   public readonly client: Client<ContentTypes>;
   public readonly conversation: Conversation;
-  public readonly message: DecodedMessage;
+  public readonly message: DecodedMessage<ContentTypes>;
 
   constructor(
-    message: DecodedMessage,
+    message: DecodedMessage<ContentTypes>,
     conversation: Conversation,
     client: Client<ContentTypes>,
   ) {

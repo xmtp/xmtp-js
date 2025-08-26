@@ -1,85 +1,38 @@
-import type { MessageFilter } from "@/filters";
-import { AgentContext } from "./AgentContext";
+import { AgentContext } from "@/core/AgentContext";
+import type {
+  AllEvents,
+  Events,
+  ExtractEvent,
+  ExtractEventHandlerPayload,
+  ExtractFilter,
+  ExtractHandler,
+} from "@/core/types";
 
-export type MessageHandler<ContentTypes = unknown> = (
-  ctx: AgentContext<ContentTypes>,
-) => Promise<void> | void;
-
-type StoredVoidHandler = {
-  event: "start" | "stop";
-  handler: NoopHandler;
+const isAgentContext = <T>(payload: unknown): payload is AgentContext<T> => {
+  return payload instanceof AgentContext;
 };
-
-type StoredMessageHandler<ContentTypes> = {
-  event: "message";
-  handler: MessageHandler<ContentTypes>;
-  filter?: MessageFilter;
-};
-
-type StoredErrorHandler = {
-  event: "error";
-  handler: ErrorHandler;
-};
-
-type ErrorHandler = (error: unknown) => Promise<void> | void;
-
-type NoopHandler = () => Promise<void> | void;
-
-type AllHandler<ContentTypes> =
-  | MessageHandler<ContentTypes>
-  | ErrorHandler
-  | NoopHandler;
-
-type AllEvents = "message" | "error" | "start" | "stop";
 
 export class AgentEventEmitter<ContentTypes = unknown> {
-  private handlers: (
-    | StoredMessageHandler<ContentTypes>
-    | StoredErrorHandler
-    | StoredVoidHandler
-  )[] = [];
+  private handlers: Events<ContentTypes>[] = [];
 
-  on(
-    event: "message",
-    handler: MessageHandler<ContentTypes>,
-    filter?: MessageFilter,
-  ): this;
-  on(event: "error", handler: ErrorHandler): this;
-  on(event: "start" | "stop", handler: NoopHandler): this;
-  on(
-    event: AllEvents,
-    handler: AllHandler<ContentTypes>,
-    filter?: MessageFilter,
-  ): this {
-    switch (event) {
-      case "message":
-        this.handlers.push({
-          event,
-          handler: handler as MessageHandler<ContentTypes>,
-          filter,
-        });
-        break;
-      case "error":
-        this.handlers.push({
-          event,
-          handler: handler as ErrorHandler,
-        });
-        break;
-      case "start":
-      case "stop":
-        this.handlers.push({
-          event,
-          handler: handler as NoopHandler,
-        });
-        break;
-    }
+  on = <E extends AllEvents>(
+    event: E,
+    handler: ExtractHandler<E, ContentTypes>,
+    filter?: ExtractFilter<E, ContentTypes>,
+  ) => {
+    const eventHandler = {
+      event,
+      handler,
+      filter,
+    } as ExtractEvent<E, ContentTypes>;
+    this.handlers.push(eventHandler);
     return this;
-  }
+  };
 
-  off(event: "message", handler: MessageHandler<ContentTypes>): this;
-  off(event: "error", handler: ErrorHandler): this;
-  off(event: "start" | "stop", handler: NoopHandler): this;
-  off(event: AllEvents, handler: AllHandler<ContentTypes>): this {
+  off = <E extends AllEvents>(
+    event: E,
+    handler: ExtractHandler<E, ContentTypes>,
+  ) => {
     const index = this.handlers.findIndex(
       (h) => h.event === event && h.handler === handler,
     );
@@ -87,34 +40,38 @@ export class AgentEventEmitter<ContentTypes = unknown> {
       this.handlers.splice(index, 1);
     }
     return this;
-  }
+  };
 
-  emit(event: "message", payload: AgentContext<ContentTypes>): Promise<void>;
-  emit(event: "error", payload: unknown): Promise<void>;
-  emit(event: "start" | "stop"): Promise<void>;
-  async emit(event: AllEvents, payload?: unknown): Promise<void> {
+  emit = async <E extends AllEvents>(
+    ...args: undefined extends ExtractEventHandlerPayload<E, ContentTypes>
+      ? [event: E]
+      : [event: E, payload: ExtractEventHandlerPayload<E, ContentTypes>]
+  ): Promise<void> => {
+    const event = args[0];
+    const payload = args[1];
     const eventHandlers = this.handlers.filter((h) => h.event === event);
     for (const matchedHandler of eventHandlers) {
       switch (matchedHandler.event) {
         case "message": {
-          const isContext = payload instanceof AgentContext;
-          const passesFilter = isContext
-            ? !matchedHandler.filter ||
+          if (isAgentContext<ContentTypes>(payload)) {
+            const passesFilter =
+              !matchedHandler.filter ||
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              matchedHandler.filter(payload.message, payload.client)
-            : false;
-          if (isContext && passesFilter) {
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              await matchedHandler.handler(payload);
-            } catch (error: unknown) {
-              void this.emit("error", error);
+              matchedHandler.filter(payload.message, payload.client as any);
+            if (passesFilter) {
+              try {
+                await matchedHandler.handler(payload);
+              } catch (error: unknown) {
+                void this.emit("error", error as Error);
+              }
             }
           }
           break;
         }
         case "error": {
-          await matchedHandler.handler(payload);
+          if (payload instanceof Error) {
+            await matchedHandler.handler(payload);
+          }
           break;
         }
         case "start":
@@ -122,10 +79,10 @@ export class AgentEventEmitter<ContentTypes = unknown> {
           try {
             await matchedHandler.handler();
           } catch (error: unknown) {
-            void this.emit("error", error);
+            void this.emit("error", error as Error);
           }
           break;
       }
     }
-  }
+  };
 }
