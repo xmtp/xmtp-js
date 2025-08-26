@@ -89,8 +89,8 @@ export class AgentEventEmitter<ContentTypes = unknown> {
     return this;
   }
 
-  emit(event: "message", ctx: AgentContext<ContentTypes>): void;
-  emit(event: "error", error: unknown): void;
+  emit(event: "message", payload: AgentContext<ContentTypes>): void;
+  emit(event: "error", payload: unknown): void;
   emit(event: "start" | "stop"): void;
   async emit(event: AllEvents, payload?: unknown): Promise<void> {
     const eventHandlers = this.handlers.filter((h) => h.event === event);
@@ -100,10 +100,12 @@ export class AgentEventEmitter<ContentTypes = unknown> {
           const isContext = payload instanceof AgentContext;
           const passesFilter = isContext
             ? !matchedHandler.filter ||
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               matchedHandler.filter(payload.message, payload.client)
             : false;
           if (isContext && passesFilter) {
             try {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               await matchedHandler.handler(payload);
             } catch (error: unknown) {
               this.emit("error", error);

@@ -1,4 +1,4 @@
-import { ContentTypeReply, Reply } from "@xmtp/content-type-reply";
+import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 
