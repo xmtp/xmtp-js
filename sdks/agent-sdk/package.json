@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/agent-sdk",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "XMTP Agent SDK for interacting with XMTP networks",
   "keywords": [
     "agents",
@@ -20,7 +20,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://git@github.com/xmtp/xmtp-js.git",
-    "directory": "packages/agent-sdk"
+    "directory": "sdks/agent-sdk"
   },
   "license": "MIT",
   "author": "XMTP Labs <eng@xmtp.com>",
@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx --watch src/main.ts",
-    "start": "tsx  src/main.ts",
+    "start": "tsx src/main.ts",
     "test:cov": "vitest run --coverage",
     "test": "vitest run",
     "typecheck": "tsc"
