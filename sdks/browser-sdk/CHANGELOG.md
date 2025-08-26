@@ -1,5 +1,17 @@
 # @xmtp/browser-sdk
 
+## 4.1.0
+
+This release introduces improved fork detection. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this enhancement.
+
+### Improved fork detection
+
+The `isCommitLogForked` field provides definitive fork detection without false positives. To minimize the negative effects of spam, fork detection is active only for groups that a user has actively consented to.
+
+Important: The `maybeForked` field has been deprecated. You can now use `isCommitLogForked` instead to get definitive fork detection without false positives.
+
+To learn more, see [Forked group debugging tool](https://docs.xmtp.org/inboxes/debug-your-app#forked-group-debugging-tool).
+
 ## 4.0.2
 
 ### Patch Changes
