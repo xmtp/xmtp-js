@@ -74,7 +74,7 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
 
     try {
       this.isListening = true;
-      this.emit("start");
+      void this.emit("start");
 
       const stream = await this.client.conversations.streamAllMessages();
       for await (const message of stream) {
@@ -84,12 +84,12 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
         try {
           await this.processMessage(message);
         } catch (error: unknown) {
-          this.emit("error", error);
+          void this.emit("error", error);
         }
       }
     } catch (error: unknown) {
       this.isListening = false;
-      this.emit("error", error);
+      void this.emit("error", error);
     }
   }
 
@@ -115,7 +115,7 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
         const currentMiddleware = this.middleware[middlewareIndex++];
         await currentMiddleware(context, next);
       } else {
-        this.emit("message", context);
+        void this.emit("message", context);
       }
     };
 
@@ -127,6 +127,6 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
    */
   stop() {
     this.isListening = false;
-    this.emit("stop");
+    void this.emit("stop");
   }
 }

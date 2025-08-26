@@ -89,9 +89,9 @@ export class AgentEventEmitter<ContentTypes = unknown> {
     return this;
   }
 
-  emit(event: "message", payload: AgentContext<ContentTypes>): void;
-  emit(event: "error", payload: unknown): void;
-  emit(event: "start" | "stop"): void;
+  emit(event: "message", payload: AgentContext<ContentTypes>): Promise<void>;
+  emit(event: "error", payload: unknown): Promise<void>;
+  emit(event: "start" | "stop"): Promise<void>;
   async emit(event: AllEvents, payload?: unknown): Promise<void> {
     const eventHandlers = this.handlers.filter((h) => h.event === event);
     for (const matchedHandler of eventHandlers) {
@@ -108,7 +108,7 @@ export class AgentEventEmitter<ContentTypes = unknown> {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               await matchedHandler.handler(payload);
             } catch (error: unknown) {
-              this.emit("error", error);
+              void this.emit("error", error);
             }
           }
           break;
@@ -122,7 +122,7 @@ export class AgentEventEmitter<ContentTypes = unknown> {
           try {
             await matchedHandler.handler();
           } catch (error: unknown) {
-            this.emit("error", error);
+            void this.emit("error", error);
           }
           break;
       }
