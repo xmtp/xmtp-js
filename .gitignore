@@ -74,3 +74,6 @@ sdks/js-sdk/bench/results
 
 # local database files
 **/*.db3*
+
+# api service build
+apps/xmtp.chat-api-service/api

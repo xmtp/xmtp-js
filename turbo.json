@@ -6,6 +6,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "xmtp.chat-api-service#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["api/**"]
+    },
     "clean": {
       "outputs": []
     },
