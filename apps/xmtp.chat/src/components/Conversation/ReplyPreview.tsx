@@ -1,22 +1,68 @@
 import { ActionIcon, Box, Group, Paper, Text } from "@mantine/core";
+import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { AddressBadge } from "@/components/AddressBadge";
+import { AttachmentDetails } from "@/components/Messages/AttachmentDetails";
 import { BreakableText } from "@/components/Messages/BreakableText";
+import { useConversationContext } from "@/contexts/ConversationContext";
+import { formatFileSize } from "@/helpers/attachment";
+import {
+  isReaction,
+  isRemoteAttachment,
+  isText,
+  isTextReply,
+} from "@/helpers/messages";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
 import { IconX } from "@/icons/IconX";
 
 export type ReplyPreviewProps = {
-  previewText: string;
-  fromAddress: string;
+  message: DecodedMessage;
   onCancel: () => void;
   disabled?: boolean;
 };
 
+const ReplyPreviewContent: React.FC<Pick<ReplyPreviewProps, "message">> = ({
+  message,
+}) => {
+  if (isRemoteAttachment(message)) {
+    return (
+      <AttachmentDetails
+        filename={message.content.filename}
+        fileSize={formatFileSize(message.content.contentLength)}
+        align="left"
+      />
+    );
+  }
+  let textContent: string | undefined;
+  if (isTextReply(message) || isReaction(message)) {
+    textContent = message.content.content;
+  }
+  if (isText(message)) {
+    textContent = message.content;
+  }
+  if (typeof message.content === "string") {
+    textContent = message.content;
+  }
+  if (typeof message.fallback === "string") {
+    textContent = message.fallback;
+  }
+  if (!textContent) {
+    textContent = JSON.stringify(message.content, null, 2);
+  }
+  return (
+    <BreakableText mt={6} fw={700} size="sm" lineClamp={2}>
+      {textContent}
+    </BreakableText>
+  );
+};
+
 export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
-  previewText,
-  fromAddress,
+  message,
   onCancel,
   disabled,
 }) => {
+  const { members } = useConversationContext();
+  const fromAddress =
+    members.get(message.senderInboxId) ?? message.senderInboxId;
   return (
     <>
       <Box miw="0">
@@ -30,9 +76,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
               <AddressBadge address={fromAddress} />
             </Box>
           </Group>
-          <BreakableText mt={6} fw={700} size="sm" lineClamp={2}>
-            {previewText}
-          </BreakableText>
+          <ReplyPreviewContent message={message} />
         </Paper>
       </Box>
       <Box style={{ alignSelf: "start" }}>

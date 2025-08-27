@@ -1,4 +1,4 @@
-import { Box, Flex, Group, Stack } from "@mantine/core";
+import { Flex, Group, Stack } from "@mantine/core";
 import { DateLabel } from "@/components/DateLabel";
 import { InboxIdBadge } from "@/components/InboxId";
 import { useConversationContext } from "@/contexts/ConversationContext";
@@ -35,14 +35,16 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
             size="xs"
           />
         </Flex>
-        <Box
+        <Group
+          justify={align === "left" ? "flex-start" : "flex-end"}
+          maw="80%"
           onClick={(event) => {
             if (stopClickPropagation) {
               event.stopPropagation();
             }
           }}>
           {children}
-        </Box>
+        </Group>
       </Stack>
     </Group>
   );
