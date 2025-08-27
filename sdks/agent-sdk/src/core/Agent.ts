@@ -1,5 +1,6 @@
 import EventEmitter from "node:events";
-import { Client, type DecodedMessage } from "@xmtp/node-sdk";
+import { ContentCodec } from "@xmtp/content-type-primitives";
+import { Client, ClientOptions, type DecodedMessage } from "@xmtp/node-sdk";
 import { AgentContext } from "./AgentContext";
 
 interface EventHandlerMap<ContentTypes> {
@@ -26,17 +27,19 @@ export class Agent<ContentTypes> extends EventEmitter<
     this.client = client;
   }
 
-  static async create(
+  static async create<ContentCodecs extends ContentCodec[] = []>(
     signer: Parameters<typeof Client.create>[0],
-    options?: Parameters<typeof Client.create>[1],
+    // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
+    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     const client = await Client.create(signer, options);
     return new Agent(client);
   }
 
-  static async build(
+  static async build<ContentCodecs extends ContentCodec[] = []>(
     identifier: Parameters<typeof Client.build>[0],
-    options?: Parameters<typeof Client.build>[1],
+    // Note: we need to omit this so that "Client.build" can correctly infer the codecs.
+    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     const client = await Client.build(identifier, options);
     return new Agent(client);

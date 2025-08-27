@@ -6,6 +6,7 @@ const user = createUser();
 const signer = createSigner(user);
 
 // Create agent (content types inferred from codecs)
+// TODO: Write tests for type inference using "tsd"!
 const agent = await Agent.create(signer, {
   env: "dev",
   codecs: [new ReplyCodec()],
