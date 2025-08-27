@@ -111,9 +111,9 @@ describe("MessageFilters", () => {
 
   describe("and", () => {
     it("should return true when all filters pass", () => {
-      const filter1 = vi.fn().mockResolvedValue(true);
-      const filter2 = vi.fn().mockResolvedValue(true);
-      const filter3 = vi.fn().mockResolvedValue(true);
+      const filter1 = vi.fn().mockReturnValue(true);
+      const filter2 = vi.fn().mockReturnValue(true);
+      const filter3 = vi.fn().mockReturnValue(true);
 
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
@@ -126,9 +126,9 @@ describe("MessageFilters", () => {
     });
 
     it("should return false when any filter fails", () => {
-      const filter1 = vi.fn().mockResolvedValue(true);
-      const filter2 = vi.fn().mockResolvedValue(false);
-      const filter3 = vi.fn().mockResolvedValue(true);
+      const filter1 = vi.fn().mockReturnValue(true);
+      const filter2 = vi.fn().mockReturnValue(false);
+      const filter3 = vi.fn().mockReturnValue(true);
 
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
@@ -152,9 +152,9 @@ describe("MessageFilters", () => {
 
   describe("or", () => {
     it("should return true when any filter passes", () => {
-      const filter1 = vi.fn().mockResolvedValue(false);
-      const filter2 = vi.fn().mockResolvedValue(true);
-      const filter3 = vi.fn().mockResolvedValue(false);
+      const filter1 = vi.fn().mockReturnValue(false);
+      const filter2 = vi.fn().mockReturnValue(true);
+      const filter3 = vi.fn().mockReturnValue(false);
 
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
@@ -168,9 +168,9 @@ describe("MessageFilters", () => {
     });
 
     it("should return false when all filters fail", () => {
-      const filter1 = vi.fn().mockResolvedValue(false);
-      const filter2 = vi.fn().mockResolvedValue(false);
-      const filter3 = vi.fn().mockResolvedValue(false);
+      const filter1 = vi.fn().mockReturnValue(false);
+      const filter2 = vi.fn().mockReturnValue(false);
+      const filter3 = vi.fn().mockReturnValue(false);
 
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
@@ -193,7 +193,7 @@ describe("MessageFilters", () => {
 
   describe("not", () => {
     it("should invert filter result from true to false", () => {
-      const baseFilter = vi.fn().mockResolvedValue(true);
+      const baseFilter = vi.fn().mockReturnValue(true);
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
@@ -203,7 +203,7 @@ describe("MessageFilters", () => {
     });
 
     it("should invert filter result from false to true", () => {
-      const baseFilter = vi.fn().mockResolvedValue(false);
+      const baseFilter = vi.fn().mockReturnValue(false);
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 

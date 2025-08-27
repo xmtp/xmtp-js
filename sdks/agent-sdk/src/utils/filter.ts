@@ -107,8 +107,7 @@ function not<ContentTypes>(
   filter: MessageFilter<ContentTypes>,
 ): MessageFilter<ContentTypes> {
   return (message: DecodedMessage, client: Client<ContentTypes>) => {
-    const result = filter(message, client);
-    return !result;
+    return !filter(message, client);
   };
 }
 
