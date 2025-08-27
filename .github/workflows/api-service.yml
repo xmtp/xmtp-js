@@ -36,6 +36,12 @@ jobs:
       - name: Typecheck
         run: yarn turbo run typecheck --filter='./apps/xmtp.chat-api-service'
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Nothing to test"
+
   build:
     name: Build
     permissions:
