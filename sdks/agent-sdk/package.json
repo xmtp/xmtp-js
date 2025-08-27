@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx --watch src/main.ts",
-    "start": "tsx src/main.ts",
+    "start": "tsx src/demo.ts",
     "test:cov": "vitest run --coverage",
     "test": "vitest --typecheck",
     "typecheck": "tsc"

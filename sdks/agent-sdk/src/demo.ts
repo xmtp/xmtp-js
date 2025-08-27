@@ -12,13 +12,13 @@ const agent = await Agent.create(signer, {
 });
 
 agent.on("message", (ctx) => {
-  ctx.conversation.send("First message!");
+  void ctx.conversation.send("First message!");
 });
 
 agent.on(
   "message",
   withFilter(f.and(f.notFromSelf, f.textOnly), (ctx) => {
-    ctx.conversation.send("Goodbye!");
+    void ctx.conversation.send("Goodbye!");
     agent.stop();
   }),
 );
@@ -42,4 +42,4 @@ agent.on("start", () => {
   console.log(`We are online: ${url}`);
 });
 
-agent.start();
+void agent.start();

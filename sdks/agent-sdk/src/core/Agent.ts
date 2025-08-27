@@ -15,6 +15,10 @@ interface EventHandlerMap<ContentTypes> {
   stop: [];
 }
 
+export interface AgentOptions<ContentTypes> {
+  client: Client<ContentTypes>;
+}
+
 export type AgentMiddleware<ContentTypes> = (
   ctx: AgentContext<ContentTypes>,
   next: () => Promise<void>,
@@ -27,7 +31,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #isListening = false;
 
-  constructor(client: Client<ContentTypes>) {
+  constructor({ client }: AgentOptions<ContentTypes>) {
     super();
     this.client = client;
   }
@@ -38,7 +42,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     const client = await Client.create(signer, options);
-    return new Agent(client);
+    return new Agent({ client });
   }
 
   static async build<ContentCodecs extends ContentCodec[] = []>(
@@ -47,7 +51,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     const client = await Client.build(identifier, options);
-    return new Agent(client);
+    return new Agent({ client });
   }
 
   use(middleware: AgentMiddleware<ContentTypes>) {
