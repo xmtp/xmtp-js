@@ -45,10 +45,3 @@ services:
     platform: linux/amd64
     ports:
       - 5558:5558
-
-  xmtp-chat-api-service:
-    build: ../apps/xmtp.chat-api-service
-    env_file:
-      - ../apps/xmtp.chat-api-service/.env
-    ports:
-      - 4000:4000
