@@ -5,9 +5,6 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "sourceMap": true,
