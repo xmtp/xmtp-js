@@ -13,7 +13,7 @@ const agent = await Agent.create(signer, {
 });
 
 agent.on("message", (ctx) => {
-  void ctx.conversation.send("Hello!");
+  ctx.conversation.send("Hello!");
 });
 
 agent.on(

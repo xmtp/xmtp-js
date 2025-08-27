@@ -15,7 +15,7 @@ Subscribe to specific events and receive only the ones that matter to you using 
 
 ```ts
 agent.on("message", async (ctx) => {
-  ctx.conversation.send("Hello!");
+  await ctx.conversation.send("Hello!");
 });
 ```
 
