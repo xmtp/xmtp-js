@@ -11,9 +11,9 @@ const app = express();
 
 app.use(helmet()); // Set security headers
 
-const getAllowedOrigins = (): string[] => {
+const getAllowedOrigins = (): (string | RegExp)[] => {
   return process.env.NODE_ENV === "production"
-    ? ["https://xmtp.chat"]
+    ? ["https://xmtp.chat", /^https:\/\/.*ephemerahq\.vercel\.app$/]
     : ["https://xmtp.chat", "http://localhost:5173"];
 };
 
