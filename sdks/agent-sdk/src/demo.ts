@@ -4,6 +4,7 @@ import { createSigner, createUser, filter as f, withFilter } from "./utils";
 
 const user = createUser();
 const signer = createSigner(user);
+
 // Create agent (content types inferred from codecs)
 const agent = await Agent.create(signer, {
   env: "dev",

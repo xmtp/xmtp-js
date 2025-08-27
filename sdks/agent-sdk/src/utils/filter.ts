@@ -5,9 +5,9 @@ import type { AgentContext } from "@/core/AgentContext";
 /**
  * Function type for filtering messages based on content and client state.
  */
-export type MessageFilter<CT> = (
+export type MessageFilter<ContentTypes> = (
   message: DecodedMessage,
-  client: Client<CT>,
+  client: Client<ContentTypes>,
 ) => boolean;
 
 /**
@@ -15,8 +15,8 @@ export type MessageFilter<CT> = (
  *
  * @returns Filter function
  */
-function notFromSelf<CT>(): MessageFilter<CT> {
-  return (message: DecodedMessage, client: Client<CT>) => {
+function notFromSelf<ContentTypes>(): MessageFilter<ContentTypes> {
+  return (message: DecodedMessage, client: Client<ContentTypes>) => {
     return message.senderInboxId !== client.inboxId;
   };
 }
@@ -26,8 +26,8 @@ function notFromSelf<CT>(): MessageFilter<CT> {
  *
  * @returns Filter function
  */
-function fromSelf<CT>(): MessageFilter<CT> {
-  return (message: DecodedMessage, client: Client<CT>) => {
+function fromSelf<ContentTypes>(): MessageFilter<ContentTypes> {
+  return (message: DecodedMessage, client: Client<ContentTypes>) => {
     return message.senderInboxId === client.inboxId;
   };
 }
@@ -37,7 +37,7 @@ function fromSelf<CT>(): MessageFilter<CT> {
  *
  * @returns Filter function
  */
-function textOnly<CT>(): MessageFilter<CT> {
+function textOnly<ContentTypes>(): MessageFilter<ContentTypes> {
   return (message: DecodedMessage) => {
     return !!message.contentType?.sameAs(ContentTypeText);
   };
@@ -49,7 +49,9 @@ function textOnly<CT>(): MessageFilter<CT> {
  * @param senderInboxId - Single sender ID or array of sender IDs to match
  * @returns Filter function
  */
-function fromSender<CT>(senderInboxId: string | string[]): MessageFilter<CT> {
+function fromSender<ContentTypes>(
+  senderInboxId: string | string[],
+): MessageFilter<ContentTypes> {
   const senderIds = Array.isArray(senderInboxId)
     ? senderInboxId
     : [senderInboxId];
@@ -65,8 +67,10 @@ function fromSender<CT>(senderInboxId: string | string[]): MessageFilter<CT> {
  * @param filters - Array of filters that must all return true
  * @returns Filter function
  */
-function and<CT>(...filters: MessageFilter<CT>[]): MessageFilter<CT> {
-  return (message: DecodedMessage, client: Client<CT>) => {
+function and<ContentTypes>(
+  ...filters: MessageFilter<ContentTypes>[]
+): MessageFilter<ContentTypes> {
+  return (message: DecodedMessage, client: Client<ContentTypes>) => {
     for (const filter of filters) {
       const result = filter(message, client);
       if (!result) return false;
@@ -81,8 +85,10 @@ function and<CT>(...filters: MessageFilter<CT>[]): MessageFilter<CT> {
  * @param filters - Array of filters where at least one must return true
  * @returns Filter function
  */
-function or<CT>(...filters: MessageFilter<CT>[]): MessageFilter<CT> {
-  return (message: DecodedMessage, client: Client<CT>) => {
+function or<ContentTypes>(
+  ...filters: MessageFilter<ContentTypes>[]
+): MessageFilter<ContentTypes> {
+  return (message: DecodedMessage, client: Client<ContentTypes>) => {
     for (const filter of filters) {
       const result = filter(message, client);
       if (result) return true;
@@ -97,8 +103,10 @@ function or<CT>(...filters: MessageFilter<CT>[]): MessageFilter<CT> {
  * @param filter - The filter to negate
  * @returns Filter function
  */
-function not<CT>(filter: MessageFilter<CT>): MessageFilter<CT> {
-  return (message: DecodedMessage, client: Client<CT>) => {
+function not<ContentTypes>(
+  filter: MessageFilter<ContentTypes>,
+): MessageFilter<ContentTypes> {
+  return (message: DecodedMessage, client: Client<ContentTypes>) => {
     const result = filter(message, client);
     return !result;
   };
@@ -121,8 +129,11 @@ export const filter = {
 };
 
 export const withFilter =
-  <C>(filter: MessageFilter<C>, listener: (ctx: AgentContext<C>) => void) =>
-  (ctx: AgentContext<C>) => {
+  <ContentTypes>(
+    filter: MessageFilter<ContentTypes>,
+    listener: (ctx: AgentContext<ContentTypes>) => void,
+  ) =>
+  (ctx: AgentContext<ContentTypes>) => {
     if (filter(ctx.message, ctx.client)) {
       listener(ctx);
     }
