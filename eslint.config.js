@@ -14,7 +14,7 @@ const gitignorePath = path.resolve(__dirname, ".gitignore");
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   {
-    ignores: [".yarn/**/*"],
+    ignores: [".yarn/**/*", "apps/xmtp.chat-api-service/api/**/*"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
