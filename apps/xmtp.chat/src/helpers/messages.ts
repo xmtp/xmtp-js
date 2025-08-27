@@ -52,3 +52,9 @@ export const stringify = (message: ContentMessage): string => {
       return JSON.stringify(message.content ?? message.fallback, null, 2);
   }
 };
+
+export const isActionable = (message: ContentMessage) =>
+  isText(message) ||
+  isReaction(message) ||
+  isTextReply(message) ||
+  isRemoteAttachment(message);
