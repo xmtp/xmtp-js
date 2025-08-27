@@ -10,7 +10,6 @@ export const errorMiddleware = (
   res.status(500).json({
     error: {
       name: err.name,
-      type: typeof err,
       message: err.message,
     },
   });
