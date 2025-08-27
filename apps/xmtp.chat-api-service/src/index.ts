@@ -23,10 +23,7 @@ const allowedOrigins = getAllowedOrigins();
 const corsOptions: CorsOptions = {
   origin: function (origin, callback) {
     if (!origin) {
-      // Block requests with no origin in production
-      if (process.env.NODE_ENV === "production") {
-        callback(new Error("Origin header is required"));
-      }
+      callback(new Error("Origin header is required"));
     } else if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
