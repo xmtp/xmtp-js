@@ -22,7 +22,7 @@ export default defineConfig([
     output: {
       file: "api/index.js",
       format: "es",
-      sourcemap: true,
+      sourcemap: false,
       importAttributesKey: "with",
     },
     plugins,
