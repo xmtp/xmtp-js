@@ -102,6 +102,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
       await send(content, contentType);
     } catch {
       setError("Failed to send message");
+      return;
     }
 
     setAttachment(null);
