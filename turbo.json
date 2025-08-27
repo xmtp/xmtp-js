@@ -7,6 +7,7 @@
       "outputs": ["dist/**"]
     },
     "xmtp.chat-api-service#build": {
+      "env": ["PINATA_GATEWAY", "PINATA_JWT", "PINATA_GROUP_ID"],
       "dependsOn": ["^build"],
       "outputs": ["api/**"]
     },
