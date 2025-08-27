@@ -14,9 +14,8 @@ export async function getPresignedUrl(req: Request, res: Response) {
     });
 
     res.json({ url });
-  } catch (err) {
-    console.error("Error fetching current user:", err);
-    res.status(500).json({ error: "Failed to fetch user" });
+  } catch {
+    res.status(500).json({ error: "Failed to generate presigned URL" });
   }
 }
 
