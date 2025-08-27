@@ -2,7 +2,7 @@ import { ContentTypeReply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
-import { filters } from "@/filters/MessageFilters";
+import { filter } from "@/utils/filter";
 
 const mockClient = {
   inboxId: "test-client-inbox-id",
@@ -20,7 +20,7 @@ describe("MessageFilters", () => {
   describe("notFromSelf", () => {
     it("should return true for messages not from self", () => {
       const message = createMockMessage({ senderInboxId: "other-inbox-id" });
-      const result = filters.notFromSelf(message, mockClient);
+      const result = filter.notFromSelf(message, mockClient);
       expect(result).toBe(true);
     });
 
@@ -28,7 +28,7 @@ describe("MessageFilters", () => {
       const message = createMockMessage({
         senderInboxId: "test-client-inbox-id",
       });
-      const result = filters.notFromSelf(message, mockClient);
+      const result = filter.notFromSelf(message, mockClient);
       expect(result).toBe(false);
     });
 
@@ -36,7 +36,7 @@ describe("MessageFilters", () => {
       const message = createMockMessage({
         senderInboxId: "TEST-CLIENT-INBOX-ID",
       });
-      const result = filters.notFromSelf(message, mockClient);
+      const result = filter.notFromSelf(message, mockClient);
       expect(result).toBe(true);
     });
   });
@@ -44,7 +44,7 @@ describe("MessageFilters", () => {
   describe("fromSelf", () => {
     it("should return false for messages not from self", () => {
       const message = createMockMessage({ senderInboxId: "other-inbox-id" });
-      const result = filters.fromSelf(message, mockClient);
+      const result = filter.fromSelf(message, mockClient);
       expect(result).toBe(false);
     });
 
@@ -52,7 +52,7 @@ describe("MessageFilters", () => {
       const message = createMockMessage({
         senderInboxId: "test-client-inbox-id",
       });
-      const result = filters.fromSelf(message, mockClient);
+      const result = filter.fromSelf(message, mockClient);
       expect(result).toBe(true);
     });
   });
@@ -60,13 +60,13 @@ describe("MessageFilters", () => {
   describe("textOnly", () => {
     it("should return true for text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeText });
-      const result = filters.textOnly(message, mockClient);
+      const result = filter.textOnly(message, mockClient);
       expect(result).toBe(true);
     });
 
     it("should return false for non-text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeReply });
-      const result = filters.textOnly(message, mockClient);
+      const result = filter.textOnly(message, mockClient);
       expect(result).toBe(false);
     });
   });
@@ -74,28 +74,28 @@ describe("MessageFilters", () => {
   describe("fromSender", () => {
     it("should return true for matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "target-sender" });
-      const filter = filters.fromSender("target-sender");
+      const filter = filter.fromSender("target-sender");
       const result = filter(message, mockClient);
       expect(result).toBe(true);
     });
 
     it("should return false for non-matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "other-sender" });
-      const filter = filters.fromSender("target-sender");
+      const filter = filter.fromSender("target-sender");
       const result = filter(message, mockClient);
       expect(result).toBe(false);
     });
 
     it("should return true for matching sender in array", () => {
       const message = createMockMessage({ senderInboxId: "sender-2" });
-      const filter = filters.fromSender(["sender-1", "sender-2", "sender-3"]);
+      const filter = filter.fromSender(["sender-1", "sender-2", "sender-3"]);
       const result = filter(message, mockClient);
       expect(result).toBe(true);
     });
 
     it("should return false for non-matching sender in array", () => {
       const message = createMockMessage({ senderInboxId: "sender-4" });
-      const filter = filters.fromSender(["sender-1", "sender-2", "sender-3"]);
+      const filter = filter.fromSender(["sender-1", "sender-2", "sender-3"]);
       const result = filter(message, mockClient);
       expect(result).toBe(false);
     });
@@ -107,7 +107,7 @@ describe("MessageFilters", () => {
       const filter2 = vi.fn().mockResolvedValue(true);
       const filter3 = vi.fn().mockResolvedValue(true);
 
-      const andFilter = filters.and(filter1, filter2, filter3);
+      const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
       const result = await andFilter(message, mockClient);
@@ -122,7 +122,7 @@ describe("MessageFilters", () => {
       const filter2 = vi.fn().mockResolvedValue(false);
       const filter3 = vi.fn().mockResolvedValue(true);
 
-      const andFilter = filters.and(filter1, filter2, filter3);
+      const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
       const result = await andFilter(message, mockClient);
@@ -134,7 +134,7 @@ describe("MessageFilters", () => {
     });
 
     it("should return true for empty filter array", async () => {
-      const andFilter = filters.and();
+      const andFilter = filter.and();
       const message = createMockMessage();
 
       const result = await andFilter(message, mockClient);
@@ -148,7 +148,7 @@ describe("MessageFilters", () => {
       const filter2 = vi.fn().mockResolvedValue(true);
       const filter3 = vi.fn().mockResolvedValue(false);
 
-      const orFilter = filters.or(filter1, filter2, filter3);
+      const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
       const result = await orFilter(message, mockClient);
@@ -164,7 +164,7 @@ describe("MessageFilters", () => {
       const filter2 = vi.fn().mockResolvedValue(false);
       const filter3 = vi.fn().mockResolvedValue(false);
 
-      const orFilter = filters.or(filter1, filter2, filter3);
+      const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
       const result = await orFilter(message, mockClient);
@@ -175,7 +175,7 @@ describe("MessageFilters", () => {
     });
 
     it("should return false for empty filter array", async () => {
-      const orFilter = filters.or();
+      const orFilter = filter.or();
       const message = createMockMessage();
 
       const result = await orFilter(message, mockClient);
@@ -186,7 +186,7 @@ describe("MessageFilters", () => {
   describe("not", () => {
     it("should invert filter result from true to false", async () => {
       const baseFilter = vi.fn().mockResolvedValue(true);
-      const notFilter = filters.not(baseFilter);
+      const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
       const result = await notFilter(message, mockClient);
@@ -196,7 +196,7 @@ describe("MessageFilters", () => {
 
     it("should invert filter result from false to true", async () => {
       const baseFilter = vi.fn().mockResolvedValue(false);
-      const notFilter = filters.not(baseFilter);
+      const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
       const result = await notFilter(message, mockClient);
@@ -212,10 +212,10 @@ describe("MessageFilters", () => {
         contentType: ContentTypeText,
       });
 
-      const complexFilter = filters.and(
-        filters.fromSender("target-sender"),
-        filters.or(filters.textOnly),
-        filters.not(filters.fromSelf),
+      const complexFilter = filter.and(
+        filter.fromSender("target-sender"),
+        filter.or(filter.textOnly),
+        filter.not(filter.fromSelf),
       );
 
       const result = await complexFilter(message, mockClient);

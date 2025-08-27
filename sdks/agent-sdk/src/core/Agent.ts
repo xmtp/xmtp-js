@@ -8,7 +8,7 @@ import {
   Identifier,
   Signer,
 } from "@xmtp/node-sdk";
-import { filters, type MessageFilter } from "@/filters";
+import { MessageFilter } from "@/utils/filter";
 import { createSigner, createUser } from "@/utils/user";
 import { AgentContext } from "./AgentContext";
 
@@ -161,18 +161,3 @@ export const withFilter =
       listener(ctx);
     }
   };
-
-agent.on(
-  "message",
-  withFilter(filters.and(filters.notFromSelf, filters.textOnly), (ctx) => {
-    console.log("Text not from us", ctx.message.content);
-  }),
-);
-
-const filter = filters.and(filters.notFromSelf, filters.textOnly);
-agent.on(
-  "message",
-  withFilter(filter, async (ctx) => {
-    await ctx.conversation.send("Hey!");
-  }),
-);

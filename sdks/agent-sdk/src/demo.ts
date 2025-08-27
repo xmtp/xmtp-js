@@ -1,6 +1,6 @@
 import { ReplyCodec } from "@xmtp/content-type-reply";
 import { Agent, withFilter } from "./core";
-import { filters } from "./filters";
+import { filter } from "./filters";
 import { createSigner, createUser } from "./utils";
 
 const user = createUser();
@@ -18,10 +18,9 @@ agent.on("message", async (ctx) => {
   await ctx.conversation.send("Hello!");
 });
 
-const filter = filters.and(filters.notFromSelf, filters.textOnly);
 agent.on(
   "message",
-  withFilter(filter, async (ctx) => {
+  withFilter(filter.and(filter.notFromSelf, filter.textOnly), async (ctx) => {
     await ctx.conversation.send("Hey!");
   }),
 );

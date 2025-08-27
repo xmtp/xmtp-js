@@ -106,7 +106,7 @@ function not<CT>(filter: MessageFilter<CT>): MessageFilter<CT> {
 /**
  * Pre-configured filter instances and factory functions for common filtering scenarios
  */
-export const filters = {
+export const filter = {
   // basic filters
   notFromSelf: notFromSelf(),
   fromSelf: fromSelf(),
