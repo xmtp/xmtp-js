@@ -1,20 +1,30 @@
-import type { ContentCodec } from "@xmtp/content-type-primitives";
+import EventEmitter from "node:events";
+import { ContentCodec } from "@xmtp/content-type-primitives";
+import { ReplyCodec } from "@xmtp/content-type-reply";
 import {
   Client,
-  type ClientOptions,
-  type DecodedMessage,
-  type Identifier,
-  type Signer,
+  ClientOptions,
+  DecodedMessage,
+  Identifier,
+  Signer,
 } from "@xmtp/node-sdk";
-import { type MessageFilter } from "@/filters/MessageFilters";
+import { filters, type MessageFilter } from "@/filters";
+import { createSigner, createUser } from "@/utils/user";
 import { AgentContext } from "./AgentContext";
-import { AgentEventEmitter } from "./AgentEventEmitter";
+
+interface EventHandlerMap<ContentTypes> {
+  error: [error: Error];
+  message: [ctx: AgentContext<ContentTypes>];
+  start: [];
+  stop: [];
+}
 
 export type AgentMiddleware<ContentTypes> = (
   ctx: AgentContext<ContentTypes>,
   next: () => Promise<void>,
 ) => Promise<void>;
 
+// TODO: Check if we can infer that from "Client"
 type AgentConfig<ContentCodecs extends ContentCodec[] = []> =
   | {
       signer: Signer;
@@ -25,15 +35,9 @@ type AgentConfig<ContentCodecs extends ContentCodec[] = []> =
       options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs };
     };
 
-export type MessageHandler = {
-  filter?: MessageFilter;
-  handler: MessageHandler;
-};
-
-/**
- * XMTP Agent for handling messages and events.
- */
-export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
+export class Agent<ContentTypes> extends EventEmitter<
+  EventHandlerMap<ContentTypes>
+> {
   private client: Client<ContentTypes>;
   private middleware: AgentMiddleware<ContentTypes>[] = [];
   private isListening = false;
@@ -43,6 +47,7 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
     this.client = client;
   }
 
+  // TODO: Separate into "create" and "build"
   static async create<ContentCodecs extends ContentCodec[] = []>(
     config: AgentConfig<ContentCodecs>,
   ) {
@@ -53,20 +58,11 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
     return new Agent(client);
   }
 
-  /**
-   * Adds middleware to the agent's processing pipeline.
-   *
-   * @param middleware - Middleware function to add
-   * @returns This agent instance for method chaining
-   */
   use(middleware: AgentMiddleware<ContentTypes>) {
     this.middleware.push(middleware);
     return this;
   }
 
-  /**
-   * Starts the agent to begin listening for messages.
-   */
   async start() {
     if (this.isListening) {
       return;
@@ -83,31 +79,35 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
         if (!this.isListening) break;
         try {
           await this.processMessage(message);
-        } catch (error: unknown) {
-          void this.emit("error", error);
+        } catch (error) {
+          this.throwError(error);
         }
       }
-    } catch (error: unknown) {
+    } catch (error) {
       this.isListening = false;
-      void this.emit("error", error);
+      this.throwError(error);
     }
   }
 
-  /**
-   * Processes an incoming message through middleware and handlers.
-   *
-   * @param message - The decoded message to process
-   */
   private async processMessage(message: DecodedMessage) {
     const conversation = await this.client.conversations.getConversationById(
       message.conversationId,
     );
 
     if (!conversation) {
+      this.throwError(
+        new Error(
+          `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
+        ),
+      );
       return;
     }
 
-    const context = new AgentContext(message, conversation, this.client);
+    const context: AgentContext<any> = new AgentContext(
+      message,
+      conversation,
+      this.client,
+    );
 
     let middlewareIndex = 0;
     const next = async () => {
@@ -122,11 +122,57 @@ export class Agent<ContentTypes> extends AgentEventEmitter<ContentTypes> {
     await next();
   }
 
-  /**
-   * Stops the agent from listening to new messages.
-   */
   stop() {
     this.isListening = false;
     void this.emit("stop");
   }
+
+  private throwError(error: unknown) {
+    const newError = error instanceof Error ? error : new Error(String(error));
+    void this.emit("error", newError);
+  }
 }
+
+const user = createUser();
+const signer = createSigner(user);
+const client = await Client.create(signer, {
+  env: "dev",
+  codecs: [new ReplyCodec()],
+});
+
+const agent = new Agent(client);
+
+agent.on("message", async (ctx) => {
+  ctx.conversation.send("Hello!");
+});
+
+const errorHandler = (error: Error) => {
+  console.log(`Caught error: ${error.message}`);
+};
+
+agent.on("error", errorHandler);
+
+agent.off("error", errorHandler);
+
+export const withFilter =
+  <C>(filter: MessageFilter<C>, listener: (ctx: AgentContext<C>) => void) =>
+  (ctx: AgentContext<C>) => {
+    if (filter(ctx.message, ctx.client)) {
+      listener(ctx);
+    }
+  };
+
+agent.on(
+  "message",
+  withFilter(filters.and(filters.notFromSelf, filters.textOnly), (ctx) => {
+    console.log("Text not from us", ctx.message.content);
+  }),
+);
+
+const filter = filters.and(filters.notFromSelf, filters.textOnly);
+agent.on(
+  "message",
+  withFilter(filter, async (ctx) => {
+    await ctx.conversation.send("Hey!");
+  }),
+);

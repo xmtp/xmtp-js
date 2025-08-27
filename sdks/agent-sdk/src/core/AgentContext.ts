@@ -2,10 +2,10 @@ import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 
-export class AgentContext<ContentTypes> {
+export class AgentContext<ContentTypes = unknown> {
   public readonly client: Client<ContentTypes>;
-  public readonly conversation: Conversation;
   public readonly message: DecodedMessage<ContentTypes>;
+  public readonly conversation: Conversation;
 
   constructor(
     message: DecodedMessage<ContentTypes>,

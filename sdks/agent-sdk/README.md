@@ -39,11 +39,11 @@ agent.use(router.middleware());
 Skip repetitive condition checks with ready-to-use message filters, easily chained through a fluent API:
 
 ```ts
+const filter = filters.and(filters.notFromSelf, filters.textOnly);
 agent.on(
   "message",
-  async (ctx) => {
-    ctx.conversation.send("Hey!");
-  },
-  filters.and(filters.notFromSelf, filters.textOnly),
+  withFilter(filter, async (ctx) => {
+    await ctx.conversation.send("Hey!");
+  }),
 );
 ```
