@@ -5,7 +5,7 @@ import {
   type ClientOptions,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
-import { filter } from "../utils";
+import { filter } from "@/utils/filter";
 import { AgentContext } from "./AgentContext";
 
 interface EventHandlerMap<ContentTypes> {
@@ -103,6 +103,8 @@ export class Agent<ContentTypes> extends EventEmitter<
         const currentMiddleware = this.#middleware[middlewareIndex++];
         await currentMiddleware(context, next);
       } else if (filter.notFromSelf(message, this.client)) {
+        // Note: we are filtering the agent's own message to avoid
+        // infinite message loops when a "message" listener replies
         void this.emit("message", context);
       }
     };

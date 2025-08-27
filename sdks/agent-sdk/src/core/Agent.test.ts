@@ -1,8 +1,8 @@
 // filepath: /home/bennycode/dev/xmtp/xmtp-js/sdks/agent-sdk/src/core/Agent.test.ts
+import { createSigner, createUser } from "@/utils/user";
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
-import { describe, expect, expectTypeOf, it } from "vitest";
-import { createSigner, createUser } from "@/utils/user";
+import { describe, expectTypeOf, it } from "vitest";
 import { Agent } from "./Agent";
 import { AgentContext } from "./AgentContext";
 
