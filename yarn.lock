@@ -8101,6 +8101,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pinata@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "pinata@npm:2.5.0"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/359c986c566ab1f23b3e25c135ab72eae7a54e5bbe0a7ecf4f55458bc4d36f4dcb49274f7e1a905a87f9fe78ea9b8892315d5c5fc4474920852416ebbafc0ef8
+  languageName: node
+  linkType: hard
+
 "pino-abstract-transport@npm:v0.5.0":
   version: 0.5.0
   resolution: "pino-abstract-transport@npm:0.5.0"
