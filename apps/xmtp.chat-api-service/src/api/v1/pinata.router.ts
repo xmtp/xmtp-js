@@ -15,7 +15,7 @@ export async function getPresignedUrl(req: Request, res: Response) {
 
     res.json({ url });
   } catch {
-    res.status(500).json({ error: "Failed to generate presigned URL" });
+    throw new Error("Failed to generate presigned URL");
   }
 }
 

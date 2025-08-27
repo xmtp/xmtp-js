@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 
-export const noRouteMiddleware = (req: Request, res: Response): void => {
-  console.log(`[404] No route found for ${req.method} ${req.path}`);
+export const noRouteMiddleware = (_req: Request, res: Response): void => {
   res.status(404).send();
 };
