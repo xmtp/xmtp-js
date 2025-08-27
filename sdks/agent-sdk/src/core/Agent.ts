@@ -80,7 +80,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     }
   }
 
-  private async processMessage(message: DecodedMessage) {
+  private async processMessage(message: DecodedMessage<ContentTypes>) {
     const conversation = await this.client.conversations.getConversationById(
       message.conversationId,
     );
@@ -94,20 +94,14 @@ export class Agent<ContentTypes> extends EventEmitter<
       return;
     }
 
-    const context: AgentContext<any> = new AgentContext(
-      message,
-      conversation,
-      this.client,
-    );
+    const context = new AgentContext(message, conversation, this.client);
 
     let middlewareIndex = 0;
     const next = async () => {
       if (middlewareIndex < this.middleware.length) {
         const currentMiddleware = this.middleware[middlewareIndex++];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await currentMiddleware(context, next);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         void this.emit("message", context);
       }
     };
