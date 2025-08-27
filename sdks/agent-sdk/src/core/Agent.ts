@@ -1,6 +1,10 @@
 import EventEmitter from "node:events";
-import { ContentCodec } from "@xmtp/content-type-primitives";
-import { Client, ClientOptions, type DecodedMessage } from "@xmtp/node-sdk";
+import type { ContentCodec } from "@xmtp/content-type-primitives";
+import {
+  Client,
+  type ClientOptions,
+  type DecodedMessage,
+} from "@xmtp/node-sdk";
 import { AgentContext } from "./AgentContext";
 
 interface EventHandlerMap<ContentTypes> {
