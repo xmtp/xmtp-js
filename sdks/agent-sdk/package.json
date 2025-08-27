@@ -30,7 +30,7 @@
     "dev": "tsx --watch src/main.ts",
     "start": "tsx src/main.ts",
     "test:cov": "vitest run --coverage",
-    "test": "vitest run",
+    "test": "vitest --typecheck",
     "typecheck": "tsc"
   },
   "dependencies": {
