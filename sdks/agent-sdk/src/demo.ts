@@ -5,21 +5,21 @@ import { createSigner, createUser, filter as f, withFilter } from "./utils";
 const user = createUser();
 const signer = createSigner(user);
 
-// Create agent (content types inferred from codecs)
-// TODO: Write tests for type inference using "tsd"!
 const agent = await Agent.create(signer, {
-  env: "dev",
   codecs: [new ReplyCodec()],
+  dbPath: null,
+  env: "dev",
 });
 
 agent.on("message", (ctx) => {
-  ctx.conversation.send("Hello!");
+  ctx.conversation.send("First message!");
 });
 
 agent.on(
   "message",
   withFilter(f.and(f.notFromSelf, f.textOnly), (ctx) => {
-    void ctx.conversation.send("Hey!");
+    ctx.conversation.send("Goodbye!");
+    agent.stop();
   }),
 );
 
@@ -36,5 +36,10 @@ agent.on("error", errorHandler);
 agent.off("error", errorHandler);
 
 agent.on("start", () => {
-  console.log(`We are online!`);
+  const address = agent.client.accountIdentifier?.identifier;
+  const env = agent.client.options?.env;
+  const url = `http://xmtp.chat/dm/${address}?env=${env}`;
+  console.log(`We are online: ${url}`);
 });
+
+agent.start();

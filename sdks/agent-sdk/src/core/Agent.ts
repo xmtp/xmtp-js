@@ -5,6 +5,7 @@ import {
   type ClientOptions,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
+import { filter } from "../utils";
 import { AgentContext } from "./AgentContext";
 
 interface EventHandlerMap<ContentTypes> {
@@ -22,9 +23,9 @@ export type AgentMiddleware<ContentTypes> = (
 export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
-  private client: Client<ContentTypes>;
-  private middleware: AgentMiddleware<ContentTypes>[] = [];
-  private isListening = false;
+  readonly client: Client<ContentTypes>;
+  #middleware: AgentMiddleware<ContentTypes>[] = [];
+  #isListening = false;
 
   constructor(client: Client<ContentTypes>) {
     super();
@@ -50,24 +51,24 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   use(middleware: AgentMiddleware<ContentTypes>) {
-    this.middleware.push(middleware);
+    this.#middleware.push(middleware);
     return this;
   }
 
   async start() {
-    if (this.isListening) {
+    if (this.#isListening) {
       return;
     }
 
     try {
-      this.isListening = true;
+      this.#isListening = true;
       void this.emit("start");
 
       const stream = await this.client.conversations.streamAllMessages();
       for await (const message of stream) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (!this.isListening) break;
+        if (!this.#isListening) break;
         try {
           await this.processMessage(message);
         } catch (error) {
@@ -75,7 +76,7 @@ export class Agent<ContentTypes> extends EventEmitter<
         }
       }
     } catch (error) {
-      this.isListening = false;
+      this.#isListening = false;
       this.throwError(error);
     }
   }
@@ -98,10 +99,10 @@ export class Agent<ContentTypes> extends EventEmitter<
 
     let middlewareIndex = 0;
     const next = async () => {
-      if (middlewareIndex < this.middleware.length) {
-        const currentMiddleware = this.middleware[middlewareIndex++];
+      if (middlewareIndex < this.#middleware.length) {
+        const currentMiddleware = this.#middleware[middlewareIndex++];
         await currentMiddleware(context, next);
-      } else {
+      } else if (filter.notFromSelf(message, this.client)) {
         void this.emit("message", context);
       }
     };
@@ -110,7 +111,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   stop() {
-    this.isListening = false;
+    this.#isListening = false;
     void this.emit("stop");
   }
 
