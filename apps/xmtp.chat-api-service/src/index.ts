@@ -76,3 +76,5 @@ process.on("SIGINT", () => {
     console.log("xmtp.chat API service closed");
   });
 });
+
+export default app;
