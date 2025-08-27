@@ -3,7 +3,7 @@ import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
 import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
-const external = [];
+const external = ["cors", "express", "helmet", "express-rate-limit", "pinata"];
 
 const plugins = [
   tsConfigPaths(),

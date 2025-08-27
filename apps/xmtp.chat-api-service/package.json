@@ -4,6 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "build": "yarn clean:dist && rollup -c",
     "clean": "rimraf .turbo && yarn clean:dist && yarn clean:deps",
