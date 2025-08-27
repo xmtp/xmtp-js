@@ -8,12 +8,11 @@ import {
   TextInput,
 } from "@mantine/core";
 import type { Conversation } from "@xmtp/browser-sdk";
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import {
   ContentTypeRemoteAttachment,
   type RemoteAttachment,
 } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
+import { ContentTypeReply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { useCallback, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
@@ -39,6 +38,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const remoteAttachmentRef = useRef<RemoteAttachment | null>(null);
   const isSending = sending || uploadingAttachment;
   const hasContent = message || attachment;
 
@@ -63,51 +63,64 @@ export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
   const handleSend = useCallback(async () => {
     if (!hasContent || isSending) return;
 
-    let content: string | RemoteAttachment | Reply | undefined;
-    let contentType: ContentTypeId | undefined;
     if (attachment) {
-      contentType = ContentTypeRemoteAttachment;
-      setUploadingAttachment(true);
       try {
-        content = await uploadAttachment(attachment);
+        if (!remoteAttachmentRef.current) {
+          setUploadingAttachment(true);
+          remoteAttachmentRef.current = await uploadAttachment(attachment);
+        }
       } catch {
         setError("Failed to upload attachment");
         return;
       } finally {
         setUploadingAttachment(false);
       }
+
+      try {
+        if (replyTarget) {
+          await send(
+            {
+              reference: replyTarget.id,
+              referenceInboxId: replyTarget.senderInboxId,
+              contentType: ContentTypeRemoteAttachment,
+              content: remoteAttachmentRef.current,
+            },
+            ContentTypeReply,
+          );
+        } else {
+          await send(remoteAttachmentRef.current, ContentTypeRemoteAttachment);
+        }
+        setAttachment(null);
+        remoteAttachmentRef.current = null;
+      } catch {
+        setError("Failed to send attachment");
+        return;
+      }
     }
 
     if (message) {
-      content = message;
-      contentType = ContentTypeText;
+      try {
+        if (replyTarget) {
+          await send(
+            {
+              reference: replyTarget.id,
+              referenceInboxId: replyTarget.senderInboxId,
+              contentType: ContentTypeText,
+              content: message,
+            },
+            ContentTypeReply,
+          );
+        } else {
+          await send(message, ContentTypeText);
+        }
+        setMessage("");
+      } catch {
+        setError("Failed to send message");
+        return;
+      }
     }
 
-    // for the type-checker
-    if (!content || !contentType) {
-      return;
-    }
-
-    if (replyTarget) {
-      content = {
-        reference: replyTarget.id,
-        referenceInboxId: replyTarget.senderInboxId,
-        contentType,
-        content,
-      };
-      contentType = ContentTypeReply;
-    }
-
-    try {
-      await send(content, contentType);
-    } catch {
-      setError("Failed to send message");
-      return;
-    }
-
-    setAttachment(null);
     setReplyTarget(undefined);
-    setMessage("");
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [
     message,
