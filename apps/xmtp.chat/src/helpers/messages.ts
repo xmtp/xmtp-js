@@ -36,3 +36,19 @@ export const isRemoteAttachment = <M extends ContentMessage>(
   m: M,
 ): m is M & { content: RemoteAttachment } =>
   m.contentType.sameAs(ContentTypeRemoteAttachment);
+
+export const stringify = (message: ContentMessage): string => {
+  switch (true) {
+    case isReaction(message):
+    case isTextReply(message):
+      return message.content.content;
+    case isText(message):
+      return message.content;
+    case typeof message.content === "string":
+      return message.content;
+    case typeof message.fallback === "string":
+      return message.fallback;
+    default:
+      return JSON.stringify(message.content ?? message.fallback, null, 2);
+  }
+};

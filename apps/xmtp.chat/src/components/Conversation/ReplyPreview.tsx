@@ -5,12 +5,7 @@ import { AttachmentDetails } from "@/components/Messages/AttachmentDetails";
 import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { formatFileSize } from "@/helpers/attachment";
-import {
-  isReaction,
-  isRemoteAttachment,
-  isText,
-  isTextReply,
-} from "@/helpers/messages";
+import { isRemoteAttachment, stringify } from "@/helpers/messages";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
 import { IconX } from "@/icons/IconX";
 
@@ -32,25 +27,9 @@ const ReplyPreviewContent: React.FC<Pick<ReplyPreviewProps, "message">> = ({
       />
     );
   }
-  let textContent: string | undefined;
-  if (isTextReply(message) || isReaction(message)) {
-    textContent = message.content.content;
-  }
-  if (isText(message)) {
-    textContent = message.content;
-  }
-  if (typeof message.content === "string") {
-    textContent = message.content;
-  }
-  if (typeof message.fallback === "string") {
-    textContent = message.fallback;
-  }
-  if (!textContent) {
-    textContent = JSON.stringify(message.content, null, 2);
-  }
   return (
     <BreakableText mt={6} fw={700} size="sm" lineClamp={2}>
-      {textContent}
+      {stringify(message)}
     </BreakableText>
   );
 };
