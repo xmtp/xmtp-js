@@ -95,6 +95,14 @@ export const RemoteAttachmentContent: React.FC<
     void loadAttachment(true);
   };
 
+  // if content changes, reset content display
+  useEffect(() => {
+    setDecryptedUrl(null);
+    setError(null);
+  }, [content]);
+
+  // only load the attachment once on mount
+  // if content changes, users will have to reload the attachment manually
   useEffect(() => {
     void loadAttachment();
   }, []);
@@ -144,9 +152,14 @@ export const RemoteAttachmentContent: React.FC<
   if (!decryptedUrl) {
     return (
       <Paper p="sm" radius="md" withBorder>
-        <Text size="sm" c="dimmed">
-          No content available
-        </Text>
+        <Group gap="xs" align="center" mb="xs" wrap="nowrap">
+          <Text size="sm" c="red" style={{ whiteSpace: "nowrap" }}>
+            No content available
+          </Text>
+          <Button size="xs" variant="light" onClick={handleRetry}>
+            Retry
+          </Button>
+        </Group>
         <AttachmentDetails
           filename={content.filename}
           fileSize={fileSize}
