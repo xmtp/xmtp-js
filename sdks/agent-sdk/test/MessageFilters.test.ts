@@ -74,35 +74,43 @@ describe("MessageFilters", () => {
   describe("fromSender", () => {
     it("should return true for matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "target-sender" });
-      const filter = filter.fromSender("target-sender");
-      const result = filter(message, mockClient);
+      const fromSender = filter.fromSender("target-sender");
+      const result = fromSender(message, mockClient);
       expect(result).toBe(true);
     });
 
     it("should return false for non-matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "other-sender" });
-      const filter = filter.fromSender("target-sender");
-      const result = filter(message, mockClient);
+      const fromSender = filter.fromSender("target-sender");
+      const result = fromSender(message, mockClient);
       expect(result).toBe(false);
     });
 
     it("should return true for matching sender in array", () => {
       const message = createMockMessage({ senderInboxId: "sender-2" });
-      const filter = filter.fromSender(["sender-1", "sender-2", "sender-3"]);
-      const result = filter(message, mockClient);
+      const fromSender = filter.fromSender([
+        "sender-1",
+        "sender-2",
+        "sender-3",
+      ]);
+      const result = fromSender(message, mockClient);
       expect(result).toBe(true);
     });
 
     it("should return false for non-matching sender in array", () => {
       const message = createMockMessage({ senderInboxId: "sender-4" });
-      const filter = filter.fromSender(["sender-1", "sender-2", "sender-3"]);
-      const result = filter(message, mockClient);
+      const fromSender = filter.fromSender([
+        "sender-1",
+        "sender-2",
+        "sender-3",
+      ]);
+      const result = fromSender(message, mockClient);
       expect(result).toBe(false);
     });
   });
 
   describe("and", () => {
-    it("should return true when all filters pass", async () => {
+    it("should return true when all filters pass", () => {
       const filter1 = vi.fn().mockResolvedValue(true);
       const filter2 = vi.fn().mockResolvedValue(true);
       const filter3 = vi.fn().mockResolvedValue(true);
@@ -110,14 +118,14 @@ describe("MessageFilters", () => {
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await andFilter(message, mockClient);
+      const result = andFilter(message, mockClient);
       expect(result).toBe(true);
       expect(filter1).toHaveBeenCalledWith(message, mockClient);
       expect(filter2).toHaveBeenCalledWith(message, mockClient);
       expect(filter3).toHaveBeenCalledWith(message, mockClient);
     });
 
-    it("should return false when any filter fails", async () => {
+    it("should return false when any filter fails", () => {
       const filter1 = vi.fn().mockResolvedValue(true);
       const filter2 = vi.fn().mockResolvedValue(false);
       const filter3 = vi.fn().mockResolvedValue(true);
@@ -125,7 +133,7 @@ describe("MessageFilters", () => {
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await andFilter(message, mockClient);
+      const result = andFilter(message, mockClient);
       expect(result).toBe(false);
       expect(filter1).toHaveBeenCalled();
       expect(filter2).toHaveBeenCalled();
@@ -133,17 +141,17 @@ describe("MessageFilters", () => {
       expect(filter3).not.toHaveBeenCalled();
     });
 
-    it("should return true for empty filter array", async () => {
+    it("should return true for empty filter array", () => {
       const andFilter = filter.and();
       const message = createMockMessage();
 
-      const result = await andFilter(message, mockClient);
+      const result = andFilter(message, mockClient);
       expect(result).toBe(true);
     });
   });
 
   describe("or", () => {
-    it("should return true when any filter passes", async () => {
+    it("should return true when any filter passes", () => {
       const filter1 = vi.fn().mockResolvedValue(false);
       const filter2 = vi.fn().mockResolvedValue(true);
       const filter3 = vi.fn().mockResolvedValue(false);
@@ -151,7 +159,7 @@ describe("MessageFilters", () => {
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await orFilter(message, mockClient);
+      const result = orFilter(message, mockClient);
       expect(result).toBe(true);
       expect(filter1).toHaveBeenCalled();
       expect(filter2).toHaveBeenCalled();
@@ -159,7 +167,7 @@ describe("MessageFilters", () => {
       expect(filter3).not.toHaveBeenCalled();
     });
 
-    it("should return false when all filters fail", async () => {
+    it("should return false when all filters fail", () => {
       const filter1 = vi.fn().mockResolvedValue(false);
       const filter2 = vi.fn().mockResolvedValue(false);
       const filter3 = vi.fn().mockResolvedValue(false);
@@ -167,46 +175,46 @@ describe("MessageFilters", () => {
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await orFilter(message, mockClient);
+      const result = orFilter(message, mockClient);
       expect(result).toBe(false);
       expect(filter1).toHaveBeenCalledWith(message, mockClient);
       expect(filter2).toHaveBeenCalledWith(message, mockClient);
       expect(filter3).toHaveBeenCalledWith(message, mockClient);
     });
 
-    it("should return false for empty filter array", async () => {
+    it("should return false for empty filter array", () => {
       const orFilter = filter.or();
       const message = createMockMessage();
 
-      const result = await orFilter(message, mockClient);
+      const result = orFilter(message, mockClient);
       expect(result).toBe(false);
     });
   });
 
   describe("not", () => {
-    it("should invert filter result from true to false", async () => {
+    it("should invert filter result from true to false", () => {
       const baseFilter = vi.fn().mockResolvedValue(true);
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
-      const result = await notFilter(message, mockClient);
+      const result = notFilter(message, mockClient);
       expect(result).toBe(false);
       expect(baseFilter).toHaveBeenCalledWith(message, mockClient);
     });
 
-    it("should invert filter result from false to true", async () => {
+    it("should invert filter result from false to true", () => {
       const baseFilter = vi.fn().mockResolvedValue(false);
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
-      const result = await notFilter(message, mockClient);
+      const result = notFilter(message, mockClient);
       expect(result).toBe(true);
       expect(baseFilter).toHaveBeenCalledWith(message, mockClient);
     });
   });
 
   describe("complex combinations", () => {
-    it("should handle nested combinations correctly", async () => {
+    it("should handle nested combinations correctly", () => {
       const message = createMockMessage({
         senderInboxId: "target-sender",
         contentType: ContentTypeText,
@@ -218,7 +226,7 @@ describe("MessageFilters", () => {
         filter.not(filter.fromSelf),
       );
 
-      const result = await complexFilter(message, mockClient);
+      const result = complexFilter(message, mockClient);
       expect(result).toBe(true);
     });
   });

@@ -1,5 +1,6 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { AgentContext } from "@/core/AgentContext";
 
 /**
  * Function type for filtering messages based on content and client state.
@@ -118,3 +119,11 @@ export const filter = {
   or,
   not,
 };
+
+export const withFilter =
+  <C>(filter: MessageFilter<C>, listener: (ctx: AgentContext<C>) => void) =>
+  (ctx: AgentContext<C>) => {
+    if (filter(ctx.message, ctx.client)) {
+      listener(ctx);
+    }
+  };

@@ -1,27 +1,23 @@
 import { ReplyCodec } from "@xmtp/content-type-reply";
-import { Agent, withFilter } from "./core";
-import { filter } from "./filters";
-import { createSigner, createUser } from "./utils";
+import { Agent } from "./core";
+import { createSigner, createUser, filter as f, withFilter } from "./utils";
 
 const user = createUser();
 const signer = createSigner(user);
 // Create agent (content types inferred from codecs)
-const agent = await Agent.create({
-  signer,
-  options: {
-    env: "dev",
-    codecs: [new ReplyCodec()],
-  },
+const agent = await Agent.create(signer, {
+  env: "dev",
+  codecs: [new ReplyCodec()],
 });
 
-agent.on("message", async (ctx) => {
-  await ctx.conversation.send("Hello!");
+agent.on("message", (ctx) => {
+  void ctx.conversation.send("Hello!");
 });
 
 agent.on(
   "message",
-  withFilter(filter.and(filter.notFromSelf, filter.textOnly), async (ctx) => {
-    await ctx.conversation.send("Hey!");
+  withFilter(f.and(f.notFromSelf, f.textOnly), (ctx) => {
+    void ctx.conversation.send("Hey!");
   }),
 );
 

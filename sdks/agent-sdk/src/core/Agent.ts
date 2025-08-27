@@ -1,15 +1,5 @@
 import EventEmitter from "node:events";
-import { ContentCodec } from "@xmtp/content-type-primitives";
-import { ReplyCodec } from "@xmtp/content-type-reply";
-import {
-  Client,
-  ClientOptions,
-  DecodedMessage,
-  Identifier,
-  Signer,
-} from "@xmtp/node-sdk";
-import { MessageFilter } from "@/utils/filter";
-import { createSigner, createUser } from "@/utils/user";
+import { Client, type DecodedMessage } from "@xmtp/node-sdk";
 import { AgentContext } from "./AgentContext";
 
 interface EventHandlerMap<ContentTypes> {
@@ -24,17 +14,6 @@ export type AgentMiddleware<ContentTypes> = (
   next: () => Promise<void>,
 ) => Promise<void>;
 
-// TODO: Check if we can infer that from "Client"
-type AgentConfig<ContentCodecs extends ContentCodec[] = []> =
-  | {
-      signer: Signer;
-      options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs };
-    }
-  | {
-      identifier: Identifier;
-      options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs };
-    };
-
 export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
@@ -47,14 +26,19 @@ export class Agent<ContentTypes> extends EventEmitter<
     this.client = client;
   }
 
-  // TODO: Separate into "create" and "build"
-  static async create<ContentCodecs extends ContentCodec[] = []>(
-    config: AgentConfig<ContentCodecs>,
+  static async create(
+    signer: Parameters<typeof Client.create>[0],
+    options?: Parameters<typeof Client.create>[1],
   ) {
-    const client =
-      "signer" in config
-        ? await Client.create(config.signer, config.options)
-        : await Client.build(config.identifier, config.options);
+    const client = await Client.create(signer, options);
+    return new Agent(client);
+  }
+
+  static async build(
+    identifier: Parameters<typeof Client.build>[0],
+    options?: Parameters<typeof Client.build>[1],
+  ) {
+    const client = await Client.build(identifier, options);
     return new Agent(client);
   }
 
@@ -113,8 +97,10 @@ export class Agent<ContentTypes> extends EventEmitter<
     const next = async () => {
       if (middlewareIndex < this.middleware.length) {
         const currentMiddleware = this.middleware[middlewareIndex++];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await currentMiddleware(context, next);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         void this.emit("message", context);
       }
     };
@@ -132,32 +118,3 @@ export class Agent<ContentTypes> extends EventEmitter<
     void this.emit("error", newError);
   }
 }
-
-const user = createUser();
-const signer = createSigner(user);
-const client = await Client.create(signer, {
-  env: "dev",
-  codecs: [new ReplyCodec()],
-});
-
-const agent = new Agent(client);
-
-agent.on("message", async (ctx) => {
-  ctx.conversation.send("Hello!");
-});
-
-const errorHandler = (error: Error) => {
-  console.log(`Caught error: ${error.message}`);
-};
-
-agent.on("error", errorHandler);
-
-agent.off("error", errorHandler);
-
-export const withFilter =
-  <C>(filter: MessageFilter<C>, listener: (ctx: AgentContext<C>) => void) =>
-  (ctx: AgentContext<C>) => {
-    if (filter(ctx.message, ctx.client)) {
-      listener(ctx);
-    }
-  };
