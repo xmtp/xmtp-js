@@ -1,11 +1,26 @@
 import { IdentifierKind, type Identifier, type Signer } from "@xmtp/node-sdk";
-import { createWalletClient, http, toBytes, type Chain } from "viem";
+import {
+  createWalletClient,
+  http,
+  toBytes,
+  type Chain,
+  type Hex,
+  type PrivateKeyAccount,
+  type WalletClient,
+} from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
-export type User = ReturnType<typeof createUser>;
+export type User = {
+  key: Hex;
+  account: PrivateKeyAccount;
+  wallet: WalletClient;
+};
 
-export const createUser = (key?: `0x${string}`, chain: Chain = sepolia) => {
+export const createUser = (
+  key?: `0x${string}`,
+  chain: Chain = sepolia,
+): User => {
   const accountKey = key ?? generatePrivateKey();
   const account = privateKeyToAccount(accountKey);
   return {
@@ -31,6 +46,7 @@ export const createSigner = (user: User): Signer => {
     getIdentifier: () => identifier,
     signMessage: async (message: string) => {
       const signature = await user.wallet.signMessage({
+        account: user.account,
         message,
       });
       return toBytes(signature);

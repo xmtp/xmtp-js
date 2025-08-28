@@ -38,7 +38,7 @@
     "xmtp"
   ],
   "license": "MIT",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "name": "@xmtp/agent-sdk",
   "packageManager": "yarn@4.5.0",
   "publishConfig": {
