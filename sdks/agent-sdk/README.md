@@ -7,6 +7,57 @@ To keep up with the latest SDK developments, see the [Issues tab](https://githu
 > [!CAUTION]
 > This SDK is in beta status and ready for you to build with in production. Software in this status may change based on feedback.
 
+## Documentation
+
+You can learn how to build an [agent for XMTP here](https://docs.xmtp.org/agents/get-started/build-an-agent).
+
+## Install
+
+**NPM**
+
+```bash
+npm install @xmtp/node-sdk
+```
+
+**PNPM**
+
+```bash
+pnpm install @xmtp/node-sdk
+```
+
+**Yarn**
+
+```bash
+yarn add @xmtp/node-sdk
+```
+
+## Usage
+
+```ts
+import { Agent, createSigner, createUser } from "@xmtp/agent-sdk";
+
+const user = createUser();
+const signer = createSigner(user);
+
+const agent = await Agent.create(signer, {
+  dbPath: null,
+  env: "dev",
+});
+
+agent.on("message", async (ctx) => {
+  await ctx.conversation.send("Hello!");
+});
+
+agent.on("start", () => {
+  const address = agent.client.accountIdentifier?.identifier;
+  const env = agent.client.options?.env;
+  const url = `http://xmtp.chat/dm/${address}?env=${env}`;
+  console.log(`We are online: ${url}`);
+});
+
+await agent.start();
+```
+
 ## Features
 
 ### Event-driven architecture
