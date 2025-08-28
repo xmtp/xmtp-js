@@ -27,13 +27,13 @@ export type AgentMiddleware<ContentTypes> = (
 export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
-  readonly client: Client<ContentTypes>;
+  #client: Client<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #isListening = false;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
-    this.client = client;
+    this.#client = client;
   }
 
   static async create<ContentCodecs extends ContentCodec[] = []>(
@@ -68,30 +68,30 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      const stream = await this.client.conversations.streamAllMessages();
+      const stream = await this.#client.conversations.streamAllMessages();
       for await (const message of stream) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
         try {
-          await this.processMessage(message);
+          await this.#processMessage(message);
         } catch (error) {
-          this.throwError(error);
+          this.#throwError(error);
         }
       }
     } catch (error) {
       this.#isListening = false;
-      this.throwError(error);
+      this.#throwError(error);
     }
   }
 
-  private async processMessage(message: DecodedMessage<ContentTypes>) {
-    const conversation = await this.client.conversations.getConversationById(
+  async #processMessage(message: DecodedMessage<ContentTypes>) {
+    const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
     );
 
     if (!conversation) {
-      this.throwError(
+      this.#throwError(
         new Error(
           `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
         ),
@@ -99,14 +99,14 @@ export class Agent<ContentTypes> extends EventEmitter<
       return;
     }
 
-    const context = new AgentContext(message, conversation, this.client);
+    const context = new AgentContext(message, conversation, this.#client);
 
     let middlewareIndex = 0;
     const next = async () => {
       if (middlewareIndex < this.#middleware.length) {
         const currentMiddleware = this.#middleware[middlewareIndex++];
         await currentMiddleware(context, next);
-      } else if (filter.notFromSelf(message, this.client)) {
+      } else if (filter.notFromSelf(message, this.#client)) {
         // Note: we are filtering the agent's own message to avoid
         // infinite message loops when a "message" listener replies
         void this.emit("message", context);
@@ -116,12 +116,16 @@ export class Agent<ContentTypes> extends EventEmitter<
     await next();
   }
 
+  get client() {
+    return this.#client;
+  }
+
   stop() {
     this.#isListening = false;
     void this.emit("stop");
   }
 
-  private throwError(error: unknown) {
+  #throwError(error: unknown) {
     const newError = error instanceof Error ? error : new Error(String(error));
     void this.emit("error", newError);
   }

@@ -1,11 +1,11 @@
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { createSigner, createUser } from "@/utils/user";
 import { Agent, type AgentOptions } from "./Agent";
-import type { AgentContext } from "./AgentContext";
+import { AgentContext } from "./AgentContext";
 
 describe("Agent", () => {
   const mockClient = {
@@ -125,8 +125,14 @@ describe("Agent", () => {
       });
       agent.on("message", handler);
 
-      // @ts-expect-error invoke private method for unit test purposes
-      await agent.processMessage(mockMessage);
+      void agent.emit(
+        "message",
+        new AgentContext(
+          mockMessage,
+          mockConversation as unknown as Conversation,
+          agent.client,
+        ),
+      );
 
       expect(handler).toHaveBeenCalledTimes(1);
       assert(contextSend);
