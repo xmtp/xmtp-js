@@ -13,6 +13,7 @@
     "@arethetypeswrong/cli": "^0.18.2",
     "@types/node": "^22.16.3",
     "@vitest/coverage-v8": "^3.2.4",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "vite": "^7.0.4",
@@ -53,7 +54,7 @@
     "url": "git+https://git@github.com/xmtp/xmtp-js.git"
   },
   "scripts": {
-    "build": "yarn clean:dist && tsc -p tsconfig.build.json && attw --pack . --ignore-rules cjs-resolves-to-esm",
+    "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
     "dev": "tsx --watch src/main.ts",
