@@ -1,0 +1,66 @@
+{
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
+  "dependencies": {
+    "@xmtp/content-type-reply": "^2.0.2",
+    "@xmtp/node-sdk": "^4.0.3",
+    "viem": "^2.31.7"
+  },
+  "description": "XMTP Agent SDK for interacting with XMTP networks",
+  "devDependencies": {
+    "@types/node": "^22.16.3",
+    "@vitest/coverage-v8": "^3.2.4",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.4",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist/src",
+    "!dist/**/*.test.*"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "keywords": [
+    "agents",
+    "javascript",
+    "js",
+    "messaging",
+    "node",
+    "nodejs",
+    "typescript",
+    "web3",
+    "xmtp"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "name": "@xmtp/agent-sdk",
+  "packageManager": "yarn@4.5.0",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "directory": "sdks/agent-sdk",
+    "type": "git",
+    "url": "git+https://git@github.com/xmtp/xmtp-js.git"
+  },
+  "scripts": {
+    "build": "yarn clean:dist && tsc -p tsconfig.build.json",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
+    "clean:dist": "rm -rf dist",
+    "dev": "tsx --watch src/main.ts",
+    "start": "tsx src/demo.ts",
+    "test": "vitest --typecheck",
+    "test:cov": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "version": "0.0.1"
+}
