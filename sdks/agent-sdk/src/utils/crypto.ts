@@ -8,7 +8,7 @@ export const isHexString = (input: unknown): input is `0x${string}` => {
 };
 
 /**
- * Convert a hex string (with or without 0x) to a Uint8Array encryption key.
+ * Convert a hex string to a Uint8Array encryption key.
  * @param hex - The hex string
  * @returns The encryption key
  */
