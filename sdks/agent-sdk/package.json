@@ -38,7 +38,7 @@
     "xmtp"
   ],
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "name": "@xmtp/agent-sdk",
   "packageManager": "yarn@4.5.0",
   "publishConfig": {
@@ -52,7 +52,9 @@
     "url": "git+https://git@github.com/xmtp/xmtp-js.git"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "yarn clean:dist && tsc",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
+    "clean:dist": "rm -rf dist",
     "dev": "tsx --watch src/main.ts",
     "start": "tsx src/demo.ts",
     "test": "vitest --typecheck",
