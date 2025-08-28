@@ -127,6 +127,8 @@ export const filter = {
   not,
 };
 
+export const f = filter;
+
 export const withFilter =
   <ContentTypes>(
     filter: MessageFilter<ContentTypes>,

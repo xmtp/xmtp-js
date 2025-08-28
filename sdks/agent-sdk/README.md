@@ -16,11 +16,11 @@ This SDK is based on familiar Node.js patterns: you register event listeners, co
 Choose your package manager:
 
 ```bash
-npm install @xmtp/agent-sdk @xmtp/node-sdk
+npm install @xmtp/agent-sdk
 # or
-pnpm add @xmtp/agent-sdk @xmtp/node-sdk
+pnpm add @xmtp/agent-sdk
 # or
-yarn add @xmtp/agent-sdk @xmtp/node-sdk
+yarn add @xmtp/agent-sdk
 ```
 
 ## Quick Start
@@ -108,6 +108,17 @@ agent.on(
 );
 ```
 
+For convenience, the `filter` object can also be imported as `f`:
+
+```ts
+// You can import either name:
+import { filter, f } from "@xmtp/agent-sdk";
+
+// Both work the same way:
+const longVersion = filter.and(filter.notFromSelf, filter.textOnly);
+const shortVersion = f.and(f.notFromSelf, f.textOnly);
+```
+
 ### 4. Rich Context
 
 Every `message` handler receives an `AgentContext` with:
@@ -139,7 +150,7 @@ const agent = await Agent.create(signer, {
 });
 ```
 
-## Development Resources
+## Debugging
 
 - [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
 - [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)

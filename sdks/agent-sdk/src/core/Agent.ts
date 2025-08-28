@@ -2,10 +2,13 @@ import EventEmitter from "node:events";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   Client,
+  LogLevel,
   type ClientOptions,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
 import { filter } from "@/utils/filter.js";
+import { createSigner, createUser } from "@/utils/user.js";
+import { isHexString } from "../utils/crypto.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
@@ -37,20 +40,18 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   static async create<ContentCodecs extends ContentCodec[] = []>(
-    signer: Parameters<typeof Client.create>[0],
+    signer?: Parameters<typeof Client.create>[0],
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
+    if (!signer && isHexString(process.env.XMTP_WALLET_KEY)) {
+      signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
+    } else {
+      throw new Error(
+        `No signer available. Please pass a "signer" to "Agent.create()", or set the "XMTP_WALLET_KEY" environment variable with a private key as hexadecimal string.`,
+      );
+    }
     const client = await Client.create(signer, options);
-    return new Agent({ client });
-  }
-
-  static async build<ContentCodecs extends ContentCodec[] = []>(
-    identifier: Parameters<typeof Client.build>[0],
-    // Note: we need to omit this so that "Client.build" can correctly infer the codecs.
-    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
-  ) {
-    const client = await Client.build(identifier, options);
     return new Agent({ client });
   }
 
