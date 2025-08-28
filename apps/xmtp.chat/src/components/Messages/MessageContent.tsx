@@ -1,6 +1,10 @@
 import { Code } from "@mantine/core";
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeReadReceipt } from "@xmtp/content-type-read-receipt";
+import {
+  ContentTypeRemoteAttachment,
+  type RemoteAttachment,
+} from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import {
   ContentTypeTransactionReference,
@@ -13,6 +17,7 @@ import {
 import { FallbackContent } from "@/components/Messages/FallbackContent";
 import { type MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
 import { ReadReceiptContent } from "@/components/Messages/ReadReceiptContent";
+import { RemoteAttachmentContent } from "@/components/Messages/RemoteAttachmentContent";
 import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
@@ -64,6 +69,15 @@ export const MessageContent: React.FC<MessageContentProps> = ({
 
   if (contentType.sameAs(ContentTypeReadReceipt)) {
     return <ReadReceiptContent />;
+  }
+
+  if (contentType.sameAs(ContentTypeRemoteAttachment)) {
+    return (
+      <RemoteAttachmentContent
+        align={align}
+        content={content as RemoteAttachment}
+      />
+    );
   }
 
   if (typeof content === "string") {

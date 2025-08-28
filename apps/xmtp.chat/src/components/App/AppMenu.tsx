@@ -16,11 +16,7 @@ export const AppMenu: React.FC = () => {
   return (
     <Menu shadow="md" position="bottom-end">
       <Menu.Target>
-        <Button
-          px="var(--mantine-spacing-xxxs)"
-          radius="md"
-          size="xs"
-          variant="default">
+        <Button px="xxxs" radius="md" size="xs" variant="default">
           <IconDots />
         </Button>
       </Menu.Target>

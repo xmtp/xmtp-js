@@ -3,6 +3,10 @@ import {
   ContentTypeReaction,
   type Reaction,
 } from "@xmtp/content-type-reaction";
+import {
+  ContentTypeRemoteAttachment,
+  type RemoteAttachment,
+} from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 
@@ -28,6 +32,11 @@ export const isText = <M extends ContentMessage>(
   m: M,
 ): m is M & { content: string } => m.contentType.sameAs(ContentTypeText);
 
+export const isRemoteAttachment = <M extends ContentMessage>(
+  m: M,
+): m is M & { content: RemoteAttachment } =>
+  m.contentType.sameAs(ContentTypeRemoteAttachment);
+
 export const stringify = (message: ContentMessage): string => {
   switch (true) {
     case isReaction(message):
@@ -43,3 +52,9 @@ export const stringify = (message: ContentMessage): string => {
       return JSON.stringify(message.content ?? message.fallback, null, 2);
   }
 };
+
+export const isActionable = (message: ContentMessage) =>
+  isText(message) ||
+  isReaction(message) ||
+  isTextReply(message) ||
+  isRemoteAttachment(message);

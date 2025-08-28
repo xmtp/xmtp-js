@@ -33,6 +33,7 @@
     "@xmtp/content-type-transaction-reference": "workspace:^",
     "@xmtp/content-type-wallet-send-calls": "workspace:^",
     "date-fns": "^4.1.0",
+    "pinata": "^2.5.0",
     "plausible-tracker": "^0.3.9",
     "react": "^19.1.0",
     "react-18-blockies": "^1.0.6",

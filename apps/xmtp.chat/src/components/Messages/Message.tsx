@@ -1,8 +1,8 @@
 import { Box, Button, Group } from "@mantine/core";
 import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
 import { useNavigate, useOutletContext } from "react-router";
-import { useConversationContext } from "../../contexts/ConversationContext";
-import { isReaction, isText, isTextReply } from "../../helpers/messages";
+import { useConversationContext } from "@/contexts/ConversationContext";
+import { isActionable } from "@/helpers/messages";
 import classes from "./Message.module.css";
 import { MessageContentWithWrapper } from "./MessageContentWithWrapper";
 import { ReactionPopover } from "./ReactionPopover";
@@ -22,8 +22,7 @@ export const Message: React.FC<MessageProps> = ({
 
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
-  const isActionable =
-    isText(message) || isReaction(message) || isTextReply(message);
+  const hasActions = isActionable(message);
 
   return (
     <Box p="md" tabIndex={0} className={classes.root}>
@@ -48,7 +47,7 @@ export const Message: React.FC<MessageProps> = ({
           scrollToMessage={scrollToMessage}
         />
       </Box>
-      {isActionable && (
+      {hasActions && (
         <Group justify={align === "left" ? "flex-start" : "flex-end"} mt={4}>
           <ReactionPopover message={message} />
           <Button

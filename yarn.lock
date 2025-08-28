@@ -4041,6 +4041,7 @@ __metadata:
     "@xmtp/content-type-transaction-reference": "workspace:^"
     "@xmtp/content-type-wallet-send-calls": "workspace:^"
     date-fns: "npm:^4.1.0"
+    pinata: "npm:^2.5.0"
     plausible-tracker: "npm:^0.3.9"
     postcss: "npm:^8.5.6"
     postcss-preset-mantine: "npm:^1.18.0"
