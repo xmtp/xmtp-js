@@ -2,6 +2,8 @@ import { ReplyCodec } from "@xmtp/content-type-reply";
 import { Agent } from "./core/index.js";
 import { createSigner, createUser, f, withFilter } from "./utils/index.js";
 
+await process.loadEnvFile(".env");
+
 const user = createUser();
 const signer = createSigner(user);
 

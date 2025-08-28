@@ -59,16 +59,16 @@ The XMTP Agent SDK supports environment variables (`process.env`) to simplify co
 
 **Available Variables:**
 
-| Variable              | Purpose                        | Example                                 |
-| --------------------- | ------------------------------ | --------------------------------------- |
-| `XMTP_WALLET_KEY`     | Private key for authentication | `XMTP_WALLET_KEY=0x1234...abcd`         |
-| `XMTP_ENV`            | Network environment            | `XMTP_ENV=dev` or `XMTP_ENV=production` |
-| `XMTP_ENCRYPTION_KEY` | Database encryption key        | `XMTP_ENCRYPTION_KEY=0xabcd...1234`     |
+| Variable              | Purpose                                                                                                                      | Example                                 |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `XMTP_WALLET_KEY`     | [Private key for wallet](https://docs.xmtp.org/inboxes/core-messaging/create-a-signer)                                       | `XMTP_WALLET_KEY=0x1234...abcd`         |
+| `XMTP_ENV`            | [Network environment](https://docs.xmtp.org/agents/core-messaging/create-a-client#xmtp-network-environments)                 | `XMTP_ENV=dev` or `XMTP_ENV=production` |
+| `XMTP_ENCRYPTION_KEY` | [Database encryption key](https://docs.xmtp.org/agents/core-messaging/create-a-client#keep-the-database-encryption-key-safe) | `XMTP_ENCRYPTION_KEY=0xabcd...1234`     |
 
 Using the environment variables, you can setup your agent in just a few lines of code:
 
 ```ts
-// Load from .env file
+// Load variables from .env file
 await process.loadEnvFile(".env");
 
 // Create agent using environment variables
@@ -184,12 +184,7 @@ You can call `Agent.debug` instead of `Agent.create` to automatically enable all
 **Example:**
 
 ```ts
-// Automatically enables debug logging without additional configuration
-const agent = await Agent.debug(signer, {
-  env: "dev",
-  dbPath: "./agent.db",
-});
-
+const agent = await Agent.debug();
 await agent.start();
 // All agent activity will now show detailed logs
 ```

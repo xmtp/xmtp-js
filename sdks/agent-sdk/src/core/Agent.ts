@@ -50,10 +50,11 @@ export class Agent<ContentTypes> extends EventEmitter<
     if (!signer) {
       if (isHexString(process.env.XMTP_WALLET_KEY)) {
         signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
+      } else {
+        throw new Error(
+          `No signer detected. Provide a "signer" to "Agent.create()" or set the "XMTP_WALLET_KEY" environment variable to a private key in hexadecimal format. Read more: https://docs.xmtp.org/inboxes/core-messaging/create-a-signer`,
+        );
       }
-      throw new Error(
-        `No signer detected. Provide a "signer" to "Agent.create()" or set the "XMTP_WALLET_KEY" environment variable to a private key in hexadecimal format. Read more: https://docs.xmtp.org/inboxes/core-messaging/create-a-signer`,
-      );
     }
 
     const initializedOptions = { ...options };
