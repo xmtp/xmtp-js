@@ -102,10 +102,12 @@ Extend your agent with custom business logic using middlewares. Compose cross-cu
 **Example:**
 
 ```ts
+import { CommandRouter } from "@xmtp/agent-sdk";
+
 const router = new CommandRouter();
 
-router.command("/start", async (ctx) => {
-  await ctx.conversation.send("👋 Welcome to your XMTP agent!");
+router.command("/version", async (ctx) => {
+  await ctx.conversation.send(`v${process.env.npm_package_version}`);
 });
 
 agent.use(router.middleware());

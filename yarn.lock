@@ -3814,8 +3814,10 @@ __metadata:
     "@arethetypeswrong/cli": "npm:^0.18.2"
     "@types/node": "npm:^22.16.3"
     "@vitest/coverage-v8": "npm:^3.2.4"
-    "@xmtp/content-type-reply": "npm:^2.0.2"
-    "@xmtp/node-sdk": "npm:^4.0.3"
+    "@xmtp/content-type-reaction": "workspace:^"
+    "@xmtp/content-type-remote-attachment": "workspace:^"
+    "@xmtp/content-type-reply": "workspace:^"
+    "@xmtp/node-sdk": "workspace:^"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.3"
     typescript: "npm:^5.8.3"
@@ -3966,7 +3968,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reply@npm:^2.0.2, @xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
+"@xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
@@ -4047,7 +4049,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^4.0.3, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:

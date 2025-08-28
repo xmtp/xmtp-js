@@ -1,10 +1,19 @@
 import { loadEnvFile } from "node:process";
 import { Agent } from "./core/index.js";
+import { CommandRouter } from "./middleware/CommandRouter.js";
 import { f, withFilter } from "./utils/index.js";
 
 loadEnvFile(".env");
 
 const agent = await Agent.create();
+
+const router = new CommandRouter();
+
+router.command("/version", async (ctx) => {
+  await ctx.conversation.send(`v${process.env.npm_package_version}`);
+});
+
+agent.use(router.middleware());
 
 agent.on("message", (ctx) => {
   void ctx.conversation.send("First message!");

@@ -4,8 +4,10 @@
     "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "dependencies": {
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/node-sdk": "^4.0.3",
+    "@xmtp/content-type-reaction": "workspace:^",
+    "@xmtp/content-type-remote-attachment": "workspace:^",
+    "@xmtp/content-type-reply": "workspace:^",
+    "@xmtp/node-sdk": "workspace:^",
     "uint8arrays": "^5.1.0",
     "viem": "^2.31.7"
   },

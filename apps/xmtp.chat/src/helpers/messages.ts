@@ -38,6 +38,11 @@ export const isRemoteAttachment = <M extends ContentMessage>(
   m.contentType.sameAs(ContentTypeRemoteAttachment);
 
 export const stringify = (message: ContentMessage): string => {
+  if (message.contentType.sameAs(ContentTypeText)) {
+    console.log(message.content);
+    // ^?
+  }
+
   switch (true) {
     case isReaction(message):
     case isTextReply(message):
