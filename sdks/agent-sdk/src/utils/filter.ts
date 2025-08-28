@@ -1,6 +1,6 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
-import type { AgentContext } from "@/core/AgentContext";
+import type { AgentContext } from "@/core/AgentContext.js";
 
 /**
  * Function type for filtering messages based on content and client state.

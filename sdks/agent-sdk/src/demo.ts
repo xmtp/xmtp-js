@@ -1,6 +1,11 @@
 import { ReplyCodec } from "@xmtp/content-type-reply";
-import { Agent } from "./core";
-import { createSigner, createUser, filter as f, withFilter } from "./utils";
+import { Agent } from "./core/index.js";
+import {
+  createSigner,
+  createUser,
+  filter as f,
+  withFilter,
+} from "./utils/index.js";
 
 const user = createUser();
 const signer = createSigner(user);
