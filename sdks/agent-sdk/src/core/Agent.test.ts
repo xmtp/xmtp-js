@@ -113,14 +113,14 @@ describe("Agent", () => {
     });
 
     it("should execute middleware when processing messages", async () => {
-      const middleware = vi.fn(async (ctx, next) => {
+      const middleware = vi.fn(async (_, next: () => Promise<void>) => {
         await next();
       });
       agent.use(middleware);
 
       mockClient.conversations.streamAllMessages.mockResolvedValue(
         (async function* () {
-          yield mockMessage;
+          yield Promise.resolve(mockMessage);
         })(),
       );
 
@@ -136,13 +136,13 @@ describe("Agent", () => {
     it("should execute multiple middleware in order", async () => {
       const calls: string[] = [];
 
-      const middleware1 = vi.fn(async (_, next) => {
+      const middleware1 = vi.fn(async (_, next: () => Promise<void>) => {
         calls.push("middleware1-start");
         await next();
         calls.push("middleware1-end");
       });
 
-      const middleware2 = vi.fn(async (_, next) => {
+      const middleware2 = vi.fn(async (_, next: () => Promise<void>) => {
         calls.push("middleware2-start");
         await next();
         calls.push("middleware2-end");
@@ -153,7 +153,7 @@ describe("Agent", () => {
 
       mockClient.conversations.streamAllMessages.mockResolvedValue(
         (async function* () {
-          yield mockMessage;
+          yield Promise.resolve(mockMessage);
         })(),
       );
 
