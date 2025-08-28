@@ -8,20 +8,20 @@ import { Agent, type AgentOptions } from "./Agent";
 import { AgentContext } from "./AgentContext";
 
 describe("Agent", () => {
+  const mockConversation = {
+    send: vi.fn().mockResolvedValue(undefined),
+  };
+
   const mockClient = {
     inboxId: "test-inbox-id",
     conversations: {
       sync: vi.fn().mockResolvedValue(undefined),
       streamAllMessages: vi.fn(),
-      getConversationById: vi.fn(),
+      getConversationById: vi.fn().mockResolvedValue(mockConversation),
     },
     preferences: {
       inboxStateFromInboxIds: vi.fn(),
     },
-  };
-
-  const mockConversation = {
-    send: vi.fn().mockResolvedValue(undefined),
   };
 
   const mockMessage = {
@@ -111,14 +111,65 @@ describe("Agent", () => {
 
       expect(result).toBe(agent);
     });
-  });
 
-  describe("processMessage", () => {
-    it("should emit 'message' and allow sending a reply via context", async () => {
-      mockClient.conversations.getConversationById.mockResolvedValue(
-        mockConversation,
+    it("should execute middleware when processing messages", async () => {
+      const middleware = vi.fn(async (ctx, next) => {
+        await next();
+      });
+      agent.use(middleware);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield mockMessage;
+        })(),
       );
 
+      await agent.start();
+
+      expect(middleware).toHaveBeenCalledTimes(1);
+      expect(middleware).toHaveBeenCalledWith(
+        expect.any(AgentContext),
+        expect.any(Function),
+      );
+    });
+
+    it("should execute multiple middleware in order", async () => {
+      const calls: string[] = [];
+
+      const middleware1 = vi.fn(async (_, next) => {
+        calls.push("middleware1-start");
+        await next();
+        calls.push("middleware1-end");
+      });
+
+      const middleware2 = vi.fn(async (_, next) => {
+        calls.push("middleware2-start");
+        await next();
+        calls.push("middleware2-end");
+      });
+
+      agent.use(middleware1);
+      agent.use(middleware2);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(calls).toEqual([
+        "middleware1-start",
+        "middleware2-start",
+        "middleware2-end",
+        "middleware1-end",
+      ]);
+    });
+  });
+
+  describe("emit", () => {
+    it("should emit 'message' and allow sending a reply via context", async () => {
       let contextSend: ((text: string) => Promise<void>) | undefined;
       const handler = vi.fn((ctx: AgentContext) => {
         contextSend = ctx.sendText.bind(ctx);
