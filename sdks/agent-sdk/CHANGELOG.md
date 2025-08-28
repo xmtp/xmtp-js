@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 0.0.4
+
+### Patch Changes
+
+- 880f8f2: Added path alias resolution
+
 ## 0.0.3
 
 ### Patch Changes
