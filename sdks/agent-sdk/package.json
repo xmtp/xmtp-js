@@ -52,7 +52,7 @@
     "url": "git+https://git@github.com/xmtp/xmtp-js.git"
   },
   "scripts": {
-    "build": "yarn clean:dist && tsc",
+    "build": "yarn clean:dist && tsc -p tsconfig.build.json",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
     "dev": "tsx --watch src/main.ts",
