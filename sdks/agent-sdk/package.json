@@ -22,7 +22,7 @@
     "node": ">=20"
   },
   "files": [
-    "dist/src",
+    "dist",
     "!dist/**/*.test.*"
   ],
   "homepage": "https://github.com/xmtp/xmtp-js",
