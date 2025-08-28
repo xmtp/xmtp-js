@@ -3,8 +3,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "Node18",
     "outDir": "dist",
     "paths": {
       "@/*": ["./src/*"],

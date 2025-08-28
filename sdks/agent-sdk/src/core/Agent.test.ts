@@ -3,9 +3,9 @@ import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
-import { createSigner, createUser } from "@/utils/user";
-import { Agent, type AgentOptions } from "./Agent";
-import { AgentContext } from "./AgentContext";
+import { createSigner, createUser } from "@/utils/user.js";
+import { Agent, type AgentOptions } from "./Agent.js";
+import { AgentContext } from "./AgentContext.js";
 
 describe("Agent", () => {
   const mockConversation = {

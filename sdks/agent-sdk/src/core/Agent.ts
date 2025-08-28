@@ -5,8 +5,8 @@ import {
   type ClientOptions,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
-import { filter } from "@/utils/filter";
-import { AgentContext } from "./AgentContext";
+import { filter } from "@/utils/filter.js";
+import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
   error: [error: Error];
