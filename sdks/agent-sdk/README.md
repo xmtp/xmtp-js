@@ -69,7 +69,7 @@ Using the environment variables, you can setup your agent in just a few lines of
 
 ```ts
 // Load variables from .env file
-await process.loadEnvFile(".env");
+process.loadEnvFile(".env");
 
 // Create agent using environment variables
 const agent = await Agent.create();

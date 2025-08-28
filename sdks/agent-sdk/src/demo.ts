@@ -1,17 +1,10 @@
-import { ReplyCodec } from "@xmtp/content-type-reply";
+import { loadEnvFile } from "node:process";
 import { Agent } from "./core/index.js";
-import { createSigner, createUser, f, withFilter } from "./utils/index.js";
+import { f, withFilter } from "./utils/index.js";
 
-await process.loadEnvFile(".env");
+loadEnvFile(".env");
 
-const user = createUser();
-const signer = createSigner(user);
-
-const agent = await Agent.create(signer, {
-  codecs: [new ReplyCodec()],
-  dbPath: null,
-  env: "dev",
-});
+const agent = await Agent.create();
 
 agent.on("message", (ctx) => {
   void ctx.conversation.send("First message!");
