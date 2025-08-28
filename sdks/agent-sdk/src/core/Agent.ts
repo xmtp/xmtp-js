@@ -1,14 +1,17 @@
 import EventEmitter from "node:events";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
+  ApiUrls,
   Client,
   LogLevel,
   type ClientOptions,
   type DecodedMessage,
+  type XmtpEnv,
 } from "@xmtp/node-sdk";
+import { getEncryptionKeyFromHex, isHexString } from "@/utils/crypto.js";
+import { logDetails } from "@/utils/debug.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import { isHexString } from "../utils/crypto.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
@@ -44,15 +47,47 @@ export class Agent<ContentTypes> extends EventEmitter<
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
-    if (!signer && isHexString(process.env.XMTP_WALLET_KEY)) {
-      signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
-    } else {
+    if (!signer) {
+      if (isHexString(process.env.XMTP_WALLET_KEY)) {
+        signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
+      }
       throw new Error(
-        `No signer available. Please pass a "signer" to "Agent.create()", or set the "XMTP_WALLET_KEY" environment variable with a private key as hexadecimal string.`,
+        `No signer detected. Provide a "signer" to "Agent.create()" or set the "XMTP_WALLET_KEY" environment variable to a private key in hexadecimal format. Read more: https://docs.xmtp.org/inboxes/core-messaging/create-a-signer`,
       );
     }
-    const client = await Client.create(signer, options);
+
+    const initializedOptions = { ...options };
+
+    if (process.env.XMTP_ENCRYPTION_KEY) {
+      initializedOptions.dbEncryptionKey = getEncryptionKeyFromHex(
+        process.env.XMTP_ENCRYPTION_KEY,
+      );
+    }
+
+    if (
+      process.env.XMTP_ENV &&
+      Object.keys(ApiUrls).includes(process.env.XMTP_ENV)
+    ) {
+      initializedOptions.env = process.env.XMTP_ENV as XmtpEnv;
+    }
+
+    const client = await Client.create(signer, initializedOptions);
     return new Agent({ client });
+  }
+
+  static async debug<ContentCodecs extends ContentCodec[] = []>(
+    signer?: Parameters<typeof Client.create>[0],
+    // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
+    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
+  ) {
+    const enforcedDebugOptions = {
+      ...options,
+      structuredLogging: true,
+      loggingLevel: LogLevel.debug,
+    };
+    const agent = await this.create(signer, enforcedDebugOptions);
+    await logDetails(agent.client);
+    return agent;
   }
 
   use(middleware: AgentMiddleware<ContentTypes>) {

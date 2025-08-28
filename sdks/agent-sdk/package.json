@@ -6,6 +6,7 @@
   "dependencies": {
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/node-sdk": "^4.0.3",
+    "uint8arrays": "^5.1.0",
     "viem": "^2.31.7"
   },
   "description": "XMTP Agent SDK for interacting with XMTP networks",

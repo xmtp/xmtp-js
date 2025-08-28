@@ -53,6 +53,28 @@ agent.on("start", () => {
 await agent.start();
 ```
 
+## Environment Variables
+
+The XMTP Agent SDK supports environment variables (`process.env`) to simplify configuration without code changes.
+
+**Available Variables:**
+
+| Variable              | Purpose                        | Example                                 |
+| --------------------- | ------------------------------ | --------------------------------------- |
+| `XMTP_WALLET_KEY`     | Private key for authentication | `XMTP_WALLET_KEY=0x1234...abcd`         |
+| `XMTP_ENV`            | Network environment            | `XMTP_ENV=dev` or `XMTP_ENV=production` |
+| `XMTP_ENCRYPTION_KEY` | Database encryption key        | `XMTP_ENCRYPTION_KEY=0xabcd...1234`     |
+
+Using the environment variables, you can setup your agent in just a few lines of code:
+
+```ts
+// Load from .env file
+await process.loadEnvFile(".env");
+
+// Create agent using environment variables
+const agent = await Agent.create();
+```
+
 ## Core Concepts
 
 ### 1. Event‑Driven Architecture
@@ -154,6 +176,23 @@ const agent = await Agent.create(signer, {
 
 - [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
 - [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)
+
+### Quick Debug Mode
+
+You can call `Agent.debug` instead of `Agent.create` to automatically enable all available debugging output for your agent.
+
+**Example:**
+
+```ts
+// Automatically enables debug logging without additional configuration
+const agent = await Agent.debug(signer, {
+  env: "dev",
+  dbPath: "./agent.db",
+});
+
+await agent.start();
+// All agent activity will now show detailed logs
+```
 
 ## FAQ (Quick Hits)
 
