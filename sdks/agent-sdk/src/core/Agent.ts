@@ -64,6 +64,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     }
 
     const initializedOptions = { ...options };
+    initializedOptions.appVersion ??= "agent-sdk/alpha";
 
     if (process.env.XMTP_DB_ENCRYPTION_KEY) {
       initializedOptions.dbEncryptionKey = getEncryptionKeyFromHex(
