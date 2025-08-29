@@ -1,5 +1,13 @@
 # @xmtp/agent-sdk
 
+## 0.0.7
+
+### Patch Changes
+
+- b296a2a: - Exposed default middleware
+  - Exposed debug utils
+  - Added default Reaction schema
+
 ## 0.0.6
 
 ### Patch Changes
