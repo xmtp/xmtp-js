@@ -1,5 +1,8 @@
 import EventEmitter from "node:events";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
 import {
   ApiUrls,
   Client,
@@ -74,7 +77,18 @@ export class Agent<ContentTypes> extends EventEmitter<
       initializedOptions.env = process.env.XMTP_ENV as XmtpEnv;
     }
 
-    const client = await Client.create(signer, initializedOptions);
+    const upgradedCodecs = [
+      ...(initializedOptions.codecs ?? []),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+    ];
+
+    const client = await Client.create(signer, {
+      ...initializedOptions,
+      codecs: upgradedCodecs,
+    });
+
     return new Agent({ client });
   }
 

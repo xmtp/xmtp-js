@@ -3817,6 +3817,7 @@ __metadata:
     "@xmtp/content-type-reaction": "workspace:^"
     "@xmtp/content-type-remote-attachment": "workspace:^"
     "@xmtp/content-type-reply": "workspace:^"
+    "@xmtp/content-type-text": "workspace:^"
     "@xmtp/node-sdk": "workspace:^"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.3"

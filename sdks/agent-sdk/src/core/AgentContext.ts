@@ -1,3 +1,7 @@
+import {
+  ContentTypeReaction,
+  type Reaction,
+} from "@xmtp/content-type-reaction";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
@@ -17,6 +21,17 @@ export class AgentContext<ContentTypes = unknown> {
     this.#client = client;
   }
 
+  async sendReaction(content: string) {
+    const payload: Reaction = {
+      action: "added",
+      reference: this.#message.id,
+      referenceInboxId: this.#message.senderInboxId,
+      schema: "unicode",
+      content,
+    };
+    await this.#conversation.send(payload, ContentTypeReaction);
+  }
+
   async sendText(text: string): Promise<void> {
     await this.#conversation.send(text, ContentTypeText);
   }
@@ -31,7 +46,11 @@ export class AgentContext<ContentTypes = unknown> {
     await this.#conversation.send(reply, ContentTypeReply);
   }
 
-  async getSenderAddress(): Promise<string> {
+  getOwnAddress() {
+    return `${this.#client.accountIdentifier?.identifier}`;
+  }
+
+  async getSenderAddress() {
     const inboxState = await this.#client.preferences.inboxStateFromInboxIds([
       this.#message.senderInboxId,
     ]);
