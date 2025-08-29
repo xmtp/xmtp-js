@@ -192,14 +192,6 @@ const agent = await Agent.create(signer, {
 - [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
 - [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)
 
-**Example:**
-
-```ts
-const agent = await Agent.debug();
-await agent.start();
-// All agent activity will now show detailed logs
-```
-
 ## FAQ (Quick Hits)
 
 | Question                                                                                     | Answer                                          |
