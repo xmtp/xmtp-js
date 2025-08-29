@@ -3,5 +3,5 @@
 ---
 
 - Exposed default middleware
-- Exposed debug uitls
+- Exposed debug utils
 - Added default Reaction schema
