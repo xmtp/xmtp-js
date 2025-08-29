@@ -64,6 +64,7 @@
     "clean:dist": "rm -rf dist",
     "demo": "tsx src/demo.ts",
     "dev": "tsx --watch src/main.ts",
+    "gen:keys": "tsx src/bin/generateKeys.ts",
     "start": "yarn demo",
     "test": "yarn typecheck && vitest --typecheck",
     "test:cov": "vitest run --coverage",
