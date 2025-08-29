@@ -26,7 +26,7 @@ export async function logDetails<ContentTypes>(client: Client<ContentTypes>) {
   let expiryDate = new Date();
 
   // Extract key package status for the specific installation
-  const keyPackageStatus = keyPackageStatuses[installationId];
+  const keyPackageStatus = keyPackageStatuses[installationId] ?? {};
   if (keyPackageStatus.lifetime) {
     createdDate = new Date(Number(keyPackageStatus.lifetime.notBefore) * 1000);
     expiryDate = new Date(Number(keyPackageStatus.lifetime.notAfter) * 1000);

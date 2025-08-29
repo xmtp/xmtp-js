@@ -1,4 +1,6 @@
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
+import type { Reaction } from "@xmtp/content-type-reaction";
+import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
@@ -52,14 +54,16 @@ describe("Agent", () => {
 
     it("infers additional content types from given codecs", () => {
       expectTypeOf(ephemeralAgent).toEqualTypeOf<
-        Agent<string | Reply | GroupUpdated>
+        Agent<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
       >();
     });
 
     it("types the content in message event listener", () => {
       ephemeralAgent.on("message", (ctx) => {
         expectTypeOf(ctx).toEqualTypeOf<
-          AgentContext<string | Reply | GroupUpdated>
+          AgentContext<
+            string | Reaction | Reply | RemoteAttachment | GroupUpdated
+          >
         >();
       });
     });

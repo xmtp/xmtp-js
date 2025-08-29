@@ -63,7 +63,7 @@
     "clean:dist": "rm -rf dist",
     "dev": "tsx --watch src/main.ts",
     "start": "tsx src/demo.ts",
-    "test": "vitest --typecheck",
+    "test": "yarn typecheck && vitest --typecheck",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
