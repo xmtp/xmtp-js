@@ -21,15 +21,15 @@ export class AgentContext<ContentTypes = unknown> {
     this.#client = client;
   }
 
-  async sendReaction(content: string) {
-    const payload: Reaction = {
+  async sendReaction(content: string, schema: Reaction["schema"]) {
+    const reaction: Reaction = {
       action: "added",
       reference: this.#message.id,
       referenceInboxId: this.#message.senderInboxId,
-      schema: "unicode",
+      schema,
       content,
     };
-    await this.#conversation.send(payload, ContentTypeReaction);
+    await this.#conversation.send(reaction, ContentTypeReaction);
   }
 
   async sendText(text: string): Promise<void> {

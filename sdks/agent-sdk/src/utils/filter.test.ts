@@ -1,4 +1,8 @@
-import { ContentTypeReply } from "@xmtp/content-type-reply";
+import {
+  ContentTypeReaction,
+  type Reaction,
+} from "@xmtp/content-type-reaction";
+import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
@@ -241,6 +245,55 @@ describe("MessageFilters", () => {
       expect(positive).toBe(true);
 
       const negative = filter.startsWith("@xmtp")(message, mockClient);
+      expect(negative).toBe(false);
+    });
+
+    it("matches replies starting with a specific string", () => {
+      const message = createMockMessage({
+        content: "How can I help you?",
+      });
+
+      const reply: Reply = {
+        reference: message.id,
+        referenceInboxId: message.senderInboxId,
+        contentType: ContentTypeText,
+        content: "@agent what's the weather today?",
+      };
+
+      const replyMessage = createMockMessage({
+        content: reply,
+        contentType: ContentTypeReply,
+      });
+
+      const positive = filter.startsWith("@agent")(replyMessage, mockClient);
+      expect(positive).toBe(true);
+
+      const negative = filter.startsWith("@xmtp")(replyMessage, mockClient);
+      expect(negative).toBe(false);
+    });
+
+    it("works with emoji reactions", () => {
+      const message = createMockMessage({
+        content: "The new documentation is much more helpful",
+      });
+
+      const reaction: Reaction = {
+        action: "added",
+        reference: message.id,
+        referenceInboxId: message.senderInboxId,
+        schema: "unicode",
+        content: "👍",
+      };
+
+      const reactionMessage = createMockMessage({
+        content: reaction,
+        contentType: ContentTypeReaction,
+      });
+
+      const positive = filter.startsWith("👍")(reactionMessage, mockClient);
+      expect(positive).toBe(true);
+
+      const negative = filter.startsWith("👎")(reactionMessage, mockClient);
       expect(negative).toBe(false);
     });
   });

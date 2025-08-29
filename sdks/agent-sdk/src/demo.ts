@@ -16,20 +16,15 @@ router.command("/version", async (ctx) => {
 agent.use(router.middleware());
 
 agent.on("message", (ctx) => {
-  void ctx.conversation.send("First message!");
+  console.log("Got message:", ctx.message.content);
 });
 
 agent.on(
   "message",
-  withFilter(f.and(f.notFromSelf, f.textOnly), (ctx) => {
-    void ctx.conversation.send("Goodbye!");
-    agent.stop();
+  withFilter(f.startsWith("@agent"), (ctx) => {
+    void ctx.conversation.send("How can I help you?");
   }),
 );
-
-agent.on("message", (ctx) => {
-  console.log("Got message:", ctx.message.content);
-});
 
 const errorHandler = (error: unknown) => {
   console.log("Caught error", error);

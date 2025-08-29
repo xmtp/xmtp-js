@@ -38,6 +38,17 @@ export const isRemoteAttachment = <M extends ContentMessage>(
 ): m is M & { content: RemoteAttachment } =>
   !!m.contentType?.sameAs(ContentTypeRemoteAttachment);
 
+/**
+ * Extracts the text content from various XMTP message types.
+ *
+ * Supports extracting text from:
+ * - Text messages: Returns the direct string content
+ * - Text replies: Returns the reply content text
+ * - Reactions: Returns the reaction content (emoji/text)
+ *
+ * @param message - The decoded message to extract text from
+ * @returns The text content as a string, or `undefined` for message types that don't contain extractable text content
+ */
 export const getTextContent = (message: ContentMessage) => {
   switch (true) {
     case isReaction(message):

@@ -126,7 +126,7 @@ import { withFilter, filter } from "@xmtp/agent-sdk";
 agent.on(
   "message",
   withFilter(filter.startsWith("@agent"), async (ctx) => {
-    await ctx.conversation.send("How can I help?");
+    await ctx.conversation.send("How can I help you?");
   }),
 );
 
