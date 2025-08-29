@@ -77,6 +77,11 @@ export class Agent<ContentTypes> extends EventEmitter<
       initializedOptions.env = process.env.XMTP_ENV as XmtpEnv;
     }
 
+    if (process.env.XMTP_FORCE_DEBUG) {
+      initializedOptions.loggingLevel = LogLevel.warn;
+      initializedOptions.structuredLogging = true;
+    }
+
     const upgradedCodecs = [
       ...(initializedOptions.codecs ?? []),
       new ReactionCodec(),
@@ -89,22 +94,11 @@ export class Agent<ContentTypes> extends EventEmitter<
       codecs: upgradedCodecs,
     });
 
-    return new Agent({ client });
-  }
+    if (process.env.XMTP_FORCE_DEBUG) {
+      await logDetails(client);
+    }
 
-  static async debug<ContentCodecs extends ContentCodec[] = []>(
-    signer?: Parameters<typeof Client.create>[0],
-    // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
-    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
-  ) {
-    const enforcedDebugOptions = {
-      ...options,
-      structuredLogging: true,
-      loggingLevel: LogLevel.debug,
-    };
-    const agent = await this.create(signer, enforcedDebugOptions);
-    await logDetails(agent.client);
-    return agent;
+    return new Agent({ client });
   }
 
   use(middleware: AgentMiddleware<ContentTypes>) {
