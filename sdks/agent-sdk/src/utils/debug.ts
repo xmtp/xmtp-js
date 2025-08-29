@@ -1,6 +1,9 @@
 import { Client } from "@xmtp/node-sdk";
+import type { Agent } from "@/core/Agent.js";
 
-export async function logDetails<ContentTypes>(client: Client<ContentTypes>) {
+export const logDetails = async <ContentTypes>(
+  client: Client<ContentTypes>,
+) => {
   const xmtp = `\x1b[38;2;252;76;52m
     ██╗  ██╗███╗   ███╗████████╗██████╗ 
     ╚██╗██╔╝████╗ ████║╚══██╔══╝██╔══██╗
@@ -45,4 +48,16 @@ export async function logDetails<ContentTypes>(client: Client<ContentTypes>) {
     • Key Package valid until: ${expiryDate.toLocaleString()}
     • Networks: ${environments}
     ${urls.map((url) => `• URL: ${url}`).join("\n")}`);
-}
+};
+
+/**
+ * Returns a URL to test your agent on https://xmtp.chat/ (for development purposes only).
+ *
+ * @param agent - Your agent instance
+ * @returns The URL to test your agent with
+ */
+export const getTestUrl = <ContentTypes>(agent: Agent<ContentTypes>) => {
+  const address = agent.client.accountIdentifier?.identifier;
+  const env = agent.client.options?.env ?? "dev";
+  return `http://xmtp.chat/dm/${address}?env=${env}`;
+};

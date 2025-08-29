@@ -1,13 +1,8 @@
 import { loadEnvFile } from "node:process";
 import { Agent } from "./core/index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
-import {
-  createSigner,
-  createUser,
-  f,
-  getTestUrl,
-  withFilter,
-} from "./utils/index.js";
+import { getTestUrl } from "./utils/debug.js";
+import { createSigner, createUser, f, withFilter } from "./utils/index.js";
 
 try {
   loadEnvFile(".env");

@@ -9,7 +9,6 @@ import {
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { DecodedMessage } from "@xmtp/node-sdk";
-import type { Agent } from "@/core/Agent.js";
 
 type ContentMessage = Pick<
   DecodedMessage,
@@ -58,16 +57,4 @@ export const getTextContent = (message: ContentMessage) => {
     case isText(message):
       return message.content;
   }
-};
-
-/**
- * Returns a URL to test your agent on https://xmtp.chat/ (for development purposes only).
- *
- * @param agent - Your agent instance
- * @returns The URL to test your agent with
- */
-export const getTestUrl = <ContentTypes>(agent: Agent<ContentTypes>) => {
-  const address = agent.client.accountIdentifier?.identifier;
-  const env = agent.client.options?.env ?? "dev";
-  return `http://xmtp.chat/dm/${address}?env=${env}`;
 };
