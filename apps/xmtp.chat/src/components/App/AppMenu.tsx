@@ -1,6 +1,6 @@
 import { Button, Menu } from "@mantine/core";
 import { useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useRedirect } from "@/hooks/useRedirect";
 import { IconDots } from "@/icons/IconDots";
 
