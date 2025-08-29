@@ -61,8 +61,9 @@
     "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
+    "demo": "tsx src/demo.ts",
     "dev": "tsx --watch src/main.ts",
-    "start": "tsx src/demo.ts",
+    "start": "yarn demo",
     "test": "yarn typecheck && vitest --typecheck",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"

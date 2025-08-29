@@ -128,5 +128,12 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ["sdks/agent-sdk/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-misused-promises": "off",
+      "no-empty": ["error", { allowEmptyCatch: true }],
+    },
+  },
   eslintPluginPrettierRecommended,
 );

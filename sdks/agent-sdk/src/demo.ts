@@ -1,11 +1,23 @@
 import { loadEnvFile } from "node:process";
 import { Agent } from "./core/index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
-import { f, withFilter } from "./utils/index.js";
+import {
+  createSigner,
+  createUser,
+  f,
+  getTestUrl,
+  withFilter,
+} from "./utils/index.js";
 
-loadEnvFile(".env");
+try {
+  loadEnvFile(".env");
+} catch {}
 
-const agent = await Agent.create();
+const agent = process.env.XMTP_WALLET_KEY
+  ? await Agent.create()
+  : await Agent.create(createSigner(createUser()), {
+      dbPath: null,
+    });
 
 const router = new CommandRouter();
 
@@ -21,8 +33,8 @@ agent.on("message", (ctx) => {
 
 agent.on(
   "message",
-  withFilter(f.startsWith("@agent"), (ctx) => {
-    void ctx.conversation.send("How can I help you?");
+  withFilter(f.startsWith("@agent"), async (ctx) => {
+    await ctx.conversation.send("How can I help you?");
   }),
 );
 
@@ -35,10 +47,7 @@ agent.on("error", errorHandler);
 agent.off("error", errorHandler);
 
 agent.on("start", () => {
-  const address = agent.client.accountIdentifier?.identifier;
-  const env = agent.client.options?.env;
-  const url = `http://xmtp.chat/dm/${address}?env=${env}`;
-  console.log(`We are online: ${url}`);
+  console.log(`We are online: ${getTestUrl(agent)}`);
 });
 
 void agent.start();

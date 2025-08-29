@@ -78,6 +78,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     }
 
     if (process.env.XMTP_FORCE_DEBUG) {
+      initializedOptions.debugEventsEnabled = true;
       initializedOptions.loggingLevel = LogLevel.warn;
       initializedOptions.structuredLogging = true;
     }
