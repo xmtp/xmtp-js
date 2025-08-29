@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 0.0.6
+
+### Patch Changes
+
+- 8277202: Locked dependency versions
+
 ## 0.0.5
 
 ### Patch Changes
