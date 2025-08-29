@@ -5,7 +5,6 @@ import {
   createSigner,
   createUser,
   f,
-  generateClientKeys,
   getTestUrl,
   withFilter,
 } from "./utils/index.js";

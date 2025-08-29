@@ -1,5 +1,5 @@
 import { getRandomValues } from "node:crypto";
-import { schnorr, secp256k1 } from "@noble/curves/secp256k1.js";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { fromString, toString } from "uint8arrays";
 import { toHex } from "viem";
 

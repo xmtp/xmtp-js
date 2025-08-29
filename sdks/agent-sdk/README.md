@@ -59,12 +59,13 @@ The XMTP Agent SDK supports environment variables (`process.env`) to simplify co
 
 **Available Variables:**
 
-| Variable                 | Purpose                                                                                                                      | Example                                 |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `XMTP_WALLET_KEY`        | [Private key for wallet](https://docs.xmtp.org/inboxes/core-messaging/create-a-signer)                                       | `XMTP_WALLET_KEY=0x1234...abcd`         |
-| `XMTP_ENV`               | [Network environment](https://docs.xmtp.org/agents/core-messaging/create-a-client#xmtp-network-environments)                 | `XMTP_ENV=dev` or `XMTP_ENV=production` |
-| `XMTP_DB_ENCRYPTION_KEY` | [Database encryption key](https://docs.xmtp.org/agents/core-messaging/create-a-client#keep-the-database-encryption-key-safe) | `XMTP_DB_ENCRYPTION_KEY=0xabcd...1234`  |
-| `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents)                                                         | `XMTP_FORCE_DEBUG=true`                 |
+| Variable                          | Purpose                                                                                                                      | Example                                 |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `XMTP_WALLET_KEY`                 | [Private key for wallet](https://docs.xmtp.org/inboxes/core-messaging/create-a-signer)                                       | `XMTP_WALLET_KEY=0x1234...abcd`         |
+| `XMTP_ENV`                        | [Network environment](https://docs.xmtp.org/agents/core-messaging/create-a-client#xmtp-network-environments)                 | `XMTP_ENV=dev` or `XMTP_ENV=production` |
+| `XMTP_DB_ENCRYPTION_KEY`          | [Database encryption key](https://docs.xmtp.org/agents/core-messaging/create-a-client#keep-the-database-encryption-key-safe) | `XMTP_DB_ENCRYPTION_KEY=0xabcd...1234`  |
+| `XMTP_FORCE_DEBUG`                | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents)                                                         | `XMTP_FORCE_DEBUG=true`                 |
+| `XMTP_FORCE_REVOKE_INSTALLATIONS` | [Remove other installations](https://docs.xmtp.org/agents/core-messaging/agent-installations#revoke-agent-installations)     | `XMTP_FORCE_REVOKE_INSTALLATIONS=true`  |
 
 Using the environment variables, you can setup your agent in just a few lines of code:
 

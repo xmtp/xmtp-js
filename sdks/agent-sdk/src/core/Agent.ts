@@ -96,6 +96,10 @@ export class Agent<ContentTypes> extends EventEmitter<
       codecs: upgradedCodecs,
     });
 
+    if (process.env.XMTP_FORCE_REVOKE_INSTALLATIONS) {
+      await client.revokeAllOtherInstallations();
+    }
+
     if (process.env.XMTP_FORCE_DEBUG) {
       await logDetails(client);
     }
