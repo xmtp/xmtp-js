@@ -4,6 +4,7 @@
     "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "dependencies": {
+    "@noble/curves": "^2.0.0",
     "@xmtp/content-type-reaction": "workspace:^",
     "@xmtp/content-type-remote-attachment": "workspace:^",
     "@xmtp/content-type-reply": "workspace:^",

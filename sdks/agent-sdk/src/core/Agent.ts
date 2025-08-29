@@ -11,7 +11,8 @@ import {
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
-import { getEncryptionKeyFromHex, isHexString } from "@/utils/crypto.js";
+import { isHex } from "viem/utils";
+import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { logDetails } from "@/utils/debug.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
@@ -53,7 +54,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     if (!signer) {
-      if (isHexString(process.env.XMTP_WALLET_KEY)) {
+      if (isHex(process.env.XMTP_WALLET_KEY)) {
         signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
       } else {
         throw new Error(

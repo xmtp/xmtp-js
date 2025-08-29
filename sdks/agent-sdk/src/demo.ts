@@ -5,12 +5,14 @@ import {
   createSigner,
   createUser,
   f,
+  generateClientKeys,
   getTestUrl,
   withFilter,
 } from "./utils/index.js";
 
 try {
   loadEnvFile(".env");
+  console.info(`Loaded keys from ".env" file.`);
 } catch {}
 
 const agent = process.env.XMTP_WALLET_KEY
