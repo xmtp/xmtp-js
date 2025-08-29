@@ -122,11 +122,20 @@ Instead of manually checking every incoming message, you can compose simple, reu
 ```ts
 import { withFilter, filter } from "@xmtp/agent-sdk";
 
-const filters = filter.and(filter.notFromSelf, filter.textOnly);
+// Using filter in message handler
+agent.on(
+  "message",
+  withFilter(filter.startsWith("@agent"), async (ctx) => {
+    await ctx.conversation.send("How can I help?");
+  }),
+);
+
+// Combination of filters
+const combined = filter.and(filter.notFromSelf, filter.textOnly);
 
 agent.on(
   "message",
-  withFilter(filters, async (ctx) => {
+  withFilter(combined, async (ctx) => {
     await ctx.conversation.send("You sent a text message ✅");
   }),
 );

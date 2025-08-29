@@ -37,3 +37,13 @@ export const isRemoteAttachment = <M extends ContentMessage>(
   m: M,
 ): m is M & { content: RemoteAttachment } =>
   !!m.contentType?.sameAs(ContentTypeRemoteAttachment);
+
+export const getTextContent = (message: ContentMessage) => {
+  switch (true) {
+    case isReaction(message):
+    case isTextReply(message):
+      return message.content.content;
+    case isText(message):
+      return message.content;
+  }
+};

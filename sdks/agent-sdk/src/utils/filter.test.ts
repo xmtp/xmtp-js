@@ -11,7 +11,7 @@ const mockClient = {
 const createMockMessage = (overrides: Partial<DecodedMessage> = {}) =>
   ({
     senderInboxId: "my-inbox-id",
-    contentType: { typeId: "text" },
+    contentType: ContentTypeText,
     content: "Test message",
     ...overrides,
   }) as DecodedMessage;
@@ -228,6 +228,20 @@ describe("MessageFilters", () => {
 
       const result = complexFilter(message, mockClient);
       expect(result).toBe(true);
+    });
+  });
+
+  describe("startsWith", () => {
+    it("matches text messages starting with a specific string", () => {
+      const message = createMockMessage({
+        content: "@agent this message is for you",
+      });
+
+      const positive = filter.startsWith("@agent")(message, mockClient);
+      expect(positive).toBe(true);
+
+      const negative = filter.startsWith("@xmtp")(message, mockClient);
+      expect(negative).toBe(false);
     });
   });
 });
