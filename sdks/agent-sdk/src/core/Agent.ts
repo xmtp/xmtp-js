@@ -64,9 +64,9 @@ export class Agent<ContentTypes> extends EventEmitter<
 
     const initializedOptions = { ...options };
 
-    if (process.env.XMTP_ENCRYPTION_KEY) {
+    if (process.env.XMTP_DB_ENCRYPTION_KEY) {
       initializedOptions.dbEncryptionKey = getEncryptionKeyFromHex(
-        process.env.XMTP_ENCRYPTION_KEY,
+        process.env.XMTP_DB_ENCRYPTION_KEY,
       );
     }
 

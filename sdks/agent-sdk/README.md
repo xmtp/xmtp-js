@@ -59,11 +59,11 @@ The XMTP Agent SDK supports environment variables (`process.env`) to simplify co
 
 **Available Variables:**
 
-| Variable              | Purpose                                                                                                                      | Example                                 |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `XMTP_WALLET_KEY`     | [Private key for wallet](https://docs.xmtp.org/inboxes/core-messaging/create-a-signer)                                       | `XMTP_WALLET_KEY=0x1234...abcd`         |
-| `XMTP_ENV`            | [Network environment](https://docs.xmtp.org/agents/core-messaging/create-a-client#xmtp-network-environments)                 | `XMTP_ENV=dev` or `XMTP_ENV=production` |
-| `XMTP_ENCRYPTION_KEY` | [Database encryption key](https://docs.xmtp.org/agents/core-messaging/create-a-client#keep-the-database-encryption-key-safe) | `XMTP_ENCRYPTION_KEY=0xabcd...1234`     |
+| Variable                 | Purpose                                                                                                                      | Example                                 |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `XMTP_WALLET_KEY`        | [Private key for wallet](https://docs.xmtp.org/inboxes/core-messaging/create-a-signer)                                       | `XMTP_WALLET_KEY=0x1234...abcd`         |
+| `XMTP_ENV`               | [Network environment](https://docs.xmtp.org/agents/core-messaging/create-a-client#xmtp-network-environments)                 | `XMTP_ENV=dev` or `XMTP_ENV=production` |
+| `XMTP_DB_ENCRYPTION_KEY` | [Database encryption key](https://docs.xmtp.org/agents/core-messaging/create-a-client#keep-the-database-encryption-key-safe) | `XMTP_DB_ENCRYPTION_KEY=0xabcd...1234`  |
 
 Using the environment variables, you can setup your agent in just a few lines of code:
 
@@ -142,6 +142,8 @@ import { filter, f } from "@xmtp/agent-sdk";
 const longVersion = filter.and(filter.notFromSelf, filter.textOnly);
 const shortVersion = f.and(f.notFromSelf, f.textOnly);
 ```
+
+You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/utils/filter.ts).
 
 ### 4. Rich Context
 
