@@ -26,7 +26,7 @@ yarn add @xmtp/agent-sdk
 ## Quick Start
 
 ```ts
-import { Agent, createSigner, createUser } from "@xmtp/agent-sdk";
+import { createUser, createSigner, Agent, getTestUrl } from "@xmtp/agent-sdk";
 
 // 1. Create a local user + signer (you can plug in your own wallet signer)
 const user = createUser();
@@ -45,9 +45,7 @@ agent.on("message", async (ctx) => {
 
 // 4. Log when we're ready
 agent.on("start", () => {
-  const address = agent.client.accountIdentifier?.identifier;
-  const env = agent.client.options?.env;
-  console.log(`Agent online: http://xmtp.chat/dm/${address}?env=${env}`);
+  console.log(`We are online: ${getTestUrl(agent)}`);
 });
 
 await agent.start();
