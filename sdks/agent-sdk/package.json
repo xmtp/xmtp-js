@@ -5,11 +5,11 @@
   },
   "dependencies": {
     "@noble/curves": "^2.0.0",
-    "@xmtp/content-type-reaction": "workspace:^",
-    "@xmtp/content-type-remote-attachment": "workspace:^",
-    "@xmtp/content-type-reply": "workspace:^",
-    "@xmtp/content-type-text": "workspace:^",
-    "@xmtp/node-sdk": "workspace:^",
+    "@xmtp/content-type-reaction": "^2.0.2",
+    "@xmtp/content-type-remote-attachment": "^2.0.2",
+    "@xmtp/content-type-reply": "^2.0.2",
+    "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/node-sdk": "^4.1.0",
     "uint8arrays": "^5.1.0",
     "viem": "^2.31.7"
   },

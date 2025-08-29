@@ -3831,11 +3831,11 @@ __metadata:
     "@noble/curves": "npm:^2.0.0"
     "@types/node": "npm:^22.16.3"
     "@vitest/coverage-v8": "npm:^3.2.4"
-    "@xmtp/content-type-reaction": "workspace:^"
-    "@xmtp/content-type-remote-attachment": "workspace:^"
-    "@xmtp/content-type-reply": "workspace:^"
-    "@xmtp/content-type-text": "workspace:^"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/content-type-reaction": "npm:^2.0.2"
+    "@xmtp/content-type-remote-attachment": "npm:^2.0.2"
+    "@xmtp/content-type-reply": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/node-sdk": "npm:^4.1.0"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.3"
     typescript: "npm:^5.8.3"
@@ -3928,7 +3928,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
+"@xmtp/content-type-reaction@npm:^2.0.2, @xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction"
   dependencies:
@@ -3965,7 +3965,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
+"@xmtp/content-type-remote-attachment@npm:^2.0.2, @xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment"
   dependencies:
@@ -3986,7 +3986,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
+"@xmtp/content-type-reply@npm:^2.0.2, @xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
@@ -4067,7 +4067,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^4.1.0, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
