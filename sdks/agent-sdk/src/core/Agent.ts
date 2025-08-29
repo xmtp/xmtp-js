@@ -29,7 +29,9 @@ export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
 }
 
-export type AgentEventHandler = (ctx: AgentContext) => Promise<void> | void;
+export type AgentEventHandler<ContentTypes = unknown> = (
+  ctx: AgentContext<ContentTypes>,
+) => Promise<void> | void;
 
 export type AgentMiddleware<ContentTypes> = (
   ctx: AgentContext<ContentTypes>,
