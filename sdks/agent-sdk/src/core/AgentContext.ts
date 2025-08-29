@@ -21,7 +21,7 @@ export class AgentContext<ContentTypes = unknown> {
     this.#client = client;
   }
 
-  async sendReaction(content: string, schema: Reaction["schema"]) {
+  async sendReaction(content: string, schema: Reaction["schema"] = "unicode") {
     const reaction: Reaction = {
       action: "added",
       reference: this.#message.id,
