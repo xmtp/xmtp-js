@@ -47,7 +47,7 @@ export class AgentContext<ContentTypes = unknown> {
   }
 
   getOwnAddress() {
-    return `${this.#client.accountIdentifier?.identifier}`;
+    return this.#client.accountIdentifier?.identifier;
   }
 
   async getSenderAddress() {
