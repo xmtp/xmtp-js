@@ -1,6 +1,7 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
 import type { AgentContext } from "@/core/AgentContext.js";
+import { getTextContent } from "./message.js";
 
 /**
  * Function type for filtering messages based on content and client state.
@@ -58,6 +59,19 @@ function fromSender<ContentTypes>(
 
   return (message: DecodedMessage) => {
     return senderIds.includes(message.senderInboxId);
+  };
+}
+
+/**
+ * Creates a filter that matches text messages starting with a specific string.
+ *
+ * @param prefix - The string prefix to match against
+ * @returns Filter function
+ */
+function startsWith<ContentTypes>(prefix: string): MessageFilter<ContentTypes> {
+  return (message: DecodedMessage) => {
+    const text = getTextContent(message);
+    return !!(text && text.startsWith(prefix));
   };
 }
 
@@ -121,11 +135,14 @@ export const filter = {
   textOnly: textOnly(),
   // factory functions
   fromSender,
+  startsWith,
   // combinators
   and,
   or,
   not,
 };
+
+export const f = filter;
 
 export const withFilter =
   <ContentTypes>(

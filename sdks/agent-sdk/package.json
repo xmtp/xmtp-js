@@ -4,8 +4,13 @@
     "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "dependencies": {
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/node-sdk": "^4.0.3",
+    "@noble/curves": "^2.0.0",
+    "@xmtp/content-type-reaction": "workspace:^",
+    "@xmtp/content-type-remote-attachment": "workspace:^",
+    "@xmtp/content-type-reply": "workspace:^",
+    "@xmtp/content-type-text": "workspace:^",
+    "@xmtp/node-sdk": "workspace:^",
+    "uint8arrays": "^5.1.0",
     "viem": "^2.31.7"
   },
   "description": "XMTP Agent SDK for interacting with XMTP networks",
@@ -57,9 +62,11 @@
     "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
+    "demo": "tsx src/demo.ts",
     "dev": "tsx --watch src/main.ts",
-    "start": "tsx src/demo.ts",
-    "test": "vitest --typecheck",
+    "gen:keys": "tsx src/bin/generateKeys.ts",
+    "start": "yarn demo",
+    "test": "yarn typecheck && vitest --typecheck",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },

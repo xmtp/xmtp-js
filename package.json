@@ -13,7 +13,7 @@
   "scripts": {
     "build": "turbo run build",
     "clean": "turbo run clean && rimraf .turbo node_modules && yarn cache clean",
-    "fix": "yarn format && eslint . --fix",
+    "fix": "prettier --log-level error -w . && eslint . --fix",
     "format": "prettier -w .",
     "format:check": "prettier -c .",
     "lint": "yarn build && eslint .",

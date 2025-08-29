@@ -16,11 +16,11 @@ This SDK is based on familiar Node.js patterns: you register event listeners, co
 Choose your package manager:
 
 ```bash
-npm install @xmtp/agent-sdk @xmtp/node-sdk
+npm install @xmtp/agent-sdk
 # or
-pnpm add @xmtp/agent-sdk @xmtp/node-sdk
+pnpm add @xmtp/agent-sdk
 # or
-yarn add @xmtp/agent-sdk @xmtp/node-sdk
+yarn add @xmtp/agent-sdk
 ```
 
 ## Quick Start
@@ -53,6 +53,30 @@ agent.on("start", () => {
 await agent.start();
 ```
 
+## Environment Variables
+
+The XMTP Agent SDK supports environment variables (`process.env`) to simplify configuration without code changes.
+
+**Available Variables:**
+
+| Variable                          | Purpose                                                                                                                      | Example                                 |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `XMTP_WALLET_KEY`                 | [Private key for wallet](https://docs.xmtp.org/inboxes/core-messaging/create-a-signer)                                       | `XMTP_WALLET_KEY=0x1234...abcd`         |
+| `XMTP_ENV`                        | [Network environment](https://docs.xmtp.org/agents/core-messaging/create-a-client#xmtp-network-environments)                 | `XMTP_ENV=dev` or `XMTP_ENV=production` |
+| `XMTP_DB_ENCRYPTION_KEY`          | [Database encryption key](https://docs.xmtp.org/agents/core-messaging/create-a-client#keep-the-database-encryption-key-safe) | `XMTP_DB_ENCRYPTION_KEY=0xabcd...1234`  |
+| `XMTP_FORCE_DEBUG`                | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents)                                                         | `XMTP_FORCE_DEBUG=true`                 |
+| `XMTP_FORCE_REVOKE_INSTALLATIONS` | [Remove other installations](https://docs.xmtp.org/agents/core-messaging/agent-installations#revoke-agent-installations)     | `XMTP_FORCE_REVOKE_INSTALLATIONS=true`  |
+
+Using the environment variables, you can setup your agent in just a few lines of code:
+
+```ts
+// Load variables from .env file
+process.loadEnvFile(".env");
+
+// Create agent using environment variables
+const agent = await Agent.create();
+```
+
 ## Core Concepts
 
 ### 1. Event‑Driven Architecture
@@ -80,10 +104,12 @@ Extend your agent with custom business logic using middlewares. Compose cross-cu
 **Example:**
 
 ```ts
+import { CommandRouter } from "@xmtp/agent-sdk";
+
 const router = new CommandRouter();
 
-router.command("/start", async (ctx) => {
-  await ctx.conversation.send("👋 Welcome to your XMTP agent!");
+router.command("/version", async (ctx) => {
+  await ctx.conversation.send(`v${process.env.npm_package_version}`);
 });
 
 agent.use(router.middleware());
@@ -98,15 +124,37 @@ Instead of manually checking every incoming message, you can compose simple, reu
 ```ts
 import { withFilter, filter } from "@xmtp/agent-sdk";
 
-const filters = filter.and(filter.notFromSelf, filter.textOnly);
+// Using filter in message handler
+agent.on(
+  "message",
+  withFilter(filter.startsWith("@agent"), async (ctx) => {
+    await ctx.conversation.send("How can I help you?");
+  }),
+);
+
+// Combination of filters
+const combined = filter.and(filter.notFromSelf, filter.textOnly);
 
 agent.on(
   "message",
-  withFilter(filters, async (ctx) => {
+  withFilter(combined, async (ctx) => {
     await ctx.conversation.send("You sent a text message ✅");
   }),
 );
 ```
+
+For convenience, the `filter` object can also be imported as `f`:
+
+```ts
+// You can import either name:
+import { filter, f } from "@xmtp/agent-sdk";
+
+// Both work the same way:
+const longVersion = filter.and(filter.notFromSelf, filter.textOnly);
+const shortVersion = f.and(f.notFromSelf, f.textOnly);
+```
+
+You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/utils/filter.ts).
 
 ### 4. Rich Context
 
@@ -139,7 +187,7 @@ const agent = await Agent.create(signer, {
 });
 ```
 
-## Development Resources
+## Debugging
 
 - [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
 - [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)

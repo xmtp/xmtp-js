@@ -1731,6 +1731,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/curves@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@noble/curves@npm:2.0.0"
+  dependencies:
+    "@noble/hashes": "npm:2.0.0"
+  checksum: 10/f0c42bebbde529bdee7dcf39eb145343f7ba1194d1fd5cc89f51e9b9a67821b389297d259055a07981f6b9fa2b18be702fa5ececa953b5f1ff481ca49b88761f
+  languageName: node
+  linkType: hard
+
 "@noble/curves@npm:~1.7.0":
   version: 1.7.0
   resolution: "@noble/curves@npm:1.7.0"
@@ -1788,6 +1797,13 @@ __metadata:
   version: 1.8.0
   resolution: "@noble/hashes@npm:1.8.0"
   checksum: 10/474b7f56bc6fb2d5b3a42132561e221b0ea4f91e590f4655312ca13667840896b34195e2b53b7f097ec080a1fdd3b58d902c2a8d0fbdf51d2e238b53808a177e
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@noble/hashes@npm:2.0.0"
+  checksum: 10/cab9ec490c211a9baa54297d3f1ed4289408c54cd99d4a71bdce92038ef8c10f4a9b1230a72c92656e0ffdf9420d0d631d5f83d9f72883f77bd92214f5502c28
   languageName: node
   linkType: hard
 
@@ -3812,13 +3828,18 @@ __metadata:
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.2"
+    "@noble/curves": "npm:^2.0.0"
     "@types/node": "npm:^22.16.3"
     "@vitest/coverage-v8": "npm:^3.2.4"
-    "@xmtp/content-type-reply": "npm:^2.0.2"
-    "@xmtp/node-sdk": "npm:^4.0.3"
+    "@xmtp/content-type-reaction": "workspace:^"
+    "@xmtp/content-type-remote-attachment": "workspace:^"
+    "@xmtp/content-type-reply": "workspace:^"
+    "@xmtp/content-type-text": "workspace:^"
+    "@xmtp/node-sdk": "workspace:^"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.3"
     typescript: "npm:^5.8.3"
+    uint8arrays: "npm:^5.1.0"
     viem: "npm:^2.31.7"
     vite: "npm:^7.0.4"
     vite-tsconfig-paths: "npm:^5.1.4"
@@ -3965,7 +3986,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-reply@npm:^2.0.2, @xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
+"@xmtp/content-type-reply@workspace:^, @xmtp/content-type-reply@workspace:content-types/content-type-reply":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-reply@workspace:content-types/content-type-reply"
   dependencies:
@@ -4046,7 +4067,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^4.0.3, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
@@ -7810,6 +7831,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"multiformats@npm:^13.0.0":
+  version: 13.4.0
+  resolution: "multiformats@npm:13.4.0"
+  checksum: 10/95a796c0c7d99862d588263ebaa2285aa66a5c1d8915356c17d6863749f7fee28407fb9e16b78411c3d2977780c8e87a37a3f88716894dbda63c18a32e229347
+  languageName: node
+  linkType: hard
+
 "multiformats@npm:^9.4.2":
   version: 9.9.0
   resolution: "multiformats@npm:9.9.0"
@@ -10581,6 +10609,15 @@ __metadata:
   dependencies:
     multiformats: "npm:^9.4.2"
   checksum: 10/536e70273c040484aa7d522031a9dbca1fe8c06eb58a3ace1064ba68825b4e2764d4a0b604a1c451e7b8be0986dc94f23a419cfe9334bd116716074a2d29b33d
+  languageName: node
+  linkType: hard
+
+"uint8arrays@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "uint8arrays@npm:5.1.0"
+  dependencies:
+    multiformats: "npm:^13.0.0"
+  checksum: 10/6c9cd1c1519cdf20d4c4e3715b4ee1acf730636409528ea54e77c4d9aa6e7f70aacd86d735f7c8a9902a9181cc3b37fa048590978e2fb90a98fa1dc39465c1af
   languageName: node
   linkType: hard
 

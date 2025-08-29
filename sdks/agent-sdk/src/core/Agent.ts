@@ -1,11 +1,21 @@
 import EventEmitter from "node:events";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
 import {
+  ApiUrls,
   Client,
+  LogLevel,
   type ClientOptions,
   type DecodedMessage,
+  type XmtpEnv,
 } from "@xmtp/node-sdk";
+import { isHex } from "viem/utils";
+import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
+import { logDetails } from "@/utils/debug.js";
 import { filter } from "@/utils/filter.js";
+import { createSigner, createUser } from "@/utils/user.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
@@ -18,6 +28,10 @@ interface EventHandlerMap<ContentTypes> {
 export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
 }
+
+export type AgentEventHandler<ContentTypes = unknown> = (
+  ctx: AgentContext<ContentTypes>,
+) => Promise<void> | void;
 
 export type AgentMiddleware<ContentTypes> = (
   ctx: AgentContext<ContentTypes>,
@@ -37,20 +51,62 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   static async create<ContentCodecs extends ContentCodec[] = []>(
-    signer: Parameters<typeof Client.create>[0],
+    signer?: Parameters<typeof Client.create>[0],
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
-    const client = await Client.create(signer, options);
-    return new Agent({ client });
-  }
+    if (!signer) {
+      if (isHex(process.env.XMTP_WALLET_KEY)) {
+        signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
+      } else {
+        throw new Error(
+          `No signer detected. Provide a "signer" to "Agent.create()" or set the "XMTP_WALLET_KEY" environment variable to a private key in hexadecimal format. Read more: https://docs.xmtp.org/inboxes/core-messaging/create-a-signer`,
+        );
+      }
+    }
 
-  static async build<ContentCodecs extends ContentCodec[] = []>(
-    identifier: Parameters<typeof Client.build>[0],
-    // Note: we need to omit this so that "Client.build" can correctly infer the codecs.
-    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
-  ) {
-    const client = await Client.build(identifier, options);
+    const initializedOptions = { ...options };
+    initializedOptions.appVersion ??= "agent-sdk/alpha";
+
+    if (process.env.XMTP_DB_ENCRYPTION_KEY) {
+      initializedOptions.dbEncryptionKey = getEncryptionKeyFromHex(
+        process.env.XMTP_DB_ENCRYPTION_KEY,
+      );
+    }
+
+    if (
+      process.env.XMTP_ENV &&
+      Object.keys(ApiUrls).includes(process.env.XMTP_ENV)
+    ) {
+      initializedOptions.env = process.env.XMTP_ENV as XmtpEnv;
+    }
+
+    if (process.env.XMTP_FORCE_DEBUG) {
+      initializedOptions.debugEventsEnabled = true;
+      initializedOptions.loggingLevel = LogLevel.warn;
+      initializedOptions.structuredLogging = true;
+    }
+
+    const upgradedCodecs = [
+      ...(initializedOptions.codecs ?? []),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+    ];
+
+    const client = await Client.create(signer, {
+      ...initializedOptions,
+      codecs: upgradedCodecs,
+    });
+
+    if (process.env.XMTP_FORCE_REVOKE_INSTALLATIONS) {
+      await client.revokeAllOtherInstallations();
+    }
+
+    if (process.env.XMTP_FORCE_DEBUG) {
+      await logDetails(client);
+    }
+
     return new Agent({ client });
   }
 
