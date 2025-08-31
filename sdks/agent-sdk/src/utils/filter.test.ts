@@ -10,18 +10,20 @@ import { filter } from "@/utils/filter.js";
 
 const dmConversation = {
   id: "convo-dm",
-  metadata: Promise.resolve({
-    creatorInboxId: "test-client-inbox-id",
-    conversationType: "dm",
-  }),
+  metadata: () =>
+    Promise.resolve({
+      creatorInboxId: "test-client-inbox-id",
+      conversationType: "dm",
+    }),
 } as unknown as Conversation;
 
 const groupConversation = {
   id: "convo-group",
-  metadata: Promise.resolve({
-    creatorInboxId: "test-client-inbox-id",
-    conversationType: "group",
-  }),
+  metadata: () =>
+    Promise.resolve({
+      creatorInboxId: "test-client-inbox-id",
+      conversationType: "group",
+    }),
 } as unknown as Conversation;
 
 const mockClient = {

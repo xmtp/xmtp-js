@@ -12,7 +12,7 @@ import { AgentContext } from "./AgentContext.js";
 describe("Agent", () => {
   const mockConversation = {
     send: vi.fn().mockResolvedValue(undefined),
-  };
+  } as unknown as Conversation;
 
   const mockClient = {
     inboxId: "test-inbox-id",
@@ -182,11 +182,11 @@ describe("Agent", () => {
 
       void agent.emit(
         "message",
-        new AgentContext(
-          mockMessage,
-          mockConversation as unknown as Conversation,
-          agent.client,
-        ),
+        new AgentContext({
+          message: mockMessage,
+          conversation: mockConversation,
+          client: agent.client,
+        }),
       );
 
       expect(handler).toHaveBeenCalledTimes(1);

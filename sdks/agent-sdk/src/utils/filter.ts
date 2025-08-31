@@ -165,12 +165,7 @@ export const withFilter =
     listener: (ctx: AgentContext<ContentTypes>) => void | Promise<void>,
   ) =>
   async (ctx: AgentContext<ContentTypes>) => {
-    try {
-      if (await filterFn(ctx.message, ctx.client, ctx.conversation)) {
-        await listener(ctx);
-      }
-    } catch (e) {
-      // Swallow errors in filter evaluation to avoid crashing the emitter loop.
-      // Consider emitting an 'error' from the Agent in future if desired.
+    if (await filterFn(ctx.message, ctx.client, ctx.conversation)) {
+      await listener(ctx);
     }
   };

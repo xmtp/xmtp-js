@@ -8,17 +8,17 @@ import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 
 export class AgentContext<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
-  #message: DecodedMessage<ContentTypes>;
   #conversation: Conversation;
+  #message: DecodedMessage<ContentTypes>;
 
-  constructor(
-    message: DecodedMessage<ContentTypes>,
-    conversation: Conversation,
-    client: Client<ContentTypes>,
-  ) {
-    this.#message = message;
-    this.#conversation = conversation;
-    this.#client = client;
+  constructor(context: {
+    client: Client<ContentTypes>;
+    conversation: Conversation;
+    message: DecodedMessage<ContentTypes>;
+  }) {
+    this.#message = context.message;
+    this.#conversation = context.conversation;
+    this.#client = context.client;
   }
 
   async sendReaction(content: string, schema: Reaction["schema"] = "unicode") {
