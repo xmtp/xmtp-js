@@ -1,5 +1,5 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import type { AgentContext } from "@/core/AgentContext.js";
 import { getTextContent } from "./message.js";
 
@@ -9,7 +9,8 @@ import { getTextContent } from "./message.js";
 export type MessageFilter<ContentTypes> = (
   message: DecodedMessage,
   client: Client<ContentTypes>,
-) => boolean;
+  conversation: Conversation,
+) => boolean | Promise<boolean>;
 
 /**
  * Creates a filter that excludes messages from the agent itself.
@@ -30,6 +31,18 @@ function notFromSelf<ContentTypes>(): MessageFilter<ContentTypes> {
 function fromSelf<ContentTypes>(): MessageFilter<ContentTypes> {
   return (message: DecodedMessage, client: Client<ContentTypes>) => {
     return message.senderInboxId === client.inboxId;
+  };
+}
+
+function isDM<ContentTypes>(): MessageFilter<ContentTypes> {
+  return async (_message, _client, conversation) => {
+    return (await conversation.metadata()).conversationType === "dm";
+  };
+}
+
+function isGroup<ContentTypes>(): MessageFilter<ContentTypes> {
+  return async (_message, _client, conversation) => {
+    return (await conversation.metadata()).conversationType === "group";
   };
 }
 
@@ -84,9 +97,9 @@ function startsWith<ContentTypes>(prefix: string): MessageFilter<ContentTypes> {
 function and<ContentTypes>(
   ...filters: MessageFilter<ContentTypes>[]
 ): MessageFilter<ContentTypes> {
-  return (message: DecodedMessage, client: Client<ContentTypes>) => {
+  return async (message, client, conversation) => {
     for (const filter of filters) {
-      const result = filter(message, client);
+      const result = await filter(message, client, conversation);
       if (!result) return false;
     }
     return true;
@@ -102,9 +115,9 @@ function and<ContentTypes>(
 function or<ContentTypes>(
   ...filters: MessageFilter<ContentTypes>[]
 ): MessageFilter<ContentTypes> {
-  return (message: DecodedMessage, client: Client<ContentTypes>) => {
+  return async (message, client, conversation) => {
     for (const filter of filters) {
-      const result = filter(message, client);
+      const result = await filter(message, client, conversation);
       if (result) return true;
     }
     return false;
@@ -120,8 +133,8 @@ function or<ContentTypes>(
 function not<ContentTypes>(
   filter: MessageFilter<ContentTypes>,
 ): MessageFilter<ContentTypes> {
-  return (message: DecodedMessage, client: Client<ContentTypes>) => {
-    return !filter(message, client);
+  return async (message, client, conversation) => {
+    return !(await filter(message, client, conversation));
   };
 }
 
@@ -133,6 +146,8 @@ export const filter = {
   notFromSelf: notFromSelf(),
   fromSelf: fromSelf(),
   textOnly: textOnly(),
+  isDM: isDM(),
+  isGroup: isGroup(),
   // factory functions
   fromSender,
   startsWith,
@@ -146,11 +161,16 @@ export const f = filter;
 
 export const withFilter =
   <ContentTypes>(
-    filter: MessageFilter<ContentTypes>,
-    listener: (ctx: AgentContext<ContentTypes>) => void,
+    filterFn: MessageFilter<ContentTypes>,
+    listener: (ctx: AgentContext<ContentTypes>) => void | Promise<void>,
   ) =>
-  (ctx: AgentContext<ContentTypes>) => {
-    if (filter(ctx.message, ctx.client)) {
-      listener(ctx);
+  async (ctx: AgentContext<ContentTypes>) => {
+    try {
+      if (await filterFn(ctx.message, ctx.client, ctx.conversation)) {
+        await listener(ctx);
+      }
+    } catch (e) {
+      // Swallow errors in filter evaluation to avoid crashing the emitter loop.
+      // Consider emitting an 'error' from the Agent in future if desired.
     }
   };
