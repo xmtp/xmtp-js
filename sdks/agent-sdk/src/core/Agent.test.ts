@@ -180,7 +180,7 @@ describe("Agent", () => {
       });
       agent.on("message", handler);
 
-      void agent.emit(
+      await agent.emit(
         "message",
         new AgentContext({
           message: mockMessage,
