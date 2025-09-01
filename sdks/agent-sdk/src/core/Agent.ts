@@ -3,6 +3,7 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
+import { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
@@ -16,11 +17,16 @@ import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { logDetails } from "@/utils/debug.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
+import { isReaction, isText } from "../utils/message.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
   error: [error: Error];
   message: [ctx: AgentContext<ContentTypes>];
+  reaction: [
+    ctx: AgentContext<NonNullable<ReturnType<ReactionCodec["decode"]>>>,
+  ];
+  text: [ctx: AgentContext<NonNullable<ReturnType<TextCodec["decode"]>>>];
   start: [];
   stop: [];
 }
@@ -130,7 +136,17 @@ export class Agent<ContentTypes> extends EventEmitter<
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
         try {
-          await this.#processMessage(message);
+          switch (true) {
+            case isReaction(message):
+              await this.#processMessage(message, "reaction");
+              break;
+            case isText(message):
+              await this.#processMessage(message, "text");
+              break;
+            default:
+              await this.#processMessage(message);
+              break;
+          }
         } catch (error) {
           this.#throwError(error);
         }
@@ -141,7 +157,10 @@ export class Agent<ContentTypes> extends EventEmitter<
     }
   }
 
-  async #processMessage(message: DecodedMessage<ContentTypes>) {
+  async #processMessage(
+    message: DecodedMessage<ContentTypes>,
+    topic: keyof EventHandlerMap<ContentTypes> = "message",
+  ) {
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
     );
@@ -170,7 +189,7 @@ export class Agent<ContentTypes> extends EventEmitter<
         // Note: we are filtering the agent's own message to avoid
         // infinite message loops when a "message" listener replies
         // Manually invoke listeners so we can surface errors
-        const listeners = this.listeners("message");
+        const listeners = this.listeners(topic);
         for (const listener of listeners) {
           try {
             listener(context);

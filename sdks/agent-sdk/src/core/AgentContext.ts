@@ -9,12 +9,12 @@ import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 export class AgentContext<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
   #conversation: Conversation;
-  #message: DecodedMessage<ContentTypes>;
+  #message: Omit<DecodedMessage, "content"> & { content: ContentTypes };
 
   constructor(context: {
     client: Client<ContentTypes>;
     conversation: Conversation;
-    message: DecodedMessage<ContentTypes>;
+    message: Omit<DecodedMessage, "content"> & { content: ContentTypes };
   }) {
     this.#message = context.message;
     this.#conversation = context.conversation;

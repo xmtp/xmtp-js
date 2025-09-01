@@ -23,8 +23,12 @@ router.command("/version", async (ctx) => {
 
 agent.use(router.middleware());
 
-agent.on("message", (ctx) => {
-  console.log("Got message:", ctx.message.content);
+agent.on("text", (ctx) => {
+  console.log("Got text:", ctx.message.content);
+});
+
+agent.on("reaction", (ctx) => {
+  console.log("Got reaction:", ctx.message.content);
 });
 
 agent.on(
