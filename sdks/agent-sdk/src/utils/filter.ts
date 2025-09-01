@@ -13,17 +13,6 @@ export type MessageFilter<ContentTypes> = (
 ) => boolean | Promise<boolean>;
 
 /**
- * Creates a filter that excludes messages from the agent itself.
- *
- * @returns Filter function
- */
-function notFromSelf<ContentTypes>(): MessageFilter<ContentTypes> {
-  return (message: DecodedMessage, client: Client<ContentTypes>) => {
-    return message.senderInboxId !== client.inboxId;
-  };
-}
-
-/**
  * Creates a filter that includes only messages from the agent itself.
  *
  * @returns Filter function
@@ -143,7 +132,6 @@ function not<ContentTypes>(
  */
 export const filter = {
   // basic filters
-  notFromSelf: notFromSelf(),
   fromSelf: fromSelf(),
   isText: isText(),
   isDM: isDM(),

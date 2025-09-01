@@ -38,31 +38,7 @@ const createMockMessage = (overrides: Partial<DecodedMessage> = {}) =>
     ...overrides,
   }) as DecodedMessage;
 
-describe("MessageFilters", () => {
-  describe("notFromSelf", () => {
-    it("should return true for messages not from self", () => {
-      const message = createMockMessage({ senderInboxId: "other-inbox-id" });
-      const result = filter.notFromSelf(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-    });
-
-    it("should return false for messages from self", () => {
-      const message = createMockMessage({
-        senderInboxId: "test-client-inbox-id",
-      });
-      const result = filter.notFromSelf(message, mockClient, dmConversation);
-      expect(result).toBe(false);
-    });
-
-    it("should be case sensitive", () => {
-      const message = createMockMessage({
-        senderInboxId: "TEST-CLIENT-INBOX-ID",
-      });
-      const result = filter.notFromSelf(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-    });
-  });
-
+describe("filter", () => {
   describe("fromSelf", () => {
     it("should return false for messages not from self", () => {
       const message = createMockMessage({ senderInboxId: "other-inbox-id" });
@@ -79,7 +55,7 @@ describe("MessageFilters", () => {
     });
   });
 
-  describe("textOnly", () => {
+  describe("isText", () => {
     it("should return true for text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeText });
       const result = filter.isText(message, mockClient, dmConversation);
@@ -214,6 +190,13 @@ describe("MessageFilters", () => {
   });
 
   describe("not", () => {
+    it("should return true for messages not from self", async () => {
+      const message = createMockMessage({ senderInboxId: "other-inbox-id" });
+      const notFilter = filter.not(filter.fromSelf);
+      const result = await notFilter(message, mockClient, dmConversation);
+      expect(result).toBe(true);
+    });
+
     it("should invert filter result from true to false", async () => {
       const baseFilter = vi.fn().mockReturnValue(true);
       const notFilter = filter.not(baseFilter);
