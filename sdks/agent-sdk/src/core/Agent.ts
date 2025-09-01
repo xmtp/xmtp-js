@@ -166,7 +166,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       if (middlewareIndex < this.#middleware.length) {
         const currentMiddleware = this.#middleware[middlewareIndex++];
         await currentMiddleware(context, next);
-      } else if (filter.notFromSelf(message, this.#client, conversation)) {
+      } else if (!filter.fromSelf(message, this.#client, conversation)) {
         // Note: we are filtering the agent's own message to avoid
         // infinite message loops when a "message" listener replies
         // Manually invoke listeners so we can surface errors
