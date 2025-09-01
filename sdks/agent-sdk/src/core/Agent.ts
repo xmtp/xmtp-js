@@ -17,18 +17,23 @@ import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { logDetails } from "@/utils/debug.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import { isReaction, isText } from "../utils/message.js";
+import {
+  isReaction,
+  isRemoteAttachment,
+  isReply,
+  isText,
+} from "../utils/message.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
+  attachment: [ctx: AgentContext<ReturnType<RemoteAttachmentCodec["decode"]>>];
   error: [error: Error];
   message: [ctx: AgentContext<ContentTypes>];
-  reaction: [
-    ctx: AgentContext<NonNullable<ReturnType<ReactionCodec["decode"]>>>,
-  ];
-  text: [ctx: AgentContext<NonNullable<ReturnType<TextCodec["decode"]>>>];
+  reaction: [ctx: AgentContext<ReturnType<ReactionCodec["decode"]>>];
+  reply: [ctx: AgentContext<ReturnType<ReplyCodec["decode"]>>];
   start: [];
   stop: [];
+  text: [ctx: AgentContext<ReturnType<TextCodec["decode"]>>];
 }
 
 export interface AgentOptions<ContentTypes> {
@@ -137,8 +142,14 @@ export class Agent<ContentTypes> extends EventEmitter<
         if (!this.#isListening) break;
         try {
           switch (true) {
+            case isRemoteAttachment(message):
+              await this.#processMessage(message, "attachment");
+              break;
             case isReaction(message):
               await this.#processMessage(message, "reaction");
+              break;
+            case isReply(message):
+              await this.#processMessage(message, "reply");
               break;
             case isText(message):
               await this.#processMessage(message, "text");

@@ -23,12 +23,20 @@ router.command("/version", async (ctx) => {
 
 agent.use(router.middleware());
 
+agent.on("attachment", (ctx) => {
+  console.log("Got attachment:", ctx.message.content);
+});
+
 agent.on("text", (ctx) => {
   console.log("Got text:", ctx.message.content);
 });
 
 agent.on("reaction", (ctx) => {
   console.log("Got reaction:", ctx.message.content);
+});
+
+agent.on("reply", (ctx) => {
+  console.log("Got reply:", ctx.message.content);
 });
 
 agent.on(
