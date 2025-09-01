@@ -3,7 +3,7 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
-import { TextCodec } from "@xmtp/content-type-text";
+import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
@@ -16,13 +16,13 @@ import { isHex } from "viem/utils";
 import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { logDetails } from "@/utils/debug.js";
 import { filter } from "@/utils/filter.js";
-import { createSigner, createUser } from "@/utils/user.js";
 import {
   isReaction,
   isRemoteAttachment,
   isReply,
   isText,
-} from "../utils/message.js";
+} from "@/utils/message.js";
+import { createSigner, createUser } from "@/utils/user.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
@@ -189,7 +189,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       message,
       conversation,
       client: this.#client,
-    });
+    }) as AgentContext<ContentTypes>;
 
     let middlewareIndex = 0;
     const next = async () => {
@@ -203,7 +203,7 @@ export class Agent<ContentTypes> extends EventEmitter<
         const listeners = this.listeners(topic);
         for (const listener of listeners) {
           try {
-            listener(context);
+            (listener as (ctx: AgentContext<ContentTypes>) => void)(context);
           } catch (error) {
             this.#throwError(error);
           }

@@ -153,7 +153,13 @@ export const withFilter =
     listener: (ctx: AgentContext<ContentTypes>) => void | Promise<void>,
   ) =>
   async (ctx: AgentContext<ContentTypes>) => {
-    if (await filterFn(ctx.message, ctx.client, ctx.conversation)) {
+    if (
+      await filterFn(
+        ctx.message as DecodedMessage,
+        ctx.client,
+        ctx.conversation,
+      )
+    ) {
       await listener(ctx);
     }
   };
