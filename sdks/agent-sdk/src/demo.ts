@@ -29,7 +29,7 @@ agent.on("message", (ctx) => {
 
 agent.on(
   "message",
-  withFilter(f.startsWith("@agent"), async (ctx) => {
+  withFilter(f.isText, async (ctx) => {
     await ctx.conversation.send("How can I help you?");
   }),
 );

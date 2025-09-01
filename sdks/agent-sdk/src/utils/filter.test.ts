@@ -82,13 +82,13 @@ describe("MessageFilters", () => {
   describe("textOnly", () => {
     it("should return true for text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeText });
-      const result = filter.textOnly(message, mockClient, dmConversation);
+      const result = filter.isText(message, mockClient, dmConversation);
       expect(result).toBe(true);
     });
 
     it("should return false for non-text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeReply });
-      const result = filter.textOnly(message, mockClient, dmConversation);
+      const result = filter.isText(message, mockClient, dmConversation);
       expect(result).toBe(false);
     });
   });
@@ -252,7 +252,7 @@ describe("MessageFilters", () => {
 
       const complexFilter = filter.and(
         filter.fromSender("target-sender"),
-        filter.or(filter.textOnly),
+        filter.or(filter.isText),
         filter.not(filter.fromSelf),
       );
 

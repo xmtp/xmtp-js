@@ -131,7 +131,7 @@ agent.on(
 );
 
 // Combination of filters
-const combined = filter.and(filter.notFromSelf, filter.textOnly);
+const combined = filter.and(filter.notFromSelf, filter.isText);
 
 agent.on(
   "message",
@@ -148,8 +148,8 @@ For convenience, the `filter` object can also be imported as `f`:
 import { filter, f } from "@xmtp/agent-sdk";
 
 // Both work the same way:
-const longVersion = filter.and(filter.notFromSelf, filter.textOnly);
-const shortVersion = f.and(f.notFromSelf, f.textOnly);
+const longVersion = filter.and(filter.notFromSelf, filter.isText);
+const shortVersion = f.and(f.notFromSelf, f.isText);
 ```
 
 You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/utils/filter.ts).
