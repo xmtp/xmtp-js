@@ -180,7 +180,7 @@ describe("Agent", () => {
       });
       agent.on("message", handler);
 
-      await agent.emit(
+      agent.emit(
         "message",
         new AgentContext({
           message: mockMessage,
@@ -192,7 +192,7 @@ describe("Agent", () => {
       expect(handler).toHaveBeenCalledTimes(1);
       assert(contextSend);
       await contextSend("Test response");
-      expect(mockConversation.send).toHaveBeenCalledWith(
+      expect(mockConversation.send.bind(mockConversation)).toHaveBeenCalledWith(
         "Test response",
         ContentTypeText,
       );

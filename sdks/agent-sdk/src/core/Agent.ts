@@ -173,7 +173,7 @@ export class Agent<ContentTypes> extends EventEmitter<
         const listeners = this.listeners("message");
         for (const listener of listeners) {
           try {
-            await listener(context);
+            listener(context);
           } catch (error) {
             this.#throwError(error);
           }
