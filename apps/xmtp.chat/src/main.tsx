@@ -10,6 +10,8 @@ import {
   arbitrumSepolia,
   base,
   baseSepolia,
+  lens,
+  lensTestnet,
   linea,
   lineaSepolia,
   mainnet,
@@ -60,6 +62,8 @@ export const config = createConfig({
     worldchainSepolia,
     zksync,
     zksyncSepoliaTestnet,
+    lens,
+    lensTestnet,
   ],
   transports: {
     [arbitrum.id]: http(),
@@ -78,6 +82,8 @@ export const config = createConfig({
     [worldchainSepolia.id]: http(),
     [zksync.id]: http(),
     [zksyncSepoliaTestnet.id]: http(),
+    [lens.id]: http(),
+    [lensTestnet.id]: http(),
   },
 });
 
