@@ -117,7 +117,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
             env,
             loggingLevel,
             dbEncryptionKey,
-            appVersion:"xmtp-chat/0.0.0",
+            appVersion: "xmtp-chat/0.0.0",
             codecs: [
               new ReactionCodec(),
               new ReplyCodec(),
