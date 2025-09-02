@@ -44,7 +44,7 @@ export type AgentEventHandler<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
 ) => Promise<void> | void;
 
-export type AgentMiddleware<ContentTypes> = (
+export type AgentMiddleware<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
   next: () => Promise<void>,
 ) => Promise<void>;
