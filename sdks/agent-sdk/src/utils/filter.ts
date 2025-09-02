@@ -1,7 +1,6 @@
-import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import type { AgentContext } from "@/core/AgentContext.js";
-import { getTextContent } from "./message.js";
+import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import { getTextContent, isText as isTextMessage } from "./message.js";
 
 /**
  * Function type for filtering messages based on content and client state.
@@ -42,7 +41,7 @@ function isGroup<ContentTypes>(): MessageFilter<ContentTypes> {
  */
 function isText<ContentTypes>(): MessageFilter<ContentTypes> {
   return (message: DecodedMessage) => {
-    return !!message.contentType?.sameAs(ContentTypeText);
+    return isTextMessage(message);
   };
 }
 

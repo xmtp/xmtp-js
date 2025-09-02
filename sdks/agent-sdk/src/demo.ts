@@ -39,6 +39,8 @@ agent.on("reply", (ctx) => {
   console.log("Got reply:", ctx.message.content);
 });
 
+// agent.on("all")
+// agent.on("every")
 agent.on(
   "message",
   withFilter(f.isText, async (ctx) => {
