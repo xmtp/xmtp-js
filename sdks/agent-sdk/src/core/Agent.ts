@@ -44,6 +44,22 @@ export type AgentErrorMiddleware<ContentTypes> = (
   next: (err?: unknown) => Promise<void>,
 ) => Promise<void>;
 
+export type StreamAllMessagesOptions<ContentTypes> = Parameters<
+  Client<ContentTypes>["conversations"]["streamAllMessages"]
+>[0];
+
+export interface AgentErrorRegistrar<ContentTypes> {
+  /**
+   * Register one or more error middleware functions. Accepts variadic args and/or arrays.
+   * Returns itself for chaining: agent.errors.use(fn1).use(fn2)
+   */
+  use(
+    ...errorMiddleware: Array<
+      AgentErrorMiddleware<ContentTypes> | AgentErrorMiddleware<ContentTypes>[]
+    >
+  ): AgentErrorRegistrar<ContentTypes>;
+}
+
 export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
@@ -51,10 +67,29 @@ export class Agent<ContentTypes> extends EventEmitter<
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
+  public readonly errors: AgentErrorRegistrar<ContentTypes>;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
     this.#client = client;
+    // Initialize errors registrar
+    this.errors = {
+      use: (
+        ...errorMiddleware: Array<
+          | AgentErrorMiddleware<ContentTypes>
+          | AgentErrorMiddleware<ContentTypes>[]
+        >
+      ) => {
+        for (const emw of errorMiddleware) {
+          if (Array.isArray(emw)) {
+            this.#errorMiddleware.push(...emw);
+          } else if (typeof emw === "function") {
+            this.#errorMiddleware.push(emw);
+          }
+        }
+        return this.errors;
+      },
+    };
   }
 
   static async create<ContentCodecs extends ContentCodec[] = []>(
@@ -117,35 +152,22 @@ export class Agent<ContentTypes> extends EventEmitter<
     return new Agent({ client });
   }
 
-  use(middleware: AgentMiddleware<ContentTypes>): this;
-  use(middleware: AgentMiddleware<ContentTypes>[]): this;
   use(
-    middleware: AgentMiddleware<ContentTypes> | AgentMiddleware<ContentTypes>[],
+    ...middleware: Array<
+      AgentMiddleware<ContentTypes> | AgentMiddleware<ContentTypes>[]
+    >
   ): this {
-    if (Array.isArray(middleware)) {
-      this.#middleware.push(...middleware);
-    } else {
-      this.#middleware.push(middleware);
+    for (const mw of middleware) {
+      if (Array.isArray(mw)) {
+        this.#middleware.push(...mw);
+      } else if (typeof mw === "function") {
+        this.#middleware.push(mw);
+      }
     }
     return this;
   }
 
-  useError(errorMiddleware: AgentErrorMiddleware<ContentTypes>): this;
-  useError(errorMiddleware: AgentErrorMiddleware<ContentTypes>[]): this;
-  useError(
-    errorMiddleware:
-      | AgentErrorMiddleware<ContentTypes>
-      | AgentErrorMiddleware<ContentTypes>[],
-  ): this {
-    if (Array.isArray(errorMiddleware)) {
-      this.#errorMiddleware.push(...errorMiddleware);
-    } else {
-      this.#errorMiddleware.push(errorMiddleware);
-    }
-    return this;
-  }
-
-  async start() {
+  async start(options?: StreamAllMessagesOptions<ContentTypes>) {
     if (this.#isListening) {
       return;
     }
@@ -154,7 +176,8 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      const stream = await this.#client.conversations.streamAllMessages();
+      const stream =
+        await this.#client.conversations.streamAllMessages(options);
       for await (const message of stream) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -172,6 +195,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   async #processMessage(message: DecodedMessage<ContentTypes>) {
+    let context: AgentContext<ContentTypes> | null = null;
     try {
       const conversation = await this.#client.conversations.getConversationById(
         message.conversationId,
@@ -183,65 +207,94 @@ export class Agent<ContentTypes> extends EventEmitter<
         );
       }
 
-      const context = new AgentContext(message, conversation, this.#client);
+      context = new AgentContext(message, conversation, this.#client);
       await this.#runMiddlewareChain(context);
     } catch (error) {
-      // TODO: Make context available here
-      await this.#runErrorChain(error, null);
+      await this.#runErrorChain(error, context);
     }
   }
 
   async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
-    let middlewareIndex = 0;
-
-    const next = async () => {
-      if (middlewareIndex < this.#middleware.length) {
-        const currentMiddleware = this.#middleware[middlewareIndex++];
-        try {
-          await currentMiddleware(context, next);
-        } catch (error) {
-          throw error;
+    const dispatch = async (index: number): Promise<void> => {
+      if (index >= this.#middleware.length) {
+        if (filter.notFromSelf(context.message, this.#client)) {
+          void this.emit("message", context);
         }
-      } else if (filter.notFromSelf(context.message, this.#client)) {
-        void this.emit("message", context);
+        return;
+      }
+
+      const currentMiddleware = this.#middleware[index];
+      try {
+        await currentMiddleware(context, async () => {
+          await dispatch(index + 1);
+        });
+      } catch (error) {
+        // Run error chain; if it signals resume, continue with next normal middleware.
+        const resume = await this.#runErrorChain(error, context);
+        if (resume) {
+          await dispatch(index + 1);
+        }
       }
     };
 
-    await next();
+    await dispatch(0);
   }
 
   async #runErrorChain(
     error: unknown,
     context: AgentContext<ContentTypes> | null,
-  ) {
+  ): Promise<boolean> {
     if (this.#errorMiddleware.length === 0) {
-      return this.#defaultErrorHandler(error);
+      this.#defaultErrorHandler(error);
+      return false;
     }
 
-    let errorIndex = 0;
+    let index = 0;
     let currentError = error;
+    let resume = false; // whether to continue normal middleware chain
+    let propagate = true; // whether unhandled error should reach default handler
 
-    const nextError = async (err?: unknown) => {
-      // If a new error is passed, update the current error
-      if (err) {
-        currentError = err;
+    const runCurrent = async (): Promise<void> => {
+      if (resume || index >= this.#errorMiddleware.length) {
+        return;
       }
 
-      if (errorIndex < this.#errorMiddleware.length) {
-        const errorMiddleware = this.#errorMiddleware[errorIndex++];
-        try {
-          await errorMiddleware(currentError, context, nextError);
-        } catch (middlewareError) {
-          // If error middleware itself throws, move to the next one
-          currentError = middlewareError;
-          await nextError(currentError);
+      const errorHandler = this.#errorMiddleware[index];
+      let nextCalled = false;
+      const nextError = async (err?: unknown) => {
+        nextCalled = true;
+        if (err === undefined) {
+          // Recover
+          resume = true;
+          propagate = false;
+          return;
+        } else {
+          currentError = err;
+          index += 1;
+          await runCurrent();
         }
-      } else {
-        this.#defaultErrorHandler(currentError);
+      };
+
+      try {
+        await errorHandler(currentError, context, nextError);
+        if (!nextCalled) {
+          // Treated as handled; stop chain
+          propagate = false;
+        }
+      } catch (thrown) {
+        currentError = thrown;
+        index += 1;
+        await runCurrent();
       }
     };
 
-    await nextError();
+    await runCurrent();
+
+    if (propagate && !resume) {
+      this.#defaultErrorHandler(currentError);
+    }
+
+    return resume;
   }
 
   get client() {

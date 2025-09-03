@@ -4,7 +4,7 @@ import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import { describe, expect, expectTypeOf, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, Mock, vi } from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
 import { Agent, type AgentOptions } from "./Agent.js";
 import { AgentContext } from "./AgentContext.js";
@@ -207,6 +207,94 @@ describe("Agent", () => {
       agent.stop();
 
       expect(stopSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe("Error Handling middleware chain", () => {
+    const mockConversation = { send: vi.fn() };
+    const mockMessage = {
+      id: "msg-1",
+      conversationId: "conv-1",
+      senderInboxId: "inbox-1",
+      contentType: ContentTypeText,
+      content: "hello",
+    } as unknown as DecodedMessage;
+
+    const makeAgent = () => {
+      const mockClient = {
+        conversations: {
+          sync: vi.fn().mockResolvedValue(undefined),
+          streamAllMessages: vi.fn(),
+          getConversationById: vi.fn().mockResolvedValue(mockConversation),
+        },
+        preferences: { inboxStateFromInboxIds: vi.fn() },
+      } as unknown as Client & {
+        conversations: {
+          streamAllMessages: Mock;
+        };
+      };
+      return { agent: new Agent({ client: mockClient }), mockClient };
+    };
+
+    it("propagates error, transforms, recovers, and resumes remaining middleware", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+      const errorEvents: Error[] = [];
+      agent.on("error", (error) => errorEvents.push(error));
+
+      agent.use(async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("A");
+        await next();
+      });
+
+      agent.use(async (ctx) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("B");
+        throw new Error("Initial error");
+      });
+
+      agent.errors.use(async (err, ctx, next) => {
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toBe("Initial error");
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("E1");
+        // Transform the initial error
+        await next(new Error("Transformed error"));
+      });
+
+      agent.errors.use(async (err, ctx, next) => {
+        expect((err as Error).message).toBe("Transformed error");
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("E2");
+        // Resume middleware chain
+        await next();
+      });
+
+      agent.use(async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("C");
+        await next();
+      });
+
+      agent.use(async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("D");
+        await next();
+      });
+
+      // Stream yields one message then ends
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual(["A", "B", "E1", "E2", "C", "D"]);
+      expect(errorEvents, "recovered, no final error").toHaveLength(0);
     });
   });
 });
