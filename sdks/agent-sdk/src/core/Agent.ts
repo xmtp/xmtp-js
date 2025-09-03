@@ -29,7 +29,7 @@ export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
 }
 
-export type AgentEventHandler<ContentTypes = unknown> = (
+export type AgentMessageHandler<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
 ) => Promise<void> | void;
 

@@ -1,12 +1,15 @@
-import { type AgentEventHandler, type AgentMiddleware } from "@/core/Agent.js";
+import {
+  type AgentMessageHandler,
+  type AgentMiddleware,
+} from "@/core/Agent.js";
 import type { AgentContext } from "@/core/AgentContext.js";
 import { isText } from "@/utils/message.js";
 
 export class CommandRouter<ContentTypes> {
-  private commandMap = new Map<string, AgentEventHandler>();
-  private defaultHandler: AgentEventHandler | null = null;
+  private commandMap = new Map<string, AgentMessageHandler>();
+  private defaultHandler: AgentMessageHandler | null = null;
 
-  command(command: string, handler: AgentEventHandler): this {
+  command(command: string, handler: AgentMessageHandler): this {
     if (!command.startsWith("/")) {
       throw new Error('Command must start with "/"');
     }
@@ -14,7 +17,7 @@ export class CommandRouter<ContentTypes> {
     return this;
   }
 
-  default(handler: AgentEventHandler): this {
+  default(handler: AgentMessageHandler): this {
     this.defaultHandler = handler;
     return this;
   }
