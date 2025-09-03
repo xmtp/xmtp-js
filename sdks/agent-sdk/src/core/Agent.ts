@@ -36,6 +36,12 @@ export type AgentMessageHandler<ContentTypes = unknown> = (
 export type AgentMiddleware<ContentTypes> = (
   ctx: AgentContext<ContentTypes>,
   next: () => Promise<void>,
+) => Promise<void> | void;
+
+export type AgentErrorMiddleware<ContentTypes> = (
+  error: unknown,
+  ctx: AgentContext<ContentTypes> | null,
+  next: (err?: unknown) => Promise<void>,
 ) => Promise<void>;
 
 export class Agent<ContentTypes> extends EventEmitter<
@@ -43,6 +49,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 > {
   #client: Client<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
+  #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
@@ -115,6 +122,11 @@ export class Agent<ContentTypes> extends EventEmitter<
     return this;
   }
 
+  useError(errorMiddleware: AgentErrorMiddleware<ContentTypes>) {
+    this.#errorMiddleware.push(errorMiddleware);
+    return this;
+  }
+
   async start() {
     if (this.#isListening) {
       return;
@@ -132,44 +144,86 @@ export class Agent<ContentTypes> extends EventEmitter<
         try {
           await this.#processMessage(message);
         } catch (error) {
-          this.#throwError(error);
+          this.#defaultErrorHandler(error);
         }
       }
     } catch (error) {
       this.#isListening = false;
-      this.#throwError(error);
+      this.#defaultErrorHandler(error);
     }
   }
 
   async #processMessage(message: DecodedMessage<ContentTypes>) {
-    const conversation = await this.#client.conversations.getConversationById(
-      message.conversationId,
-    );
-
-    if (!conversation) {
-      this.#throwError(
-        new Error(
-          `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
-        ),
+    try {
+      const conversation = await this.#client.conversations.getConversationById(
+        message.conversationId,
       );
-      return;
+
+      if (!conversation) {
+        throw new Error(
+          `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
+        );
+      }
+
+      const context = new AgentContext(message, conversation, this.#client);
+      await this.#runMiddlewareChain(context);
+    } catch (error) {
+      // TODO: Make context available here
+      await this.#runErrorChain(error, null);
     }
+  }
 
-    const context = new AgentContext(message, conversation, this.#client);
-
+  async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
     let middlewareIndex = 0;
+
     const next = async () => {
       if (middlewareIndex < this.#middleware.length) {
         const currentMiddleware = this.#middleware[middlewareIndex++];
-        await currentMiddleware(context, next);
-      } else if (filter.notFromSelf(message, this.#client)) {
-        // Note: we are filtering the agent's own message to avoid
-        // infinite message loops when a "message" listener replies
+        try {
+          await currentMiddleware(context, next);
+        } catch (error) {
+          throw error;
+        }
+      } else if (filter.notFromSelf(context.message, this.#client)) {
         void this.emit("message", context);
       }
     };
 
     await next();
+  }
+
+  async #runErrorChain(
+    error: unknown,
+    context: AgentContext<ContentTypes> | null,
+  ) {
+    if (this.#errorMiddleware.length === 0) {
+      return this.#defaultErrorHandler(error);
+    }
+
+    let errorIndex = 0;
+    let currentError = error;
+
+    const nextError = async (err?: unknown) => {
+      // If a new error is passed, update the current error
+      if (err) {
+        currentError = err;
+      }
+
+      if (errorIndex < this.#errorMiddleware.length) {
+        const errorMiddleware = this.#errorMiddleware[errorIndex++];
+        try {
+          await errorMiddleware(currentError, context, nextError);
+        } catch (middlewareError) {
+          // If error middleware itself throws, move to the next one
+          currentError = middlewareError;
+          await nextError(currentError);
+        }
+      } else {
+        this.#defaultErrorHandler(currentError);
+      }
+    };
+
+    await nextError();
   }
 
   get client() {
@@ -181,7 +235,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     void this.emit("stop");
   }
 
-  #throwError(error: unknown) {
+  #defaultErrorHandler(error: unknown) {
     const newError = error instanceof Error ? error : new Error(String(error));
     void this.emit("error", newError);
   }
