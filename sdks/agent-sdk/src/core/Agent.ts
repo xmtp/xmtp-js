@@ -117,13 +117,31 @@ export class Agent<ContentTypes> extends EventEmitter<
     return new Agent({ client });
   }
 
-  use(middleware: AgentMiddleware<ContentTypes>) {
-    this.#middleware.push(middleware);
+  use(middleware: AgentMiddleware<ContentTypes>): this;
+  use(middleware: AgentMiddleware<ContentTypes>[]): this;
+  use(
+    middleware: AgentMiddleware<ContentTypes> | AgentMiddleware<ContentTypes>[],
+  ): this {
+    if (Array.isArray(middleware)) {
+      this.#middleware.push(...middleware);
+    } else {
+      this.#middleware.push(middleware);
+    }
     return this;
   }
 
-  useError(errorMiddleware: AgentErrorMiddleware<ContentTypes>) {
-    this.#errorMiddleware.push(errorMiddleware);
+  useError(errorMiddleware: AgentErrorMiddleware<ContentTypes>): this;
+  useError(errorMiddleware: AgentErrorMiddleware<ContentTypes>[]): this;
+  useError(
+    errorMiddleware:
+      | AgentErrorMiddleware<ContentTypes>
+      | AgentErrorMiddleware<ContentTypes>[],
+  ): this {
+    if (Array.isArray(errorMiddleware)) {
+      this.#errorMiddleware.push(...errorMiddleware);
+    } else {
+      this.#errorMiddleware.push(errorMiddleware);
+    }
     return this;
   }
 
