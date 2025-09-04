@@ -210,7 +210,7 @@ describe("Agent", () => {
     });
   });
 
-  describe("Error Handling middleware chain", () => {
+  describe("Error Handling", () => {
     const mockConversation = { send: vi.fn() };
     const mockMessage = {
       id: "msg-1",

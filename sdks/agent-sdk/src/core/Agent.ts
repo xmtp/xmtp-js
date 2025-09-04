@@ -49,10 +49,6 @@ export type StreamAllMessagesOptions<ContentTypes> = Parameters<
 >[0];
 
 export interface AgentErrorRegistrar<ContentTypes> {
-  /**
-   * Register one or more error middleware functions. Accepts variadic args and/or arrays.
-   * Returns itself for chaining: agent.errors.use(fn1).use(fn2)
-   */
   use(
     ...errorMiddleware: Array<
       AgentErrorMiddleware<ContentTypes> | AgentErrorMiddleware<ContentTypes>[]
@@ -72,14 +68,8 @@ export class Agent<ContentTypes> extends EventEmitter<
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
     this.#client = client;
-    // Initialize errors registrar
     this.errors = {
-      use: (
-        ...errorMiddleware: Array<
-          | AgentErrorMiddleware<ContentTypes>
-          | AgentErrorMiddleware<ContentTypes>[]
-        >
-      ) => {
+      use: (...errorMiddleware) => {
         for (const emw of errorMiddleware) {
           if (Array.isArray(emw)) {
             this.#errorMiddleware.push(...emw);
@@ -185,12 +175,12 @@ export class Agent<ContentTypes> extends EventEmitter<
         try {
           await this.#processMessage(message);
         } catch (error) {
-          this.#defaultErrorHandler(error);
+          this.#runErrorChain(error, null);
         }
       }
     } catch (error) {
       this.#isListening = false;
-      this.#defaultErrorHandler(error);
+      this.#runErrorChain(error, null);
     }
   }
 
@@ -229,7 +219,6 @@ export class Agent<ContentTypes> extends EventEmitter<
           await dispatch(index + 1);
         });
       } catch (error) {
-        // Run error chain; if it signals resume, continue with next normal middleware.
         const resume = await this.#runErrorChain(error, context);
         if (resume) {
           await dispatch(index + 1);
@@ -276,7 +265,6 @@ export class Agent<ContentTypes> extends EventEmitter<
           return;
         }
 
-        // Pass a new error to the next handler
         currentError = err;
         i += 1;
       };
@@ -290,7 +278,7 @@ export class Agent<ContentTypes> extends EventEmitter<
           break;
         }
       } catch (thrown) {
-        // Handler failed while handling the error; move on with the thrown value
+        // Handler failed while handling the error
         currentError = thrown;
         i += 1;
       }
