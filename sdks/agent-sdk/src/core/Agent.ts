@@ -35,14 +35,14 @@ export type AgentMessageHandler<ContentTypes = unknown> = (
 
 export type AgentMiddleware<ContentTypes> = (
   ctx: AgentContext<ContentTypes>,
-  next: () => Promise<void>,
+  next: () => Promise<void> | void,
 ) => Promise<void> | void;
 
 export type AgentErrorMiddleware<ContentTypes> = (
   error: unknown,
   ctx: AgentContext<ContentTypes> | null,
-  next: (err?: unknown) => Promise<void>,
-) => Promise<void>;
+  next: (err?: unknown) => Promise<void> | void,
+) => Promise<void> | void;
 
 export type StreamAllMessagesOptions<ContentTypes> = Parameters<
   Client<ContentTypes>["conversations"]["streamAllMessages"]
@@ -244,57 +244,63 @@ export class Agent<ContentTypes> extends EventEmitter<
     error: unknown,
     context: AgentContext<ContentTypes> | null,
   ): Promise<boolean> {
-    if (this.#errorMiddleware.length === 0) {
+    const chain = this.#errorMiddleware;
+
+    if (chain.length === 0) {
       this.#defaultErrorHandler(error);
       return false;
     }
 
-    let index = 0;
-    let currentError = error;
-    let resume = false; // whether to continue normal middleware chain
-    let propagate = true; // whether unhandled error should reach default handler
+    let currentError: unknown = error;
+    let resumeMain = false as boolean; // whether to continue the normal middleware chain
+    let propagate = true; // whether an unhandled error should reach the default handler
 
-    const runCurrent = async (): Promise<void> => {
-      if (resume || index >= this.#errorMiddleware.length) {
-        return;
-      }
+    // Manual index so handlers can advance the chain only when they call next(err)
+    // If next(err) gets called, loop continues
+    // If next() gets called, resumeMain is true which breaks the error loop
+    for (let i = 0; i < chain.length && !resumeMain; ) {
+      const errorHandler = chain[i];
 
-      const errorHandler = this.#errorMiddleware[index];
-      let nextCalled = false;
-      const nextError = async (err?: unknown) => {
+      let nextCalled = false as boolean;
+      let nextSettled = false;
+
+      const next = (err?: unknown) => {
+        if (nextSettled) return;
+        nextSettled = true;
         nextCalled = true;
+
         if (err === undefined) {
-          // Recover
-          resume = true;
+          // Recovered
+          resumeMain = true;
           propagate = false;
           return;
-        } else {
-          currentError = err;
-          index += 1;
-          await runCurrent();
         }
+
+        // Pass a new error to the next handler
+        currentError = err;
+        i += 1;
       };
 
       try {
-        await errorHandler(currentError, context, nextError);
+        await errorHandler(currentError, context, next);
+
         if (!nextCalled) {
-          // Treated as handled; stop chain
+          // Treated as handled, stop the error chain here
           propagate = false;
+          break;
         }
       } catch (thrown) {
+        // Handler failed while handling the error; move on with the thrown value
         currentError = thrown;
-        index += 1;
-        await runCurrent();
+        i += 1;
       }
-    };
+    }
 
-    await runCurrent();
-
-    if (propagate && !resume) {
+    if (propagate && !resumeMain) {
       this.#defaultErrorHandler(currentError);
     }
 
-    return resume;
+    return resumeMain;
   }
 
   get client() {

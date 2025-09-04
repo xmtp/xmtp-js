@@ -4,7 +4,7 @@ import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import { describe, expect, expectTypeOf, it, Mock, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi, type Mock } from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
 import { Agent, type AgentOptions } from "./Agent.js";
 import { AgentContext } from "./AgentContext.js";
@@ -249,7 +249,7 @@ describe("Agent", () => {
         await next();
       });
 
-      agent.use(async (ctx) => {
+      agent.use((ctx) => {
         expect(ctx).toBeInstanceOf(AgentContext);
         callOrder.push("B");
         throw new Error("Initial error");
@@ -286,7 +286,7 @@ describe("Agent", () => {
 
       // Stream yields one message then ends
       mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
+        (function* () {
           yield mockMessage;
         })(),
       );
