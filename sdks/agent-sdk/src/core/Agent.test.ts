@@ -6,7 +6,7 @@ import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it, vi, type Mock } from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
-import { Agent, type AgentOptions } from "./Agent.js";
+import { Agent, type AgentMiddleware, type AgentOptions } from "./Agent.js";
 import { AgentContext } from "./AgentContext.js";
 
 describe("Agent", () => {
@@ -117,7 +117,7 @@ describe("Agent", () => {
     });
 
     it("should execute middleware when processing messages", async () => {
-      const middleware = vi.fn(async (_, next: () => Promise<void>) => {
+      const middleware = vi.fn<AgentMiddleware>(async (_, next) => {
         await next();
       });
       agent.use(middleware);
@@ -140,13 +140,13 @@ describe("Agent", () => {
     it("should execute multiple middleware in order", async () => {
       const calls: string[] = [];
 
-      const middleware1 = vi.fn(async (_, next: () => Promise<void>) => {
+      const middleware1 = vi.fn<AgentMiddleware>(async (_, next) => {
         calls.push("middleware1-start");
         await next();
         calls.push("middleware1-end");
       });
 
-      const middleware2 = vi.fn(async (_, next: () => Promise<void>) => {
+      const middleware2 = vi.fn<AgentMiddleware>(async (_, next) => {
         calls.push("middleware2-start");
         await next();
         calls.push("middleware2-end");

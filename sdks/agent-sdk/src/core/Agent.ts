@@ -33,12 +33,12 @@ export type AgentMessageHandler<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
 ) => Promise<void> | void;
 
-export type AgentMiddleware<ContentTypes> = (
+export type AgentMiddleware<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
   next: () => Promise<void> | void,
 ) => Promise<void> | void;
 
-export type AgentErrorMiddleware<ContentTypes> = (
+export type AgentErrorMiddleware<ContentTypes = unknown> = (
   error: unknown,
   ctx: AgentContext<ContentTypes> | null,
   next: (err?: unknown) => Promise<void> | void,
