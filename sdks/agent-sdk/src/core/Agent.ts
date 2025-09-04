@@ -246,7 +246,6 @@ export class Agent<ContentTypes> extends EventEmitter<
     let resumeMain = false as boolean; // whether to continue the normal middleware chain
     let propagate = true; // whether an unhandled error should reach the default handler
 
-    // Manual index so handlers can advance the chain only when they call next(err)
     // If next(err) gets called, loop continues
     // If next() gets called, resumeMain is true which breaks the error loop
     for (let i = 0; i < chain.length && !resumeMain; ) {
