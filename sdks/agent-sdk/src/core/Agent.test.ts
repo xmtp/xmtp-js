@@ -240,8 +240,8 @@ describe("Agent", () => {
       const { agent, mockClient } = makeAgent();
 
       const callOrder: string[] = [];
-      const errorEvents: Error[] = [];
-      agent.on("error", (error) => errorEvents.push(error));
+      const onError = vi.fn();
+      agent.on("error", onError);
 
       agent.use(async (ctx, next) => {
         expect(ctx).toBeInstanceOf(AgentContext);
@@ -284,6 +284,10 @@ describe("Agent", () => {
         await next();
       });
 
+      agent.on("message", () => {
+        callOrder.push("EMIT");
+      });
+
       // Stream yields one message then ends
       mockClient.conversations.streamAllMessages.mockResolvedValue(
         (function* () {
@@ -293,8 +297,11 @@ describe("Agent", () => {
 
       await agent.start();
 
-      expect(callOrder).toEqual(["A", "B", "E1", "E2", "C", "D"]);
-      expect(errorEvents, "recovered, no final error").toHaveLength(0);
+      expect(callOrder).toEqual(["A", "B", "E1", "E2", "C", "D", "EMIT"]);
+      expect(
+        onError,
+        "error chain recovered, no final error is emitted",
+      ).toHaveBeenCalledTimes(0);
     });
   });
 });

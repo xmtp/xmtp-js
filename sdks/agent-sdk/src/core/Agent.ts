@@ -205,13 +205,13 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
-    const emit = () => {
+    const finalEmit = () => {
       if (filter.notFromSelf(context.message, this.#client)) {
         void this.emit("message", context);
       }
     };
 
-    const chain = this.#middleware.reduceRight<() => Promise<void> | void>(
+    const chain = this.#middleware.reduceRight<Parameters<AgentMiddleware>[1]>(
       (next, mw) => {
         return async () => {
           try {
@@ -221,11 +221,11 @@ export class Agent<ContentTypes> extends EventEmitter<
             if (resume) {
               await next();
             }
-            // If not resuming, swallow error here to stop the chain
+            // Chain is not resuming, error is being swallowed
           }
         };
       },
-      emit,
+      finalEmit,
     );
 
     await chain();
