@@ -205,28 +205,30 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
-    const dispatch = async (index: number): Promise<void> => {
-      if (index >= this.#middleware.length) {
-        if (filter.notFromSelf(context.message, this.#client)) {
-          void this.emit("message", context);
-        }
-        return;
-      }
-
-      const currentMiddleware = this.#middleware[index];
-      try {
-        await currentMiddleware(context, async () => {
-          await dispatch(index + 1);
-        });
-      } catch (error) {
-        const resume = await this.#runErrorChain(error, context);
-        if (resume) {
-          await dispatch(index + 1);
-        }
+    const emit = async () => {
+      if (filter.notFromSelf(context.message, this.#client)) {
+        void this.emit("message", context);
       }
     };
 
-    await dispatch(0);
+    const chain = this.#middleware.reduceRight<() => Promise<void>>(
+      (next, mw) => {
+        return async () => {
+          try {
+            await mw(context, next);
+          } catch (error) {
+            const resume = await this.#runErrorChain(error, context);
+            if (resume) {
+              await next();
+            }
+            // If not resuming, swallow error here to stop the chain
+          }
+        };
+      },
+      emit,
+    );
+
+    await chain();
   }
 
   async #runErrorChain(
