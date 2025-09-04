@@ -175,12 +175,12 @@ export class Agent<ContentTypes> extends EventEmitter<
         try {
           await this.#processMessage(message);
         } catch (error) {
-          this.#runErrorChain(error, null);
+          await this.#runErrorChain(error, null);
         }
       }
     } catch (error) {
       this.#isListening = false;
-      this.#runErrorChain(error, null);
+      await this.#runErrorChain(error, null);
     }
   }
 
@@ -205,13 +205,13 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
-    const emit = async () => {
+    const emit = () => {
       if (filter.notFromSelf(context.message, this.#client)) {
         void this.emit("message", context);
       }
     };
 
-    const chain = this.#middleware.reduceRight<() => Promise<void>>(
+    const chain = this.#middleware.reduceRight<() => Promise<void> | void>(
       (next, mw) => {
         return async () => {
           try {
