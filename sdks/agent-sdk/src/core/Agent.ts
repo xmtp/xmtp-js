@@ -22,9 +22,9 @@ import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
 
 interface EventHandlerMap<ContentTypes> {
-  dm: [ctx: ConversationContext<ContentTypes>];
+  dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   error: [error: Error];
-  group: [ctx: ConversationContext<ContentTypes>];
+  group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
   message: [ctx: MessageContext<ContentTypes>];
   start: [];
   stop: [];
@@ -175,12 +175,18 @@ export class Agent<ContentTypes> extends EventEmitter<
           if (conversation instanceof Group) {
             this.emit(
               "group",
-              new ConversationContext(conversation, this.#client),
+              new ConversationContext<ContentTypes, Group<ContentTypes>>(
+                conversation,
+                this.#client,
+              ),
             );
           } else if (conversation instanceof Dm) {
             this.emit(
               "dm",
-              new ConversationContext(conversation, this.#client),
+              new ConversationContext<ContentTypes, Dm<ContentTypes>>(
+                conversation,
+                this.#client,
+              ),
             );
           }
         },

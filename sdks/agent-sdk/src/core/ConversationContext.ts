@@ -1,11 +1,14 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation } from "@xmtp/node-sdk";
 
-export class ConversationContext<ContentTypes = unknown> {
+export class ConversationContext<
+  ContentTypes = unknown,
+  TConversation extends Conversation = Conversation,
+> {
   #client: Client<ContentTypes>;
-  #conversation: Conversation;
+  #conversation: TConversation;
 
-  constructor(conversation: Conversation, client: Client<ContentTypes>) {
+  constructor(conversation: TConversation, client: Client<ContentTypes>) {
     this.#conversation = conversation;
     this.#client = client;
   }
