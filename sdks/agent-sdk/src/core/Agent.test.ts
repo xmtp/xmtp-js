@@ -6,7 +6,12 @@ import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it, vi, type Mock } from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
-import { Agent, type AgentMiddleware, type AgentOptions } from "./Agent.js";
+import {
+  Agent,
+  type AgentErrorMiddleware,
+  type AgentMiddleware,
+  type AgentOptions,
+} from "./Agent.js";
 import { AgentContext } from "./AgentContext.js";
 
 describe("Agent", () => {
@@ -243,46 +248,49 @@ describe("Agent", () => {
       const onError = vi.fn();
       agent.on("error", onError);
 
-      agent.use(async (ctx, next) => {
+      const mw1: AgentMiddleware = async (ctx, next) => {
         expect(ctx).toBeInstanceOf(AgentContext);
-        callOrder.push("A");
+        callOrder.push("1");
         await next();
-      });
+      };
 
-      agent.use((ctx) => {
+      const mw2: AgentMiddleware = (ctx) => {
         expect(ctx).toBeInstanceOf(AgentContext);
-        callOrder.push("B");
+        callOrder.push("2");
         throw new Error("Initial error");
-      });
+      };
 
-      agent.errors.use(async (err, ctx, next) => {
+      const mw3: AgentMiddleware = async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("3");
+        await next();
+      };
+
+      const mw4: AgentMiddleware = async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("4");
+        await next();
+      };
+
+      const e1: AgentErrorMiddleware = async (err, ctx, next) => {
         expect(err).toBeInstanceOf(Error);
         expect((err as Error).message).toBe("Initial error");
         expect(ctx).toBeInstanceOf(AgentContext);
         callOrder.push("E1");
         // Transform the initial error
         await next(new Error("Transformed error"));
-      });
+      };
 
-      agent.errors.use(async (err, ctx, next) => {
+      const e2: AgentErrorMiddleware = async (err, ctx, next) => {
         expect((err as Error).message).toBe("Transformed error");
         expect(ctx).toBeInstanceOf(AgentContext);
         callOrder.push("E2");
         // Resume middleware chain
         await next();
-      });
+      };
 
-      agent.use(async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
-        callOrder.push("C");
-        await next();
-      });
-
-      agent.use(async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
-        callOrder.push("D");
-        await next();
-      });
+      agent.use([mw1, mw2], [mw3], mw4);
+      agent.errors.use(e1, e2);
 
       agent.on("message", () => {
         callOrder.push("EMIT");
@@ -297,7 +305,7 @@ describe("Agent", () => {
 
       await agent.start();
 
-      expect(callOrder).toEqual(["A", "B", "E1", "E2", "C", "D", "EMIT"]);
+      expect(callOrder).toEqual(["1", "2", "E1", "E2", "3", "4", "EMIT"]);
       expect(
         onError,
         "error chain recovered, no final error is emitted",

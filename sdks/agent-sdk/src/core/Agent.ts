@@ -63,23 +63,22 @@ export class Agent<ContentTypes> extends EventEmitter<
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
-  public readonly errors: AgentErrorRegistrar<ContentTypes>;
+  #errors: AgentErrorRegistrar<ContentTypes> = {
+    use: (...errorMiddleware) => {
+      for (const emw of errorMiddleware) {
+        if (Array.isArray(emw)) {
+          this.#errorMiddleware.push(...emw);
+        } else if (typeof emw === "function") {
+          this.#errorMiddleware.push(emw);
+        }
+      }
+      return this.#errors;
+    },
+  };
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
     this.#client = client;
-    this.errors = {
-      use: (...errorMiddleware) => {
-        for (const emw of errorMiddleware) {
-          if (Array.isArray(emw)) {
-            this.#errorMiddleware.push(...emw);
-          } else if (typeof emw === "function") {
-            this.#errorMiddleware.push(emw);
-          }
-        }
-        return this.errors;
-      },
-    };
   }
 
   static async create<ContentCodecs extends ContentCodec[] = []>(
@@ -294,6 +293,10 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   get client() {
     return this.#client;
+  }
+
+  get errors() {
+    return this.#errors;
   }
 
   stop() {
