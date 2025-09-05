@@ -1,6 +1,6 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
-import type { AgentContext } from "@/core/AgentContext.js";
+import type { MessageContext } from "@/core/MessageContext.js";
 import { getTextContent } from "./message.js";
 
 /**
@@ -147,9 +147,9 @@ export const f = filter;
 export const withFilter =
   <ContentTypes>(
     filter: MessageFilter<ContentTypes>,
-    listener: (ctx: AgentContext<ContentTypes>) => void,
+    listener: (ctx: MessageContext<ContentTypes>) => void,
   ) =>
-  (ctx: AgentContext<ContentTypes>) => {
+  (ctx: MessageContext<ContentTypes>) => {
     if (filter(ctx.message, ctx.client)) {
       listener(ctx);
     }

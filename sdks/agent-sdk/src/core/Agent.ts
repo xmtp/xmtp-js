@@ -6,6 +6,8 @@ import { ReplyCodec } from "@xmtp/content-type-reply";
 import {
   ApiUrls,
   Client,
+  Dm,
+  Group,
   LogLevel,
   type ClientOptions,
   type DecodedMessage,
@@ -16,11 +18,14 @@ import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { logDetails } from "@/utils/debug.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import { AgentContext } from "./AgentContext.js";
+import { ConversationContext } from "./ConversationContext.js";
+import { MessageContext } from "./MessageContext.js";
 
 interface EventHandlerMap<ContentTypes> {
+  dm: [ctx: ConversationContext<ContentTypes>];
   error: [error: Error];
-  message: [ctx: AgentContext<ContentTypes>];
+  group: [ctx: ConversationContext<ContentTypes>];
+  message: [ctx: MessageContext<ContentTypes>];
   start: [];
   stop: [];
 }
@@ -30,17 +35,17 @@ export interface AgentOptions<ContentTypes> {
 }
 
 export type AgentMessageHandler<ContentTypes = unknown> = (
-  ctx: AgentContext<ContentTypes>,
+  ctx: MessageContext<ContentTypes>,
 ) => Promise<void> | void;
 
 export type AgentMiddleware<ContentTypes = unknown> = (
-  ctx: AgentContext<ContentTypes>,
+  ctx: MessageContext<ContentTypes>,
   next: () => Promise<void> | void,
 ) => Promise<void> | void;
 
 export type AgentErrorMiddleware<ContentTypes = unknown> = (
   error: unknown,
-  ctx: AgentContext<ContentTypes> | null,
+  ctx: MessageContext<ContentTypes> | null,
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
@@ -156,7 +161,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     return this;
   }
 
-  async start(options?: StreamAllMessagesOptions<ContentTypes>) {
+  async start() {
     if (this.#isListening) {
       return;
     }
@@ -165,9 +170,30 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      const stream =
-        await this.#client.conversations.streamAllMessages(options);
-      for await (const message of stream) {
+      const stream = await this.#client.conversations.stream({
+        onValue: (conversation) => {
+          if (conversation instanceof Group) {
+            this.emit(
+              "group",
+              new ConversationContext(conversation, this.#client),
+            );
+          } else if (conversation instanceof Dm) {
+            this.emit(
+              "dm",
+              new ConversationContext(conversation, this.#client),
+            );
+          }
+        },
+        onError: (error) => {
+          this.#runErrorChain(error, null);
+        },
+        onFail: () => {
+          this.#runErrorChain(new Error("conversations.stream failed"), null);
+        },
+      });
+
+      const messages = await this.#client.conversations.streamAllMessages();
+      for await (const message of messages) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
@@ -184,7 +210,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   async #processMessage(message: DecodedMessage<ContentTypes>) {
-    let context: AgentContext<ContentTypes> | null = null;
+    let context: MessageContext<ContentTypes> | null = null;
     try {
       const conversation = await this.#client.conversations.getConversationById(
         message.conversationId,
@@ -196,14 +222,14 @@ export class Agent<ContentTypes> extends EventEmitter<
         );
       }
 
-      context = new AgentContext(message, conversation, this.#client);
+      context = new MessageContext(message, conversation, this.#client);
       await this.#runMiddlewareChain(context);
     } catch (error) {
       await this.#runErrorChain(error, context);
     }
   }
 
-  async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
+  async #runMiddlewareChain(context: MessageContext<ContentTypes>) {
     const finalEmit = () => {
       if (filter.notFromSelf(context.message, this.#client)) {
         this.emit("message", context);
@@ -232,7 +258,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorChain(
     error: unknown,
-    context: AgentContext<ContentTypes> | null,
+    context: MessageContext<ContentTypes> | null,
   ): Promise<boolean> {
     const chain = this.#errorMiddleware;
 

@@ -156,7 +156,7 @@ You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-
 
 ### 4. Rich Context
 
-Every `message` handler receives an `AgentContext` with:
+Every `message` handler receives a `MessageContext` with:
 
 - `message` – decoded message
 - `conversation` – the active conversation object

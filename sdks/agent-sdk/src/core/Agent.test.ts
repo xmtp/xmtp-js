@@ -12,7 +12,7 @@ import {
   type AgentMiddleware,
   type AgentOptions,
 } from "./Agent.js";
-import { AgentContext } from "./AgentContext.js";
+import { MessageContext } from "./MessageContext.js";
 
 describe("Agent", () => {
   const mockConversation = {
@@ -66,7 +66,7 @@ describe("Agent", () => {
     it("types the content in message event listener", () => {
       ephemeralAgent.on("message", (ctx) => {
         expectTypeOf(ctx).toEqualTypeOf<
-          AgentContext<
+          MessageContext<
             string | Reaction | Reply | RemoteAttachment | GroupUpdated
           >
         >();
@@ -137,7 +137,7 @@ describe("Agent", () => {
 
       expect(middleware).toHaveBeenCalledTimes(1);
       expect(middleware).toHaveBeenCalledWith(
-        expect.any(AgentContext),
+        expect.any(MessageContext),
         expect.any(Function),
       );
     });
@@ -180,14 +180,14 @@ describe("Agent", () => {
   describe("emit", () => {
     it("should emit 'message' and allow sending a reply via context", async () => {
       let contextSend: ((text: string) => Promise<void>) | undefined;
-      const handler = vi.fn((ctx: AgentContext) => {
+      const handler = vi.fn((ctx: MessageContext) => {
         contextSend = ctx.sendText.bind(ctx);
       });
       agent.on("message", handler);
 
       void agent.emit(
         "message",
-        new AgentContext(
+        new MessageContext(
           mockMessage,
           mockConversation as unknown as Conversation,
           agent.client,
@@ -249,25 +249,25 @@ describe("Agent", () => {
       agent.on("error", onError);
 
       const mw1: AgentMiddleware = async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("1");
         await next();
       };
 
       const mw2: AgentMiddleware = (ctx) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("2");
         throw new Error("Initial error");
       };
 
       const mw3: AgentMiddleware = async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("3");
         await next();
       };
 
       const mw4: AgentMiddleware = async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("4");
         await next();
       };
@@ -275,7 +275,7 @@ describe("Agent", () => {
       const e1: AgentErrorMiddleware = async (err, ctx, next) => {
         expect(err).toBeInstanceOf(Error);
         expect((err as Error).message).toBe("Initial error");
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("E1");
         // Transform the initial error
         await next(new Error("Transformed error"));
@@ -283,7 +283,7 @@ describe("Agent", () => {
 
       const e2: AgentErrorMiddleware = async (err, ctx, next) => {
         expect((err as Error).message).toBe("Transformed error");
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("E2");
         // Resume middleware chain
         await next();
