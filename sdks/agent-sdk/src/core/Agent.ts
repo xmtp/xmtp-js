@@ -213,9 +213,13 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
-    const finalEmit = () => {
-      if (filter.notFromSelf(context.message, this.#client)) {
-        this.emit("message", context);
+    const finalEmit = async () => {
+      try {
+        if (filter.notFromSelf(context.message, this.#client)) {
+          this.emit("message", context);
+        }
+      } catch (error) {
+        await this.#runErrorChain(error, context);
       }
     };
 
