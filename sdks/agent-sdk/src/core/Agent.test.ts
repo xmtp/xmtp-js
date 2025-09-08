@@ -326,7 +326,7 @@ describe("Agent", () => {
         await next();
       };
 
-      const returnsEarly: AgentMiddleware = async () => {
+      const returnsEarly: AgentMiddleware = () => {
         return;
       };
 

@@ -234,16 +234,20 @@ export class Agent<ContentTypes> extends EventEmitter<
     error: unknown,
     context: AgentContext<ContentTypes> | null,
   ): Promise<boolean> {
-    const chain = this.#errorMiddleware;
+    const defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = () => {
+      const newError =
+        error instanceof Error
+          ? error
+          : new Error(`Unhandled error caught by default error middleware.`, {
+              cause: error,
+            });
+      void this.emit("error", newError);
+    };
 
-    if (chain.length === 0) {
-      this.#defaultErrorHandler(error);
-      return false;
-    }
+    const chain = [...this.#errorMiddleware, defaultErrorHandler];
 
     let currentError: unknown = error;
     let resumeMain = false as boolean; // whether to continue the normal middleware chain
-    let propagate = true; // whether an unhandled error should reach the default handler
 
     // If next(err) gets called, loop continues
     // If next() gets called, resumeMain is true which breaks the error loop
@@ -261,7 +265,6 @@ export class Agent<ContentTypes> extends EventEmitter<
         if (err === undefined) {
           // Recovered
           resumeMain = true;
-          propagate = false;
           return;
         }
 
@@ -274,7 +277,6 @@ export class Agent<ContentTypes> extends EventEmitter<
 
         if (!nextCalled) {
           // Treated as handled, stop the error chain here
-          propagate = false;
           break;
         }
       } catch (thrown) {
@@ -282,10 +284,6 @@ export class Agent<ContentTypes> extends EventEmitter<
         currentError = thrown;
         i += 1;
       }
-    }
-
-    if (propagate && !resumeMain) {
-      this.#defaultErrorHandler(currentError);
     }
 
     return resumeMain;
@@ -302,10 +300,5 @@ export class Agent<ContentTypes> extends EventEmitter<
   stop() {
     this.#isListening = false;
     void this.emit("stop");
-  }
-
-  #defaultErrorHandler(error: unknown) {
-    const newError = error instanceof Error ? error : new Error(String(error));
-    void this.emit("error", newError);
   }
 }
