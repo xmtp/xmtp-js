@@ -68,8 +68,8 @@ export class Agent<ContentTypes> extends EventEmitter<
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
-  #errors: AgentErrorRegistrar<ContentTypes> = {
-    use: (...errorMiddleware) => {
+  #errors: AgentErrorRegistrar<ContentTypes> = Object.freeze({
+    use: (...errorMiddleware: AgentErrorMiddleware<ContentTypes>[]) => {
       for (const emw of errorMiddleware) {
         if (Array.isArray(emw)) {
           this.#errorMiddleware.push(...emw);
@@ -79,7 +79,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       }
       return this.#errors;
     },
-  };
+  });
   #defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (currentError) => {
     const emittedError =
       currentError instanceof Error
