@@ -1,3 +1,4 @@
+import { error } from "console";
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import type { Reaction } from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
@@ -350,6 +351,34 @@ describe("Agent", () => {
       await agent.start();
 
       expect(callOrder).toEqual(["1", "2"]);
+    });
+
+    it("emits an error if no custom error middleware is registered", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+
+      const errorMessage = "Middleware failed";
+
+      const failingMiddleware: AgentMiddleware = async () => {
+        throw new Error(errorMessage);
+      };
+
+      agent.use(failingMiddleware);
+
+      agent.on("error", (error) => {
+        callOrder.push(error.message);
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual([errorMessage]);
     });
   });
 });
