@@ -296,7 +296,6 @@ describe("Agent", () => {
         callOrder.push("EMIT");
       });
 
-      // Stream yields one message then ends
       mockClient.conversations.streamAllMessages.mockResolvedValue(
         (function* () {
           yield mockMessage;
@@ -310,6 +309,47 @@ describe("Agent", () => {
         onError,
         "error chain recovered, no final error is emitted",
       ).toHaveBeenCalledTimes(0);
+    });
+
+    it("doesn't emit when a middleware returns early", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+
+      const mw1: AgentMiddleware = async (_, next) => {
+        callOrder.push("1");
+        await next();
+      };
+
+      const mw2: AgentMiddleware = async (_, next) => {
+        callOrder.push("2");
+        await next();
+      };
+
+      const returnsEarly: AgentMiddleware = async () => {
+        return;
+      };
+
+      const notBeingExecuted: AgentMiddleware = async (_, next) => {
+        callOrder.push("4");
+        await next();
+      };
+
+      agent.use(mw1, mw2, returnsEarly, notBeingExecuted);
+
+      agent.on("message", () => {
+        callOrder.push("never happening");
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual(["1", "2"]);
     });
   });
 });
