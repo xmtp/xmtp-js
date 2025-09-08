@@ -4,9 +4,14 @@ import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import { describe, expect, expectTypeOf, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi, type Mock } from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
-import { Agent, type AgentOptions } from "./Agent.js";
+import {
+  Agent,
+  type AgentErrorMiddleware,
+  type AgentMiddleware,
+  type AgentOptions,
+} from "./Agent.js";
 import { AgentContext } from "./AgentContext.js";
 
 describe("Agent", () => {
@@ -117,7 +122,7 @@ describe("Agent", () => {
     });
 
     it("should execute middleware when processing messages", async () => {
-      const middleware = vi.fn(async (_, next: () => Promise<void>) => {
+      const middleware = vi.fn<AgentMiddleware>(async (_, next) => {
         await next();
       });
       agent.use(middleware);
@@ -140,13 +145,13 @@ describe("Agent", () => {
     it("should execute multiple middleware in order", async () => {
       const calls: string[] = [];
 
-      const middleware1 = vi.fn(async (_, next: () => Promise<void>) => {
+      const middleware1 = vi.fn<AgentMiddleware>(async (_, next) => {
         calls.push("middleware1-start");
         await next();
         calls.push("middleware1-end");
       });
 
-      const middleware2 = vi.fn(async (_, next: () => Promise<void>) => {
+      const middleware2 = vi.fn<AgentMiddleware>(async (_, next) => {
         calls.push("middleware2-start");
         await next();
         calls.push("middleware2-end");
@@ -207,6 +212,212 @@ describe("Agent", () => {
       agent.stop();
 
       expect(stopSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe("Error Handling", () => {
+    const mockConversation = { send: vi.fn() };
+    const mockMessage = {
+      id: "msg-1",
+      conversationId: "conv-1",
+      senderInboxId: "inbox-1",
+      contentType: ContentTypeText,
+      content: "hello",
+    } as unknown as DecodedMessage;
+
+    const makeAgent = () => {
+      const mockClient = {
+        conversations: {
+          sync: vi.fn().mockResolvedValue(undefined),
+          streamAllMessages: vi.fn(),
+          getConversationById: vi.fn().mockResolvedValue(mockConversation),
+        },
+        preferences: { inboxStateFromInboxIds: vi.fn() },
+      } as unknown as Client & {
+        conversations: {
+          streamAllMessages: Mock;
+        };
+      };
+      return { agent: new Agent({ client: mockClient }), mockClient };
+    };
+
+    it("propagates error, transforms, recovers, and resumes remaining middleware", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+      const onError = vi.fn();
+      agent.on("unhandledError", onError);
+
+      const mw1: AgentMiddleware = async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("1");
+        await next();
+      };
+
+      const mw2: AgentMiddleware = (ctx) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("2");
+        throw new Error("Initial error");
+      };
+
+      const mw3: AgentMiddleware = async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("3");
+        await next();
+      };
+
+      const mw4: AgentMiddleware = async (ctx, next) => {
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("4");
+        await next();
+      };
+
+      const e1: AgentErrorMiddleware = async (err, ctx, next) => {
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toBe("Initial error");
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("E1");
+        // Transform the initial error
+        await next(new Error("Transformed error"));
+      };
+
+      const e2: AgentErrorMiddleware = async (err, ctx, next) => {
+        expect((err as Error).message).toBe("Transformed error");
+        expect(ctx).toBeInstanceOf(AgentContext);
+        callOrder.push("E2");
+        // Resume middleware chain
+        await next();
+      };
+
+      agent.use([mw1, mw2], [mw3], mw4);
+      agent.errors.use(e1, e2);
+
+      agent.on("message", () => {
+        callOrder.push("EMIT");
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual(["1", "2", "E1", "E2", "3", "4", "EMIT"]);
+      expect(
+        onError,
+        "error chain recovered, no final error is emitted",
+      ).toHaveBeenCalledTimes(0);
+    });
+
+    it("doesn't emit when a middleware returns early", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+
+      const mw1: AgentMiddleware = async (_, next) => {
+        callOrder.push("1");
+        await next();
+      };
+
+      const mw2: AgentMiddleware = async (_, next) => {
+        callOrder.push("2");
+        await next();
+      };
+
+      const returnsEarly: AgentMiddleware = () => {
+        return Promise.resolve();
+      };
+
+      const notBeingExecuted: AgentMiddleware = async (_, next) => {
+        callOrder.push("4");
+        await next();
+      };
+
+      agent.use(mw1, mw2, returnsEarly, notBeingExecuted);
+
+      agent.on("message", () => {
+        callOrder.push("never happening");
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual(["1", "2"]);
+    });
+
+    it("can end an error queue when returning", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+
+      const mw1: AgentMiddleware = () => {
+        callOrder.push("mw1");
+        throw new Error();
+      };
+
+      const mw2: AgentMiddleware = async (_, next) => {
+        callOrder.push("mw2 won't be called");
+        await next();
+      };
+
+      const e1: AgentErrorMiddleware = () => {
+        callOrder.push("e1");
+        return;
+      };
+
+      const e2: AgentErrorMiddleware = async (_error, _ctx, next) => {
+        callOrder.push("e2 won't be called");
+        await next();
+      };
+
+      agent.use(mw1, mw2);
+
+      agent.errors.use(e1, e2);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual(["mw1", "e1"]);
+    });
+
+    it("emits an error if no custom error middleware is registered", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+
+      const errorMessage = "Middleware failed";
+
+      const failingMiddleware: AgentMiddleware = () => {
+        throw new Error(errorMessage);
+      };
+
+      agent.use(failingMiddleware);
+
+      agent.on("unhandledError", (error) => {
+        callOrder.push(error.message);
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual([errorMessage]);
     });
   });
 });

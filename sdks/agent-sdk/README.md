@@ -85,12 +85,12 @@ Events you can listen for:
 
 - `message` – a new incoming (non‑self) message
 - `start` / `stop` – lifecycle events
-- `error` – surfaced errors
+- `unhandledError` – unhandled errors
 
 **Example:**
 
 ```ts
-agent.on("error", (error) => {
+agent.on("unhandledError", (error) => {
   console.error("Agent error", error);
 });
 ```

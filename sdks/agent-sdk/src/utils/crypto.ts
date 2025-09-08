@@ -1,7 +1,6 @@
 import { getRandomValues } from "node:crypto";
-import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { fromString, toString } from "uint8arrays";
-import { toHex } from "viem";
+import { generatePrivateKey } from "viem/accounts";
 
 /**
  * Convert a hex string to a Uint8Array encryption key.
@@ -11,18 +10,6 @@ import { toHex } from "viem";
 export const getEncryptionKeyFromHex = (hex: string): Uint8Array => {
   return fromString(hex, "hex");
 };
-
-/**
- * Generates a cryptographically secure random private key for wallet operations.
- *
- * Uses the secp256k1 elliptic curve to generate a private key suitable for
- * Ethereum-compatible wallets and XMTP client authentication.
- *
- * @returns A hex-encoded private key string (64 characters, prefixed with '0x')
- */
-function generatePrivateKey() {
-  return toHex(secp256k1.utils.randomSecretKey());
-}
 
 /**
  * Generates a cryptographically secure random encryption key for database encryption.

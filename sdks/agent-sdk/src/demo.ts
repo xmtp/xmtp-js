@@ -38,9 +38,7 @@ const errorHandler = (error: unknown) => {
   console.log("Caught error", error);
 };
 
-agent.on("error", errorHandler);
-
-agent.off("error", errorHandler);
+agent.on("unhandledError", errorHandler);
 
 agent.on("start", () => {
   console.log(`We are online: ${getTestUrl(agent)}`);

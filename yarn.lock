@@ -1731,15 +1731,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@noble/curves@npm:2.0.0"
-  dependencies:
-    "@noble/hashes": "npm:2.0.0"
-  checksum: 10/f0c42bebbde529bdee7dcf39eb145343f7ba1194d1fd5cc89f51e9b9a67821b389297d259055a07981f6b9fa2b18be702fa5ececa953b5f1ff481ca49b88761f
-  languageName: node
-  linkType: hard
-
 "@noble/curves@npm:~1.7.0":
   version: 1.7.0
   resolution: "@noble/curves@npm:1.7.0"
@@ -1797,13 +1788,6 @@ __metadata:
   version: 1.8.0
   resolution: "@noble/hashes@npm:1.8.0"
   checksum: 10/474b7f56bc6fb2d5b3a42132561e221b0ea4f91e590f4655312ca13667840896b34195e2b53b7f097ec080a1fdd3b58d902c2a8d0fbdf51d2e238b53808a177e
-  languageName: node
-  linkType: hard
-
-"@noble/hashes@npm:2.0.0":
-  version: 2.0.0
-  resolution: "@noble/hashes@npm:2.0.0"
-  checksum: 10/cab9ec490c211a9baa54297d3f1ed4289408c54cd99d4a71bdce92038ef8c10f4a9b1230a72c92656e0ffdf9420d0d631d5f83d9f72883f77bd92214f5502c28
   languageName: node
   linkType: hard
 
@@ -3828,7 +3812,6 @@ __metadata:
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.2"
-    "@noble/curves": "npm:^2.0.0"
     "@types/node": "npm:^22.16.3"
     "@vitest/coverage-v8": "npm:^3.2.4"
     "@xmtp/content-type-reaction": "npm:^2.0.2"

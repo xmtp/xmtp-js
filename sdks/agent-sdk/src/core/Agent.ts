@@ -19,7 +19,7 @@ import { createSigner, createUser } from "@/utils/user.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
-  error: [error: Error];
+  unhandledError: [error: Error];
   message: [ctx: AgentContext<ContentTypes>];
   start: [];
   stop: [];
@@ -29,21 +29,66 @@ export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
 }
 
-export type AgentEventHandler<ContentTypes = unknown> = (
+export type AgentMessageHandler<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
 ) => Promise<void> | void;
 
-export type AgentMiddleware<ContentTypes> = (
+export type AgentMiddleware<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
-  next: () => Promise<void>,
+  next: () => Promise<void> | void,
 ) => Promise<void>;
+
+export type AgentErrorMiddleware<ContentTypes = unknown> = (
+  error: unknown,
+  ctx: AgentContext<ContentTypes> | null,
+  next: (err?: unknown) => Promise<void> | void,
+) => Promise<void> | void;
+
+export type StreamAllMessagesOptions<ContentTypes> = Parameters<
+  Client<ContentTypes>["conversations"]["streamAllMessages"]
+>[0];
+
+export interface AgentErrorRegistrar<ContentTypes> {
+  use(
+    ...errorMiddleware: Array<
+      AgentErrorMiddleware<ContentTypes> | AgentErrorMiddleware<ContentTypes>[]
+    >
+  ): AgentErrorRegistrar<ContentTypes>;
+}
+
+type ErrorFlow =
+  | { kind: "handled" } // next()
+  | { kind: "continue"; error: unknown } // next(err) or handler throws
+  | { kind: "stopped" }; // handler returns without next()
 
 export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
+  #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
+  #errors: AgentErrorRegistrar<ContentTypes> = Object.freeze({
+    use: (...errorMiddleware: AgentErrorMiddleware<ContentTypes>[]) => {
+      for (const emw of errorMiddleware) {
+        if (Array.isArray(emw)) {
+          this.#errorMiddleware.push(...emw);
+        } else if (typeof emw === "function") {
+          this.#errorMiddleware.push(emw);
+        }
+      }
+      return this.#errors;
+    },
+  });
+  #defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (currentError) => {
+    const emittedError =
+      currentError instanceof Error
+        ? currentError
+        : new Error(`Unhandled error caught by default error middleware.`, {
+            cause: currentError,
+          });
+    this.emit("unhandledError", emittedError);
+  };
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
@@ -110,12 +155,22 @@ export class Agent<ContentTypes> extends EventEmitter<
     return new Agent({ client });
   }
 
-  use(middleware: AgentMiddleware<ContentTypes>) {
-    this.#middleware.push(middleware);
+  use(
+    ...middleware: Array<
+      AgentMiddleware<ContentTypes> | AgentMiddleware<ContentTypes>[]
+    >
+  ): this {
+    for (const mw of middleware) {
+      if (Array.isArray(mw)) {
+        this.#middleware.push(...mw);
+      } else if (typeof mw === "function") {
+        this.#middleware.push(mw);
+      }
+    }
     return this;
   }
 
-  async start() {
+  async start(options?: StreamAllMessagesOptions<ContentTypes>) {
     if (this.#isListening) {
       return;
     }
@@ -124,65 +179,137 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      const stream = await this.#client.conversations.streamAllMessages();
+      const stream =
+        await this.#client.conversations.streamAllMessages(options);
       for await (const message of stream) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
-        try {
-          await this.#processMessage(message);
-        } catch (error) {
-          this.#throwError(error);
-        }
+        await this.#processMessage(message);
       }
     } catch (error) {
       this.#isListening = false;
-      this.#throwError(error);
+      const recovered = await this.#runErrorChain(error, null);
+      if (recovered) {
+        queueMicrotask(() => this.start(options));
+      }
     }
   }
 
   async #processMessage(message: DecodedMessage<ContentTypes>) {
+    let context: AgentContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
     );
 
     if (!conversation) {
-      this.#throwError(
-        new Error(
-          `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
-        ),
+      throw new Error(
+        `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
       );
-      return;
     }
 
-    const context = new AgentContext(message, conversation, this.#client);
+    context = new AgentContext(message, conversation, this.#client);
+    await this.#runMiddlewareChain(context);
+  }
 
-    let middlewareIndex = 0;
-    const next = async () => {
-      if (middlewareIndex < this.#middleware.length) {
-        const currentMiddleware = this.#middleware[middlewareIndex++];
-        await currentMiddleware(context, next);
-      } else if (filter.notFromSelf(message, this.#client)) {
-        // Note: we are filtering the agent's own message to avoid
-        // infinite message loops when a "message" listener replies
-        void this.emit("message", context);
+  async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
+    const finalEmit = async () => {
+      try {
+        if (filter.notFromSelf(context.message, this.#client)) {
+          this.emit("message", context);
+        }
+      } catch (error) {
+        await this.#runErrorChain(error, context);
       }
     };
 
-    await next();
+    const chain = this.#middleware.reduceRight<Parameters<AgentMiddleware>[1]>(
+      (next, mw) => {
+        return async () => {
+          try {
+            await mw(context, next);
+          } catch (error) {
+            const resume = await this.#runErrorChain(error, context);
+            if (resume) {
+              await next();
+            }
+            // Chain is not resuming, error is being swallowed
+          }
+        };
+      },
+      finalEmit,
+    );
+
+    await chain();
+  }
+
+  async #runErrorHandler(
+    handler: AgentErrorMiddleware<ContentTypes>,
+    context: AgentContext<ContentTypes> | null,
+    error: unknown,
+  ): Promise<ErrorFlow> {
+    let settled = false;
+    let flow: ErrorFlow = { kind: "stopped" };
+
+    const next = (nextErr?: unknown) => {
+      if (settled) return;
+      settled = true;
+      flow =
+        nextErr === undefined
+          ? { kind: "handled" }
+          : { kind: "continue", error: nextErr };
+    };
+
+    try {
+      await handler(error, context, next);
+      return flow;
+    } catch (thrown) {
+      return { kind: "continue", error: thrown };
+    }
+  }
+
+  async #runErrorChain(
+    error: unknown,
+    context: AgentContext<ContentTypes> | null,
+  ): Promise<boolean> {
+    const chain = [...this.#errorMiddleware, this.#defaultErrorHandler];
+
+    let currentError: unknown = error;
+
+    for (let i = 0; i < chain.length; i++) {
+      const outcome = await this.#runErrorHandler(
+        chain[i],
+        context,
+        currentError,
+      );
+
+      switch (outcome.kind) {
+        case "handled":
+          // Error was handled. Main middleware can continue.
+          return true;
+        case "stopped":
+          // Error cannot be handled. Main middleware won't continue.
+          return false;
+        case "continue":
+          // Error is passed to the next handler
+          currentError = outcome.error;
+      }
+    }
+
+    // Reached end of chain without recovery
+    return false;
   }
 
   get client() {
     return this.#client;
   }
 
+  get errors() {
+    return this.#errors;
+  }
+
   stop() {
     this.#isListening = false;
     void this.emit("stop");
-  }
-
-  #throwError(error: unknown) {
-    const newError = error instanceof Error ? error : new Error(String(error));
-    void this.emit("error", newError);
   }
 }
