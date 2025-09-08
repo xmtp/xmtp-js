@@ -1,4 +1,6 @@
-import EventEmitter from "node:events";
+import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
+import { filter } from "@/utils/filter.js";
+import { createSigner, createUser } from "@/utils/user.js";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
@@ -11,11 +13,8 @@ import {
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
+import EventEmitter from "node:events";
 import { isHex } from "viem/utils";
-import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
-import { logDetails } from "@/utils/debug.js";
-import { filter } from "@/utils/filter.js";
-import { createSigner, createUser } from "@/utils/user.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
