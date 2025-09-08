@@ -230,14 +230,16 @@ export class Agent<ContentTypes> extends EventEmitter<
     error: unknown,
     context: AgentContext<ContentTypes> | null,
   ): Promise<boolean> {
-    const defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = () => {
-      const newError =
-        error instanceof Error
-          ? error
+    const defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (
+      currentError,
+    ) => {
+      const emittedError =
+        currentError instanceof Error
+          ? currentError
           : new Error(`Unhandled error caught by default error middleware.`, {
-              cause: error,
+              cause: currentError,
             });
-      void this.emit("error", newError);
+      void this.emit("error", emittedError);
     };
 
     const chain = [...this.#errorMiddleware, defaultErrorHandler];
