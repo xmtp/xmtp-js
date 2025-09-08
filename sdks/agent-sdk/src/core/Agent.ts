@@ -36,7 +36,7 @@ export type AgentMessageHandler<ContentTypes = unknown> = (
 export type AgentMiddleware<ContentTypes = unknown> = (
   ctx: AgentContext<ContentTypes>,
   next: () => Promise<void> | void,
-) => Promise<void> | void;
+) => Promise<void>;
 
 export type AgentErrorMiddleware<ContentTypes = unknown> = (
   error: unknown,

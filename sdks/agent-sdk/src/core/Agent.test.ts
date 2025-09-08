@@ -327,7 +327,7 @@ describe("Agent", () => {
       };
 
       const returnsEarly: AgentMiddleware = () => {
-        return;
+        return Promise.resolve();
       };
 
       const notBeingExecuted: AgentMiddleware = async (_, next) => {
