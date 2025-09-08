@@ -195,22 +195,18 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #processMessage(message: DecodedMessage<ContentTypes>) {
     let context: AgentContext<ContentTypes> | null = null;
-    try {
-      const conversation = await this.#client.conversations.getConversationById(
-        message.conversationId,
+    const conversation = await this.#client.conversations.getConversationById(
+      message.conversationId,
+    );
+
+    if (!conversation) {
+      throw new Error(
+        `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
       );
-
-      if (!conversation) {
-        throw new Error(
-          `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
-        );
-      }
-
-      context = new AgentContext(message, conversation, this.#client);
-      await this.#runMiddlewareChain(context);
-    } catch (error) {
-      await this.#runErrorChain(error, context);
     }
+
+    context = new AgentContext(message, conversation, this.#client);
+    await this.#runMiddlewareChain(context);
   }
 
   async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
