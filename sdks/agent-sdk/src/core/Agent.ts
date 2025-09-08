@@ -189,7 +189,10 @@ export class Agent<ContentTypes> extends EventEmitter<
       }
     } catch (error) {
       this.#isListening = false;
-      await this.#runErrorChain(error, null);
+      const recovered = await this.#runErrorChain(error, null);
+      if (recovered) {
+        await this.start(options);
+      }
     }
   }
 
