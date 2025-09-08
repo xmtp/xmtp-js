@@ -87,7 +87,7 @@ export class Agent<ContentTypes> extends EventEmitter<
         : new Error(`Unhandled error caught by default error middleware.`, {
             cause: currentError,
           });
-    void this.emit("error", emittedError);
+    this.emit("error", emittedError);
   };
 
   constructor({ client }: AgentOptions<ContentTypes>) {
