@@ -191,7 +191,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = false;
       const recovered = await this.#runErrorChain(error, null);
       if (recovered) {
-        await this.start(options);
+        queueMicrotask(() => this.start(options));
       }
     }
   }
