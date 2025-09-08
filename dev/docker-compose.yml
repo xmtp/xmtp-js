@@ -45,3 +45,34 @@ services:
     platform: linux/amd64
     ports:
       - 5558:5558
+
+  notification_db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: notifications
+
+  notification_server:
+    image: xmtp/notifications-server:latest
+    platform: linux/amd64
+    depends_on:
+      node:
+        condition: service_healthy
+      notification_db:
+        condition: service_started
+    command:
+      - --xmtp-listener
+      - --db-connection-string=postgres://postgres:notifications@notification_db:5432/postgres?sslmode=disable
+      - --xmtp-address=node:5556 # Local Xmtp Node
+      - --log-level=debug
+      - --api
+      - --api-port=8080
+
+      # HTTP Delivery
+      - --http-delivery
+      - --http-delivery-address=${TEST_NOTIFICATION_DELIVERY_URL:-http://host.docker.internal:4000/api/v1/notifications/xmtp/handle-notification}
+      # - --http-auth-header=${XMTP_NOTIFICATION_SECRET}
+
+    ports:
+      - 8080:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,81 @@
+syntax = "proto3";
+package notifications.v1;
+
+// An union of possible delibery mechanisms
+message DeliveryMechanism {
+    oneof delivery_mechanism_type {
+        string apns_device_token = 1;
+        string firebase_device_token = 2;
+        string custom_token = 3;
+    }
+}
+
+// A request to register an installation with the service
+message RegisterInstallationRequest {
+    string installation_id = 1;
+    DeliveryMechanism delivery_mechanism = 2;
+}
+
+// Response to RegisterInstallationRequest
+message RegisterInstallationResponse {
+    string installation_id = 1;
+    uint64 valid_until = 2;
+}
+
+// Delete an installation from the service
+message DeleteInstallationRequest {
+    string installation_id = 1;
+}
+
+// Response to DeleteInstallationRequest
+message DeleteInstallationResponse {}
+
+// A subscription with associated metadata
+message Subscription {
+    message HmacKey {
+        uint32 thirty_day_periods_since_epoch = 1;
+        bytes key = 2;
+    }
+
+    string topic = 1;
+    repeated HmacKey hmac_keys = 2;
+    bool is_silent = 3;
+}
+
+// A request to subscribe to a list of topics and update the associated metadata
+message SubscribeWithMetadataRequest {
+    string installation_id = 1;
+    repeated Subscription subscriptions = 2;
+}
+
+// Response to SubscribeWithMetadataRequest
+message SubscribeWithMetadataResponse {}
+
+// Subscribe to a list of topics
+message SubscribeRequest {
+    string installation_id = 1;
+    repeated string topics = 2;
+}
+
+// Response to SubscribeRequest
+message SubscribeResponse {}
+
+// Unsubscribe from a list of topics
+message UnsubscribeRequest {
+    string installation_id = 1;
+    repeated string topics = 2;
+}
+
+// Response to UnsubscribeRequest
+message UnsubscribeResponse {}
+
+service Notifications {
+    rpc RegisterInstallation(RegisterInstallationRequest)
+        returns (RegisterInstallationResponse);
+    rpc DeleteInstallation(DeleteInstallationRequest)
+        returns (DeleteInstallationResponse);
+    rpc Subscribe(SubscribeRequest) returns (SubscribeResponse);
+    rpc SubscribeWithMetadata(SubscribeWithMetadataRequest)
+        returns (SubscribeWithMetadataResponse);
+    rpc Unsubscribe(UnsubscribeRequest) returns (UnsubscribeResponse);
+}
