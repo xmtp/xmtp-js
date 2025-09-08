@@ -56,6 +56,11 @@ export interface AgentErrorRegistrar<ContentTypes> {
   ): AgentErrorRegistrar<ContentTypes>;
 }
 
+type ErrorFlow =
+  | { kind: "recover" } // next()
+  | { kind: "continue"; error: unknown } // next(err) or handler throws
+  | { kind: "swallow" }; // handler returns without next()
+
 export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
@@ -74,6 +79,15 @@ export class Agent<ContentTypes> extends EventEmitter<
       }
       return this.#errors;
     },
+  };
+  #defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (currentError) => {
+    const emittedError =
+      currentError instanceof Error
+        ? currentError
+        : new Error(`Unhandled error caught by default error middleware.`, {
+            cause: currentError,
+          });
+    void this.emit("error", emittedError);
   };
 
   constructor({ client }: AgentOptions<ContentTypes>) {
@@ -226,65 +240,61 @@ export class Agent<ContentTypes> extends EventEmitter<
     await chain();
   }
 
+  async #runErrorHandler(
+    handler: AgentErrorMiddleware<ContentTypes>,
+    context: AgentContext<ContentTypes> | null,
+    error: unknown,
+  ): Promise<ErrorFlow> {
+    let settled = false;
+    let flow: ErrorFlow = { kind: "swallow" };
+
+    const next = (nextErr?: unknown) => {
+      if (settled) return;
+      settled = true;
+      flow =
+        nextErr === undefined
+          ? { kind: "recover" }
+          : { kind: "continue", error: nextErr };
+    };
+
+    try {
+      await handler(error, context, next);
+      return flow;
+    } catch (thrown) {
+      return { kind: "continue", error: thrown };
+    }
+  }
+
   async #runErrorChain(
     error: unknown,
     context: AgentContext<ContentTypes> | null,
   ): Promise<boolean> {
-    const defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (
-      currentError,
-    ) => {
-      const emittedError =
-        currentError instanceof Error
-          ? currentError
-          : new Error(`Unhandled error caught by default error middleware.`, {
-              cause: currentError,
-            });
-      void this.emit("error", emittedError);
-    };
-
-    const chain = [...this.#errorMiddleware, defaultErrorHandler];
+    const chain = [...this.#errorMiddleware, this.#defaultErrorHandler];
 
     let currentError: unknown = error;
-    let resumeMain = false as boolean; // whether to continue the normal middleware chain
 
-    // If next(err) gets called, loop continues
-    // If next() gets called, resumeMain is true which breaks the error loop
-    for (let i = 0; i < chain.length && !resumeMain; ) {
-      const errorHandler = chain[i];
+    for (let i = 0; i < chain.length; i++) {
+      const outcome = await this.#runErrorHandler(
+        chain[i],
+        context,
+        currentError,
+      );
 
-      let nextCalled = false as boolean;
-      let nextSettled = false;
-
-      const next = (err?: unknown) => {
-        if (nextSettled) return;
-        nextSettled = true;
-        nextCalled = true;
-
-        if (err === undefined) {
-          // Recovered
-          resumeMain = true;
-          return;
-        }
-
-        currentError = err;
-        i += 1;
-      };
-
-      try {
-        await errorHandler(currentError, context, next);
-
-        if (!nextCalled) {
-          // Treated as handled, stop the error chain here
-          break;
-        }
-      } catch (thrown) {
-        // Handler failed while handling the error
-        currentError = thrown;
-        i += 1;
+      if (outcome.kind === "recover") {
+        // Main middleware may continue
+        return true;
       }
+
+      if (outcome.kind === "swallow") {
+        // Error handled and consumed
+        return false;
+      }
+
+      currentError = outcome.error;
     }
 
-    return resumeMain;
+    // Reached end of chain without recovery
+    return false;
   }
 
   get client() {
