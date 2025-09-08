@@ -246,7 +246,7 @@ describe("Agent", () => {
 
       const callOrder: string[] = [];
       const onError = vi.fn();
-      agent.on("error", onError);
+      agent.on("unhandledError", onError);
 
       const mw1: AgentMiddleware = async (ctx, next) => {
         expect(ctx).toBeInstanceOf(AgentContext);
@@ -405,7 +405,7 @@ describe("Agent", () => {
 
       agent.use(failingMiddleware);
 
-      agent.on("error", (error) => {
+      agent.on("unhandledError", (error) => {
         callOrder.push(error.message);
       });
 

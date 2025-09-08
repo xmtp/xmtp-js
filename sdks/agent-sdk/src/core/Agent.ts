@@ -19,7 +19,7 @@ import { createSigner, createUser } from "@/utils/user.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
-  error: [error: Error];
+  unhandledError: [error: Error];
   message: [ctx: AgentContext<ContentTypes>];
   start: [];
   stop: [];
@@ -57,9 +57,9 @@ export interface AgentErrorRegistrar<ContentTypes> {
 }
 
 type ErrorFlow =
-  | { kind: "recover" } // next()
+  | { kind: "handled" } // next()
   | { kind: "continue"; error: unknown } // next(err) or handler throws
-  | { kind: "swallow" }; // handler returns without next()
+  | { kind: "stopped" }; // handler returns without next()
 
 export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
@@ -87,7 +87,7 @@ export class Agent<ContentTypes> extends EventEmitter<
         : new Error(`Unhandled error caught by default error middleware.`, {
             cause: currentError,
           });
-    this.emit("error", emittedError);
+    this.emit("unhandledError", emittedError);
   };
 
   constructor({ client }: AgentOptions<ContentTypes>) {
@@ -245,14 +245,14 @@ export class Agent<ContentTypes> extends EventEmitter<
     error: unknown,
   ): Promise<ErrorFlow> {
     let settled = false;
-    let flow: ErrorFlow = { kind: "swallow" };
+    let flow: ErrorFlow = { kind: "stopped" };
 
     const next = (nextErr?: unknown) => {
       if (settled) return;
       settled = true;
       flow =
         nextErr === undefined
-          ? { kind: "recover" }
+          ? { kind: "handled" }
           : { kind: "continue", error: nextErr };
     };
 
@@ -279,17 +279,17 @@ export class Agent<ContentTypes> extends EventEmitter<
         currentError,
       );
 
-      if (outcome.kind === "recover") {
-        // Main middleware may continue
-        return true;
+      switch (outcome.kind) {
+        case "handled":
+          // Error was handled. Main middleware can continue.
+          return true;
+        case "stopped":
+          // Error cannot be handled. Main middleware won't continue.
+          return false;
+        case "continue":
+          // Error is passed to the next handler
+          currentError = outcome.error;
       }
-
-      if (outcome.kind === "swallow") {
-        // Error handled and consumed
-        return false;
-      }
-
-      currentError = outcome.error;
     }
 
     // Reached end of chain without recovery
