@@ -1,4 +1,3 @@
-import { error } from "console";
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import type { Reaction } from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
@@ -360,7 +359,7 @@ describe("Agent", () => {
 
       const errorMessage = "Middleware failed";
 
-      const failingMiddleware: AgentMiddleware = async () => {
+      const failingMiddleware: AgentMiddleware = () => {
         throw new Error(errorMessage);
       };
 
