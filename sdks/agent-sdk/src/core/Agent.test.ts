@@ -352,6 +352,46 @@ describe("Agent", () => {
       expect(callOrder).toEqual(["1", "2"]);
     });
 
+    it("can end an error queue when returning", async () => {
+      const { agent, mockClient } = makeAgent();
+
+      const callOrder: string[] = [];
+
+      const mw1: AgentMiddleware = async () => {
+        callOrder.push("mw1");
+        throw new Error();
+      };
+
+      const mw2: AgentMiddleware = async (_, next) => {
+        callOrder.push("mw2 won't be called");
+        next();
+      };
+
+      const e1: AgentErrorMiddleware = async () => {
+        callOrder.push("e1");
+        return;
+      };
+
+      const e2: AgentErrorMiddleware = async (_error, _ctx, next) => {
+        callOrder.push("e2 won't be called");
+        await next();
+      };
+
+      agent.use(mw1, mw2);
+
+      agent.errors.use(e1, e2);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (function* () {
+          yield mockMessage;
+        })(),
+      );
+
+      await agent.start();
+
+      expect(callOrder).toEqual(["mw1", "e1"]);
+    });
+
     it("emits an error if no custom error middleware is registered", async () => {
       const { agent, mockClient } = makeAgent();
 
