@@ -357,17 +357,17 @@ describe("Agent", () => {
 
       const callOrder: string[] = [];
 
-      const mw1: AgentMiddleware = async () => {
+      const mw1: AgentMiddleware = () => {
         callOrder.push("mw1");
         throw new Error();
       };
 
       const mw2: AgentMiddleware = async (_, next) => {
         callOrder.push("mw2 won't be called");
-        next();
+        await next();
       };
 
-      const e1: AgentErrorMiddleware = async () => {
+      const e1: AgentErrorMiddleware = () => {
         callOrder.push("e1");
         return;
       };
