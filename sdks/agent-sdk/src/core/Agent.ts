@@ -171,11 +171,7 @@ export class Agent<ContentTypes> extends EventEmitter<
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
-        try {
-          await this.#processMessage(message);
-        } catch (error) {
-          await this.#runErrorChain(error, null);
-        }
+        await this.#processMessage(message);
       }
     } catch (error) {
       this.#isListening = false;
