@@ -96,6 +96,35 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   static async create<ContentCodecs extends ContentCodec[] = []>(
+    signer: Parameters<typeof Client.create>[0],
+    // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
+    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
+  ) {
+    const initializedOptions = { ...options };
+    initializedOptions.appVersion ??= "agent-sdk/alpha";
+
+    const upgradedCodecs = [
+      ...(initializedOptions.codecs ?? []),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+    ];
+
+    if (process.env.XMTP_FORCE_DEBUG) {
+      initializedOptions.debugEventsEnabled = true;
+      initializedOptions.loggingLevel = LogLevel.warn;
+      initializedOptions.structuredLogging = true;
+    }
+
+    const client = await Client.create(signer, {
+      ...initializedOptions,
+      codecs: upgradedCodecs,
+    });
+
+    return new Agent({ client });
+  }
+
+  static async createFromEnv<ContentCodecs extends ContentCodec[] = []>(
     signer?: Parameters<typeof Client.create>[0],
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
@@ -111,7 +140,6 @@ export class Agent<ContentTypes> extends EventEmitter<
     }
 
     const initializedOptions = { ...options };
-    initializedOptions.appVersion ??= "agent-sdk/alpha";
 
     if (process.env.XMTP_DB_ENCRYPTION_KEY) {
       initializedOptions.dbEncryptionKey = getEncryptionKeyFromHex(
@@ -126,33 +154,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       initializedOptions.env = process.env.XMTP_ENV as XmtpEnv;
     }
 
-    if (process.env.XMTP_FORCE_DEBUG) {
-      initializedOptions.debugEventsEnabled = true;
-      initializedOptions.loggingLevel = LogLevel.warn;
-      initializedOptions.structuredLogging = true;
-    }
-
-    const upgradedCodecs = [
-      ...(initializedOptions.codecs ?? []),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-    ];
-
-    const client = await Client.create(signer, {
-      ...initializedOptions,
-      codecs: upgradedCodecs,
-    });
-
-    if (process.env.XMTP_FORCE_REVOKE_INSTALLATIONS) {
-      await client.revokeAllOtherInstallations();
-    }
-
-    if (process.env.XMTP_FORCE_DEBUG) {
-      await logDetails(client);
-    }
-
-    return new Agent({ client });
+    return this.create(signer, options);
   }
 
   use(
