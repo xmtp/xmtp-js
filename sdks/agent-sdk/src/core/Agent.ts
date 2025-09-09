@@ -3,6 +3,7 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
+import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
@@ -14,14 +15,16 @@ import {
 import { isHex } from "viem/utils";
 import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { filter } from "@/utils/filter.js";
+import { isText } from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
   unhandledError: [error: Error];
-  message: [ctx: AgentContext<ContentTypes>];
+  unhandledMessage: [ctx: AgentContext<ContentTypes>];
   start: [];
   stop: [];
+  text: [ctx: AgentContext<ReturnType<TextCodec["decode"]>>];
 }
 
 export interface AgentOptions<ContentTypes> {
@@ -181,7 +184,14 @@ export class Agent<ContentTypes> extends EventEmitter<
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
-        await this.#processMessage(message);
+        switch (true) {
+          case isText(message):
+            await this.#processMessage(message, "text");
+            break;
+          default:
+            await this.#processMessage(message);
+            break;
+        }
       }
     } catch (error) {
       this.#isListening = false;
@@ -192,7 +202,10 @@ export class Agent<ContentTypes> extends EventEmitter<
     }
   }
 
-  async #processMessage(message: DecodedMessage<ContentTypes>) {
+  async #processMessage(
+    message: DecodedMessage<ContentTypes>,
+    topic: keyof EventHandlerMap<ContentTypes> = "unhandledMessage",
+  ) {
     let context: AgentContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
@@ -205,14 +218,17 @@ export class Agent<ContentTypes> extends EventEmitter<
     }
 
     context = new AgentContext(message, conversation, this.#client);
-    await this.#runMiddlewareChain(context);
+    await this.#runMiddlewareChain(context, topic);
   }
 
-  async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
+  async #runMiddlewareChain(
+    context: AgentContext<ContentTypes>,
+    topic: keyof EventHandlerMap<ContentTypes> = "unhandledMessage",
+  ) {
     const finalEmit = async () => {
       try {
         if (filter.notFromSelf(context.message, this.#client)) {
-          this.emit("message", context);
+          this.emit(topic, context);
         }
       } catch (error) {
         await this.#runErrorChain(error, context);

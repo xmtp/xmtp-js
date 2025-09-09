@@ -23,12 +23,12 @@ router.command("/version", async (ctx) => {
 
 agent.use(router.middleware());
 
-agent.on("message", (ctx) => {
+agent.on("text", (ctx) => {
   console.log("Got message:", ctx.message.content);
 });
 
 agent.on(
-  "message",
+  "text",
   withFilter(f.startsWith("@agent"), async (ctx) => {
     await ctx.conversation.send("How can I help you?");
   }),

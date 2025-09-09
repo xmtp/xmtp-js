@@ -64,7 +64,7 @@ describe("Agent", () => {
     });
 
     it("types the content in message event listener", () => {
-      ephemeralAgent.on("message", (ctx) => {
+      ephemeralAgent.on("unhandledMessage", (ctx) => {
         expectTypeOf(ctx).toEqualTypeOf<
           AgentContext<
             string | Reaction | Reply | RemoteAttachment | GroupUpdated
@@ -183,10 +183,10 @@ describe("Agent", () => {
       const handler = vi.fn((ctx: AgentContext) => {
         contextSend = ctx.sendText.bind(ctx);
       });
-      agent.on("message", handler);
+      agent.on("unhandledMessage", handler);
 
       void agent.emit(
-        "message",
+        "unhandledMessage",
         new AgentContext(
           mockMessage,
           mockConversation as unknown as Conversation,
@@ -292,7 +292,7 @@ describe("Agent", () => {
       agent.use([mw1, mw2], [mw3], mw4);
       agent.errors.use(e1, e2);
 
-      agent.on("message", () => {
+      agent.on("text", () => {
         callOrder.push("EMIT");
       });
 
@@ -337,7 +337,7 @@ describe("Agent", () => {
 
       agent.use(mw1, mw2, returnsEarly, notBeingExecuted);
 
-      agent.on("message", () => {
+      agent.on("unhandledMessage", () => {
         callOrder.push("never happening");
       });
 

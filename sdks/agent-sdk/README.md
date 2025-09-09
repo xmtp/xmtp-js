@@ -39,7 +39,7 @@ const agent = await Agent.create(signer, {
 });
 
 // 3. Respond to any incoming message
-agent.on("message", async (ctx) => {
+agent.on("text", async (ctx) => {
   await ctx.conversation.send("Hello from my XMTP Agent! 👋");
 });
 
@@ -128,7 +128,7 @@ import { withFilter, filter } from "@xmtp/agent-sdk";
 
 // Using filter in message handler
 agent.on(
-  "message",
+  "text",
   withFilter(filter.startsWith("@agent"), async (ctx) => {
     await ctx.conversation.send("How can I help you?");
   }),
@@ -138,7 +138,7 @@ agent.on(
 const combined = filter.and(filter.notFromSelf, filter.isText);
 
 agent.on(
-  "message",
+  "text",
   withFilter(combined, async (ctx) => {
     await ctx.conversation.send("You sent a text message ✅");
   }),
@@ -162,7 +162,7 @@ You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-
 
 Every `message` handler receives an `AgentContext` with:
 
-- `message` – decoded message
+- `text` – decoded text message
 - `conversation` – the active conversation object
 - `client` – underlying XMTP client
 - Helpers like `sendText()` / `sendTextReply()`
@@ -170,7 +170,7 @@ Every `message` handler receives an `AgentContext` with:
 **Example:**
 
 ```ts
-agent.on("message", async (ctx) => {
+agent.on("text", async (ctx) => {
   await ctx.sendTextReply("Reply using helper ✨");
 });
 ```
