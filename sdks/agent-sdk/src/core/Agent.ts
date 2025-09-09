@@ -124,19 +124,14 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   static async createFromEnv<ContentCodecs extends ContentCodec[] = []>(
-    signer?: Parameters<typeof Client.create>[0],
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
-    if (!signer) {
-      if (isHex(process.env.XMTP_WALLET_KEY)) {
-        signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
-      } else {
-        throw new Error(
-          `No signer detected. Provide a "signer" to "Agent.create()" or set the "XMTP_WALLET_KEY" environment variable to a private key in hexadecimal format. Read more: https://docs.xmtp.org/inboxes/core-messaging/create-a-signer`,
-        );
-      }
+    if (!isHex(process.env.XMTP_WALLET_KEY)) {
+      throw new Error(`XMTP_WALLET_KEY env is not in hex (0x) format.`);
     }
+
+    const signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
 
     const initializedOptions = { ...(options ?? {}) };
 
