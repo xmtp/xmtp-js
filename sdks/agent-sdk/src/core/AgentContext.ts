@@ -6,13 +6,19 @@ import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 
+// Type for messages that successfully decoded (content is defined)
+export type DefinedContentMessage<ContentTypes = unknown> =
+  DecodedMessage<ContentTypes> & {
+    content: NonNullable<ContentTypes>;
+  };
+
 export class AgentContext<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
-  #message: DecodedMessage<ContentTypes>;
+  #message: DefinedContentMessage<ContentTypes>;
   #conversation: Conversation;
 
   constructor(
-    message: DecodedMessage<ContentTypes>,
+    message: DefinedContentMessage<ContentTypes>,
     conversation: Conversation,
     client: Client<ContentTypes>,
   ) {

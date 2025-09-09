@@ -37,7 +37,7 @@ describe("Agent", () => {
     senderInboxId: "sender-inbox-id",
     contentType: ContentTypeText,
     content: "Hello, world!",
-  } as unknown as DecodedMessage;
+  } as unknown as DecodedMessage & { content: string };
 
   let agent: Agent<unknown>;
   let options: AgentOptions<unknown>;

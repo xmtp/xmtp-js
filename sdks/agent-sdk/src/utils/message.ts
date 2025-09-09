@@ -15,6 +15,13 @@ type ContentMessage = Pick<
   "content" | "contentType" | "fallback"
 >;
 
+// Type guard to check if a message has defined content
+export const hasDefinedContent = <ContentTypes = unknown>(
+  message: DecodedMessage<ContentTypes>,
+): message is DecodedMessage<ContentTypes> & {
+  content: NonNullable<ContentTypes>;
+} => message.content !== undefined;
+
 export const isReaction = <M extends ContentMessage>(
   m: M,
 ): m is M & { content: Reaction } =>

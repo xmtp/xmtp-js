@@ -16,6 +16,7 @@ import { isHex } from "viem/utils";
 import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { filter } from "@/utils/filter.js";
 import {
+  hasDefinedContent,
   isReaction,
   isRemoteAttachment,
   isReply,
@@ -223,6 +224,11 @@ export class Agent<ContentTypes> extends EventEmitter<
     message: DecodedMessage<ContentTypes>,
     topic: keyof EventHandlerMap<ContentTypes> = "unhandledMessage",
   ) {
+    // Skip messages with undefined content (failed to decode)
+    if (!hasDefinedContent(message)) {
+      return;
+    }
+
     let context: AgentContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
