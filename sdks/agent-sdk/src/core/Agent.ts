@@ -28,6 +28,10 @@ import { createSigner, createUser } from "@/utils/user.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { AgentContext } from "./MessageContext.js";
 
+type ConversationStream<ContentTypes> = Awaited<
+  ReturnType<Client<ContentTypes>["conversations"]["stream"]>
+>;
+
 interface EventHandlerMap<ContentTypes> {
   attachment: [ctx: AgentContext<ReturnType<RemoteAttachmentCodec["decode"]>>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
@@ -81,6 +85,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
+  #conversationsStream?: ConversationStream<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
@@ -192,7 +197,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      await this.#client.conversations.stream({
+      this.#conversationsStream = await this.#client.conversations.stream({
         onValue: (conversation) => {
           if (conversation instanceof Group) {
             this.emit(
@@ -380,6 +385,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   }
 
   stop() {
+    void this.#conversationsStream?.end();
     this.#isListening = false;
     void this.emit("stop");
   }
