@@ -38,7 +38,7 @@ function fromSelf<ContentTypes>(): MessageFilter<ContentTypes> {
  *
  * @returns Filter function
  */
-function textOnly<ContentTypes>(): MessageFilter<ContentTypes> {
+function isText<ContentTypes>(): MessageFilter<ContentTypes> {
   return (message: DecodedMessage) => {
     return !!message.contentType?.sameAs(ContentTypeText);
   };
@@ -132,7 +132,7 @@ export const filter = {
   // basic filters
   notFromSelf: notFromSelf(),
   fromSelf: fromSelf(),
-  textOnly: textOnly(),
+  isText: isText(),
   // factory functions
   fromSender,
   startsWith,
