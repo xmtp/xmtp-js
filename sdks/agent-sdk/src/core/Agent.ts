@@ -348,6 +348,9 @@ export class Agent<ContentTypes> extends EventEmitter<
       await handler(error, context, next);
       return flow;
     } catch (thrown) {
+      if (settled) {
+        return flow;
+      }
       return { kind: "continue", error: thrown };
     }
   }
