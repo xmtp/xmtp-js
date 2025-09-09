@@ -200,28 +200,33 @@ export class Agent<ContentTypes> extends EventEmitter<
       void this.emit("start");
 
       this.#conversationsStream = await this.#client.conversations.stream({
-        onValue: (conversation) => {
-          if (conversation instanceof Group) {
-            this.emit(
-              "group",
-              new ConversationContext<ContentTypes, Group<ContentTypes>>({
-                conversation,
-                client: this.#client,
-              }),
-            );
-          } else if (conversation instanceof Dm) {
-            this.emit(
-              "dm",
-              new ConversationContext<ContentTypes, Dm<ContentTypes>>({
-                conversation,
-                client: this.#client,
-              }),
-            );
+        onValue: async (conversation) => {
+          try {
+            if (conversation instanceof Group) {
+              this.emit(
+                "group",
+                new ConversationContext<ContentTypes, Group<ContentTypes>>({
+                  conversation,
+                  client: this.#client,
+                }),
+              );
+            } else if (conversation instanceof Dm) {
+              this.emit(
+                "dm",
+                new ConversationContext<ContentTypes, Dm<ContentTypes>>({
+                  conversation,
+                  client: this.#client,
+                }),
+              );
+            }
+          } catch (error) {
+            const recovered = await this.#runErrorChain(error, null);
+            if (!recovered) await this.stop();
           }
         },
         onError: async (error) => {
           const recovered = await this.#runErrorChain(error, null);
-          if (!recovered) this.stop();
+          if (!recovered) await this.stop();
         },
       });
 
@@ -253,6 +258,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = false;
       const recovered = await this.#runErrorChain(error, null);
       if (recovered) {
+        await this.stop();
         queueMicrotask(() => this.start(options));
       }
     }
@@ -381,9 +387,9 @@ export class Agent<ContentTypes> extends EventEmitter<
     return this.#errors;
   }
 
-  stop() {
-    void this.#conversationsStream?.end();
+  async stop() {
+    await this.#conversationsStream?.end();
     this.#isListening = false;
-    void this.emit("stop");
+    this.emit("stop");
   }
 }
