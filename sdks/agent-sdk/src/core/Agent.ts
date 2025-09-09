@@ -217,14 +217,9 @@ export class Agent<ContentTypes> extends EventEmitter<
             );
           }
         },
-        onError: (error) => {
-          return this.#runErrorChain(error, null);
-        },
-        onFail: () => {
-          return this.#runErrorChain(
-            new Error("conversations.stream failed"),
-            null,
-          );
+        onError: async (error) => {
+          const recovered = await this.#runErrorChain(error, null);
+          if (!recovered) this.stop();
         },
       });
 
