@@ -10,7 +10,7 @@ import { ConversationContext } from "./ConversationContext.js";
 // Type for messages that successfully decoded (content is defined)
 export type MessageContext<ContentTypes = unknown> =
   DecodedMessage<ContentTypes> & {
-    content: NonNullable<ContentTypes>;
+    content: ContentTypes;
   };
 
 export class AgentContext<

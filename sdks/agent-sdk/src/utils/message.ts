@@ -18,7 +18,7 @@ type ContentMessage = Pick<
 export const hasDefinedContent = <ContentTypes = unknown>(
   message: DecodedMessage<ContentTypes>,
 ): message is DecodedMessage<ContentTypes> & {
-  content: NonNullable<ContentTypes>;
+  content: ContentTypes;
 } => message.content !== undefined;
 
 export const isReaction = <M extends ContentMessage>(
