@@ -1,5 +1,19 @@
 # @xmtp/agent-sdk
 
+## 0.0.9
+
+### Patch Changes
+
+- 854a9d1: - Renamed `filter.textOnly` to `filter.isText`
+  - Renamed `AgentContext` to `MessageContext`
+  - Renamed event `on("message")` to `on("unhandledMessage")`
+  - Added `on("dm")` for direct messages
+  - Added `on("attachment")` for remote attachments
+  - Added `on("group")` for group messages
+  - Added `on("reaction")` for reactions
+  - Added `on("reply")` for replies
+  - Introduced `ConversationContext` for handling new conversations
+
 ## 0.0.8
 
 ### Patch Changes
