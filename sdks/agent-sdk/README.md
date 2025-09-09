@@ -38,8 +38,8 @@ const agent = await Agent.create(signer, {
   dbPath: null, // in-memory store; provide a path to persist
 });
 
-// 3. Respond to any incoming message
-agent.on("message", async (ctx) => {
+// 3. Respond to text messages
+agent.on("text", async (ctx) => {
   await ctx.conversation.send("Hello from my XMTP Agent! 👋");
 });
 
@@ -83,17 +83,52 @@ Agents can also recognize the following environment variables:
 
 ### 1. Event‑Driven Architecture
 
-Subscribe only to what you need using Node’s `EventEmitter` interface.
+Subscribe only to what you need using Node’s `EventEmitter` interface. Events you can listen for:
 
-Events you can listen for:
+**Message Events**
 
-- `message` – a new incoming (non‑self) message
-- `start` / `stop` – lifecycle events
+- `text` – a new incoming text message
+- `reaction` – a new incoming reaction message
+- `reply` – a new incoming reply message
+- `attachment` – a new incoming remote attachment message
+- `unhandledMessage` – a message that doesn't match any specific type
+
+**Conversation Events**
+
+- `dm` – a new DM conversation
+- `group` – a new group conversation
+
+**Lifecycle Events**
+
+- `start` / `stop` – agent lifecycle events
 - `unhandledError` – unhandled errors
 
-**Example:**
+**Example**
 
 ```ts
+// Handle different message types
+agent.on("text", async (ctx) => {
+  console.log(`Text message: ${ctx.text}`);
+});
+
+agent.on("reaction", async (ctx) => {
+  console.log(`Reaction: ${ctx.message.content}`);
+});
+
+agent.on("reply", async (ctx) => {
+  console.log(`Reply to: ${ctx.message.content.reference}`);
+});
+
+// Handle new conversations
+agent.on("dm", async (ctx) => {
+  await ctx.conversation.send("Welcome to our DM!");
+});
+
+agent.on("group", async (ctx) => {
+  await ctx.conversation.send("Hello group!");
+});
+
+// Handle uncaught errors
 agent.on("unhandledError", (error) => {
   console.error("Agent error", error);
 });
@@ -103,7 +138,7 @@ agent.on("unhandledError", (error) => {
 
 Extend your agent with custom business logic using middlewares. Compose cross-cutting behavior like routing, telemetry, rate limiting, analytics, and feature flags, or plug in your own.
 
-**Example:**
+**Example**
 
 ```ts
 import { CommandRouter } from "@xmtp/agent-sdk";
@@ -121,24 +156,24 @@ agent.use(router.middleware());
 
 Instead of manually checking every incoming message, you can compose simple, reusable filters that make intent clear.
 
-**Example:**
+**Example**
 
 ```ts
 import { withFilter, filter } from "@xmtp/agent-sdk";
 
 // Using filter in message handler
 agent.on(
-  "message",
+  "text",
   withFilter(filter.startsWith("@agent"), async (ctx) => {
     await ctx.conversation.send("How can I help you?");
   }),
 );
 
 // Combination of filters
-const combined = filter.and(filter.notFromSelf, filter.textOnly);
+const combined = filter.and(filter.notFromSelf, filter.isText);
 
 agent.on(
-  "message",
+  "text",
   withFilter(combined, async (ctx) => {
     await ctx.conversation.send("You sent a text message ✅");
   }),
@@ -152,40 +187,38 @@ For convenience, the `filter` object can also be imported as `f`:
 import { filter, f } from "@xmtp/agent-sdk";
 
 // Both work the same way:
-const longVersion = filter.and(filter.notFromSelf, filter.textOnly);
-const shortVersion = f.and(f.notFromSelf, f.textOnly);
+const longVersion = filter.and(filter.notFromSelf, filter.isText);
+const shortVersion = f.and(f.notFromSelf, f.isText);
 ```
 
 You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/utils/filter.ts).
 
 ### 4. Rich Context
 
-Every `message` handler receives an `AgentContext` with:
+Every message event handler receives a `MessageContext` with:
 
-- `message` – decoded message
+- `message` – the decoded message object
 - `conversation` – the active conversation object
 - `client` – underlying XMTP client
-- Helpers like `sendText()` / `sendTextReply()`
+- Helpers like `sendTextReply()`, `sendReaction()`, `getSenderAddress`, and more
 
-**Example:**
+**Example**
 
 ```ts
-agent.on("message", async (ctx) => {
+agent.on("text", async (ctx) => {
   await ctx.sendTextReply("Reply using helper ✨");
 });
 ```
 
 ## Adding Custom Content Types
 
-Pass codecs when creating your agent to extend supported content:
+Pass `codecs` when creating your agent to extend supported content:
 
 ```ts
-import { ReplyCodec } from "@xmtp/content-type-reply";
-
 const agent = await Agent.create(signer, {
   env: "dev",
   dbPath: null,
-  codecs: [new ReplyCodec()],
+  codecs: [new MyContentType()],
 });
 ```
 
@@ -193,15 +226,6 @@ const agent = await Agent.create(signer, {
 
 - [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
 - [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)
-
-## FAQ (Quick Hits)
-
-| Question                                                                                     | Answer                                          |
-| -------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Does middleware run for every message?                                                       | Yes, in the order added.                        |
-| How do I reject a message early?                                                             | Don’t call `next()` in middleware.              |
-| How do I filter messages?                                                                    | Use `withFilter(...)` around an event listener. |
-| Can I send custom [content types](https://docs.xmtp.org/agents/content-types/content-types)? | Yes, register codecs during agent creation.     |
 
 ## Contributing / Feedback
 

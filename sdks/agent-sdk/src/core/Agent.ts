@@ -3,9 +3,12 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
+import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
+  Dm,
+  Group,
   LogLevel,
   type ClientOptions,
   type DecodedMessage,
@@ -14,15 +17,35 @@ import {
 import { isHex } from "viem/utils";
 import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { filter } from "@/utils/filter.js";
+import {
+  hasDefinedContent,
+  isReaction,
+  isRemoteAttachment,
+  isReply,
+  isText,
+} from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import { AgentContext } from "./AgentContext.js";
+import { ConversationContext } from "./ConversationContext.js";
+import { AgentContext } from "./MessageContext.js";
+
+type ConversationStream<ContentTypes> = Awaited<
+  ReturnType<Client<ContentTypes>["conversations"]["stream"]>
+>;
 
 interface EventHandlerMap<ContentTypes> {
-  unhandledError: [error: Error];
-  message: [ctx: AgentContext<ContentTypes>];
+  attachment: [ctx: AgentContext<ReturnType<RemoteAttachmentCodec["decode"]>>];
+  dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
+  group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
+  reaction: [ctx: AgentContext<ReturnType<ReactionCodec["decode"]>>];
+  reply: [ctx: AgentContext<ReturnType<ReplyCodec["decode"]>>];
   start: [];
   stop: [];
+  text: [ctx: AgentContext<ReturnType<TextCodec["decode"]>>];
+  unhandledError: [error: Error];
+  unhandledMessage: [ctx: AgentContext<ContentTypes>];
 }
+
+type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
 
 export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
@@ -64,6 +87,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
+  #conversationsStream?: ConversationStream<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
@@ -175,24 +199,88 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      const stream =
+      this.#conversationsStream = await this.#client.conversations.stream({
+        onValue: async (conversation) => {
+          try {
+            if (conversation instanceof Group) {
+              this.emit(
+                "group",
+                new ConversationContext<ContentTypes, Group<ContentTypes>>({
+                  conversation,
+                  client: this.#client,
+                }),
+              );
+            } else if (conversation instanceof Dm) {
+              this.emit(
+                "dm",
+                new ConversationContext<ContentTypes, Dm<ContentTypes>>({
+                  conversation,
+                  client: this.#client,
+                }),
+              );
+            }
+          } catch (error) {
+            const recovered = await this.#runErrorChain(error, null);
+            if (!recovered) await this.stop();
+          }
+        },
+        onError: async (error) => {
+          const recovered = await this.#runErrorChain(error, null);
+          if (!recovered) await this.stop();
+        },
+      });
+
+      const messages =
         await this.#client.conversations.streamAllMessages(options);
-      for await (const message of stream) {
+      for await (const message of messages) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
-        await this.#processMessage(message);
+        try {
+          switch (true) {
+            case isRemoteAttachment(message):
+              await this.#processMessage(message, "attachment");
+              break;
+            case isReaction(message):
+              await this.#processMessage(message, "reaction");
+              break;
+            case isReply(message):
+              await this.#processMessage(message, "reply");
+              break;
+            case isText(message):
+              await this.#processMessage(message, "text");
+              break;
+            default:
+              await this.#processMessage(message);
+              break;
+          }
+        } catch (error) {
+          const recovered = await this.#runErrorChain(error, null);
+          if (!recovered) {
+            await this.stop();
+            break;
+          }
+        }
       }
     } catch (error) {
       this.#isListening = false;
       const recovered = await this.#runErrorChain(error, null);
       if (recovered) {
+        await this.stop();
         queueMicrotask(() => this.start(options));
       }
     }
   }
 
-  async #processMessage(message: DecodedMessage<ContentTypes>) {
+  async #processMessage(
+    message: DecodedMessage<ContentTypes>,
+    topic: EventName<ContentTypes> = "unhandledMessage",
+  ) {
+    // Skip messages with undefined content (failed to decode)
+    if (!hasDefinedContent(message)) {
+      return;
+    }
+
     let context: AgentContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
@@ -204,15 +292,18 @@ export class Agent<ContentTypes> extends EventEmitter<
       );
     }
 
-    context = new AgentContext(message, conversation, this.#client);
-    await this.#runMiddlewareChain(context);
+    context = new AgentContext({ message, conversation, client: this.#client });
+    await this.#runMiddlewareChain(context, topic);
   }
 
-  async #runMiddlewareChain(context: AgentContext<ContentTypes>) {
+  async #runMiddlewareChain(
+    context: AgentContext<ContentTypes>,
+    topic: EventName<ContentTypes> = "unhandledMessage",
+  ) {
     const finalEmit = async () => {
       try {
         if (filter.notFromSelf(context.message, this.#client)) {
-          this.emit("message", context);
+          this.emit(topic, context);
         }
       } catch (error) {
         await this.#runErrorChain(error, context);
@@ -244,7 +335,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     context: AgentContext<ContentTypes> | null,
     error: unknown,
   ): Promise<ErrorFlow> {
-    let settled = false;
+    let settled = false as boolean;
     let flow: ErrorFlow = { kind: "stopped" };
 
     const next = (nextErr?: unknown) => {
@@ -260,6 +351,9 @@ export class Agent<ContentTypes> extends EventEmitter<
       await handler(error, context, next);
       return flow;
     } catch (thrown) {
+      if (settled) {
+        return flow;
+      }
       return { kind: "continue", error: thrown };
     }
   }
@@ -304,8 +398,9 @@ export class Agent<ContentTypes> extends EventEmitter<
     return this.#errors;
   }
 
-  stop() {
+  async stop() {
+    await this.#conversationsStream?.end();
     this.#isListening = false;
-    void this.emit("stop");
+    this.emit("stop");
   }
 }

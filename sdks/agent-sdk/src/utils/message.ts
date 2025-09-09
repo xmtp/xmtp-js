@@ -15,6 +15,12 @@ type ContentMessage = Pick<
   "content" | "contentType" | "fallback"
 >;
 
+export const hasDefinedContent = <ContentTypes = unknown>(
+  message: DecodedMessage<ContentTypes>,
+): message is DecodedMessage<ContentTypes> & {
+  content: ContentTypes;
+} => message.content !== undefined;
+
 export const isReaction = <M extends ContentMessage>(
   m: M,
 ): m is M & { content: Reaction } =>

@@ -23,12 +23,32 @@ router.command("/version", async (ctx) => {
 
 agent.use(router.middleware());
 
-agent.on("message", (ctx) => {
-  console.log("Got message:", ctx.message.content);
+agent.on("dm", (ctx) => {
+  console.log("Got new direct message in:", ctx.conversation.id);
+});
+
+agent.on("group", (ctx) => {
+  console.log("Got new group message in:", ctx.conversation.id);
+});
+
+agent.on("attachment", (ctx) => {
+  console.log("Got attachment:", ctx.message.content);
+});
+
+agent.on("text", (ctx) => {
+  console.log("Got text:", ctx.message.content);
+});
+
+agent.on("reaction", (ctx) => {
+  console.log("Got reaction:", ctx.message.content);
+});
+
+agent.on("reply", (ctx) => {
+  console.log("Got reply:", ctx.message.content);
 });
 
 agent.on(
-  "message",
+  "text",
   withFilter(f.startsWith("@agent"), async (ctx) => {
     await ctx.conversation.send("How can I help you?");
   }),

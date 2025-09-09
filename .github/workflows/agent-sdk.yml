@@ -1,4 +1,6 @@
-name: Node SDK
+name: Agent SDK
+permissions:
+  contents: read
 
 on:
   push:

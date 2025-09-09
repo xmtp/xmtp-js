@@ -1,6 +1,6 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
-import type { AgentContext } from "@/core/AgentContext.js";
+import type { AgentContext } from "@/core/MessageContext.js";
 import { getTextContent } from "./message.js";
 
 /**
@@ -38,7 +38,7 @@ function fromSelf<ContentTypes>(): MessageFilter<ContentTypes> {
  *
  * @returns Filter function
  */
-function textOnly<ContentTypes>(): MessageFilter<ContentTypes> {
+function isText<ContentTypes>(): MessageFilter<ContentTypes> {
   return (message: DecodedMessage) => {
     return !!message.contentType?.sameAs(ContentTypeText);
   };
@@ -132,7 +132,7 @@ export const filter = {
   // basic filters
   notFromSelf: notFromSelf(),
   fromSelf: fromSelf(),
-  textOnly: textOnly(),
+  isText: isText(),
   // factory functions
   fromSender,
   startsWith,

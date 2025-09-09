@@ -4,7 +4,15 @@ import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import { describe, expect, expectTypeOf, it, vi, type Mock } from "vitest";
+import {
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  vi,
+  type Mock,
+} from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
 import {
   Agent,
@@ -12,7 +20,7 @@ import {
   type AgentMiddleware,
   type AgentOptions,
 } from "./Agent.js";
-import { AgentContext } from "./AgentContext.js";
+import { AgentContext } from "./MessageContext.js";
 
 describe("Agent", () => {
   const mockConversation = {
@@ -23,6 +31,7 @@ describe("Agent", () => {
     inboxId: "test-inbox-id",
     conversations: {
       sync: vi.fn().mockResolvedValue(undefined),
+      stream: vi.fn().mockResolvedValue(undefined),
       streamAllMessages: vi.fn(),
       getConversationById: vi.fn().mockResolvedValue(mockConversation),
     },
@@ -37,7 +46,7 @@ describe("Agent", () => {
     senderInboxId: "sender-inbox-id",
     contentType: ContentTypeText,
     content: "Hello, world!",
-  } as unknown as DecodedMessage;
+  } as unknown as DecodedMessage & { content: string };
 
   let agent: Agent<unknown>;
   let options: AgentOptions<unknown>;
@@ -64,7 +73,7 @@ describe("Agent", () => {
     });
 
     it("types the content in message event listener", () => {
-      ephemeralAgent.on("message", (ctx) => {
+      ephemeralAgent.on("unhandledMessage", (ctx) => {
         expectTypeOf(ctx).toEqualTypeOf<
           AgentContext<
             string | Reaction | Reply | RemoteAttachment | GroupUpdated
@@ -183,20 +192,19 @@ describe("Agent", () => {
       const handler = vi.fn((ctx: AgentContext) => {
         contextSend = ctx.sendText.bind(ctx);
       });
-      agent.on("message", handler);
+      agent.on("unhandledMessage", handler);
 
       void agent.emit(
-        "message",
-        new AgentContext(
-          mockMessage,
-          mockConversation as unknown as Conversation,
-          agent.client,
-        ),
+        "unhandledMessage",
+        new AgentContext({
+          message: mockMessage,
+          conversation: mockConversation as unknown as Conversation,
+          client: agent.client,
+        }),
       );
 
       expect(handler).toHaveBeenCalledTimes(1);
-      assert(contextSend);
-      await contextSend("Test response");
+      await contextSend?.("Test response");
       expect(mockConversation.send).toHaveBeenCalledWith(
         "Test response",
         ContentTypeText,
@@ -205,11 +213,11 @@ describe("Agent", () => {
   });
 
   describe("stop", () => {
-    it("should stop listening and emit stop event", () => {
+    it("should stop listening and emit stop event", async () => {
       const stopSpy = vi.fn();
       agent.on("stop", stopSpy);
 
-      agent.stop();
+      await agent.stop();
 
       expect(stopSpy).toHaveBeenCalled();
     });
@@ -229,12 +237,14 @@ describe("Agent", () => {
       const mockClient = {
         conversations: {
           sync: vi.fn().mockResolvedValue(undefined),
+          stream: vi.fn().mockResolvedValue(undefined),
           streamAllMessages: vi.fn(),
           getConversationById: vi.fn().mockResolvedValue(mockConversation),
         },
         preferences: { inboxStateFromInboxIds: vi.fn() },
       } as unknown as Client & {
         conversations: {
+          stream: Mock;
           streamAllMessages: Mock;
         };
       };
@@ -292,7 +302,7 @@ describe("Agent", () => {
       agent.use([mw1, mw2], [mw3], mw4);
       agent.errors.use(e1, e2);
 
-      agent.on("message", () => {
+      agent.on("text", () => {
         callOrder.push("EMIT");
       });
 
@@ -337,7 +347,7 @@ describe("Agent", () => {
 
       agent.use(mw1, mw2, returnsEarly, notBeingExecuted);
 
-      agent.on("message", () => {
+      agent.on("unhandledMessage", () => {
         callOrder.push("never happening");
       });
 
