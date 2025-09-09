@@ -45,6 +45,8 @@ interface EventHandlerMap<ContentTypes> {
   unhandledMessage: [ctx: AgentContext<ContentTypes>];
 }
 
+type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
+
 export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
 }
@@ -258,7 +260,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #processMessage(
     message: DecodedMessage<ContentTypes>,
-    topic: keyof EventHandlerMap<ContentTypes> = "unhandledMessage",
+    topic: EventName<ContentTypes> = "unhandledMessage",
   ) {
     // Skip messages with undefined content (failed to decode)
     if (!hasDefinedContent(message)) {
@@ -282,7 +284,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runMiddlewareChain(
     context: AgentContext<ContentTypes>,
-    topic: keyof EventHandlerMap<ContentTypes> = "unhandledMessage",
+    topic: EventName<ContentTypes> = "unhandledMessage",
   ) {
     const finalEmit = async () => {
       try {
