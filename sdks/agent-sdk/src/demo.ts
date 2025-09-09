@@ -10,7 +10,7 @@ try {
 } catch {}
 
 const agent = process.env.XMTP_WALLET_KEY
-  ? await Agent.create()
+  ? await Agent.createFromEnv()
   : await Agent.create(createSigner(createUser()), {
       dbPath: null,
     });
