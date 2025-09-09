@@ -15,16 +15,24 @@ import {
 import { isHex } from "viem/utils";
 import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { filter } from "@/utils/filter.js";
-import { isText } from "@/utils/message.js";
+import {
+  isReaction,
+  isRemoteAttachment,
+  isReply,
+  isText,
+} from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import { AgentContext } from "./AgentContext.js";
 
 interface EventHandlerMap<ContentTypes> {
-  unhandledError: [error: Error];
-  unhandledMessage: [ctx: AgentContext<ContentTypes>];
+  attachment: [ctx: AgentContext<ReturnType<RemoteAttachmentCodec["decode"]>>];
+  reaction: [ctx: AgentContext<ReturnType<ReactionCodec["decode"]>>];
+  reply: [ctx: AgentContext<ReturnType<ReplyCodec["decode"]>>];
   start: [];
   stop: [];
   text: [ctx: AgentContext<ReturnType<TextCodec["decode"]>>];
+  unhandledError: [error: Error];
+  unhandledMessage: [ctx: AgentContext<ContentTypes>];
 }
 
 export interface AgentOptions<ContentTypes> {
@@ -185,6 +193,15 @@ export class Agent<ContentTypes> extends EventEmitter<
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
         switch (true) {
+          case isRemoteAttachment(message):
+            await this.#processMessage(message, "attachment");
+            break;
+          case isReaction(message):
+            await this.#processMessage(message, "reaction");
+            break;
+          case isReply(message):
+            await this.#processMessage(message, "reply");
+            break;
           case isText(message):
             await this.#processMessage(message, "text");
             break;
