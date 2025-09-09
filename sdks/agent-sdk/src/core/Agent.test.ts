@@ -1,4 +1,3 @@
-import assert from "node:assert";
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import type { Reaction } from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
@@ -205,8 +204,7 @@ describe("Agent", () => {
       );
 
       expect(handler).toHaveBeenCalledTimes(1);
-      assert(contextSend);
-      await contextSend("Test response");
+      await contextSend?.("Test response");
       expect(mockConversation.send).toHaveBeenCalledWith(
         "Test response",
         ContentTypeText,
