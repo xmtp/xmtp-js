@@ -38,7 +38,7 @@ const agent = await Agent.create(signer, {
   dbPath: null, // in-memory store; provide a path to persist
 });
 
-// 3. Respond to any incoming message
+// 3. Respond to text messages
 agent.on("text", async (ctx) => {
   await ctx.conversation.send("Hello from my XMTP Agent! 👋");
 });
