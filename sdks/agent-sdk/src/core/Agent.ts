@@ -236,22 +236,27 @@ export class Agent<ContentTypes> extends EventEmitter<
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
-        switch (true) {
-          case isRemoteAttachment(message):
-            await this.#processMessage(message, "attachment");
-            break;
-          case isReaction(message):
-            await this.#processMessage(message, "reaction");
-            break;
-          case isReply(message):
-            await this.#processMessage(message, "reply");
-            break;
-          case isText(message):
-            await this.#processMessage(message, "text");
-            break;
-          default:
-            await this.#processMessage(message);
-            break;
+        try {
+          switch (true) {
+            case isRemoteAttachment(message):
+              await this.#processMessage(message, "attachment");
+              break;
+            case isReaction(message):
+              await this.#processMessage(message, "reaction");
+              break;
+            case isReply(message):
+              await this.#processMessage(message, "reply");
+              break;
+            case isText(message):
+              await this.#processMessage(message, "text");
+              break;
+            default:
+              await this.#processMessage(message);
+              break;
+          }
+        } catch (error) {
+          const recovered = await this.#runErrorChain(error, null);
+          if (!recovered) break;
         }
       }
     } catch (error) {
