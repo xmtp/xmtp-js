@@ -1,10 +1,19 @@
+import assert from "node:assert";
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import type { Reaction } from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import { describe, expect, expectTypeOf, it, vi, type Mock } from "vitest";
+import {
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  vi,
+  type Mock,
+} from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
 import {
   Agent,
@@ -12,7 +21,7 @@ import {
   type AgentMiddleware,
   type AgentOptions,
 } from "./Agent.js";
-import { AgentContext } from "./AgentContext.js";
+import { AgentContext } from "./MessageContext.js";
 
 describe("Agent", () => {
   const mockConversation = {
@@ -23,6 +32,7 @@ describe("Agent", () => {
     inboxId: "test-inbox-id",
     conversations: {
       sync: vi.fn().mockResolvedValue(undefined),
+      stream: vi.fn().mockResolvedValue(undefined),
       streamAllMessages: vi.fn(),
       getConversationById: vi.fn().mockResolvedValue(mockConversation),
     },
@@ -187,11 +197,11 @@ describe("Agent", () => {
 
       void agent.emit(
         "unhandledMessage",
-        new AgentContext(
-          mockMessage,
-          mockConversation as unknown as Conversation,
-          agent.client,
-        ),
+        new AgentContext({
+          message: mockMessage,
+          conversation: mockConversation as unknown as Conversation,
+          client: agent.client,
+        }),
       );
 
       expect(handler).toHaveBeenCalledTimes(1);
@@ -229,12 +239,14 @@ describe("Agent", () => {
       const mockClient = {
         conversations: {
           sync: vi.fn().mockResolvedValue(undefined),
+          stream: vi.fn().mockResolvedValue(undefined),
           streamAllMessages: vi.fn(),
           getConversationById: vi.fn().mockResolvedValue(mockConversation),
         },
         preferences: { inboxStateFromInboxIds: vi.fn() },
       } as unknown as Client & {
         conversations: {
+          stream: Mock;
           streamAllMessages: Mock;
         };
       };

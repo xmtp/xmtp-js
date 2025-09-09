@@ -5,26 +5,30 @@ import {
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import { ConversationContext } from "./ConversationContext.js";
 
 // Type for messages that successfully decoded (content is defined)
-export type DefinedContentMessage<ContentTypes = unknown> =
+export type MessageContext<ContentTypes = unknown> =
   DecodedMessage<ContentTypes> & {
     content: NonNullable<ContentTypes>;
   };
 
-export class AgentContext<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
-  #message: DefinedContentMessage<ContentTypes>;
-  #conversation: Conversation;
+export class AgentContext<
+  ContentTypes = unknown,
+> extends ConversationContext<ContentTypes> {
+  #message: MessageContext<ContentTypes>;
 
-  constructor(
-    message: DefinedContentMessage<ContentTypes>,
-    conversation: Conversation,
-    client: Client<ContentTypes>,
-  ) {
+  constructor({
+    message,
+    conversation,
+    client,
+  }: {
+    message: MessageContext<ContentTypes>;
+    conversation: Conversation;
+    client: Client<ContentTypes>;
+  }) {
+    super({ conversation, client });
     this.#message = message;
-    this.#conversation = conversation;
-    this.#client = client;
   }
 
   async sendReaction(content: string, schema: Reaction["schema"] = "unicode") {
@@ -35,11 +39,7 @@ export class AgentContext<ContentTypes = unknown> {
       schema,
       content,
     };
-    await this.#conversation.send(reaction, ContentTypeReaction);
-  }
-
-  async sendText(text: string): Promise<void> {
-    await this.#conversation.send(text, ContentTypeText);
+    await this.conversation.send(reaction, ContentTypeReaction);
   }
 
   async sendTextReply(text: string) {
@@ -49,15 +49,11 @@ export class AgentContext<ContentTypes = unknown> {
       contentType: ContentTypeText,
       content: text,
     };
-    await this.#conversation.send(reply, ContentTypeReply);
-  }
-
-  getOwnAddress() {
-    return this.#client.accountIdentifier?.identifier;
+    await this.conversation.send(reply, ContentTypeReply);
   }
 
   async getSenderAddress() {
-    const inboxState = await this.#client.preferences.inboxStateFromInboxIds([
+    const inboxState = await this.client.preferences.inboxStateFromInboxIds([
       this.#message.senderInboxId,
     ]);
     return inboxState[0].identifiers[0].identifier;
@@ -65,13 +61,5 @@ export class AgentContext<ContentTypes = unknown> {
 
   get message() {
     return this.#message;
-  }
-
-  get conversation() {
-    return this.#conversation;
-  }
-
-  get client() {
-    return this.#client;
   }
 }

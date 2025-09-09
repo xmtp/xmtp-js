@@ -7,6 +7,8 @@ import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
+  Dm,
+  Group,
   LogLevel,
   type ClientOptions,
   type DecodedMessage,
@@ -23,10 +25,13 @@ import {
   isText,
 } from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import { AgentContext } from "./AgentContext.js";
+import { ConversationContext } from "./ConversationContext.js";
+import { AgentContext } from "./MessageContext.js";
 
 interface EventHandlerMap<ContentTypes> {
   attachment: [ctx: AgentContext<ReturnType<RemoteAttachmentCodec["decode"]>>];
+  dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
+  group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
   reaction: [ctx: AgentContext<ReturnType<ReactionCodec["decode"]>>];
   reply: [ctx: AgentContext<ReturnType<ReplyCodec["decode"]>>];
   start: [];
@@ -187,9 +192,40 @@ export class Agent<ContentTypes> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      const stream =
+      await this.#client.conversations.stream({
+        onValue: (conversation) => {
+          if (conversation instanceof Group) {
+            this.emit(
+              "group",
+              new ConversationContext<ContentTypes, Group<ContentTypes>>({
+                conversation,
+                client: this.#client,
+              }),
+            );
+          } else if (conversation instanceof Dm) {
+            this.emit(
+              "dm",
+              new ConversationContext<ContentTypes, Dm<ContentTypes>>({
+                conversation,
+                client: this.#client,
+              }),
+            );
+          }
+        },
+        onError: (error) => {
+          return this.#runErrorChain(error, null);
+        },
+        onFail: () => {
+          return this.#runErrorChain(
+            new Error("conversations.stream failed"),
+            null,
+          );
+        },
+      });
+
+      const messages =
         await this.#client.conversations.streamAllMessages(options);
-      for await (const message of stream) {
+      for await (const message of messages) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
@@ -240,7 +276,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       );
     }
 
-    context = new AgentContext(message, conversation, this.#client);
+    context = new AgentContext({ message, conversation, client: this.#client });
     await this.#runMiddlewareChain(context, topic);
   }
 

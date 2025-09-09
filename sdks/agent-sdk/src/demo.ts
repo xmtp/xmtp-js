@@ -23,6 +23,14 @@ router.command("/version", async (ctx) => {
 
 agent.use(router.middleware());
 
+agent.on("dm", (ctx) => {
+  console.log("Got new direct message in:", ctx.conversation.id);
+});
+
+agent.on("group", (ctx) => {
+  console.log("Got new group message in:", ctx.conversation.id);
+});
+
 agent.on("attachment", (ctx) => {
   console.log("Got attachment:", ctx.message.content);
 });

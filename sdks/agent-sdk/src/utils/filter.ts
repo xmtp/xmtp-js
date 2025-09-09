@@ -1,6 +1,6 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, DecodedMessage } from "@xmtp/node-sdk";
-import type { AgentContext } from "@/core/AgentContext.js";
+import type { AgentContext } from "@/core/MessageContext.js";
 import { getTextContent } from "./message.js";
 
 /**

@@ -2,7 +2,7 @@ import {
   type AgentMessageHandler,
   type AgentMiddleware,
 } from "@/core/Agent.js";
-import type { AgentContext } from "@/core/AgentContext.js";
+import type { AgentContext } from "@/core/MessageContext.js";
 import { isText } from "@/utils/message.js";
 
 export class CommandRouter<ContentTypes> {
