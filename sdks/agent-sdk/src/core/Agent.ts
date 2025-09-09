@@ -153,7 +153,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       initializedOptions.env = process.env.XMTP_ENV as XmtpEnv;
     }
 
-    return this.create(signer, options);
+    return this.create(signer, initializedOptions);
   }
 
   use(
