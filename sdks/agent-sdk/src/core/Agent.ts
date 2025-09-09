@@ -256,7 +256,10 @@ export class Agent<ContentTypes> extends EventEmitter<
           }
         } catch (error) {
           const recovered = await this.#runErrorChain(error, null);
-          if (!recovered) break;
+          if (!recovered) {
+            await this.stop();
+            break;
+          }
         }
       }
     } catch (error) {
@@ -332,7 +335,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     context: AgentContext<ContentTypes> | null,
     error: unknown,
   ): Promise<ErrorFlow> {
-    let settled = false;
+    let settled = false as boolean;
     let flow: ErrorFlow = { kind: "stopped" };
 
     const next = (nextErr?: unknown) => {
