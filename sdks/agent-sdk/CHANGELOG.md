@@ -1,5 +1,17 @@
 # @xmtp/agent-sdk
 
+## 0.0.8
+
+### Patch Changes
+
+- 0857103: - Forced middleware to call `next` to execute the next middleware or `return` to break the middleware chain
+  - Made `use` accept an array of middlewares
+  - Forwarded options to `streamAllMessages`
+  - Replaced `generatePrivateKey` with implementation from `viem/accounts`
+  - Removed `@noble/curves` package
+  - Renamed `AgentEventHandler` to `AgentMessageHandler`
+  - Introduced error-handling middleware chain (`agent.errors.on`)
+
 ## 0.0.7
 
 ### Patch Changes
