@@ -19,7 +19,7 @@ export const hasDefinedContent = <ContentTypes = unknown>(
   message: DecodedMessage<ContentTypes>,
 ): message is DecodedMessage<ContentTypes> & {
   content: NonNullable<ContentTypes>;
-} => !!message.content;
+} => message.content !== null && message.content !== undefined;
 
 export const isReaction = <M extends ContentMessage>(
   m: M,
