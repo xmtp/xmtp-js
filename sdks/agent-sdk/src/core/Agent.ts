@@ -99,7 +99,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
-    const initializedOptions = { ...options };
+    const initializedOptions = { ...(options ?? {}) };
     initializedOptions.appVersion ??= "agent-sdk/alpha";
 
     const upgradedCodecs = [
@@ -138,7 +138,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       }
     }
 
-    const initializedOptions = { ...options };
+    const initializedOptions = { ...(options ?? {}) };
 
     if (process.env.XMTP_DB_ENCRYPTION_KEY) {
       initializedOptions.dbEncryptionKey = getEncryptionKeyFromHex(
