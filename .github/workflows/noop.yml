@@ -1,4 +1,6 @@
 name: No code changes
+permissions:
+  contents: none
 
 on:
   push:
