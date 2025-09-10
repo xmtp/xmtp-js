@@ -301,6 +301,50 @@ describe("Agent", () => {
         "middleware2-end",
       ]);
     });
+
+    it("should filter self messages before they reach middleware", async () => {
+      const messageFromSelf = createMockMessage({
+        id: "message-from-self",
+        senderInboxId: mockClient.inboxId,
+        content: "Message from agent itself",
+      });
+
+      const messageFromOther = createMockMessage({
+        id: "message-from-other",
+        senderInboxId: "other-user-inbox",
+        content: "Message from other user",
+      });
+
+      const middlewareCallsSpy = vi.fn<AgentMiddleware>(async (_, next) => {
+        await next();
+      });
+      agent.use(middlewareCallsSpy);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(messageFromSelf);
+          yield Promise.resolve(messageFromOther);
+        })(),
+      );
+
+      await agent.start();
+
+      // Middleware should only be called once (for the message from other user)
+      expect(
+        middlewareCallsSpy,
+        "Middleware should only process messages from other users, not self",
+      ).toHaveBeenCalledTimes(1);
+
+      // Verify middleware was called with the message from the other user
+      expect(middlewareCallsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            senderInboxId: "other-user-inbox",
+          }),
+        }),
+        expect.any(Function),
+      );
+    });  
   });
 
   describe("emit", () => {
