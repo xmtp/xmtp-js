@@ -1,5 +1,8 @@
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
-import type { Reaction } from "@xmtp/content-type-reaction";
+import {
+  ContentTypeReaction,
+  type Reaction,
+} from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
@@ -119,6 +122,114 @@ describe("Agent", () => {
 
       expect(startSpy).toHaveBeenCalledTimes(1);
     });
+
+    it("should filter messages from the agent itself (same senderInboxId)", async () => {
+      const messageFromSelf = {
+        id: "message-id-self",
+        conversationId: "test-conversation-id",
+        senderInboxId: mockClient.inboxId,
+        contentType: ContentTypeText,
+        content: "Message from self",
+      } as unknown as DecodedMessage & { content: string };
+
+      const messageFromOther = {
+        id: "message-id-other",
+        conversationId: "test-conversation-id",
+        senderInboxId: "other-inbox-id",
+        contentType: ContentTypeText,
+        content: "Message from other",
+      } as unknown as DecodedMessage & { content: string };
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(messageFromSelf);
+          yield Promise.resolve(messageFromOther);
+        })(),
+      );
+
+      const textEventSpy = vi.fn();
+      const unhandledMessageSpy = vi.fn();
+      agent.on("text", textEventSpy);
+      agent.on("unhandledMessage", unhandledMessageSpy);
+
+      await agent.start();
+
+      expect(
+        textEventSpy,
+        "Should not emit events for message from self, but should for message from other",
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        unhandledMessageSpy,
+        "Filtered text messages don't go to unhandledMessage",
+      ).toHaveBeenCalledTimes(0);
+
+      expect(textEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            senderInboxId: "other-inbox-id",
+          }),
+        }),
+      );
+    });
+
+    it("should filter reaction messages from the agent itself", async () => {
+      const reactionFromSelf = {
+        id: "reaction-id-self",
+        conversationId: "test-conversation-id",
+        senderInboxId: mockClient.inboxId,
+        contentType: ContentTypeReaction,
+        content: {
+          content: "👍",
+          reference: "message-ref-1",
+          action: "added",
+          schema: "unicode",
+        } as Reaction,
+      } as unknown as DecodedMessage & { content: Reaction };
+
+      const reactionFromOther = {
+        id: "reaction-id-other",
+        conversationId: "test-conversation-id",
+        senderInboxId: "other-inbox-id",
+        contentType: ContentTypeReaction,
+        content: {
+          content: "👍",
+          reference: "message-ref-1",
+          action: "added",
+          schema: "unicode",
+        } as Reaction,
+      } as unknown as DecodedMessage & { content: Reaction };
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(reactionFromSelf);
+          yield Promise.resolve(reactionFromOther);
+        })(),
+      );
+
+      const reactionEventSpy = vi.fn();
+      const unhandledMessageSpy = vi.fn();
+      agent.on("reaction", reactionEventSpy);
+      agent.on("unhandledMessage", unhandledMessageSpy);
+
+      await agent.start();
+
+      expect(
+        reactionEventSpy,
+        "Should only emit reaction event for message from other sender",
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        unhandledMessageSpy,
+        "Filtered text messages don't go to unhandledMessage",
+      ).toHaveBeenCalledTimes(0);
+
+      expect(reactionEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            senderInboxId: "other-inbox-id",
+          }),
+        }),
+      );
+    });
   });
 
   describe("use", () => {
@@ -156,14 +267,14 @@ describe("Agent", () => {
 
       const middleware1 = vi.fn<AgentMiddleware>(async (_, next) => {
         calls.push("middleware1-start");
-        await next();
         calls.push("middleware1-end");
+        await next();
       });
 
       const middleware2 = vi.fn<AgentMiddleware>(async (_, next) => {
         calls.push("middleware2-start");
-        await next();
         calls.push("middleware2-end");
+        await next();
       });
 
       agent.use(middleware1);
@@ -179,9 +290,9 @@ describe("Agent", () => {
 
       expect(calls).toEqual([
         "middleware1-start",
+        "middleware1-end",
         "middleware2-start",
         "middleware2-end",
-        "middleware1-end",
       ]);
     });
   });
