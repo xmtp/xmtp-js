@@ -1,5 +1,8 @@
 name: Browser SDK
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
