@@ -19,6 +19,8 @@ on:
 jobs:
   typecheck:
     name: Typecheck
+    permissions:
+      contents: read
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
       - uses: actions/checkout@v4
