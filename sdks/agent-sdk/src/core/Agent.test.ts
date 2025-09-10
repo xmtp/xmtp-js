@@ -4,7 +4,11 @@ import {
   type Reaction,
 } from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
+import {
+  ContentTypeReply,
+  ReplyCodec,
+  type Reply,
+} from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import {
@@ -17,6 +21,7 @@ import {
   type Mock,
 } from "vitest";
 import { createSigner, createUser } from "@/utils/user.js";
+import { isReply } from "../utils/message.js";
 import {
   Agent,
   type AgentErrorMiddleware,
@@ -360,6 +365,60 @@ describe("Agent", () => {
         "mw1-second-message",
         "mw2-second-message",
         "mw3-second-message",
+      ]);
+    });
+
+    it("should stop the processing chain when the middleware returns", async () => {
+      const firstMessage = createMockMessage({
+        id: "first-message",
+        senderInboxId: "user-1",
+        content: "First message",
+      });
+
+      const secondMessage = createMockMessage({
+        id: "second-message",
+        senderInboxId: "user-2",
+        content: "Second message",
+        contentType: ContentTypeReply,
+      });
+
+      const middlewareCalls: string[] = [];
+
+      const mw1 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw1-" + ctx.message.id);
+        await next();
+      });
+
+      const filterReply = vi.fn<AgentMiddleware>(async ({ message }, next) => {
+        middlewareCalls.push("filterReply-" + message.id);
+        if (isReply(message)) {
+          return;
+        }
+        await next();
+      });
+
+      const mw3 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw3-" + ctx.message.id);
+        await next();
+      });
+
+      agent.use([mw1, filterReply, mw3]);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(firstMessage);
+          yield Promise.resolve(secondMessage);
+        })(),
+      );
+
+      await agent.start();
+
+      expect(middlewareCalls).toEqual([
+        "mw1-first-message",
+        "filterReply-first-message",
+        "mw3-first-message",
+        "mw1-second-message",
+        "filterReply-second-message",
       ]);
     });
   });
