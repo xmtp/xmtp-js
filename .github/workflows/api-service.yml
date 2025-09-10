@@ -39,6 +39,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - run: echo "Nothing to test"
 
