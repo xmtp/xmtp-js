@@ -1,4 +1,7 @@
 name: Add issues to project
+permissions:
+  contents: read
+  issues: write
 
 on:
   issues:
