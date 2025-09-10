@@ -1,9 +1,12 @@
 import express, { type Request, type Response } from "express";
 import helmet from "helmet";
+import { startClient } from "@/utils/xmtp";
 import apiRouter from "./api";
 import { errorMiddleware } from "./middleware/error";
 import { jsonMiddleware } from "./middleware/json";
 import { noRouteMiddleware } from "./middleware/noRoute";
+
+void startClient();
 
 const app = express();
 

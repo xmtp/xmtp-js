@@ -291,4 +291,8 @@ export class Conversation<ContentTypes = unknown> {
   async debugInfo() {
     return this.#conversation.debugInfo();
   }
+
+  async processStreamedMessage(bytes: Uint8Array) {
+    return this.#conversation.processStreamedGroupMessage(bytes);
+  }
 }

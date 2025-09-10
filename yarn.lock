@@ -4243,29 +4243,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.2.2":
-  version: 1.2.2
-  resolution: "@xmtp/node-bindings@npm:1.2.2"
-  checksum: 10/5870d1bfa629c86ce6d6e61f6804cb2dad992dd75d541f90584cd92ef5a31073c6178986b2ec90efaac3c966d5ea6d9a9131201ff08cfe1cfd1ef9baeecaa004
-  languageName: node
-  linkType: hard
-
 "@xmtp/node-bindings@npm:1.4.0":
   version: 1.4.0
   resolution: "@xmtp/node-bindings@npm:1.4.0"
   checksum: 10/76d7483c3a5dfe1abaeb9e4cff72fe5c4e88c312a4acb7dfdcafb815c681fc019dab133a8fa80dc986e08fb5e485b39d62539c63d10705459ba909910b7abe9a
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-sdk@npm:^2.0.8":
-  version: 2.2.1
-  resolution: "@xmtp/node-sdk@npm:2.2.1"
-  dependencies:
-    "@xmtp/content-type-group-updated": "npm:^2.0.2"
-    "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/node-bindings": "npm:1.2.2"
-  checksum: 10/fe5a08fb679f7adbd1c31d3d14611f24231b4c50490f1ed5fe6c3b40fcd3654545deae58b5c29cb3e66b9b87787534131110903b3208b998c10f0251cfdb6cc2
   languageName: node
   linkType: hard
 
@@ -5271,11 +5252,12 @@ __metadata:
     "@types/express": "npm:^5.0.0"
     "@types/mime-types": "npm:^2.1.4"
     "@types/uuid": "npm:^10.0.0"
-    "@xmtp/node-sdk": "npm:^2.0.8"
+    "@xmtp/node-sdk": "workspace:^"
     express: "npm:^5.0.1"
     helmet: "npm:^8.0.0"
     mime-types: "npm:^2.1.35"
     rimraf: "npm:^6.0.1"
+    tsx: "npm:^4.20.5"
     typescript: "npm:^5.7.3"
     uint8array-extras: "npm:^1.4.0"
     uuid: "npm:^11.0.5"

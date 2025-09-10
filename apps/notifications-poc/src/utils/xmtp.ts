@@ -1,69 +1,26 @@
 import {
+  Client,
+  DecodedMessage,
   IdentifierKind,
-  Client as XmtpClient,
+  type Identifier,
   type Signer as XmtpSigner,
 } from "@xmtp/node-sdk";
+import { base64ToUint8Array } from "uint8array-extras";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
+import {
+  buildConversationTopic,
+  groupIdFromTopic,
+} from "@/notifications/topics";
+import { register, subscribe } from "@/utils/notifications";
+import type { NotificationMessage } from "../notifications/client";
 
-if (!process.env.XMTP_DB_ENCRYPTION_BASE_64_KEY) {
-  throw new Error("Missing XMTP_DB_ENCRYPTION_BASE_64_KEY");
-}
-
-// Generate random bytes for encryption key if none provided
-const encryptionKey = Buffer.from(
-  process.env.XMTP_DB_ENCRYPTION_BASE_64_KEY,
-  "base64",
-);
-
-// Cache the XMTP client to avoid creating multiple instances
-let cachedXmtpClientCreationPromise: Promise<XmtpClient> | undefined =
-  undefined;
-
-export const currentXmtpEnv = process.env.XMTP_ENV as
-  | "local"
-  | "dev"
-  | "production";
-
-/**
- * Get a cached XMTP client instance for server-wide operations
- * This client is reused across requests and uses a persistent encryption key
- */
-export async function getXmtpClient(): Promise<XmtpClient> {
-  if (cachedXmtpClientCreationPromise) {
-    return cachedXmtpClientCreationPromise;
-  }
-
-  const signer = createSigner();
-  cachedXmtpClientCreationPromise = XmtpClient.create(signer, {
-    dbEncryptionKey: encryptionKey,
-    env: currentXmtpEnv,
-  });
-
-  return cachedXmtpClientCreationPromise;
-}
-
-/**
- * Get all Ethereum addresses associated with an XMTP inbox ID
- * This is used to verify ownership of on-chain names
- */
-export async function getAddressesForInboxId(
-  inboxId: string,
-): Promise<string[]> {
-  try {
-    const client = await getXmtpClient();
-    const { identifiers } =
-      await client.preferences.getLatestInboxState(inboxId);
-    return identifiers
-      .filter(
-        (identifier) => identifier.identifierKind == IdentifierKind.Ethereum,
-      )
-      .map((identifier) => identifier.identifier);
-  } catch (error) {
-    console.error("Error getting addresses for inbox:", error);
-    return [];
-  }
+export function addressToIdentifier(address: string): Identifier {
+  return {
+    identifier: address,
+    identifierKind: IdentifierKind.Ethereum,
+  };
 }
 
 function createSigner(): XmtpSigner {
@@ -74,7 +31,6 @@ function createSigner(): XmtpSigner {
     chain: mainnet,
     transport: http(),
   });
-
   return {
     type: "EOA",
     getIdentifier: () => ({
@@ -87,3 +43,56 @@ function createSigner(): XmtpSigner {
     },
   };
 }
+
+let client: Client | undefined;
+let messagesReceived: number = 0;
+
+export const startClient = async () => {
+  const signer = createSigner();
+  client = await Client.create(signer, {
+    env: "local",
+  });
+  console.log("XMTP client created");
+  console.log("Inbox ID: ", client.inboxId);
+  console.log("Installation ID: ", client.installationId);
+  console.log("Listening for new conversations...");
+  await client.conversations.stream({
+    onValue: (conversation) => {
+      if (conversation === undefined) {
+        return;
+      }
+      console.log(`New conversation detected`);
+      console.log(`Registering installation with ID: ${conversation.id}`);
+      register(conversation.id)
+        .then(() => {
+          const topic = buildConversationTopic(conversation.id);
+          const hmacKeys = conversation.getHmacKeys();
+          return subscribe(conversation.id, topic, hmacKeys[conversation.id]);
+        })
+        .then(() => {
+          console.log("Subscribed to conversation topic");
+        })
+        .catch((error: unknown) => {
+          console.error("Error subscribing to conversation topic: ", error);
+        });
+    },
+  });
+};
+
+export const handleEncryptedMessage = async (message: NotificationMessage) => {
+  if (!client) {
+    console.error("XMTP client not initialized");
+    return;
+  }
+  const groupId = groupIdFromTopic(message.content_topic);
+  const conversation = await client.conversations.getConversationById(groupId);
+  if (!conversation) {
+    console.error(`Conversation not found for group ID: ${groupId}`);
+    return;
+  }
+  const bytes = base64ToUint8Array(message.message);
+  const processed = await conversation.processStreamedMessage(bytes);
+  const _decodedMessage = new DecodedMessage(client, processed);
+  messagesReceived++;
+  console.log(`${messagesReceived}/1000`);
+};

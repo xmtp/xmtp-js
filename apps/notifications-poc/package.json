@@ -10,14 +10,14 @@
     "clean": "bun clean:dbs && rimraf node_modules",
     "clean:dbs": "rimraf **/*.db3* ||:",
     "dev": "bun --watch run src/index.ts",
-    "start": "bun run src/index.ts",
+    "start": "tsx src/index.ts",
     "typecheck": "tsc"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.3",
     "@connectrpc/connect": "^2.0.1",
     "@connectrpc/connect-node": "^2.0.1",
-    "@xmtp/node-sdk": "^2.0.8",
+    "@xmtp/node-sdk": "workspace:^",
     "express": "^5.0.1",
     "helmet": "^8.0.0",
     "mime-types": "^2.1.35",
@@ -36,6 +36,7 @@
     "@types/mime-types": "^2.1.4",
     "@types/uuid": "^10.0.0",
     "rimraf": "^6.0.1",
+    "tsx": "^4.20.5",
     "typescript": "^5.7.3"
   }
 }

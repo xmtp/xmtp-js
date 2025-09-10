@@ -31,7 +31,7 @@
         "@bufbuild/protobuf": "^2.2.3",
         "@connectrpc/connect": "^2.0.1",
         "@connectrpc/connect-node": "^2.0.1",
-        "@xmtp/node-sdk": "^2.0.8",
+        "@xmtp/node-sdk": "^4.1.0",
         "express": "^5.0.1",
         "helmet": "^8.0.0",
         "mime-types": "^2.1.35",
@@ -2296,8 +2296,6 @@
 
     "cliui/wrap-ansi": ["wrap-ansi@7.0.0", "", { "dependencies": { "ansi-styles": "^4.0.0", "string-width": "^4.1.0", "strip-ansi": "^6.0.0" } }, "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q=="],
 
-    "convos-backend/@xmtp/node-sdk": ["@xmtp/node-sdk@2.2.1", "", { "dependencies": { "@xmtp/content-type-group-updated": "^2.0.2", "@xmtp/content-type-primitives": "^2.0.2", "@xmtp/content-type-text": "^2.0.2", "@xmtp/node-bindings": "1.2.2" } }, "sha512-4vpEcpY/xk+O0AZqva6gWv3DdWpyuforjcajwMc6UXaMahSBHBqFRGXNmTpkFejZrBBfreIYvnOM6tY++fr4bw=="],
-
     "eciesjs/@noble/curves": ["@noble/curves@1.9.1", "", { "dependencies": { "@noble/hashes": "1.8.0" } }, "sha512-k11yZxZg+t+gWvBbIswW0yoJlu8cHOC7dhunwOzoWH/mXGBiYyR4YY6hAEK/3EUs4UpB8la1RfdRpeGsFHkWsA=="],
 
     "eciesjs/@noble/hashes": ["@noble/hashes@1.8.0", "", {}, "sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A=="],
@@ -2503,8 +2501,6 @@
     "accepts/mime-types/mime-db": ["mime-db@1.54.0", "", {}, "sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ=="],
 
     "bun-types/@types/node/undici-types": ["undici-types@7.10.0", "", {}, "sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag=="],
-
-    "convos-backend/@xmtp/node-sdk/@xmtp/node-bindings": ["@xmtp/node-bindings@1.2.2", "", {}, "sha512-9FTcUhhLiR7zmRX3SjK7KC5c0DQkaoy9rYM9Jk73dgPFwLmDx5MOnEVziOYeYuw8xULlIGYu9kZ9QbRFJtByfQ=="],
 
     "ethereum-cryptography/@scure/bip32/@scure/base": ["@scure/base@1.1.9", "", {}, "sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg=="],
 

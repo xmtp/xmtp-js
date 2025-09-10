@@ -7,6 +7,12 @@ export const buildWelcomeTopic = (installationId: string) =>
 export const buildConversationTopic = (groupId: string) =>
   `${V3_TOPIC_PREFIX}g-${groupId}${TOPIC_SUFFIX}`;
 
+export const groupIdFromTopic = (topic: string) =>
+  topic
+    .replace(new RegExp(`^${V3_TOPIC_PREFIX}`), "")
+    .replace(new RegExp(`${TOPIC_SUFFIX}$`), "")
+    .replace(/^g-/, "");
+
 export const isWelcomeTopic = (topic: string) =>
   topic
     .replace(new RegExp(`^${V3_TOPIC_PREFIX}`), "")

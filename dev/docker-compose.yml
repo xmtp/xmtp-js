@@ -69,7 +69,7 @@ services:
 
       # HTTP Delivery
       - --http-delivery
-      - --http-delivery-address=${TEST_NOTIFICATION_DELIVERY_URL:-http://host.docker.internal:4000/api/v1/notifications/xmtp/handle-notification}
+      - --http-delivery-address=http://host.docker.internal:4000/api/handle-notification
       # - --http-auth-header=${XMTP_NOTIFICATION_SECRET}
 
     ports:
