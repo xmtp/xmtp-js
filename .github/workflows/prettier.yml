@@ -1,4 +1,6 @@
 name: Format check
+permissions:
+  contents: read
 
 on:
   push:
