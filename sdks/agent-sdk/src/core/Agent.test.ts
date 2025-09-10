@@ -268,40 +268,6 @@ describe("Agent", () => {
       );
     });
 
-    it("should execute multiple middleware in order", async () => {
-      const calls: string[] = [];
-
-      const middleware1 = vi.fn<AgentMiddleware>(async (_, next) => {
-        calls.push("middleware1-start");
-        calls.push("middleware1-end");
-        await next();
-      });
-
-      const middleware2 = vi.fn<AgentMiddleware>(async (_, next) => {
-        calls.push("middleware2-start");
-        calls.push("middleware2-end");
-        await next();
-      });
-
-      agent.use(middleware1);
-      agent.use(middleware2);
-
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(mockMessage);
-        })(),
-      );
-
-      await agent.start();
-
-      expect(calls).toEqual([
-        "middleware1-start",
-        "middleware1-end",
-        "middleware2-start",
-        "middleware2-end",
-      ]);
-    });
-
     it("should filter self messages before they reach middleware", async () => {
       const messageFromSelf = createMockMessage({
         id: "message-from-self",
@@ -344,7 +310,58 @@ describe("Agent", () => {
         }),
         expect.any(Function),
       );
-    });  
+    });
+
+    it("should continue to next middleware when next() is called", async () => {
+      const firstMessage = createMockMessage({
+        id: "first-message",
+        senderInboxId: "user-1",
+        content: "First message",
+      });
+
+      const secondMessage = createMockMessage({
+        id: "second-message",
+        senderInboxId: "user-2",
+        content: "Second message",
+      });
+
+      const middlewareCalls: string[] = [];
+
+      const mw1 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw1-" + ctx.message.id);
+        await next();
+      });
+
+      const mw2 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw2-" + ctx.message.id);
+        await next();
+      });
+
+      const mw3 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw3-" + ctx.message.id);
+        await next();
+      });
+
+      agent.use([mw1, mw2, mw3]);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(firstMessage);
+          yield Promise.resolve(secondMessage);
+        })(),
+      );
+
+      await agent.start();
+
+      expect(middlewareCalls).toEqual([
+        "mw1-first-message",
+        "mw2-first-message",
+        "mw3-first-message",
+        "mw1-second-message",
+        "mw2-second-message",
+        "mw3-second-message",
+      ]);
+    });
   });
 
   describe("emit", () => {
