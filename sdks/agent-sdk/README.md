@@ -138,18 +138,74 @@ agent.on("unhandledError", (error) => {
 
 Extend your agent with custom business logic using middlewares. Compose cross-cutting behavior like routing, telemetry, rate limiting, analytics, and feature flags, or plug in your own.
 
+#### Standard Middleware
+
+Middlewares can be registered with `agent.use` either one at a time or as an array. They are executed in the order they were added.
+
+Middleware functions receive a `context` object and a `next` function. Normally, a middleware calls `next()` to hand off control to the next one in the chain. However, a middleware can also alter the flow in the following ways:
+
+1. Use `next()` to continue the chain and pass control to the next middleware
+2. Use `return` to stop the chain and prevent events from firing
+3. Use `throw` to trigger the error-handling middleware chain
+
 **Example**
 
 ```ts
-import { CommandRouter } from "@xmtp/agent-sdk";
+import { Agent, AgentMiddleware } from "@xmtp/agent-sdk";
 
-const router = new CommandRouter();
+const onlyText: AgentMiddleware = async (context, next) => {
+  if (typeof context.message.content === "string") {
+    // Continue to next middleware
+    await next();
+  }
+  // Break middleware chain
+  return;
+};
 
-router.command("/version", async (ctx) => {
-  await ctx.conversation.send(`v${process.env.npm_package_version}`);
+const agent = await Agent.createFromEnv();
+agent.use(onlyText);
+```
+
+#### Error-Handling Middleware
+
+Error middleware can be registered with `agent.errors.use` either one at a time or as an array. They are executed in the order they were added.
+
+Error middleware receives the `error`, `context`, and a `next` function. Just like regular middleware, the flow in error middleware depends on how to use `next`:
+
+1. Use `next()` to mark the error as handled and continue with the main middleware chain
+2. Use `next(error)` to forward the original (or transformed) error to the next error handler
+3. Use `return` to end error handling and stop the middleware chain
+4. Use `throw` to raise a new error to be caught by the error chain
+
+**Example**
+
+```ts
+import { Agent, AgentErrorMiddleware } from "@xmtp/agent-sdk";
+
+const errorHandler: AgentErrorMiddleware = async (error, ctx, next) => {
+  if (error instanceof Error) {
+    // Transform the error and pass it along
+    await next(`Validation failed: ${error.message}`);
+  } else {
+    // Let other error handlers deal with it
+    await next(error);
+  }
+};
+
+const agent = await Agent.createFromEnv();
+agent.errors.use(errorHandler);
+```
+
+#### Default Error Handler
+
+Any error not handled by custom error middleware is caught by the default error handler and published to the `unhandledError` topic, where it can be observed.
+
+**Example**
+
+```ts
+agent.on("unhandledError", (error) => {
+  console.log("Caught error", error);
 });
-
-agent.use(router.middleware());
 ```
 
 ### 3. Built‑in Filters
