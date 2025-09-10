@@ -1,7 +1,14 @@
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
-import type { Reaction } from "@xmtp/content-type-reaction";
+import {
+  ContentTypeReaction,
+  type Reaction,
+} from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec, type Reply } from "@xmtp/content-type-reply";
+import {
+  ContentTypeReply,
+  ReplyCodec,
+  type Reply,
+} from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import {
@@ -13,6 +20,7 @@ import {
   vi,
   type Mock,
 } from "vitest";
+import { isReply } from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import {
   Agent,
@@ -21,6 +29,20 @@ import {
   type AgentOptions,
 } from "./Agent.js";
 import { AgentContext } from "./MessageContext.js";
+
+const createMockMessage = <ContentType = string>(
+  overrides: Partial<DecodedMessage> & { content: ContentType },
+): DecodedMessage & { content: ContentType } => {
+  const { content, ...rest } = overrides;
+  return {
+    id: "mock-message-id",
+    conversationId: "test-conversation-id",
+    senderInboxId: "sender-inbox-id",
+    contentType: ContentTypeText,
+    ...rest,
+    content,
+  } as unknown as DecodedMessage & { content: ContentType };
+};
 
 describe("Agent", () => {
   const mockConversation = {
@@ -40,13 +62,11 @@ describe("Agent", () => {
     },
   };
 
-  const mockMessage = {
+  const mockMessage = createMockMessage({
     id: "message-id-1",
-    conversationId: "test-conversation-id",
     senderInboxId: "sender-inbox-id",
-    contentType: ContentTypeText,
     content: "Hello, world!",
-  } as unknown as DecodedMessage & { content: string };
+  });
 
   let agent: Agent<unknown>;
   let options: AgentOptions<unknown>;
@@ -119,6 +139,108 @@ describe("Agent", () => {
 
       expect(startSpy).toHaveBeenCalledTimes(1);
     });
+
+    it("should filter messages from the agent itself (same senderInboxId)", async () => {
+      const messageFromSelf = createMockMessage({
+        id: "message-id-self",
+        senderInboxId: mockClient.inboxId,
+        content: "Message from self",
+      });
+
+      const messageFromOther = createMockMessage({
+        id: "message-id-other",
+        senderInboxId: "other-inbox-id",
+        content: "Message from other",
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(messageFromSelf);
+          yield Promise.resolve(messageFromOther);
+        })(),
+      );
+
+      const textEventSpy = vi.fn();
+      const unhandledMessageSpy = vi.fn();
+      agent.on("text", textEventSpy);
+      agent.on("unhandledMessage", unhandledMessageSpy);
+
+      await agent.start();
+
+      expect(
+        textEventSpy,
+        "Should not emit events for message from self, but should for message from other",
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        unhandledMessageSpy,
+        "Filtered text messages don't go to unhandledMessage",
+      ).toHaveBeenCalledTimes(0);
+
+      expect(textEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            senderInboxId: "other-inbox-id",
+          }) as { senderInboxId: string },
+        } as unknown as AgentContext),
+      );
+    });
+
+    it("should filter reaction messages from the agent itself", async () => {
+      const reactionFromSelf = createMockMessage<Reaction>({
+        id: "reaction-id-self",
+        senderInboxId: mockClient.inboxId,
+        contentType: ContentTypeReaction,
+        content: {
+          content: "👍",
+          reference: "message-ref-1",
+          action: "added",
+          schema: "unicode",
+        },
+      });
+
+      const reactionFromOther = createMockMessage<Reaction>({
+        id: "reaction-id-other",
+        senderInboxId: "other-inbox-id",
+        contentType: ContentTypeReaction,
+        content: {
+          content: "👍",
+          reference: "message-ref-1",
+          action: "added",
+          schema: "unicode",
+        },
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(reactionFromSelf);
+          yield Promise.resolve(reactionFromOther);
+        })(),
+      );
+
+      const reactionEventSpy = vi.fn();
+      const unhandledMessageSpy = vi.fn();
+      agent.on("reaction", reactionEventSpy);
+      agent.on("unhandledMessage", unhandledMessageSpy);
+
+      await agent.start();
+
+      expect(
+        reactionEventSpy,
+        "Should only emit reaction event for message from other sender",
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        unhandledMessageSpy,
+        "Filtered text messages don't go to unhandledMessage",
+      ).toHaveBeenCalledTimes(0);
+
+      expect(reactionEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            senderInboxId: "other-inbox-id",
+          }) as { senderInboxId: string },
+        } as unknown as AgentContext),
+      );
+    });
   });
 
   describe("use", () => {
@@ -151,37 +273,152 @@ describe("Agent", () => {
       );
     });
 
-    it("should execute multiple middleware in order", async () => {
-      const calls: string[] = [];
-
-      const middleware1 = vi.fn<AgentMiddleware>(async (_, next) => {
-        calls.push("middleware1-start");
-        await next();
-        calls.push("middleware1-end");
+    it("should filter self messages before they reach middleware", async () => {
+      const messageFromSelf = createMockMessage({
+        id: "message-from-self",
+        senderInboxId: mockClient.inboxId,
+        content: "Message from agent itself",
       });
 
-      const middleware2 = vi.fn<AgentMiddleware>(async (_, next) => {
-        calls.push("middleware2-start");
-        await next();
-        calls.push("middleware2-end");
+      const messageFromOther = createMockMessage({
+        id: "message-from-other",
+        senderInboxId: "other-user-inbox",
+        content: "Message from other user",
       });
 
-      agent.use(middleware1);
-      agent.use(middleware2);
+      const middlewareCallsSpy = vi.fn<AgentMiddleware>(async (_, next) => {
+        await next();
+      });
+      agent.use(middlewareCallsSpy);
 
       mockClient.conversations.streamAllMessages.mockResolvedValue(
         (async function* () {
-          yield Promise.resolve(mockMessage);
+          yield Promise.resolve(messageFromSelf);
+          yield Promise.resolve(messageFromOther);
         })(),
       );
 
       await agent.start();
 
-      expect(calls).toEqual([
-        "middleware1-start",
-        "middleware2-start",
-        "middleware2-end",
-        "middleware1-end",
+      // Middleware should only be called once (for the message from other user)
+      expect(
+        middlewareCallsSpy,
+        "Middleware should only process messages from other users, not self",
+      ).toHaveBeenCalledTimes(1);
+
+      // Verify middleware was called with the message from the other user
+      expect(middlewareCallsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            senderInboxId: "other-user-inbox",
+          }) as { senderInboxId: string },
+        } as unknown as AgentContext),
+        expect.any(Function),
+      );
+    });
+
+    it("should continue to next middleware when next() is called", async () => {
+      const firstMessage = createMockMessage({
+        id: "first-message",
+        senderInboxId: "user-1",
+        content: "First message",
+      });
+
+      const secondMessage = createMockMessage({
+        id: "second-message",
+        senderInboxId: "user-2",
+        content: "Second message",
+      });
+
+      const middlewareCalls: string[] = [];
+
+      const mw1 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw1-" + ctx.message.id);
+        await next();
+      });
+
+      const mw2 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw2-" + ctx.message.id);
+        await next();
+      });
+
+      const mw3 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw3-" + ctx.message.id);
+        await next();
+      });
+
+      agent.use([mw1, mw2, mw3]);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(firstMessage);
+          yield Promise.resolve(secondMessage);
+        })(),
+      );
+
+      await agent.start();
+
+      expect(middlewareCalls).toEqual([
+        "mw1-first-message",
+        "mw2-first-message",
+        "mw3-first-message",
+        "mw1-second-message",
+        "mw2-second-message",
+        "mw3-second-message",
+      ]);
+    });
+
+    it("should stop the processing chain when the middleware returns", async () => {
+      const firstMessage = createMockMessage({
+        id: "first-message",
+        senderInboxId: "user-1",
+        content: "First message",
+      });
+
+      const secondMessage = createMockMessage({
+        id: "second-message",
+        senderInboxId: "user-2",
+        content: "Second message",
+        contentType: ContentTypeReply,
+      });
+
+      const middlewareCalls: string[] = [];
+
+      const mw1 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw1-" + ctx.message.id);
+        await next();
+      });
+
+      const filterReply = vi.fn<AgentMiddleware>(async ({ message }, next) => {
+        middlewareCalls.push("filterReply-" + message.id);
+        if (isReply(message)) {
+          return;
+        }
+        await next();
+      });
+
+      const mw3 = vi.fn<AgentMiddleware>(async (ctx, next) => {
+        middlewareCalls.push("mw3-" + ctx.message.id);
+        await next();
+      });
+
+      agent.use([mw1, filterReply, mw3]);
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(firstMessage);
+          yield Promise.resolve(secondMessage);
+        })(),
+      );
+
+      await agent.start();
+
+      expect(middlewareCalls).toEqual([
+        "mw1-first-message",
+        "filterReply-first-message",
+        "mw3-first-message",
+        "mw1-second-message",
+        "filterReply-second-message",
       ]);
     });
   });
@@ -223,15 +460,14 @@ describe("Agent", () => {
     });
   });
 
-  describe("Error Handling", () => {
+  describe("errors.use", () => {
     const mockConversation = { send: vi.fn() };
-    const mockMessage = {
+    const mockMessage = createMockMessage({
       id: "msg-1",
       conversationId: "conv-1",
       senderInboxId: "inbox-1",
-      contentType: ContentTypeText,
       content: "hello",
-    } as unknown as DecodedMessage;
+    });
 
     const makeAgent = () => {
       const mockClient = {

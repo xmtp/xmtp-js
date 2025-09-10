@@ -281,6 +281,11 @@ export class Agent<ContentTypes> extends EventEmitter<
       return;
     }
 
+    // Skip messages from agent itself
+    if (filter.fromSelf(message, this.#client)) {
+      return;
+    }
+
     let context: AgentContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
@@ -302,9 +307,7 @@ export class Agent<ContentTypes> extends EventEmitter<
   ) {
     const finalEmit = async () => {
       try {
-        if (filter.notFromSelf(context.message, this.#client)) {
-          this.emit(topic, context);
-        }
+        this.emit(topic, context);
       } catch (error) {
         await this.#runErrorChain(error, context);
       }
