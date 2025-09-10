@@ -25,6 +25,20 @@ import {
 } from "./Agent.js";
 import { AgentContext } from "./MessageContext.js";
 
+const createMockMessage = <ContentType = string>(
+  overrides: Partial<DecodedMessage> & { content: ContentType },
+): DecodedMessage & { content: ContentType } => {
+  const { content, ...rest } = overrides;
+  return {
+    id: "mock-message-id",
+    conversationId: "test-conversation-id",
+    senderInboxId: "sender-inbox-id",
+    contentType: ContentTypeText,
+    ...rest,
+    content,
+  } as unknown as DecodedMessage & { content: ContentType };
+};
+
 describe("Agent", () => {
   const mockConversation = {
     send: vi.fn().mockResolvedValue(undefined),
@@ -43,13 +57,11 @@ describe("Agent", () => {
     },
   };
 
-  const mockMessage = {
+  const mockMessage = createMockMessage({
     id: "message-id-1",
-    conversationId: "test-conversation-id",
     senderInboxId: "sender-inbox-id",
-    contentType: ContentTypeText,
     content: "Hello, world!",
-  } as unknown as DecodedMessage & { content: string };
+  });
 
   let agent: Agent<unknown>;
   let options: AgentOptions<unknown>;
@@ -124,21 +136,17 @@ describe("Agent", () => {
     });
 
     it("should filter messages from the agent itself (same senderInboxId)", async () => {
-      const messageFromSelf = {
+      const messageFromSelf = createMockMessage({
         id: "message-id-self",
-        conversationId: "test-conversation-id",
         senderInboxId: mockClient.inboxId,
-        contentType: ContentTypeText,
         content: "Message from self",
-      } as unknown as DecodedMessage & { content: string };
+      });
 
-      const messageFromOther = {
+      const messageFromOther = createMockMessage({
         id: "message-id-other",
-        conversationId: "test-conversation-id",
         senderInboxId: "other-inbox-id",
-        contentType: ContentTypeText,
         content: "Message from other",
-      } as unknown as DecodedMessage & { content: string };
+      });
 
       mockClient.conversations.streamAllMessages.mockResolvedValue(
         (async function* () {
@@ -173,9 +181,8 @@ describe("Agent", () => {
     });
 
     it("should filter reaction messages from the agent itself", async () => {
-      const reactionFromSelf = {
+      const reactionFromSelf = createMockMessage<Reaction>({
         id: "reaction-id-self",
-        conversationId: "test-conversation-id",
         senderInboxId: mockClient.inboxId,
         contentType: ContentTypeReaction,
         content: {
@@ -183,12 +190,11 @@ describe("Agent", () => {
           reference: "message-ref-1",
           action: "added",
           schema: "unicode",
-        } as Reaction,
-      } as unknown as DecodedMessage & { content: Reaction };
+        },
+      });
 
-      const reactionFromOther = {
+      const reactionFromOther = createMockMessage<Reaction>({
         id: "reaction-id-other",
-        conversationId: "test-conversation-id",
         senderInboxId: "other-inbox-id",
         contentType: ContentTypeReaction,
         content: {
@@ -196,8 +202,8 @@ describe("Agent", () => {
           reference: "message-ref-1",
           action: "added",
           schema: "unicode",
-        } as Reaction,
-      } as unknown as DecodedMessage & { content: Reaction };
+        },
+      });
 
       mockClient.conversations.streamAllMessages.mockResolvedValue(
         (async function* () {
@@ -336,13 +342,12 @@ describe("Agent", () => {
 
   describe("errors.use", () => {
     const mockConversation = { send: vi.fn() };
-    const mockMessage = {
+    const mockMessage = createMockMessage({
       id: "msg-1",
       conversationId: "conv-1",
       senderInboxId: "inbox-1",
-      contentType: ContentTypeText,
       content: "hello",
-    } as unknown as DecodedMessage;
+    });
 
     const makeAgent = () => {
       const mockClient = {
