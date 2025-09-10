@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 0.0.10
+
+### Patch Changes
+
+- 20d64c3: Skipped messages from agent itself in middleware
+
 ## 0.0.9
 
 ### Patch Changes
