@@ -223,7 +223,7 @@ describe("Agent", () => {
     });
   });
 
-  describe("Error Handling", () => {
+  describe("errors.use", () => {
     const mockConversation = { send: vi.fn() };
     const mockMessage = {
       id: "msg-1",
