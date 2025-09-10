@@ -3,7 +3,7 @@ import {
   type AgentMiddleware,
 } from "@/core/Agent.js";
 import type { AgentContext } from "@/core/MessageContext.js";
-import { isText } from "@/utils/message.js";
+import { filter } from "@/utils/filter.js";
 
 export class CommandRouter<ContentTypes> {
   private commandMap = new Map<string, AgentMessageHandler>();
@@ -23,7 +23,7 @@ export class CommandRouter<ContentTypes> {
   }
 
   async handle(ctx: AgentContext): Promise<boolean> {
-    if (!isText(ctx.message)) {
+    if (!filter.isText(ctx.message)) {
       return false;
     }
 

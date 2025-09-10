@@ -22,7 +22,6 @@ import {
   isReaction,
   isRemoteAttachment,
   isReply,
-  isText,
 } from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import { ConversationContext } from "./ConversationContext.js";
@@ -247,7 +246,7 @@ export class Agent<ContentTypes> extends EventEmitter<
             case isReply(message):
               await this.#processMessage(message, "reply");
               break;
-            case isText(message):
+            case filter.isText(message):
               await this.#processMessage(message, "text");
               break;
             default:

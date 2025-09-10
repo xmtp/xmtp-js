@@ -7,8 +7,8 @@ import {
   type RemoteAttachment,
 } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
 import type { DecodedMessage } from "@xmtp/node-sdk";
+import { filter } from "./filter.js";
 
 type ContentMessage = Pick<
   DecodedMessage,
@@ -35,10 +35,6 @@ export const isTextReply = <M extends ContentMessage>(
 ): m is M & { content: Reply & { content: string } } =>
   isReply(m) && typeof m.content.content === "string";
 
-export const isText = <M extends ContentMessage>(
-  m: M,
-): m is M & { content: string } => !!m.contentType?.sameAs(ContentTypeText);
-
 export const isRemoteAttachment = <M extends ContentMessage>(
   m: M,
 ): m is M & { content: RemoteAttachment } =>
@@ -55,12 +51,12 @@ export const isRemoteAttachment = <M extends ContentMessage>(
  * @param message - The decoded message to extract text from
  * @returns The text content as a string, or `undefined` for message types that don't contain extractable text content
  */
-export const getTextContent = (message: ContentMessage) => {
+export const getTextContent = (message: DecodedMessage) => {
   switch (true) {
     case isReaction(message):
     case isTextReply(message):
       return message.content.content;
-    case isText(message):
+    case filter.isText(message):
       return message.content;
   }
 };
