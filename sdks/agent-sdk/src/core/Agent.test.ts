@@ -20,8 +20,8 @@ import {
   vi,
   type Mock,
 } from "vitest";
+import { isReply } from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import { isReply } from "../utils/message.js";
 import {
   Agent,
   type AgentErrorMiddleware,
@@ -180,8 +180,8 @@ describe("Agent", () => {
         expect.objectContaining({
           message: expect.objectContaining({
             senderInboxId: "other-inbox-id",
-          }),
-        }),
+          }) as { senderInboxId: string },
+        } as unknown as AgentContext),
       );
     });
 
@@ -237,8 +237,8 @@ describe("Agent", () => {
         expect.objectContaining({
           message: expect.objectContaining({
             senderInboxId: "other-inbox-id",
-          }),
-        }),
+          }) as { senderInboxId: string },
+        } as unknown as AgentContext),
       );
     });
   });
@@ -311,8 +311,8 @@ describe("Agent", () => {
         expect.objectContaining({
           message: expect.objectContaining({
             senderInboxId: "other-user-inbox",
-          }),
-        }),
+          }) as { senderInboxId: string },
+        } as unknown as AgentContext),
         expect.any(Function),
       );
     });
