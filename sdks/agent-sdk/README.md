@@ -142,7 +142,7 @@ Extend your agent with custom business logic using middlewares. Compose cross-cu
 
 Middlewares can be registered with `agent.use` either one at a time or as an array. They are executed in the order they were added.
 
-Middleware functions receive a `context` object and a `next` function. Normally, a middleware calls `next()` to hand off control to the next one in the chain. However, a middleware can also alter the flow in the following ways:
+Middleware functions receive a `ctx` (context) object and a `next` function. Normally, a middleware calls `next()` to hand off control to the next one in the chain. However, a middleware can also alter the flow in the following ways:
 
 1. Use `next()` to continue the chain and pass control to the next middleware
 2. Use `return` to stop the chain and prevent events from firing
@@ -153,8 +153,8 @@ Middleware functions receive a `context` object and a `next` function. Normally,
 ```ts
 import { Agent, AgentMiddleware } from "@xmtp/agent-sdk";
 
-const onlyText: AgentMiddleware = async (context, next) => {
-  if (typeof context.message.content === "string") {
+const onlyText: AgentMiddleware = async (ctx, next) => {
+  if (typeof ctx.message.content === "string") {
     // Continue to next middleware
     await next();
   }
@@ -170,7 +170,7 @@ agent.use(onlyText);
 
 Error middleware can be registered with `agent.errors.use` either one at a time or as an array. They are executed in the order they were added.
 
-Error middleware receives the `error`, `context`, and a `next` function. Just like regular middleware, the flow in error middleware depends on how to use `next`:
+Error middleware receives the `error`, `ctx`, and a `next` function. Just like regular middleware, the flow in error middleware depends on how to use `next`:
 
 1. Use `next()` to mark the error as handled and continue with the main middleware chain
 2. Use `next(error)` to forward the original (or transformed) error to the next error handler
