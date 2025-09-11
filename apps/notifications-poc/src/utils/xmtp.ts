@@ -46,12 +46,44 @@ function createSigner(): XmtpSigner {
 
 let client: Client | undefined;
 let messagesReceived: number = 0;
+let messageTimestamps: number[] = [];
+let startTime: number = Date.now();
+
+const calculateMessageRates = (currentTime: number) => {
+  // keep only timestamps from the last 5 seconds for highly real-time rate calculation
+  const fiveSecondsAgo = currentTime - 5000;
+  messageTimestamps = messageTimestamps.filter(
+    (timestamp) => timestamp > fiveSecondsAgo,
+  );
+
+  // calculate rates
+  const messagesLastFiveSeconds = messageTimestamps.length;
+  const messagesPerSecond = messagesLastFiveSeconds / 5;
+  const messagesPerMinute = messagesPerSecond * 60;
+
+  // calculate overall rate since start
+  const totalTimeSeconds = (currentTime - startTime) / 1000;
+  const overallRate =
+    totalTimeSeconds > 0 ? messagesReceived / totalTimeSeconds : 0;
+
+  return {
+    messagesPerSecond: Number(messagesPerSecond.toFixed(2)),
+    messagesPerMinute,
+    overallRate: Number(overallRate.toFixed(2)),
+  };
+};
 
 export const startClient = async () => {
   const signer = createSigner();
   client = await Client.create(signer, {
     env: "local",
   });
+
+  // reset timing when client starts
+  startTime = Date.now();
+  messagesReceived = 0;
+  messageTimestamps = [];
+
   console.log("XMTP client created");
   console.log("Inbox ID: ", client.inboxId);
   console.log("Installation ID: ", client.installationId);
@@ -93,6 +125,15 @@ export const handleEncryptedMessage = async (message: NotificationMessage) => {
   const bytes = base64ToUint8Array(message.message);
   const processed = await conversation.processStreamedMessage(bytes);
   const _decodedMessage = new DecodedMessage(client, processed);
+
+  // track message timing
+  const currentTime = Date.now();
   messagesReceived++;
-  console.log(`${messagesReceived}/1000`);
+  messageTimestamps.push(currentTime);
+
+  // calculate and log rates
+  const rates = calculateMessageRates(currentTime);
+  console.log(
+    `Messages: ${messagesReceived} | Rate: ${rates.messagesPerSecond}/sec, ${rates.messagesPerMinute}/min | Overall: ${rates.overallRate}/sec`,
+  );
 };
