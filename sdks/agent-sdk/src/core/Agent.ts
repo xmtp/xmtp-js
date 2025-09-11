@@ -16,6 +16,7 @@ import {
 } from "@xmtp/node-sdk";
 import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
+import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import { ConversationContext } from "./ConversationContext.js";
@@ -100,9 +101,11 @@ export class Agent<ContentTypes> extends EventEmitter<
     const emittedError =
       currentError instanceof Error
         ? currentError
-        : new Error(`Unhandled error caught by default error middleware.`, {
-            cause: currentError,
-          });
+        : new AgentError(
+            9999,
+            `Unhandled error caught by default error middleware.`,
+            currentError,
+          );
     this.emit("unhandledError", emittedError);
   };
 
@@ -145,7 +148,10 @@ export class Agent<ContentTypes> extends EventEmitter<
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     if (!isHex(process.env.XMTP_WALLET_KEY)) {
-      throw new Error(`XMTP_WALLET_KEY env is not in hex (0x) format.`);
+      throw new AgentError(
+        1000,
+        `XMTP_WALLET_KEY env is not in hex (0x) format.`,
+      );
     }
 
     const signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
@@ -214,12 +220,26 @@ export class Agent<ContentTypes> extends EventEmitter<
               );
             }
           } catch (error) {
-            const recovered = await this.#runErrorChain(error, null);
+            const recovered = await this.#runErrorChain(
+              new AgentError(
+                1001,
+                "Emitted value from conversation stream caused an error.",
+                error,
+              ),
+              null,
+            );
             if (!recovered) await this.stop();
           }
         },
         onError: async (error) => {
-          const recovered = await this.#runErrorChain(error, null);
+          const recovered = await this.#runErrorChain(
+            new AgentError(
+              1002,
+              "Error occured during conversation streaming.",
+              error,
+            ),
+            null,
+          );
           if (!recovered) await this.stop();
         },
       });
@@ -286,7 +306,8 @@ export class Agent<ContentTypes> extends EventEmitter<
     );
 
     if (!conversation) {
-      throw new Error(
+      throw new AgentError(
+        1003,
         `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
       );
     }
