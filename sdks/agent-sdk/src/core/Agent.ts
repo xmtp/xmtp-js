@@ -11,6 +11,7 @@ import {
   Group,
   LogLevel,
   type ClientOptions,
+  type Conversation,
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
@@ -19,6 +20,7 @@ import { isHex } from "viem/utils";
 import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
+import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
 
@@ -43,6 +45,12 @@ interface EventHandlerMap<ContentTypes> {
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
 
+export type ErrorContext<ContentTypes = unknown> = {
+  message?: DecodedMessage<ContentTypes>;
+  client?: Client<ContentTypes>;
+  conversation?: Conversation;
+};
+
 export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
 }
@@ -58,7 +66,7 @@ export type AgentMiddleware<ContentTypes = unknown> = (
 
 export type AgentErrorMiddleware<ContentTypes = unknown> = (
   error: unknown,
-  ctx: MessageContext<ContentTypes> | null,
+  ctx: ErrorContext<ContentTypes>,
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
@@ -228,7 +236,7 @@ export class Agent<ContentTypes> extends EventEmitter<
                 "Emitted value from conversation stream caused an error.",
                 error,
               ),
-              null,
+              new ClientContext({ client: this.#client }),
             );
             if (!recovered) await this.stop();
           }
@@ -240,7 +248,7 @@ export class Agent<ContentTypes> extends EventEmitter<
               "Error occured during conversation streaming.",
               error,
             ),
-            null,
+            new ClientContext({ client: this.#client }),
           );
           if (!recovered) await this.stop();
         },
@@ -271,7 +279,9 @@ export class Agent<ContentTypes> extends EventEmitter<
               break;
           }
         } catch (error) {
-          const recovered = await this.#runErrorChain(error, null);
+          const recovered = await this.#runErrorChain(error, {
+            client: this.#client,
+          });
           if (!recovered) {
             await this.stop();
             break;
@@ -280,7 +290,9 @@ export class Agent<ContentTypes> extends EventEmitter<
       }
     } catch (error) {
       this.#isListening = false;
-      const recovered = await this.#runErrorChain(error, null);
+      const recovered = await this.#runErrorChain(error, {
+        client: this.#client,
+      });
       if (recovered) {
         await this.stop();
         queueMicrotask(() => this.start(options));
@@ -356,7 +368,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorHandler(
     handler: AgentErrorMiddleware<ContentTypes>,
-    context: MessageContext<ContentTypes> | null,
+    context: ErrorContext<ContentTypes>,
     error: unknown,
   ): Promise<ErrorFlow> {
     let settled = false as boolean;
@@ -384,7 +396,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorChain(
     error: unknown,
-    context: MessageContext<ContentTypes> | null,
+    context: ErrorContext<ContentTypes>,
   ): Promise<boolean> {
     const chain = [...this.#errorMiddleware, this.#defaultErrorHandler];
 
