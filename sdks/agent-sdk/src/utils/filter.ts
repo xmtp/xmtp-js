@@ -34,7 +34,7 @@ function hasDefinedContent<ContentTypes>() {
   ): message is DecodedMessage<ContentTypes> & {
     content: NonNullable<ContentTypes>;
   } => {
-    return message.content !== undefined;
+    return !!message.content;
   };
 }
 
