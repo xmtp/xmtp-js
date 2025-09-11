@@ -1,4 +1,6 @@
 name: ESLint
+permissions:
+  contents: read
 
 on:
   push:
