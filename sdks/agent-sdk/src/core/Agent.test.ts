@@ -20,7 +20,7 @@ import {
   vi,
   type Mock,
 } from "vitest";
-import { isReply } from "@/utils/message.js";
+import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import {
   Agent,
@@ -99,6 +99,30 @@ describe("Agent", () => {
             string | Reaction | Reply | RemoteAttachment | GroupUpdated
           >
         >();
+      });
+    });
+
+    it("types content for 'attachment' events", () => {
+      ephemeralAgent.on("attachment", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<RemoteAttachment>();
+      });
+    });
+
+    it("types content for 'text' events", () => {
+      ephemeralAgent.on("text", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<string>();
+      });
+    });
+
+    it("types content for 'reaction' events", () => {
+      ephemeralAgent.on("reaction", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<Reaction>();
+      });
+    });
+
+    it("types content for 'reply' events", () => {
+      ephemeralAgent.on("reply", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
       });
     });
   });
@@ -391,7 +415,7 @@ describe("Agent", () => {
 
       const filterReply = vi.fn<AgentMiddleware>(async ({ message }, next) => {
         middlewareCalls.push("filterReply-" + message.id);
-        if (isReply(message)) {
+        if (filter.isReply(message)) {
           return;
         }
         await next();

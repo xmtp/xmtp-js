@@ -108,7 +108,7 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 ```ts
 // Handle different message types
 agent.on("text", async (ctx) => {
-  console.log(`Text message: ${ctx.text}`);
+  console.log(`Text message: ${ctx.message.content}`);
 });
 
 agent.on("reaction", async (ctx) => {

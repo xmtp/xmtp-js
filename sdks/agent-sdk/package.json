@@ -65,7 +65,7 @@
     "dev": "tsx --watch src/main.ts",
     "gen:keys": "tsx src/bin/generateKeys.ts",
     "start": "yarn demo",
-    "test": "yarn typecheck && vitest --typecheck",
+    "test": "yarn typecheck && vitest run --typecheck",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },

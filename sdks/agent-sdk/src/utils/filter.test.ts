@@ -4,13 +4,31 @@ import {
 } from "@xmtp/content-type-reaction";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, DecodedMessage } from "@xmtp/node-sdk";
+import type { Client, DecodedMessage, Dm, Group } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { filter } from "@/utils/filter.js";
 
 const mockClient = {
   inboxId: "test-client-inbox-id",
 } as unknown as Client;
+
+const dmConversation = {
+  id: "direct-message",
+  metadata: () =>
+    Promise.resolve({
+      creatorInboxId: "test-client-inbox-id",
+      conversationType: "dm",
+    }),
+} as unknown as Dm;
+
+const groupConversation = {
+  id: "group-conversation",
+  metadata: () =>
+    Promise.resolve({
+      creatorInboxId: "test-client-inbox-id",
+      conversationType: "group",
+    }),
+} as unknown as Group;
 
 const createMockMessage = (overrides: Partial<DecodedMessage> = {}) =>
   ({
@@ -20,31 +38,7 @@ const createMockMessage = (overrides: Partial<DecodedMessage> = {}) =>
     ...overrides,
   }) as DecodedMessage;
 
-describe("MessageFilters", () => {
-  describe("notFromSelf", () => {
-    it("should return true for messages not from self", () => {
-      const message = createMockMessage({ senderInboxId: "other-inbox-id" });
-      const result = filter.notFromSelf(message, mockClient);
-      expect(result).toBe(true);
-    });
-
-    it("should return false for messages from self", () => {
-      const message = createMockMessage({
-        senderInboxId: "test-client-inbox-id",
-      });
-      const result = filter.notFromSelf(message, mockClient);
-      expect(result).toBe(false);
-    });
-
-    it("should be case sensitive", () => {
-      const message = createMockMessage({
-        senderInboxId: "TEST-CLIENT-INBOX-ID",
-      });
-      const result = filter.notFromSelf(message, mockClient);
-      expect(result).toBe(true);
-    });
-  });
-
+describe("Filters", () => {
   describe("fromSelf", () => {
     it("should return false for messages not from self", () => {
       const message = createMockMessage({ senderInboxId: "other-inbox-id" });
@@ -64,13 +58,13 @@ describe("MessageFilters", () => {
   describe("isText", () => {
     it("should return true for text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeText });
-      const result = filter.isText(message, mockClient);
+      const result = filter.isText(message);
       expect(result).toBe(true);
     });
 
     it("should return false for non-text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeReply });
-      const result = filter.isText(message, mockClient);
+      const result = filter.isText(message);
       expect(result).toBe(false);
     });
   });
@@ -79,14 +73,14 @@ describe("MessageFilters", () => {
     it("should return true for matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "target-sender" });
       const fromSender = filter.fromSender("target-sender");
-      const result = fromSender(message, mockClient);
+      const result = fromSender(message);
       expect(result).toBe(true);
     });
 
     it("should return false for non-matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "other-sender" });
       const fromSender = filter.fromSender("target-sender");
-      const result = fromSender(message, mockClient);
+      const result = fromSender(message);
       expect(result).toBe(false);
     });
 
@@ -97,7 +91,7 @@ describe("MessageFilters", () => {
         "sender-2",
         "sender-3",
       ]);
-      const result = fromSender(message, mockClient);
+      const result = fromSender(message);
       expect(result).toBe(true);
     });
 
@@ -108,13 +102,13 @@ describe("MessageFilters", () => {
         "sender-2",
         "sender-3",
       ]);
-      const result = fromSender(message, mockClient);
+      const result = fromSender(message);
       expect(result).toBe(false);
     });
   });
 
   describe("and", () => {
-    it("should return true when all filters pass", () => {
+    it("should return true when all filters pass", async () => {
       const filter1 = vi.fn().mockReturnValue(true);
       const filter2 = vi.fn().mockReturnValue(true);
       const filter3 = vi.fn().mockReturnValue(true);
@@ -122,14 +116,14 @@ describe("MessageFilters", () => {
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = andFilter(message, mockClient);
+      const result = await andFilter(message, mockClient, dmConversation);
       expect(result).toBe(true);
-      expect(filter1).toHaveBeenCalledWith(message, mockClient);
-      expect(filter2).toHaveBeenCalledWith(message, mockClient);
-      expect(filter3).toHaveBeenCalledWith(message, mockClient);
+      expect(filter1).toHaveBeenCalledWith(message, mockClient, dmConversation);
+      expect(filter2).toHaveBeenCalledWith(message, mockClient, dmConversation);
+      expect(filter3).toHaveBeenCalledWith(message, mockClient, dmConversation);
     });
 
-    it("should return false when any filter fails", () => {
+    it("should return false when any filter fails", async () => {
       const filter1 = vi.fn().mockReturnValue(true);
       const filter2 = vi.fn().mockReturnValue(false);
       const filter3 = vi.fn().mockReturnValue(true);
@@ -137,7 +131,7 @@ describe("MessageFilters", () => {
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = andFilter(message, mockClient);
+      const result = await andFilter(message, mockClient, dmConversation);
       expect(result).toBe(false);
       expect(filter1).toHaveBeenCalled();
       expect(filter2).toHaveBeenCalled();
@@ -145,17 +139,17 @@ describe("MessageFilters", () => {
       expect(filter3).not.toHaveBeenCalled();
     });
 
-    it("should return true for empty filter array", () => {
+    it("should return true for empty filter array", async () => {
       const andFilter = filter.and();
       const message = createMockMessage();
 
-      const result = andFilter(message, mockClient);
+      const result = await andFilter(message, mockClient, dmConversation);
       expect(result).toBe(true);
     });
   });
 
   describe("or", () => {
-    it("should return true when any filter passes", () => {
+    it("should return true when any filter passes", async () => {
       const filter1 = vi.fn().mockReturnValue(false);
       const filter2 = vi.fn().mockReturnValue(true);
       const filter3 = vi.fn().mockReturnValue(false);
@@ -163,7 +157,7 @@ describe("MessageFilters", () => {
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = orFilter(message, mockClient);
+      const result = await orFilter(message, mockClient, dmConversation);
       expect(result).toBe(true);
       expect(filter1).toHaveBeenCalled();
       expect(filter2).toHaveBeenCalled();
@@ -171,7 +165,7 @@ describe("MessageFilters", () => {
       expect(filter3).not.toHaveBeenCalled();
     });
 
-    it("should return false when all filters fail", () => {
+    it("should return false when all filters fail", async () => {
       const filter1 = vi.fn().mockReturnValue(false);
       const filter2 = vi.fn().mockReturnValue(false);
       const filter3 = vi.fn().mockReturnValue(false);
@@ -179,46 +173,54 @@ describe("MessageFilters", () => {
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = orFilter(message, mockClient);
+      const result = await orFilter(message, mockClient, dmConversation);
       expect(result).toBe(false);
-      expect(filter1).toHaveBeenCalledWith(message, mockClient);
-      expect(filter2).toHaveBeenCalledWith(message, mockClient);
-      expect(filter3).toHaveBeenCalledWith(message, mockClient);
+      expect(filter1).toHaveBeenCalledWith(message, mockClient, dmConversation);
+      expect(filter2).toHaveBeenCalledWith(message, mockClient, dmConversation);
+      expect(filter3).toHaveBeenCalledWith(message, mockClient, dmConversation);
     });
 
-    it("should return false for empty filter array", () => {
+    it("should return false for empty filter array", async () => {
       const orFilter = filter.or();
       const message = createMockMessage();
 
-      const result = orFilter(message, mockClient);
+      const result = await orFilter(message, mockClient, dmConversation);
       expect(result).toBe(false);
     });
   });
 
   describe("not", () => {
-    it("should invert filter result from true to false", () => {
+    it("should invert filter result from true to false", async () => {
       const baseFilter = vi.fn().mockReturnValue(true);
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
-      const result = notFilter(message, mockClient);
+      const result = await notFilter(message, mockClient, dmConversation);
       expect(result).toBe(false);
-      expect(baseFilter).toHaveBeenCalledWith(message, mockClient);
+      expect(baseFilter).toHaveBeenCalledWith(
+        message,
+        mockClient,
+        dmConversation,
+      );
     });
 
-    it("should invert filter result from false to true", () => {
+    it("should invert filter result from false to true", async () => {
       const baseFilter = vi.fn().mockReturnValue(false);
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
-      const result = notFilter(message, mockClient);
+      const result = await notFilter(message, mockClient, dmConversation);
       expect(result).toBe(true);
-      expect(baseFilter).toHaveBeenCalledWith(message, mockClient);
+      expect(baseFilter).toHaveBeenCalledWith(
+        message,
+        mockClient,
+        dmConversation,
+      );
     });
   });
 
   describe("complex combinations", () => {
-    it("should handle nested combinations correctly", () => {
+    it("should handle nested combinations correctly", async () => {
       const message = createMockMessage({
         senderInboxId: "target-sender",
         contentType: ContentTypeText,
@@ -230,7 +232,7 @@ describe("MessageFilters", () => {
         filter.not(filter.fromSelf),
       );
 
-      const result = complexFilter(message, mockClient);
+      const result = await complexFilter(message, mockClient, dmConversation);
       expect(result).toBe(true);
     });
   });
@@ -241,10 +243,10 @@ describe("MessageFilters", () => {
         content: "@agent this message is for you",
       });
 
-      const positive = filter.startsWith("@agent")(message, mockClient);
+      const positive = filter.startsWith("@agent")(message);
       expect(positive).toBe(true);
 
-      const negative = filter.startsWith("@xmtp")(message, mockClient);
+      const negative = filter.startsWith("@xmtp")(message);
       expect(negative).toBe(false);
     });
 
@@ -265,10 +267,10 @@ describe("MessageFilters", () => {
         contentType: ContentTypeReply,
       });
 
-      const positive = filter.startsWith("@agent")(replyMessage, mockClient);
+      const positive = filter.startsWith("@agent")(replyMessage);
       expect(positive).toBe(true);
 
-      const negative = filter.startsWith("@xmtp")(replyMessage, mockClient);
+      const negative = filter.startsWith("@xmtp")(replyMessage);
       expect(negative).toBe(false);
     });
 
@@ -290,11 +292,33 @@ describe("MessageFilters", () => {
         contentType: ContentTypeReaction,
       });
 
-      const positive = filter.startsWith("👍")(reactionMessage, mockClient);
+      const positive = filter.startsWith("👍")(reactionMessage);
       expect(positive).toBe(true);
 
-      const negative = filter.startsWith("👎")(reactionMessage, mockClient);
+      const negative = filter.startsWith("👎")(reactionMessage);
       expect(negative).toBe(false);
+    });
+  });
+
+  describe("isDM", () => {
+    it("recognizes direct messages", async () => {
+      const message = createMockMessage();
+      await expect(
+        filter.isDM(message, mockClient, dmConversation),
+      ).resolves.toBe(true);
+      await expect(
+        filter.isDM(message, mockClient, groupConversation),
+      ).resolves.toBe(false);
+    });
+
+    it("recognizes groups", async () => {
+      const message = createMockMessage();
+      await expect(
+        filter.isGroup(message, mockClient, groupConversation),
+      ).resolves.toBe(true);
+      await expect(
+        filter.isGroup(message, mockClient, dmConversation),
+      ).resolves.toBe(false);
     });
   });
 });

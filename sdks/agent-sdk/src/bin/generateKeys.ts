@@ -1,7 +1,18 @@
 #!/usr/bin/env node
+import { getRandomValues } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { generateClientKeys } from "@/utils/crypto.js";
+import { toString } from "uint8arrays";
+import { generatePrivateKey } from "viem/accounts";
+
+const generateClientKeys = () => {
+  const walletKey = generatePrivateKey();
+  const dbEncryptionKey = toString(getRandomValues(new Uint8Array(32)), "hex");
+  return {
+    XMTP_DB_ENCRYPTION_KEY: dbEncryptionKey,
+    XMTP_WALLET_KEY: walletKey,
+  };
+};
 
 /**
  * Generates client keys and saves them to a .env file in the project root.
