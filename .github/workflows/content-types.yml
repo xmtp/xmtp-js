@@ -1,5 +1,8 @@
 name: Content types
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
