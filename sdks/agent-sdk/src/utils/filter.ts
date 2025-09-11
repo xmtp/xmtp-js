@@ -1,7 +1,15 @@
+import {
+  ContentTypeReaction,
+  type Reaction,
+} from "@xmtp/content-type-reaction";
+import {
+  ContentTypeRemoteAttachment,
+  type RemoteAttachment,
+} from "@xmtp/content-type-remote-attachment";
+import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import type { AgentContext } from "@/core/MessageContext.js";
-import { getTextContent } from "./message.js";
 
 export type MessageFilter<ContentTypes> = (
   message: DecodedMessage,
@@ -20,6 +28,16 @@ function fromSelf<ContentTypes>() {
   };
 }
 
+function hasDefinedContent<ContentTypes>() {
+  return (
+    message: DecodedMessage,
+  ): message is DecodedMessage<ContentTypes> & {
+    content: NonNullable<ContentTypes>;
+  } => {
+    return message.content !== undefined;
+  };
+}
+
 function isDM<ContentTypes>(): MessageFilter<ContentTypes> {
   return async (_message, _client, conversation) => {
     return (await conversation.metadata()).conversationType === "dm";
@@ -29,6 +47,30 @@ function isDM<ContentTypes>(): MessageFilter<ContentTypes> {
 function isGroup<ContentTypes>(): MessageFilter<ContentTypes> {
   return async (_message, _client, conversation) => {
     return (await conversation.metadata()).conversationType === "group";
+  };
+}
+
+function isReaction() {
+  return (
+    message: DecodedMessage,
+  ): message is DecodedMessage & { content: Reaction } => {
+    return !!message.contentType?.sameAs(ContentTypeReaction);
+  };
+}
+
+function isReply() {
+  return (
+    message: DecodedMessage,
+  ): message is DecodedMessage & { content: Reply } => {
+    return !!message.contentType?.sameAs(ContentTypeReply);
+  };
+}
+
+function isRemoteAttachment() {
+  return (
+    message: DecodedMessage,
+  ): message is DecodedMessage & { content: RemoteAttachment } => {
+    return !!message.contentType?.sameAs(ContentTypeRemoteAttachment);
   };
 }
 
@@ -42,6 +84,14 @@ function isText() {
     message: DecodedMessage,
   ): message is DecodedMessage & { content: string } => {
     return !!message.contentType?.sameAs(ContentTypeText);
+  };
+}
+
+function isTextReply() {
+  return (
+    message: DecodedMessage,
+  ): message is DecodedMessage & { content: Reply & { content: string } } => {
+    return isReply()(message) && typeof message.content.content === "string";
   };
 }
 
@@ -69,6 +119,16 @@ function fromSender(senderInboxId: string | string[]) {
  */
 function startsWith(prefix: string) {
   return (message: DecodedMessage) => {
+    const getTextContent = (message: DecodedMessage) => {
+      switch (true) {
+        case filter.isReaction(message):
+        case filter.isTextReply(message):
+          return message.content.content;
+        case filter.isText(message):
+          return message.content;
+      }
+    };
+
     const text = getTextContent(message);
     return !!(text && text.startsWith(prefix));
   };
@@ -130,9 +190,14 @@ function not<ContentTypes>(
 export const filter = {
   // basic filters
   fromSelf: fromSelf(),
-  isText: isText(),
+  hasDefinedContent: hasDefinedContent(),
   isDM: isDM(),
   isGroup: isGroup(),
+  isReaction: isReaction(),
+  isRemoteAttachment: isRemoteAttachment(),
+  isReply: isReply(),
+  isText: isText(),
+  isTextReply: isTextReply(),
   // factory functions
   fromSender,
   startsWith,

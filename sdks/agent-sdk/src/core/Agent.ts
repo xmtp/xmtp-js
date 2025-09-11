@@ -14,15 +14,9 @@ import {
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
+import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
-import { getEncryptionKeyFromHex } from "@/utils/crypto.js";
 import { filter } from "@/utils/filter.js";
-import {
-  hasDefinedContent,
-  isReaction,
-  isRemoteAttachment,
-  isReply,
-} from "@/utils/message.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { AgentContext } from "./MessageContext.js";
@@ -159,8 +153,9 @@ export class Agent<ContentTypes> extends EventEmitter<
     const initializedOptions = { ...(options ?? {}) };
 
     if (process.env.XMTP_DB_ENCRYPTION_KEY) {
-      initializedOptions.dbEncryptionKey = getEncryptionKeyFromHex(
+      initializedOptions.dbEncryptionKey = fromString(
         process.env.XMTP_DB_ENCRYPTION_KEY,
+        "hex",
       );
     }
 
@@ -237,13 +232,13 @@ export class Agent<ContentTypes> extends EventEmitter<
         if (!this.#isListening) break;
         try {
           switch (true) {
-            case isRemoteAttachment(message):
+            case filter.isRemoteAttachment(message):
               await this.#processMessage(message, "attachment");
               break;
-            case isReaction(message):
+            case filter.isReaction(message):
               await this.#processMessage(message, "reaction");
               break;
-            case isReply(message):
+            case filter.isReply(message):
               await this.#processMessage(message, "reply");
               break;
             case filter.isText(message):
@@ -276,7 +271,7 @@ export class Agent<ContentTypes> extends EventEmitter<
     topic: EventName<ContentTypes> = "unhandledMessage",
   ) {
     // Skip messages with undefined content (failed to decode)
-    if (!hasDefinedContent(message)) {
+    if (!filter.hasDefinedContent(message)) {
       return;
     }
 

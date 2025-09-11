@@ -20,7 +20,7 @@ import {
   vi,
   type Mock,
 } from "vitest";
-import { isReply } from "@/utils/message.js";
+import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import {
   Agent,
@@ -391,7 +391,7 @@ describe("Agent", () => {
 
       const filterReply = vi.fn<AgentMiddleware>(async ({ message }, next) => {
         middlewareCalls.push("filterReply-" + message.id);
-        if (isReply(message)) {
+        if (filter.isReply(message)) {
           return;
         }
         await next();
