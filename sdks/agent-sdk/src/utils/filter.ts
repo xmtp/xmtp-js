@@ -9,7 +9,7 @@ import {
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
-import type { AgentContext } from "@/core/MessageContext.js";
+import type { MessageContext } from "@/core/MessageContext.js";
 
 export type MessageFilter<ContentTypes> = (
   message: DecodedMessage,
@@ -212,9 +212,9 @@ export const f = filter;
 export const withFilter =
   <ContentTypes>(
     filterFn: MessageFilter<ContentTypes>,
-    listener: (ctx: AgentContext<ContentTypes>) => void | Promise<void>,
+    listener: (ctx: MessageContext<ContentTypes>) => void | Promise<void>,
   ) =>
-  async (ctx: AgentContext<ContentTypes>) => {
+  async (ctx: MessageContext<ContentTypes>) => {
     if (await filterFn(ctx.message, ctx.client, ctx.conversation)) {
       await listener(ctx);
     }

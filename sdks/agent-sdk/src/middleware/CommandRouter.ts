@@ -2,7 +2,7 @@ import {
   type AgentMessageHandler,
   type AgentMiddleware,
 } from "@/core/Agent.js";
-import type { AgentContext } from "@/core/MessageContext.js";
+import type { MessageContext } from "@/core/MessageContext.js";
 import { filter } from "@/utils/filter.js";
 
 export class CommandRouter<ContentTypes> {
@@ -22,7 +22,7 @@ export class CommandRouter<ContentTypes> {
     return this;
   }
 
-  async handle(ctx: AgentContext): Promise<boolean> {
+  async handle(ctx: MessageContext): Promise<boolean> {
     if (!filter.isText(ctx.message)) {
       return false;
     }

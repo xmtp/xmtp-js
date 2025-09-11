@@ -28,7 +28,7 @@ import {
   type AgentMiddleware,
   type AgentOptions,
 } from "./Agent.js";
-import { AgentContext } from "./MessageContext.js";
+import { MessageContext } from "./MessageContext.js";
 
 const createMockMessage = <ContentType = string>(
   overrides: Partial<DecodedMessage> & { content: ContentType },
@@ -95,7 +95,7 @@ describe("Agent", () => {
     it("types the content in message event listener", () => {
       ephemeralAgent.on("unhandledMessage", (ctx) => {
         expectTypeOf(ctx).toEqualTypeOf<
-          AgentContext<
+          MessageContext<
             string | Reaction | Reply | RemoteAttachment | GroupUpdated
           >
         >();
@@ -205,7 +205,7 @@ describe("Agent", () => {
           message: expect.objectContaining({
             senderInboxId: "other-inbox-id",
           }) as { senderInboxId: string },
-        } as unknown as AgentContext),
+        } as unknown as MessageContext),
       );
     });
 
@@ -262,7 +262,7 @@ describe("Agent", () => {
           message: expect.objectContaining({
             senderInboxId: "other-inbox-id",
           }) as { senderInboxId: string },
-        } as unknown as AgentContext),
+        } as unknown as MessageContext),
       );
     });
   });
@@ -292,7 +292,7 @@ describe("Agent", () => {
 
       expect(middleware).toHaveBeenCalledTimes(1);
       expect(middleware).toHaveBeenCalledWith(
-        expect.any(AgentContext),
+        expect.any(MessageContext),
         expect.any(Function),
       );
     });
@@ -336,7 +336,7 @@ describe("Agent", () => {
           message: expect.objectContaining({
             senderInboxId: "other-user-inbox",
           }) as { senderInboxId: string },
-        } as unknown as AgentContext),
+        } as unknown as MessageContext),
         expect.any(Function),
       );
     });
@@ -450,14 +450,14 @@ describe("Agent", () => {
   describe("emit", () => {
     it("should emit 'message' and allow sending a reply via context", async () => {
       let contextSend: ((text: string) => Promise<void>) | undefined;
-      const handler = vi.fn((ctx: AgentContext) => {
+      const handler = vi.fn((ctx: MessageContext) => {
         contextSend = ctx.sendText.bind(ctx);
       });
       agent.on("unhandledMessage", handler);
 
       void agent.emit(
         "unhandledMessage",
-        new AgentContext({
+        new MessageContext({
           message: mockMessage,
           conversation: mockConversation as unknown as Conversation,
           client: agent.client,
@@ -519,25 +519,25 @@ describe("Agent", () => {
       agent.on("unhandledError", onError);
 
       const mw1: AgentMiddleware = async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("1");
         await next();
       };
 
       const mw2: AgentMiddleware = (ctx) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("2");
         throw new Error("Initial error");
       };
 
       const mw3: AgentMiddleware = async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("3");
         await next();
       };
 
       const mw4: AgentMiddleware = async (ctx, next) => {
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("4");
         await next();
       };
@@ -545,7 +545,7 @@ describe("Agent", () => {
       const e1: AgentErrorMiddleware = async (err, ctx, next) => {
         expect(err).toBeInstanceOf(Error);
         expect((err as Error).message).toBe("Initial error");
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("E1");
         // Transform the initial error
         await next(new Error("Transformed error"));
@@ -553,7 +553,7 @@ describe("Agent", () => {
 
       const e2: AgentErrorMiddleware = async (err, ctx, next) => {
         expect((err as Error).message).toBe("Transformed error");
-        expect(ctx).toBeInstanceOf(AgentContext);
+        expect(ctx).toBeInstanceOf(MessageContext);
         callOrder.push("E2");
         // Resume middleware chain
         await next();

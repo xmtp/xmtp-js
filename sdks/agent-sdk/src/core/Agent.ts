@@ -20,23 +20,25 @@ import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import { ConversationContext } from "./ConversationContext.js";
-import { AgentContext } from "./MessageContext.js";
+import { MessageContext } from "./MessageContext.js";
 
 type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>
 >;
 
 interface EventHandlerMap<ContentTypes> {
-  attachment: [ctx: AgentContext<ReturnType<RemoteAttachmentCodec["decode"]>>];
+  attachment: [
+    ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
+  ];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
-  reaction: [ctx: AgentContext<ReturnType<ReactionCodec["decode"]>>];
-  reply: [ctx: AgentContext<ReturnType<ReplyCodec["decode"]>>];
+  reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
+  reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
   start: [];
   stop: [];
-  text: [ctx: AgentContext<ReturnType<TextCodec["decode"]>>];
+  text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
-  unhandledMessage: [ctx: AgentContext<ContentTypes>];
+  unhandledMessage: [ctx: MessageContext<ContentTypes>];
 }
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
@@ -46,17 +48,17 @@ export interface AgentOptions<ContentTypes> {
 }
 
 export type AgentMessageHandler<ContentTypes = unknown> = (
-  ctx: AgentContext<ContentTypes>,
+  ctx: MessageContext<ContentTypes>,
 ) => Promise<void> | void;
 
 export type AgentMiddleware<ContentTypes = unknown> = (
-  ctx: AgentContext<ContentTypes>,
+  ctx: MessageContext<ContentTypes>,
   next: () => Promise<void> | void,
 ) => Promise<void>;
 
 export type AgentErrorMiddleware<ContentTypes = unknown> = (
   error: unknown,
-  ctx: AgentContext<ContentTypes> | null,
+  ctx: MessageContext<ContentTypes> | null,
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
@@ -300,7 +302,7 @@ export class Agent<ContentTypes> extends EventEmitter<
       return;
     }
 
-    let context: AgentContext<ContentTypes> | null = null;
+    let context: MessageContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
     );
@@ -312,12 +314,16 @@ export class Agent<ContentTypes> extends EventEmitter<
       );
     }
 
-    context = new AgentContext({ message, conversation, client: this.#client });
+    context = new MessageContext({
+      message,
+      conversation,
+      client: this.#client,
+    });
     await this.#runMiddlewareChain(context, topic);
   }
 
   async #runMiddlewareChain(
-    context: AgentContext<ContentTypes>,
+    context: MessageContext<ContentTypes>,
     topic: EventName<ContentTypes> = "unhandledMessage",
   ) {
     const finalEmit = async () => {
@@ -350,7 +356,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorHandler(
     handler: AgentErrorMiddleware<ContentTypes>,
-    context: AgentContext<ContentTypes> | null,
+    context: MessageContext<ContentTypes> | null,
     error: unknown,
   ): Promise<ErrorFlow> {
     let settled = false as boolean;
@@ -378,7 +384,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorChain(
     error: unknown,
-    context: AgentContext<ContentTypes> | null,
+    context: MessageContext<ContentTypes> | null,
   ): Promise<boolean> {
     const chain = [...this.#errorMiddleware, this.#defaultErrorHandler];
 

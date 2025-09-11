@@ -7,23 +7,22 @@ import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import { ConversationContext } from "./ConversationContext.js";
 
-// Type for messages that successfully decoded (content is defined)
-export type MessageContext<ContentTypes = unknown> =
+type DecodedMessageWithContent<ContentTypes = unknown> =
   DecodedMessage<ContentTypes> & {
     content: ContentTypes;
   };
 
-export class AgentContext<
+export class MessageContext<
   ContentTypes = unknown,
 > extends ConversationContext<ContentTypes> {
-  #message: MessageContext<ContentTypes>;
+  #message: DecodedMessageWithContent<ContentTypes>;
 
   constructor({
     message,
     conversation,
     client,
   }: {
-    message: MessageContext<ContentTypes>;
+    message: DecodedMessageWithContent<ContentTypes>;
     conversation: Conversation;
     client: Client<ContentTypes>;
   }) {
