@@ -101,6 +101,30 @@ describe("Agent", () => {
         >();
       });
     });
+
+    it("types content for 'attachment' events", () => {
+      ephemeralAgent.on("attachment", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<RemoteAttachment>();
+      });
+    });
+
+    it("types content for 'text' events", () => {
+      ephemeralAgent.on("text", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<string>();
+      });
+    });
+
+    it("types content for 'reaction' events", () => {
+      ephemeralAgent.on("reaction", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<Reaction>();
+      });
+    });
+
+    it("types content for 'reply' events", () => {
+      ephemeralAgent.on("reply", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
+      });
+    });
   });
 
   describe("start", () => {
