@@ -1,4 +1,6 @@
 name: Node SDK
+permissions:
+  contents: read
 
 on:
   push:
