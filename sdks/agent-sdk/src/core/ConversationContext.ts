@@ -1,5 +1,5 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, Conversation } from "@xmtp/node-sdk";
+import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
 import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<
@@ -17,6 +17,14 @@ export class ConversationContext<
   }) {
     super({ client });
     this.#conversation = conversation;
+  }
+
+  isDm(): this is ConversationContext<ContentTypes, Dm<ContentTypes>> {
+    return this.#conversation instanceof Dm;
+  }
+
+  isGroup(): this is ConversationContext<ContentTypes, Group<ContentTypes>> {
+    return this.#conversation instanceof Group;
   }
 
   async sendText(text: string): Promise<void> {

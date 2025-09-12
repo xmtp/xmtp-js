@@ -10,7 +10,13 @@ import {
   type Reply,
 } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import type {
+  Client,
+  Conversation,
+  DecodedMessage,
+  Dm,
+  Group,
+} from "@xmtp/node-sdk";
 import {
   beforeEach,
   describe,
@@ -93,7 +99,7 @@ describe("Agent", () => {
     });
 
     it("types the content in message event listener", () => {
-      ephemeralAgent.on("unhandledMessage", (ctx) => {
+      ephemeralAgent.on("unknownMessage", (ctx) => {
         expectTypeOf(ctx).toEqualTypeOf<
           MessageContext<
             string | Reaction | Reply | RemoteAttachment | GroupUpdated
@@ -123,6 +129,42 @@ describe("Agent", () => {
     it("types content for 'reply' events", () => {
       ephemeralAgent.on("reply", (ctx) => {
         expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
+      });
+    });
+
+    it("should have proper types when using type predicates in 'unknownMessage' event", () => {
+      ephemeralAgent.on("unknownMessage", (ctx) => {
+        if (ctx.isText()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<string>();
+        }
+
+        if (ctx.isReply()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
+        }
+
+        if (ctx.isReaction()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<Reaction>();
+        }
+
+        if (ctx.isRemoteAttachment()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<RemoteAttachment>();
+        }
+      });
+    });
+
+    it("should have proper types when using type predicates in 'conversation' event", () => {
+      ephemeralAgent.on("conversation", (ctx) => {
+        if (ctx.isDm()) {
+          expectTypeOf(ctx.conversation).toEqualTypeOf<
+            Dm<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+          >();
+        }
+
+        if (ctx.isGroup()) {
+          expectTypeOf(ctx.conversation).toEqualTypeOf<
+            Group<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+          >();
+        }
       });
     });
   });
@@ -185,9 +227,9 @@ describe("Agent", () => {
       );
 
       const textEventSpy = vi.fn();
-      const unhandledMessageSpy = vi.fn();
+      const unknownMessageSpy = vi.fn();
       agent.on("text", textEventSpy);
-      agent.on("unhandledMessage", unhandledMessageSpy);
+      agent.on("unknownMessage", unknownMessageSpy);
 
       await agent.start();
 
@@ -196,8 +238,8 @@ describe("Agent", () => {
         "Should not emit events for message from self, but should for message from other",
       ).toHaveBeenCalledTimes(1);
       expect(
-        unhandledMessageSpy,
-        "Filtered text messages don't go to unhandledMessage",
+        unknownMessageSpy,
+        "Filtered text messages don't go to unknownMessage",
       ).toHaveBeenCalledTimes(0);
 
       expect(textEventSpy).toHaveBeenCalledWith(
@@ -242,9 +284,9 @@ describe("Agent", () => {
       );
 
       const reactionEventSpy = vi.fn();
-      const unhandledMessageSpy = vi.fn();
+      const unknownMessageSpy = vi.fn();
       agent.on("reaction", reactionEventSpy);
-      agent.on("unhandledMessage", unhandledMessageSpy);
+      agent.on("unknownMessage", unknownMessageSpy);
 
       await agent.start();
 
@@ -253,8 +295,8 @@ describe("Agent", () => {
         "Should only emit reaction event for message from other sender",
       ).toHaveBeenCalledTimes(1);
       expect(
-        unhandledMessageSpy,
-        "Filtered text messages don't go to unhandledMessage",
+        unknownMessageSpy,
+        "Filtered text messages don't go to unknownMessage",
       ).toHaveBeenCalledTimes(0);
 
       expect(reactionEventSpy).toHaveBeenCalledWith(
@@ -453,10 +495,10 @@ describe("Agent", () => {
       const handler = vi.fn((ctx: MessageContext) => {
         contextSend = ctx.sendText.bind(ctx);
       });
-      agent.on("unhandledMessage", handler);
+      agent.on("unknownMessage", handler);
 
       void agent.emit(
-        "unhandledMessage",
+        "unknownMessage",
         new MessageContext({
           message: mockMessage,
           conversation: mockConversation as unknown as Conversation,
@@ -607,7 +649,7 @@ describe("Agent", () => {
 
       agent.use(mw1, mw2, returnsEarly, notBeingExecuted);
 
-      agent.on("unhandledMessage", () => {
+      agent.on("unknownMessage", () => {
         callOrder.push("never happening");
       });
 

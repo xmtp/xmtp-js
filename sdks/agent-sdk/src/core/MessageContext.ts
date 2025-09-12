@@ -1,10 +1,17 @@
 import {
   ContentTypeReaction,
   type Reaction,
+  type ReactionCodec,
 } from "@xmtp/content-type-reaction";
-import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
+import { type RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
+import {
+  ContentTypeReply,
+  type Reply,
+  type ReplyCodec,
+} from "@xmtp/content-type-reply";
+import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import { filter } from "@/utils/filter.js";
 import { ConversationContext } from "./ConversationContext.js";
 
 type DecodedMessageWithContent<ContentTypes = unknown> =
@@ -28,6 +35,24 @@ export class MessageContext<
   }) {
     super({ conversation, client });
     this.#message = message;
+  }
+
+  isText(): this is MessageContext<ReturnType<TextCodec["decode"]>> {
+    return filter.isText(this.#message);
+  }
+
+  isReply(): this is MessageContext<ReturnType<ReplyCodec["decode"]>> {
+    return filter.isReply(this.#message);
+  }
+
+  isReaction(): this is MessageContext<ReturnType<ReactionCodec["decode"]>> {
+    return filter.isReaction(this.#message);
+  }
+
+  isRemoteAttachment(): this is MessageContext<
+    ReturnType<RemoteAttachmentCodec["decode"]>
+  > {
+    return filter.isRemoteAttachment(this.#message);
   }
 
   async sendReaction(content: string, schema: Reaction["schema"] = "unicode") {

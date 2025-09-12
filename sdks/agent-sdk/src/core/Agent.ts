@@ -32,6 +32,7 @@ interface EventHandlerMap<ContentTypes> {
   attachment: [
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
   ];
+  conversation: [ctx: ConversationContext<ContentTypes>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
@@ -40,7 +41,7 @@ interface EventHandlerMap<ContentTypes> {
   stop: [];
   text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
-  unhandledMessage: [ctx: MessageContext<ContentTypes>];
+  unknownMessage: [ctx: MessageContext<ContentTypes>];
 }
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
@@ -212,6 +213,18 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       this.#conversationsStream = await this.#client.conversations.stream({
         onValue: async (conversation) => {
           try {
+            if (!conversation) {
+              return;
+            }
+            this.emit(
+              "conversation",
+              new ConversationContext<ContentTypes, Conversation<ContentTypes>>(
+                {
+                  conversation,
+                  client: this.#client,
+                },
+              ),
+            );
             if (conversation instanceof Group) {
               this.emit(
                 "group",
@@ -302,7 +315,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   async #processMessage(
     message: DecodedMessage<ContentTypes>,
-    topic: EventName<ContentTypes> = "unhandledMessage",
+    topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     // Skip messages with undefined content (failed to decode)
     if (!filter.hasDefinedContent(message)) {
@@ -336,7 +349,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   async #runMiddlewareChain(
     context: MessageContext<ContentTypes>,
-    topic: EventName<ContentTypes> = "unhandledMessage",
+    topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     const finalEmit = async () => {
       try {
