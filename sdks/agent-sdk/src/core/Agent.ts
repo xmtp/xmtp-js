@@ -87,7 +87,7 @@ type ErrorFlow =
   | { kind: "continue"; error: unknown } // next(err) or handler throws
   | { kind: "stopped" }; // handler returns without next()
 
-export class Agent<ContentTypes> extends EventEmitter<
+export class Agent<ContentTypes = unknown> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
