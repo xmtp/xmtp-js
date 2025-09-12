@@ -125,6 +125,26 @@ describe("Agent", () => {
         expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
       });
     });
+
+    it("should have proper types when using type predicates in 'unhandledMessage' event", () => {
+      ephemeralAgent.on("unhandledMessage", (ctx) => {
+        if (ctx.isText()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<string>();
+        }
+
+        if (ctx.isReply()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
+        }
+
+        if (ctx.isReaction()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<Reaction>();
+        }
+
+        if (ctx.isRemoteAttachment()) {
+          expectTypeOf(ctx.message.content).toEqualTypeOf<RemoteAttachment>();
+        }
+      });
+    });
   });
 
   describe("start", () => {
