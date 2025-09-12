@@ -4,7 +4,7 @@ import {
 } from "@xmtp/content-type-reaction";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, DecodedMessage, Dm, Group } from "@xmtp/node-sdk";
+import { Dm, Group, type Client, type DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { filter } from "@/utils/filter.js";
 
@@ -21,14 +21,30 @@ const dmConversation = {
     }),
 } as unknown as Dm;
 
-const groupConversation = {
-  id: "group-conversation",
-  metadata: () =>
-    Promise.resolve({
-      creatorInboxId: "test-client-inbox-id",
-      conversationType: "group",
-    }),
-} as unknown as Group;
+Object.setPrototypeOf(dmConversation, Dm.prototype);
+
+const createMockGroup = (
+  adminInboxIds: string[] = [],
+  superAdminInboxIds: string[] = [],
+) => {
+  const mockGroup = {
+    id: "group-conversation",
+    metadata: () =>
+      Promise.resolve({
+        creatorInboxId: "test-client-inbox-id",
+        conversationType: "group",
+      }),
+    isAdmin: vi.fn((inboxId: string) => adminInboxIds.includes(inboxId)),
+    isSuperAdmin: vi.fn((inboxId: string) =>
+      superAdminInboxIds.includes(inboxId),
+    ),
+  };
+
+  // Make instanceof Group work by setting the prototype
+  Object.setPrototypeOf(mockGroup, Group.prototype);
+
+  return mockGroup as unknown as Group;
+};
 
 const createMockMessage = (overrides: Partial<DecodedMessage> = {}) =>
   ({
@@ -301,24 +317,120 @@ describe("Filters", () => {
   });
 
   describe("isDM", () => {
-    it("recognizes direct messages", async () => {
+    it("recognizes direct messages", () => {
       const message = createMockMessage();
-      await expect(
-        filter.isDM(message, mockClient, dmConversation),
-      ).resolves.toBe(true);
-      await expect(
-        filter.isDM(message, mockClient, groupConversation),
-      ).resolves.toBe(false);
+      expect(filter.isDM(message, mockClient, dmConversation)).toBe(true);
+      expect(filter.isDM(message, mockClient, createMockGroup())).toBe(false);
+    });
+  });
+
+  describe("isGroup", () => {
+    it("recognizes groups", () => {
+      const message = createMockMessage();
+      expect(filter.isGroup(message, mockClient, createMockGroup())).toBe(true);
+      expect(filter.isGroup(message, mockClient, dmConversation)).toBe(false);
+    });
+  });
+
+  describe("isGroupAdmin", () => {
+    it("detects when sender is a group admin", async () => {
+      const adminInboxId = "admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: adminInboxId });
+      const mockGroup = createMockGroup([adminInboxId], []);
+
+      const isGroupAdminFilter = filter.isGroupAdmin();
+      const result = await isGroupAdminFilter(message, mockClient, mockGroup);
+
+      expect(result).toBe(true);
     });
 
-    it("recognizes groups", async () => {
-      const message = createMockMessage();
-      await expect(
-        filter.isGroup(message, mockClient, groupConversation),
-      ).resolves.toBe(true);
-      await expect(
-        filter.isGroup(message, mockClient, dmConversation),
-      ).resolves.toBe(false);
+    it("detects when sender is not a group admin", async () => {
+      const nonAdminInboxId = "non-admin-inbox-id";
+      const adminInboxId = "admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: nonAdminInboxId });
+      const mockGroup = createMockGroup([adminInboxId], []);
+
+      const isGroupAdminFilter = filter.isGroupAdmin();
+      const result = await isGroupAdminFilter(message, mockClient, mockGroup);
+
+      expect(result).toBe(false);
+    });
+
+    it("detects when conversation is not a group", async () => {
+      const message = createMockMessage({ senderInboxId: "any-inbox-id" });
+
+      const isGroupAdminFilter = filter.isGroupAdmin();
+      const result = await isGroupAdminFilter(
+        message,
+        mockClient,
+        dmConversation,
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isGroupSuperAdmin", () => {
+    it("detects when sender is a group super admin", async () => {
+      const superAdminInboxId = "super-admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: superAdminInboxId });
+      const mockGroup = createMockGroup([], [superAdminInboxId]);
+
+      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
+      const result = await isGroupSuperAdminFilter(
+        message,
+        mockClient,
+        mockGroup,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("detects when sender is not a group super admin", async () => {
+      const nonSuperAdminInboxId = "non-super-admin-inbox-id";
+      const superAdminInboxId = "super-admin-inbox-id";
+      const message = createMockMessage({
+        senderInboxId: nonSuperAdminInboxId,
+      });
+      const mockGroup = createMockGroup([], [superAdminInboxId]);
+
+      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
+      const result = await isGroupSuperAdminFilter(
+        message,
+        mockClient,
+        mockGroup,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("detects when conversation is not a group", async () => {
+      const message = createMockMessage({ senderInboxId: "any-inbox-id" });
+
+      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
+      const result = await isGroupSuperAdminFilter(
+        message,
+        mockClient,
+        dmConversation,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("detects when sender is regular admin but not super admin", async () => {
+      const adminInboxId = "admin-inbox-id";
+      const superAdminInboxId = "super-admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: adminInboxId });
+      const mockGroup = createMockGroup([adminInboxId], [superAdminInboxId]);
+
+      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
+      const result = await isGroupSuperAdminFilter(
+        message,
+        mockClient,
+        mockGroup,
+      );
+
+      expect(result).toBe(false);
     });
   });
 });

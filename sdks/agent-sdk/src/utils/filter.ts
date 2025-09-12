@@ -8,7 +8,13 @@ import {
 } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import {
+  Dm,
+  Group,
+  type Client,
+  type Conversation,
+  type DecodedMessage,
+} from "@xmtp/node-sdk";
 import type { MessageContext } from "@/core/MessageContext.js";
 
 export type MessageFilter<ContentTypes> = (
@@ -39,14 +45,32 @@ function hasDefinedContent<ContentTypes>() {
 }
 
 function isDM<ContentTypes>(): MessageFilter<ContentTypes> {
-  return async (_message, _client, conversation) => {
-    return (await conversation.metadata()).conversationType === "dm";
+  return (_message, _client, conversation) => {
+    return conversation instanceof Dm;
   };
 }
 
 function isGroup<ContentTypes>(): MessageFilter<ContentTypes> {
-  return async (_message, _client, conversation) => {
-    return (await conversation.metadata()).conversationType === "group";
+  return (_message, _client, conversation) => {
+    return conversation instanceof Group;
+  };
+}
+
+function isGroupAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
+  return (message, _client, conversation) => {
+    if (conversation instanceof Group) {
+      return conversation.isAdmin(message.senderInboxId);
+    }
+    return false;
+  };
+}
+
+function isGroupSuperAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
+  return (message, _client, conversation) => {
+    if (conversation instanceof Group) {
+      return conversation.isSuperAdmin(message.senderInboxId);
+    }
+    return false;
   };
 }
 
@@ -193,6 +217,8 @@ export const filter = {
   hasDefinedContent: hasDefinedContent(),
   isDM: isDM(),
   isGroup: isGroup(),
+  isGroupAdmin,
+  isGroupSuperAdmin,
   isReaction: isReaction(),
   isRemoteAttachment: isRemoteAttachment(),
   isReply: isReply(),
