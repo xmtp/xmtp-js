@@ -45,9 +45,9 @@ interface EventHandlerMap<ContentTypes> {
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
 
-export type ErrorContext<ContentTypes = unknown> = {
+export type AgentErrorContext<ContentTypes = unknown> = {
   message?: DecodedMessage<ContentTypes>;
-  client?: Client<ContentTypes>;
+  client: Client<ContentTypes>;
   conversation?: Conversation;
 };
 
@@ -66,7 +66,7 @@ export type AgentMiddleware<ContentTypes = unknown> = (
 
 export type AgentErrorMiddleware<ContentTypes = unknown> = (
   error: unknown,
-  ctx: ErrorContext<ContentTypes>,
+  ctx: AgentErrorContext<ContentTypes>,
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
@@ -368,7 +368,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorHandler(
     handler: AgentErrorMiddleware<ContentTypes>,
-    context: ErrorContext<ContentTypes>,
+    context: AgentErrorContext<ContentTypes>,
     error: unknown,
   ): Promise<ErrorFlow> {
     let settled = false as boolean;
@@ -396,7 +396,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorChain(
     error: unknown,
-    context: ErrorContext<ContentTypes>,
+    context: AgentErrorContext<ContentTypes>,
   ): Promise<boolean> {
     const chain = [...this.#errorMiddleware, this.#defaultErrorHandler];
 
