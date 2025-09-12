@@ -38,32 +38,20 @@ export class MessageContext<
   }
 
   isText(): this is MessageContext<ReturnType<TextCodec["decode"]>> {
-    if (!this.#message.contentType) {
-      return false;
-    }
     return filter.isText(this.#message);
   }
 
   isReply(): this is MessageContext<ReturnType<ReplyCodec["decode"]>> {
-    if (!this.#message.contentType) {
-      return false;
-    }
     return filter.isReply(this.#message);
   }
 
   isReaction(): this is MessageContext<ReturnType<ReactionCodec["decode"]>> {
-    if (!this.#message.contentType) {
-      return false;
-    }
     return filter.isReaction(this.#message);
   }
 
   isRemoteAttachment(): this is MessageContext<
     ReturnType<RemoteAttachmentCodec["decode"]>
   > {
-    if (!this.#message.contentType) {
-      return false;
-    }
     return filter.isRemoteAttachment(this.#message);
   }
 
