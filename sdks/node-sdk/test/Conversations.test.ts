@@ -417,25 +417,33 @@ describe("Conversations", () => {
       client3.inboxId,
     ]);
 
-    setTimeout(() => {
-      void stream.end();
-    }, 2000);
+    const expectedIds = new Set([conversation1.id, conversation2.id]);
+    const receivedIds = new Set<string>();
 
-    let count = 0;
-    for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
+    const timeout = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        void stream.end();
+      }, 2000);
+    });
+
+    const streamPromise = (async () => {
+      for await (const convo of stream) {
+        if (convo === undefined) {
+          break;
+        }
+        expect(convo).toBeDefined();
+        receivedIds.add(convo.id);
+        if (receivedIds.size === 2) {
+          void stream.end();
+          break;
+        }
       }
-      count++;
-      expect(convo).toBeDefined();
-      if (count === 1) {
-        expect(convo.id).toBe(conversation1.id);
-      }
-      if (count === 2) {
-        expect(convo.id).toBe(conversation2.id);
-      }
-    }
-    expect(count).toBe(2);
+    })();
+
+    await Promise.race([streamPromise, timeout]);
+
+    expect(receivedIds.size).toBe(2);
+    expect(receivedIds).toEqual(expectedIds);
     expect(
       (await client3.conversations.getConversationById(conversation1.id))?.id,
     ).toBe(conversation1.id);
