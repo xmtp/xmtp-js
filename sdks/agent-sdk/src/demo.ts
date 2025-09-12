@@ -2,7 +2,13 @@ import { loadEnvFile } from "node:process";
 import { Agent } from "./core/index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { getTestUrl } from "./utils/debug.js";
-import { createSigner, createUser, f, withFilter } from "./utils/index.js";
+import {
+  AgentError,
+  createSigner,
+  createUser,
+  f,
+  withFilter,
+} from "./utils/index.js";
 
 try {
   loadEnvFile(".env");
@@ -55,7 +61,12 @@ agent.on(
 );
 
 const errorHandler = (error: unknown) => {
-  console.log("Caught error", error);
+  if (error instanceof AgentError) {
+    console.log(`Caught error ID "${error.code}"`, error);
+    console.log("Original error", error.cause);
+  } else {
+    console.log(`Caught error`, error);
+  }
 };
 
 agent.on("unhandledError", errorHandler);

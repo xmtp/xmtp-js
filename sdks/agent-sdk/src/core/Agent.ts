@@ -11,51 +11,62 @@ import {
   Group,
   LogLevel,
   type ClientOptions,
+  type Conversation,
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
+import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
+import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
-import { AgentContext } from "./MessageContext.js";
+import { MessageContext } from "./MessageContext.js";
 
 type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>
 >;
 
 interface EventHandlerMap<ContentTypes> {
-  attachment: [ctx: AgentContext<ReturnType<RemoteAttachmentCodec["decode"]>>];
+  attachment: [
+    ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
+  ];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
-  reaction: [ctx: AgentContext<ReturnType<ReactionCodec["decode"]>>];
-  reply: [ctx: AgentContext<ReturnType<ReplyCodec["decode"]>>];
+  reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
+  reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
   start: [];
   stop: [];
-  text: [ctx: AgentContext<ReturnType<TextCodec["decode"]>>];
+  text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
-  unhandledMessage: [ctx: AgentContext<ContentTypes>];
+  unhandledMessage: [ctx: MessageContext<ContentTypes>];
 }
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
+
+export type AgentErrorContext<ContentTypes = unknown> = {
+  message?: DecodedMessage<ContentTypes>;
+  client: Client<ContentTypes>;
+  conversation?: Conversation;
+};
 
 export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
 }
 
 export type AgentMessageHandler<ContentTypes = unknown> = (
-  ctx: AgentContext<ContentTypes>,
+  ctx: MessageContext<ContentTypes>,
 ) => Promise<void> | void;
 
 export type AgentMiddleware<ContentTypes = unknown> = (
-  ctx: AgentContext<ContentTypes>,
+  ctx: MessageContext<ContentTypes>,
   next: () => Promise<void> | void,
 ) => Promise<void>;
 
 export type AgentErrorMiddleware<ContentTypes = unknown> = (
   error: unknown,
-  ctx: AgentContext<ContentTypes> | null,
+  ctx: AgentErrorContext<ContentTypes>,
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
@@ -76,7 +87,7 @@ type ErrorFlow =
   | { kind: "continue"; error: unknown } // next(err) or handler throws
   | { kind: "stopped" }; // handler returns without next()
 
-export class Agent<ContentTypes> extends EventEmitter<
+export class Agent<ContentTypes = unknown> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
@@ -100,9 +111,11 @@ export class Agent<ContentTypes> extends EventEmitter<
     const emittedError =
       currentError instanceof Error
         ? currentError
-        : new Error(`Unhandled error caught by default error middleware.`, {
-            cause: currentError,
-          });
+        : new AgentError(
+            9999,
+            `Unhandled error caught by default error middleware.`,
+            currentError,
+          );
     this.emit("unhandledError", emittedError);
   };
 
@@ -145,7 +158,10 @@ export class Agent<ContentTypes> extends EventEmitter<
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     if (!isHex(process.env.XMTP_WALLET_KEY)) {
-      throw new Error(`XMTP_WALLET_KEY env is not in hex (0x) format.`);
+      throw new AgentError(
+        1000,
+        `XMTP_WALLET_KEY env is not in hex (0x) format.`,
+      );
     }
 
     const signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
@@ -214,12 +230,26 @@ export class Agent<ContentTypes> extends EventEmitter<
               );
             }
           } catch (error) {
-            const recovered = await this.#runErrorChain(error, null);
+            const recovered = await this.#runErrorChain(
+              new AgentError(
+                1001,
+                "Emitted value from conversation stream caused an error.",
+                error,
+              ),
+              new ClientContext({ client: this.#client }),
+            );
             if (!recovered) await this.stop();
           }
         },
         onError: async (error) => {
-          const recovered = await this.#runErrorChain(error, null);
+          const recovered = await this.#runErrorChain(
+            new AgentError(
+              1002,
+              "Error occured during conversation streaming.",
+              error,
+            ),
+            new ClientContext({ client: this.#client }),
+          );
           if (!recovered) await this.stop();
         },
       });
@@ -249,7 +279,9 @@ export class Agent<ContentTypes> extends EventEmitter<
               break;
           }
         } catch (error) {
-          const recovered = await this.#runErrorChain(error, null);
+          const recovered = await this.#runErrorChain(error, {
+            client: this.#client,
+          });
           if (!recovered) {
             await this.stop();
             break;
@@ -258,7 +290,9 @@ export class Agent<ContentTypes> extends EventEmitter<
       }
     } catch (error) {
       this.#isListening = false;
-      const recovered = await this.#runErrorChain(error, null);
+      const recovered = await this.#runErrorChain(error, {
+        client: this.#client,
+      });
       if (recovered) {
         await this.stop();
         queueMicrotask(() => this.start(options));
@@ -280,23 +314,28 @@ export class Agent<ContentTypes> extends EventEmitter<
       return;
     }
 
-    let context: AgentContext<ContentTypes> | null = null;
+    let context: MessageContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
     );
 
     if (!conversation) {
-      throw new Error(
+      throw new AgentError(
+        1003,
         `Failed to process message ID "${message.id}" for conversation ID "${message.conversationId}" because the conversation could not be found.`,
       );
     }
 
-    context = new AgentContext({ message, conversation, client: this.#client });
+    context = new MessageContext({
+      message,
+      conversation,
+      client: this.#client,
+    });
     await this.#runMiddlewareChain(context, topic);
   }
 
   async #runMiddlewareChain(
-    context: AgentContext<ContentTypes>,
+    context: MessageContext<ContentTypes>,
     topic: EventName<ContentTypes> = "unhandledMessage",
   ) {
     const finalEmit = async () => {
@@ -329,7 +368,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorHandler(
     handler: AgentErrorMiddleware<ContentTypes>,
-    context: AgentContext<ContentTypes> | null,
+    context: AgentErrorContext<ContentTypes>,
     error: unknown,
   ): Promise<ErrorFlow> {
     let settled = false as boolean;
@@ -357,7 +396,7 @@ export class Agent<ContentTypes> extends EventEmitter<
 
   async #runErrorChain(
     error: unknown,
-    context: AgentContext<ContentTypes> | null,
+    context: AgentErrorContext<ContentTypes>,
   ): Promise<boolean> {
     const chain = [...this.#errorMiddleware, this.#defaultErrorHandler];
 

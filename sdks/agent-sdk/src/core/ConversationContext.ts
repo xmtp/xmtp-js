@@ -1,11 +1,11 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { Client, Conversation } from "@xmtp/node-sdk";
+import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<
   ContentTypes = unknown,
   ConversationType extends Conversation = Conversation,
-> {
-  #client: Client<ContentTypes>;
+> extends ClientContext<ContentTypes> {
   #conversation: ConversationType;
 
   constructor({
@@ -15,23 +15,15 @@ export class ConversationContext<
     conversation: ConversationType;
     client: Client<ContentTypes>;
   }) {
+    super({ client });
     this.#conversation = conversation;
-    this.#client = client;
   }
 
   async sendText(text: string): Promise<void> {
     await this.#conversation.send(text, ContentTypeText);
   }
 
-  getOwnAddress() {
-    return this.#client.accountIdentifier?.identifier;
-  }
-
   get conversation() {
     return this.#conversation;
-  }
-
-  get client() {
-    return this.#client;
   }
 }
