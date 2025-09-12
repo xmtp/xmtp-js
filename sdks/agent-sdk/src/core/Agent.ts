@@ -32,6 +32,7 @@ interface EventHandlerMap<ContentTypes> {
   attachment: [
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
   ];
+  conversation: [ctx: ConversationContext<ContentTypes>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
@@ -212,6 +213,18 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       this.#conversationsStream = await this.#client.conversations.stream({
         onValue: async (conversation) => {
           try {
+            if (!conversation) {
+              return;
+            }
+            this.emit(
+              "conversation",
+              new ConversationContext<ContentTypes, Conversation<ContentTypes>>(
+                {
+                  conversation,
+                  client: this.#client,
+                },
+              ),
+            );
             if (conversation instanceof Group) {
               this.emit(
                 "group",
