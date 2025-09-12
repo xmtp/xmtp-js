@@ -68,7 +68,7 @@ describe("Agent", () => {
     content: "Hello, world!",
   });
 
-  let agent: Agent<unknown>;
+  let agent: Agent;
   let options: AgentOptions<unknown>;
 
   beforeEach(() => {
