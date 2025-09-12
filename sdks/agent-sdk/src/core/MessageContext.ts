@@ -3,10 +3,7 @@ import {
   type Reaction,
   type ReactionCodec,
 } from "@xmtp/content-type-reaction";
-import {
-  ContentTypeRemoteAttachment,
-  type RemoteAttachmentCodec,
-} from "@xmtp/content-type-remote-attachment";
+import { type RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import {
   ContentTypeReply,
   type Reply,
@@ -14,6 +11,7 @@ import {
 } from "@xmtp/content-type-reply";
 import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import { filter } from "@/utils/filter.js";
 import { ConversationContext } from "./ConversationContext.js";
 
 type DecodedMessageWithContent<ContentTypes = unknown> =
@@ -43,21 +41,21 @@ export class MessageContext<
     if (!this.#message.contentType) {
       return false;
     }
-    return ContentTypeText.sameAs(this.#message.contentType);
+    return filter.isText(this.#message);
   }
 
   isReply(): this is MessageContext<ReturnType<ReplyCodec["decode"]>> {
     if (!this.#message.contentType) {
       return false;
     }
-    return ContentTypeReply.sameAs(this.#message.contentType);
+    return filter.isReply(this.#message);
   }
 
   isReaction(): this is MessageContext<ReturnType<ReactionCodec["decode"]>> {
     if (!this.#message.contentType) {
       return false;
     }
-    return ContentTypeReaction.sameAs(this.#message.contentType);
+    return filter.isReaction(this.#message);
   }
 
   isRemoteAttachment(): this is MessageContext<
@@ -66,7 +64,7 @@ export class MessageContext<
     if (!this.#message.contentType) {
       return false;
     }
-    return ContentTypeRemoteAttachment.sameAs(this.#message.contentType);
+    return filter.isRemoteAttachment(this.#message);
   }
 
   async sendReaction(content: string, schema: Reaction["schema"] = "unicode") {
