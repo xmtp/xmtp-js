@@ -420,27 +420,21 @@ describe("Conversations", () => {
     const expectedIds = new Set([conversation1.id, conversation2.id]);
     const receivedIds = new Set<string>();
 
-    const timeout = new Promise<void>((resolve) => {
-      setTimeout(() => {
-        void stream.end();
-      }, 2000);
-    });
+    setTimeout(() => {
+      void stream.end();
+    }, 2000);
 
-    const streamPromise = (async () => {
-      for await (const convo of stream) {
-        if (convo === undefined) {
-          break;
-        }
-        expect(convo).toBeDefined();
-        receivedIds.add(convo.id);
-        if (receivedIds.size === 2) {
-          void stream.end();
-          break;
-        }
+    for await (const convo of stream) {
+      if (convo === undefined) {
+        break;
       }
-    })();
-
-    await Promise.race([streamPromise, timeout]);
+      expect(convo).toBeDefined();
+      receivedIds.add(convo.id);
+      if (receivedIds.size === 2) {
+        void stream.end();
+        break;
+      }
+    }
 
     expect(receivedIds.size).toBe(2);
     expect(receivedIds).toEqual(expectedIds);
