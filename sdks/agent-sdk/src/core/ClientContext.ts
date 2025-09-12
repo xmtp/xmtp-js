@@ -7,7 +7,7 @@ export class ClientContext<ContentTypes = unknown> {
     this.#client = client;
   }
 
-  getAddress() {
+  getClientAddress() {
     return this.#client.accountIdentifier?.identifier;
   }
 
