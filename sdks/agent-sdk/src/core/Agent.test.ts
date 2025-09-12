@@ -10,7 +10,13 @@ import {
   type Reply,
 } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import type {
+  Client,
+  Conversation,
+  DecodedMessage,
+  Dm,
+  Group,
+} from "@xmtp/node-sdk";
 import {
   beforeEach,
   describe,
@@ -142,6 +148,22 @@ describe("Agent", () => {
 
         if (ctx.isRemoteAttachment()) {
           expectTypeOf(ctx.message.content).toEqualTypeOf<RemoteAttachment>();
+        }
+      });
+    });
+
+    it("should have proper types when using type predicates in 'conversation' event", () => {
+      ephemeralAgent.on("conversation", (ctx) => {
+        if (ctx.isDm()) {
+          expectTypeOf(ctx.conversation).toEqualTypeOf<
+            Dm<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+          >();
+        }
+
+        if (ctx.isGroup()) {
+          expectTypeOf(ctx.conversation).toEqualTypeOf<
+            Group<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+          >();
         }
       });
     });
