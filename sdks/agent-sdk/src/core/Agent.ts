@@ -41,7 +41,7 @@ interface EventHandlerMap<ContentTypes> {
   stop: [];
   text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
-  unhandledMessage: [ctx: MessageContext<ContentTypes>];
+  unknownMessage: [ctx: MessageContext<ContentTypes>];
 }
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
@@ -315,7 +315,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   async #processMessage(
     message: DecodedMessage<ContentTypes>,
-    topic: EventName<ContentTypes> = "unhandledMessage",
+    topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     // Skip messages with undefined content (failed to decode)
     if (!filter.hasDefinedContent(message)) {
@@ -349,7 +349,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   async #runMiddlewareChain(
     context: MessageContext<ContentTypes>,
-    topic: EventName<ContentTypes> = "unhandledMessage",
+    topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     const finalEmit = async () => {
       try {

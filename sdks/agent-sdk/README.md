@@ -91,7 +91,7 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 - `reaction` – a new incoming reaction message
 - `reply` – a new incoming reply message
 - `attachment` – a new incoming remote attachment message
-- `unhandledMessage` – a message that doesn't match any specific type
+- `unknownMessage` – a message that doesn't match any specific type
 
 **Conversation Events**
 
