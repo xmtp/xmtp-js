@@ -44,21 +44,37 @@ function hasDefinedContent<ContentTypes>() {
   };
 }
 
-function isDM<ContentTypes>(): MessageFilter<ContentTypes> {
-  return (_message, _client, conversation) => {
+function isDM<ContentTypes>(): (
+  message: DecodedMessage,
+  client: Client<ContentTypes>,
+  conversation: Conversation,
+) => conversation is Dm<ContentTypes> {
+  return (
+    _message,
+    _client,
+    conversation,
+  ): conversation is Dm<ContentTypes> => {
     return conversation instanceof Dm;
   };
 }
 
-function isGroup<ContentTypes>(): MessageFilter<ContentTypes> {
-  return (_message, _client, conversation) => {
+function isGroup<ContentTypes>(): (
+  message: DecodedMessage,
+  client: Client<ContentTypes>,
+  conversation: Conversation,
+) => conversation is Group<ContentTypes> {
+  return (
+    _message,
+    _client,
+    conversation,
+  ): conversation is Group<ContentTypes> => {
     return conversation instanceof Group;
   };
 }
 
 function isGroupAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
-  return (message, _client, conversation) => {
-    if (conversation instanceof Group) {
+  return (message, client, conversation) => {
+    if (isGroup()(message, client, conversation)) {
       return conversation.isAdmin(message.senderInboxId);
     }
     return false;
@@ -66,8 +82,8 @@ function isGroupAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
 }
 
 function isGroupSuperAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
-  return (message, _client, conversation) => {
-    if (conversation instanceof Group) {
+  return (message, client, conversation) => {
+    if (isGroup()(message, client, conversation)) {
       return conversation.isSuperAdmin(message.senderInboxId);
     }
     return false;

@@ -40,7 +40,6 @@ const createMockGroup = (
     ),
   };
 
-  // Make instanceof Group work by setting the prototype
   Object.setPrototypeOf(mockGroup, Group.prototype);
 
   return mockGroup as unknown as Group;
