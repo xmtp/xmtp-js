@@ -10,7 +10,15 @@ import { rateLimitMiddleware } from "./middleware/rateLimit";
 const app = express();
 
 app.use(helmet()); // Set security headers
-app.use(cors()); // Handle CORS
+app.use(
+  cors({
+    origin: ["https://xmtp.chat", "https://experimental.xmtp.chat"],
+    methods: ["GET", "OPTIONS"],
+    allowedHeaders: ["*"],
+    credentials: true,
+    maxAge: 86400,
+  }),
+); // Handle CORS
 app.use(jsonMiddleware); // Parse JSON requests
 
 // Rate limiting should be before routes but after logging
@@ -49,5 +57,3 @@ process.on("SIGINT", () => {
     console.log("xmtp.chat API service closed");
   });
 });
-
-export default app;
