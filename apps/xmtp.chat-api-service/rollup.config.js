@@ -20,7 +20,7 @@ export default defineConfig([
   {
     input: "src/index.ts",
     output: {
-      file: "api/index.js",
+      file: "dist/index.js",
       format: "es",
       sourcemap: false,
       importAttributesKey: "with",

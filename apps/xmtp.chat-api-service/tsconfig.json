@@ -3,11 +3,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    // this is needed for the vercel runtime
+    "moduleResolution": "node",
     "noEmit": true,
     "preserveConstEnums": true,
     "skipLibCheck": true,
-    "sourceMap": true,
     "strict": true,
     "target": "ESNext"
   },

@@ -4,34 +4,34 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "api/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "yarn clean:dist && rollup -c",
     "clean": "rimraf .turbo && yarn clean:dist && yarn clean:deps",
     "clean:deps": "rimraf node_modules",
     "clean:dist": "rimraf api",
     "dev": "tsx watch src/index.ts",
-    "start": "node api/index.js",
+    "start": "node dist/index.js",
     "typecheck": "tsc"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.0.1",
-    "express-rate-limit": "^7.5.0",
-    "helmet": "^8.0.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
     "pinata": "^2.5.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^12.1.4",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/node": "^24.3.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.48.1",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tslib": "^2.8.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.2"
   }
 }
