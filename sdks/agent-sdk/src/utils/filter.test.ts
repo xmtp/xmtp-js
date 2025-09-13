@@ -338,8 +338,7 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: adminInboxId });
       const mockGroup = createMockGroup([adminInboxId], []);
 
-      const isGroupAdminFilter = filter.isGroupAdmin();
-      const result = await isGroupAdminFilter(message, mockClient, mockGroup);
+      const result = await filter.isGroupAdmin(message, mockClient, mockGroup);
 
       expect(result).toBe(true);
     });
@@ -350,8 +349,7 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: nonAdminInboxId });
       const mockGroup = createMockGroup([adminInboxId], []);
 
-      const isGroupAdminFilter = filter.isGroupAdmin();
-      const result = await isGroupAdminFilter(message, mockClient, mockGroup);
+      const result = await filter.isGroupAdmin(message, mockClient, mockGroup);
 
       expect(result).toBe(false);
     });
@@ -359,8 +357,7 @@ describe("Filters", () => {
     it("detects when conversation is not a group", async () => {
       const message = createMockMessage({ senderInboxId: "any-inbox-id" });
 
-      const isGroupAdminFilter = filter.isGroupAdmin();
-      const result = await isGroupAdminFilter(
+      const result = await filter.isGroupAdmin(
         message,
         mockClient,
         dmConversation,
@@ -376,8 +373,7 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: superAdminInboxId });
       const mockGroup = createMockGroup([], [superAdminInboxId]);
 
-      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
-      const result = await isGroupSuperAdminFilter(
+      const result = await filter.isGroupSuperAdmin(
         message,
         mockClient,
         mockGroup,
@@ -394,8 +390,7 @@ describe("Filters", () => {
       });
       const mockGroup = createMockGroup([], [superAdminInboxId]);
 
-      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
-      const result = await isGroupSuperAdminFilter(
+      const result = await filter.isGroupSuperAdmin(
         message,
         mockClient,
         mockGroup,
@@ -407,8 +402,7 @@ describe("Filters", () => {
     it("detects when conversation is not a group", async () => {
       const message = createMockMessage({ senderInboxId: "any-inbox-id" });
 
-      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
-      const result = await isGroupSuperAdminFilter(
+      const result = await filter.isGroupSuperAdmin(
         message,
         mockClient,
         dmConversation,
@@ -423,8 +417,7 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: adminInboxId });
       const mockGroup = createMockGroup([adminInboxId], [superAdminInboxId]);
 
-      const isGroupSuperAdminFilter = filter.isGroupSuperAdmin();
-      const result = await isGroupSuperAdminFilter(
+      const result = await filter.isGroupSuperAdmin(
         message,
         mockClient,
         mockGroup,
