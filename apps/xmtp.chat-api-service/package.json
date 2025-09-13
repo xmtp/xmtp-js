@@ -16,22 +16,22 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.0.1",
-    "express-rate-limit": "^7.5.0",
-    "helmet": "^8.0.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
     "pinata": "^2.5.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^12.1.4",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/node": "^24.3.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.48.1",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tslib": "^2.8.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.2"
   }
 }
