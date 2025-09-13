@@ -417,8 +417,8 @@ describe("Conversations", () => {
       client3.inboxId,
     ]);
 
-    const expectedIds = new Set([conversation1.id, conversation2.id]);
-    const receivedIds = new Set<string>();
+    const expectedIds = [conversation1.id, conversation2.id];
+    const receivedIds: string[] = [];
 
     setTimeout(() => {
       void stream.end();
@@ -429,14 +429,10 @@ describe("Conversations", () => {
         break;
       }
       expect(convo).toBeDefined();
-      receivedIds.add(convo.id);
-      if (receivedIds.size === 2) {
-        void stream.end();
-        break;
-      }
+      receivedIds.push(convo.id);
     }
 
-    expect(receivedIds.size).toBe(2);
+    expect(receivedIds.length).toBe(2);
     expect(receivedIds).toEqual(expectedIds);
     expect(
       (await client3.conversations.getConversationById(conversation1.id))?.id,
