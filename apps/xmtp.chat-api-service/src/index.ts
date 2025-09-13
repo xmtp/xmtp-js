@@ -9,6 +9,7 @@ import { rateLimitMiddleware } from "./middleware/rateLimit";
 
 const app = express();
 
+app.set("trust proxy", 1);
 app.use(helmet()); // Set security headers
 app.use(
   cors({
