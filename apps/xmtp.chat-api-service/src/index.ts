@@ -1,11 +1,11 @@
 import cors from "cors";
 import express, { type Request, type Response } from "express";
 import helmet from "helmet";
-import apiRouter from "./api";
-import { errorMiddleware } from "./middleware/error";
-import { jsonMiddleware } from "./middleware/json";
-import { noRouteMiddleware } from "./middleware/noRoute";
-import { rateLimitMiddleware } from "./middleware/rateLimit";
+import apiRouter from "./api/index.js";
+import { errorMiddleware } from "./middleware/error.js";
+import { jsonMiddleware } from "./middleware/json.js";
+import { noRouteMiddleware } from "./middleware/noRoute.js";
+import { rateLimitMiddleware } from "./middleware/rateLimit.js";
 
 const app = express();
 

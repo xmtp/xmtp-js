@@ -3,11 +3,10 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "noEmit": true,
     "preserveConstEnums": true,
     "skipLibCheck": true,
-    "sourceMap": true,
     "strict": true,
     "target": "ESNext"
   },

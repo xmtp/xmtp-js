@@ -1,5 +1,5 @@
 import { Router } from "express";
-import pinataRouter from "./pinata.router";
+import pinataRouter from "./pinata.router.js";
 
 const v1Router = Router();
 
