@@ -57,7 +57,10 @@ describe("Filters", () => {
   describe("fromSelf", () => {
     it("should return false for messages not from self", () => {
       const message = createMockMessage({ senderInboxId: "other-inbox-id" });
-      const result = filter.fromSelf(message, mockClient);
+      const result = filter.fromSelf({
+        message,
+        client: mockClient,
+      });
       expect(result).toBe(false);
     });
 
@@ -65,7 +68,10 @@ describe("Filters", () => {
       const message = createMockMessage({
         senderInboxId: "test-client-inbox-id",
       });
-      const result = filter.fromSelf(message, mockClient);
+      const result = filter.fromSelf({
+        message,
+        client: mockClient,
+      });
       expect(result).toBe(true);
     });
   });
@@ -73,13 +79,17 @@ describe("Filters", () => {
   describe("isText", () => {
     it("should return true for text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeText });
-      const result = filter.isText(message);
+      const result = filter.isText({
+        message,
+      });
       expect(result).toBe(true);
     });
 
     it("should return false for non-text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeReply });
-      const result = filter.isText(message);
+      const result = filter.isText({
+        message,
+      });
       expect(result).toBe(false);
     });
   });
@@ -88,14 +98,18 @@ describe("Filters", () => {
     it("should return true for matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "target-sender" });
       const fromSender = filter.fromSender("target-sender");
-      const result = fromSender(message);
+      const result = fromSender({
+        message,
+      });
       expect(result).toBe(true);
     });
 
     it("should return false for non-matching single sender", () => {
       const message = createMockMessage({ senderInboxId: "other-sender" });
       const fromSender = filter.fromSender("target-sender");
-      const result = fromSender(message);
+      const result = fromSender({
+        message,
+      });
       expect(result).toBe(false);
     });
 
@@ -106,7 +120,9 @@ describe("Filters", () => {
         "sender-2",
         "sender-3",
       ]);
-      const result = fromSender(message);
+      const result = fromSender({
+        message,
+      });
       expect(result).toBe(true);
     });
 
@@ -117,7 +133,9 @@ describe("Filters", () => {
         "sender-2",
         "sender-3",
       ]);
-      const result = fromSender(message);
+      const result = fromSender({
+        message,
+      });
       expect(result).toBe(false);
     });
   });
@@ -131,11 +149,27 @@ describe("Filters", () => {
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await andFilter(message, mockClient, dmConversation);
+      const result = await andFilter({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
       expect(result).toBe(true);
-      expect(filter1).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter2).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter3).toHaveBeenCalledWith(message, mockClient, dmConversation);
+      expect(filter1).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
+      expect(filter2).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
+      expect(filter3).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
     });
 
     it("should return false when any filter fails", async () => {
@@ -146,7 +180,11 @@ describe("Filters", () => {
       const andFilter = filter.and(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await andFilter(message, mockClient, dmConversation);
+      const result = await andFilter({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
       expect(result).toBe(false);
       expect(filter1).toHaveBeenCalled();
       expect(filter2).toHaveBeenCalled();
@@ -158,7 +196,11 @@ describe("Filters", () => {
       const andFilter = filter.and();
       const message = createMockMessage();
 
-      const result = await andFilter(message, mockClient, dmConversation);
+      const result = await andFilter({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
       expect(result).toBe(true);
     });
   });
@@ -172,7 +214,11 @@ describe("Filters", () => {
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await orFilter(message, mockClient, dmConversation);
+      const result = await orFilter({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
       expect(result).toBe(true);
       expect(filter1).toHaveBeenCalled();
       expect(filter2).toHaveBeenCalled();
@@ -188,18 +234,38 @@ describe("Filters", () => {
       const orFilter = filter.or(filter1, filter2, filter3);
       const message = createMockMessage();
 
-      const result = await orFilter(message, mockClient, dmConversation);
+      const result = await orFilter({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
       expect(result).toBe(false);
-      expect(filter1).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter2).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter3).toHaveBeenCalledWith(message, mockClient, dmConversation);
+      expect(filter1).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
+      expect(filter2).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
+      expect(filter3).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
     });
 
     it("should return false for empty filter array", async () => {
       const orFilter = filter.or();
       const message = createMockMessage();
 
-      const result = await orFilter(message, mockClient, dmConversation);
+      const result = await orFilter({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
       expect(result).toBe(false);
     });
   });
@@ -210,13 +276,17 @@ describe("Filters", () => {
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
-      const result = await notFilter(message, mockClient, dmConversation);
-      expect(result).toBe(false);
-      expect(baseFilter).toHaveBeenCalledWith(
+      const result = await notFilter({
         message,
-        mockClient,
-        dmConversation,
-      );
+        client: mockClient,
+        conversation: dmConversation,
+      });
+      expect(result).toBe(false);
+      expect(baseFilter).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
     });
 
     it("should invert filter result from false to true", async () => {
@@ -224,13 +294,17 @@ describe("Filters", () => {
       const notFilter = filter.not(baseFilter);
       const message = createMockMessage();
 
-      const result = await notFilter(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-      expect(baseFilter).toHaveBeenCalledWith(
+      const result = await notFilter({
         message,
-        mockClient,
-        dmConversation,
-      );
+        client: mockClient,
+        conversation: dmConversation,
+      });
+      expect(result).toBe(true);
+      expect(baseFilter).toHaveBeenCalledWith({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
     });
   });
 
@@ -247,7 +321,11 @@ describe("Filters", () => {
         filter.not(filter.fromSelf),
       );
 
-      const result = await complexFilter(message, mockClient, dmConversation);
+      const result = await complexFilter({
+        message,
+        client: mockClient,
+        conversation: dmConversation,
+      });
       expect(result).toBe(true);
     });
   });
@@ -258,10 +336,14 @@ describe("Filters", () => {
         content: "@agent this message is for you",
       });
 
-      const positive = filter.startsWith("@agent")(message);
+      const positive = filter.startsWith("@agent")({
+        message,
+      });
       expect(positive).toBe(true);
 
-      const negative = filter.startsWith("@xmtp")(message);
+      const negative = filter.startsWith("@xmtp")({
+        message,
+      });
       expect(negative).toBe(false);
     });
 
@@ -282,10 +364,14 @@ describe("Filters", () => {
         contentType: ContentTypeReply,
       });
 
-      const positive = filter.startsWith("@agent")(replyMessage);
+      const positive = filter.startsWith("@agent")({
+        message: replyMessage,
+      });
       expect(positive).toBe(true);
 
-      const negative = filter.startsWith("@xmtp")(replyMessage);
+      const negative = filter.startsWith("@xmtp")({
+        message: replyMessage,
+      });
       expect(negative).toBe(false);
     });
 
@@ -307,10 +393,14 @@ describe("Filters", () => {
         contentType: ContentTypeReaction,
       });
 
-      const positive = filter.startsWith("👍")(reactionMessage);
+      const positive = filter.startsWith("👍")({
+        message: reactionMessage,
+      });
       expect(positive).toBe(true);
 
-      const negative = filter.startsWith("👎")(reactionMessage);
+      const negative = filter.startsWith("👎")({
+        message: reactionMessage,
+      });
       expect(negative).toBe(false);
     });
   });
@@ -318,16 +408,32 @@ describe("Filters", () => {
   describe("isDM", () => {
     it("recognizes direct messages", () => {
       const message = createMockMessage();
-      expect(filter.isDM(message, mockClient, dmConversation)).toBe(true);
-      expect(filter.isDM(message, mockClient, createMockGroup())).toBe(false);
+      expect(
+        filter.isDM({
+          conversation: dmConversation,
+        }),
+      ).toBe(true);
+      expect(
+        filter.isDM({
+          conversation: createMockGroup(),
+        }),
+      ).toBe(false);
     });
   });
 
   describe("isGroup", () => {
     it("recognizes groups", () => {
       const message = createMockMessage();
-      expect(filter.isGroup(message, mockClient, createMockGroup())).toBe(true);
-      expect(filter.isGroup(message, mockClient, dmConversation)).toBe(false);
+      expect(
+        filter.isGroup({
+          conversation: createMockGroup(),
+        }),
+      ).toBe(true);
+      expect(
+        filter.isGroup({
+          conversation: dmConversation,
+        }),
+      ).toBe(false);
     });
   });
 
@@ -337,7 +443,11 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: adminInboxId });
       const mockGroup = createMockGroup([adminInboxId], []);
 
-      const result = await filter.isGroupAdmin(message, mockClient, mockGroup);
+      const result = await filter.isGroupAdmin({
+        message,
+        client: mockClient,
+        conversation: mockGroup,
+      });
 
       expect(result).toBe(true);
     });
@@ -348,7 +458,11 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: nonAdminInboxId });
       const mockGroup = createMockGroup([adminInboxId], []);
 
-      const result = await filter.isGroupAdmin(message, mockClient, mockGroup);
+      const result = await filter.isGroupAdmin({
+        message,
+        client: mockClient,
+        conversation: mockGroup,
+      });
 
       expect(result).toBe(false);
     });
@@ -356,11 +470,11 @@ describe("Filters", () => {
     it("detects when conversation is not a group", async () => {
       const message = createMockMessage({ senderInboxId: "any-inbox-id" });
 
-      const result = await filter.isGroupAdmin(
+      const result = await filter.isGroupAdmin({
         message,
-        mockClient,
-        dmConversation,
-      );
+        client: mockClient,
+        conversation: dmConversation,
+      });
 
       expect(result).toBe(false);
     });
@@ -372,11 +486,11 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: superAdminInboxId });
       const mockGroup = createMockGroup([], [superAdminInboxId]);
 
-      const result = await filter.isGroupSuperAdmin(
+      const result = await filter.isGroupSuperAdmin({
         message,
-        mockClient,
-        mockGroup,
-      );
+        client: mockClient,
+        conversation: mockGroup,
+      });
 
       expect(result).toBe(true);
     });
@@ -389,11 +503,11 @@ describe("Filters", () => {
       });
       const mockGroup = createMockGroup([], [superAdminInboxId]);
 
-      const result = await filter.isGroupSuperAdmin(
+      const result = await filter.isGroupSuperAdmin({
         message,
-        mockClient,
-        mockGroup,
-      );
+        client: mockClient,
+        conversation: mockGroup,
+      });
 
       expect(result).toBe(false);
     });
@@ -401,11 +515,11 @@ describe("Filters", () => {
     it("detects when conversation is not a group", async () => {
       const message = createMockMessage({ senderInboxId: "any-inbox-id" });
 
-      const result = await filter.isGroupSuperAdmin(
+      const result = await filter.isGroupSuperAdmin({
         message,
-        mockClient,
-        dmConversation,
-      );
+        client: mockClient,
+        conversation: dmConversation,
+      });
 
       expect(result).toBe(false);
     });
@@ -416,11 +530,11 @@ describe("Filters", () => {
       const message = createMockMessage({ senderInboxId: adminInboxId });
       const mockGroup = createMockGroup([adminInboxId], [superAdminInboxId]);
 
-      const result = await filter.isGroupSuperAdmin(
+      const result = await filter.isGroupSuperAdmin({
         message,
-        mockClient,
-        mockGroup,
-      );
+        client: mockClient,
+        conversation: mockGroup,
+      });
 
       expect(result).toBe(false);
     });

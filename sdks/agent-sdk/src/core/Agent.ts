@@ -275,16 +275,16 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         if (!this.#isListening) break;
         try {
           switch (true) {
-            case filter.isRemoteAttachment(message):
+            case filter.isRemoteAttachment({ message }):
               await this.#processMessage(message, "attachment");
               break;
-            case filter.isReaction(message):
+            case filter.isReaction({ message }):
               await this.#processMessage(message, "reaction");
               break;
-            case filter.isReply(message):
+            case filter.isReply({ message }):
               await this.#processMessage(message, "reply");
               break;
-            case filter.isText(message):
+            case filter.isText({ message }):
               await this.#processMessage(message, "text");
               break;
             default:
@@ -318,12 +318,12 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     // Skip messages with undefined content (failed to decode)
-    if (!filter.hasDefinedContent(message)) {
+    if (!filter.hasDefinedContent({ message })) {
       return;
     }
 
     // Skip messages from agent itself
-    if (filter.fromSelf(message, this.#client)) {
+    if (filter.fromSelf({ message, client: this.#client })) {
       return;
     }
 

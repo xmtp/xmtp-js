@@ -23,7 +23,7 @@ export class CommandRouter<ContentTypes> {
   }
 
   async handle(ctx: MessageContext): Promise<boolean> {
-    if (!filter.isText(ctx.message)) {
+    if (!filter.isText({ message: ctx.message })) {
       return false;
     }
 

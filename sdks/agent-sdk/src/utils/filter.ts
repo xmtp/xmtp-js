@@ -17,10 +17,14 @@ import {
 } from "@xmtp/node-sdk";
 import type { MessageContext } from "@/core/MessageContext.js";
 
-export type MessageFilter<ContentTypes> = (
-  message: DecodedMessage,
-  client: Client<ContentTypes>,
-  conversation: Conversation,
+export interface FilterContext<ContentTypes = unknown> {
+  message: DecodedMessage;
+  client: Client<ContentTypes>;
+  conversation: Conversation;
+}
+
+export type MessageFilter<ContentTypes = unknown> = (
+  context: FilterContext<ContentTypes>,
 ) => boolean | Promise<boolean>;
 
 /**
@@ -29,62 +33,61 @@ export type MessageFilter<ContentTypes> = (
  * @returns Filter function
  */
 function fromSelf<ContentTypes>() {
-  return (message: DecodedMessage, client: Client<ContentTypes>) => {
+  return ({
+    message,
+    client,
+  }: Pick<FilterContext<ContentTypes>, "message" | "client">) => {
     return message.senderInboxId === client.inboxId;
   };
 }
 
 function hasDefinedContent<ContentTypes>() {
-  return (
-    message: DecodedMessage,
-  ): message is DecodedMessage<ContentTypes> & {
-    content: NonNullable<ContentTypes>;
-  } => {
+  return ({ message }: Pick<FilterContext<ContentTypes>, "message">) => {
     return !!message.content;
   };
 }
 
-function isDM<ContentTypes>(): (
-  message: DecodedMessage,
-  client: Client<ContentTypes>,
-  conversation: Conversation,
-) => conversation is Dm<ContentTypes> {
+function isDM<ContentTypes>() {
   return (
-    _message,
-    _client,
-    conversation,
-  ): conversation is Dm<ContentTypes> => {
-    return conversation instanceof Dm;
+    ctx: Pick<FilterContext<ContentTypes>, "conversation">,
+  ): ctx is FilterContext<ContentTypes> & {
+    conversation: Dm<ContentTypes>;
+  } => {
+    return ctx.conversation instanceof Dm;
   };
 }
 
-function isGroup<ContentTypes>(): (
-  message: DecodedMessage,
-  client: Client<ContentTypes>,
-  conversation: Conversation,
-) => conversation is Group<ContentTypes> {
+function isGroup<ContentTypes>() {
   return (
-    _message,
-    _client,
-    conversation,
-  ): conversation is Group<ContentTypes> => {
-    return conversation instanceof Group;
+    ctx: Pick<FilterContext<ContentTypes>, "conversation">,
+  ): ctx is FilterContext<ContentTypes> & {
+    conversation: Group<ContentTypes>;
+  } => {
+    return ctx.conversation instanceof Group;
   };
 }
 
 function isGroupAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
-  return (message, client, conversation) => {
-    if (isGroup()(message, client, conversation)) {
-      return conversation.isAdmin(message.senderInboxId);
+  return ({
+    message,
+    conversation,
+  }: Pick<FilterContext<ContentTypes>, "message" | "conversation">) => {
+    const groupCheck = { conversation };
+    if (isGroup()(groupCheck)) {
+      return groupCheck.conversation.isAdmin(message.senderInboxId);
     }
     return false;
   };
 }
 
 function isGroupSuperAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
-  return (message, client, conversation) => {
-    if (isGroup()(message, client, conversation)) {
-      return conversation.isSuperAdmin(message.senderInboxId);
+  return ({
+    message,
+    conversation,
+  }: Pick<FilterContext<ContentTypes>, "message" | "conversation">) => {
+    const groupCheck = { conversation };
+    if (isGroup()(groupCheck)) {
+      return groupCheck.conversation.isSuperAdmin(message.senderInboxId);
     }
     return false;
   };
@@ -92,25 +95,31 @@ function isGroupSuperAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
 
 function isReaction() {
   return (
-    message: DecodedMessage,
-  ): message is DecodedMessage & { content: Reaction } => {
-    return !!message.contentType?.sameAs(ContentTypeReaction);
+    ctx: Pick<FilterContext, "message">,
+  ): ctx is FilterContext & {
+    message: DecodedMessage & { content: Reaction };
+  } => {
+    return !!ctx.message.contentType?.sameAs(ContentTypeReaction);
   };
 }
 
 function isReply() {
   return (
-    message: DecodedMessage,
-  ): message is DecodedMessage & { content: Reply } => {
-    return !!message.contentType?.sameAs(ContentTypeReply);
+    ctx: Pick<FilterContext, "message">,
+  ): ctx is FilterContext & {
+    message: DecodedMessage & { content: Reply };
+  } => {
+    return !!ctx.message.contentType?.sameAs(ContentTypeReply);
   };
 }
 
 function isRemoteAttachment() {
   return (
-    message: DecodedMessage,
-  ): message is DecodedMessage & { content: RemoteAttachment } => {
-    return !!message.contentType?.sameAs(ContentTypeRemoteAttachment);
+    ctx: Pick<FilterContext, "message">,
+  ): ctx is FilterContext & {
+    message: DecodedMessage & { content: RemoteAttachment };
+  } => {
+    return !!ctx.message.contentType?.sameAs(ContentTypeRemoteAttachment);
   };
 }
 
@@ -121,17 +130,24 @@ function isRemoteAttachment() {
  */
 function isText() {
   return (
-    message: DecodedMessage,
-  ): message is DecodedMessage & { content: string } => {
-    return !!message.contentType?.sameAs(ContentTypeText);
+    ctx: Pick<FilterContext, "message">,
+  ): ctx is FilterContext & {
+    message: DecodedMessage & { content: string };
+  } => {
+    return !!ctx.message.contentType?.sameAs(ContentTypeText);
   };
 }
 
 function isTextReply() {
   return (
-    message: DecodedMessage,
-  ): message is DecodedMessage & { content: Reply & { content: string } } => {
-    return isReply()(message) && typeof message.content.content === "string";
+    ctx: Pick<FilterContext, "message">,
+  ): ctx is FilterContext & {
+    message: DecodedMessage & { content: Reply & { content: string } };
+  } => {
+    return (
+      isReply()({ message: ctx.message }) &&
+      typeof (ctx.message.content as any)?.content === "string"
+    );
   };
 }
 
@@ -146,7 +162,7 @@ function fromSender(senderInboxId: string | string[]) {
     ? senderInboxId
     : [senderInboxId];
 
-  return (message: DecodedMessage) => {
+  return ({ message }: Pick<FilterContext, "message">) => {
     return senderIds.includes(message.senderInboxId);
   };
 }
@@ -158,19 +174,25 @@ function fromSender(senderInboxId: string | string[]) {
  * @returns Filter function
  */
 function startsWith(prefix: string) {
-  return (message: DecodedMessage) => {
+  return ({ message }: Pick<FilterContext, "message">) => {
     const getTextContent = (message: DecodedMessage) => {
-      switch (true) {
-        case filter.isReaction(message):
-        case filter.isTextReply(message):
-          return message.content.content;
-        case filter.isText(message):
-          return message.content;
+      const msgContext = { message };
+
+      if (filter.isReaction(msgContext)) {
+        return (message.content as any)?.content;
       }
+      if (filter.isTextReply(msgContext)) {
+        return (message.content as any)?.content;
+      }
+      if (filter.isText(msgContext)) {
+        return message.content as string;
+      }
+
+      return undefined;
     };
 
     const text = getTextContent(message);
-    return !!(text && text.startsWith(prefix));
+    return !!(text && typeof text === "string" && text.startsWith(prefix));
   };
 }
 
@@ -183,9 +205,9 @@ function startsWith(prefix: string) {
 function and<ContentTypes>(
   ...filters: MessageFilter<ContentTypes>[]
 ): MessageFilter<ContentTypes> {
-  return async (message, client, conversation) => {
+  return async (context: FilterContext<ContentTypes>) => {
     for (const filter of filters) {
-      const result = await filter(message, client, conversation);
+      const result = await filter(context);
       if (!result) return false;
     }
     return true;
@@ -201,9 +223,9 @@ function and<ContentTypes>(
 function or<ContentTypes>(
   ...filters: MessageFilter<ContentTypes>[]
 ): MessageFilter<ContentTypes> {
-  return async (message, client, conversation) => {
+  return async (context: FilterContext<ContentTypes>) => {
     for (const filter of filters) {
-      const result = await filter(message, client, conversation);
+      const result = await filter(context);
       if (result) return true;
     }
     return false;
@@ -219,8 +241,8 @@ function or<ContentTypes>(
 function not<ContentTypes>(
   filter: MessageFilter<ContentTypes>,
 ): MessageFilter<ContentTypes> {
-  return async (message, client, conversation) => {
-    return !(await filter(message, client, conversation));
+  return async (context: FilterContext<ContentTypes>) => {
+    return !(await filter(context));
   };
 }
 
@@ -257,7 +279,13 @@ export const withFilter =
     listener: (ctx: MessageContext<ContentTypes>) => void | Promise<void>,
   ) =>
   async (ctx: MessageContext<ContentTypes>) => {
-    if (await filterFn(ctx.message, ctx.client, ctx.conversation)) {
+    if (
+      await filterFn({
+        message: ctx.message,
+        client: ctx.client,
+        conversation: ctx.conversation,
+      })
+    ) {
       await listener(ctx);
     }
   };
