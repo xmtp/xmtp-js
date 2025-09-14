@@ -460,6 +460,9 @@ describe("Conversations", () => {
     const group1 = await client1.conversations.newGroup([client3.inboxId]);
     const group2 = await client2.conversations.newGroup([client3.inboxId]);
 
+    const expectedIds = [group1.id, group2.id];
+    const receivedIds: string[] = [];
+
     setTimeout(() => {
       void stream.end();
     }, 2000);
@@ -468,14 +471,10 @@ describe("Conversations", () => {
     for await (const convo of stream) {
       count++;
       expect(convo).toBeDefined();
-      if (count === 1) {
-        expect(convo.id).toBe(group1.id);
-      }
-      if (count === 2) {
-        expect(convo.id).toBe(group2.id);
-      }
+      receivedIds.push(convo.id);
     }
-    expect(count).toBe(2);
+    expect(receivedIds.length).toBe(2);
+    expect(receivedIds).toEqual(expectedIds);
   });
 
   it("should only stream dm conversations", async () => {
