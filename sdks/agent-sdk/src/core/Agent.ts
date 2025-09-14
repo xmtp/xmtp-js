@@ -317,15 +317,15 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     message: DecodedMessage<ContentTypes>,
     topic: EventName<ContentTypes> = "unknownMessage",
   ) {
-    const typedContext = { message, client: this.#client };
-
+    const messageContext = { message };
+    
     // Skip messages with undefined content (failed to decode)
-    if (!filter.hasDefinedContent(typedContext)) {
+    if (!filter.hasDefinedContent(messageContext)) {
       return;
     }
 
     // Skip messages from agent itself
-    if (filter.fromSelf(typedContext)) {
+    if (filter.fromSelf({ message, client: this.#client })) {
       return;
     }
 
@@ -342,7 +342,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     // TypeScript now knows messageContext.message has defined content
     const context = new MessageContext({
-      message: typedContext.message,
+      message: messageContext.message,
       conversation,
       client: this.#client,
     });

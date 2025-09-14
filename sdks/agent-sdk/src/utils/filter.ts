@@ -185,13 +185,13 @@ function startsWith(prefix: string) {
     const getTextContent = (message: DecodedMessage) => {
       const msgContext = { message };
 
-      if (filter.isReaction(msgContext)) {
-        return msgContext.message.content;
+      if (isReaction()(msgContext)) {
+        return msgContext.message.content.content;
       }
-      if (filter.isTextReply(msgContext)) {
-        return msgContext.message.content;
+      if (isReply()(msgContext)) {
+        return msgContext.message.content.content;
       }
-      if (filter.isText(msgContext)) {
+      if (isText()(msgContext)) {
         return msgContext.message.content;
       }
 
