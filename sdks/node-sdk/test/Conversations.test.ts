@@ -467,9 +467,7 @@ describe("Conversations", () => {
       void stream.end();
     }, 2000);
 
-    let count = 0;
     for await (const convo of stream) {
-      count++;
       expect(convo).toBeDefined();
       receivedIds.push(convo.id);
     }
