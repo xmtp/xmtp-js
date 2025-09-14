@@ -536,22 +536,20 @@ describe("Conversations", () => {
     await groups2[0].send("gm!");
     await groups3[0].send("gm2!");
 
+    const expectedSenderIds = [client2.inboxId, client3.inboxId];
+    const receivedSenderIds: string[] = [];
+
     setTimeout(() => {
       void stream.end();
     }, 2000);
 
-    let count = 0;
     for await (const message of stream) {
-      count++;
       expect(message).toBeDefined();
-      if (count === 1) {
-        expect(message.senderInboxId).toBe(client2.inboxId);
-      }
-      if (count === 2) {
-        expect(message.senderInboxId).toBe(client3.inboxId);
-      }
+      receivedSenderIds.push(message.senderInboxId);
     }
-    expect(count).toBe(2);
+
+    expect(receivedSenderIds.length).toBe(2);
+    expect(receivedSenderIds).toEqual(expectedSenderIds);
   });
 
   it("should only stream group conversation messages", async () => {
@@ -591,22 +589,20 @@ describe("Conversations", () => {
     await groupsList2[0].send("gm!");
     await groupsList3[0].send("gm2!");
 
+    const expectedSenderIds = [client2.inboxId, client3.inboxId];
+    const receivedSenderIds: string[] = [];
+
     setTimeout(() => {
       void stream.end();
     }, 2000);
 
-    let count = 0;
     for await (const message of stream) {
-      count++;
       expect(message).toBeDefined();
-      if (count === 1) {
-        expect(message.senderInboxId).toBe(client2.inboxId);
-      }
-      if (count === 2) {
-        expect(message.senderInboxId).toBe(client3.inboxId);
-      }
+      receivedSenderIds.push(message.senderInboxId);
     }
-    expect(count).toBe(2);
+
+    expect(receivedSenderIds.length).toBe(2);
+    expect(receivedSenderIds).toEqual(expectedSenderIds);
   });
 
   it("should only stream dm messages", async () => {
