@@ -407,7 +407,6 @@ describe("Filters", () => {
 
   describe("isDM", () => {
     it("recognizes direct messages", () => {
-      const message = createMockMessage();
       expect(
         filter.isDM({
           conversation: dmConversation,
@@ -423,7 +422,6 @@ describe("Filters", () => {
 
   describe("isGroup", () => {
     it("recognizes groups", () => {
-      const message = createMockMessage();
       expect(
         filter.isGroup({
           conversation: createMockGroup(),

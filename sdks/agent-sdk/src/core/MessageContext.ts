@@ -38,21 +38,21 @@ export class MessageContext<
   }
 
   isText(): this is MessageContext<ReturnType<TextCodec["decode"]>> {
-    return filter.isText(this.#message);
+    return filter.isText({ message: this.#message });
   }
 
   isReply(): this is MessageContext<ReturnType<ReplyCodec["decode"]>> {
-    return filter.isReply(this.#message);
+    return filter.isReply({ message: this.#message });
   }
 
   isReaction(): this is MessageContext<ReturnType<ReactionCodec["decode"]>> {
-    return filter.isReaction(this.#message);
+    return filter.isReaction({ message: this.#message });
   }
 
   isRemoteAttachment(): this is MessageContext<
     ReturnType<RemoteAttachmentCodec["decode"]>
   > {
-    return filter.isRemoteAttachment(this.#message);
+    return filter.isRemoteAttachment({ message: this.#message });
   }
 
   async sendReaction(content: string, schema: Reaction["schema"] = "unicode") {

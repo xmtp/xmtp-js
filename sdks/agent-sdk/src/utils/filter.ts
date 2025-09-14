@@ -42,8 +42,14 @@ function fromSelf<ContentTypes>() {
 }
 
 function hasDefinedContent<ContentTypes>() {
-  return ({ message }: Pick<FilterContext<ContentTypes>, "message">) => {
-    return !!message.content;
+  return (
+    ctx: Pick<FilterContext<ContentTypes>, "message">,
+  ): ctx is Pick<FilterContext<ContentTypes>, "message"> & {
+    message: DecodedMessage<ContentTypes> & {
+      content: NonNullable<ContentTypes>;
+    };
+  } => {
+    return !!ctx.message.content;
   };
 }
 
@@ -144,9 +150,10 @@ function isTextReply() {
   ): ctx is FilterContext & {
     message: DecodedMessage & { content: Reply & { content: string } };
   } => {
+    const typedContext = { message: ctx.message };
     return (
-      isReply()({ message: ctx.message }) &&
-      typeof (ctx.message.content as any)?.content === "string"
+      isReply()(typedContext) &&
+      typeof typedContext.message.content === "string"
     );
   };
 }
@@ -179,13 +186,13 @@ function startsWith(prefix: string) {
       const msgContext = { message };
 
       if (filter.isReaction(msgContext)) {
-        return (message.content as any)?.content;
+        return msgContext.message.content;
       }
       if (filter.isTextReply(msgContext)) {
-        return (message.content as any)?.content;
+        return msgContext.message.content;
       }
       if (filter.isText(msgContext)) {
-        return message.content as string;
+        return msgContext.message.content;
       }
 
       return undefined;

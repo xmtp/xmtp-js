@@ -457,7 +457,7 @@ describe("Agent", () => {
 
       const filterReply = vi.fn<AgentMiddleware>(async ({ message }, next) => {
         middlewareCalls.push("filterReply-" + message.id);
-        if (filter.isReply(message)) {
+        if (filter.isReply({ message })) {
           return;
         }
         await next();
