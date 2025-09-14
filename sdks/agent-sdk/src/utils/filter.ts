@@ -45,7 +45,7 @@ function hasDefinedContent<ContentTypes>() {
 function isDM<ContentTypes>() {
   return (
     ctx: Pick<AgentBaseContext<ContentTypes>, "conversation">,
-  ): ctx is AgentBaseContext<ContentTypes> & {
+  ): ctx is Pick<AgentBaseContext<ContentTypes>, "conversation"> & {
     conversation: Dm<ContentTypes>;
   } => {
     return ctx.conversation instanceof Dm;
@@ -55,7 +55,7 @@ function isDM<ContentTypes>() {
 function isGroup<ContentTypes>() {
   return (
     ctx: Pick<AgentBaseContext<ContentTypes>, "conversation">,
-  ): ctx is AgentBaseContext<ContentTypes> & {
+  ): ctx is Pick<AgentBaseContext<ContentTypes>, "conversation"> & {
     conversation: Group<ContentTypes>;
   } => {
     return ctx.conversation instanceof Group;
