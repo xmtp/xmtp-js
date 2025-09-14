@@ -38,7 +38,7 @@ function hasDefinedContent<ContentTypes>() {
       content: NonNullable<ContentTypes>;
     };
   } => {
-    return !!ctx.message.content;
+    return ctx.message.content !== undefined && ctx.message.content !== null;
   };
 }
 
