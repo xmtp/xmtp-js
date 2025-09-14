@@ -1,6 +1,11 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
-import { filter } from "../utils/filter.js";
+import {
+  type Client,
+  type Conversation,
+  type Dm,
+  type Group,
+} from "@xmtp/node-sdk";
+import { filter } from "@/utils/filter.js";
 import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<

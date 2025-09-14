@@ -10,14 +10,20 @@ import {
   type ReplyCodec,
 } from "@xmtp/content-type-reply";
 import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
-import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
+import type { DecodedMessage } from "@xmtp/node-sdk";
 import { filter } from "@/utils/filter.js";
+import type { AgentBaseContext } from "./AgentContext.js";
 import { ConversationContext } from "./ConversationContext.js";
 
 type DecodedMessageWithContent<ContentTypes = unknown> =
   DecodedMessage<ContentTypes> & {
     content: ContentTypes;
   };
+
+export interface MessageContextParams<ContentTypes = unknown>
+  extends Omit<AgentBaseContext<ContentTypes>, "message"> {
+  message: DecodedMessageWithContent<ContentTypes>;
+}
 
 export class MessageContext<
   ContentTypes = unknown,
@@ -28,11 +34,7 @@ export class MessageContext<
     message,
     conversation,
     client,
-  }: {
-    message: DecodedMessageWithContent<ContentTypes>;
-    conversation: Conversation;
-    client: Client<ContentTypes>;
-  }) {
+  }: MessageContextParams<ContentTypes>) {
     super({ conversation, client });
     this.#message = message;
   }

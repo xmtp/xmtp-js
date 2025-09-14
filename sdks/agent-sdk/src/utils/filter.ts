@@ -8,23 +8,12 @@ import {
 } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import {
-  Dm,
-  Group,
-  type Client,
-  type Conversation,
-  type DecodedMessage,
-} from "@xmtp/node-sdk";
+import { Dm, Group, type DecodedMessage } from "@xmtp/node-sdk";
+import type { AgentBaseContext } from "@/core/AgentContext.js";
 import type { MessageContext } from "@/core/MessageContext.js";
 
-export interface FilterContext<ContentTypes = unknown> {
-  message: DecodedMessage;
-  client: Client<ContentTypes>;
-  conversation: Conversation;
-}
-
 export type MessageFilter<ContentTypes = unknown> = (
-  context: FilterContext<ContentTypes>,
+  context: AgentBaseContext<ContentTypes>,
 ) => boolean | Promise<boolean>;
 
 /**
@@ -36,15 +25,15 @@ function fromSelf<ContentTypes>() {
   return ({
     message,
     client,
-  }: Pick<FilterContext<ContentTypes>, "message" | "client">) => {
+  }: Pick<AgentBaseContext<ContentTypes>, "message" | "client">) => {
     return message.senderInboxId === client.inboxId;
   };
 }
 
 function hasDefinedContent<ContentTypes>() {
   return (
-    ctx: Pick<FilterContext<ContentTypes>, "message">,
-  ): ctx is Pick<FilterContext<ContentTypes>, "message"> & {
+    ctx: Pick<AgentBaseContext<ContentTypes>, "message">,
+  ): ctx is Pick<AgentBaseContext<ContentTypes>, "message"> & {
     message: DecodedMessage<ContentTypes> & {
       content: NonNullable<ContentTypes>;
     };
@@ -55,8 +44,8 @@ function hasDefinedContent<ContentTypes>() {
 
 function isDM<ContentTypes>() {
   return (
-    ctx: Pick<FilterContext<ContentTypes>, "conversation">,
-  ): ctx is FilterContext<ContentTypes> & {
+    ctx: Pick<AgentBaseContext<ContentTypes>, "conversation">,
+  ): ctx is AgentBaseContext<ContentTypes> & {
     conversation: Dm<ContentTypes>;
   } => {
     return ctx.conversation instanceof Dm;
@@ -65,8 +54,8 @@ function isDM<ContentTypes>() {
 
 function isGroup<ContentTypes>() {
   return (
-    ctx: Pick<FilterContext<ContentTypes>, "conversation">,
-  ): ctx is FilterContext<ContentTypes> & {
+    ctx: Pick<AgentBaseContext<ContentTypes>, "conversation">,
+  ): ctx is AgentBaseContext<ContentTypes> & {
     conversation: Group<ContentTypes>;
   } => {
     return ctx.conversation instanceof Group;
@@ -77,7 +66,7 @@ function isGroupAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
   return ({
     message,
     conversation,
-  }: Pick<FilterContext<ContentTypes>, "message" | "conversation">) => {
+  }: Pick<AgentBaseContext<ContentTypes>, "message" | "conversation">) => {
     const groupCheck = { conversation };
     if (isGroup()(groupCheck)) {
       return groupCheck.conversation.isAdmin(message.senderInboxId);
@@ -90,7 +79,7 @@ function isGroupSuperAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
   return ({
     message,
     conversation,
-  }: Pick<FilterContext<ContentTypes>, "message" | "conversation">) => {
+  }: Pick<AgentBaseContext<ContentTypes>, "message" | "conversation">) => {
     const groupCheck = { conversation };
     if (isGroup()(groupCheck)) {
       return groupCheck.conversation.isSuperAdmin(message.senderInboxId);
@@ -101,8 +90,8 @@ function isGroupSuperAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
 
 function isReaction() {
   return (
-    ctx: Pick<FilterContext, "message">,
-  ): ctx is FilterContext & {
+    ctx: Pick<AgentBaseContext, "message">,
+  ): ctx is AgentBaseContext & {
     message: DecodedMessage & { content: Reaction };
   } => {
     return !!ctx.message.contentType?.sameAs(ContentTypeReaction);
@@ -111,8 +100,8 @@ function isReaction() {
 
 function isReply() {
   return (
-    ctx: Pick<FilterContext, "message">,
-  ): ctx is FilterContext & {
+    ctx: Pick<AgentBaseContext, "message">,
+  ): ctx is AgentBaseContext & {
     message: DecodedMessage & { content: Reply };
   } => {
     return !!ctx.message.contentType?.sameAs(ContentTypeReply);
@@ -121,8 +110,8 @@ function isReply() {
 
 function isRemoteAttachment() {
   return (
-    ctx: Pick<FilterContext, "message">,
-  ): ctx is FilterContext & {
+    ctx: Pick<AgentBaseContext, "message">,
+  ): ctx is AgentBaseContext & {
     message: DecodedMessage & { content: RemoteAttachment };
   } => {
     return !!ctx.message.contentType?.sameAs(ContentTypeRemoteAttachment);
@@ -136,8 +125,8 @@ function isRemoteAttachment() {
  */
 function isText() {
   return (
-    ctx: Pick<FilterContext, "message">,
-  ): ctx is FilterContext & {
+    ctx: Pick<AgentBaseContext, "message">,
+  ): ctx is AgentBaseContext & {
     message: DecodedMessage & { content: string };
   } => {
     return !!ctx.message.contentType?.sameAs(ContentTypeText);
@@ -146,8 +135,8 @@ function isText() {
 
 function isTextReply() {
   return (
-    ctx: Pick<FilterContext, "message">,
-  ): ctx is FilterContext & {
+    ctx: Pick<AgentBaseContext, "message">,
+  ): ctx is AgentBaseContext & {
     message: DecodedMessage & { content: Reply & { content: string } };
   } => {
     const typedContext = { message: ctx.message };
@@ -169,7 +158,7 @@ function fromSender(senderInboxId: string | string[]) {
     ? senderInboxId
     : [senderInboxId];
 
-  return ({ message }: Pick<FilterContext, "message">) => {
+  return ({ message }: Pick<AgentBaseContext, "message">) => {
     return senderIds.includes(message.senderInboxId);
   };
 }
@@ -181,7 +170,7 @@ function fromSender(senderInboxId: string | string[]) {
  * @returns Filter function
  */
 function startsWith(prefix: string) {
-  return ({ message }: Pick<FilterContext, "message">) => {
+  return ({ message }: Pick<AgentBaseContext, "message">) => {
     const getTextContent = (message: DecodedMessage) => {
       const msgContext = { message };
 
@@ -212,7 +201,7 @@ function startsWith(prefix: string) {
 function and<ContentTypes>(
   ...filters: MessageFilter<ContentTypes>[]
 ): MessageFilter<ContentTypes> {
-  return async (context: FilterContext<ContentTypes>) => {
+  return async (context: AgentBaseContext<ContentTypes>) => {
     for (const filter of filters) {
       const result = await filter(context);
       if (!result) return false;
@@ -230,7 +219,7 @@ function and<ContentTypes>(
 function or<ContentTypes>(
   ...filters: MessageFilter<ContentTypes>[]
 ): MessageFilter<ContentTypes> {
-  return async (context: FilterContext<ContentTypes>) => {
+  return async (context: AgentBaseContext<ContentTypes>) => {
     for (const filter of filters) {
       const result = await filter(context);
       if (result) return true;
@@ -248,7 +237,7 @@ function or<ContentTypes>(
 function not<ContentTypes>(
   filter: MessageFilter<ContentTypes>,
 ): MessageFilter<ContentTypes> {
-  return async (context: FilterContext<ContentTypes>) => {
+  return async (context: AgentBaseContext<ContentTypes>) => {
     return !(await filter(context));
   };
 }

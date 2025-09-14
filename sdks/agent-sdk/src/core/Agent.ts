@@ -20,6 +20,7 @@ import { isHex } from "viem/utils";
 import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
+import type { AgentErrorContext } from "./AgentContext.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
@@ -45,12 +46,6 @@ interface EventHandlerMap<ContentTypes> {
 }
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
-
-export type AgentErrorContext<ContentTypes = unknown> = {
-  message?: DecodedMessage<ContentTypes>;
-  client: Client<ContentTypes>;
-  conversation?: Conversation;
-};
 
 export interface AgentOptions<ContentTypes> {
   client: Client<ContentTypes>;
