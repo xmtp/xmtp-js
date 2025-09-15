@@ -123,11 +123,9 @@ export const createRegisteredClient = async <
     dbPath = opts.dbPath ?? `./test-${inboxId}.db3`;
   }
 
-  const finalDbPath = isAbsolute(dbPath) ? dbPath : join(__dirname, dbPath);
-
   return Client.create<ContentCodecs>(signer, {
     ...opts,
-    dbPath: finalDbPath,
+    dbPath,
     historySyncUrl: HistorySyncUrls.local,
   });
 };
