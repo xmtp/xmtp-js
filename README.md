@@ -7,9 +7,11 @@ To learn more about the contents of this repository, see this README and the REA
 ### Apps
 
 - [`xmtp.chat`](apps/xmtp.chat): A [web app for developers](https://xmtp.chat/) to experiment with XMTP
+- [`xmtp.chat-api-service`](apps/xmtp.chat-api-service/): An API to use [Pinata's file storage](https://pinata.cloud/)
 
 ### SDKs
 
+- [`agent-sdk`](sdks/agent-sdk): XMTP agent SDK for Node
 - [`browser-sdk`](sdks/browser-sdk): XMTP client SDK for browsers
 - [`node-sdk`](sdks/node-sdk): XMTP client SDK for Node
 
