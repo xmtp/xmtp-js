@@ -44,6 +44,47 @@ yarn add @xmtp/node-sdk
 
 Run `yarn dev` to build the SDK and watch for changes, which will trigger a rebuild.
 
+## Testing
+
+The SDK tests require a local XMTP backend environment.
+
+**Start the development environment**
+
+From the repository root run:
+
+```bash
+./dev/up
+```
+
+This starts required services: XMTP node, PostgreSQL databases, MLS validation service, upload service, and history server.
+
+Run all tests from the repository root:
+
+```bash
+yarn turbo run test --filter='./sdks/node-sdk'
+```
+
+Run all tests from project directory:
+
+```bash
+cd sdks/node-sdk
+yarn test
+```
+
+**Clean up**
+
+After finishing with testing:
+
+```bash
+./dev/compose down
+```
+
+**Troubleshooting**
+
+- If tests fail with "transport error", ensure the dev environment is running
+- Check service status: `./dev/compose ps`
+- View service logs: `./dev/compose logs [service-name]`
+
 ### Useful commands
 
 - `yarn build`: Builds the SDK
