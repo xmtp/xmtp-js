@@ -433,7 +433,7 @@ describe("Conversations", () => {
     }
 
     expect(receivedIds.length).toBe(2);
-    expect(receivedIds).toMatchObject(expectedIds);
+    expect(receivedIds.sort()).toMatchObject(expectedIds.sort());
     expect(
       (await client3.conversations.getConversationById(conversation1.id))?.id,
     ).toBe(conversation1.id);
