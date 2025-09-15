@@ -1,5 +1,5 @@
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import process from "node:process";
 import {
   createClient as createNodeClient,
@@ -28,7 +28,7 @@ export const createClient = async (
       : options.dbPath;
 
   if (typeof dbPath === "string") {
-    mkdirSync(dbPath, { recursive: true });
+    mkdirSync(dirname(dbPath), { recursive: true });
   }
 
   const logOptions: LogOptions = {

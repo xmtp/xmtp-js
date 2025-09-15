@@ -1,3 +1,5 @@
+import os from "node:os";
+import path from "node:path";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { uint8ArrayToHex } from "uint8array-extras";
 import { v4 } from "uuid";
@@ -518,5 +520,15 @@ describe("Client", () => {
     expect(inboxStates2[0].identifiers).toEqual([
       await signer2.getIdentifier(),
     ]);
+  });
+
+  it("should create database directory if it doesn't exist", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const directory = path.join(os.tmpdir(), v4(), v4(), "local.db3");
+    const client = await createRegisteredClient(signer, {
+      dbPath: directory,
+    });
+    expect(client).toBeDefined();
   });
 });
