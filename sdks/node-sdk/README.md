@@ -53,7 +53,7 @@ The SDK tests require a local XMTP backend environment.
 From the repository root run:
 
 ```bash
-./dev/up
+yarn test:setup
 ```
 
 This starts required services: XMTP node, PostgreSQL databases, MLS validation service, upload service, and history server.
@@ -76,7 +76,7 @@ yarn test
 After finishing with testing:
 
 ```bash
-./dev/compose down
+yarn test:teardown
 ```
 
 **Troubleshooting**
