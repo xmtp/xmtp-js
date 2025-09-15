@@ -523,7 +523,7 @@ describe("Client", () => {
     ]);
   });
 
-  it("should support callback function for dynamic database creation", async () => {
+  it("should support a callback function for dynamic database creation", async () => {
     const user = createUser();
     const signer = createSigner(user);
     const baseDir = path.join(os.tmpdir(), v4());
