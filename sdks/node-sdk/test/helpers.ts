@@ -1,7 +1,5 @@
-import { Client } from "@/Client";
-import { HistorySyncUrls } from "@/constants";
-import type { ClientOptions } from "@/types";
-import type { Signer } from "@/utils/signer";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   ContentTypeId,
   type ContentCodec,
@@ -12,11 +10,13 @@ import {
   IdentifierKind,
   type Identifier,
 } from "@xmtp/node-bindings";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
+import { Client } from "@/Client";
+import { HistorySyncUrls } from "@/constants";
+import type { ClientOptions } from "@/types";
+import type { Signer } from "@/utils/signer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
