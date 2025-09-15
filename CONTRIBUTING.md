@@ -67,7 +67,7 @@ This repository uses the [Yarn package manager](https://yarnpkg.com/). To use it
 
 Please add unit tests when appropriate and ensure that all unit tests are passing before submitting a pull request. Note that some unit tests require a local XMTP backend environment.
 
-1. Run `yarn test:setup` from the **root directory** once to start the required Docker services in the background:
+1. Run `yarn test:setup` from the **root directory** to start the required backend services using Docker:
    - XMTP node
    - PostgreSQL databases
    - MLS validation service
@@ -82,7 +82,7 @@ Please add unit tests when appropriate and ensure that all unit tests are passin
 yarn test:teardown
 ```
 
-**Important**: If the Docker services are not running, tests will likely fail with `transport error` messages.
+**Important**: If the backend services are not running, tests will likely fail with `transport error` messages.
 
 ## 🚢 Publishing
 
