@@ -534,9 +534,6 @@ describe("Conversations", () => {
     await groups2[0].send("gm!");
     await groups3[0].send("gm2!");
 
-    const expectedIds = [client2.inboxId, client3.inboxId];
-    const receivedIds: string[] = [];
-
     let count = 0;
     for await (const message of stream) {
       count++;
@@ -587,9 +584,6 @@ describe("Conversations", () => {
     await groupsList4[0].send("gm3!");
     await groupsList2[0].send("gm!");
     await groupsList3[0].send("gm2!");
-
-    const expectedIds = [client2.inboxId, client3.inboxId];
-    const receivedIds: string[] = [];
 
     setTimeout(() => {
       void stream.end();
