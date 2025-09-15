@@ -433,7 +433,6 @@ describe("Conversations", () => {
     }
 
     expect(receivedIds.length).toBe(2);
-    expect(["a", "b"]).toMatchObject(["b", "x"]);
     expect(receivedIds).toMatchObject(expectedIds);
     expect(
       (await client3.conversations.getConversationById(conversation1.id))?.id,
