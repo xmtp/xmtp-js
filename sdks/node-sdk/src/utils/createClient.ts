@@ -1,3 +1,4 @@
+import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import {
@@ -25,6 +26,10 @@ export const createClient = async (
     options?.dbPath === undefined
       ? join(process.cwd(), `xmtp-${env}-${inboxId}.db3`)
       : options.dbPath;
+
+  if (dbPath !== null) {
+    mkdirSync(dbPath, { recursive: true });
+  }
 
   const logOptions: LogOptions = {
     structured: options?.structuredLogging ?? false,
