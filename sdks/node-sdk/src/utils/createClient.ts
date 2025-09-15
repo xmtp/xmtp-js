@@ -27,7 +27,7 @@ export const createClient = async (
       ? join(process.cwd(), `xmtp-${env}-${inboxId}.db3`)
       : options.dbPath;
 
-  if (dbPath !== null) {
+  if (typeof dbPath === "string") {
     mkdirSync(dbPath, { recursive: true });
   }
 
