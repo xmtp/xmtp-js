@@ -433,7 +433,8 @@ describe("Conversations", () => {
     }
 
     expect(receivedIds.length).toBe(2);
-    expect(receivedIds.sort()).toEqual(expectedIds.sort());
+    expect(["a", "b"]).toMatchObject(["b", "x"]);
+    expect(receivedIds).toMatchObject(expectedIds);
     expect(
       (await client3.conversations.getConversationById(conversation1.id))?.id,
     ).toBe(conversation1.id);
@@ -533,6 +534,10 @@ describe("Conversations", () => {
 
     await groups2[0].send("gm!");
     await groups3[0].send("gm2!");
+
+    setTimeout(() => {
+      void stream.end();
+    }, 2000);
 
     let count = 0;
     for await (const message of stream) {
