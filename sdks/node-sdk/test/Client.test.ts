@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { IdentifierKind } from "@xmtp/node-bindings";
@@ -525,10 +526,11 @@ describe("Client", () => {
   it("should create database directory if it doesn't exist", async () => {
     const user = createUser();
     const signer = createSigner(user);
-    const directory = path.join(os.tmpdir(), v4(), v4(), "local.db3");
-    const client = await createRegisteredClient(signer, {
-      dbPath: directory,
+    const database = path.join(os.tmpdir(), v4(), v4(), "local.db3");
+    const client = await Client.create(signer, {
+      dbPath: database,
     });
     expect(client).toBeDefined();
+    expect(fs.existsSync(database)).toBe(true);
   });
 });
