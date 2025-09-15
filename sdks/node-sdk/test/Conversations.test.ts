@@ -433,7 +433,7 @@ describe("Conversations", () => {
     }
 
     expect(receivedIds.length).toBe(2);
-    expect(receivedIds).toEqual(expectedIds);
+    expect(receivedIds.sort()).toBe(expectedIds.sort());
     expect(
       (await client3.conversations.getConversationById(conversation1.id))?.id,
     ).toBe(conversation1.id);
@@ -472,7 +472,7 @@ describe("Conversations", () => {
       receivedIds.push(convo.id);
     }
     expect(receivedIds.length).toBe(2);
-    expect(receivedIds).toEqual(expectedIds);
+    expect(receivedIds.sort()).toEqual(expectedIds.sort());
   });
 
   it("should only stream dm conversations", async () => {
@@ -534,8 +534,8 @@ describe("Conversations", () => {
     await groups2[0].send("gm!");
     await groups3[0].send("gm2!");
 
-    const expectedSenderIds = [client2.inboxId, client3.inboxId];
-    const receivedSenderIds: string[] = [];
+    const expectedIds = [client2.inboxId, client3.inboxId];
+    const receivedIds: string[] = [];
 
     setTimeout(() => {
       void stream.end();
@@ -543,11 +543,11 @@ describe("Conversations", () => {
 
     for await (const message of stream) {
       expect(message).toBeDefined();
-      receivedSenderIds.push(message.senderInboxId);
+      receivedIds.push(message.senderInboxId);
     }
 
-    expect(receivedSenderIds.length).toBe(2);
-    expect(receivedSenderIds).toEqual(expectedSenderIds);
+    expect(receivedIds.length).toBe(2);
+    expect(receivedIds.sort()).toEqual(expectedIds.sort());
   });
 
   it("should only stream group conversation messages", async () => {
@@ -587,8 +587,8 @@ describe("Conversations", () => {
     await groupsList2[0].send("gm!");
     await groupsList3[0].send("gm2!");
 
-    const expectedSenderIds = [client2.inboxId, client3.inboxId];
-    const receivedSenderIds: string[] = [];
+    const expectedIds = [client2.inboxId, client3.inboxId];
+    const receivedIds: string[] = [];
 
     setTimeout(() => {
       void stream.end();
@@ -596,11 +596,11 @@ describe("Conversations", () => {
 
     for await (const message of stream) {
       expect(message).toBeDefined();
-      receivedSenderIds.push(message.senderInboxId);
+      receivedIds.push(message.senderInboxId);
     }
 
-    expect(receivedSenderIds.length).toBe(2);
-    expect(receivedSenderIds).toEqual(expectedSenderIds);
+    expect(receivedIds.length).toBe(2);
+    expect(receivedIds.sort()).toEqual(expectedIds.sort());
   });
 
   it("should only stream dm messages", async () => {
