@@ -537,17 +537,18 @@ describe("Conversations", () => {
     const expectedIds = [client2.inboxId, client3.inboxId];
     const receivedIds: string[] = [];
 
-    setTimeout(() => {
-      void stream.end();
-    }, 2000);
-
+    let count = 0;
     for await (const message of stream) {
+      count++;
       expect(message).toBeDefined();
-      receivedIds.push(message.senderInboxId);
+      if (count === 1) {
+        expect(message.senderInboxId).toBe(client2.inboxId);
+      }
+      if (count === 2) {
+        expect(message.senderInboxId).toBe(client3.inboxId);
+      }
     }
-
-    expect(receivedIds.length).toBe(2);
-    expect(receivedIds.sort()).toEqual(expectedIds.sort());
+    expect(count).toBe(2);
   });
 
   it("should only stream group conversation messages", async () => {
@@ -594,13 +595,18 @@ describe("Conversations", () => {
       void stream.end();
     }, 2000);
 
+    let count = 0;
     for await (const message of stream) {
+      count++;
       expect(message).toBeDefined();
-      receivedIds.push(message.senderInboxId);
+      if (count === 1) {
+        expect(message.senderInboxId).toBe(client2.inboxId);
+      }
+      if (count === 2) {
+        expect(message.senderInboxId).toBe(client3.inboxId);
+      }
     }
-
-    expect(receivedIds.length).toBe(2);
-    expect(receivedIds.sort()).toEqual(expectedIds.sort());
+    expect(count).toBe(2);
   });
 
   it("should only stream dm messages", async () => {
