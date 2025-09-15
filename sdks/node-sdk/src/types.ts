@@ -34,7 +34,7 @@ export type StorageOptions = {
   /**
    * Path to the local DB
    *
-   * There are 3 value types that can be used to specify the database path:
+   * There are 4 value types that can be used to specify the database path:
    *
    * - `undefined` (or excluded from the client options)
    *    The database will be created in the current working directory and is based on
@@ -47,8 +47,12 @@ export type StorageOptions = {
    * - `string`
    *    The given path will be used to create the database.
    *    Example: `./my-db.db3`
+   *
+   * - `function`
+   *    A callback function that receives the inbox ID and returns a string path.
+   *    Example: `(inboxId) => string`
    */
-  dbPath?: string | null;
+  dbPath?: string | null | ((inboxId: string) => string);
   /**
    * Encryption key for the local DB
    */

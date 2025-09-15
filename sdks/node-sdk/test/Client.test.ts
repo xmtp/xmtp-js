@@ -533,4 +533,20 @@ describe("Client", () => {
     expect(client).toBeDefined();
     expect(fs.existsSync(database)).toBe(true);
   });
+
+  it("should support callback function for dynamic database creation", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const baseDir = path.join(os.tmpdir(), v4());
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: (inboxId: string) => path.join(baseDir, `user-${inboxId}.db3`),
+    });
+
+    expect(client).toBeDefined();
+    expect(client.inboxId).toBeDefined();
+
+    const database = path.join(baseDir, `user-${client.inboxId}.db3`);
+    expect(fs.existsSync(database)).toBe(true);
+  });
 });

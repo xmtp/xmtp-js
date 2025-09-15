@@ -22,10 +22,18 @@ export const createClient = async (
   const inboxId =
     (await getInboxIdForIdentifier(identifier, env)) ||
     generateInboxId(identifier);
-  const dbPath =
-    options?.dbPath === undefined
-      ? join(process.cwd(), `xmtp-${env}-${inboxId}.db3`)
-      : options.dbPath;
+
+  let dbPath: string | null;
+  if (options?.dbPath === undefined) {
+    // Default: auto-generated path
+    dbPath = join(process.cwd(), `xmtp-${env}-${inboxId}.db3`);
+  } else if (typeof options.dbPath === "function") {
+    // Callback function: call with inboxId
+    dbPath = options.dbPath(inboxId);
+  } else {
+    // String or null: use as-is
+    dbPath = options.dbPath;
+  }
 
   if (typeof dbPath === "string") {
     mkdirSync(dirname(dbPath), { recursive: true });

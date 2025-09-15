@@ -1,4 +1,4 @@
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ContentTypeId,
@@ -85,10 +85,20 @@ export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
     env: options?.env ?? "local",
   };
   const inboxId = generateInboxId(await signer.getIdentifier());
+
+  let dbPath: string;
+  if (typeof opts.dbPath === "function") {
+    dbPath = opts.dbPath(inboxId);
+  } else {
+    dbPath = opts.dbPath ?? `./test-${inboxId}.db3`;
+  }
+
+  const finalDbPath = isAbsolute(dbPath) ? dbPath : join(__dirname, dbPath);
+
   const client = await Client.create<ContentCodecs>(signer, {
     ...opts,
     disableAutoRegister: true,
-    dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
+    dbPath: finalDbPath,
     historySyncUrl: HistorySyncUrls.local,
   });
   return client;
@@ -107,9 +117,19 @@ export const createRegisteredClient = async <
     env: options?.env ?? "local",
   };
   const inboxId = generateInboxId(await signer.getIdentifier());
+
+  let dbPath: string;
+  if (typeof opts.dbPath === "function") {
+    dbPath = opts.dbPath(inboxId);
+  } else {
+    dbPath = opts.dbPath ?? `./test-${inboxId}.db3`;
+  }
+
+  const finalDbPath = isAbsolute(dbPath) ? dbPath : join(__dirname, dbPath);
+
   return Client.create<ContentCodecs>(signer, {
     ...opts,
-    dbPath: join(__dirname, opts.dbPath ?? `./test-${inboxId}.db3`),
+    dbPath: finalDbPath,
     historySyncUrl: HistorySyncUrls.local,
   });
 };
