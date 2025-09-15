@@ -11,10 +11,6 @@ To keep up with the latest SDK developments, see the [Issues tab](https://githu
 
 To learn how to use the XMTP client SDK for Node, see [Get started with the XMTP Node SDK](https://docs.xmtp.org/sdks/node).
 
-## SDK reference
-
-Coming soon
-
 ## Requirements
 
 - Node.js 20+
@@ -46,44 +42,7 @@ Run `yarn dev` to build the SDK and watch for changes, which will trigger a re
 
 ## Testing
 
-The SDK tests require a local XMTP backend environment.
-
-**Start the development environment**
-
-From the repository root run:
-
-```bash
-yarn test:setup
-```
-
-This starts required services: XMTP node, PostgreSQL databases, MLS validation service, upload service, and history server.
-
-Run all tests from the repository root:
-
-```bash
-yarn turbo run test --filter='./sdks/node-sdk'
-```
-
-Run all tests from project directory:
-
-```bash
-cd sdks/node-sdk
-yarn test
-```
-
-**Clean up**
-
-After finishing with testing:
-
-```bash
-yarn test:teardown
-```
-
-**Troubleshooting**
-
-- If tests fail with "transport error", ensure the dev environment is running
-- Check service status: `./dev/compose ps`
-- View service logs: `./dev/compose logs [service-name]`
+For testing setup instructions, see our [testing guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md#testing) in the main repository.
 
 ### Useful commands
 
