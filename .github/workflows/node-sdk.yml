@@ -53,11 +53,8 @@ jobs:
         run: yarn
       - name: Start dev environment
         run: ./dev/up
-      - name: Sleep for 5 seconds
-        run: sleep 5s
-      - name: Run tests
-        run: yarn turbo run test --filter='./sdks/node-sdk'
-
+      - name: Wait for services and run tests
+        run: readyator 5555,5556,3000,5558 "yarn turbo run test --filter='./sdks/node-sdk'"
   build:
     name: Build
     runs-on: warp-ubuntu-latest-x64-8x
