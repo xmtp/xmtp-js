@@ -65,9 +65,12 @@ export const RemoteAttachmentContent: React.FC<
             codecFor: () => new AttachmentCodec(),
           });
 
-        const blob = new Blob([decryptedAttachment.data], {
-          type: decryptedAttachment.mimeType,
-        });
+        const blob = new Blob(
+          [decryptedAttachment.data as Uint8Array<ArrayBuffer>],
+          {
+            type: decryptedAttachment.mimeType,
+          },
+        );
         const blobUrl = URL.createObjectURL(blob);
 
         // Cache the blob URL
