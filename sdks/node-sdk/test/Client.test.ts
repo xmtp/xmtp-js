@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { uint8ArrayToHex } from "uint8array-extras";
 import { v4 } from "uuid";
@@ -518,5 +521,19 @@ describe("Client", () => {
     expect(inboxStates2[0].identifiers).toEqual([
       await signer2.getIdentifier(),
     ]);
+  });
+
+  it("should support a callback function for dynamic database creation", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const baseDir = os.tmpdir();
+
+    const client = await Client.create(signer, {
+      dbPath: (inboxId: string) => path.join(baseDir, `user-${inboxId}.db3`),
+    });
+    expect(client).toBeDefined();
+
+    const database = path.join(baseDir, `user-${client.inboxId}.db3`);
+    expect(fs.existsSync(database)).toBe(true);
   });
 });
