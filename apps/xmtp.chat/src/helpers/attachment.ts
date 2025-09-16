@@ -101,7 +101,7 @@ export const uploadAttachment = async (
   const upload = await pinata.upload.public
     .file(encryptedFile)
     .url(presignedUrl);
-  const url = await pinata.gateways.public.convert(upload.cid);
+  const url = `https://${import.meta.env.VITE_PINATA_GATEWAY}/ipfs/${upload.cid}`;
 
   // Return the RemoteAttachment with encryption metadata
   return {
