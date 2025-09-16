@@ -224,13 +224,6 @@ agent.on("text", async (ctx) => {
   }
 });
 
-// Check if message is from agent itself
-agent.on("text", async (ctx) => {
-  if (!filter.fromSelf(ctx.message, ctx.client)) {
-    await ctx.conversation.send("Thanks for your message! 📝");
-  }
-});
-
 // Combine multiple conditions
 agent.on("text", async (ctx) => {
   if (

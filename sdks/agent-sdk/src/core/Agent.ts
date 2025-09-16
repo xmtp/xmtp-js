@@ -333,7 +333,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       );
     }
 
-    // TypeScript now knows messageContext.message has defined content
     const context = new MessageContext({
       message,
       conversation,
