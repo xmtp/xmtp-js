@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.1.1
+
+### Patch Changes
+
+- 5b0160e: Updated `dbPath` client option to allow callback function
+
 ## 4.1.0
 
 This release introduces improved fork detection. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this enhancement.
