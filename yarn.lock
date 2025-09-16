@@ -3964,7 +3964,7 @@ __metadata:
     "@xmtp/node-sdk": "npm:^4.1.0"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.5"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     uint8arrays: "npm:^5.1.0"
     viem: "npm:^2.37.6"
     vite: "npm:^7.1.5"
@@ -3993,7 +3993,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     uuid: "npm:^11.1.0"
     viem: "npm:^2.37.6"
     vite: "npm:^7.1.5"
@@ -4014,7 +4014,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4031,7 +4031,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4048,7 +4048,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4066,7 +4066,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     viem: "npm:^2.37.6"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
@@ -4085,7 +4085,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4106,7 +4106,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4127,7 +4127,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4144,7 +4144,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4162,7 +4162,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4180,7 +4180,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4211,7 +4211,7 @@ __metadata:
     rollup-plugin-dts: "npm:^6.2.3"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     tsx: "npm:^4.20.5"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     uint8array-extras: "npm:^1.5.0"
     uuid: "npm:^11.1.0"
     viem: "npm:^2.37.6"
@@ -4287,7 +4287,7 @@ __metadata:
     react-dom: "npm:^19.1.1"
     react-router: "npm:^7.9.1"
     react-virtuoso: "npm:^4.14.0"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     uint8array-extras: "npm:^1.5.0"
     viem: "npm:^2.37.6"
     vite: "npm:^7.1.5"
@@ -10727,16 +10727,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.8.3":
-  version: 5.8.3
-  resolution: "typescript@npm:5.8.3"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/65c40944c51b513b0172c6710ee62e951b70af6f75d5a5da745cb7fab132c09ae27ffdf7838996e3ed603bb015dadd099006658046941bd0ba30340cc563ae92
-  languageName: node
-  linkType: hard
-
 "typescript@npm:^5.9.2":
   version: 5.9.2
   resolution: "typescript@npm:5.9.2"
@@ -10764,16 +10754,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/00504c01ee42d470c23495426af07512e25e6546bce7e24572e72a9ca2e6b2e9bea63de4286c3cfea644874da1467dcfca23f4f98f7caf20f8b03c0213bb6837
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>":
-  version: 5.8.3
-  resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/b9b1e73dabac5dc730c041325dbd9c99467c1b0d239f1b74ec3b90d831384af3e2ba973946232df670519147eb51a2c20f6f96163cea2b359f03de1e2091cc4f
   languageName: node
   linkType: hard
 
@@ -11758,7 +11738,7 @@ __metadata:
     prettier-plugin-packagejson: "npm:^2.5.19"
     rimraf: "npm:^6.0.1"
     turbo: "npm:^2.5.6"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.44.0"
   languageName: unknown
   linkType: soft

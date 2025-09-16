@@ -87,9 +87,12 @@ export const uploadAttachment = async (
   );
 
   // Upload the encrypted payload to Pinata
-  const encryptedBlob = new Blob([encryptedAttachment.payload], {
-    type: "application/octet-stream",
-  });
+  const encryptedBlob = new Blob(
+    [encryptedAttachment.payload as Uint8Array<ArrayBuffer>],
+    {
+      type: "application/octet-stream",
+    },
+  );
   const encryptedFile = new File([encryptedBlob], file.name, {
     type: "application/octet-stream",
   });

@@ -65,7 +65,7 @@ function aesGcmParams(
     iv: nonce as Uint8Array<ArrayBuffer>,
   };
   if (additionalData) {
-    spec.additionalData = additionalData;
+    spec.additionalData = additionalData as Uint8Array<ArrayBuffer>;
   }
   return spec;
 }

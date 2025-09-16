@@ -66,7 +66,7 @@ test("can create a remote attachment", async () => {
   try {
     await fetch("https://localhost:3000/test", {
       method: "POST",
-      body: encryptedEncodedContent.payload,
+      body: encryptedEncodedContent.payload as Uint8Array<ArrayBuffer>,
       headers: {
         "Content-Type": "application/octet-stream",
       },
@@ -181,7 +181,7 @@ test("fails if content digest does not match", async () => {
   try {
     await fetch("https://localhost:3000/test", {
       method: "POST",
-      body: encryptedEncodedContent.payload,
+      body: encryptedEncodedContent.payload as Uint8Array<ArrayBuffer>,
       headers: {
         "Content-Type": "application/octet-stream",
       },
@@ -220,7 +220,7 @@ test("fails if content digest does not match", async () => {
   );
   await fetch("https://localhost:3000/test", {
     method: "POST",
-    body: encryptedEncoded2.payload,
+    body: encryptedEncoded2.payload as Uint8Array<ArrayBuffer>,
     headers: {
       "Content-Type": "application/octet-stream",
     },
