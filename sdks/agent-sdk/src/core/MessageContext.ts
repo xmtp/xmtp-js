@@ -20,10 +20,12 @@ type DecodedMessageWithContent<ContentTypes = unknown> =
     content: ContentTypes;
   };
 
-export interface MessageContextParams<ContentTypes = unknown>
-  extends Omit<AgentBaseContext<ContentTypes>, "message"> {
+export type MessageContextParams<ContentTypes = unknown> = Omit<
+  AgentBaseContext<ContentTypes>,
+  "message"
+> & {
   message: DecodedMessageWithContent<ContentTypes>;
-}
+};
 
 export class MessageContext<
   ContentTypes = unknown,
