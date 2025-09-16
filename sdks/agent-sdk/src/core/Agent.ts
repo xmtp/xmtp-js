@@ -313,7 +313,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     // Skip messages with undefined content (failed to decode)
-    if (!filter.hasDefinedContent(message)) {
+    if (!filter.hasContent(message)) {
       return;
     }
 

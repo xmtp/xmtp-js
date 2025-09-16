@@ -23,7 +23,7 @@ const fromSelf = <ContentTypes>(
   return message.senderInboxId === client.inboxId;
 };
 
-const hasDefinedContent = <ContentTypes>(
+const hasContent = <ContentTypes>(
   message: DecodedMessage<ContentTypes>,
 ): message is DecodedMessage<ContentTypes> & {
   content: NonNullable<ContentTypes>;
@@ -86,7 +86,7 @@ const isTextReply = (message: DecodedMessage) => {
 
 export const filter = {
   fromSelf,
-  hasDefinedContent,
+  hasContent,
   isDM,
   isGroup,
   isGroupAdmin,

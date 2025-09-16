@@ -70,22 +70,22 @@ describe("Filters", () => {
     });
   });
 
-  describe("hasDefinedContent", () => {
+  describe("hasContent", () => {
     it("should return true for messages with defined content", () => {
       const message = createMockMessage({ content: "Hello world" });
-      const result = filter.hasDefinedContent(message);
+      const result = filter.hasContent(message);
       expect(result).toBe(true);
     });
 
     it("should return false for messages with null content", () => {
       const message = createMockMessage({ content: null });
-      const result = filter.hasDefinedContent(message);
+      const result = filter.hasContent(message);
       expect(result).toBe(false);
     });
 
     it("should return false for messages with undefined content", () => {
       const message = createMockMessage({ content: undefined });
-      const result = filter.hasDefinedContent(message);
+      const result = filter.hasContent(message);
       expect(result).toBe(false);
     });
   });
