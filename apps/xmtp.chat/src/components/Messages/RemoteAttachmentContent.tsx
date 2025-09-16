@@ -195,6 +195,7 @@ export const RemoteAttachmentContent: React.FC<
             src={decryptedUrl}
             controls
             style={{
+              width: "100%",
               height: "auto",
               borderRadius: "var(--mantine-radius-sm)",
               display: "block",
