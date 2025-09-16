@@ -81,7 +81,7 @@ const isText = (
 };
 
 const isTextReply = (message: DecodedMessage) => {
-  return isReply(message) && message.content.content === "string";
+  return isReply(message) && typeof message.content.content === "string";
 };
 
 export const filter = {
