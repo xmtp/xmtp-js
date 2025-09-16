@@ -270,16 +270,16 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         if (!this.#isListening) break;
         try {
           switch (true) {
-            case filter.isRemoteAttachment({ message }):
+            case filter.isRemoteAttachment(message):
               await this.#processMessage(message, "attachment");
               break;
-            case filter.isReaction({ message }):
+            case filter.isReaction(message):
               await this.#processMessage(message, "reaction");
               break;
-            case filter.isReply({ message }):
+            case filter.isReply(message):
               await this.#processMessage(message, "reply");
               break;
-            case filter.isText({ message }):
+            case filter.isText(message):
               await this.#processMessage(message, "text");
               break;
             default:
@@ -312,15 +312,13 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     message: DecodedMessage<ContentTypes>,
     topic: EventName<ContentTypes> = "unknownMessage",
   ) {
-    const messageContext = { message };
-
     // Skip messages with undefined content (failed to decode)
-    if (!filter.hasDefinedContent(messageContext)) {
+    if (!filter.hasDefinedContent(message)) {
       return;
     }
 
     // Skip messages from agent itself
-    if (filter.fromSelf({ message, client: this.#client })) {
+    if (filter.fromSelf(message, this.#client)) {
       return;
     }
 
@@ -337,7 +335,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     // TypeScript now knows messageContext.message has defined content
     const context = new MessageContext({
-      message: messageContext.message,
+      message,
       conversation,
       client: this.#client,
     });

@@ -2,13 +2,7 @@ import { loadEnvFile } from "node:process";
 import { Agent } from "./core/index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { getTestUrl } from "./utils/debug.js";
-import {
-  AgentError,
-  createSigner,
-  createUser,
-  f,
-  withFilter,
-} from "./utils/index.js";
+import { AgentError, createSigner, createUser, f } from "./utils/index.js";
 
 try {
   loadEnvFile(".env");
@@ -53,12 +47,11 @@ agent.on("reply", (ctx) => {
   console.log("Got reply:", ctx.message.content);
 });
 
-agent.on(
-  "text",
-  withFilter(f.startsWith("@agent"), async (ctx) => {
+agent.on("text", async (ctx) => {
+  if (ctx.message.content.startsWith("@agent")) {
     await ctx.conversation.send("How can I help you?");
-  }),
-);
+  }
+});
 
 const errorHandler = (error: unknown) => {
   if (error instanceof AgentError) {

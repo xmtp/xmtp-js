@@ -26,11 +26,11 @@ export class ConversationContext<
   }
 
   isDm(): this is ConversationContext<ContentTypes, Dm<ContentTypes>> {
-    return filter.isDM({ conversation: this.#conversation });
+    return filter.isDM(this.#conversation);
   }
 
   isGroup(): this is ConversationContext<ContentTypes, Group<ContentTypes>> {
-    return filter.isGroup({ conversation: this.#conversation });
+    return filter.isGroup(this.#conversation);
   }
 
   async sendText(text: string): Promise<void> {
