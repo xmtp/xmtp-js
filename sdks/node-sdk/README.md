@@ -11,10 +11,6 @@ To keep up with the latest SDK developments, see the [Issues tab](https://githu
 
 To learn how to use the XMTP client SDK for Node, see [Get started with the XMTP Node SDK](https://docs.xmtp.org/sdks/node).
 
-## SDK reference
-
-Coming soon
-
 ## Requirements
 
 - Node.js 20+
@@ -43,6 +39,10 @@ yarn add @xmtp/node-sdk
 ## Developing
 
 Run `yarn dev` to build the SDK and watch for changes, which will trigger a rebuild.
+
+## Testing
+
+For testing setup instructions, see our [testing guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md#testing) in the main repository.
 
 ### Useful commands
 
