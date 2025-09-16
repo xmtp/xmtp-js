@@ -68,7 +68,7 @@
     "typescript": "^5.8.3",
     "uint8array-extras": "^1.4.0",
     "uuid": "^11.1.0",
-    "viem": "^2.31.7",
+    "viem": "^2.37.6",
     "vite": "^7.0.4",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"

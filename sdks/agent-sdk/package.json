@@ -10,7 +10,7 @@
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/node-sdk": "^4.1.0",
     "uint8arrays": "^5.1.0",
-    "viem": "^2.31.7"
+    "viem": "^2.37.6"
   },
   "description": "XMTP Agent SDK for interacting with XMTP networks",
   "devDependencies": {

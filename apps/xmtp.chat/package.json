@@ -41,8 +41,8 @@
     "react-router": "^7.6.3",
     "react-virtuoso": "^4.13.0",
     "uint8array-extras": "^1.4.0",
-    "viem": "^2.31.7",
-    "wagmi": "^2.15.6"
+    "viem": "^2.37.6",
+    "wagmi": "^2.16.9"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",
