@@ -3,3 +3,4 @@ CODEOWNERS
 .changeset/**/*.md
 sdks/node-sdk/scripts/**/*.json
 apps/xmtp.chat-api-service/api/**/*
+.claude
