@@ -8,280 +8,91 @@ import {
 } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Dm, Group, type DecodedMessage } from "@xmtp/node-sdk";
-import type { AgentBaseContext } from "@/core/AgentContext.js";
-import type { MessageContext } from "@/core/MessageContext.js";
+import {
+  Client,
+  Conversation,
+  DecodedMessage,
+  Dm,
+  Group,
+} from "@xmtp/node-sdk";
 
-export type MessageFilter<ContentTypes = unknown> = (
-  context: AgentBaseContext<ContentTypes>,
-) => boolean | Promise<boolean>;
+const fromSelf = (message: DecodedMessage, client: Client) => {
+  return message.senderInboxId === client.inboxId;
+};
 
-/**
- * Creates a filter that includes only messages from the agent itself.
- *
- * @returns Filter function
- */
-function fromSelf<ContentTypes>() {
-  return ({
-    message,
-    client,
-  }: Pick<AgentBaseContext<ContentTypes>, "message" | "client">) => {
-    return message.senderInboxId === client.inboxId;
-  };
-}
+const hasDefinedContent = <ContentTypes>(
+  message: DecodedMessage<ContentTypes>,
+): message is DecodedMessage<ContentTypes> & {
+  content: NonNullable<ContentTypes>;
+} => {
+  return message.content !== undefined && message.content !== null;
+};
 
-function hasDefinedContent<ContentTypes>() {
-  return (
-    ctx: Pick<AgentBaseContext<ContentTypes>, "message">,
-  ): ctx is Pick<AgentBaseContext<ContentTypes>, "message"> & {
-    message: DecodedMessage<ContentTypes> & {
-      content: NonNullable<ContentTypes>;
-    };
-  } => {
-    return ctx.message.content !== undefined && ctx.message.content !== null;
-  };
-}
+const isDM = (conversation: Conversation): conversation is Dm => {
+  return conversation instanceof Dm;
+};
 
-function isDM<ContentTypes>() {
-  return (
-    ctx: Pick<AgentBaseContext<ContentTypes>, "conversation">,
-  ): ctx is Pick<AgentBaseContext<ContentTypes>, "conversation"> & {
-    conversation: Dm<ContentTypes>;
-  } => {
-    return ctx.conversation instanceof Dm;
-  };
-}
+const isGroup = (conversation: Conversation): conversation is Group => {
+  return conversation instanceof Group;
+};
 
-function isGroup<ContentTypes>() {
-  return (
-    ctx: Pick<AgentBaseContext<ContentTypes>, "conversation">,
-  ): ctx is Pick<AgentBaseContext<ContentTypes>, "conversation"> & {
-    conversation: Group<ContentTypes>;
-  } => {
-    return ctx.conversation instanceof Group;
-  };
-}
+const isGroupAdmin = (conversation: Conversation, message: DecodedMessage) => {
+  if (isGroup(conversation)) {
+    return conversation.isAdmin(message.senderInboxId);
+  }
+  return false;
+};
 
-function isGroupAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
-  return ({
-    message,
-    conversation,
-  }: Pick<AgentBaseContext<ContentTypes>, "message" | "conversation">) => {
-    const groupCheck = { conversation };
-    if (isGroup()(groupCheck)) {
-      return groupCheck.conversation.isAdmin(message.senderInboxId);
-    }
-    return false;
-  };
-}
+const isGroupSuperAdmin = (
+  conversation: Conversation,
+  message: DecodedMessage,
+) => {
+  if (isGroup(conversation)) {
+    return conversation.isSuperAdmin(message.senderInboxId);
+  }
+  return false;
+};
 
-function isGroupSuperAdmin<ContentTypes>(): MessageFilter<ContentTypes> {
-  return ({
-    message,
-    conversation,
-  }: Pick<AgentBaseContext<ContentTypes>, "message" | "conversation">) => {
-    const groupCheck = { conversation };
-    if (isGroup()(groupCheck)) {
-      return groupCheck.conversation.isSuperAdmin(message.senderInboxId);
-    }
-    return false;
-  };
-}
+const isReaction = (
+  message: DecodedMessage,
+): message is DecodedMessage & { content: Reaction } => {
+  return !!message.contentType?.sameAs(ContentTypeReaction);
+};
 
-function isReaction() {
-  return (
-    ctx: Pick<AgentBaseContext, "message">,
-  ): ctx is AgentBaseContext & {
-    message: DecodedMessage & { content: Reaction };
-  } => {
-    return !!ctx.message.contentType?.sameAs(ContentTypeReaction);
-  };
-}
+const isReply = (
+  message: DecodedMessage,
+): message is DecodedMessage & { content: Reply } => {
+  return !!message.contentType?.sameAs(ContentTypeReply);
+};
 
-function isReply() {
-  return (
-    ctx: Pick<AgentBaseContext, "message">,
-  ): ctx is AgentBaseContext & {
-    message: DecodedMessage & { content: Reply };
-  } => {
-    return !!ctx.message.contentType?.sameAs(ContentTypeReply);
-  };
-}
+const isRemoteAttachment = (
+  message: DecodedMessage,
+): message is DecodedMessage & { content: RemoteAttachment } => {
+  return !!message.contentType?.sameAs(ContentTypeRemoteAttachment);
+};
 
-function isRemoteAttachment() {
-  return (
-    ctx: Pick<AgentBaseContext, "message">,
-  ): ctx is AgentBaseContext & {
-    message: DecodedMessage & { content: RemoteAttachment };
-  } => {
-    return !!ctx.message.contentType?.sameAs(ContentTypeRemoteAttachment);
-  };
-}
+const isText = (
+  message: DecodedMessage,
+): message is DecodedMessage & { content: string } => {
+  return !!message.contentType?.sameAs(ContentTypeText);
+};
 
-/**
- * Creates a filter that includes only text messages.
- *
- * @returns Filter function
- */
-function isText() {
-  return (
-    ctx: Pick<AgentBaseContext, "message">,
-  ): ctx is AgentBaseContext & {
-    message: DecodedMessage & { content: string };
-  } => {
-    return !!ctx.message.contentType?.sameAs(ContentTypeText);
-  };
-}
+const isTextReply = (message: DecodedMessage) => {
+  return isReply(message) && message.content.content === "string";
+};
 
-function isTextReply() {
-  return (
-    ctx: Pick<AgentBaseContext, "message">,
-  ): ctx is AgentBaseContext & {
-    message: DecodedMessage & { content: Reply & { content: string } };
-  } => {
-    const typedContext = { message: ctx.message };
-    return (
-      isReply()(typedContext) &&
-      typeof typedContext.message.content === "string"
-    );
-  };
-}
-
-/**
- * Creates a filter for messages from specific senders
- *
- * @param senderInboxId - Single sender ID or array of sender IDs to match
- * @returns Filter function
- */
-function fromSender(senderInboxId: string | string[]) {
-  const senderIds = Array.isArray(senderInboxId)
-    ? senderInboxId
-    : [senderInboxId];
-
-  return ({ message }: Pick<AgentBaseContext, "message">) => {
-    return senderIds.includes(message.senderInboxId);
-  };
-}
-
-/**
- * Creates a filter that matches text messages starting with a specific string.
- *
- * @param prefix - The string prefix to match against
- * @returns Filter function
- */
-function startsWith(prefix: string) {
-  return ({ message }: Pick<AgentBaseContext, "message">) => {
-    const getTextContent = (message: DecodedMessage) => {
-      const msgContext = { message };
-
-      if (isReaction()(msgContext)) {
-        return msgContext.message.content.content;
-      }
-      if (isReply()(msgContext)) {
-        return msgContext.message.content.content;
-      }
-      if (isText()(msgContext)) {
-        return msgContext.message.content;
-      }
-
-      return undefined;
-    };
-
-    const text = getTextContent(message);
-    return !!(text && typeof text === "string" && text.startsWith(prefix));
-  };
-}
-
-/**
- * Creates a filter that requires all provided filters to pass
- *
- * @param filters - Array of filters that must all return true
- * @returns Filter function
- */
-function and<ContentTypes>(
-  ...filters: MessageFilter<ContentTypes>[]
-): MessageFilter<ContentTypes> {
-  return async (context: AgentBaseContext<ContentTypes>) => {
-    for (const filter of filters) {
-      const result = await filter(context);
-      if (!result) return false;
-    }
-    return true;
-  };
-}
-
-/**
- * Creates a filter that requires at least one provided filter to pass.
- *
- * @param filters - Array of filters where at least one must return true
- * @returns Filter function
- */
-function or<ContentTypes>(
-  ...filters: MessageFilter<ContentTypes>[]
-): MessageFilter<ContentTypes> {
-  return async (context: AgentBaseContext<ContentTypes>) => {
-    for (const filter of filters) {
-      const result = await filter(context);
-      if (result) return true;
-    }
-    return false;
-  };
-}
-
-/**
- * Creates a filter that inverts the result of another filter.
- *
- * @param filter - The filter to negate
- * @returns Filter function
- */
-function not<ContentTypes>(
-  filter: MessageFilter<ContentTypes>,
-): MessageFilter<ContentTypes> {
-  return async (context: AgentBaseContext<ContentTypes>) => {
-    return !(await filter(context));
-  };
-}
-
-/**
- * Pre-configured filter instances and factory functions for common filtering scenarios
- */
 export const filter = {
-  // basic filters
-  fromSelf: fromSelf(),
-  hasDefinedContent: hasDefinedContent(),
-  isDM: isDM(),
-  isGroup: isGroup(),
-  isGroupAdmin: isGroupAdmin(),
-  isGroupSuperAdmin: isGroupSuperAdmin(),
-  isReaction: isReaction(),
-  isRemoteAttachment: isRemoteAttachment(),
-  isReply: isReply(),
-  isText: isText(),
-  isTextReply: isTextReply(),
-  // factory functions
-  fromSender,
-  startsWith,
-  // combinators
-  and,
-  or,
-  not,
+  fromSelf,
+  hasDefinedContent,
+  isDM,
+  isGroup,
+  isGroupAdmin,
+  isGroupSuperAdmin,
+  isReaction,
+  isRemoteAttachment,
+  isReply,
+  isText,
+  isTextReply,
 };
 
 export const f = filter;
-
-export const withFilter =
-  <ContentTypes>(
-    filterFn: MessageFilter<ContentTypes>,
-    listener: (ctx: MessageContext<ContentTypes>) => void | Promise<void>,
-  ) =>
-  async (ctx: MessageContext<ContentTypes>) => {
-    if (
-      await filterFn({
-        message: ctx.message,
-        client: ctx.client,
-        conversation: ctx.conversation,
-      })
-    ) {
-      await listener(ctx);
-    }
-  };

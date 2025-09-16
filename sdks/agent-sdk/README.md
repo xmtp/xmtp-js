@@ -215,25 +215,23 @@ Instead of manually checking every incoming message, you can compose simple, reu
 **Example**
 
 ```ts
-import { withFilter, filter } from "@xmtp/agent-sdk";
+import { filter } from "@xmtp/agent-sdk";
 
 // Using filter in message handler
-agent.on(
-  "text",
-  withFilter(filter.startsWith("@agent"), async (ctx) => {
+agent.on("text", async (ctx) => {
+  if (filter.startsWith("@agent")(ctx.message, ctx.client, ctx.conversation)) {
     await ctx.conversation.send("How can I help you?");
-  }),
-);
+  }
+});
 
 // Combination of filters
-const combined = filter.and(filter.notFromSelf, filter.isText);
+const combined = filter.and(filter.fromSelf, filter.isText);
 
-agent.on(
-  "text",
-  withFilter(combined, async (ctx) => {
+agent.on("text", async (ctx) => {
+  if (await combined(ctx.message, ctx.client, ctx.conversation)) {
     await ctx.conversation.send("You sent a text message ✅");
-  }),
-);
+  }
+});
 ```
 
 For convenience, the `filter` object can also be imported as `f`:
