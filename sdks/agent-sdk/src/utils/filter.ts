@@ -9,14 +9,17 @@ import {
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import {
-  Client,
-  Conversation,
-  DecodedMessage,
   Dm,
   Group,
+  type Client,
+  type Conversation,
+  type DecodedMessage,
 } from "@xmtp/node-sdk";
 
-const fromSelf = (message: DecodedMessage, client: Client) => {
+const fromSelf = <ContentTypes>(
+  message: DecodedMessage<ContentTypes>,
+  client: Client<ContentTypes>,
+) => {
   return message.senderInboxId === client.inboxId;
 };
 

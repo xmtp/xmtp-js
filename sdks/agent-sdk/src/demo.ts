@@ -2,7 +2,7 @@ import { loadEnvFile } from "node:process";
 import { Agent } from "./core/index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { getTestUrl } from "./utils/debug.js";
-import { AgentError, createSigner, createUser, f } from "./utils/index.js";
+import { AgentError, createSigner, createUser } from "./utils/index.js";
 
 try {
   loadEnvFile(".env");

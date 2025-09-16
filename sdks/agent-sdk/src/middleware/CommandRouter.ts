@@ -23,12 +23,11 @@ export class CommandRouter<ContentTypes> {
   }
 
   async handle(ctx: MessageContext): Promise<boolean> {
-    const messageCheck = { message: ctx.message };
-    if (!filter.isText(messageCheck)) {
+    if (!filter.isText(ctx.message)) {
       return false;
     }
 
-    const messageText = messageCheck.message.content;
+    const messageText = ctx.message.content;
     const parts = messageText.split(" ");
     const command = parts[0].toLowerCase();
 
