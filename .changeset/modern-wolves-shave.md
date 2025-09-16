@@ -2,4 +2,4 @@
 "@xmtp/node-sdk": patch
 ---
 
-Allow callback function for dynamic db creation
+Updated `dbPath` client option to allow callback function
