@@ -62,7 +62,7 @@ function aesGcmParams(
 ): AesGcmParams {
   const spec: AesGcmParams = {
     name: "AES-GCM",
-    iv: nonce,
+    iv: nonce as Uint8Array<ArrayBuffer>,
   };
   if (additionalData) {
     spec.additionalData = additionalData;
