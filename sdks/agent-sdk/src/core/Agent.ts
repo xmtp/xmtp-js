@@ -29,7 +29,7 @@ type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>
 >;
 
-interface EventHandlerMap<ContentTypes> {
+type EventHandlerMap<ContentTypes> = {
   attachment: [
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
   ];
@@ -43,13 +43,13 @@ interface EventHandlerMap<ContentTypes> {
   text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
   unknownMessage: [ctx: MessageContext<ContentTypes>];
-}
+};
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
 
-export interface AgentOptions<ContentTypes> {
+export type AgentOptions<ContentTypes> = {
   client: Client<ContentTypes>;
-}
+};
 
 export type AgentMessageHandler<ContentTypes = unknown> = (
   ctx: MessageContext<ContentTypes>,
@@ -70,13 +70,13 @@ export type StreamAllMessagesOptions<ContentTypes> = Parameters<
   Client<ContentTypes>["conversations"]["streamAllMessages"]
 >[0];
 
-export interface AgentErrorRegistrar<ContentTypes> {
+export type AgentErrorRegistrar<ContentTypes> = {
   use(
     ...errorMiddleware: Array<
       AgentErrorMiddleware<ContentTypes> | AgentErrorMiddleware<ContentTypes>[]
     >
   ): AgentErrorRegistrar<ContentTypes>;
-}
+};
 
 type ErrorFlow =
   | { kind: "handled" } // next()
