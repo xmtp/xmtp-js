@@ -1,5 +1,15 @@
 # @xmtp/agent-sdk
 
+## 0.0.13
+
+### Patch Changes
+
+- b4f86cc: - Simplified filter usage with parameter-based API
+  - Removed `withFilter`
+  - Changed all interface definitions to type definitions
+  - Updated `ConversationContext` to use new filter methods
+  - Introduced unified context types in `AgentContext`
+
 ## 0.0.12
 
 ### Patch Changes
