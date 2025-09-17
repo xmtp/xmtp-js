@@ -69,7 +69,6 @@ export class ActionsCodec implements ContentCodec<Actions> {
   }
 
   encode(content: Actions): EncodedContent {
-    // Validate content before encoding
     this.#validateContent(content);
 
     return {
@@ -83,8 +82,6 @@ export class ActionsCodec implements ContentCodec<Actions> {
     const decodedContent = new TextDecoder().decode(content.content);
     try {
       const parsed = JSON.parse(decodedContent) as Actions;
-
-      // Validate decoded content
       this.#validateContent(parsed);
 
       return parsed;

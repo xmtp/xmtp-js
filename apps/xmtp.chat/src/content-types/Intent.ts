@@ -5,6 +5,9 @@ import {
 } from "@xmtp/content-type-primitives";
 import { z } from "zod";
 
+// 10KB limit for intent metadata
+const INTENT_METADATA_LIMIT = 10 * 1024;
+
 /**
  * Intent content structure
  * Users express their selection by sending Intent messages when they tap action buttons
@@ -46,7 +49,6 @@ export class IntentCodec implements ContentCodec<Intent> {
   }
 
   encode(content: Intent): EncodedContent {
-    // Validate content before encoding
     this.#validateContent(content);
 
     return {
@@ -90,9 +92,11 @@ export class IntentCodec implements ContentCodec<Intent> {
     if (content.metadata !== undefined) {
       // Check for reasonable metadata size to avoid XMTP content limits
       const metadataString = JSON.stringify(content.metadata);
-      if (metadataString.length > 10000) {
+      if (metadataString.length > INTENT_METADATA_LIMIT) {
         // 10KB limit for metadata
-        throw new Error("Intent.metadata is too large (exceeds 10KB limit)");
+        throw new Error(
+          `Intent.metadata is too large (exceeds ${(INTENT_METADATA_LIMIT / 1024).toFixed(0)}KB limit)`,
+        );
       }
     }
   }
