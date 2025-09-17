@@ -4,7 +4,7 @@ import {
 } from "@xmtp/content-type-reaction";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type { Client, DecodedMessage, Dm, Group } from "@xmtp/node-sdk";
+import { Dm, Group, type Client, type DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { filter } from "@/utils/filter.js";
 
@@ -21,14 +21,29 @@ const dmConversation = {
     }),
 } as unknown as Dm;
 
-const groupConversation = {
-  id: "group-conversation",
-  metadata: () =>
-    Promise.resolve({
-      creatorInboxId: "test-client-inbox-id",
-      conversationType: "group",
-    }),
-} as unknown as Group;
+Object.setPrototypeOf(dmConversation, Dm.prototype);
+
+const createMockGroup = (
+  adminInboxIds: string[] = [],
+  superAdminInboxIds: string[] = [],
+) => {
+  const mockGroup = {
+    id: "group-conversation",
+    metadata: () =>
+      Promise.resolve({
+        creatorInboxId: "test-client-inbox-id",
+        conversationType: "group",
+      }),
+    isAdmin: vi.fn((inboxId: string) => adminInboxIds.includes(inboxId)),
+    isSuperAdmin: vi.fn((inboxId: string) =>
+      superAdminInboxIds.includes(inboxId),
+    ),
+  };
+
+  Object.setPrototypeOf(mockGroup, Group.prototype);
+
+  return mockGroup as unknown as Group;
+};
 
 const createMockMessage = (overrides: Partial<DecodedMessage> = {}) =>
   ({
@@ -55,6 +70,169 @@ describe("Filters", () => {
     });
   });
 
+  describe("hasContent", () => {
+    it("should return true for messages with defined content", () => {
+      const message = createMockMessage({ content: "Hello world" });
+      const result = filter.hasContent(message);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for messages with null content", () => {
+      const message = createMockMessage({ content: null });
+      const result = filter.hasContent(message);
+      expect(result).toBe(false);
+    });
+
+    it("should return false for messages with undefined content", () => {
+      const message = createMockMessage({ content: undefined });
+      const result = filter.hasContent(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isDM", () => {
+    it("should return true for DM conversations", () => {
+      const result = filter.isDM(dmConversation);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for group conversations", () => {
+      const groupConversation = createMockGroup();
+      const result = filter.isDM(groupConversation);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isGroup", () => {
+    it("should return true for group conversations", () => {
+      const groupConversation = createMockGroup();
+      const result = filter.isGroup(groupConversation);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for DM conversations", () => {
+      const result = filter.isGroup(dmConversation);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isGroupAdmin", () => {
+    it("should return true when sender is a group admin", () => {
+      const adminInboxId = "admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: adminInboxId });
+      const mockGroup = createMockGroup([adminInboxId], []);
+
+      const result = filter.isGroupAdmin(mockGroup, message);
+      expect(result).toBe(true);
+    });
+
+    it("should return false when sender is not a group admin", () => {
+      const nonAdminInboxId = "non-admin-inbox-id";
+      const adminInboxId = "admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: nonAdminInboxId });
+      const mockGroup = createMockGroup([adminInboxId], []);
+
+      const result = filter.isGroupAdmin(mockGroup, message);
+      expect(result).toBe(false);
+    });
+
+    it("should return false when conversation is not a group", () => {
+      const message = createMockMessage({ senderInboxId: "any-inbox-id" });
+      const result = filter.isGroupAdmin(dmConversation, message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isGroupSuperAdmin", () => {
+    it("should return true when sender is a group super admin", () => {
+      const superAdminInboxId = "super-admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: superAdminInboxId });
+      const mockGroup = createMockGroup([], [superAdminInboxId]);
+
+      const result = filter.isGroupSuperAdmin(mockGroup, message);
+      expect(result).toBe(true);
+    });
+
+    it("should return false when sender is not a group super admin", () => {
+      const nonSuperAdminInboxId = "non-super-admin-inbox-id";
+      const superAdminInboxId = "super-admin-inbox-id";
+      const message = createMockMessage({
+        senderInboxId: nonSuperAdminInboxId,
+      });
+      const mockGroup = createMockGroup([], [superAdminInboxId]);
+
+      const result = filter.isGroupSuperAdmin(mockGroup, message);
+      expect(result).toBe(false);
+    });
+
+    it("should return false when conversation is not a group", () => {
+      const message = createMockMessage({ senderInboxId: "any-inbox-id" });
+      const result = filter.isGroupSuperAdmin(dmConversation, message);
+      expect(result).toBe(false);
+    });
+
+    it("should return false when sender is regular admin but not super admin", () => {
+      const adminInboxId = "admin-inbox-id";
+      const superAdminInboxId = "super-admin-inbox-id";
+      const message = createMockMessage({ senderInboxId: adminInboxId });
+      const mockGroup = createMockGroup([adminInboxId], [superAdminInboxId]);
+
+      const result = filter.isGroupSuperAdmin(mockGroup, message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isReaction", () => {
+    it("should return true for reaction messages", () => {
+      const reaction: Reaction = {
+        action: "added",
+        reference: "message-id",
+        referenceInboxId: "sender-inbox-id",
+        schema: "unicode",
+        content: "👍",
+      };
+
+      const message = createMockMessage({
+        content: reaction,
+        contentType: ContentTypeReaction,
+      });
+
+      const result = filter.isReaction(message);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-reaction messages", () => {
+      const message = createMockMessage({ contentType: ContentTypeText });
+      const result = filter.isReaction(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isReply", () => {
+    it("should return true for reply messages", () => {
+      const reply: Reply = {
+        reference: "message-id",
+        referenceInboxId: "sender-inbox-id",
+        contentType: ContentTypeText,
+        content: "This is a reply",
+      };
+
+      const message = createMockMessage({
+        content: reply,
+        contentType: ContentTypeReply,
+      });
+
+      const result = filter.isReply(message);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-reply messages", () => {
+      const message = createMockMessage({ contentType: ContentTypeText });
+      const result = filter.isReply(message);
+      expect(result).toBe(false);
+    });
+  });
+
   describe("isText", () => {
     it("should return true for text messages", () => {
       const message = createMockMessage({ contentType: ContentTypeText });
@@ -69,256 +247,51 @@ describe("Filters", () => {
     });
   });
 
-  describe("fromSender", () => {
-    it("should return true for matching single sender", () => {
-      const message = createMockMessage({ senderInboxId: "target-sender" });
-      const fromSender = filter.fromSender("target-sender");
-      const result = fromSender(message);
-      expect(result).toBe(true);
-    });
-
-    it("should return false for non-matching single sender", () => {
-      const message = createMockMessage({ senderInboxId: "other-sender" });
-      const fromSender = filter.fromSender("target-sender");
-      const result = fromSender(message);
-      expect(result).toBe(false);
-    });
-
-    it("should return true for matching sender in array", () => {
-      const message = createMockMessage({ senderInboxId: "sender-2" });
-      const fromSender = filter.fromSender([
-        "sender-1",
-        "sender-2",
-        "sender-3",
-      ]);
-      const result = fromSender(message);
-      expect(result).toBe(true);
-    });
-
-    it("should return false for non-matching sender in array", () => {
-      const message = createMockMessage({ senderInboxId: "sender-4" });
-      const fromSender = filter.fromSender([
-        "sender-1",
-        "sender-2",
-        "sender-3",
-      ]);
-      const result = fromSender(message);
-      expect(result).toBe(false);
-    });
-  });
-
-  describe("and", () => {
-    it("should return true when all filters pass", async () => {
-      const filter1 = vi.fn().mockReturnValue(true);
-      const filter2 = vi.fn().mockReturnValue(true);
-      const filter3 = vi.fn().mockReturnValue(true);
-
-      const andFilter = filter.and(filter1, filter2, filter3);
-      const message = createMockMessage();
-
-      const result = await andFilter(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-      expect(filter1).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter2).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter3).toHaveBeenCalledWith(message, mockClient, dmConversation);
-    });
-
-    it("should return false when any filter fails", async () => {
-      const filter1 = vi.fn().mockReturnValue(true);
-      const filter2 = vi.fn().mockReturnValue(false);
-      const filter3 = vi.fn().mockReturnValue(true);
-
-      const andFilter = filter.and(filter1, filter2, filter3);
-      const message = createMockMessage();
-
-      const result = await andFilter(message, mockClient, dmConversation);
-      expect(result).toBe(false);
-      expect(filter1).toHaveBeenCalled();
-      expect(filter2).toHaveBeenCalled();
-      // filter3 should not be called due to short-circuit evaluation
-      expect(filter3).not.toHaveBeenCalled();
-    });
-
-    it("should return true for empty filter array", async () => {
-      const andFilter = filter.and();
-      const message = createMockMessage();
-
-      const result = await andFilter(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-    });
-  });
-
-  describe("or", () => {
-    it("should return true when any filter passes", async () => {
-      const filter1 = vi.fn().mockReturnValue(false);
-      const filter2 = vi.fn().mockReturnValue(true);
-      const filter3 = vi.fn().mockReturnValue(false);
-
-      const orFilter = filter.or(filter1, filter2, filter3);
-      const message = createMockMessage();
-
-      const result = await orFilter(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-      expect(filter1).toHaveBeenCalled();
-      expect(filter2).toHaveBeenCalled();
-      // filter3 should not be called due to short-circuit evaluation
-      expect(filter3).not.toHaveBeenCalled();
-    });
-
-    it("should return false when all filters fail", async () => {
-      const filter1 = vi.fn().mockReturnValue(false);
-      const filter2 = vi.fn().mockReturnValue(false);
-      const filter3 = vi.fn().mockReturnValue(false);
-
-      const orFilter = filter.or(filter1, filter2, filter3);
-      const message = createMockMessage();
-
-      const result = await orFilter(message, mockClient, dmConversation);
-      expect(result).toBe(false);
-      expect(filter1).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter2).toHaveBeenCalledWith(message, mockClient, dmConversation);
-      expect(filter3).toHaveBeenCalledWith(message, mockClient, dmConversation);
-    });
-
-    it("should return false for empty filter array", async () => {
-      const orFilter = filter.or();
-      const message = createMockMessage();
-
-      const result = await orFilter(message, mockClient, dmConversation);
-      expect(result).toBe(false);
-    });
-  });
-
-  describe("not", () => {
-    it("should invert filter result from true to false", async () => {
-      const baseFilter = vi.fn().mockReturnValue(true);
-      const notFilter = filter.not(baseFilter);
-      const message = createMockMessage();
-
-      const result = await notFilter(message, mockClient, dmConversation);
-      expect(result).toBe(false);
-      expect(baseFilter).toHaveBeenCalledWith(
-        message,
-        mockClient,
-        dmConversation,
-      );
-    });
-
-    it("should invert filter result from false to true", async () => {
-      const baseFilter = vi.fn().mockReturnValue(false);
-      const notFilter = filter.not(baseFilter);
-      const message = createMockMessage();
-
-      const result = await notFilter(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-      expect(baseFilter).toHaveBeenCalledWith(
-        message,
-        mockClient,
-        dmConversation,
-      );
-    });
-  });
-
-  describe("complex combinations", () => {
-    it("should handle nested combinations correctly", async () => {
-      const message = createMockMessage({
-        senderInboxId: "target-sender",
-        contentType: ContentTypeText,
-      });
-
-      const complexFilter = filter.and(
-        filter.fromSender("target-sender"),
-        filter.or(filter.isText),
-        filter.not(filter.fromSelf),
-      );
-
-      const result = await complexFilter(message, mockClient, dmConversation);
-      expect(result).toBe(true);
-    });
-  });
-
-  describe("startsWith", () => {
-    it("matches text messages starting with a specific string", () => {
-      const message = createMockMessage({
-        content: "@agent this message is for you",
-      });
-
-      const positive = filter.startsWith("@agent")(message);
-      expect(positive).toBe(true);
-
-      const negative = filter.startsWith("@xmtp")(message);
-      expect(negative).toBe(false);
-    });
-
-    it("matches replies starting with a specific string", () => {
-      const message = createMockMessage({
-        content: "How can I help you?",
-      });
-
+  describe("isTextReply", () => {
+    it("should return true for text reply messages", () => {
       const reply: Reply = {
-        reference: message.id,
-        referenceInboxId: message.senderInboxId,
+        reference: "message-id",
+        referenceInboxId: "sender-inbox-id",
         contentType: ContentTypeText,
-        content: "@agent what's the weather today?",
+        content: "string",
       };
 
-      const replyMessage = createMockMessage({
+      const message = createMockMessage({
         content: reply,
         contentType: ContentTypeReply,
       });
 
-      const positive = filter.startsWith("@agent")(replyMessage);
-      expect(positive).toBe(true);
-
-      const negative = filter.startsWith("@xmtp")(replyMessage);
-      expect(negative).toBe(false);
+      const result = filter.isTextReply(message);
+      expect(result).toBe(true);
     });
 
-    it("works with emoji reactions", () => {
-      const message = createMockMessage({
-        content: "The new documentation is much more helpful",
-      });
+    it("should return false for non-reply messages", () => {
+      const message = createMockMessage({ contentType: ContentTypeText });
+      const result = filter.isTextReply(message);
+      expect(result).toBe(false);
+    });
 
-      const reaction: Reaction = {
-        action: "added",
-        reference: message.id,
-        referenceInboxId: message.senderInboxId,
-        schema: "unicode",
-        content: "👍",
+    it("should return false for non-text reply messages", () => {
+      const reply: Reply = {
+        reference: "message-id",
+        referenceInboxId: "sender-inbox-id",
+        contentType: ContentTypeReaction,
+        content: {
+          action: "added",
+          reference: "ref",
+          referenceInboxId: "id",
+          schema: "unicode",
+          content: "👍",
+        },
       };
 
-      const reactionMessage = createMockMessage({
-        content: reaction,
-        contentType: ContentTypeReaction,
+      const message = createMockMessage({
+        content: reply,
+        contentType: ContentTypeReply,
       });
 
-      const positive = filter.startsWith("👍")(reactionMessage);
-      expect(positive).toBe(true);
-
-      const negative = filter.startsWith("👎")(reactionMessage);
-      expect(negative).toBe(false);
-    });
-  });
-
-  describe("isDM", () => {
-    it("recognizes direct messages", async () => {
-      const message = createMockMessage();
-      await expect(
-        filter.isDM(message, mockClient, dmConversation),
-      ).resolves.toBe(true);
-      await expect(
-        filter.isDM(message, mockClient, groupConversation),
-      ).resolves.toBe(false);
-    });
-
-    it("recognizes groups", async () => {
-      const message = createMockMessage();
-      await expect(
-        filter.isGroup(message, mockClient, groupConversation),
-      ).resolves.toBe(true);
-      await expect(
-        filter.isGroup(message, mockClient, dmConversation),
-      ).resolves.toBe(false);
+      const result = filter.isTextReply(message);
+      expect(result).toBe(false);
     });
   });
 });

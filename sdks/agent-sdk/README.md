@@ -210,30 +210,30 @@ agent.on("unhandledError", (error) => {
 
 ### 3. Built‑in Filters
 
-Instead of manually checking every incoming message, you can compose simple, reusable filters that make intent clear.
+Instead of manually checking every incoming message, you can use the provided filters.
 
 **Example**
 
 ```ts
-import { withFilter, filter } from "@xmtp/agent-sdk";
+import { filter } from "@xmtp/agent-sdk";
 
 // Using filter in message handler
-agent.on(
-  "text",
-  withFilter(filter.startsWith("@agent"), async (ctx) => {
-    await ctx.conversation.send("How can I help you?");
-  }),
-);
+agent.on("text", async (ctx) => {
+  if (filter.isText(ctx.message)) {
+    await ctx.conversation.send("You sent a text message!");
+  }
+});
 
-// Combination of filters
-const combined = filter.and(filter.notFromSelf, filter.isText);
-
-agent.on(
-  "text",
-  withFilter(combined, async (ctx) => {
-    await ctx.conversation.send("You sent a text message ✅");
-  }),
-);
+// Combine multiple conditions
+agent.on("text", async (ctx) => {
+  if (
+    filter.hasDefinedContent(ctx.message) &&
+    !filter.fromSelf(ctx.message, ctx.client) &&
+    filter.isText(ctx.message)
+  ) {
+    await ctx.conversation.send("Valid text message received ✅");
+  }
+});
 ```
 
 For convenience, the `filter` object can also be imported as `f`:
@@ -243,9 +243,12 @@ For convenience, the `filter` object can also be imported as `f`:
 import { filter, f } from "@xmtp/agent-sdk";
 
 // Both work the same way:
-const longVersion = filter.and(filter.notFromSelf, filter.isText);
-const shortVersion = f.and(f.notFromSelf, f.isText);
+if (f.isText(ctx.message)) {
+  // Handle message...
+}
 ```
+
+**Available Filters:**
 
 You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/utils/filter.ts).
 

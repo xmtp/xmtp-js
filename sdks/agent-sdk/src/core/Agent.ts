@@ -20,6 +20,7 @@ import { isHex } from "viem/utils";
 import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
+import type { AgentErrorContext } from "./AgentContext.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
@@ -28,7 +29,7 @@ type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>
 >;
 
-interface EventHandlerMap<ContentTypes> {
+type EventHandlerMap<ContentTypes> = {
   attachment: [
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
   ];
@@ -42,19 +43,13 @@ interface EventHandlerMap<ContentTypes> {
   text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
   unknownMessage: [ctx: MessageContext<ContentTypes>];
-}
+};
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
 
-export type AgentErrorContext<ContentTypes = unknown> = {
-  message?: DecodedMessage<ContentTypes>;
+export type AgentOptions<ContentTypes> = {
   client: Client<ContentTypes>;
-  conversation?: Conversation;
 };
-
-export interface AgentOptions<ContentTypes> {
-  client: Client<ContentTypes>;
-}
 
 export type AgentMessageHandler<ContentTypes = unknown> = (
   ctx: MessageContext<ContentTypes>,
@@ -75,13 +70,13 @@ export type StreamAllMessagesOptions<ContentTypes> = Parameters<
   Client<ContentTypes>["conversations"]["streamAllMessages"]
 >[0];
 
-export interface AgentErrorRegistrar<ContentTypes> {
+export type AgentErrorRegistrar<ContentTypes> = {
   use(
     ...errorMiddleware: Array<
       AgentErrorMiddleware<ContentTypes> | AgentErrorMiddleware<ContentTypes>[]
     >
   ): AgentErrorRegistrar<ContentTypes>;
-}
+};
 
 type ErrorFlow =
   | { kind: "handled" } // next()
@@ -318,7 +313,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     // Skip messages with undefined content (failed to decode)
-    if (!filter.hasDefinedContent(message)) {
+    if (!filter.hasContent(message)) {
       return;
     }
 
@@ -327,7 +322,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       return;
     }
 
-    let context: MessageContext<ContentTypes> | null = null;
     const conversation = await this.#client.conversations.getConversationById(
       message.conversationId,
     );
@@ -339,7 +333,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       );
     }
 
-    context = new MessageContext({
+    const context = new MessageContext({
       message,
       conversation,
       client: this.#client,
