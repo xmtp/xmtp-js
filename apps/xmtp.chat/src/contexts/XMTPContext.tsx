@@ -18,6 +18,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { ActionsCodec } from "@/content-types/Actions";
+import { IntentCodec } from "@/content-types/Intent";
 
 export type ContentTypes = ExtractCodecContentTypes<
   [
@@ -27,6 +29,8 @@ export type ContentTypes = ExtractCodecContentTypes<
     TransactionReferenceCodec,
     WalletSendCallsCodec,
     ReadReceiptCodec,
+    ActionsCodec,
+    IntentCodec,
   ]
 >;
 
@@ -125,6 +129,8 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
               new TransactionReferenceCodec(),
               new WalletSendCallsCodec(),
               new ReadReceiptCodec(),
+              new ActionsCodec(),
+              new IntentCodec(),
             ],
           });
           setClient(xmtpClient);
