@@ -6,10 +6,14 @@
     // this is needed for the vercel runtime
     "moduleResolution": "node",
     "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@zod/*": ["./prisma/generated/zod/*"]
+    },
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "strict": true,
     "target": "ESNext"
   },
-  "include": ["rollup.config.js", "src/**/*"]
+  "include": ["rollup.config.js", "src/**/*", "prisma/**/*"]
 }
