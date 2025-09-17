@@ -87,10 +87,11 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 
 **Message Events**
 
-- `text` – a new incoming text message
+- `attachment` – a new incoming remote attachment message
+- `message` – all incoming messages (fires for every message regardless of type)
 - `reaction` – a new incoming reaction message
 - `reply` – a new incoming reply message
-- `attachment` – a new incoming remote attachment message
+- `text` – a new incoming text message
 - `unknownMessage` – a message that doesn't match any specific type
 
 **Conversation Events**
@@ -106,7 +107,7 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 **Example**
 
 ```ts
-// Handle different message types
+// Listen to specific message types
 agent.on("text", async (ctx) => {
   console.log(`Text message: ${ctx.message.content}`);
 });
@@ -119,7 +120,7 @@ agent.on("reply", async (ctx) => {
   console.log(`Reply to: ${ctx.message.content.reference}`);
 });
 
-// Handle new conversations
+// Listen to new conversations
 agent.on("dm", async (ctx) => {
   await ctx.conversation.send("Welcome to our DM!");
 });
@@ -128,9 +129,28 @@ agent.on("group", async (ctx) => {
   await ctx.conversation.send("Hello group!");
 });
 
-// Handle uncaught errors
+// Listen to unhandled events
 agent.on("unhandledError", (error) => {
   console.error("Agent error", error);
+});
+
+agent.on("unknownMessage", (ctx) => {
+  console.error("Message type is unknown", ctx);
+});
+```
+
+> **⚠️ Important:** The `message` event fires for **every** incoming message, regardless of type. When using the `message` event, always filter message types to prevent infinite loops. Without proper filtering, your agent might respond to its own messages or react to system messages like read receipts.
+
+**Best Practice Example**
+
+```ts
+import { filter } from "@xmtp/agent-sdk";
+
+agent.on("message", async (ctx) => {
+  // Filter for specific message types
+  if (filter.isText(ctx.message)) {
+    await ctx.conversation.send(`Echo: ${ctx.message.content}`);
+  }
 });
 ```
 
@@ -151,10 +171,10 @@ Middleware functions receive a `ctx` (context) object and a `next` function. Nor
 **Example**
 
 ```ts
-import { Agent, AgentMiddleware } from "@xmtp/agent-sdk";
+import { Agent, AgentMiddleware, filter } from "@xmtp/agent-sdk";
 
 const onlyText: AgentMiddleware = async (ctx, next) => {
-  if (typeof ctx.message.content === "string") {
+  if (filter.isText(ctx.message)) {
     // Continue to next middleware
     await next();
   }

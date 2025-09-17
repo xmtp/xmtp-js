@@ -36,6 +36,7 @@ type EventHandlerMap<ContentTypes> = {
   conversation: [ctx: ConversationContext<ContentTypes>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
+  message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
   reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
   start: [];
@@ -348,6 +349,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     const finalEmit = async () => {
       try {
         this.emit(topic, context);
+        this.emit("message", context);
       } catch (error) {
         await this.#runErrorChain(error, context);
       }
