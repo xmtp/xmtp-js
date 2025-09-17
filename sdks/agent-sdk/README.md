@@ -139,7 +139,7 @@ agent.on("unknownMessage", (ctx) => {
 });
 ```
 
-> **⚠️ Important:** The `message` event fires for **every** incoming message, regardless of type. When using the `message` event, always filter message types to prevent infinite loops. Without proper filtering, your agent might respond to its own messages or react to system messages like read receipts.
+> **⚠️ Important:** The `"message"` event fires for **every** incoming message, regardless of type. When using the `"message"` event, always filter message types to prevent infinite loops. Without proper filtering, your agent might respond to its own messages or react to system messages like read receipts.
 
 **Best Practice Example**
 
