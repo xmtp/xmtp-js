@@ -60,6 +60,7 @@ export const DateLabel: React.FC<DateLabelProps> = ({
       events={{ hover: true, focus: true, touch: true }}>
       <Text
         p={padding}
+        pt={0}
         size={size}
         ta={align}
         onKeyDown={handleKeyboardCopy}

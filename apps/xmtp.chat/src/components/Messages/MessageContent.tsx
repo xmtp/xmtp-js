@@ -14,6 +14,7 @@ import {
   ContentTypeWalletSendCalls,
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
+import { ActionsContent } from "@/components/Messages/ActionsContent";
 import { FallbackContent } from "@/components/Messages/FallbackContent";
 import { type MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
 import { ReadReceiptContent } from "@/components/Messages/ReadReceiptContent";
@@ -22,6 +23,7 @@ import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
 import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsContent";
+import { ContentTypeActions, type Actions } from "@/content-types/Actions";
 
 export type MessageContentProps = {
   align: MessageContentAlign;
@@ -78,6 +80,10 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         content={content as RemoteAttachment}
       />
     );
+  }
+
+  if (contentType.sameAs(ContentTypeActions)) {
+    return <ActionsContent content={content as Actions} />;
   }
 
   if (typeof content === "string") {

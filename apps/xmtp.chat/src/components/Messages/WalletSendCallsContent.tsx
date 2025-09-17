@@ -68,8 +68,8 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
     <Box flex="flex">
       <Text size="sm">Review the following transactions:</Text>
       <List size="sm">
-        {content.calls.map((call) => (
-          <List.Item>{call.metadata?.description}</List.Item>
+        {content.calls.map((call, idx) => (
+          <List.Item key={idx}>{call.metadata?.description}</List.Item>
         ))}
       </List>
       <Space h="md" />
