@@ -8,7 +8,7 @@
     "@xmtp/content-type-remote-attachment": "^2.0.2",
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/node-sdk": "^4.1.0",
+    "@xmtp/node-sdk": "^4.1.1",
     "uint8arrays": "^5.1.0",
     "viem": "^2.37.6"
   },
