@@ -61,17 +61,12 @@ export class ActionsCodec implements ContentCodec<Actions> {
 
     return {
       type: ContentTypeActions,
-      parameters: { encoding: "UTF-8" },
+      parameters: {},
       content: new TextEncoder().encode(JSON.stringify(content)),
     };
   }
 
   decode(content: EncodedContent): Actions {
-    const encoding = content.parameters.encoding;
-    if (encoding && encoding !== "UTF-8") {
-      throw new Error(`unrecognized encoding ${encoding}`);
-    }
-
     const decodedContent = new TextDecoder().decode(content.content);
     try {
       const parsed = JSON.parse(decodedContent) as Actions;
