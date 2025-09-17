@@ -3140,6 +3140,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^22.16.3":
+  version: 22.18.5
+  resolution: "@types/node@npm:22.18.5"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10/5a721e6e25e4997ecde0333a72463cf625f6a7f7e17b84fd107d4646efd0735a7f4cf37908e2c20a0072eda9e9ddfe1ccacf75cdef7c0ada8f5650d1331a1af4
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^22.18.4":
   version: 22.18.4
   resolution: "@types/node@npm:22.18.4"
@@ -3955,19 +3964,19 @@ __metadata:
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.2"
-    "@types/node": "npm:^22.18.4"
+    "@types/node": "npm:^22.16.3"
     "@vitest/coverage-v8": "npm:^3.2.4"
     "@xmtp/content-type-reaction": "npm:^2.0.2"
     "@xmtp/content-type-remote-attachment": "npm:^2.0.2"
     "@xmtp/content-type-reply": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/node-sdk": "npm:^4.1.0"
+    "@xmtp/node-sdk": "npm:^4.1.1"
     tsc-alias: "npm:^1.8.16"
-    tsx: "npm:^4.20.5"
-    typescript: "npm:^5.9.2"
+    tsx: "npm:^4.20.3"
+    typescript: "npm:^5.8.3"
     uint8arrays: "npm:^5.1.0"
-    viem: "npm:^2.37.6"
-    vite: "npm:^7.1.5"
+    viem: "npm:^2.31.7"
+    vite: "npm:^7.0.4"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4193,7 +4202,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^4.1.0, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^4.1.1, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
@@ -10558,7 +10567,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.20.5":
+"tsx@npm:^4.20.3, tsx@npm:^4.20.5":
   version: 4.20.5
   resolution: "tsx@npm:4.20.5"
   dependencies:
@@ -10727,7 +10736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.9.2":
+"typescript@npm:^5.8.3, typescript@npm:^5.9.2":
   version: 5.9.2
   resolution: "typescript@npm:5.9.2"
   bin:
@@ -10757,7 +10766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.9.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.9.2#optional!builtin<compat/typescript>":
   version: 5.9.2
   resolution: "typescript@patch:typescript@npm%3A5.9.2#optional!builtin<compat/typescript>::version=5.9.2&hash=5786d5"
   bin:
@@ -11351,7 +11360,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^7.1.5":
+"vite@npm:^7.0.4, vite@npm:^7.1.5":
   version: 7.1.5
   resolution: "vite@npm:7.1.5"
   dependencies:
