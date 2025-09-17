@@ -3,36 +3,27 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
+import { z } from "zod";
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> => {
-  if (
-    !value ||
-    typeof value !== "object" ||
-    Object.prototype.toString.call(value) !== "[object Object]"
-  ) {
-    return false;
-  }
+/**
+ * Intent content structure
+ * Users express their selection by sending Intent messages when they tap action buttons
+ */
+const intentSchema = z.object({
+  /** References Actions.id - provides strong coupling with Actions message */
+  id: z.string(),
+  /** References specific Action.id - indicates which action was selected */
+  actionId: z.string(),
+  /** Optional context data for the selection */
+  metadata: z
+    .record(
+      z.string(),
+      z.union([z.string(), z.number(), z.boolean(), z.null()]),
+    )
+    .optional(),
+});
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const proto = Object.getPrototypeOf(value);
-
-  if (!proto) {
-    return true;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const ctor =
-    Object.prototype.hasOwnProperty.call(proto, "constructor") &&
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    proto.constructor;
-
-  return (
-    typeof ctor == "function" &&
-    ctor instanceof ctor &&
-    Function.prototype.toString.call(ctor) ==
-      Function.prototype.toString.call(Object)
-  );
-};
+export type Intent = z.infer<typeof intentSchema>;
 
 /**
  * Content Type ID for Intent messages
@@ -44,19 +35,6 @@ export const ContentTypeIntent = new ContentTypeId({
   versionMajor: 1,
   versionMinor: 0,
 });
-
-/**
- * Intent content structure
- * Users express their selection by sending Intent messages when they tap action buttons
- */
-export type Intent = {
-  /** References Actions.id - provides strong coupling with Actions message */
-  id: string;
-  /** References specific Action.id - indicates which action was selected */
-  actionId: string;
-  /** Optional context data for the selection */
-  metadata?: Record<string, string | number | boolean | null>;
-};
 
 /**
  * Intent codec for encoding/decoding Intent messages
@@ -108,20 +86,13 @@ export class IntentCodec implements ContentCodec<Intent> {
    * Validates Intent content according to XIP-67 specification
    */
   #validateContent(content: Intent): void {
-    if (!content.id || typeof content.id !== "string") {
-      throw new Error("Intent.id is required and must be a string");
-    }
-
-    if (!content.actionId || typeof content.actionId !== "string") {
-      throw new Error("Intent.actionId is required and must be a string");
+    const result = intentSchema.safeParse(content);
+    if (!result.success) {
+      throw new Error(z.prettifyError(result.error));
     }
 
     // Validate metadata if provided
     if (content.metadata !== undefined) {
-      if (!isPlainObject(content.metadata)) {
-        throw new Error("Intent.metadata must be a plain object if provided");
-      }
-
       // Check for reasonable metadata size to avoid XMTP content limits
       const metadataString = JSON.stringify(content.metadata);
       if (metadataString.length > 10000) {
