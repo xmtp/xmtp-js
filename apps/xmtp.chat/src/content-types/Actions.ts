@@ -3,6 +3,7 @@ import {
   type ContentCodec,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
+import { z } from "zod";
 
 /**
  * Content Type ID for Actions messages
@@ -16,35 +17,47 @@ export const ContentTypeActions = new ContentTypeId({
 });
 
 /**
- * Individual action definition
+ * Zod schema for individual actions
  */
-export type Action = {
+export const actionSchema = z.object({
   /** Unique identifier for this action */
-  id: string;
+  id: z.string().min(1, "Action id is required"),
   /** Display text for the button */
-  label: string;
+  label: z.string().min(1, "Action label is required"),
   /** Optional image URL */
-  imageUrl?: string;
+  imageUrl: z.url().optional(),
   /** Optional visual style (primary|secondary|danger) */
-  style?: "primary" | "secondary" | "danger";
+  style: z
+    .union([z.literal("primary"), z.literal("secondary"), z.literal("danger")])
+    .optional(),
   /** Optional ISO-8601 expiration timestamp */
-  expiresAt?: string;
-};
+  expiresAt: z.iso.datetime({ precision: 3 }).optional(),
+});
 
 /**
- * Actions content structure
+ * Zod schema for actions content
  * Agents use this to present interactive button options to users
  */
-export type Actions = {
+export const actionsSchema = z.object({
   /** Unique identifier for these actions */
-  id: string;
+  id: z.string().min(1, "Actions id is required"),
   /** Descriptive text explaining the actions */
-  description: string;
+  description: z.string().min(1, "Actions description is required"),
   /** Array of action definitions */
-  actions: Action[];
+  actions: z
+    .array(actionSchema)
+    .min(1, "Actions must contain at least one action")
+    .max(10, "Actions cannot exceed 10 actions for UX reasons")
+    .refine((actions) => {
+      const ids = actions.map((action) => action.id);
+      return ids.length === new Set(ids).size;
+    }, "Action ids must be unique within actions array"),
   /** Optional ISO-8601 expiration timestamp */
-  expiresAt?: string;
-};
+  expiresAt: z.iso.datetime({ precision: 3 }).optional(),
+});
+
+export type Action = z.infer<typeof actionSchema>;
+export type Actions = z.infer<typeof actionsSchema>;
 
 /**
  * Actions codec for encoding/decoding Actions messages
@@ -70,7 +83,10 @@ export class ActionsCodec implements ContentCodec<Actions> {
     const decodedContent = new TextDecoder().decode(content.content);
     try {
       const parsed = JSON.parse(decodedContent) as Actions;
+
+      // Validate decoded content
       this.#validateContent(parsed);
+
       return parsed;
     } catch (error: unknown) {
       throw new Error(
@@ -90,85 +106,10 @@ export class ActionsCodec implements ContentCodec<Actions> {
     return true;
   }
 
-  /**
-   * Validates Actions content according to XIP-67 specification
-   */
   #validateContent(content: Actions): void {
-    if (!content.id || typeof content.id !== "string") {
-      throw new Error("Actions.id is required and must be a string");
-    }
-
-    if (!content.description || typeof content.description !== "string") {
-      throw new Error("Actions.description is required and must be a string");
-    }
-
-    if (!Array.isArray(content.actions) || content.actions.length === 0) {
-      throw new Error(
-        "Actions.actions is required and must be a non-empty array",
-      );
-    }
-
-    if (content.actions.length > 10) {
-      throw new Error(
-        "Actions.actions cannot exceed 10 actions for UX reasons",
-      );
-    }
-
-    // Validate each action
-    content.actions.forEach((action, index) => {
-      if (!action.id || typeof action.id !== "string") {
-        throw new Error(`Action[${index}].id is required and must be a string`);
-      }
-
-      if (!action.label || typeof action.label !== "string") {
-        throw new Error(
-          `Action[${index}].label is required and must be a string`,
-        );
-      }
-
-      if (action.label.length > 50) {
-        throw new Error(`Action[${index}].label cannot exceed 50 characters`);
-      }
-
-      if (
-        action.style &&
-        !["primary", "secondary", "danger"].includes(action.style)
-      ) {
-        throw new Error(
-          `Action[${index}].style must be one of: primary, secondary, danger`,
-        );
-      }
-
-      if (action.expiresAt && !this.#isValidISO8601(action.expiresAt)) {
-        throw new Error(
-          `Action[${index}].expiresAt must be a valid ISO-8601 timestamp`,
-        );
-      }
-    });
-
-    // Check for duplicate action IDs
-    const actionIds = content.actions.map((action) => action.id);
-    const uniqueActionIds = new Set(actionIds);
-    if (actionIds.length !== uniqueActionIds.size) {
-      throw new Error(
-        "Action.id values must be unique within Actions.actions array",
-      );
-    }
-
-    if (content.expiresAt && !this.#isValidISO8601(content.expiresAt)) {
-      throw new Error("Actions.expiresAt must be a valid ISO-8601 timestamp");
-    }
-  }
-
-  /**
-   * Basic ISO-8601 timestamp validation
-   */
-  #isValidISO8601(timestamp: string): boolean {
-    try {
-      const date = new Date(timestamp);
-      return date.toISOString() === timestamp;
-    } catch {
-      return false;
+    const result = actionsSchema.safeParse(content);
+    if (!result.success) {
+      throw new Error(z.prettifyError(result.error));
     }
   }
 }
