@@ -307,6 +307,67 @@ describe("Agent", () => {
         } as unknown as MessageContext),
       );
     });
+
+    it("should emit generic 'message' event for all message types", async () => {
+      const textMessage = createMockMessage({
+        id: "text-message-id",
+        senderInboxId: "other-inbox-id",
+        contentType: ContentTypeText,
+        content: "Hello world",
+      });
+
+      const reactionMessage = createMockMessage<Reaction>({
+        id: "reaction-message-id",
+        senderInboxId: "other-inbox-id",
+        contentType: ContentTypeReaction,
+        content: {
+          content: "👍",
+          reference: "message-ref-1",
+          action: "added",
+          schema: "unicode",
+        },
+      });
+
+      const replyMessage = createMockMessage<Reply>({
+        id: "reply-message-id",
+        senderInboxId: "other-inbox-id",
+        contentType: ContentTypeReply,
+        content: {
+          content: "This is a reply",
+          reference: textMessage.id,
+          contentType: ContentTypeText,
+        },
+      });
+
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        (async function* () {
+          yield Promise.resolve(textMessage);
+          yield Promise.resolve(reactionMessage);
+          yield Promise.resolve(replyMessage);
+        })(),
+      );
+
+      const messageEventSpy = vi.fn();
+      const textEventSpy = vi.fn();
+      const reactionEventSpy = vi.fn();
+      const replyEventSpy = vi.fn();
+
+      agent.on("message", messageEventSpy);
+      agent.on("text", textEventSpy);
+      agent.on("reaction", reactionEventSpy);
+      agent.on("reply", replyEventSpy);
+
+      await agent.start();
+
+      expect(
+        messageEventSpy,
+        "Generic 'message' event should fire for all message types",
+      ).toHaveBeenCalledTimes(3);
+
+      expect(textEventSpy).toHaveBeenCalledTimes(1);
+      expect(reactionEventSpy).toHaveBeenCalledTimes(1);
+      expect(replyEventSpy).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("use", () => {
