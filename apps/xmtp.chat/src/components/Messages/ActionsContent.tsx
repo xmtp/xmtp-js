@@ -1,4 +1,5 @@
 import { Button, Paper, Stack, type ButtonVariant } from "@mantine/core";
+import { isAfter, parseISO } from "date-fns";
 import { useCallback } from "react";
 import BreakableText from "@/components/Messages/BreakableText";
 import type { Action, Actions } from "@/content-types/Actions";
@@ -33,21 +34,37 @@ export const ActionsContent: React.FC<ActionsContentProps> = ({ content }) => {
     },
     [conversation, content],
   );
+  const actionsExpiration = content.expiresAt
+    ? parseISO(content.expiresAt)
+    : undefined;
   return (
     <Paper p="sm" radius="md" withBorder>
       <Stack gap="xxs">
         <BreakableText>{content.description}</BreakableText>
-        {content.actions.map((action) => (
-          <Button
-            key={action.id}
-            variant={action.style ? styleToVariantMap[action.style] : "filled"}
-            color={action.style ? styleToColorMap[action.style] : undefined}
-            onClick={() => {
-              handleActionClick(action.id);
-            }}>
-            {action.label}
-          </Button>
-        ))}
+        {content.actions.map((action) => {
+          const actionExpiration = action.expiresAt
+            ? parseISO(action.expiresAt)
+            : undefined;
+          const expiration = actionExpiration ?? actionsExpiration;
+          const isExpired = expiration && isAfter(Date.now(), expiration);
+          return (
+            <Button
+              key={action.id}
+              disabled={isExpired}
+              title={isExpired ? "This action has expired" : undefined}
+              variant={
+                action.style ? styleToVariantMap[action.style] : "filled"
+              }
+              color={action.style ? styleToColorMap[action.style] : undefined}
+              onClick={() => {
+                if (!isExpired) {
+                  handleActionClick(action.id);
+                }
+              }}>
+              {action.label}
+            </Button>
+          );
+        })}
       </Stack>
     </Paper>
   );
