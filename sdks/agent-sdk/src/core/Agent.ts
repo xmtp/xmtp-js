@@ -209,7 +209,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
 
     try {
-      // We'll set the messageStream reference immediately, before the callbacks run
       this.#messageStream = await this.#client.conversations.streamAllMessages({
         ...options,
         onValue: async (message) => {
