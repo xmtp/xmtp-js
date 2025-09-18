@@ -577,11 +577,11 @@ describe("Agent", () => {
   });
 
   describe("stop", () => {
-    it("should stop listening and emit stop event", () => {
+    it("should stop listening and emit stop event", async () => {
       const stopSpy = vi.fn();
       agent.on("stop", stopSpy);
 
-      agent.stop();
+      await agent.stop();
 
       expect(stopSpy).toHaveBeenCalled();
     });

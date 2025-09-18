@@ -21,6 +21,10 @@ import type { AgentErrorContext } from "./AgentContext.js";
 import type { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
 
+type MessageStream<ContentTypes> = Awaited<
+  ReturnType<Client<ContentTypes>["conversations"]["streamAllMessages"]>
+>;
+
 type EventHandlerMap<ContentTypes> = {
   attachment: [
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
@@ -78,6 +82,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
+  #messageStream?: MessageStream<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
@@ -195,9 +200,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      const messages =
+      this.#messageStream =
         await this.#client.conversations.streamAllMessages(options);
-      for await (const message of messages) {
+      for await (const message of this.#messageStream) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
@@ -224,7 +229,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             client: this.#client,
           });
           if (!recovered) {
-            this.stop();
+            await this.stop();
             break;
           }
         }
@@ -235,7 +240,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         client: this.#client,
       });
       if (recovered) {
-        this.stop();
+        await this.stop();
         queueMicrotask(() => this.start(options));
       }
     }
@@ -375,8 +380,12 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     return this.#errors;
   }
 
-  stop() {
+  async stop() {
     this.#isListening = false;
+    if (this.#messageStream) {
+      await this.#messageStream.end();
+      this.#messageStream = undefined;
+    }
     this.emit("stop");
   }
 }
