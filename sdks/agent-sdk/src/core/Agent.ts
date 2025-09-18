@@ -250,7 +250,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
         },
       });
-      void this.emit("start");
+      this.emit("start");
     } catch (error) {
       await this.#handleStreamError(error, options);
     }
