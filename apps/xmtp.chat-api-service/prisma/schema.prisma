@@ -17,24 +17,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Inbox {
-  id        String    @id @default(uuid())
-  inboxId   String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  addresses Address[]
-}
-
-model Address {
-  id        String    @id @default(uuid())
-  inboxId   String
-  address   String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  inbox     Inbox     @relation(fields: [inboxId], references: [inboxId], onDelete: Cascade)
-  profiles  Profile[]
-}
-
 enum Platform {
   ens
   basenames
@@ -44,7 +26,8 @@ enum Platform {
 
 model Profile {
   id          String   @id @default(uuid())
-  addressId   String
+  inboxId     String
+  address     String   @unique
   identity    String   @unique
   platform    Platform
   displayName String?
@@ -55,5 +38,4 @@ model Profile {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  address     Address  @relation(fields: [addressId], references: [id], onDelete: Cascade)
 }
