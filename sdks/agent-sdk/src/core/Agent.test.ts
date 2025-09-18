@@ -50,6 +50,33 @@ const createMockMessage = <ContentType = string>(
   } as unknown as DecodedMessage & { content: ContentType };
 };
 
+const createMockStreamWithCallbacks = (messages: DecodedMessage[]) => {
+  const mockStream = {
+    end: vi.fn().mockResolvedValue(undefined),
+    [Symbol.asyncIterator]: vi.fn(),
+  };
+
+  const mockImplementation = vi
+    .fn()
+    .mockImplementation(
+      (options: { onValue: (value: DecodedMessage) => void }) => {
+        // Simulate async message delivery
+        queueMicrotask(() => {
+          messages.forEach((message) => {
+            options.onValue(message);
+          });
+        });
+        return Promise.resolve(mockStream);
+      },
+    );
+
+  return mockImplementation;
+};
+
+const flushMicrotasks = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+};
+
 describe("Agent", () => {
   const mockConversation = {
     send: vi.fn().mockResolvedValue(undefined),
@@ -183,6 +210,7 @@ describe("Agent", () => {
       agent.on("start", startSpy);
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(mockClient.conversations.streamAllMessages).toHaveBeenCalled();
       expect(startSpy).toHaveBeenCalled();
@@ -219,11 +247,12 @@ describe("Agent", () => {
         content: "Message from other",
       });
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(messageFromSelf);
-          yield Promise.resolve(messageFromOther);
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([
+        messageFromSelf,
+        messageFromOther,
+      ]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       const textEventSpy = vi.fn();
@@ -232,6 +261,7 @@ describe("Agent", () => {
       agent.on("unknownMessage", unknownMessageSpy);
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(
         textEventSpy,
@@ -276,11 +306,12 @@ describe("Agent", () => {
         },
       });
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(reactionFromSelf);
-          yield Promise.resolve(reactionFromOther);
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([
+        reactionFromSelf,
+        reactionFromOther,
+      ]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       const reactionEventSpy = vi.fn();
@@ -289,6 +320,7 @@ describe("Agent", () => {
       agent.on("unknownMessage", unknownMessageSpy);
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(
         reactionEventSpy,
@@ -339,12 +371,13 @@ describe("Agent", () => {
         },
       });
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(textMessage);
-          yield Promise.resolve(reactionMessage);
-          yield Promise.resolve(replyMessage);
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([
+        textMessage,
+        reactionMessage,
+        replyMessage,
+      ]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       const messageEventSpy = vi.fn();
@@ -358,6 +391,10 @@ describe("Agent", () => {
       agent.on("reply", replyEventSpy);
 
       await agent.start();
+      await flushMicrotasks();
+
+      // Wait for async callbacks to be processed
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(
         messageEventSpy,
@@ -385,13 +422,16 @@ describe("Agent", () => {
       });
       agent.use(middleware);
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(mockMessage);
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
+
+      // Wait for async callbacks to be processed
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(middleware).toHaveBeenCalledTimes(1);
       expect(middleware).toHaveBeenCalledWith(
@@ -418,14 +458,16 @@ describe("Agent", () => {
       });
       agent.use(middlewareCallsSpy);
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(messageFromSelf);
-          yield Promise.resolve(messageFromOther);
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([
+        messageFromSelf,
+        messageFromOther,
+      ]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
 
       // Middleware should only be called once (for the message from other user)
       expect(
@@ -476,14 +518,16 @@ describe("Agent", () => {
 
       agent.use([mw1, mw2, mw3]);
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(firstMessage);
-          yield Promise.resolve(secondMessage);
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([
+        firstMessage,
+        secondMessage,
+      ]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(middlewareCalls).toEqual([
         "mw1-first-message",
@@ -531,14 +575,16 @@ describe("Agent", () => {
 
       agent.use([mw1, filterReply, mw3]);
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (async function* () {
-          yield Promise.resolve(firstMessage);
-          yield Promise.resolve(secondMessage);
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([
+        firstMessage,
+        secondMessage,
+      ]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(middlewareCalls).toEqual([
         "mw1-first-message",
@@ -669,13 +715,13 @@ describe("Agent", () => {
         callOrder.push("EMIT");
       });
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (function* () {
-          yield mockMessage;
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(callOrder).toEqual(["1", "2", "E1", "E2", "3", "4", "EMIT"]);
       expect(
@@ -714,13 +760,13 @@ describe("Agent", () => {
         callOrder.push("never happening");
       });
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (function* () {
-          yield mockMessage;
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(callOrder).toEqual(["1", "2"]);
     });
@@ -754,13 +800,13 @@ describe("Agent", () => {
 
       agent.errors.use(e1, e2);
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (function* () {
-          yield mockMessage;
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(callOrder).toEqual(["mw1", "e1"]);
     });
@@ -782,13 +828,13 @@ describe("Agent", () => {
         callOrder.push(error.message);
       });
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(
-        (function* () {
-          yield mockMessage;
-        })(),
+      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockImplementation,
       );
 
       await agent.start();
+      await flushMicrotasks();
 
       expect(callOrder).toEqual([errorMessage]);
     });

@@ -60,4 +60,5 @@ agent.on("start", () => {
   console.log(`We are online: ${getTestUrl(agent)}`);
 });
 
-void agent.start();
+await agent.start();
+console.log("Agent has started.");
