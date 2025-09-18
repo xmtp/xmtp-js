@@ -7,11 +7,8 @@ import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
-  Dm,
-  Group,
   LogLevel,
   type ClientOptions,
-  type Conversation,
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
@@ -21,12 +18,11 @@ import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import type { AgentErrorContext } from "./AgentContext.js";
-import { ClientContext } from "./ClientContext.js";
-import { ConversationContext } from "./ConversationContext.js";
+import type { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
 
-type ConversationStream<ContentTypes> = Awaited<
-  ReturnType<Client<ContentTypes>["conversations"]["stream"]>
+type MessageStream<ContentTypes> = Awaited<
+  ReturnType<Client<ContentTypes>["conversations"]["streamAllMessages"]>
 >;
 
 type EventHandlerMap<ContentTypes> = {
@@ -34,8 +30,6 @@ type EventHandlerMap<ContentTypes> = {
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
   ];
   conversation: [ctx: ConversationContext<ContentTypes>];
-  dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
-  group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
   message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
   reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
@@ -88,7 +82,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
-  #conversationsStream?: ConversationStream<ContentTypes>;
+  #messageStream?: MessageStream<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
   #isListening = false;
@@ -206,66 +200,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       this.#isListening = true;
       void this.emit("start");
 
-      this.#conversationsStream = await this.#client.conversations.stream({
-        onValue: async (conversation) => {
-          try {
-            if (!conversation) {
-              return;
-            }
-            this.emit(
-              "conversation",
-              new ConversationContext<ContentTypes, Conversation<ContentTypes>>(
-                {
-                  conversation,
-                  client: this.#client,
-                },
-              ),
-            );
-            if (conversation instanceof Group) {
-              this.emit(
-                "group",
-                new ConversationContext<ContentTypes, Group<ContentTypes>>({
-                  conversation,
-                  client: this.#client,
-                }),
-              );
-            } else if (conversation instanceof Dm) {
-              this.emit(
-                "dm",
-                new ConversationContext<ContentTypes, Dm<ContentTypes>>({
-                  conversation,
-                  client: this.#client,
-                }),
-              );
-            }
-          } catch (error) {
-            const recovered = await this.#runErrorChain(
-              new AgentError(
-                1001,
-                "Emitted value from conversation stream caused an error.",
-                error,
-              ),
-              new ClientContext({ client: this.#client }),
-            );
-            if (!recovered) await this.stop();
-          }
-        },
-        onError: async (error) => {
-          const recovered = await this.#runErrorChain(
-            new AgentError(
-              1002,
-              "Error occured during conversation streaming.",
-              error,
-            ),
-            new ClientContext({ client: this.#client }),
-          );
-          if (!recovered) await this.stop();
-        },
-      });
-
-      const messages =
+      this.#messageStream =
         await this.#client.conversations.streamAllMessages(options);
-      for await (const message of messages) {
+      for await (const message of this.#messageStream) {
         // The "stop()" method sets "isListening"
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!this.#isListening) break;
@@ -444,8 +381,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async stop() {
-    await this.#conversationsStream?.end();
     this.#isListening = false;
+    if (this.#messageStream) {
+      await this.#messageStream.end();
+      this.#messageStream = undefined;
+    }
     this.emit("stop");
   }
 }
