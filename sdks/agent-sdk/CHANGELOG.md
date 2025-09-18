@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 0.0.14
+
+### Patch Changes
+
+- 4da121f: Remove listening to `'dm'` and `'group'` events
+
 ## 0.0.13
 
 ### Patch Changes
