@@ -393,9 +393,6 @@ describe("Agent", () => {
       await agent.start();
       await flushMicrotasks();
 
-      // Wait for async callbacks to be processed
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
       expect(
         messageEventSpy,
         "Generic 'message' event should fire for all message types",
@@ -429,9 +426,6 @@ describe("Agent", () => {
 
       await agent.start();
       await flushMicrotasks();
-
-      // Wait for async callbacks to be processed
-      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(middleware).toHaveBeenCalledTimes(1);
       expect(middleware).toHaveBeenCalledWith(
