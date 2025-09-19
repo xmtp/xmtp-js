@@ -1,10 +1,4 @@
-import { ContentTypeText } from "@xmtp/content-type-text";
-import {
-  type Client,
-  type Conversation,
-  type Dm,
-  type Group,
-} from "@xmtp/node-sdk";
+import type { Client, Conversation, Dm, Group } from "@xmtp/node-sdk";
 import { filter } from "@/utils/filter.js";
 import { ClientContext } from "./ClientContext.js";
 
@@ -31,10 +25,6 @@ export class ConversationContext<
 
   isGroup(): this is ConversationContext<ContentTypes, Group<ContentTypes>> {
     return filter.isGroup(this.#conversation);
-  }
-
-  async sendText(text: string): Promise<void> {
-    await this.#conversation.send(text, ContentTypeText);
   }
 
   get conversation() {
