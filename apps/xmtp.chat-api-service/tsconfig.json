@@ -13,7 +13,14 @@
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ESNext"
+    "target": "ESNext",
+    "types": ["vitest/globals"]
   },
-  "include": ["rollup.config.js", "src/**/*", "prisma/**/*"]
+  "include": [
+    "rollup.config.js",
+    "src/**/*",
+    "prisma/**/*",
+    "vitest.config.ts",
+    "test/**/*"
+  ]
 }

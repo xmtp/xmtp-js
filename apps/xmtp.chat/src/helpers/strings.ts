@@ -7,3 +7,6 @@ export const isValidInboxId = (inboxId: string): inboxId is string =>
 
 export const shortAddress = (address: string): string =>
   `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+
+export const isValidName = (name: string): name is string =>
+  /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/.test(name);

@@ -1,19 +1,21 @@
 import { Box, Button, Group, TextInput } from "@mantine/core";
-import { type Conversation } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Modal } from "@/components/Modal";
-import type { ContentTypes } from "@/contexts/XMTPContext";
-import { isValidEthereumAddress } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
 import { useMemberId } from "@/hooks/useMemberId";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const CreateDmModal: React.FC = () => {
-  const { newDm, newDmWithIdentifier } = useConversations();
+  const { newDm } = useConversations();
   const [loading, setLoading] = useState(false);
-  const { memberId, setMemberId, error: memberIdError } = useMemberId();
+  const {
+    memberId,
+    setMemberId,
+    error: memberIdError,
+    inboxId,
+  } = useMemberId();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
@@ -26,17 +28,7 @@ export const CreateDmModal: React.FC = () => {
     setLoading(true);
 
     try {
-      let conversation: Conversation<ContentTypes>;
-
-      if (isValidEthereumAddress(memberId)) {
-        conversation = await newDmWithIdentifier({
-          identifier: memberId,
-          identifierKind: "Ethereum",
-        });
-      } else {
-        conversation = await newDm(memberId);
-      }
-
+      const conversation = await newDm(inboxId);
       void navigate(`/conversations/${conversation.id}`);
     } finally {
       setLoading(false);
@@ -51,7 +43,7 @@ export const CreateDmModal: React.FC = () => {
         </Button>
         <Button
           variant="filled"
-          disabled={loading || memberIdError !== null}
+          disabled={loading || memberIdError !== null || !inboxId}
           loading={loading}
           onClick={() => void handleCreate()}>
           Create
@@ -79,7 +71,7 @@ export const CreateDmModal: React.FC = () => {
         <Box p="md">
           <TextInput
             size="sm"
-            label="Address or inbox ID"
+            label="Address, inbox ID, ENS name, or Base name"
             styles={{
               label: {
                 marginBottom: "var(--mantine-spacing-xxs)",

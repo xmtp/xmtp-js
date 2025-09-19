@@ -13,7 +13,11 @@ app.set("trust proxy", 1);
 app.use(helmet()); // Set security headers
 app.use(
   cors({
-    origin: ["https://xmtp.chat", "https://experimental.xmtp.chat"],
+    origin: [
+      "https://xmtp.chat",
+      "https://experimental.xmtp.chat",
+      "http://localhost:5173",
+    ],
     methods: ["GET", "OPTIONS"],
     allowedHeaders: ["*"],
     credentials: true,

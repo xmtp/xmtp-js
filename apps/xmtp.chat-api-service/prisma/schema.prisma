@@ -21,13 +21,12 @@ enum Platform {
   ens
   basenames
   farcaster
-  unstoppabledomains
+  unknown
 }
 
 model Profile {
   id          String   @id @default(uuid())
-  inboxId     String
-  address     String   @unique
+  address     String
   identity    String   @unique
   platform    Platform
   displayName String?
