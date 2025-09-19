@@ -7,6 +7,8 @@ import {
   type MessageDisappearingSettings,
 } from "@xmtp/node-bindings";
 import { describe, expect, it, vi } from "vitest";
+import { StreamFailedError } from "@/utils/errors";
+import { createStream } from "@/utils/streams";
 import {
   ContentTypeTest,
   createRegisteredClient,
@@ -15,9 +17,6 @@ import {
   sleep,
   TestCodec,
 } from "@test/helpers";
-
-const { createStream } = await import("@/utils/streams");
-const { StreamFailedError } = await import("@/utils/errors");
 
 describe("Conversation", () => {
   it("should update conversation name", async () => {
@@ -435,17 +434,17 @@ describe("Conversation", () => {
     const onErrorSpy = vi.fn();
     const onFailSpy = vi.fn();
 
-    const mockStreamFunction = vi.fn((_, onFail: () => void) => {
+    const mockStreamFunction = vi.fn(async (_, onFail: () => void) => {
       // Simulate immediate stream failure
       setTimeout(() => {
         onFail();
       }, 0);
-      return {
+      return Promise.resolve({
         end: vi.fn(),
         waitForReady: vi.fn().mockResolvedValue(undefined),
         endAndWait: vi.fn().mockResolvedValue(undefined),
         isClosed: vi.fn().mockReturnValue(false),
-      };
+      });
     });
 
     setTimeout(() => {
