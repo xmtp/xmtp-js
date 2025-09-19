@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/node-sdk",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "XMTP Node client SDK for interacting with XMTP networks",
   "keywords": [
     "xmtp",

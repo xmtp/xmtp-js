@@ -1,5 +1,12 @@
 # @xmtp/node-sdk
 
+## 4.1.2
+
+### Patch Changes
+
+- bb4163f: - Added `onError` callback when stream reconnection fails
+  - Updated `uuid` dependency to v13
+
 ## 4.1.1
 
 ### Patch Changes
