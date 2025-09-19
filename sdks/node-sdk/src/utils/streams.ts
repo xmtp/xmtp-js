@@ -140,6 +140,7 @@ export const createStream = async <T = unknown, V = T>(
     if (retries === 0) {
       void asyncStream.end();
       onError?.(new StreamFailedError(retryAttempts));
+      return;
     }
 
     // wait for the retry delay before attempting to restart the stream
