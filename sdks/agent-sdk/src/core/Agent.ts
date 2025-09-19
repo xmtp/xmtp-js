@@ -108,6 +108,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           );
     this.emit("unhandledError", emittedError);
   };
+  #starting: boolean = false;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
@@ -204,9 +205,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async start(options?: StreamAllMessagesOptions<ContentTypes>) {
-    if (this.#messageStream) {
-      return;
-    }
+    if (this.#starting) return;
 
     try {
       this.#messageStream = await this.#client.conversations.streamAllMessages({
@@ -237,19 +236,15 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             if (!recovered) {
               await this.stop();
             }
+            this.#starting = false;
           }
         },
         onError: async (error) => {
           await this.#handleStreamError(error, options);
         },
-        onFail: () => {
-          if (this.#messageStream) {
-            this.#messageStream = undefined;
-            queueMicrotask(() => this.start(options));
-          }
-        },
       });
       this.emit("start");
+      this.#starting = false;
     } catch (error) {
       await this.#handleStreamError(error, options);
     }
