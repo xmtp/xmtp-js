@@ -152,7 +152,7 @@ export const createStream = async <T = unknown, V = T>(
       const streamCloser = await streamFunction(streamCallback, () => {
         // call the onFail callback
         onFail?.();
-        void retry(retries - 1);
+        void retry();
       });
       await streamCloser.waitForReady();
       // when the async stream is done, end the stream
