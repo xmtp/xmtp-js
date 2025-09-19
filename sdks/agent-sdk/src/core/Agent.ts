@@ -236,7 +236,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
         },
         onError: async (error) => {
-          console.log("GOT ITTTTTT", error);
           await this.#handleStreamError(error);
         },
         retryDelay: 1_000,
