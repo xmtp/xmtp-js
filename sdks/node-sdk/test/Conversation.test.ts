@@ -6,7 +6,7 @@ import {
   PermissionUpdateType,
   type MessageDisappearingSettings,
 } from "@xmtp/node-bindings";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   ContentTypeTest,
   createRegisteredClient,
@@ -15,6 +15,9 @@ import {
   sleep,
   TestCodec,
 } from "@test/helpers";
+
+const { createStream } = await import("@/utils/streams");
+const { StreamFailedError } = await import("@/utils/errors");
 
 describe("Conversation", () => {
   it("should update conversation name", async () => {
@@ -426,6 +429,39 @@ describe("Conversation", () => {
     }
 
     expect(streamedMessages).toEqual(["gm", "gm2"]);
+  });
+
+  it("should forward StreamFailedError to onError", async () => {
+    const onErrorSpy = vi.fn();
+    const onFailSpy = vi.fn();
+
+    const mockStreamFunction = vi.fn((_, onFail: () => void) => {
+      // Simulate immediate stream failure
+      setTimeout(() => {
+        onFail();
+      }, 0);
+      return {
+        end: vi.fn(),
+        waitForReady: vi.fn().mockResolvedValue(undefined),
+        endAndWait: vi.fn().mockResolvedValue(undefined),
+        isClosed: vi.fn().mockReturnValue(false),
+      };
+    });
+
+    setTimeout(() => {
+      void stream.end();
+    }, 100);
+
+    const stream = await createStream(mockStreamFunction, undefined, {
+      retryOnFail: false,
+      onError: onErrorSpy,
+      onFail: onFailSpy,
+    });
+
+    // Wait for the failure to be processed
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(onErrorSpy).toHaveBeenCalledWith(expect.any(StreamFailedError));
   });
 
   it("should add and remove admins", async () => {
