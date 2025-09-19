@@ -441,9 +441,9 @@ describe("Conversation", () => {
       }, 0);
       return Promise.resolve({
         end: vi.fn(),
-        waitForReady: vi.fn().mockResolvedValue(undefined),
         endAndWait: vi.fn().mockResolvedValue(undefined),
         isClosed: vi.fn().mockReturnValue(false),
+        waitForReady: vi.fn().mockResolvedValue(undefined),
       });
     });
 
@@ -452,9 +452,9 @@ describe("Conversation", () => {
     }, 100);
 
     const stream = await createStream(mockStreamFunction, undefined, {
-      retryOnFail: false,
       onError: onErrorSpy,
       onFail: onFailSpy,
+      retryOnFail: false,
     });
 
     // Wait for the failure to be processed

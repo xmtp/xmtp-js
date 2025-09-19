@@ -136,7 +136,7 @@ export const createStream = async <T = unknown, V = T>(
   };
   const retry = async (retries: number = retryAttempts) => {
     // if the stream has been retried the maximum number of times without
-    // success, call onError and return
+    // success, call onError
     if (retries === 0) {
       void asyncStream.end();
       onError?.(new StreamFailedError(retryAttempts));
