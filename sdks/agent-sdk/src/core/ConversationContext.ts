@@ -1,4 +1,10 @@
-import type { Client, Conversation, Dm, Group } from "@xmtp/node-sdk";
+import {
+  ConsentState,
+  type Client,
+  type Conversation,
+  type Dm,
+  type Group,
+} from "@xmtp/node-sdk";
 import { filter } from "@/utils/filter.js";
 import { ClientContext } from "./ClientContext.js";
 
@@ -29,5 +35,17 @@ export class ConversationContext<
 
   get conversation() {
     return this.#conversation;
+  }
+
+  get isAllowed() {
+    return this.#conversation.consentState === ConsentState.Allowed;
+  }
+
+  get isDenied() {
+    return this.#conversation.consentState === ConsentState.Denied;
+  }
+
+  get isUnknown() {
+    return this.#conversation.consentState === ConsentState.Unknown;
   }
 }

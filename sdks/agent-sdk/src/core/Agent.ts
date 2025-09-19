@@ -191,25 +191,21 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     return this;
   }
 
-  async #handleStreamError(
-    error: unknown,
-    options?: StreamAllMessagesOptions<ContentTypes>,
-  ) {
+  async #handleStreamError(error: unknown) {
     this.#messageStream = undefined;
     const recovered = await this.#runErrorChain(error, {
       client: this.#client,
     });
     if (recovered) {
-      queueMicrotask(() => this.start(options));
+      queueMicrotask(() => this.start());
     }
   }
 
-  async start(options?: StreamAllMessagesOptions<ContentTypes>) {
+  async start() {
     if (this.#starting || this.#messageStream) return;
 
     try {
       this.#messageStream = await this.#client.conversations.streamAllMessages({
-        ...options,
         onValue: async (message) => {
           try {
             switch (true) {
@@ -240,13 +236,16 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
         },
         onError: async (error) => {
-          await this.#handleStreamError(error, options);
+          console.log("GOT ITTTTTT", error);
+          await this.#handleStreamError(error);
         },
+        retryDelay: 1_000,
+        retryAttempts: 2,
       });
       this.emit("start");
       this.#starting = false;
     } catch (error) {
-      await this.#handleStreamError(error, options);
+      await this.#handleStreamError(error);
     }
   }
 
