@@ -238,8 +238,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         onError: async (error) => {
           await this.#handleStreamError(error);
         },
-        retryDelay: 1_000,
-        retryAttempts: 2,
       });
       this.emit("start");
       this.#starting = false;

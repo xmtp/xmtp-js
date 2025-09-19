@@ -3961,7 +3961,7 @@ __metadata:
     "@xmtp/content-type-remote-attachment": "npm:^2.0.2"
     "@xmtp/content-type-reply": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/node-sdk": "npm:^4.1.1"
+    "@xmtp/node-sdk": "npm:^4.1.2"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.5"
     typescript: "npm:^5.9.2"
@@ -4193,7 +4193,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^4.1.1, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "@xmtp/node-sdk@npm:4.1.2"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^2.0.2"
+    "@xmtp/content-type-primitives": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/node-bindings": "npm:1.4.0"
+  checksum: 10/31c17878f1dfaf3999cb46ab419a2d005460cff0e85e70c878a03cfd8a1165cf420e08f5e356cdd6620f02a9d4795bb88da773efcb9bf6926fbd0ffc648ae09c
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
