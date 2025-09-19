@@ -205,7 +205,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async start(options?: StreamAllMessagesOptions<ContentTypes>) {
-    if (this.#starting) return;
+    if (this.#starting || this.#messageStream) return;
 
     try {
       this.#messageStream = await this.#client.conversations.streamAllMessages({
