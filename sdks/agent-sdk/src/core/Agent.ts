@@ -85,7 +85,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   #messageStream?: MessageStream<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
-  #isListening = false;
   #errors: AgentErrorRegistrar<ContentTypes> = Object.freeze({
     use: (...errorMiddleware: AgentErrorMiddleware<ContentTypes>[]) => {
       for (const emw of errorMiddleware) {
@@ -109,6 +108,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           );
     this.emit("unhandledError", emittedError);
   };
+  #starting: boolean = false;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
@@ -191,58 +191,58 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     return this;
   }
 
-  async start(options?: StreamAllMessagesOptions<ContentTypes>) {
-    if (this.#isListening) {
-      return;
+  async #handleStreamError(error: unknown) {
+    this.#messageStream = undefined;
+    const recovered = await this.#runErrorChain(error, {
+      client: this.#client,
+    });
+    if (recovered) {
+      queueMicrotask(() => this.start());
     }
+  }
+
+  async start() {
+    if (this.#starting || this.#messageStream) return;
 
     try {
-      this.#isListening = true;
-      void this.emit("start");
-
-      this.#messageStream =
-        await this.#client.conversations.streamAllMessages(options);
-      for await (const message of this.#messageStream) {
-        // The "stop()" method sets "isListening"
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (!this.#isListening) break;
-        try {
-          switch (true) {
-            case filter.isRemoteAttachment(message):
-              await this.#processMessage(message, "attachment");
-              break;
-            case filter.isReaction(message):
-              await this.#processMessage(message, "reaction");
-              break;
-            case filter.isReply(message):
-              await this.#processMessage(message, "reply");
-              break;
-            case filter.isText(message):
-              await this.#processMessage(message, "text");
-              break;
-            default:
-              await this.#processMessage(message);
-              break;
+      this.#messageStream = await this.#client.conversations.streamAllMessages({
+        onValue: async (message) => {
+          try {
+            switch (true) {
+              case filter.isRemoteAttachment(message):
+                await this.#processMessage(message, "attachment");
+                break;
+              case filter.isReaction(message):
+                await this.#processMessage(message, "reaction");
+                break;
+              case filter.isReply(message):
+                await this.#processMessage(message, "reply");
+                break;
+              case filter.isText(message):
+                await this.#processMessage(message, "text");
+                break;
+              default:
+                await this.#processMessage(message);
+                break;
+            }
+          } catch (error) {
+            const recovered = await this.#runErrorChain(error, {
+              client: this.#client,
+            });
+            if (!recovered) {
+              await this.stop();
+            }
+            this.#starting = false;
           }
-        } catch (error) {
-          const recovered = await this.#runErrorChain(error, {
-            client: this.#client,
-          });
-          if (!recovered) {
-            await this.stop();
-            break;
-          }
-        }
-      }
-    } catch (error) {
-      this.#isListening = false;
-      const recovered = await this.#runErrorChain(error, {
-        client: this.#client,
+        },
+        onError: async (error) => {
+          await this.#handleStreamError(error);
+        },
       });
-      if (recovered) {
-        await this.stop();
-        queueMicrotask(() => this.start(options));
-      }
+      this.emit("start");
+      this.#starting = false;
+    } catch (error) {
+      await this.#handleStreamError(error);
     }
   }
 
@@ -381,7 +381,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async stop() {
-    this.#isListening = false;
     if (this.#messageStream) {
       await this.#messageStream.end();
       this.#messageStream = undefined;

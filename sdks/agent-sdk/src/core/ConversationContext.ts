@@ -1,5 +1,5 @@
-import { ContentTypeText } from "@xmtp/content-type-text";
 import {
+  ConsentState,
   type Client,
   type Conversation,
   type Dm,
@@ -33,11 +33,19 @@ export class ConversationContext<
     return filter.isGroup(this.#conversation);
   }
 
-  async sendText(text: string): Promise<void> {
-    await this.#conversation.send(text, ContentTypeText);
-  }
-
   get conversation() {
     return this.#conversation;
+  }
+
+  get isAllowed() {
+    return this.#conversation.consentState === ConsentState.Allowed;
+  }
+
+  get isDenied() {
+    return this.#conversation.consentState === ConsentState.Denied;
+  }
+
+  get isUnknown() {
+    return this.#conversation.consentState === ConsentState.Unknown;
   }
 }

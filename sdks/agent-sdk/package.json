@@ -8,7 +8,7 @@
     "@xmtp/content-type-remote-attachment": "^2.0.2",
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/node-sdk": "^4.1.1",
+    "@xmtp/node-sdk": "^4.1.2",
     "uint8arrays": "^5.1.0",
     "viem": "^2.37.6"
   },
@@ -63,6 +63,7 @@
     "clean:dist": "rm -rf dist",
     "demo": "tsx src/demo.ts",
     "dev": "tsx --watch src/main.ts",
+    "fix": "npx prettier --log-level error -w . && npx eslint . --fix",
     "gen:keys": "tsx src/bin/generateKeys.ts",
     "start": "yarn demo",
     "test": "yarn typecheck && vitest run --typecheck",

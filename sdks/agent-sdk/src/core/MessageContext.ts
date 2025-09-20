@@ -3,7 +3,7 @@ import {
   type Reaction,
   type ReactionCodec,
 } from "@xmtp/content-type-reaction";
-import { type RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
+import type { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import {
   ContentTypeReply,
   type Reply,
@@ -68,6 +68,10 @@ export class MessageContext<
       content,
     };
     await this.conversation.send(reaction, ContentTypeReaction);
+  }
+
+  async sendText(text: string): Promise<void> {
+    await this.conversation.send(text, ContentTypeText);
   }
 
   async sendTextReply(text: string) {

@@ -40,7 +40,7 @@ const agent = await Agent.create(signer, {
 
 // 3. Respond to text messages
 agent.on("text", async (ctx) => {
-  await ctx.conversation.send("Hello from my XMTP Agent! 👋");
+  await ctx.sendText("Hello from my XMTP Agent! 👋");
 });
 
 // 4. Log when we're ready
