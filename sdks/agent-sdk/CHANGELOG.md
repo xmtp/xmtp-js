@@ -1,5 +1,12 @@
 # @xmtp/agent-sdk
 
+## 0.0.16
+
+### Patch Changes
+
+- 07ea5c3: - Exposed `debug`, `middleware`, and `user` packages
+  - Passed `ClientContext` to `start` and `stop` event listeners
+
 ## 0.0.15
 
 ### Patch Changes
