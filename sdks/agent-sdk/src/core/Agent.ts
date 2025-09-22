@@ -14,10 +14,11 @@ import {
 } from "@xmtp/node-sdk";
 import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
-import { AgentError } from "@/utils/error.js";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import type { AgentErrorContext } from "./AgentContext.js";
+import { AgentError } from "./AgentError.js";
+import { ClientContext } from "./ClientContext.js";
 import type { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
 
@@ -33,8 +34,8 @@ type EventHandlerMap<ContentTypes> = {
   message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
   reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
-  start: [];
-  stop: [];
+  start: [ctx: ClientContext<ContentTypes>];
+  stop: [ctx: ClientContext<ContentTypes>];
   text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
   unknownMessage: [ctx: MessageContext<ContentTypes>];
@@ -240,7 +241,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           await this.#handleStreamError(error);
         },
       });
-      this.emit("start");
+      this.emit("start", new ClientContext({ client: this.#client }));
       this.#isLocked = false;
     } catch (error) {
       await this.#handleStreamError(error);
@@ -387,7 +388,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       await this.#messageStream.end();
       this.#messageStream = undefined;
     }
-    this.emit("stop");
+    this.emit("stop", new ClientContext({ client: this.#client }));
     this.#isLocked = false;
   }
 }

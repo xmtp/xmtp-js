@@ -27,6 +27,28 @@
   "engines": {
     "node": ">=20"
   },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./debug": {
+      "import": "./dist/debug.js",
+      "types": "./dist/debug.d.ts"
+    },
+    "./filter": {
+      "import": "./dist/filter.js",
+      "types": "./dist/filter.d.ts"
+    },
+    "./middleware": {
+      "import": "./dist/middleware.js",
+      "types": "./dist/middleware.d.ts"
+    },
+    "./user": {
+      "import": "./dist/user.js",
+      "types": "./dist/user.d.ts"
+    }
+  },
   "files": [
     "dist",
     "!dist/**/*.test.*"
@@ -58,7 +80,7 @@
     "url": "git+https://git@github.com/xmtp/xmtp-js.git"
   },
   "scripts": {
-    "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack . --ignore-rules cjs-resolves-to-esm",
+    "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack --profile node16 . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
     "demo": "tsx src/demo.ts",
