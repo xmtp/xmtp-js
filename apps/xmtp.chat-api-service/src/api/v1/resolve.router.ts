@@ -1,5 +1,5 @@
 import type { Platform, Profile } from "@prisma/client";
-import { addDays, isAfter, isBefore } from "date-fns";
+import { addDays, isAfter } from "date-fns";
 import { Router, type Request, type Response } from "express";
 import { Platform as Web3BioPlatform } from "web3bio-profile-kit/types";
 import { z } from "zod";
@@ -52,8 +52,8 @@ export async function resolveAddresses(req: Request, res: Response) {
     const missingAddresses = addresses.filter(
       (address) => !profileAddresses.includes(address),
     );
-    const validProfiles = cachedProfiles.filter((profile) =>
-      isBefore(new Date(), addDays(profile.updatedAt, 7)),
+    const validProfiles = cachedProfiles.filter(
+      (profile) => !isAfter(new Date(), addDays(profile.updatedAt, 7)),
     );
 
     // profiles that have not been updated in the last 7 days
