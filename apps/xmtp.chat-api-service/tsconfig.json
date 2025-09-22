@@ -6,9 +6,6 @@
     // this is needed for the vercel runtime
     "moduleResolution": "node",
     "noEmit": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "strict": true,

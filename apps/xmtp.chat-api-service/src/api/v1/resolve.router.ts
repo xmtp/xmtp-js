@@ -3,8 +3,8 @@ import { addDays, isAfter } from "date-fns";
 import { Router, type Request, type Response } from "express";
 import { Platform as Web3BioPlatform } from "web3bio-profile-kit/types";
 import { z } from "zod";
-import { prisma } from "@/helpers/prisma";
-import { batchFetchProfiles, fetchAddress } from "@/helpers/web3.bio";
+import { prisma } from "../../helpers/prisma.js";
+import { batchFetchProfiles, fetchAddress } from "../../helpers/web3.bio.js";
 
 export const resolvePlatform = (platform: Web3BioPlatform): Platform => {
   switch (platform) {
