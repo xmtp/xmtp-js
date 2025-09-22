@@ -197,6 +197,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       client: this.#client,
     });
     if (recovered) {
+      this.#isLocked = false;
       queueMicrotask(() => this.start());
     }
   }
