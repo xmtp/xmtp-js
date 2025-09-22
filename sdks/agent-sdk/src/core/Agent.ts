@@ -108,7 +108,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           );
     this.emit("unhandledError", emittedError);
   };
-  #starting: boolean = false;
+  #isLocked: boolean = false;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
@@ -202,7 +202,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async start() {
-    if (this.#starting || this.#messageStream) return;
+    if (this.#isLocked || this.#messageStream) return;
 
     try {
       this.#messageStream = await this.#client.conversations.streamAllMessages({
@@ -232,7 +232,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             if (!recovered) {
               await this.stop();
             }
-            this.#starting = false;
+            this.#isLocked = false;
           }
         },
         onError: async (error) => {
@@ -240,7 +240,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         },
       });
       this.emit("start");
-      this.#starting = false;
+      this.#isLocked = false;
     } catch (error) {
       await this.#handleStreamError(error);
     }
@@ -381,10 +381,12 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async stop() {
+    this.#isLocked = true;
     if (this.#messageStream) {
       await this.#messageStream.end();
       this.#messageStream = undefined;
     }
     this.emit("stop");
+    this.#isLocked = false;
   }
 }
