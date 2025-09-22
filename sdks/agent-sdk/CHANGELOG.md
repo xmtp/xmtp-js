@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 0.0.15
+
+### Patch Changes
+
+- 07fa1c3: Implemented message streaming with callbacks
+
 ## 0.0.14
 
 ### Patch Changes
