@@ -19,6 +19,9 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "xmtp.chat-api-service#typecheck": {
+      "dependsOn": ["xmtp.chat-api-service#build"]
+    },
     "clean": {
       "outputs": []
     },
