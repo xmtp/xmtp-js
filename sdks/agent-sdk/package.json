@@ -36,10 +36,6 @@
       "import": "./dist/debug.js",
       "types": "./dist/debug.d.ts"
     },
-    "./filter": {
-      "import": "./dist/filter.js",
-      "types": "./dist/filter.d.ts"
-    },
     "./middleware": {
       "import": "./dist/middleware.js",
       "types": "./dist/middleware.d.ts"
