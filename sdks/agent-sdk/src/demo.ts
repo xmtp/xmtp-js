@@ -1,8 +1,8 @@
 import { loadEnvFile } from "node:process";
-import { Agent } from "./core/index.js";
+import { Agent, AgentError } from "./core/index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { getTestUrl } from "./utils/debug.js";
-import { AgentError, createSigner, createUser } from "./utils/index.js";
+import { createSigner, createUser } from "./utils/user.js";
 
 try {
   loadEnvFile(".env");
@@ -56,8 +56,12 @@ const errorHandler = (error: unknown) => {
 
 agent.on("unhandledError", errorHandler);
 
-agent.on("start", () => {
-  console.log(`We are online: ${getTestUrl(agent)}`);
+agent.on("start", (ctx) => {
+  console.log(`We are online: ${getTestUrl(ctx.client)}`);
+});
+
+agent.on("stop", (ctx) => {
+  console.log("Agent stopped", ctx);
 });
 
 await agent.start();

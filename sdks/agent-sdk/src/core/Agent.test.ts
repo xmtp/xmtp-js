@@ -34,7 +34,15 @@ import {
   type AgentMiddleware,
   type AgentOptions,
 } from "./Agent.js";
+import type { ClientContext } from "./ClientContext.js";
 import { MessageContext } from "./MessageContext.js";
+
+type CurrentClientTypes =
+  | string
+  | Reaction
+  | Reply
+  | RemoteAttachment
+  | GroupUpdated;
 
 const createMockMessage = <ContentType = string>(
   overrides: Partial<DecodedMessage> & { content: ContentType },
@@ -120,18 +128,12 @@ describe("Agent", () => {
     });
 
     it("infers additional content types from given codecs", () => {
-      expectTypeOf(ephemeralAgent).toEqualTypeOf<
-        Agent<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
-      >();
+      expectTypeOf(ephemeralAgent).toEqualTypeOf<Agent<CurrentClientTypes>>();
     });
 
     it("types the content in message event listener", () => {
       ephemeralAgent.on("unknownMessage", (ctx) => {
-        expectTypeOf(ctx).toEqualTypeOf<
-          MessageContext<
-            string | Reaction | Reply | RemoteAttachment | GroupUpdated
-          >
-        >();
+        expectTypeOf(ctx).toEqualTypeOf<MessageContext<CurrentClientTypes>>();
       });
     });
 
@@ -183,15 +185,27 @@ describe("Agent", () => {
       ephemeralAgent.on("conversation", (ctx) => {
         if (ctx.isDm()) {
           expectTypeOf(ctx.conversation).toEqualTypeOf<
-            Dm<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+            Dm<CurrentClientTypes>
           >();
         }
 
         if (ctx.isGroup()) {
           expectTypeOf(ctx.conversation).toEqualTypeOf<
-            Group<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+            Group<CurrentClientTypes>
           >();
         }
+      });
+    });
+
+    it("types content for 'start' events", () => {
+      ephemeralAgent.on("start", (ctx) => {
+        expectTypeOf(ctx).toEqualTypeOf<ClientContext<CurrentClientTypes>>();
+      });
+    });
+
+    it("types content for 'stop' events", () => {
+      ephemeralAgent.on("stop", (ctx) => {
+        expectTypeOf(ctx).toEqualTypeOf<ClientContext<CurrentClientTypes>>();
       });
     });
   });
