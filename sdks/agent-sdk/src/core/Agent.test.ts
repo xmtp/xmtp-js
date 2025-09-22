@@ -34,7 +34,7 @@ import {
   type AgentMiddleware,
   type AgentOptions,
 } from "./Agent.js";
-import { ClientContext } from "./ClientContext.js";
+import type { ClientContext } from "./ClientContext.js";
 import { MessageContext } from "./MessageContext.js";
 
 type CurrentClientTypes =
@@ -128,9 +128,7 @@ describe("Agent", () => {
     });
 
     it("infers additional content types from given codecs", () => {
-      expectTypeOf(ephemeralAgent).toEqualTypeOf<
-        Agent<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
-      >();
+      expectTypeOf(ephemeralAgent).toEqualTypeOf<Agent<CurrentClientTypes>>();
     });
 
     it("types the content in message event listener", () => {
@@ -187,13 +185,13 @@ describe("Agent", () => {
       ephemeralAgent.on("conversation", (ctx) => {
         if (ctx.isDm()) {
           expectTypeOf(ctx.conversation).toEqualTypeOf<
-            Dm<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+            Dm<CurrentClientTypes>
           >();
         }
 
         if (ctx.isGroup()) {
           expectTypeOf(ctx.conversation).toEqualTypeOf<
-            Group<string | Reaction | Reply | RemoteAttachment | GroupUpdated>
+            Group<CurrentClientTypes>
           >();
         }
       });
