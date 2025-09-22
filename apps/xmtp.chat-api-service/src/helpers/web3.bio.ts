@@ -10,12 +10,20 @@ const validateName = (name: string) => {
 };
 
 const fetchFromWeb3Bio = async <T>(path: string) => {
-  const response = await fetch(`${WEB3BIO_API_ENDPOINT}${path}`, {
+  const endpoint = `${WEB3BIO_API_ENDPOINT}${path}`;
+  const response = await fetch(endpoint, {
     method: "GET",
     headers: {
       "X-API-KEY": `Bearer ${process.env.WEB3BIO_API_KEY}`,
     },
   });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch from ${endpoint} with status ${response.status} ${response.statusText}`,
+    );
+  }
+
   return response.json() as Promise<T>;
 };
 
@@ -55,13 +63,15 @@ export const fetchProfile = async (identity: string) => {
   if (!identity) {
     return null;
   }
-  return await fetchFromWeb3Bio<ProfileResponse>(`/profile/${identity}`);
+  return await fetchFromWeb3Bio<ProfileResponse>(
+    `/profile/${escape(identity)}`,
+  );
 };
 
 export const fetchAddress = async (name: string) => {
   if (!name || !validateName(name)) {
     return null;
   }
-  const profiles = await fetchFromWeb3Bio<NSResponse[]>(`/ns/${name}`);
+  const profiles = await fetchFromWeb3Bio<NSResponse[]>(`/ns/${escape(name)}`);
   return profiles.length > 0 ? profiles[0].address : null;
 };

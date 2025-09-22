@@ -1,5 +1,5 @@
 import type { Platform, Profile } from "@prisma/client";
-import { addDays, isAfter } from "date-fns";
+import { addDays, isAfter, isBefore } from "date-fns";
 import { Router, type Request, type Response } from "express";
 import { Platform as Web3BioPlatform } from "web3bio-profile-kit/types";
 import { z } from "zod";
@@ -52,6 +52,9 @@ export async function resolveAddresses(req: Request, res: Response) {
     const missingAddresses = addresses.filter(
       (address) => !profileAddresses.includes(address),
     );
+    const validProfiles = cachedProfiles.filter((profile) =>
+      isBefore(new Date(), addDays(profile.updatedAt, 7)),
+    );
 
     // profiles that have not been updated in the last 7 days
     const expired = cachedProfiles.filter((profile) =>
@@ -61,7 +64,7 @@ export async function resolveAddresses(req: Request, res: Response) {
 
     const addressesToResolve = [
       ...missingAddresses,
-      ...expired.map((p) => p.address),
+      ...expiredProfileAddresses,
     ];
 
     const fetchedProfiles = await batchFetchProfiles(addressesToResolve);
@@ -115,7 +118,11 @@ export async function resolveAddresses(req: Request, res: Response) {
 
     // return the profiles
     res.json({
-      profiles: combineProfiles([...createdProfiles, ...updatedProfiles]),
+      profiles: combineProfiles([
+        ...validProfiles,
+        ...createdProfiles,
+        ...updatedProfiles,
+      ]),
     });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
@@ -146,7 +153,7 @@ export async function resolveName(req: Request, res: Response) {
     if (error instanceof z.ZodError) {
       console.log("zod error", z.prettifyError(error));
       res.status(400).json({
-        error: "Invalid request body",
+        error: "Invalid request parameter",
         details: z.treeifyError(error),
       });
       return;
