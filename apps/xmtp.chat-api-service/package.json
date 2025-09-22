@@ -6,7 +6,8 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "yarn clean:dist && rollup -c && yarn prisma:generate && yarn migrate:deploy",
+    "build": "yarn clean:dist && rollup -c && yarn prisma:generate",
+    "build:vercel": "yarn build && yarn migrate:deploy",
     "clean": "rimraf .turbo && yarn clean:dist && yarn clean:deps",
     "clean:deps": "rimraf node_modules",
     "clean:dist": "rimraf api",
