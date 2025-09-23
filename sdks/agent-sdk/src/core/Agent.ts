@@ -20,7 +20,6 @@ import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import type { AgentErrorContext } from "./AgentContext.js";
 import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import type { ConversationContext } from "./ConversationContext.js";
