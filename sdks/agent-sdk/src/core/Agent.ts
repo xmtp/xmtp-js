@@ -7,12 +7,12 @@ import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
-  CreateDmOptions,
-  CreateGroupOptions,
-  Identifier,
   LogLevel,
   type ClientOptions,
+  type CreateDmOptions,
+  type CreateGroupOptions,
   type DecodedMessage,
+  type Identifier,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { fromString } from "uint8arrays/from-string";
