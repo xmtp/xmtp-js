@@ -10,7 +10,12 @@ import { rateLimitMiddleware } from "./middleware/rateLimit.js";
 const app = express();
 
 const env = process.env.NODE_ENV || "development";
-const allowedOrigins = ["https://xmtp.chat", "https://experimental.xmtp.chat"];
+const allowedOrigins = [
+  "https://xmtp.chat",
+  "https://experimental.xmtp.chat",
+  // vercel preview domains
+  /^https:\/\/(.*)-ephemerahq\.vercel\.app$/,
+];
 
 if (env === "development") {
   allowedOrigins.push("http://localhost:5173");
