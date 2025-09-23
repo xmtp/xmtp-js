@@ -2,9 +2,6 @@
 
 Build event‑driven, middleware‑powered messaging agents on the XMTP network. 🚀
 
-> [!CAUTION]
-> This SDK is in beta status and ready for you to build with in production. Software in this status may change based on feedback.
-
 ## Documentation
 
 Full agent building guide: **[Build an XMTP Agent](https://docs.xmtp.org/agents/get-started/build-an-agent)**
