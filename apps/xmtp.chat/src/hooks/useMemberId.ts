@@ -46,8 +46,8 @@ export const useMemberId = () => {
             setInboxId(inboxId);
             setAddress(memberId);
           }
-        } catch (error) {
-          setError((error as Error).message);
+        } catch {
+          setError("Unable to get inbox ID for address. Try again.");
         } finally {
           setLoading(false);
         }
@@ -71,8 +71,8 @@ export const useMemberId = () => {
                 setInboxId(inboxId);
                 setAddress(address);
               }
-            } catch (error) {
-              setError((error as Error).message);
+            } catch {
+              setError("Unable to get inbox ID for address. Try again.");
             } finally {
               setLoading(false);
             }
