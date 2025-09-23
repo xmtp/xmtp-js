@@ -11,5 +11,5 @@
     "strict": true,
     "target": "ESNext"
   },
-  "include": ["rollup.config.js", "src/**/*"]
+  "include": ["rollup.config.js", "src/**/*", "prisma/**/*"]
 }

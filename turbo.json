@@ -7,9 +7,20 @@
       "outputs": ["dist/**"]
     },
     "xmtp.chat-api-service#build": {
-      "env": ["PINATA_GATEWAY", "PINATA_JWT", "PINATA_GROUP_ID"],
+      "env": [
+        "PINATA_GATEWAY",
+        "PINATA_JWT",
+        "PINATA_GROUP_ID",
+        "WEB3BIO_API_KEY",
+        "POSTGRES_URL",
+        "PRISMA_DATABASE_URL",
+        "DATABASE_URL"
+      ],
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
+    },
+    "xmtp.chat-api-service#typecheck": {
+      "dependsOn": ["xmtp.chat-api-service#build"]
     },
     "clean": {
       "outputs": []
