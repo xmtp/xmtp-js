@@ -417,7 +417,10 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     );
   }
 
-  createGroupWithAddresses(addresses: string[], options?: CreateGroupOptions) {
+  createGroupWithAddresses(
+    addresses: `0x${string}`[],
+    options?: CreateGroupOptions,
+  ) {
     const identifiers = addresses.map((address) => {
       return {
         identifier: address,
