@@ -1,12 +1,24 @@
 import { escape } from "node:querystring";
 import type { NSResponse, ProfileResponse } from "web3bio-profile-kit/types";
 import { resolveIdentity } from "web3bio-profile-kit/utils";
+import { z } from "zod";
 
 const WEB3BIO_API_ENDPOINT = "https://api.web3.bio";
 const WEB3BIO_BATCH_SIZE = 30;
 
 const validateName = (name: string) => {
   return name.endsWith(".eth") || name.endsWith(".base.eth");
+};
+
+const web3BioErrorResponseSchema = z.object({
+  status: z.number(),
+  statusText: z.string(),
+});
+
+const isWeb3BioErrorResponse = (
+  response: unknown,
+): response is z.infer<typeof web3BioErrorResponseSchema> => {
+  return web3BioErrorResponseSchema.safeParse(response).success;
 };
 
 const fetchFromWeb3Bio = async <T>(path: string) => {
@@ -19,9 +31,10 @@ const fetchFromWeb3Bio = async <T>(path: string) => {
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch from ${endpoint} with status ${response.status} ${response.statusText}`,
-    );
+    return {
+      status: response.status,
+      statusText: response.statusText,
+    };
   }
 
   return response.json() as Promise<T>;
@@ -53,7 +66,14 @@ export const batchFetchProfiles = async (input: string[]) => {
   // fetch profiles in batches
   while (identities.length > 0) {
     const batch = identities.splice(0, WEB3BIO_BATCH_SIZE);
-    profiles.push(...(await fetchProfiles(batch)));
+    const batchProfiles = await fetchProfiles(batch);
+    if (isWeb3BioErrorResponse(batchProfiles)) {
+      console.error(
+        `Error fetching profiles: ${batchProfiles.status} ${batchProfiles.statusText}`,
+      );
+      continue;
+    }
+    profiles.push(...batchProfiles);
   }
 
   return profiles;
@@ -73,5 +93,11 @@ export const fetchAddress = async (name: string) => {
     return null;
   }
   const profiles = await fetchFromWeb3Bio<NSResponse[]>(`/ns/${escape(name)}`);
+  if (isWeb3BioErrorResponse(profiles)) {
+    console.error(
+      `Error fetching address: ${profiles.status} ${profiles.statusText}`,
+    );
+    return null;
+  }
   return profiles.length > 0 ? profiles[0].address : null;
 };
