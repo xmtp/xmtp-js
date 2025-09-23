@@ -1,6 +1,6 @@
 import "@mantine/core/styles.css";
 import { createTheme, MantineProvider } from "@mantine/core";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import pkg from "@xmtp/browser-sdk/package.json";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
@@ -33,8 +33,7 @@ import {
 } from "wagmi/connectors";
 import { App } from "@/components/App/App";
 import { XMTPProvider } from "@/contexts/XMTPContext";
-
-const queryClient = new QueryClient();
+import { queryClient } from "@/helpers/queries";
 
 export const config = createConfig({
   connectors: [
