@@ -85,7 +85,7 @@ export const Members: React.FC<MembersProps> = ({
     } else {
       setOtherMemberError(null);
     }
-  }, [members, memberIdInboxId]);
+  }, [members, memberIdInboxId, addedMembers, removedMembers]);
 
   useEffect(() => {
     if (!conversation || !(conversation instanceof XmtpGroup)) {
