@@ -12,7 +12,7 @@ import {
 import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
 import type { DecodedMessage } from "@xmtp/node-sdk";
 import { filter } from "@/utils/filter.js";
-import type { AgentBaseContext } from "./AgentContext.js";
+import type { AgentBaseContext } from "./Agent.js";
 import { ConversationContext } from "./ConversationContext.js";
 
 type DecodedMessageWithContent<ContentTypes = unknown> =

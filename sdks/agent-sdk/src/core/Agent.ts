@@ -10,6 +10,7 @@ import {
   IdentifierKind,
   LogLevel,
   type ClientOptions,
+  type Conversation,
   type CreateDmOptions,
   type CreateGroupOptions,
   type DecodedMessage,
@@ -45,6 +46,18 @@ type EventHandlerMap<ContentTypes> = {
 };
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
+
+export type AgentBaseContext<ContentTypes = unknown> = {
+  client: Client<ContentTypes>;
+  conversation: Conversation;
+  message: DecodedMessage;
+};
+
+export type AgentErrorContext<ContentTypes = unknown> = Partial<
+  AgentBaseContext<ContentTypes>
+> & {
+  client: Client<ContentTypes>;
+};
 
 export type AgentOptions<ContentTypes> = {
   client: Client<ContentTypes>;
