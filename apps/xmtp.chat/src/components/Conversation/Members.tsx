@@ -3,31 +3,22 @@ import {
   Button,
   Divider,
   Group,
-  SegmentedControl,
   Stack,
   Text,
   TextInput,
   Title,
 } from "@mantine/core";
-import {
-  Utils,
-  Group as XmtpGroup,
-  type Conversation,
-  type SafeGroupMember,
-} from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
-import { useSettings } from "@/hooks/useSettings";
+import { Group as XmtpGroup, type Conversation } from "@xmtp/browser-sdk";
+import { useCallback, useEffect, useState } from "react";
+import { useMemberId } from "@/hooks/useMemberId";
 import { BadgeWithCopy } from "../BadgeWithCopy";
 
 export type MembersProps = {
   conversation?: Conversation;
   inboxId: string;
   onMembersAdded: (members: string[]) => void;
-  onMembersRemoved?: (members: SafeGroupMember[]) => void;
+  onMembersRemoved?: (members: string[]) => void;
 };
-
-type MemberType = "inboxID" | "address";
 
 export const Members: React.FC<MembersProps> = ({
   conversation,
@@ -35,26 +26,28 @@ export const Members: React.FC<MembersProps> = ({
   onMembersAdded,
   onMembersRemoved,
 }) => {
-  const [memberId, setMemberId] = useState("");
-  const [memberIdError, setMemberIdError] = useState<string | null>(null);
-  const [members, setMembers] = useState<SafeGroupMember[]>([]);
+  const {
+    loading,
+    memberId,
+    setMemberId,
+    error: memberIdError,
+    inboxId: memberIdInboxId,
+  } = useMemberId();
+  const [otherMemberError, setOtherMemberError] = useState<string | null>(null);
+  const [members, setMembers] = useState<string[]>([]);
   const [addedMembers, setAddedMembers] = useState<string[]>([]);
-  const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
-  const [memberType, setMemberType] = useState<MemberType>("inboxID");
-  const { environment } = useSettings();
-  const utilsRef = useRef<Utils | null>(null);
+  const [removedMembers, setRemovedMembers] = useState<string[]>([]);
 
   const handleAddMember = useCallback(() => {
-    const newAddedMembers = [...addedMembers, memberId.toLowerCase()];
+    const newAddedMembers = [...addedMembers, memberIdInboxId];
     setAddedMembers(newAddedMembers);
     setMemberId("");
-    setMemberIdError(null);
     onMembersAdded(newAddedMembers);
-  }, [addedMembers, memberId]);
+  }, [addedMembers, memberId, memberIdInboxId]);
 
   const handleRemoveAddedMember = useCallback(
-    (member: string) => {
-      const newAddedMembers = addedMembers.filter((m) => m !== member);
+    (inboxId: string) => {
+      const newAddedMembers = addedMembers.filter((v) => v !== inboxId);
       setAddedMembers(newAddedMembers);
       onMembersAdded(newAddedMembers);
     },
@@ -62,9 +55,9 @@ export const Members: React.FC<MembersProps> = ({
   );
 
   const handleRemoveMember = useCallback(
-    (member: SafeGroupMember) => {
-      setMembers(members.filter((m) => m.inboxId !== member.inboxId));
-      const newRemovedMembers = [...removedMembers, member];
+    (inboxId: string) => {
+      setMembers(members.filter((v) => v !== inboxId));
+      const newRemovedMembers = [...removedMembers, inboxId];
       setRemovedMembers(newRemovedMembers);
       onMembersRemoved?.(newRemovedMembers);
     },
@@ -72,71 +65,27 @@ export const Members: React.FC<MembersProps> = ({
   );
 
   const handleRestoreRemovedMember = useCallback(
-    (member: SafeGroupMember) => {
-      const newRemovedMembers = removedMembers.filter(
-        (m) => m.inboxId !== member.inboxId,
-      );
+    (inboxId: string) => {
+      const newRemovedMembers = removedMembers.filter((v) => v !== inboxId);
       setRemovedMembers(newRemovedMembers);
       onMembersRemoved?.(newRemovedMembers);
-      setMembers([...members, member]);
+      setMembers([...members, inboxId]);
     },
     [members, removedMembers],
   );
 
-  const memberIds = useMemo(() => {
-    return members.reduce<string[]>((ids, member) => {
-      return [
-        ...ids,
-        ...member.accountIdentifiers.map((identifier) =>
-          identifier.identifier.toLowerCase(),
-        ),
-        member.inboxId,
-      ];
-    }, []);
-  }, [members]);
-
   useEffect(() => {
-    const utils = new Utils();
-    utilsRef.current = utils;
-    return () => {
-      utils.close();
-    };
-  }, []);
-
-  useEffect(() => {
-    const checkMemberId = async () => {
-      if (!memberId) {
-        setMemberIdError(null);
-        return;
-      }
-
-      if (memberIds.includes(memberId.toLowerCase())) {
-        setMemberIdError("Duplicate address or inbox ID");
-      } else if (
-        !isValidEthereumAddress(memberId) &&
-        !isValidInboxId(memberId)
-      ) {
-        setMemberIdError("Invalid address or inbox ID");
-      } else if (isValidEthereumAddress(memberId) && utilsRef.current) {
-        const inboxId = await utilsRef.current.getInboxIdForIdentifier(
-          {
-            identifier: memberId.toLowerCase(),
-            identifierKind: "Ethereum",
-          },
-          environment,
-        );
-        if (!inboxId) {
-          setMemberIdError("Address not registered on XMTP");
-        } else {
-          setMemberIdError(null);
-        }
-      } else {
-        setMemberIdError(null);
-      }
-    };
-
-    void checkMemberId();
-  }, [memberIds, memberId]);
+    if (
+      memberIdInboxId &&
+      (members.includes(memberIdInboxId) ||
+        addedMembers.includes(memberIdInboxId) ||
+        removedMembers.includes(memberIdInboxId))
+    ) {
+      setOtherMemberError("Duplicate address or inbox ID");
+    } else {
+      setOtherMemberError(null);
+    }
+  }, [members, memberIdInboxId]);
 
   useEffect(() => {
     if (!conversation || !(conversation instanceof XmtpGroup)) {
@@ -145,7 +94,7 @@ export const Members: React.FC<MembersProps> = ({
 
     const loadMembers = async () => {
       const members = await conversation.members();
-      setMembers(members);
+      setMembers(members.map((member) => member.inboxId));
     };
 
     void loadMembers();
@@ -157,19 +106,25 @@ export const Members: React.FC<MembersProps> = ({
         <TextInput
           flex={1}
           size="sm"
-          label="Address or inbox ID"
+          label="Address, inbox ID, ENS name, or Base name"
           styles={{
             label: {
               marginBottom: "var(--mantine-spacing-xxs)",
             },
           }}
-          error={memberIdError}
+          error={memberIdError || otherMemberError}
           value={memberId}
           onChange={(event) => {
             setMemberId(event.target.value);
           }}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && memberIdError === null) {
+            if (
+              event.key === "Enter" &&
+              memberIdError === null &&
+              otherMemberError === null &&
+              !loading &&
+              memberIdInboxId
+            ) {
               handleAddMember();
             }
           }}
@@ -177,7 +132,13 @@ export const Members: React.FC<MembersProps> = ({
         <Button
           size="sm"
           mt="32px"
-          disabled={memberIdError !== null}
+          disabled={
+            memberIdError !== null ||
+            loading ||
+            !memberIdInboxId ||
+            otherMemberError !== null
+          }
+          loading={loading}
           onClick={handleAddMember}>
           Add
         </Button>
@@ -190,18 +151,18 @@ export const Members: React.FC<MembersProps> = ({
           </Badge>
         </Group>
         <Stack gap="4px">
-          {addedMembers.map((member) => (
+          {addedMembers.map((inboxId) => (
             <Group
-              key={member}
+              key={inboxId}
               justify="space-between"
               align="center"
               wrap="nowrap">
-              <BadgeWithCopy value={member} />
+              <BadgeWithCopy value={inboxId} />
               <Button
                 flex="0 0 auto"
                 size="xs"
                 onClick={() => {
-                  handleRemoveAddedMember(member);
+                  handleRemoveAddedMember(inboxId);
                 }}>
                 Remove
               </Button>
@@ -214,23 +175,6 @@ export const Members: React.FC<MembersProps> = ({
           <Stack gap="xs">
             <Group justify="space-between" gap="xs">
               <Title order={4}>Existing members</Title>
-              <SegmentedControl
-                withItemsBorders={false}
-                value={memberType}
-                onChange={(value) => {
-                  setMemberType(value as MemberType);
-                }}
-                data={[
-                  {
-                    label: "Inbox ID",
-                    value: "inboxID",
-                  },
-                  {
-                    label: "Address",
-                    value: "address",
-                  },
-                ]}
-              />
             </Group>
             <Divider mb="md" />
             <Group gap="xs">
@@ -240,24 +184,18 @@ export const Members: React.FC<MembersProps> = ({
               </Badge>
             </Group>
             <Stack gap="4px">
-              {removedMembers.map((member) => (
+              {removedMembers.map((inboxId) => (
                 <Group
-                  key={`${member.inboxId}-removed`}
+                  key={`${inboxId}-removed`}
                   justify="space-between"
                   align="center"
                   wrap="nowrap">
-                  <BadgeWithCopy
-                    value={
-                      memberType === "inboxID"
-                        ? member.inboxId
-                        : member.accountIdentifiers[0].identifier
-                    }
-                  />
+                  <BadgeWithCopy value={inboxId} />
                   <Button
                     flex="0 0 auto"
                     size="xs"
                     onClick={() => {
-                      handleRestoreRemovedMember(member);
+                      handleRestoreRemovedMember(inboxId);
                     }}>
                     Restore
                   </Button>
@@ -274,25 +212,19 @@ export const Members: React.FC<MembersProps> = ({
             </Group>
             <Stack gap="4px">
               {members.map(
-                (member) =>
-                  inboxId !== member.inboxId && (
+                (mInboxId) =>
+                  inboxId !== mInboxId && (
                     <Group
-                      key={member.inboxId}
+                      key={mInboxId}
                       justify="space-between"
                       align="center"
                       wrap="nowrap">
-                      <BadgeWithCopy
-                        value={
-                          memberType === "inboxID"
-                            ? member.inboxId
-                            : member.accountIdentifiers[0].identifier
-                        }
-                      />
+                      <BadgeWithCopy value={mInboxId} />
                       <Button
                         flex="0 0 auto"
                         size="xs"
                         onClick={() => {
-                          handleRemoveMember(member);
+                          handleRemoveMember(mInboxId);
                         }}>
                         Remove
                       </Button>
