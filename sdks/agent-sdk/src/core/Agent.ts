@@ -7,12 +7,12 @@ import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
+  IdentifierKind,
   LogLevel,
   type ClientOptions,
   type CreateDmOptions,
   type CreateGroupOptions,
   type DecodedMessage,
-  type Identifier,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { fromString } from "uint8arrays/from-string";
@@ -395,29 +395,30 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     this.#isLocked = false;
   }
 
-  newDm(inboxId: string, options?: CreateDmOptions) {
-    return this.#client.conversations.newDm(inboxId, options);
+  createDmWithAddress(address: `0x${string}`, options?: CreateDmOptions) {
+    return this.#client.conversations.newDmWithIdentifier(
+      {
+        identifier: address,
+        identifierKind: IdentifierKind.Ethereum,
+      },
+      options,
+    );
   }
 
-  newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
-    return this.#client.conversations.newDmWithIdentifier(identifier, options);
-  }
-
-  newGroup(inboxIds: string[], options?: CreateGroupOptions) {
-    return this.#client.conversations.newGroup(inboxIds, options);
-  }
-
-  newGroupWithIdentifiers(
-    identifiers: Identifier[],
-    options?: CreateGroupOptions,
-  ) {
+  createGroupWithAddresses(addresses: string[], options?: CreateGroupOptions) {
+    const identifiers = addresses.map((address) => {
+      return {
+        identifier: address,
+        identifierKind: IdentifierKind.Ethereum,
+      };
+    });
     return this.#client.conversations.newGroupWithIdentifiers(
       identifiers,
       options,
     );
   }
 
-  getClientAddress() {
+  get address() {
     return this.#client.accountIdentifier?.identifier;
   }
 }
