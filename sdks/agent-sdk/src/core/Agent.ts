@@ -9,7 +9,10 @@ import {
   Client,
   LogLevel,
   type ClientOptions,
+  type CreateDmOptions,
+  type CreateGroupOptions,
   type DecodedMessage,
+  type Identifier,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { fromString } from "uint8arrays/from-string";
@@ -390,5 +393,31 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
     this.emit("stop", new ClientContext({ client: this.#client }));
     this.#isLocked = false;
+  }
+
+  newDm(inboxId: string, options?: CreateDmOptions) {
+    return this.#client.conversations.newDm(inboxId, options);
+  }
+
+  newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
+    return this.#client.conversations.newDmWithIdentifier(identifier, options);
+  }
+
+  newGroup(inboxIds: string[], options?: CreateGroupOptions) {
+    return this.#client.conversations.newGroup(inboxIds, options);
+  }
+
+  newGroupWithIdentifiers(
+    identifiers: Identifier[],
+    options?: CreateGroupOptions,
+  ) {
+    return this.#client.conversations.newGroupWithIdentifiers(
+      identifiers,
+      options,
+    );
+  }
+
+  getClientAddress() {
+    return this.#client.accountIdentifier?.identifier;
   }
 }
