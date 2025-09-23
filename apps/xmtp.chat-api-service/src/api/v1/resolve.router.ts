@@ -1,7 +1,10 @@
 import type { Platform, Profile } from "@prisma/client";
 import { addDays, isAfter } from "date-fns";
 import { Router, type Request, type Response } from "express";
-import { Platform as Web3BioPlatform } from "web3bio-profile-kit/types";
+import {
+  Platform as Web3BioPlatform,
+  type ProfileResponse,
+} from "web3bio-profile-kit/types";
 import { z } from "zod";
 import { prisma } from "../../helpers/prisma.js";
 import { batchFetchProfiles, fetchAddress } from "../../helpers/web3.bio.js";
@@ -21,6 +24,9 @@ export const resolvePlatform = (platform: Web3BioPlatform): Platform => {
 
 type ReducedProfile = Omit<Profile, "id" | "createdAt" | "updatedAt">;
 type CombinedProfiles = Record<string, ReducedProfile[]>;
+type ProfileResponseWithAddress = ProfileResponse & {
+  address: string;
+};
 
 export const combineProfiles = (
   profiles: ReducedProfile[],
@@ -72,11 +78,10 @@ export async function resolveAddresses(req: Request, res: Response) {
     // insert new profiles into the database
     const newProfiles = fetchedProfiles.filter(
       (p) => p.address && missingAddresses.includes(p.address),
-    );
+    ) as ProfileResponseWithAddress[];
     const createdProfiles = await prisma.profile.createManyAndReturn({
       data: newProfiles.map((p) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        address: p.address!,
+        address: p.address,
         identity: p.identity,
         platform: resolvePlatform(p.platform),
         displayName: p.displayName,
