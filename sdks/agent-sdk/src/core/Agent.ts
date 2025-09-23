@@ -7,8 +7,12 @@ import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
+  IdentifierKind,
   LogLevel,
   type ClientOptions,
+  type Conversation,
+  type CreateDmOptions,
+  type CreateGroupOptions,
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
@@ -16,7 +20,6 @@ import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import type { AgentErrorContext } from "./AgentContext.js";
 import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import type { ConversationContext } from "./ConversationContext.js";
@@ -42,6 +45,18 @@ type EventHandlerMap<ContentTypes> = {
 };
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
+
+export type AgentBaseContext<ContentTypes = unknown> = {
+  client: Client<ContentTypes>;
+  conversation: Conversation;
+  message: DecodedMessage;
+};
+
+export type AgentErrorContext<ContentTypes = unknown> = Partial<
+  AgentBaseContext<ContentTypes>
+> & {
+  client: Client<ContentTypes>;
+};
 
 export type AgentOptions<ContentTypes> = {
   client: Client<ContentTypes>;
@@ -390,5 +405,35 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
     this.emit("stop", new ClientContext({ client: this.#client }));
     this.#isLocked = false;
+  }
+
+  createDmWithAddress(address: `0x${string}`, options?: CreateDmOptions) {
+    return this.#client.conversations.newDmWithIdentifier(
+      {
+        identifier: address,
+        identifierKind: IdentifierKind.Ethereum,
+      },
+      options,
+    );
+  }
+
+  createGroupWithAddresses(
+    addresses: `0x${string}`[],
+    options?: CreateGroupOptions,
+  ) {
+    const identifiers = addresses.map((address) => {
+      return {
+        identifier: address,
+        identifierKind: IdentifierKind.Ethereum,
+      };
+    });
+    return this.#client.conversations.newGroupWithIdentifiers(
+      identifiers,
+      options,
+    );
+  }
+
+  get address() {
+    return this.#client.accountIdentifier?.identifier;
   }
 }
