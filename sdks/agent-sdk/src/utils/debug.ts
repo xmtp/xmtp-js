@@ -1,4 +1,5 @@
 import { Client } from "@xmtp/node-sdk";
+import type { Agent } from "@/core/Agent.js";
 
 export const logDetails = async <ContentTypes>(
   client: Client<ContentTypes>,
@@ -55,8 +56,8 @@ export const logDetails = async <ContentTypes>(
  * @param client - Your XMTP client
  * @returns The URL to test your agent with
  */
-export const getTestUrl = <ContentTypes>(client: Client<ContentTypes>) => {
-  const address = client.accountIdentifier?.identifier;
-  const env = client.options?.env ?? "dev";
+export const getTestUrl = <ContentTypes>(agent: Agent<ContentTypes>) => {
+  const address = agent.client.accountIdentifier?.identifier;
+  const env = agent.client.options?.env ?? "dev";
   return `http://xmtp.chat/dm/${address}?env=${env}`;
 };

@@ -1,27 +1,27 @@
 import {
   ConsentState,
-  type Client,
   type Conversation,
   type Dm,
   type Group,
 } from "@xmtp/node-sdk";
 import { filter } from "@/utils/filter.js";
-import { ClientContext } from "./ClientContext.js";
+import type { Agent } from "./Agent.js";
+import { AgentContext } from "./AgentContext.js";
 
 export class ConversationContext<
   ContentTypes = unknown,
   ConversationType extends Conversation = Conversation,
-> extends ClientContext<ContentTypes> {
+> extends AgentContext<ContentTypes> {
   #conversation: ConversationType;
 
   constructor({
     conversation,
-    client,
+    agent,
   }: {
     conversation: ConversationType;
-    client: Client<ContentTypes>;
+    agent: Agent<ContentTypes>;
   }) {
-    super({ client });
+    super({ agent });
     this.#conversation = conversation;
   }
 

@@ -5,11 +5,11 @@ import {
 import type { MessageContext } from "@/core/MessageContext.js";
 import { filter } from "@/utils/filter.js";
 
-export class CommandRouter<ContentTypes> {
-  private commandMap = new Map<string, AgentMessageHandler>();
-  private defaultHandler: AgentMessageHandler | null = null;
+export class CommandRouter<ContentTypes = unknown> {
+  private commandMap = new Map<string, AgentMessageHandler<ContentTypes>>();
+  private defaultHandler: AgentMessageHandler<ContentTypes> | null = null;
 
-  command(command: string, handler: AgentMessageHandler): this {
+  command(command: string, handler: AgentMessageHandler<ContentTypes>): this {
     if (!command.startsWith("/")) {
       throw new Error('Command must start with "/"');
     }
@@ -17,12 +17,12 @@ export class CommandRouter<ContentTypes> {
     return this;
   }
 
-  default(handler: AgentMessageHandler): this {
+  default(handler: AgentMessageHandler<ContentTypes>): this {
     this.defaultHandler = handler;
     return this;
   }
 
-  async handle(ctx: MessageContext): Promise<boolean> {
+  async handle(ctx: MessageContext<ContentTypes>): Promise<boolean> {
     if (!filter.isText(ctx.message)) {
       return false;
     }

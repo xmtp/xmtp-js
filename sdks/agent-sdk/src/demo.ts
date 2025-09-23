@@ -15,7 +15,8 @@ const agent = process.env.XMTP_WALLET_KEY
       dbPath: null,
     });
 
-const router = new CommandRouter();
+type AgentContentTypes = typeof agent extends Agent<infer T> ? T : never;
+const router = new CommandRouter<AgentContentTypes>();
 
 router.command("/version", async (ctx) => {
   await ctx.conversation.send(`v${process.env.npm_package_version}`);
@@ -57,7 +58,7 @@ const errorHandler = (error: unknown) => {
 agent.on("unhandledError", errorHandler);
 
 agent.on("start", (ctx) => {
-  console.log(`We are online: ${getTestUrl(ctx.client)}`);
+  console.log(`We are online: ${getTestUrl(ctx.agent)}`);
 });
 
 agent.on("stop", (ctx) => {
@@ -66,3 +67,8 @@ agent.on("stop", (ctx) => {
 
 await agent.start();
 console.log("Agent has started.");
+
+const dm = await agent.createDmWithAddress(
+  "0xa03369f8065ece3d490f3fa0517a22e8767b6f72",
+);
+dm.send("Hey Benny!");

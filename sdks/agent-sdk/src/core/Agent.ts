@@ -20,9 +20,8 @@ import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
 import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
-import type { AgentErrorContext } from "./AgentContext.js";
+import { AgentContext } from "./AgentContext.js";
 import { AgentError } from "./AgentError.js";
-import { ClientContext } from "./ClientContext.js";
 import type { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
 
@@ -38,8 +37,8 @@ type EventHandlerMap<ContentTypes> = {
   message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
   reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
-  start: [ctx: ClientContext<ContentTypes>];
-  stop: [ctx: ClientContext<ContentTypes>];
+  start: [ctx: AgentContext<ContentTypes>];
+  stop: [ctx: AgentContext<ContentTypes>];
   text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
   unhandledError: [error: Error];
   unknownMessage: [ctx: MessageContext<ContentTypes>];
@@ -48,7 +47,7 @@ type EventHandlerMap<ContentTypes> = {
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
 
 export type AgentBaseContext<ContentTypes = unknown> = {
-  client: Client<ContentTypes>;
+  agent: Agent<ContentTypes>;
   conversation: Conversation;
   message: DecodedMessage;
 };
@@ -56,7 +55,7 @@ export type AgentBaseContext<ContentTypes = unknown> = {
 export type AgentErrorContext<ContentTypes = unknown> = Partial<
   AgentBaseContext<ContentTypes>
 > & {
-  client: Client<ContentTypes>;
+  agent: Agent<ContentTypes>;
 };
 
 export type AgentOptions<ContentTypes> = {
@@ -211,7 +210,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   async #handleStreamError(error: unknown) {
     this.#messageStream = undefined;
     const recovered = await this.#runErrorChain(error, {
-      client: this.#client,
+      agent: this,
     });
     if (recovered) {
       this.#isLocked = false;
@@ -245,7 +244,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             }
           } catch (error) {
             const recovered = await this.#runErrorChain(error, {
-              client: this.#client,
+              agent: this,
             });
             if (!recovered) {
               await this.stop();
@@ -257,7 +256,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           await this.#handleStreamError(error);
         },
       });
-      this.emit("start", new ClientContext({ client: this.#client }));
+      this.emit("start", new AgentContext({ agent: this }));
       this.#isLocked = false;
     } catch (error) {
       await this.#handleStreamError(error);
@@ -290,9 +289,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
 
     const context = new MessageContext({
-      message,
+      agent: this,
       conversation,
-      client: this.#client,
+      message,
     });
     await this.#runMiddlewareChain(context, topic);
   }
@@ -404,7 +403,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       await this.#messageStream.end();
       this.#messageStream = undefined;
     }
-    this.emit("stop", new ClientContext({ client: this.#client }));
+    this.emit("stop", new AgentContext({ agent: this }));
     this.#isLocked = false;
   }
 

@@ -35,9 +35,9 @@ export class MessageContext<
   constructor({
     message,
     conversation,
-    client,
+    agent,
   }: MessageContextParams<ContentTypes>) {
-    super({ conversation, client });
+    super({ conversation, agent });
     this.#message = message;
   }
 
@@ -85,9 +85,10 @@ export class MessageContext<
   }
 
   async getSenderAddress() {
-    const inboxState = await this.client.preferences.inboxStateFromInboxIds([
-      this.#message.senderInboxId,
-    ]);
+    const inboxState =
+      await this.agent.client.preferences.inboxStateFromInboxIds([
+        this.#message.senderInboxId,
+      ]);
     return inboxState[0].identifiers[0].identifier;
   }
 
