@@ -39,6 +39,7 @@ export const Members: React.FC<MembersProps> = ({
   const [removedMembers, setRemovedMembers] = useState<string[]>([]);
 
   const handleAddMember = useCallback(() => {
+    if (addedMembers.includes(memberIdInboxId)) return;
     const newAddedMembers = [...addedMembers, memberIdInboxId];
     setAddedMembers(newAddedMembers);
     setMemberId("");
