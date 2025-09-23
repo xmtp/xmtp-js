@@ -1,5 +1,5 @@
 import { Button, Group } from "@mantine/core";
-import { Group as XmtpGroup, type SafeGroupMember } from "@xmtp/browser-sdk";
+import { Group as XmtpGroup } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
@@ -15,7 +15,7 @@ export const ManageMembersModal: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [addedMembers, setAddedMembers] = useState<string[]>([]);
-  const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
+  const [removedMembers, setRemovedMembers] = useState<string[]>([]);
 
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
@@ -53,9 +53,7 @@ export const ManageMembersModal: React.FC = () => {
       }
 
       if (removedMembers.length > 0) {
-        await conversation.removeMembers(
-          removedMembers.map((member) => member.inboxId),
-        );
+        await conversation.removeMembers(removedMembers);
       }
 
       void navigate(`/conversations/${conversation.id}`);
