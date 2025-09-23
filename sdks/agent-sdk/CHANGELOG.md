@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 0.0.17
+
+### Patch Changes
+
+- e0b035c: - Added conversation creation
+
 ## 0.0.16
 
 ### Patch Changes
