@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/browser-sdk",
-  "version": "4.2.0-rc1",
+  "version": "4.2.0-rc2",
   "description": "XMTP client SDK for browsers written in TypeScript",
   "keywords": [
     "xmtp",
@@ -63,7 +63,7 @@
     "@xmtp/content-type-group-updated": "^2.0.2",
     "@xmtp/content-type-primitives": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/wasm-bindings": "1.5.0-rc1",
+    "@xmtp/wasm-bindings": "1.5.0-rc2",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
