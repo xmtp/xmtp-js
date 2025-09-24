@@ -66,3 +66,7 @@ agent.on("stop", (ctx) => {
 
 await agent.start();
 console.log("Agent has started.");
+
+const group = await agent.createGroupWithAddresses(["0x123", "0x456"]);
+await group.addMembers(["0x789"]);
+await group.send("Hello group!");
