@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.0.0
+
+### Major Changes
+
+- 5b0c9f8: Removed Beta label
+
 ## 0.0.17
 
 ### Patch Changes
