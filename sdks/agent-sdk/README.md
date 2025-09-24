@@ -2,9 +2,6 @@
 
 Build event‑driven, middleware‑powered messaging agents on the XMTP network. 🚀
 
-> [!CAUTION]
-> This SDK is in beta status and ready for you to build with in production. Software in this status may change based on feedback.
-
 ## Documentation
 
 Full agent building guide: **[Build an XMTP Agent](https://docs.xmtp.org/agents/get-started/build-an-agent)**
@@ -275,6 +272,21 @@ Every message event handler receives a `MessageContext` with:
 agent.on("text", async (ctx) => {
   await ctx.sendTextReply("Reply using helper ✨");
 });
+```
+
+### 5. Starting Conversations
+
+These functionalities let you start a conversation:
+
+```ts
+// Direct Message
+const dm = await agent.createDmWithAddress("0x123");
+await dm.send("Hello!");
+
+// Group Conversation
+const group = await agent.createGroupWithAddresses(["0x123", "0x456"]);
+await group.addMembers(["0x789"]);
+await group.send("Hello group!");
 ```
 
 ## Adding Custom Content Types
