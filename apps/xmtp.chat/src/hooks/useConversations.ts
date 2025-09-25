@@ -138,24 +138,24 @@ export const useConversations = () => {
     }
   };
 
-  const stream = async () => {
-    const onValue = (conversation: Conversation<ContentTypes>) => {
-      const shouldAdd =
-        conversation.metadata?.conversationType === "dm" ||
-        conversation.metadata?.conversationType === "group";
-      if (shouldAdd) {
-        setConversations((prev) => [conversation, ...prev]);
-      }
-    };
+  // const stream = async () => {
+  //   const onValue = (conversation: Conversation<ContentTypes>) => {
+  //     const shouldAdd =
+  //       conversation.metadata?.conversationType === "dm" ||
+  //       conversation.metadata?.conversationType === "group";
+  //     if (shouldAdd) {
+  //       setConversations((prev) => [conversation, ...prev]);
+  //     }
+  //   };
 
-    const stream = await client.conversations.stream({
-      onValue,
-    });
+  //   const stream = await client.conversations.stream({
+  //     onValue,
+  //   });
 
-    return () => {
-      void stream.end();
-    };
-  };
+  //   return () => {
+  //     void stream.end();
+  //   };
+  // };
 
   return {
     conversations,
@@ -167,7 +167,7 @@ export const useConversations = () => {
     newDmWithIdentifier,
     newGroup,
     newGroupWithIdentifiers,
-    stream,
+    // stream,
     sync,
     syncAll,
     syncing,

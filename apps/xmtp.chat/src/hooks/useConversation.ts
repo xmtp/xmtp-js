@@ -66,22 +66,22 @@ export const useConversation = (conversation: Conversation<ContentTypes>) => {
     }
   };
 
-  const streamMessages = async () => {
-    const noop = () => {};
-    if (!client) {
-      return noop;
-    }
+  // const streamMessages = async () => {
+  //   const noop = () => {};
+  //   if (!client) {
+  //     return noop;
+  //   }
 
-    const onValue = (message: DecodedMessage<ContentTypes>) => {
-      setMessages((prev) => [...prev, message]);
-    };
+  //   const onValue = (message: DecodedMessage<ContentTypes>) => {
+  //     setMessages((prev) => [...prev, message]);
+  //   };
 
-    const stream = await conversation.stream({
-      onValue,
-    });
+  //   const stream = await conversation.stream({
+  //     onValue,
+  //   });
 
-    return () => stream.end();
-  };
+  //   return () => stream.end();
+  // };
 
   return {
     getMessages,
@@ -89,7 +89,7 @@ export const useConversation = (conversation: Conversation<ContentTypes>) => {
     messages,
     send,
     sending,
-    streamMessages,
+    // streamMessages,
     sync,
     syncing,
   };

@@ -4,7 +4,7 @@ import {
   type Client,
   type Conversation as XmtpConversation,
 } from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback /*useRef,*/, useEffect, useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
@@ -25,40 +25,40 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
     getMessages,
     loading: conversationLoading,
     messages,
-    streamMessages,
+    // streamMessages,
     syncing: conversationSyncing,
   } = useConversation(conversation);
-  const stopStreamRef = useRef<(() => void) | null>(null);
+  // const stopStreamRef = useRef<(() => void) | null>(null);
 
-  const startStream = useCallback(async () => {
-    stopStreamRef.current = await streamMessages();
-  }, [streamMessages]);
+  // const startStream = useCallback(async () => {
+  //   stopStreamRef.current = await streamMessages();
+  // }, [streamMessages]);
 
-  const stopStream = useCallback(() => {
-    stopStreamRef.current?.();
-    stopStreamRef.current = null;
-  }, []);
+  // const stopStream = useCallback(() => {
+  //   stopStreamRef.current?.();
+  //   stopStreamRef.current = null;
+  // }, []);
 
   useEffect(() => {
     const loadMessages = async () => {
-      stopStream();
+      // stopStream();
       await getMessages(undefined, true);
-      await startStream();
+      // await startStream();
     };
     void loadMessages();
     return () => {
-      stopStream();
+      // stopStream();
     };
   }, [conversation.id]);
 
   const handleSync = useCallback(async () => {
-    stopStream();
+    // stopStream();
     await getMessages(undefined, true);
-    await startStream();
+    // await startStream();
     if (conversation instanceof XmtpGroup) {
       setTitle(conversation.name || "Untitled");
     }
-  }, [getMessages, conversation.id, startStream, stopStream]);
+  }, [getMessages, conversation.id /*startStream, stopStream*/]);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {
