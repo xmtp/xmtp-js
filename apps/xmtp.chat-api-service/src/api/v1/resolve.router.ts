@@ -7,7 +7,15 @@ import {
 } from "web3bio-profile-kit/types";
 import { z } from "zod";
 import { prisma } from "../../helpers/prisma.js";
-import { batchFetchProfiles, fetchAddress } from "../../helpers/web3.bio.js";
+import {
+  batchFetchNames,
+  fetchProfilesFromName,
+} from "../../helpers/web3.bio.js";
+
+const hasIdentity = (identity: string, profiles: Profile[]) => {
+  const [platform, address] = identity.split(",");
+  return profiles.some((p) => p.platform === platform && p.address === address);
+};
 
 export const resolvePlatform = (platform: Web3BioPlatform): Platform => {
   switch (platform) {
@@ -15,35 +23,25 @@ export const resolvePlatform = (platform: Web3BioPlatform): Platform => {
       return "ens";
     case Web3BioPlatform.basenames:
       return "basenames";
-    case Web3BioPlatform.farcaster:
-      return "farcaster";
     default:
       return "unknown";
   }
 };
 
-type ReducedProfile = Omit<Profile, "id" | "createdAt" | "updatedAt">;
-type CombinedProfiles = Record<string, ReducedProfile[]>;
 type ProfileResponseWithAddress = ProfileResponse & {
   address: string;
 };
 
-export const combineProfiles = (
-  profiles: ReducedProfile[],
-): CombinedProfiles => {
-  return profiles.reduce<CombinedProfiles>((result, profile) => {
-    (result[profile.address] ??= []).push(profile);
-    return result;
-  }, {});
-};
-
 export const resolveAddressSchema = z.object({
-  addresses: z.string().length(42).startsWith("0x").array(),
+  addresses: z.string().length(42).startsWith("0x").array().min(1),
 });
 
-export async function resolveAddresses(req: Request, res: Response) {
+export async function resolveProfiles(req: Request, res: Response) {
   try {
     const { addresses } = resolveAddressSchema.parse(req.body);
+    const identities = addresses.reduce<string[]>((result, address) => {
+      return [...result, `ens,${address}`, `basenames,${address}`];
+    }, []);
 
     const cachedProfiles = await prisma.profile.findMany({
       where: {
@@ -53,11 +51,12 @@ export async function resolveAddresses(req: Request, res: Response) {
       },
     });
 
-    // addresses not found in the database
-    const profileAddresses = cachedProfiles.map((p) => p.address);
-    const missingAddresses = addresses.filter(
-      (address) => !profileAddresses.includes(address),
+    // identities not found in the database
+    const missingIdentities = identities.filter(
+      (identity) => !hasIdentity(identity, cachedProfiles),
     );
+
+    // profiles that have been updated within the last 7 days
     const validProfiles = cachedProfiles.filter(
       (profile) => !isAfter(new Date(), addDays(profile.updatedAt, 7)),
     );
@@ -66,68 +65,66 @@ export async function resolveAddresses(req: Request, res: Response) {
     const expired = cachedProfiles.filter((profile) =>
       isAfter(new Date(), addDays(profile.updatedAt, 7)),
     );
-    const expiredProfileAddresses = expired.map((p) => p.address);
+    const expiredProfileIdentities = expired.map(
+      (p) => `${p.platform},${p.address}`,
+    );
 
     const addressesToResolve = [
-      ...missingAddresses,
-      ...expiredProfileAddresses,
+      ...missingIdentities,
+      ...expiredProfileIdentities,
     ];
 
-    const fetchedProfiles = await batchFetchProfiles(addressesToResolve);
+    const fetchedProfiles = await batchFetchNames(addressesToResolve);
 
     // insert new profiles into the database
     const newProfiles = fetchedProfiles.filter(
-      (p) => p.address && missingAddresses.includes(p.address),
+      (p) =>
+        p.address && missingIdentities.includes(`${p.platform},${p.address}`),
     ) as ProfileResponseWithAddress[];
-    const createdProfiles = await prisma.profile.createManyAndReturn({
-      data: newProfiles.map((p) => ({
-        address: p.address,
-        identity: p.identity,
-        platform: resolvePlatform(p.platform),
-        displayName: p.displayName,
-        email: p.email,
-        location: p.location,
-        status: p.status,
-        avatar: p.avatar,
-        description: p.description,
-      })),
-      omit: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    if (newProfiles.length > 0) {
+      const createdProfiles = await prisma.profile.createManyAndReturn({
+        data: newProfiles.map((p) => ({
+          address: p.address,
+          avatar: p.avatar,
+          description: p.description,
+          displayName: p.displayName,
+          identity: p.identity,
+          platform: resolvePlatform(p.platform),
+        })),
+      });
+      validProfiles.push(...createdProfiles);
+    }
 
     // update expired profiles in the database
     const expiredProfiles = fetchedProfiles.filter(
-      (p) => p.address && expiredProfileAddresses.includes(p.address),
+      (p) =>
+        p.address &&
+        expiredProfileIdentities.includes(`${p.platform},${p.address}`),
     );
-    const updatedProfiles = await prisma.profile.updateManyAndReturn({
-      data: expiredProfiles.map((p) => ({
-        address: p.address,
-        identity: p.identity,
-        platform: resolvePlatform(p.platform),
-        displayName: p.displayName,
-        email: p.email,
-        location: p.location,
-        status: p.status,
-        avatar: p.avatar,
-        description: p.description,
-      })),
-      omit: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    if (expiredProfiles.length > 0) {
+      const updatedProfiles = await prisma.profile.updateManyAndReturn({
+        data: expiredProfiles.map((p) => ({
+          address: p.address,
+          avatar: p.avatar,
+          description: p.description,
+          displayName: p.displayName,
+          identity: p.identity,
+          platform: resolvePlatform(p.platform),
+        })),
+      });
+      validProfiles.push(...updatedProfiles);
+    }
 
     // return the profiles
     res.json({
-      profiles: combineProfiles([
-        ...validProfiles,
-        ...createdProfiles,
-        ...updatedProfiles,
-      ]),
+      profiles: validProfiles.map((p) => ({
+        address: p.address,
+        avatar: p.avatar,
+        description: p.description,
+        displayName: p.displayName,
+        identity: p.identity,
+        platform: p.platform,
+      })),
     });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
@@ -143,17 +140,18 @@ export async function resolveAddresses(req: Request, res: Response) {
   }
 }
 
-export const resolveNameSchema = z
-  .string()
-  .endsWith(".eth")
-  .or(z.string().endsWith(".base.eth"));
+export const resolveNameSchema = z.string().endsWith(".eth");
 
 export async function resolveName(req: Request, res: Response) {
   try {
     const { name } = req.params;
     const validName = resolveNameSchema.parse(name);
-    const address = await fetchAddress(validName);
-    res.json({ address });
+    const profiles = await fetchProfilesFromName(validName);
+    if (!profiles || profiles.length === 0) {
+      res.status(404).json({ error: "No profiles found" });
+      return;
+    }
+    res.json({ address: profiles[0].address });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       console.log("zod error", z.prettifyError(error));
@@ -170,7 +168,6 @@ export async function resolveName(req: Request, res: Response) {
 
 const resolveRouter = Router();
 resolveRouter.get("/name/:name", resolveName);
-
-// resolveRouter.post("/addresses", resolveAddresses);
+resolveRouter.post("/profiles", resolveProfiles);
 
 export default resolveRouter;

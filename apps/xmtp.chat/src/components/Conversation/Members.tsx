@@ -8,16 +8,71 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { Group as XmtpGroup, type Conversation } from "@xmtp/browser-sdk";
+import {
+  Group as XmtpGroup,
+  type Conversation,
+  type SafeGroupMember,
+} from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
+import { Identity } from "@/components/Identity";
 import { useMemberId } from "@/hooks/useMemberId";
-import { BadgeWithCopy } from "../BadgeWithCopy";
+import classes from "./Members.module.css";
+
+export type PendingMember = {
+  inboxId: string;
+  address: string;
+  displayName?: string;
+};
 
 export type MembersProps = {
   conversation?: Conversation;
   inboxId: string;
-  onMembersAdded: (members: string[]) => void;
-  onMembersRemoved?: (members: string[]) => void;
+  onMembersAdded: (members: PendingMember[]) => void;
+  onMembersRemoved?: (members: SafeGroupMember[]) => void;
+};
+
+const hasInboxId = (
+  members: SafeGroupMember[] | PendingMember[],
+  inboxId: string,
+) => {
+  return members.some((member) => member.inboxId === inboxId);
+};
+
+type MemberProps = {
+  inboxId: string;
+  address: string;
+  displayName?: string;
+  isSelf: boolean;
+  onClick: () => void;
+  buttonLabel: string;
+};
+
+const Member: React.FC<MemberProps> = ({
+  inboxId,
+  address,
+  displayName,
+  isSelf,
+  onClick,
+  buttonLabel,
+}) => {
+  return (
+    <Group
+      justify="space-between"
+      align="center"
+      wrap="nowrap"
+      p="xxxs"
+      className={classes.member}>
+      <Identity
+        address={address}
+        inboxId={inboxId}
+        shorten={false}
+        displayName={displayName}
+      />
+      <Button disabled={isSelf} flex="0 0 auto" size="xs" onClick={onClick}>
+        {buttonLabel}
+      </Button>
+    </Group>
+  );
 };
 
 export const Members: React.FC<MembersProps> = ({
@@ -30,17 +85,24 @@ export const Members: React.FC<MembersProps> = ({
     loading,
     memberId,
     setMemberId,
+    displayName: memberIdDisplayName,
     error: memberIdError,
     inboxId: memberIdInboxId,
+    address: memberIdAddress,
   } = useMemberId();
   const [otherMemberError, setOtherMemberError] = useState<string | null>(null);
-  const [members, setMembers] = useState<string[]>([]);
-  const [addedMembers, setAddedMembers] = useState<string[]>([]);
-  const [removedMembers, setRemovedMembers] = useState<string[]>([]);
+  const [members, setMembers] = useState<SafeGroupMember[]>([]);
+  const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
+  const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
 
   const handleAddMember = useCallback(() => {
-    if (addedMembers.includes(memberIdInboxId)) return;
-    const newAddedMembers = [...addedMembers, memberIdInboxId];
+    if (hasInboxId(addedMembers, memberIdInboxId)) return;
+    const member = {
+      inboxId: memberIdInboxId,
+      address: memberIdAddress,
+      displayName: memberIdDisplayName,
+    };
+    const newAddedMembers = [...addedMembers, member];
     setAddedMembers(newAddedMembers);
     setMemberId("");
     onMembersAdded(newAddedMembers);
@@ -48,7 +110,7 @@ export const Members: React.FC<MembersProps> = ({
 
   const handleRemoveAddedMember = useCallback(
     (inboxId: string) => {
-      const newAddedMembers = addedMembers.filter((v) => v !== inboxId);
+      const newAddedMembers = addedMembers.filter((m) => m.inboxId !== inboxId);
       setAddedMembers(newAddedMembers);
       onMembersAdded(newAddedMembers);
     },
@@ -57,8 +119,12 @@ export const Members: React.FC<MembersProps> = ({
 
   const handleRemoveMember = useCallback(
     (inboxId: string) => {
-      setMembers(members.filter((v) => v !== inboxId));
-      const newRemovedMembers = [...removedMembers, inboxId];
+      const member = members.find((m) => m.inboxId === inboxId);
+      if (!member) {
+        return;
+      }
+      setMembers(members.filter((m) => m.inboxId !== inboxId));
+      const newRemovedMembers = [...removedMembers, member];
       setRemovedMembers(newRemovedMembers);
       onMembersRemoved?.(newRemovedMembers);
     },
@@ -67,10 +133,16 @@ export const Members: React.FC<MembersProps> = ({
 
   const handleRestoreRemovedMember = useCallback(
     (inboxId: string) => {
-      const newRemovedMembers = removedMembers.filter((v) => v !== inboxId);
+      const member = removedMembers.find((m) => m.inboxId === inboxId);
+      if (!member) {
+        return;
+      }
+      const newRemovedMembers = removedMembers.filter(
+        (m) => m.inboxId !== inboxId,
+      );
       setRemovedMembers(newRemovedMembers);
       onMembersRemoved?.(newRemovedMembers);
-      setMembers([...members, inboxId]);
+      setMembers([...members, member]);
     },
     [members, removedMembers],
   );
@@ -78,9 +150,9 @@ export const Members: React.FC<MembersProps> = ({
   useEffect(() => {
     if (
       memberIdInboxId &&
-      (members.includes(memberIdInboxId) ||
-        addedMembers.includes(memberIdInboxId) ||
-        removedMembers.includes(memberIdInboxId))
+      (hasInboxId(members, memberIdInboxId) ||
+        hasInboxId(addedMembers, memberIdInboxId) ||
+        hasInboxId(removedMembers, memberIdInboxId))
     ) {
       setOtherMemberError("Duplicate address or inbox ID");
     } else {
@@ -95,7 +167,7 @@ export const Members: React.FC<MembersProps> = ({
 
     const loadMembers = async () => {
       const members = await conversation.members();
-      setMembers(members.map((member) => member.inboxId));
+      setMembers(members);
     };
 
     void loadMembers();
@@ -152,22 +224,18 @@ export const Members: React.FC<MembersProps> = ({
           </Badge>
         </Group>
         <Stack gap="4px">
-          {addedMembers.map((inboxId) => (
-            <Group
-              key={inboxId}
-              justify="space-between"
-              align="center"
-              wrap="nowrap">
-              <BadgeWithCopy value={inboxId} />
-              <Button
-                flex="0 0 auto"
-                size="xs"
-                onClick={() => {
-                  handleRemoveAddedMember(inboxId);
-                }}>
-                Remove
-              </Button>
-            </Group>
+          {addedMembers.map((member) => (
+            <Member
+              key={member.inboxId}
+              buttonLabel="Remove"
+              displayName={member.displayName}
+              inboxId={member.inboxId}
+              address={member.address}
+              isSelf={member.inboxId === inboxId}
+              onClick={() => {
+                handleRemoveAddedMember(member.inboxId);
+              }}
+            />
           ))}
         </Stack>
       </Stack>
@@ -185,22 +253,17 @@ export const Members: React.FC<MembersProps> = ({
               </Badge>
             </Group>
             <Stack gap="4px">
-              {removedMembers.map((inboxId) => (
-                <Group
-                  key={`${inboxId}-removed`}
-                  justify="space-between"
-                  align="center"
-                  wrap="nowrap">
-                  <BadgeWithCopy value={inboxId} />
-                  <Button
-                    flex="0 0 auto"
-                    size="xs"
-                    onClick={() => {
-                      handleRestoreRemovedMember(inboxId);
-                    }}>
-                    Restore
-                  </Button>
-                </Group>
+              {removedMembers.map((member) => (
+                <Member
+                  key={member.inboxId}
+                  buttonLabel="Restore"
+                  inboxId={member.inboxId}
+                  address={member.accountIdentifiers[0].identifier}
+                  isSelf={member.inboxId === inboxId}
+                  onClick={() => {
+                    handleRestoreRemovedMember(member.inboxId);
+                  }}
+                />
               ))}
             </Stack>
           </Stack>
@@ -208,30 +271,22 @@ export const Members: React.FC<MembersProps> = ({
             <Group gap="xs">
               <Text fw={700}>Members</Text>
               <Badge color="gray" size="lg">
-                {members.length - 1}
+                {members.length}
               </Badge>
             </Group>
-            <Stack gap="4px">
-              {members.map(
-                (mInboxId) =>
-                  inboxId !== mInboxId && (
-                    <Group
-                      key={mInboxId}
-                      justify="space-between"
-                      align="center"
-                      wrap="nowrap">
-                      <BadgeWithCopy value={mInboxId} />
-                      <Button
-                        flex="0 0 auto"
-                        size="xs"
-                        onClick={() => {
-                          handleRemoveMember(mInboxId);
-                        }}>
-                        Remove
-                      </Button>
-                    </Group>
-                  ),
-              )}
+            <Stack gap="0">
+              {members.map((member) => (
+                <Member
+                  key={member.inboxId}
+                  buttonLabel="Remove"
+                  inboxId={member.inboxId}
+                  address={member.accountIdentifiers[0].identifier}
+                  isSelf={member.inboxId === inboxId}
+                  onClick={() => {
+                    handleRemoveMember(member.inboxId);
+                  }}
+                />
+              ))}
             </Stack>
           </Stack>
         </>

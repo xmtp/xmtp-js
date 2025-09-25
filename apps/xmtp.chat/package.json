@@ -43,7 +43,8 @@
     "uint8array-extras": "^1.5.0",
     "viem": "^2.37.6",
     "wagmi": "^2.16.9",
-    "zod": "^4.1.9"
+    "zod": "^4.1.9",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "^19.1.13",

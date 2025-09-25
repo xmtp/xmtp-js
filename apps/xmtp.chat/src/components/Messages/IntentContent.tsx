@@ -1,7 +1,8 @@
 import { Badge, Group, Text } from "@mantine/core";
-import { AddressBadge } from "@/components/AddressBadge";
 import { DateLabel } from "@/components/DateLabel";
+import { Identity } from "@/components/Identity";
 import type { Intent } from "@/content-types/Intent";
+import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
 
 export type IntentContentProps = {
@@ -15,11 +16,15 @@ export const IntentContent: React.FC<IntentContentProps> = ({
   content,
   sentAtNs,
 }) => {
+  const { members } = useConversationContext();
   return (
     <>
       <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
       <Group gap="4" wrap="wrap" justify="center">
-        <AddressBadge address={senderInboxId} size="lg" />
+        <Identity
+          address={members.get(senderInboxId) ?? ""}
+          inboxId={senderInboxId}
+        />
         <Text size="sm">selected the</Text>
         <Badge
           radius="md"

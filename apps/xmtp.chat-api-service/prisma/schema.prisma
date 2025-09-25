@@ -20,21 +20,17 @@ datasource db {
 enum Platform {
   ens
   basenames
-  farcaster
   unknown
 }
 
 model Profile {
   id          String   @id @default(uuid())
   address     String
-  identity    String   @unique
-  platform    Platform
-  displayName String?
-  email       String?
-  location    String?
-  status      String?
   avatar      String?
   description String?
+  displayName String?
+  identity    String   @unique
+  platform    Platform
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

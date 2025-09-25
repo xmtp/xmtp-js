@@ -1,6 +1,6 @@
 import { Flex, Group, Stack } from "@mantine/core";
 import { DateLabel } from "@/components/DateLabel";
-import { InboxIdBadge } from "@/components/InboxId";
+import { Identity } from "@/components/Identity";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
 
@@ -29,10 +29,9 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
           direction={align === "right" ? "row" : "row-reverse"}
           align="center">
           <DateLabel date={nsToDate(sentAtNs)} />
-          <InboxIdBadge
+          <Identity
             address={members.get(senderInboxId) ?? ""}
             inboxId={senderInboxId}
-            size="xs"
           />
         </Flex>
         <Group

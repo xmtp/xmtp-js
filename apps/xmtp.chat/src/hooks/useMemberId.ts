@@ -9,9 +9,10 @@ import { useSettings } from "@/hooks/useSettings";
 
 export const useMemberId = () => {
   const [loading, setLoading] = useState(false);
-  const [memberId, setMemberId] = useState<string>("");
-  const [inboxId, setInboxId] = useState<string>("");
-  const [address, setAddress] = useState<string>("");
+  const [memberId, setMemberId] = useState("");
+  const [inboxId, setInboxId] = useState("");
+  const [address, setAddress] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { environment } = useSettings();
 
@@ -20,6 +21,7 @@ export const useMemberId = () => {
       setError(null);
       setInboxId("");
       setAddress("");
+      setDisplayName("");
 
       if (!memberId) {
         return;
@@ -70,6 +72,7 @@ export const useMemberId = () => {
               } else {
                 setInboxId(inboxId);
                 setAddress(address);
+                setDisplayName(memberId);
               }
             } catch {
               setError("Unable to get inbox ID for address. Try again.");
@@ -95,6 +98,7 @@ export const useMemberId = () => {
     loading,
     inboxId,
     address,
+    displayName,
     setMemberIdError: setError,
   };
 };
