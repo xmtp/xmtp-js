@@ -1,27 +1,36 @@
 import { Group, Text } from "@mantine/core";
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import { useMemo } from "react";
-import { AddressBadge } from "@/components/AddressBadge";
 import { DateLabel } from "@/components/DateLabel";
+import { Identity } from "@/components/Identity";
+import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
 
 type GroupMembersAddedContentProps = {
   type: "added" | "removed";
-  members: string[];
+  updatedMembers: string[];
   initiatedBy: string;
 };
 
 const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
   type,
-  members,
+  updatedMembers,
   initiatedBy,
 }) => {
+  const { members } = useConversationContext();
   return (
     <Group gap="4" wrap="wrap" justify="center">
-      <AddressBadge address={initiatedBy} size="lg" />
+      <Identity
+        address={members.get(initiatedBy) ?? ""}
+        inboxId={initiatedBy}
+      />
       <Text size="sm">{type === "added" ? "added" : "removed"}</Text>
-      {members.map((member) => (
-        <AddressBadge key={member} address={member} size="lg" />
+      {updatedMembers.map((member) => (
+        <Identity
+          key={member}
+          address={members.get(member) ?? ""}
+          inboxId={member}
+        />
       ))}
       <Text size="sm">{type === "added" ? "to" : "from"} the group</Text>
     </Group>
@@ -36,6 +45,7 @@ type GroupMetadataUpdatedContentProps = {
 const GroupMetadataUpdatedContent: React.FC<
   GroupMetadataUpdatedContentProps
 > = ({ metadataFieldChange, initiatedBy }) => {
+  const { members } = useConversationContext();
   const field = useMemo(() => {
     switch (metadataFieldChange.fieldName) {
       case "group_name":
@@ -49,7 +59,10 @@ const GroupMetadataUpdatedContent: React.FC<
 
   return (
     <Group gap="4" wrap="wrap" justify="center">
-      <AddressBadge address={initiatedBy} />
+      <Identity
+        address={members.get(initiatedBy) ?? ""}
+        inboxId={initiatedBy}
+      />
       <Text size="sm">
         {metadataFieldChange.newValue ? "changed" : "removed"} the group
       </Text>
@@ -81,7 +94,7 @@ export const GroupUpdatedContent: React.FC<GroupUpdatedContentProps> = ({
         <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
         <GroupMembersUpdatedContent
           type="added"
-          members={content.addedInboxes.map((inbox) => inbox.inboxId)}
+          updatedMembers={content.addedInboxes.map((inbox) => inbox.inboxId)}
           initiatedBy={content.initiatedByInboxId}
         />
       </>
@@ -94,7 +107,7 @@ export const GroupUpdatedContent: React.FC<GroupUpdatedContentProps> = ({
         <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
         <GroupMembersUpdatedContent
           type="removed"
-          members={content.removedInboxes.map((inbox) => inbox.inboxId)}
+          updatedMembers={content.removedInboxes.map((inbox) => inbox.inboxId)}
           initiatedBy={content.initiatedByInboxId}
         />
       </>
