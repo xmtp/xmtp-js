@@ -15,7 +15,7 @@ import { filter } from "@/utils/filter.js";
 import type { AgentBaseContext } from "./Agent.js";
 import { ConversationContext } from "./ConversationContext.js";
 
-type DecodedMessageWithContent<ContentTypes = unknown> =
+export type DecodedMessageWithContent<ContentTypes = unknown> =
   DecodedMessage<ContentTypes> & {
     content: ContentTypes;
   };

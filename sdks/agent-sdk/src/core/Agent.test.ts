@@ -1,4 +1,7 @@
-import type { GroupUpdated } from "@xmtp/content-type-group-updated";
+import {
+  ContentTypeGroupUpdated,
+  type GroupUpdated,
+} from "@xmtp/content-type-group-updated";
 import {
   ContentTypeReaction,
   type Reaction,
@@ -64,7 +67,7 @@ const createMockStreamWithCallbacks = (messages: DecodedMessage[]) => {
     [Symbol.asyncIterator]: vi.fn(),
   };
 
-  const mockImplementation = vi
+  return vi
     .fn()
     .mockImplementation(
       (options: { onValue: (value: DecodedMessage) => void }) => {
@@ -77,8 +80,6 @@ const createMockStreamWithCallbacks = (messages: DecodedMessage[]) => {
         return Promise.resolve(mockStream);
       },
     );
-
-  return mockImplementation;
 };
 
 const flushMicrotasks = async () => {
@@ -158,6 +159,12 @@ describe("Agent", () => {
     it("types content for 'reply' events", () => {
       ephemeralAgent.on("reply", (ctx) => {
         expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
+      });
+    });
+
+    it("types content for 'group-update' events", () => {
+      ephemeralAgent.on("group-update", (ctx) => {
+        expectTypeOf(ctx.message.content).toEqualTypeOf<GroupUpdated>();
       });
     });
 
@@ -261,13 +268,11 @@ describe("Agent", () => {
         content: "Message from other",
       });
 
-      const mockImplementation = createMockStreamWithCallbacks([
+      const mockStream = createMockStreamWithCallbacks([
         messageFromSelf,
         messageFromOther,
       ]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       const textEventSpy = vi.fn();
       const unknownMessageSpy = vi.fn();
@@ -290,8 +295,8 @@ describe("Agent", () => {
         expect.objectContaining({
           message: expect.objectContaining({
             senderInboxId: "other-inbox-id",
-          }) as { senderInboxId: string },
-        } as unknown as MessageContext),
+          }) as DecodedMessage,
+        } as MessageContext),
       );
     });
 
@@ -320,13 +325,11 @@ describe("Agent", () => {
         },
       });
 
-      const mockImplementation = createMockStreamWithCallbacks([
+      const mockStream = createMockStreamWithCallbacks([
         reactionFromSelf,
         reactionFromOther,
       ]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       const reactionEventSpy = vi.fn();
       const unknownMessageSpy = vi.fn();
@@ -349,8 +352,38 @@ describe("Agent", () => {
         expect.objectContaining({
           message: expect.objectContaining({
             senderInboxId: "other-inbox-id",
-          }) as { senderInboxId: string },
-        } as unknown as MessageContext),
+          }) as DecodedMessage,
+        } as MessageContext),
+      );
+    });
+
+    it("should emit 'group-update' event for group update messages", async () => {
+      const groupUpdateMessage = createMockMessage<GroupUpdated>({
+        contentType: ContentTypeGroupUpdated,
+        content: {
+          initiatedByInboxId: "initiator-inbox-id",
+          addedInboxes: [{ inboxId: "added-inbox-id" }],
+          removedInboxes: [{ inboxId: "removed-inbox-id" }],
+          metadataFieldChanges: [],
+        },
+      });
+
+      const mockStream = createMockStreamWithCallbacks([groupUpdateMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
+
+      const groupUpdateEventSpy = vi.fn();
+      agent.on("group-update", groupUpdateEventSpy);
+
+      await agent.start();
+      await flushMicrotasks();
+
+      expect(groupUpdateEventSpy).toHaveBeenCalledTimes(1);
+      expect(groupUpdateEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            contentType: ContentTypeGroupUpdated,
+          }) as DecodedMessage<GroupUpdated>,
+        } as MessageContext),
       );
     });
 
@@ -385,24 +418,35 @@ describe("Agent", () => {
         },
       });
 
-      const mockImplementation = createMockStreamWithCallbacks([
+      const groupUpdateMessage = createMockMessage<GroupUpdated>({
+        contentType: ContentTypeGroupUpdated,
+        content: {
+          initiatedByInboxId: "inbox-id",
+          addedInboxes: [],
+          removedInboxes: [],
+          metadataFieldChanges: [],
+        },
+      });
+
+      const mockStream = createMockStreamWithCallbacks([
         textMessage,
         reactionMessage,
         replyMessage,
+        groupUpdateMessage,
       ]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       const messageEventSpy = vi.fn();
       const textEventSpy = vi.fn();
       const reactionEventSpy = vi.fn();
       const replyEventSpy = vi.fn();
+      const groupUpdateEventSpy = vi.fn();
 
       agent.on("message", messageEventSpy);
       agent.on("text", textEventSpy);
       agent.on("reaction", reactionEventSpy);
       agent.on("reply", replyEventSpy);
+      agent.on("group-update", groupUpdateEventSpy);
 
       await agent.start();
       await flushMicrotasks();
@@ -410,11 +454,12 @@ describe("Agent", () => {
       expect(
         messageEventSpy,
         "Generic 'message' event should fire for all message types",
-      ).toHaveBeenCalledTimes(3);
+      ).toHaveBeenCalledTimes(4);
 
       expect(textEventSpy).toHaveBeenCalledTimes(1);
       expect(reactionEventSpy).toHaveBeenCalledTimes(1);
       expect(replyEventSpy).toHaveBeenCalledTimes(1);
+      expect(groupUpdateEventSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -433,10 +478,8 @@ describe("Agent", () => {
       });
       agent.use(middleware);
 
-      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      const mockStream = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
@@ -466,13 +509,11 @@ describe("Agent", () => {
       });
       agent.use(middlewareCallsSpy);
 
-      const mockImplementation = createMockStreamWithCallbacks([
+      const mockStream = createMockStreamWithCallbacks([
         messageFromSelf,
         messageFromOther,
       ]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
@@ -488,8 +529,8 @@ describe("Agent", () => {
         expect.objectContaining({
           message: expect.objectContaining({
             senderInboxId: "other-user-inbox",
-          }) as { senderInboxId: string },
-        } as unknown as MessageContext),
+          }) as DecodedMessage,
+        } as MessageContext),
         expect.any(Function),
       );
     });
@@ -526,13 +567,11 @@ describe("Agent", () => {
 
       agent.use([mw1, mw2, mw3]);
 
-      const mockImplementation = createMockStreamWithCallbacks([
+      const mockStream = createMockStreamWithCallbacks([
         firstMessage,
         secondMessage,
       ]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
@@ -583,13 +622,11 @@ describe("Agent", () => {
 
       agent.use([mw1, filterReply, mw3]);
 
-      const mockImplementation = createMockStreamWithCallbacks([
+      const mockStream = createMockStreamWithCallbacks([
         firstMessage,
         secondMessage,
       ]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
@@ -723,10 +760,8 @@ describe("Agent", () => {
         callOrder.push("EMIT");
       });
 
-      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      const mockStream = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
@@ -768,10 +803,8 @@ describe("Agent", () => {
         callOrder.push("never happening");
       });
 
-      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      const mockStream = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
@@ -808,10 +841,8 @@ describe("Agent", () => {
 
       agent.errors.use(e1, e2);
 
-      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      const mockStream = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
@@ -836,10 +867,8 @@ describe("Agent", () => {
         callOrder.push(error.message);
       });
 
-      const mockImplementation = createMockStreamWithCallbacks([mockMessage]);
-      mockClient.conversations.streamAllMessages.mockImplementation(
-        mockImplementation,
-      );
+      const mockStream = createMockStreamWithCallbacks([mockMessage]);
+      mockClient.conversations.streamAllMessages.mockImplementation(mockStream);
 
       await agent.start();
       await flushMicrotasks();
