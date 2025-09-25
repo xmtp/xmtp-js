@@ -121,7 +121,7 @@ export const fetchNames = async (input: string[]) => {
     return [];
   }
 
-  const escapedNames = escape(JSON.stringify(input));
+  const escapedNames = escape(JSON.stringify(identities));
   return await fetchFromWeb3Bio<NSResponse[]>(`/ns/batch/${escapedNames}`);
 };
 
