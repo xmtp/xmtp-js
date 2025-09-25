@@ -1,13 +1,17 @@
 import {
+  ContentTypeGroupUpdated,
+  type GroupUpdatedCodec,
+} from "@xmtp/content-type-group-updated";
+import {
   ContentTypeReaction,
-  type Reaction,
+  type ReactionCodec,
 } from "@xmtp/content-type-reaction";
 import {
   ContentTypeRemoteAttachment,
-  type RemoteAttachment,
+  type RemoteAttachmentCodec,
 } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
+import { ContentTypeReply, type ReplyCodec } from "@xmtp/content-type-reply";
+import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
 import {
   Dm,
   Group,
@@ -56,27 +60,41 @@ const isGroupSuperAdmin = (
   return false;
 };
 
+const isGroupUpdate = (
+  message: DecodedMessage,
+): message is DecodedMessage & {
+  content: ReturnType<GroupUpdatedCodec["decode"]>;
+} => {
+  return !!message.contentType?.sameAs(ContentTypeGroupUpdated);
+};
+
 const isReaction = (
   message: DecodedMessage,
-): message is DecodedMessage & { content: Reaction } => {
+): message is DecodedMessage & {
+  content: ReturnType<ReactionCodec["decode"]>;
+} => {
   return !!message.contentType?.sameAs(ContentTypeReaction);
 };
 
 const isReply = (
   message: DecodedMessage,
-): message is DecodedMessage & { content: Reply } => {
+): message is DecodedMessage & {
+  content: ReturnType<ReplyCodec["decode"]>;
+} => {
   return !!message.contentType?.sameAs(ContentTypeReply);
 };
 
 const isRemoteAttachment = (
   message: DecodedMessage,
-): message is DecodedMessage & { content: RemoteAttachment } => {
+): message is DecodedMessage & {
+  content: ReturnType<RemoteAttachmentCodec["decode"]>;
+} => {
   return !!message.contentType?.sameAs(ContentTypeRemoteAttachment);
 };
 
 const isText = (
   message: DecodedMessage,
-): message is DecodedMessage & { content: string } => {
+): message is DecodedMessage & { content: ReturnType<TextCodec["decode"]> } => {
   return !!message.contentType?.sameAs(ContentTypeText);
 };
 
@@ -91,6 +109,7 @@ export const filter = {
   isGroup,
   isGroupAdmin,
   isGroupSuperAdmin,
+  isGroupUpdate,
   isReaction,
   isRemoteAttachment,
   isReply,
