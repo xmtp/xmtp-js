@@ -1,6 +1,6 @@
 import { escape } from "node:querystring";
 import type { NSResponse, ProfileResponse } from "web3bio-profile-kit/types";
-import { resolveIdentity } from "web3bio-profile-kit/utils";
+import { isValidEthereumAddress } from "web3bio-profile-kit/utils";
 import { z } from "zod";
 
 const WEB3BIO_API_ENDPOINT = "https://api.web3.bio";
@@ -40,10 +40,15 @@ const fetchFromWeb3Bio = async <T>(path: string) => {
   return response.json() as Promise<T>;
 };
 
-export const fetchProfiles = async (identities: string[]) => {
+export const fetchProfiles = async (input: string[]) => {
+  // validate input
+  const identities = input.filter(isValidNameInput);
+
+  // if no identities, return empty array
   if (identities.length === 0) {
     return [];
   }
+
   const escapedIdentities = escape(JSON.stringify(identities));
   return await fetchFromWeb3Bio<ProfileResponse[]>(
     `/profile/batch/${escapedIdentities}`,
@@ -51,10 +56,8 @@ export const fetchProfiles = async (identities: string[]) => {
 };
 
 export const batchFetchProfiles = async (input: string[]) => {
-  // convert input to identities
-  const identities = input
-    .map((v) => resolveIdentity(v))
-    .filter((v) => v !== null);
+  // validate input
+  const identities = input.filter(isValidNameInput);
 
   // if no identities, return empty array
   if (identities.length === 0) {
@@ -88,16 +91,63 @@ export const fetchProfile = async (identity: string) => {
   );
 };
 
-export const fetchAddress = async (name: string) => {
+export const fetchProfilesFromName = async (name: string) => {
   if (!name || !validateName(name)) {
     return null;
   }
-  const profiles = await fetchFromWeb3Bio<NSResponse[]>(`/ns/${escape(name)}`);
-  if (isWeb3BioErrorResponse(profiles)) {
+  const response = await fetchFromWeb3Bio<NSResponse[]>(`/ns/${escape(name)}`);
+  if (isWeb3BioErrorResponse(response)) {
     console.error(
-      `Error fetching address: ${profiles.status} ${profiles.statusText}`,
+      `Error fetching address: ${response.status} ${response.statusText}`,
     );
     return null;
   }
-  return profiles.length > 0 ? profiles[0].address : null;
+  return response;
+};
+
+export const isValidNameInput = (input: string) => {
+  const [type, address] = input.split(",");
+  return (
+    (type === "ens" || type === "basenames") && isValidEthereumAddress(address)
+  );
+};
+
+export const fetchNames = async (input: string[]) => {
+  // validate input
+  const identities = input.filter(isValidNameInput);
+
+  // if no identities, return empty array
+  if (identities.length === 0) {
+    return [];
+  }
+
+  const escapedNames = escape(JSON.stringify(input));
+  return await fetchFromWeb3Bio<NSResponse[]>(`/ns/batch/${escapedNames}`);
+};
+
+export const batchFetchNames = async (input: string[]) => {
+  // validate input
+  const identities = input.filter(isValidNameInput);
+
+  // if no identities, return empty array
+  if (identities.length === 0) {
+    return [];
+  }
+
+  const names: NSResponse[] = [];
+
+  // fetch names in batches
+  while (identities.length > 0) {
+    const batch = identities.splice(0, WEB3BIO_BATCH_SIZE);
+    const batchNames = await fetchNames(batch);
+    if (isWeb3BioErrorResponse(batchNames)) {
+      console.error(
+        `Error fetching names: ${batchNames.status} ${batchNames.statusText}`,
+      );
+      continue;
+    }
+    names.push(...batchNames);
+  }
+
+  return names;
 };
