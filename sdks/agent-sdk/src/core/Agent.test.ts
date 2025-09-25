@@ -357,7 +357,7 @@ describe("Agent", () => {
       );
     });
 
-    it("should emit 'group-update' event for group update messages", async () => {
+    it("should emit 'group-update' events for group update messages", async () => {
       const groupUpdateMessage = createMockMessage<GroupUpdated>({
         contentType: ContentTypeGroupUpdated,
         content: {
