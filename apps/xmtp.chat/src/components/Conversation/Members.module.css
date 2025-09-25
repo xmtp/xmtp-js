@@ -1,0 +1,7 @@
+.member {
+  border-radius: var(--mantine-radius-sm);
+}
+
+.member:hover {
+  background-color: var(--mantine-color-default-hover);
+}

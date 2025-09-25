@@ -1,4 +1,10 @@
-import { Badge, Popover, Stack, Text } from "@mantine/core";
+import {
+  Badge,
+  Popover,
+  Stack,
+  Text,
+  type MantineStyleProps,
+} from "@mantine/core";
 import { useState } from "react";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { shortAddress } from "@/helpers/strings";
@@ -7,20 +13,23 @@ import { useProfiles } from "@/stores/profiles";
 export type IdentityProps = {
   inboxId: string;
   address: string;
+  displayName?: string;
+  shorten?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
-};
+} & Pick<MantineStyleProps, "w">;
 
 export const Identity: React.FC<IdentityProps> = ({
   inboxId,
   address,
+  displayName,
   size = "lg",
+  shorten = true,
+  w,
 }) => {
   const [opened, setOpened] = useState(false);
   const profiles = useProfiles(address);
-  const displayName =
-    profiles.length > 0
-      ? profiles[0].displayName || shortAddress(address || inboxId)
-      : shortAddress(address || inboxId);
+  const label =
+    displayName || (profiles.length > 0 ? profiles[0].displayName : null);
   return (
     <Popover
       width={300}
@@ -36,6 +45,7 @@ export const Identity: React.FC<IdentityProps> = ({
           variant="default"
           size={size}
           tabIndex={0}
+          w={w}
           styles={{
             label: {
               textTransform: "none",
@@ -48,7 +58,8 @@ export const Identity: React.FC<IdentityProps> = ({
             e.stopPropagation();
             setOpened((o) => !o);
           }}>
-          {displayName}
+          {label ||
+            (shorten ? shortAddress(address || inboxId) : address || inboxId)}
         </Badge>
       </Popover.Target>
       <Popover.Dropdown
