@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Group, Paper, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
-import { AddressBadge } from "@/components/AddressBadge";
+import { Identity } from "@/components/Identity";
 import { AttachmentDetails } from "@/components/Messages/AttachmentDetails";
 import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
@@ -40,8 +40,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
   disabled,
 }) => {
   const { members } = useConversationContext();
-  const fromAddress =
-    members.get(message.senderInboxId) ?? message.senderInboxId;
+  const fromAddress = members.get(message.senderInboxId) ?? "";
   return (
     <>
       <Box miw="0">
@@ -52,7 +51,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
               Replying to
             </Text>
             <Box>
-              <AddressBadge address={fromAddress} />
+              <Identity address={fromAddress} inboxId={message.senderInboxId} />
             </Box>
           </Group>
           <ReplyPreviewContent message={message} />

@@ -2,7 +2,7 @@ import { Accordion, Badge, Button, Group, Stack, Text } from "@mantine/core";
 import { GroupPermissionsOptions, type Client } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
-import { Members } from "@/components/Conversation/Members";
+import { Members, type PendingMember } from "@/components/Conversation/Members";
 import { Metadata } from "@/components/Conversation/Metadata";
 import {
   defaultPolicySet,
@@ -33,7 +33,7 @@ export const CreateGroupModal: React.FC = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrlSquare, setImageUrlSquare] = useState("");
-  const [addedMembers, setAddedMembers] = useState<string[]>([]);
+  const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
   const [permissionsPolicy, setPermissionsPolicy] =
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
   const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
@@ -49,9 +49,9 @@ export const CreateGroupModal: React.FC = () => {
     setLoading(true);
 
     try {
-      const addedMemberInboxIds = addedMembers.filter((member) =>
-        isValidInboxId(member),
-      );
+      const addedMemberInboxIds = addedMembers
+        .filter((member) => isValidInboxId(member.inboxId))
+        .map((member) => member.inboxId);
       const conversation = await newGroup(addedMemberInboxIds, {
         name,
         description,
@@ -63,9 +63,9 @@ export const CreateGroupModal: React.FC = () => {
             : undefined,
       });
 
-      const addedMemberAddresses = addedMembers.filter((member) =>
-        isValidEthereumAddress(member),
-      );
+      const addedMemberAddresses = addedMembers
+        .filter((member) => isValidEthereumAddress(member.address))
+        .map((member) => member.address);
       if (addedMemberAddresses.length > 0) {
         await conversation.addMembersByIdentifiers(
           addedMemberAddresses.map((address) => ({
