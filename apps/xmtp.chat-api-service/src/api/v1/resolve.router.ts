@@ -1,4 +1,4 @@
-import type { Platform, Profile } from "@prisma/client";
+import type { Platform } from "@prisma/client";
 import { addDays, isAfter } from "date-fns";
 import { Router, type Request, type Response } from "express";
 import {
@@ -22,23 +22,12 @@ export const resolvePlatform = (platform: Web3BioPlatform): Platform => {
   }
 };
 
-type ReducedProfile = Omit<Profile, "id" | "createdAt" | "updatedAt">;
-type CombinedProfiles = Record<string, ReducedProfile[]>;
 type ProfileResponseWithAddress = ProfileResponse & {
   address: string;
 };
 
-export const combineProfiles = (
-  profiles: ReducedProfile[],
-): CombinedProfiles => {
-  return profiles.reduce<CombinedProfiles>((result, profile) => {
-    (result[profile.address] ??= []).push(profile);
-    return result;
-  }, {});
-};
-
 export const resolveAddressSchema = z.object({
-  addresses: z.string().length(42).startsWith("0x").array(),
+  addresses: z.string().length(42).startsWith("0x").array().min(1),
 });
 
 export async function resolveAddresses(req: Request, res: Response) {
@@ -79,55 +68,59 @@ export async function resolveAddresses(req: Request, res: Response) {
     const newProfiles = fetchedProfiles.filter(
       (p) => p.address && missingAddresses.includes(p.address),
     ) as ProfileResponseWithAddress[];
-    const createdProfiles = await prisma.profile.createManyAndReturn({
-      data: newProfiles.map((p) => ({
-        address: p.address,
-        identity: p.identity,
-        platform: resolvePlatform(p.platform),
-        displayName: p.displayName,
-        email: p.email,
-        location: p.location,
-        status: p.status,
-        avatar: p.avatar,
-        description: p.description,
-      })),
-      omit: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    if (newProfiles.length > 0) {
+      const createdProfiles = await prisma.profile.createManyAndReturn({
+        data: newProfiles.map((p) => ({
+          address: p.address,
+          identity: p.identity,
+          platform: resolvePlatform(p.platform),
+          displayName: p.displayName,
+          email: p.email,
+          location: p.location,
+          status: p.status,
+          avatar: p.avatar,
+          description: p.description,
+        })),
+      });
+      validProfiles.push(...createdProfiles);
+    }
 
     // update expired profiles in the database
     const expiredProfiles = fetchedProfiles.filter(
       (p) => p.address && expiredProfileAddresses.includes(p.address),
     );
-    const updatedProfiles = await prisma.profile.updateManyAndReturn({
-      data: expiredProfiles.map((p) => ({
-        address: p.address,
-        identity: p.identity,
-        platform: resolvePlatform(p.platform),
-        displayName: p.displayName,
-        email: p.email,
-        location: p.location,
-        status: p.status,
-        avatar: p.avatar,
-        description: p.description,
-      })),
-      omit: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    if (expiredProfiles.length > 0) {
+      const updatedProfiles = await prisma.profile.updateManyAndReturn({
+        data: expiredProfiles.map((p) => ({
+          address: p.address,
+          identity: p.identity,
+          platform: resolvePlatform(p.platform),
+          displayName: p.displayName,
+          email: p.email,
+          location: p.location,
+          status: p.status,
+          avatar: p.avatar,
+          description: p.description,
+        })),
+      });
+      validProfiles.push(...updatedProfiles);
+    }
+
+    console.log("profiles to return", validProfiles);
 
     // return the profiles
     res.json({
-      profiles: combineProfiles([
-        ...validProfiles,
-        ...createdProfiles,
-        ...updatedProfiles,
-      ]),
+      profiles: validProfiles.map((p) => ({
+        address: p.address,
+        avatar: p.avatar,
+        description: p.description,
+        displayName: p.displayName,
+        email: p.email,
+        identity: p.identity,
+        location: p.location,
+        platform: p.platform,
+        status: p.status,
+      })),
     });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
@@ -143,10 +136,7 @@ export async function resolveAddresses(req: Request, res: Response) {
   }
 }
 
-export const resolveNameSchema = z
-  .string()
-  .endsWith(".eth")
-  .or(z.string().endsWith(".base.eth"));
+export const resolveNameSchema = z.string().endsWith(".eth");
 
 export async function resolveName(req: Request, res: Response) {
   try {
@@ -170,7 +160,6 @@ export async function resolveName(req: Request, res: Response) {
 
 const resolveRouter = Router();
 resolveRouter.get("/name/:name", resolveName);
-
-// resolveRouter.post("/addresses", resolveAddresses);
+resolveRouter.post("/addresses", resolveAddresses);
 
 export default resolveRouter;
