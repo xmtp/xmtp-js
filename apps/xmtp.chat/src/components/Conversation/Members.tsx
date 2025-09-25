@@ -57,7 +57,6 @@ const Member: React.FC<MemberProps> = ({
 }) => {
   return (
     <Group
-      key={inboxId}
       justify="space-between"
       align="center"
       wrap="nowrap"
@@ -227,6 +226,7 @@ export const Members: React.FC<MembersProps> = ({
         <Stack gap="4px">
           {addedMembers.map((member) => (
             <Member
+              key={member.inboxId}
               buttonLabel="Remove"
               displayName={member.displayName}
               inboxId={member.inboxId}
@@ -255,6 +255,7 @@ export const Members: React.FC<MembersProps> = ({
             <Stack gap="4px">
               {removedMembers.map((member) => (
                 <Member
+                  key={member.inboxId}
                   buttonLabel="Restore"
                   inboxId={member.inboxId}
                   address={member.accountIdentifiers[0].identifier}
@@ -276,6 +277,7 @@ export const Members: React.FC<MembersProps> = ({
             <Stack gap="0">
               {members.map((member) => (
                 <Member
+                  key={member.inboxId}
                   buttonLabel="Remove"
                   inboxId={member.inboxId}
                   address={member.accountIdentifiers[0].identifier}
