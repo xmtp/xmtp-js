@@ -16,7 +16,7 @@ export const resolveAddresses = async (addresses: string[], force = false) => {
   }
 
   const response = await fetch(
-    `${import.meta.env.VITE_API_SERVICE_URL}/api/v1/resolve/addresses`,
+    `${import.meta.env.VITE_API_SERVICE_URL}/api/v1/resolve/profiles`,
     {
       method: "POST",
       headers: {

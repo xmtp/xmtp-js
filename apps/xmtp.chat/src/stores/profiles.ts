@@ -1,18 +1,15 @@
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-export type Platform = "unknown" | "ens" | "basenames" | "farcaster";
+export type Platform = "unknown" | "ens" | "basenames";
 
 export type Profile = {
   address: string;
   avatar: string | null;
   description: string | null;
   displayName: string | null;
-  email: string | null;
   identity: string;
-  location: string | null;
   platform: Platform | null;
-  status: string | null;
 };
 
 export const createEmptyProfile = (address: string): Profile => ({
@@ -20,11 +17,8 @@ export const createEmptyProfile = (address: string): Profile => ({
   avatar: null,
   description: null,
   displayName: null,
-  email: null,
   identity: "",
-  location: null,
   platform: null,
-  status: null,
 });
 
 export type ProfilesState = {
