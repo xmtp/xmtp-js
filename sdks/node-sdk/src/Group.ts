@@ -52,15 +52,6 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   }
 
   /**
-   * WARNING: This is a delicate funciton exposed for a one off build.
-   * Updates the group's min version to match out libxmtp version
-   *
-   */
-  async updateGroupMinVersionToMatchSelf() {
-    return this.#conversation.updateGroupMinVersionToMatchSelf();
-  }
-
-  /**
    * The image URL of the group
    */
   get imageUrl() {

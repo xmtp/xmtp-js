@@ -230,6 +230,15 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
+   * WARNING: This is a delicate funciton exposed for a one off build.
+   * Updates the group's min version to match out libxmtp version
+   *
+   */
+  updateGroupMinVersionToMatchSelf() {
+    this.#conversation.updateGroupMinVersionToMatchSelf();
+  }
+
+  /**
    * Gets the message disappearing settings for this conversation
    *
    * @returns The current message disappearing settings or undefined if not set
