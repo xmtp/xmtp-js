@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.0.1
+
+### Patch Changes
+
+- 54577da: Added "group-update" events
+
 ## 1.0.0
 
 ### Major Changes
