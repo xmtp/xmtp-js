@@ -54,4 +54,3 @@ jobs:
           publish: yarn publish
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
