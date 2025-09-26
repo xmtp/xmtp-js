@@ -1,4 +1,5 @@
 import EventEmitter from "node:events";
+import type { GroupUpdatedCodec } from "@xmtp/content-type-group-updated";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
@@ -34,6 +35,9 @@ type EventHandlerMap<ContentTypes> = {
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
   ];
   conversation: [ctx: ConversationContext<ContentTypes>];
+  "group-update": [
+    ctx: MessageContext<ReturnType<GroupUpdatedCodec["decode"]>>,
+  ];
   message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
   reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
@@ -226,6 +230,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         onValue: async (message) => {
           try {
             switch (true) {
+              case filter.isGroupUpdate(message):
+                await this.#processMessage(message, "group-update");
+                break;
               case filter.isRemoteAttachment(message):
                 await this.#processMessage(message, "attachment");
                 break;
