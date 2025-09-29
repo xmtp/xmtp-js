@@ -95,6 +95,7 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 
 **Conversation Events**
 
+- `conversation` – a new group or DM conversation
 - `dm` – a new DM conversation
 - `group` – a new group conversation
 
