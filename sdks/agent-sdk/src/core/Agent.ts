@@ -221,6 +221,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async #handleStreamError(error: unknown) {
+    this.#conversationsStream = undefined;
     this.#messageStream = undefined;
     const recovered = await this.#runErrorChain(error, {
       client: this.#client,
