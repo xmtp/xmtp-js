@@ -4093,7 +4093,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/wasm-bindings": "npm:1.4.0"
+    "@xmtp/wasm-bindings": "npm:1.5.2"
     playwright: "npm:^1.55.0"
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
@@ -4291,10 +4291,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.4.0":
-  version: 1.4.0
-  resolution: "@xmtp/node-bindings@npm:1.4.0"
-  checksum: 10/76d7483c3a5dfe1abaeb9e4cff72fe5c4e88c312a4acb7dfdcafb815c681fc019dab133a8fa80dc986e08fb5e485b39d62539c63d10705459ba909910b7abe9a
+"@xmtp/node-bindings@npm:1.5.2":
+  version: 1.5.2
+  resolution: "@xmtp/node-bindings@npm:1.5.2"
+  checksum: 10/681e59921ca37c060be32353bb1d4c79592fe5b44c91b0f95b14d82f7d9f4e06b3065c297a1458234f0804e4d0d565d9ddd618215cdf80e248932df31c547e77
   languageName: node
   linkType: hard
 
@@ -4309,7 +4309,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/node-bindings": "npm:1.4.0"
+    "@xmtp/node-bindings": "npm:1.5.2"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
@@ -4351,10 +4351,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.4.0":
-  version: 1.4.0
-  resolution: "@xmtp/wasm-bindings@npm:1.4.0"
-  checksum: 10/d80218d567ca0b7eb48c9bf9989115962d107041b5f614289dcabbcdc56bc6266dc6cad3571dfeb854fbfc5d9f5677b93ef3523c1d1c6800ac07f3d09318d57f
+"@xmtp/wasm-bindings@npm:1.5.2":
+  version: 1.5.2
+  resolution: "@xmtp/wasm-bindings@npm:1.5.2"
+  checksum: 10/87941063a733f79648b525d20dca54fcd1762aac34b82966f6b5a717f492a77b1976dd1454f43dbf74f40866f7640b452e222d565215b3cfd8828e51a2395bc1
   languageName: node
   linkType: hard
 
