@@ -13,12 +13,12 @@ import {
   type Reply,
 } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type {
-  Client,
-  Conversation,
-  DecodedMessage,
+import {
   Dm,
   Group,
+  type Client,
+  type Conversation,
+  type DecodedMessage,
 } from "@xmtp/node-sdk";
 import {
   beforeEach,
@@ -75,6 +75,29 @@ const createMockStreamWithCallbacks = (messages: DecodedMessage[]) => {
         queueMicrotask(() => {
           messages.forEach((message) => {
             options.onValue(message);
+          });
+        });
+        return Promise.resolve(mockStream);
+      },
+    );
+};
+
+const createMockConversationStreamWithCallbacks = (
+  conversations: Conversation[],
+) => {
+  const mockStream = {
+    end: vi.fn().mockResolvedValue(undefined),
+    [Symbol.asyncIterator]: vi.fn(),
+  };
+
+  return vi
+    .fn()
+    .mockImplementation(
+      (options: { onValue: (value: Conversation) => void }) => {
+        // Simulate async conversation delivery
+        queueMicrotask(() => {
+          conversations.forEach((conversation) => {
+            options.onValue(conversation);
           });
         });
         return Promise.resolve(mockStream);
@@ -219,13 +242,24 @@ describe("Agent", () => {
 
   describe("start", () => {
     it("should sync conversations and start listening", async () => {
-      const mockStream = {
+      const mockConversationStream = {
         [Symbol.asyncIterator]: vi.fn().mockReturnValue({
           next: vi.fn().mockResolvedValueOnce({ done: true }),
         }),
+        end: vi.fn().mockResolvedValue(undefined),
       };
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(mockStream);
+      const mockMessageStream = {
+        [Symbol.asyncIterator]: vi.fn().mockReturnValue({
+          next: vi.fn().mockResolvedValueOnce({ done: true }),
+        }),
+        end: vi.fn().mockResolvedValue(undefined),
+      };
+
+      mockClient.conversations.stream.mockResolvedValue(mockConversationStream);
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        mockMessageStream,
+      );
 
       const startSpy = vi.fn();
       agent.on("start", startSpy);
@@ -233,18 +267,30 @@ describe("Agent", () => {
       await agent.start();
       await flushMicrotasks();
 
+      expect(mockClient.conversations.stream).toHaveBeenCalled();
       expect(mockClient.conversations.streamAllMessages).toHaveBeenCalled();
       expect(startSpy).toHaveBeenCalled();
     });
 
     it("should not start twice if already listening", async () => {
-      const mockStream = {
+      const mockConversationStream = {
         [Symbol.asyncIterator]: vi.fn().mockReturnValue({
           next: vi.fn().mockResolvedValueOnce({ done: true }),
         }),
+        end: vi.fn().mockResolvedValue(undefined),
       };
 
-      mockClient.conversations.streamAllMessages.mockResolvedValue(mockStream);
+      const mockMessageStream = {
+        [Symbol.asyncIterator]: vi.fn().mockReturnValue({
+          next: vi.fn().mockResolvedValueOnce({ done: true }),
+        }),
+        end: vi.fn().mockResolvedValue(undefined),
+      };
+
+      mockClient.conversations.stream.mockResolvedValue(mockConversationStream);
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        mockMessageStream,
+      );
 
       const startSpy = vi.fn();
       agent.on("start", startSpy);
@@ -463,6 +509,146 @@ describe("Agent", () => {
     });
   });
 
+  describe("conversation events", () => {
+    it("should emit 'conversation' events for new conversations", async () => {
+      const mockDm: Dm = Object.create(Dm.prototype);
+      Object.defineProperty(mockDm, "id", {
+        value: "dm-conversation-id",
+        writable: false,
+      });
+      Object.defineProperty(mockDm, "topic", {
+        value: "dm-topic",
+        writable: false,
+      });
+
+      const mockGroup: Group = Object.create(Group.prototype);
+      Object.defineProperty(mockGroup, "id", {
+        value: "group-conversation-id",
+        writable: false,
+      });
+      Object.defineProperty(mockGroup, "topic", {
+        value: "group-topic",
+        writable: false,
+      });
+
+      const conversationEventSpy = vi.fn();
+      agent.on("conversation", conversationEventSpy);
+
+      const mockConversationStream = createMockConversationStreamWithCallbacks([
+        mockDm,
+        mockGroup,
+      ]);
+      const mockMessageStream = createMockStreamWithCallbacks([]);
+
+      mockClient.conversations.stream.mockImplementation(
+        mockConversationStream,
+      );
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockMessageStream,
+      );
+
+      await agent.start();
+      await flushMicrotasks();
+
+      expect(conversationEventSpy).toHaveBeenCalledTimes(2);
+
+      expect(conversationEventSpy).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          conversation: mockDm,
+        }),
+      );
+      expect(conversationEventSpy).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          conversation: mockGroup,
+        }),
+      );
+    });
+
+    it("should emit specific 'dm' events for direct messages", async () => {
+      const mockDm: Dm = Object.create(Dm.prototype);
+      Object.defineProperty(mockDm, "id", {
+        value: "dm-conversation-id",
+        writable: false,
+      });
+      Object.defineProperty(mockDm, "topic", {
+        value: "dm-topic",
+        writable: false,
+      });
+
+      const dmEventSpy = vi.fn();
+      const conversationEventSpy = vi.fn();
+      agent.on("dm", dmEventSpy);
+      agent.on("conversation", conversationEventSpy);
+
+      const mockConversationStream = createMockConversationStreamWithCallbacks([
+        mockDm,
+      ]);
+      const mockMessageStream = createMockStreamWithCallbacks([]);
+
+      mockClient.conversations.stream.mockImplementation(
+        mockConversationStream,
+      );
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockMessageStream,
+      );
+
+      await agent.start();
+      await flushMicrotasks();
+
+      expect(dmEventSpy).toHaveBeenCalledTimes(1);
+      expect(conversationEventSpy).toHaveBeenCalledTimes(1);
+
+      expect(dmEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          conversation: mockDm,
+        }),
+      );
+    });
+
+    it("should emit specific 'group' events for Group conversations", async () => {
+      const mockGroup: Group = Object.create(Group.prototype);
+      Object.defineProperty(mockGroup, "id", {
+        value: "group-conversation-id",
+        writable: false,
+      });
+      Object.defineProperty(mockGroup, "topic", {
+        value: "group-topic",
+        writable: false,
+      });
+
+      const groupEventSpy = vi.fn();
+      const conversationEventSpy = vi.fn();
+      agent.on("group", groupEventSpy);
+      agent.on("conversation", conversationEventSpy);
+
+      const mockConversationStream = createMockConversationStreamWithCallbacks([
+        mockGroup,
+      ]);
+      const mockMessageStream = createMockStreamWithCallbacks([]);
+
+      mockClient.conversations.stream.mockImplementation(
+        mockConversationStream,
+      );
+      mockClient.conversations.streamAllMessages.mockImplementation(
+        mockMessageStream,
+      );
+
+      await agent.start();
+      await flushMicrotasks();
+
+      expect(groupEventSpy).toHaveBeenCalledTimes(1);
+      expect(conversationEventSpy).toHaveBeenCalledTimes(1);
+
+      expect(groupEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          conversation: mockGroup,
+        }),
+      );
+    });
+  });
+
   describe("use", () => {
     it("should add middleware and return the agent instance", () => {
       const middleware = vi.fn();
@@ -675,6 +861,29 @@ describe("Agent", () => {
       await agent.stop();
 
       expect(stopSpy).toHaveBeenCalled();
+    });
+
+    it("should properly clean up both conversation and message streams", async () => {
+      const mockConversationStream = {
+        end: vi.fn().mockResolvedValue(undefined),
+        [Symbol.asyncIterator]: vi.fn(),
+      };
+
+      const mockMessageStream = {
+        end: vi.fn().mockResolvedValue(undefined),
+        [Symbol.asyncIterator]: vi.fn(),
+      };
+
+      mockClient.conversations.stream.mockResolvedValue(mockConversationStream);
+      mockClient.conversations.streamAllMessages.mockResolvedValue(
+        mockMessageStream,
+      );
+
+      await agent.start();
+      await agent.stop();
+
+      expect(mockConversationStream.end).toHaveBeenCalled();
+      expect(mockMessageStream.end).toHaveBeenCalled();
     });
   });
 
