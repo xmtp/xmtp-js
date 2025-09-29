@@ -2,7 +2,7 @@
 
 This package contains code for the xmtp.chat API service.
 
-### Get started
+### Getting Started
 
 #### Setup environment
 
@@ -25,4 +25,4 @@ docker build -t "xmtp-chat-api-service" .
 docker run --env-file .env -d -p 4000:4000 xmtp-chat-api-service
 ```
 
-Adjust the `-p 4000:4000` flag to match the port in the `.env` file. The default port is `4000`.
+Adjust the `-p 4000:4000` flag if your `.env` specifies a different port. The default port is `4000`.
