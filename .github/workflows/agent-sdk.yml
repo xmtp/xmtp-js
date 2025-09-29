@@ -21,7 +21,7 @@ jobs:
     name: Typecheck
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".node-version"
@@ -39,7 +39,7 @@ jobs:
     name: Test
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".node-version"
@@ -61,7 +61,7 @@ jobs:
     name: Build
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".node-version"
