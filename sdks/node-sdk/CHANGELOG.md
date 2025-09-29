@@ -1,5 +1,12 @@
 # @xmtp/node-sdk
 
+## 4.2.0
+
+- Improved performance of syncing new groups
+- Added support for Lens chain Smart Contract Wallet verifier
+- Fixed OpenMLS issue for persistence during message processing
+- Fixed lifetime validation gaps
+
 ## 4.1.2
 
 ### Patch Changes
