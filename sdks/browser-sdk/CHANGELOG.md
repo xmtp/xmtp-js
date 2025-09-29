@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 4.2.0
+
+### Minor Changes
+
+- ffe266f: 4.2.0 release
+
 ## 4.1.0
 
 This release introduces improved fork detection. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this enhancement.

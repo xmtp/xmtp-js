@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.2.0
+
+### Minor Changes
+
+- ffe266f: 4.2.0 release
+
 ## 4.1.2
 
 ### Patch Changes
