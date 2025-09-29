@@ -13,7 +13,6 @@ on:
       - ".github/workflows/node-sdk.yml"
       - "dev/**"
       - ".node-version"
-      - ".nvmrc"
       - ".yarnrc.yml"
       - "turbo.json"
 
@@ -22,10 +21,10 @@ jobs:
     name: Typecheck
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: ".node-version"
           cache: "yarn"
         env:
           SKIP_YARN_COREPACK_CHECK: "1"
@@ -40,10 +39,10 @@ jobs:
     name: Test
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: ".node-version"
           cache: "yarn"
         env:
           SKIP_YARN_COREPACK_CHECK: "1"
@@ -62,10 +61,10 @@ jobs:
     name: Build
     runs-on: warp-ubuntu-latest-x64-8x
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: ".node-version"
           cache: "yarn"
         env:
           SKIP_YARN_COREPACK_CHECK: "1"
