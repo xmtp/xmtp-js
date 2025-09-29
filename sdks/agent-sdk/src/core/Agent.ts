@@ -221,11 +221,16 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async #handleStreamError(error: unknown) {
+    await this.#conversationsStream?.end();
     this.#conversationsStream = undefined;
+
+    await this.#messageStream?.end();
     this.#messageStream = undefined;
+
     const recovered = await this.#runErrorChain(error, {
       client: this.#client,
     });
+
     if (recovered) {
       this.#isLocked = false;
       queueMicrotask(() => this.start());
