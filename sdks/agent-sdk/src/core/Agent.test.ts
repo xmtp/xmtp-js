@@ -511,7 +511,7 @@ describe("Agent", () => {
 
   describe("conversation events", () => {
     it("should emit 'conversation' events for new conversations", async () => {
-      const mockDm: Dm = Object.create(Dm.prototype);
+      const mockDm = Object.create(Dm.prototype) as Dm;
       Object.defineProperty(mockDm, "id", {
         value: "dm-conversation-id",
         writable: false,
@@ -521,7 +521,7 @@ describe("Agent", () => {
         writable: false,
       });
 
-      const mockGroup: Group = Object.create(Group.prototype);
+      const mockGroup = Object.create(Group.prototype) as Group;
       Object.defineProperty(mockGroup, "id", {
         value: "group-conversation-id",
         writable: false,
@@ -567,7 +567,7 @@ describe("Agent", () => {
     });
 
     it("should emit specific 'dm' events for direct messages", async () => {
-      const mockDm: Dm = Object.create(Dm.prototype);
+      const mockDm = Object.create(Dm.prototype) as Dm;
       Object.defineProperty(mockDm, "id", {
         value: "dm-conversation-id",
         writable: false,
@@ -608,7 +608,7 @@ describe("Agent", () => {
     });
 
     it("should emit specific 'group' events for Group conversations", async () => {
-      const mockGroup: Group = Object.create(Group.prototype);
+      const mockGroup = Object.create(Group.prototype) as Group;
       Object.defineProperty(mockGroup, "id", {
         value: "group-conversation-id",
         writable: false,
