@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.0.2
+
+### Patch Changes
+
+- cb938d9: Added listening to conversation events
+
 ## 1.0.1
 
 ### Patch Changes
