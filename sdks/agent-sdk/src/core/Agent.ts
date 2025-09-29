@@ -8,6 +8,8 @@ import type { TextCodec } from "@xmtp/content-type-text";
 import {
   ApiUrls,
   Client,
+  Dm,
+  Group,
   IdentifierKind,
   LogLevel,
   type ClientOptions,
@@ -23,8 +25,12 @@ import { filter } from "@/utils/filter.js";
 import { createSigner, createUser } from "@/utils/user.js";
 import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
-import type { ConversationContext } from "./ConversationContext.js";
+import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
+
+type ConversationStream<ContentTypes> = Awaited<
+  ReturnType<Client<ContentTypes>["conversations"]["stream"]>
+>;
 
 type MessageStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["streamAllMessages"]>
@@ -38,6 +44,8 @@ type EventHandlerMap<ContentTypes> = {
   "group-update": [
     ctx: MessageContext<ReturnType<GroupUpdatedCodec["decode"]>>,
   ];
+  dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
+  group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
   message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
   reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
@@ -102,6 +110,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   EventHandlerMap<ContentTypes>
 > {
   #client: Client<ContentTypes>;
+  #conversationsStream?: ConversationStream<ContentTypes>;
   #messageStream?: MessageStream<ContentTypes>;
   #middleware: AgentMiddleware<ContentTypes>[] = [];
   #errorMiddleware: AgentErrorMiddleware<ContentTypes>[] = [];
@@ -223,9 +232,67 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async start() {
-    if (this.#isLocked || this.#messageStream) return;
+    if (this.#isLocked || this.#conversationsStream || this.#messageStream)
+      return;
 
     try {
+      this.#conversationsStream = await this.#client.conversations.stream({
+        onValue: async (conversation) => {
+          try {
+            if (!conversation) {
+              return;
+            }
+            this.emit(
+              "conversation",
+              new ConversationContext<ContentTypes, Conversation<ContentTypes>>(
+                {
+                  conversation,
+                  client: this.#client,
+                },
+              ),
+            );
+            if (conversation instanceof Group) {
+              this.emit(
+                "group",
+                new ConversationContext<ContentTypes, Group<ContentTypes>>({
+                  conversation,
+                  client: this.#client,
+                }),
+              );
+            } else if (conversation instanceof Dm) {
+              this.emit(
+                "dm",
+                new ConversationContext<ContentTypes, Dm<ContentTypes>>({
+                  conversation,
+                  client: this.#client,
+                }),
+              );
+            }
+          } catch (error) {
+            const recovered = await this.#runErrorChain(
+              new AgentError(
+                1001,
+                "Emitted value from conversation stream caused an error.",
+                error,
+              ),
+              new ClientContext({ client: this.#client }),
+            );
+            if (!recovered) await this.stop();
+          }
+        },
+        onError: async (error) => {
+          const recovered = await this.#runErrorChain(
+            new AgentError(
+              1002,
+              "Error occured during conversation streaming.",
+              error,
+            ),
+            new ClientContext({ client: this.#client }),
+          );
+          if (!recovered) await this.stop();
+        },
+      });
+
       this.#messageStream = await this.#client.conversations.streamAllMessages({
         onValue: async (message) => {
           try {
@@ -263,6 +330,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           await this.#handleStreamError(error);
         },
       });
+
       this.emit("start", new ClientContext({ client: this.#client }));
       this.#isLocked = false;
     } catch (error) {
@@ -406,11 +474,15 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   async stop() {
     this.#isLocked = true;
-    if (this.#messageStream) {
-      await this.#messageStream.end();
-      this.#messageStream = undefined;
-    }
+
+    await this.#conversationsStream?.end();
+    this.#conversationsStream = undefined;
+
+    await this.#messageStream?.end();
+    this.#messageStream = undefined;
+
     this.emit("stop", new ClientContext({ client: this.#client }));
+
     this.#isLocked = false;
   }
 

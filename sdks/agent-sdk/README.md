@@ -93,6 +93,11 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 - `text` – a new incoming text message
 - `unknownMessage` – a message that doesn't match any specific type
 
+**Conversation Events**
+
+- `dm` – a new DM conversation
+- `group` – a new group conversation
+
 **Lifecycle Events**
 
 - `start` / `stop` – agent lifecycle events
@@ -112,6 +117,15 @@ agent.on("reaction", async (ctx) => {
 
 agent.on("reply", async (ctx) => {
   console.log(`Reply to: ${ctx.message.content.reference}`);
+});
+
+// Listen to new conversations
+agent.on("dm", async (ctx) => {
+  await ctx.conversation.send("Welcome to our DM!");
+});
+
+agent.on("group", async (ctx) => {
+  await ctx.conversation.send("Hello group!");
 });
 
 // Listen to unhandled events
