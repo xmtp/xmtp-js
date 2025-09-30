@@ -12,7 +12,7 @@ const app = express();
 const env = process.env.NODE_ENV || "development";
 const allowedOrigins = [
   "https://xmtp.chat",
-  "https://experimental.xmtp.chat",
+  "https://d14n.xmtp.chat",
   // vercel preview domains
   /^https:\/\/(.*)-ephemerahq\.vercel\.app$/,
 ];
@@ -26,7 +26,7 @@ app.use(helmet()); // Set security headers
 app.use(
   cors({
     origin: allowedOrigins,
-    methods: ["GET", "OPTIONS"],
+    methods: ["GET", "OPTIONS", "POST"],
     allowedHeaders: ["*"],
     credentials: true,
     maxAge: 86400,
