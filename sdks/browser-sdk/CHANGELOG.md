@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 4.2.1
+
+### Patch Changes
+
+- 0abcb05: Fixed initial group membership validation
+
 ## 4.2.0
 
 - Improved performance of syncing new groups
