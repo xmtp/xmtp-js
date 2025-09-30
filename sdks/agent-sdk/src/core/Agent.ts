@@ -220,12 +220,25 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     return this;
   }
 
-  async #handleStreamError(error: unknown) {
-    await this.#conversationsStream?.end();
-    this.#conversationsStream = undefined;
+  async #stopStreams() {
+    try {
+      await this.#conversationsStream?.end();
+    } finally {
+      this.#conversationsStream = undefined;
+    }
 
-    await this.#messageStream?.end();
-    this.#messageStream = undefined;
+    try {
+      await this.#messageStream?.end();
+    } finally {
+      this.#messageStream = undefined;
+    }
+  }
+
+  /**
+   * Closes all existing streams and restarts the streaming system.
+   */
+  async #handleStreamError(error: unknown) {
+    await this.#stopStreams();
 
     const recovered = await this.#runErrorChain(error, {
       client: this.#client,
@@ -240,6 +253,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   async start() {
     if (this.#isLocked || this.#conversationsStream || this.#messageStream)
       return;
+
+    this.#isLocked = true;
 
     try {
       this.#conversationsStream = await this.#client.conversations.stream({
@@ -333,7 +348,15 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
         },
         onError: async (error) => {
-          await this.#handleStreamError(error);
+          const recovered = await this.#runErrorChain(
+            new AgentError(
+              1004,
+              "Error occured during message streaming.",
+              error,
+            ),
+            new ClientContext({ client: this.#client }),
+          );
+          if (!recovered) await this.stop();
         },
       });
 
@@ -481,11 +504,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   async stop() {
     this.#isLocked = true;
 
-    await this.#conversationsStream?.end();
-    this.#conversationsStream = undefined;
-
-    await this.#messageStream?.end();
-    this.#messageStream = undefined;
+    await this.#stopStreams();
 
     this.emit("stop", new ClientContext({ client: this.#client }));
 
