@@ -2,7 +2,7 @@ import { loadEnvFile } from "node:process";
 import { Agent, AgentError } from "./core/index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { getTestUrl } from "./utils/debug.js";
-import { createSigner, createUser } from "./utils/user.js";
+import { createNameResolver, createSigner, createUser } from "./utils/user.js";
 
 try {
   loadEnvFile(".env");
@@ -67,6 +67,10 @@ agent.on("stop", (ctx) => {
 await agent.start();
 console.log("Agent has started.");
 
-const group = await agent.createGroupWithAddresses(["0x123", "0x456"]);
-await group.addMembers(["0x789"]);
-await group.send("Hello group!");
+const apiKey = process.env.WEB3BIO_API_KEY; // Make sure to add this to your .env file
+const resolveName = createNameResolver(apiKey);
+
+console.log(
+  "Resolving bennycode.base.eth:",
+  await resolveName("bennycode.base.eth"),
+);

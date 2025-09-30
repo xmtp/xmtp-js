@@ -4075,6 +4075,7 @@ __metadata:
     vite: "npm:^7.1.5"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
+    web3bio-profile-kit: "npm:^0.1.18"
   languageName: unknown
   linkType: soft
 
@@ -11827,6 +11828,17 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 10/e07cf1b36dd721c0ecebdc04e5e98add3b44119a5f0aba35d3e1dd5af4fd6dad64c1e959dc5cd71cabcfe3555d9d383046f9362e2febf0647f029af4f2b53fa0
+  languageName: node
+  linkType: hard
+
+"web3bio-profile-kit@npm:^0.1.18":
+  version: 0.1.18
+  resolution: "web3bio-profile-kit@npm:0.1.18"
+  peerDependencies:
+    "@tanstack/react-query": ^4.0.0 || ^5.0.0
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 10/98c43a01c2bea597036004ab376103d3220bb38f452cd71367e697ee0b9a00e30d5d5ec23bbb13a410f8bac792e57fcd7d57aa0fff10e700430b6582c3448ae0
   languageName: node
   linkType: hard
 
