@@ -4067,6 +4067,7 @@ __metadata:
     "@xmtp/content-type-reply": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
     "@xmtp/node-sdk": "npm:^4.2.0"
+    quick-lru: "npm:^7.2.0"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.5"
     typescript: "npm:^5.9.2"
@@ -4075,7 +4076,6 @@ __metadata:
     vite: "npm:^7.1.5"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
-    web3bio-profile-kit: "npm:^0.1.18"
   languageName: unknown
   linkType: soft
 
@@ -9385,6 +9385,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quick-lru@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "quick-lru@npm:7.2.0"
+  checksum: 10/00f3420e5f4ac3764c6a525a801d9bcf16786efcd1bd42b9082df8ff30514ee14410f03aa6bfbc57242aa28c26452ef46223d15a2998e57a79abab10ba8f354e
+  languageName: node
+  linkType: hard
+
 "radix3@npm:^1.1.2":
   version: 1.1.2
   resolution: "radix3@npm:1.1.2"
@@ -11828,17 +11835,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 10/e07cf1b36dd721c0ecebdc04e5e98add3b44119a5f0aba35d3e1dd5af4fd6dad64c1e959dc5cd71cabcfe3555d9d383046f9362e2febf0647f029af4f2b53fa0
-  languageName: node
-  linkType: hard
-
-"web3bio-profile-kit@npm:^0.1.18":
-  version: 0.1.18
-  resolution: "web3bio-profile-kit@npm:0.1.18"
-  peerDependencies:
-    "@tanstack/react-query": ^4.0.0 || ^5.0.0
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-  checksum: 10/98c43a01c2bea597036004ab376103d3220bb38f452cd71367e697ee0b9a00e30d5d5ec23bbb13a410f8bac792e57fcd7d57aa0fff10e700430b6582c3448ae0
   languageName: node
   linkType: hard
 

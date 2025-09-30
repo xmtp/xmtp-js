@@ -1,8 +1,9 @@
 import { loadEnvFile } from "node:process";
 import { Agent, AgentError } from "./core/index.js";
+import { getTestUrl } from "./debug/log.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
-import { getTestUrl } from "./utils/debug.js";
-import { createNameResolver, createSigner, createUser } from "./utils/user.js";
+import { createNameResolver } from "./user.js";
+import { createSigner, createUser } from "./user/User.js";
 
 try {
   loadEnvFile(".env");
@@ -67,10 +68,5 @@ agent.on("stop", (ctx) => {
 await agent.start();
 console.log("Agent has started.");
 
-const apiKey = process.env.WEB3BIO_API_KEY; // Make sure to add this to your .env file
-const resolveName = createNameResolver(apiKey);
-
-console.log(
-  "Resolving bennycode.base.eth:",
-  await resolveName("bennycode.base.eth"),
-);
+const resolveName = createNameResolver(process.env.WEB3BIO_API_KEY);
+console.log(await resolveName("vitalik.eth"));

@@ -29,8 +29,8 @@ import {
   vi,
   type Mock,
 } from "vitest";
-import { filter } from "@/utils/filter.js";
-import { createSigner, createUser } from "@/utils/user.js";
+import { filter } from "@/core/filter.js";
+import { createSigner, createUser } from "@/user/User.js";
 import {
   Agent,
   type AgentErrorMiddleware,

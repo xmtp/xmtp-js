@@ -21,8 +21,8 @@ import {
 } from "@xmtp/node-sdk";
 import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
-import { filter } from "@/utils/filter.js";
-import { createSigner, createUser } from "@/utils/user.js";
+import { filter } from "@/core/filter.js";
+import { createSigner, createUser } from "@/user/User.js";
 import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
