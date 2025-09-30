@@ -220,12 +220,16 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     return this;
   }
 
-  async #handleStreamError(error: unknown) {
+  async #stopStreams() {
     await this.#conversationsStream?.end();
     this.#conversationsStream = undefined;
 
     await this.#messageStream?.end();
     this.#messageStream = undefined;
+  }
+
+  async #handleStreamError(error: unknown) {
+    await this.#stopStreams();
 
     const recovered = await this.#runErrorChain(error, {
       client: this.#client,
@@ -481,11 +485,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   async stop() {
     this.#isLocked = true;
 
-    await this.#conversationsStream?.end();
-    this.#conversationsStream = undefined;
-
-    await this.#messageStream?.end();
-    this.#messageStream = undefined;
+    await this.#stopStreams();
 
     this.emit("stop", new ClientContext({ client: this.#client }));
 
