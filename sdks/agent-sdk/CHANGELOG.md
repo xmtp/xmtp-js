@@ -4,7 +4,6 @@
 
 ### Minor Changes
 
-- cb938d9: Added listening to conversation events
 - 70d1a21: Added listening to conversation events
 
 ## 1.0.1
