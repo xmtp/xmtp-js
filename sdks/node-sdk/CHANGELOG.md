@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 0abcb05: Fix initial group membership validation
+- 0abcb05: Fixed initial group membership validation
 
 ## 4.2.0
 
