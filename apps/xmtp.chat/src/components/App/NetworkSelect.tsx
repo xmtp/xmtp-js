@@ -20,7 +20,7 @@ export const NetworkSelect: React.FC = () => {
           withArrow
           events={{ hover: true, focus: true, touch: true }}>
           <NativeSelect
-            data={["local", "dev", "production"]}
+            data={["local", "dev"]}
             value={environment}
             onChange={handleChange}
           />
