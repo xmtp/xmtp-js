@@ -245,6 +245,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     if (this.#isLocked || this.#conversationsStream || this.#messageStream)
       return;
 
+    this.#isLocked = true;
+
     try {
       this.#conversationsStream = await this.#client.conversations.stream({
         onValue: async (conversation) => {
