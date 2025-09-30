@@ -234,6 +234,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
   }
 
+  /**
+   * Closes all existing streams and restarts the streaming system.
+   */
   async #handleStreamError(error: unknown) {
     await this.#stopStreams();
 
@@ -345,7 +348,15 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
         },
         onError: async (error) => {
-          await this.#handleStreamError(error);
+          const recovered = await this.#runErrorChain(
+            new AgentError(
+              1004,
+              "Error occured during message streaming.",
+              error,
+            ),
+            new ClientContext({ client: this.#client }),
+          );
+          if (!recovered) await this.stop();
         },
       });
 
