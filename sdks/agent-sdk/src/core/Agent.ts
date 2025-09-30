@@ -221,11 +221,17 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async #stopStreams() {
-    await this.#conversationsStream?.end();
-    this.#conversationsStream = undefined;
+    try {
+      await this.#conversationsStream?.end();
+    } finally {
+      this.#conversationsStream = undefined;
+    }
 
-    await this.#messageStream?.end();
-    this.#messageStream = undefined;
+    try {
+      await this.#messageStream?.end();
+    } finally {
+      this.#messageStream = undefined;
+    }
   }
 
   async #handleStreamError(error: unknown) {
