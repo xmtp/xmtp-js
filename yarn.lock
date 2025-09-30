@@ -4067,7 +4067,6 @@ __metadata:
     "@xmtp/content-type-reply": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
     "@xmtp/node-sdk": "npm:^4.2.0"
-    quick-lru: "npm:^7.2.0"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.5"
     typescript: "npm:^5.9.2"
@@ -9382,13 +9381,6 @@ __metadata:
   version: 4.0.4
   resolution: "quick-format-unescaped@npm:4.0.4"
   checksum: 10/591eca457509a99368b623db05248c1193aa3cedafc9a077d7acab09495db1231017ba3ad1b5386e5633271edd0a03b312d8640a59ee585b8516a42e15438aa7
-  languageName: node
-  linkType: hard
-
-"quick-lru@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "quick-lru@npm:7.2.0"
-  checksum: 10/00f3420e5f4ac3764c6a525a801d9bcf16786efcd1bd42b9082df8ff30514ee14410f03aa6bfbc57242aa28c26452ef46223d15a2998e57a79abab10ba8f354e
   languageName: node
   linkType: hard
 

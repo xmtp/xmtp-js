@@ -1,6 +1,9 @@
 import { escape } from "node:querystring";
 import { isAddress } from "viem";
 import { AgentError } from "@/core/AgentError.js";
+import { LimitedMap } from "@/utils/LimitedMap.js";
+
+const cache = new LimitedMap<string, string | null>(1000);
 
 export const isValidName = (name: string): boolean => {
   return /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/.test(name);
@@ -39,6 +42,12 @@ const resolveName = async (
     return name;
   }
 
+  const cachedAddress = cache.get(name);
+
+  if (cachedAddress) {
+    return cachedAddress;
+  }
+
   if (!isValidName(name)) {
     throw new AgentError(
       2001,
@@ -47,7 +56,9 @@ const resolveName = async (
   }
 
   const response = await fetchFromWeb3Bio(name, apiKey);
-  return response[0].address;
+  const address = response[0].address;
+  cache.set(name, address);
+  return address;
 };
 
 export const createNameResolver = (apiKey?: string) => {

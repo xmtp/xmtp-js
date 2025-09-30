@@ -9,7 +9,6 @@
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/node-sdk": "^4.2.0",
-    "quick-lru": "^7.2.0",
     "uint8arrays": "^5.1.0",
     "viem": "^2.37.6"
   },
