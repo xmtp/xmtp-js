@@ -7,7 +7,7 @@ import init, {
   type Identifier,
   type SignatureRequestHandle,
 } from "@xmtp/wasm-bindings";
-import { ApiUrls } from "@/constants";
+import { ApiUrls, PayerUrls } from "@/constants";
 import type {
   ActionErrorData,
   ActionName,
@@ -41,7 +41,8 @@ const getInboxIdForIdentifier = async (
   env?: XmtpEnv,
 ) => {
   const host = env ? ApiUrls[env] : ApiUrls.dev;
-  return get_inbox_id_for_identifier(host, identifier);
+  const payerHost = env ? PayerUrls[env] : PayerUrls.dev;
+  return get_inbox_id_for_identifier(host, payerHost, identifier);
 };
 
 let enableLogging = false;
@@ -81,8 +82,10 @@ self.onmessage = async (
       }
       case "utils.revokeInstallationsSignatureText": {
         const host = ApiUrls[data.env ?? "dev"];
+        const payerHost = PayerUrls[data.env ?? "dev"];
         const signatureRequest = await revokeInstallationsSignatureRequest(
           host,
+          payerHost,
           data.identifier,
           data.inboxId,
           data.installationIds,
@@ -98,6 +101,7 @@ self.onmessage = async (
       }
       case "utils.revokeInstallations": {
         const host = ApiUrls[data.env ?? "dev"];
+        const payerHost = PayerUrls[data.env ?? "dev"];
         const signatureRequest = signatureRequests.get(data.signatureRequestId);
         if (!signatureRequest) {
           throw new Error("Signature request not found");
@@ -115,15 +119,20 @@ self.onmessage = async (
             );
             break;
         }
-        await applySignatureRequest(host, signatureRequest);
+        await applySignatureRequest(host, payerHost, signatureRequest);
         signatureRequests.delete(data.signatureRequestId);
         postMessage({ id, action, result: undefined });
         break;
       }
       case "utils.inboxStateFromInboxIds": {
         const host = ApiUrls[data.env ?? "dev"];
+        const payerHost = PayerUrls[data.env ?? "dev"];
         try {
-          const inboxStates = await inboxStateFromInboxIds(host, data.inboxIds);
+          const inboxStates = await inboxStateFromInboxIds(
+            host,
+            payerHost,
+            data.inboxIds,
+          );
           const result = inboxStates.map((inboxState) =>
             toSafeInboxState(inboxState),
           );

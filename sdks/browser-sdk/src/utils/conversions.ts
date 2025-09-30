@@ -32,6 +32,7 @@ import {
   type PermissionLevel,
   type PermissionPolicy,
   type SortDirection,
+  type XmtpCursor,
 } from "@xmtp/wasm-bindings";
 import type { WorkerConversation } from "@/WorkerConversation";
 
@@ -509,6 +510,16 @@ export const toSafeKeyPackageStatus = (
   validationError: status.validationError,
 });
 
+export type SafeCursor = {
+  originatorId: number;
+  sequenceId: bigint;
+};
+
+export const toSafeCursor = (cursor: XmtpCursor): SafeCursor => ({
+  originatorId: cursor.originator_id,
+  sequenceId: cursor.sequence_id,
+});
+
 export type SafeConversationDebugInfo = {
   epoch: bigint;
   maybeForked: boolean;
@@ -516,7 +527,7 @@ export type SafeConversationDebugInfo = {
   isCommitLogForked?: boolean;
   localCommitLog: string;
   remoteCommitLog: string;
-  cursor: bigint;
+  cursor: SafeCursor[];
 };
 
 export const toSafeConversationDebugInfo = (
@@ -528,7 +539,7 @@ export const toSafeConversationDebugInfo = (
   isCommitLogForked: debugInfo.isCommitLogForked,
   localCommitLog: debugInfo.localCommitLog,
   remoteCommitLog: debugInfo.remoteCommitLog,
-  cursor: debugInfo.cursor,
+  cursor: debugInfo.cursor.map(toSafeCursor),
 });
 
 export type SafeApiStats = {

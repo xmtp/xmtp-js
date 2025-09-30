@@ -7,7 +7,7 @@ export { Group } from "./Group";
 export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
 export { Utils } from "./Utils";
-export { ApiUrls, HistorySyncUrls } from "./constants";
+export { ApiUrls, HistorySyncUrls, PayerUrls } from "./constants";
 export type * from "./types/options";
 export * from "./utils/conversions";
 export type { AsyncStreamProxy } from "./AsyncStream";

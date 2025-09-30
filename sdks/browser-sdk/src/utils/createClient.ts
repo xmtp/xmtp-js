@@ -5,7 +5,7 @@ import {
   LogOptions,
   type Identifier,
 } from "@xmtp/wasm-bindings";
-import { ApiUrls, HistorySyncUrls } from "@/constants";
+import { ApiUrls, HistorySyncUrls, PayerUrls } from "@/constants";
 import type { ClientOptions } from "@/types/options";
 
 export const createClient = async (
@@ -14,8 +14,9 @@ export const createClient = async (
 ) => {
   const env = options?.env || "dev";
   const host = options?.apiUrl || ApiUrls[env];
+  const payerHost = PayerUrls[env];
   const inboxId =
-    (await getInboxIdForIdentifier(host, identifier)) ||
+    (await getInboxIdForIdentifier(host, payerHost, identifier)) ||
     generateInboxId(identifier);
   const dbPath =
     options?.dbPath === undefined
@@ -54,5 +55,6 @@ export const createClient = async (
     undefined,
     options?.debugEventsEnabled,
     options?.appVersion,
+    payerHost,
   );
 };
