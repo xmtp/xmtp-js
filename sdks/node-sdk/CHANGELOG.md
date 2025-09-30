@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.2.1
+
+### Patch Changes
+
+- 0abcb05: Fix initial group membership validation
+
 ## 4.2.0
 
 - Improved performance of syncing new groups
