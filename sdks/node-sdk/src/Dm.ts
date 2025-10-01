@@ -28,7 +28,7 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
     lastMessage?: Message | null,
     isCommitLogForked?: boolean | null,
   ) {
-    super(client, conversation, lastMessage, isCommitLogForked);
+    super(client, conversation, isCommitLogForked);
     this.#client = client;
     this.#conversation = conversation;
   }
