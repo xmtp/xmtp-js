@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.2.2
+
+### Patch Changes
+
+- b7a860e: Refactor and add Conversation lastMessage()
+
 ## 4.2.1
 
 ### Patch Changes
