@@ -84,6 +84,18 @@ export class Conversation<ContentTypes = unknown> {
     return this.#metadata;
   }
 
+  async lastMessage() {
+    const lastMessage = await this.#client.sendMessage(
+      "conversation.lastMessage",
+      {
+        id: this.#id,
+      },
+    );
+    return lastMessage
+      ? new DecodedMessage(this.#client, lastMessage)
+      : undefined;
+  }
+
   /**
    * Gets the conversation members
    *

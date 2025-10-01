@@ -143,4 +143,12 @@ export type ConversationAction =
         id: string;
         state: ConsentState;
       };
+    }
+  | {
+      action: "conversation.lastMessage";
+      id: string;
+      result: SafeMessage | undefined;
+      data: {
+        id: string;
+      };
     };

@@ -1,5 +1,6 @@
 import {
   MessageDisappearingSettings,
+  SortDirection,
   type ConsentState,
   type Conversation,
   type ConversationDebugInfo,
@@ -77,6 +78,17 @@ export class WorkerConversation {
 
   get createdAtNs() {
     return this.#group.createdAtNs();
+  }
+
+  async lastMessage() {
+    const messages = await this.messages({
+      limit: 1n,
+      direction: SortDirection.Descending,
+    });
+    if (messages.length > 0) {
+      return messages[0];
+    }
+    return undefined;
   }
 
   async metadata() {
