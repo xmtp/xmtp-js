@@ -48,6 +48,9 @@ const resolveName = async (
   }
 
   const response = await fetchFromWeb3Bio(name, apiKey);
+  if (response.length === 0) {
+    return null;
+  }
   const address = response[0].address;
   cache.set(name, address);
   return address;
