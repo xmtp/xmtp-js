@@ -1,10 +1,11 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type {
-  ConsentState,
-  ListMessagesOptions,
-  Message,
-  Conversation as XmtpConversation,
+import {
+  SortDirection,
+  type ConsentState,
+  type ListMessagesOptions,
+  type Message,
+  type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
@@ -24,7 +25,6 @@ import {
 export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
   #conversation: XmtpConversation;
-  #lastMessage?: DecodedMessage<ContentTypes>;
   #isCommitLogForked: boolean | null = null;
 
   /**
@@ -32,20 +32,15 @@ export class Conversation<ContentTypes = unknown> {
    *
    * @param client - The client instance managing the conversation
    * @param conversation - The underlying conversation instance
-   * @param lastMessage - Optional last message in the conversation
    * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     conversation: XmtpConversation,
-    lastMessage?: Message | null,
     isCommitLogForked?: boolean | null,
   ) {
     this.#client = client;
     this.#conversation = conversation;
-    this.#lastMessage = lastMessage
-      ? new DecodedMessage(client, lastMessage)
-      : undefined;
     this.#isCommitLogForked = isCommitLogForked ?? null;
   }
 
@@ -210,7 +205,14 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the last message or undefined if none exists
    */
   async lastMessage() {
-    return this.#lastMessage ?? (await this.messages({ limit: 1 }))[0];
+    const messages = await this.messages({
+      limit: 1,
+      direction: SortDirection.Descending,
+    });
+    if (messages.length > 0) {
+      return messages[0];
+    }
+    return undefined;
   }
 
   /**

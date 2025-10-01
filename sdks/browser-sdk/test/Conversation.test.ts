@@ -193,12 +193,19 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
 
+    expect(await conversation.lastMessage()).toBeDefined();
+
     const text = "gm";
     await conversation.send(text);
 
     const messages = await conversation.messages();
     expect(messages.length).toBe(2);
     expect(messages[1].content).toBe(text);
+
+    const lastMessage = await conversation.lastMessage();
+    expect(lastMessage).toBeDefined();
+    expect(lastMessage?.id).toBe(messages[1].id);
+    expect(lastMessage?.content).toBe(text);
 
     await client2.conversations.sync();
     const conversations = await client2.conversations.list();
@@ -212,6 +219,11 @@ describe("Conversation", () => {
     const messages2 = await conversation2.messages();
     expect(messages2.length).toBe(2);
     expect(messages2[1].content).toBe(text);
+
+    const lastMessage2 = await conversation2.lastMessage();
+    expect(lastMessage2).toBeDefined();
+    expect(lastMessage2?.id).toBe(messages2[1].id);
+    expect(lastMessage2?.content).toBe(text);
   });
 
   it("should require content type when sending non-string content", async () => {

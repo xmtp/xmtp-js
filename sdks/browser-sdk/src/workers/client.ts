@@ -718,6 +718,16 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
+      case "conversation.lastMessage": {
+        const group = getGroup(data.id);
+        const result = await group.lastMessage();
+        postMessage({
+          id,
+          action,
+          result: result ? toSafeMessage(result) : undefined,
+        });
+        break;
+      }
       case "conversation.consentState": {
         const group = getGroup(data.id);
         const result = group.consentState;
