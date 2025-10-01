@@ -44,7 +44,7 @@ const resolveName = async (
 
   const cachedAddress = cache.get(name);
 
-  if (cachedAddress) {
+  if (cachedAddress !== undefined) {
     return cachedAddress;
   }
 
