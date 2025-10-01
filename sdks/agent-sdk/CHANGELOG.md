@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.2
+
+### Patch Changes
+
+- 9538002: Added ENS name resolution
+
 ## 1.1.1
 
 ### Patch Changes
