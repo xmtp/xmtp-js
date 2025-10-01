@@ -32,7 +32,6 @@ export class Conversation<ContentTypes = unknown> {
    *
    * @param client - The client instance managing the conversation
    * @param conversation - The underlying conversation instance
-   * @param lastMessage - Optional last message in the conversation
    * @param isCommitLogForked
    */
   constructor(

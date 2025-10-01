@@ -176,14 +176,12 @@ export class Conversations<ContentTypes = unknown> {
             return new Dm(
               this.#client,
               item.conversation,
-              item.lastMessage,
               item.isCommitLogForked,
             );
           case "group":
             return new Group(
               this.#client,
               item.conversation,
-              item.lastMessage,
               item.isCommitLogForked,
             );
           default:
@@ -209,7 +207,6 @@ export class Conversations<ContentTypes = unknown> {
       const conversation = new Group(
         this.#client,
         item.conversation,
-        item.lastMessage,
         item.isCommitLogForked,
       );
       return conversation;
@@ -231,7 +228,6 @@ export class Conversations<ContentTypes = unknown> {
       const conversation = new Dm(
         this.#client,
         item.conversation,
-        item.lastMessage,
         item.isCommitLogForked,
       );
       return conversation;
