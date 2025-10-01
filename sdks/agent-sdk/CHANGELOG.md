@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.1
+
+### Patch Changes
+
+- a0b5d11: Updated Node SDK in Agent SDK
+
 ## 1.1.0
 
 ### Minor Changes
