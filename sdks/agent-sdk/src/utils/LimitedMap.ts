@@ -8,9 +8,9 @@ export class LimitedMap<K, V> {
 
   set(key: K, value: V) {
     if (this.#map.size >= this.#limit) {
-      const oldest = this.#map.keys().next().value;
-      if (oldest !== undefined) {
-        this.#map.delete(oldest);
+      const it = this.#map.keys().next();
+      if (!it.done) {
+        this.#map.delete(it.value);
       }
     }
     this.#map.set(key, value);
