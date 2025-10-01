@@ -304,6 +304,42 @@ await group.addMembers(["0x789"]);
 await group.send("Hello group!");
 ```
 
+### 6. Utilities
+
+The Agent SDK comes with subpackages that include utilities. You can for example get a testing URL or details of your Agent from the debug utilities:
+
+```ts
+import { getTestUrl, logDetails } from "@xmtp/agent-sdk/debug";
+
+// Get a test URL for your agent
+const testUrl = getTestUrl(agent.client);
+console.log(`Test your agent at: ${testUrl}`);
+
+// Log comprehensive details about your agent
+await logDetails(agent.client);
+```
+
+There are also utilities to simplify user management, such as signer creation or name resolutions:
+
+```ts
+import {
+  createUser,
+  createSigner,
+  createNameResolver,
+} from "@xmtp/agent-sdk/user";
+
+// Create a new user with a random private key
+const user = createUser();
+
+// Create a signer from the user
+const signer = createSigner(user);
+
+// Resolve ENS names or other web3 identities using web3.bio
+const resolver = createNameResolver("your-web3bio-api-key");
+const address = await resolver("vitalik.eth");
+console.log(`Resolved address: ${address}`);
+```
+
 ## Adding Custom Content Types
 
 Pass `codecs` when creating your agent to extend supported content:

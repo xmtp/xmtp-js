@@ -11,7 +11,7 @@ import {
 } from "@xmtp/content-type-reply";
 import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
 import type { DecodedMessage } from "@xmtp/node-sdk";
-import { filter } from "@/utils/filter.js";
+import { filter } from "@/core/filter.js";
 import type { AgentBaseContext } from "./Agent.js";
 import { ConversationContext } from "./ConversationContext.js";
 

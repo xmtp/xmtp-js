@@ -5,7 +5,7 @@ import {
   type Dm,
   type Group,
 } from "@xmtp/node-sdk";
-import { filter } from "@/utils/filter.js";
+import { filter } from "@/core/filter.js";
 import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<

@@ -2,8 +2,8 @@ import {
   type AgentMessageHandler,
   type AgentMiddleware,
 } from "@/core/Agent.js";
+import { filter } from "@/core/filter.js";
 import type { MessageContext } from "@/core/MessageContext.js";
-import { filter } from "@/utils/filter.js";
 
 export class CommandRouter<ContentTypes> {
   private commandMap = new Map<string, AgentMessageHandler>();

@@ -6,7 +6,7 @@ import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { Dm, Group, type Client, type DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
-import { filter } from "@/utils/filter.js";
+import { filter } from "@/core/filter.js";
 
 const mockClient = {
   inboxId: "test-client-inbox-id",
