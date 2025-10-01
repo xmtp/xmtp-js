@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- b7a860e: Refactor and add Conversation lastMessage()
+- b7a860e: Added `lastMessage()` method to `Conversation`
 
 ## 4.2.1
 
