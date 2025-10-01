@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 4.3.0
+
+### Minor Changes
+
+- b7a860e: Added `lastMessage()` method to `Conversation`
+
 ## 4.2.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.2.2
+
+### Patch Changes
+
+- b7a860e: Refactored `lastMessage()` method of `Conversation` to always query the database
+
 ## 4.2.1
 
 ### Patch Changes
