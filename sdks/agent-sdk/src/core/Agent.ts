@@ -160,8 +160,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     ];
 
     if (process.env.XMTP_FORCE_DEBUG) {
+      const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.info;
       initializedOptions.debugEventsEnabled = true;
-      initializedOptions.loggingLevel = LogLevel.warn;
+      initializedOptions.loggingLevel = loggingLevel as LogLevel;
       initializedOptions.structuredLogging = true;
     }
 

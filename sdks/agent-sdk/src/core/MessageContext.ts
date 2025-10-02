@@ -84,6 +84,10 @@ export class MessageContext<
     await this.conversation.send(reply, ContentTypeReply);
   }
 
+  get typeId() {
+    return this.#message.contentType?.typeId;
+  }
+
   async getSenderAddress() {
     const inboxState = await this.client.preferences.inboxStateFromInboxIds([
       this.#message.senderInboxId,
