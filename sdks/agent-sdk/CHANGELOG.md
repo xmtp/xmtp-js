@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.3
+
+### Patch Changes
+
+- 3c28612: Added XMTP_FORCE_DEBUG_LEVEL env variable
+
 ## 1.1.2
 
 ### Patch Changes
