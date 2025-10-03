@@ -728,6 +728,12 @@ self.onmessage = async (
         });
         break;
       }
+      case "conversation.isActive": {
+        const group = getGroup(data.id);
+        const result = group.isActive;
+        postMessage({ id, action, result });
+        break;
+      }
       case "conversation.consentState": {
         const group = getGroup(data.id);
         const result = group.consentState;

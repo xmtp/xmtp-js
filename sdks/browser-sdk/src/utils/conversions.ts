@@ -332,7 +332,6 @@ export type SafeConversation = {
       updateMessageDisappearingPolicy: PermissionPolicy;
     };
   };
-  isActive: boolean;
   addedByInboxId: string;
   metadata: {
     creatorInboxId: string;
@@ -352,7 +351,6 @@ export const toSafeConversation = async (
   const imageUrl = conversation.imageUrl;
   const description = conversation.description;
   const permissions = conversation.permissions;
-  const isActive = conversation.isActive;
   const addedByInboxId = conversation.addedByInboxId;
   const metadata = await conversation.metadata();
   const admins = conversation.admins;
@@ -381,7 +379,6 @@ export const toSafeConversation = async (
           policySet.updateMessageDisappearingPolicy,
       },
     },
-    isActive,
     addedByInboxId,
     metadata,
     admins,

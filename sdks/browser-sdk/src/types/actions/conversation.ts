@@ -151,4 +151,12 @@ export type ConversationAction =
       data: {
         id: string;
       };
+    }
+  | {
+      action: "conversation.isActive";
+      id: string;
+      result: boolean;
+      data: {
+        id: string;
+      };
     };
