@@ -1,4 +1,7 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
+import type {
+  ContentCodec,
+  ContentTypeId,
+} from "@xmtp/content-type-primitives";
 import {
   ContentTypeReaction,
   type Reaction,
@@ -36,8 +39,10 @@ export class MessageContext<
     this.#message = message;
   }
 
-  isContentType(id: ContentTypeId) {
-    return this.#message.contentType?.sameAs(id);
+  isContentType<T extends ContentCodec>(
+    codec: T,
+  ): this is MessageContext<ReturnType<T["decode"]>> {
+    return this.#message.contentType?.sameAs(codec.contentType) || false;
   }
 
   isText(): this is MessageContext<ReturnType<TextCodec["decode"]>> {
