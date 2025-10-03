@@ -1,3 +1,4 @@
+import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   ContentTypeReaction,
   type Reaction,
@@ -10,15 +11,9 @@ import {
   type ReplyCodec,
 } from "@xmtp/content-type-reply";
 import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
-import type { DecodedMessage } from "@xmtp/node-sdk";
-import { filter } from "@/core/filter.js";
+import { filter, type DecodedMessageWithContent } from "@/core/filter.js";
 import type { AgentBaseContext } from "./Agent.js";
 import { ConversationContext } from "./ConversationContext.js";
-
-export type DecodedMessageWithContent<ContentTypes = unknown> =
-  DecodedMessage<ContentTypes> & {
-    content: ContentTypes;
-  };
 
 export type MessageContextParams<ContentTypes = unknown> = Omit<
   AgentBaseContext<ContentTypes>,
@@ -39,6 +34,14 @@ export class MessageContext<
   }: MessageContextParams<ContentTypes>) {
     super({ conversation, client });
     this.#message = message;
+  }
+
+  usesCodec<T extends ContentCodec>(
+    codecClass: new () => T,
+  ): this is MessageContext<ReturnType<T["decode"]>> {
+    return (
+      this.#message.contentType?.sameAs(new codecClass().contentType) || false
+    );
   }
 
   isText(): this is MessageContext<ReturnType<TextCodec["decode"]>> {
