@@ -29,7 +29,7 @@ import {
   vi,
   type Mock,
 } from "vitest";
-import { filter } from "@/core/filter.js";
+import { filter, type DecodedMessageWithContent } from "@/core/filter.js";
 import { createSigner, createUser } from "@/user/User.js";
 import {
   Agent,
@@ -49,7 +49,7 @@ type CurrentClientTypes =
 
 const createMockMessage = <ContentType = string>(
   overrides: Partial<DecodedMessage> & { content: ContentType },
-): DecodedMessage & { content: ContentType } => {
+): DecodedMessageWithContent<ContentType> => {
   const { content, ...rest } = overrides;
   return {
     id: "mock-message-id",
@@ -58,7 +58,7 @@ const createMockMessage = <ContentType = string>(
     contentType: ContentTypeText,
     ...rest,
     content,
-  } as unknown as DecodedMessage & { content: ContentType };
+  } as unknown as DecodedMessageWithContent<ContentType>;
 };
 
 const createMockStreamWithCallbacks = (messages: DecodedMessage[]) => {

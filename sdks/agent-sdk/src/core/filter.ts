@@ -20,6 +20,11 @@ import {
   type DecodedMessage,
 } from "@xmtp/node-sdk";
 
+export type DecodedMessageWithContent<ContentTypes = unknown> =
+  DecodedMessage<ContentTypes> & {
+    content: ContentTypes;
+  };
+
 const fromSelf = <ContentTypes>(
   message: DecodedMessage<ContentTypes>,
   client: Client<ContentTypes>,
@@ -29,9 +34,7 @@ const fromSelf = <ContentTypes>(
 
 const hasContent = <ContentTypes>(
   message: DecodedMessage<ContentTypes>,
-): message is DecodedMessage<ContentTypes> & {
-  content: NonNullable<ContentTypes>;
-} => {
+): message is DecodedMessageWithContent<ContentTypes> => {
   return message.content !== undefined && message.content !== null;
 };
 
@@ -94,7 +97,7 @@ const isRemoteAttachment = (
 
 const isText = (
   message: DecodedMessage,
-): message is DecodedMessage & { content: ReturnType<TextCodec["decode"]> } => {
+): message is DecodedMessageWithContent<ReturnType<TextCodec["decode"]>> => {
   return !!message.contentType?.sameAs(ContentTypeText);
 };
 
