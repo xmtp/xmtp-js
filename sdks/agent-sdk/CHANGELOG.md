@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.4
+
+### Patch Changes
+
+- 45160dc: Added `MessageContext.useCodec` to identify custom content types
+
 ## 1.1.3
 
 ### Patch Changes
