@@ -39,10 +39,12 @@ export class MessageContext<
     this.#message = message;
   }
 
-  isContentType<T extends ContentCodec>(
-    codec: T,
+  usesCodec<T extends ContentCodec>(
+    codecClass: new () => T,
   ): this is MessageContext<ReturnType<T["decode"]>> {
-    return this.#message.contentType?.sameAs(codec.contentType) || false;
+    return (
+      this.#message.contentType?.sameAs(new codecClass().contentType) || false
+    );
   }
 
   isText(): this is MessageContext<ReturnType<TextCodec["decode"]>> {
