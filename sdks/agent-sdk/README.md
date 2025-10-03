@@ -88,12 +88,12 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 **Message Events**
 
 - `attachment` – an incoming [remote attachment message](https://docs.xmtp.org/chat-apps/content-types/attachments)
-- `message` – all messages that are not having a [custom content type](https://docs.xmtp.org/agents/content-types/content-types) (fires for every message regardless of type)
+- `message` – all messages that are not having a [custom content type](https://docs.xmtp.org/agents/content-types/content-types#custom-content-types)
 - `group-update` – an incoming [group update](https://docs.xmtp.org/agents/content-types/group-updates#listen-for-group-updates) (like name change, member update, etc.)
 - `reaction` – an incoming [reaction message](https://docs.xmtp.org/agents/content-types/reactions)
 - `reply` – an incoming [reply message](https://docs.xmtp.org/agents/content-types/replies)
 - `text` – an incoming [text message](https://docs.xmtp.org/agents/content-types/content-types#text-content-type)
-- `unknownMessage` – a message that does not correspond to any of the pre-implemented event types
+- `unknownMessage` – a message event that does not correspond to any of the pre-implemented event types
 
 **Conversation Events**
 
