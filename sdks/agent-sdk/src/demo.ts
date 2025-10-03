@@ -1,4 +1,5 @@
 import { loadEnvFile } from "node:process";
+import { TextCodec } from "@xmtp/content-type-text";
 import { Agent, AgentError } from "./core/index.js";
 import { getTestUrl } from "./debug/log.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
@@ -63,6 +64,14 @@ agent.on("start", (ctx) => {
 
 agent.on("stop", (ctx) => {
   console.log("Agent stopped", ctx);
+});
+
+agent.on("unknownMessage", (ctx) => {
+  // Narrow down by codec
+  if (ctx.usesCodec(TextCodec)) {
+    const content = ctx.message.content;
+    console.log(`Text content: ${content.toUpperCase()}`);
+  }
 });
 
 await agent.start();

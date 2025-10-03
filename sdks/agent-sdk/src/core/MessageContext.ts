@@ -1,7 +1,4 @@
-import type {
-  ContentCodec,
-  ContentTypeId,
-} from "@xmtp/content-type-primitives";
+import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   ContentTypeReaction,
   type Reaction,

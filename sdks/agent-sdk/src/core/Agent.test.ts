@@ -20,17 +20,18 @@ import {
   type Conversation,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
-import {
-  beforeEach,
-  describe,
-  expect,
-  expectTypeOf,
-  it,
-  vi,
-  type Mock,
-} from "vitest";
-import { filter, type DecodedMessageWithContent } from "@/core/filter.js";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import { filter } from "@/core/filter.js";
 import { createSigner, createUser } from "@/user/User.js";
+import {
+  createMockConversationStreamWithCallbacks,
+  createMockMessage,
+  createMockStreamWithCallbacks,
+  flushMicrotasks,
+  makeAgent,
+  mockClient,
+  type CurrentClientTypes,
+} from "@/utils/TestUtil.js";
 import {
   Agent,
   type AgentErrorMiddleware,
@@ -40,93 +41,7 @@ import {
 import type { ClientContext } from "./ClientContext.js";
 import { MessageContext } from "./MessageContext.js";
 
-type CurrentClientTypes =
-  | string
-  | Reaction
-  | Reply
-  | RemoteAttachment
-  | GroupUpdated;
-
-const createMockMessage = <ContentType = string>(
-  overrides: Partial<DecodedMessage> & { content: ContentType },
-): DecodedMessageWithContent<ContentType> => {
-  const { content, ...rest } = overrides;
-  return {
-    id: "mock-message-id",
-    conversationId: "test-conversation-id",
-    senderInboxId: "sender-inbox-id",
-    contentType: ContentTypeText,
-    ...rest,
-    content,
-  } as unknown as DecodedMessageWithContent<ContentType>;
-};
-
-const createMockStreamWithCallbacks = (messages: DecodedMessage[]) => {
-  const mockStream = {
-    end: vi.fn().mockResolvedValue(undefined),
-    [Symbol.asyncIterator]: vi.fn(),
-  };
-
-  return vi
-    .fn()
-    .mockImplementation(
-      (options: { onValue: (value: DecodedMessage) => void }) => {
-        // Simulate async message delivery
-        queueMicrotask(() => {
-          messages.forEach((message) => {
-            options.onValue(message);
-          });
-        });
-        return Promise.resolve(mockStream);
-      },
-    );
-};
-
-const createMockConversationStreamWithCallbacks = (
-  conversations: Conversation[],
-) => {
-  const mockStream = {
-    end: vi.fn().mockResolvedValue(undefined),
-    [Symbol.asyncIterator]: vi.fn(),
-  };
-
-  return vi
-    .fn()
-    .mockImplementation(
-      (options: { onValue: (value: Conversation) => void }) => {
-        // Simulate async conversation delivery
-        queueMicrotask(() => {
-          conversations.forEach((conversation) => {
-            options.onValue(conversation);
-          });
-        });
-        return Promise.resolve(mockStream);
-      },
-    );
-};
-
-const flushMicrotasks = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 0));
-};
-
 describe("Agent", () => {
-  const mockConversation = {
-    send: vi.fn().mockResolvedValue(undefined),
-  };
-
-  const mockClient = {
-    inboxId: "test-inbox-id",
-    conversations: {
-      sync: vi.fn().mockResolvedValue(undefined),
-      stream: vi.fn().mockResolvedValue(undefined),
-      streamAllMessages: vi.fn(),
-      getConversationById: vi.fn().mockResolvedValue(mockConversation),
-    },
-    preferences: {
-      inboxStateFromInboxIds: vi.fn(),
-    },
-  };
-
   const mockMessage = createMockMessage({
     id: "message-id-1",
     senderInboxId: "sender-inbox-id",
@@ -829,6 +744,7 @@ describe("Agent", () => {
 
   describe("emit", () => {
     it("should emit 'message' and allow sending a reply via context", async () => {
+      const mockConversation = { send: vi.fn() };
       let contextSend: ((text: string) => Promise<void>) | undefined;
       const handler = vi.fn((ctx: MessageContext) => {
         contextSend = ctx.sendText.bind(ctx);
@@ -888,31 +804,12 @@ describe("Agent", () => {
   });
 
   describe("errors.use", () => {
-    const mockConversation = { send: vi.fn() };
     const mockMessage = createMockMessage({
       id: "msg-1",
       conversationId: "conv-1",
       senderInboxId: "inbox-1",
       content: "hello",
     });
-
-    const makeAgent = () => {
-      const mockClient = {
-        conversations: {
-          sync: vi.fn().mockResolvedValue(undefined),
-          stream: vi.fn().mockResolvedValue(undefined),
-          streamAllMessages: vi.fn(),
-          getConversationById: vi.fn().mockResolvedValue(mockConversation),
-        },
-        preferences: { inboxStateFromInboxIds: vi.fn() },
-      } as unknown as Client & {
-        conversations: {
-          stream: Mock;
-          streamAllMessages: Mock;
-        };
-      };
-      return { agent: new Agent({ client: mockClient }), mockClient };
-    };
 
     it("propagates error, transforms, recovers, and resumes remaining middleware", async () => {
       const { agent, mockClient } = makeAgent();
