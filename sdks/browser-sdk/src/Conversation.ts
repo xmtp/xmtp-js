@@ -27,7 +27,6 @@ export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
   #createdAtNs?: SafeConversation["createdAtNs"];
   #id: string;
-  #isActive?: SafeConversation["isActive"];
   #metadata?: SafeConversation["metadata"];
   #isCommitLogForked?: SafeConversation["isCommitLogForked"];
 
@@ -49,7 +48,6 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   #syncData(data?: SafeConversation) {
-    this.#isActive = data?.isActive;
     this.#addedByInboxId = data?.addedByInboxId;
     this.#metadata = data?.metadata;
     this.#createdAtNs = data?.createdAtNs;
@@ -58,10 +56,6 @@ export class Conversation<ContentTypes = unknown> {
 
   get id() {
     return this.#id;
-  }
-
-  get isActive() {
-    return this.#isActive;
   }
 
   get isCommitLogForked() {
@@ -94,6 +88,12 @@ export class Conversation<ContentTypes = unknown> {
     return lastMessage
       ? new DecodedMessage(this.#client, lastMessage)
       : undefined;
+  }
+
+  async isActive() {
+    return this.#client.sendMessage("conversation.isActive", {
+      id: this.#id,
+    });
   }
 
   /**
