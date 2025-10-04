@@ -4,7 +4,7 @@ import type {
   SafeCreateGroupOptions,
   SafeListConversationsOptions,
 } from "@xmtp/browser-sdk";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useXMTP, type ContentTypes } from "@/contexts/XMTPContext";
 
 export const useConversations = () => {
@@ -14,14 +14,28 @@ export const useConversations = () => {
   const [conversations, setConversations] = useState<
     Conversation<ContentTypes>[]
   >([]);
+  const [conversationsCount, setConversationsCount] = useState<number>(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   if (!client) {
     throw new Error("XMTP client not initialized");
   }
 
-  const list = async (
+  const sync = useCallback(async () => {
+    setSyncing(true);
+
+    try {
+      await client.conversations.sync();
+    } finally {
+      setSyncing(false);
+    }
+  }, [client]);
+
+  const list = useCallback(async (
     options?: SafeListConversationsOptions,
     syncFromNetwork: boolean = false,
+    reset: boolean = true,
   ) => {
     if (syncFromNetwork) {
       await sync();
@@ -31,24 +45,84 @@ export const useConversations = () => {
 
     try {
       const convos = await client.conversations.list(options);
-      setConversations(convos);
+      
+      if (reset) {
+        setConversations(convos);
+        // Получаем общее количество разговоров при первой загрузке
+        if (!options?.limit) {
+          setConversationsCount(convos.length);
+        } else {
+          // Если загружаем с лимитом, получаем общее количество отдельно
+          // Но только если conversationsCount еще не установлен
+          if (conversationsCount === 0) {
+            try {
+              const allConvos = await client.conversations.list();
+              setConversationsCount(allConvos.length);
+            } catch (error) {
+              console.warn('Failed to get total conversations count:', error);
+              // Fallback: используем текущее количество
+              setConversationsCount(convos.length);
+            }
+          }
+        }
+      } else {
+        setConversations((prev: Conversation<ContentTypes>[]) => [...prev, ...convos]);
+      }
+      
+      // Проверяем, есть ли еще данные для загрузки
+      if (options?.limit) {
+        const limit = Number(options.limit);
+        setHasMore(convos.length === limit);
+      } else {
+        setHasMore(false);
+      }
+      
       return convos;
     } finally {
       setLoading(false);
     }
-  };
+  }, [client, conversationsCount, sync]);
 
-  const sync = async () => {
-    setSyncing(true);
+  const loadMore = useCallback(async (limit: number = 20) => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
 
     try {
-      await client.conversations.sync();
+      const options: SafeListConversationsOptions = {
+        limit: BigInt(limit),
+        createdBeforeNs: conversations.length > 0 
+          ? conversations[conversations.length - 1].createdAtNs 
+          : undefined,
+      };
+      
+      const convos = await client.conversations.list(options);
+      
+      if (convos.length > 0) {
+        setConversations((prev: Conversation<ContentTypes>[]) => [...prev, ...convos]);
+        setHasMore(convos.length === limit);
+      } else {
+        setHasMore(false);
+      }
+      
+      return convos;
+    } catch (error) {
+      console.error('Failed to load more conversations:', error);
+      setHasMore(false);
+      return [];
     } finally {
-      setSyncing(false);
+      setLoadingMore(false);
     }
-  };
+  }, [client, conversations, hasMore, loadingMore]);
 
-  const syncAll = async () => {
+  const resetPagination = useCallback(() => {
+    setConversations([]);
+    setConversationsCount(0);
+    setHasMore(true);
+    setLoadingMore(false);
+  }, []);
+
+  const syncAll = useCallback(async () => {
     setSyncing(true);
 
     try {
@@ -56,7 +130,7 @@ export const useConversations = () => {
     } finally {
       setSyncing(false);
     }
-  };
+  }, [client]);
 
   const getConversationById = async (conversationId: string) => {
     setLoading(true);
@@ -138,13 +212,13 @@ export const useConversations = () => {
     }
   };
 
-  const stream = async () => {
+  const stream = useCallback(async () => {
     const onValue = (conversation: Conversation<ContentTypes>) => {
       const shouldAdd =
         conversation.metadata?.conversationType === "dm" ||
         conversation.metadata?.conversationType === "group";
       if (shouldAdd) {
-        setConversations((prev) => [conversation, ...prev]);
+        setConversations((prev: Conversation<ContentTypes>[]) => [conversation, ...prev]);
       }
     };
 
@@ -155,18 +229,23 @@ export const useConversations = () => {
     return () => {
       void stream.end();
     };
-  };
+  }, [client]);
 
   return {
     conversations,
+    conversationsCount,
+    hasMore,
+    loadingMore,
     getConversationById,
     getMessageById,
     list,
+    loadMore,
     loading,
     newDm,
     newDmWithIdentifier,
     newGroup,
     newGroupWithIdentifiers,
+    resetPagination,
     stream,
     sync,
     syncAll,

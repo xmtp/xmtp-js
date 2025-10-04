@@ -6,7 +6,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
-  const { list, loading, syncing, conversations, stream, syncAll } =
+  const { list, loading, syncing, conversations, conversationsCount, hasMore, loadingMore, loadMore, resetPagination, stream, syncAll } =
     useConversations();
   const stopStreamRef = useRef<(() => void) | null>(null);
 
@@ -21,31 +21,34 @@ export const ConversationsNavbar: React.FC = () => {
 
   const handleSync = useCallback(async () => {
     stopStream();
-    await list(undefined, true);
+    resetPagination();
+    await list(undefined, true, true);
     await startStream();
-  }, [list, startStream, stopStream]);
+  }, [list, startStream, stopStream, resetPagination]);
 
   const handleSyncAll = useCallback(async () => {
     stopStream();
+    resetPagination();
     await syncAll();
+    await list(undefined, false, true);
     await startStream();
-  }, [syncAll, startStream, stopStream]);
+  }, [syncAll, list, startStream, stopStream, resetPagination]);
 
   // loading conversations on mount, and start streaming
   useEffect(() => {
     const loadConversations = async () => {
-      await list(undefined);
+      await list({ limit: BigInt(20) });
       await startStream();
     };
     void loadConversations();
-  }, []);
+  }, [list, startStream]);
 
   // stop streaming on unmount
   useEffect(() => {
     return () => {
       stopStream();
     };
-  }, []);
+  }, [stopStream]);
 
   return (
     <ContentLayout
@@ -55,7 +58,7 @@ export const ConversationsNavbar: React.FC = () => {
             Conversations
           </Text>
           <Badge color="gray" size="lg">
-            {conversations.length}
+            {conversationsCount}
           </Badge>
         </Group>
       }
@@ -79,7 +82,12 @@ export const ConversationsNavbar: React.FC = () => {
           <Text>No conversations found</Text>
         </Box>
       ) : (
-        <ConversationsList conversations={conversations} />
+        <ConversationsList
+          conversations={conversations}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          onLoadMore={() => loadMore(20)}
+        />
       )}
     </ContentLayout>
   );
