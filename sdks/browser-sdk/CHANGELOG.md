@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 5.0.0
+
+### BREAKING CHANGES
+
+- 90089b0: Refactored `Conversation.isActive` to async method for more accurate value
+
 ## 4.3.0
 
 ### Minor Changes
