@@ -2,9 +2,9 @@
 
 ## 5.0.0
 
-### Major Changes
+### BREAKING CHANGES
 
-- 90089b0: Refactor Conversation isActive in the Browser SDK
+- 90089b0: Refactored `Conversation.isActive` to async method for more accurate value
 
 ## 4.3.0
 
