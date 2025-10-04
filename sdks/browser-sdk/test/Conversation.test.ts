@@ -163,6 +163,16 @@ describe("Conversation", () => {
 
     await conversation.addMembers([client3.inboxId!]);
 
+    await client2.conversations.sync();
+    const conversation2 = await client2.conversations.getConversationById(
+      conversation.id,
+    );
+
+    await client3.conversations.sync();
+    const conversation3 = await client3.conversations.getConversationById(
+      conversation.id,
+    );
+
     const members2 = await conversation.members();
     expect(members2.length).toBe(3);
 
@@ -172,6 +182,13 @@ describe("Conversation", () => {
     expect(memberInboxIds2).toContain(client3.inboxId);
 
     await conversation.removeMembers([client2.inboxId!]);
+
+    await conversation2!.sync();
+    await conversation3!.sync();
+
+    expect(await conversation.isActive()).toBe(true);
+    expect(await conversation2!.isActive()).toBe(false);
+    expect(await conversation3!.isActive()).toBe(true);
 
     const members3 = await conversation.members();
     expect(members3.length).toBe(2);
