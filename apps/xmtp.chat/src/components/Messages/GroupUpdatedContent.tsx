@@ -5,6 +5,7 @@ import { DateLabel } from "@/components/DateLabel";
 import { Identity } from "@/components/Identity";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { useConversation } from "@/hooks/useConversation";
 
 type GroupMembersAddedContentProps = {
   type: "added" | "removed";
@@ -17,18 +18,20 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
   updatedMembers,
   initiatedBy,
 }) => {
-  const { members } = useConversationContext();
+  const { conversationId } = useConversationContext();
+  const { members } = useConversation(conversationId);
+  const initiatedByMember = members.get(initiatedBy);
   return (
     <Group gap="4" wrap="wrap" justify="center">
       <Identity
-        address={members.get(initiatedBy) ?? ""}
+        address={initiatedByMember?.accountIdentifiers[0].identifier ?? ""}
         inboxId={initiatedBy}
       />
       <Text size="sm">{type === "added" ? "added" : "removed"}</Text>
       {updatedMembers.map((member) => (
         <Identity
           key={member}
-          address={members.get(member) ?? ""}
+          address={members.get(member)?.accountIdentifiers[0].identifier ?? ""}
           inboxId={member}
         />
       ))}
@@ -45,7 +48,9 @@ type GroupMetadataUpdatedContentProps = {
 const GroupMetadataUpdatedContent: React.FC<
   GroupMetadataUpdatedContentProps
 > = ({ metadataFieldChange, initiatedBy }) => {
-  const { members } = useConversationContext();
+  const { conversationId } = useConversationContext();
+  const { members } = useConversation(conversationId);
+  const initiatedByMember = members.get(initiatedBy);
   const field = useMemo(() => {
     switch (metadataFieldChange.fieldName) {
       case "group_name":
@@ -54,13 +59,17 @@ const GroupMetadataUpdatedContent: React.FC<
         return "description";
       case "group_image_url_square":
         return "image URL";
+      case "_commit_log_signer":
+        return "commit log signer";
+      default:
+        return metadataFieldChange.fieldName;
     }
   }, [metadataFieldChange.fieldName]);
 
   return (
     <Group gap="4" wrap="wrap" justify="center">
       <Identity
-        address={members.get(initiatedBy) ?? ""}
+        address={initiatedByMember?.accountIdentifiers[0].identifier ?? ""}
         inboxId={initiatedBy}
       />
       <Text size="sm">

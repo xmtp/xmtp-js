@@ -1,10 +1,6 @@
 import { Group } from "@mantine/core";
-import {
-  Group as XmtpGroup,
-  type Client,
-  type Conversation as XmtpConversation,
-} from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Group as XmtpGroup, type Client } from "@xmtp/browser-sdk";
+import { useCallback, useEffect } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
@@ -15,65 +11,41 @@ import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
 
 export type ConversationProps = {
-  conversation: XmtpConversation<ContentTypes>;
+  conversationId: string;
 };
 
-export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
+export const Conversation: React.FC<ConversationProps> = ({
+  conversationId,
+}) => {
   const { client } = useOutletContext<{ client: Client<ContentTypes> }>();
-  const [title, setTitle] = useState("");
   const {
-    getMessages,
+    conversation,
+    name,
+    sync,
     loading: conversationLoading,
     messages,
-    streamMessages,
     syncing: conversationSyncing,
-  } = useConversation(conversation);
-  const stopStreamRef = useRef<(() => void) | null>(null);
-
-  const startStream = useCallback(async () => {
-    stopStreamRef.current = await streamMessages();
-  }, [streamMessages]);
-
-  const stopStream = useCallback(() => {
-    stopStreamRef.current?.();
-    stopStreamRef.current = null;
-  }, []);
+  } = useConversation(conversationId);
 
   useEffect(() => {
     const loadMessages = async () => {
-      stopStream();
-      await getMessages(undefined, true);
-      await startStream();
+      await sync(true);
     };
     void loadMessages();
-    return () => {
-      stopStream();
-    };
-  }, [conversation.id]);
+  }, [conversationId]);
 
   const handleSync = useCallback(async () => {
-    stopStream();
-    await getMessages(undefined, true);
-    await startStream();
-    if (conversation instanceof XmtpGroup) {
-      setTitle(conversation.name || "Untitled");
-    }
-  }, [getMessages, conversation.id, startStream, stopStream]);
-
-  useEffect(() => {
-    if (conversation instanceof XmtpGroup) {
-      setTitle(conversation.name || "Untitled");
-    } else {
-      setTitle("Direct message");
-    }
-  }, [conversation.id]);
+    await sync(true);
+  }, [sync, conversationId]);
 
   return (
     <>
-      <ConversationProvider key={conversation.id} conversation={conversation}>
+      <ConversationProvider
+        key={conversationId}
+        conversationId={conversationId}>
         <ContentLayout
-          title={title}
-          loading={conversationLoading}
+          title={name || "Untitled"}
+          loading={messages.length === 0 && conversationLoading}
           headerActions={
             <Group gap="xs">
               <ConversationMenu
@@ -83,7 +55,7 @@ export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
               />
             </Group>
           }
-          footer={<Composer conversation={conversation} />}
+          footer={<Composer conversationId={conversationId} />}
           withScrollArea={false}>
           <Messages messages={messages} />
         </ContentLayout>

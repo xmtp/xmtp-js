@@ -23,8 +23,8 @@ export type ReactionBarProps = {
 };
 
 export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
-  const { conversation } = useConversationContext();
-  const { send } = useConversation(conversation);
+  const { conversationId } = useConversationContext();
+  const { send } = useConversation(conversationId);
   const [opened, setOpened] = useState(false);
   const [schema, setSchema] = useState<Reaction["schema"]>("unicode");
   const [text, setText] = useState("");
