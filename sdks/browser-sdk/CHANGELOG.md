@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 5.0.0
+
+### Major Changes
+
+- 90089b0: Refactor Conversation isActive in the Browser SDK
+
 ## 4.3.0
 
 ### Minor Changes
