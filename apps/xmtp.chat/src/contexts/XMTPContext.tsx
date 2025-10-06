@@ -177,3 +177,11 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
 export const useXMTP = () => {
   return useContext(XMTPContext);
 };
+
+export const useClient = () => {
+  const { client } = useXMTP();
+  if (!client) {
+    throw new Error("useClient: XMTP client not initialized");
+  }
+  return client;
+};
