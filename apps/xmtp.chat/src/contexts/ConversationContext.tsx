@@ -1,11 +1,8 @@
-import { type Conversation, type DecodedMessage } from "@xmtp/browser-sdk";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { ContentTypes } from "@/contexts/XMTPContext";
-import { resolveAddresses } from "@/helpers/profiles";
+import { type DecodedMessage } from "@xmtp/browser-sdk";
+import { createContext, useContext, useMemo, useState } from "react";
 
 type ConversationContextType = {
-  conversation?: Conversation<ContentTypes>;
-  members: Map<string, string>;
+  conversationId: string;
   replyTarget: DecodedMessage | undefined;
   setReplyTarget: React.Dispatch<
     React.SetStateAction<DecodedMessage | undefined>
@@ -13,43 +10,26 @@ type ConversationContextType = {
 };
 
 const ConversationContext = createContext<ConversationContextType>({
-  members: new Map(),
+  conversationId: "",
   replyTarget: undefined,
   setReplyTarget: () => {},
 });
 
 export type ConversationProviderProps = React.PropsWithChildren<{
-  conversation: Conversation<ContentTypes>;
+  conversationId: string;
 }>;
 
 export const ConversationProvider: React.FC<ConversationProviderProps> = ({
   children,
-  conversation,
+  conversationId,
 }) => {
-  const [members, setMembers] = useState<Map<string, string>>(new Map());
   const [replyTarget, setReplyTarget] = useState<DecodedMessage | undefined>(
     undefined,
   );
 
-  useEffect(() => {
-    const loadMembers = async () => {
-      const members = await conversation.members();
-      const addresses = members.map((m) => m.accountIdentifiers[0].identifier);
-      // fetch and cache profiles for the addresses
-      await resolveAddresses(addresses);
-      setMembers(
-        new Map(
-          members.map((m) => [m.inboxId, m.accountIdentifiers[0].identifier]),
-        ),
-      );
-    };
-
-    void loadMembers();
-  }, [conversation.id]);
-
   const value = useMemo(
-    () => ({ conversation, members, replyTarget, setReplyTarget }),
-    [conversation, members, replyTarget, setReplyTarget],
+    () => ({ conversationId, replyTarget, setReplyTarget }),
+    [conversationId, replyTarget, setReplyTarget],
   );
 
   return (
@@ -61,10 +41,10 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({
 
 export const useConversationContext = () => {
   const context = useContext(ConversationContext);
-  if (!context.conversation) {
+  if (!context.conversationId) {
     throw new Error(
       "useConversationContext must be used within a ConversationProvider",
     );
   }
-  return context as Required<ConversationContextType>;
+  return context;
 };
