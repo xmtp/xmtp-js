@@ -354,11 +354,6 @@ const agent = await Agent.create(signer, {
 });
 ```
 
-## Debugging
-
-- [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
-- [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)
-
 ## LibXMTP Version
 
 [LibXMTP](https://github.com/xmtp/libxmtp/) is a shared library encapsulating the core functionality of the XMTP messaging protocol, such as cryptography, networking, and language bindings. This version of the Agent SDK uses:
@@ -366,6 +361,11 @@ const agent = await Agent.create(signer, {
 | XMTP Node SDK Version | LibXMTP Version |
 | --------------------- | --------------- |
 | 4.2.2                 | 1.5.3           |
+
+## Debugging
+
+- [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
+- [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)
 
 ## Contributing / Feedback
 
