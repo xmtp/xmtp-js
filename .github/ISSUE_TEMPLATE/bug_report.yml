@@ -17,10 +17,10 @@ body:
       multiple: false
       description: What are you having an issue with?
       options:
-        - label: Browser SDK
-        - label: Node SDK
-        - label: Agent SDK
-        - label: xmtp.chat
+        - Browser SDK
+        - Node SDK
+        - Agent SDK
+        - xmtp.chat
       default: 0
     validations:
       required: true
