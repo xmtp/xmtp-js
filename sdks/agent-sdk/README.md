@@ -361,11 +361,11 @@ const agent = await Agent.create(signer, {
 
 ## LibXMTP Version
 
-LibXMTP is a shared library encapsulating the core functionality of the XMTP messaging protocol, such as cryptography, networking, and language bindings. This version of the Agent SDK uses:
+[LibXMTP](https://github.com/xmtp/libxmtp/) is a shared library encapsulating the core functionality of the XMTP messaging protocol, such as cryptography, networking, and language bindings. This version of the Agent SDK uses:
 
-| Node SDK Version | LibXMTP Version |
-| ---------------- | --------------- |
-| 4.2.2            | x.x.x           |
+| XMTP Node SDK Version | LibXMTP Version |
+| --------------------- | --------------- |
+| 4.2.2                 | x.x.x           |
 
 ## Contributing / Feedback
 
