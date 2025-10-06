@@ -365,7 +365,7 @@ const agent = await Agent.create(signer, {
 
 | XMTP Node SDK Version | LibXMTP Version |
 | --------------------- | --------------- |
-| 4.2.2                 | x.x.x           |
+| 4.2.2                 | 1.5.3           |
 
 ## Contributing / Feedback
 
