@@ -8,11 +8,11 @@ Have a question about how to build with XMTP? Ask your question and learn with t
 
 ## 🐞 Bugs
 
-Report a bug using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues).
+Report a bug using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues/new/choose).
 
 ## ✨ Feature Requests
 
-Request a feature using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues).
+We are not accepting feature requests at this time.
 
 ## 🔀 Pull Requests
 
