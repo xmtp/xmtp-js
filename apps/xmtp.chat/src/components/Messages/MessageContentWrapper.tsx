@@ -3,6 +3,7 @@ import { DateLabel } from "@/components/DateLabel";
 import { Identity } from "@/components/Identity";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { useConversation } from "@/hooks/useConversation";
 
 export type MessageContentAlign = "left" | "right";
 
@@ -20,7 +21,9 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
   sentAtNs,
   stopClickPropagation = true,
 }) => {
-  const { members } = useConversationContext();
+  const { conversationId } = useConversationContext();
+  const { members } = useConversation(conversationId);
+  const senderMember = members.get(senderInboxId);
   return (
     <Group justify={align === "left" ? "flex-start" : "flex-end"}>
       <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
@@ -30,7 +33,7 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
           align="center">
           <DateLabel date={nsToDate(sentAtNs)} />
           <Identity
-            address={members.get(senderInboxId) ?? ""}
+            address={senderMember?.accountIdentifiers[0].identifier ?? ""}
             inboxId={senderInboxId}
           />
         </Flex>

@@ -6,6 +6,7 @@ import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { formatFileSize } from "@/helpers/attachment";
 import { isRemoteAttachment, stringify } from "@/helpers/messages";
+import { useConversation } from "@/hooks/useConversation";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
 import { IconX } from "@/icons/IconX";
 
@@ -39,8 +40,9 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
   onCancel,
   disabled,
 }) => {
-  const { members } = useConversationContext();
-  const fromAddress = members.get(message.senderInboxId) ?? "";
+  const { conversationId } = useConversationContext();
+  const { members } = useConversation(conversationId);
+  const fromMember = members.get(message.senderInboxId);
   return (
     <>
       <Box miw="0">
@@ -51,7 +53,10 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
               Replying to
             </Text>
             <Box>
-              <Identity address={fromAddress} inboxId={message.senderInboxId} />
+              <Identity
+                address={fromMember?.accountIdentifiers[0].identifier ?? ""}
+                inboxId={message.senderInboxId}
+              />
             </Box>
           </Group>
           <ReplyPreviewContent message={message} />

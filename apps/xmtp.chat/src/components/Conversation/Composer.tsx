@@ -7,7 +7,6 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import type { Conversation } from "@xmtp/browser-sdk";
 import {
   ContentTypeRemoteAttachment,
   type RemoteAttachment,
@@ -17,7 +16,6 @@ import { ContentTypeText } from "@xmtp/content-type-text";
 import { useCallback, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { useConversationContext } from "@/contexts/ConversationContext";
-import type { ContentTypes } from "@/contexts/XMTPContext";
 import { uploadAttachment, validateFile } from "@/helpers/attachment";
 import { useConversation } from "@/hooks/useConversation";
 import { IconPlus } from "@/icons/IconPlus";
@@ -26,11 +24,11 @@ import classes from "./Composer.module.css";
 import { ReplyPreview } from "./ReplyPreview";
 
 export type ComposerProps = {
-  conversation: Conversation<ContentTypes>;
+  conversationId: string;
 };
 
-export const Composer: React.FC<ComposerProps> = ({ conversation }) => {
-  const { send, sending } = useConversation(conversation);
+export const Composer: React.FC<ComposerProps> = ({ conversationId }) => {
+  const { send, sending } = useConversation(conversationId);
   const { replyTarget, setReplyTarget } = useConversationContext();
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
