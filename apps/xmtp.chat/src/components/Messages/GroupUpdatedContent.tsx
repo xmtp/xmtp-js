@@ -5,6 +5,7 @@ import { DateLabel } from "@/components/DateLabel";
 import { Identity } from "@/components/Identity";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 
 type GroupMembersAddedContentProps = {
@@ -24,17 +25,20 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
   return (
     <Group gap="4" wrap="wrap" justify="center">
       <Identity
-        address={initiatedByMember?.accountIdentifiers[0].identifier ?? ""}
+        address={initiatedByMember ? getMemberAddress(initiatedByMember) : ""}
         inboxId={initiatedBy}
       />
       <Text size="sm">{type === "added" ? "added" : "removed"}</Text>
-      {updatedMembers.map((member) => (
-        <Identity
-          key={member}
-          address={members.get(member)?.accountIdentifiers[0].identifier ?? ""}
-          inboxId={member}
-        />
-      ))}
+      {updatedMembers.map((member) => {
+        const memberMember = members.get(member);
+        return (
+          <Identity
+            key={member}
+            address={memberMember ? getMemberAddress(memberMember) : ""}
+            inboxId={member}
+          />
+        );
+      })}
       <Text size="sm">{type === "added" ? "to" : "from"} the group</Text>
     </Group>
   );
@@ -69,7 +73,7 @@ const GroupMetadataUpdatedContent: React.FC<
   return (
     <Group gap="4" wrap="wrap" justify="center">
       <Identity
-        address={initiatedByMember?.accountIdentifiers[0].identifier ?? ""}
+        address={initiatedByMember ? getMemberAddress(initiatedByMember) : ""}
         inboxId={initiatedBy}
       />
       <Text size="sm">

@@ -3,6 +3,7 @@ import { DateLabel } from "@/components/DateLabel";
 import { Identity } from "@/components/Identity";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 
 export type MessageContentAlign = "left" | "right";
@@ -33,7 +34,7 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
           align="center">
           <DateLabel date={nsToDate(sentAtNs)} />
           <Identity
-            address={senderMember?.accountIdentifiers[0].identifier ?? ""}
+            address={senderMember ? getMemberAddress(senderMember) : ""}
             inboxId={senderInboxId}
           />
         </Flex>

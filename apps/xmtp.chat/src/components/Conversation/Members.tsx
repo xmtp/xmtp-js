@@ -15,6 +15,7 @@ import {
 } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Identity } from "@/components/Identity";
+import { getMemberAddress } from "@/helpers/xmtp";
 import { useMemberId } from "@/hooks/useMemberId";
 import classes from "./Members.module.css";
 
@@ -258,7 +259,7 @@ export const Members: React.FC<MembersProps> = ({
                   key={member.inboxId}
                   buttonLabel="Restore"
                   inboxId={member.inboxId}
-                  address={member.accountIdentifiers[0].identifier}
+                  address={getMemberAddress(member)}
                   isSelf={member.inboxId === inboxId}
                   onClick={() => {
                     handleRestoreRemovedMember(member.inboxId);
@@ -280,7 +281,7 @@ export const Members: React.FC<MembersProps> = ({
                   key={member.inboxId}
                   buttonLabel="Remove"
                   inboxId={member.inboxId}
-                  address={member.accountIdentifiers[0].identifier}
+                  address={getMemberAddress(member)}
                   isSelf={member.inboxId === inboxId}
                   onClick={() => {
                     handleRemoveMember(member.inboxId);

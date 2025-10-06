@@ -4,6 +4,7 @@ import { Identity } from "@/components/Identity";
 import type { Intent } from "@/content-types/Intent";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 
 export type IntentContentProps = {
@@ -25,7 +26,7 @@ export const IntentContent: React.FC<IntentContentProps> = ({
       <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
       <Group gap="4" wrap="wrap" justify="center">
         <Identity
-          address={senderMember?.accountIdentifiers[0].identifier ?? ""}
+          address={senderMember ? getMemberAddress(senderMember) : ""}
           inboxId={senderInboxId}
         />
         <Text size="sm">selected the</Text>

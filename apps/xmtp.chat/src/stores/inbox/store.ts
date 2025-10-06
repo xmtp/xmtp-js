@@ -11,6 +11,7 @@ import {
 } from "@xmtp/content-type-group-updated";
 import { createStore } from "zustand";
 import type { ContentTypes } from "@/contexts/XMTPContext";
+import { getMemberAddress } from "@/helpers/xmtp";
 import {
   getLastCreatedAt,
   isLastSentAt,
@@ -104,16 +105,18 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         const member = members.find(
           (m) => m.inboxId !== conversation.addedByInboxId,
         );
-        const profiles = profilesStore
-          .getState()
-          .getProfiles(member?.accountIdentifiers[0].identifier ?? "");
-        let displayName = member?.inboxId;
-        if (profiles.length > 0) {
-          displayName = profiles[0].displayName ?? displayName;
+        if (member) {
+          const profiles = profilesStore
+            .getState()
+            .getProfiles(getMemberAddress(member));
+          let displayName = member.inboxId;
+          if (profiles.length > 0) {
+            displayName = profiles[0].displayName ?? displayName;
+          }
+          newMetadata.set(conversation.id, {
+            name: displayName,
+          });
         }
-        newMetadata.set(conversation.id, {
-          name: displayName,
-        });
       }
       // update last message state
       const lastMessage = await conversation.lastMessage();
@@ -188,16 +191,18 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
           const member = members.find(
             (m) => m.inboxId !== conversation.addedByInboxId,
           );
-          const profiles = profilesStore
-            .getState()
-            .getProfiles(member?.accountIdentifiers[0].identifier ?? "");
-          let displayName = member?.inboxId;
-          if (profiles.length > 0) {
-            displayName = profiles[0].displayName ?? displayName;
+          if (member) {
+            const profiles = profilesStore
+              .getState()
+              .getProfiles(getMemberAddress(member));
+            let displayName = member.inboxId;
+            if (profiles.length > 0) {
+              displayName = profiles[0].displayName ?? displayName;
+            }
+            newMetadata.set(conversation.id, {
+              name: displayName,
+            });
           }
-          newMetadata.set(conversation.id, {
-            name: displayName,
-          });
         }
         const lastMessage = allLastMessages.get(conversation.id);
         newLastMessages.set(conversation.id, lastMessage);

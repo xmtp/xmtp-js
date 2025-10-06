@@ -6,6 +6,7 @@ import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { formatFileSize } from "@/helpers/attachment";
 import { isRemoteAttachment, stringify } from "@/helpers/messages";
+import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
 import { IconX } from "@/icons/IconX";
@@ -54,7 +55,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
             </Text>
             <Box>
               <Identity
-                address={fromMember?.accountIdentifiers[0].identifier ?? ""}
+                address={fromMember ? getMemberAddress(fromMember) : ""}
                 inboxId={message.senderInboxId}
               />
             </Box>
