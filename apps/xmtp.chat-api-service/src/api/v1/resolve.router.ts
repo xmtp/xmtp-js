@@ -101,18 +101,25 @@ export async function resolveProfiles(req: Request, res: Response) {
         p.address &&
         expiredProfileIdentities.includes(`${p.platform},${p.address}`),
     );
+
     if (expiredProfiles.length > 0) {
-      const updatedProfiles = await prisma.profile.updateManyAndReturn({
-        data: expiredProfiles.map((p) => ({
-          address: p.address,
-          avatar: p.avatar,
-          description: p.description,
-          displayName: p.displayName,
-          identity: p.identity,
-          platform: resolvePlatform(p.platform),
-        })),
-      });
-      validProfiles.push(...updatedProfiles);
+      for (const p of expiredProfiles) {
+        const expiredProfile = expired.find((e) => e.address === p.address);
+        if (!expiredProfile || !p.address) {
+          continue;
+        }
+        const updatedProfile = await prisma.profile.update({
+          where: { id: expiredProfile.id },
+          data: {
+            address: p.address,
+            avatar: p.avatar,
+            description: p.description,
+            displayName: p.displayName,
+            platform: resolvePlatform(p.platform),
+          },
+        });
+        validProfiles.push(updatedProfile);
+      }
     }
 
     // return the profiles
