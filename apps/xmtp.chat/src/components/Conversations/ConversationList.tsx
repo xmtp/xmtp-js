@@ -34,7 +34,10 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
       style={{ flexGrow: 1 }}
       data={conversations}
       itemContent={(_, conversation) => (
-        <ConversationCard conversation={conversation} />
+        <ConversationCard
+          key={conversation.id}
+          conversationId={conversation.id}
+        />
       )}
     />
   );

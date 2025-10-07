@@ -7,9 +7,11 @@ import { Metadata } from "@/components/Conversation/Metadata";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMetadataModal: React.FC = () => {
   const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { addConversation } = useActions();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
   const [name, setName] = useState("");
@@ -29,14 +31,22 @@ export const ManageMetadataModal: React.FC = () => {
     if (conversation instanceof XmtpGroup) {
       setIsLoading(true);
       try {
+        let hasUpdated = false;
         if (name !== initialName.current) {
           await conversation.updateName(name);
+          hasUpdated = true;
         }
         if (description !== initialDescription.current) {
           await conversation.updateDescription(description);
+          hasUpdated = true;
         }
         if (imageUrl !== initialImageUrl.current) {
           await conversation.updateImageUrl(imageUrl);
+          hasUpdated = true;
+        }
+
+        if (hasUpdated) {
+          void addConversation(conversation);
         }
 
         void navigate(`/conversations/${conversation.id}`);
@@ -44,7 +54,7 @@ export const ManageMetadataModal: React.FC = () => {
         setIsLoading(false);
       }
     }
-  }, [conversation.id, name, description, imageUrl, navigate]);
+  }, [conversation, name, description, imageUrl, navigate]);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {

@@ -8,10 +8,12 @@ import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMembersModal: React.FC = () => {
   const { conversation, client } =
     useOutletContext<ConversationOutletContext>();
+  const { addConversation } = useActions();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
@@ -32,12 +34,14 @@ export const ManageMembersModal: React.FC = () => {
     setIsLoading(true);
 
     try {
+      let hasUpdated = false;
       if (addedMembers.length > 0) {
         const addedMemberInboxIds = addedMembers
           .filter((member) => isValidInboxId(member.inboxId))
           .map((member) => member.inboxId);
         if (addedMemberInboxIds.length > 0) {
           await conversation.addMembers(addedMemberInboxIds);
+          hasUpdated = true;
         }
         const addedMemberAddresses = addedMembers.filter((member) =>
           isValidEthereumAddress(member.address),
@@ -49,6 +53,7 @@ export const ManageMembersModal: React.FC = () => {
               identifierKind: "Ethereum",
             })),
           );
+          hasUpdated = true;
         }
       }
 
@@ -56,6 +61,11 @@ export const ManageMembersModal: React.FC = () => {
         await conversation.removeMembers(
           removedMembers.map((member) => member.inboxId),
         );
+        hasUpdated = true;
+      }
+
+      if (hasUpdated) {
+        void addConversation(conversation);
       }
 
       void navigate(`/conversations/${conversation.id}`);

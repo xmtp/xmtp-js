@@ -1,50 +1,46 @@
 import type {
   Conversation,
+  DecodedMessage,
   Identifier,
   SafeCreateGroupOptions,
-  SafeListConversationsOptions,
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
-import { useXMTP, type ContentTypes } from "@/contexts/XMTPContext";
+import { useClient, type ContentTypes } from "@/contexts/XMTPContext";
+import {
+  useActions,
+  useConversations as useConversationsState,
+  useLastCreatedAt,
+} from "@/stores/inbox/hooks";
 
 export const useConversations = () => {
-  const { client } = useXMTP();
+  const client = useClient();
+  const { addConversations, addConversation, addMessage } = useActions();
+  const conversations = useConversationsState();
+  const lastCreatedAt = useLastCreatedAt();
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [conversations, setConversations] = useState<
-    Conversation<ContentTypes>[]
-  >([]);
 
-  if (!client) {
-    throw new Error("XMTP client not initialized");
-  }
+  const sync = async (fromNetwork: boolean = false) => {
+    if (fromNetwork) {
+      setSyncing(true);
 
-  const list = async (
-    options?: SafeListConversationsOptions,
-    syncFromNetwork: boolean = false,
-  ) => {
-    if (syncFromNetwork) {
-      await sync();
+      try {
+        await client.conversations.sync();
+      } finally {
+        setSyncing(false);
+      }
     }
 
     setLoading(true);
 
     try {
-      const convos = await client.conversations.list(options);
-      setConversations(convos);
+      const convos = await client.conversations.list({
+        createdAfterNs: lastCreatedAt,
+      });
+      void addConversations(convos);
       return convos;
     } finally {
       setLoading(false);
-    }
-  };
-
-  const sync = async () => {
-    setSyncing(true);
-
-    try {
-      await client.conversations.sync();
-    } finally {
-      setSyncing(false);
     }
   };
 
@@ -92,6 +88,7 @@ export const useConversations = () => {
         inboxIds,
         options,
       );
+      void addConversation(conversation);
       return conversation;
     } finally {
       setLoading(false);
@@ -109,6 +106,7 @@ export const useConversations = () => {
         identifiers,
         options,
       );
+      void addConversation(conversation);
       return conversation;
     } finally {
       setLoading(false);
@@ -120,6 +118,7 @@ export const useConversations = () => {
 
     try {
       const conversation = await client.conversations.newDm(inboxId);
+      void addConversation(conversation);
       return conversation;
     } finally {
       setLoading(false);
@@ -132,6 +131,7 @@ export const useConversations = () => {
     try {
       const conversation =
         await client.conversations.newDmWithIdentifier(identifier);
+      void addConversation(conversation);
       return conversation;
     } finally {
       setLoading(false);
@@ -144,7 +144,7 @@ export const useConversations = () => {
         conversation.metadata?.conversationType === "dm" ||
         conversation.metadata?.conversationType === "group";
       if (shouldAdd) {
-        setConversations((prev) => [conversation, ...prev]);
+        void addConversation(conversation);
       }
     };
 
@@ -157,17 +157,31 @@ export const useConversations = () => {
     };
   };
 
+  const streamAllMessages = async () => {
+    const onValue = (message: DecodedMessage<ContentTypes>) => {
+      void addMessage(message.conversationId, message);
+    };
+
+    const stream = await client.conversations.streamAllMessages({
+      onValue,
+    });
+
+    return () => {
+      void stream.end();
+    };
+  };
+
   return {
     conversations,
     getConversationById,
     getMessageById,
-    list,
     loading,
     newDm,
     newDmWithIdentifier,
     newGroup,
     newGroupWithIdentifiers,
     stream,
+    streamAllMessages,
     sync,
     syncAll,
     syncing,

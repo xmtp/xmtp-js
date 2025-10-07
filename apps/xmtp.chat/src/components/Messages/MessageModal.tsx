@@ -1,30 +1,20 @@
 import { Center, Code, ScrollArea, Stack, Tabs, Text } from "@mantine/core";
-import { type DecodedMessage } from "@xmtp/browser-sdk";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useOutletContext, useParams } from "react-router";
 import { CodeWithCopy } from "@/components/CodeWithCopy";
+import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
-import { useConversations } from "@/hooks/useConversations";
+import { useMessage } from "@/stores/inbox/hooks";
 import { MessageProperties } from "./MessageProperties";
 
 export const MessageModal: React.FC = () => {
   const { messageId } = useParams();
-  const { getMessageById, loading } = useConversations();
+  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const message = useMessage(conversation.id, messageId ?? "");
   const navigate = useNavigate();
-  const [message, setMessage] = useState<DecodedMessage | undefined>(undefined);
 
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
-
-  useEffect(() => {
-    if (!messageId) return;
-    const loadMessage = async () => {
-      const message = await getMessageById(messageId);
-      setMessage(message);
-    };
-    void loadMessage();
-  }, [messageId]);
 
   return (
     <Modal
@@ -40,12 +30,7 @@ export const MessageModal: React.FC = () => {
           Message details
         </Text>
       }>
-      {!message && loading && (
-        <Center>
-          <Text truncate>Loading...</Text>
-        </Center>
-      )}
-      {message && (
+      {message ? (
         <Stack
           h={contentHeight}
           flex={1}
@@ -121,6 +106,10 @@ export const MessageModal: React.FC = () => {
             </Tabs.Panel>
           </Tabs>
         </Stack>
+      ) : (
+        <Center>
+          <Text>Unable to load message</Text>
+        </Center>
       )}
     </Modal>
   );

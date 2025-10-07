@@ -5,6 +5,7 @@ import BreakableText from "@/components/Messages/BreakableText";
 import type { Action, Actions } from "@/content-types/Actions";
 import { ContentTypeIntent, type Intent } from "@/content-types/Intent";
 import { useConversationContext } from "@/contexts/ConversationContext";
+import { useConversation } from "@/hooks/useConversation";
 
 export type ActionsContentProps = {
   content: Actions;
@@ -23,16 +24,17 @@ const styleToColorMap: Record<Required<Action>["style"], string | undefined> = {
 };
 
 export const ActionsContent: React.FC<ActionsContentProps> = ({ content }) => {
-  const { conversation } = useConversationContext();
+  const { conversationId } = useConversationContext();
+  const { send } = useConversation(conversationId);
   const handleActionClick = useCallback(
     (actionId: string) => {
       const intent: Intent = {
         id: content.id,
         actionId,
       };
-      void conversation.send(intent, ContentTypeIntent);
+      void send(intent, ContentTypeIntent);
     },
-    [conversation, content],
+    [send, content],
   );
   const actionsExpiration = content.expiresAt
     ? parseISO(content.expiresAt)
