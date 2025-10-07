@@ -360,7 +360,7 @@ const agent = await Agent.create(signer, {
 
 | XMTP Node SDK Version | LibXMTP Version |
 | --------------------- | --------------- |
-| 4.2.2                 | 1.5.3           |
+| 4.2.3                 | 1.5.4           |
 
 To verify which LibXMTP version is installed, run `npm why @xmtp/node-bindings` after installing the Agent SDK.
 
