@@ -1,5 +1,12 @@
 # @xmtp/node-sdk
 
+## 4.2.3
+
+### Patch Changes
+
+- 61c19c9: - Fix for Duplicate Welcome errors being fired erroneously
+  - Fixes a bug where building a client does a network request when not needed
+
 ## 4.2.2
 
 ### Patch Changes

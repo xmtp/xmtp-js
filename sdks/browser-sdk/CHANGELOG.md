@@ -1,5 +1,12 @@
 # @xmtp/browser-sdk
 
+## 5.0.1
+
+### Patch Changes
+
+- 61c19c9: - Fix for Duplicate Welcome errors being fired erroneously
+  - Fixes a bug where building a client does a network request when not needed
+
 ## 5.0.0
 
 ### BREAKING CHANGES
