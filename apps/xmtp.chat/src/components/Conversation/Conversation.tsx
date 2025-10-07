@@ -6,6 +6,8 @@ import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { Messages } from "@/components/Messages/Messages";
 import { ConversationProvider } from "@/contexts/ConversationContext";
 import type { ContentTypes } from "@/contexts/XMTPContext";
+import { resolveAddresses } from "@/helpers/profiles";
+import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
@@ -24,6 +26,7 @@ export const Conversation: React.FC<ConversationProps> = ({
     sync,
     loading: conversationLoading,
     messages,
+    members,
     syncing: conversationSyncing,
   } = useConversation(conversationId);
 
@@ -33,6 +36,12 @@ export const Conversation: React.FC<ConversationProps> = ({
     };
     void loadMessages();
   }, [conversationId]);
+
+  useEffect(() => {
+    void resolveAddresses(
+      Array.from(members.values()).map((m) => getMemberAddress(m)),
+    );
+  }, [members]);
 
   const handleSync = useCallback(async () => {
     await sync(true);
