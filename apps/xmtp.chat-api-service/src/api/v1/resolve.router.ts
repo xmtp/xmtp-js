@@ -104,7 +104,9 @@ export async function resolveProfiles(req: Request, res: Response) {
 
     if (expiredProfiles.length > 0) {
       for (const p of expiredProfiles) {
-        const expiredProfile = expired.find((e) => e.address === p.address);
+        const expiredProfile = expired.find(
+          (e) => e.address === p.address && e.platform === p.platform,
+        );
         if (!expiredProfile || !p.address) {
           continue;
         }
