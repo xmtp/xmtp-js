@@ -31,7 +31,7 @@ export const useSettings = () => {
     ClientOptions["loggingLevel"]
   >({
     key: "XMTP_LOGGING_LEVEL",
-    defaultValue: "off",
+    defaultValue: "warn",
     getInitialValueInEffect: false,
   });
   const [forceSCW, setForceSCW] = useLocalStorage<boolean>({
