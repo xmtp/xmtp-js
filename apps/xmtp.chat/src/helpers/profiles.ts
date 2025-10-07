@@ -27,6 +27,12 @@ export const resolveAddresses = async (addresses: string[], force = false) => {
       }),
     },
   );
+
+  if (!response.ok) {
+    // failed to resolve addresses, return the cached profiles
+    return cachedProfiles;
+  }
+
   const data = (await response.json()) as {
     profiles: Profile[];
   };
