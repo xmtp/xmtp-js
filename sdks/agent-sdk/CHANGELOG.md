@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.5
+
+### Patch Changes
+
+- d0798bc: Updated `@xmtp/node-sdk` dependency to `^4.2.2`
+
 ## 1.1.4
 
 ### Patch Changes
