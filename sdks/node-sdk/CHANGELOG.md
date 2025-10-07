@@ -4,7 +4,8 @@
 
 ### Patch Changes
 
-- 61c19c9: - Fixed an issue where duplicate welcome errors were fired erroneously
+- 61c19c9:
+  - Fixed an issue where duplicate welcome errors were fired erroneously
   - Fixed a bug where building a client did a network request when not needed
 
 ## 4.2.2
