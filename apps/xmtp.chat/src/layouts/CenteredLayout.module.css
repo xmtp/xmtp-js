@@ -2,13 +2,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  flex-grow: 1;
+}
+
+.root.fullScreen {
   height: 100dvh;
   width: 100dvw;
-  position: relative;
 }
 
 .content {
   width: 70ch;
+  position: relative;
+  flex-grow: 1;
+}
+
+.fullScreen > .content {
+  width: 100dvw;
 }
 
 @media screen and (max-width: 1080px) {

@@ -1,34 +1,60 @@
-import type { Client } from "@xmtp/browser-sdk";
+import type { XmtpEnv } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
-import {
-  useNavigate,
-  useOutletContext,
-  useParams,
-  useSearchParams,
-} from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
+import { useClient, useXMTP } from "@/contexts/XMTPContext";
+import { isValidEthereumAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
+import { useActions } from "@/stores/inbox/hooks";
+
+const isValidEnvironment = (env: string): env is XmtpEnv =>
+  ["production", "dev", "local"].includes(env);
+
+const REDIRECT_TIMEOUT = 2000;
 
 export const LoadDM: React.FC = () => {
   const [message, setMessage] = useState("");
   const { address } = useParams();
   const [searchParams] = useSearchParams();
-  const { setEnvironment } = useSettings();
+  const { setEnvironment, environment } = useSettings();
+  const { addConversation } = useActions();
   const navigate = useNavigate();
-  const { client } = useOutletContext<{ client: Client }>();
+  const { disconnect } = useXMTP();
+  const client = useClient();
 
   useEffect(() => {
-    const env = searchParams.get("env");
-    if (env === "production" || env === "dev" || env === "local") {
-      setEnvironment(env);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
+    let timeout: NodeJS.Timeout;
     const loadDm = async () => {
+      setMessage("Checking environment...");
+
+      const env = searchParams.get("env");
+      if (env) {
+        // check for invalid environment
+        if (!isValidEnvironment(env)) {
+          setMessage("Invalid environment, redirecting...");
+          timeout = setTimeout(() => {
+            void navigate("/");
+          }, REDIRECT_TIMEOUT);
+          return;
+        }
+
+        if (env !== environment) {
+          setMessage("Environment mismatch, switching and redirecting...");
+          setEnvironment(env);
+          timeout = setTimeout(() => {
+            disconnect();
+            void navigate("/");
+          }, REDIRECT_TIMEOUT);
+          return;
+        }
+      }
+
       // no address, redirect to root
-      if (!address) {
-        void navigate("/");
+      if (!address || !isValidEthereumAddress(address)) {
+        setMessage("Invalid address, redirecting...");
+        timeout = setTimeout(() => {
+          void navigate("/");
+        }, REDIRECT_TIMEOUT);
         return;
       }
 
@@ -41,10 +67,12 @@ export const LoadDM: React.FC = () => {
         // no inbox ID, redirect to root
 
         if (!inboxId) {
-          setMessage("Invalid address, redirecting...");
-          setTimeout(() => {
+          setMessage(
+            "Address not registered on the XMTP network, redirecting...",
+          );
+          timeout = setTimeout(() => {
             void navigate("/");
-          }, 2000);
+          }, REDIRECT_TIMEOUT);
           return;
         }
 
@@ -52,29 +80,35 @@ export const LoadDM: React.FC = () => {
         setMessage("Looking for existing DM...");
         const dm = await client.conversations.getDmByInboxId(inboxId);
         let dmId = dm?.id;
-        if (dmId === undefined) {
+        if (!dmId) {
           // no DM group, create it
           setMessage("Creating new DM...");
-          const dmGroup = await client.conversations.newDmWithIdentifier({
+          const newDm = await client.conversations.newDmWithIdentifier({
             identifier: address.toLowerCase(),
             identifierKind: "Ethereum",
           });
-          dmId = dmGroup.id;
-          // go to new DM group
+          dmId = newDm.id;
+          // add new DM to store
+          await addConversation(newDm);
         }
-        void navigate(`/conversations/${dmId}`);
+        await navigate(`/conversations/${dmId}`);
       } catch (e) {
         console.error(e);
         setMessage("Error loading DM, redirecting...");
         // if any errors occur during this process, redirect to root
-        setTimeout(() => {
+        timeout = setTimeout(() => {
           void navigate("/");
-          // rethrow error for error modal
-          throw e;
-        }, 2000);
+        }, REDIRECT_TIMEOUT);
+
+        // rethrow error for error modal
+        throw e;
       }
     };
     void loadDm();
+
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [client, address]);
 
   return <LoadingMessage message={message} />;

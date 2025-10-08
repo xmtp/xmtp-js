@@ -20,6 +20,7 @@ import {
 } from "react";
 import { ActionsCodec } from "@/content-types/Actions";
 import { IntentCodec } from "@/content-types/Intent";
+import { useActions } from "@/stores/inbox/hooks";
 
 export type ContentTypes = ExtractCodecContentTypes<
   [
@@ -79,6 +80,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
   children,
   client: initialClient,
 }) => {
+  const { reset } = useActions();
   const [client, setClient] = useState<Client<ContentTypes> | undefined>(
     initialClient,
   );
@@ -155,6 +157,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
     if (client) {
       client.close();
       setClient(undefined);
+      reset();
     }
   }, [client, setClient]);
 

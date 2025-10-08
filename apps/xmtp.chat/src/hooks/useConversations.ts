@@ -6,6 +6,7 @@ import type {
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
 import { useClient, type ContentTypes } from "@/contexts/XMTPContext";
+import { dateToNs } from "@/helpers/date";
 import {
   useActions,
   useConversations as useConversationsState,
@@ -14,7 +15,8 @@ import {
 
 export const useConversations = () => {
   const client = useClient();
-  const { addConversations, addConversation, addMessage } = useActions();
+  const { addConversations, addConversation, addMessage, setLastSyncedAt } =
+    useActions();
   const conversations = useConversationsState();
   const lastCreatedAt = useLastCreatedAt();
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,8 @@ export const useConversations = () => {
       const convos = await client.conversations.list({
         createdAfterNs: lastCreatedAt,
       });
-      void addConversations(convos);
+      await addConversations(convos);
+      setLastSyncedAt(dateToNs(new Date()));
       return convos;
     } finally {
       setLoading(false);
