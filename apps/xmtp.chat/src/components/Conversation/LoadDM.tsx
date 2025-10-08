@@ -10,6 +10,8 @@ import { useActions } from "@/stores/inbox/hooks";
 const isValidEnvironment = (env: string): env is XmtpEnv =>
   ["production", "dev", "local"].includes(env);
 
+const REDIRECT_TIMEOUT = 2000;
+
 export const LoadDM: React.FC = () => {
   const [message, setMessage] = useState("");
   const { address } = useParams();
@@ -32,7 +34,7 @@ export const LoadDM: React.FC = () => {
           setMessage("Invalid environment, redirecting...");
           timeout = setTimeout(() => {
             void navigate("/");
-          }, 2000);
+          }, REDIRECT_TIMEOUT);
           return;
         }
 
@@ -42,7 +44,7 @@ export const LoadDM: React.FC = () => {
           timeout = setTimeout(() => {
             disconnect();
             void navigate("/");
-          }, 2000);
+          }, REDIRECT_TIMEOUT);
           return;
         }
       }
@@ -52,7 +54,7 @@ export const LoadDM: React.FC = () => {
         setMessage("Invalid address, redirecting...");
         timeout = setTimeout(() => {
           void navigate("/");
-        }, 2000);
+        }, REDIRECT_TIMEOUT);
         return;
       }
 
@@ -70,7 +72,7 @@ export const LoadDM: React.FC = () => {
           );
           timeout = setTimeout(() => {
             void navigate("/");
-          }, 2000);
+          }, REDIRECT_TIMEOUT);
           return;
         }
 
@@ -96,7 +98,7 @@ export const LoadDM: React.FC = () => {
         // if any errors occur during this process, redirect to root
         timeout = setTimeout(() => {
           void navigate("/");
-        }, 2000);
+        }, REDIRECT_TIMEOUT);
 
         // rethrow error for error modal
         throw e;
