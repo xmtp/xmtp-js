@@ -87,6 +87,10 @@ export const useSuperAdmins = (conversationId: string) => {
   );
 };
 
+export const usePermissions = (conversationId: string) => {
+  return useStore(inboxStore, (state) => state.permissions.get(conversationId));
+};
+
 export const useActions = () => {
   const addConversation = useStore(
     inboxStore,
@@ -113,6 +117,10 @@ export const useActions = () => {
     inboxStore,
     (state) => state.setLastSyncedAt,
   );
+  const syncPermissions = useStore(
+    inboxStore,
+    (state) => state.syncPermissions,
+  );
   const reset = useStore(inboxStore, (state) => state.reset);
 
   return {
@@ -126,6 +134,7 @@ export const useActions = () => {
     getMessages,
     hasMessage,
     setLastSyncedAt,
+    syncPermissions,
     reset,
   };
 };
