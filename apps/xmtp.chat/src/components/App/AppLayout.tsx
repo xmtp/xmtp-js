@@ -30,7 +30,7 @@ export const AppLayout: React.FC = () => {
         location.pathname !== "/welcome" &&
         location.pathname !== "/disconnect"
       ) {
-        setRedirectUrl(location.pathname);
+        setRedirectUrl(`${location.pathname}${location.search}`);
       }
       void navigate("/welcome");
     }

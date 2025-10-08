@@ -9,7 +9,7 @@ export const AppMenu: React.FC = () => {
   const { setRedirectUrl } = useRedirect();
 
   const handleDisconnect = useCallback(() => {
-    setRedirectUrl(location.pathname);
+    setRedirectUrl(`${location.pathname}${location.search}`);
     void navigate("/disconnect");
   }, [navigate, setRedirectUrl]);
 
