@@ -28,7 +28,6 @@ export class Conversation<ContentTypes = unknown> {
   #createdAtNs?: SafeConversation["createdAtNs"];
   #id: string;
   #metadata?: SafeConversation["metadata"];
-  #isCommitLogForked?: SafeConversation["isCommitLogForked"];
 
   /**
    * Creates a new conversation instance
@@ -51,15 +50,10 @@ export class Conversation<ContentTypes = unknown> {
     this.#addedByInboxId = data?.addedByInboxId;
     this.#metadata = data?.metadata;
     this.#createdAtNs = data?.createdAtNs;
-    this.#isCommitLogForked = data?.isCommitLogForked;
   }
 
   get id() {
     return this.#id;
-  }
-
-  get isCommitLogForked() {
-    return this.#isCommitLogForked;
   }
 
   get addedByInboxId() {

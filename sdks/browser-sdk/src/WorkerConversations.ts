@@ -71,12 +71,7 @@ export class WorkerConversations {
       options ? fromSafeListConversationsOptions(options) : undefined,
     ) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
@@ -90,12 +85,7 @@ export class WorkerConversations {
       }),
     ) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
@@ -107,12 +97,7 @@ export class WorkerConversations {
       }),
     ) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
