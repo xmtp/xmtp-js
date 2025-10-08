@@ -8,7 +8,6 @@ import { Welcome } from "@/components/App/Welcome";
 import { LoadConversation } from "@/components/Conversation/LoadConversation";
 import { LoadDM } from "@/components/Conversation/LoadDM";
 import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal";
-import { ManageMembersModal } from "@/components/Conversation/ManageMembersModal";
 import { ManageMetadataModal } from "@/components/Conversation/ManageMetadataModal";
 import { ManagePermissionsModal } from "@/components/Conversation/ManagePermissionsModal";
 import { CreateDmModal } from "@/components/Conversations/CreateDmModal";
@@ -47,7 +46,6 @@ export const App: React.FC = () => {
               <Route path="message/:messageId" element={<MessageModal />} />
               <Route path="manage">
                 <Route path="consent" element={<ManageConsentModal />} />
-                <Route path="members" element={<ManageMembersModal />} />
                 <Route
                   path="permissions"
                   element={<ManagePermissionsModal />}

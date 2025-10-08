@@ -29,9 +29,6 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
         </Menu.Item>
         {type === "group" && (
           <>
-            <Menu.Item onClick={() => void navigate("manage/members")}>
-              Members
-            </Menu.Item>
             <Menu.Item onClick={() => void navigate("manage/metadata")}>
               Metadata
             </Menu.Item>

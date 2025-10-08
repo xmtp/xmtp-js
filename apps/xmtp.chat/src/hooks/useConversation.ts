@@ -3,17 +3,23 @@ import { useState } from "react";
 import { type ContentTypes } from "@/contexts/XMTPContext";
 import {
   useActions,
+  useAdmins,
   useConversation as useConversationState,
   useLastSentAt,
   useMembers,
   useMessages,
   useMetadata,
+  usePermissions,
+  useSuperAdmins,
 } from "@/stores/inbox/hooks";
 
 export const useConversation = (conversationId: string) => {
   const { addMessages } = useActions();
   const conversation = useConversationState(conversationId);
   const members = useMembers(conversationId);
+  const admins = useAdmins(conversationId);
+  const permissions = usePermissions(conversationId);
+  const superAdmins = useSuperAdmins(conversationId);
   const { name, description, imageUrl } = useMetadata(conversationId);
   const messages = useMessages(conversationId);
   const lastSentAt = useLastSentAt(conversationId);
@@ -66,15 +72,18 @@ export const useConversation = (conversationId: string) => {
   };
 
   return {
+    admins,
     conversation,
-    loading,
-    messages,
-    members,
-    name,
     description,
     imageUrl,
+    loading,
+    members,
+    messages,
+    name,
+    permissions,
     send,
     sending,
+    superAdmins,
     sync,
     syncing,
   };

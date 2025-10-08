@@ -77,11 +77,26 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
   }),
 );
 
-function useProfiles(address: string): Profile[] {
+export const useProfiles = (address: string): Profile[] => {
   return useStore(
     profilesStore,
     useShallow((state) => state.getProfiles(address)),
   );
-}
+};
 
-export { useProfiles };
+export const useProfileActions = () => {
+  const addProfile = useStore(profilesStore, (state) => state.addProfile);
+  const addProfiles = useStore(profilesStore, (state) => state.addProfiles);
+  const findProfiles = useStore(profilesStore, (state) => state.findProfiles);
+  const getProfiles = useStore(profilesStore, (state) => state.getProfiles);
+  const hasProfile = useStore(profilesStore, (state) => state.hasProfile);
+  const reset = useStore(profilesStore, (state) => state.reset);
+  return {
+    addProfile,
+    addProfiles,
+    findProfiles,
+    getProfiles,
+    hasProfile,
+    reset,
+  };
+};

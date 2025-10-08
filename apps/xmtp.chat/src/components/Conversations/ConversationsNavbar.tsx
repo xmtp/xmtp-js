@@ -60,6 +60,7 @@ export const ConversationsNavbar: React.FC = () => {
 
   return (
     <ContentLayout
+      withBorders={false}
       title={
         <Group align="center" gap="xs">
           <Text size="md" fw={700}>

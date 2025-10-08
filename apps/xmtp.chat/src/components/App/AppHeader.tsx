@@ -66,7 +66,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </Flex>
       </Flex>
       <Group align="center" gap="xs">
-        <Badge size="xl" radius="md" variant="default" p={0}>
+        <Badge size="lg" radius="md" variant="default" p={0}>
           <Group align="center" gap="xs" px="sm">
             <GlowingCircle />
             <Text size="xs" fw={700}>

@@ -20,7 +20,6 @@ import { uploadAttachment, validateFile } from "@/helpers/attachment";
 import { useConversation } from "@/hooks/useConversation";
 import { IconPlus } from "@/icons/IconPlus";
 import { AttachmentPreview } from "./AttachmentPreview";
-import classes from "./Composer.module.css";
 import { ReplyPreview } from "./ReplyPreview";
 
 export type ComposerProps = {
@@ -132,7 +131,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversationId }) => {
 
   return (
     <>
-      <Box p="md" className={classes.root} style={{ width: "100%" }}>
+      <Box p="md" style={{ width: "100%" }}>
         <Box
           style={{
             display: "grid",

@@ -1,0 +1,7 @@
+.root > * {
+  padding-top: var(--mantine-spacing-sm);
+}
+
+.root > *:last-child {
+  padding-bottom: var(--mantine-spacing-sm);
+}
