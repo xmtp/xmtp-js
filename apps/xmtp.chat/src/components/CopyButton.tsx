@@ -1,4 +1,4 @@
-import { Button, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Text, Tooltip } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { IconCopy } from "@/icons/IconCopy";
 import classes from "./CopyButton.module.css";
@@ -33,15 +33,14 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ value }) => {
       }
       withArrow
       events={{ hover: true, focus: true, touch: true }}>
-      <Button
+      <ActionIcon
         variant="transparent"
         onClick={handleCopy}
         onKeyDown={handleKeyboardCopy}
         aria-label="Copy"
-        p="0"
         className={classes.button}>
         <IconCopy />
-      </Button>
+      </ActionIcon>
     </Tooltip>
   );
 };

@@ -1,4 +1,4 @@
-import { Button, Menu } from "@mantine/core";
+import { ActionIcon, Menu } from "@mantine/core";
 import { IconDots } from "@/icons/IconDots";
 
 export type ConversationsMenuProps = {
@@ -17,14 +17,9 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
   return (
     <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
-        <Button
-          px="xxxs"
-          radius="md"
-          size="xs"
-          variant="default"
-          loading={loading}>
+        <ActionIcon variant="default" loading={loading}>
           <IconDots />
-        </Button>
+        </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown miw={200}>
         <Menu.Label>Actions</Menu.Label>
