@@ -1,5 +1,12 @@
 # @xmtp/agent-sdk
 
+## 1.1.6
+
+### Patch Changes
+
+- 932f01d: - Fixed an issue where duplicate welcome errors were fired erroneously
+  - Fixed a bug where building a client did a network request when not needed
+
 ## 1.1.5
 
 ### Patch Changes
