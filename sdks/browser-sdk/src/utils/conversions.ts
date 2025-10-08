@@ -337,8 +337,6 @@ export type SafeConversation = {
     creatorInboxId: string;
     conversationType: string;
   };
-  admins: string[];
-  superAdmins: string[];
   createdAtNs: bigint;
 };
 
@@ -352,8 +350,6 @@ export const toSafeConversation = async (
   const permissions = conversation.permissions;
   const addedByInboxId = conversation.addedByInboxId;
   const metadata = await conversation.metadata();
-  const admins = conversation.admins;
-  const superAdmins = conversation.superAdmins;
   const createdAtNs = conversation.createdAtNs;
   const policyType = permissions.policyType;
   const policySet = permissions.policySet;
@@ -379,8 +375,6 @@ export const toSafeConversation = async (
     },
     addedByInboxId,
     metadata,
-    admins,
-    superAdmins,
     createdAtNs,
   };
 };

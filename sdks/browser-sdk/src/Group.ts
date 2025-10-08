@@ -14,20 +14,16 @@ import type { SafeConversation } from "@/utils/conversions";
  * This class is not intended to be initialized directly.
  */
 export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
-  #admins: SafeConversation["admins"] = [];
   #client: Client<ContentTypes>;
   #description?: SafeConversation["description"];
   #id: string;
   #imageUrl?: SafeConversation["imageUrl"];
   #name?: SafeConversation["name"];
-  #superAdmins: SafeConversation["superAdmins"] = [];
 
   #syncData(data?: SafeConversation) {
     this.#name = data?.name ?? "";
     this.#imageUrl = data?.imageUrl ?? "";
     this.#description = data?.description ?? "";
-    this.#admins = data?.admins ?? [];
-    this.#superAdmins = data?.superAdmins ?? [];
   }
 
   /**
@@ -120,30 +116,14 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   }
 
   /**
-   * The list of admins of the group by inbox ID
-   */
-  get admins() {
-    return this.#admins;
-  }
-
-  /**
-   * The list of super admins of the group by inbox ID
-   */
-  get superAdmins() {
-    return this.#superAdmins;
-  }
-
-  /**
    * Fetches and updates the list of group admins from the server
    *
    * @returns Array of admin inbox IDs
    */
   async listAdmins() {
-    const admins = await this.#client.sendMessage("group.listAdmins", {
+    return this.#client.sendMessage("group.listAdmins", {
       id: this.#id,
     });
-    this.#admins = admins;
-    return admins;
   }
 
   /**
@@ -152,14 +132,9 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @returns Array of super admin inbox IDs
    */
   async listSuperAdmins() {
-    const superAdmins = await this.#client.sendMessage(
-      "group.listSuperAdmins",
-      {
-        id: this.#id,
-      },
-    );
-    this.#superAdmins = superAdmins;
-    return superAdmins;
+    return this.#client.sendMessage("group.listSuperAdmins", {
+      id: this.#id,
+    });
   }
 
   /**

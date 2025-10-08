@@ -427,24 +427,24 @@ describe("Conversation", () => {
     ]);
 
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
-    await conversation.listSuperAdmins();
-    expect(conversation.superAdmins.length).toBe(1);
-    expect(conversation.superAdmins).toContain(client1.inboxId);
+    const superAdmins = await conversation.listSuperAdmins();
+    expect(superAdmins.length).toBe(1);
+    expect(superAdmins).toContain(client1.inboxId);
     expect(await conversation.isAdmin(client1.inboxId!)).toBe(false);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(false);
-    await conversation.listAdmins();
-    expect(conversation.admins.length).toBe(0);
+    const admins = await conversation.listAdmins();
+    expect(admins.length).toBe(0);
 
     await conversation.addAdmin(client2.inboxId!);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(true);
-    await conversation.listAdmins();
-    expect(conversation.admins.length).toBe(1);
-    expect(conversation.admins).toContain(client2.inboxId);
+    const admins2 = await conversation.listAdmins();
+    expect(admins2.length).toBe(1);
+    expect(admins2).toContain(client2.inboxId);
 
     await conversation.removeAdmin(client2.inboxId!);
     expect(await conversation.isAdmin(client2.inboxId!)).toBe(false);
-    await conversation.listAdmins();
-    expect(conversation.admins.length).toBe(0);
+    const admins3 = await conversation.listAdmins();
+    expect(admins3.length).toBe(0);
   });
 
   it("should add and remove super admins", async () => {
@@ -461,24 +461,24 @@ describe("Conversation", () => {
     expect(await conversation.isSuperAdmin(client1.inboxId!)).toBe(true);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(false);
 
-    await conversation.listSuperAdmins();
-    expect(conversation.superAdmins.length).toBe(1);
-    expect(conversation.superAdmins).toContain(client1.inboxId);
+    const superAdmins = await conversation.listSuperAdmins();
+    expect(superAdmins.length).toBe(1);
+    expect(superAdmins).toContain(client1.inboxId);
 
     await conversation.addSuperAdmin(client2.inboxId!);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(true);
 
-    await conversation.listSuperAdmins();
-    expect(conversation.superAdmins.length).toBe(2);
-    expect(conversation.superAdmins).toContain(client1.inboxId);
-    expect(conversation.superAdmins).toContain(client2.inboxId);
+    const superAdmins2 = await conversation.listSuperAdmins();
+    expect(superAdmins2.length).toBe(2);
+    expect(superAdmins2).toContain(client1.inboxId);
+    expect(superAdmins2).toContain(client2.inboxId);
 
     await conversation.removeSuperAdmin(client2.inboxId!);
     expect(await conversation.isSuperAdmin(client2.inboxId!)).toBe(false);
 
-    await conversation.listSuperAdmins();
-    expect(conversation.superAdmins.length).toBe(1);
-    expect(conversation.superAdmins).toContain(client1.inboxId);
+    const superAdmins3 = await conversation.listSuperAdmins();
+    expect(superAdmins3.length).toBe(1);
+    expect(superAdmins3).toContain(client1.inboxId);
   });
 
   it("should manage group consent state", async () => {
