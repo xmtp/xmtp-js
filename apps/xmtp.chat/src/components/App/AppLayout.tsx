@@ -37,7 +37,7 @@ export const AppLayout: React.FC = () => {
   }, [client]);
 
   return !client ? (
-    <CenteredLayout>
+    <CenteredLayout fullScreen>
       <LoadingOverlay visible />
     </CenteredLayout>
   ) : (
