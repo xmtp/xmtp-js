@@ -21,6 +21,7 @@ export const LoadDM: React.FC = () => {
   const client = useClient();
 
   useEffect(() => {
+    let timeout: NodeJS.Timeout;
     const loadDm = async () => {
       setMessage("Checking environment...");
 
@@ -29,7 +30,7 @@ export const LoadDM: React.FC = () => {
         // check for invalid environment
         if (!isValidEnvironment(env)) {
           setMessage("Invalid environment, redirecting...");
-          setTimeout(() => {
+          timeout = setTimeout(() => {
             void navigate("/");
           }, 2000);
           return;
@@ -38,7 +39,7 @@ export const LoadDM: React.FC = () => {
         if (env !== environment) {
           setMessage("Environment mismatch, switching and redirecting...");
           setEnvironment(env);
-          setTimeout(() => {
+          timeout = setTimeout(() => {
             disconnect();
             void navigate("/");
           }, 2000);
@@ -49,7 +50,7 @@ export const LoadDM: React.FC = () => {
       // no address, redirect to root
       if (!address || !isValidEthereumAddress(address)) {
         setMessage("Invalid address, redirecting...");
-        setTimeout(() => {
+        timeout = setTimeout(() => {
           void navigate("/");
         }, 2000);
         return;
@@ -67,7 +68,7 @@ export const LoadDM: React.FC = () => {
           setMessage(
             "Address not registered on the XMTP network, redirecting...",
           );
-          setTimeout(() => {
+          timeout = setTimeout(() => {
             void navigate("/");
           }, 2000);
           return;
@@ -93,14 +94,19 @@ export const LoadDM: React.FC = () => {
         console.error(e);
         setMessage("Error loading DM, redirecting...");
         // if any errors occur during this process, redirect to root
-        setTimeout(() => {
+        timeout = setTimeout(() => {
           void navigate("/");
-          // rethrow error for error modal
-          throw e;
         }, 2000);
+
+        // rethrow error for error modal
+        throw e;
       }
     };
     void loadDm();
+
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [client, address]);
 
   return <LoadingMessage message={message} />;

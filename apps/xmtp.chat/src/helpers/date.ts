@@ -3,5 +3,9 @@ export const nsToDate = (ns: bigint): Date => {
 };
 
 export const dateToNs = (date: Date): bigint => {
-  return BigInt(date.getTime() * 1_000_000);
+  const ms = date.getTime();
+  if (Number.isNaN(ms)) {
+    throw new Error("Invalid date");
+  }
+  return BigInt(ms) * 1_000_000n;
 };
