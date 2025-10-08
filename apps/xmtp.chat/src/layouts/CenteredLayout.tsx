@@ -1,10 +1,16 @@
 import classes from "./CenteredLayout.module.css";
 
-export const CenteredLayout: React.FC<React.PropsWithChildren> = ({
+type CenteredLayoutProps = React.PropsWithChildren & {
+  fullScreen?: boolean;
+};
+
+export const CenteredLayout: React.FC<CenteredLayoutProps> = ({
   children,
+  fullScreen = false,
 }) => {
+  const rootClassNames = [classes.root, fullScreen && classes.fullScreen];
   return (
-    <div className={classes.root}>
+    <div className={rootClassNames.join(" ")}>
       <div className={classes.content}>{children}</div>
     </div>
   );
