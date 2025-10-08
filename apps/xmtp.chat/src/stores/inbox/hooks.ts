@@ -68,6 +68,10 @@ export const useLastSentAt = (conversationId: string) => {
   return useStore(inboxStore, (state) => state.lastSentAt.get(conversationId));
 };
 
+export const useLastSyncedAt = () => {
+  return useStore(inboxStore, (state) => state.lastSyncedAt);
+};
+
 export const useActions = () => {
   const addConversation = useStore(
     inboxStore,
@@ -90,6 +94,10 @@ export const useActions = () => {
   const getMessage = useStore(inboxStore, (state) => state.getMessage);
   const getMessages = useStore(inboxStore, (state) => state.getMessages);
   const hasMessage = useStore(inboxStore, (state) => state.hasMessage);
+  const setLastSyncedAt = useStore(
+    inboxStore,
+    (state) => state.setLastSyncedAt,
+  );
   const reset = useStore(inboxStore, (state) => state.reset);
 
   return {
@@ -102,6 +110,7 @@ export const useActions = () => {
     getMessage,
     getMessages,
     hasMessage,
+    setLastSyncedAt,
     reset,
   };
 };

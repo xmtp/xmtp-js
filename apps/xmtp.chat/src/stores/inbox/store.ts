@@ -45,6 +45,8 @@ export type InboxState = {
   sortedConversations: Conversation<ContentTypes>[];
   // sorted messages by last sent timestamp
   sortedMessages: Map<string, DecodedMessage<ContentTypes>[]>;
+  // the last attempted sync timestamp
+  lastSyncedAt?: bigint;
 };
 
 export type InboxActions = {
@@ -68,6 +70,7 @@ export type InboxActions = {
   ) => DecodedMessage<ContentTypes> | undefined;
   getMessages: (conversationId: string) => DecodedMessage<ContentTypes>[];
   hasMessage: (conversationId: string, messageId: string) => boolean;
+  setLastSyncedAt: (timestamp: bigint) => void;
   reset: () => void;
 };
 
@@ -427,6 +430,9 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
     hasMessage: (conversationId: string, messageId: string) => {
       const conversationMessages = get().messages.get(conversationId);
       return conversationMessages?.has(messageId) ?? false;
+    },
+    setLastSyncedAt: (timestamp: bigint) => {
+      set({ lastSyncedAt: timestamp });
     },
     reset: () => {
       set(store.getInitialState());
