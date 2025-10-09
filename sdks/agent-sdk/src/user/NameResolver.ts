@@ -51,7 +51,10 @@ const resolveName = async (
   if (response.length === 0) {
     return null;
   }
-  const address = response[0].address;
+  const address = response[0]?.address;
+  if (!address) {
+    return null;
+  }
   cache.set(name, address);
   return address;
 };

@@ -61,9 +61,16 @@ export const getTestUrl = <ContentTypes>(client: Client<ContentTypes>) => {
   return `http://xmtp.chat/dm/${address}?env=${env}`;
 };
 
+type InstallationInfo = {
+  totalInstallations: number;
+  installationId: string;
+  mostRecentInstallationId: null | string;
+  isMostRecent: boolean;
+};
+
 export const getInstallationInfo = async <ContentTypes>(
   client: Client<ContentTypes>,
-) => {
+): Promise<InstallationInfo> => {
   const myInboxId = client.inboxId;
   const myInstallationId = client.installationId;
 
@@ -83,18 +90,25 @@ export const getInstallationInfo = async <ContentTypes>(
   });
 
   const mostRecentInstallation = sortedInstallations[0];
+
   const myInstallationIdHex = Buffer.from(client.installationIdBytes).toString(
     "hex",
   );
-  const mostRecentIdHex = Buffer.from(mostRecentInstallation.bytes).toString(
-    "hex",
-  );
-  const isMostRecent = myInstallationIdHex === mostRecentIdHex;
 
-  return {
+  const info: InstallationInfo = {
     totalInstallations: installations.length,
     installationId: myInstallationId,
-    mostRecentInstallationId: mostRecentInstallation.id,
-    isMostRecent,
+    mostRecentInstallationId: null,
+    isMostRecent: false,
   };
+
+  if (mostRecentInstallation) {
+    const mostRecentIdHex = Buffer.from(mostRecentInstallation.bytes).toString(
+      "hex",
+    );
+    info.mostRecentInstallationId = mostRecentIdHex;
+    info.isMostRecent = myInstallationIdHex === mostRecentIdHex;
+  }
+
+  return info;
 };

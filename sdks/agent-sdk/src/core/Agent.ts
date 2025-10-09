@@ -479,8 +479,10 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     let currentError: unknown = error;
 
     for (let i = 0; i < chain.length; i++) {
+      const handler = chain[i];
+      if (!handler) continue;
       const outcome = await this.#runErrorHandler(
-        chain[i],
+        handler,
         context,
         currentError,
       );

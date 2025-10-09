@@ -91,7 +91,7 @@ export class MessageContext<
     const inboxState = await this.client.preferences.inboxStateFromInboxIds([
       this.#message.senderInboxId,
     ]);
-    return inboxState[0].identifiers[0].identifier;
+    return inboxState[0]?.identifiers[0]?.identifier;
   }
 
   get message() {
