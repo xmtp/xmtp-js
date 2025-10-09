@@ -22,8 +22,8 @@ import {
 import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
 import { filter } from "@/core/filter.js";
+import { getInstallationInfo } from "@/debug.js";
 import { createSigner, createUser } from "@/user/User.js";
-import { getInstallationInfo } from "../debug.js";
 import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
