@@ -27,6 +27,7 @@ import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
+import { logInstall } from "../utils/installs.js";
 
 type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>
@@ -170,6 +171,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       ...initializedOptions,
       codecs: upgradedCodecs,
     });
+
+    await logInstall(client);
 
     return new Agent({ client });
   }
