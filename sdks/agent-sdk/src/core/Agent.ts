@@ -23,11 +23,11 @@ import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
 import { filter } from "@/core/filter.js";
 import { createSigner, createUser } from "@/user/User.js";
+import { getInstallationInfo } from "../debug.js";
 import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
-import { logInstall } from "../utils/installs.js";
 
 type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>
@@ -172,7 +172,12 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       codecs: upgradedCodecs,
     });
 
-    await logInstall(client);
+    const info = await getInstallationInfo(client);
+    if (info.totalInstallations > 1 && info.isMostRecent) {
+      console.warn(
+        `[WARNING] You have "${info.totalInstallations}" installations. Installation ID "${info.installationId}" is the most recent. Make sure to persist and reload your installation data. If you exceed the installation limit, your Agent will stop working. Read more: https://docs.xmtp.org/agents/build-agents/local-database#installation-limits-and-revocation-rules`,
+      );
+    }
 
     return new Agent({ client });
   }

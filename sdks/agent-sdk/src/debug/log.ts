@@ -60,3 +60,41 @@ export const getTestUrl = <ContentTypes>(client: Client<ContentTypes>) => {
   const env = client.options?.env ?? "dev";
   return `http://xmtp.chat/dm/${address}?env=${env}`;
 };
+
+export const getInstallationInfo = async <ContentTypes>(
+  client: Client<ContentTypes>,
+) => {
+  const myInboxId = client.inboxId;
+  const myInstallationId = client.installationId;
+
+  const inboxStates = await Client.inboxStateFromInboxIds(
+    [myInboxId],
+    client.options?.env,
+  );
+
+  const installations =
+    inboxStates.find((state) => state.inboxId === myInboxId)?.installations ||
+    [];
+
+  const sortedInstallations = [...installations].sort((a, b) => {
+    const aTime = a.clientTimestampNs ?? 0n;
+    const bTime = b.clientTimestampNs ?? 0n;
+    return bTime > aTime ? 1 : bTime < aTime ? -1 : 0;
+  });
+
+  const mostRecentInstallation = sortedInstallations[0];
+  const myInstallationIdHex = Buffer.from(client.installationIdBytes).toString(
+    "hex",
+  );
+  const mostRecentIdHex = Buffer.from(mostRecentInstallation.bytes).toString(
+    "hex",
+  );
+  const isMostRecent = myInstallationIdHex === mostRecentIdHex;
+
+  return {
+    totalInstallations: installations.length,
+    installationId: myInstallationId,
+    mostRecentInstallationId: mostRecentInstallation.id,
+    isMostRecent,
+  };
+};
