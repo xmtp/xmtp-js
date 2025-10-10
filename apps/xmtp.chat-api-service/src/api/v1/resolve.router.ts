@@ -77,23 +77,23 @@ export async function resolveProfiles(req: Request, res: Response) {
     const fetchedProfiles = await batchFetchNames(addressesToResolve);
 
     // insert new profiles into the database
-    const newProfiles = fetchedProfiles.filter(
-      (p) =>
-        p.address && missingIdentities.includes(`${p.platform},${p.address}`),
-    ) as ProfileResponseWithAddress[];
-    if (newProfiles.length > 0) {
-      const createdProfiles = await prisma.profile.createManyAndReturn({
-        data: newProfiles.map((p) => ({
-          address: p.address,
-          avatar: p.avatar,
-          description: p.description,
-          displayName: p.displayName,
-          identity: p.identity,
-          platform: resolvePlatform(p.platform),
-        })),
-      });
-      validProfiles.push(...createdProfiles);
-    }
+    // const newProfiles = fetchedProfiles.filter(
+    //   (p) =>
+    //     p.address && missingIdentities.includes(`${p.platform},${p.address}`),
+    // ) as ProfileResponseWithAddress[];
+    // if (newProfiles.length > 0) {
+    //   const createdProfiles = await prisma.profile.createManyAndReturn({
+    //     data: newProfiles.map((p) => ({
+    //       address: p.address,
+    //       avatar: p.avatar,
+    //       description: p.description,
+    //       displayName: p.displayName,
+    //       identity: p.identity,
+    //       platform: resolvePlatform(p.platform),
+    //     })),
+    //   });
+    //   validProfiles.push(...createdProfiles);
+    // }
 
     // update expired profiles in the database
     const expiredProfiles = fetchedProfiles.filter(

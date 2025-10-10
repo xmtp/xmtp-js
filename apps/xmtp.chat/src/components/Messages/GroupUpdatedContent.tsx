@@ -3,10 +3,13 @@ import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import { useMemo } from "react";
 import { DateLabel } from "@/components/DateLabel";
 import { Identity } from "@/components/Identity";
+import { IdentityBadge } from "@/components/IdentityBadge";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { shortAddress } from "@/helpers/strings";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
+import { combineProfiles, useAllProfiles } from "@/stores/profiles";
 
 type GroupMembersAddedContentProps = {
   type: "added" | "removed";
@@ -21,20 +24,36 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
 }) => {
   const { conversationId } = useConversationContext();
   const { members } = useConversation(conversationId);
+  const profiles = useAllProfiles();
   const initiatedByMember = members.get(initiatedBy);
   return (
     <Group gap="4" wrap="wrap" justify="center">
-      <Identity
-        address={initiatedByMember ? getMemberAddress(initiatedByMember) : ""}
-        inboxId={initiatedBy}
-      />
+      {initiatedByMember ? (
+        <Identity
+          {...combineProfiles(
+            getMemberAddress(initiatedByMember),
+            profiles.get(getMemberAddress(initiatedByMember)) ?? [],
+          )}
+          inboxId={initiatedBy}
+        />
+      ) : (
+        <IdentityBadge address="" displayName={shortAddress(initiatedBy)} />
+      )}
       <Text size="sm">{type === "added" ? "added" : "removed"}</Text>
       {updatedMembers.map((member) => {
         const memberMember = members.get(member);
+        if (!memberMember) {
+          return null;
+        }
+        const address = getMemberAddress(memberMember);
+        const profile = combineProfiles(address, profiles.get(address) ?? []);
         return (
           <Identity
             key={member}
-            address={memberMember ? getMemberAddress(memberMember) : ""}
+            address={address}
+            avatar={profile.avatar}
+            description={profile.description}
+            displayName={profile.displayName}
             inboxId={member}
           />
         );
@@ -54,6 +73,7 @@ const GroupMetadataUpdatedContent: React.FC<
 > = ({ metadataFieldChange, initiatedBy }) => {
   const { conversationId } = useConversationContext();
   const { members } = useConversation(conversationId);
+  const profiles = useAllProfiles();
   const initiatedByMember = members.get(initiatedBy);
   const field = useMemo(() => {
     switch (metadataFieldChange.fieldName) {
@@ -72,10 +92,17 @@ const GroupMetadataUpdatedContent: React.FC<
 
   return (
     <Group gap="4" wrap="wrap" justify="center">
-      <Identity
-        address={initiatedByMember ? getMemberAddress(initiatedByMember) : ""}
-        inboxId={initiatedBy}
-      />
+      {initiatedByMember ? (
+        <Identity
+          {...combineProfiles(
+            getMemberAddress(initiatedByMember),
+            profiles.get(getMemberAddress(initiatedByMember)) ?? [],
+          )}
+          inboxId={initiatedBy}
+        />
+      ) : (
+        <IdentityBadge address="" displayName={shortAddress(initiatedBy)} />
+      )}
       <Text size="sm">
         {metadataFieldChange.newValue ? "changed" : "removed"} the group
       </Text>

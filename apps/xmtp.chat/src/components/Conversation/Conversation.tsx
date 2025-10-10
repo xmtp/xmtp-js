@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Text, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Group as XmtpGroup, type Client } from "@xmtp/browser-sdk";
 import { useCallback, useEffect } from "react";
@@ -66,7 +66,14 @@ export const Conversation: React.FC<ConversationProps> = ({
                 onSync={() => void handleSync()}
                 disabled={conversationSyncing}
               />
-              <Tooltip label={opened ? "Hide members" : "Show members"}>
+              <Tooltip
+                label={
+                  opened ? (
+                    <Text size="xs">Hide members</Text>
+                  ) : (
+                    <Text size="xs">Show members</Text>
+                  )
+                }>
                 <ActionIcon
                   variant="default"
                   onClick={() => {
@@ -77,7 +84,9 @@ export const Conversation: React.FC<ConversationProps> = ({
               </Tooltip>
             </Group>
           }
-          aside={<MembersList conversationId={conversationId} />}
+          aside={
+            <MembersList conversationId={conversationId} toggle={toggle} />
+          }
           asideOpened={opened}
           footer={<Composer conversationId={conversationId} />}
           withScrollArea={false}>

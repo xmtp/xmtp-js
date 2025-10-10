@@ -5,3 +5,13 @@
 .root > *:last-child {
   padding-bottom: var(--mantine-spacing-sm);
 }
+
+.hideMembers {
+  display: none;
+}
+
+@media screen and (max-width: 1280px) {
+  .hideMembers {
+    display: block;
+  }
+}
