@@ -22,6 +22,7 @@ import {
 import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
 import { filter } from "@/core/filter.js";
+import { getInstallationInfo } from "@/debug.js";
 import { createSigner, createUser } from "@/user/User.js";
 import { AgentError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
@@ -160,7 +161,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     ];
 
     if (process.env.XMTP_FORCE_DEBUG) {
-      const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.info;
+      const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.warn;
       initializedOptions.debugEventsEnabled = true;
       initializedOptions.loggingLevel = loggingLevel as LogLevel;
       initializedOptions.structuredLogging = true;
@@ -170,6 +171,13 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       ...initializedOptions,
       codecs: upgradedCodecs,
     });
+
+    const info = await getInstallationInfo(client);
+    if (info.totalInstallations > 1 && info.isMostRecent) {
+      console.warn(
+        `[WARNING] You have "${info.totalInstallations}" installations. Installation ID "${info.installationId}" is the most recent. Make sure to persist and reload your installation data. If you exceed the installation limit, your Agent will stop working. Read more: https://docs.xmtp.org/agents/build-agents/local-database#installation-limits-and-revocation-rules`,
+      );
+    }
 
     return new Agent({ client });
   }
@@ -471,8 +479,10 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     let currentError: unknown = error;
 
     for (let i = 0; i < chain.length; i++) {
+      const handler = chain[i];
+      if (!handler) continue;
       const outcome = await this.#runErrorHandler(
-        chain[i],
+        handler,
         context,
         currentError,
       );

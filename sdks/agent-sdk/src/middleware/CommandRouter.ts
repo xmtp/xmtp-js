@@ -29,7 +29,11 @@ export class CommandRouter<ContentTypes> {
 
     const messageText = ctx.message.content;
     const parts = messageText.split(" ");
-    const command = parts[0].toLowerCase();
+    const command = parts[0]?.toLowerCase();
+
+    if (!command) {
+      return false;
+    }
 
     // Check if this is a command message
     if (command.startsWith("/")) {

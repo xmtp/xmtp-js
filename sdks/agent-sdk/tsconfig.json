@@ -4,6 +4,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "Node18",
+    "noUncheckedIndexedAccess": true,
     "outDir": "dist",
     "paths": {
       "@/*": ["./src/*"],
