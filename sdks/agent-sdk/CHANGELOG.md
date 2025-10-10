@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.7
+
+### Patch Changes
+
+- 8279497: Added warning about installation limit
+
 ## 1.1.6
 
 ### Patch Changes
