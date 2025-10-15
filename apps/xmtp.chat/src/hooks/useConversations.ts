@@ -69,6 +69,17 @@ export const useConversations = () => {
     }
   };
 
+  const getDmByInboxId = async (inboxId: string) => {
+    setLoading(true);
+
+    try {
+      const dm = await client.conversations.getDmByInboxId(inboxId);
+      return dm;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getMessageById = async (messageId: string) => {
     setLoading(true);
 
@@ -177,6 +188,7 @@ export const useConversations = () => {
   return {
     conversations,
     getConversationById,
+    getDmByInboxId,
     getMessageById,
     loading,
     newDm,
