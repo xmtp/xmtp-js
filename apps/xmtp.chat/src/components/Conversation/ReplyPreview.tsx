@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Group, Paper, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
-import { Identity } from "@/components/Identity";
+import { IdentityBadge } from "@/components/IdentityBadge";
 import { AttachmentDetails } from "@/components/Messages/AttachmentDetails";
 import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
@@ -54,9 +54,14 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
               Replying to
             </Text>
             <Box>
-              <Identity
+              <IdentityBadge
                 address={fromMember ? getMemberAddress(fromMember) : ""}
-                inboxId={message.senderInboxId}
+                displayName={message.senderInboxId}
+                tooltip={
+                  fromMember
+                    ? undefined
+                    : "This member is no longer in the group"
+                }
               />
             </Box>
           </Group>

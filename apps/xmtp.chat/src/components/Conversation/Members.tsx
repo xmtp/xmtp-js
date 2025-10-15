@@ -14,7 +14,7 @@ import {
   type SafeGroupMember,
 } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
-import { Identity } from "@/components/Identity";
+import { IdentityBadge } from "@/components/IdentityBadge";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useMemberId } from "@/hooks/useMemberId";
 import classes from "./Members.module.css";
@@ -63,12 +63,7 @@ const Member: React.FC<MemberProps> = ({
       wrap="nowrap"
       p="xxxs"
       className={classes.member}>
-      <Identity
-        address={address}
-        inboxId={inboxId}
-        shorten={false}
-        displayName={displayName}
-      />
+      <IdentityBadge address={address} displayName={displayName ?? inboxId} />
       <Button disabled={isSelf} flex="0 0 auto" size="xs" onClick={onClick}>
         {buttonLabel}
       </Button>
