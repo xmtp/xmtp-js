@@ -87,6 +87,12 @@ export const config = createConfig({
 });
 
 const theme = createTheme({
+  fontSizes: {
+    xxs: "calc(0.6875rem * var(--mantine-scale))",
+  },
+  lineHeights: {
+    xxs: "1.2",
+  },
   spacing: {
     xxs: "calc(0.5rem * var(--mantine-scale))",
     xxxs: "calc(0.25rem * var(--mantine-scale))",
