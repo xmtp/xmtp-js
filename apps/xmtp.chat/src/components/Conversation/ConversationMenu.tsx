@@ -1,4 +1,4 @@
-import { Button, Menu } from "@mantine/core";
+import { ActionIcon, Menu } from "@mantine/core";
 import { useNavigate } from "react-router";
 import { IconDots } from "@/icons/IconDots";
 
@@ -18,9 +18,9 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
   return (
     <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
-        <Button px="xxxs" radius="md" size="xs" variant="default">
+        <ActionIcon variant="default">
           <IconDots />
-        </Button>
+        </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown miw={200}>
         <Menu.Label>Manage</Menu.Label>

@@ -3,6 +3,7 @@ import {
   Group,
   type Conversation,
   type DecodedMessage,
+  type SafeConversation,
   type SafeGroupMember,
 } from "@xmtp/browser-sdk";
 import {
@@ -37,10 +38,16 @@ export type InboxState = {
   lastSentAt: Map<string, bigint | undefined>;
   // the members of each conversation
   members: Map<string, Map<string, SafeGroupMember>>;
+  // the admins of each conversation
+  admins: Map<string, string[]>;
+  // the super admins of each conversation
+  superAdmins: Map<string, string[]>;
   // all conversation messages
   messages: Map<string, Map<string, DecodedMessage<ContentTypes>>>;
   // the metadata for each conversation
   metadata: Map<string, ConversationMetadata>;
+  // the permissions for each conversation
+  permissions: Map<string, SafeConversation["permissions"]>;
   // sorted conversations by most recent activity
   sortedConversations: Conversation<ContentTypes>[];
   // sorted messages by last sent timestamp
@@ -71,6 +78,7 @@ export type InboxActions = {
   getMessages: (conversationId: string) => DecodedMessage<ContentTypes>[];
   hasMessage: (conversationId: string, messageId: string) => boolean;
   setLastSyncedAt: (timestamp: bigint) => void;
+  syncPermissions: (conversationId: string) => Promise<void>;
   reset: () => void;
 };
 
@@ -80,8 +88,11 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
     lastMessages: new Map(),
     lastSentAt: new Map(),
     members: new Map(),
+    admins: new Map(),
+    superAdmins: new Map(),
     messages: new Map(),
     metadata: new Map(),
+    permissions: new Map(),
     sortedConversations: [],
     sortedMessages: new Map(),
     addConversation: async (conversation: Conversation<ContentTypes>) => {
@@ -96,9 +107,20 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         conversation.id,
         new Map(members.map((m) => [m.inboxId, m])),
       );
-      // update metadata state
+      const newAdmins = new Map(state.admins);
+      const newSuperAdmins = new Map(state.superAdmins);
+      const newPermissions = new Map(state.permissions);
       const newMetadata = new Map(state.metadata);
       if (conversation instanceof Group) {
+        // update permissions state
+        newPermissions.set(conversation.id, await conversation.permissions());
+        // update admins and super admins state
+        newAdmins.set(conversation.id, await conversation.listAdmins());
+        newSuperAdmins.set(
+          conversation.id,
+          await conversation.listSuperAdmins(),
+        );
+        // update metadata state
         newMetadata.set(conversation.id, {
           name: conversation.name,
           description: conversation.description,
@@ -116,6 +138,7 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
           if (profiles.length > 0) {
             displayName = profiles[0].displayName ?? displayName;
           }
+          // update metadata state
           newMetadata.set(conversation.id, {
             name: displayName,
           });
@@ -130,7 +153,10 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         lastCreatedAt: getLastCreatedAt(conversation, state.lastCreatedAt),
         lastMessages: newLastMessages,
         members: newMembers,
+        admins: newAdmins,
+        superAdmins: newSuperAdmins,
         metadata: newMetadata,
+        permissions: newPermissions,
         sortedConversations: sortConversations(
           newConversations,
           newLastMessages,
@@ -170,9 +196,12 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         ),
       );
 
-      // update conversations, members, metadata, and last message states
+      // update conversations, members, and last message states
       const newConversations = new Map(state.conversations);
       const newMembers = new Map(state.members);
+      const newAdmins = new Map(state.admins);
+      const newSuperAdmins = new Map(state.superAdmins);
+      const newPermissions = new Map(state.permissions);
       const newMetadata = new Map(state.metadata);
       const newLastMessages = new Map(state.lastMessages);
       let lastCreatedAt = state.lastCreatedAt;
@@ -185,6 +214,15 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
           new Map(members.map((m) => [m.inboxId, m])),
         );
         if (conversation instanceof Group) {
+          // update permissions state
+          newPermissions.set(conversation.id, await conversation.permissions());
+          // update admins and super admins state
+          newAdmins.set(conversation.id, await conversation.listAdmins());
+          newSuperAdmins.set(
+            conversation.id,
+            await conversation.listSuperAdmins(),
+          );
+          // update metadata state
           newMetadata.set(conversation.id, {
             name: conversation.name,
             description: conversation.description,
@@ -202,6 +240,7 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
             if (profiles.length > 0) {
               displayName = profiles[0].displayName ?? displayName;
             }
+            // update metadata state
             newMetadata.set(conversation.id, {
               name: displayName,
             });
@@ -216,7 +255,10 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         lastCreatedAt,
         lastMessages: newLastMessages,
         members: newMembers,
+        admins: newAdmins,
+        superAdmins: newSuperAdmins,
         metadata: newMetadata,
+        permissions: newPermissions,
         sortedConversations: sortConversations(
           newConversations,
           newLastMessages,
@@ -234,6 +276,7 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
       message: DecodedMessage<ContentTypes>,
     ) => {
       const state = get();
+      const conversation = state.conversations.get(conversationId);
       // update messages state
       const newMessagesState = new Map(state.messages);
       const conversationMessages =
@@ -256,18 +299,30 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
       newSortedMessages.set(conversationId, sortMessages(newMessages));
 
       const newMembers = new Map(state.members);
+      const newAdmins = new Map(state.admins);
+      const newSuperAdmins = new Map(state.superAdmins);
       const newMetadata = new Map(state.metadata);
 
       // check for updated members and metadata
       if (message.contentType.sameAs(ContentTypeGroupUpdated)) {
         const groupUpdated = message.content as GroupUpdated;
 
+        // it's possible that admins and super admins have changed with this
+        // type of message, but it's not currently exposed in the content type
+        if (conversation instanceof Group) {
+          // update admins and super admins state
+          newAdmins.set(conversationId, await conversation.listAdmins());
+          newSuperAdmins.set(
+            conversationId,
+            await conversation.listSuperAdmins(),
+          );
+        }
+
         // member updates
         if (
           groupUpdated.addedInboxes.length > 0 ||
           groupUpdated.removedInboxes.length > 0
         ) {
-          const conversation = state.conversations.get(message.conversationId);
           if (conversation) {
             const isActive = await conversation.isActive();
             // ensure group is active before syncing
@@ -308,6 +363,8 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         lastMessages: newLastMessages,
         lastSentAt: newLastSentAt,
         members: newMembers,
+        admins: newAdmins,
+        superAdmins: newSuperAdmins,
         messages: newMessagesState,
         metadata: newMetadata,
         sortedConversations: sortConversations(
@@ -322,6 +379,7 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
       messages: DecodedMessage<ContentTypes>[],
     ) => {
       const state = get();
+      const conversation = state.conversations.get(conversationId);
       const newMessagesByConversation = new Map(state.messages);
       const conversationMessages =
         newMessagesByConversation.get(conversationId) ||
@@ -332,6 +390,8 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
 
       const newMetadata = new Map(state.metadata);
       const newMembers = new Map(state.members);
+      const newAdmins = new Map(state.admins);
+      const newSuperAdmins = new Map(state.superAdmins);
 
       for (const message of messages) {
         newMessages.set(message.id, message);
@@ -343,6 +403,20 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         // check for updated members and metadata
         if (message.contentType.sameAs(ContentTypeGroupUpdated)) {
           const groupUpdated = message.content as GroupUpdated;
+
+          // it's possible that admins and super admins have changed with this
+          // type of message, but it's not currently exposed in the content type
+          if (conversation instanceof Group) {
+            // update admins and super admins state
+            newAdmins.set(
+              message.conversationId,
+              await conversation.listAdmins(),
+            );
+            newSuperAdmins.set(
+              message.conversationId,
+              await conversation.listSuperAdmins(),
+            );
+          }
 
           // member updates
           if (
@@ -410,6 +484,8 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         lastMessages: newLastMessages,
         lastSentAt: newLastSentAt,
         members: newMembers,
+        admins: newAdmins,
+        superAdmins: newSuperAdmins,
         messages: newMessagesByConversation,
         metadata: newMetadata,
         sortedConversations: sortConversations(
@@ -433,6 +509,26 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
     },
     setLastSyncedAt: (timestamp: bigint) => {
       set({ lastSyncedAt: timestamp });
+    },
+    syncPermissions: async (conversationId: string) => {
+      const state = get();
+      const conversation = state.conversations.get(conversationId);
+      if (conversation instanceof Group) {
+        const newPermissions = new Map(state.permissions);
+        const newAdmins = new Map(state.admins);
+        const newSuperAdmins = new Map(state.superAdmins);
+        newPermissions.set(conversationId, await conversation.permissions());
+        newAdmins.set(conversationId, await conversation.listAdmins());
+        newSuperAdmins.set(
+          conversationId,
+          await conversation.listSuperAdmins(),
+        );
+        set({
+          permissions: newPermissions,
+          admins: newAdmins,
+          superAdmins: newSuperAdmins,
+        });
+      }
     },
     reset: () => {
       set(store.getInitialState());

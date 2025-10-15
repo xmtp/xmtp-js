@@ -11,6 +11,7 @@ import { inboxStore, type ConversationMetadata } from "@/stores/inbox/store";
 const EMPTY_METADATA: ConversationMetadata = {};
 const EMPTY_MEMBERS = new Map<string, SafeGroupMember>();
 const EMPTY_MESSAGES: DecodedMessage<ContentTypes>[] = [];
+const EMPTY_ADMINS: string[] = [];
 
 export const useConversation = (
   conversationId: string,
@@ -72,6 +73,24 @@ export const useLastSyncedAt = () => {
   return useStore(inboxStore, (state) => state.lastSyncedAt);
 };
 
+export const useAdmins = (conversationId: string) => {
+  return useStore(
+    inboxStore,
+    (state) => state.admins.get(conversationId) ?? EMPTY_ADMINS,
+  );
+};
+
+export const useSuperAdmins = (conversationId: string) => {
+  return useStore(
+    inboxStore,
+    (state) => state.superAdmins.get(conversationId) ?? EMPTY_ADMINS,
+  );
+};
+
+export const usePermissions = (conversationId: string) => {
+  return useStore(inboxStore, (state) => state.permissions.get(conversationId));
+};
+
 export const useActions = () => {
   const addConversation = useStore(
     inboxStore,
@@ -98,6 +117,10 @@ export const useActions = () => {
     inboxStore,
     (state) => state.setLastSyncedAt,
   );
+  const syncPermissions = useStore(
+    inboxStore,
+    (state) => state.syncPermissions,
+  );
   const reset = useStore(inboxStore, (state) => state.reset);
 
   return {
@@ -111,6 +134,7 @@ export const useActions = () => {
     getMessages,
     hasMessage,
     setLastSyncedAt,
+    syncPermissions,
     reset,
   };
 };
