@@ -35,6 +35,8 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
             getMemberAddress(initiatedByMember),
             profiles.get(getMemberAddress(initiatedByMember)) ?? [],
           )}
+          permissionLevel={initiatedByMember.permissionLevel}
+          conversationId={conversationId}
           inboxId={initiatedBy}
           showDm={!(conversation instanceof Dm)}
           position="top"
@@ -67,6 +69,8 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
             avatar={profile.avatar}
             description={profile.description}
             displayName={profile.displayName}
+            conversationId={conversationId}
+            permissionLevel={memberMember.permissionLevel}
             inboxId={member}
             showDm={!(conversation instanceof Dm)}
             position="top"
@@ -113,6 +117,8 @@ const GroupMetadataUpdatedContent: React.FC<
             getMemberAddress(initiatedByMember),
             profiles.get(getMemberAddress(initiatedByMember)) ?? [],
           )}
+          permissionLevel={initiatedByMember.permissionLevel}
+          conversationId={conversationId}
           inboxId={initiatedBy}
           showDm={!(conversation instanceof Dm)}
           position="top"

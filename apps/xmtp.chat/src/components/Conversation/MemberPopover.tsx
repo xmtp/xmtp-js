@@ -11,6 +11,7 @@ import {
   type PopoverProps,
 } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
+import { Group as XmtpGroup, type SafeGroupMember } from "@xmtp/browser-sdk";
 import {
   createContext,
   useCallback,
@@ -20,8 +21,11 @@ import {
 } from "react";
 import BreakableText from "@/components/Messages/BreakableText";
 import { shortAddress } from "@/helpers/strings";
+import { useClientPermissions } from "@/hooks/useClientPermissions";
+import { useConversation } from "@/hooks/useConversation";
 import { useConversations } from "@/hooks/useConversations";
 import { IconDots } from "@/icons/IconDots";
+import { useActions } from "@/stores/inbox/hooks";
 import classes from "./MemberPopover.module.css";
 
 type MemberPopoverContextType = {
@@ -53,11 +57,11 @@ export const useMemberPopover = () => {
 export type MemberPopoverProps = React.PropsWithChildren<{
   address: string;
   avatar: string | null;
+  conversationId: string;
   description: string | null;
   displayName: string | null;
   inboxId: string;
-  onBlock?: () => void;
-  onRemove?: () => void;
+  permissionLevel: SafeGroupMember["permissionLevel"];
   position?: PopoverProps["position"];
   showDm?: boolean;
 }>;
@@ -66,15 +70,18 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
   address,
   avatar,
   children,
+  conversationId,
   description,
   displayName,
   inboxId,
-  onRemove,
-  onBlock,
+  permissionLevel,
   position,
   showDm = true,
 }) => {
   const { newDm, getDmByInboxId } = useConversations();
+  const { conversation, members } = useConversation(conversationId);
+  const clientPermissions = useClientPermissions(conversationId);
+  const { syncMembers } = useActions();
   const clipboard = useClipboard({ timeout: 1000 });
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
@@ -110,6 +117,84 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
     },
     [message, inboxId, getDmByInboxId, newDm],
   );
+
+  const handlePermissionLevelChange = useCallback(
+    async (
+      inboxId: string,
+      permissionLevel: "SuperAdmin" | "Admin" | "Member",
+    ) => {
+      const member = members.get(inboxId);
+      if (!member || !(conversation instanceof XmtpGroup)) {
+        return;
+      }
+      // TODO: remove this once types are fixed
+      const level = member.permissionLevel as unknown as
+        | "SuperAdmin"
+        | "Admin"
+        | "Member";
+      if (level === permissionLevel) {
+        return;
+      }
+
+      switch (level) {
+        case "SuperAdmin": {
+          await conversation.removeSuperAdmin(inboxId);
+          switch (permissionLevel) {
+            case "Admin":
+              await conversation.addAdmin(inboxId);
+              break;
+          }
+          break;
+        }
+        case "Admin": {
+          await conversation.removeAdmin(inboxId);
+          switch (permissionLevel) {
+            case "SuperAdmin":
+              await conversation.addSuperAdmin(inboxId);
+              break;
+          }
+          break;
+        }
+        case "Member": {
+          switch (permissionLevel) {
+            case "SuperAdmin":
+              await conversation.addSuperAdmin(inboxId);
+              break;
+            case "Admin":
+              await conversation.addAdmin(inboxId);
+              break;
+          }
+          break;
+        }
+      }
+      await syncMembers(conversationId);
+    },
+    [conversation, conversationId, syncMembers],
+  );
+
+  const handleRemoveMember = useCallback(
+    async (inboxId: string) => {
+      if (!(conversation instanceof XmtpGroup)) {
+        return;
+      }
+      await conversation.removeMembers([inboxId]);
+      await syncMembers(conversationId);
+    },
+    [conversation, conversationId, syncMembers],
+  );
+
+  // TODO: remove this once types are fixed
+  const level = permissionLevel as unknown as "SuperAdmin" | "Admin" | "Member";
+  const canManageMembers = useMemo(() => {
+    return (
+      (clientPermissions.canPromoteMembers &&
+        (level === "Admin" || level === "Member")) ||
+      (clientPermissions.canDemoteMembers &&
+        (level === "SuperAdmin" || level === "Admin")) ||
+      clientPermissions.canRemoveMembers
+    );
+  }, [clientPermissions, level]);
+
   return (
     <MemberPopoverProvider opened={opened} setOpened={setOpened}>
       <Popover
@@ -127,7 +212,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
             maw={300}
             miw={260}
             className={classes.profile}>
-            <Menu shadow="md">
+            <Menu shadow="md" withArrow>
               <Menu.Target>
                 <ActionIcon
                   variant="default"
@@ -138,7 +223,49 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
                   <IconDots />
                 </ActionIcon>
               </Menu.Target>
-              <Menu.Dropdown miw={200}>
+              <Menu.Dropdown>
+                {clientPermissions.canPromoteMembers &&
+                  (level === "Admin" || level === "Member") && (
+                    <Menu.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handlePermissionLevelChange(inboxId, "SuperAdmin");
+                      }}>
+                      Promote to super admin
+                    </Menu.Item>
+                  )}
+                {clientPermissions.canPromoteMembers && level === "Member" && (
+                  <Menu.Item
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handlePermissionLevelChange(inboxId, "Admin");
+                    }}>
+                    Promote to admin
+                  </Menu.Item>
+                )}
+                {clientPermissions.canDemoteMembers &&
+                  level === "SuperAdmin" && (
+                    <Menu.Item
+                      c="red"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handlePermissionLevelChange(inboxId, "Admin");
+                      }}>
+                      Demote to admin
+                    </Menu.Item>
+                  )}
+                {clientPermissions.canDemoteMembers &&
+                  (level === "SuperAdmin" || level === "Admin") && (
+                    <Menu.Item
+                      c="red"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handlePermissionLevelChange(inboxId, "Member");
+                      }}>
+                      Demote to member
+                    </Menu.Item>
+                  )}
+                {canManageMembers && <Menu.Divider />}
                 <Menu.Item
                   onClick={(e) => {
                     e.stopPropagation();
@@ -153,15 +280,15 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
                   }}>
                   Copy inbox ID
                 </Menu.Item>
-                {(onRemove || onBlock) && <Menu.Divider />}
-                {onRemove && (
-                  <Menu.Item c="red" onClick={onRemove}>
+                {clientPermissions.canRemoveMembers && <Menu.Divider />}
+                {clientPermissions.canRemoveMembers && (
+                  <Menu.Item
+                    c="red"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleRemoveMember(inboxId);
+                    }}>
                     Remove from group
-                  </Menu.Item>
-                )}
-                {onBlock && (
-                  <Menu.Item c="red" onClick={onBlock}>
-                    Block
                   </Menu.Item>
                 )}
               </Menu.Dropdown>

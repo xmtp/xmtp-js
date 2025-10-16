@@ -1,5 +1,5 @@
 import { ActionIcon, Badge, Group, Stack, Text, Tooltip } from "@mantine/core";
-import { Dm } from "@xmtp/browser-sdk";
+import { Dm, type SafeGroupMember } from "@xmtp/browser-sdk";
 import { useMemo, type ComponentProps } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { MemberListItem } from "@/components/Conversation/MemberListItem";
@@ -33,6 +33,7 @@ type MembersListProfile = {
   description: string | null;
   displayName: string | null;
   inboxId: string;
+  permissionLevel: SafeGroupMember["permissionLevel"];
 };
 
 const isMembersListTitle = (
@@ -75,7 +76,7 @@ export const MembersList: React.FC<MembersListProps> = ({
 
     const membersList = Array.from(members.values());
     const superAdmins = membersList.filter(
-      // @ts-expect-error - TODO: the types are wrong
+      // @ts-expect-error - the types are wrong
       (member) => member.permissionLevel === "SuperAdmin",
     );
 
@@ -90,12 +91,13 @@ export const MembersList: React.FC<MembersListProps> = ({
           description: profile.description,
           displayName: profile.displayName,
           inboxId: member.inboxId,
+          permissionLevel: member.permissionLevel,
         });
       }
     }
 
     const admins = membersList.filter(
-      // @ts-expect-error - TODO: the types are wrong
+      // @ts-expect-error - the types are wrong
       (member) => member.permissionLevel === "Admin",
     );
 
@@ -110,6 +112,7 @@ export const MembersList: React.FC<MembersListProps> = ({
           description: profile.description,
           displayName: profile.displayName,
           inboxId: member.inboxId,
+          permissionLevel: member.permissionLevel,
         });
       }
     }
@@ -133,6 +136,7 @@ export const MembersList: React.FC<MembersListProps> = ({
           description: profile.description,
           displayName: profile.displayName,
           inboxId: member.inboxId,
+          permissionLevel: member.permissionLevel,
         });
       }
     }
@@ -185,9 +189,11 @@ export const MembersList: React.FC<MembersListProps> = ({
               <MemberListItem
                 address={item.address}
                 avatar={item.avatar}
+                conversationId={conversationId}
                 description={item.description}
                 displayName={item.displayName}
                 inboxId={item.inboxId}
+                permissionLevel={item.permissionLevel}
                 showDm={!(conversation instanceof Dm)}
               />
             );
