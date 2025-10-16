@@ -8,40 +8,19 @@ import {
   type IdentityBadgeProps,
 } from "@/components/IdentityBadge";
 
-export type IdentityProps = {
-  address: string;
-  avatar: string | null;
-  description: string | null;
-  displayName: string | null;
-  inboxId: string;
-  showDm?: boolean;
-  size?: IdentityBadgeProps["size"];
-  position?: MemberPopoverProps["position"];
-} & Pick<MantineStyleProps, "w">;
+export type IdentityProps = MemberPopoverProps &
+  Pick<IdentityBadgeProps, "size"> & {} & Pick<MantineStyleProps, "w">;
 
 export const Identity: React.FC<IdentityProps> = ({
-  address,
-  avatar,
-  description,
-  displayName,
-  inboxId,
-  showDm,
   size = "lg",
-  position,
   w,
+  ...props
 }) => {
   return (
-    <MemberPopover
-      address={address}
-      avatar={avatar}
-      description={description}
-      displayName={displayName}
-      inboxId={inboxId}
-      showDm={showDm}
-      position={position}>
+    <MemberPopover {...props}>
       <IdentityBadge
-        address={address}
-        displayName={displayName}
+        address={props.address}
+        displayName={props.displayName}
         size={size}
         w={w}
       />
