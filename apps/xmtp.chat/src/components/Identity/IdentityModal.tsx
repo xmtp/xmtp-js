@@ -7,19 +7,20 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import type { Client } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router";
+import { useNavigate } from "react-router";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { InstallationTable } from "@/components/Identity/InstallationTable";
 import { Modal } from "@/components/Modal";
+import { useClient } from "@/contexts/XMTPContext";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useIdentity } from "@/hooks/useIdentity";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const IdentityModal: React.FC = () => {
   const navigate = useNavigate();
-  const { client } = useOutletContext<{ client: Client }>();
+  const client = useClient();
+
   const {
     installations,
     revokeAllOtherInstallations,

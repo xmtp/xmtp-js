@@ -11,11 +11,13 @@ import {
 import { useNavigate, useOutletContext } from "react-router";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import type { ConversationOutletContext } from "./ConversationOutletContext";
 
 export const ManageConsentModal: React.FC = () => {
-  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation } = useConversation(conversationId);
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;

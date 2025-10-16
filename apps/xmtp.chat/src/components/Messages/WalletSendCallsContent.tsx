@@ -1,14 +1,12 @@
 import { Box, Button, List, Space, Text } from "@mantine/core";
-import type { Client } from "@xmtp/browser-sdk";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
 import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
 import { useCallback } from "react";
-import { useOutletContext } from "react-router";
 import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
-import type { ContentTypes } from "@/contexts/XMTPContext";
+import { useClient } from "@/contexts/XMTPContext";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
@@ -19,9 +17,7 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   content,
   conversationId,
 }) => {
-  const { client } = useOutletContext<{
-    client: Client<ContentTypes>;
-  }>();
+  const client = useClient();
   const { sendTransactionAsync } = useSendTransaction();
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();
