@@ -1,9 +1,11 @@
 import { Group, Stack, Text, Textarea, TextInput } from "@mantine/core";
 import { Group as XmtpGroup, type Conversation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
+import { type ClientPermissions } from "@/hooks/useClientPermissions";
 
 type MetadataProps = {
   conversation?: Conversation;
+  clientPermissions?: ClientPermissions;
   onNameChange: (name: string) => void;
   onDescriptionChange: (description: string) => void;
   onImageUrlChange: (imageUrl: string) => void;
@@ -11,6 +13,7 @@ type MetadataProps = {
 
 export const Metadata: React.FC<MetadataProps> = ({
   conversation,
+  clientPermissions,
   onNameChange,
   onDescriptionChange,
   onImageUrlChange,
@@ -49,6 +52,11 @@ export const Metadata: React.FC<MetadataProps> = ({
           size="sm"
           flex="1 1 65%"
           value={name}
+          disabled={
+            conversation &&
+            clientPermissions &&
+            !clientPermissions.canChangeGroupName
+          }
           onChange={(event) => {
             setName(event.target.value);
           }}
@@ -62,6 +70,11 @@ export const Metadata: React.FC<MetadataProps> = ({
           size="sm"
           flex="1 1 65%"
           value={description}
+          disabled={
+            conversation &&
+            clientPermissions &&
+            !clientPermissions.canChangeGroupDescription
+          }
           onChange={(event) => {
             setDescription(event.target.value);
           }}
@@ -75,6 +88,11 @@ export const Metadata: React.FC<MetadataProps> = ({
           size="sm"
           flex="1 1 65%"
           value={imageUrl}
+          disabled={
+            conversation &&
+            clientPermissions &&
+            !clientPermissions.canChangeGroupImage
+          }
           onChange={(event) => {
             setImageUrl(event.target.value);
           }}

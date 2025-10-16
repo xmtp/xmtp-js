@@ -5,6 +5,7 @@ import { useNavigate, useOutletContext } from "react-router";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { Metadata } from "@/components/Conversation/Metadata";
 import { Modal } from "@/components/Modal";
+import { useClientPermissions } from "@/hooks/useClientPermissions";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
@@ -13,6 +14,7 @@ import { useActions } from "@/stores/inbox/hooks";
 export const ManageMetadataModal: React.FC = () => {
   const { conversationId } = useOutletContext<ConversationOutletContext>();
   const { conversation } = useConversation(conversationId);
+  const clientPermissions = useClientPermissions(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();
@@ -106,6 +108,7 @@ export const ManageMetadataModal: React.FC = () => {
         withScrollAreaPadding={false}>
         <Metadata
           conversation={conversation}
+          clientPermissions={clientPermissions}
           onNameChange={setName}
           onDescriptionChange={setDescription}
           onImageUrlChange={setImageUrl}
