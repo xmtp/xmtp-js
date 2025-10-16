@@ -6,6 +6,7 @@ import type { ConversationOutletContext } from "@/components/Conversation/Conver
 import { Members, type PendingMember } from "@/components/Conversation/Members";
 import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
+import { useClientPermissions } from "@/hooks/useClientPermissions";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
@@ -14,6 +15,7 @@ import { useActions } from "@/stores/inbox/hooks";
 export const ManageMembersModal: React.FC = () => {
   const { conversationId } = useOutletContext<ConversationOutletContext>();
   const { conversation } = useConversation(conversationId);
+  const clientPermissions = useClientPermissions(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -111,6 +113,7 @@ export const ManageMembersModal: React.FC = () => {
         withScrollAreaPadding={false}>
         <Members
           conversation={conversation}
+          clientPermissions={clientPermissions}
           onMembersAdded={setAddedMembers}
           onMembersRemoved={setRemovedMembers}
         />
