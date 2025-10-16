@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { IdentityBadge } from "@/components/IdentityBadge";
 import { useClient } from "@/contexts/XMTPContext";
 import { getMemberAddress } from "@/helpers/xmtp";
+import type { ClientPermissions } from "@/hooks/useClientPermissions";
 import { useMemberId } from "@/hooks/useMemberId";
 import classes from "./Members.module.css";
 
@@ -28,6 +29,7 @@ export type PendingMember = {
 
 export type MembersProps = {
   conversation?: Conversation;
+  clientPermissions?: ClientPermissions;
   onMembersAdded: (members: PendingMember[]) => void;
   onMembersRemoved?: (members: SafeGroupMember[]) => void;
 };
@@ -43,7 +45,7 @@ type MemberProps = {
   inboxId: string;
   address: string;
   displayName?: string;
-  isSelf: boolean;
+  disableRemove?: boolean;
   onClick: () => void;
   buttonLabel: string;
 };
@@ -52,7 +54,7 @@ const Member: React.FC<MemberProps> = ({
   inboxId,
   address,
   displayName,
-  isSelf,
+  disableRemove = false,
   onClick,
   buttonLabel,
 }) => {
@@ -64,7 +66,11 @@ const Member: React.FC<MemberProps> = ({
       p="xxxs"
       className={classes.member}>
       <IdentityBadge address={address} displayName={displayName ?? inboxId} />
-      <Button disabled={isSelf} flex="0 0 auto" size="xs" onClick={onClick}>
+      <Button
+        disabled={disableRemove}
+        flex="0 0 auto"
+        size="xs"
+        onClick={onClick}>
         {buttonLabel}
       </Button>
     </Group>
@@ -73,6 +79,7 @@ const Member: React.FC<MemberProps> = ({
 
 export const Members: React.FC<MembersProps> = ({
   conversation,
+  clientPermissions,
   onMembersAdded,
   onMembersRemoved,
 }) => {
@@ -169,99 +176,110 @@ export const Members: React.FC<MembersProps> = ({
     void loadMembers();
   }, [conversation?.id]);
 
+  const showAddMembersSection =
+    !conversation || (clientPermissions && clientPermissions.canAddMembers);
+  const showRemovedMembersSection =
+    !conversation || (clientPermissions && clientPermissions.canRemoveMembers);
+
   return (
     <Stack gap="md" p="md">
-      <Group gap="xs" align="flex-start">
-        <TextInput
-          flex={1}
-          size="sm"
-          label="Address, inbox ID, ENS name, or Base name"
-          styles={{
-            label: {
-              marginBottom: "var(--mantine-spacing-xxs)",
-            },
-          }}
-          error={memberIdError || otherMemberError}
-          value={memberId}
-          onChange={(event) => {
-            setMemberId(event.target.value);
-          }}
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              memberIdError === null &&
-              otherMemberError === null &&
-              !loading &&
-              memberIdInboxId
-            ) {
-              handleAddMember();
-            }
-          }}
-        />
-        <Button
-          size="sm"
-          mt="32px"
-          disabled={
-            memberIdError !== null ||
-            loading ||
-            !memberIdInboxId ||
-            otherMemberError !== null
-          }
-          loading={loading}
-          onClick={handleAddMember}>
-          Add
-        </Button>
-      </Group>
-      <Stack gap="xs">
-        <Group gap="xs">
-          <Text fw={700}>Added members</Text>
-          <Badge color="gray" size="lg">
-            {addedMembers.length}
-          </Badge>
-        </Group>
-        <Stack gap="4px">
-          {addedMembers.map((member) => (
-            <Member
-              key={member.inboxId}
-              buttonLabel="Remove"
-              displayName={member.displayName}
-              inboxId={member.inboxId}
-              address={member.address}
-              isSelf={member.inboxId === client.inboxId}
-              onClick={() => {
-                handleRemoveAddedMember(member.inboxId);
+      {showAddMembersSection && (
+        <>
+          <Group gap="xs" align="flex-start">
+            <TextInput
+              flex={1}
+              size="sm"
+              label="Address, inbox ID, ENS name, or Base name"
+              styles={{
+                label: {
+                  marginBottom: "var(--mantine-spacing-xxs)",
+                },
+              }}
+              error={memberIdError || otherMemberError}
+              value={memberId}
+              onChange={(event) => {
+                setMemberId(event.target.value);
+              }}
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" &&
+                  memberIdError === null &&
+                  otherMemberError === null &&
+                  !loading &&
+                  memberIdInboxId
+                ) {
+                  handleAddMember();
+                }
               }}
             />
-          ))}
-        </Stack>
-      </Stack>
+            <Button
+              size="sm"
+              mt="32px"
+              disabled={
+                memberIdError !== null ||
+                loading ||
+                !memberIdInboxId ||
+                otherMemberError !== null
+              }
+              loading={loading}
+              onClick={handleAddMember}>
+              Add
+            </Button>
+          </Group>
+          <Stack gap="xs">
+            <Group gap="xs">
+              <Text fw={700}>Added members</Text>
+              <Badge color="gray" size="lg">
+                {addedMembers.length}
+              </Badge>
+            </Group>
+            <Stack gap="4px">
+              {addedMembers.map((member) => (
+                <Member
+                  key={member.inboxId}
+                  buttonLabel="Remove"
+                  displayName={member.displayName}
+                  inboxId={member.inboxId}
+                  address={member.address}
+                  onClick={() => {
+                    handleRemoveAddedMember(member.inboxId);
+                  }}
+                />
+              ))}
+            </Stack>
+          </Stack>
+        </>
+      )}
       {conversation && (
         <>
           <Stack gap="xs">
             <Group justify="space-between" gap="xs">
               <Title order={4}>Existing members</Title>
             </Group>
-            <Divider mb="md" />
-            <Group gap="xs">
-              <Text fw={700}>Removed members</Text>
-              <Badge color="gray" size="lg">
-                {removedMembers.length}
-              </Badge>
-            </Group>
-            <Stack gap="4px">
-              {removedMembers.map((member) => (
-                <Member
-                  key={member.inboxId}
-                  buttonLabel="Restore"
-                  inboxId={member.inboxId}
-                  address={getMemberAddress(member)}
-                  isSelf={member.inboxId === client.inboxId}
-                  onClick={() => {
-                    handleRestoreRemovedMember(member.inboxId);
-                  }}
-                />
-              ))}
-            </Stack>
+            {showRemovedMembersSection && (
+              <>
+                <Divider mb="md" />
+                <Group gap="xs">
+                  <Text fw={700}>Removed members</Text>
+                  <Badge color="gray" size="lg">
+                    {removedMembers.length}
+                  </Badge>
+                </Group>
+                <Stack gap="4px">
+                  {removedMembers.map((member) => (
+                    <Member
+                      key={member.inboxId}
+                      buttonLabel="Restore"
+                      inboxId={member.inboxId}
+                      address={getMemberAddress(member)}
+                      onClick={() => {
+                        handleRestoreRemovedMember(member.inboxId);
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
           </Stack>
           <Stack gap="xs">
             <Group gap="xs">
@@ -277,7 +295,10 @@ export const Members: React.FC<MembersProps> = ({
                   buttonLabel="Remove"
                   inboxId={member.inboxId}
                   address={getMemberAddress(member)}
-                  isSelf={member.inboxId === client.inboxId}
+                  disableRemove={
+                    member.inboxId === client.inboxId ||
+                    !showRemovedMembersSection
+                  }
                   onClick={() => {
                     handleRemoveMember(member.inboxId);
                   }}
