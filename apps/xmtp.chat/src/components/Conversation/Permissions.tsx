@@ -10,6 +10,13 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import type { PolicySet } from "@/types";
 
+const PERMISSION_VALUES = [
+  { value: "0", label: "Everyone" },
+  { value: "1", label: "Disabled" },
+  { value: "2", label: "Admin only" },
+  { value: "3", label: "Super admin only" },
+];
+
 export const defaultPolicySet: PolicySet = {
   addAdminPolicy: PermissionPolicy.SuperAdmin,
   addMemberPolicy: PermissionPolicy.Allow,
@@ -228,7 +235,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
       <Stack gap="md">
         <Group gap="md" justify="space-between" align="center">
           <Text size="sm">Policy</Text>
-          <Tooltip withArrow label={policyTooltip}>
+          <Tooltip withArrow label={<Text size="xs">{policyTooltip}</Text>}>
             <NativeSelect
               value={permissionsPolicy}
               onChange={(event) => {
@@ -263,11 +270,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
                 ) as PermissionPolicy,
               });
             }}
-            data={[
-              { value: "1", label: "Disabled" },
-              { value: "2", label: "Admin only" },
-              { value: "3", label: "Super admin only" },
-            ]}
+            data={PERMISSION_VALUES}
           />
         </Group>
         <Group gap="md" justify="space-between" align="center">
@@ -286,11 +289,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
                 ) as PermissionPolicy,
               });
             }}
-            data={[
-              { value: "1", label: "Disabled" },
-              { value: "2", label: "Admin only" },
-              { value: "3", label: "Super admin only" },
-            ]}
+            data={PERMISSION_VALUES}
           />
         </Group>
         <Group gap="md" justify="space-between" align="center">
@@ -309,11 +308,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
                 ) as PermissionPolicy,
               });
             }}
-            data={[
-              { value: "1", label: "Disabled" },
-              { value: "2", label: "Admin only" },
-              { value: "3", label: "Super admin only" },
-            ]}
+            data={PERMISSION_VALUES}
           />
         </Group>
         <Group gap="md" justify="space-between" align="center">
@@ -332,11 +327,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
                 ) as PermissionPolicy,
               });
             }}
-            data={[
-              { value: "1", label: "Disabled" },
-              { value: "2", label: "Admin only" },
-              { value: "3", label: "Super admin only" },
-            ]}
+            data={PERMISSION_VALUES}
           />
         </Group>
         <Group gap="md" justify="space-between" align="center">
@@ -355,12 +346,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
                 ) as PermissionPolicy,
               });
             }}
-            data={[
-              { value: "0", label: "Everyone" },
-              { value: "1", label: "Disabled" },
-              { value: "2", label: "Admin only" },
-              { value: "3", label: "Super admin only" },
-            ]}
+            data={PERMISSION_VALUES}
           />
         </Group>
         <Group gap="md" justify="space-between" align="center">
@@ -379,12 +365,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
                 ) as PermissionPolicy,
               });
             }}
-            data={[
-              { value: "0", label: "Everyone" },
-              { value: "1", label: "Disabled" },
-              { value: "2", label: "Admin only" },
-              { value: "3", label: "Super admin only" },
-            ]}
+            data={PERMISSION_VALUES}
           />
         </Group>
         <Group gap="md" justify="space-between" align="center">
@@ -403,12 +384,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
                 ) as PermissionPolicy,
               });
             }}
-            data={[
-              { value: "0", label: "Everyone" },
-              { value: "1", label: "Disabled" },
-              { value: "2", label: "Admin only" },
-              { value: "3", label: "Super admin only" },
-            ]}
+            data={PERMISSION_VALUES}
           />
         </Group>
       </Stack>
