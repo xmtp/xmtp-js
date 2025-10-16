@@ -75,6 +75,7 @@ export type InboxActions = {
   hasMessage: (conversationId: string, messageId: string) => boolean;
   setLastSyncedAt: (timestamp: bigint) => void;
   syncPermissions: (conversationId: string) => Promise<void>;
+  syncMembers: (conversationId: string) => Promise<void>;
   reset: () => void;
 };
 
@@ -445,6 +446,19 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         set({
           permissions: newPermissions,
         });
+      }
+    },
+    syncMembers: async (conversationId: string) => {
+      const state = get();
+      const conversation = state.conversations.get(conversationId);
+      if (conversation instanceof Group) {
+        const newMembers = new Map(state.members);
+        const members = await conversation.members();
+        newMembers.set(
+          conversationId,
+          new Map(members.map((m) => [m.inboxId, m])),
+        );
+        set({ members: newMembers });
       }
     },
     reset: () => {
