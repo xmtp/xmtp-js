@@ -106,6 +106,7 @@ export const useActions = () => {
     inboxStore,
     (state) => state.syncPermissions,
   );
+  const syncMembers = useStore(inboxStore, (state) => state.syncMembers);
   const reset = useStore(inboxStore, (state) => state.reset);
 
   return {
@@ -120,6 +121,7 @@ export const useActions = () => {
     hasMessage,
     setLastSyncedAt,
     syncPermissions,
+    syncMembers,
     reset,
   };
 };
