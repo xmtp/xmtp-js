@@ -60,6 +60,7 @@ export const Conversation: React.FC<ConversationProps> = ({
           headerActions={
             <Group gap="xxs">
               <ConversationMenu
+                conversationId={conversationId}
                 type={conversation instanceof XmtpGroup ? "group" : "dm"}
                 onSync={() => void handleSync()}
                 disabled={conversationSyncing}
