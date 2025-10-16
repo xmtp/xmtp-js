@@ -45,6 +45,8 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
             <Identity
               address={senderProfile.address}
               avatar={senderProfile.avatar}
+              permissionLevel={senderMember.permissionLevel}
+              conversationId={conversationId}
               description={senderProfile.description}
               displayName={senderProfile.displayName}
               inboxId={senderMember.inboxId}
