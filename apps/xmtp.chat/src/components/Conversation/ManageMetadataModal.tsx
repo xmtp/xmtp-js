@@ -6,11 +6,13 @@ import type { ConversationOutletContext } from "@/components/Conversation/Conver
 import { Metadata } from "@/components/Conversation/Metadata";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMetadataModal: React.FC = () => {
-  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation } = useConversation(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
   const fullScreen = useCollapsedMediaQuery();

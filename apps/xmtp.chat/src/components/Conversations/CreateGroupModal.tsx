@@ -1,7 +1,7 @@
 import { Accordion, Badge, Button, Group, Stack, Text } from "@mantine/core";
-import { GroupPermissionsOptions, type Client } from "@xmtp/browser-sdk";
+import { GroupPermissionsOptions } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router";
+import { useNavigate } from "react-router";
 import { Members, type PendingMember } from "@/components/Conversation/Members";
 import { Metadata } from "@/components/Conversation/Metadata";
 import {
@@ -27,7 +27,6 @@ const permissionsPolicyValue = (policy: GroupPermissionsOptions) => {
 };
 
 export const CreateGroupModal: React.FC = () => {
-  const { client } = useOutletContext<{ client: Client }>();
   const { newGroup } = useConversations();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -155,11 +154,7 @@ export const CreateGroupModal: React.FC = () => {
                 </Group>
               </Accordion.Control>
               <Accordion.Panel>
-                <Members
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  inboxId={client.inboxId!}
-                  onMembersAdded={setAddedMembers}
-                />
+                <Members onMembersAdded={setAddedMembers} />
               </Accordion.Panel>
             </Accordion.Item>
           </Accordion>

@@ -9,8 +9,8 @@ import { MessageProperties } from "./MessageProperties";
 
 export const MessageModal: React.FC = () => {
   const { messageId } = useParams();
-  const { conversation } = useOutletContext<ConversationOutletContext>();
-  const message = useMessage(conversation.id, messageId ?? "");
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const message = useMessage(conversationId, messageId ?? "");
   const navigate = useNavigate();
 
   const fullScreen = useCollapsedMediaQuery();

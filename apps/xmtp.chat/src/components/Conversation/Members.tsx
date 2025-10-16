@@ -15,6 +15,7 @@ import {
 } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { IdentityBadge } from "@/components/IdentityBadge";
+import { useClient } from "@/contexts/XMTPContext";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useMemberId } from "@/hooks/useMemberId";
 import classes from "./Members.module.css";
@@ -27,7 +28,6 @@ export type PendingMember = {
 
 export type MembersProps = {
   conversation?: Conversation;
-  inboxId: string;
   onMembersAdded: (members: PendingMember[]) => void;
   onMembersRemoved?: (members: SafeGroupMember[]) => void;
 };
@@ -73,10 +73,10 @@ const Member: React.FC<MemberProps> = ({
 
 export const Members: React.FC<MembersProps> = ({
   conversation,
-  inboxId,
   onMembersAdded,
   onMembersRemoved,
 }) => {
+  const client = useClient();
   const {
     loading,
     memberId,
@@ -227,7 +227,7 @@ export const Members: React.FC<MembersProps> = ({
               displayName={member.displayName}
               inboxId={member.inboxId}
               address={member.address}
-              isSelf={member.inboxId === inboxId}
+              isSelf={member.inboxId === client.inboxId}
               onClick={() => {
                 handleRemoveAddedMember(member.inboxId);
               }}
@@ -255,7 +255,7 @@ export const Members: React.FC<MembersProps> = ({
                   buttonLabel="Restore"
                   inboxId={member.inboxId}
                   address={getMemberAddress(member)}
-                  isSelf={member.inboxId === inboxId}
+                  isSelf={member.inboxId === client.inboxId}
                   onClick={() => {
                     handleRestoreRemovedMember(member.inboxId);
                   }}
@@ -277,7 +277,7 @@ export const Members: React.FC<MembersProps> = ({
                   buttonLabel="Remove"
                   inboxId={member.inboxId}
                   address={getMemberAddress(member)}
-                  isSelf={member.inboxId === inboxId}
+                  isSelf={member.inboxId === client.inboxId}
                   onClick={() => {
                     handleRemoveMember(member.inboxId);
                   }}

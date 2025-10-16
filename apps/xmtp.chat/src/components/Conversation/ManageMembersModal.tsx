@@ -7,12 +7,13 @@ import { Members, type PendingMember } from "@/components/Conversation/Members";
 import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMembersModal: React.FC = () => {
-  const { conversation, client } =
-    useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation } = useConversation(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -110,8 +111,6 @@ export const ManageMembersModal: React.FC = () => {
         withScrollAreaPadding={false}>
         <Members
           conversation={conversation}
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          inboxId={client.inboxId!}
           onMembersAdded={setAddedMembers}
           onMembersRemoved={setRemovedMembers}
         />

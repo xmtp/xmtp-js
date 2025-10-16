@@ -49,7 +49,7 @@ export const AppLayout: React.FC = () => {
         <ConversationsNavbar />
       </MainLayoutNav>
       <MainLayoutContent>
-        <Outlet context={{ client }} />
+        <Outlet />
       </MainLayoutContent>
       <MainLayoutFooter>
         <AppFooter />

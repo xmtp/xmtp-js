@@ -10,6 +10,7 @@ import {
 } from "@/components/Conversation/Permissions";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import type { PolicySet } from "@/types";
 
@@ -19,7 +20,8 @@ export const ManagePermissionsModal: React.FC = () => {
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
   const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
 
-  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation } = useConversation(conversationId);
   const navigate = useNavigate();
 
   const fullScreen = useCollapsedMediaQuery();
