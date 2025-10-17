@@ -23,21 +23,25 @@ const isWeb3BioErrorResponse = (
 
 const fetchFromWeb3Bio = async <T>(path: string) => {
   const endpoint = `${WEB3BIO_API_ENDPOINT}${path}`;
-  const response = await fetch(endpoint, {
-    method: "GET",
-    headers: {
-      "X-API-KEY": `Bearer ${process.env.WEB3BIO_API_KEY}`,
-    },
-  });
+  try {
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "X-API-KEY": `Bearer ${process.env.WEB3BIO_API_KEY}`,
+      },
+    });
 
-  if (!response.ok) {
-    return {
-      status: response.status,
-      statusText: response.statusText,
-    };
+    if (!response.ok) {
+      return {
+        status: response.status,
+        statusText: response.statusText,
+      };
+    }
+
+    return (await response.json()) as T;
+  } catch {
+    return null;
   }
-
-  return response.json() as Promise<T>;
 };
 
 export const fetchProfiles = async (input: string[]) => {
@@ -50,8 +54,10 @@ export const fetchProfiles = async (input: string[]) => {
   }
 
   const escapedIdentities = escape(JSON.stringify(identities));
-  return await fetchFromWeb3Bio<ProfileResponse[]>(
-    `/profile/batch/${escapedIdentities}`,
+  return (
+    (await fetchFromWeb3Bio<ProfileResponse[]>(
+      `/profile/batch/${escapedIdentities}`,
+    )) ?? []
   );
 };
 
@@ -122,7 +128,9 @@ export const fetchNames = async (input: string[]) => {
   }
 
   const escapedNames = escape(JSON.stringify(identities));
-  return await fetchFromWeb3Bio<NSResponse[]>(`/ns/batch/${escapedNames}`);
+  return (
+    (await fetchFromWeb3Bio<NSResponse[]>(`/ns/batch/${escapedNames}`)) ?? []
+  );
 };
 
 export const batchFetchNames = async (input: string[]) => {
