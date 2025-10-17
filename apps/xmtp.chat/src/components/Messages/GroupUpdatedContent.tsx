@@ -54,6 +54,7 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
         if (!memberMember) {
           return (
             <IdentityBadge
+              key={member}
               address=""
               displayName={shortAddress(member)}
               tooltip="This member is no longer in the group"
@@ -196,5 +197,10 @@ export const GroupUpdatedContent: React.FC<GroupUpdatedContentProps> = ({
     );
   }
 
-  return null;
+  return (
+    <Stack gap="xxxs" align="center">
+      <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+      <Text>Unknown permissions update</Text>
+    </Stack>
+  );
 };
