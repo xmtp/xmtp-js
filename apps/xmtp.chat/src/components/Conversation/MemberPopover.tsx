@@ -167,9 +167,8 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
           break;
         }
       }
-      await syncMembers(conversationId);
     },
-    [conversation, conversationId, syncMembers],
+    [conversation, conversationId],
   );
 
   const handleRemoveMember = useCallback(
