@@ -4,6 +4,8 @@ import { useShallow } from "zustand/react/shallow";
 
 export type Platform = "unknown" | "ens" | "basenames";
 
+const VALID_PLATFORMS: Platform[] = ["ens", "basenames"];
+
 export type Profile = {
   address: string;
   avatar: string | null;
@@ -22,6 +24,7 @@ export const createEmptyProfile = (address: string): Profile => ({
 
 export type ProfilesState = {
   profiles: Map<string, Profile[]>;
+  names: Map<string, string>;
 };
 
 export type ProfilesActions = {
@@ -30,31 +33,51 @@ export type ProfilesActions = {
   findProfiles: (addresses: string[]) => Map<string, Profile[]>;
   getProfiles: (address: string) => Profile[];
   hasProfile: (address: string) => boolean;
+  getProfilesByName: (name: string) => Profile[];
   reset: () => void;
 };
+
+const EMPTY_PROFILES: Profile[] = [];
 
 export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
   (set, get, store) => ({
     profiles: new Map(),
+    names: new Map(),
     addProfile: (profile: Profile) => {
-      set((state) => ({
-        profiles: new Map(state.profiles).set(profile.address, [
-          ...(state.profiles.get(profile.address) ?? []),
-          profile,
-        ]),
+      if (!profile.platform || !VALID_PLATFORMS.includes(profile.platform)) {
+        return;
+      }
+      const state = get();
+      const newNames = new Map(state.names);
+      const newProfiles = new Map(state.profiles);
+      const existingProfiles = state.profiles.get(profile.address) ?? [];
+      newProfiles.set(profile.address, [...existingProfiles, profile]);
+      if (profile.displayName) {
+        newNames.set(profile.displayName, profile.address);
+      }
+      set(() => ({
+        profiles: newProfiles,
+        names: newNames,
       }));
     },
     addProfiles: (profiles: Profile[]) => {
-      set((state) => {
-        const newProfiles = new Map(state.profiles);
-        profiles.forEach((profile) => {
-          const existingProfiles = newProfiles.get(profile.address) ?? [];
-          newProfiles.set(profile.address, [...existingProfiles, profile]);
-        });
-        return {
-          profiles: newProfiles,
-        };
-      });
+      const state = get();
+      const newNames = new Map(state.names);
+      const newProfiles = new Map(state.profiles);
+      for (const profile of profiles) {
+        if (!profile.platform || !VALID_PLATFORMS.includes(profile.platform)) {
+          continue;
+        }
+        const existingProfiles = state.profiles.get(profile.address) ?? [];
+        newProfiles.set(profile.address, [...existingProfiles, profile]);
+        if (profile.displayName) {
+          newNames.set(profile.displayName, profile.address);
+        }
+      }
+      set(() => ({
+        profiles: newProfiles,
+        names: newNames,
+      }));
     },
     findProfiles: (addresses: string[]) => {
       const entries = addresses
@@ -65,10 +88,14 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       return new Map(entries);
     },
     getProfiles: (address: string) => {
-      return get().profiles.get(address) ?? [];
+      return get().profiles.get(address) ?? EMPTY_PROFILES;
     },
     hasProfile: (address: string) => {
       return get().profiles.has(address);
+    },
+    getProfilesByName: (name: string) => {
+      const address = get().names.get(name);
+      return address ? get().getProfiles(address) : EMPTY_PROFILES;
     },
     reset: () => {
       set(store.getInitialState());
@@ -112,6 +139,10 @@ export const useProfileActions = () => {
   const findProfiles = useStore(profilesStore, (state) => state.findProfiles);
   const getProfiles = useStore(profilesStore, (state) => state.getProfiles);
   const hasProfile = useStore(profilesStore, (state) => state.hasProfile);
+  const getProfilesByName = useStore(
+    profilesStore,
+    (state) => state.getProfilesByName,
+  );
   const reset = useStore(profilesStore, (state) => state.reset);
   return {
     addProfile,
@@ -119,6 +150,7 @@ export const useProfileActions = () => {
     findProfiles,
     getProfiles,
     hasProfile,
+    getProfilesByName,
     reset,
   };
 };
