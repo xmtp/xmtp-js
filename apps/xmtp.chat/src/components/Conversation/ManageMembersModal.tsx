@@ -2,8 +2,9 @@ import { Button, Group } from "@mantine/core";
 import { Group as XmtpGroup, type SafeGroupMember } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import type { PendingMember } from "@/components/Conversation/AddMembers";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
-import { Members, type PendingMember } from "@/components/Conversation/Members";
+import { Members } from "@/components/Conversation/Members";
 import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useClientPermissions } from "@/hooks/useClientPermissions";
@@ -14,7 +15,7 @@ import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMembersModal: React.FC = () => {
   const { conversationId } = useOutletContext<ConversationOutletContext>();
-  const { conversation } = useConversation(conversationId);
+  const { conversation, members } = useConversation(conversationId);
   const clientPermissions = useClientPermissions(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
@@ -77,6 +78,11 @@ export const ManageMembersModal: React.FC = () => {
     }
   }, [conversation.id, addedMembers, removedMembers, navigate]);
 
+  const existingMembers = useMemo(
+    () => Array.from(members.values()),
+    [members],
+  );
+
   const footer = useMemo(() => {
     return (
       <Group justify="flex-end" flex={1} p="md">
@@ -112,8 +118,10 @@ export const ManageMembersModal: React.FC = () => {
         loading={isLoading}
         withScrollAreaPadding={false}>
         <Members
-          conversation={conversation}
+          addedMembers={addedMembers}
           clientPermissions={clientPermissions}
+          existingMembers={existingMembers}
+          removedMembers={removedMembers}
           onMembersAdded={setAddedMembers}
           onMembersRemoved={setRemovedMembers}
         />

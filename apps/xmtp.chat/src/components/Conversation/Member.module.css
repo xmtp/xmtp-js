@@ -1,0 +1,14 @@
+.root {
+  position: relative;
+}
+
+.root > :first-child {
+  width: 100%;
+}
+
+.button {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: var(--mantine-spacing-md);
+}

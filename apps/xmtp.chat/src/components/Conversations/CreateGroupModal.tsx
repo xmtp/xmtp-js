@@ -2,7 +2,8 @@ import { Accordion, Badge, Button, Group, Stack, Text } from "@mantine/core";
 import { GroupPermissionsOptions } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Members, type PendingMember } from "@/components/Conversation/Members";
+import type { PendingMember } from "@/components/Conversation/AddMembers";
+import { Members } from "@/components/Conversation/Members";
 import { Metadata } from "@/components/Conversation/Metadata";
 import {
   defaultPolicySet,
@@ -154,7 +155,12 @@ export const CreateGroupModal: React.FC = () => {
                 </Group>
               </Accordion.Control>
               <Accordion.Panel>
-                <Members onMembersAdded={setAddedMembers} />
+                <Members
+                  addedMembers={addedMembers}
+                  onMembersAdded={setAddedMembers}
+                  existingMembers={[]}
+                  removedMembers={[]}
+                />
               </Accordion.Panel>
             </Accordion.Item>
           </Accordion>

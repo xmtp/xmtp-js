@@ -4,15 +4,30 @@ import { useMemberPopover } from "@/components/Conversation/MemberPopover";
 import { shortAddress } from "@/helpers/strings";
 import classes from "./MemberCard.module.css";
 
-export type MemberCardProps = {
+export type Member = {
   address: string;
   displayName: string | null;
   avatar: string | null;
   description: string | null;
 };
 
+export type MemberCardProps = Member & {
+  withClass?: boolean;
+  shortenAddress?: boolean;
+};
+
 export const MemberCard = forwardRef<HTMLDivElement, MemberCardProps>(
-  ({ address, displayName, avatar, description }, ref) => {
+  (
+    {
+      address,
+      displayName,
+      avatar,
+      description,
+      withClass = true,
+      shortenAddress = true,
+    },
+    ref,
+  ) => {
     const { setOpened } = useMemberPopover();
     return (
       <Card
@@ -25,13 +40,14 @@ export const MemberCard = forwardRef<HTMLDivElement, MemberCardProps>(
         onClick={() => {
           setOpened((o) => !o);
         }}
-        className={classes.member}
+        className={withClass ? classes.member : undefined}
         tabIndex={0}>
         <Group gap="xxs" align="center" wrap="nowrap">
           <Avatar src={avatar} size="md" radius="xl" variant="default" />
           <Stack gap="0" flex={1} style={{ overflow: "hidden" }}>
             <Text size="sm" truncate>
-              {displayName || shortAddress(address)}
+              {displayName ||
+                (shortenAddress ? shortAddress(address) : address)}
             </Text>
             <Text size="xs" truncate c="dimmed">
               {description}
