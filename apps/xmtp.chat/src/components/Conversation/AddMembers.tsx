@@ -1,12 +1,12 @@
 import { Badge, Button, Group, Stack, Text, TextInput } from "@mantine/core";
-import { type SafeGroupMember } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Member } from "@/components/Conversation/Member";
 import type { Member as MemberCardMember } from "@/components/Conversation/MemberCard";
 import { useMemberId } from "@/hooks/useMemberId";
+import type { MemberProfile } from "@/hooks/useMemberProfiles";
 
 const hasInboxId = (
-  members: SafeGroupMember[] | PendingMember[],
+  members: MemberProfile[] | PendingMember[],
   inboxId: string,
 ) => {
   return members.some((member) => member.inboxId === inboxId);
@@ -17,7 +17,7 @@ export type PendingMember = MemberCardMember & {
 };
 
 export type AddMembersProps = {
-  existingMembers: SafeGroupMember[];
+  existingMembers: MemberProfile[];
   addedMembers: PendingMember[];
   onMembersAdded?: (members: PendingMember[]) => void;
 };
@@ -35,6 +35,8 @@ export const AddMembers: React.FC<AddMembersProps> = ({
     error: memberIdError,
     inboxId: memberIdInboxId,
     address: memberIdAddress,
+    description: memberIdDescription,
+    avatar: memberIdAvatar,
   } = useMemberId();
   const [error, setError] = useState<string | null>(null);
 
@@ -44,8 +46,8 @@ export const AddMembers: React.FC<AddMembersProps> = ({
       inboxId: memberIdInboxId,
       address: memberIdAddress,
       displayName: memberIdDisplayName,
-      avatar: null,
-      description: null,
+      avatar: memberIdAvatar,
+      description: memberIdDescription,
     };
     setMemberId("");
     onMembersAdded?.([...addedMembers, member]);

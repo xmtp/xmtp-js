@@ -1,5 +1,4 @@
 import { Badge, Divider, Group, Stack, Text, Title } from "@mantine/core";
-import { type SafeGroupMember } from "@xmtp/browser-sdk";
 import { useCallback, useMemo } from "react";
 import {
   AddMembers,
@@ -10,15 +9,15 @@ import { Member } from "@/components/Conversation/Member";
 import { RemoveMembers } from "@/components/Conversation/RemoveMembers";
 import { useClient } from "@/contexts/XMTPContext";
 import type { ClientPermissions } from "@/hooks/useClientPermissions";
-import { useMemberProfiles } from "@/hooks/useMemberProfiles";
+import { type MemberProfile } from "@/hooks/useMemberProfiles";
 
 export type MembersProps = {
   addedMembers: PendingMember[];
   clientPermissions?: ClientPermissions;
-  existingMembers: SafeGroupMember[];
+  existingMembers: MemberProfile[];
   onMembersAdded?: AddMembersProps["onMembersAdded"];
-  onMembersRemoved?: (members: SafeGroupMember[]) => void;
-  removedMembers: SafeGroupMember[];
+  onMembersRemoved?: (members: MemberProfile[]) => void;
+  removedMembers: MemberProfile[];
 };
 
 export const Members: React.FC<MembersProps> = ({
@@ -30,7 +29,6 @@ export const Members: React.FC<MembersProps> = ({
   removedMembers,
 }) => {
   const client = useClient();
-  const existingMemberProfiles = useMemberProfiles(existingMembers);
   const handleRemoveMember = useCallback(
     (inboxId: string) => {
       const member = existingMembers.find((m) => m.inboxId === inboxId);
@@ -50,10 +48,10 @@ export const Members: React.FC<MembersProps> = ({
     (clientPermissions && clientPermissions.canRemoveMembers);
 
   const finalMembers = useMemo(() => {
-    return existingMemberProfiles.filter(
+    return existingMembers.filter(
       (member) => !removedMembers.some((m) => m.inboxId === member.inboxId),
     );
-  }, [existingMemberProfiles, removedMembers]);
+  }, [existingMembers, removedMembers]);
 
   return (
     <Stack gap="md" p="md">

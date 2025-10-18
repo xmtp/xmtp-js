@@ -1,12 +1,11 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
-import { type SafeGroupMember } from "@xmtp/browser-sdk";
 import { useCallback } from "react";
 import { Member } from "@/components/Conversation/Member";
-import { getMemberAddress } from "@/helpers/xmtp";
+import type { MemberProfile } from "@/hooks/useMemberProfiles";
 
 export type RemoveMembersProps = {
-  removedMembers: SafeGroupMember[];
-  onMembersRemoved?: (members: SafeGroupMember[]) => void;
+  removedMembers: MemberProfile[];
+  onMembersRemoved?: (members: MemberProfile[]) => void;
 };
 
 export const RemoveMembers: React.FC<RemoveMembersProps> = ({
@@ -39,10 +38,10 @@ export const RemoveMembers: React.FC<RemoveMembersProps> = ({
           <Member
             key={member.inboxId}
             buttonLabel="Restore"
-            address={getMemberAddress(member)}
-            displayName=""
-            avatar={null}
-            description={null}
+            address={member.address}
+            displayName={member.displayName}
+            avatar={member.avatar}
+            description={member.description}
             onClick={() => {
               handleRestoreRemovedMember(member.inboxId);
             }}
