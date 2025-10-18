@@ -9,8 +9,8 @@ import {
 import { Member } from "@/components/Conversation/Member";
 import { RemoveMembers } from "@/components/Conversation/RemoveMembers";
 import { useClient } from "@/contexts/XMTPContext";
-import { getMemberAddress } from "@/helpers/xmtp";
 import type { ClientPermissions } from "@/hooks/useClientPermissions";
+import { useMemberProfiles } from "@/hooks/useMemberProfiles";
 
 export type MembersProps = {
   addedMembers: PendingMember[];
@@ -30,6 +30,7 @@ export const Members: React.FC<MembersProps> = ({
   removedMembers,
 }) => {
   const client = useClient();
+  const existingMemberProfiles = useMemberProfiles(existingMembers);
   const handleRemoveMember = useCallback(
     (inboxId: string) => {
       const member = existingMembers.find((m) => m.inboxId === inboxId);
@@ -49,10 +50,10 @@ export const Members: React.FC<MembersProps> = ({
     (clientPermissions && clientPermissions.canRemoveMembers);
 
   const finalMembers = useMemo(() => {
-    return existingMembers.filter(
+    return existingMemberProfiles.filter(
       (member) => !removedMembers.some((m) => m.inboxId === member.inboxId),
     );
-  }, [existingMembers, removedMembers]);
+  }, [existingMemberProfiles, removedMembers]);
 
   return (
     <Stack gap="md" p="md">
@@ -90,10 +91,10 @@ export const Members: React.FC<MembersProps> = ({
               {finalMembers.map((member) => (
                 <Member
                   key={member.inboxId}
-                  address={getMemberAddress(member)}
-                  displayName=""
-                  avatar={null}
-                  description={null}
+                  address={member.address}
+                  displayName={member.displayName}
+                  avatar={member.avatar}
+                  description={member.description}
                   onClick={
                     showRemovedMembersSection &&
                     member.inboxId !== client.inboxId

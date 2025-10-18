@@ -1,16 +1,18 @@
 import { ActionIcon, Badge, Group, Stack, Text, Tooltip } from "@mantine/core";
-import { Dm, type SafeGroupMember } from "@xmtp/browser-sdk";
+import { Dm } from "@xmtp/browser-sdk";
 import { useMemo, type ComponentProps } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { MemberListItem } from "@/components/Conversation/MemberListItem";
-import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
+import {
+  useMemberProfiles,
+  type MemberProfile,
+} from "@/hooks/useMemberProfiles";
 import { IconX } from "@/icons/IconX";
 import {
   ContentLayoutContent,
   ContentLayoutHeader,
 } from "@/layouts/ContentLayout";
-import { combineProfiles, useAllProfiles } from "@/stores/profiles";
 import classes from "./MembersList.module.css";
 
 const List = (props: ComponentProps<"div">) => {
@@ -27,17 +29,8 @@ type MembersListTitle = {
   count: number;
 };
 
-type MembersListProfile = {
-  address: string;
-  avatar: string | null;
-  description: string | null;
-  displayName: string | null;
-  inboxId: string;
-  permissionLevel: SafeGroupMember["permissionLevel"];
-};
-
 const isMembersListTitle = (
-  item: MembersListTitle | MembersListProfile,
+  item: MembersListTitle | MemberProfile,
 ): item is MembersListTitle => {
   return "title" in item && "count" in item;
 };
@@ -70,56 +63,33 @@ export const MembersList: React.FC<MembersListProps> = ({
   toggle,
 }) => {
   const { members, conversation } = useConversation(conversationId);
-  const profiles = useAllProfiles();
+  const memberProfiles = useMemberProfiles(Array.from(members.values()));
   const membersListItems = useMemo(() => {
-    const items: (MembersListTitle | MembersListProfile)[] = [];
+    const items: (MembersListTitle | MemberProfile)[] = [];
 
-    const membersList = Array.from(members.values());
-    const superAdmins = membersList.filter(
+    const superAdmins = memberProfiles.filter(
       // @ts-expect-error - the types are wrong
-      (member) => member.permissionLevel === "SuperAdmin",
+      (profile) => profile.permissionLevel === "SuperAdmin",
     );
 
     if (superAdmins.length > 0) {
       items.push({ title: "Super admins", count: superAdmins.length });
-      for (const member of superAdmins) {
-        const address = getMemberAddress(member);
-        const profile = combineProfiles(address, profiles.get(address) ?? []);
-        items.push({
-          address,
-          avatar: profile.avatar,
-          description: profile.description,
-          displayName: profile.displayName,
-          inboxId: member.inboxId,
-          permissionLevel: member.permissionLevel,
-        });
-      }
+      items.push(...superAdmins);
     }
 
-    const admins = membersList.filter(
+    const admins = memberProfiles.filter(
       // @ts-expect-error - the types are wrong
-      (member) => member.permissionLevel === "Admin",
+      (profile) => profile.permissionLevel === "Admin",
     );
 
     if (admins.length > 0) {
       items.push({ title: "Admins", count: admins.length });
-      for (const member of admins) {
-        const address = getMemberAddress(member);
-        const profile = combineProfiles(address, profiles.get(address) ?? []);
-        items.push({
-          address,
-          avatar: profile.avatar,
-          description: profile.description,
-          displayName: profile.displayName,
-          inboxId: member.inboxId,
-          permissionLevel: member.permissionLevel,
-        });
-      }
+      items.push(...admins);
     }
 
-    const regulars = membersList.filter(
+    const regulars = memberProfiles.filter(
       // @ts-expect-error - TODO: the types are wrong
-      (member) => member.permissionLevel === "Member",
+      (profile) => profile.permissionLevel === "Member",
     );
 
     if (regulars.length > 0) {
@@ -127,22 +97,11 @@ export const MembersList: React.FC<MembersListProps> = ({
         title: "Members",
         count: regulars.length,
       });
-      for (const member of regulars) {
-        const address = getMemberAddress(member);
-        const profile = combineProfiles(address, profiles.get(address) ?? []);
-        items.push({
-          address,
-          avatar: profile.avatar,
-          description: profile.description,
-          displayName: profile.displayName,
-          inboxId: member.inboxId,
-          permissionLevel: member.permissionLevel,
-        });
-      }
+      items.push(...regulars);
     }
 
     return items;
-  }, [members, profiles]);
+  }, [memberProfiles]);
 
   return (
     <Stack gap={0} style={{ flexGrow: 1 }}>
