@@ -1,4 +1,4 @@
-import { Badge, Divider, Group, Stack, Text, Title } from "@mantine/core";
+import { Badge, Group, Stack, Text } from "@mantine/core";
 import { useCallback, useMemo } from "react";
 import {
   AddMembers,
@@ -53,6 +53,27 @@ export const Members: React.FC<MembersProps> = ({
     );
   }, [existingMembers, removedMembers]);
 
+  const superAdmins = useMemo(() => {
+    return finalMembers.filter(
+      // @ts-expect-error - the types are wrong
+      (member) => member.permissionLevel === "SuperAdmin",
+    );
+  }, [finalMembers]);
+
+  const admins = useMemo(() => {
+    return finalMembers.filter(
+      // @ts-expect-error - the types are wrong
+      (member) => member.permissionLevel === "Admin",
+    );
+  }, [finalMembers]);
+
+  const members = useMemo(() => {
+    return finalMembers.filter(
+      // @ts-expect-error - the types are wrong
+      (member) => member.permissionLevel === "Member",
+    );
+  }, [finalMembers]);
+
   return (
     <Stack gap="md" p="md">
       {showAddMembersSection && (
@@ -64,46 +85,104 @@ export const Members: React.FC<MembersProps> = ({
       )}
       {existingMembers.length > 0 && (
         <>
+          {showRemovedMembersSection && (
+            <RemoveMembers
+              removedMembers={removedMembers}
+              onMembersRemoved={onMembersRemoved}
+            />
+          )}
           <Stack gap="xs">
-            <Group justify="space-between" gap="xs">
-              <Title order={4}>Existing members</Title>
-            </Group>
-            {showRemovedMembersSection && (
-              <>
-                <Divider mb="md" />
-                <RemoveMembers
-                  removedMembers={removedMembers}
-                  onMembersRemoved={onMembersRemoved}
-                />
-              </>
-            )}
-          </Stack>
-          <Stack gap="xs">
-            <Group gap="xs">
+            <Group gap="xs" justify="space-between" align="center">
               <Text fw={700}>Members</Text>
               <Badge color="gray" size="lg">
                 {finalMembers.length}
               </Badge>
             </Group>
-            <Stack gap="0">
-              {finalMembers.map((member) => (
-                <Member
-                  key={member.inboxId}
-                  address={member.address}
-                  displayName={member.displayName}
-                  avatar={member.avatar}
-                  description={member.description}
-                  onClick={
-                    showRemovedMembersSection &&
-                    member.inboxId !== client.inboxId
-                      ? () => {
-                          handleRemoveMember(member.inboxId);
-                        }
-                      : undefined
-                  }
-                />
-              ))}
-            </Stack>
+            {superAdmins.length > 0 && (
+              <>
+                <Group gap="xs">
+                  <Text size="sm" fw={700}>
+                    Super admins
+                  </Text>
+                  <Badge color="gray" size="md">
+                    {superAdmins.length}
+                  </Badge>
+                </Group>
+                <Stack gap="0">
+                  {superAdmins.map((member) => (
+                    <Member
+                      key={member.inboxId}
+                      address={member.address}
+                      displayName={member.displayName}
+                      avatar={member.avatar}
+                      description={member.description}
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+            {admins.length > 0 && (
+              <>
+                <Group gap="xs">
+                  <Text size="sm" fw={700}>
+                    Admins
+                  </Text>
+                  <Badge color="gray" size="md">
+                    {admins.length}
+                  </Badge>
+                </Group>
+                <Stack gap="0">
+                  {admins.map((member) => (
+                    <Member
+                      key={member.inboxId}
+                      address={member.address}
+                      displayName={member.displayName}
+                      avatar={member.avatar}
+                      description={member.description}
+                      onClick={
+                        showRemovedMembersSection &&
+                        member.inboxId !== client.inboxId
+                          ? () => {
+                              handleRemoveMember(member.inboxId);
+                            }
+                          : undefined
+                      }
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+            {members.length > 0 && (
+              <>
+                <Group gap="xs">
+                  <Text size="sm" fw={700}>
+                    Members
+                  </Text>
+                  <Badge color="gray" size="md">
+                    {members.length}
+                  </Badge>
+                </Group>
+                <Stack gap="0">
+                  {members.map((member) => (
+                    <Member
+                      key={member.inboxId}
+                      address={member.address}
+                      displayName={member.displayName}
+                      avatar={member.avatar}
+                      description={member.description}
+                      onClick={
+                        showRemovedMembersSection &&
+                        member.inboxId !== client.inboxId
+                          ? () => {
+                              handleRemoveMember(member.inboxId);
+                            }
+                          : undefined
+                      }
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
           </Stack>
         </>
       )}

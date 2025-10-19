@@ -27,27 +27,29 @@ export const RemoveMembers: React.FC<RemoveMembersProps> = ({
 
   return (
     <>
-      <Group gap="xs">
+      <Group gap="xs" justify="space-between" align="center">
         <Text fw={700}>Removed members</Text>
         <Badge color="gray" size="lg">
           {removedMembers.length}
         </Badge>
       </Group>
-      <Stack gap="4px">
-        {removedMembers.map((member) => (
-          <Member
-            key={member.inboxId}
-            buttonLabel="Restore"
-            address={member.address}
-            displayName={member.displayName}
-            avatar={member.avatar}
-            description={member.description}
-            onClick={() => {
-              handleRestoreRemovedMember(member.inboxId);
-            }}
-          />
-        ))}
-      </Stack>
+      {removedMembers.length > 0 && (
+        <Stack gap="4px">
+          {removedMembers.map((member) => (
+            <Member
+              key={member.inboxId}
+              buttonLabel="Restore"
+              address={member.address}
+              displayName={member.displayName}
+              avatar={member.avatar}
+              description={member.description}
+              onClick={() => {
+                handleRestoreRemovedMember(member.inboxId);
+              }}
+            />
+          ))}
+        </Stack>
+      )}
     </>
   );
 };

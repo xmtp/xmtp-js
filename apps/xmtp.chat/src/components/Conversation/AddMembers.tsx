@@ -117,26 +117,28 @@ export const AddMembers: React.FC<AddMembersProps> = ({
         </Button>
       </Group>
       <Stack gap="xs">
-        <Group gap="xs">
+        <Group gap="xs" justify="space-between" align="center">
           <Text fw={700}>Added members</Text>
           <Badge color="gray" size="lg">
             {addedMembers.length}
           </Badge>
         </Group>
-        <Stack gap="4px">
-          {addedMembers.map((member) => (
-            <Member
-              key={member.inboxId}
-              displayName={member.displayName}
-              address={member.address}
-              avatar={member.avatar}
-              description={member.description}
-              onClick={() => {
-                handleRemoveAddedMember(member.inboxId);
-              }}
-            />
-          ))}
-        </Stack>
+        {addedMembers.length > 0 && (
+          <Stack gap="4px">
+            {addedMembers.map((member) => (
+              <Member
+                key={member.inboxId}
+                displayName={member.displayName}
+                address={member.address}
+                avatar={member.avatar}
+                description={member.description}
+                onClick={() => {
+                  handleRemoveAddedMember(member.inboxId);
+                }}
+              />
+            ))}
+          </Stack>
+        )}
       </Stack>
     </>
   );
