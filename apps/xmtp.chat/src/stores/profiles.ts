@@ -103,11 +103,27 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
   }),
 );
 
-export const combineProfiles = (address: string, profiles: Profile[]) => {
+/**
+ * Combines multiple profiles into a single profile.
+ * Optionally, provide a valid display name to use for the profile.
+ *
+ * @param address - the address of the profile
+ * @param profiles - the profiles to combine
+ * @param displayName - optional display name to use for the profile
+ * @returns the combined profile
+ */
+export const combineProfiles = (
+  address: string,
+  profiles: Profile[],
+  displayName?: string,
+) => {
   return profiles.reduce((profile, value) => {
     return {
       ...profile,
-      displayName: profile.displayName ?? value.displayName,
+      displayName:
+        displayName && profile.displayName === displayName
+          ? displayName
+          : (profile.displayName ?? value.displayName),
       avatar: profile.avatar ?? value.avatar,
       description: profile.description ?? value.description,
     };

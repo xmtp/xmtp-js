@@ -68,7 +68,11 @@ export const useMemberId = () => {
             setError("Invalid ENS or Base name");
           } else {
             try {
-              const profile = combineProfiles(profiles[0].address, profiles);
+              const profile = combineProfiles(
+                profiles[0].address,
+                profiles,
+                memberId,
+              );
               const inboxId = await getInboxIdForAddressQuery(
                 profile.address,
                 environment,
