@@ -51,7 +51,15 @@ export const AddMembers: React.FC<AddMembersProps> = ({
     };
     setMemberId("");
     onMembersAdded?.([...addedMembers, member]);
-  }, [addedMembers, memberId, memberIdInboxId, onMembersAdded]);
+  }, [
+    addedMembers,
+    memberIdInboxId,
+    memberIdAddress,
+    memberIdDisplayName,
+    memberIdDescription,
+    memberIdAvatar,
+    onMembersAdded,
+  ]);
 
   const handleRemoveAddedMember = useCallback(
     (inboxId: string) => {
