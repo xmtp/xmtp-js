@@ -11,3 +11,6 @@ export const shortAddress = (address: string, length: number = 4): string => {
   }
   return `${address.substring(0, length + 2)}...${address.substring(address.length - length)}`;
 };
+
+export const MEMBER_NO_LONGER_IN_GROUP =
+  "This member is no longer in the group";

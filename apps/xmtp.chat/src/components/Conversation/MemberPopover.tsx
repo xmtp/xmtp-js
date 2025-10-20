@@ -22,7 +22,10 @@ import {
 import BreakableText from "@/components/Messages/BreakableText";
 import { useClient } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/strings";
-import { useClientPermissions } from "@/hooks/useClientPermissions";
+import {
+  useClientPermissions,
+  type AdjustedPermissionLevel,
+} from "@/hooks/useClientPermissions";
 import { useConversation } from "@/hooks/useConversation";
 import { useConversations } from "@/hooks/useConversations";
 import { IconDots } from "@/icons/IconDots";
@@ -121,19 +124,15 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
   );
 
   const handlePermissionLevelChange = useCallback(
-    async (
-      inboxId: string,
-      permissionLevel: "SuperAdmin" | "Admin" | "Member",
-    ) => {
+    // TODO: remove this once types are fixed
+    async (inboxId: string, permissionLevel: AdjustedPermissionLevel) => {
       const member = members.get(inboxId);
       if (!member || !(conversation instanceof XmtpGroup)) {
         return;
       }
       // TODO: remove this once types are fixed
-      const level = member.permissionLevel as unknown as
-        | "SuperAdmin"
-        | "Admin"
-        | "Member";
+      const level =
+        member.permissionLevel as unknown as AdjustedPermissionLevel;
       if (level === permissionLevel) {
         return;
       }
@@ -186,16 +185,47 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
   );
 
   // TODO: remove this once types are fixed
-  const level = permissionLevel as unknown as "SuperAdmin" | "Admin" | "Member";
-  const canManageMembers = useMemo(() => {
+  const level = permissionLevel as unknown as AdjustedPermissionLevel;
+  const canManageMember = useMemo(() => {
     return (
       (clientPermissions.canPromoteMembers &&
         (level === "Admin" || level === "Member")) ||
       (clientPermissions.canDemoteMembers &&
         (level === "SuperAdmin" || level === "Admin")) ||
-      clientPermissions.canRemoveMembers
+      (clientPermissions.canRemoveMembers && client.inboxId !== inboxId)
     );
   }, [clientPermissions, level]);
+  const canPromoteToSuperAdmin = useMemo(() => {
+    return (
+      clientPermissions.canPromoteMembers &&
+      (level === "Admin" || level === "Member") &&
+      client.inboxId !== inboxId
+    );
+  }, [clientPermissions.canPromoteMembers, level, client.inboxId, inboxId]);
+  const canPromoteToAdmin = useMemo(() => {
+    return (
+      clientPermissions.canPromoteMembers &&
+      level === "Member" &&
+      client.inboxId !== inboxId
+    );
+  }, [clientPermissions.canPromoteMembers, level, client.inboxId, inboxId]);
+  const canDemoteToAdmin = useMemo(() => {
+    return (
+      clientPermissions.canDemoteMembers &&
+      level === "SuperAdmin" &&
+      client.inboxId !== inboxId
+    );
+  }, [clientPermissions.canDemoteMembers, level, client.inboxId, inboxId]);
+  const canDemoteToMember = useMemo(() => {
+    return (
+      clientPermissions.canDemoteMembers &&
+      (level === "SuperAdmin" || level === "Admin") &&
+      client.inboxId !== inboxId
+    );
+  }, [clientPermissions.canDemoteMembers, level, client.inboxId, inboxId]);
+  const canRemoveMember = useMemo(() => {
+    return clientPermissions.canRemoveMembers && client.inboxId !== inboxId;
+  }, [clientPermissions.canRemoveMembers, client.inboxId, inboxId]);
 
   return (
     <MemberPopoverProvider opened={opened} setOpened={setOpened}>
@@ -229,55 +259,45 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                {clientPermissions.canPromoteMembers &&
-                  (level === "Admin" || level === "Member") &&
-                  client.inboxId !== inboxId && (
-                    <Menu.Item
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handlePermissionLevelChange(inboxId, "SuperAdmin");
-                      }}>
-                      Promote to super admin
-                    </Menu.Item>
-                  )}
-                {clientPermissions.canPromoteMembers &&
-                  level === "Member" &&
-                  client.inboxId !== inboxId && (
-                    <Menu.Item
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handlePermissionLevelChange(inboxId, "Admin");
-                      }}>
-                      Promote to admin
-                    </Menu.Item>
-                  )}
-                {clientPermissions.canDemoteMembers &&
-                  level === "SuperAdmin" &&
-                  client.inboxId !== inboxId && (
-                    <Menu.Item
-                      c="red"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handlePermissionLevelChange(inboxId, "Admin");
-                      }}>
-                      Demote to admin
-                    </Menu.Item>
-                  )}
-                {clientPermissions.canDemoteMembers &&
-                  (level === "SuperAdmin" || level === "Admin") &&
-                  client.inboxId !== inboxId && (
-                    <Menu.Item
-                      c="red"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handlePermissionLevelChange(inboxId, "Member");
-                      }}>
-                      Demote to member
-                    </Menu.Item>
-                  )}
-                {canManageMembers && client.inboxId !== inboxId && (
-                  <Menu.Divider />
+                {canPromoteToSuperAdmin && (
+                  <Menu.Item
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handlePermissionLevelChange(inboxId, "SuperAdmin");
+                    }}>
+                    Promote to super admin
+                  </Menu.Item>
                 )}
+                {canPromoteToAdmin && (
+                  <Menu.Item
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handlePermissionLevelChange(inboxId, "Admin");
+                    }}>
+                    Promote to admin
+                  </Menu.Item>
+                )}
+                {canDemoteToAdmin && (
+                  <Menu.Item
+                    c="red"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handlePermissionLevelChange(inboxId, "Admin");
+                    }}>
+                    Demote to admin
+                  </Menu.Item>
+                )}
+                {canDemoteToMember && (
+                  <Menu.Item
+                    c="red"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handlePermissionLevelChange(inboxId, "Member");
+                    }}>
+                    Demote to member
+                  </Menu.Item>
+                )}
+                {canManageMember && <Menu.Divider />}
                 <Menu.Item
                   onClick={(e) => {
                     e.stopPropagation();
@@ -292,19 +312,17 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({
                   }}>
                   Copy inbox ID
                 </Menu.Item>
-                {clientPermissions.canRemoveMembers &&
-                  client.inboxId !== inboxId && <Menu.Divider />}
-                {clientPermissions.canRemoveMembers &&
-                  client.inboxId !== inboxId && (
-                    <Menu.Item
-                      c="red"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleRemoveMember(inboxId);
-                      }}>
-                      Remove from group
-                    </Menu.Item>
-                  )}
+                {canRemoveMember && <Menu.Divider />}
+                {canRemoveMember && (
+                  <Menu.Item
+                    c="red"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleRemoveMember(inboxId);
+                    }}>
+                    Remove from group
+                  </Menu.Item>
+                )}
               </Menu.Dropdown>
             </Menu>
             <Avatar src={avatar} size="xl" radius="100%" variant="default" />

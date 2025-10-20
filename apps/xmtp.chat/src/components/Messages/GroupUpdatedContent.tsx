@@ -7,7 +7,7 @@ import { Identity } from "@/components/Identity";
 import { IdentityBadge } from "@/components/IdentityBadge";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
-import { shortAddress } from "@/helpers/strings";
+import { MEMBER_NO_LONGER_IN_GROUP, shortAddress } from "@/helpers/strings";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 import { combineProfiles, useAllProfiles } from "@/stores/profiles";
@@ -45,7 +45,7 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
         <IdentityBadge
           address=""
           displayName={shortAddress(initiatedBy)}
-          tooltip="This member is no longer in the group"
+          tooltip={MEMBER_NO_LONGER_IN_GROUP}
         />
       )}
       <Text size="sm">{type === "added" ? "added" : "removed"}</Text>
@@ -57,7 +57,7 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
               key={member}
               address=""
               displayName={shortAddress(member)}
-              tooltip="This member is no longer in the group"
+              tooltip={MEMBER_NO_LONGER_IN_GROUP}
             />
           );
         }
@@ -128,7 +128,7 @@ const GroupMetadataUpdatedContent: React.FC<
         <IdentityBadge
           address=""
           displayName={shortAddress(initiatedBy)}
-          tooltip="This member is no longer in the group"
+          tooltip={MEMBER_NO_LONGER_IN_GROUP}
         />
       )}
       <Text size="sm">

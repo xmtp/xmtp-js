@@ -4,6 +4,7 @@ import { IdentityBadge } from "@/components/IdentityBadge";
 import type { Intent } from "@/content-types/Intent";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { MEMBER_NO_LONGER_IN_GROUP } from "@/helpers/strings";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 
@@ -28,9 +29,7 @@ export const IntentContent: React.FC<IntentContentProps> = ({
         <IdentityBadge
           address={senderMember ? getMemberAddress(senderMember) : ""}
           displayName={senderInboxId}
-          tooltip={
-            senderMember ? undefined : "This member is no longer in the group"
-          }
+          tooltip={senderMember ? undefined : MEMBER_NO_LONGER_IN_GROUP}
         />
         <Text size="sm">selected the</Text>
         <Badge

@@ -6,6 +6,7 @@ import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { formatFileSize } from "@/helpers/attachment";
 import { isRemoteAttachment, stringify } from "@/helpers/messages";
+import { MEMBER_NO_LONGER_IN_GROUP } from "@/helpers/strings";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
@@ -57,11 +58,7 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
               <IdentityBadge
                 address={fromMember ? getMemberAddress(fromMember) : ""}
                 displayName={message.senderInboxId}
-                tooltip={
-                  fromMember
-                    ? undefined
-                    : "This member is no longer in the group"
-                }
+                tooltip={fromMember ? undefined : MEMBER_NO_LONGER_IN_GROUP}
               />
             </Box>
           </Group>

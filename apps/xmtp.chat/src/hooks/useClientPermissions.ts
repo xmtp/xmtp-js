@@ -3,7 +3,8 @@ import { useMemo } from "react";
 import { useClient } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
 
-type AdjustedPermissionLevel = "SuperAdmin" | "Admin" | "Member";
+// TODO: remove this once types are fixed
+export type AdjustedPermissionLevel = "SuperAdmin" | "Admin" | "Member";
 
 const hasPermission = (
   permissionLevel: AdjustedPermissionLevel,
