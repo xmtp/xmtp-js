@@ -5,5 +5,9 @@ export const isValidEthereumAddress = (
 export const isValidInboxId = (inboxId: string): inboxId is string =>
   /^[a-z0-9]{64}$/.test(inboxId);
 
-export const shortAddress = (address: string, length: number = 4): string =>
-  `${address.substring(0, length + 2)}...${address.substring(address.length - length)}`;
+export const shortAddress = (address: string, length: number = 4): string => {
+  if (!isValidEthereumAddress(address) && !isValidInboxId(address)) {
+    return address;
+  }
+  return `${address.substring(0, length + 2)}...${address.substring(address.length - length)}`;
+};
