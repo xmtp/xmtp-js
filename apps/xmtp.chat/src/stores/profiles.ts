@@ -22,9 +22,13 @@ export const createEmptyProfile = (address: string): Profile => ({
   platform: null,
 });
 
+// alias types for clarity
+type DisplayName = string;
+type Address = string;
+
 export type ProfilesState = {
-  profiles: Map<string, Profile[]>;
-  names: Map<string, string>;
+  profiles: Map<Address, Profile[]>;
+  names: Map<DisplayName, Address>;
 };
 
 export type ProfilesActions = {
@@ -107,6 +111,9 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
  * Combines multiple profiles into a single profile.
  * Optionally, provide a valid display name to use for the profile.
  *
+ * The provided display name must exist in one of the profiles, or it will be
+ * ignored.
+ *
  * @param address - the address of the profile
  * @param profiles - the profiles to combine
  * @param displayName - optional display name to use for the profile
@@ -117,15 +124,18 @@ export const combineProfiles = (
   profiles: Profile[],
   displayName?: string,
 ) => {
+  const isValidDisplayName =
+    displayName &&
+    profiles.some((profile) => profile.displayName === displayName);
   return profiles.reduce((profile, value) => {
     return {
       ...profile,
-      displayName:
-        displayName && profile.displayName === displayName
-          ? displayName
-          : (profile.displayName ?? value.displayName),
+      displayName: isValidDisplayName
+        ? displayName
+        : (profile.displayName ?? value.displayName),
       avatar: profile.avatar ?? value.avatar,
       description: profile.description ?? value.description,
+      platform: profile.platform ?? value.platform,
     };
   }, createEmptyProfile(address));
 };

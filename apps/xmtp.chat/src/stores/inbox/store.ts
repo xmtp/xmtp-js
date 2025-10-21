@@ -27,27 +27,32 @@ export type ConversationMetadata = {
   imageUrl?: string;
 };
 
+// alias types for clarity
+type InboxId = string;
+type ConversationId = string;
+type MessageId = string;
+
 export type InboxState = {
   // all conversations
-  conversations: Map<string, Conversation<ContentTypes>>;
+  conversations: Map<ConversationId, Conversation<ContentTypes>>;
   // the most recent conversation creation timestamp
   lastCreatedAt?: bigint;
   // the last message for each conversation
-  lastMessages: Map<string, DecodedMessage<ContentTypes> | undefined>;
+  lastMessages: Map<ConversationId, DecodedMessage<ContentTypes> | undefined>;
   // the last message sent timestamp for each conversation
-  lastSentAt: Map<string, bigint | undefined>;
+  lastSentAt: Map<ConversationId, bigint | undefined>;
   // the members of each conversation
-  members: Map<string, Map<string, SafeGroupMember>>;
+  members: Map<ConversationId, Map<InboxId, SafeGroupMember>>;
   // all conversation messages
-  messages: Map<string, Map<string, DecodedMessage<ContentTypes>>>;
+  messages: Map<ConversationId, Map<MessageId, DecodedMessage<ContentTypes>>>;
   // the metadata for each conversation
-  metadata: Map<string, ConversationMetadata>;
+  metadata: Map<ConversationId, ConversationMetadata>;
   // the permissions for each conversation
-  permissions: Map<string, SafeConversation["permissions"]>;
+  permissions: Map<ConversationId, SafeConversation["permissions"]>;
   // sorted conversations by most recent activity
   sortedConversations: Conversation<ContentTypes>[];
   // sorted messages by last sent timestamp
-  sortedMessages: Map<string, DecodedMessage<ContentTypes>[]>;
+  sortedMessages: Map<ConversationId, DecodedMessage<ContentTypes>[]>;
   // the last attempted sync timestamp
   lastSyncedAt?: bigint;
 };
