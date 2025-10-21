@@ -1,7 +1,8 @@
 import { Box, Button, Group } from "@mantine/core";
-import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
-import { useNavigate, useOutletContext } from "react-router";
+import type { DecodedMessage } from "@xmtp/browser-sdk";
+import { useNavigate } from "react-router";
 import { useConversationContext } from "@/contexts/ConversationContext";
+import { useClient } from "@/contexts/XMTPContext";
 import { isActionable } from "@/helpers/messages";
 import classes from "./Message.module.css";
 import { MessageContentWithWrapper } from "./MessageContentWithWrapper";
@@ -18,7 +19,7 @@ export const Message: React.FC<MessageProps> = ({
 }) => {
   const navigate = useNavigate();
   const { setReplyTarget } = useConversationContext();
-  const { client } = useOutletContext<{ client: Client }>();
+  const client = useClient();
 
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";

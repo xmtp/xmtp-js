@@ -1,23 +1,32 @@
 import { Button, Group } from "@mantine/core";
-import { Group as XmtpGroup, type SafeGroupMember } from "@xmtp/browser-sdk";
+import { Group as XmtpGroup } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import type { PendingMember } from "@/components/Conversation/AddMembers";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
-import { Members, type PendingMember } from "@/components/Conversation/Members";
+import { Members } from "@/components/Conversation/Members";
 import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
+import { useClientPermissions } from "@/hooks/useClientPermissions";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
+import {
+  useMemberProfiles,
+  type MemberProfile,
+} from "@/hooks/useMemberProfiles";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMembersModal: React.FC = () => {
-  const { conversation, client } =
-    useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation, members } = useConversation(conversationId);
+  const existingMembers = useMemberProfiles(Array.from(members.values()));
+  const clientPermissions = useClientPermissions(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
-  const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
+  const [removedMembers, setRemovedMembers] = useState<MemberProfile[]>([]);
 
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
@@ -109,9 +118,10 @@ export const ManageMembersModal: React.FC = () => {
         loading={isLoading}
         withScrollAreaPadding={false}>
         <Members
-          conversation={conversation}
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          inboxId={client.inboxId!}
+          addedMembers={addedMembers}
+          clientPermissions={clientPermissions}
+          existingMembers={existingMembers}
+          removedMembers={removedMembers}
           onMembersAdded={setAddedMembers}
           onMembersRemoved={setRemovedMembers}
         />

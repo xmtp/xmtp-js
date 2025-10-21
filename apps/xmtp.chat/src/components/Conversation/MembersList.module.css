@@ -1,0 +1,29 @@
+.root > * {
+  padding-top: var(--mantine-spacing-sm);
+}
+
+.root > *:last-child {
+  padding-bottom: var(--mantine-spacing-sm);
+}
+
+.hideMembers {
+  display: none;
+}
+
+@media screen and (max-width: 1280px) {
+  .header {
+    border: 1px solid var(--mantine-color-default-border);
+    border-top-right-radius: var(--mantine-radius-md);
+  }
+
+  .content {
+    border-left: 1px solid var(--mantine-color-default-border);
+    border-right: 1px solid var(--mantine-color-default-border);
+    border-bottom: 1px solid var(--mantine-color-default-border);
+    border-bottom-right-radius: var(--mantine-radius-md);
+  }
+
+  .hideMembers {
+    display: block;
+  }
+}

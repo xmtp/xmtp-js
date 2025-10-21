@@ -1,0 +1,9 @@
+.profile {
+  position: relative;
+}
+
+.menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

@@ -1,5 +1,5 @@
 .member {
-  border-radius: var(--mantine-radius-sm);
+  cursor: pointer;
 }
 
 .member:hover {

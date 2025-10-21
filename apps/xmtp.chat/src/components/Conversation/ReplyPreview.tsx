@@ -1,11 +1,12 @@
 import { ActionIcon, Box, Group, Paper, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
-import { Identity } from "@/components/Identity";
+import { IdentityBadge } from "@/components/IdentityBadge";
 import { AttachmentDetails } from "@/components/Messages/AttachmentDetails";
 import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { formatFileSize } from "@/helpers/attachment";
 import { isRemoteAttachment, stringify } from "@/helpers/messages";
+import { MEMBER_NO_LONGER_IN_GROUP } from "@/helpers/strings";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
@@ -54,9 +55,10 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
               Replying to
             </Text>
             <Box>
-              <Identity
+              <IdentityBadge
                 address={fromMember ? getMemberAddress(fromMember) : ""}
-                inboxId={message.senderInboxId}
+                displayName={message.senderInboxId}
+                tooltip={fromMember ? undefined : MEMBER_NO_LONGER_IN_GROUP}
               />
             </Box>
           </Group>

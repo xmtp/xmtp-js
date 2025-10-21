@@ -1,9 +1,10 @@
 import { Badge, Group, Text } from "@mantine/core";
 import { DateLabel } from "@/components/DateLabel";
-import { Identity } from "@/components/Identity";
+import { IdentityBadge } from "@/components/IdentityBadge";
 import type { Intent } from "@/content-types/Intent";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { MEMBER_NO_LONGER_IN_GROUP } from "@/helpers/strings";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
 
@@ -25,9 +26,10 @@ export const IntentContent: React.FC<IntentContentProps> = ({
     <>
       <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
       <Group gap="4" wrap="wrap" justify="center">
-        <Identity
+        <IdentityBadge
           address={senderMember ? getMemberAddress(senderMember) : ""}
-          inboxId={senderInboxId}
+          displayName={senderInboxId}
+          tooltip={senderMember ? undefined : MEMBER_NO_LONGER_IN_GROUP}
         />
         <Text size="sm">selected the</Text>
         <Badge

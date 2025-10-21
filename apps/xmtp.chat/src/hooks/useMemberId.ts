@@ -6,13 +6,16 @@ import {
 } from "@/helpers/names";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
+import { combineProfiles } from "@/stores/profiles";
 
 export const useMemberId = () => {
   const [loading, setLoading] = useState(false);
   const [memberId, setMemberId] = useState("");
   const [inboxId, setInboxId] = useState("");
   const [address, setAddress] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { environment } = useSettings();
 
@@ -21,7 +24,9 @@ export const useMemberId = () => {
       setError(null);
       setInboxId("");
       setAddress("");
-      setDisplayName("");
+      setDisplayName(null);
+      setDescription(null);
+      setAvatar(null);
 
       if (!memberId) {
         return;
@@ -58,21 +63,28 @@ export const useMemberId = () => {
       } else if (isValidName(memberId)) {
         setLoading(true);
         try {
-          const address = await resolveNameQuery(memberId);
-          if (!address) {
+          const profiles = await resolveNameQuery(memberId);
+          if (!profiles || profiles.length === 0) {
             setError("Invalid ENS or Base name");
           } else {
             try {
+              const profile = combineProfiles(
+                profiles[0].address,
+                profiles,
+                memberId,
+              );
               const inboxId = await getInboxIdForAddressQuery(
-                address,
+                profile.address,
                 environment,
               );
               if (!inboxId) {
                 setError("Address not registered on XMTP");
               } else {
                 setInboxId(inboxId);
-                setAddress(address);
-                setDisplayName(memberId);
+                setAddress(profile.address);
+                setDisplayName(profile.displayName);
+                setDescription(profile.description);
+                setAvatar(profile.avatar);
               }
             } catch {
               setError("Unable to get inbox ID for address. Try again.");
@@ -99,6 +111,8 @@ export const useMemberId = () => {
     inboxId,
     address,
     displayName,
+    description,
+    avatar,
     setMemberIdError: setError,
   };
 };

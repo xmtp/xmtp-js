@@ -48,9 +48,9 @@ export const resolveAddresses = async (addresses: string[], force = false) => {
     data.profiles.push(createEmptyProfile(address));
   });
 
-  if (Object.keys(data.profiles).length > 0) {
+  if (data.profiles.length > 0) {
     // cache the profiles
-    profilesStore.getState().addProfiles(Object.values(data.profiles).flat());
+    profilesStore.getState().addProfiles(data.profiles);
   }
 
   // return updated cached profiles
