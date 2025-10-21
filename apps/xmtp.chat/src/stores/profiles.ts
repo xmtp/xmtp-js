@@ -22,9 +22,13 @@ export const createEmptyProfile = (address: string): Profile => ({
   platform: null,
 });
 
+// alias types for clarity
+type DisplayName = string;
+type Address = string;
+
 export type ProfilesState = {
-  profiles: Map<string, Profile[]>;
-  names: Map<string, string>;
+  profiles: Map<Address, Profile[]>;
+  names: Map<DisplayName, Address>;
 };
 
 export type ProfilesActions = {
