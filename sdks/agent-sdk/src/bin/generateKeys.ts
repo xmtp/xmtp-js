@@ -1,16 +1,14 @@
 #!/usr/bin/env node
-import { getRandomValues } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { toString } from "uint8arrays";
 import { generatePrivateKey } from "viem/accounts";
 
-const generateClientKeys = () => {
-  const walletKey = generatePrivateKey();
-  const dbEncryptionKey = toString(getRandomValues(new Uint8Array(32)), "hex");
+export const generateClientKeys = () => {
+  const randomValues = crypto.getRandomValues(new Uint8Array(32));
+  const dbEncryptionKey = Buffer.from(randomValues).toString("hex");
   return {
     XMTP_DB_ENCRYPTION_KEY: dbEncryptionKey,
-    XMTP_WALLET_KEY: walletKey,
+    XMTP_WALLET_KEY: generatePrivateKey(),
   };
 };
 
