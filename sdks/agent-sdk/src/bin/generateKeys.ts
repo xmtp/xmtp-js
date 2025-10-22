@@ -3,7 +3,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { generatePrivateKey } from "viem/accounts";
 
-export const generateClientKeys = () => {
+const generateClientKeys = () => {
   const randomValues = crypto.getRandomValues(new Uint8Array(32));
   const dbEncryptionKey = Buffer.from(randomValues).toString("hex");
   return {
