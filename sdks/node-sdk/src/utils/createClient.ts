@@ -46,13 +46,19 @@ export const createClient = async (
     ? SyncWorkerMode.disabled
     : SyncWorkerMode.enabled;
 
+  const dbEncryptionKey = options?.dbEncryptionKey
+    ? typeof options.dbEncryptionKey === "string"
+      ? Buffer.from(options.dbEncryptionKey.replace(/^0x/, ""), "hex")
+      : options.dbEncryptionKey
+    : undefined;
+
   return createNodeClient(
     host,
     isSecure,
     dbPath,
     inboxId,
     identifier,
-    options?.dbEncryptionKey,
+    dbEncryptionKey,
     historySyncUrl,
     deviceSyncWorkerMode,
     logOptions,
