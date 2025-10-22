@@ -60,7 +60,7 @@ export type StorageOptions = {
   /**
    * Encryption key for the local DB (32 bytes, hex)
    *
-   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#view-an-encrypted-databas
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#view-an-encrypted-database
    */
   dbEncryptionKey?: Uint8Array | `0x${string}`;
 };
