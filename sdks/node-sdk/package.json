@@ -52,7 +52,7 @@
     "@xmtp/content-type-group-updated": "^2.0.2",
     "@xmtp/content-type-primitives": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/node-bindings": "1.5.4"
+    "@xmtp/node-bindings": "1.6.0-dev.e545a64"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",

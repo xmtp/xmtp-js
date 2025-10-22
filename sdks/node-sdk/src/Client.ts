@@ -19,6 +19,7 @@ import {
   type Identifier,
   type Message,
   type Client as NodeClient,
+  type SendMessageOpts,
   type SignatureRequestHandle,
 } from "@xmtp/node-bindings";
 import { ApiUrls } from "@/constants";
@@ -580,11 +581,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     inboxId: string,
     installationIds: Uint8Array[],
     env?: XmtpEnv,
+    gatewayHost?: string,
   ) {
     const host = ApiUrls[env ?? "dev"];
     const identifier = await signer.getIdentifier();
-    const signatureRequest = await revokeInstallationsSignatureRequest(
+    const signatureRequest = revokeInstallationsSignatureRequest(
       host,
+      gatewayHost,
       identifier,
       inboxId,
       installationIds,
@@ -606,7 +609,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
         break;
     }
 
-    await applySignatureRequest(host, signatureRequest);
+    await applySignatureRequest(host, gatewayHost, signatureRequest);
   }
 
   /**
@@ -616,9 +619,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @param inboxIds - The inbox IDs to get the state for
    * @returns The inbox state for the specified inbox IDs
    */
-  static async inboxStateFromInboxIds(inboxIds: string[], env?: XmtpEnv) {
+  static async inboxStateFromInboxIds(
+    inboxIds: string[],
+    env?: XmtpEnv,
+    gatewayHost?: string,
+  ) {
     const host = ApiUrls[env ?? "dev"];
-    return inboxStateFromInboxIds(host, inboxIds);
+    return inboxStateFromInboxIds(host, gatewayHost, inboxIds);
   }
 
   /**
@@ -712,12 +719,58 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     if (!codec) {
       throw new CodecNotFoundError(contentType);
     }
+
+    return this.encodeWithCodec(content, codec);
+  }
+
+  /**
+   * Prepares content for sending by encoding it and generating send options from the codec
+   *
+   * @param content - The message content to prepare for sending
+   * @param contentType - The content type identifier for the appropriate codec
+   * @returns An object containing the encoded content and send options
+   * @throws {CodecNotFoundError} When no codec is registered for the specified content type
+   */
+  prepareForSend(content: ContentTypes, contentType: ContentTypeId) {
+    const codec = this.codecFor(contentType);
+    if (!codec) {
+      throw new CodecNotFoundError(contentType);
+    }
+
+    return {
+      encodedContent: this.encodeWithCodec(content, codec),
+      sendOptions: this.sendMessageOpts(content, codec),
+    };
+  }
+
+  /**
+   * Encodes content using a specific codec and adds fallback information if available
+   *
+   * @param content - The content to encode
+   * @param codec - The codec to use for encoding
+   * @returns The encoded content with optional fallback
+   */
+  private encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
     const encoded = codec.encode(content, this);
     const fallback = codec.fallback(content);
     if (fallback) {
       encoded.fallback = fallback;
     }
     return encoded;
+  }
+
+  /**
+   * Generates send options based on the content and codec
+   *
+   * @param content - The content being sent
+   * @param codec - The codec used for the content
+   * @returns Send options including whether to push notify recipients
+   */
+  private sendMessageOpts(
+    content: ContentTypes,
+    codec: ContentCodec,
+  ): SendMessageOpts {
+    return { shouldPush: codec.shouldPush(content) };
   }
 
   /**
@@ -843,9 +896,15 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     inboxId: string,
     address: string,
     env?: XmtpEnv,
+    gatewayHost?: string,
   ): Promise<boolean> {
     const host = ApiUrls[env ?? "dev"];
-    return await isAddressAuthorizedBinding(host, inboxId, address);
+    return await isAddressAuthorizedBinding(
+      host,
+      gatewayHost,
+      inboxId,
+      address,
+    );
   }
 
   /**
@@ -860,9 +919,15 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     inboxId: string,
     installation: Uint8Array,
     env?: XmtpEnv,
+    gatewayHost?: string,
   ): Promise<boolean> {
     const host = ApiUrls[env ?? "dev"];
-    return await isInstallationAuthorizedBinding(host, inboxId, installation);
+    return await isInstallationAuthorizedBinding(
+      host,
+      gatewayHost,
+      inboxId,
+      installation,
+    );
   }
 
   /**

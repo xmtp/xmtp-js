@@ -1,4 +1,8 @@
-import type { ConsentEntityType, ConsentState } from "@xmtp/wasm-bindings";
+import type {
+  ConsentEntityType,
+  ConsentState,
+  GroupSyncSummary,
+} from "@xmtp/wasm-bindings";
 import type { SafeConsent, SafeInboxState } from "@/utils/conversions";
 
 export type PreferencesAction =
@@ -47,7 +51,7 @@ export type PreferencesAction =
   | {
       action: "preferences.sync";
       id: string;
-      result: number;
+      result: GroupSyncSummary;
       data: undefined;
     }
   | {
