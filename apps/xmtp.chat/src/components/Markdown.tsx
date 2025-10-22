@@ -2,8 +2,6 @@ import {
   Anchor,
   Blockquote,
   Code,
-  Divider,
-  Image,
   List,
   Table,
   Text,
@@ -23,7 +21,6 @@ const components: Components = {
   h4: ({ node, ...rest }) => <Title order={4} {...rest} my="md" />,
   h5: ({ node, ...rest }) => <Title order={5} {...rest} my="md" />,
   h6: ({ node, ...rest }) => <Title order={6} {...rest} my="md" />,
-  hr: ({ node, ...rest }) => <Divider {...rest} />,
   em: ({ node, ...rest }) => <Text {...rest} component="span" fs="italic" />,
   strong: ({ node, ...rest }) => <Text {...rest} component="span" fw={700} />,
   a: ({ node, ...rest }) => (
@@ -47,15 +44,12 @@ const components: Components = {
   tr: ({ node, ...rest }) => <Table.Tr {...rest} />,
   th: ({ node, ...rest }) => <Table.Th {...rest} />,
   td: ({ node, ...rest }) => <Table.Td {...rest} />,
-  img: ({ node, ...rest }) => (
-    <Image {...rest} mah={200} w="auto" fit="contain" radius="md" />
-  ),
 };
 
 export const Markdown: React.FC<MarkdownProps> = ({ markdown }) => {
   return (
     <ReactMarkdown
-      disallowedElements={["input"]}
+      disallowedElements={["input", "img", "hr"]}
       components={components}
       skipHtml
       remarkPlugins={[remarkGfm]}>
