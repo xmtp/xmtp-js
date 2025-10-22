@@ -4070,7 +4070,6 @@ __metadata:
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.5"
     typescript: "npm:^5.9.2"
-    uint8arrays: "npm:^5.1.0"
     viem: "npm:^2.37.6"
     vite: "npm:^7.1.5"
     vite-tsconfig-paths: "npm:^5.1.4"
@@ -8234,13 +8233,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multiformats@npm:^13.0.0":
-  version: 13.4.0
-  resolution: "multiformats@npm:13.4.0"
-  checksum: 10/95a796c0c7d99862d588263ebaa2285aa66a5c1d8915356c17d6863749f7fee28407fb9e16b78411c3d2977780c8e87a37a3f88716894dbda63c18a32e229347
-  languageName: node
-  linkType: hard
-
 "multiformats@npm:^9.4.2":
   version: 9.9.0
   resolution: "multiformats@npm:9.9.0"
@@ -11125,15 +11117,6 @@ __metadata:
   dependencies:
     multiformats: "npm:^9.4.2"
   checksum: 10/536e70273c040484aa7d522031a9dbca1fe8c06eb58a3ace1064ba68825b4e2764d4a0b604a1c451e7b8be0986dc94f23a419cfe9334bd116716074a2d29b33d
-  languageName: node
-  linkType: hard
-
-"uint8arrays@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "uint8arrays@npm:5.1.0"
-  dependencies:
-    multiformats: "npm:^13.0.0"
-  checksum: 10/6c9cd1c1519cdf20d4c4e3715b4ee1acf730636409528ea54e77c4d9aa6e7f70aacd86d735f7c8a9902a9181cc3b37fa048590978e2fb90a98fa1dc39465c1af
   languageName: node
   linkType: hard
 

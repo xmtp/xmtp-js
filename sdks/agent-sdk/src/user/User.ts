@@ -8,7 +8,7 @@ import {
   type PrivateKeyAccount,
   type WalletClient,
 } from "viem";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
 export type User = {
@@ -18,10 +18,10 @@ export type User = {
 };
 
 export const createUser = (
-  key?: `0x${string}`,
+  key: `0x${string}`,
   chain: Chain = sepolia,
 ): User => {
-  const accountKey = key ?? generatePrivateKey();
+  const accountKey = key;
   const account = privateKeyToAccount(accountKey);
   return {
     key: accountKey,

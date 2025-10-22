@@ -1,3 +1,5 @@
+import { Client } from "./Client";
+
 export type {
   ClientOptions,
   OtherOptions,

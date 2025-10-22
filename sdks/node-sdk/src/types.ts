@@ -13,6 +13,8 @@ export type XmtpEnv = keyof typeof ApiUrls;
 export type NetworkOptions = {
   /**
    * Specify which XMTP environment to connect to. (default: `dev`)
+   *
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#xmtp-network-environments
    */
   env?: XmtpEnv;
   /**
@@ -23,6 +25,8 @@ export type NetworkOptions = {
   /**
    * historySyncUrl can be used to override the `env` flag and connect to a
    * specific endpoint for syncing history
+   *
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync
    */
   historySyncUrl?: string | null;
 };
@@ -54,7 +58,9 @@ export type StorageOptions = {
    */
   dbPath?: string | null | ((inboxId: string) => string);
   /**
-   * Encryption key for the local DB
+   * Encryption key for the local DB (32 bytes, hex)
+   *
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#view-an-encrypted-databas
    */
   dbEncryptionKey?: Uint8Array;
 };

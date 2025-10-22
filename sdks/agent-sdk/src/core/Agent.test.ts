@@ -20,6 +20,7 @@ import {
   type Conversation,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
+import { generatePrivateKey } from "viem/accounts";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { filter } from "@/core/filter.js";
 import { createSigner, createUser } from "@/user/User.js";
@@ -58,7 +59,7 @@ describe("Agent", () => {
   });
 
   describe("types", async () => {
-    const user = createUser();
+    const user = createUser(generatePrivateKey());
     const signer = createSigner(user);
     const ephemeralAgent = await Agent.create(signer, {
       env: "dev",
