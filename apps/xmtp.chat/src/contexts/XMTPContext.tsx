@@ -4,6 +4,7 @@ import {
   type ExtractCodecContentTypes,
   type Signer,
 } from "@xmtp/browser-sdk";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
@@ -32,6 +33,7 @@ export type ContentTypes = ExtractCodecContentTypes<
     ReadReceiptCodec,
     ActionsCodec,
     IntentCodec,
+    MarkdownCodec,
   ]
 >;
 
@@ -133,6 +135,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
               new ReadReceiptCodec(),
               new ActionsCodec(),
               new IntentCodec(),
+              new MarkdownCodec(),
             ],
           });
           setClient(xmtpClient);
