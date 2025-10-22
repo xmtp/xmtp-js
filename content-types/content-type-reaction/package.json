@@ -75,7 +75,7 @@
     "rollup-plugin-dts": "^6.2.3",
     "typescript": "^5.9.2",
     "viem": "^2.37.6",
-    "vite": "^7.1.5",
+    "vite": "^7.1.11",
     "vitest": "^3.2.4"
   },
   "publishConfig": {
