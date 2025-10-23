@@ -59,4 +59,5 @@ export {
 export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
 export type { Signer } from "./utils/signer";
 export * from "./utils/errors";
+export * from "./utils/validation";
 export type * from "./utils/streams";

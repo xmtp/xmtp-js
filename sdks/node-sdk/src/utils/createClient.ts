@@ -10,6 +10,7 @@ import {
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types";
 import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
+import { isHexString } from "./validation";
 
 export const createClient = async (
   identifier: Identifier,
@@ -46,13 +47,17 @@ export const createClient = async (
     ? SyncWorkerMode.disabled
     : SyncWorkerMode.enabled;
 
+  const dbEncryptionKey = isHexString(options?.dbEncryptionKey)
+    ? Buffer.from(options.dbEncryptionKey.replace(/^0x/, ""), "hex")
+    : options?.dbEncryptionKey;
+
   return createNodeClient(
     host,
     isSecure,
     dbPath,
     inboxId,
     identifier,
-    options?.dbEncryptionKey,
+    dbEncryptionKey,
     historySyncUrl,
     deviceSyncWorkerMode,
     logOptions,

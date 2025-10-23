@@ -536,4 +536,43 @@ describe("Client", () => {
     const database = path.join(baseDir, `user-${client.inboxId}.db3`);
     expect(fs.existsSync(database)).toBe(true);
   });
+
+  it("should create a client without encryption key", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    expect(client).toBeDefined();
+    expect(client.inboxId).toBeDefined();
+  });
+
+  it("should create a client with Uint8Array encryption key", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const encryptionKey = new Uint8Array(32).fill(1);
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+      dbEncryptionKey: encryptionKey,
+    });
+
+    expect(client).toBeDefined();
+  });
+
+  it("should create a client with hex string encryption key with 0x prefix", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const encryptionKey =
+      "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+      dbEncryptionKey: encryptionKey,
+    });
+
+    expect(client).toBeDefined();
+  });
 });

@@ -1,6 +1,7 @@
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import type { LogLevel } from "@xmtp/node-bindings";
 import type { ApiUrls } from "@/constants";
+import type { HexString } from "./utils/validation";
 
 /**
  * XMTP environment
@@ -13,6 +14,8 @@ export type XmtpEnv = keyof typeof ApiUrls;
 export type NetworkOptions = {
   /**
    * Specify which XMTP environment to connect to. (default: `dev`)
+   *
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#xmtp-network-environments
    */
   env?: XmtpEnv;
   /**
@@ -23,6 +26,8 @@ export type NetworkOptions = {
   /**
    * historySyncUrl can be used to override the `env` flag and connect to a
    * specific endpoint for syncing history
+   *
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync
    */
   historySyncUrl?: string | null;
 };
@@ -54,9 +59,11 @@ export type StorageOptions = {
    */
   dbPath?: string | null | ((inboxId: string) => string);
   /**
-   * Encryption key for the local DB
+   * Encryption key for the local DB (32 bytes, hex)
+   *
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#view-an-encrypted-database
    */
-  dbEncryptionKey?: Uint8Array;
+  dbEncryptionKey?: Uint8Array | HexString;
 };
 
 export type ContentOptions = {
