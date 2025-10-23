@@ -1,5 +1,6 @@
 import {
   ConsentState,
+  IdentifierKind,
   type Client,
   type Conversation,
   type Dm,
@@ -47,5 +48,20 @@ export class ConversationContext<
 
   get isUnknown() {
     return this.#conversation.consentState === ConsentState.Unknown;
+  }
+
+  async addMembersWithAddresses(addresses: `0x${string}`[]) {
+    if (!this.isGroup()) {
+      throw new Error("Can only add members to group conversations");
+    }
+    const identifiers = addresses.map((address) => {
+      return {
+        identifier: address,
+        identifierKind: IdentifierKind.Ethereum,
+      };
+    });
+    // After isGroup() check, this.#conversation is guaranteed to be a Group
+    const group = this.#conversation as Group<ContentTypes>;
+    return group.addMembersByIdentifiers(identifiers);
   }
 }
