@@ -1,6 +1,5 @@
 import { loadEnvFile } from "node:process";
 import { TextCodec } from "@xmtp/content-type-text";
-import { generatePrivateKey } from "viem/accounts";
 import { Agent, AgentError } from "./core/index.js";
 import { getTestUrl } from "./debug/log.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
@@ -14,7 +13,7 @@ try {
 
 const agent = process.env.XMTP_WALLET_KEY
   ? await Agent.createFromEnv()
-  : await Agent.create(createSigner(createUser(generatePrivateKey())), {
+  : await Agent.create(createSigner(createUser()), {
       dbPath: null,
     });
 

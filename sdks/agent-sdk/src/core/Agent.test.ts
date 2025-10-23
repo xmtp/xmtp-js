@@ -1,3 +1,14 @@
+import { filter } from "@/core/filter.js";
+import { createSigner, createUser } from "@/user/User.js";
+import {
+  createMockConversationStreamWithCallbacks,
+  createMockMessage,
+  createMockStreamWithCallbacks,
+  flushMicrotasks,
+  makeAgent,
+  mockClient,
+  type CurrentClientTypes,
+} from "@/utils/TestUtil.js";
 import {
   ContentTypeGroupUpdated,
   type GroupUpdated,
@@ -20,19 +31,7 @@ import {
   type Conversation,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
-import { generatePrivateKey } from "viem/accounts";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
-import { filter } from "@/core/filter.js";
-import { createSigner, createUser } from "@/user/User.js";
-import {
-  createMockConversationStreamWithCallbacks,
-  createMockMessage,
-  createMockStreamWithCallbacks,
-  flushMicrotasks,
-  makeAgent,
-  mockClient,
-  type CurrentClientTypes,
-} from "@/utils/TestUtil.js";
 import {
   Agent,
   type AgentErrorMiddleware,
@@ -59,7 +58,7 @@ describe("Agent", () => {
   });
 
   describe("types", async () => {
-    const user = createUser(generatePrivateKey());
+    const user = createUser();
     const signer = createSigner(user);
     const ephemeralAgent = await Agent.create(signer, {
       env: "dev",
