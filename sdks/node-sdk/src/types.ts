@@ -1,6 +1,7 @@
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import type { LogLevel } from "@xmtp/node-bindings";
 import type { ApiUrls } from "@/constants";
+import type { HexString } from "./utils/validation";
 
 /**
  * XMTP environment
@@ -62,7 +63,7 @@ export type StorageOptions = {
    *
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#view-an-encrypted-database
    */
-  dbEncryptionKey?: Uint8Array | `0x${string}`;
+  dbEncryptionKey?: Uint8Array | HexString;
 };
 
 export type ContentOptions = {
