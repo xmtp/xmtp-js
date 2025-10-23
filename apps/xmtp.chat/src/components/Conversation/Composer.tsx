@@ -37,7 +37,7 @@ export const Composer: React.FC<ComposerProps> = ({ conversationId }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const remoteAttachmentRef = useRef<RemoteAttachment | null>(null);
   const isSending = sending || uploadingAttachment;
-  const hasContent = message || attachment;
+  const hasContent = message.trim() !== "" || attachment;
 
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
