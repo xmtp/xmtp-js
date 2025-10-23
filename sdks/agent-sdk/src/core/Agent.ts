@@ -548,6 +548,20 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     );
   }
 
+  addMembersWithAddresses<ContentTypes>(
+    group: Group<ContentTypes>,
+    addresses: `0x${string}`[],
+  ) {
+    const identifiers = addresses.map((address) => {
+      return {
+        identifier: address,
+        identifierKind: IdentifierKind.Ethereum,
+      };
+    });
+
+    return group.addMembersByIdentifiers(identifiers);
+  }
+
   get address() {
     return this.#client.accountIdentifier?.identifier;
   }
