@@ -3,7 +3,7 @@ import { defineConfig, type Plugin } from "vitest/config";
 
 export default defineConfig({
   // @see https://github.com/aleclarson/vite-tsconfig-paths/issues/176
-  plugins: [tsconfigPaths() as Plugin],
+  plugins: [tsconfigPaths()],
   test: {
     globals: true,
     environment: "node",

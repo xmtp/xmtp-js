@@ -1,56 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { isHexString } from "@/utils/validation";
 
-describe("isHex", () => {
-  it("should accept valid hex strings", () => {
-    expect(() => {
-      isHexString("0xab");
-    }).not.toThrow();
+describe("isHexString", () => {
+  it("returns true for valid hex strings", () => {
+    const valid = [
+      "0xab",
+      "0xabcd",
+      "0xABCD",
+      "0x0123456789abcdefABCDEF",
+    ] as const;
 
-    expect(() => {
-      isHexString("0xabcd");
-    }).not.toThrow();
-    expect(() => {
-      isHexString("0xABCD");
-    }).not.toThrow();
-    expect(() => {
-      isHexString("0x0123456789abcdefABCDEF");
-    }).not.toThrow();
+    for (const value of valid) {
+      expect(isHexString(value)).toBe(true);
+    }
   });
 
-  it("should throw for invalid hex strings", () => {
-    const errorMessage = "Invalid hex string";
-    expect(() => {
-      isHexString("0x");
-    }).toThrow(errorMessage);
-    expect(() => {
-      isHexString("123");
-    }).toThrow(errorMessage);
-    expect(() => {
-      isHexString("0xg");
-    }).toThrow(errorMessage);
-    expect(() => {
-      isHexString("0X123");
-    }).toThrow(errorMessage);
+  it("returns false for invalid hex strings", () => {
+    const invalid = ["0x", "123", "0xg", "0X123", "0x123"] as const;
+
+    for (const value of invalid) {
+      expect(isHexString(value)).toBe(false);
+    }
   });
 
-  it("should throw for invalid hex string lengths", () => {
-    const errorMessage = "Invalid hex string length";
-    expect(() => {
-      isHexString("0x123");
-    }).toThrow(errorMessage);
-  });
+  it("returns false for non-string values", () => {
+    const invalid = [123, null, undefined, {}, []] as const;
 
-  it("should throw for non-string values", () => {
-    const errorMessage = "Value must be a string";
-    expect(() => {
-      isHexString(123);
-    }).toThrow(errorMessage);
-    expect(() => {
-      isHexString(null);
-    }).toThrow(errorMessage);
-    expect(() => {
-      isHexString(undefined);
-    }).toThrow(errorMessage);
+    for (const value of invalid) {
+      expect(isHexString(value)).toBe(false);
+    }
   });
 });

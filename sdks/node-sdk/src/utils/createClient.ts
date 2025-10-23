@@ -47,16 +47,9 @@ export const createClient = async (
     ? SyncWorkerMode.disabled
     : SyncWorkerMode.enabled;
 
-  let dbEncryptionKey: Uint8Array | undefined = undefined;
-  if (typeof options?.dbEncryptionKey === "string") {
-    isHexString(options.dbEncryptionKey);
-    dbEncryptionKey = Buffer.from(
-      options.dbEncryptionKey.replace(/^0x/, ""),
-      "hex",
-    );
-  } else {
-    dbEncryptionKey = options?.dbEncryptionKey;
-  }
+  const dbEncryptionKey = isHexString(options?.dbEncryptionKey)
+    ? Buffer.from(options.dbEncryptionKey.replace(/^0x/, ""), "hex")
+    : options?.dbEncryptionKey;
 
   return createNodeClient(
     host,
