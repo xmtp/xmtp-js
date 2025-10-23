@@ -19,7 +19,6 @@ import {
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
-import { fromString } from "uint8arrays/from-string";
 import { isHex } from "viem/utils";
 import { filter } from "@/core/filter.js";
 import { getInstallationInfo } from "@/debug.js";
@@ -198,7 +197,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     const initializedOptions = { ...(options ?? {}) };
 
     if (process.env.XMTP_DB_ENCRYPTION_KEY) {
-      initializedOptions.dbEncryptionKey = fromString(
+      initializedOptions.dbEncryptionKey = Buffer.from(
         process.env.XMTP_DB_ENCRYPTION_KEY,
         "hex",
       );
