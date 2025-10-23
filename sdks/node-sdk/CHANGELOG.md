@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.2.4
+
+### Patch Changes
+
+- 9003bb9: Enable hex strings as database encryption keys
+
 ## 4.2.3
 
 ### Patch Changes

@@ -8,7 +8,7 @@
     "@xmtp/content-type-remote-attachment": "^2.0.2",
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/node-sdk": "^4.2.3",
+    "@xmtp/node-sdk": "^4.2.4",
     "viem": "^2.37.6"
   },
   "description": "XMTP Agent SDK for interacting with XMTP networks",
@@ -88,5 +88,5 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "version": "1.1.7"
+  "version": "1.1.8"
 }
