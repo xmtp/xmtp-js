@@ -1,19 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { isHexString, type HexString } from "@/utils/validation";
+import { isHexString } from "@/utils/validation";
 
 describe("isHex", () => {
   it("should accept valid hex strings", () => {
     expect(() => {
       isHexString("0x");
     }).not.toThrow();
+
     expect(() => {
-      isHexString("0x123");
+      isHexString("0xabcd");
     }).not.toThrow();
     expect(() => {
-      isHexString("0xabc");
-    }).not.toThrow();
-    expect(() => {
-      isHexString("0xABC");
+      isHexString("0xABCD");
     }).not.toThrow();
     expect(() => {
       isHexString("0x0123456789abcdefABCDEF");
@@ -30,6 +28,13 @@ describe("isHex", () => {
     }).toThrow(errorMessage);
     expect(() => {
       isHexString("0X123");
+    }).toThrow(errorMessage);
+  });
+
+  it("should throw for invalid hex string lengths", () => {
+    const errorMessage = "Invalid hex string length";
+    expect(() => {
+      isHexString("0x123");
     }).toThrow(errorMessage);
   });
 
