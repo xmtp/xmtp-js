@@ -4,7 +4,7 @@ import { isHexString } from "@/utils/validation";
 describe("isHex", () => {
   it("should accept valid hex strings", () => {
     expect(() => {
-      isHexString("0x");
+      isHexString("0xab");
     }).not.toThrow();
 
     expect(() => {
@@ -20,6 +20,9 @@ describe("isHex", () => {
 
   it("should throw for invalid hex strings", () => {
     const errorMessage = "Invalid hex string";
+    expect(() => {
+      isHexString("0x");
+    }).toThrow(errorMessage);
     expect(() => {
       isHexString("123");
     }).toThrow(errorMessage);

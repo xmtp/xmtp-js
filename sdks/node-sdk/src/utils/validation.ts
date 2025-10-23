@@ -8,7 +8,7 @@ export function isHexString(value: unknown): asserts value is HexString {
     throw new TypeError("Invalid hex string length");
   }
 
-  if (!/^0x[0-9a-fA-F]*$/.test(value)) {
+  if (!/^0x[0-9a-fA-F]{2,}$/.test(value)) {
     throw new TypeError("Invalid hex string");
   }
 }
