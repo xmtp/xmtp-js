@@ -14,6 +14,7 @@ import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import { useActions } from "@/stores/inbox/hooks";
 import type { PolicySet } from "@/types";
 
 const permissionsPolicyValue = (policy: GroupPermissionsOptions) => {
@@ -29,6 +30,7 @@ const permissionsPolicyValue = (policy: GroupPermissionsOptions) => {
 
 export const CreateGroupModal: React.FC = () => {
   const { newGroup } = useConversations();
+  const { addConversation } = useActions();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -75,6 +77,8 @@ export const CreateGroupModal: React.FC = () => {
         );
       }
 
+      // ensure conversation is added to store so navigation works
+      await addConversation(conversation);
       void navigate(`/conversations/${conversation.id}`);
     } finally {
       setLoading(false);

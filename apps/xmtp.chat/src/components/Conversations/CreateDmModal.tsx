@@ -6,9 +6,11 @@ import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
 import { useMemberId } from "@/hooks/useMemberId";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import { useActions } from "@/stores/inbox/hooks";
 
 export const CreateDmModal: React.FC = () => {
   const { newDm } = useConversations();
+  const { addConversation } = useActions();
   const [loading, setLoading] = useState(false);
   const {
     memberId,
@@ -29,6 +31,8 @@ export const CreateDmModal: React.FC = () => {
 
     try {
       const conversation = await newDm(inboxId);
+      // ensure conversation is added to store so navigation works
+      await addConversation(conversation);
       void navigate(`/conversations/${conversation.id}`);
     } finally {
       setLoading(false);
