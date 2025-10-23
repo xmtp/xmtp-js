@@ -4119,7 +4119,7 @@ __metadata:
     tsx: "npm:^4.20.5"
     typescript: "npm:^5.9.2"
     viem: "npm:^2.37.6"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4148,7 +4148,7 @@ __metadata:
     typescript: "npm:^5.9.2"
     uuid: "npm:^11.1.0"
     viem: "npm:^2.37.6"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4167,7 +4167,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4184,7 +4184,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4201,7 +4201,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4220,7 +4220,7 @@ __metadata:
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
     viem: "npm:^2.37.6"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4238,7 +4238,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4259,7 +4259,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4280,7 +4280,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4297,7 +4297,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4315,7 +4315,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4333,7 +4333,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.2"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -4367,7 +4367,7 @@ __metadata:
     uint8array-extras: "npm:^1.5.0"
     uuid: "npm:^13.0.0"
     viem: "npm:^2.37.6"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4445,7 +4445,7 @@ __metadata:
     typescript: "npm:^5.9.2"
     uint8array-extras: "npm:^1.5.0"
     viem: "npm:^2.37.6"
-    vite: "npm:^7.1.5"
+    vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
     wagmi: "npm:^2.16.9"
@@ -12679,9 +12679,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^7.1.5":
-  version: 7.1.5
-  resolution: "vite@npm:7.1.5"
+"vite@npm:^7.1.11":
+  version: 7.1.11
+  resolution: "vite@npm:7.1.11"
   dependencies:
     esbuild: "npm:^0.25.0"
     fdir: "npm:^6.5.0"
@@ -12730,7 +12730,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/59edeef7e98757a668b2ad8a1731a5657fa83e22a165a36b7359225ea98a9be39b2f486710c0cf5085edb85daee7c8b6b6b0bd85d0ef32a1aa84aef71aabd0f0
+  checksum: 10/b75ce7a38beeba7800751938df4fe2638cfb77509647329ac824332af51831eaed52ab0a0bae1d9162ac41ef59fff1c754e0acf7e1470dfa7d3da51fc3bf0985
   languageName: node
   linkType: hard
 
