@@ -1,5 +1,13 @@
 # @xmtp/agent-sdk
 
+## 1.1.8
+
+### Patch Changes
+
+- 9003bb9: Enable hex strings as database encryption keys
+- Updated dependencies [9003bb9]
+  - @xmtp/node-sdk@4.2.4
+
 ## 1.1.7
 
 ### Patch Changes
