@@ -129,6 +129,8 @@ agent.on("dm", async (ctx) => {
 
 agent.on("group", async (ctx) => {
   await ctx.conversation.send("Hello group!");
+  // You can also add members using Ethereum addresses
+  await ctx.addMembersWithAddresses(["0x123", "0x456"]);
 });
 
 // Listen to unhandled events
