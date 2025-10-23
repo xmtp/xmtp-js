@@ -1,14 +1,3 @@
-import { filter } from "@/core/filter.js";
-import { createSigner, createUser } from "@/user/User.js";
-import {
-  createMockConversationStreamWithCallbacks,
-  createMockMessage,
-  createMockStreamWithCallbacks,
-  flushMicrotasks,
-  makeAgent,
-  mockClient,
-  type CurrentClientTypes,
-} from "@/utils/TestUtil.js";
 import {
   ContentTypeGroupUpdated,
   type GroupUpdated,
@@ -32,6 +21,17 @@ import {
   type DecodedMessage,
 } from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import { filter } from "@/core/filter.js";
+import { createSigner, createUser } from "@/user/User.js";
+import {
+  createMockConversationStreamWithCallbacks,
+  createMockMessage,
+  createMockStreamWithCallbacks,
+  flushMicrotasks,
+  makeAgent,
+  mockClient,
+  type CurrentClientTypes,
+} from "@/utils/TestUtil.js";
 import {
   Agent,
   type AgentErrorMiddleware,
