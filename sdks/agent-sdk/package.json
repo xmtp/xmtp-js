@@ -9,7 +9,6 @@
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/node-sdk": "^4.2.3",
-    "uint8arrays": "^5.1.0",
     "viem": "^2.37.6"
   },
   "description": "XMTP Agent SDK for interacting with XMTP networks",
@@ -20,7 +19,7 @@
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
-    "vite": "^7.1.5",
+    "vite": "^7.1.11",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
   },

@@ -1,4 +1,5 @@
 import { Code } from "@mantine/core";
+import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeReadReceipt } from "@xmtp/content-type-read-receipt";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@xmtp/content-type-wallet-send-calls";
 import { ActionsContent } from "@/components/Messages/ActionsContent";
 import { FallbackContent } from "@/components/Messages/FallbackContent";
+import { MarkdownContent } from "@/components/Messages/MarkdownContent";
 import { type MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
 import { ReadReceiptContent } from "@/components/Messages/ReadReceiptContent";
 import { RemoteAttachmentContent } from "@/components/Messages/RemoteAttachmentContent";
@@ -84,6 +86,10 @@ export const MessageContent: React.FC<MessageContentProps> = ({
 
   if (contentType.sameAs(ContentTypeActions)) {
     return <ActionsContent content={content as Actions} />;
+  }
+
+  if (contentType.sameAs(ContentTypeMarkdown)) {
+    return <MarkdownContent content={content as string} />;
   }
 
   if (typeof content === "string") {

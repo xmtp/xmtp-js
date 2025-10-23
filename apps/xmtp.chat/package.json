@@ -24,6 +24,7 @@
     "@tanstack/react-query": "^5.89.0",
     "@xmtp/browser-sdk": "workspace:^",
     "@xmtp/content-type-group-updated": "workspace:^",
+    "@xmtp/content-type-markdown": "workspace:^",
     "@xmtp/content-type-primitives": "workspace:^",
     "@xmtp/content-type-reaction": "workspace:^",
     "@xmtp/content-type-read-receipt": "workspace:^",
@@ -38,8 +39,10 @@
     "react": "^19.1.1",
     "react-18-blockies": "^1.0.6",
     "react-dom": "^19.1.1",
+    "react-markdown": "^10.1.0",
     "react-router": "^7.9.1",
     "react-virtuoso": "^4.14.0",
+    "remark-gfm": "^4.0.1",
     "uint8array-extras": "^1.5.0",
     "viem": "^2.37.6",
     "wagmi": "^2.16.9",
@@ -54,7 +57,7 @@
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^5.9.2",
-    "vite": "^7.1.5",
+    "vite": "^7.1.11",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
   }
