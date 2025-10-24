@@ -220,7 +220,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
 
     if (typeof XMTP_DB_DIRECTORY === "string") {
-      fs.mkdirSync(XMTP_DB_DIRECTORY, { recursive: true });
+      fs.mkdirSync(XMTP_DB_DIRECTORY, { recursive: true, mode: 0o700 });
       initializedOptions.dbPath = (inboxId: string) => {
         const dbPath = path.join(XMTP_DB_DIRECTORY, `xmtp-${inboxId}.db3`);
         console.info(`Saving local database to "${dbPath}"`);
