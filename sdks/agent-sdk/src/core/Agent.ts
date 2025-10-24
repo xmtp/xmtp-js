@@ -61,6 +61,8 @@ type EventHandlerMap<ContentTypes> = {
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
 
+type EthAddress = HexString;
+
 export type AgentBaseContext<ContentTypes = unknown> = {
   client: Client<ContentTypes>;
   conversation: Conversation;
@@ -537,7 +539,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     this.#isLocked = false;
   }
 
-  createDmWithAddress(address: HexString, options?: CreateDmOptions) {
+  createDmWithAddress(address: EthAddress, options?: CreateDmOptions) {
     return this.#client.conversations.newDmWithIdentifier(
       {
         identifier: address,
@@ -548,7 +550,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   createGroupWithAddresses(
-    addresses: HexString[],
+    addresses: EthAddress[],
     options?: CreateGroupOptions,
   ) {
     const identifiers = addresses.map((address) => {
@@ -565,7 +567,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   addMembersWithAddresses<ContentTypes>(
     group: Group<ContentTypes>,
-    addresses: HexString[],
+    addresses: EthAddress[],
   ) {
     const identifiers = addresses.map((address) => {
       return {
