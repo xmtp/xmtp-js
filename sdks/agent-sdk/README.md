@@ -52,15 +52,16 @@ await agent.start();
 
 ## Environment Variables
 
-The XMTP Agent SDK allows you to use environment variables (`process.env`) for easier configuration without modifying code. Simply set the following variables and call `Agent.createFromEnv()`:
+The XMTP Agent SDK supports configuration through environment variables (`process.env`), making it easy to configure your agent without code changes. Set the following variables and call `Agent.createFromEnv()` to automatically load them:
 
 **Available Variables:**
 
-| Variable                 | Purpose                                                                                                                      | Example                                 |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `XMTP_WALLET_KEY`        | [Private key for wallet](https://docs.xmtp.org/inboxes/core-messaging/create-a-signer)                                       | `XMTP_WALLET_KEY=0x1234...abcd`         |
-| `XMTP_ENV`               | [Network environment](https://docs.xmtp.org/agents/core-messaging/create-a-client#xmtp-network-environments)                 | `XMTP_ENV=dev` or `XMTP_ENV=production` |
-| `XMTP_DB_ENCRYPTION_KEY` | [Database encryption key](https://docs.xmtp.org/agents/core-messaging/create-a-client#keep-the-database-encryption-key-safe) | `XMTP_DB_ENCRYPTION_KEY=0xabcd...1234`  |
+| Variable                 | Purpose                                                                                                         | Example                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `XMTP_DB_DIRECTORY`      | [Database directory](https://docs.xmtp.org/agents/build-agents/local-database#understand-local-database-files)  | `XMTP_DB_DIRECTORY=my/database/dir`     |
+| `XMTP_DB_ENCRYPTION_KEY` | [Database encryption key](https://docs.xmtp.org/agents/concepts/identity#keep-the-database-encryption-key-safe) | `XMTP_DB_ENCRYPTION_KEY=0xabcd...1234`  |
+| `XMTP_ENV`               | [Network environment](https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#xmtp-network-environments) | `XMTP_ENV=dev` or `XMTP_ENV=production` |
+| `XMTP_WALLET_KEY`        | [Private key for Ethereum wallet](https://docs.xmtp.org/chat-apps/core-messaging/create-a-signer)               | `XMTP_WALLET_KEY=0x1234...abcd`         |
 
 Using the environment variables, you can setup your agent in just a few lines of code:
 

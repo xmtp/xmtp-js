@@ -1,4 +1,5 @@
 import EventEmitter from "node:events";
+import fs from "node:fs";
 import path from "node:path";
 import type { GroupUpdatedCodec } from "@xmtp/content-type-group-updated";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
@@ -217,7 +218,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
 
     if (typeof XMTP_DB_DIRECTORY === "string") {
-      
+      fs.mkdirSync(XMTP_DB_DIRECTORY, { recursive: true });
       initializedOptions.dbPath = (inboxId: string) => {
         const dbPath = path.join(XMTP_DB_DIRECTORY, `xmtp-${inboxId}.db3`);
         console.info(`Saving local database to "${dbPath}"`);
