@@ -27,6 +27,7 @@ export type UtilsWorkerAction =
       data: {
         identifier: Identifier;
         env?: XmtpEnv;
+        gatewayHost?: string;
       };
     }
   | {
@@ -40,6 +41,7 @@ export type UtilsWorkerAction =
         env?: XmtpEnv;
         identifier: Identifier;
         inboxId: string;
+        gatewayHost?: string;
         installationIds: Uint8Array[];
         signatureRequestId: string;
       };
@@ -52,6 +54,7 @@ export type UtilsWorkerAction =
         env?: XmtpEnv;
         signer: SafeSigner;
         signatureRequestId: string;
+        gatewayHost?: string;
       };
     }
   | {
@@ -61,5 +64,6 @@ export type UtilsWorkerAction =
       data: {
         inboxIds: string[];
         env?: XmtpEnv;
+        gatewayHost?: string;
       };
     };
