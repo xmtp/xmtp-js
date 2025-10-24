@@ -141,6 +141,15 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     this.emit("unhandledError", emittedError);
   };
   #isLocked: boolean = false;
+  #toIdentifier(address: HexString) {
+    return {
+      identifier: address,
+      identifierKind: IdentifierKind.Ethereum,
+    };
+  }
+  #toIdentifiers(addresses: HexString[]) {
+    return addresses.map((address) => this.#toIdentifier(address));
+  }
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
@@ -537,12 +546,13 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     this.#isLocked = false;
   }
 
+  canMessageWithAddresses(addresses: HexString[]) {
+    return this.#client.canMessage(this.#toIdentifiers(addresses));
+  }
+
   createDmWithAddress(address: HexString, options?: CreateDmOptions) {
     return this.#client.conversations.newDmWithIdentifier(
-      {
-        identifier: address,
-        identifierKind: IdentifierKind.Ethereum,
-      },
+      this.#toIdentifier(address),
       options,
     );
   }
@@ -551,14 +561,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     addresses: HexString[],
     options?: CreateGroupOptions,
   ) {
-    const identifiers = addresses.map((address) => {
-      return {
-        identifier: address,
-        identifierKind: IdentifierKind.Ethereum,
-      };
-    });
     return this.#client.conversations.newGroupWithIdentifiers(
-      identifiers,
+      this.#toIdentifiers(addresses),
       options,
     );
   }
@@ -567,14 +571,14 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     group: Group<ContentTypes>,
     addresses: HexString[],
   ) {
-    const identifiers = addresses.map((address) => {
-      return {
-        identifier: address,
-        identifierKind: IdentifierKind.Ethereum,
-      };
-    });
+    return group.addMembersByIdentifiers(this.#toIdentifiers(addresses));
+  }
 
-    return group.addMembersByIdentifiers(identifiers);
+  removeMembersWithAddresses<ContentTypes>(
+    group: Group<ContentTypes>,
+    addresses: HexString[],
+  ) {
+    return group.removeMembersByIdentifiers(this.#toIdentifiers(addresses));
   }
 
   get address() {
