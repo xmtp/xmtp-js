@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.9
+
+### Patch Changes
+
+- bde0bfb: Expose `XMTP_DB_DIRECTORY` for `Agent.createFromEnv`
+
 ## 1.1.8
 
 ### Patch Changes
