@@ -1,6 +1,6 @@
 import {
-  HexString,
   IdentifierKind,
+  type HexString,
   type Identifier,
   type Signer,
 } from "@xmtp/node-sdk";

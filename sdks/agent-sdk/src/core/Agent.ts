@@ -12,7 +12,6 @@ import {
   Client,
   Dm,
   Group,
-  HexString,
   IdentifierKind,
   isHexString,
   LogLevel,
@@ -21,6 +20,7 @@ import {
   type CreateDmOptions,
   type CreateGroupOptions,
   type DecodedMessage,
+  type HexString,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
