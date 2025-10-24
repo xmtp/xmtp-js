@@ -12,6 +12,7 @@ export type Profile = {
   description: string | null;
   displayName: string | null;
   platform: Platform | null;
+  identity: string | null;
 };
 
 export const createEmptyProfile = (address: string): Profile => ({
@@ -20,6 +21,7 @@ export const createEmptyProfile = (address: string): Profile => ({
   description: null,
   displayName: null,
   platform: null,
+  identity: null,
 });
 
 // alias types for clarity
@@ -56,8 +58,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       const newProfiles = new Map(state.profiles);
       const existingProfiles = state.profiles.get(profile.address) ?? [];
       newProfiles.set(profile.address, [...existingProfiles, profile]);
-      if (profile.displayName) {
-        newNames.set(profile.displayName, profile.address);
+      if (profile.identity) {
+        newNames.set(profile.identity, profile.address);
       }
       set(() => ({
         profiles: newProfiles,
@@ -74,8 +76,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
         }
         const existingProfiles = state.profiles.get(profile.address) ?? [];
         newProfiles.set(profile.address, [...existingProfiles, profile]);
-        if (profile.displayName) {
-          newNames.set(profile.displayName, profile.address);
+        if (profile.identity) {
+          newNames.set(profile.identity, profile.address);
         }
       }
       set(() => ({
@@ -122,20 +124,21 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
 export const combineProfiles = (
   address: string,
   profiles: Profile[],
-  displayName?: string,
+  identity?: string,
 ) => {
-  const isValidDisplayName =
-    displayName &&
-    profiles.some((profile) => profile.displayName === displayName);
+  const forcedProfile = profiles.find(
+    (profile) => profile.identity === identity,
+  );
   return profiles.reduce((profile, value) => {
     return {
       ...profile,
-      displayName: isValidDisplayName
-        ? displayName
+      displayName: forcedProfile
+        ? forcedProfile.displayName
         : (profile.displayName ?? value.displayName),
       avatar: profile.avatar ?? value.avatar,
       description: profile.description ?? value.description,
       platform: profile.platform ?? value.platform,
+      identity: profile.identity ?? value.identity,
     };
   }, createEmptyProfile(address));
 };
