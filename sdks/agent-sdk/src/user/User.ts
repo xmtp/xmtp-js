@@ -1,4 +1,9 @@
-import { IdentifierKind, type Identifier, type Signer } from "@xmtp/node-sdk";
+import {
+  HexString,
+  IdentifierKind,
+  type Identifier,
+  type Signer,
+} from "@xmtp/node-sdk";
 import {
   createWalletClient,
   http,
@@ -17,10 +22,7 @@ export type User = {
   wallet: WalletClient;
 };
 
-export const createUser = (
-  key?: `0x${string}`,
-  chain: Chain = sepolia,
-): User => {
+export const createUser = (key?: HexString, chain: Chain = sepolia): User => {
   const accountKey = key ?? generatePrivateKey();
   const account = privateKeyToAccount(accountKey);
   return {

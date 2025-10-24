@@ -1,4 +1,5 @@
 import EventEmitter from "node:events";
+import path from "node:path";
 import type { GroupUpdatedCodec } from "@xmtp/content-type-group-updated";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
@@ -10,7 +11,9 @@ import {
   Client,
   Dm,
   Group,
+  HexString,
   IdentifierKind,
+  isHexString,
   LogLevel,
   type ClientOptions,
   type Conversation,
@@ -19,7 +22,6 @@ import {
   type DecodedMessage,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
-import { isHex } from "viem/utils";
 import { filter } from "@/core/filter.js";
 import { getInstallationInfo } from "@/debug.js";
 import { createSigner, createUser } from "@/user/User.js";
@@ -185,29 +187,42 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
-    if (!isHex(process.env.XMTP_WALLET_KEY)) {
+    const {
+      XMTP_DB_DIRECTORY,
+      XMTP_DB_ENCRYPTION_KEY,
+      XMTP_ENV,
+      XMTP_WALLET_KEY,
+    } = process.env;
+
+    if (!isHexString(XMTP_WALLET_KEY)) {
       throw new AgentError(
         1000,
         `XMTP_WALLET_KEY env is not in hex (0x) format.`,
       );
     }
 
-    const signer = createSigner(createUser(process.env.XMTP_WALLET_KEY));
+    const signer = createSigner(createUser(XMTP_WALLET_KEY));
 
     const initializedOptions = { ...(options ?? {}) };
 
-    if (process.env.XMTP_DB_ENCRYPTION_KEY) {
-      initializedOptions.dbEncryptionKey = Buffer.from(
-        process.env.XMTP_DB_ENCRYPTION_KEY,
-        "hex",
-      );
+    initializedOptions.dbEncryptionKey =
+      typeof XMTP_DB_ENCRYPTION_KEY === "string"
+        ? isHexString(XMTP_DB_ENCRYPTION_KEY)
+          ? XMTP_DB_ENCRYPTION_KEY
+          : `0x${XMTP_DB_ENCRYPTION_KEY}`
+        : undefined;
+
+    if (XMTP_ENV && Object.keys(ApiUrls).includes(XMTP_ENV)) {
+      initializedOptions.env = XMTP_ENV as XmtpEnv;
     }
 
-    if (
-      process.env.XMTP_ENV &&
-      Object.keys(ApiUrls).includes(process.env.XMTP_ENV)
-    ) {
-      initializedOptions.env = process.env.XMTP_ENV as XmtpEnv;
+    if (typeof XMTP_DB_DIRECTORY === "string") {
+      
+      initializedOptions.dbPath = (inboxId: string) => {
+        const dbPath = path.join(XMTP_DB_DIRECTORY, `xmtp-${inboxId}.db3`);
+        console.info(`Saving local database to "${dbPath}"`);
+        return dbPath;
+      };
     }
 
     return this.create(signer, initializedOptions);
@@ -521,7 +536,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     this.#isLocked = false;
   }
 
-  createDmWithAddress(address: `0x${string}`, options?: CreateDmOptions) {
+  createDmWithAddress(address: HexString, options?: CreateDmOptions) {
     return this.#client.conversations.newDmWithIdentifier(
       {
         identifier: address,
@@ -532,7 +547,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   createGroupWithAddresses(
-    addresses: `0x${string}`[],
+    addresses: HexString[],
     options?: CreateGroupOptions,
   ) {
     const identifiers = addresses.map((address) => {
@@ -549,7 +564,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   addMembersWithAddresses<ContentTypes>(
     group: Group<ContentTypes>,
-    addresses: `0x${string}`[],
+    addresses: HexString[],
   ) {
     const identifiers = addresses.map((address) => {
       return {
