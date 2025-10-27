@@ -208,6 +208,7 @@ export const RemoteAttachmentContent: React.FC<
             controls
             style={{
               width: "100%",
+              minWidth: "300px",
               display: "block",
             }}
           />
