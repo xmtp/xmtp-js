@@ -30,6 +30,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".node-version"
+          cache: "yarn"
+        env:
+          SKIP_YARN_COREPACK_CHECK: "1"
+
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -37,8 +48,11 @@ jobs:
           # Specify queries to run
           queries: security-and-quality
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
