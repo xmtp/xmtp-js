@@ -2,11 +2,15 @@ import EventEmitter from "node:events";
 import fs from "node:fs";
 import path from "node:path";
 import type { GroupUpdatedCodec } from "@xmtp/content-type-group-updated";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
+import { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
 import type { TextCodec } from "@xmtp/content-type-text";
+import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import {
   ApiUrls,
   Client,
@@ -49,14 +53,22 @@ type EventHandlerMap<ContentTypes> = {
   ];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
+  markdown: [ctx: MessageContext<ReturnType<MarkdownCodec["decode"]>>];
   message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
+  "read-receipt": [ctx: MessageContext<ReturnType<ReadReceiptCodec["decode"]>>];
   reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
   start: [ctx: ClientContext<ContentTypes>];
   stop: [ctx: ClientContext<ContentTypes>];
   text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
+  "transaction-reference": [
+    ctx: MessageContext<ReturnType<TransactionReferenceCodec["decode"]>>,
+  ];
   unhandledError: [error: Error];
   unknownMessage: [ctx: MessageContext<ContentTypes>];
+  "wallet-send-calls": [
+    ctx: MessageContext<ReturnType<WalletSendCallsCodec["decode"]>>,
+  ];
 };
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
@@ -159,9 +171,13 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     const upgradedCodecs = [
       ...(initializedOptions.codecs ?? []),
+      new MarkdownCodec(),
       new ReactionCodec(),
+      new ReadReceiptCodec(),
       new ReplyCodec(),
       new RemoteAttachmentCodec(),
+      new TransactionReferenceCodec(),
+      new WalletSendCallsCodec(),
     ];
 
     if (process.env.XMTP_FORCE_DEBUG) {
@@ -353,8 +369,20 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
               case filter.isReaction(message):
                 await this.#processMessage(message, "reaction");
                 break;
+              case filter.isReadReceipt(message):
+                await this.#processMessage(message, "read-receipt");
+                break;
               case filter.isReply(message):
                 await this.#processMessage(message, "reply");
+                break;
+              case filter.isTransactionReference(message):
+                await this.#processMessage(message, "transaction-reference");
+                break;
+              case filter.isWalletSendCalls(message):
+                await this.#processMessage(message, "wallet-send-calls");
+                break;
+              case filter.isMarkdown(message):
+                await this.#processMessage(message, "markdown");
                 break;
               case filter.isText(message):
                 await this.#processMessage(message, "text");

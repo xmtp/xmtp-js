@@ -3,15 +3,31 @@ import {
   type GroupUpdatedCodec,
 } from "@xmtp/content-type-group-updated";
 import {
+  ContentTypeMarkdown,
+  type MarkdownCodec,
+} from "@xmtp/content-type-markdown";
+import {
   ContentTypeReaction,
   type ReactionCodec,
 } from "@xmtp/content-type-reaction";
+import {
+  ContentTypeReadReceipt,
+  type ReadReceiptCodec,
+} from "@xmtp/content-type-read-receipt";
 import {
   ContentTypeRemoteAttachment,
   type RemoteAttachmentCodec,
 } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type ReplyCodec } from "@xmtp/content-type-reply";
 import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
+import {
+  ContentTypeTransactionReference,
+  type TransactionReferenceCodec,
+} from "@xmtp/content-type-transaction-reference";
+import {
+  ContentTypeWalletSendCalls,
+  type WalletSendCallsCodec,
+} from "@xmtp/content-type-wallet-send-calls";
 import {
   Dm,
   Group,
@@ -95,6 +111,22 @@ const isRemoteAttachment = (
   return !!message.contentType?.sameAs(ContentTypeRemoteAttachment);
 };
 
+const isMarkdown = (
+  message: DecodedMessage,
+): message is DecodedMessageWithContent<
+  ReturnType<MarkdownCodec["decode"]>
+> => {
+  return !!message.contentType?.sameAs(ContentTypeMarkdown);
+};
+
+const isReadReceipt = (
+  message: DecodedMessage,
+): message is DecodedMessage & {
+  content: ReturnType<ReadReceiptCodec["decode"]>;
+} => {
+  return !!message.contentType?.sameAs(ContentTypeReadReceipt);
+};
+
 const isText = (
   message: DecodedMessage,
 ): message is DecodedMessageWithContent<ReturnType<TextCodec["decode"]>> => {
@@ -105,6 +137,22 @@ const isTextReply = (message: DecodedMessage) => {
   return isReply(message) && typeof message.content.content === "string";
 };
 
+const isTransactionReference = (
+  message: DecodedMessage,
+): message is DecodedMessage & {
+  content: ReturnType<TransactionReferenceCodec["decode"]>;
+} => {
+  return !!message.contentType?.sameAs(ContentTypeTransactionReference);
+};
+
+const isWalletSendCalls = (
+  message: DecodedMessage,
+): message is DecodedMessage & {
+  content: ReturnType<WalletSendCallsCodec["decode"]>;
+} => {
+  return !!message.contentType?.sameAs(ContentTypeWalletSendCalls);
+};
+
 export const filter = {
   fromSelf,
   hasContent,
@@ -113,11 +161,15 @@ export const filter = {
   isGroupAdmin,
   isGroupSuperAdmin,
   isGroupUpdate,
+  isMarkdown,
   isReaction,
+  isReadReceipt,
   isRemoteAttachment,
   isReply,
   isText,
   isTextReply,
+  isTransactionReference,
+  isWalletSendCalls,
 };
 
 export const f = filter;

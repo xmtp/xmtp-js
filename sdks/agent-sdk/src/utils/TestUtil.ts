@@ -1,19 +1,25 @@
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import type { Reaction } from "@xmtp/content-type-reaction";
+import type { ReadReceipt } from "@xmtp/content-type-read-receipt";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import type { Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
+import type { TransactionReference } from "@xmtp/content-type-transaction-reference";
+import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
 import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import type { Mock } from "vitest";
 import { Agent } from "@/core/Agent.js";
 import type { DecodedMessageWithContent } from "@/core/filter.js";
 
 export type CurrentClientTypes =
-  | string
+  | GroupUpdated
   | Reaction
-  | Reply
+  | ReadReceipt
   | RemoteAttachment
-  | GroupUpdated;
+  | Reply
+  | string
+  | TransactionReference
+  | WalletSendCallsParams;
 
 export const createMockMessage = <ContentType>(
   overrides: Partial<DecodedMessage> & { content: ContentType },
