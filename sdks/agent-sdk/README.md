@@ -97,7 +97,7 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 - `reply` – an incoming [reply message](https://docs.xmtp.org/agents/content-types/replies)
 - `text` – an incoming [text message](https://docs.xmtp.org/agents/content-types/content-types#text-content-type)
 - `transaction-reference` – an incoming onchain [transaction reference](https://docs.xmtp.org/agents/content-types/transaction-refs#receive-a-transaction-reference)
-- `wallet-send-calls` – an incoming wallet [transaction request](https://docs.xmtp.org/agents/content-types/transactions#create-a-transaction-request) (batch calls)
+- `transaction-request` – an incoming wallet [transaction request](https://docs.xmtp.org/agents/content-types/transactions#create-a-transaction-request) (batch calls)
 - `unknownMessage` – a message event that does not correspond to any of the pre-implemented event types
 
 **Conversation Events**
