@@ -1,0 +1,73 @@
+{
+  "name": "@xmtp/cli",
+  "version": "0.1.0",
+  "description": "XMTP CLI tool for managing XMTP operations",
+  "keywords": [
+    "xmtp",
+    "cli",
+    "messaging",
+    "web3",
+    "command-line"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://git@github.com/xmtp/xmtp-js.git",
+    "directory": "sdks/xmtp-cli"
+  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "type": "module",
+  "bin": {
+    "xmtp": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.test.*"
+  ],
+  "scripts": {
+    "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack --profile node16 . --ignore-rules cjs-resolves-to-esm",
+    "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
+    "clean:dist": "rm -rf dist",
+    "dev": "tsx --watch index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@xmtp/agent-sdk": "workspace:*",
+    "@xmtp/content-type-markdown": "workspace:*",
+    "@xmtp/content-type-reaction": "workspace:*",
+    "@xmtp/content-type-remote-attachment": "workspace:*",
+    "@xmtp/content-type-reply": "workspace:*",
+    "@xmtp/content-type-wallet-send-calls": "workspace:*",
+    "@xmtp/node-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@types/node": "^22.18.4",
+    "rimraf": "^6.0.1",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
+  "packageManager": "yarn@4.5.0"
+}
