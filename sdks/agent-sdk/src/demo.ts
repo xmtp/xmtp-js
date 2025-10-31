@@ -47,6 +47,22 @@ agent.on("text", async (ctx) => {
   }
 });
 
+agent.on("transaction-reference", (ctx) => {
+  const { networkId, reference } = ctx.message.content;
+  console.log(`Transaction "${reference}" on network "${networkId}".`);
+});
+
+agent.on("wallet-send-calls", (ctx) => {
+  const { chainId, calls } = ctx.message.content;
+  console.log(
+    `Wallet request for "${calls.length}" calls on chain "${chainId}".`,
+  );
+});
+
+agent.on("read-receipt", (ctx) => {
+  console.log(`Message ID "${ctx.message.id}" was read.`);
+});
+
 const errorHandler = (error: unknown) => {
   if (error instanceof AgentError) {
     console.log(`Caught error ID "${error.code}"`, error);

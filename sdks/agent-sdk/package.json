@@ -4,10 +4,14 @@
     "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "dependencies": {
+    "@xmtp/content-type-markdown": "^1.0.0",
     "@xmtp/content-type-reaction": "^2.0.2",
+    "@xmtp/content-type-read-receipt": "^2.0.2",
     "@xmtp/content-type-remote-attachment": "^2.0.2",
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/content-type-transaction-reference": "^2.0.2",
+    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
     "@xmtp/node-sdk": "^4.2.4",
     "viem": "^2.37.6"
   },
