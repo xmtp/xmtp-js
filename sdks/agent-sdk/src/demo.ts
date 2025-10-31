@@ -52,10 +52,10 @@ agent.on("transaction-reference", (ctx) => {
   console.log(`Transaction "${reference}" on network "${networkId}".`);
 });
 
-agent.on("transaction-request", (ctx) => {
+agent.on("wallet-send-calls", (ctx) => {
   const { chainId, calls } = ctx.message.content;
   console.log(
-    `Transaction request for "${calls.length}" calls on chain "${chainId}".`,
+    `Wallet request for "${calls.length}" calls on chain "${chainId}".`,
   );
 });
 
