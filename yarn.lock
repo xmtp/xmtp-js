@@ -4204,7 +4204,7 @@ __metadata:
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
-    viem: "npm:^2.38.4"
+    viem: "npm:^2.37.6"
     vite: "npm:^7.1.12"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
@@ -12778,7 +12778,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:^2.38.4":
+"viem@npm:^2.37.6, viem@npm:^2.38.4":
   version: 2.38.4
   resolution: "viem@npm:2.38.4"
   dependencies:
