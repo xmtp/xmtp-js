@@ -45,7 +45,7 @@
     "uint8array-extras": "^1.5.0",
     "viem": "^2.38.4",
     "wagmi": "^2.18.2",
-    "zod": "^4.1.9",
+    "zod": "^4.1.12",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

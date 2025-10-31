@@ -28,7 +28,7 @@
     "pinata": "^2.5.1",
     "prisma": "^6.16.2",
     "web3bio-profile-kit": "^0.1.16",
-    "zod-prisma-types": "^3.2.4"
+    "zod-prisma-types": "^3.3.5"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
