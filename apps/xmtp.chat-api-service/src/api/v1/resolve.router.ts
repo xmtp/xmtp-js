@@ -105,6 +105,8 @@ export async function resolveProfiles(req: Request, res: Response) {
     if (expiredProfiles.length > 0) {
       for (const p of expiredProfiles) {
         const expiredProfile = expired.find(
+          // TODO: exclude "unknown" from Prisma enum
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
           (e) => e.address === p.address && e.platform === p.platform,
         );
         if (!expiredProfile || !p.address) {
