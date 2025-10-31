@@ -4,15 +4,15 @@ import {
   type RemoteAttachment,
 } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
-import { loadEnvFile } from "../utils/env.js";
-import { getAgentInstance } from "../core/agent.js";
+import { CliManager } from "../cli-manager.js";
 import {
-  parseStandardArgs,
   generateHelpText,
+  parseStandardArgs,
   type StandardCliParams,
 } from "../cli-params.js";
 import { type CliParam } from "../cli-utils.js";
-import { CliManager } from "../cli-manager.js";
+import { getAgentInstance } from "../core/agent.js";
+import { loadEnvFile } from "../utils/env.js";
 
 // Load environment variables
 loadEnvFile(".env");
@@ -21,7 +21,7 @@ loadEnvFile(".env");
 class USDCHandler {
   constructor(private network: string) {}
 
-  createUSDCTransferCalls(from: string, to: string, ) {
+  createUSDCTransferCalls(from: string, to: string) {
     // This is a placeholder - implement based on your actual USDC handler
     return {
       version: "1.0",
@@ -198,7 +198,7 @@ async function sendTextContent(config: Config): Promise<void> {
     // Get the message ID from the conversation
     const messages = await conversation.messages();
     const lastMessage = messages[messages.length - 1];
-    
+
     if (!lastMessage) {
       console.log(`⚠️  No messages found to reply to`);
       return;

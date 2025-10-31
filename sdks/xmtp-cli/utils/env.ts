@@ -59,4 +59,3 @@ export function loadEnv(envPath: string = ".env"): void {
 export function loadEnvFile(path?: string): void {
   loadEnv(path);
 }
-

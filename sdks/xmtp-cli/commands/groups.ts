@@ -1,20 +1,24 @@
 import { IdentifierKind, type Group } from "@xmtp/node-sdk";
-import { loadEnvFile } from "../utils/env.js";
-import { getInboxes, getRandomAccountAddresses } from "../core/agent.js";
+import { CliManager } from "../cli-manager.js";
 import {
-  parseStandardArgs,
   generateHelpText,
+  parseStandardArgs,
   type StandardCliParams,
 } from "../cli-params.js";
 import {
   getAgentInstance,
+  getInboxes,
+  getRandomAccountAddresses,
+  logOperationFailure,
   logOperationStart,
   logOperationSuccess,
-  logOperationFailure,
   logSectionHeader,
 } from "../core/agent.js";
-import { validateEthereumAddress, validateGroupId } from "../utils/validation.js";
-import { CliManager } from "../cli-manager.js";
+import { loadEnvFile } from "../utils/env.js";
+import {
+  validateEthereumAddress,
+  validateGroupId,
+} from "../utils/validation.js";
 
 // Load environment variables
 loadEnvFile(".env");
@@ -299,11 +303,12 @@ async function runCreateOperation(config: Config): Promise<void> {
 // Operation: Create Group by Address
 async function runCreateByAddressOperation(config: Config): Promise<void> {
   // Check if we have either member addresses or members count
-  const hasMemberAddresses = config.memberAddresses && config.memberAddresses.length > 0;
+  const hasMemberAddresses =
+    config.memberAddresses && config.memberAddresses.length > 0;
   // Check if members was explicitly provided by looking at command line args
   const args = process.argv.slice(2);
-  const hasMembersCount = args.includes('--members');
-  
+  const hasMembersCount = args.includes("--members");
+
   if (!hasMemberAddresses && !hasMembersCount) {
     console.error(
       `❌ Error: Either --member-addresses or --members is required for create-by-address operation`,
@@ -319,13 +324,15 @@ async function runCreateByAddressOperation(config: Config): Promise<void> {
 
   // If both are provided, member-addresses takes precedence
   if (hasMemberAddresses && hasMembersCount) {
-    console.warn(`⚠️  Both --member-addresses and --members provided. Using --member-addresses.`);
+    console.warn(
+      `⚠️  Both --member-addresses and --members provided. Using --member-addresses.`,
+    );
   }
 
   // Determine which addresses to use
   let finalMemberAddresses: string[];
   let addressSource: string;
-  
+
   if (hasMemberAddresses) {
     finalMemberAddresses = config.memberAddresses!;
     addressSource = "provided addresses";
@@ -351,7 +358,9 @@ async function runCreateByAddressOperation(config: Config): Promise<void> {
 
   console.log(`👥 Creating group: "${groupName}"`);
   console.log(`📝 Description: "${groupDescription}"`);
-  console.log(`📍 Member addresses (${addressSource}): ${finalMemberAddresses.join(", ")}`);
+  console.log(
+    `📍 Member addresses (${addressSource}): ${finalMemberAddresses.join(", ")}`,
+  );
 
   try {
     // Create group with Ethereum addresses

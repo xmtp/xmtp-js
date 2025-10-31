@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+
 export interface CliManagerConfig {
   repeat?: number;
   delay?: number; // milliseconds between executions
@@ -194,7 +195,11 @@ export class CliManager {
 
         // If next arg is not a flag, it's the value for this flag
         const nextArg = args[i + 1];
-        if (nextArg !== undefined && i + 1 < args.length && !nextArg.startsWith("--")) {
+        if (
+          nextArg !== undefined &&
+          i + 1 < args.length &&
+          !nextArg.startsWith("--")
+        ) {
           managerArgs.push(nextArg);
           i++; // Skip the next argument
         }

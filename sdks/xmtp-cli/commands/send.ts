@@ -1,20 +1,20 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
   IdentifierKind,
   type DecodedMessage,
   type Group,
 } from "@xmtp/node-sdk";
-import { loadEnvFile } from "../utils/env.js";
-import fs from "node:fs";
-import path from "node:path";
-import { getAgentInstance } from "../core/agent.js";
+import { CliManager } from "../cli-manager.js";
 import {
-  parseStandardArgs,
   generateHelpText,
+  parseStandardArgs,
   validateMutuallyExclusive,
   type StandardCliParams,
 } from "../cli-params.js";
 import { type CliParam } from "../cli-utils.js";
-import { CliManager } from "../cli-manager.js";
+import { getAgentInstance } from "../core/agent.js";
+import { loadEnvFile } from "../utils/env.js";
 
 // Load environment variables
 loadEnvFile(".env");

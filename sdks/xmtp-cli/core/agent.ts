@@ -1,13 +1,14 @@
-import { Agent } from "@xmtp/agent-sdk";
 import { createRequire } from "node:module";
+import { Agent } from "@xmtp/agent-sdk";
 import { MarkdownCodec } from "@xmtp/content-type-markdown";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
-import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import {
   AttachmentCodec,
   RemoteAttachmentCodec,
 } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
+
 // ============================================================================
 // ERROR HANDLING
 // ============================================================================

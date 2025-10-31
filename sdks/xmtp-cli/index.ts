@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-
 import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadEnvFile } from "./utils/env.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,7 +18,10 @@ try {
 const cliDir = __dirname;
 
 // Helper to run tsx commands using the local tsx binary
-async function runTsxCommand(scriptPath: string, args: string[] = []): Promise<number> {
+async function runTsxCommand(
+  scriptPath: string,
+  args: string[] = [],
+): Promise<number> {
   const fullPath = join(cliDir, scriptPath);
   const tsxPath = join(cliDir, "..", "..", "node_modules", ".bin", "tsx");
   return new Promise((resolve) => {
@@ -115,4 +117,3 @@ main().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
-

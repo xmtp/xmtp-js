@@ -1,20 +1,20 @@
 import { createRequire } from "node:module";
-import { loadEnvFile } from "../utils/env.js";
 import { Client, XmtpEnv } from "@xmtp/node-sdk";
+import { CliManager } from "../cli-manager.js";
 import {
-  parseStandardArgs,
   generateHelpText,
+  parseStandardArgs,
   type StandardCliParams,
 } from "../cli-params.js";
 import {
   getAgentInstance,
+  logOperationFailure,
   logOperationStart,
   logOperationSuccess,
-  logOperationFailure,
   logSectionHeader,
 } from "../core/agent.js";
+import { loadEnvFile } from "../utils/env.js";
 import { validateEthereumAddress } from "../utils/validation.js";
-import { CliManager } from "../cli-manager.js";
 
 // Load environment variables
 loadEnvFile(".env");
@@ -151,7 +151,9 @@ function parseArgs(): Config {
 // Operation: Address Information
 async function runAddressOperation(config: Config): Promise<void> {
   if (!config.targetAddress && !config.inboxId) {
-    console.error(`❌ Error: Either --address or --inbox-id is required for address operation`);
+    console.error(
+      `❌ Error: Either --address or --inbox-id is required for address operation`,
+    );
     console.log(`   Usage: yarn debug address --address <ethereum-address>`);
     console.log(`   Or: yarn debug address --inbox-id <inbox-id>`);
     return;
@@ -159,7 +161,9 @@ async function runAddressOperation(config: Config): Promise<void> {
 
   // If both are provided, address takes precedence
   if (config.targetAddress && config.inboxId) {
-    console.warn(`⚠️  Both --address and --inbox-id provided. Using --address.`);
+    console.warn(
+      `⚠️  Both --address and --inbox-id provided. Using --address.`,
+    );
   }
 
   // Determine which identifier to use
@@ -181,15 +185,20 @@ async function runAddressOperation(config: Config): Promise<void> {
         console.log(`   This address may not be registered with XMTP`);
         return;
       }
-      
+
       targetInboxId = resolvedInboxId;
-      
+
       targetAddress = config.targetAddress;
       identifierType = "address";
-      console.log(`📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`);
+      console.log(
+        `📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`,
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Failed to resolve address to inbox ID: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(
+        `❌ Failed to resolve address to inbox ID: ${errorMessage}`,
+      );
       return;
     }
   } else {
@@ -214,7 +223,7 @@ async function runAddressOperation(config: Config): Promise<void> {
         [targetInboxId],
         true,
       );
-      
+
       if (inboxState && inboxState.length > 0) {
         const firstState = inboxState[0];
         if (firstState) {
@@ -224,7 +233,9 @@ async function runAddressOperation(config: Config): Promise<void> {
     }
 
     if (!targetInboxId) {
-      console.log(`❌ No inbox found for ${identifierType}: ${config.targetAddress || config.inboxId}`);
+      console.log(
+        `❌ No inbox found for ${identifierType}: ${config.targetAddress || config.inboxId}`,
+      );
       console.log(`   This ${identifierType} may not be registered with XMTP`);
       return;
     }
@@ -244,7 +255,9 @@ async function runAddressOperation(config: Config): Promise<void> {
 
     const state = inboxState[0];
     if (!state) {
-      console.log(`❌ No inbox state found for ${identifierType}: ${config.targetAddress || config.inboxId}`);
+      console.log(
+        `❌ No inbox state found for ${identifierType}: ${config.targetAddress || config.inboxId}`,
+      );
       return;
     }
     const installations = state.installations;
@@ -276,7 +289,9 @@ async function runAddressOperation(config: Config): Promise<void> {
 // Operation: Resolve Address to Inbox ID (or vice versa)
 async function runResolveOperation(config: Config): Promise<void> {
   if (!config.targetAddress && !config.inboxId) {
-    console.error(`❌ Error: Either --address or --inbox-id is required for resolve operation`);
+    console.error(
+      `❌ Error: Either --address or --inbox-id is required for resolve operation`,
+    );
     console.log(`   Usage: yarn debug resolve --address <ethereum-address>`);
     console.log(`   Or: yarn debug resolve --inbox-id <inbox-id>`);
     return;
@@ -284,7 +299,9 @@ async function runResolveOperation(config: Config): Promise<void> {
 
   // If both are provided, address takes precedence
   if (config.targetAddress && config.inboxId) {
-    console.warn(`⚠️  Both --address and --inbox-id provided. Using --address.`);
+    console.warn(
+      `⚠️  Both --address and --inbox-id provided. Using --address.`,
+    );
   }
 
   // Get agent
@@ -308,7 +325,7 @@ async function runResolveOperation(config: Config): Promise<void> {
         console.log(`   This address may not be registered with XMTP`);
         return;
       }
-      
+
       const inboxId = resolvedInboxId;
 
       logSectionHeader("Address Resolution");
@@ -329,7 +346,9 @@ async function runResolveOperation(config: Config): Promise<void> {
 
       if (!inboxState || inboxState.length === 0) {
         console.log(`❌ No inbox state found for inbox ID: ${config.inboxId}`);
-        console.log(`   This inbox ID may not exist or be registered with XMTP`);
+        console.log(
+          `   This inbox ID may not exist or be registered with XMTP`,
+        );
         return;
       }
 
@@ -360,7 +379,9 @@ async function runResolveOperation(config: Config): Promise<void> {
 // Operation: Inbox Information
 async function runInboxOperation(config: Config): Promise<void> {
   if (!config.inboxId && !config.targetAddress) {
-    console.error(`❌ Error: Either --inbox-id or --address is required for inbox operation`);
+    console.error(
+      `❌ Error: Either --inbox-id or --address is required for inbox operation`,
+    );
     console.log(`   Usage: yarn debug inbox --inbox-id <inbox-id>`);
     console.log(`   Or: yarn debug inbox --address <ethereum-address>`);
     return;
@@ -368,13 +389,15 @@ async function runInboxOperation(config: Config): Promise<void> {
 
   // If both are provided, inbox-id takes precedence
   if (config.inboxId && config.targetAddress) {
-    console.warn(`⚠️  Both --inbox-id and --address provided. Using --inbox-id.`);
+    console.warn(
+      `⚠️  Both --inbox-id and --address provided. Using --inbox-id.`,
+    );
   }
 
   // Determine which identifier to use
   let targetInboxId: string;
   let identifierType: string;
-  
+
   if (config.inboxId) {
     targetInboxId = config.inboxId;
     identifierType = "inbox ID";
@@ -386,18 +409,23 @@ async function runInboxOperation(config: Config): Promise<void> {
         identifier: config.targetAddress!,
         identifierKind: 0,
       });
-      
+
       if (!resolvedInboxId) {
         console.log(`❌ No inbox found for address: ${config.targetAddress}`);
         console.log(`   This address may not be registered with XMTP`);
         return;
       }
-      
+
       targetInboxId = resolvedInboxId;
-      console.log(`📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`);
+      console.log(
+        `📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`,
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Failed to resolve address to inbox ID: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(
+        `❌ Failed to resolve address to inbox ID: ${errorMessage}`,
+      );
       return;
     }
     identifierType = "address";
@@ -419,13 +447,17 @@ async function runInboxOperation(config: Config): Promise<void> {
     );
 
     if (!inboxState || inboxState.length === 0) {
-      console.log(`❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`);
+      console.log(
+        `❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`,
+      );
       return;
     }
 
     const state = inboxState[0];
     if (!state) {
-      console.log(`❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`);
+      console.log(
+        `❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`,
+      );
       return;
     }
 
@@ -433,7 +465,9 @@ async function runInboxOperation(config: Config): Promise<void> {
     const identifiers = state.identifiers;
 
     logSectionHeader("Inbox Information");
-    console.log(`   ${identifierType}: ${config.inboxId || config.targetAddress}`);
+    console.log(
+      `   ${identifierType}: ${config.inboxId || config.targetAddress}`,
+    );
     console.log(`   Inbox ID: ${targetInboxId}`);
     console.log(`   Total Installations: ${installations.length}`);
     console.log(`   Total Identifiers: ${identifiers.length}`);
@@ -442,9 +476,10 @@ async function runInboxOperation(config: Config): Promise<void> {
     if (identifiers.length > 0) {
       console.log(`\n🏷️  Identifiers:`);
       identifiers.forEach((identifier, index: number) => {
-        const identifierKindStr = typeof identifier.identifierKind === "string" 
-          ? identifier.identifierKind 
-          : String(identifier.identifierKind);
+        const identifierKindStr =
+          typeof identifier.identifierKind === "string"
+            ? identifier.identifierKind
+            : String(identifier.identifierKind);
         console.log(
           `   ${index + 1}. ${identifier.identifier} (kind: ${identifierKindStr})`,
         );
@@ -467,7 +502,9 @@ async function runInboxOperation(config: Config): Promise<void> {
 // Operation: Key Package Information
 async function runKeyPackageOperation(config: Config): Promise<void> {
   if (!config.inboxId && !config.targetAddress) {
-    console.error(`❌ Error: Either --inbox-id or --address is required for key-package operation`);
+    console.error(
+      `❌ Error: Either --inbox-id or --address is required for key-package operation`,
+    );
     console.log(`   Usage: yarn debug key-package --inbox-id <inbox-id>`);
     console.log(`   Or: yarn debug key-package --address <ethereum-address>`);
     return;
@@ -475,13 +512,15 @@ async function runKeyPackageOperation(config: Config): Promise<void> {
 
   // If both are provided, inbox-id takes precedence
   if (config.inboxId && config.targetAddress) {
-    console.warn(`⚠️  Both --inbox-id and --address provided. Using --inbox-id.`);
+    console.warn(
+      `⚠️  Both --inbox-id and --address provided. Using --inbox-id.`,
+    );
   }
 
   // Determine which identifier to use
   let targetInboxId: string;
   let identifierType: string;
-  
+
   if (config.inboxId) {
     targetInboxId = config.inboxId;
     identifierType = "inbox ID";
@@ -493,18 +532,23 @@ async function runKeyPackageOperation(config: Config): Promise<void> {
         identifier: config.targetAddress!,
         identifierKind: 0,
       });
-      
+
       if (!resolvedInboxId) {
         console.log(`❌ No inbox found for address: ${config.targetAddress}`);
         console.log(`   This address may not be registered with XMTP`);
         return;
       }
-      
+
       targetInboxId = resolvedInboxId;
-      console.log(`📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`);
+      console.log(
+        `📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`,
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Failed to resolve address to inbox ID: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(
+        `❌ Failed to resolve address to inbox ID: ${errorMessage}`,
+      );
       return;
     }
     identifierType = "address";
@@ -526,13 +570,17 @@ async function runKeyPackageOperation(config: Config): Promise<void> {
     );
 
     if (!inboxState || inboxState.length === 0) {
-      console.log(`❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`);
+      console.log(
+        `❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`,
+      );
       return;
     }
 
     const state = inboxState[0];
     if (!state) {
-      console.log(`❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`);
+      console.log(
+        `❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`,
+      );
       return;
     }
     const addressFromInboxId = state.identifiers[0]?.identifier || "Unknown";
@@ -556,7 +604,9 @@ async function runKeyPackageOperation(config: Config): Promise<void> {
     const invalidInstallations = totalInstallations - validInstallations;
 
     logSectionHeader("Key Package Status");
-    console.log(`   ${identifierType}: ${config.inboxId || config.targetAddress}`);
+    console.log(
+      `   ${identifierType}: ${config.inboxId || config.targetAddress}`,
+    );
     console.log(`   Inbox ID: ${targetInboxId}`);
     console.log(`   Address: ${addressFromInboxId}`);
     console.log(`   Total Installations: ${totalInstallations}`);
@@ -670,13 +720,15 @@ async function runInstallationsOperation(config: Config): Promise<void> {
 
   // If both are provided, inbox-id takes precedence
   if (config.inboxId && config.targetAddress) {
-    console.warn(`⚠️  Both --inbox-id and --address provided. Using --inbox-id.`);
+    console.warn(
+      `⚠️  Both --inbox-id and --address provided. Using --inbox-id.`,
+    );
   }
 
   // Determine which identifier to use
   let targetInboxId: string;
   let identifierType: string;
-  
+
   if (config.inboxId) {
     targetInboxId = config.inboxId;
     identifierType = "inbox ID";
@@ -688,18 +740,23 @@ async function runInstallationsOperation(config: Config): Promise<void> {
         identifier: config.targetAddress!,
         identifierKind: 0,
       });
-      
+
       if (!resolvedInboxId) {
         console.log(`❌ No inbox found for address: ${config.targetAddress}`);
         console.log(`   This address may not be registered with XMTP`);
         return;
       }
-      
+
       targetInboxId = resolvedInboxId;
-      console.log(`📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`);
+      console.log(
+        `📍 Resolved address ${config.targetAddress} to inbox ID: ${targetInboxId}`,
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Failed to resolve address to inbox ID: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(
+        `❌ Failed to resolve address to inbox ID: ${errorMessage}`,
+      );
       return;
     }
     identifierType = "address";
@@ -719,20 +776,26 @@ async function runInstallationsOperation(config: Config): Promise<void> {
     );
 
     if (!inboxState || inboxState.length === 0) {
-      console.log(`❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`);
+      console.log(
+        `❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`,
+      );
       return;
     }
 
     const firstState = inboxState[0];
     if (!firstState) {
-      console.log(`❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`);
+      console.log(
+        `❌ No inbox state found for ${identifierType}: ${config.inboxId || config.targetAddress}`,
+      );
       return;
     }
 
     const installations = firstState.installations;
 
     logSectionHeader("Installation Debug Information");
-    console.log(`   ${identifierType}: ${config.inboxId || config.targetAddress}`);
+    console.log(
+      `   ${identifierType}: ${config.inboxId || config.targetAddress}`,
+    );
     console.log(`   Inbox ID: ${targetInboxId}`);
     console.log(`   Environment: ${process.env.XMTP_ENV ?? "dev"}`);
     console.log(`   Total Installations: ${installations.length}`);

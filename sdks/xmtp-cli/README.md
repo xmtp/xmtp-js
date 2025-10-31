@@ -1,4 +1,3 @@
-
 ## Available commands
 
 ```bash
