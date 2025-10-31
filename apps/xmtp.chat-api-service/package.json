@@ -27,14 +27,14 @@
     "helmet": "^8.1.0",
     "pinata": "^2.5.1",
     "prisma": "^6.18.0",
-    "web3bio-profile-kit": "^0.1.16",
+    "web3bio-profile-kit": "^0.1.25",
     "zod-prisma-types": "^3.3.5"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.4",
     "@types/node": "^22.18.12",
     "rimraf": "^6.0.1",
     "rollup": "^4.50.2",
