@@ -2153,7 +2153,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:^6.16.2":
+"@prisma/client@npm:^6.18.0":
   version: 6.18.0
   resolution: "@prisma/client@npm:6.18.0"
   peerDependencies:
@@ -9967,7 +9967,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prisma@npm:^6.16.2":
+"prisma@npm:^6.18.0":
   version: 6.18.0
   resolution: "prisma@npm:6.18.0"
   dependencies:
@@ -12946,7 +12946,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "xmtp.chat-api-service@workspace:apps/xmtp.chat-api-service"
   dependencies:
-    "@prisma/client": "npm:^6.16.2"
+    "@prisma/client": "npm:^6.18.0"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@types/cors": "npm:^2.8.19"
@@ -12957,7 +12957,7 @@ __metadata:
     express-rate-limit: "npm:^8.1.0"
     helmet: "npm:^8.1.0"
     pinata: "npm:^2.5.1"
-    prisma: "npm:^6.16.2"
+    prisma: "npm:^6.18.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.50.2"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"

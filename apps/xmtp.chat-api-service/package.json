@@ -20,13 +20,13 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@prisma/client": "^6.16.2",
+    "@prisma/client": "^6.18.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "helmet": "^8.1.0",
     "pinata": "^2.5.1",
-    "prisma": "^6.16.2",
+    "prisma": "^6.18.0",
     "web3bio-profile-kit": "^0.1.16",
     "zod-prisma-types": "^3.3.5"
   },
