@@ -13256,6 +13256,7 @@ __metadata:
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
     web3bio-profile-kit: "npm:^0.1.25"
+    zod: "npm:^4.1.12"
     zod-prisma-types: "npm:^3.3.5"
   languageName: unknown
   linkType: soft

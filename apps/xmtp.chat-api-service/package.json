@@ -28,6 +28,7 @@
     "pinata": "^2.5.1",
     "prisma": "^6.18.0",
     "web3bio-profile-kit": "^0.1.25",
+    "zod": "^4.1.12",
     "zod-prisma-types": "^3.3.5"
   },
   "devDependencies": {
