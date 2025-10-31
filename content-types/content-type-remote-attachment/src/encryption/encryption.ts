@@ -1,6 +1,6 @@
 import type { ciphertext } from "@xmtp/proto";
 import Ciphertext, { AESGCMNonceSize, KDFSaltSize } from "./Ciphertext";
-import crypto from "./crypto";
+import crypto, { type CryptoKey } from "./crypto";
 
 const hkdfNoInfo = new Uint8Array().buffer;
 const hkdfNoSalt = new Uint8Array().buffer;
@@ -71,7 +71,7 @@ function aesGcmParams(
 }
 
 // Derive AES-256-GCM key from a shared secret and salt.
-// Returns crypto.CryptoKey suitable for the encrypt/decrypt API
+// Returns CryptoKey suitable for the encrypt/decrypt API
 async function hkdf(secret: Uint8Array, salt: Uint8Array): Promise<CryptoKey> {
   const key = await crypto.subtle.importKey("raw", secret, "HKDF", false, [
     "deriveKey",
