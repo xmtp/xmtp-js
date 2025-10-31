@@ -80,7 +80,7 @@
     "rollup-plugin-dts": "^6.2.3",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.9.3",
-    "viem": "^2.37.6",
+    "viem": "^2.38.4",
     "vite": "^7.1.11",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"

@@ -9,7 +9,7 @@
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/node-sdk": "^4.2.4",
-    "viem": "^2.37.6"
+    "viem": "^2.38.4"
   },
   "description": "XMTP Agent SDK for interacting with XMTP networks",
   "devDependencies": {

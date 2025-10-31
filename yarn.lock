@@ -1645,13 +1645,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/sdk-communication-layer@npm:0.32.0":
-  version: 0.32.0
-  resolution: "@metamask/sdk-communication-layer@npm:0.32.0"
+"@metamask/sdk-analytics@npm:0.0.5":
+  version: 0.0.5
+  resolution: "@metamask/sdk-analytics@npm:0.0.5"
   dependencies:
+    openapi-fetch: "npm:^0.13.5"
+  checksum: 10/ad02ecb991bde54b7eb1995a6182366f536f7cc1b9dfc9934e4a2fd88ec3b93896d68c8ea476c65946ef9639289feac1e2338b27fa0f33ce8a8ea6497fa410c1
+  languageName: node
+  linkType: hard
+
+"@metamask/sdk-communication-layer@npm:0.33.1":
+  version: 0.33.1
+  resolution: "@metamask/sdk-communication-layer@npm:0.33.1"
+  dependencies:
+    "@metamask/sdk-analytics": "npm:0.0.5"
     bufferutil: "npm:^4.0.8"
     date-fns: "npm:^2.29.3"
-    debug: "npm:^4.3.4"
+    debug: "npm:4.3.4"
     utf-8-validate: "npm:^5.0.2"
     uuid: "npm:^8.3.2"
   peerDependencies:
@@ -1660,32 +1670,33 @@ __metadata:
     eventemitter2: ^6.4.9
     readable-stream: ^3.6.2
     socket.io-client: ^4.5.1
-  checksum: 10/20a8c170b7ad932c9d65aa655225d302fd52a33c6d6662d48b1bd020dca4be702bf6fdf2cb79105acab926077dedf17033e3247a5179c8d453fb4105b350fc8d
+  checksum: 10/bf3b8ee70e3b13a5a054d2d63bed234b10d3881d5171e060e5e210b2916a15ab64cb51352830cc4d626a45d790f5edca94b726f8d135ba2f4eb15dc9fedadce9
   languageName: node
   linkType: hard
 
-"@metamask/sdk-install-modal-web@npm:0.32.0":
-  version: 0.32.0
-  resolution: "@metamask/sdk-install-modal-web@npm:0.32.0"
+"@metamask/sdk-install-modal-web@npm:0.32.1":
+  version: 0.32.1
+  resolution: "@metamask/sdk-install-modal-web@npm:0.32.1"
   dependencies:
     "@paulmillr/qr": "npm:^0.2.1"
-  checksum: 10/56505ef4a25ef4cbc3767ae82f532b013cba4561227c0bf92ea97d3f9351c8e28737a08323a86487d42c4d4eea938e0f0b18ea348feaa46b96eaa8e4d591eee6
+  checksum: 10/f1be66e69c83be08c2d05e4c38ec3350354f5b8706bf547dcdeec68aff86fba4768ad3bca1a0bee719c3da645720f4c14ea51cdabb70a84b71c11138a16d1c69
   languageName: node
   linkType: hard
 
-"@metamask/sdk@npm:0.32.0":
-  version: 0.32.0
-  resolution: "@metamask/sdk@npm:0.32.0"
+"@metamask/sdk@npm:0.33.1":
+  version: 0.33.1
+  resolution: "@metamask/sdk@npm:0.33.1"
   dependencies:
     "@babel/runtime": "npm:^7.26.0"
     "@metamask/onboarding": "npm:^1.0.1"
     "@metamask/providers": "npm:16.1.0"
-    "@metamask/sdk-communication-layer": "npm:0.32.0"
-    "@metamask/sdk-install-modal-web": "npm:0.32.0"
+    "@metamask/sdk-analytics": "npm:0.0.5"
+    "@metamask/sdk-communication-layer": "npm:0.33.1"
+    "@metamask/sdk-install-modal-web": "npm:0.32.1"
     "@paulmillr/qr": "npm:^0.2.1"
     bowser: "npm:^2.9.0"
     cross-fetch: "npm:^4.0.0"
-    debug: "npm:^4.3.4"
+    debug: "npm:4.3.4"
     eciesjs: "npm:^0.4.11"
     eth-rpc-errors: "npm:^4.0.3"
     eventemitter2: "npm:^6.4.9"
@@ -1696,7 +1707,7 @@ __metadata:
     tslib: "npm:^2.6.0"
     util: "npm:^0.12.4"
     uuid: "npm:^8.3.2"
-  checksum: 10/cff2ccc92b41a039c87ad7c83f9a0d316b4dd79009a69cad7678fdb1b10881035a32113883f823fa0f6832a65637e0c2035bead488882c5bb14e726fb92565c5
+  checksum: 10/1cc614ec2de97ede0df59f369fda1ddb7a0cf0d4f7bdb22e207cca373b8299a015aa683b3a51ec2703c4b90ae8f4aa26a985b943c24105f582f07837c0e77e23
   languageName: node
   linkType: hard
 
@@ -3523,32 +3534,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wagmi/connectors@npm:5.9.9":
-  version: 5.9.9
-  resolution: "@wagmi/connectors@npm:5.9.9"
+"@wagmi/connectors@npm:6.1.0":
+  version: 6.1.0
+  resolution: "@wagmi/connectors@npm:6.1.0"
   dependencies:
     "@base-org/account": "npm:1.1.1"
     "@coinbase/wallet-sdk": "npm:4.3.6"
     "@gemini-wallet/core": "npm:0.2.0"
-    "@metamask/sdk": "npm:0.32.0"
+    "@metamask/sdk": "npm:0.33.1"
     "@safe-global/safe-apps-provider": "npm:0.18.6"
     "@safe-global/safe-apps-sdk": "npm:9.1.0"
     "@walletconnect/ethereum-provider": "npm:2.21.1"
     cbw-sdk: "npm:@coinbase/wallet-sdk@3.9.3"
+    porto: "npm:0.2.19"
   peerDependencies:
-    "@wagmi/core": 2.20.3
+    "@wagmi/core": 2.22.1
     typescript: ">=5.0.4"
     viem: 2.x
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/769f07c93f997e28c5364378995b84f30bc04e9c98acc339486004e80724e849fa9c914d2618f9d6710e9e276a484c33be23ae7c3be62f220b6a5c4ff446bab1
+  checksum: 10/274bc4aabfce5f0673fe4dd2c428bfd63db7a929f38f26ed4302c29e7842fae21710a6030574568e45e7e50d1e1a4706e7eb1bf3de8b61a99b9c23e09b911c4c
   languageName: node
   linkType: hard
 
-"@wagmi/core@npm:2.20.3":
-  version: 2.20.3
-  resolution: "@wagmi/core@npm:2.20.3"
+"@wagmi/core@npm:2.22.1":
+  version: 2.22.1
+  resolution: "@wagmi/core@npm:2.22.1"
   dependencies:
     eventemitter3: "npm:5.0.1"
     mipd: "npm:0.0.7"
@@ -3562,7 +3574,7 @@ __metadata:
       optional: true
     typescript:
       optional: true
-  checksum: 10/2a372df722b666375d8d0b6ec32fbee9fa2e044aaf3f7c521b5e971b79ef7f6dbc5a179863058c07f9f360b666f86bb648ab2d6d5d6f134208a2bdb45d7e2fcd
+  checksum: 10/f330d98b80e49d3e21e7d7b616961dc3e2abb8710a7e973e5e20dea94625989f02c2633c4dae6cb187728c387829bf26bc65bec39464f553394e2541b3604d32
   languageName: node
   linkType: hard
 
@@ -3982,7 +3994,7 @@ __metadata:
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.5"
     typescript: "npm:^5.9.3"
-    viem: "npm:^2.37.6"
+    viem: "npm:^2.38.4"
     vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
@@ -4011,7 +4023,7 @@ __metadata:
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.9.3"
     uuid: "npm:^11.1.0"
-    viem: "npm:^2.37.6"
+    viem: "npm:^2.38.4"
     vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
@@ -4083,7 +4095,7 @@ __metadata:
     rollup: "npm:^4.50.2"
     rollup-plugin-dts: "npm:^6.2.3"
     typescript: "npm:^5.9.3"
-    viem: "npm:^2.37.6"
+    viem: "npm:^2.38.4"
     vite: "npm:^7.1.11"
     vitest: "npm:^3.2.4"
   languageName: unknown
@@ -4230,7 +4242,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     uint8array-extras: "npm:^1.5.0"
     uuid: "npm:^13.0.0"
-    viem: "npm:^2.37.6"
+    viem: "npm:^2.38.4"
     vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
@@ -4307,11 +4319,11 @@ __metadata:
     remark-gfm: "npm:^4.0.1"
     typescript: "npm:^5.9.3"
     uint8array-extras: "npm:^1.5.0"
-    viem: "npm:^2.37.6"
+    viem: "npm:^2.38.4"
     vite: "npm:^7.1.11"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.2.4"
-    wagmi: "npm:^2.16.9"
+    wagmi: "npm:^2.18.2"
     zod: "npm:^4.1.9"
     zustand: "npm:^5.0.8"
   languageName: unknown
@@ -5453,6 +5465,18 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10/71168908b9a78227ab29d5d25fe03c5867750e31ce24bf2c44a86efc5af041758bb56569b0a3d48a9b5344c00a24a777e6f4100ed6dfd9534a42c1dde285125a
+  languageName: node
+  linkType: hard
+
+"debug@npm:4.3.4":
+  version: 4.3.4
+  resolution: "debug@npm:4.3.4"
+  dependencies:
+    ms: "npm:2.1.2"
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 10/0073c3bcbd9cb7d71dd5f6b55be8701af42df3e56e911186dfa46fac3a5b9eb7ce7f377dd1d3be6db8977221f8eb333d945216f645cf56f6b688cd484837d255
   languageName: node
   linkType: hard
 
@@ -7112,6 +7136,13 @@ __metadata:
   version: 10.7.3
   resolution: "highlight.js@npm:10.7.3"
   checksum: 10/db8d10a541936b058e221dbde77869664b2b45bca75d660aa98065be2cd29f3924755fbc7348213f17fd931aefb6e6597448ba6fe82afba6d8313747a91983ee
+  languageName: node
+  linkType: hard
+
+"hono@npm:^4.9.6":
+  version: 4.10.3
+  resolution: "hono@npm:4.10.3"
+  checksum: 10/0b5aa2296ac52ec9519108df1603388637e3df66e2fa9391281c8320a052bcae2d3a9b73123c8c69d90a35931840cdfbb9a5ef45a6d110436f76b925541a4c87
   languageName: node
   linkType: hard
 
@@ -8810,7 +8841,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mipd@npm:0.0.7":
+"mipd@npm:0.0.7, mipd@npm:^0.0.7":
   version: 0.0.7
   resolution: "mipd@npm:0.0.7"
   peerDependencies:
@@ -8854,6 +8885,13 @@ __metadata:
   version: 2.0.0
   resolution: "mrmime@npm:2.0.0"
   checksum: 10/8d95f714ea200c6cf3e3777cbc6168be04b05ac510090a9b41eef5ec081efeb1d1de3e535ffb9c9689fffcc42f59864fd52a500e84a677274f070adeea615c45
+  languageName: node
+  linkType: hard
+
+"ms@npm:2.1.2":
+  version: 2.1.2
+  resolution: "ms@npm:2.1.2"
+  checksum: 10/673cdb2c3133eb050c745908d8ce632ed2c02d85640e2edb3ace856a2266a813b30c613569bf3354fdf4ea7d1a1494add3bfa95e2713baa27d0c2c71fc44f58f
   languageName: node
   linkType: hard
 
@@ -9155,6 +9193,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"openapi-fetch@npm:^0.13.5":
+  version: 0.13.8
+  resolution: "openapi-fetch@npm:0.13.8"
+  dependencies:
+    openapi-typescript-helpers: "npm:^0.0.15"
+  checksum: 10/fed630452ac2d6abc680402651d848b7377b651164ca2be61a8c5e1fc89e41b09c928ba9dc92cf7c7ad2d400b3fbe5af380165303f293501dc08cefa4c0f92fd
+  languageName: node
+  linkType: hard
+
+"openapi-typescript-helpers@npm:^0.0.15":
+  version: 0.0.15
+  resolution: "openapi-typescript-helpers@npm:0.0.15"
+  checksum: 10/63f8f0b8464aed3e5c6910428bd14839bd5c1dd6ddf841bcea9d5f536a6e03e942a028202920da1a8b1ed9e4304c6fca14943d01a8adff2942d1254a229b8c70
+  languageName: node
+  linkType: hard
+
 "optionator@npm:^0.9.3":
   version: 0.9.4
   resolution: "optionator@npm:0.9.4"
@@ -9255,6 +9309,48 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/c485c810d5b1e78fcb89d6f19dbf01ae90ad39d7746593620ccf4bf5ddb799b369dc3b56d625c80b9546ab2eb7231b841b46c4c6776f87926bde07999e0b82be
+  languageName: node
+  linkType: hard
+
+"ox@npm:0.9.6":
+  version: 0.9.6
+  resolution: "ox@npm:0.9.6"
+  dependencies:
+    "@adraffy/ens-normalize": "npm:^1.11.0"
+    "@noble/ciphers": "npm:^1.3.0"
+    "@noble/curves": "npm:1.9.1"
+    "@noble/hashes": "npm:^1.8.0"
+    "@scure/bip32": "npm:^1.7.0"
+    "@scure/bip39": "npm:^1.6.0"
+    abitype: "npm:^1.0.9"
+    eventemitter3: "npm:5.0.1"
+  peerDependencies:
+    typescript: ">=5.4.0"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/9fb1a89c710c02366fe2fdda7db4e17474336456d3b80fa24e059b3d269b45e94abfe950d7f52b220abc33cde2b75d03d24f31493382a6bab37ec5aada2bd925
+  languageName: node
+  linkType: hard
+
+"ox@npm:^0.9.6":
+  version: 0.9.12
+  resolution: "ox@npm:0.9.12"
+  dependencies:
+    "@adraffy/ens-normalize": "npm:^1.11.0"
+    "@noble/ciphers": "npm:^1.3.0"
+    "@noble/curves": "npm:1.9.1"
+    "@noble/hashes": "npm:^1.8.0"
+    "@scure/bip32": "npm:^1.7.0"
+    "@scure/bip39": "npm:^1.6.0"
+    abitype: "npm:^1.0.9"
+    eventemitter3: "npm:5.0.1"
+  peerDependencies:
+    typescript: ">=5.4.0"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/3ded57b4e63e51522659e2237be04b715c1aa5b05701513a8443fc422f4c8fe99d22cf9dfa5e1d745a1ef9916b0ae328fdfb6b7dad37cbf8e3087a03ab117129
   languageName: node
   linkType: hard
 
@@ -9684,6 +9780,38 @@ __metadata:
   version: 2.1.11
   resolution: "pony-cause@npm:2.1.11"
   checksum: 10/ed7d0bb6e3e69f753080bf736b71f40e6ae4c13ec0c8c473ff73345345c088819966fdd68a62ad7482d464bf41176cf9421f5f63715d1a4532005eedc099db55
+  languageName: node
+  linkType: hard
+
+"porto@npm:0.2.19":
+  version: 0.2.19
+  resolution: "porto@npm:0.2.19"
+  dependencies:
+    hono: "npm:^4.9.6"
+    idb-keyval: "npm:^6.2.1"
+    mipd: "npm:^0.0.7"
+    ox: "npm:^0.9.6"
+    zod: "npm:^4.1.5"
+    zustand: "npm:^5.0.1"
+  peerDependencies:
+    "@tanstack/react-query": ">=5.59.0"
+    "@wagmi/core": ">=2.16.3"
+    react: ">=18"
+    typescript: ">=5.4.0"
+    viem: ">=2.37.0"
+    wagmi: ">=2.0.0"
+  peerDependenciesMeta:
+    "@tanstack/react-query":
+      optional: true
+    react:
+      optional: true
+    typescript:
+      optional: true
+    wagmi:
+      optional: true
+  bin:
+    porto: _dist/cli/bin/index.js
+  checksum: 10/48096b2f70d9e7ed712ae6e3b0d11b3c7a468d238ccf69d7f171b9b00c6653de3e93a9570a61b2ec631e22c6e6ff4a4d13f0abfc9454986ae9b25e03cbc05823
   languageName: node
   linkType: hard
 
@@ -12338,7 +12466,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:^2.27.2, viem@npm:^2.37.6":
+"viem@npm:^2.27.2":
   version: 2.37.6
   resolution: "viem@npm:2.37.6"
   dependencies:
@@ -12356,6 +12484,27 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/b17242414c748fc195fb2899100deb21a269a4a8f72b45e5537a7f7117134857b9c4827ef230a33be69363732e63155092dc5e088d6affb3f739f6b3dac0af5e
+  languageName: node
+  linkType: hard
+
+"viem@npm:^2.38.4":
+  version: 2.38.4
+  resolution: "viem@npm:2.38.4"
+  dependencies:
+    "@noble/curves": "npm:1.9.1"
+    "@noble/hashes": "npm:1.8.0"
+    "@scure/bip32": "npm:1.7.0"
+    "@scure/bip39": "npm:1.6.0"
+    abitype: "npm:1.1.0"
+    isows: "npm:1.0.7"
+    ox: "npm:0.9.6"
+    ws: "npm:8.18.3"
+  peerDependencies:
+    typescript: ">=5.0.4"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/5a51819e04870ef95a06c9582a4741657cc06f7b6616677871766dfdcaa7c67678f8d9ef489b294d50c4713cfafb874ff3a60e1b96fe08851c0e141f3bc683a9
   languageName: node
   linkType: hard
 
@@ -12501,12 +12650,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wagmi@npm:^2.16.9":
-  version: 2.16.9
-  resolution: "wagmi@npm:2.16.9"
+"wagmi@npm:^2.18.2":
+  version: 2.18.2
+  resolution: "wagmi@npm:2.18.2"
   dependencies:
-    "@wagmi/connectors": "npm:5.9.9"
-    "@wagmi/core": "npm:2.20.3"
+    "@wagmi/connectors": "npm:6.1.0"
+    "@wagmi/core": "npm:2.22.1"
     use-sync-external-store: "npm:1.4.0"
   peerDependencies:
     "@tanstack/react-query": ">=5.0.0"
@@ -12516,7 +12665,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/6a2ebf99748af97af1f8b5dffe9cb76b80c1cde31419d356792ff7a32bff47305d59e614f4d67b799eed5d939bc1348b78f6015a24f003e9e876b4839506f19a
+  checksum: 10/eea57528e339784bb1cae35f8014dd9c02dc962fc6bf9f9a7fd4fe9b6a3ea427897b79b6646be6e48209ed79591cbf8a56753253b65cb593dc0fc4fd351a0459
   languageName: node
   linkType: hard
 
@@ -12951,6 +13100,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"zod@npm:^4.1.5":
+  version: 4.1.12
+  resolution: "zod@npm:4.1.12"
+  checksum: 10/c5f04e6ac306515c4db6ef73cf7705f521c7a2107c8c8912416a0658d689f361db9bee829b0bf01ef4a22492f1065c5cbcdb523ce532606ac6792fd714f3c326
+  languageName: node
+  linkType: hard
+
 "zod@npm:^4.1.9":
   version: 4.1.9
   resolution: "zod@npm:4.1.9"
@@ -13000,7 +13156,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zustand@npm:^5.0.8":
+"zustand@npm:^5.0.1, zustand@npm:^5.0.8":
   version: 5.0.8
   resolution: "zustand@npm:5.0.8"
   peerDependencies:
