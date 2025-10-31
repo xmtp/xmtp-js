@@ -15,7 +15,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "ESNext",
-    "types": ["vitest/globals", "@vitest/browser/providers/playwright"]
+    "types": ["vitest/globals"]
   },
   "include": ["src", "test", "vite.config.ts", "rollup.config.js"]
 }

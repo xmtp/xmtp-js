@@ -892,7 +892,6 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
     const debugInfo = await conversation.debugInfo();
-    console.log(debugInfo);
     expect(debugInfo).toBeDefined();
     expect(debugInfo.epoch).toBeDefined();
     expect(debugInfo.maybeForked).toBe(false);
