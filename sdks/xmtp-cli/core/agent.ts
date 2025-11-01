@@ -216,7 +216,8 @@ export class Logger {
   }
 
   operationFailure(operation: string, error: Error | string): void {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      error instanceof Error ? error.message : (error ?? "unknown");
     this.error(`${operation} failed: ${errorMessage}`);
   }
 
@@ -227,11 +228,19 @@ export class Logger {
     }
   }
 
-  summary(data: Record<string, any>): void {
+  summary(data: Record<string, unknown>): void {
     if (this.shouldLog("info")) {
       console.log("\n📊 Summary:");
       for (const [key, value] of Object.entries(data)) {
-        console.log(`   ${key}: ${value}`);
+        const displayValue =
+          typeof value === "string" || typeof value === "number"
+            ? String(value)
+            : value === null || value === undefined
+              ? ""
+              : typeof value === "object"
+                ? JSON.stringify(value)
+                : String(value);
+        console.log(`   ${key}: ${displayValue}`);
       }
     }
   }
@@ -245,20 +254,39 @@ export const logger = new Logger();
 /**
  * Convenience functions using global logger
  */
-export const logDebug = (message: string) => logger.debug(message);
-export const logInfo = (message: string) => logger.info(message);
-export const logWarning = (message: string) => logger.warn(message);
-export const logError = (message: string) => logger.error(message);
-export const logSuccess = (message: string) => logger.success(message);
-export const logOperationStart = (operation: string, details?: string) =>
+export const logDebug = (message: string): void => {
+  logger.debug(message);
+};
+export const logInfo = (message: string): void => {
+  logger.info(message);
+};
+export const logWarning = (message: string): void => {
+  logger.warn(message);
+};
+export const logError = (message: string): void => {
+  logger.error(message);
+};
+export const logSuccess = (message: string): void => {
+  logger.success(message);
+};
+export const logOperationStart = (operation: string, details?: string) => {
   logger.operationStart(operation, details);
-export const logOperationSuccess = (operation: string, details?: string) =>
+};
+export const logOperationSuccess = (operation: string, details?: string) => {
   logger.operationSuccess(operation, details);
-export const logOperationFailure = (operation: string, error: Error | string) =>
+};
+export const logOperationFailure = (
+  operation: string,
+  error: Error | string,
+) => {
   logger.operationFailure(operation, error);
-export const logSectionHeader = (title: string) => logger.sectionHeader(title);
-export const createSummaryTable = (data: Record<string, any>) =>
+};
+export const logSectionHeader = (title: string) => {
+  logger.sectionHeader(title);
+};
+export const createSummaryTable = (data: Record<string, unknown>) => {
   logger.summary(data);
+};
 
 /**
  * Format utilities
@@ -412,11 +440,15 @@ export async function checkGroupPermissions(
 
     const currentUser = agent.client.inboxId;
 
-    if (requiredRole === "super-admin") {
-      return await (group as any).isSuperAdmin(currentUser);
-    } else {
-      return await (group as any).isAdmin(currentUser);
+    if ("isSuperAdmin" in group && typeof group.isSuperAdmin === "function") {
+      if (requiredRole === "super-admin") {
+        return group.isSuperAdmin(currentUser);
+      }
     }
+    if ("isAdmin" in group && typeof group.isAdmin === "function") {
+      return group.isAdmin(currentUser);
+    }
+    return false;
   }, "Failed to check group permissions");
 }
 

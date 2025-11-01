@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { Client, XmtpEnv } from "@xmtp/node-sdk";
+import { Client, type KeyPackageStatus, type XmtpEnv } from "@xmtp/node-sdk";
 import { CliManager } from "../cli-manager.js";
 import {
   generateHelpText,
@@ -594,12 +594,18 @@ async function runKeyPackageOperation(config: Config): Promise<void> {
     // Get key package statuses
     const status = (await agent.client.getKeyPackageStatusesForInstallationIds(
       installationIds,
-    )) as Record<string, any>;
+    )) as Record<string, KeyPackageStatus>;
 
     // Count valid and invalid installations
     const totalInstallations = Object.keys(status).length;
     const validInstallations = Object.values(status).filter(
-      (value) => !value?.validationError,
+      (value) =>
+        !(
+          value &&
+          typeof value === "object" &&
+          "validationError" in value &&
+          value.validationError
+        ),
     ).length;
     const invalidInstallations = totalInstallations - validInstallations;
 
@@ -626,7 +632,15 @@ async function runKeyPackageOperation(config: Config): Promise<void> {
             ? `${installationId.substring(0, 4)}...${installationId.substring(installationId.length - 4)}`
             : installationId;
 
-        if (installationStatus?.lifetime) {
+        if (
+          installationStatus &&
+          typeof installationStatus === "object" &&
+          "lifetime" in installationStatus &&
+          installationStatus.lifetime &&
+          typeof installationStatus.lifetime === "object" &&
+          "notBefore" in installationStatus.lifetime &&
+          "notAfter" in installationStatus.lifetime
+        ) {
           const createdDate = new Date(
             Number(installationStatus.lifetime.notBefore) * 1000,
           );
@@ -637,7 +651,12 @@ async function runKeyPackageOperation(config: Config): Promise<void> {
           console.log(
             `   ✅ ${shortId}: Created ${createdDate.toLocaleDateString()}, Valid until ${expiryDate.toLocaleDateString()}`,
           );
-        } else if (installationStatus?.validationError) {
+        } else if (
+          installationStatus &&
+          typeof installationStatus === "object" &&
+          "validationError" in installationStatus &&
+          typeof installationStatus.validationError === "string"
+        ) {
           console.log(
             `   ❌ ${shortId}: Error - ${installationStatus.validationError}`,
           );

@@ -131,7 +131,7 @@ export function validateCommaSeparatedList(
  * Validate that at least one of the provided values is set
  */
 export function validateAtLeastOne(
-  values: Record<string, any>,
+  values: Record<string, unknown>,
   fieldNames: string[],
 ): void {
   const hasValue = fieldNames.some(
@@ -153,7 +153,7 @@ export function validateAtLeastOne(
  * Validate that exactly one of the provided values is set
  */
 export function validateExactlyOne(
-  values: Record<string, any>,
+  values: Record<string, unknown>,
   fieldNames: string[],
 ): void {
   const setValues = fieldNames.filter(

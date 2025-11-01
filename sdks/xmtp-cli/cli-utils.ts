@@ -8,11 +8,11 @@ export interface CliParam {
   type: "string" | "number" | "boolean";
   description: string;
   required: boolean;
-  defaultValue?: any;
+  defaultValue?: string | number | boolean;
 }
 
 export interface CliConfig {
-  [key: string]: any;
+  [key: string]: unknown;
   help?: boolean;
 }
 

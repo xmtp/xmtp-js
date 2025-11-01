@@ -135,5 +135,26 @@ export default tseslint.config(
       "no-empty": ["error", { allowEmptyCatch: true }],
     },
   },
+  {
+    files: ["sdks/xmtp-cli/**/*.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/no-confusing-void-expression": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      "@typescript-eslint/restrict-plus-operands": "off",
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        { allowNumber: true, allowBoolean: true, allowAny: true },
+      ],
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/await-thenable": "off",
+    },
+  },
   eslintPluginPrettierRecommended,
 );

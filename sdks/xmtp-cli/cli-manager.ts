@@ -112,7 +112,7 @@ export class CliManager {
         shell: true,
       });
 
-      child.stdout?.on("data", (data) => {
+      child.stdout?.on("data", (data: Buffer) => {
         const output = data.toString();
         stdout += output;
         if (this.config.verbose) {
@@ -120,7 +120,7 @@ export class CliManager {
         }
       });
 
-      child.stderr?.on("data", (data) => {
+      child.stderr?.on("data", (data: Buffer) => {
         const output = data.toString();
         stderr += output;
         if (this.config.verbose) {

@@ -231,10 +231,10 @@ async function runCreateOperation(config: Config): Promise<void> {
 
   try {
     // Create group with existing inbox IDs
-    const group = (await agent.client.conversations.newGroup(memberInboxIds, {
+    const group = await agent.client.conversations.newGroup(memberInboxIds, {
       groupName,
       groupDescription,
-    })) as Group;
+    });
 
     console.log(`✅ Group created with ID: ${group.id}`);
 
@@ -364,15 +364,13 @@ async function runCreateByAddressOperation(config: Config): Promise<void> {
 
   try {
     // Create group with Ethereum addresses
-    const group = (await agent.createGroupWithAddresses(
-      finalMemberAddresses.map(
-        (address) => address as `0x${string}`,
-      ) as `0x${string}`[],
+    const group = await agent.createGroupWithAddresses(
+      finalMemberAddresses.map((address) => address as `0x${string}`),
       {
         groupName,
         groupDescription,
       },
-    )) as Group;
+    );
 
     console.log(`✅ Group created with ID: ${group.id}`);
 

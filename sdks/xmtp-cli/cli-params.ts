@@ -1,8 +1,8 @@
 import {
-  CliConfig,
-  CliParam,
   generateHelpText as generateHelpTextShared,
   parseCliArgs,
+  type CliConfig,
+  type CliParam,
 } from "./cli-utils.js";
 
 // Standard CLI parameter definitions
@@ -21,7 +21,7 @@ export interface StandardCliParams extends CliConfig {
   verbose?: boolean;
 
   // Skill-specific parameters
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Parameter definitions with validation rules
@@ -117,7 +117,9 @@ export function validateRequiredParams(
   config: StandardCliParams,
   required: string[],
 ): void {
-  const missing = required.filter((param) => !(config as any)[param]);
+  const missing = required.filter(
+    (param) => config[param] === undefined || config[param] === null,
+  );
   if (missing.length > 0) {
     throw new Error(`Missing required parameters: ${missing.join(", ")}`);
   }
@@ -128,7 +130,12 @@ export function validateMutuallyExclusive(
   groups: string[][],
 ): void {
   groups.forEach((group) => {
-    const present = group.filter((param) => (config as any)[param]);
+    const present = group.filter(
+      (param) =>
+        config[param] !== undefined &&
+        config[param] !== null &&
+        config[param] !== "",
+    );
     if (present.length > 1) {
       throw new Error(
         `Cannot use these parameters together: ${present.join(", ")}`,

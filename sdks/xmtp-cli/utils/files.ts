@@ -15,7 +15,7 @@ import {
 /**
  * Read JSON file with error handling
  */
-export function readJsonFile<T = any>(filePath: string): T | undefined {
+export function readJsonFile<T = unknown>(filePath: string): T | undefined {
   return withSyncErrorHandling(
     () => {
       if (!fs.existsSync(filePath)) {
@@ -32,7 +32,7 @@ export function readJsonFile<T = any>(filePath: string): T | undefined {
 /**
  * Write JSON file with error handling
  */
-export function writeJsonFile(filePath: string, data: any): void {
+export function writeJsonFile(filePath: string, data: unknown): void {
   withSyncErrorHandling(() => {
     // Ensure directory exists
     const dir = path.dirname(filePath);

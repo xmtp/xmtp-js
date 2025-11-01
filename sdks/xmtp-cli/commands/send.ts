@@ -163,14 +163,23 @@ function parseArgs(): Config {
   // Build final config with defaults
   const config: Config = {
     ...parsedConfig,
-    userCount: parsedConfig.users || 1,
+    userCount: typeof parsedConfig.users === "number" ? parsedConfig.users : 1,
     timeout: 120 * 1000, // 120 seconds - used only when --wait is specified
-    target: parsedConfig.target || process.env.TARGET || "",
-    threshold: parsedConfig.threshold || 95,
-    awaitResponse: parsedConfig.wait || false,
-    attempts: parsedConfig.attempts || 1,
-    customMessage: parsedConfig.customMessage,
-    senderAddress: parsedConfig.sender,
+    target:
+      typeof parsedConfig.target === "string"
+        ? parsedConfig.target
+        : process.env.TARGET || "",
+    threshold:
+      typeof parsedConfig.threshold === "number" ? parsedConfig.threshold : 95,
+    awaitResponse: parsedConfig.wait === true,
+    attempts:
+      typeof parsedConfig.attempts === "number" ? parsedConfig.attempts : 1,
+    customMessage:
+      typeof parsedConfig.customMessage === "string"
+        ? parsedConfig.customMessage
+        : undefined,
+    senderAddress:
+      typeof parsedConfig.sender === "string" ? parsedConfig.sender : undefined,
   };
 
   // Validation
@@ -256,12 +265,12 @@ async function sendGroupMessage(config: Config): Promise<void> {
     console.log(`📋 Found ${conversations.length} conversations`);
 
     const group = conversations.find(
-      (conv: any) => conv.id === config.groupId,
-    ) as Group;
+      (conv): conv is Group => conv.id === config.groupId,
+    ) as Group | undefined;
     if (!group) {
       console.error(`❌ Group with ID ${config.groupId} not found`);
       console.log(`📋 Available conversation IDs:`);
-      conversations.forEach((conv: any) => {
+      conversations.forEach((conv) => {
         console.log(`   - ${conv.id}`);
       });
       return;

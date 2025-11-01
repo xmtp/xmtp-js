@@ -143,7 +143,7 @@ function parseArgs(): Config {
   const config: Config = {
     ...parsedConfig,
     operation: operation as Config["operation"],
-    amount: parsedConfig.amount || 0.1,
+    amount: typeof parsedConfig.amount === "number" ? parsedConfig.amount : 0.1,
   };
 
   // Validation

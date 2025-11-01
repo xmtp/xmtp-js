@@ -312,12 +312,20 @@ async function runMembersOperation(config: Config): Promise<void> {
 
       for (let i = 0; i < members.length; i++) {
         const member = members[i];
+        if (!member) {
+          continue;
+        }
         // Try different possible property names for member address
-        const memberInfo =
-          (member as any).address ||
-          (member as any).walletAddress ||
-          (member as any).inboxId ||
-          "Unknown";
+        const memberInfo = (
+          "address" in member && typeof member.address === "string"
+            ? member.address
+            : "walletAddress" in member &&
+                typeof member.walletAddress === "string"
+              ? member.walletAddress
+              : "inboxId" in member && typeof member.inboxId === "string"
+                ? member.inboxId
+                : "Unknown"
+        ) as string;
         console.log(`   ${i + 1}. ${memberInfo}`);
       }
     } else {
@@ -405,7 +413,25 @@ async function runMessagesOperation(config: Config): Promise<void> {
           ? new Date(message.sentAt).toISOString()
           : "Unknown time";
         const sender = message.senderInboxId || "Unknown sender";
-        const content = message.content;
+        let content: string;
+        if (typeof message.content === "string") {
+          content = message.content;
+        } else if (
+          typeof message.content === "object" &&
+          message.content !== null
+        ) {
+          content = JSON.stringify(message.content);
+        } else if (
+          message.content != null &&
+          (typeof message.content === "number" ||
+            typeof message.content === "boolean" ||
+            typeof message.content === "bigint" ||
+            typeof message.content === "symbol")
+        ) {
+          content = String(message.content);
+        } else {
+          content = "No content";
+        }
 
         console.log(`\n   ${i + 1 + offset}. [${timestamp}]`);
         console.log(`      Sender: ${sender}`);
@@ -570,7 +596,25 @@ async function runFindOperation(config: Config): Promise<void> {
           ? new Date(message.sentAt).toISOString()
           : "Unknown time";
         const sender = message.senderInboxId || "Unknown sender";
-        const content = message.content;
+        let content: string;
+        if (typeof message.content === "string") {
+          content = message.content;
+        } else if (
+          typeof message.content === "object" &&
+          message.content !== null
+        ) {
+          content = JSON.stringify(message.content);
+        } else if (
+          message.content != null &&
+          (typeof message.content === "number" ||
+            typeof message.content === "boolean" ||
+            typeof message.content === "bigint" ||
+            typeof message.content === "symbol")
+        ) {
+          content = String(message.content);
+        } else {
+          content = "No content";
+        }
 
         console.log(`\n   ${i + 1 + offset}. [${timestamp}]`);
         console.log(`      Sender: ${sender}`);

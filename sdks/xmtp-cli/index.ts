@@ -113,7 +113,7 @@ For command-specific help:
   process.exit(exitCode);
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
