@@ -3332,6 +3332,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^20.0.0":
+  version: 20.19.23
+  resolution: "@types/node@npm:20.19.23"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10/35ca928381fab74abe2938a5ef00e3e9721ed0475e370a2c5c49877ed88858690d8d5464b6cb6bbe717497482e9087d1f58b6140dbcdd2742750fbe39e271489
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^24.9.1":
   version: 24.9.1
   resolution: "@types/node@npm:24.9.1"
@@ -4167,6 +4176,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp-copilot/cli@workspace:sdks/xmtp-cli":
+  version: 0.0.0-use.local
+  resolution: "@xmtp-copilot/cli@workspace:sdks/xmtp-cli"
+  dependencies:
+    "@types/node": "npm:^20.0.0"
+    "@xmtp/agent-sdk": "npm:latest"
+    "@xmtp/content-type-markdown": "npm:^1.0.0"
+    "@xmtp/content-type-reaction": "npm:^2.0.2"
+    "@xmtp/content-type-remote-attachment": "npm:^2.0.0"
+    "@xmtp/content-type-reply": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
+    commander: "npm:^14.0.2"
+    dotenv: "npm:^17.2.3"
+    tsx: "npm:^4.19.2"
+    typescript: "npm:^5.8.3"
+  bin:
+    xmtp-cli: ./bin/xmtp-cli.js
+  languageName: unknown
+  linkType: soft
+
+"@xmtp/agent-sdk@npm:latest":
+  version: 1.1.9
+  resolution: "@xmtp/agent-sdk@npm:1.1.9"
+  dependencies:
+    "@xmtp/content-type-reaction": "npm:^2.0.2"
+    "@xmtp/content-type-remote-attachment": "npm:^2.0.2"
+    "@xmtp/content-type-reply": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/node-sdk": "npm:^4.2.4"
+    viem: "npm:^2.37.6"
+  checksum: 10/457b6bb94f387a0f6d2b61f16a172f13bae35ce2b0ad78dbf162a1777b19cf4504b872d5c8070ad9ccba995cd11ac5168ca8697aee1d58b4807dd4e16797f715
+  languageName: node
+  linkType: hard
+
 "@xmtp/agent-sdk@workspace:sdks/agent-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
@@ -4312,7 +4356,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-remote-attachment@npm:^2.0.2, @xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
+"@xmtp/content-type-remote-attachment@npm:^2.0.0, @xmtp/content-type-remote-attachment@npm:^2.0.2, @xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment"
   dependencies:
@@ -5401,6 +5445,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^14.0.2":
+  version: 14.0.2
+  resolution: "commander@npm:14.0.2"
+  checksum: 10/2d202db5e5f9bb770112a3c1579b893d17ac6f6d932183077308bdd96d0f87f0bbe6a68b5b9ed2cf3b2514be6bb7de637480703c0e2db9741ee1b383237deb26
+  languageName: node
+  linkType: hard
+
 "commander@npm:^2.20.0":
   version: 2.20.3
   resolution: "commander@npm:2.20.3"
@@ -5852,6 +5903,13 @@ __metadata:
   version: 16.6.1
   resolution: "dotenv@npm:16.6.1"
   checksum: 10/1d1897144344447ffe62aa1a6d664f4cd2e0784e0aff787eeeec1940ded32f8e4b5b506d665134fc87157baa086fce07ec6383970a2b6d2e7985beaed6a4cc14
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^17.2.3":
+  version: 17.2.3
+  resolution: "dotenv@npm:17.2.3"
+  checksum: 10/f8b78626ebfff6e44420f634773375c9651808b3e1a33df6d4cc19120968eea53e100f59f04ec35f2a20b2beb334b6aba4f24040b2f8ad61773f158ac042a636
   languageName: node
   linkType: hard
 
@@ -11909,7 +11967,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.20.6":
+"tsx@npm:^4.19.2, tsx@npm:^4.20.6":
   version: 4.20.6
   resolution: "tsx@npm:4.20.6"
   dependencies:
@@ -12078,7 +12136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.9.3":
+"typescript@npm:^5.8.3, typescript@npm:^5.9.3":
   version: 5.9.3
   resolution: "typescript@npm:5.9.3"
   bin:
@@ -12108,7 +12166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.9.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.9.3#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
@@ -12161,6 +12219,13 @@ __metadata:
   version: 6.19.8
   resolution: "undici-types@npm:6.19.8"
   checksum: 10/cf0b48ed4fc99baf56584afa91aaffa5010c268b8842f62e02f752df209e3dea138b372a60a963b3b2576ed932f32329ce7ddb9cb5f27a6c83040d8cd74b7a70
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
   languageName: node
   linkType: hard
 

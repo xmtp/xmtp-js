@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "allowJs": false,
+    "declaration": true,
+    "declarationMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "target": "ESNext",
+    "types": ["node"],
+    "baseUrl": "..",
+    "paths": {
+      "@xmtp-copilot/data/*": ["../../data/*"]
+    }
+  },
+  "include": ["**/*.ts"]
+}
