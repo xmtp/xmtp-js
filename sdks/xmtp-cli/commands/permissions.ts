@@ -14,6 +14,12 @@ dotenvConfig({ path: join(rootDir, ".env") });
 
 const program = new Command();
 
+interface PermissionsOptions {
+  groupId?: string;
+  features?: string;
+  permissions?: string;
+}
+
 program
   .name("permissions")
   .description("Manage group permissions")
@@ -24,7 +30,7 @@ program
     "--permissions <type>",
     "Permission type: everyone, disabled, admin-only, super-admin-only",
   )
-  .action(async (operation, options) => {
+  .action(async (operation: string, options: PermissionsOptions) => {
     if (!options.groupId) {
       console.error(`❌ --group-id is required`);
       process.exit(1);
@@ -165,20 +171,23 @@ async function runUpdatePermissionsOperation(config: {
     await group.sync();
 
     const agent = await getAgent();
-    const isSuperAdmin = await group.isSuperAdmin(agent.client.inboxId);
+    const isSuperAdmin = group.isSuperAdmin(agent.client.inboxId);
 
     if (!isSuperAdmin) {
       console.error(`❌ Only super admins can change permissions`);
       process.exit(1);
     }
 
-    const permissionType = PERMISSION_TYPES[config.features[0]];
-    const permissionPolicy = PERMISSION_POLICIES[config.permissions];
-
-    if (permissionType === undefined || permissionPolicy === undefined) {
+    if (
+      !(config.features[0] in PERMISSION_TYPES) ||
+      !(config.permissions in PERMISSION_POLICIES)
+    ) {
       console.error(`❌ Invalid feature or permission type`);
       process.exit(1);
     }
+
+    const permissionType = PERMISSION_TYPES[config.features[0]];
+    const permissionPolicy = PERMISSION_POLICIES[config.permissions];
 
     await group.updatePermission(
       permissionType as PermissionUpdateType,

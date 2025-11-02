@@ -2,7 +2,7 @@
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { Agent } from "@xmtp/agent-sdk";
-import { type Dm, type Group } from "@xmtp/node-sdk";
+import { type Dm, type Group, type GroupMember } from "@xmtp/node-sdk";
 import { Command } from "commander";
 import { config as dotenvConfig } from "dotenv";
 
@@ -13,6 +13,14 @@ const rootDir = join(__dirname, "../..", "..");
 dotenvConfig({ path: join(rootDir, ".env") });
 
 const program = new Command();
+
+interface ListOptions {
+  conversationId?: string;
+  limit?: string;
+  offset?: string;
+  inboxId?: string;
+  address?: string;
+}
 
 program
   .name("list")
@@ -27,9 +35,9 @@ program
   .option("--offset <count>", "Offset for pagination", "0")
   .option("--inbox-id <id>", "Inbox ID for find operation")
   .option("--address <address>", "Ethereum address for find operation")
-  .action(async (operation, options) => {
-    const limit = parseInt(options.limit) || 50;
-    const offset = parseInt(options.offset) || 0;
+  .action(async (operation: string, options: ListOptions) => {
+    const limit = parseInt(options.limit || "50") || 50;
+    const offset = parseInt(options.offset || "0") || 0;
 
     switch (operation) {
       case "conversations":
@@ -148,8 +156,8 @@ async function runMembersOperation(conversationId?: string): Promise<void> {
 
     console.log(`\n👥 Members:`);
     console.log(`   Total: ${members.length}`);
-    members.forEach((member, i) => {
-      console.log(`   ${i + 1}. ${(member as any).inboxId || "Unknown"}`);
+    members.forEach((member: GroupMember, i) => {
+      console.log(`   ${i + 1}. ${member.inboxId || "Unknown"}`);
     });
   } catch (error) {
     console.error(
@@ -193,11 +201,15 @@ async function runMessagesOperation(config: {
     );
 
     paginated.forEach((msg, i) => {
-      console.log(
-        `\n   ${i + 1 + config.offset}. [${msg.sentAt ? new Date(msg.sentAt).toISOString() : "Unknown"}]`,
-      );
+      const sentAtStr = new Date(msg.sentAt).toISOString();
+      const contentStr = msg.content
+        ? typeof msg.content === "string"
+          ? msg.content
+          : JSON.stringify(msg.content)
+        : "Empty";
+      console.log(`\n   ${i + 1 + config.offset}. [${sentAtStr}]`);
       console.log(`      From: ${msg.senderInboxId || "Unknown"}`);
-      console.log(`      Content: ${msg.content}`);
+      console.log(`      Content: ${contentStr}`);
     });
   } catch (error) {
     console.error(
@@ -226,8 +238,12 @@ async function runFindOperation(config: {
     if (config.inboxId) {
       targetInboxId = config.inboxId;
     } else {
+      if (!config.address) {
+        console.error(`❌ Address is required`);
+        process.exit(1);
+      }
       const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: config.address!,
+        identifier: config.address,
         identifierKind: 0,
       });
 
@@ -241,7 +257,7 @@ async function runFindOperation(config: {
 
     // First, try to get a direct DM conversation
     let foundConversation: Group | Dm | undefined =
-      await agent.client.conversations.getDmByInboxId(targetInboxId);
+      agent.client.conversations.getDmByInboxId(targetInboxId);
 
     // If no DM found, search through all conversations (including groups)
     if (!foundConversation) {
@@ -255,7 +271,7 @@ async function runFindOperation(config: {
           const group = conv as Group;
           const members = await group.members();
           const isMember = members.some(
-            (member: any) => member.inboxId === targetInboxId,
+            (member: GroupMember) => member.inboxId === targetInboxId,
           );
 
           if (isMember) {
@@ -297,11 +313,15 @@ async function runFindOperation(config: {
     console.log(`   Showing: ${paginated.length}`);
 
     paginated.forEach((msg, i) => {
-      console.log(
-        `\n   ${i + 1 + config.offset}. [${msg.sentAt ? new Date(msg.sentAt).toISOString() : "Unknown"}]`,
-      );
+      const sentAtStr = new Date(msg.sentAt).toISOString();
+      const contentStr = msg.content
+        ? typeof msg.content === "string"
+          ? msg.content
+          : JSON.stringify(msg.content)
+        : "Empty";
+      console.log(`\n   ${i + 1 + config.offset}. [${sentAtStr}]`);
       console.log(`      From: ${msg.senderInboxId || "Unknown"}`);
-      console.log(`      Content: ${msg.content}`);
+      console.log(`      Content: ${contentStr}`);
     });
   } catch (error) {
     console.error(

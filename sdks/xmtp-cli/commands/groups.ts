@@ -14,6 +14,16 @@ dotenvConfig({ path: join(rootDir, ".env") });
 
 const program = new Command();
 
+interface GroupsOptions {
+  groupId?: string;
+  name?: string;
+  description?: string;
+  members?: string;
+  target?: string;
+  memberAddresses?: string;
+  imageUrl?: string;
+}
+
 program
   .name("groups")
   .description("Manage XMTP groups and DMs")
@@ -29,8 +39,8 @@ program
   .option("--target <address>", "Target address to invite")
   .option("--member-addresses <addresses>", "Comma-separated member addresses")
   .option("--image-url <url>", "Image URL for metadata operations")
-  .action(async (operation, options) => {
-    const members = parseInt(options.members) || 1;
+  .action(async (operation: string, options: GroupsOptions) => {
+    const members = parseInt(options.members || "1") || 1;
     const memberAddresses = options.memberAddresses
       ? options.memberAddresses.split(",").map((a: string) => a.trim())
       : undefined;
@@ -201,14 +211,16 @@ async function runMetadataOperation(config: {
   const agent = await getAgent();
 
   try {
-    const group = (await agent.client.conversations.getConversationById(
+    const conversation = await agent.client.conversations.getConversationById(
       config.groupId,
-    )) as Group;
+    );
 
-    if (!group) {
+    if (!conversation) {
       console.error(`❌ Group not found: ${config.groupId}`);
       process.exit(1);
     }
+
+    const group = conversation as Group;
 
     if (config.groupName) {
       await group.updateName(config.groupName);

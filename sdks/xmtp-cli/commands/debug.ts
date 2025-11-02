@@ -2,7 +2,7 @@
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { Agent } from "@xmtp/agent-sdk";
-import { Client, XmtpEnv } from "@xmtp/node-sdk";
+import { Client, type KeyPackageStatus, type XmtpEnv } from "@xmtp/node-sdk";
 import { Command } from "commander";
 import { config as dotenvConfig } from "dotenv";
 
@@ -14,6 +14,11 @@ dotenvConfig({ path: join(rootDir, ".env") });
 
 const program = new Command();
 
+interface DebugOptions {
+  address?: string;
+  inboxId?: string;
+}
+
 program
   .name("debug")
   .description("Debug and information commands")
@@ -24,7 +29,7 @@ program
   )
   .option("--address <address>", "Ethereum address")
   .option("--inbox-id <id>", "Inbox ID")
-  .action(async (operation, options) => {
+  .action(async (operation: string, options: DebugOptions) => {
     switch (operation) {
       case "address":
         await runAddressOperation(options);
@@ -105,7 +110,11 @@ async function runAddressOperation(options: {
         `📍 Resolved ${options.address} to inbox ID: ${targetInboxId}`,
       );
     } else {
-      targetInboxId = options.inboxId!;
+      if (!options.inboxId) {
+        console.error(`❌ Inbox ID is required`);
+        process.exit(1);
+      }
+      targetInboxId = options.inboxId;
     }
 
     const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
@@ -113,7 +122,7 @@ async function runAddressOperation(options: {
       true,
     );
 
-    if (!inboxState || inboxState.length === 0) {
+    if (inboxState.length === 0) {
       console.error(`❌ No inbox state found`);
       process.exit(1);
     }
@@ -175,8 +184,12 @@ async function runInboxOperation(options: {
     if (options.inboxId) {
       targetInboxId = options.inboxId;
     } else {
+      if (!options.address) {
+        console.error(`❌ Address is required`);
+        process.exit(1);
+      }
       const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address!,
+        identifier: options.address,
         identifierKind: 0,
       });
 
@@ -193,7 +206,7 @@ async function runInboxOperation(options: {
       true,
     );
 
-    if (!inboxState || inboxState.length === 0) {
+    if (inboxState.length === 0) {
       console.error(`❌ No inbox state found`);
       process.exit(1);
     }
@@ -247,12 +260,16 @@ async function runResolveOperation(options: {
       console.log(`   Address: ${options.address}`);
       console.log(`   Inbox ID: ${resolved}`);
     } else {
+      if (!options.inboxId) {
+        console.error(`❌ Inbox ID is required`);
+        process.exit(1);
+      }
       const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
-        [options.inboxId!],
+        [options.inboxId],
         true,
       );
 
-      if (!inboxState || inboxState.length === 0) {
+      if (inboxState.length === 0) {
         console.error(`❌ No inbox state found`);
         process.exit(1);
       }
@@ -308,8 +325,12 @@ async function runInstallationsOperation(options: {
     if (options.inboxId) {
       targetInboxId = options.inboxId;
     } else {
+      if (!options.address) {
+        console.error(`❌ Address is required`);
+        process.exit(1);
+      }
       const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address!,
+        identifier: options.address,
         identifierKind: 0,
       });
 
@@ -326,10 +347,10 @@ async function runInstallationsOperation(options: {
 
     const inboxState = await Client.inboxStateFromInboxIds(
       [targetInboxId],
-      (process.env.XMTP_ENV as XmtpEnv) ?? "dev",
+      (process.env.XMTP_ENV as XmtpEnv | undefined) ?? "dev",
     );
 
-    if (!inboxState || inboxState.length === 0) {
+    if (inboxState.length === 0) {
       console.error(`❌ No inbox state found`);
       process.exit(1);
     }
@@ -365,8 +386,12 @@ async function runKeyPackageOperation(options: {
     if (options.inboxId) {
       targetInboxId = options.inboxId;
     } else {
+      if (!options.address) {
+        console.error(`❌ Address is required`);
+        process.exit(1);
+      }
       const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address!,
+        identifier: options.address,
         identifierKind: 0,
       });
 
@@ -383,7 +408,7 @@ async function runKeyPackageOperation(options: {
       true,
     );
 
-    if (!inboxState || inboxState.length === 0) {
+    if (inboxState.length === 0) {
       console.error(`❌ No inbox state found`);
       process.exit(1);
     }
@@ -399,12 +424,12 @@ async function runKeyPackageOperation(options: {
 
     console.log(`\n🔑 Key Package Status:`);
     console.log(`   Total Installations: ${Object.keys(status).length}`);
-    Object.entries(status).forEach(([id, stat]: [string, any]) => {
+    Object.entries(status).forEach(([id, stat]: [string, KeyPackageStatus]) => {
       const shortId = id.substring(0, 8) + "...";
-      if (stat?.lifetime) {
+      if (stat.lifetime) {
         console.log(`   ✅ ${shortId}: Valid`);
       } else {
-        console.log(`   ❌ ${shortId}: ${stat?.validationError || "Invalid"}`);
+        console.log(`   ❌ ${shortId}: ${stat.validationError || "Invalid"}`);
       }
     });
   } catch (error) {

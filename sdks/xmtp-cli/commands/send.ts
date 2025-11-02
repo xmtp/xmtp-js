@@ -20,6 +20,18 @@ dotenvConfig({ path: path.join(rootDir, ".env") });
 
 const program = new Command();
 
+interface SendOptions {
+  target?: string;
+  groupId?: string;
+  message?: string;
+  users?: string;
+  customMessage?: string;
+  sender?: string;
+  attempts?: string;
+  threshold?: string;
+  wait?: boolean;
+}
+
 program
   .name("send")
   .description("Send messages to conversations")
@@ -32,7 +44,7 @@ program
   .option("--attempts <count>", "Number of attempts", "1")
   .option("--threshold <percent>", "Success threshold percentage", "95")
   .option("--wait", "Wait for responses from target")
-  .action(async (options) => {
+  .action(async (options: SendOptions) => {
     // Validation
     if (!options.target && !options.groupId) {
       console.error("❌ Error: Either --target or --group-id is required");
@@ -44,15 +56,22 @@ program
       process.exit(1);
     }
 
-    const userCount = parseInt(options.users) || 1;
-    const attempts = parseInt(options.attempts) || 1;
-    const threshold = parseInt(options.threshold) || 95;
+    const userCount = parseInt(options.users || "1") || 1;
+    const attempts = parseInt(options.attempts || "1") || 1;
+    const threshold = parseInt(options.threshold || "95") || 95;
     const awaitResponse = !!options.wait;
     const timeout = 120 * 1000; // 120 seconds
 
     if (options.groupId) {
-      await sendGroupMessage(options.groupId, options.message, options.sender);
+      await sendGroupMessage(
+        options.groupId,
+        options.message || "",
+        options.sender || "",
+      );
     } else {
+      if (!options.target) {
+        throw new Error("Target address is required");
+      }
       await runSendTest({
         target: options.target || process.env.TARGET || "",
         userCount,
@@ -108,18 +127,18 @@ async function sendGroupMessage(
     const conversations = await agent.client.conversations.list();
     console.log(`📋 Found ${conversations.length} conversations`);
 
-    const group = conversations.find(
-      (conv: any) => conv.id === groupId,
-    ) as Group;
-    if (!group) {
+    const conversation = conversations.find((conv) => conv.id === groupId);
+    if (!conversation) {
       console.error(`❌ Group with ID ${groupId} not found`);
       console.log(`📋 Available conversation IDs:`);
-      conversations.forEach((conv: any) => {
+      conversations.forEach((conv) => {
         console.log(`   - ${conv.id}`);
       });
       process.exit(1);
       return;
     }
+
+    const group = conversation as Group;
 
     console.log(`📋 Found group: ${group.id}`);
 

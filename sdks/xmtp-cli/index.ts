@@ -44,7 +44,7 @@ function runTsxCommand(
 program
   .command("ai")
   .description("Start Claude Code (AI coding assistant)")
-  .action(async () => {
+  .action(() => {
     console.log("🤖 Starting Claude Code...\n");
     const child = spawn("claude", [], { stdio: "inherit", shell: true });
     child.on("close", (code) => process.exit(code || 0));
@@ -53,7 +53,7 @@ program
 program
   .command("start")
   .description("Start XMTP and Slack channels (default)")
-  .action(async () => {
+  .action(() => {
     console.log("🚀 Starting XMTP Copilot channels...\n");
     const child = spawn("yarn", ["start"], { stdio: "inherit", shell: true });
     child.on("close", (code) => process.exit(code || 0));
@@ -62,7 +62,7 @@ program
 program
   .command("xmtp")
   .description("Start XMTP channel only")
-  .action(async () => {
+  .action(() => {
     console.log("🚀 Starting XMTP channel...\n");
     const child = spawn("yarn", ["dev:xmtp"], {
       stdio: "inherit",
@@ -74,7 +74,7 @@ program
 program
   .command("slack")
   .description("Start Slack channel only")
-  .action(async () => {
+  .action(() => {
     console.log("🚀 Starting Slack channel...\n");
     const child = spawn("yarn", ["dev:slack"], {
       stdio: "inherit",
@@ -88,7 +88,7 @@ program
   .command("groups")
   .description("Manage XMTP groups and DMs")
   .argument("[args...]", "Command arguments")
-  .action(async (args) => {
+  .action(async (args: string[]) => {
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/groups.ts",
       args,
@@ -100,7 +100,7 @@ program
   .command("send")
   .description("Send messages to conversations")
   .argument("[args...]", "Command arguments")
-  .action(async (args) => {
+  .action(async (args: string[]) => {
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/send.ts",
       args,
@@ -112,7 +112,7 @@ program
   .command("debug")
   .description("Debug and information commands")
   .argument("[args...]", "Command arguments")
-  .action(async (args) => {
+  .action(async (args: string[]) => {
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/debug.ts",
       args,
@@ -124,7 +124,7 @@ program
   .command("permissions")
   .description("Manage group permissions")
   .argument("[args...]", "Command arguments")
-  .action(async (args) => {
+  .action(async (args: string[]) => {
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/permissions.ts",
       args,
@@ -136,7 +136,7 @@ program
   .command("list")
   .description("List conversations and messages")
   .argument("[args...]", "Command arguments")
-  .action(async (args) => {
+  .action(async (args: string[]) => {
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/list.ts",
       args,
@@ -148,7 +148,7 @@ program
   .command("content")
   .description("Content type operations")
   .argument("[args...]", "Command arguments")
-  .action(async (args) => {
+  .action(async (args: string[]) => {
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/content-types.ts",
       args,
