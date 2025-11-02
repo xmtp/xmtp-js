@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-
-import { Command } from "commander";
 import { spawn } from "child_process";
-import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import { Command } from "commander";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -91,7 +90,7 @@ program
   .argument("[args...]", "Command arguments")
   .action(async (args) => {
     const exitCode = await runTsxCommand(
-      "packages/cli/commands/groups.ts",
+      "sdks/xmtp-cli/commands/groups.ts",
       args,
     );
     process.exit(exitCode);
@@ -102,7 +101,10 @@ program
   .description("Send messages to conversations")
   .argument("[args...]", "Command arguments")
   .action(async (args) => {
-    const exitCode = await runTsxCommand("packages/cli/commands/send.ts", args);
+    const exitCode = await runTsxCommand(
+      "sdks/xmtp-cli/commands/send.ts",
+      args,
+    );
     process.exit(exitCode);
   });
 
@@ -112,7 +114,7 @@ program
   .argument("[args...]", "Command arguments")
   .action(async (args) => {
     const exitCode = await runTsxCommand(
-      "packages/cli/commands/debug.ts",
+      "sdks/xmtp-cli/commands/debug.ts",
       args,
     );
     process.exit(exitCode);
@@ -124,7 +126,7 @@ program
   .argument("[args...]", "Command arguments")
   .action(async (args) => {
     const exitCode = await runTsxCommand(
-      "packages/cli/commands/permissions.ts",
+      "sdks/xmtp-cli/commands/permissions.ts",
       args,
     );
     process.exit(exitCode);
@@ -135,7 +137,10 @@ program
   .description("List conversations and messages")
   .argument("[args...]", "Command arguments")
   .action(async (args) => {
-    const exitCode = await runTsxCommand("packages/cli/commands/list.ts", args);
+    const exitCode = await runTsxCommand(
+      "sdks/xmtp-cli/commands/list.ts",
+      args,
+    );
     process.exit(exitCode);
   });
 
@@ -145,7 +150,7 @@ program
   .argument("[args...]", "Command arguments")
   .action(async (args) => {
     const exitCode = await runTsxCommand(
-      "packages/cli/commands/content-types.ts",
+      "sdks/xmtp-cli/commands/content-types.ts",
       args,
     );
     process.exit(exitCode);

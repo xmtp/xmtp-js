@@ -1,38 +1,49 @@
 {
-  "name": "@xmtp-copilot/cli",
+  "name": "@xmtp/cli",
   "version": "0.0.1",
-  "description": "XMTP Copilot CLI - Manage XMTP protocol operations",
+  "description": "XMTP CLI - Manage XMTP protocol operations",
   "type": "module",
   "bin": {
     "xmtp-cli": "./bin/xmtp-cli.js"
   },
-  "main": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "bin"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "yarn clean:dist && tsc -p tsconfig.build.json",
+    "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
+    "clean:dist": "rimraf dist",
+    "dev": "tsx --watch index.ts",
     "start": "tsx index.ts",
     "send": "tsx commands/send.ts",
     "permissions": "tsx commands/permissions.ts",
     "groups": "tsx commands/groups.ts",
     "list": "tsx commands/list.ts",
     "debug": "tsx commands/debug.ts",
-    "content": "tsx commands/content-types.ts"
+    "content": "tsx commands/content-types.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xmtp/agent-sdk": "latest",
-    "@xmtp/content-type-markdown": "^1.0.0",
-    "@xmtp/content-type-reaction": "^2.0.2",
-    "@xmtp/content-type-remote-attachment": "^2.0.0",
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
+    "@xmtp/agent-sdk": "workspace:*",
+    "@xmtp/content-type-markdown": "workspace:*",
+    "@xmtp/content-type-reaction": "workspace:*",
+    "@xmtp/content-type-remote-attachment": "workspace:*",
+    "@xmtp/content-type-reply": "workspace:*",
+    "@xmtp/content-type-text": "workspace:*",
+    "@xmtp/content-type-wallet-send-calls": "workspace:*",
     "commander": "^14.0.2",
     "dotenv": "^17.2.3"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.8.3"
+    "@types/node": "^24.9.1",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   },
+  "packageManager": "yarn@4.5.0",
   "engines": {
     "node": ">=20"
   }

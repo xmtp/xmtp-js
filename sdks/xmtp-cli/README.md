@@ -1,4 +1,4 @@
-# XMTP Copilot CLI
+# XMTP CLI
 
 A barebones CLI built with [Commander.js](https://github.com/tj/commander.js) for managing XMTP protocol operations.
 

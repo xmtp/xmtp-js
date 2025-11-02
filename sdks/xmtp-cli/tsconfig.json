@@ -8,18 +8,13 @@
     "lib": ["ESNext"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "noEmit": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
     "target": "ESNext",
-    "types": ["node"],
-    "baseUrl": "..",
-    "paths": {
-      "@xmtp-copilot/data/*": ["../../data/*"]
-    }
+    "types": ["node"]
   },
   "include": ["**/*.ts"]
 }

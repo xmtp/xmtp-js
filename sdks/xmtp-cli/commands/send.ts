@@ -1,17 +1,16 @@
 #!/usr/bin/env node
-
-import { Command } from "commander";
+import fs from "node:fs";
+import path from "node:path";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { Agent } from "@xmtp/agent-sdk";
 import {
   IdentifierKind,
   type DecodedMessage,
   type Group,
 } from "@xmtp/node-sdk";
-import { Agent } from "@xmtp/agent-sdk";
+import { Command } from "commander";
 import { config as dotenvConfig } from "dotenv";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 // Load .env from project root
 const __filename = fileURLToPath(import.meta.url);

@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-
-import { Command } from "commander";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import { Agent } from "@xmtp/agent-sdk";
 import { Client, XmtpEnv } from "@xmtp/node-sdk";
+import { Command } from "commander";
 import { config as dotenvConfig } from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 
 // Load .env from project root
 const __filename = fileURLToPath(import.meta.url);
@@ -136,16 +135,20 @@ async function runAddressOperation(options: {
     // Show detailed identifier information
     if (state.identifiers.length > 0) {
       console.log(`\n🏷️  Identifiers:`);
-      state.identifiers.forEach((id: { identifier: string; identifierKind: number }, i: number) => {
-        console.log(
-          `   ${i + 1}. ${id.identifier} (kind: ${id.identifierKind})`,
-        );
-      });
+      state.identifiers.forEach(
+        (id: { identifier: string; identifierKind: number }, i: number) => {
+          console.log(
+            `   ${i + 1}. ${id.identifier} (kind: ${id.identifierKind})`,
+          );
+        },
+      );
     }
 
     // Show additional details if available
     if (state.installations.length > 0) {
-      console.log(`\n💡 This address is active on the XMTP network with ${state.installations.length} installation(s).`);
+      console.log(
+        `\n💡 This address is active on the XMTP network with ${state.installations.length} installation(s).`,
+      );
     }
   } catch (error) {
     console.error(

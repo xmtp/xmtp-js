@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-
-import { Command } from "commander";
-import { IdentifierKind, type Group } from "@xmtp/node-sdk";
-import { Agent } from "@xmtp/agent-sdk";
-import { config as dotenvConfig } from "dotenv";
-import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import { Agent } from "@xmtp/agent-sdk";
+import { IdentifierKind, type Group } from "@xmtp/node-sdk";
+import { Command } from "commander";
+import { config as dotenvConfig } from "dotenv";
 
 // Load .env from project root
 const __filename = fileURLToPath(import.meta.url);
@@ -156,31 +155,7 @@ async function runCreateByAddressOperation(config: {
 
   try {
     // Start with the provided member addresses
-    let addresses = [...config.memberAddresses];
-
-    // If --members is specified, add that many random addresses
-    if (config.members && config.members > 0) {
-      const { default: agents } = await import("../../../data/agents");
-
-      // Get random addresses from agents that aren't already in the list
-      const existingAddresses = new Set(addresses.map((a) => a.toLowerCase()));
-      const availableAddresses = agents
-        .map((a) => a.address.toLowerCase())
-        .filter((addr) => !existingAddresses.has(addr));
-
-      // Shuffle and take the requested number of additional addresses
-      const randomAddresses = availableAddresses
-        .sort(() => Math.random() - 0.5)
-        .slice(0, config.members);
-
-      if (randomAddresses.length < config.members) {
-        console.warn(
-          `⚠️  Warning: Only ${randomAddresses.length} random addresses available (requested ${config.members})`,
-        );
-      }
-
-      addresses = [...addresses, ...randomAddresses];
-    }
+    const addresses = [...config.memberAddresses];
 
     console.log(`🚀 Creating group with ${addresses.length} members...`);
 
@@ -227,7 +202,7 @@ async function runMetadataOperation(config: {
 
   try {
     const group = (await agent.client.conversations.getConversationById(
-      config.groupId!,
+      config.groupId,
     )) as Group;
 
     if (!group) {

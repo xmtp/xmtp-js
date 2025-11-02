@@ -1,25 +1,30 @@
 #!/usr/bin/env node
-
-import { Command } from "commander";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import { Agent } from "@xmtp/agent-sdk";
-import { IdentifierKind } from "@xmtp/node-sdk";
-import { ContentTypeMarkdown, MarkdownCodec } from "@xmtp/content-type-markdown";
-import { ContentTypeReply, ReplyCodec } from "@xmtp/content-type-reply";
-import { ContentTypeReaction, ReactionCodec } from "@xmtp/content-type-reaction";
-import { ContentTypeText, TextCodec } from "@xmtp/content-type-text";
 import {
-  RemoteAttachmentCodec,
+  ContentTypeMarkdown,
+  MarkdownCodec,
+} from "@xmtp/content-type-markdown";
+import {
+  ContentTypeReaction,
+  ReactionCodec,
+} from "@xmtp/content-type-reaction";
+import {
   AttachmentCodec,
   ContentTypeRemoteAttachment,
+  RemoteAttachmentCodec,
   type RemoteAttachment,
 } from "@xmtp/content-type-remote-attachment";
+import { ContentTypeReply, ReplyCodec } from "@xmtp/content-type-reply";
+import { ContentTypeText, TextCodec } from "@xmtp/content-type-text";
 import {
-  WalletSendCallsCodec,
   ContentTypeWalletSendCalls,
+  WalletSendCallsCodec,
 } from "@xmtp/content-type-wallet-send-calls";
+import { IdentifierKind } from "@xmtp/node-sdk";
+import { Command } from "commander";
 import { config as dotenvConfig } from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 
 // Load .env from project root
 const __filename = fileURLToPath(import.meta.url);
@@ -277,8 +282,12 @@ async function sendTransactionContent(options: {
   console.log(`✅ Transaction frame sent successfully`);
   console.log(`\n🎉 Transaction content demo complete!`);
   console.log(`   Amount: ${amount} USDC`);
-  console.log(`   From: ${agentAddress.slice(0, 6)}...${agentAddress.slice(-4)}`);
-  console.log(`   To: ${targetAddress.slice(0, 6)}...${targetAddress.slice(-4)}`);
+  console.log(
+    `   From: ${agentAddress.slice(0, 6)}...${agentAddress.slice(-4)}`,
+  );
+  console.log(
+    `   To: ${targetAddress.slice(0, 6)}...${targetAddress.slice(-4)}`,
+  );
   console.log(`   Network: base-sepolia (84532)`);
 }
 
