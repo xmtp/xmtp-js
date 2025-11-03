@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { existsSync } from "node:fs";
 import { spawn } from "child_process";
+import { existsSync } from "node:fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { Command } from "commander";
@@ -132,10 +132,8 @@ program
   .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
-    const commandIndex = rawArgv.findIndex(arg => arg === "groups");
-    const rawArgs = commandIndex >= 0 
-      ? rawArgv.slice(commandIndex + 1)
-      : args;
+    const commandIndex = rawArgv.findIndex((arg) => arg === "groups");
+    const rawArgs = commandIndex >= 0 ? rawArgv.slice(commandIndex + 1) : args;
     const exitCode = await runCommand("groups", rawArgs);
     process.exit(exitCode);
   });
@@ -148,10 +146,8 @@ program
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
     // Get raw args from saved argv before Commander parsed them
-    const commandIndex = rawArgv.findIndex(arg => arg === "send");
-    const rawArgs = commandIndex >= 0 
-      ? rawArgv.slice(commandIndex + 1)
-      : args;
+    const commandIndex = rawArgv.findIndex((arg) => arg === "send");
+    const rawArgs = commandIndex >= 0 ? rawArgv.slice(commandIndex + 1) : args;
     const exitCode = await runCommand("send", rawArgs);
     process.exit(exitCode);
   });
@@ -163,10 +159,8 @@ program
   .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
-    const commandIndex = rawArgv.findIndex(arg => arg === "debug");
-    const rawArgs = commandIndex >= 0 
-      ? rawArgv.slice(commandIndex + 1)
-      : args;
+    const commandIndex = rawArgv.findIndex((arg) => arg === "debug");
+    const rawArgs = commandIndex >= 0 ? rawArgv.slice(commandIndex + 1) : args;
     const exitCode = await runCommand("debug", rawArgs);
     process.exit(exitCode);
   });
@@ -178,10 +172,8 @@ program
   .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
-    const commandIndex = rawArgv.findIndex(arg => arg === "permissions");
-    const rawArgs = commandIndex >= 0 
-      ? rawArgv.slice(commandIndex + 1)
-      : args;
+    const commandIndex = rawArgv.findIndex((arg) => arg === "permissions");
+    const rawArgs = commandIndex >= 0 ? rawArgv.slice(commandIndex + 1) : args;
     const exitCode = await runCommand("permissions", rawArgs);
     process.exit(exitCode);
   });
@@ -193,10 +185,8 @@ program
   .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
-    const commandIndex = rawArgv.findIndex(arg => arg === "list");
-    const rawArgs = commandIndex >= 0 
-      ? rawArgv.slice(commandIndex + 1)
-      : args;
+    const commandIndex = rawArgv.findIndex((arg) => arg === "list");
+    const rawArgs = commandIndex >= 0 ? rawArgv.slice(commandIndex + 1) : args;
     const exitCode = await runCommand("list", rawArgs);
     process.exit(exitCode);
   });
@@ -208,10 +198,8 @@ program
   .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
-    const commandIndex = rawArgv.findIndex(arg => arg === "content");
-    const rawArgs = commandIndex >= 0 
-      ? rawArgv.slice(commandIndex + 1)
-      : args;
+    const commandIndex = rawArgv.findIndex((arg) => arg === "content");
+    const rawArgs = commandIndex >= 0 ? rawArgv.slice(commandIndex + 1) : args;
     const exitCode = await runCommand("content-types", rawArgs);
     process.exit(exitCode);
   });
