@@ -4236,7 +4236,6 @@ __metadata:
     "@xmtp/content-type-text": "workspace:*"
     "@xmtp/content-type-wallet-send-calls": "workspace:*"
     commander: "npm:^14.0.2"
-    dotenv: "npm:^17.2.3"
     rimraf: "npm:^6.0.1"
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
@@ -5881,13 +5880,6 @@ __metadata:
   version: 16.6.1
   resolution: "dotenv@npm:16.6.1"
   checksum: 10/1d1897144344447ffe62aa1a6d664f4cd2e0784e0aff787eeeec1940ded32f8e4b5b506d665134fc87157baa086fce07ec6383970a2b6d2e7985beaed6a4cc14
-  languageName: node
-  linkType: hard
-
-"dotenv@npm:^17.2.3":
-  version: 17.2.3
-  resolution: "dotenv@npm:17.2.3"
-  checksum: 10/f8b78626ebfff6e44420f634773375c9651808b3e1a33df6d4cc19120968eea53e100f59f04ec35f2a20b2beb334b6aba4f24040b2f8ad61773f158ac042a636
   languageName: node
   linkType: hard
 
