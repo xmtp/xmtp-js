@@ -42,7 +42,7 @@ async function runCommand(
         resolve(code || 0);
       });
 
-      child.on("error", (error) => {
+      child.on("error", () => {
         // If spawn fails, fall through to tsx
         resolve(-1);
       });
