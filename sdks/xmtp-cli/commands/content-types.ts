@@ -1,30 +1,20 @@
 #!/usr/bin/env node
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { Agent } from "@xmtp/agent-sdk";
+import type { Agent } from "@xmtp/agent-sdk";
+import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
+import { ContentTypeReaction } from "@xmtp/content-type-reaction";
 import {
-  ContentTypeMarkdown,
-  MarkdownCodec,
-} from "@xmtp/content-type-markdown";
-import {
-  ContentTypeReaction,
-  ReactionCodec,
-} from "@xmtp/content-type-reaction";
-import {
-  AttachmentCodec,
   ContentTypeRemoteAttachment,
-  RemoteAttachmentCodec,
   type RemoteAttachment,
 } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply, ReplyCodec } from "@xmtp/content-type-reply";
-import { ContentTypeText, TextCodec } from "@xmtp/content-type-text";
-import {
-  ContentTypeWalletSendCalls,
-  WalletSendCallsCodec,
-} from "@xmtp/content-type-wallet-send-calls";
+import { ContentTypeReply } from "@xmtp/content-type-reply";
+import { ContentTypeText } from "@xmtp/content-type-text";
+import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import { Command } from "commander";
 import { config as dotenvConfig } from "dotenv";
+import { getAgent } from "./agent";
 
 // Load .env from project root
 const __filename = fileURLToPath(import.meta.url);
@@ -81,22 +71,6 @@ program
         program.help();
     }
   });
-
-async function getAgent(): Promise<Agent> {
-  return Agent.createFromEnv({
-    dbPath: (inboxId) =>
-      `${process.env.RAILWAY_VOLUME_MOUNT_PATH ?? join(rootDir, ".xmtp")}/${process.env.XMTP_ENV}-${inboxId.slice(0, 8)}.db3`,
-    codecs: [
-      new TextCodec(),
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
-}
 
 async function getOrCreateConversation(
   options: { target?: string; groupId?: string },
@@ -244,20 +218,55 @@ async function sendAttachmentContent(options: {
 }): Promise<void> {
   console.log(`📎 Sending attachment content...`);
   const agent = await getAgent();
+
+  // Log network/environment
+  const network = process.env.XMTP_ENV ?? "production";
+  console.log(`🌐 Network:`);
+  console.log(`   Environment: ${network}`);
+
+  // Log sender information
+  const senderAddress = agent.client.accountIdentifier?.identifier || "Unknown";
+  const senderInboxId = agent.client.inboxId;
+  console.log(`📤 Sender:`);
+  console.log(`   Address: ${senderAddress}`);
+  console.log(`   Inbox ID: ${senderInboxId}`);
+
+  // Log recipient information
+  if (options.target) {
+    console.log(`📥 Recipient (Target):`);
+    console.log(`   Address: ${options.target}`);
+  } else if (options.groupId) {
+    console.log(`📥 Recipient (Group):`);
+    console.log(`   Group ID: ${options.groupId}`);
+  }
+
   const conversation = await getOrCreateConversation(options, agent);
+
+  console.log(`💬 Conversation:`);
+  console.log(`   Conversation ID: ${conversation.id}`);
 
   console.log(`📋 Preparing remote attachment...`);
   await conversation.send("I'll send you an attachment now...");
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const attachment = parseSavedAttachment();
+  console.log(`📎 Sending attachment...`);
+  console.log(`   Network: ${network}`);
+  console.log(`   From: ${senderAddress} (${senderInboxId})`);
+  console.log(`   To: ${options.target || options.groupId || "Unknown"}`);
+  console.log(`   Conversation: ${conversation.id}`);
   await conversation.send(attachment, ContentTypeRemoteAttachment);
 
   console.log(`✅ Remote attachment sent successfully`);
   console.log(`\n🎉 Attachment content demo complete!`);
+  console.log(`   Network: ${network}`);
   console.log(
     `   Attachment: ${attachment.filename} (${attachment.contentLength} bytes)`,
   );
+  console.log(
+    `   Sent from: ${senderAddress} → ${options.target || options.groupId || "Unknown"}`,
+  );
+  console.log(`   Conversation ID: ${conversation.id}`);
 }
 
 async function sendTransactionContent(options: {

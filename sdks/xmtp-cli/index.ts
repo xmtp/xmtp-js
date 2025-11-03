@@ -6,7 +6,11 @@ import { Command } from "commander";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const rootDir = join(__dirname, "..", "..");
+// From dist/index.js: dist -> xmtp-cli -> sdks -> root
+const rootDir = join(__dirname, "..", "..", "..");
+
+// Save raw argv before Commander parses it
+const rawArgv = [...process.argv];
 
 const program = new Command();
 
@@ -21,11 +25,12 @@ function runTsxCommand(
   args: string[] = [],
 ): Promise<number> {
   const fullPath = join(rootDir, scriptPath);
-  const tsxPath = join(rootDir, "node_modules", ".bin", "tsx");
+  // Try to find tsx in node_modules - check root first, then fallback to local
+  // If not found at root, try using which/tsx from PATH or yarn/npx
   return new Promise((resolve) => {
-    const child = spawn(tsxPath, [fullPath, ...args], {
+    const child = spawn("tsx", [fullPath, ...args], {
       stdio: "inherit",
-      shell: false,
+      shell: true,
       cwd: rootDir,
     });
 
@@ -87,11 +92,17 @@ program
 program
   .command("groups")
   .description("Manage XMTP groups and DMs")
+  .allowUnknownOption(true)
+  .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
+    const commandIndex = rawArgv.findIndex(arg => arg === "groups");
+    const rawArgs = commandIndex >= 0 
+      ? rawArgv.slice(commandIndex + 1)
+      : args;
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/groups.ts",
-      args,
+      rawArgs,
     );
     process.exit(exitCode);
   });
@@ -99,11 +110,18 @@ program
 program
   .command("send")
   .description("Send messages to conversations")
+  .allowUnknownOption(true)
+  .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
+    // Get raw args from saved argv before Commander parsed them
+    const commandIndex = rawArgv.findIndex(arg => arg === "send");
+    const rawArgs = commandIndex >= 0 
+      ? rawArgv.slice(commandIndex + 1)
+      : args;
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/send.ts",
-      args,
+      rawArgs,
     );
     process.exit(exitCode);
   });
@@ -111,11 +129,17 @@ program
 program
   .command("debug")
   .description("Debug and information commands")
+  .allowUnknownOption(true)
+  .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
+    const commandIndex = rawArgv.findIndex(arg => arg === "debug");
+    const rawArgs = commandIndex >= 0 
+      ? rawArgv.slice(commandIndex + 1)
+      : args;
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/debug.ts",
-      args,
+      rawArgs,
     );
     process.exit(exitCode);
   });
@@ -123,11 +147,17 @@ program
 program
   .command("permissions")
   .description("Manage group permissions")
+  .allowUnknownOption(true)
+  .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
+    const commandIndex = rawArgv.findIndex(arg => arg === "permissions");
+    const rawArgs = commandIndex >= 0 
+      ? rawArgv.slice(commandIndex + 1)
+      : args;
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/permissions.ts",
-      args,
+      rawArgs,
     );
     process.exit(exitCode);
   });
@@ -135,11 +165,17 @@ program
 program
   .command("list")
   .description("List conversations and messages")
+  .allowUnknownOption(true)
+  .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
+    const commandIndex = rawArgv.findIndex(arg => arg === "list");
+    const rawArgs = commandIndex >= 0 
+      ? rawArgv.slice(commandIndex + 1)
+      : args;
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/list.ts",
-      args,
+      rawArgs,
     );
     process.exit(exitCode);
   });
@@ -147,13 +183,32 @@ program
 program
   .command("content")
   .description("Content type operations")
+  .allowUnknownOption(true)
+  .allowExcessArguments(true)
   .argument("[args...]", "Command arguments")
   .action(async (args: string[]) => {
+    const commandIndex = rawArgv.findIndex(arg => arg === "content");
+    const rawArgs = commandIndex >= 0 
+      ? rawArgv.slice(commandIndex + 1)
+      : args;
     const exitCode = await runTsxCommand(
       "sdks/xmtp-cli/commands/content-types.ts",
-      args,
+      rawArgs,
     );
     process.exit(exitCode);
+  });
+
+program
+  .command("lint")
+  .description("Run linter (yarn lint from root)")
+  .action(() => {
+    console.log("🔍 Running linter from root...\n");
+    const child = spawn("yarn", ["lint"], {
+      stdio: "inherit",
+      shell: true,
+      cwd: rootDir,
+    });
+    child.on("close", (code) => process.exit(code || 0));
   });
 
 program.parse();
