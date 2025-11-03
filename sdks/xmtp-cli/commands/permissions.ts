@@ -1,16 +1,6 @@
-#!/usr/bin/env node
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 import { type Group, type PermissionUpdateType } from "@xmtp/node-sdk";
 import { Command } from "commander";
-import { config as dotenvConfig } from "dotenv";
 import { getAgent } from "./agent";
-
-// Load .env from project root
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const rootDir = join(__dirname, "../..", "..");
-dotenvConfig({ path: join(rootDir, ".env") });
 
 const program = new Command();
 

@@ -1,6 +1,3 @@
-#!/usr/bin/env node
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 import type { Agent } from "@xmtp/agent-sdk";
 import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
 import { ContentTypeReaction } from "@xmtp/content-type-reaction";
@@ -13,14 +10,7 @@ import { ContentTypeText } from "@xmtp/content-type-text";
 import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import { Command } from "commander";
-import { config as dotenvConfig } from "dotenv";
 import { getAgent } from "./agent";
-
-// Load .env from project root
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const rootDir = join(__dirname, "../..", "..");
-dotenvConfig({ path: join(rootDir, ".env") });
 
 const program = new Command();
 

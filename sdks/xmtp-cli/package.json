@@ -24,7 +24,8 @@
     "list": "tsx commands/list.ts",
     "debug": "tsx commands/debug.ts",
     "content": "tsx commands/content-types.ts",
-    "lint": "cd ../.. && yarn build && yarn eslint sdks/xmtp-cli",
+    "lint": "cd ../.. && yarn eslint sdks/xmtp-cli",
+    "format": "cd ../.. && yarn build && yarn format sdks/xmtp-cli",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -35,8 +36,7 @@
     "@xmtp/content-type-reply": "workspace:*",
     "@xmtp/content-type-text": "workspace:*",
     "@xmtp/content-type-wallet-send-calls": "workspace:*",
-    "commander": "^14.0.2",
-    "dotenv": "^17.2.3"
+    "commander": "^14.0.2"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",
