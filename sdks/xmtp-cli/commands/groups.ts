@@ -10,7 +10,8 @@ export interface GroupsOptions {
   description?: string;
   type?: ConversationType;
   target?: string;
-  members?: string;
+  memberAddresses?: string;
+  memberInboxIds?: string;
   imageUrl?: string;
 }
 
@@ -25,13 +26,17 @@ export function registerGroupsCommand(program: Command) {
     .option("--type <type>", "Conversation type: dm or group", "dm")
     .option("--target <address>", "Target address (required for DM)")
     .option(
-      "--members <members>",
-      "Comma-separated member addresses or inbox IDs",
+      "--member-addresses <addresses>",
+      "Comma-separated member Ethereum addresses",
     )
+    .option("--member-inbox-ids <inboxIds>", "Comma-separated member inbox IDs")
     .option("--image-url <url>", "Image URL for metadata operations")
     .action(async (operation: string, options: GroupsOptions) => {
-      const members = options.members
-        ? options.members.split(",").map((a: string) => a.trim())
+      const memberAddresses = options.memberAddresses
+        ? options.memberAddresses.split(",").map((a: string) => a.trim())
+        : undefined;
+      const memberInboxIds = options.memberInboxIds
+        ? options.memberInboxIds.split(",").map((a: string) => a.trim())
         : undefined;
 
       switch (operation) {
@@ -41,7 +46,8 @@ export function registerGroupsCommand(program: Command) {
             groupName: options.name,
             groupDescription: options.description,
             targetAddress: options.target,
-            members,
+            memberAddresses,
+            memberInboxIds,
           });
           break;
         case "metadata":
@@ -64,8 +70,11 @@ export async function runGroupsCommand(
   operation: string,
   options: GroupsOptions,
 ): Promise<void> {
-  const members = options.members
-    ? options.members.split(",").map((a: string) => a.trim())
+  const memberAddresses = options.memberAddresses
+    ? options.memberAddresses.split(",").map((a: string) => a.trim())
+    : undefined;
+  const memberInboxIds = options.memberInboxIds
+    ? options.memberInboxIds.split(",").map((a: string) => a.trim())
     : undefined;
 
   switch (operation) {
@@ -75,7 +84,8 @@ export async function runGroupsCommand(
         groupName: options.name,
         groupDescription: options.description,
         targetAddress: options.target,
-        members,
+        memberAddresses,
+        memberInboxIds,
       });
       break;
     case "metadata":
@@ -97,7 +107,8 @@ async function runCreateOperation(config: {
   groupName?: string;
   groupDescription?: string;
   targetAddress?: string;
-  members?: string[];
+  memberAddresses?: string[];
+  memberInboxIds?: string[];
 }): Promise<void> {
   const agent = await getAgent();
 
@@ -117,22 +128,12 @@ async function runCreateOperation(config: {
       console.log(`🔗 URL: https://xmtp.chat/conversations/${conversation.id}`);
     } else {
       // group
-      if (!config.members || config.members.length === 0) {
-        console.error(`❌ --members is required when creating a group`);
-        process.exit(1);
-      }
-
-      // Detect if members are addresses or inbox IDs
-      const areAddresses = config.members.every((member) =>
-        member.toLowerCase().startsWith("0x"),
-      );
-      const areInboxIds = config.members.every(
-        (member) => !member.toLowerCase().startsWith("0x"),
-      );
-
-      if (!areAddresses && !areInboxIds) {
+      if (
+        (!config.memberAddresses || config.memberAddresses.length === 0) &&
+        (!config.memberInboxIds || config.memberInboxIds.length === 0)
+      ) {
         console.error(
-          `❌ Members must be all addresses or all inbox IDs (cannot mix)`,
+          `❌ At least one of --member-addresses or --member-inbox-ids is required when creating a group`,
         );
         process.exit(1);
       }
@@ -152,72 +153,25 @@ async function runCreateOperation(config: {
         },
       );
 
-      console.log(
-        `✅ Empty group created. Adding ${config.members.length} members (${areAddresses ? "addresses" : "inbox IDs"})...`,
-      );
+      // Add members by addresses
+      if (config.memberAddresses && config.memberAddresses.length > 0) {
+        console.log(
+          `Adding ${config.memberAddresses.length} members by address...`,
+        );
+        await group.addMembersByIdentifiers(
+          config.memberAddresses.map((member) => ({
+            identifier: member,
+            identifierKind: IdentifierKind.Ethereum,
+          })),
+        );
+      }
 
-      // Add members to the group
-      if (areAddresses) {
-        // Use addMembersByIdentifiers for addresses
-        if (typeof group.addMembersByIdentifiers === "function") {
-          await group.addMembersByIdentifiers(
-            config.members.map((member) => ({
-              identifier: member,
-              identifierKind: IdentifierKind.Ethereum,
-            })),
-          );
-        } else if (
-          "addMembers" in group &&
-          typeof (
-            group as Group & {
-              addMembers: (members: `0x${string}`[]) => Promise<void>;
-            }
-          ).addMembers === "function"
-        ) {
-          // Try addMembers with addresses
-          await (
-            group as Group & {
-              addMembers: (members: `0x${string}`[]) => Promise<void>;
-            }
-          ).addMembers(config.members as `0x${string}`[]);
-        } else {
-          console.error(
-            `❌ No method available to add members by address. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(group)).join(", ")}`,
-          );
-          process.exit(1);
-        }
-      } else {
-        // Use addMembers for inbox IDs
-        if (
-          "addMembers" in group &&
-          typeof (
-            group as Group & {
-              addMembers: (members: string[]) => Promise<void>;
-            }
-          ).addMembers === "function"
-        ) {
-          await (
-            group as Group & {
-              addMembers: (members: string[]) => Promise<void>;
-            }
-          ).addMembers(config.members);
-        } else if (typeof group.addMembersByIdentifiers === "function") {
-          // Try to resolve inbox IDs to identifiers if needed
-          // For now, try passing inbox IDs directly
-          console.log(`⚠️  Attempting to add members by inbox ID...`);
-          // This might not work, but we'll try it
-          await group.addMembersByIdentifiers(
-            config.members.map((member) => ({
-              identifier: member,
-              identifierKind: 0, // Assuming inbox ID kind
-            })),
-          );
-        } else {
-          console.error(
-            `❌ No method available to add members by inbox ID. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(group)).join(", ")}`,
-          );
-          process.exit(1);
-        }
+      // Add members by inbox IDs
+      if (config.memberInboxIds && config.memberInboxIds.length > 0) {
+        console.log(
+          `Adding ${config.memberInboxIds.length} members by inbox ID...`,
+        );
+        await group.addMembers(config.memberInboxIds);
       }
 
       console.log(`✅ Group created: ${group.id}`);
