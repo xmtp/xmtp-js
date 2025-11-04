@@ -41,6 +41,7 @@ xmtp groups metadata --group-id <id> --name "New Name"
 ```
 
 **Options:**
+
 - `--target <address>` - Target address (required for DM)
 - `--type <type>` - Conversation type: `dm` or `group` (default: `dm`)
 - `--name <name>` - Group name
@@ -61,6 +62,7 @@ xmtp send --group-id abc123... --message "Hello group!"
 ```
 
 **Options:**
+
 - `--target <address>` - Target wallet address
 - `--group-id <id>` - Group ID
 - `--message <text>` - Message text (required)
@@ -86,6 +88,7 @@ xmtp debug inbox --inbox-id abc...
 **Operations:** `info` (default), `address`, `inbox`, `resolve`, `installations`, `key-package`
 
 **Options:**
+
 - `--address <address>` - Ethereum address
 - `--inbox-id <id>` - Inbox ID
 
@@ -107,6 +110,7 @@ xmtp permissions update-permissions --group-id <id> --features update-metadata -
 **Operations:** `list` (default), `info`, `update-permissions`
 
 **Options:**
+
 - `--group-id <id>` - Group ID (required)
 - `--features <features>` - Comma-separated features to update
 - `--permissions <type>` - Permission type: `everyone`, `disabled`, `admin-only`, `super-admin-only`
@@ -132,6 +136,7 @@ xmtp list find --address 0x1234...
 **Operations:** `conversations` (default), `members`, `messages`, `find`
 
 **Options:**
+
 - `--conversation-id <id>` - Conversation ID
 - `--limit <count>` - Maximum results (default: 50)
 - `--offset <count>` - Pagination offset (default: 0)
@@ -156,6 +161,7 @@ xmtp content attachment --target 0x1234...
 **Operations:** `text` (default), `markdown`, `attachment`, `transaction`, `deeplink`, `miniapp`
 
 **Options:**
+
 - `--target <address>` - Target wallet address
 - `--group-id <id>` - Group ID
 - `--amount <amount>` - Amount for transactions (default: 0.1)
