@@ -1,49 +1,56 @@
 import { Client, type KeyPackageStatus, type XmtpEnv } from "@xmtp/node-sdk";
-import { Command } from "commander";
+import type { Command } from "commander";
 import { getAgent } from "./agent";
 
-const program = new Command();
-
-interface DebugOptions {
+export interface DebugOptions {
   address?: string;
   inboxId?: string;
 }
 
-program
-  .name("debug")
-  .description("Debug and information commands")
-  .argument(
-    "[operation]",
-    "Operation: address, inbox, resolve, info, installations, key-package",
-    "info",
-  )
-  .option("--address <address>", "Ethereum address")
-  .option("--inbox-id <id>", "Inbox ID")
-  .action(async (operation: string, options: DebugOptions) => {
-    switch (operation) {
-      case "address":
-        await runAddressOperation(options);
-        break;
-      case "inbox":
-        await runInboxOperation(options);
-        break;
-      case "resolve":
-        await runResolveOperation(options);
-        break;
-      case "info":
-        await runInfoOperation();
-        break;
-      case "installations":
-        await runInstallationsOperation(options);
-        break;
-      case "key-package":
-        await runKeyPackageOperation(options);
-        break;
-      default:
-        console.error(`❌ Unknown operation: ${operation}`);
-        program.help();
-    }
-  });
+export function registerDebugCommand(program: Command) {
+  program
+    .command("debug")
+    .description("Debug and information commands")
+    .argument(
+      "[operation]",
+      "Operation: address, inbox, resolve, info, installations, key-package",
+      "info",
+    )
+    .option("--address <address>", "Ethereum address")
+    .option("--inbox-id <id>", "Inbox ID")
+    .action(async (operation: string, options: DebugOptions) => {
+      await runDebugCommand(operation, options);
+    });
+}
+
+export async function runDebugCommand(
+  operation: string,
+  options: DebugOptions,
+): Promise<void> {
+  switch (operation) {
+    case "address":
+      await runAddressOperation(options);
+      break;
+    case "inbox":
+      await runInboxOperation(options);
+      break;
+    case "resolve":
+      await runResolveOperation(options);
+      break;
+    case "info":
+      await runInfoOperation();
+      break;
+    case "installations":
+      await runInstallationsOperation(options);
+      break;
+    case "key-package":
+      await runKeyPackageOperation(options);
+      break;
+    default:
+      console.error(`❌ Unknown operation: ${operation}`);
+      process.exit(1);
+  }
+}
 
 async function runAddressOperation(options: {
   address?: string;
@@ -404,5 +411,3 @@ async function runKeyPackageOperation(options: {
     process.exit(1);
   }
 }
-
-program.parse();

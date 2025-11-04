@@ -1,17 +1,58 @@
 # XMTP CLI
 
-A barebones CLI built with [Commander.js](https://github.com/tj/commander.js) for managing XMTP protocol operations.
+A command-line interface for managing XMTP protocol operations. 🚀
+
+## Installation
+
+Choose your package manager:
+
+```bash
+npm install -g @xmtp/cli
+
+# or
+
+pnpm add -g @xmtp/cli
+
+# or
+
+yarn global add @xmtp/cli
+```
 
 ## Quick Start
 
 ```bash
-# Run commands via yarn or the xmtp binary
-yarn groups --help
-yarn send --target 0x123...
+# Get general help
+xmtp --help
+
+# Check your agent setup
 xmtp debug info
+
+# Send a message
+xmtp send --target 0x1234... --message "Hello!"
 ```
 
-## Commands Overview
+## Environment Variables
+
+The XMTP CLI uses environment variables from your `.env` file or `process.env`. Set the following variables:
+
+**Required Variables:**
+
+| Variable                 | Purpose                                                                                                         | Example                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `XMTP_DB_DIRECTORY`      | [Database directory](https://docs.xmtp.org/agents/build-agents/local-database#understand-local-database-files)  | `XMTP_DB_DIRECTORY=my/database/dir`     |
+| `XMTP_DB_ENCRYPTION_KEY` | [Database encryption key](https://docs.xmtp.org/agents/concepts/identity#keep-the-database-encryption-key-safe) | `XMTP_DB_ENCRYPTION_KEY=0xabcd...1234`  |
+| `XMTP_ENV`               | [Network environment](https://docs.xmtp.org/chat-apps/core-messaging/create-a-client#xmtp-network-environments) | `XMTP_ENV=dev` or `XMTP_ENV=production` |
+| `XMTP_WALLET_KEY`        | [Private key for Ethereum wallet](https://docs.xmtp.org/chat-apps/core-messaging/create-a-signer)               | `XMTP_WALLET_KEY=0x1234...abcd`         |
+
+**Example `.env` file:**
+
+```bash
+XMTP_ENV=dev
+XMTP_WALLET_KEY=0x1234...
+XMTP_DB_ENCRYPTION_KEY=0xabcd...
+```
+
+## Commands
 
 ### Groups Command
 
@@ -19,23 +60,25 @@ Manage XMTP groups and direct messages.
 
 ```bash
 # Create a DM (default type)
-yarn groups create --target 0x123...
+xmtp groups create --target 0x123...
 
 # Create a DM explicitly
-yarn groups create --type dm --target 0x123...
+xmtp groups create --type dm --target 0x123...
 
-# Create a group with specific addresses
-yarn groups create-by-address --name "Team" --member-addresses "0x123...,0x456..."
+# Create a group with addresses (automatically detected)
+xmtp groups create --type group --name "Team" --members "0x123...,0x456..."
+
+# Create a group with inbox IDs (automatically detected)
+xmtp groups create --type group --name "Team" --members "inbox1...,inbox2..."
 
 # Update group metadata
-yarn groups metadata --group-id <id> --name "New Name"
-yarn groups metadata --group-id <id> --image-url "https://example.com/image.jpg"
+xmtp groups metadata --group-id <id> --name "New Name"
+xmtp groups metadata --group-id <id> --image-url "https://example.com/image.jpg"
 ```
 
 **Operations:**
 
 - `create` - Create DMs or groups (default: creates DM)
-- `create-by-address` - Create groups using Ethereum addresses
 - `metadata` - Update group name, description, or image
 
 **Options:**
@@ -45,7 +88,7 @@ yarn groups metadata --group-id <id> --image-url "https://example.com/image.jpg"
 - `--description <desc>` - Group description
 - `--type <type>` - Conversation type: `dm` or `group` (default: `dm`)
 - `--target <address>` - Target address (required for DM creation)
-- `--member-addresses <addresses>` - Comma-separated Ethereum addresses
+- `--members <members>` - Comma-separated member addresses or inbox IDs (automatically detected)
 - `--image-url <url>` - Image URL for metadata updates
 
 ### Send Command
@@ -54,19 +97,19 @@ Send messages to conversations.
 
 ```bash
 # Send a single message
-yarn send --target 0x1234... --message "Hello!"
+xmtp send --target 0x1234... --message "Hello!"
 
 # Send multiple messages (load testing)
-yarn send --target 0x1234... --users 10
+xmtp send --target 0x1234... --users 10
 
 # Send to a group
-yarn send --group-id abc123... --message "Hello group!"
+xmtp send --group-id abc123... --message "Hello group!"
 
 # Send with multiple attempts
-yarn send --target 0x1234... --users 100 --attempts 5
+xmtp send --target 0x1234... --users 100 --attempts 5
 
 # Send and wait for responses
-yarn send --target 0x1234... --users 10 --wait
+xmtp send --target 0x1234... --users 10 --wait
 ```
 
 **Options:**
@@ -85,25 +128,25 @@ Get debug and diagnostic information.
 
 ```bash
 # General info about your agent
-yarn debug info
+xmtp debug info
 
 # Resolve address to inbox ID
-yarn debug resolve --address 0x1234...
+xmtp debug resolve --address 0x1234...
 
 # Resolve inbox ID to address
-yarn debug resolve --inbox-id abc...
+xmtp debug resolve --inbox-id abc...
 
 # Get address information
-yarn debug address --address 0x1234...
+xmtp debug address --address 0x1234...
 
 # Get inbox information
-yarn debug inbox --inbox-id abc...
+xmtp debug inbox --inbox-id abc...
 
 # Check key package status
-yarn debug key-package --inbox-id abc...
+xmtp debug key-package --inbox-id abc...
 
 # Get installations
-yarn debug installations --inbox-id abc...
+xmtp debug installations --inbox-id abc...
 ```
 
 **Operations:**
@@ -126,13 +169,13 @@ Manage group permissions.
 
 ```bash
 # List group members and permissions
-yarn permissions list --group-id <id>
+xmtp permissions list --group-id <id>
 
 # Get detailed group info
-yarn permissions info --group-id <id>
+xmtp permissions info --group-id <id>
 
 # Update permissions
-yarn permissions update-permissions --group-id <id> --features update-metadata --permissions admin-only
+xmtp permissions update-permissions --group-id <id> --features update-metadata --permissions admin-only
 ```
 
 **Operations:**
@@ -161,20 +204,20 @@ List conversations, members, and messages.
 
 ```bash
 # List all conversations
-yarn list conversations
+xmtp list conversations
 
 # List with pagination
-yarn list conversations --limit 20 --offset 10
+xmtp list conversations --limit 20 --offset 10
 
 # List members of a conversation
-yarn list members --conversation-id <id>
+xmtp list members --conversation-id <id>
 
 # List messages in a conversation
-yarn list messages --conversation-id <id>
+xmtp list messages --conversation-id <id>
 
 # Find conversation by inbox ID or address
-yarn list find --inbox-id abc...
-yarn list find --address 0x1234...
+xmtp list find --inbox-id abc...
+xmtp list find --address 0x1234...
 ```
 
 **Operations:**
@@ -198,16 +241,16 @@ Demonstrate various XMTP content types.
 
 ```bash
 # Send text with reply and reaction
-yarn content text --target 0x1234...
+xmtp content text --target 0x1234...
 
 # Send markdown formatted message
-yarn content markdown --target 0x1234...
+xmtp content markdown --target 0x1234...
 
 # Send attachment (simplified)
-yarn content attachment --target 0x1234...
+xmtp content attachment --target 0x1234...
 
 # Send to a group
-yarn content text --group-id abc123...
+xmtp content text --group-id abc123...
 ```
 
 **Operations:**
@@ -225,17 +268,98 @@ yarn content text --group-id abc123...
 - `--group-id <id>` - Group ID
 - `--amount <amount>` - Amount for transactions (default: 0.1)
 
-## Environment Variables
-
-Commands use environment variables from your `.env` file:
+## Getting Help
 
 ```bash
-XMTP_ENV=dev                    # local, dev, production
-XMTP_WALLET_KEY=...             # Agent wallet private key
-XMTP_DB_ENCRYPTION_KEY=...      # Database encryption key
+# General help
+xmtp --help
+
+# Command-specific help
+xmtp groups --help
+xmtp send --help
+xmtp debug --help
+xmtp permissions --help
+xmtp list --help
+xmtp content --help
 ```
 
-## Architecture
+## Examples
+
+### Create a Group and Send a Message
+
+```bash
+# Create a group
+xmtp groups create --type group --name "Team Chat" \
+  --members "0x123...,0x456...,0x789..."
+
+# Send a message to the group
+xmtp send --group-id <group-id> --message "Welcome to the team!"
+```
+
+### Load Testing
+
+```bash
+# Send 100 messages with 5 attempts
+xmtp send --target 0x1234... --users 100 --attempts 5 --threshold 95
+```
+
+### Debug Agent Setup
+
+```bash
+# Check your agent is working
+xmtp debug info
+
+# Verify installation
+xmtp debug installations --inbox-id <your-inbox-id>
+```
+
+### Monitor Conversations
+
+```bash
+# List recent conversations
+xmtp list conversations --limit 10
+
+# Check messages in a conversation
+xmtp list messages --conversation-id <id> --limit 20
+```
+
+## Troubleshooting
+
+**"Agent creation failed"**
+
+- Check your `.env` file has `XMTP_WALLET_KEY` and `XMTP_DB_ENCRYPTION_KEY`
+- Verify `XMTP_ENV` is set to correct environment (dev/production)
+
+**"No conversations found"**
+
+- Run `xmtp debug info` to verify agent setup
+- Check you're using the correct environment
+
+**"Group not found"**
+
+- Verify the group ID is correct
+- Ensure you have access to the group
+- Check environment matches the group's environment
+
+## Development
+
+For developers working on the CLI repository:
+
+### Internal Commands
+
+When working in the repository, you can use yarn scripts to run commands directly:
+
+```bash
+# Run commands during development
+yarn groups --help
+yarn send --target 0x1234...
+yarn debug info
+yarn permissions list --group-id <id>
+yarn list conversations
+yarn content text --target 0x1234...
+```
+
+### Architecture
 
 The CLI uses a minimal architecture built with Commander.js:
 
@@ -258,82 +382,28 @@ Each command file:
 3. Implements only the essential command logic
 4. No shared utilities or abstractions
 
-## Getting Help
+### Building
 
 ```bash
-# General help
-xmtp --help
+# Build the CLI
+yarn build
 
-# Command-specific help
-yarn groups --help
-yarn send --help
-yarn debug --help
-yarn permissions --help
-yarn list --help
-yarn content --help
+# Run type checking
+yarn typecheck
+
+# Lint code
+yarn lint
+
+# Format code
+yarn format
 ```
 
-## Examples
+## Contributing / Feedback
 
-### Create a Group and Send a Message
+We'd love your feedback: [open an issue](https://github.com/xmtp/xmtp-js/issues) or discussion. PRs welcome for docs, examples, and core improvements.
 
-```bash
-# Create a group
-yarn groups create-by-address --name "Team Chat" \
-  --member-addresses "0x123...,0x456...,0x789..."
+---
 
-# Send a message to the group
-yarn send --group-id <group-id> --message "Welcome to the team!"
-```
+Build something delightful. Then tell us what you wish was easier.
 
-### Load Testing
-
-```bash
-# Send 100 messages with 5 attempts
-yarn send --target 0x1234... --users 100 --attempts 5 --threshold 95
-```
-
-### Debug Agent Setup
-
-```bash
-# Check your agent is working
-yarn debug info
-
-# Verify installation
-yarn debug installations --inbox-id <your-inbox-id>
-```
-
-### Monitor Conversations
-
-```bash
-# List recent conversations
-yarn list conversations --limit 10
-
-# Check messages in a conversation
-yarn list messages --conversation-id <id> --limit 20
-```
-
-## Notes
-
-- Commands can be run via `yarn <command>` or globally via `xmtp <command>`
-- All commands require proper environment setup and authentication
-- The CLI focuses on simplicity - each command is self-contained
-- No agent utilities or complex abstractions - just raw Commander.js power
-
-## Troubleshooting
-
-**"Agent creation failed"**
-
-- Check your `.env` file has `XMTP_WALLET_KEY` and `XMTP_DB_ENCRYPTION_KEY`
-- Verify `XMTP_ENV` is set to correct environment (local/dev/production)
-
-**"No conversations found"**
-
-- Run `yarn debug info` to verify agent setup
-- Check you're using the correct environment
-
-**"Group not found"**
-
-- Verify the group ID is correct
-- Ensure you have access to the group
-- Check environment matches the group's environment
+Happy hacking 💫

@@ -1,54 +1,65 @@
 import { type Group, type PermissionUpdateType } from "@xmtp/node-sdk";
-import { Command } from "commander";
+import type { Command } from "commander";
 import { getAgent } from "./agent";
 
-const program = new Command();
-
-interface PermissionsOptions {
+export interface PermissionsOptions {
   groupId?: string;
   features?: string;
   permissions?: string;
 }
 
-program
-  .name("permissions")
-  .description("Manage group permissions")
-  .argument("[operation]", "Operation: list, info, update-permissions", "list")
-  .option("--group-id <id>", "Group ID (required)")
-  .option("--features <features>", "Comma-separated features to update")
-  .option(
-    "--permissions <type>",
-    "Permission type: everyone, disabled, admin-only, super-admin-only",
-  )
-  .action(async (operation: string, options: PermissionsOptions) => {
-    if (!options.groupId) {
-      console.error(`❌ --group-id is required`);
+export function registerPermissionsCommand(program: Command) {
+  program
+    .command("permissions")
+    .description("Manage group permissions")
+    .argument(
+      "[operation]",
+      "Operation: list, info, update-permissions",
+      "list",
+    )
+    .option("--group-id <id>", "Group ID (required)")
+    .option("--features <features>", "Comma-separated features to update")
+    .option(
+      "--permissions <type>",
+      "Permission type: everyone, disabled, admin-only, super-admin-only",
+    )
+    .action(async (operation: string, options: PermissionsOptions) => {
+      await runPermissionsCommand(operation, options);
+    });
+}
+
+export async function runPermissionsCommand(
+  operation: string,
+  options: PermissionsOptions,
+): Promise<void> {
+  if (!options.groupId) {
+    console.error(`❌ --group-id is required`);
+    process.exit(1);
+  }
+
+  const features = options.features
+    ? options.features.split(",").map((f: string) => f.trim())
+    : undefined;
+
+  switch (operation) {
+    case "list":
+      await runListOperation(options.groupId);
+      break;
+    case "info":
+      await runInfoOperation(options.groupId);
+      break;
+    case "update-permissions":
+      await runUpdatePermissionsOperation({
+        groupId: options.groupId,
+        features,
+        permissions: options.permissions,
+      });
+      break;
+    default:
+      console.error(`❌ Unknown operation: ${operation}`);
       process.exit(1);
-    }
-
-    const features = options.features
-      ? options.features.split(",").map((f: string) => f.trim())
-      : undefined;
-
-    switch (operation) {
-      case "list":
-        await runListOperation(options.groupId);
-        break;
-      case "info":
-        await runInfoOperation(options.groupId);
-        break;
-      case "update-permissions":
-        await runUpdatePermissionsOperation({
-          groupId: options.groupId,
-          features,
-          permissions: options.permissions,
-        });
-        break;
-      default:
-        console.error(`❌ Unknown operation: ${operation}`);
-        program.help();
-    }
-  });
+  }
+}
 
 async function getGroup(groupId: string): Promise<Group> {
   const agent = await getAgent();
@@ -167,5 +178,3 @@ async function runUpdatePermissionsOperation(config: {
     process.exit(1);
   }
 }
-
-program.parse();

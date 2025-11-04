@@ -1,83 +1,113 @@
 import { IdentifierKind, type Group } from "@xmtp/node-sdk";
-import { Command } from "commander";
+import type { Command } from "commander";
 import { getAgent } from "./agent";
-
-const program = new Command();
 
 type ConversationType = "dm" | "group";
 
-interface GroupsOptions {
+export interface GroupsOptions {
   groupId?: string;
   name?: string;
   description?: string;
   type?: ConversationType;
   target?: string;
-  memberAddresses?: string;
+  members?: string;
   imageUrl?: string;
 }
 
-program
-  .name("groups")
-  .description("Manage XMTP groups and DMs")
-  .argument(
-    "[operation]",
-    "Operation: create, create-by-address, metadata",
-    "create",
-  )
-  .option("--group-id <id>", "Group ID")
-  .option("--name <name>", "Group name")
-  .option("--description <desc>", "Group description")
-  .option("--type <type>", "Conversation type: dm or group", "dm")
-  .option("--target <address>", "Target address (required for DM)")
-  .option("--member-addresses <addresses>", "Comma-separated member addresses")
-  .option("--image-url <url>", "Image URL for metadata operations")
-  .action(async (operation: string, options: GroupsOptions) => {
-    const memberAddresses = options.memberAddresses
-      ? options.memberAddresses.split(",").map((a: string) => a.trim())
-      : undefined;
+export function registerGroupsCommand(program: Command) {
+  program
+    .command("groups")
+    .description("Manage XMTP groups and DMs")
+    .argument(
+      "[operation]",
+      "Operation: create, metadata",
+      "create",
+    )
+    .option("--group-id <id>", "Group ID")
+    .option("--name <name>", "Group name")
+    .option("--description <desc>", "Group description")
+    .option("--type <type>", "Conversation type: dm or group", "dm")
+    .option("--target <address>", "Target address (required for DM)")
+    .option(
+      "--members <members>",
+      "Comma-separated member addresses or inbox IDs",
+    )
+    .option("--image-url <url>", "Image URL for metadata operations")
+    .action(async (operation: string, options: GroupsOptions) => {
+      const members = options.members
+        ? options.members.split(",").map((a: string) => a.trim())
+        : undefined;
 
-    switch (operation) {
-      case "create":
-        await runCreateOperation({
-          type: options.type || "dm",
-          groupName: options.name,
-          groupDescription: options.description,
-          targetAddress: options.target,
-        });
-        break;
-      case "create-by-address":
-        await runCreateByAddressOperation({
-          groupName: options.name,
-          groupDescription: options.description,
-          memberAddresses,
-        });
-        break;
-      case "metadata":
-        await runMetadataOperation({
-          groupId: options.groupId,
-          groupName: options.name,
-          groupDescription: options.description,
-          imageUrl: options.imageUrl,
-        });
-        break;
-      default:
-        console.error(`❌ Unknown operation: ${operation}`);
-        program.help();
-    }
-  });
+      switch (operation) {
+        case "create":
+          await runCreateOperation({
+            type: options.type || "dm",
+            groupName: options.name,
+            groupDescription: options.description,
+            targetAddress: options.target,
+            members,
+          });
+          break;
+        case "metadata":
+          await runMetadataOperation({
+            groupId: options.groupId,
+            groupName: options.name,
+            groupDescription: options.description,
+            imageUrl: options.imageUrl,
+          });
+          break;
+        default:
+          console.error(`❌ Unknown operation: ${operation}`);
+          program.help();
+          process.exit(1);
+      }
+    });
+}
+
+export async function runGroupsCommand(
+  operation: string,
+  options: GroupsOptions,
+): Promise<void> {
+  const members = options.members
+    ? options.members.split(",").map((a: string) => a.trim())
+    : undefined;
+
+  switch (operation) {
+    case "create":
+      await runCreateOperation({
+        type: options.type || "dm",
+        groupName: options.name,
+        groupDescription: options.description,
+        targetAddress: options.target,
+        members,
+      });
+      break;
+    case "metadata":
+      await runMetadataOperation({
+        groupId: options.groupId,
+        groupName: options.name,
+        groupDescription: options.description,
+        imageUrl: options.imageUrl,
+      });
+      break;
+    default:
+      console.error(`❌ Unknown operation: ${operation}`);
+      process.exit(1);
+  }
+}
 
 async function runCreateOperation(config: {
   type: ConversationType;
   groupName?: string;
   groupDescription?: string;
   targetAddress?: string;
+  members?: string[];
 }): Promise<void> {
-  console.log(`🚀 Creating ${config.type}...`);
-
   const agent = await getAgent();
 
   try {
     if (config.type === "dm") {
+      console.log(`🚀 Creating DM...`);
       if (!config.targetAddress) {
         console.error(`❌ --target is required when creating a DM`);
         process.exit(1);
@@ -94,9 +124,118 @@ async function runCreateOperation(config: {
       console.log(`🔗 URL: https://xmtp.chat/conversations/${conversation.id}`);
     } else {
       // group
-      console.error(`❌ Group creation requires member addresses`);
-      console.log(`   Use create-by-address operation with --member-addresses`);
-      process.exit(1);
+      if (!config.members || config.members.length === 0) {
+        console.error(`❌ --members is required when creating a group`);
+        process.exit(1);
+      }
+
+      // Detect if members are addresses or inbox IDs
+      const areAddresses = config.members.every((member) =>
+        member.toLowerCase().startsWith("0x"),
+      );
+      const areInboxIds = config.members.every(
+        (member) => !member.toLowerCase().startsWith("0x"),
+      );
+
+      if (!areAddresses && !areInboxIds) {
+        console.error(
+          `❌ Members must be all addresses or all inbox IDs (cannot mix)`,
+        );
+        process.exit(1);
+      }
+
+      const groupName = config.groupName || `Group ${Date.now()}`;
+      const groupDescription =
+        config.groupDescription ||
+        "Group created by XMTP groups CLI";
+
+      console.log(
+        `🚀 Creating group with ${config.members.length} members (${areAddresses ? "addresses" : "inbox IDs"})...`,
+      );
+
+      let group: Group;
+      if (areAddresses) {
+        group = await agent.createGroupWithAddresses(
+          config.members as `0x${string}`[],
+          {
+            groupName,
+            groupDescription,
+          },
+        );
+      } else {
+        // For inbox IDs, try to use createGroupWithInboxIds if available
+        // Otherwise, try to use the client API directly
+        if (
+          typeof (agent as any).createGroupWithInboxIds === "function"
+        ) {
+          group = await (agent as any).createGroupWithInboxIds(
+            config.members,
+            {
+              groupName,
+              groupDescription,
+            },
+          );
+        } else if (
+          typeof agent.client.conversations.newGroupWithInboxIds ===
+          "function"
+        ) {
+          group = await agent.client.conversations.newGroupWithInboxIds(
+            config.members,
+            {
+              groupName,
+              groupDescription,
+            },
+          );
+        } else {
+          // Fallback: try to resolve inbox IDs to addresses
+          console.log(
+            `⚠️  Direct inbox ID support not available. Resolving inbox IDs to addresses...`,
+          );
+          const addresses: string[] = [];
+          for (const inboxId of config.members) {
+            try {
+              const inboxState =
+                await agent.client.preferences.inboxStateFromInboxIds(
+                  [inboxId],
+                  true,
+                );
+              if (
+                inboxState.length > 0 &&
+                inboxState[0].identifiers.length > 0
+              ) {
+                const address = inboxState[0].identifiers[0].identifier;
+                if (address.toLowerCase().startsWith("0x")) {
+                  addresses.push(address);
+                } else {
+                  throw new Error(
+                    `Could not resolve inbox ID ${inboxId} to an address`,
+                  );
+                }
+              } else {
+                throw new Error(
+                  `Could not resolve inbox ID ${inboxId} to an address`,
+                );
+              }
+            } catch (error) {
+              console.error(
+                `❌ Failed to resolve inbox ID ${inboxId}: ${error instanceof Error ? error.message : String(error)}`,
+              );
+              process.exit(1);
+            }
+          }
+          group = await agent.createGroupWithAddresses(
+            addresses as `0x${string}`[],
+            {
+              groupName,
+              groupDescription,
+            },
+          );
+        }
+      }
+
+      console.log(`✅ Group created: ${group.id}`);
+      console.log(`📝 Name: ${group.name}`);
+      console.log(`🔗 URL: https://xmtp.chat/conversations/${group.id}`);
     }
   } catch (error) {
     console.error(
@@ -106,46 +245,6 @@ async function runCreateOperation(config: {
   }
 }
 
-async function runCreateByAddressOperation(config: {
-  groupName?: string;
-  groupDescription?: string;
-  memberAddresses?: string[];
-}): Promise<void> {
-  if (!config.memberAddresses || config.memberAddresses.length === 0) {
-    console.error(`❌ --member-addresses is required`);
-    process.exit(1);
-  }
-
-  const agent = await getAgent();
-  const groupName = config.groupName || `Address Group ${Date.now()}`;
-  const groupDescription =
-    config.groupDescription ||
-    "Group created by XMTP groups CLI using addresses";
-
-  try {
-    // Start with the provided member addresses
-    const addresses = [...config.memberAddresses];
-
-    console.log(`🚀 Creating group with ${addresses.length} members...`);
-
-    const group = await agent.createGroupWithAddresses(
-      addresses as `0x${string}`[],
-      {
-        groupName,
-        groupDescription,
-      },
-    );
-
-    console.log(`✅ Group created: ${group.id}`);
-    console.log(`📝 Name: ${group.name}`);
-    console.log(`🔗 URL: https://xmtp.chat/conversations/${group.id}`);
-  } catch (error) {
-    console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    process.exit(1);
-  }
-}
 
 async function runMetadataOperation(config: {
   groupId?: string;
@@ -204,5 +303,3 @@ async function runMetadataOperation(config: {
     process.exit(1);
   }
 }
-
-program.parse();

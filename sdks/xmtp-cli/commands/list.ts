@@ -1,10 +1,8 @@
 import { type Dm, type Group, type GroupMember } from "@xmtp/node-sdk";
-import { Command } from "commander";
+import type { Command } from "commander";
 import { getAgent } from "./agent";
 
-const program = new Command();
-
-interface ListOptions {
+export interface ListOptions {
   conversationId?: string;
   limit?: string;
   offset?: string;
@@ -12,50 +10,59 @@ interface ListOptions {
   address?: string;
 }
 
-program
-  .name("list")
-  .description("List conversations and messages")
-  .argument(
-    "[operation]",
-    "Operation: conversations, members, messages, find",
-    "conversations",
-  )
-  .option("--conversation-id <id>", "Conversation ID")
-  .option("--limit <count>", "Limit number of results", "50")
-  .option("--offset <count>", "Offset for pagination", "0")
-  .option("--inbox-id <id>", "Inbox ID for find operation")
-  .option("--address <address>", "Ethereum address for find operation")
-  .action(async (operation: string, options: ListOptions) => {
-    const limit = parseInt(options.limit || "50") || 50;
-    const offset = parseInt(options.offset || "0") || 0;
+export function registerListCommand(program: Command) {
+  program
+    .command("list")
+    .description("List conversations and messages")
+    .argument(
+      "[operation]",
+      "Operation: conversations, members, messages, find",
+      "conversations",
+    )
+    .option("--conversation-id <id>", "Conversation ID")
+    .option("--limit <count>", "Limit number of results", "50")
+    .option("--offset <count>", "Offset for pagination", "0")
+    .option("--inbox-id <id>", "Inbox ID for find operation")
+    .option("--address <address>", "Ethereum address for find operation")
+    .action(async (operation: string, options: ListOptions) => {
+      await runListCommand(operation, options);
+    });
+}
 
-    switch (operation) {
-      case "conversations":
-        await runConversationsOperation({ limit, offset });
-        break;
-      case "members":
-        await runMembersOperation(options.conversationId);
-        break;
-      case "messages":
-        await runMessagesOperation({
-          conversationId: options.conversationId,
-          limit,
-          offset,
-        });
-        break;
-      case "find":
-        await runFindOperation({
-          inboxId: options.inboxId,
-          address: options.address,
-          limit,
-          offset,
-        });
-        break;
-      default:
-        console.error(`❌ Unknown operation: ${operation}`);
-        program.help();
-    }
-  });
+export async function runListCommand(
+  operation: string,
+  options: ListOptions,
+): Promise<void> {
+  const limit = parseInt(options.limit || "50") || 50;
+  const offset = parseInt(options.offset || "0") || 0;
+
+  switch (operation) {
+    case "conversations":
+      await runConversationsOperation({ limit, offset });
+      break;
+    case "members":
+      await runMembersOperation(options.conversationId);
+      break;
+    case "messages":
+      await runMessagesOperation({
+        conversationId: options.conversationId,
+        limit,
+        offset,
+      });
+      break;
+    case "find":
+      await runFindOperation({
+        inboxId: options.inboxId,
+        address: options.address,
+        limit,
+        offset,
+      });
+      break;
+    default:
+      console.error(`❌ Unknown operation: ${operation}`);
+      process.exit(1);
+  }
+}
 
 async function runConversationsOperation(config: {
   limit: number;
@@ -295,5 +302,3 @@ async function runFindOperation(config: {
     process.exit(1);
   }
 }
-
-program.parse();

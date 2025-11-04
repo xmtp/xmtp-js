@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
 import {
@@ -6,12 +5,10 @@ import {
   type DecodedMessage,
   type Group,
 } from "@xmtp/node-sdk";
-import { Command } from "commander";
+import type { Command } from "commander";
 import { getAgent } from "./agent";
 
-const program = new Command();
-
-interface SendOptions {
+export interface SendOptions {
   target?: string;
   groupId?: string;
   message?: string;
@@ -21,51 +18,57 @@ interface SendOptions {
   wait?: boolean;
 }
 
-program
-  .name("send")
-  .description("Send messages to conversations")
-  .option("--target <address>", "Target wallet address")
-  .option("--group-id <id>", "Group ID")
-  .option("--message <text>", "Message text to send")
-  .option("--users <count>", "Number of messages to send", "1")
-  .option("--attempts <count>", "Number of attempts", "1")
-  .option("--threshold <percent>", "Success threshold percentage", "95")
-  .option("--wait", "Wait for responses from target")
-  .action(async (options: SendOptions) => {
-    // Validation
-    if (!options.target && !options.groupId) {
-      console.error("❌ Error: Either --target or --group-id is required");
-      process.exit(1);
-    }
+export function registerSendCommand(program: Command) {
+  program
+    .command("send")
+    .description("Send messages to conversations")
+    .option("--target <address>", "Target wallet address")
+    .option("--group-id <id>", "Group ID")
+    .option("--message <text>", "Message text to send")
+    .option("--users <count>", "Number of messages to send", "1")
+    .option("--attempts <count>", "Number of attempts", "1")
+    .option("--threshold <percent>", "Success threshold percentage", "95")
+    .option("--wait", "Wait for responses from target")
+    .action(async (options: SendOptions) => {
+      await runSendCommand(options);
+    });
+}
 
-    if (options.groupId && !options.message) {
-      console.error("❌ Error: --message is required when using --group-id");
-      process.exit(1);
-    }
+export async function runSendCommand(options: SendOptions): Promise<void> {
+  // Validation
+  if (!options.target && !options.groupId) {
+    console.error("❌ Error: Either --target or --group-id is required");
+    process.exit(1);
+  }
 
-    const userCount = parseInt(options.users || "1") || 1;
-    const attempts = parseInt(options.attempts || "1") || 1;
-    const threshold = parseInt(options.threshold || "95") || 95;
-    const awaitResponse = !!options.wait;
-    const timeout = 120 * 1000; // 120 seconds
+  if (options.groupId && !options.message) {
+    console.error("❌ Error: --message is required when using --group-id");
+    process.exit(1);
+  }
 
-    if (options.groupId) {
-      await sendGroupMessage(options.groupId, options.message || "");
-    } else {
-      if (!options.target) {
-        throw new Error("Target address is required");
-      }
-      await runSendTest({
-        target: options.target || process.env.TARGET || "",
-        userCount,
-        attempts,
-        threshold,
-        awaitResponse,
-        timeout,
-        message: options.message,
-      });
+  const userCount = parseInt(options.users || "1") || 1;
+  const attempts = parseInt(options.attempts || "1") || 1;
+  const threshold = parseInt(options.threshold || "95") || 95;
+  const awaitResponse = !!options.wait;
+  const timeout = 120 * 1000; // 120 seconds
+
+  if (options.groupId) {
+    await sendGroupMessage(options.groupId, options.message || "");
+  } else {
+    if (!options.target) {
+      throw new Error("Target address is required");
     }
-  });
+    await runSendTest({
+      target: options.target || process.env.TARGET || "",
+      userCount,
+      attempts,
+      threshold,
+      awaitResponse,
+      timeout,
+      message: options.message,
+    });
+  }
+}
 
 async function sendGroupMessage(
   groupId: string,
@@ -352,5 +355,3 @@ async function runSendTest(config: Config): Promise<void> {
   const duration = Date.now() - startTime;
   printSummary(allResults, config, duration);
 }
-
-program.parse();

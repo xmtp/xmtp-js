@@ -9,58 +9,65 @@ import { ContentTypeReply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
 import { IdentifierKind } from "@xmtp/node-sdk";
-import { Command } from "commander";
+import type { Command } from "commander";
 import { getAgent } from "./agent";
 
-const program = new Command();
-
-interface ContentOptions {
+export interface ContentOptions {
   target?: string;
   groupId?: string;
   amount?: string;
 }
 
-program
-  .name("content")
-  .description("Content type operations")
-  .argument(
-    "[operation]",
-    "Operation: text, markdown, attachment, transaction, deeplink, miniapp",
-    "text",
-  )
-  .option("--target <address>", "Target wallet address")
-  .option("--group-id <id>", "Group ID")
-  .option("--amount <amount>", "Amount for transaction", "0.1")
-  .action(async (operation: string, options: ContentOptions) => {
-    if (!options.target && !options.groupId) {
-      console.error(`❌ Either --target or --group-id is required`);
-      process.exit(1);
-    }
+export function registerContentTypesCommand(program: Command) {
+  program
+    .command("content")
+    .description("Content type operations")
+    .argument(
+      "[operation]",
+      "Operation: text, markdown, attachment, transaction, deeplink, miniapp",
+      "text",
+    )
+    .option("--target <address>", "Target wallet address")
+    .option("--group-id <id>", "Group ID")
+    .option("--amount <amount>", "Amount for transaction", "0.1")
+    .action(async (operation: string, options: ContentOptions) => {
+      await runContentTypesCommand(operation, options);
+    });
+}
 
-    switch (operation) {
-      case "text":
-        await sendTextContent(options);
-        break;
-      case "markdown":
-        await sendMarkdownContent(options);
-        break;
-      case "attachment":
-        await sendAttachmentContent(options);
-        break;
-      case "transaction":
-        await sendTransactionContent(options);
-        break;
-      case "deeplink":
-        await sendDeeplinkContent(options);
-        break;
-      case "miniapp":
-        await sendMiniAppContent(options);
-        break;
-      default:
-        console.error(`❌ Unknown operation: ${operation}`);
-        program.help();
-    }
-  });
+export async function runContentTypesCommand(
+  operation: string,
+  options: ContentOptions,
+): Promise<void> {
+  if (!options.target && !options.groupId) {
+    console.error(`❌ Either --target or --group-id is required`);
+    process.exit(1);
+  }
+
+  switch (operation) {
+    case "text":
+      await sendTextContent(options);
+      break;
+    case "markdown":
+      await sendMarkdownContent(options);
+      break;
+    case "attachment":
+      await sendAttachmentContent(options);
+      break;
+    case "transaction":
+      await sendTransactionContent(options);
+      break;
+    case "deeplink":
+      await sendDeeplinkContent(options);
+      break;
+    case "miniapp":
+      await sendMiniAppContent(options);
+      break;
+    default:
+      console.error(`❌ Unknown operation: ${operation}`);
+      process.exit(1);
+  }
+}
 
 async function getOrCreateConversation(options: ContentOptions, agent: Agent) {
   if (options.groupId) {
@@ -461,5 +468,3 @@ function createUSDCTransferCalls(from: string, to: string, amount: number) {
     ],
   };
 }
-
-program.parse();
