@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.10
+
+### Patch Changes
+
+- 594dd71: Re-export `isHexString` and discriminating content types in `CommandRouter` handlers
+
 ## 1.1.9
 
 ### Patch Changes
