@@ -17,10 +17,7 @@ const rawArgv = [...process.argv];
 
 const program = new Command();
 
-program
-  .name("xmtp")
-  .description("XMTP Copilot CLI - Manage XMTP protocol operations")
-  .version("0.0.1");
+program.name("xmtp").description("XMTP CLI").version("0.0.1");
 
 // Helper to run command - tries compiled version first, falls back to tsx in monorepo
 async function runCommand(

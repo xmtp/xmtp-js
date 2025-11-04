@@ -16,7 +16,6 @@ interface SendOptions {
   groupId?: string;
   message?: string;
   users?: string;
-  customMessage?: string;
   sender?: string;
   attempts?: string;
   threshold?: string;
@@ -30,7 +29,6 @@ program
   .option("--group-id <id>", "Group ID")
   .option("--message <text>", "Message text to send")
   .option("--users <count>", "Number of messages to send", "1")
-  .option("--custom-message <text>", "Custom message for DM messages")
   .option("--sender <address>", "Wallet address to use as sender")
   .option("--attempts <count>", "Number of attempts", "1")
   .option("--threshold <percent>", "Success threshold percentage", "95")
@@ -71,7 +69,6 @@ program
         awaitResponse,
         timeout,
         message: options.message,
-        customMessage: options.customMessage,
       });
     }
   });
@@ -130,7 +127,6 @@ interface Config {
   awaitResponse: boolean;
   timeout: number;
   message?: string;
-  customMessage?: string;
 }
 
 interface TestResult {
@@ -180,7 +176,6 @@ async function runSendTask(
     const sendStart = Date.now();
     const messageText =
       config.message ||
-      config.customMessage ||
       `test-${taskId}-${attempt}-${Date.now()}`;
     await conversation.send(messageText);
     const sendTime = Date.now() - sendStart;

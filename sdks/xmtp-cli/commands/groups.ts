@@ -75,14 +75,6 @@ async function runCreateOperation(config: {
   console.log(`🚀 Creating ${config.members === 1 ? "DM" : "group"}...`);
 
   const agent = await getAgent();
-  // const groupName =
-  //   config.groupName ||
-  //   (config.members === 1 ? `DM ${Date.now()}` : `Test Group ${Date.now()}`);
-  // const groupDescription =
-  //   config.groupDescription ||
-  //   (config.members === 1
-  //     ? "DM created by XMTP groups CLI"
-  //     : "Group created by XMTP groups CLI");
 
   try {
     // For now, just create a DM with target address if provided

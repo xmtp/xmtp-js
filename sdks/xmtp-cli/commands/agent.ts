@@ -6,7 +6,6 @@ import {
   RemoteAttachmentCodec,
 } from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
-import { TextCodec } from "@xmtp/content-type-text";
 import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 
 let cachedAgent: Agent | null = null;
@@ -15,7 +14,6 @@ export async function getAgent(): Promise<Agent> {
   if (!cachedAgent) {
     cachedAgent = await Agent.createFromEnv({
       codecs: [
-        new TextCodec(),
         new MarkdownCodec(),
         new ReactionCodec(),
         new ReplyCodec(),

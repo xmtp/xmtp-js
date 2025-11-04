@@ -63,7 +63,7 @@ program
   });
 
 async function getOrCreateConversation(
-  options: { target?: string; groupId?: string },
+  options: ContentOptions,
   agent: Agent,
 ) {
   if (options.groupId) {
