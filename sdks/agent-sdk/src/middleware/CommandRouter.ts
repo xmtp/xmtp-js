@@ -1,14 +1,18 @@
+import type { TextCodec } from "@xmtp/content-type-text";
 import {
   type AgentMessageHandler,
   type AgentMiddleware,
 } from "@/core/Agent.js";
 import type { MessageContext } from "@/core/MessageContext.js";
 
-export class CommandRouter<ContentTypes> {
-  private commandMap = new Map<string, AgentMessageHandler>();
-  private defaultHandler: AgentMessageHandler | null = null;
+/** Content type supported by the "CommandRouter" */
+type SupportedType = ReturnType<TextCodec["decode"]>;
 
-  command(command: string, handler: AgentMessageHandler): this {
+export class CommandRouter {
+  private commandMap = new Map<string, AgentMessageHandler<SupportedType>>();
+  private defaultHandler: AgentMessageHandler<SupportedType> | null = null;
+
+  command(command: string, handler: AgentMessageHandler<SupportedType>): this {
     if (!command.startsWith("/")) {
       throw new Error('Command must start with "/"');
     }
@@ -16,16 +20,12 @@ export class CommandRouter<ContentTypes> {
     return this;
   }
 
-  default(handler: AgentMessageHandler): this {
+  default(handler: AgentMessageHandler<SupportedType>): this {
     this.defaultHandler = handler;
     return this;
   }
 
-  async handle(ctx: MessageContext): Promise<boolean> {
-    if (!ctx.isText()) {
-      return false;
-    }
-
+  async handle(ctx: MessageContext<SupportedType>): Promise<boolean> {
     const messageText = ctx.message.content;
     const parts = messageText.split(" ");
     const command = parts[0]?.toLowerCase();
@@ -52,10 +52,16 @@ export class CommandRouter<ContentTypes> {
     return false;
   }
 
-  middleware: () => AgentMiddleware<ContentTypes> = () => async (ctx, next) => {
-    const handled = await this.handle(ctx);
-    if (!handled) {
-      await next();
-    }
-  };
+  middleware(): AgentMiddleware {
+    return async (ctx, next) => {
+      if (ctx.isText()) {
+        const handled = await this.handle(ctx);
+        if (!handled) {
+          await next();
+        }
+      } else {
+        await next();
+      }
+    };
+  }
 }
