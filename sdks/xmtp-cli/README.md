@@ -1,6 +1,6 @@
 # XMTP CLI
 
-A command-line interface for managing XMTP protocol operations. 🚀 ��
+A command-line interface for XMTP.
 
 ## Installation
 

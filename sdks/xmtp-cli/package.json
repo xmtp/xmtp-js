@@ -1,7 +1,7 @@
 {
   "name": "@xmtp/cli",
   "version": "0.0.2",
-  "description": "XMTP CLI - Manage XMTP protocol operations",
+  "description": "A command-line interface for XMTP.",
   "type": "module",
   "bin": {
     "xmtp": "./dist/index.js"
