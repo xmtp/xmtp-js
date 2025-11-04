@@ -64,7 +64,7 @@ type EventHandlerMap<ContentTypes> = {
   "transaction-reference": [
     ctx: MessageContext<ReturnType<TransactionReferenceCodec["decode"]>>,
   ];
-  "transaction-request": [
+  "wallet-send-calls": [
     ctx: MessageContext<ReturnType<WalletSendCallsCodec["decode"]>>,
   ];
   unhandledError: [error: Error];
@@ -379,7 +379,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
                 await this.#processMessage(message, "transaction-reference");
                 break;
               case filter.isWalletSendCalls(message):
-                await this.#processMessage(message, "transaction-request");
+                await this.#processMessage(message, "wallet-send-calls");
                 break;
               case filter.isMarkdown(message):
                 await this.#processMessage(message, "markdown");
