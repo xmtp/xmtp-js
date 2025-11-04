@@ -92,7 +92,8 @@ async function runCreateOperation(config: {
 
       console.log(`✅ DM created: ${conversation.id}`);
       console.log(`🔗 URL: https://xmtp.chat/conversations/${conversation.id}`);
-    } else if (config.type === "group") {
+    } else {
+      // group
       console.error(`❌ Group creation requires member addresses`);
       console.log(`   Use create-by-address operation with --member-addresses`);
       process.exit(1);
