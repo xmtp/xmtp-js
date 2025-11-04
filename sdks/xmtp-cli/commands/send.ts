@@ -1,6 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
-import { type DecodedMessage, type Group } from "@xmtp/agent-sdk";
+import { type Group } from "@xmtp/agent-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 
@@ -8,23 +6,15 @@ export interface SendOptions {
   target?: string;
   groupId?: string;
   message?: string;
-  users?: string;
-  attempts?: string;
-  threshold?: string;
-  wait?: boolean;
 }
 
 export function registerSendCommand(program: Command) {
   program
     .command("send")
-    .description("Send messages to conversations")
+    .description("Send a message to a conversation")
     .option("--target <address>", "Target wallet address")
     .option("--group-id <id>", "Group ID")
     .option("--message <text>", "Message text to send")
-    .option("--users <count>", "Number of messages to send", "1")
-    .option("--attempts <count>", "Number of attempts", "1")
-    .option("--threshold <percent>", "Success threshold percentage", "95")
-    .option("--wait", "Wait for responses from target")
     .action(async (options: SendOptions) => {
       await runSendCommand(options);
     });
@@ -37,32 +27,15 @@ export async function runSendCommand(options: SendOptions): Promise<void> {
     process.exit(1);
   }
 
-  if (options.groupId && !options.message) {
-    console.error("❌ Error: --message is required when using --group-id");
+  if (!options.message) {
+    console.error("❌ Error: --message is required");
     process.exit(1);
   }
 
-  const userCount = parseInt(options.users || "1") || 1;
-  const attempts = parseInt(options.attempts || "1") || 1;
-  const threshold = parseInt(options.threshold || "95") || 95;
-  const awaitResponse = !!options.wait;
-  const timeout = 120 * 1000; // 120 seconds
-
   if (options.groupId) {
-    await sendGroupMessage(options.groupId, options.message || "");
-  } else {
-    if (!options.target) {
-      throw new Error("Target address is required");
-    }
-    await runSendTest({
-      target: options.target || process.env.TARGET || "",
-      userCount,
-      attempts,
-      threshold,
-      awaitResponse,
-      timeout,
-      message: options.message,
-    });
+    await sendGroupMessage(options.groupId, options.message);
+  } else if (options.target) {
+    await sendDirectMessage(options.target, options.message);
   }
 }
 
@@ -97,11 +70,9 @@ async function sendGroupMessage(
 
     console.log(`📋 Found group: ${group.id}`);
 
-    const sendStart = Date.now();
     await group.send(message);
-    const sendTime = Date.now() - sendStart;
 
-    console.log(`✅ Message sent successfully in ${sendTime}ms`);
+    console.log(`✅ Message sent successfully`);
     console.log(`💬 Message: "${message}"`);
     console.log(`🔗 Group URL: https://xmtp.chat/conversations/${groupId}`);
   } catch (error) {
@@ -111,242 +82,27 @@ async function sendGroupMessage(
   }
 }
 
-interface Config {
-  target: string;
-  userCount: number;
-  attempts: number;
-  threshold: number;
-  awaitResponse: boolean;
-  timeout: number;
-  message?: string;
-}
+async function sendDirectMessage(
+  target: string,
+  message: string,
+): Promise<void> {
+  console.log(`📤 Sending message to ${target}`);
 
-interface TestResult {
-  success: boolean;
-  sendTime: number;
-  responseTime: number;
-  attempt: number;
-  workerId: number;
-}
+  const agent = await getAgent();
+  console.log(`📋 Using agent: ${agent.client.inboxId}`);
 
-async function runSendTask(
-  taskId: number,
-  attempt: number,
-  config: Config,
-): Promise<TestResult> {
   try {
-    const agent = await getAgent();
-
     const conversation = await agent.createDmWithAddress(
-      config.target as `0x${string}`,
+      target as `0x${string}`,
     );
 
-    let responseTime = 0;
-    let responsePromise: Promise<void> | null = null;
+    await conversation.send(message);
 
-    if (config.awaitResponse) {
-      responsePromise = new Promise<void>((resolve) => {
-        const responseStart = Date.now();
-
-        void agent.client.conversations.streamAllMessages({
-          onValue: (message: DecodedMessage) => {
-            if (
-              message.senderInboxId.toLowerCase() !==
-              agent.client.inboxId.toLowerCase()
-            ) {
-              responseTime = Date.now() - responseStart;
-              resolve();
-            }
-          },
-        });
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    const sendStart = Date.now();
-    const messageText =
-      config.message || `test-${taskId}-${attempt}-${Date.now()}`;
-    await conversation.send(messageText);
-    const sendTime = Date.now() - sendStart;
-
-    console.log(
-      `📩 ${taskId}: Attempt ${attempt}, Message sent in ${sendTime}ms`,
-    );
-
-    if (config.awaitResponse && responsePromise) {
-      await Promise.race([
-        responsePromise,
-        new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(new Error("Response timeout"));
-          }, config.timeout);
-        }),
-      ]);
-      console.log(
-        `✅ ${taskId}: Attempt ${attempt}, Send=${sendTime}ms, Response=${responseTime}ms`,
-      );
-    } else {
-      console.log(
-        `✅ ${taskId}: Attempt ${attempt}, Send=${sendTime}ms (no await)`,
-      );
-    }
-
-    return {
-      success: true,
-      sendTime,
-      responseTime,
-      attempt,
-      workerId: taskId,
-    };
+    console.log(`✅ Message sent successfully`);
+    console.log(`💬 Message: "${message}"`);
   } catch (error) {
-    console.log(
-      `❌ ${taskId}: Attempt ${attempt} failed - ${error instanceof Error ? error.message : String(error)}`,
-    );
-    return {
-      success: false,
-      sendTime: 0,
-      responseTime: 0,
-      attempt,
-      workerId: taskId,
-    };
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ Failed to send message: ${errorMessage}`);
+    process.exit(1);
   }
-}
-
-async function runAttempt(
-  attempt: number,
-  config: Config,
-): Promise<TestResult[]> {
-  console.log(`\n🔄 Starting attempt ${attempt}/${config.attempts}...`);
-  console.log(
-    `📋 Running ${config.userCount} send tasks for attempt ${attempt}`,
-  );
-
-  const promises = Array.from({ length: config.userCount }, (_, i) =>
-    runSendTask(i, attempt, config),
-  );
-  const results = await Promise.allSettled(promises);
-
-  const attemptResults = results.map((result, i) => {
-    if (result.status === "fulfilled") {
-      return result.value;
-    } else {
-      console.log(`❌ ${i}: Attempt ${attempt} promise rejected`);
-      return {
-        success: false,
-        sendTime: 0,
-        responseTime: 0,
-        attempt,
-        workerId: i,
-      };
-    }
-  });
-
-  const successful = attemptResults.filter((r) => r.success);
-  const successRate = (successful.length / config.userCount) * 100;
-
-  console.log(
-    `📊 Attempt ${attempt}: ${successful.length}/${config.userCount} successful (${successRate.toFixed(1)}%)`,
-  );
-
-  return attemptResults;
-}
-
-function printSummary(
-  allResults: TestResult[],
-  config: Config,
-  duration: number,
-) {
-  const successful = allResults.filter((r) => r.success);
-  const total = config.userCount * config.attempts;
-  const successRate = (successful.length / total) * 100;
-
-  console.log(`\n📊 Summary:`);
-  console.log(`   Attempts: ${config.attempts}`);
-  console.log(`   Workers per attempt: ${config.userCount}`);
-  console.log(`   Total operations: ${total}`);
-  console.log(`   Successful: ${successful.length}`);
-  console.log(`   Failed: ${total - successful.length}`);
-  console.log(`   Success Rate: ${successRate.toFixed(1)}%`);
-  console.log(`   Duration: ${(duration / 1000).toFixed(2)}s`);
-
-  if (successful.length > 0) {
-    const sendTimes = successful.map((r) => r.sendTime);
-    const avgSend =
-      sendTimes.reduce((sum, time) => sum + time, 0) / successful.length;
-    console.log(`   Avg Send Time: ${(avgSend / 1000).toFixed(2)}s`);
-
-    if (config.awaitResponse) {
-      const responseTimes = successful
-        .map((r) => r.responseTime)
-        .filter((t) => t > 0);
-      if (responseTimes.length > 0) {
-        const avgResponse =
-          responseTimes.reduce((sum, time) => sum + time, 0) /
-          responseTimes.length;
-        console.log(
-          `   Avg Response Time: ${(avgResponse / 1000).toFixed(2)}s`,
-        );
-
-        const sorted = responseTimes.sort((a, b) => a - b);
-        const median = sorted[Math.floor(sorted.length * 0.5)];
-        const p95 = sorted[Math.floor(sorted.length * 0.95)];
-        console.log(`   Response Median: ${(median / 1000).toFixed(2)}s`);
-        console.log(`   Response P95: ${(p95 / 1000).toFixed(2)}s`);
-      }
-    }
-  }
-
-  if (successRate >= config.threshold) {
-    console.log(`🎯 Success threshold (${config.threshold}%) reached!`);
-  } else {
-    console.log(`⚠️  Success rate below threshold (${config.threshold}%)`);
-  }
-}
-
-async function runSendTest(config: Config): Promise<void> {
-  const startTime = Date.now();
-  console.log(
-    `🚀 Testing ${config.userCount} messages with ${config.attempts} attempt(s)`,
-  );
-
-  if (config.awaitResponse) {
-    console.log(`⏳ Will await responses with ${config.timeout}ms timeout`);
-  } else {
-    console.log(`📤 Send-only mode (no response waiting)`);
-  }
-
-  // Cleanup old database files
-  const dataDir = path.resolve(".xmtp/");
-  if (fs.existsSync(dataDir)) {
-    try {
-      const files = fs.readdirSync(dataDir);
-      const sendFiles = files.filter((file) => file.startsWith(`send-`));
-      if (sendFiles.length > 0) {
-        console.log(
-          `🧹 Cleaning up ${sendFiles.length} send test database files...`,
-        );
-        for (const file of sendFiles) {
-          fs.unlinkSync(path.join(dataDir, file));
-        }
-      }
-    } catch {
-      // Ignore cleanup errors
-    }
-  }
-
-  const allResults: TestResult[] = [];
-
-  for (let attempt = 1; attempt <= config.attempts; attempt++) {
-    const attemptResults = await runAttempt(attempt, config);
-    allResults.push(...attemptResults);
-
-    if (attempt < config.attempts) {
-      console.log(`⏳ Waiting 2 seconds before next attempt...`);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-  }
-
-  const duration = Date.now() - startTime;
-  printSummary(allResults, config, duration);
 }

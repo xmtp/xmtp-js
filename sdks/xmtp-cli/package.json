@@ -4,7 +4,7 @@
   "description": "XMTP CLI - Manage XMTP protocol operations",
   "type": "module",
   "bin": {
-    "xmtp": "./bin/xmtp.js"
+    "xmtp": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,7 +13,7 @@
     "bin"
   ],
   "scripts": {
-    "build": "yarn clean:dist && tsc -p tsconfig.build.json",
+    "build": "yarn clean:dist && rollup -c",
     "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
     "clean:dist": "rimraf dist",
     "dev": "tsx --watch index.ts",
@@ -41,8 +41,13 @@
     "commander": "^14.0.2"
   },
   "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^24.9.1",
     "rimraf": "^6.0.1",
+    "rollup": "^4.52.5",
+    "rollup-plugin-dts": "^6.2.3",
+    "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   },
