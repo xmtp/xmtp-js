@@ -1,29 +1,17 @@
 {
   "name": "@xmtp/cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "XMTP CLI - Manage XMTP protocol operations",
   "type": "module",
   "bin": {
     "xmtp": "./dist/index.js"
-  },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./lib": {
-      "import": "./dist/lib.js",
-      "types": "./dist/lib.d.ts"
-    }
   },
   "files": [
     "dist",
     "bin"
   ],
   "scripts": {
-    "build": "yarn clean:dist && npx rollup -c",
+    "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
     "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
     "clean:dist": "rimraf dist",
     "dev": "tsx --watch index.ts",
@@ -38,7 +26,8 @@
     "format": "cd ../.. && yarn build && yarn format sdks/xmtp-cli",
     "typecheck": "tsc --noEmit",
     "link": "yarn build && yarn link",
-    "unlink": "yarn unlink"
+    "unlink": "yarn unlink",
+    "update": "yarn build"
   },
   "dependencies": {
     "@xmtp/agent-sdk": "^1.1.9",
