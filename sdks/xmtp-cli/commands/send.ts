@@ -16,7 +16,6 @@ interface SendOptions {
   groupId?: string;
   message?: string;
   users?: string;
-  sender?: string;
   attempts?: string;
   threshold?: string;
   wait?: boolean;
@@ -29,7 +28,6 @@ program
   .option("--group-id <id>", "Group ID")
   .option("--message <text>", "Message text to send")
   .option("--users <count>", "Number of messages to send", "1")
-  .option("--sender <address>", "Wallet address to use as sender")
   .option("--attempts <count>", "Number of attempts", "1")
   .option("--threshold <percent>", "Success threshold percentage", "95")
   .option("--wait", "Wait for responses from target")
@@ -55,7 +53,6 @@ program
       await sendGroupMessage(
         options.groupId,
         options.message || "",
-        options.sender || "",
       );
     } else {
       if (!options.target) {
@@ -76,7 +73,6 @@ program
 async function sendGroupMessage(
   groupId: string,
   message: string,
-  _sender?: string,
 ): Promise<void> {
   console.log(`📤 Sending message to group ${groupId}`);
 

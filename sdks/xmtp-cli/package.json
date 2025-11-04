@@ -29,13 +29,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xmtp/agent-sdk": "workspace:*",
-    "@xmtp/content-type-markdown": "workspace:*",
-    "@xmtp/content-type-reaction": "workspace:*",
-    "@xmtp/content-type-remote-attachment": "workspace:*",
-    "@xmtp/content-type-reply": "workspace:*",
-    "@xmtp/content-type-text": "workspace:*",
-    "@xmtp/content-type-wallet-send-calls": "workspace:*",
+    "@xmtp/agent-sdk": "^1.1.9",
+    "@xmtp/content-type-markdown": "^1.0.0",
+    "@xmtp/content-type-reaction": "^2.0.2",
+    "@xmtp/content-type-read-receipt": "^2.0.2",
+    "@xmtp/content-type-remote-attachment": "^2.0.2",
+    "@xmtp/content-type-reply": "^2.0.2",
+    "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/content-type-transaction-reference": "^2.0.2",
+    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
     "commander": "^14.0.2"
   },
   "devDependencies": {

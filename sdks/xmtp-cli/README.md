@@ -75,7 +75,6 @@ yarn send --target 0x1234... --users 10 --wait
 - `--group-id <id>` - Group ID
 - `--message <text>` - Message text
 - `--users <count>` - Number of messages to send (default: 1)
-- `--sender <address>` - Wallet address to use as sender
 - `--attempts <count>` - Number of attempts (default: 1)
 - `--threshold <percent>` - Success threshold percentage (default: 95)
 - `--wait` - Wait for responses from target

@@ -46,7 +46,6 @@ program
         break;
       case "create-by-address":
         await runCreateByAddressOperation({
-          members,
           groupName: options.name,
           groupDescription: options.description,
           memberAddresses,
@@ -104,7 +103,6 @@ async function runCreateOperation(config: {
 }
 
 async function runCreateByAddressOperation(config: {
-  members?: number;
   groupName?: string;
   groupDescription?: string;
   memberAddresses?: string[];
