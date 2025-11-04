@@ -1,4 +1,4 @@
-import { type Dm, type Group, type GroupMember } from "@xmtp/node-sdk";
+import { type Dm, type Group, type GroupMember } from "@xmtp/agent-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 

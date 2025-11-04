@@ -1,4 +1,4 @@
-import { type Group, type PermissionUpdateType } from "@xmtp/node-sdk";
+import { type Group, type PermissionUpdateType } from "@xmtp/agent-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 
@@ -63,8 +63,9 @@ export async function runPermissionsCommand(
 
 async function getGroup(groupId: string): Promise<Group> {
   const agent = await getAgent();
-  const conversation =
-    await agent.client.conversations.getConversationById(groupId);
+  const conversation = await agent.client.conversations.getConversationById(
+    groupId as `0x${string}`,
+  );
   if (!conversation) {
     throw new Error(`Group not found: ${groupId}`);
   }

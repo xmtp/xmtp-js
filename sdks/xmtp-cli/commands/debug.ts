@@ -1,4 +1,4 @@
-import { Client, type KeyPackageStatus, type XmtpEnv } from "@xmtp/node-sdk";
+import { type KeyPackageStatus } from "@xmtp/agent-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 
@@ -317,9 +317,9 @@ async function runInstallationsOperation(options: {
       );
     }
 
-    const inboxState = await Client.inboxStateFromInboxIds(
+    const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
       [targetInboxId],
-      (process.env.XMTP_ENV as XmtpEnv | undefined) ?? "dev",
+      true,
     );
 
     if (inboxState.length === 0) {

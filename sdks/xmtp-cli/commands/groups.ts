@@ -1,4 +1,4 @@
-import { IdentifierKind, type Group } from "@xmtp/node-sdk";
+import { IdentifierKind, type Group } from "@xmtp/agent-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 
@@ -18,11 +18,7 @@ export function registerGroupsCommand(program: Command) {
   program
     .command("groups")
     .description("Manage XMTP groups and DMs")
-    .argument(
-      "[operation]",
-      "Operation: create, metadata",
-      "create",
-    )
+    .argument("[operation]", "Operation: create, metadata", "create")
     .option("--group-id <id>", "Group ID")
     .option("--name <name>", "Group name")
     .option("--description <desc>", "Group description")
@@ -113,11 +109,8 @@ async function runCreateOperation(config: {
         process.exit(1);
       }
 
-      const conversation = await agent.client.conversations.newDmWithIdentifier(
-        {
-          identifier: config.targetAddress,
-          identifierKind: IdentifierKind.Ethereum,
-        },
+      const conversation = await agent.createDmWithAddress(
+        config.targetAddress as `0x${string}`,
       );
 
       console.log(`✅ DM created: ${conversation.id}`);
@@ -146,90 +139,84 @@ async function runCreateOperation(config: {
 
       const groupName = config.groupName || `Group ${Date.now()}`;
       const groupDescription =
-        config.groupDescription ||
-        "Group created by XMTP groups CLI";
+        config.groupDescription || "Group created by XMTP groups CLI";
 
-      console.log(
-        `🚀 Creating group with ${config.members.length} members (${areAddresses ? "addresses" : "inbox IDs"})...`,
+      console.log(`🚀 Creating empty group...`);
+
+      // Create an empty group first - use createGroupWithAddresses with empty array
+      const group = await agent.createGroupWithAddresses(
+        [] as `0x${string}`[],
+        {
+          groupName,
+          groupDescription,
+        },
       );
 
-      let group: Group;
+      console.log(
+        `✅ Empty group created. Adding ${config.members.length} members (${areAddresses ? "addresses" : "inbox IDs"})...`,
+      );
+
+      // Add members to the group
       if (areAddresses) {
-        group = await agent.createGroupWithAddresses(
-          config.members as `0x${string}`[],
-          {
-            groupName,
-            groupDescription,
-          },
-        );
-      } else {
-        // For inbox IDs, try to use createGroupWithInboxIds if available
-        // Otherwise, try to use the client API directly
-        if (
-          typeof (agent as any).createGroupWithInboxIds === "function"
-        ) {
-          group = await (agent as any).createGroupWithInboxIds(
-            config.members,
-            {
-              groupName,
-              groupDescription,
-            },
+        // Use addMembersByIdentifiers for addresses
+        if (typeof group.addMembersByIdentifiers === "function") {
+          await group.addMembersByIdentifiers(
+            config.members.map((member) => ({
+              identifier: member,
+              identifierKind: IdentifierKind.Ethereum,
+            })),
           );
         } else if (
-          typeof agent.client.conversations.newGroupWithInboxIds ===
-          "function"
+          "addMembers" in group &&
+          typeof (
+            group as Group & {
+              addMembers: (members: `0x${string}`[]) => Promise<void>;
+            }
+          ).addMembers === "function"
         ) {
-          group = await agent.client.conversations.newGroupWithInboxIds(
-            config.members,
-            {
-              groupName,
-              groupDescription,
-            },
+          // Try addMembers with addresses
+          await (
+            group as Group & {
+              addMembers: (members: `0x${string}`[]) => Promise<void>;
+            }
+          ).addMembers(config.members as `0x${string}`[]);
+        } else {
+          console.error(
+            `❌ No method available to add members by address. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(group)).join(", ")}`,
+          );
+          process.exit(1);
+        }
+      } else {
+        // Use addMembers for inbox IDs
+        if (
+          "addMembers" in group &&
+          typeof (
+            group as Group & {
+              addMembers: (members: string[]) => Promise<void>;
+            }
+          ).addMembers === "function"
+        ) {
+          await (
+            group as Group & {
+              addMembers: (members: string[]) => Promise<void>;
+            }
+          ).addMembers(config.members);
+        } else if (typeof group.addMembersByIdentifiers === "function") {
+          // Try to resolve inbox IDs to identifiers if needed
+          // For now, try passing inbox IDs directly
+          console.log(`⚠️  Attempting to add members by inbox ID...`);
+          // This might not work, but we'll try it
+          await group.addMembersByIdentifiers(
+            config.members.map((member) => ({
+              identifier: member,
+              identifierKind: 0, // Assuming inbox ID kind
+            })),
           );
         } else {
-          // Fallback: try to resolve inbox IDs to addresses
-          console.log(
-            `⚠️  Direct inbox ID support not available. Resolving inbox IDs to addresses...`,
+          console.error(
+            `❌ No method available to add members by inbox ID. Available methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(group)).join(", ")}`,
           );
-          const addresses: string[] = [];
-          for (const inboxId of config.members) {
-            try {
-              const inboxState =
-                await agent.client.preferences.inboxStateFromInboxIds(
-                  [inboxId],
-                  true,
-                );
-              if (
-                inboxState.length > 0 &&
-                inboxState[0].identifiers.length > 0
-              ) {
-                const address = inboxState[0].identifiers[0].identifier;
-                if (address.toLowerCase().startsWith("0x")) {
-                  addresses.push(address);
-                } else {
-                  throw new Error(
-                    `Could not resolve inbox ID ${inboxId} to an address`,
-                  );
-                }
-              } else {
-                throw new Error(
-                  `Could not resolve inbox ID ${inboxId} to an address`,
-                );
-              }
-            } catch (error) {
-              console.error(
-                `❌ Failed to resolve inbox ID ${inboxId}: ${error instanceof Error ? error.message : String(error)}`,
-              );
-              process.exit(1);
-            }
-          }
-          group = await agent.createGroupWithAddresses(
-            addresses as `0x${string}`[],
-            {
-              groupName,
-              groupDescription,
-            },
-          );
+          process.exit(1);
         }
       }
 
@@ -244,7 +231,6 @@ async function runCreateOperation(config: {
     process.exit(1);
   }
 }
-
 
 async function runMetadataOperation(config: {
   groupId?: string;

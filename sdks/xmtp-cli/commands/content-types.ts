@@ -1,4 +1,4 @@
-import type { Agent } from "@xmtp/agent-sdk";
+import { type Agent } from "@xmtp/agent-sdk";
 import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
 import { ContentTypeReaction } from "@xmtp/content-type-reaction";
 import {
@@ -8,7 +8,6 @@ import {
 import { ContentTypeReply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
-import { IdentifierKind } from "@xmtp/node-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 
@@ -71,21 +70,11 @@ export async function runContentTypesCommand(
 
 async function getOrCreateConversation(options: ContentOptions, agent: Agent) {
   if (options.groupId) {
-    const conversation = await agent.client.conversations.getConversationById(
-      options.groupId,
+    return await agent.client.conversations.getConversationById(
+      options.groupId as `0x${string}`,
     );
-    if (!conversation) {
-      throw new Error(`Group not found: ${options.groupId}`);
-    }
-    return conversation;
   } else {
-    if (!options.target) {
-      throw new Error("Target address is required");
-    }
-    return await agent.client.conversations.newDmWithIdentifier({
-      identifier: options.target,
-      identifierKind: IdentifierKind.Ethereum,
-    });
+    return await agent.createDmWithAddress(options.target as `0x${string}`);
   }
 }
 
@@ -96,7 +85,10 @@ async function sendTextContent(options: {
   console.log(`📝 Sending text content with reply and reaction...`);
   const agent = await getAgent();
   const conversation = await getOrCreateConversation(options, agent);
-
+  if (!conversation) {
+    console.error(`❌ Conversation not found`);
+    process.exit(1);
+  }
   // Send text message
   await conversation.send(
     "📝 This is a text message that demonstrates basic XMTP messaging!",
@@ -143,6 +135,10 @@ async function sendMarkdownContent(options: {
   const agent = await getAgent();
   const conversation = await getOrCreateConversation(options, agent);
 
+  if (!conversation) {
+    console.error(`❌ Conversation not found`);
+    process.exit(1);
+  }
   const markdownContent = `# 🎨 Markdown Demo
 
 This is a **markdown formatted** message demonstrating various formatting options:
@@ -235,7 +231,10 @@ async function sendAttachmentContent(options: {
   }
 
   const conversation = await getOrCreateConversation(options, agent);
-
+  if (!conversation) {
+    console.error(`❌ Conversation not found`);
+    process.exit(1);
+  }
   console.log(`💬 Conversation:`);
   console.log(`   Conversation ID: ${conversation.id}`);
 
@@ -271,7 +270,10 @@ async function sendTransactionContent(options: {
   console.log(`💰 Sending transaction content...`);
   const agent = await getAgent();
   const conversation = await getOrCreateConversation(options, agent);
-
+  if (!conversation) {
+    console.error(`❌ Conversation not found`);
+    process.exit(1);
+  }
   const agentAddress = agent.client.accountIdentifier?.identifier || "";
   const targetAddress = options.target || "";
   const amount = parseFloat(options.amount || "0.1");
@@ -310,7 +312,10 @@ async function sendDeeplinkContent(options: {
   console.log(`🔗 Sending deeplink content...`);
   const agent = await getAgent();
   const conversation = await getOrCreateConversation(options, agent);
-
+  if (!conversation) {
+    console.error(`❌ Conversation not found`);
+    process.exit(1);
+  }
   const agentAddress = agent.client.accountIdentifier?.identifier || "";
   const deeplink = `cbwallet://messaging/${agentAddress}`;
 
@@ -329,7 +334,10 @@ async function sendMiniAppContent(options: {
   console.log(`🎮 Sending mini app content...`);
   const agent = await getAgent();
   const conversation = await getOrCreateConversation(options, agent);
-
+  if (!conversation) {
+    console.error(`❌ Conversation not found`);
+    process.exit(1);
+  }
   const miniAppUrl = `https://squabble.lol/`;
   await conversation.send(miniAppUrl);
 

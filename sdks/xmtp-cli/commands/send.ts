@@ -1,10 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import {
-  IdentifierKind,
-  type DecodedMessage,
-  type Group,
-} from "@xmtp/node-sdk";
+import { type DecodedMessage, type Group } from "@xmtp/agent-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 
@@ -141,10 +137,9 @@ async function runSendTask(
   try {
     const agent = await getAgent();
 
-    const conversation = await agent.client.conversations.newDmWithIdentifier({
-      identifier: config.target,
-      identifierKind: IdentifierKind.Ethereum,
-    });
+    const conversation = await agent.createDmWithAddress(
+      config.target as `0x${string}`,
+    );
 
     let responseTime = 0;
     let responsePromise: Promise<void> | null = null;
