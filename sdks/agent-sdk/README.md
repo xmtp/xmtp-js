@@ -235,6 +235,30 @@ agent.on("unhandledError", (error) => {
 });
 ```
 
+#### Provided Middleware
+
+Built‑in, officially supported middleware is provided via `@xmtp/agent-sdk/middleware`.
+
+**Example: CommandRouter**
+
+The `CommandRouter` makes it easy to handle slash commands out of the box.
+
+```ts
+import { Agent } from "@xmtp/agent-sdk";
+import { CommandRouter } from "@xmtp/agent-sdk/middleware";
+
+const agent = await Agent.createFromEnv();
+const router = new CommandRouter()
+  .command("/hello", async (ctx) => {
+    await ctx.conversation.send("Hi there! 👋");
+  })
+  .default(async (ctx) => {
+    await ctx.conversation.send(`Unknown command: ${ctx.message.content}`);
+  });
+
+agent.use(router.middleware());
+```
+
 ### 3. Built‑in Filters
 
 Instead of manually checking every incoming message, you can use the provided filters.

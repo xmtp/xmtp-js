@@ -2,6 +2,7 @@ import { loadEnvFile } from "node:process";
 import { TextCodec } from "@xmtp/content-type-text";
 import { Agent, AgentError } from "./core/index.js";
 import { getTestUrl } from "./debug/log.js";
+import { isHexString } from "./index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { createNameResolver } from "./user.js";
 import { createSigner, createUser } from "./user/User.js";
@@ -49,6 +50,9 @@ agent.on("text", async (ctx) => {
 
 agent.on("transaction-reference", (ctx) => {
   const { networkId, reference } = ctx.message.content;
+  if (!isHexString(reference)) {
+    console.warn(`Invalid transaction ID: ${reference}`);
+  }
   console.log(`Transaction "${reference}" on network "${networkId}".`);
 });
 
