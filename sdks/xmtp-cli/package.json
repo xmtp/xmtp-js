@@ -13,7 +13,7 @@
     "bin"
   ],
   "scripts": {
-    "build": "yarn clean:dist && rollup -c",
+    "build": "yarn clean:dist && yarn rollup -c",
     "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
     "clean:dist": "rimraf dist",
     "dev": "tsx --watch index.ts",
