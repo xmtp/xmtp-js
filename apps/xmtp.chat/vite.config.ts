@@ -8,4 +8,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["@xmtp/wasm-bindings"],
   },
+  build: {
+    sourcemap: true,
+  },
 });
