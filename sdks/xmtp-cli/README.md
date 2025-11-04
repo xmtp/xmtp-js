@@ -33,8 +33,14 @@ Manage XMTP groups and DMs.
 # Create a DM
 xmtp groups create --target 0x123...
 
-# Create a group
-xmtp groups create --type group --name "Team" --members "0x123...,0x456..."
+# Create a group with member addresses
+xmtp groups create --type group --name "Team" --member-addresses "0x123...,0x456..."
+
+# Create a group with inbox IDs
+xmtp groups create --type group --name "Team" --member-inbox-ids "inbox1...,inbox2..."
+
+# Create a group with both addresses and inbox IDs
+xmtp groups create --type group --name "Team" --member-addresses "0x123..." --member-inbox-ids "inbox1..."
 
 # Update group metadata
 xmtp groups metadata --group-id <id> --name "New Name"
@@ -45,7 +51,8 @@ xmtp groups metadata --group-id <id> --name "New Name"
 - `--target <address>` - Target address (required for DM)
 - `--type <type>` - Conversation type: `dm` or `group` (default: `dm`)
 - `--name <name>` - Group name
-- `--members <members>` - Comma-separated member addresses or inbox IDs
+- `--member-addresses <addresses>` - Comma-separated member Ethereum addresses
+- `--member-inbox-ids <inboxIds>` - Comma-separated member inbox IDs
 - `--group-id <id>` - Group ID for metadata operations
 - `--image-url <url>` - Image URL for metadata updates
 
@@ -176,9 +183,12 @@ xmtp <command> --help
 ## Examples
 
 ```bash
-# Create a group and send a message
-xmtp groups create --type group --name "Team" --members "0x123...,0x456..."
+# Create a group with member addresses and send a message
+xmtp groups create --type group --name "Team" --member-addresses "0x123...,0x456..."
 xmtp send --group-id <group-id> --message "Welcome!"
+
+# Create a group with inbox IDs
+xmtp groups create --type group --name "Team" --member-inbox-ids "inbox1...,inbox2..."
 
 # Debug your setup
 xmtp debug info

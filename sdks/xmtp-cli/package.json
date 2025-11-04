@@ -8,6 +8,16 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./lib": {
+      "import": "./dist/lib.js",
+      "types": "./dist/lib.d.ts"
+    }
+  },
   "files": [
     "dist",
     "bin"
@@ -26,7 +36,9 @@
     "content": "tsx commands/content-types.ts",
     "lint": "cd ../.. && yarn eslint sdks/xmtp-cli",
     "format": "cd ../.. && yarn build && yarn format sdks/xmtp-cli",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "link": "yarn build && yarn link",
+    "unlink": "yarn unlink"
   },
   "dependencies": {
     "@xmtp/agent-sdk": "^1.1.9",

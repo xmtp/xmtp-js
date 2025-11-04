@@ -48,4 +48,21 @@ export default defineConfig([
     },
     plugins: [tsConfigPaths(), dts()],
   },
+  {
+    input: "lib.ts",
+    output: {
+      file: "dist/lib.js",
+      format: "es",
+      sourcemap: true,
+    },
+    plugins,
+    external,
+  },
+  {
+    input: "lib.ts",
+    output: {
+      file: "dist/lib.d.ts",
+    },
+    plugins: [tsConfigPaths(), dts()],
+  },
 ]);
