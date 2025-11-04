@@ -29,7 +29,6 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Build
-        working-directory: apps/xmtp.chat
         run: yarn build
       - name: Create Sentry release
         uses: getsentry/action-release@v3
