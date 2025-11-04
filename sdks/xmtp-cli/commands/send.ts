@@ -50,10 +50,7 @@ program
     const timeout = 120 * 1000; // 120 seconds
 
     if (options.groupId) {
-      await sendGroupMessage(
-        options.groupId,
-        options.message || "",
-      );
+      await sendGroupMessage(options.groupId, options.message || "");
     } else {
       if (!options.target) {
         throw new Error("Target address is required");
@@ -171,8 +168,7 @@ async function runSendTask(
 
     const sendStart = Date.now();
     const messageText =
-      config.message ||
-      `test-${taskId}-${attempt}-${Date.now()}`;
+      config.message || `test-${taskId}-${attempt}-${Date.now()}`;
     await conversation.send(messageText);
     const sendTime = Date.now() - sendStart;
 

@@ -62,10 +62,7 @@ program
     }
   });
 
-async function getOrCreateConversation(
-  options: ContentOptions,
-  agent: Agent,
-) {
+async function getOrCreateConversation(options: ContentOptions, agent: Agent) {
   if (options.groupId) {
     const conversation = await agent.client.conversations.getConversationById(
       options.groupId,
