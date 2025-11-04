@@ -1,5 +1,6 @@
 import "@mantine/core/styles.css";
 import { createTheme, MantineProvider } from "@mantine/core";
+import * as Sentry from "@sentry/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import pkg from "@xmtp/browser-sdk/package.json";
 import { createRoot } from "react-dom/client";
@@ -34,6 +35,17 @@ import {
 import { App } from "@/components/App/App";
 import { XMTPProvider } from "@/contexts/XMTPContext";
 import { queryClient } from "@/helpers/queries";
+
+Sentry.init({
+  dsn: "https://ba2f58ad2e3d5fd09cd8aa36038b950f@o4504757119680512.ingest.us.sentry.io/4510308912005120",
+  // ensure no data collection except errors
+  enableLogs: false,
+  profilesSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
+  replaysSessionSampleRate: 0,
+  sendDefaultPii: false,
+  tracesSampleRate: 0,
+});
 
 export const config = createConfig({
   connectors: [
