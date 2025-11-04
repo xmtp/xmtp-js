@@ -4242,7 +4242,7 @@ __metadata:
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
   bin:
-    xmtp-cli: ./bin/xmtp-cli.js
+    xmtp: ./bin/xmtp.js
   languageName: unknown
   linkType: soft
 

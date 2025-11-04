@@ -4,7 +4,7 @@
   "description": "XMTP CLI - Manage XMTP protocol operations",
   "type": "module",
   "bin": {
-    "xmtp-cli": "./bin/xmtp-cli.js"
+    "xmtp": "./bin/xmtp.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
