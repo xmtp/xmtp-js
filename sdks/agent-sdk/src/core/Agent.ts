@@ -64,11 +64,11 @@ type EventHandlerMap<ContentTypes> = {
   "transaction-reference": [
     ctx: MessageContext<ReturnType<TransactionReferenceCodec["decode"]>>,
   ];
+  unhandledError: [error: Error];
+  unknownMessage: [ctx: MessageContext<ContentTypes>];
   "wallet-send-calls": [
     ctx: MessageContext<ReturnType<WalletSendCallsCodec["decode"]>>,
   ];
-  unhandledError: [error: Error];
-  unknownMessage: [ctx: MessageContext<ContentTypes>];
 };
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
