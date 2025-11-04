@@ -4,11 +4,13 @@ import { getAgent } from "./agent";
 
 const program = new Command();
 
+type ConversationType = "dm" | "group";
+
 interface GroupsOptions {
   groupId?: string;
   name?: string;
   description?: string;
-  members?: string;
+  type?: ConversationType;
   target?: string;
   memberAddresses?: string;
   imageUrl?: string;
@@ -25,12 +27,11 @@ program
   .option("--group-id <id>", "Group ID")
   .option("--name <name>", "Group name")
   .option("--description <desc>", "Group description")
-  .option("--members <count>", "Number of members", "1")
-  .option("--target <address>", "Target address to invite")
+  .option("--type <type>", "Conversation type: dm or group", "dm")
+  .option("--target <address>", "Target address (required for DM)")
   .option("--member-addresses <addresses>", "Comma-separated member addresses")
   .option("--image-url <url>", "Image URL for metadata operations")
   .action(async (operation: string, options: GroupsOptions) => {
-    const members = parseInt(options.members || "1") || 1;
     const memberAddresses = options.memberAddresses
       ? options.memberAddresses.split(",").map((a: string) => a.trim())
       : undefined;
@@ -38,7 +39,7 @@ program
     switch (operation) {
       case "create":
         await runCreateOperation({
-          members,
+          type: options.type || "dm",
           groupName: options.name,
           groupDescription: options.description,
           targetAddress: options.target,
@@ -66,18 +67,22 @@ program
   });
 
 async function runCreateOperation(config: {
-  members: number;
+  type: ConversationType;
   groupName?: string;
   groupDescription?: string;
   targetAddress?: string;
 }): Promise<void> {
-  console.log(`🚀 Creating ${config.members === 1 ? "DM" : "group"}...`);
+  console.log(`🚀 Creating ${config.type}...`);
 
   const agent = await getAgent();
 
   try {
-    // For now, just create a DM with target address if provided
-    if (config.members === 1 && config.targetAddress) {
+    if (config.type === "dm") {
+      if (!config.targetAddress) {
+        console.error(`❌ --target is required when creating a DM`);
+        process.exit(1);
+      }
+
       const conversation = await agent.client.conversations.newDmWithIdentifier(
         {
           identifier: config.targetAddress,
@@ -87,10 +92,8 @@ async function runCreateOperation(config: {
 
       console.log(`✅ DM created: ${conversation.id}`);
       console.log(`🔗 URL: https://xmtp.chat/conversations/${conversation.id}`);
-    } else {
-      console.error(
-        `❌ Group creation with multiple members requires inbox IDs`,
-      );
+    } else if (config.type === "group") {
+      console.error(`❌ Group creation requires member addresses`);
       console.log(`   Use create-by-address operation with --member-addresses`);
       process.exit(1);
     }

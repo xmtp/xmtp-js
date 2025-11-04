@@ -18,11 +18,11 @@ xmtp debug info
 Manage XMTP groups and direct messages.
 
 ```bash
-# Create a DM (default)
-yarn groups
+# Create a DM (default type)
+yarn groups create --target 0x123...
 
-# Create a group
-yarn groups --name "My Group" --members 2
+# Create a DM explicitly
+yarn groups create --type dm --target 0x123...
 
 # Create a group with specific addresses
 yarn groups create-by-address --name "Team" --member-addresses "0x123...,0x456..."
@@ -34,7 +34,7 @@ yarn groups metadata --group-id <id> --image-url "https://example.com/image.jpg"
 
 **Operations:**
 
-- `create` - Create DMs or groups with members (default)
+- `create` - Create DMs or groups (default: creates DM)
 - `create-by-address` - Create groups using Ethereum addresses
 - `metadata` - Update group name, description, or image
 
@@ -43,8 +43,8 @@ yarn groups metadata --group-id <id> --image-url "https://example.com/image.jpg"
 - `--group-id <id>` - Group ID for metadata operations
 - `--name <name>` - Group name
 - `--description <desc>` - Group description
-- `--members <count>` - Number of members (default: 1, creates DM)
-- `--target <address>` - Target address to invite
+- `--type <type>` - Conversation type: `dm` or `group` (default: `dm`)
+- `--target <address>` - Target address (required for DM creation)
 - `--member-addresses <addresses>` - Comma-separated Ethereum addresses
 - `--image-url <url>` - Image URL for metadata updates
 
