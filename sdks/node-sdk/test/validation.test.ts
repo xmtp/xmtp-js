@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { HexString, isHexString, validHex } from "@/utils/validation";
+import { isHexString, validHex, type HexString } from "@/utils/validation";
 
 describe("validHex", () => {
   it("validates that a string is of type HexString", () => {
