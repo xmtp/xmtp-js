@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { isHexString } from "@/utils/validation";
+import { HexString, isHexString, verifyHexString } from "@/utils/validation";
+
+describe("verifyHexString", () => {
+  it("helps in assigning hexadecimal strings to prevent unsafe 'as `0x${string}`' type assertions", () => {
+    function expectHex(input: HexString) {
+      void input;
+    }
+
+    // Type is widened to "string" on purpose for this test
+    const userInput: string = `0xfb8b505f66005ca19546d7f405f1c531`;
+
+    // @ts-expect-error tsc throws an error when input is not a hex string
+    expectHex(userInput);
+    expectHex(verifyHexString(userInput));
+  });
+
+  it("throws for invalid hex strings", () => {
+    expect(() => verifyHexString("not-hex")).toThrow(
+      "not a hexadecimal string",
+    );
+  });
+});
 
 describe("isHexString", () => {
   it("returns true for valid hex strings", () => {
