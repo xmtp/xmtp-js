@@ -397,7 +397,7 @@ describe("Conversation", () => {
     ).rejects.toThrow();
   });
 
-  it.only("should stream messages", async () => {
+  it("should stream messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const signer1 = createSigner(user1);
