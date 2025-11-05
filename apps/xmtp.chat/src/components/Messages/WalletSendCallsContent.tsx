@@ -1,4 +1,4 @@
-import { Box, Button, List, Space, Text } from "@mantine/core";
+import { Box, Button, List, Space, Text, Tooltip } from "@mantine/core";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
@@ -7,6 +7,7 @@ import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls
 import { useCallback } from "react";
 import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
 import { useClient } from "@/contexts/XMTPContext";
+import { useSettings } from "@/hooks/useSettings";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
@@ -21,6 +22,7 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   const { sendTransactionAsync } = useSendTransaction();
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();
+  const { ephemeralAccountEnabled } = useSettings();
 
   const handleSubmit = useCallback(async () => {
     const chainId = parseInt(content.chainId, 16);
@@ -69,14 +71,19 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
         ))}
       </List>
       <Space h="md" />
-      <Button
-        fullWidth
-        onClick={(event) => {
-          event.stopPropagation();
-          void handleSubmit();
-        }}>
-        Submit
-      </Button>
+      <Tooltip
+        label="Transactions are not supported for ephemeral wallets"
+        disabled={!ephemeralAccountEnabled}>
+        <Button
+          fullWidth
+          disabled={ephemeralAccountEnabled}
+          onClick={(event) => {
+            event.stopPropagation();
+            void handleSubmit();
+          }}>
+          Submit
+        </Button>
+      </Tooltip>
     </Box>
   );
 };
