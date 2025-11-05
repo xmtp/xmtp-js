@@ -583,8 +583,9 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   ) {
     const host = ApiUrls[env ?? "dev"];
     const identifier = await signer.getIdentifier();
-    const signatureRequest = await revokeInstallationsSignatureRequest(
+    const signatureRequest = revokeInstallationsSignatureRequest(
       host,
+      null,
       identifier,
       inboxId,
       installationIds,
@@ -606,7 +607,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
         break;
     }
 
-    await applySignatureRequest(host, signatureRequest);
+    await applySignatureRequest(host, null, signatureRequest);
   }
 
   /**
@@ -618,7 +619,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   static async inboxStateFromInboxIds(inboxIds: string[], env?: XmtpEnv) {
     const host = ApiUrls[env ?? "dev"];
-    return inboxStateFromInboxIds(host, inboxIds);
+    return inboxStateFromInboxIds(host, null, inboxIds);
   }
 
   /**
@@ -845,7 +846,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     env?: XmtpEnv,
   ): Promise<boolean> {
     const host = ApiUrls[env ?? "dev"];
-    return await isAddressAuthorizedBinding(host, inboxId, address);
+    return await isAddressAuthorizedBinding(host, null, inboxId, address);
   }
 
   /**
@@ -862,7 +863,12 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     env?: XmtpEnv,
   ): Promise<boolean> {
     const host = ApiUrls[env ?? "dev"];
-    return await isInstallationAuthorizedBinding(host, inboxId, installation);
+    return await isInstallationAuthorizedBinding(
+      host,
+      null,
+      inboxId,
+      installation,
+    );
   }
 
   /**

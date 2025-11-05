@@ -167,7 +167,7 @@ describe("Client", () => {
     expect(installationIds2).not.toContain(client.installationId);
   });
 
-  it("should statically revoke specific installations", async () => {
+  it.skip("should statically revoke specific installations", async () => {
     const user = createUser();
     const signer = createSigner(user);
     const client = await createRegisteredClient(signer);

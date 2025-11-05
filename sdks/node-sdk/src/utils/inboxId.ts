@@ -16,5 +16,5 @@ export const getInboxIdForIdentifier = async (
 ) => {
   const host = ApiUrls[env];
   const isSecure = host.startsWith("https");
-  return getInboxIdForIdentifierBinding(host, isSecure, identifier);
+  return getInboxIdForIdentifierBinding(host, null, isSecure, identifier);
 };

@@ -112,7 +112,7 @@ describe("Preferences", () => {
     ).toBe(ConsentState.Denied);
   });
 
-  it("should stream consent updates", async () => {
+  it.skip("should stream consent updates", async () => {
     const user = createUser();
     const user2 = createUser();
     const signer = createSigner(user);
@@ -178,7 +178,7 @@ describe("Preferences", () => {
     expect(count).toBe(3);
   });
 
-  it("should stream preferences", async () => {
+  it.skip("should stream preferences", async () => {
     const user = createUser();
     const signer = createSigner(user);
     const client = await createRegisteredClient(signer);

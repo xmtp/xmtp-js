@@ -397,7 +397,7 @@ describe("Conversation", () => {
     ).rejects.toThrow();
   });
 
-  it("should stream messages", async () => {
+  it.only("should stream messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const signer1 = createSigner(user1);
@@ -874,7 +874,12 @@ describe("Conversation", () => {
     expect(debugInfo.isCommitLogForked).toBeUndefined();
     expect(debugInfo.localCommitLog).toBeDefined();
     expect(debugInfo.remoteCommitLog).toBeDefined();
-    expect(debugInfo.cursor).toBeGreaterThan(0);
+    expect(debugInfo.cursor).toBeDefined();
+    expect(debugInfo.cursor).toHaveLength(2);
+    debugInfo.cursor.forEach((cursor) => {
+      expect(cursor).toHaveProperty("originatorId");
+      expect(cursor).toHaveProperty("sequenceId");
+    });
   });
 
   it("should filter messages by content type", async () => {

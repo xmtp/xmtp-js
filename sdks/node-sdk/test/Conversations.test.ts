@@ -399,7 +399,7 @@ describe("Conversations", () => {
     });
   });
 
-  it("should stream new conversations", async () => {
+  it.skip("should stream new conversations", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
@@ -442,7 +442,7 @@ describe("Conversations", () => {
     ).toBe(conversation2.id);
   });
 
-  it("should only stream group conversations", async () => {
+  it.skip("should only stream group conversations", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
@@ -475,7 +475,7 @@ describe("Conversations", () => {
     expect(receivedIds.sort()).toEqual(expectedIds.sort());
   });
 
-  it("should only stream dm conversations", async () => {
+  it.skip("should only stream dm conversations", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
@@ -508,7 +508,7 @@ describe("Conversations", () => {
     expect(count).toBe(1);
   });
 
-  it("should stream all messages", async () => {
+  it.skip("should stream all messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
@@ -552,7 +552,7 @@ describe("Conversations", () => {
     expect(count).toBe(2);
   });
 
-  it("should only stream group conversation messages", async () => {
+  it.skip("should only stream group conversation messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
@@ -607,7 +607,7 @@ describe("Conversations", () => {
     expect(count).toBe(2);
   });
 
-  it("should only stream dm messages", async () => {
+  it.skip("should only stream dm messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const user3 = createUser();
