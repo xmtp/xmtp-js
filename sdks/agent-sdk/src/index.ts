@@ -19,6 +19,6 @@ export {
   SortDirection,
 } from "@xmtp/node-sdk";
 export type * from "@xmtp/node-sdk";
-export { isHexString, validHex } from "@xmtp/node-sdk";
+export { isHexString } from "@xmtp/node-sdk";
 // Agent SDK
 export * from "./core/index.js";
