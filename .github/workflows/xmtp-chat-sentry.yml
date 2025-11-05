@@ -8,6 +8,7 @@ on:
       - "apps/xmtp.chat/src/**"
       - "apps/xmtp.chat/vite.config.ts"
       - "apps/xmtp.chat/package.json"
+      - ".github/workflows/xmtp-chat-sentry.yml"
 
 jobs:
   sentry:
