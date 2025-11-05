@@ -126,7 +126,7 @@ export class Conversation<ContentTypes = unknown> {
       onFail: () => void,
     ) => {
       await this.sync();
-      return this.#conversation.stream(callback, onFail);
+      return await this.#conversation.stream(callback, onFail);
     };
     const convertMessage = (value: Message) => {
       return new DecodedMessage(this.#client, value);
