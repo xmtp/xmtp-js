@@ -1,19 +1,16 @@
 import { ActionIcon, Menu } from "@mantine/core";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 import { IconDots } from "@/icons/IconDots";
 
 export const AppMenu: React.FC = () => {
   const navigate = useNavigate();
-  const { setRedirectUrl } = useRedirect();
   const { environment } = useSettings();
 
   const handleDisconnect = useCallback(() => {
-    setRedirectUrl(`${location.pathname}${location.search}`);
     void navigate("/disconnect");
-  }, [navigate, setRedirectUrl]);
+  }, [navigate]);
 
   return (
     <Menu shadow="md" position="bottom-end">
