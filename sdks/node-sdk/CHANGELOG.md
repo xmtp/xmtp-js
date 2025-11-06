@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.2.6
+
+### Patch Changes
+
+- 396767b: Increased default stream retry delay
+
 ## 4.2.5
 
 ### Patch Changes
