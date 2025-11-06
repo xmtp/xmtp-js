@@ -7,6 +7,7 @@ import { SelectConversation } from "@/components/App/SelectConversation";
 import { Welcome } from "@/components/App/Welcome";
 import { LoadConversation } from "@/components/Conversation/LoadConversation";
 import { LoadDM } from "@/components/Conversation/LoadDM";
+import { LoadDMLegacy } from "@/components/Conversation/LoadDMLegacy";
 import { ManageConsentModal } from "@/components/Conversation/ManageConsentModal";
 import { ManageMembersModal } from "@/components/Conversation/ManageMembersModal";
 import { ManageMetadataModal } from "@/components/Conversation/ManageMetadataModal";
@@ -18,22 +19,29 @@ import { InboxTools } from "@/components/InboxTools/InboxTools";
 import { InboxToolsLayout } from "@/components/InboxTools/InboxToolsLayout";
 import { MessageModal } from "@/components/Messages/MessageModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useSettings } from "@/hooks/useSettings";
 
 export const App: React.FC = () => {
   useAnalytics();
+  const { environment } = useSettings();
 
   return (
     <>
       <ErrorModal />
       <Routes>
-        <Route path="/welcome/*" element={<BasicLayout />}>
+        <Route path="/" element={<BasicLayout />}>
           <Route path="" element={<Welcome />} />
         </Route>
         <Route path="/inbox-tools/*" element={<InboxToolsLayout />}>
           <Route path="" element={<InboxTools />} />
         </Route>
-        <Route path="/*" element={<AppLayout />}>
-          <Route index element={<Navigate to="/conversations" />} />
+        <Route path="/disconnect" element={<Disconnect />} />
+        <Route path="/dm/:address" element={<LoadDMLegacy />} />
+        <Route path="/:environment" element={<AppLayout />}>
+          <Route
+            index
+            element={<Navigate to={`/${environment}/conversations`} />}
+          />
           <Route path="dm/:address" element={<LoadDM />} />
           <Route path="conversations">
             <Route index element={<SelectConversation />} />
@@ -56,7 +64,6 @@ export const App: React.FC = () => {
               </Route>
             </Route>
           </Route>
-          <Route path="disconnect" element={<Disconnect />} />
         </Route>
       </Routes>
     </>

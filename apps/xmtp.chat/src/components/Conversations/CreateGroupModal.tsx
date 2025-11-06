@@ -13,6 +13,7 @@ import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 import type { PolicySet } from "@/types";
@@ -40,6 +41,7 @@ export const CreateGroupModal: React.FC = () => {
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
   const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
 
@@ -47,7 +49,7 @@ export const CreateGroupModal: React.FC = () => {
     void navigate(-1);
   }, [navigate]);
 
-  const handleCreate = async () => {
+  const handleCreate = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -79,11 +81,22 @@ export const CreateGroupModal: React.FC = () => {
 
       // ensure conversation is added to store so navigation works
       await addConversation(conversation);
-      void navigate(`/conversations/${conversation.id}`);
+      void navigate(`/${environment}/conversations/${conversation.id}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    newGroup,
+    addConversation,
+    navigate,
+    environment,
+    name,
+    description,
+    imageUrlSquare,
+    permissionsPolicy,
+    policySet,
+    addedMembers,
+  ]);
 
   const footer = useMemo(() => {
     return (

@@ -14,6 +14,7 @@ import {
   useMemberProfiles,
   type MemberProfile,
 } from "@/hooks/useMemberProfiles";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 
@@ -24,6 +25,7 @@ export const ManageMembersModal: React.FC = () => {
   const clientPermissions = useClientPermissions(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
   const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
   const [removedMembers, setRemovedMembers] = useState<MemberProfile[]>([]);
@@ -32,8 +34,8 @@ export const ManageMembersModal: React.FC = () => {
   const contentHeight = fullScreen ? "auto" : 500;
 
   const handleClose = useCallback(() => {
-    void navigate(`/conversations/${conversation.id}`);
-  }, [navigate, conversation.id]);
+    void navigate(`/${environment}/conversations/${conversation.id}`);
+  }, [navigate, conversation.id, environment]);
 
   const handleUpdate = useCallback(async () => {
     if (!(conversation instanceof XmtpGroup)) {
@@ -77,11 +79,11 @@ export const ManageMembersModal: React.FC = () => {
         void addConversation(conversation);
       }
 
-      void navigate(`/conversations/${conversation.id}`);
+      void navigate(`/${environment}/conversations/${conversation.id}`);
     } finally {
       setIsLoading(false);
     }
-  }, [conversation.id, addedMembers, removedMembers, navigate]);
+  }, [conversation.id, addedMembers, removedMembers, navigate, environment]);
 
   const footer = useMemo(() => {
     return (

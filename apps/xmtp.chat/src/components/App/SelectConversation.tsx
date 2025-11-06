@@ -1,9 +1,11 @@
 import { Button, Divider, Stack, Text } from "@mantine/core";
 import { useNavigate } from "react-router";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const SelectConversation = () => {
   const navigate = useNavigate();
+  const { environment } = useSettings();
   return (
     <ContentLayout title="No conversation selected">
       <Stack gap="lg" align="center" py="xl">
@@ -24,14 +26,14 @@ export const SelectConversation = () => {
           <Button
             size="xs"
             onClick={() => {
-              void navigate("/conversations/new-group");
+              void navigate(`/${environment}/conversations/new-group`);
             }}>
             Create a new group
           </Button>
           <Button
             size="xs"
             onClick={() => {
-              void navigate("/conversations/new-dm");
+              void navigate(`/${environment}/conversations/new-dm`);
             }}>
             Create a new direct message
           </Button>

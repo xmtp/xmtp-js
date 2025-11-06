@@ -85,11 +85,11 @@ export const useConnectXmtp = () => {
 
   useEffect(() => {
     if (client) {
-      void navigate("/");
+      void navigate(`/${environment}`);
     } else if (autoConnect) {
       connect();
     }
-  }, [client, navigate, autoConnect, connect]);
+  }, [client, navigate, autoConnect, connect, environment]);
 
   return {
     client,

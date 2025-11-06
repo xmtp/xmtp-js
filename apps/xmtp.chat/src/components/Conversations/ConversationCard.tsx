@@ -2,6 +2,7 @@ import { Box, Card, Flex, Stack, Text } from "@mantine/core";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useConversation } from "@/hooks/useConversation";
+import { useSettings } from "@/hooks/useSettings";
 import styles from "./ConversationCard.module.css";
 
 export type ConversationCardProps = {
@@ -14,6 +15,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   const { name, members } = useConversation(conversationId);
   const navigate = useNavigate();
   const { conversationId: paramsConversationId } = useParams();
+  const { environment } = useSettings();
 
   const memberCount = useMemo(() => {
     return members.size;
@@ -29,10 +31,12 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            void navigate(`/conversations/${conversationId}`);
+            void navigate(`/${environment}/conversations/${conversationId}`);
           }
         }}
-        onClick={() => void navigate(`/conversations/${conversationId}`)}
+        onClick={() =>
+          void navigate(`/${environment}/conversations/${conversationId}`)
+        }
         className={[
           styles.root,
           conversationId === paramsConversationId && styles.selected,
