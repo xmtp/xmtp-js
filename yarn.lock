@@ -4253,7 +4253,7 @@ __metadata:
     "@xmtp/content-type-text": "npm:^2.0.2"
     "@xmtp/content-type-transaction-reference": "npm:^2.0.2"
     "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
-    "@xmtp/node-sdk": "npm:^4.2.4"
+    "@xmtp/node-sdk": "npm:^4.2.5"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
@@ -4485,7 +4485,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:^4.2.4, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:^4.2.5, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
