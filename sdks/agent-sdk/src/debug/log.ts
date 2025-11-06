@@ -15,9 +15,9 @@ export const logDetails = async <ContentTypes>(
   const clientsByAddress = client.accountIdentifier?.identifier;
   const inboxId = client.inboxId;
   const installationId = client.installationId;
-  const environments = client.options?.env ?? "dev";
+  const env = client.options?.env ?? "dev";
 
-  const urls = [`http://xmtp.chat/dm/${clientsByAddress}`];
+  const urls = [`http://xmtp.chat/${env}/dm/${clientsByAddress}`];
 
   const conversations = await client.conversations.list();
   const inboxState = await client.preferences.inboxState();
@@ -45,7 +45,7 @@ export const logDetails = async <ContentTypes>(
     • InstallationId: ${installationId}
     • Key Package created: ${createdDate.toLocaleString()}
     • Key Package valid until: ${expiryDate.toLocaleString()}
-    • Networks: ${environments}
+    • Networks: ${env}
     ${urls.map((url) => `• URL: ${url}`).join("\n")}`);
 };
 
@@ -58,7 +58,7 @@ export const logDetails = async <ContentTypes>(
 export const getTestUrl = <ContentTypes>(client: Client<ContentTypes>) => {
   const address = client.accountIdentifier?.identifier;
   const env = client.options?.env ?? "dev";
-  return `http://xmtp.chat/dm/${address}?env=${env}`;
+  return `http://xmtp.chat/${env}/dm/${address}`;
 };
 
 type InstallationInfo = {
