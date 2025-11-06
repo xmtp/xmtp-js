@@ -1,5 +1,14 @@
 # @xmtp/agent-sdk
 
+## 1.1.12
+
+### Patch Changes
+
+- 13a14ba:
+  - Update xmtp.chat URLs
+  - Updated dependencies
+    - @xmtp/node-sdk@4.2.6
+
 ## 1.1.11
 
 ### Patch Changes
