@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.11
+
+### Patch Changes
+
+- e01f21b: Add AgentStreamingError
+
 ## 1.1.10
 
 ### Patch Changes
