@@ -583,7 +583,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   ) {
     const host = ApiUrls[env ?? "dev"];
     const identifier = await signer.getIdentifier();
-    const signatureRequest = revokeInstallationsSignatureRequest(
+    const signatureRequest = await revokeInstallationsSignatureRequest(
       host,
       null,
       identifier,

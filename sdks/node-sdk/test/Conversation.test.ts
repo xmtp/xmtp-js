@@ -686,7 +686,7 @@ describe("Conversation", () => {
     expect(conversation2?.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(10000);
+    await sleep(1000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
@@ -777,7 +777,7 @@ describe("Conversation", () => {
     expect(conversation2?.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(10000);
+    await sleep(1000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
