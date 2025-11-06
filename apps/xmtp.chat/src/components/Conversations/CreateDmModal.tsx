@@ -5,6 +5,7 @@ import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
 import { useMemberId } from "@/hooks/useMemberId";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 
@@ -19,6 +20,7 @@ export const CreateDmModal: React.FC = () => {
     inboxId,
   } = useMemberId();
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
 
@@ -26,18 +28,18 @@ export const CreateDmModal: React.FC = () => {
     void navigate(-1);
   }, [navigate]);
 
-  const handleCreate = async () => {
+  const handleCreate = useCallback(async () => {
     setLoading(true);
 
     try {
       const conversation = await newDm(inboxId);
       // ensure conversation is added to store so navigation works
       await addConversation(conversation);
-      void navigate(`/conversations/${conversation.id}`);
+      void navigate(`/${environment}/conversations/${conversation.id}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [newDm, addConversation, navigate, inboxId, environment]);
 
   const footer = useMemo(() => {
     return (

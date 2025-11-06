@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { useClient } from "@/contexts/XMTPContext";
 import { isActionable } from "@/helpers/messages";
+import { useSettings } from "@/hooks/useSettings";
 import classes from "./Message.module.css";
 import { MessageContentWithWrapper } from "./MessageContentWithWrapper";
 import { ReactionPopover } from "./ReactionPopover";
@@ -18,6 +19,7 @@ export const Message: React.FC<MessageProps> = ({
   scrollToMessage,
 }) => {
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const { setReplyTarget } = useConversationContext();
   const client = useClient();
 
@@ -32,13 +34,13 @@ export const Message: React.FC<MessageProps> = ({
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             void navigate(
-              `/conversations/${message.conversationId}/message/${message.id}`,
+              `/${environment}/conversations/${message.conversationId}/message/${message.id}`,
             );
           }
         }}
         onClick={() =>
           void navigate(
-            `/conversations/${message.conversationId}/message/${message.id}`,
+            `/${environment}/conversations/${message.conversationId}/message/${message.id}`,
           )
         }>
         <MessageContentWithWrapper

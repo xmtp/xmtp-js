@@ -2,6 +2,7 @@ import { ActionIcon, Menu } from "@mantine/core";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useClientPermissions } from "@/hooks/useClientPermissions";
+import { useSettings } from "@/hooks/useSettings";
 import { IconDots } from "@/icons/IconDots";
 
 export type ConversationMenuProps = {
@@ -18,6 +19,7 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
   disabled,
 }) => {
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const clientPermissions = useClientPermissions(conversationId);
   const canManageMembers = useMemo(() => {
     return (
@@ -41,7 +43,12 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
       </Menu.Target>
       <Menu.Dropdown miw={200}>
         <Menu.Label>Manage</Menu.Label>
-        <Menu.Item onClick={() => void navigate("manage/consent")}>
+        <Menu.Item
+          onClick={() =>
+            void navigate(
+              `/${environment}/conversations/${conversationId}/manage/consent`,
+            )
+          }>
           Consent
         </Menu.Item>
         {type === "group" &&
@@ -50,17 +57,32 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
             clientPermissions.canChangePermissionsPolicy) && (
             <>
               {canManageMembers && (
-                <Menu.Item onClick={() => void navigate("manage/members")}>
+                <Menu.Item
+                  onClick={() =>
+                    void navigate(
+                      `/${environment}/conversations/${conversationId}/manage/members`,
+                    )
+                  }>
                   Members
                 </Menu.Item>
               )}
               {canManageMetadata && (
-                <Menu.Item onClick={() => void navigate("manage/metadata")}>
+                <Menu.Item
+                  onClick={() =>
+                    void navigate(
+                      `/${environment}/conversations/${conversationId}/manage/metadata`,
+                    )
+                  }>
                   Metadata
                 </Menu.Item>
               )}
               {clientPermissions.canChangePermissionsPolicy && (
-                <Menu.Item onClick={() => void navigate("manage/permissions")}>
+                <Menu.Item
+                  onClick={() =>
+                    void navigate(
+                      `/${environment}/conversations/${conversationId}/manage/permissions`,
+                    )
+                  }>
                   Permissions
                 </Menu.Item>
               )}
