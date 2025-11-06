@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.2.5
+
+### Patch Changes
+
+- 8bf9ecb: Add "validHex" validation function
+
 ## 4.2.4
 
 ### Patch Changes
