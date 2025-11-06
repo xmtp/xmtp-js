@@ -30,7 +30,7 @@ import {
 import { filter } from "@/core/filter.js";
 import { getInstallationInfo } from "@/debug.js";
 import { createSigner, createUser } from "@/user/User.js";
-import { AgentError } from "./AgentError.js";
+import { AgentError, AgentStreamingError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
 import { MessageContext } from "./MessageContext.js";
@@ -345,7 +345,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         },
         onError: async (error) => {
           const recovered = await this.#runErrorChain(
-            new AgentError(
+            new AgentStreamingError(
               1002,
               "Error occured during conversation streaming.",
               error,
@@ -403,7 +403,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         },
         onError: async (error) => {
           const recovered = await this.#runErrorChain(
-            new AgentError(
+            new AgentStreamingError(
               1004,
               "Error occured during message streaming.",
               error,

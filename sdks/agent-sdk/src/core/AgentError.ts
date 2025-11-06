@@ -10,3 +10,5 @@ export class AgentError extends Error {
     return this.#code;
   }
 }
+
+export class AgentStreamingError extends AgentError {}
