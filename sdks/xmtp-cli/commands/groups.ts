@@ -1,4 +1,4 @@
-import { IdentifierKind, type Group } from "@xmtp/agent-sdk";
+import { filter, IdentifierKind } from "@xmtp/agent-sdk";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
 
@@ -218,7 +218,12 @@ async function runMetadataOperation(config: {
       process.exit(1);
     }
 
-    const group = conversation as Group;
+    if (!filter.isGroup(conversation)) {
+      console.error(`❌ Conversation is not a group: ${config.groupId}`);
+      process.exit(1);
+    }
+
+    const group = conversation;
 
     if (config.groupName) {
       await group.updateName(config.groupName);
