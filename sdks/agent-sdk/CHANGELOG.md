@@ -4,7 +4,10 @@
 
 ### Patch Changes
 
-- 13a14ba: Update xmtp.chat URLs
+- 13a14ba:
+  - Update xmtp.chat URLs
+  - Updated dependencies
+    - @xmtp/node-sdk@4.2.6
 
 ## 1.1.11
 
