@@ -46,9 +46,7 @@ export class MessageContext<
   usesCodec<T extends ContentCodec>(
     codecClass: new () => T,
   ): this is MessageContext<ReturnType<T["decode"]>> {
-    return (
-      this.#message.contentType?.sameAs(new codecClass().contentType) || false
-    );
+    return filter.usesCodec(this.#message, codecClass);
   }
 
   isMarkdown(): this is MessageContext<ReturnType<MarkdownCodec["decode"]>> {
