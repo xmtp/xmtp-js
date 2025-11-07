@@ -316,5 +316,26 @@ describe("Filters", () => {
       const usesCodec = filter.usesCodec(message, ReactionCodec);
       expect(usesCodec).toBe(false);
     });
+
+    it("should type guard message content to the codec's decoded type", () => {
+      const reaction: Reaction = {
+        action: "added",
+        reference: "message-id",
+        referenceInboxId: "sender-inbox-id",
+        schema: "unicode",
+        content: "👍",
+      };
+
+      const message = createMockMessage({
+        content: reaction,
+        contentType: ContentTypeReaction,
+      });
+
+      if (filter.usesCodec(message, ReactionCodec)) {
+        expectTypeOf(message.content).toEqualTypeOf<Reaction>();
+      } else {
+        expect.fail("Expected message content to be Reaction");
+      }
+    });
   });
 });
