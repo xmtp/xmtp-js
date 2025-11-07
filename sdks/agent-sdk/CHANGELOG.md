@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.13
+
+### Patch Changes
+
+- 24c866e: Exported `usesCodec` in `filter`
+
 ## 1.1.12
 
 ### Patch Changes
