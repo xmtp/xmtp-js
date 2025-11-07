@@ -1,17 +1,9 @@
 import {
-  ContentTypeMarkdown,
-  MarkdownCodec,
-} from "@xmtp/content-type-markdown";
-import {
   ContentTypeReaction,
   ReactionCodec,
   type Reaction,
 } from "@xmtp/content-type-reaction";
-import {
-  ContentTypeReply,
-  ReplyCodec,
-  type Reply,
-} from "@xmtp/content-type-reply";
+import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText, TextCodec } from "@xmtp/content-type-text";
 import { Dm, Group, type Client, type DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";

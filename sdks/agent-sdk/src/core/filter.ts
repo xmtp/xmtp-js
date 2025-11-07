@@ -6,7 +6,7 @@ import {
   ContentTypeMarkdown,
   type MarkdownCodec,
 } from "@xmtp/content-type-markdown";
-import { ContentCodec } from "@xmtp/content-type-primitives";
+import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   ContentTypeReaction,
   type ReactionCodec,
