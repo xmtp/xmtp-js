@@ -160,7 +160,7 @@ const usesCodec = <T extends ContentCodec>(
 ): message is DecodedMessage & {
   content: ReturnType<WalletSendCallsCodec["decode"]>;
 } => {
-  return message.contentType?.sameAs(new codecClass().contentType) || false;
+  return message.contentType?.sameAs(new codecClass().contentType) ?? false;
 };
 
 export const filter = {
