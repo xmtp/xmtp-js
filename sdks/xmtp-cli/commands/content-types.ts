@@ -1,5 +1,4 @@
 import { type Agent } from "@xmtp/agent-sdk";
-import { toHex } from "viem";
 import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
 import { ContentTypeReaction } from "@xmtp/content-type-reaction";
 import {
@@ -8,10 +7,11 @@ import {
 } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
+import { ContentTypeTransactionReference } from "@xmtp/content-type-transaction-reference";
 import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
 import type { Command } from "commander";
+import { toHex } from "viem";
 import { getAgent } from "./agent";
-import { ContentTypeTransactionReference } from "@xmtp/content-type-transaction-reference";
 
 export interface ContentOptions {
   target?: string;
@@ -299,12 +299,12 @@ async function sendTransactionContent(options: {
   await conversation.send(
     {
       version: "1.0",
-      from: (agent.address )
+      from: agent.address,
       chainId: config.chainId,
       calls: [
         {
           to: config.tokenAddress as `0x${string}`,
-          data: validHex(data),
+          data: data,
           metadata: {
             description: `Transfer ${amount} USDC`,
             transactionType: "transfer",
