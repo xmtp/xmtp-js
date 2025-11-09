@@ -43,11 +43,11 @@ export const App: React.FC = () => {
             element={<Navigate to={`/${environment}/conversations`} />}
           />
           <Route path="dm/:address" element={<LoadDM />} />
+          <Route path="identity" element={<IdentityModal />} />
           <Route path="conversations">
             <Route index element={<SelectConversation />} />
             <Route path="new-dm" element={<CreateDmModal />} />
             <Route path="new-group" element={<CreateGroupModal />} />
-            <Route path="identity" element={<IdentityModal />} />
             <Route path=":conversationId" element={<LoadConversation />}>
               <Route path="new-dm" element={<CreateDmModal />} />
               <Route path="new-group" element={<CreateGroupModal />} />

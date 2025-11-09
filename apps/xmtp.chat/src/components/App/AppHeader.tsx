@@ -46,7 +46,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, [client.accountIdentifier]);
 
   const handleClick = () => {
-    void navigate("identity");
+    void navigate(`/${environment}/identity`);
   };
 
   return (
