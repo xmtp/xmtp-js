@@ -277,7 +277,6 @@ async function sendTransactionContent(options: {
     process.exit(1);
   }
 
-  // USDC transaction handler
   const networkId = process.env.NETWORK_ID || "base-sepolia";
   const config = {
     tokenAddress:
@@ -288,36 +287,44 @@ async function sendTransactionContent(options: {
     decimals: 6,
   };
 
-  const amount = parseFloat(options.amount || "0.1");
-  if (isNaN(amount) || amount <= 0) {
-    console.error(`❌ Please provide a valid amount. Usage: /tx <amount>`);
+  const parsedAmount = parseFloat(options.amount || "0.1");
+  if (Number.isNaN(parsedAmount) || parsedAmount < 0) {
+    console.error(`❌ Invalid amount: ${options.amount}`);
     process.exit(1);
   }
-  const amountInDecimals = BigInt(Math.floor(amount * 10 ** config.decimals));
+  const amountMultiplier = 10 ** config.decimals;
+  const amountInDecimals = BigInt(Math.round(parsedAmount * amountMultiplier));
 
-  const data = `0xa9059cbb${agent.address as `0x${string}`}${amountInDecimals.toString(16).padStart(64, "0")}`;
-  await conversation.send(
-    {
-      version: "1.0",
-      from: agent.address,
-      chainId: config.chainId,
-      calls: [
-        {
-          to: config.tokenAddress as `0x${string}`,
-          data: data,
-          metadata: {
-            description: `Transfer ${amount} USDC`,
-            transactionType: "transfer",
-            currency: "USDC",
-            amount: amountInDecimals.toString(),
-            decimals: config.decimals.toString(),
-            networkId,
-          },
+  const methodSignature = "0xa9059cbb"; // Function signature for ERC20 'transfer(address,uint256)'
+
+  // Format the transaction data following ERC20 transfer standard
+  const recipient = options.target
+    ? options.target.replace(/^0x/, "").padStart(64, "0")
+    : "".padStart(64, "0");
+  const amountHex = amountInDecimals.toString(16).padStart(64, "0");
+  const transactionData = `${methodSignature}${recipient}${amountHex}`;
+
+  const transactionObject = {
+    version: "1.0",
+    from: options.target,
+    chainId: config.chainId,
+    calls: [
+      {
+        to: config.tokenAddress as `0x${string}`,
+        data: transactionData,
+        metadata: {
+          description: `Transfer ${parsedAmount} USDC`,
+          transactionType: "transfer",
+          currency: "USDC",
+          amount: amountInDecimals.toString(),
+          decimals: config.decimals.toString(),
+          networkId,
         },
-      ],
-    },
-    ContentTypeWalletSendCalls,
-  );
+      },
+    ],
+  };
+  console.log(transactionObject);
+  await conversation.send(transactionObject, ContentTypeWalletSendCalls);
   await conversation.send(
     {
       content: `💡 After completing the transaction, you can send a transaction reference message to confirm completion.`,
