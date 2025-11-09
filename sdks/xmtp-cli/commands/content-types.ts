@@ -1,4 +1,5 @@
 import { type Agent } from "@xmtp/agent-sdk";
+import { toHex } from "viem";
 import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
 import { ContentTypeReaction } from "@xmtp/content-type-reaction";
 import {
@@ -10,6 +11,7 @@ import { ContentTypeText } from "@xmtp/content-type-text";
 import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
 import type { Command } from "commander";
 import { getAgent } from "./agent";
+import { ContentTypeTransactionReference } from "@xmtp/content-type-transaction-reference";
 
 export interface ContentOptions {
   target?: string;
@@ -274,35 +276,57 @@ async function sendTransactionContent(options: {
     console.error(`❌ Conversation not found`);
     process.exit(1);
   }
-  const agentAddress = agent.client.accountIdentifier?.identifier || "";
-  const targetAddress = options.target || "";
+
+  // USDC transaction handler
+  const networkId = process.env.NETWORK_ID || "base-sepolia";
+  const config = {
+    tokenAddress:
+      networkId === "base-mainnet"
+        ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        : "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    chainId: networkId === "base-mainnet" ? toHex(8453) : toHex(84532),
+    decimals: 6,
+  };
+
   const amount = parseFloat(options.amount || "0.1");
+  if (isNaN(amount) || amount <= 0) {
+    console.error(`❌ Please provide a valid amount. Usage: /tx <amount>`);
+    process.exit(1);
+  }
+  const amountInDecimals = BigInt(Math.floor(amount * 10 ** config.decimals));
 
-  // Create the transaction payload
-  const walletSendCalls = createUSDCTransferCalls(
-    agentAddress,
-    targetAddress,
-    amount,
-  );
-
-  // Send a descriptive text message first
+  const data = `0xa9059cbb${agent.address as `0x${string}`}${amountInDecimals.toString(16).padStart(64, "0")}`;
   await conversation.send(
-    `💰 Transaction request:\n\nSend ${amount} USDC to ${targetAddress.slice(0, 6)}...${targetAddress.slice(-4)}\n\n${agentAddress.slice(0, 6)}...${agentAddress.slice(-4)} → ${targetAddress.slice(0, 6)}...${targetAddress.slice(-4)}`,
+    {
+      version: "1.0",
+      from: (agent.address )
+      chainId: config.chainId,
+      calls: [
+        {
+          to: config.tokenAddress as `0x${string}`,
+          data: validHex(data),
+          metadata: {
+            description: `Transfer ${amount} USDC`,
+            transactionType: "transfer",
+            currency: "USDC",
+            amount: amountInDecimals.toString(),
+            decimals: config.decimals.toString(),
+            networkId,
+          },
+        },
+      ],
+    },
+    ContentTypeWalletSendCalls,
   );
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  // Send the actual transaction
-  await conversation.send(walletSendCalls, ContentTypeWalletSendCalls);
+  await conversation.send(
+    {
+      content: `💡 After completing the transaction, you can send a transaction reference message to confirm completion.`,
+      contentType: ContentTypeText,
+    },
+    ContentTypeTransactionReference,
+  );
   console.log(`✅ Transaction frame sent successfully`);
   console.log(`\n🎉 Transaction content demo complete!`);
-  console.log(`   Amount: ${amount} USDC`);
-  console.log(
-    `   From: ${agentAddress.slice(0, 6)}...${agentAddress.slice(-4)}`,
-  );
-  console.log(
-    `   To: ${targetAddress.slice(0, 6)}...${targetAddress.slice(-4)}`,
-  );
-  console.log(`   Network: base-sepolia (84532)`);
 }
 
 async function sendDeeplinkContent(options: {
@@ -448,31 +472,4 @@ function parseSavedAttachment(): RemoteAttachment {
     filename: parsedData.filename,
     contentLength: parsedData.contentLength,
   } as RemoteAttachment;
-}
-
-function createUSDCTransferCalls(from: string, to: string, amount: number) {
-  // Convert amount to USDC decimals (6 decimal places)
-  const amountInSmallestUnit = Math.floor(amount * 1000000);
-  const amountHex = `0x${amountInSmallestUnit.toString(16)}`;
-
-  return {
-    version: "1.0",
-    chainId: "0x14A34", // Base Sepolia chain ID (84532 in decimal)
-    from: from as `0x${string}`,
-    calls: [
-      {
-        to: to as `0x${string}`,
-        value: amountHex as `0x${string}`,
-        metadata: {
-          description: `Send ${amount} USDC to ${to.slice(0, 6)}...${to.slice(-4)}`,
-          transactionType: "transfer",
-          currency: "USDC",
-          amount: amountInSmallestUnit.toString(),
-          decimals: "6",
-          toAddress: to,
-          fromAddress: from,
-        },
-      },
-    ],
-  };
 }
