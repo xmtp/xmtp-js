@@ -1,5 +1,9 @@
 # @xmtp/node-sdk
 
+## 4.3.1
+
+Fixed accidental publishing of `4.3.0`
+
 ## 4.2.6
 
 ### Patch Changes
