@@ -92,5 +92,5 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "version": "1.1.13"
+  "version": "1.1.14"
 }
