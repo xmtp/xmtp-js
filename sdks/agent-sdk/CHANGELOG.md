@@ -1,5 +1,12 @@
 # @xmtp/agent-sdk
 
+## 1.1.14
+
+### Patch Changes
+
+- 8e6c633: Strip the command token in the message context of `CommandRouter`
+- 1fe5810: Pinned Node.js SDK version
+
 ## 1.1.13
 
 ### Patch Changes
