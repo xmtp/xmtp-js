@@ -1,3 +1,5 @@
+import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
+import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   ConsentState,
   type Client,
@@ -31,6 +33,15 @@ export class ConversationContext<
 
   isGroup(): this is ConversationContext<ContentTypes, Group<ContentTypes>> {
     return filter.isGroup(this.#conversation);
+  }
+
+  // Send methods, which don't need a message context, are in ConversationContext to make them available in both dm and group event handlers
+  async sendMarkdown(markdown: string): Promise<void> {
+    await this.conversation.send(markdown, ContentTypeMarkdown);
+  }
+
+  async sendText(text: string): Promise<void> {
+    await this.conversation.send(text, ContentTypeText);
   }
 
   get conversation() {
