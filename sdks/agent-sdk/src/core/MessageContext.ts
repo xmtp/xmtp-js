@@ -110,8 +110,8 @@ export class MessageContext<
     await this.conversation.send(reply, ContentTypeReply);
   }
 
-  async sendMarkdownReply(text: string) {
-    await this.#sendReply(text, ContentTypeMarkdown);
+  async sendMarkdownReply(markdown: string) {
+    await this.#sendReply(markdown, ContentTypeMarkdown);
   }
 
   async sendTextReply(text: string) {
