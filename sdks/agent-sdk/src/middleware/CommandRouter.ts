@@ -38,6 +38,9 @@ export class CommandRouter {
     if (command.startsWith("/")) {
       const handler = this.commandMap.get(command);
       if (handler) {
+        // Create a new context with modified content (everything after the command)
+        const argsText = parts.slice(1).join(" ");
+        ctx.message.content = argsText;
         await handler(ctx);
         return true;
       }

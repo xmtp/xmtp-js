@@ -13,13 +13,7 @@ import {
   type Reply,
 } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import {
-  Dm,
-  Group,
-  type Client,
-  type Conversation,
-  type DecodedMessage,
-} from "@xmtp/node-sdk";
+import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { filter } from "@/core/filter.js";
 import { createSigner, createUser } from "@/user/User.js";
@@ -27,6 +21,7 @@ import {
   createMockConversationStreamWithCallbacks,
   createMockMessage,
   createMockStreamWithCallbacks,
+  expectMessage,
   flushMicrotasks,
   makeAgent,
   mockClient,
@@ -253,11 +248,11 @@ describe("Agent", () => {
       ).toHaveBeenCalledTimes(0);
 
       expect(textEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             senderInboxId: "other-inbox-id",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -310,11 +305,11 @@ describe("Agent", () => {
       ).toHaveBeenCalledTimes(0);
 
       expect(reactionEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             senderInboxId: "other-inbox-id",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -340,11 +335,11 @@ describe("Agent", () => {
 
       expect(groupUpdateEventSpy).toHaveBeenCalledTimes(1);
       expect(groupUpdateEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             contentType: ContentTypeGroupUpdated,
-          }) as DecodedMessage<GroupUpdated>,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -627,11 +622,11 @@ describe("Agent", () => {
 
       // Verify middleware was called with the message from the other user
       expect(middlewareCallsSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             senderInboxId: "other-user-inbox",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
         expect.any(Function),
       );
     });

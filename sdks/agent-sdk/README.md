@@ -305,12 +305,12 @@ You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-
 
 ### 4. Rich Context
 
-Every message event handler receives a `MessageContext` with:
+Every message event handler receives a `MessageContext` (`ctx`) with:
 
 - `message` – the decoded message object
 - `conversation` – the active conversation object
 - `client` – underlying XMTP client
-- Helpers like `sendTextReply()`, `sendReaction()`, `getSenderAddress`, and more
+- Helpers like `sendTextReply`, `sendMarkdown`, `sendReaction`, `getSenderAddress`, and more
 
 **Example**
 
