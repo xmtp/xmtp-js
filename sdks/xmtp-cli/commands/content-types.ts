@@ -292,21 +292,22 @@ async function sendTransactionContent(options: {
     console.error(`❌ Invalid amount: ${options.amount}`);
     process.exit(1);
   }
+  const recipientAddress = agent.address; // the agent receives the tx.
+  const senderAddress = options.target; // the target address
+  // sends the tx.
   const amountMultiplier = 10 ** config.decimals;
   const amountInDecimals = BigInt(Math.round(parsedAmount * amountMultiplier));
-
   const methodSignature = "0xa9059cbb"; // Function signature for ERC20 'transfer(address,uint256)'
-
   // Format the transaction data following ERC20 transfer standard
-  const recipient = options.target
-    ? options.target.replace(/^0x/, "").padStart(64, "0")
+  const recipient = recipientAddress
+    ? recipientAddress.replace(/^0x/, "").padStart(64, "0")
     : "".padStart(64, "0");
   const amountHex = amountInDecimals.toString(16).padStart(64, "0");
   const transactionData = `${methodSignature}${recipient}${amountHex}`;
 
   const transactionObject = {
     version: "1.0",
-    from: options.target,
+    from: senderAddress,
     chainId: config.chainId,
     calls: [
       {

@@ -10,6 +10,7 @@ import { registerPermissionsCommand } from "./commands/permissions";
 import { registerSendCommand } from "./commands/send";
 
 const program = new Command();
+let envLoaded = false;
 
 program.name("xmtp").description("XMTP CLI").version("0.0.2");
 
@@ -21,42 +22,42 @@ registerPermissionsCommand(program);
 registerListCommand(program);
 registerContentTypesCommand(program);
 
-// Parse arguments to check if it's just --version or --help
-const args = process.argv.slice(2);
-const isVersion = args.includes("--version") || args.includes("-V");
-const isHelp =
-  args.includes("--help") ||
-  args.includes("-h") ||
-  args.length === 0 ||
-  args[0] === "help";
+program.hook("preAction", (thisCommand, actionCommand) => {
+  if (envLoaded) {
+    return;
+  }
 
-// Only require .env file for actual commands (not version/help)
-if (!isVersion && !isHelp) {
-  // Check for .env file in current working directory
+  if (actionCommand.name() === "help") {
+    return;
+  }
+
   const envPath = resolve(process.cwd(), ".env");
   if (!existsSync(envPath)) {
-    console.error("❌ Error: .env file not found in current directory");
-    console.error(`   Expected location: ${envPath}`);
-    console.error(
-      "\n   Please create a .env file with the following variables:",
+    thisCommand.error(
+      [
+        "❌ Error: .env file not found in current directory",
+        `   Expected location: ${envPath}`,
+        "",
+        "   Please create a .env file with the following variables:",
+        "   - XMTP_ENV (dev or production)",
+        "   - XMTP_WALLET_KEY (your Ethereum wallet private key)",
+        "   - XMTP_DB_ENCRYPTION_KEY (database encryption key)",
+        "   - XMTP_DB_DIRECTORY (optional, database directory)",
+      ].join("\n"),
     );
-    console.error("   - XMTP_ENV (dev or production)");
-    console.error("   - XMTP_WALLET_KEY (your Ethereum wallet private key)");
-    console.error("   - XMTP_DB_ENCRYPTION_KEY (database encryption key)");
-    console.error("   - XMTP_DB_DIRECTORY (optional, database directory)");
-    process.exit(1);
   }
 
-  // Load environment variables from .env file
   try {
     loadEnvFile(envPath);
+    envLoaded = true;
   } catch (error) {
-    console.error("❌ Error: Failed to load .env file");
-    console.error(
-      `   ${error instanceof Error ? error.message : String(error)}`,
+    thisCommand.error(
+      [
+        "❌ Error: Failed to load .env file",
+        `   ${error instanceof Error ? error.message : String(error)}`,
+      ].join("\n"),
     );
-    process.exit(1);
   }
-}
+});
 
 program.parse();
