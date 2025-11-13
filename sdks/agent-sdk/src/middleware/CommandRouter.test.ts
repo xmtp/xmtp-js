@@ -1,8 +1,12 @@
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Dm, type Client, type DecodedMessage } from "@xmtp/node-sdk";
+import { Dm, type Client } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { MessageContext } from "@/core/MessageContext.js";
-import { createMockMessage, mockClient } from "@/utils/TestUtil.js";
+import {
+  createMockMessage,
+  expectMessage,
+  mockClient,
+} from "@/utils/TestUtil.js";
 import { CommandRouter } from "./CommandRouter.js";
 
 describe("CommandRouter", () => {
@@ -40,11 +44,11 @@ describe("CommandRouter", () => {
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             content: "0.1",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -70,11 +74,11 @@ describe("CommandRouter", () => {
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             content: "",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -100,11 +104,11 @@ describe("CommandRouter", () => {
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             content: "5 USDC to Alix",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
       );
     });
   });
