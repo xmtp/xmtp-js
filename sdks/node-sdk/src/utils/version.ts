@@ -1,3 +1,5 @@
-import bindingsVersion from "@xmtp/node-bindings/version.json" with { type: "json" };
+import packageJSON from "@/../package.json" with { type: "json" };
 
-export const version = `${bindingsVersion.branch}@${bindingsVersion.version} (${bindingsVersion.date})`;
+const nodeBindings = packageJSON.dependencies["@xmtp/node-bindings"];
+
+export const version = nodeBindings;
