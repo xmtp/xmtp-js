@@ -4238,7 +4238,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/agent-sdk@workspace:sdks/agent-sdk":
+"@xmtp/agent-sdk@npm:^1.1.9, @xmtp/agent-sdk@workspace:sdks/agent-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
@@ -4291,6 +4291,34 @@ __metadata:
     vite: "npm:^7.1.12"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^4.0.3"
+  languageName: unknown
+  linkType: soft
+
+"@xmtp/cli@workspace:sdks/xmtp-cli":
+  version: 0.0.0-use.local
+  resolution: "@xmtp/cli@workspace:sdks/xmtp-cli"
+  dependencies:
+    "@rollup/plugin-json": "npm:^6.1.0"
+    "@rollup/plugin-typescript": "npm:^12.3.0"
+    "@types/node": "npm:^24.9.1"
+    "@xmtp/agent-sdk": "npm:^1.1.9"
+    "@xmtp/content-type-markdown": "npm:^1.0.0"
+    "@xmtp/content-type-reaction": "npm:^2.0.2"
+    "@xmtp/content-type-read-receipt": "npm:^2.0.2"
+    "@xmtp/content-type-remote-attachment": "npm:^2.0.2"
+    "@xmtp/content-type-reply": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/content-type-transaction-reference": "npm:^2.0.2"
+    "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
+    commander: "npm:^14.0.2"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.52.5"
+    rollup-plugin-dts: "npm:^6.2.3"
+    rollup-plugin-tsconfig-paths: "npm:^1.5.2"
+    tsx: "npm:^4.20.6"
+    typescript: "npm:^5.9.3"
+  bin:
+    xmtp: ./dist/index.js
   languageName: unknown
   linkType: soft
 
@@ -5470,6 +5498,13 @@ __metadata:
   version: 10.0.1
   resolution: "commander@npm:10.0.1"
   checksum: 10/8799faa84a30da985802e661cc9856adfaee324d4b138413013ef7f087e8d7924b144c30a1f1405475f0909f467665cd9e1ce13270a2f41b141dab0b7a58f3fb
+  languageName: node
+  linkType: hard
+
+"commander@npm:^14.0.2":
+  version: 14.0.2
+  resolution: "commander@npm:14.0.2"
+  checksum: 10/2d202db5e5f9bb770112a3c1579b893d17ac6f6d932183077308bdd96d0f87f0bbe6a68b5b9ed2cf3b2514be6bb7de637480703c0e2db9741ee1b383237deb26
   languageName: node
   linkType: hard
 
