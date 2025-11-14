@@ -1,6 +1,7 @@
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import type { LogLevel } from "@xmtp/node-bindings";
 import type { ApiUrls } from "@/constants";
+import { AuthCallback, AuthHandle } from "./Auth";
 import type { HexString } from "./utils/validation";
 
 /**
@@ -30,6 +31,19 @@ export type NetworkOptions = {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync
    */
   historySyncUrl?: string | null;
+
+  /**
+   * Auth handle for the client. Can be used to set credentials for the client.
+   * If using multiple clients, this can be used to share the same auth between them.
+   * If that is the case
+   */
+  authHandle?: AuthHandle;
+
+  /**
+   * Auth callback for the client.
+   * This callback will be called when the client needs to authenticate.
+   */
+  authCallback?: AuthCallback;
 };
 
 /**

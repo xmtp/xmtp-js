@@ -1,4 +1,5 @@
 import type { ContentCodec } from "@xmtp/content-type-primitives";
+import { AuthCallback, AuthHandle } from "@/Auth";
 import type { ApiUrls } from "@/constants";
 
 export type XmtpEnv = keyof typeof ApiUrls;
@@ -21,6 +22,19 @@ export type NetworkOptions = {
    * specific endpoint for syncing history
    */
   historySyncUrl?: string | null;
+
+  /**
+   * Auth handle for the client. Can be used to set credentials for the client.
+   * If using multiple clients, this can be used to share the same auth between them.
+   * If that is the case
+   */
+  authHandle?: AuthHandle;
+
+  /**
+   * Auth callback for the client.
+   * This callback will be called when the credentials are expired.
+   */
+  authCallback?: AuthCallback;
 };
 
 export type ContentOptions = {
