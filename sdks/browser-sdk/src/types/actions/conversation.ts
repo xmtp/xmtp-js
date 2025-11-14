@@ -8,6 +8,7 @@ import type {
   SafeListMessagesOptions,
   SafeMessage,
   SafeMessageDisappearingSettings,
+  SafeSendMessageOpts,
 } from "@/utils/conversions";
 
 export type ConversationAction =
@@ -26,6 +27,7 @@ export type ConversationAction =
       data: {
         id: string;
         content: SafeEncodedContent;
+        sendOptions: SafeSendMessageOpts;
       };
     }
   | {
@@ -35,6 +37,7 @@ export type ConversationAction =
       data: {
         id: string;
         content: SafeEncodedContent;
+        sendOptions: SafeSendMessageOpts;
       };
     }
   | {
@@ -52,6 +55,15 @@ export type ConversationAction =
       data: {
         id: string;
         options?: SafeListMessagesOptions;
+      };
+    }
+  | {
+      action: "conversation.countMessages";
+      id: string;
+      result: bigint;
+      data: {
+        id: string;
+        options?: Omit<SafeListMessagesOptions, "limit" | "direction">;
       };
     }
   | {

@@ -37,12 +37,18 @@ export class Utils extends UtilsWorkerClass {
    *
    * @param identifier - The identifier to get the inbox ID for
    * @param env - Optional XMTP environment configuration (default: "dev")
+   * @param gatewayHost - Optional gateway host override
    * @returns Promise that resolves with the inbox ID for the identifier
    */
-  async getInboxIdForIdentifier(identifier: Identifier, env?: XmtpEnv) {
+  async getInboxIdForIdentifier(
+    identifier: Identifier,
+    env?: XmtpEnv,
+    gatewayHost?: string,
+  ) {
     return this.sendMessage("utils.getInboxIdForIdentifier", {
       identifier,
       env,
+      gatewayHost,
     });
   }
 
@@ -59,6 +65,7 @@ export class Utils extends UtilsWorkerClass {
    * @param identifier - The identifier to revoke installations for
    * @param inboxId - The inbox ID to revoke installations for
    * @param installationIds - The installation IDs to revoke
+   * @param gatewayHost - Optional gateway host override
    * @returns The signature text and signature request ID
    */
   async revokeInstallationsSignatureText(
@@ -66,6 +73,7 @@ export class Utils extends UtilsWorkerClass {
     inboxId: string,
     installationIds: Uint8Array[],
     env?: XmtpEnv,
+    gatewayHost?: string,
   ) {
     return this.sendMessage("utils.revokeInstallationsSignatureText", {
       env,
@@ -73,6 +81,7 @@ export class Utils extends UtilsWorkerClass {
       inboxId,
       installationIds,
       signatureRequestId: v4(),
+      gatewayHost,
     });
   }
 
@@ -83,6 +92,7 @@ export class Utils extends UtilsWorkerClass {
    * @param signer - The signer to use
    * @param inboxId - The inbox ID to revoke installations for
    * @param installationIds - The installation IDs to revoke
+   * @param gatewayHost - Optional gateway host override
    * @returns Promise that resolves with the result of the revoke installations operation
    */
   async revokeInstallations(
@@ -90,6 +100,7 @@ export class Utils extends UtilsWorkerClass {
     inboxId: string,
     installationIds: Uint8Array[],
     env?: XmtpEnv,
+    gatewayHost?: string,
   ) {
     const identifier = await signer.getIdentifier();
     const { signatureText, signatureRequestId } =
@@ -98,6 +109,7 @@ export class Utils extends UtilsWorkerClass {
         inboxId,
         installationIds,
         env,
+        gatewayHost,
       );
     const signature = await signer.signMessage(signatureText);
     const safeSigner = await toSafeSigner(signer, signature);
@@ -106,6 +118,7 @@ export class Utils extends UtilsWorkerClass {
       signer: safeSigner,
       signatureRequestId,
       env,
+      gatewayHost,
     });
   }
 
@@ -116,10 +129,15 @@ export class Utils extends UtilsWorkerClass {
    * @param env - The environment to use
    * @returns The inbox state for the specified inbox IDs
    */
-  async inboxStateFromInboxIds(inboxIds: string[], env?: XmtpEnv) {
+  async inboxStateFromInboxIds(
+    inboxIds: string[],
+    env?: XmtpEnv,
+    gatewayHost?: string,
+  ) {
     return this.sendMessage("utils.inboxStateFromInboxIds", {
       inboxIds,
       env,
+      gatewayHost,
     });
   }
 }

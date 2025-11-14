@@ -12,6 +12,7 @@ import {
   ListMessagesOptions,
   MessageDisappearingSettings,
   PermissionPolicySet,
+  SendMessageOpts,
   ContentTypeId as WasmContentTypeId,
   EncodedContent as WasmEncodedContent,
   type ApiStats,
@@ -155,6 +156,9 @@ export type SafeListMessagesOptions = {
   contentTypes?: ContentType[];
   deliveryStatus?: DeliveryStatus;
   direction?: SortDirection;
+  excludeContentTypes?: ContentType[];
+  excludeSenderInboxIds?: string[];
+  kind?: GroupMessageKind;
   limit?: bigint;
   sentAfterNs?: bigint;
   sentBeforeNs?: bigint;
@@ -166,6 +170,9 @@ export const toSafeListMessagesOptions = (
   contentTypes: options.contentTypes,
   deliveryStatus: options.deliveryStatus,
   direction: options.direction,
+  excludeContentTypes: options.excludeContentTypes,
+  excludeSenderInboxIds: options.excludeSenderInboxIds,
+  kind: options.kind,
   limit: options.limit,
   sentAfterNs: options.sentAfterNs,
   sentBeforeNs: options.sentBeforeNs,
@@ -181,7 +188,26 @@ export const fromSafeListMessagesOptions = (
     options.deliveryStatus,
     options.direction,
     options.contentTypes,
+    options.excludeContentTypes,
+    options.kind,
+    options.excludeSenderInboxIds,
   );
+
+export type SafeSendMessageOpts = {
+  shouldPush: boolean;
+};
+
+export const toSafeSendMessageOpts = (
+  opts: SendMessageOpts,
+): SafeSendMessageOpts => ({
+  shouldPush: opts.shouldPush,
+});
+
+export const fromSafeSendMessageOpts = (
+  opts: SafeSendMessageOpts,
+): SendMessageOpts => {
+  return new SendMessageOpts(opts.shouldPush);
+};
 
 export type SafeListConversationsOptions = {
   consentStates?: ConsentState[];
@@ -506,6 +532,11 @@ export const toSafeKeyPackageStatus = (
   validationError: status.validationError,
 });
 
+export type SafeXMTPCursor = {
+  originatorID: number;
+  sequenceID: bigint;
+};
+
 export type SafeConversationDebugInfo = {
   epoch: bigint;
   maybeForked: boolean;
@@ -513,7 +544,7 @@ export type SafeConversationDebugInfo = {
   isCommitLogForked?: boolean;
   localCommitLog: string;
   remoteCommitLog: string;
-  cursor: bigint;
+  cursor: SafeXMTPCursor[];
 };
 
 export const toSafeConversationDebugInfo = (
@@ -525,7 +556,10 @@ export const toSafeConversationDebugInfo = (
   isCommitLogForked: debugInfo.isCommitLogForked,
   localCommitLog: debugInfo.localCommitLog,
   remoteCommitLog: debugInfo.remoteCommitLog,
-  cursor: debugInfo.cursor,
+  cursor: debugInfo.cursor.map((cursor) => ({
+    originatorID: cursor.originator_id,
+    sequenceID: cursor.sequence_id,
+  })),
 });
 
 export type SafeApiStats = {

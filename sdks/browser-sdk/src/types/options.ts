@@ -21,6 +21,10 @@ export type NetworkOptions = {
    * specific endpoint for syncing history
    */
   historySyncUrl?: string | null;
+  /**
+   * gatewayHost can be used to override the gateway endpoint
+   */
+  gatewayHost?: string | null;
 };
 
 export type ContentOptions = {

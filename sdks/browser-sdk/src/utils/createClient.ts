@@ -14,8 +14,9 @@ export const createClient = async (
 ) => {
   const env = options?.env || "dev";
   const host = options?.apiUrl || ApiUrls[env];
+  const gatewayHost = options?.gatewayHost ?? null;
   const inboxId =
-    (await getInboxIdForIdentifier(host, identifier)) ||
+    (await getInboxIdForIdentifier(host, gatewayHost, identifier)) ||
     generateInboxId(identifier);
   const dbPath =
     options?.dbPath === undefined
@@ -54,5 +55,6 @@ export const createClient = async (
     undefined,
     options?.debugEventsEnabled,
     options?.appVersion,
+    options?.gatewayHost,
   );
 };

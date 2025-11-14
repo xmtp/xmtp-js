@@ -12,6 +12,7 @@ import {
   type MetadataField,
   type PermissionPolicy,
   type PermissionUpdateType,
+  type SendMessageOpts,
 } from "@xmtp/wasm-bindings";
 import {
   fromSafeListMessagesOptions,
@@ -180,16 +181,24 @@ export class WorkerConversation {
     return this.#group.publishMessages();
   }
 
-  sendOptimistic(encodedContent: EncodedContent) {
-    return this.#group.sendOptimistic(encodedContent);
+  sendOptimistic(encodedContent: EncodedContent, opts: SendMessageOpts) {
+    // Pass through to underlying implementation - it will handle undefined opts
+    return this.#group.sendOptimistic(encodedContent, opts);
   }
 
-  async send(encodedContent: EncodedContent) {
-    return this.#group.send(encodedContent);
+  async send(encodedContent: EncodedContent, opts: SendMessageOpts) {
+    // Pass through to underlying implementation - it will handle undefined opts
+    return this.#group.send(encodedContent, opts);
   }
 
   async messages(options?: SafeListMessagesOptions) {
     return this.#group.findMessages(
+      options ? fromSafeListMessagesOptions(options) : undefined,
+    );
+  }
+
+  async countMessages(options?: SafeListMessagesOptions) {
+    return this.#group.countMessages(
       options ? fromSafeListMessagesOptions(options) : undefined,
     );
   }

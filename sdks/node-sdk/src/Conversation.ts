@@ -157,13 +157,13 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const encodedContent =
+    const { encodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
-    return this.#conversation.sendOptimistic(encodedContent);
+    return this.#conversation.sendOptimistic(encodedContent, sendOptions);
   }
 
   /**
@@ -179,13 +179,13 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const encodedContent =
+    const { encodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
-    return this.#conversation.send(encodedContent);
+    return this.#conversation.send(encodedContent, sendOptions);
   }
 
   /**
@@ -197,6 +197,19 @@ export class Conversation<ContentTypes = unknown> {
   async messages(options?: ListMessagesOptions) {
     const messages = await this.#conversation.findMessages(options);
     return messages.map((message) => new DecodedMessage(this.#client, message));
+  }
+
+  /**
+   * Counts messages in this conversation
+   *
+   * @param options - Optional filtering options
+   * @returns Promise that resolves with the count of messages
+   */
+  async countMessages(
+    options?: Omit<ListMessagesOptions, "limit" | "direction">,
+  ) {
+    const count = await this.#conversation.countMessages(options);
+    return count;
   }
 
   /**

@@ -39,9 +39,10 @@ const postMessageError = (data: ActionErrorData<UtilsWorkerAction>) => {
 const getInboxIdForIdentifier = async (
   identifier: Identifier,
   env?: XmtpEnv,
+  gatewayHost?: string,
 ) => {
   const host = env ? ApiUrls[env] : ApiUrls.dev;
-  return get_inbox_id_for_identifier(host, identifier);
+  return get_inbox_id_for_identifier(host, gatewayHost ?? null, identifier);
 };
 
 let enableLogging = false;
@@ -75,14 +76,19 @@ self.onmessage = async (
         break;
       }
       case "utils.getInboxIdForIdentifier": {
-        const result = await getInboxIdForIdentifier(data.identifier, data.env);
+        const result = await getInboxIdForIdentifier(
+          data.identifier,
+          data.env,
+          data.gatewayHost,
+        );
         postMessage({ id, action, result });
         break;
       }
       case "utils.revokeInstallationsSignatureText": {
         const host = ApiUrls[data.env ?? "dev"];
-        const signatureRequest = await revokeInstallationsSignatureRequest(
+        const signatureRequest = revokeInstallationsSignatureRequest(
           host,
+          data.gatewayHost,
           data.identifier,
           data.inboxId,
           data.installationIds,
@@ -115,15 +121,24 @@ self.onmessage = async (
             );
             break;
         }
-        await applySignatureRequest(host, signatureRequest);
+        await applySignatureRequest(
+          host,
+          data.gatewayHost ?? null,
+          signatureRequest,
+        );
         signatureRequests.delete(data.signatureRequestId);
-        postMessage({ id, action, result: undefined });
+        postMessage({ id, action, result: [] });
         break;
       }
+
       case "utils.inboxStateFromInboxIds": {
         const host = ApiUrls[data.env ?? "dev"];
         try {
-          const inboxStates = await inboxStateFromInboxIds(host, data.inboxIds);
+          const inboxStates = await inboxStateFromInboxIds(
+            host,
+            data.gatewayHost ?? null,
+            data.inboxIds,
+          );
           const result = inboxStates.map((inboxState) =>
             toSafeInboxState(inboxState),
           );

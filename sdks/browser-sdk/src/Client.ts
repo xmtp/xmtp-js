@@ -535,11 +535,18 @@ export class Client<
     inboxId: string,
     installationIds: Uint8Array[],
     env?: XmtpEnv,
+    gatewayHost?: string,
     enableLogging?: boolean,
   ) {
     const utils = new Utils(enableLogging);
     await utils.init();
-    await utils.revokeInstallations(signer, inboxId, installationIds, env);
+    await utils.revokeInstallations(
+      signer,
+      inboxId,
+      installationIds,
+      env,
+      gatewayHost,
+    );
     utils.close();
   }
 
@@ -554,10 +561,15 @@ export class Client<
     inboxIds: string[],
     env?: XmtpEnv,
     enableLogging?: boolean,
+    gatewayHost?: string,
   ) {
     const utils = new Utils(enableLogging);
     await utils.init();
-    const result = await utils.inboxStateFromInboxIds(inboxIds, env);
+    const result = await utils.inboxStateFromInboxIds(
+      inboxIds,
+      env,
+      gatewayHost,
+    );
     utils.close();
     return result;
   }
@@ -662,12 +674,58 @@ export class Client<
     if (!codec) {
       throw new CodecNotFoundError(contentType);
     }
+
+    return this.encodeWithCodec(content, codec);
+  }
+
+  /**
+   * Prepares content for sending by encoding it and generating send options from the codec
+   *
+   * @param content - The message content to prepare for sending
+   * @param contentType - The content type identifier for the appropriate codec
+   * @returns An object containing the encoded content and send options
+   * @throws {CodecNotFoundError} When no codec is registered for the specified content type
+   */
+  prepareForSend(content: ContentTypes, contentType: ContentTypeId) {
+    const codec = this.codecFor(contentType);
+    if (!codec) {
+      throw new CodecNotFoundError(contentType);
+    }
+
+    return {
+      encodedContent: this.encodeWithCodec(content, codec),
+      sendOptions: this.sendMessageOpts(content, codec),
+    };
+  }
+
+  /**
+   * Encodes content using a specific codec and adds fallback information if available
+   *
+   * @param content - The content to encode
+   * @param codec - The codec to use for encoding
+   * @returns The encoded content with optional fallback
+   */
+  private encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
     const encoded = codec.encode(content, this);
     const fallback = codec.fallback(content);
     if (fallback) {
       encoded.fallback = fallback;
     }
     return toSafeEncodedContent(encoded);
+  }
+
+  /**
+   * Generates send options based on the content and codec
+   *
+   * @param content - The content being sent
+   * @param codec - The codec used for the content
+   * @returns Send options including whether to push notify recipients
+   */
+  private sendMessageOpts(
+    content: ContentTypes,
+    codec: ContentCodec,
+  ): { shouldPush: boolean } {
+    return { shouldPush: codec.shouldPush(content) };
   }
 
   /**

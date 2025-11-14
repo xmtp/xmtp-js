@@ -21,6 +21,18 @@ services:
       - mlsdb
       - validation
 
+  node-web:
+    image: ghcr.io/xmtp/grpc-web
+    pull_policy: never
+    platform: linux/amd64
+    depends_on:
+      - node
+    ports:
+      - 5557:5557
+    build:
+      context: ../
+      dockerfile: ./dev/envoy/Dockerfile
+
   validation:
     image: ghcr.io/xmtp/mls-validation-service:main
     platform: linux/amd64

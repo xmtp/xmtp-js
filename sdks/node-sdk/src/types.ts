@@ -30,6 +30,14 @@ export type NetworkOptions = {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync
    */
   historySyncUrl?: string | null;
+  /**
+   * The host of the XMTP Gateway for your application
+   *
+   * Only valid for `testnet` and `mainnet` environments
+   *
+   * @see:https://docs.xmtp.org/fund-agents-apps/run-gateway
+   */
+  gatewayHost?: string;
 };
 
 /**
