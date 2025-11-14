@@ -5,6 +5,7 @@ import {
   LogOptions,
   type Identifier,
 } from "@xmtp/wasm-bindings";
+import { createAuthCallback } from "@/Auth";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types/options";
 
@@ -54,5 +55,11 @@ export const createClient = async (
     undefined,
     options?.debugEventsEnabled,
     options?.appVersion,
+    null,
+    null,
+    options?.authCallback
+      ? createAuthCallback(options.authCallback)
+      : undefined,
+    options?.authHandle?.handle ?? null,
   );
 };
