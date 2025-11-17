@@ -381,7 +381,7 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Message>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      await this.syncAll(options?.consentStates);
       return this.#conversations.streamAllMessages(
         callback,
         onFail,
