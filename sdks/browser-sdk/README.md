@@ -4,9 +4,6 @@ This package provides the XMTP client SDK for browsers.
 
 To keep up with the latest SDK developments, see the [Issues tab](https://github.com/xmtp/xmtp-js/issues) in this repo.
 
-> [!CAUTION]
-> This SDK is in beta status and ready for you to build with in production. Software in this status may change based on feedback.
-
 ## Documentation
 
 To learn how to use the XMTP client SDK for browsers, see [Get started with the XMTP Browser SDK](https://docs.xmtp.org/sdks/browser).
