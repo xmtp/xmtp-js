@@ -936,4 +936,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   static get version() {
     return version;
   }
+
+  /**
+   * Disconnect from the SQLite database
+   */
+  disconnectDatabase() {
+    this.#client?.releaseDbConnection();
+  }
+
+  /**
+   * Reconnect a previously disconnected SQLite database
+   */
+  reconnectDatabase() {
+    return this.#client?.dbReconnect();
+  }
 }
