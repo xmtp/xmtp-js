@@ -183,10 +183,20 @@ describe("Conversations", () => {
     const dm1 = client1.conversations.getDmByInboxId(client2.inboxId);
     expect(dm1).toBeDefined();
     expect(dm1!.id).toBe(group.id);
+    const dm1ByIdentifier = await client1.conversations.getDmByIdentifier(
+      await signer2.getIdentifier(),
+    );
+    expect(dm1ByIdentifier).toBeDefined();
+    expect(dm1ByIdentifier!.id).toBe(group.id);
 
     const dm2 = client2.conversations.getDmByInboxId(client1.inboxId);
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
+    const dm2ByIdentifier = await client2.conversations.getDmByIdentifier(
+      await signer1.getIdentifier(),
+    );
+    expect(dm2ByIdentifier).toBeDefined();
+    expect(dm2ByIdentifier!.id).toBe(group.id);
 
     const group3 = await client1.conversations.newDm(client3.inboxId);
     expect(group3).toBeDefined();

@@ -222,6 +222,11 @@ describe("Conversations", () => {
     const dm1 = await client1.conversations.getDmByInboxId(client2.inboxId!);
     expect(dm1).toBeDefined();
     expect(dm1!.id).toBe(group.id);
+    const dm1ByIdentifier = await client1.conversations.getDmByIdentifier(
+      await signer2.getIdentifier(),
+    );
+    expect(dm1ByIdentifier).toBeDefined();
+    expect(dm1ByIdentifier!.id).toBe(group.id);
 
     const peerInboxId = await dm1?.peerInboxId();
     expect(peerInboxId).toBeDefined();
@@ -230,6 +235,11 @@ describe("Conversations", () => {
     const dm2 = await client2.conversations.getDmByInboxId(client1.inboxId!);
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
+    const dm2ByIdentifier = await client2.conversations.getDmByIdentifier(
+      await signer1.getIdentifier(),
+    );
+    expect(dm2ByIdentifier).toBeDefined();
+    expect(dm2ByIdentifier!.id).toBe(group.id);
 
     const peerInboxId2 = await dm2?.peerInboxId();
     expect(peerInboxId2).toBeDefined();
