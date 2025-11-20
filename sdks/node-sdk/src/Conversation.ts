@@ -125,7 +125,9 @@ export class Conversation<ContentTypes = unknown> {
       callback: StreamCallback<Message>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversation.stream(callback, onFail);
     };
     const convertMessage = (value: Message) => {

@@ -302,7 +302,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(
         callback,
         onFail,
@@ -341,7 +343,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(
         callback,
         onFail,
@@ -367,7 +371,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(callback, onFail, ConversationType.Dm);
     };
     const convertConversation = (value: Conversation) => {
@@ -396,7 +402,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Message>,
       onFail: () => void,
     ) => {
-      await this.syncAll(options?.consentStates);
+      if (!options?.disableSync) {
+        await this.syncAll(options?.consentStates);
+      }
       return this.#conversations.streamAllMessages(
         callback,
         onFail,
