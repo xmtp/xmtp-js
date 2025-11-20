@@ -110,7 +110,9 @@ export class Preferences {
       callback: StreamCallback<Consent[]>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.streamConsent(callback, onFail);
     };
     return createStream(streamConsent, undefined, options);
@@ -127,7 +129,9 @@ export class Preferences {
       callback: StreamCallback<PreferenceUpdate>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.streamPreferences(callback, onFail);
     };
     return createStream(streamPreferences, undefined, options);

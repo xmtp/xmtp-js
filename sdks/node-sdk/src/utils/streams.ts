@@ -48,6 +48,11 @@ export type StreamOptions<T = unknown, V = T> = {
    * (default: true)
    */
   retryOnFail?: boolean;
+  /**
+   * Whether to disable network sync before starting the stream
+   * (default: false)
+   */
+  disableSync?: boolean;
 };
 
 export type StreamCallback<T = unknown> = (
