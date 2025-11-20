@@ -4920,6 +4920,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/node-bindings@npm:1.5.4":
+  version: 1.5.4
+  resolution: "@xmtp/node-bindings@npm:1.5.4"
+  checksum: 10/0365969ef88d8e0cd55fe0197ba65046ed61268d6a9898631df07b39f1fd37f82a549b277bef9ef42446ea8248e8ad8bfc32310b0d4194f573833973c1bbb28d
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-bindings@npm:1.6.1-rc3":
   version: 1.6.1-rc3
   resolution: "@xmtp/node-bindings@npm:1.6.1-rc3"
