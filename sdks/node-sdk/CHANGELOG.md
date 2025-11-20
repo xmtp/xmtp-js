@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.4.0
+
+### Minor Changes
+
+- 7ce84ce: Added `getDmByIdentifier` method to `Conversations`
+
 ## 4.3.1
 
 Fixed accidental publishing of `4.3.0`
