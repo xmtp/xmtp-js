@@ -4485,7 +4485,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:4.3.1, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:4.3.1":
+  version: 4.3.1
+  resolution: "@xmtp/node-sdk@npm:4.3.1"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^2.0.2"
+    "@xmtp/content-type-primitives": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/node-bindings": "npm:1.5.4"
+  checksum: 10/27aa71a1cce7f034d883a25a6946338bc967742689b4a71a224ae83ffa930896e33d2cafcd8bfeda85bd6f3ab34419117773d4f3cca770bfd583bde9ef4c84ad
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
