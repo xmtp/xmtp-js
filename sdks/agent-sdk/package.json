@@ -79,6 +79,7 @@
     "url": "git+https://git@github.com/xmtp/xmtp-js.git"
   },
   "scripts": {
+    "prese": "marp presentation.md --pdf --allow-local-files -o presentation.pdf",
     "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack --profile node16 . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",

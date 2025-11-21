@@ -88,6 +88,16 @@ XMTP_DB_DIRECTORY=./data
 XMTP_DB_ENCRYPTION_KEY=0xabcd...1234
 ```
 
+💡 **Tip**: Generate test keys at [xmtp.github.io/agent-sdk-starter](https://xmtp.github.io/agent-sdk-starter/)
+
+---
+
+## XMTP Key Generator
+
+![Key Generator Screenshot](key-generator-screenshot.png)
+
+Generate secure test keys in your browser - nothing sent to any server!
+
 ---
 
 ## Environment Variables Explained
