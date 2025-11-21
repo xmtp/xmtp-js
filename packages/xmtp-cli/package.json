@@ -1,11 +1,19 @@
 {
   "name": "@xmtp/cli",
-  "version": "0.0.3",
+  "version": "0.0.1",
   "description": "A command-line interface for XMTP.",
   "type": "module",
   "bin": {
     "xmtp": "./dist/index.js"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "default": "./dist/lib.js"
+    }
+  },
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
   "files": [
     "dist",
     "bin"
@@ -55,5 +63,10 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
   }
 }
