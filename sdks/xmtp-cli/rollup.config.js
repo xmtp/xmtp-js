@@ -6,6 +6,7 @@ import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
 const external = [
   "@xmtp/agent-sdk",
+  "@xmtp/agent-sdk/user",
   "@xmtp/content-type-markdown",
   "@xmtp/content-type-reaction",
   "@xmtp/content-type-read-receipt",
@@ -14,7 +15,16 @@ const external = [
   "@xmtp/content-type-text",
   "@xmtp/content-type-transaction-reference",
   "@xmtp/content-type-wallet-send-calls",
+  "@xmtp/node-sdk",
+  "node:crypto",
+  "node:fs",
+  "node:fs/promises",
+  "node:path",
+  "node:process",
+  "viem",
+  "viem/accounts",
   "yargs",
+  "yargs/helpers",
 ];
 
 const plugins = [
@@ -40,13 +50,6 @@ export default defineConfig([
     },
     plugins,
     external,
-  },
-  {
-    input: "index.ts",
-    output: {
-      file: "dist/index.d.ts",
-    },
-    plugins: [tsConfigPaths(), dts()],
   },
   {
     input: "lib.ts",
