@@ -78,6 +78,11 @@ Send a message to an address:
 
 ```bash
 xmtp send --target 0x1234... --message "Hello!"
+# Send a message to a group
+xmtp send --group-id <group-id> --message "Welcome!"
+# Send and wait for a response
+xmtp send --target 0x1234... --wait
+
 ```
 
 Create a group and send a message:
@@ -140,6 +145,15 @@ xmtp groups metadata --group-id <id> --name "New Name"
 - `--group-id <id>` - Group ID for metadata operations
 - `--image-url <url>` - Image URL for metadata updates
 
+## Debugging
+
+CLI can also recognize the following environment variables for debugging:
+
+| Variable                 | Purpose                                                              | Example                        |
+| ------------------------ | -------------------------------------------------------------------- | ------------------------------ |
+| `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents) | `XMTP_FORCE_DEBUG=true`        |
+| `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"info"`)                     | `XMTP_FORCE_DEBUG_LEVEL=debug` |
+
 ### Send
 
 Send messages to conversations.
@@ -148,15 +162,26 @@ Send messages to conversations.
 # Send to address
 xmtp send --target 0x1234... --message "Hello!"
 
+# Send to address with alias
+xmtp send -t 0x1234... -m "Hello!"
+
 # Send to group
 xmtp send --group-id abc123... --message "Hello group!"
+
+# Send and wait for response
+xmtp send --target 0x1234... --message "Hello!" --wait
+
+# Send and wait for response with custom timeout
+xmtp send --target 0x1234... --message "Hello!" --wait --timeout 60000
 ```
 
 **Options:**
 
-- `--target <address>` - Target wallet address
+- `--target <address>` / `-t` - Target wallet address
 - `--group-id <id>` - Group ID
-- `--message <text>` - Message text (required)
+- `--message <text>` / `-m` - Message text (default: "hello world")
+- `--wait` - Wait for a response after sending the message (default: false)
+- `--timeout <ms>` - Timeout in milliseconds when waiting for response (default: 30000)
 
 ### Debug
 
