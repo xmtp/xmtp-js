@@ -15,11 +15,8 @@ import { IdentifierKind } from "@xmtp/node-sdk";
 import type { Argv } from "yargs";
 
 export interface DebugOptions {
-  address?: string;
-  inboxId?: string;
   dmAddress?: string;
   dmInboxId?: string;
-  listConversations?: boolean;
 }
 
 export function registerDebugCommand(yargs: Argv) {
@@ -34,14 +31,6 @@ export function registerDebugCommand(yargs: Argv) {
             "Operation: address, inbox, resolve, info, installations, key-package, dm, list-conversations",
           default: "info",
         })
-        .option("address", {
-          type: "string",
-          description: "Ethereum address",
-        })
-        .option("inbox-id", {
-          type: "string",
-          description: "Inbox ID",
-        })
         .option("dm-address", {
           type: "string",
           description: "Ethereum address to get DM conversation ID",
@@ -50,20 +39,12 @@ export function registerDebugCommand(yargs: Argv) {
           type: "string",
           alias: "dm-inboxid",
           description: "Inbox ID to get DM conversation ID",
-        })
-        .option("list-conversations", {
-          type: "boolean",
-          description:
-            "List all conversations with message counts and last messages",
         });
     },
     async (argv: {
       operation?: string;
-      address?: string;
-      "inbox-id"?: string;
       "dm-address"?: string;
       "dm-inbox-id"?: string;
-      "list-conversations"?: boolean;
     }) => {
       // If DM flags are provided, automatically set operation to "dm"
       const operation =
@@ -71,11 +52,8 @@ export function registerDebugCommand(yargs: Argv) {
           ? "dm"
           : argv.operation || "info";
       await runDebugCommand(operation, {
-        address: argv.address,
-        inboxId: argv["inbox-id"],
         dmAddress: argv["dm-address"],
         dmInboxId: argv["dm-inbox-id"],
-        listConversations: argv["list-conversations"],
       });
     },
   );
@@ -87,22 +65,22 @@ export async function runDebugCommand(
 ): Promise<void> {
   switch (operation) {
     case "address":
-      await runAddressOperation(options);
+      await runAddressOperation({});
       break;
     case "inbox":
-      await runInboxOperation(options);
+      await runInboxOperation({});
       break;
     case "resolve":
-      await runResolveOperation(options);
+      await runResolveOperation({});
       break;
     case "info":
       await runInfoOperation();
       break;
     case "installations":
-      await runInstallationsOperation(options);
+      await runInstallationsOperation({});
       break;
     case "key-package":
-      await runKeyPackageOperation(options);
+      await runKeyPackageOperation({});
       break;
     case "dm":
       await runDmOperation({
