@@ -39,12 +39,13 @@
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/content-type-transaction-reference": "^2.0.2",
     "@xmtp/content-type-wallet-send-calls": "^2.0.0",
-    "commander": "^14.0.2"
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^24.9.1",
+    "@types/yargs": "^17.0.33",
     "rimraf": "^6.0.1",
     "rollup": "^4.52.5",
     "rollup-plugin-dts": "^6.2.3",

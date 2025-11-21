@@ -1,6 +1,13 @@
-import { filter, IdentifierKind } from "@xmtp/agent-sdk";
-import type { Command } from "commander";
-import { getAgent } from "./agent";
+import { Agent, filter, IdentifierKind } from "@xmtp/agent-sdk";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import {
+  AttachmentCodec,
+  RemoteAttachmentCodec,
+} from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
+import type { Argv } from "yargs";
 
 type ConversationType = "dm" | "group";
 
@@ -15,55 +22,101 @@ export interface GroupsOptions {
   imageUrl?: string;
 }
 
-export function registerGroupsCommand(program: Command) {
-  program
-    .command("groups")
-    .description("Manage XMTP groups and DMs")
-    .argument("[operation]", "Operation: create, metadata", "create")
-    .option("--group-id <id>", "Group ID")
-    .option("--name <name>", "Group name")
-    .option("--description <desc>", "Group description")
-    .option("--type <type>", "Conversation type: dm or group", "dm")
-    .option("--target <address>", "Target address (required for DM)")
-    .option(
-      "--member-addresses <addresses>",
-      "Comma-separated member Ethereum addresses",
-    )
-    .option("--member-inbox-ids <inboxIds>", "Comma-separated member inbox IDs")
-    .option("--image-url <url>", "Image URL for metadata operations")
-    .action(async (operation: string, options: GroupsOptions) => {
-      const memberAddresses = options.memberAddresses
-        ? options.memberAddresses.split(",").map((a: string) => a.trim())
+export function registerGroupsCommand(yargs: Argv) {
+  return yargs.command(
+    "groups [operation]",
+    "Manage XMTP groups and DMs",
+    (yargs: Argv) => {
+      return yargs
+        .positional("operation", {
+          type: "string",
+          description: "Operation: create, metadata",
+          default: "create",
+        })
+        .option("group-id", {
+          type: "string",
+          description: "Group ID",
+        })
+        .option("name", {
+          type: "string",
+          description: "Group name",
+        })
+        .option("description", {
+          type: "string",
+          description: "Group description",
+        })
+        .option("type", {
+          type: "string",
+          description: "Conversation type: dm or group",
+          default: "dm",
+          choices: ["dm", "group"],
+        })
+        .option("target", {
+          type: "string",
+          description: "Target address (required for DM)",
+        })
+        .option("member-addresses", {
+          type: "string",
+          description: "Comma-separated member Ethereum addresses",
+        })
+        .option("member-inbox-ids", {
+          type: "string",
+          description: "Comma-separated member inbox IDs",
+        })
+        .option("image-url", {
+          type: "string",
+          description: "Image URL for metadata operations",
+        });
+    },
+    async (argv: {
+      operation?: string;
+      "group-id"?: string;
+      name?: string;
+      description?: string;
+      type?: string;
+      target?: string;
+      "member-addresses"?: string;
+      "member-inbox-ids"?: string;
+      "image-url"?: string;
+    }) => {
+      const operation = (argv.operation as string) || "create";
+      const memberAddresses = argv["member-addresses"]
+        ? (argv["member-addresses"] as string)
+            .split(",")
+            .map((a: string) => a.trim())
         : undefined;
-      const memberInboxIds = options.memberInboxIds
-        ? options.memberInboxIds.split(",").map((a: string) => a.trim())
+      const memberInboxIds = argv["member-inbox-ids"]
+        ? (argv["member-inbox-ids"] as string)
+            .split(",")
+            .map((a: string) => a.trim())
         : undefined;
 
       switch (operation) {
         case "create":
           await runCreateOperation({
-            type: options.type || "dm",
-            groupName: options.name,
-            groupDescription: options.description,
-            targetAddress: options.target,
+            type: (argv.type as ConversationType) || "dm",
+            groupName: argv.name as string | undefined,
+            groupDescription: argv.description as string | undefined,
+            targetAddress: argv.target as string | undefined,
             memberAddresses,
             memberInboxIds,
           });
           break;
         case "metadata":
           await runMetadataOperation({
-            groupId: options.groupId,
-            groupName: options.name,
-            groupDescription: options.description,
-            imageUrl: options.imageUrl,
+            groupId: argv["group-id"] as string | undefined,
+            groupName: argv.name as string | undefined,
+            groupDescription: argv.description as string | undefined,
+            imageUrl: argv["image-url"] as string | undefined,
           });
           break;
         default:
           console.error(`❌ Unknown operation: ${operation}`);
-          program.help();
+          console.error("Available operations: create, metadata");
           process.exit(1);
       }
-    });
+    },
+  );
 }
 
 export async function runGroupsCommand(
@@ -110,7 +163,16 @@ async function runCreateOperation(config: {
   memberAddresses?: string[];
   memberInboxIds?: string[];
 }): Promise<void> {
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     if (config.type === "dm") {
@@ -206,7 +268,16 @@ async function runMetadataOperation(config: {
 
   console.log(`🔄 Updating group metadata: ${config.groupId}`);
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     const conversation = await agent.client.conversations.getConversationById(

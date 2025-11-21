@@ -1,6 +1,13 @@
-import { type Dm, type Group, type GroupMember } from "@xmtp/agent-sdk";
-import type { Command } from "commander";
-import { getAgent } from "./agent";
+import { Agent, type Dm, type Group, type GroupMember } from "@xmtp/agent-sdk";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import {
+  AttachmentCodec,
+  RemoteAttachmentCodec,
+} from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
+import type { Argv } from "yargs";
 
 export interface ListOptions {
   conversationId?: string;
@@ -10,23 +17,57 @@ export interface ListOptions {
   address?: string;
 }
 
-export function registerListCommand(program: Command) {
-  program
-    .command("list")
-    .description("List conversations and messages")
-    .argument(
-      "[operation]",
-      "Operation: conversations, members, messages, find",
-      "conversations",
-    )
-    .option("--conversation-id <id>", "Conversation ID")
-    .option("--limit <count>", "Limit number of results", "50")
-    .option("--offset <count>", "Offset for pagination", "0")
-    .option("--inbox-id <id>", "Inbox ID for find operation")
-    .option("--address <address>", "Ethereum address for find operation")
-    .action(async (operation: string, options: ListOptions) => {
-      await runListCommand(operation, options);
-    });
+export function registerListCommand(yargs: Argv) {
+  return yargs.command(
+    "list [operation]",
+    "List conversations and messages",
+    (yargs: Argv) => {
+      return yargs
+        .positional("operation", {
+          type: "string",
+          description: "Operation: conversations, members, messages, find",
+          default: "conversations",
+        })
+        .option("conversation-id", {
+          type: "string",
+          description: "Conversation ID",
+        })
+        .option("limit", {
+          type: "string",
+          description: "Limit number of results",
+          default: "50",
+        })
+        .option("offset", {
+          type: "string",
+          description: "Offset for pagination",
+          default: "0",
+        })
+        .option("inbox-id", {
+          type: "string",
+          description: "Inbox ID for find operation",
+        })
+        .option("address", {
+          type: "string",
+          description: "Ethereum address for find operation",
+        });
+    },
+    async (argv: {
+      operation?: string;
+      "conversation-id"?: string;
+      limit?: string;
+      offset?: string;
+      "inbox-id"?: string;
+      address?: string;
+    }) => {
+      await runListCommand((argv.operation as string) || "conversations", {
+        conversationId: argv["conversation-id"] as string | undefined,
+        limit: argv.limit as string | undefined,
+        offset: argv.offset as string | undefined,
+        inboxId: argv["inbox-id"] as string | undefined,
+        address: argv.address as string | undefined,
+      });
+    },
+  );
 }
 
 export async function runListCommand(
@@ -68,7 +109,16 @@ async function runConversationsOperation(config: {
   limit: number;
   offset: number;
 }): Promise<void> {
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     const conversations = await agent.client.conversations.list();
@@ -107,7 +157,16 @@ async function runMembersOperation(conversationId?: string): Promise<void> {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     const conversation =
@@ -149,7 +208,16 @@ async function runMessagesOperation(config: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     const conversation = await agent.client.conversations.getConversationById(
@@ -202,7 +270,16 @@ async function runFindOperation(config: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     let targetInboxId: string;

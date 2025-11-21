@@ -1,6 +1,13 @@
-import { type Group } from "@xmtp/agent-sdk";
-import type { Command } from "commander";
-import { getAgent } from "./agent";
+import { Agent, type Group } from "@xmtp/agent-sdk";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import {
+  AttachmentCodec,
+  RemoteAttachmentCodec,
+} from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
+import type { Argv } from "yargs";
 
 export interface SendOptions {
   target?: string;
@@ -8,16 +15,39 @@ export interface SendOptions {
   message?: string;
 }
 
-export function registerSendCommand(program: Command) {
-  program
-    .command("send")
-    .description("Send a message to a conversation")
-    .option("--target <address>", "Target wallet address")
-    .option("--group-id <id>", "Group ID")
-    .option("--message <text>", "Message text to send")
-    .action(async (options: SendOptions) => {
-      await runSendCommand(options);
-    });
+export function registerSendCommand(yargs: Argv) {
+  return yargs.command(
+    "send",
+    "Send a message to a conversation",
+    (yargs: Argv) => {
+      return yargs
+        .option("target", {
+          type: "string",
+          description: "Target wallet address",
+          alias: "t",
+        })
+        .option("group-id", {
+          type: "string",
+          description: "Group ID",
+        })
+        .option("message", {
+          type: "string",
+          description: "Message text to send",
+          alias: "m",
+        });
+    },
+    async (argv: {
+      target?: string;
+      "group-id"?: string;
+      message?: string;
+    }) => {
+      await runSendCommand({
+        target: argv.target,
+        groupId: argv["group-id"],
+        message: argv.message,
+      });
+    },
+  );
 }
 
 export async function runSendCommand(options: SendOptions): Promise<void> {
@@ -45,7 +75,16 @@ async function sendGroupMessage(
 ): Promise<void> {
   console.log(`📤 Sending message to group ${groupId}`);
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
   console.log(`📋 Using agent: ${agent.client.inboxId}`);
 
   try {
@@ -88,7 +127,16 @@ async function sendDirectMessage(
 ): Promise<void> {
   console.log(`📤 Sending message to ${target}`);
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
   console.log(`📋 Using agent: ${agent.client.inboxId}`);
 
   try {

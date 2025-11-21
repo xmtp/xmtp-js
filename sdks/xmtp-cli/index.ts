@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadEnvFile } from "node:process";
-import { Command } from "commander";
+import yargs, { type Argv } from "yargs";
+import { hideBin } from "yargs/helpers";
 import { registerContentTypesCommand } from "./commands/content-types";
 import { registerDebugCommand } from "./commands/debug";
 import { registerGroupsCommand } from "./commands/groups";
@@ -11,57 +12,61 @@ import { registerPermissionsCommand } from "./commands/permissions";
 import { registerRevokeCommand } from "./commands/revoke";
 import { registerSendCommand } from "./commands/send";
 
-const program = new Command();
 let envLoaded = false;
 
-program.name("xmtp").description("XMTP CLI").version("0.0.2");
+const argv = yargs(hideBin(process.argv))
+  .scriptName("xmtp")
+  .version("0.0.2")
+  .middleware((argv: { _: (string | number)[]; [key: string]: unknown }) => {
+    // Skip env loading for help/keys commands
+    const command = argv._[0];
+    if (command === "keys" || command === undefined) {
+      return;
+    }
+
+    if (envLoaded) {
+      return;
+    }
+
+    const envPath = resolve(process.cwd(), ".env");
+    if (!existsSync(envPath)) {
+      console.error(
+        [
+          "❌ Error: .env file not found in current directory",
+          `   Expected location: ${envPath}`,
+          "",
+          "   Please create a .env file with the following variables:",
+          "   - XMTP_ENV (dev or production)",
+          "   - XMTP_WALLET_KEY (your Ethereum wallet private key)",
+          "   - XMTP_DB_ENCRYPTION_KEY (database encryption key)",
+          "   - XMTP_DB_DIRECTORY (optional, database directory)",
+        ].join("\n"),
+      );
+      process.exit(1);
+    }
+
+    try {
+      loadEnvFile(envPath);
+      envLoaded = true;
+    } catch (error) {
+      console.error(
+        [
+          "❌ Error: Failed to load .env file",
+          `   ${error instanceof Error ? error.message : String(error)}`,
+        ].join("\n"),
+      );
+      process.exit(1);
+    }
+  }, true);
 
 // Register all commands
-registerGroupsCommand(program);
-registerSendCommand(program);
-registerDebugCommand(program);
-registerPermissionsCommand(program);
-registerListCommand(program);
-registerContentTypesCommand(program);
-registerKeysCommand(program);
-registerRevokeCommand(program);
+registerGroupsCommand(argv);
+registerSendCommand(argv);
+registerDebugCommand(argv);
+registerPermissionsCommand(argv);
+registerListCommand(argv);
+registerContentTypesCommand(argv);
+registerKeysCommand(argv);
+registerRevokeCommand(argv);
 
-program.hook("preAction", (thisCommand, actionCommand) => {
-  if (envLoaded) {
-    return;
-  }
-
-  if (actionCommand.name() === "help" || actionCommand.name() === "keys") {
-    return;
-  }
-
-  const envPath = resolve(process.cwd(), ".env");
-  if (!existsSync(envPath)) {
-    thisCommand.error(
-      [
-        "❌ Error: .env file not found in current directory",
-        `   Expected location: ${envPath}`,
-        "",
-        "   Please create a .env file with the following variables:",
-        "   - XMTP_ENV (dev or production)",
-        "   - XMTP_WALLET_KEY (your Ethereum wallet private key)",
-        "   - XMTP_DB_ENCRYPTION_KEY (database encryption key)",
-        "   - XMTP_DB_DIRECTORY (optional, database directory)",
-      ].join("\n"),
-    );
-  }
-
-  try {
-    loadEnvFile(envPath);
-    envLoaded = true;
-  } catch (error) {
-    thisCommand.error(
-      [
-        "❌ Error: Failed to load .env file",
-        `   ${error instanceof Error ? error.message : String(error)}`,
-      ].join("\n"),
-    );
-  }
-});
-
-program.parse();
+argv.parse();

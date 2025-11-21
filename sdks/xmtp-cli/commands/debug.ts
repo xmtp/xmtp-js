@@ -1,7 +1,18 @@
-import type { Agent, KeyPackageStatus } from "@xmtp/agent-sdk";
+import {
+  Agent,
+  type Agent as AgentType,
+  type KeyPackageStatus,
+} from "@xmtp/agent-sdk";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import {
+  AttachmentCodec,
+  RemoteAttachmentCodec,
+} from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import { IdentifierKind } from "@xmtp/node-sdk";
-import type { Command } from "commander";
-import { getAgent } from "./agent";
+import type { Argv } from "yargs";
 
 export interface DebugOptions {
   address?: string;
@@ -9,26 +20,45 @@ export interface DebugOptions {
   listConversations?: boolean;
 }
 
-export function registerDebugCommand(program: Command) {
-  program
-    .command("debug")
-    .description(
-      "Debug and information commands - Get DM conversation ID by address or inbox ID, or list all conversations",
-    )
-    .argument(
-      "[operation]",
-      "Operation: address, inbox, resolve, info, installations, key-package, dm, list-conversations",
-      "info",
-    )
-    .option("--address <address>", "Ethereum address")
-    .option("--inbox-id <id>", "Inbox ID")
-    .option(
-      "--list-conversations",
-      "List all conversations with message counts and last messages",
-    )
-    .action(async (operation: string, options: DebugOptions) => {
-      await runDebugCommand(operation, options);
-    });
+export function registerDebugCommand(yargs: Argv) {
+  return yargs.command(
+    "debug [operation]",
+    "Debug and information commands - Get DM conversation ID by address or inbox ID, or list all conversations",
+    (yargs: Argv) => {
+      return yargs
+        .positional("operation", {
+          type: "string",
+          description:
+            "Operation: address, inbox, resolve, info, installations, key-package, dm, list-conversations",
+          default: "info",
+        })
+        .option("address", {
+          type: "string",
+          description: "Ethereum address",
+        })
+        .option("inbox-id", {
+          type: "string",
+          description: "Inbox ID",
+        })
+        .option("list-conversations", {
+          type: "boolean",
+          description:
+            "List all conversations with message counts and last messages",
+        });
+    },
+    async (argv: {
+      operation?: string;
+      address?: string;
+      "inbox-id"?: string;
+      "list-conversations"?: boolean;
+    }) => {
+      await runDebugCommand((argv.operation as string) || "info", {
+        address: argv.address as string | undefined,
+        inboxId: argv["inbox-id"] as string | undefined,
+        listConversations: argv["list-conversations"] as boolean | undefined,
+      });
+    },
+  );
 }
 
 export async function runDebugCommand(
@@ -75,7 +105,16 @@ async function runAddressOperation(options: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     let targetInboxId: string;
@@ -162,7 +201,16 @@ async function runInboxOperation(options: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     let targetInboxId: string;
@@ -228,7 +276,16 @@ async function runResolveOperation(options: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     if (options.address) {
@@ -274,7 +331,16 @@ async function runResolveOperation(options: {
 }
 
 async function runInfoOperation(): Promise<void> {
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     const conversations = await agent.client.conversations.list();
@@ -303,7 +369,16 @@ async function runInstallationsOperation(options: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     let targetInboxId: string;
@@ -364,7 +439,16 @@ async function runKeyPackageOperation(options: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     let targetInboxId: string;
@@ -426,7 +510,10 @@ async function runKeyPackageOperation(options: {
   }
 }
 
-async function getDmByAddress(agent: Agent, address: string): Promise<string> {
+async function getDmByAddress(
+  agent: AgentType,
+  address: string,
+): Promise<string> {
   // Validate address format
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
     throw new Error(
@@ -445,7 +532,10 @@ async function getDmByAddress(agent: Agent, address: string): Promise<string> {
   return dm.id;
 }
 
-async function getDmByInboxId(agent: Agent, inboxId: string): Promise<string> {
+async function getDmByInboxId(
+  agent: AgentType,
+  inboxId: string,
+): Promise<string> {
   // Validate inbox ID format (should be 64 hex characters)
   if (!/^[a-f0-9]{64}$/i.test(inboxId)) {
     throw new Error(
@@ -472,7 +562,7 @@ interface ConversationStats {
   };
 }
 
-async function listAllConversations(agent: Agent): Promise<void> {
+async function listAllConversations(agent: AgentType): Promise<void> {
   console.log(`Syncing conversations...`);
 
   // Sync conversations first
@@ -620,7 +710,16 @@ async function runDmOperation(options: {
     process.exit(1);
   }
 
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     let dmId: string;
@@ -644,7 +743,16 @@ async function runDmOperation(options: {
 }
 
 async function runListConversationsOperation(): Promise<void> {
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
 
   try {
     await listAllConversations(agent);

@@ -14,7 +14,7 @@ const external = [
   "@xmtp/content-type-text",
   "@xmtp/content-type-transaction-reference",
   "@xmtp/content-type-wallet-send-calls",
-  "commander",
+  "yargs",
 ];
 
 const plugins = [

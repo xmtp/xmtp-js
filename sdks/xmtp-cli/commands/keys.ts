@@ -1,8 +1,8 @@
 import { getRandomValues } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { Command } from "commander";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import type { Argv } from "yargs";
 
 export interface KeysOptions {
   env?: string;
@@ -15,18 +15,21 @@ export const generateEncryptionKeyHex = () => {
   return Buffer.from(uint8Array).toString("hex");
 };
 
-export function registerKeysCommand(program: Command) {
-  program
-    .command("keys")
-    .description("Generate wallet keys and encryption keys")
-    .option(
-      "--env <environment>",
-      "XMTP environment (local, dev, production)",
-      "dev",
-    )
-    .action(async (options: KeysOptions) => {
-      await runKeysCommand(options);
-    });
+export function registerKeysCommand(yargs: Argv) {
+  return yargs.command(
+    "keys",
+    "Generate wallet keys and encryption keys",
+    (yargs: Argv) => {
+      return yargs.option("env", {
+        type: "string",
+        description: "XMTP environment (local, dev, production)",
+        default: "dev",
+      });
+    },
+    async (argv: { env?: string }) => {
+      await runKeysCommand({ env: argv.env });
+    },
+  );
 }
 
 export async function runKeysCommand(options: KeysOptions): Promise<void> {

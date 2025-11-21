@@ -1,6 +1,13 @@
-import { type Group, type PermissionUpdateType } from "@xmtp/agent-sdk";
-import type { Command } from "commander";
-import { getAgent } from "./agent";
+import { Agent, type Group, type PermissionUpdateType } from "@xmtp/agent-sdk";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
+import { ReactionCodec } from "@xmtp/content-type-reaction";
+import {
+  AttachmentCodec,
+  RemoteAttachmentCodec,
+} from "@xmtp/content-type-remote-attachment";
+import { ReplyCodec } from "@xmtp/content-type-reply";
+import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
+import type { Argv } from "yargs";
 
 export interface PermissionsOptions {
   groupId?: string;
@@ -8,24 +15,44 @@ export interface PermissionsOptions {
   permissions?: string;
 }
 
-export function registerPermissionsCommand(program: Command) {
-  program
-    .command("permissions")
-    .description("Manage group permissions")
-    .argument(
-      "[operation]",
-      "Operation: list, info, update-permissions",
-      "list",
-    )
-    .option("--group-id <id>", "Group ID (required)")
-    .option("--features <features>", "Comma-separated features to update")
-    .option(
-      "--permissions <type>",
-      "Permission type: everyone, disabled, admin-only, super-admin-only",
-    )
-    .action(async (operation: string, options: PermissionsOptions) => {
-      await runPermissionsCommand(operation, options);
-    });
+export function registerPermissionsCommand(yargs: Argv) {
+  return yargs.command(
+    "permissions [operation]",
+    "Manage group permissions",
+    (yargs: Argv) => {
+      return yargs
+        .positional("operation", {
+          type: "string",
+          description: "Operation: list, info, update-permissions",
+          default: "list",
+        })
+        .option("group-id", {
+          type: "string",
+          description: "Group ID (required)",
+        })
+        .option("features", {
+          type: "string",
+          description: "Comma-separated features to update",
+        })
+        .option("permissions", {
+          type: "string",
+          description:
+            "Permission type: everyone, disabled, admin-only, super-admin-only",
+        });
+    },
+    async (argv: {
+      operation?: string;
+      "group-id"?: string;
+      features?: string;
+      permissions?: string;
+    }) => {
+      await runPermissionsCommand((argv.operation as string) || "list", {
+        groupId: argv["group-id"] as string | undefined,
+        features: argv.features as string | undefined,
+        permissions: argv.permissions as string | undefined,
+      });
+    },
+  );
 }
 
 export async function runPermissionsCommand(
@@ -62,7 +89,16 @@ export async function runPermissionsCommand(
 }
 
 async function getGroup(groupId: string): Promise<Group> {
-  const agent = await getAgent();
+  const agent = await Agent.createFromEnv({
+    codecs: [
+      new MarkdownCodec(),
+      new ReactionCodec(),
+      new ReplyCodec(),
+      new RemoteAttachmentCodec(),
+      new AttachmentCodec(),
+      new WalletSendCallsCodec(),
+    ],
+  });
   const conversation = await agent.client.conversations.getConversationById(
     groupId as `0x${string}`,
   );
@@ -147,7 +183,16 @@ async function runUpdatePermissionsOperation(config: {
     const group = await getGroup(config.groupId);
     await group.sync();
 
-    const agent = await getAgent();
+    const agent = await Agent.createFromEnv({
+      codecs: [
+        new MarkdownCodec(),
+        new ReactionCodec(),
+        new ReplyCodec(),
+        new RemoteAttachmentCodec(),
+        new AttachmentCodec(),
+        new WalletSendCallsCodec(),
+      ],
+    });
     const isSuperAdmin = group.isSuperAdmin(agent.client.inboxId);
 
     if (!isSuperAdmin) {

@@ -3,26 +3,40 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createSigner, createUser } from "@xmtp/agent-sdk/user";
 import { Client, type XmtpEnv } from "@xmtp/node-sdk";
-import type { Command } from "commander";
+import type { Argv } from "yargs";
 
 export interface RevokeOptions {
   keep?: string;
   env?: string;
 }
 
-export function registerRevokeCommand(program: Command) {
-  program
-    .command("revoke")
-    .description("Revoke XMTP installations for an inbox")
-    .argument("<inbox-id>", "64-character hex inbox ID")
-    .option(
-      "--keep <ids>",
-      "Comma-separated installation IDs to keep (optional)",
-    )
-    .option("--env <environment>", "Override XMTP environment from .env file")
-    .action(async (inboxId: string, options: RevokeOptions) => {
-      await runRevokeCommand(inboxId, options);
-    });
+export function registerRevokeCommand(yargs: Argv) {
+  return yargs.command(
+    "revoke <inbox-id>",
+    "Revoke XMTP installations for an inbox",
+    (yargs: Argv) => {
+      return yargs
+        .positional("inbox-id", {
+          type: "string",
+          description: "64-character hex inbox ID",
+          demandOption: true,
+        })
+        .option("keep", {
+          type: "string",
+          description: "Comma-separated installation IDs to keep (optional)",
+        })
+        .option("env", {
+          type: "string",
+          description: "Override XMTP environment from .env file",
+        });
+    },
+    async (argv: { "inbox-id": string; keep?: string; env?: string }) => {
+      await runRevokeCommand(argv["inbox-id"] as string, {
+        keep: argv.keep as string | undefined,
+        env: argv.env as string | undefined,
+      });
+    },
+  );
 }
 
 export async function runRevokeCommand(
