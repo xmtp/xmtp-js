@@ -1,5 +1,39 @@
 # @xmtp/agent-sdk
 
+## 1.1.14
+
+### Patch Changes
+
+- 8e6c633: Strip the command token in the message context of `CommandRouter`
+- 1fe5810: Pinned Node.js SDK version
+
+## 1.1.13
+
+### Patch Changes
+
+- 24c866e: Exported `usesCodec` in `filter`
+
+## 1.1.12
+
+### Patch Changes
+
+- 13a14ba:
+  - Update xmtp.chat URLs
+  - Updated dependencies
+    - @xmtp/node-sdk@4.2.6
+
+## 1.1.11
+
+### Patch Changes
+
+- e01f21b: Add AgentStreamingError
+
+## 1.1.10
+
+### Patch Changes
+
+- 594dd71: Re-export `isHexString` and discriminating content types in `CommandRouter` handlers
+
 ## 1.1.9
 
 ### Patch Changes

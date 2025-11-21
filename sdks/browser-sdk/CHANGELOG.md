@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 5.1.0
+
+### Minor Changes
+
+- 7ce84ce: Added `getDmByIdentifier` method to `Conversations`
+
 ## 5.0.1
 
 ### Patch Changes

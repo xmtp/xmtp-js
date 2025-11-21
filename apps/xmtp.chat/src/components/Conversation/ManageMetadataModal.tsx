@@ -8,6 +8,7 @@ import { Modal } from "@/components/Modal";
 import { useClientPermissions } from "@/hooks/useClientPermissions";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversation } from "@/hooks/useConversation";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 
@@ -17,6 +18,7 @@ export const ManageMetadataModal: React.FC = () => {
   const clientPermissions = useClientPermissions(conversationId);
   const { addConversation } = useActions();
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -28,8 +30,8 @@ export const ManageMetadataModal: React.FC = () => {
   const initialImageUrl = useRef("");
 
   const handleClose = useCallback(() => {
-    void navigate(`/conversations/${conversation.id}`);
-  }, [navigate, conversation.id]);
+    void navigate(`/${environment}/conversations/${conversation.id}`);
+  }, [navigate, conversation.id, environment]);
 
   const handleUpdate = useCallback(async () => {
     if (conversation instanceof XmtpGroup) {
@@ -53,12 +55,12 @@ export const ManageMetadataModal: React.FC = () => {
           void addConversation(conversation);
         }
 
-        void navigate(`/conversations/${conversation.id}`);
+        void navigate(`/${environment}/conversations/${conversation.id}`);
       } finally {
         setIsLoading(false);
       }
     }
-  }, [conversation, name, description, imageUrl, navigate]);
+  }, [conversation, name, description, imageUrl, navigate, environment]);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {

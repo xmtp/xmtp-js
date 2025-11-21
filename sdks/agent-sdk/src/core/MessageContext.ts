@@ -46,9 +46,7 @@ export class MessageContext<
   usesCodec<T extends ContentCodec>(
     codecClass: new () => T,
   ): this is MessageContext<ReturnType<T["decode"]>> {
-    return (
-      this.#message.contentType?.sameAs(new codecClass().contentType) || false
-    );
+    return filter.usesCodec(this.#message, codecClass);
   }
 
   isMarkdown(): this is MessageContext<ReturnType<MarkdownCodec["decode"]>> {
@@ -102,22 +100,22 @@ export class MessageContext<
     await this.conversation.send(reaction, ContentTypeReaction);
   }
 
-  async sendMarkdown(markdown: string): Promise<void> {
-    await this.conversation.send(markdown, ContentTypeMarkdown);
-  }
-
-  async sendText(text: string): Promise<void> {
-    await this.conversation.send(text, ContentTypeText);
-  }
-
-  async sendTextReply(text: string) {
+  async #sendReply(text: string, contentType = ContentTypeText) {
     const reply: Reply = {
       reference: this.#message.id,
       referenceInboxId: this.#message.senderInboxId,
-      contentType: ContentTypeText,
+      contentType,
       content: text,
     };
     await this.conversation.send(reply, ContentTypeReply);
+  }
+
+  async sendMarkdownReply(markdown: string) {
+    await this.#sendReply(markdown, ContentTypeMarkdown);
+  }
+
+  async sendTextReply(text: string) {
+    await this.#sendReply(text, ContentTypeText);
   }
 
   async getSenderAddress() {

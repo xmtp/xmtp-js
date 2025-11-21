@@ -77,6 +77,21 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
+   * Retrieves a DM by identifier
+   *
+   * @param identifier - The identifier to look up
+   * @returns Promise that resolves with the DM, if found
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#conversation-helper-methods
+   */
+  async getDmByIdentifier(identifier: Identifier) {
+    const inboxId = await this.#client.getInboxIdByIdentifier(identifier);
+    if (!inboxId) {
+      return undefined;
+    }
+    return this.getDmByInboxId(inboxId);
+  }
+
+  /**
    * Retrieves a message by its ID
    *
    * @param id - The message ID to look up

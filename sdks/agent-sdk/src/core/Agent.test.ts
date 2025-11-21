@@ -7,26 +7,16 @@ import {
   type Reaction,
 } from "@xmtp/content-type-reaction";
 import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
-import {
-  ContentTypeReply,
-  ReplyCodec,
-  type Reply,
-} from "@xmtp/content-type-reply";
+import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import {
-  Dm,
-  Group,
-  type Client,
-  type Conversation,
-  type DecodedMessage,
-} from "@xmtp/node-sdk";
+import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { filter } from "@/core/filter.js";
-import { createSigner, createUser } from "@/user/User.js";
 import {
   createMockConversationStreamWithCallbacks,
   createMockMessage,
   createMockStreamWithCallbacks,
+  expectMessage,
   flushMicrotasks,
   makeAgent,
   mockClient,
@@ -57,14 +47,11 @@ describe("Agent", () => {
     agent = new Agent(options);
   });
 
-  describe("types", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const ephemeralAgent = await Agent.create(signer, {
-      env: "dev",
-      dbPath: null,
-      codecs: [new ReplyCodec()],
-    });
+  describe("types", () => {
+    // Create a mock agent for type testing without making API calls
+    const ephemeralAgent = new Agent({
+      client: mockClient as unknown as Client,
+    }) as Agent<CurrentClientTypes>;
 
     it("infers additional content types from given codecs", () => {
       expectTypeOf(ephemeralAgent).toEqualTypeOf<Agent<CurrentClientTypes>>();
@@ -253,11 +240,11 @@ describe("Agent", () => {
       ).toHaveBeenCalledTimes(0);
 
       expect(textEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             senderInboxId: "other-inbox-id",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -310,11 +297,11 @@ describe("Agent", () => {
       ).toHaveBeenCalledTimes(0);
 
       expect(reactionEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             senderInboxId: "other-inbox-id",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -340,11 +327,11 @@ describe("Agent", () => {
 
       expect(groupUpdateEventSpy).toHaveBeenCalledTimes(1);
       expect(groupUpdateEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             contentType: ContentTypeGroupUpdated,
-          }) as DecodedMessage<GroupUpdated>,
-        } as MessageContext),
+          }),
+        ),
       );
     });
 
@@ -627,11 +614,11 @@ describe("Agent", () => {
 
       // Verify middleware was called with the message from the other user
       expect(middlewareCallsSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.objectContaining({
+        expect.objectContaining(
+          expectMessage({
             senderInboxId: "other-user-inbox",
-          }) as DecodedMessage,
-        } as MessageContext),
+          }),
+        ),
         expect.any(Function),
       );
     });

@@ -6,6 +6,7 @@ import {
   ContentTypeMarkdown,
   type MarkdownCodec,
 } from "@xmtp/content-type-markdown";
+import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   ContentTypeReaction,
   type ReactionCodec,
@@ -153,6 +154,15 @@ const isWalletSendCalls = (
   return !!message.contentType?.sameAs(ContentTypeWalletSendCalls);
 };
 
+const usesCodec = <T extends ContentCodec>(
+  message: DecodedMessage,
+  codecClass: new () => T,
+): message is DecodedMessage & {
+  content: ReturnType<T["decode"]>;
+} => {
+  return message.contentType?.sameAs(new codecClass().contentType) ?? false;
+};
+
 export const filter = {
   fromSelf,
   hasContent,
@@ -170,6 +180,7 @@ export const filter = {
   isTextReply,
   isTransactionReference,
   isWalletSendCalls,
+  usesCodec,
 };
 
 export const f = filter;

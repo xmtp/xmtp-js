@@ -1,5 +1,27 @@
 # @xmtp/node-sdk
 
+## 4.4.0
+
+### Minor Changes
+
+- 7ce84ce: Added `getDmByIdentifier` method to `Conversations`
+
+## 4.3.1
+
+Fixed accidental publishing of `4.3.0`
+
+## 4.2.6
+
+### Patch Changes
+
+- 396767b: Increased default stream retry delay
+
+## 4.2.5
+
+### Patch Changes
+
+- 8bf9ecb: Add "validHex" validation function
+
 ## 4.2.4
 
 ### Patch Changes

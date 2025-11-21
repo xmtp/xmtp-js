@@ -10,6 +10,7 @@ import type { Client, Conversation, DecodedMessage } from "@xmtp/node-sdk";
 import type { Mock } from "vitest";
 import { Agent } from "@/core/Agent.js";
 import type { DecodedMessageWithContent } from "@/core/filter.js";
+import type { MessageContext } from "@/core/MessageContext.js";
 
 export type CurrentClientTypes =
   | GroupUpdated
@@ -105,4 +106,10 @@ export const createMockConversationStreamWithCallbacks = (
 
 export const flushMicrotasks = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
+};
+
+export const expectMessage = (decodedMessage: object) => {
+  return {
+    message: expect.objectContaining(decodedMessage) as DecodedMessage,
+  } as MessageContext;
 };

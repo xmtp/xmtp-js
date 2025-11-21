@@ -5,8 +5,8 @@ import { StreamFailedError, StreamInvalidRetryAttemptsError } from "./errors";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const DEFAULT_RETRY_DELAY = 10000; // milliseconds
-export const DEFAULT_RETRY_ATTEMPTS = 6;
+export const DEFAULT_RETRY_DELAY = 60_000; // milliseconds
+export const DEFAULT_RETRY_ATTEMPTS = 10;
 
 export type StreamOptions<T = unknown, V = T> = {
   /**
@@ -35,12 +35,12 @@ export type StreamOptions<T = unknown, V = T> = {
   onValue?: (value: V) => void;
   /**
    * The number of times to retry the stream
-   * (default: 6)
+   * (default: 10)
    */
   retryAttempts?: number;
   /**
    * The delay between retries (in milliseconds)
-   * (default: 10000)
+   * (default: 60000)
    */
   retryDelay?: number;
   /**

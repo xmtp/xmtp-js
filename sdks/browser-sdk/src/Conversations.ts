@@ -115,6 +115,20 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
+   * Retrieves a DM by identifier
+   *
+   * @param identifier - The identifier to look up
+   * @returns Promise that resolves with the DM, if found
+   */
+  async getDmByIdentifier(identifier: Identifier) {
+    const inboxId = await this.#client.findInboxIdByIdentifier(identifier);
+    if (!inboxId) {
+      return undefined;
+    }
+    return this.getDmByInboxId(inboxId);
+  }
+
+  /**
    * Lists all conversations with optional filtering
    *
    * @param options - Optional filtering and pagination options

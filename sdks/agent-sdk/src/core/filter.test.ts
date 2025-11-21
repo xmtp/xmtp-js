@@ -1,9 +1,10 @@
 import {
   ContentTypeReaction,
+  ReactionCodec,
   type Reaction,
 } from "@xmtp/content-type-reaction";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
+import { ContentTypeText, TextCodec } from "@xmtp/content-type-text";
 import { Dm, Group, type Client, type DecodedMessage } from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { filter } from "@/core/filter.js";
@@ -292,6 +293,49 @@ describe("Filters", () => {
 
       const result = filter.isTextReply(message);
       expect(result).toBe(false);
+    });
+  });
+
+  describe("usesCodec", () => {
+    it("should return true when message uses the specified codec", () => {
+      const message = createMockMessage({
+        content: "Hello world",
+        contentType: ContentTypeText,
+      });
+
+      const usesCodec = filter.usesCodec(message, TextCodec);
+      expect(usesCodec).toBe(true);
+    });
+
+    it("should return false when message does not use the specified codec", () => {
+      const message = createMockMessage({
+        content: "Hello world",
+        contentType: ContentTypeText,
+      });
+
+      const usesCodec = filter.usesCodec(message, ReactionCodec);
+      expect(usesCodec).toBe(false);
+    });
+
+    it("should type guard message content to the codec's decoded type", () => {
+      const reaction: Reaction = {
+        action: "added",
+        reference: "message-id",
+        referenceInboxId: "sender-inbox-id",
+        schema: "unicode",
+        content: "👍",
+      };
+
+      const message = createMockMessage({
+        content: reaction,
+        contentType: ContentTypeReaction,
+      });
+
+      if (filter.usesCodec(message, ReactionCodec)) {
+        expectTypeOf(message.content).toEqualTypeOf<Reaction>();
+      } else {
+        expect.fail("Expected message content to be Reaction");
+      }
     });
   });
 });
