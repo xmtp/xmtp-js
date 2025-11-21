@@ -163,7 +163,9 @@ export class Conversation<ContentTypes = unknown> {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#conversation.sendOptimistic(encodedContent);
+    return this.#conversation.sendOptimistic(encodedContent, {
+      shouldPush: true,
+    });
   }
 
   /**
@@ -185,7 +187,7 @@ export class Conversation<ContentTypes = unknown> {
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.#client.encodeContent(content, contentType!);
 
-    return this.#conversation.send(encodedContent);
+    return this.#conversation.send(encodedContent, { shouldPush: true });
   }
 
   /**

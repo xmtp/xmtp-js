@@ -686,7 +686,7 @@ describe("Conversation", () => {
     expect(conversation2?.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(10000);
+    await sleep(1000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
@@ -777,7 +777,7 @@ describe("Conversation", () => {
     expect(conversation2?.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(10000);
+    await sleep(1000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
@@ -874,7 +874,12 @@ describe("Conversation", () => {
     expect(debugInfo.isCommitLogForked).toBeUndefined();
     expect(debugInfo.localCommitLog).toBeDefined();
     expect(debugInfo.remoteCommitLog).toBeDefined();
-    expect(debugInfo.cursor).toBeGreaterThan(0);
+    expect(debugInfo.cursor).toBeDefined();
+    expect(debugInfo.cursor).toHaveLength(2);
+    debugInfo.cursor.forEach((cursor) => {
+      expect(cursor).toHaveProperty("originatorId");
+      expect(cursor).toHaveProperty("sequenceId");
+    });
   });
 
   it("should filter messages by content type", async () => {

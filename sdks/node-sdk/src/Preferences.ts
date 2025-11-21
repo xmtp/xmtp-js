@@ -3,6 +3,7 @@ import type {
   Consent,
   ConsentEntityType,
   Conversations,
+  UserPreferenceUpdate,
 } from "@xmtp/node-bindings";
 import {
   createStream,
@@ -124,7 +125,7 @@ export class Preferences {
    */
   streamPreferences(options?: StreamOptions<PreferenceUpdate>) {
     const streamPreferences = async (
-      callback: StreamCallback<PreferenceUpdate>,
+      callback: StreamCallback<UserPreferenceUpdate[]>,
       onFail: () => void,
     ) => {
       await this.sync();
