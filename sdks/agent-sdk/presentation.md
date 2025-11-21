@@ -240,13 +240,20 @@ await agent.start();
 ## Start a Direct Message (DM)
 
 ```typescript
-// Create a DM with an Ethereum address
-const dm = await agent.createDmWithAddress(
+// Option 1: Use raw Ethereum address
+const dm1 = await agent.createDmWithAddress(
   "0x1234567890123456789012345678901234567890",
 );
 
+// Option 2: Resolve ENS/web3 names with convenience helper
+import { createNameResolver } from "@xmtp/agent-sdk/user";
+const resolver = createNameResolver("your-web3bio-api-key");
+
+const address = await resolver("vitalik.eth");
+const dm2 = await agent.createDmWithAddress(address);
+
 // Send a message
-await dm.send("Hello! This is a DM.");
+await dm2.send("Hello! This is a DM.");
 ```
 
 Perfect for reaching out to users!
