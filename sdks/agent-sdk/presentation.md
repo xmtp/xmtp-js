@@ -22,6 +22,9 @@ style: |
     color: #4fc3f7;
   }
   strong {
+    color: rgb(255, 123, 92);
+  }
+  h1, h2 {
     color: rgb(252, 79, 55);
   }
 ---
