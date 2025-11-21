@@ -4254,25 +4254,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/agent-sdk@npm:^1.1.14":
-  version: 1.1.14
-  resolution: "@xmtp/agent-sdk@npm:1.1.14"
-  dependencies:
-    "@xmtp/content-type-markdown": "npm:^1.0.0"
-    "@xmtp/content-type-reaction": "npm:^2.0.2"
-    "@xmtp/content-type-read-receipt": "npm:^2.0.2"
-    "@xmtp/content-type-remote-attachment": "npm:^2.0.2"
-    "@xmtp/content-type-reply": "npm:^2.0.2"
-    "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/content-type-transaction-reference": "npm:^2.0.2"
-    "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
-    "@xmtp/node-sdk": "npm:4.3.1"
-    viem: "npm:^2.37.6"
-  checksum: 10/7a448dbced5a5d73d205e110297797fbc14a52d05238b90389786098b5206d3256f7ab679da74dd410c390d907cc3c00c8afbac7cddb08b2f1e53dbeb54334f0
-  languageName: node
-  linkType: hard
-
-"@xmtp/agent-sdk@workspace:sdks/agent-sdk":
+"@xmtp/agent-sdk@npm:1.1.14, @xmtp/agent-sdk@workspace:sdks/agent-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
@@ -4336,7 +4318,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@types/yargs": "npm:^17.0.33"
-    "@xmtp/agent-sdk": "npm:^1.1.14"
+    "@xmtp/agent-sdk": "npm:1.1.14"
     "@xmtp/content-type-markdown": "npm:^1.0.0"
     "@xmtp/content-type-reaction": "npm:^2.0.2"
     "@xmtp/content-type-read-receipt": "npm:^2.0.2"
