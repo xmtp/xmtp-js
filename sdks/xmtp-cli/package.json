@@ -6,6 +6,14 @@
   "bin": {
     "xmtp": "./dist/index.js"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "default": "./dist/lib.js"
+    }
+  },
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
   "files": [
     "dist",
     "bin"
