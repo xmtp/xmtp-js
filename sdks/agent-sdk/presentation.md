@@ -426,7 +426,7 @@ agent.use(loggerMW, filterSelfMW, rateLimitMW);
 
 ## Resources
 
-📚 **Documentation**: https://docs.xmtp.org/agents
-📦 **NPM Package**: npm.im/@xmtp/agent-sdk
-💻 **GitHub**: github.com/xmtp/xmtp-js
-👩‍💻 **Starter Kit**: github.com/xmtp/agent-sdk-starter
+📚 **Documentation**: [docs.xmtp.org/agents](https://docs.xmtp.org/agents)
+📦 **NPM Package**: [npm.im/@xmtp/agent-sdk](https://npm.im/@xmtp/agent-sdk)
+💻 **GitHub**: [github.com/xmtp/xmtp-js](https://github.com/xmtp/xmtp-js)
+👩‍💻 **Starter Kit**: [github.com/xmtp/agent-sdk-starter](https://github.com/xmtp/agent-sdk-starter)
