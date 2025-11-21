@@ -2,17 +2,35 @@
 marp: true
 theme: default
 paginate: true
-backgroundColor: #fff
-backgroundImage: url('https://marp.app/assets/hero-background.svg')
+class: invert
+style: |
+  section {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+  }
+  code {
+    background-color: #2d2d2d;
+    color: #ce9178;
+  }
+  pre {
+    background-color: #2d2d2d;
+  }
+  pre code {
+    color: #d4d4d4;
+  }
+  a {
+    color: #4fc3f7;
+  }
+  strong {
+    color: rgb(252, 79, 55);
+  }
 ---
-
-<!-- _class: invert -->
 
 # 🚀 XMTP Agent SDK
 
 **Build event-driven messaging agents on XMTP**
 
-`npm.im/@xmtp/agent-sdk`
+`xmtp.org/miniapps`
 
 ---
 
@@ -44,8 +62,6 @@ yarn add @xmtp/agent-sdk
 ```
 
 ---
-
-<!-- _class: invert -->
 
 # 📋 Step 1: Setup Environment Variables
 
@@ -83,8 +99,6 @@ XMTP_DB_ENCRYPTION_KEY=0xabcd...1234
 ⚠️ **Important**: Keep `XMTP_WALLET_KEY` and `XMTP_DB_ENCRYPTION_KEY` secret!
 
 ---
-
-<!-- _class: invert -->
 
 # 🎬 Step 2: Create Your Agent
 
@@ -127,8 +141,6 @@ const agent = await Agent.create(signer, {
 ```
 
 ---
-
-<!-- _class: invert -->
 
 # 💬 Step 3: Responding to Messages
 
@@ -218,8 +230,6 @@ await agent.start();
 
 ---
 
-<!-- _class: invert -->
-
 # 👥 Step 4: Creating Conversations
 
 ---
@@ -279,8 +289,6 @@ agent.on("group", async (ctx) => {
 ```
 
 ---
-
-<!-- _class: invert -->
 
 # 🔌 Step 5: Adding Middleware
 
@@ -386,125 +394,6 @@ agent.use(loggerMW, filterSelfMW, rateLimitMW);
 
 ---
 
-<!-- _class: invert -->
-
-# 🛠️ Advanced: Error Handling
-
----
-
-## Error Handling Middleware
-
-```typescript
-import type { AgentErrorMiddleware } from "@xmtp/agent-sdk";
-
-const errorHandler: AgentErrorMiddleware = async (error, ctx, next) => {
-  console.error("❌ Error occurred:", error);
-
-  if (error instanceof Error) {
-    // Transform and forward
-    await next(`Validation failed: ${error.message}`);
-  } else {
-    // Handle or forward
-    await next(error);
-  }
-};
-
-agent.errors.use(errorHandler);
-```
-
----
-
-## Listen for Unhandled Errors
-
-```typescript
-agent.on("unhandledError", (error) => {
-  console.error("🚨 Unhandled error:", error);
-
-  // Log to monitoring service
-  // Send alert
-  // etc.
-});
-```
-
----
-
-<!-- _class: invert -->
-
-# 🎯 Complete Example
-
----
-
-## Full Agent Implementation
-
-```typescript
-import { Agent } from "@xmtp/agent-sdk";
-import { CommandRouter } from "@xmtp/agent-sdk/middleware";
-import { loadEnvFile } from "node:process";
-
-// Load environment
-loadEnvFile(".env");
-
-// Create agent
-const agent = await Agent.createFromEnv();
-
-// Setup command router
-const router = new CommandRouter()
-  .command("/hello", async (ctx) => {
-    await ctx.sendText("Hello! 👋");
-  })
-  .command("/help", async (ctx) => {
-    await ctx.sendText("Commands: /hello, /help, /ping");
-  })
-  .command("/ping", async (ctx) => {
-    await ctx.sendText("Pong! 🏓");
-  });
-```
-
----
-
-## Full Agent Implementation (cont.)
-
-```typescript
-// Use router middleware
-agent.use(router.middleware());
-
-// Listen to new groups
-agent.on("group", async (ctx) => {
-  await ctx.sendMarkdown("**Welcome!** Type `/help` for commands.");
-});
-
-// Handle reactions
-agent.on("reaction", async (ctx) => {
-  console.log(`Got reaction: ${ctx.message.content.content}`);
-});
-
-// Lifecycle
-agent.on("start", () => {
-  console.log("🚀 Agent is online!");
-});
-
-// Start the agent
-await agent.start();
-```
-
----
-
-<!-- _class: invert -->
-
-# 🎓 Key Takeaways
-
----
-
-## What You Learned
-
-✅ **Setup**: Configure with environment variables
-✅ **Create**: Use `Agent.createFromEnv()`
-✅ **Respond**: Handle events with `.on("text", ...)`
-✅ **Initiate**: Create DMs and groups
-✅ **Extend**: Add middleware for routing and filtering
-
----
-
 ## Best Practices
 
 1. 🔐 **Keep secrets safe**: Use `.env` for keys, never commit them
@@ -521,5 +410,3 @@ await agent.start();
 📦 **NPM Package**: npm.im/@xmtp/agent-sdk
 💻 **GitHub**: github.com/xmtp/xmtp-js
 👩‍💻 **Starter Kit**: github.com/xmtp/agent-sdk-starter
-
----
