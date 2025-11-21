@@ -1,16 +1,4 @@
-<h2 align="center">
-
-    <a href="https://xmtp.org" target="blank_">
-
-        <img height="100" alt="XMTP" src="https://xmtp.org/xmtp-icon.png" />
-
-    </a>
-
-    <br>
-
-    XMTP CLI: command-line interface for XMTP messaging
-
-</h2>
+# XMTP CLI
 
 XMTP CLI is a command-line interface for interacting with the XMTP protocol.
 
