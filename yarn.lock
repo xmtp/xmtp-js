@@ -4183,7 +4183,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/agent-sdk@npm:^1.1.9, @xmtp/agent-sdk@workspace:sdks/agent-sdk":
+"@xmtp/agent-sdk@npm:^1.1.14":
+  version: 1.1.14
+  resolution: "@xmtp/agent-sdk@npm:1.1.14"
+  dependencies:
+    "@xmtp/content-type-markdown": "npm:^1.0.0"
+    "@xmtp/content-type-reaction": "npm:^2.0.2"
+    "@xmtp/content-type-read-receipt": "npm:^2.0.2"
+    "@xmtp/content-type-remote-attachment": "npm:^2.0.2"
+    "@xmtp/content-type-reply": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/content-type-transaction-reference": "npm:^2.0.2"
+    "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
+    "@xmtp/node-sdk": "npm:4.3.1"
+    viem: "npm:^2.37.6"
+  checksum: 10/7a448dbced5a5d73d205e110297797fbc14a52d05238b90389786098b5206d3256f7ab679da74dd410c390d907cc3c00c8afbac7cddb08b2f1e53dbeb54334f0
+  languageName: node
+  linkType: hard
+
+"@xmtp/agent-sdk@workspace:sdks/agent-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
@@ -4247,7 +4265,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@types/yargs": "npm:^17.0.33"
-    "@xmtp/agent-sdk": "npm:^1.1.9"
+    "@xmtp/agent-sdk": "npm:^1.1.14"
     "@xmtp/content-type-markdown": "npm:^1.0.0"
     "@xmtp/content-type-reaction": "npm:^2.0.2"
     "@xmtp/content-type-read-receipt": "npm:^2.0.2"
@@ -4456,6 +4474,18 @@ __metadata:
   version: 1.5.4
   resolution: "@xmtp/node-bindings@npm:1.5.4"
   checksum: 10/0365969ef88d8e0cd55fe0197ba65046ed61268d6a9898631df07b39f1fd37f82a549b277bef9ef42446ea8248e8ad8bfc32310b0d4194f573833973c1bbb28d
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@npm:4.3.1":
+  version: 4.3.1
+  resolution: "@xmtp/node-sdk@npm:4.3.1"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^2.0.2"
+    "@xmtp/content-type-primitives": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/node-bindings": "npm:1.5.4"
+  checksum: 10/27aa71a1cce7f034d883a25a6946338bc967742689b4a71a224ae83ffa930896e33d2cafcd8bfeda85bd6f3ab34419117773d4f3cca770bfd583bde9ef4c84ad
   languageName: node
   linkType: hard
 
