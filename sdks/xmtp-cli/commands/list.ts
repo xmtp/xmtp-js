@@ -127,7 +127,7 @@ async function runConversationsOperation(config: {
       config.offset + config.limit,
     );
 
-    console.log(`\n📋 Conversations:`);
+    console.log(`\n[CONVERSATIONS]`);
     console.log(`   Total: ${conversations.length}`);
     console.log(
       `   Showing: ${paginated.length} (offset: ${config.offset}, limit: ${config.limit})`,
@@ -136,7 +136,7 @@ async function runConversationsOperation(config: {
     paginated.forEach((conv, i) => {
       const isGroup = "groupName" in conv;
       console.log(
-        `\n   ${i + 1 + config.offset}. ${isGroup ? "👥 Group" : "💬 DM"}: ${conv.id}`,
+        `\n   ${i + 1 + config.offset}. ${isGroup ? "[GROUP]" : "[DM]"}: ${conv.id}`,
       );
       if (isGroup) {
         const group = conv as Group;
@@ -145,7 +145,7 @@ async function runConversationsOperation(config: {
     });
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -153,7 +153,7 @@ async function runConversationsOperation(config: {
 
 async function runMembersOperation(conversationId?: string): Promise<void> {
   if (!conversationId) {
-    console.error(`❌ --conversation-id is required`);
+    console.error(`[ERROR] --conversation-id is required`);
     process.exit(1);
   }
 
@@ -172,27 +172,27 @@ async function runMembersOperation(conversationId?: string): Promise<void> {
     const conversation =
       await agent.client.conversations.getConversationById(conversationId);
     if (!conversation) {
-      console.error(`❌ Conversation not found`);
+      console.error(`[ERROR] Conversation not found`);
       process.exit(1);
     }
 
     const isGroup = "groupName" in conversation;
     if (!isGroup) {
-      console.log(`📋 This is a Direct Message`);
+      console.log(`[INFO] This is a Direct Message`);
       return;
     }
 
     const group = conversation as Group;
     const members = await group.members();
 
-    console.log(`\n👥 Members:`);
+    console.log(`\n[MEMBERS]`);
     console.log(`   Total: ${members.length}`);
     members.forEach((member: GroupMember, i) => {
       console.log(`   ${i + 1}. ${member.inboxId || "Unknown"}`);
     });
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -204,7 +204,7 @@ async function runMessagesOperation(config: {
   offset: number;
 }): Promise<void> {
   if (!config.conversationId) {
-    console.error(`❌ --conversation-id is required`);
+    console.error(`[ERROR] --conversation-id is required`);
     process.exit(1);
   }
 
@@ -224,7 +224,7 @@ async function runMessagesOperation(config: {
       config.conversationId,
     );
     if (!conversation) {
-      console.error(`❌ Conversation not found`);
+      console.error(`[ERROR] Conversation not found`);
       process.exit(1);
     }
 
@@ -234,7 +234,7 @@ async function runMessagesOperation(config: {
       config.offset + config.limit,
     );
 
-    console.log(`\n📝 Messages:`);
+    console.log(`\n[MESSAGES]`);
     console.log(`   Total: ${messages.length}`);
     console.log(
       `   Showing: ${paginated.length} (offset: ${config.offset}, limit: ${config.limit})`,
@@ -253,7 +253,7 @@ async function runMessagesOperation(config: {
     });
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -266,7 +266,7 @@ async function runFindOperation(config: {
   offset: number;
 }): Promise<void> {
   if (!config.inboxId && !config.address) {
-    console.error(`❌ Either --inbox-id or --address is required`);
+    console.error(`[ERROR] Either --inbox-id or --address is required`);
     process.exit(1);
   }
 
@@ -288,7 +288,7 @@ async function runFindOperation(config: {
       targetInboxId = config.inboxId;
     } else {
       if (!config.address) {
-        console.error(`❌ Address is required`);
+        console.error(`[ERROR] Address is required`);
         process.exit(1);
       }
       const resolved = await agent.client.getInboxIdByIdentifier({
@@ -297,7 +297,7 @@ async function runFindOperation(config: {
       });
 
       if (!resolved) {
-        console.error(`❌ No inbox found for address`);
+        console.error(`[ERROR] No inbox found for address`);
         process.exit(1);
       }
 
@@ -343,7 +343,7 @@ async function runFindOperation(config: {
     }
 
     if (!foundConversation) {
-      console.error(`❌ No conversation found`);
+      console.error(`[ERROR] No conversation found`);
       process.exit(1);
     }
 
@@ -356,7 +356,7 @@ async function runFindOperation(config: {
     const isGroup = "groupName" in foundConversation;
     const conversationType = isGroup ? "Group" : "Direct Message";
 
-    console.log(`\n✅ Found conversation: ${foundConversation.id}`);
+    console.log(`\n[OK] Found conversation: ${foundConversation.id}`);
     console.log(`   Type: ${conversationType}`);
     console.log(`   Total messages: ${messages.length}`);
     console.log(`   Showing: ${paginated.length}`);
@@ -374,7 +374,7 @@ async function runFindOperation(config: {
     });
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }

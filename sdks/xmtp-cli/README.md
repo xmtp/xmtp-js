@@ -319,4 +319,4 @@ yarn start
 
 Build something delightful. Then tell us what you wish was easier.
 
-Happy hacking 💫
+Happy hacking!

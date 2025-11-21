@@ -75,7 +75,7 @@ export async function runContentTypesCommand(
   options: ContentOptions,
 ): Promise<void> {
   if (!options.target && !options.groupId) {
-    console.error(`❌ Either --target or --group-id is required`);
+    console.error(`[ERROR] Either --target or --group-id is required`);
     process.exit(1);
   }
 
@@ -99,7 +99,7 @@ export async function runContentTypesCommand(
       await sendMiniAppContent(options);
       break;
     default:
-      console.error(`❌ Unknown operation: ${operation}`);
+      console.error(`[ERROR] Unknown operation: ${operation}`);
       process.exit(1);
   }
 }
@@ -121,7 +121,7 @@ async function sendTextContent(options: {
   target?: string;
   groupId?: string;
 }): Promise<void> {
-  console.log(`📝 Sending text content with reply and reaction...`);
+  console.log(`[SEND] Sending text content with reply and reaction...`);
   const agent = await Agent.createFromEnv({
     codecs: [
       new MarkdownCodec(),
@@ -134,14 +134,14 @@ async function sendTextContent(options: {
   });
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
-    console.error(`❌ Conversation not found`);
+    console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
   // Send text message
   await conversation.send(
-    "📝 This is a text message that demonstrates basic XMTP messaging!",
+    "This is a text message that demonstrates basic XMTP messaging!",
   );
-  console.log(`✅ Sent text message`);
+  console.log(`[OK] Sent text message`);
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const messages = await conversation.messages();
@@ -150,13 +150,13 @@ async function sendTextContent(options: {
   // Send reply
   await conversation.send(
     {
-      content: "💬 This is a reply to the text message!",
+      content: "This is a reply to the text message!",
       reference: lastMessage.id,
       contentType: ContentTypeText,
     },
     ContentTypeReply,
   );
-  console.log(`✅ Sent reply`);
+  console.log(`[OK] Sent reply`);
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   // Send reaction
@@ -169,9 +169,9 @@ async function sendTextContent(options: {
     },
     ContentTypeReaction,
   );
-  console.log(`✅ Sent reaction`);
+  console.log(`[OK] Sent reaction`);
 
-  console.log(`\n🎉 Text content demo complete!`);
+  console.log(`\n[COMPLETE] Text content demo complete!`);
   console.log(`   Demonstrated: text message, reply, reaction`);
 }
 
@@ -179,7 +179,7 @@ async function sendMarkdownContent(options: {
   target?: string;
   groupId?: string;
 }): Promise<void> {
-  console.log(`📄 Sending markdown content...`);
+  console.log(`[SEND] Sending markdown content...`);
   const agent = await Agent.createFromEnv({
     codecs: [
       new MarkdownCodec(),
@@ -193,10 +193,10 @@ async function sendMarkdownContent(options: {
   const conversation = await getOrCreateConversation(options, agent);
 
   if (!conversation) {
-    console.error(`❌ Conversation not found`);
+    console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
-  const markdownContent = `# 🎨 Markdown Demo
+  const markdownContent = `# Markdown Demo
 
 This is a **markdown formatted** message demonstrating various formatting options:
 
@@ -244,18 +244,18 @@ function greet(name) {
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| Text | ✅ | Basic text messages |
-| Markdown | ✅ | Rich text formatting |
-| Reactions | ✅ | Emoji reactions |
-| Replies | ✅ | Threaded conversations |
+| Text | OK | Basic text messages |
+| Markdown | OK | Rich text formatting |
+| Reactions | OK | Emoji reactions |
+| Replies | OK | Threaded conversations |
 
 ---
 
 **This demonstrates the full power of markdown formatting in XMTP messages!**`;
 
   await conversation.send(markdownContent, ContentTypeMarkdown);
-  console.log(`✅ Markdown message sent successfully`);
-  console.log(`\n🎉 Markdown content demo complete!`);
+  console.log(`[OK] Markdown message sent successfully`);
+  console.log(`\n[COMPLETE] Markdown content demo complete!`);
   console.log(`   Check how it renders in your XMTP client`);
 }
 
@@ -263,7 +263,7 @@ async function sendAttachmentContent(options: {
   target?: string;
   groupId?: string;
 }): Promise<void> {
-  console.log(`📎 Sending attachment content...`);
+  console.log(`[SEND] Sending attachment content...`);
   const agent = await Agent.createFromEnv({
     codecs: [
       new MarkdownCodec(),
@@ -277,47 +277,47 @@ async function sendAttachmentContent(options: {
 
   // Log network/environment
   const network = process.env.XMTP_ENV ?? "production";
-  console.log(`🌐 Network:`);
+  console.log(`[NETWORK]`);
   console.log(`   Environment: ${network}`);
 
   // Log sender information
   const senderAddress = agent.client.accountIdentifier?.identifier || "Unknown";
   const senderInboxId = agent.client.inboxId;
-  console.log(`📤 Sender:`);
+  console.log(`[SENDER]`);
   console.log(`   Address: ${senderAddress}`);
   console.log(`   Inbox ID: ${senderInboxId}`);
 
   // Log recipient information
   if (options.target) {
-    console.log(`📥 Recipient (Target):`);
+    console.log(`[RECIPIENT] Target:`);
     console.log(`   Address: ${options.target}`);
   } else if (options.groupId) {
-    console.log(`📥 Recipient (Group):`);
+    console.log(`[RECIPIENT] Group:`);
     console.log(`   Group ID: ${options.groupId}`);
   }
 
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
-    console.error(`❌ Conversation not found`);
+    console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
-  console.log(`💬 Conversation:`);
+  console.log(`[CONVERSATION]`);
   console.log(`   Conversation ID: ${conversation.id}`);
 
-  console.log(`📋 Preparing remote attachment...`);
+  console.log(`[PREPARE] Preparing remote attachment...`);
   await conversation.send("I'll send you an attachment now...");
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const attachment = parseSavedAttachment();
-  console.log(`📎 Sending attachment...`);
+  console.log(`[SEND] Sending attachment...`);
   console.log(`   Network: ${network}`);
   console.log(`   From: ${senderAddress} (${senderInboxId})`);
   console.log(`   To: ${options.target || options.groupId || "Unknown"}`);
   console.log(`   Conversation: ${conversation.id}`);
   await conversation.send(attachment, ContentTypeRemoteAttachment);
 
-  console.log(`✅ Remote attachment sent successfully`);
-  console.log(`\n🎉 Attachment content demo complete!`);
+  console.log(`[OK] Remote attachment sent successfully`);
+  console.log(`\n[COMPLETE] Attachment content demo complete!`);
   console.log(`   Network: ${network}`);
   console.log(
     `   Attachment: ${attachment.filename} (${attachment.contentLength} bytes)`,
@@ -333,7 +333,7 @@ async function sendTransactionContent(options: {
   groupId?: string;
   amount?: string;
 }): Promise<void> {
-  console.log(`💰 Sending transaction content...`);
+  console.log(`[SEND] Sending transaction content...`);
   const agent = await Agent.createFromEnv({
     codecs: [
       new MarkdownCodec(),
@@ -346,7 +346,7 @@ async function sendTransactionContent(options: {
   });
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
-    console.error(`❌ Conversation not found`);
+    console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
 
@@ -364,7 +364,7 @@ async function sendTransactionContent(options: {
 
   const parsedAmount = parseFloat(options.amount || "0.1");
   if (Number.isNaN(parsedAmount) || parsedAmount < 0) {
-    console.error(`❌ Invalid amount: ${options.amount}`);
+    console.error(`[ERROR] Invalid amount: ${options.amount}`);
     process.exit(1);
   }
   const recipientAddress = agent.address; // the agent receives the tx.
@@ -403,20 +403,20 @@ async function sendTransactionContent(options: {
   await conversation.send(transactionObject, ContentTypeWalletSendCalls);
   await conversation.send(
     {
-      content: `💡 After completing the transaction, you can send a transaction reference message to confirm completion.`,
+      content: `After completing the transaction, you can send a transaction reference message to confirm completion.`,
       contentType: ContentTypeText,
     },
     ContentTypeTransactionReference,
   );
-  console.log(`✅ Transaction frame sent successfully`);
-  console.log(`\n🎉 Transaction content demo complete!`);
+  console.log(`[OK] Transaction frame sent successfully`);
+  console.log(`\n[COMPLETE] Transaction content demo complete!`);
 }
 
 async function sendDeeplinkContent(options: {
   target?: string;
   groupId?: string;
 }): Promise<void> {
-  console.log(`🔗 Sending deeplink content...`);
+  console.log(`[SEND] Sending deeplink content...`);
   const agent = await Agent.createFromEnv({
     codecs: [
       new MarkdownCodec(),
@@ -429,17 +429,17 @@ async function sendDeeplinkContent(options: {
   });
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
-    console.error(`❌ Conversation not found`);
+    console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
   const agentAddress = agent.client.accountIdentifier?.identifier || "";
   const deeplink = `cbwallet://messaging/${agentAddress}`;
 
   await conversation.send(
-    `💬 Want to chat privately? Tap here to start a direct conversation:\n\n${deeplink}`,
+    `Want to chat privately? Tap here to start a direct conversation:\n\n${deeplink}`,
   );
-  console.log(`✅ Deeplink message sent successfully`);
-  console.log(`\n🎉 Deeplink content demo complete!`);
+  console.log(`[OK] Deeplink message sent successfully`);
+  console.log(`\n[COMPLETE] Deeplink content demo complete!`);
   console.log(`   Deeplink: ${deeplink}`);
 }
 
@@ -447,7 +447,7 @@ async function sendMiniAppContent(options: {
   target?: string;
   groupId?: string;
 }): Promise<void> {
-  console.log(`🎮 Sending mini app content...`);
+  console.log(`[SEND] Sending mini app content...`);
   const agent = await Agent.createFromEnv({
     codecs: [
       new MarkdownCodec(),
@@ -460,14 +460,14 @@ async function sendMiniAppContent(options: {
   });
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
-    console.error(`❌ Conversation not found`);
+    console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
   const miniAppUrl = `https://squabble.lol/`;
   await conversation.send(miniAppUrl);
 
-  console.log(`✅ Mini app URL sent successfully`);
-  console.log(`\n🎉 Mini app content demo complete!`);
+  console.log(`[OK] Mini app URL sent successfully`);
+  console.log(`\n[COMPLETE] Mini app content demo complete!`);
   console.log(`   URL: ${miniAppUrl}`);
 }
 
