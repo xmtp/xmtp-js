@@ -25,6 +25,8 @@ import {
   type CreateGroupOptions,
   type DecodedMessage,
   type HexString,
+  type Message,
+  type StreamOptions,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
@@ -292,7 +294,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
   }
 
-  async start() {
+  async start(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
     if (this.#isLocked || this.#conversationsStream || this.#messageStream)
       return;
 
@@ -300,6 +302,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     try {
       this.#conversationsStream = await this.#client.conversations.stream({
+        ...options,
         onValue: async (conversation) => {
           try {
             if (!conversation) {
@@ -357,6 +360,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       });
 
       this.#messageStream = await this.#client.conversations.streamAllMessages({
+        ...options,
         onValue: async (message) => {
           try {
             switch (true) {
