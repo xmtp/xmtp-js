@@ -59,12 +59,12 @@ export function registerListCommand(yargs: Argv) {
       "inbox-id"?: string;
       address?: string;
     }) => {
-      await runListCommand((argv.operation as string) || "conversations", {
-        conversationId: argv["conversation-id"] as string | undefined,
-        limit: argv.limit as string | undefined,
-        offset: argv.offset as string | undefined,
-        inboxId: argv["inbox-id"] as string | undefined,
-        address: argv.address as string | undefined,
+      await runListCommand(argv.operation || "conversations", {
+        conversationId: argv["conversation-id"],
+        limit: argv.limit,
+        offset: argv.offset,
+        inboxId: argv["inbox-id"],
+        address: argv.address,
       });
     },
   );

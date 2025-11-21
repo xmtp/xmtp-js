@@ -52,10 +52,10 @@ export function registerDebugCommand(yargs: Argv) {
       "inbox-id"?: string;
       "list-conversations"?: boolean;
     }) => {
-      await runDebugCommand((argv.operation as string) || "info", {
-        address: argv.address as string | undefined,
-        inboxId: argv["inbox-id"] as string | undefined,
-        listConversations: argv["list-conversations"] as boolean | undefined,
+      await runDebugCommand(argv.operation || "info", {
+        address: argv.address,
+        inboxId: argv["inbox-id"],
+        listConversations: argv["list-conversations"],
       });
     },
   );

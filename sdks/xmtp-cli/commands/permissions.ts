@@ -46,10 +46,10 @@ export function registerPermissionsCommand(yargs: Argv) {
       features?: string;
       permissions?: string;
     }) => {
-      await runPermissionsCommand((argv.operation as string) || "list", {
-        groupId: argv["group-id"] as string | undefined,
-        features: argv.features as string | undefined,
-        permissions: argv.permissions as string | undefined,
+      await runPermissionsCommand(argv.operation || "list", {
+        groupId: argv["group-id"],
+        features: argv.features,
+        permissions: argv.permissions,
       });
     },
   );

@@ -79,35 +79,31 @@ export function registerGroupsCommand(yargs: Argv) {
       "member-inbox-ids"?: string;
       "image-url"?: string;
     }) => {
-      const operation = (argv.operation as string) || "create";
+      const operation = argv.operation || "create";
       const memberAddresses = argv["member-addresses"]
-        ? (argv["member-addresses"] as string)
-            .split(",")
-            .map((a: string) => a.trim())
+        ? argv["member-addresses"].split(",").map((a: string) => a.trim())
         : undefined;
       const memberInboxIds = argv["member-inbox-ids"]
-        ? (argv["member-inbox-ids"] as string)
-            .split(",")
-            .map((a: string) => a.trim())
+        ? argv["member-inbox-ids"].split(",").map((a: string) => a.trim())
         : undefined;
 
       switch (operation) {
         case "create":
           await runCreateOperation({
-            type: (argv.type as ConversationType) || "dm",
-            groupName: argv.name as string | undefined,
-            groupDescription: argv.description as string | undefined,
-            targetAddress: argv.target as string | undefined,
+            type: (argv.type || "dm") as ConversationType,
+            groupName: argv.name,
+            groupDescription: argv.description,
+            targetAddress: argv.target,
             memberAddresses,
             memberInboxIds,
           });
           break;
         case "metadata":
           await runMetadataOperation({
-            groupId: argv["group-id"] as string | undefined,
-            groupName: argv.name as string | undefined,
-            groupDescription: argv.description as string | undefined,
-            imageUrl: argv["image-url"] as string | undefined,
+            groupId: argv["group-id"],
+            groupName: argv.name,
+            groupDescription: argv.description,
+            imageUrl: argv["image-url"],
           });
           break;
         default:

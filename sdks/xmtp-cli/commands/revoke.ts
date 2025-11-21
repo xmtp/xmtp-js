@@ -31,9 +31,9 @@ export function registerRevokeCommand(yargs: Argv) {
         });
     },
     async (argv: { "inbox-id": string; keep?: string; env?: string }) => {
-      await runRevokeCommand(argv["inbox-id"] as string, {
-        keep: argv.keep as string | undefined,
-        env: argv.env as string | undefined,
+      await runRevokeCommand(argv["inbox-id"], {
+        keep: argv.keep,
+        env: argv.env,
       });
     },
   );

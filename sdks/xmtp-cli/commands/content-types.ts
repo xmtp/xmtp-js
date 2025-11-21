@@ -61,10 +61,10 @@ export function registerContentTypesCommand(yargs: Argv) {
       "group-id"?: string;
       amount?: string;
     }) => {
-      await runContentTypesCommand((argv.operation as string) || "text", {
-        target: argv.target as string | undefined,
-        groupId: argv["group-id"] as string | undefined,
-        amount: argv.amount as string | undefined,
+      await runContentTypesCommand(argv.operation || "text", {
+        target: argv.target,
+        groupId: argv["group-id"],
+        amount: argv.amount,
       });
     },
   );

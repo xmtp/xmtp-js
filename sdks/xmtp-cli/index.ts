@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadEnvFile } from "node:process";
-import yargs, { type Argv } from "yargs";
+import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { registerContentTypesCommand } from "./commands/content-types";
 import { registerDebugCommand } from "./commands/debug";
@@ -20,7 +20,7 @@ const argv = yargs(hideBin(process.argv))
   .middleware((argv: { _: (string | number)[]; [key: string]: unknown }) => {
     // Skip env loading for help/keys commands
     const command = argv._[0];
-    if (command === "keys" || command === undefined) {
+    if (command === "keys") {
       return;
     }
 
@@ -69,4 +69,4 @@ registerContentTypesCommand(argv);
 registerKeysCommand(argv);
 registerRevokeCommand(argv);
 
-argv.parse();
+void argv.parse();
