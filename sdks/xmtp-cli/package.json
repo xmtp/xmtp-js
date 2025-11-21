@@ -1,0 +1,59 @@
+{
+  "name": "@xmtp/cli",
+  "version": "0.0.3",
+  "description": "A command-line interface for XMTP.",
+  "type": "module",
+  "bin": {
+    "xmtp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
+    "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
+    "clean:dist": "rimraf dist",
+    "dev": "tsx --watch index.ts",
+    "start": "tsx index.ts",
+    "send": "tsx commands/send.ts",
+    "permissions": "tsx commands/permissions.ts",
+    "groups": "tsx commands/groups.ts",
+    "list": "tsx commands/list.ts",
+    "debug": "tsx commands/debug.ts",
+    "content": "tsx commands/content-types.ts",
+    "lint": "cd ../.. && yarn eslint sdks/xmtp-cli",
+    "format": "cd ../.. && yarn build && yarn format sdks/xmtp-cli",
+    "typecheck": "tsc --noEmit",
+    "link": "yarn build && yarn link",
+    "unlink": "yarn unlink",
+    "update": "yarn build"
+  },
+  "dependencies": {
+    "@xmtp/agent-sdk": "1.1.14",
+    "@xmtp/content-type-markdown": "^1.0.0",
+    "@xmtp/content-type-reaction": "^2.0.2",
+    "@xmtp/content-type-read-receipt": "^2.0.2",
+    "@xmtp/content-type-remote-attachment": "^2.0.2",
+    "@xmtp/content-type-reply": "^2.0.2",
+    "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/content-type-transaction-reference": "^2.0.2",
+    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^24.9.1",
+    "@types/yargs": "^17.0.33",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.52.5",
+    "rollup-plugin-dts": "^6.2.3",
+    "rollup-plugin-tsconfig-paths": "^1.5.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
