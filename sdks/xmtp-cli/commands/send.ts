@@ -349,7 +349,7 @@ export async function waitForResponse(
       return null;
     })();
 
-    await Promise.race([
+    const receivedMessage = await Promise.race([
       responsePromise,
       // Timeout
       new Promise<null>((_, reject) => {
@@ -366,7 +366,6 @@ export async function waitForResponse(
         `✅ ${workerId}: Attempt ${attempt}, Send=${sendTime}ms (${(sendTime / 1000).toFixed(2)}s), Response=${responseTime}ms (${(responseTime / 1000).toFixed(2)}s), Total=${totalTime}ms (${(totalTime / 1000).toFixed(2)}s)`,
       );
 
-      const receivedMessage = await responsePromise;
       if (receivedMessage) {
         const messageContent =
           typeof receivedMessage.content === "string"
