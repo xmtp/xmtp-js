@@ -1,4 +1,4 @@
-import { Agent, type DecodedMessage, type Group } from "@xmtp/agent-sdk";
+import { Agent, type DecodedMessage } from "@xmtp/agent-sdk";
 import { IdentifierKind, type Identifier } from "@xmtp/node-sdk";
 import type { Argv } from "yargs";
 
@@ -121,7 +121,7 @@ async function sendGroupMessage(
       return;
     }
 
-    const group = conversation as Group;
+    const group = conversation;
 
     console.log(`[INFO] Found group: ${group.id}`);
 
