@@ -60,7 +60,7 @@ export async function runPermissionsCommand(
   options: PermissionsOptions,
 ): Promise<void> {
   if (!options.groupId) {
-    console.error(`❌ --group-id is required`);
+    console.error(`[ERROR] --group-id is required`);
     process.exit(1);
   }
 
@@ -83,7 +83,7 @@ export async function runPermissionsCommand(
       });
       break;
     default:
-      console.error(`❌ Unknown operation: ${operation}`);
+      console.error(`[ERROR] Unknown operation: ${operation}`);
       process.exit(1);
   }
 }
@@ -116,7 +116,7 @@ async function runListOperation(groupId: string): Promise<void> {
     const admins = group.admins;
     const superAdmins = group.superAdmins;
 
-    console.log(`\n📊 Group Information:`);
+    console.log(`\n[INFO] Group Information:`);
     console.log(`   ID: ${group.id}`);
     console.log(`   Name: ${group.name || "Unnamed"}`);
     console.log(`   Members: ${members.length}`);
@@ -124,7 +124,7 @@ async function runListOperation(groupId: string): Promise<void> {
     console.log(`   Super Admins: ${superAdmins.length}`);
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -135,7 +135,7 @@ async function runInfoOperation(groupId: string): Promise<void> {
     const group = await getGroup(groupId);
     await group.sync();
 
-    console.log(`\n📊 Group Details:`);
+    console.log(`\n[INFO] Group Details:`);
     console.log(`   ID: ${group.id}`);
     console.log(`   Name: ${group.name || "Unnamed"}`);
     console.log(`   Description: ${group.description || "No description"}`);
@@ -143,7 +143,7 @@ async function runInfoOperation(groupId: string): Promise<void> {
     console.log(`   URL: https://xmtp.chat/conversations/${group.id}`);
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -155,12 +155,12 @@ async function runUpdatePermissionsOperation(config: {
   permissions?: string;
 }): Promise<void> {
   if (!config.features || config.features.length === 0) {
-    console.error(`❌ --features is required`);
+    console.error(`[ERROR] --features is required`);
     process.exit(1);
   }
 
   if (!config.permissions) {
-    console.error(`❌ --permissions is required`);
+    console.error(`[ERROR] --permissions is required`);
     process.exit(1);
   }
 
@@ -196,7 +196,7 @@ async function runUpdatePermissionsOperation(config: {
     const isSuperAdmin = group.isSuperAdmin(agent.client.inboxId);
 
     if (!isSuperAdmin) {
-      console.error(`❌ Only super admins can change permissions`);
+      console.error(`[ERROR] Only super admins can change permissions`);
       process.exit(1);
     }
 
@@ -204,7 +204,7 @@ async function runUpdatePermissionsOperation(config: {
       !(config.features[0] in PERMISSION_TYPES) ||
       !(config.permissions in PERMISSION_POLICIES)
     ) {
-      console.error(`❌ Invalid feature or permission type`);
+      console.error(`[ERROR] Invalid feature or permission type`);
       process.exit(1);
     }
 
@@ -216,10 +216,10 @@ async function runUpdatePermissionsOperation(config: {
       permissionPolicy,
     );
 
-    console.log(`✅ Updated ${config.features[0]} to ${config.permissions}`);
+    console.log(`[OK] Updated ${config.features[0]} to ${config.permissions}`);
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }

@@ -32,7 +32,7 @@ const argv = yargs(hideBin(process.argv))
     if (!existsSync(envPath)) {
       console.error(
         [
-          "❌ Error: .env file not found in current directory",
+          "[ERROR] .env file not found in current directory",
           `   Expected location: ${envPath}`,
           "",
           "   Please create a .env file with the following variables:",
@@ -51,7 +51,7 @@ const argv = yargs(hideBin(process.argv))
     } catch (error) {
       console.error(
         [
-          "❌ Error: Failed to load .env file",
+          "[ERROR] Failed to load .env file",
           `   ${error instanceof Error ? error.message : String(error)}`,
         ].join("\n"),
       );

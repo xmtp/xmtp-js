@@ -55,7 +55,7 @@ export async function runRevokeCommand(
   // Validate inbox ID format (should be 64 hex characters)
   if (!/^[a-f0-9]{64}$/i.test(inboxId)) {
     console.error(
-      "❌ Error: Invalid inbox ID format. Must be 64 hexadecimal characters.",
+      "[ERROR] Invalid inbox ID format. Must be 64 hexadecimal characters.",
     );
     console.error(`Provided: ${inboxId}`);
     process.exit(1);
@@ -68,7 +68,7 @@ export async function runRevokeCommand(
     );
     if (invalidInstallations.length > 0) {
       console.error(
-        "❌ Error: Invalid installation ID format(s). Must be 64 hexadecimal characters.",
+        "[ERROR] Invalid installation ID format(s). Must be 64 hexadecimal characters.",
       );
       console.error("Invalid IDs:", invalidInstallations.join(", "));
       process.exit(1);
@@ -83,7 +83,7 @@ export async function runRevokeCommand(
   // Check if .env file exists
   if (!existsSync(envPath)) {
     console.error(
-      "❌ Error: .env file not found. Please run 'xmtp keys' first to generate keys.",
+      "[ERROR] .env file not found. Please run 'xmtp keys' first to generate keys.",
     );
     process.exit(1);
   }
@@ -116,7 +116,7 @@ export async function runRevokeCommand(
   const env = options.env || process.env.XMTP_ENV || envVars.XMTP_ENV;
   if (!env) {
     console.error(
-      "❌ Error: XMTP_ENV not found in environment variables or .env file and --env not provided.",
+      "[ERROR] XMTP_ENV not found in environment variables or .env file and --env not provided.",
     );
     console.error("Please run 'xmtp keys' first or provide --env flag.");
     process.exit(1);
@@ -132,7 +132,7 @@ export async function runRevokeCommand(
     if (!walletKey) missingVars.push("XMTP_WALLET_KEY");
     if (!dbEncryptionKey) missingVars.push("XMTP_DB_ENCRYPTION_KEY");
     console.error(
-      `❌ Error: Missing required environment variables: ${missingVars.join(", ")}`,
+      `[ERROR] Missing required environment variables: ${missingVars.join(", ")}`,
     );
     console.error("Please run 'xmtp keys' first to generate keys.");
     process.exit(1);
@@ -196,7 +196,7 @@ export async function runRevokeCommand(
       }
     } else {
       // No installations specified - ask for confirmation to revoke all except current
-      console.log("\n⚠️  No installations specified to keep.");
+      console.log("\n[WARN] No installations specified to keep.");
       console.log("Available installation IDs:");
       currentInstallations.forEach((inst, index) => {
         console.log(`  ${index + 1}. ${inst.id}`);
@@ -281,7 +281,7 @@ export async function runRevokeCommand(
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("❌ Error revoking installations:", errorMessage);
+    console.error("[ERROR] Error revoking installations:", errorMessage);
     process.exit(1);
   }
 }

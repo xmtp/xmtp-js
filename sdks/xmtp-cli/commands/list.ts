@@ -100,7 +100,7 @@ export async function runListCommand(
       });
       break;
     default:
-      console.error(`❌ Unknown operation: ${operation}`);
+      console.error(`[ERROR] Unknown operation: ${operation}`);
       process.exit(1);
   }
 }

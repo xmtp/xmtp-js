@@ -92,7 +92,7 @@ export async function runDebugCommand(
       await runListConversationsOperation();
       break;
     default:
-      console.error(`❌ Unknown operation: ${operation}`);
+      console.error(`[ERROR] Unknown operation: ${operation}`);
       process.exit(1);
   }
 }
@@ -102,7 +102,7 @@ async function runAddressOperation(options: {
   inboxId?: string;
 }): Promise<void> {
   if (!options.address && !options.inboxId) {
-    console.error(`❌ Either --address or --inbox-id is required`);
+    console.error(`[ERROR] Either --address or --inbox-id is required`);
     process.exit(1);
   }
 
@@ -127,17 +127,17 @@ async function runAddressOperation(options: {
       });
 
       if (!resolved) {
-        console.error(`❌ No inbox found for address: ${options.address}`);
+        console.error(`[ERROR] No inbox found for address: ${options.address}`);
         process.exit(1);
       }
 
       targetInboxId = resolved;
       console.log(
-        `📍 Resolved ${options.address} to inbox ID: ${targetInboxId}`,
+        `[RESOLVE] Resolved ${options.address} to inbox ID: ${targetInboxId}`,
       );
     } else {
       if (!options.inboxId) {
-        console.error(`❌ Inbox ID is required`);
+        console.error(`[ERROR] Inbox ID is required`);
         process.exit(1);
       }
       targetInboxId = options.inboxId;
@@ -149,19 +149,19 @@ async function runAddressOperation(options: {
     );
 
     if (inboxState.length === 0) {
-      console.error(`❌ No inbox state found`);
+      console.error(`[ERROR] No inbox state found`);
       process.exit(1);
     }
 
     const state = inboxState[0];
-    console.log(`\n📊 Address Information:`);
+    console.log(`\n[INFO] Address Information:`);
     console.log(`   Inbox ID: ${targetInboxId}`);
     console.log(`   Installations: ${state.installations.length}`);
     console.log(`   Identifiers: ${state.identifiers.length}`);
 
     // Show detailed installation information
     if (state.installations.length > 0) {
-      console.log(`\n📱 Installations:`);
+      console.log(`\n[INSTALLATIONS]`);
       state.installations.forEach((inst: { id: string }, i: number) => {
         console.log(`   ${i + 1}. ${inst.id}`);
       });
@@ -169,7 +169,7 @@ async function runAddressOperation(options: {
 
     // Show detailed identifier information
     if (state.identifiers.length > 0) {
-      console.log(`\n🏷️  Identifiers:`);
+      console.log(`\n[IDENTIFIERS]`);
       state.identifiers.forEach(
         (id: { identifier: string; identifierKind: number }, i: number) => {
           console.log(
@@ -182,12 +182,12 @@ async function runAddressOperation(options: {
     // Show additional details if available
     if (state.installations.length > 0) {
       console.log(
-        `\n💡 This address is active on the XMTP network with ${state.installations.length} installation(s).`,
+        `\n[INFO] This address is active on the XMTP network with ${state.installations.length} installation(s).`,
       );
     }
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -198,7 +198,7 @@ async function runInboxOperation(options: {
   inboxId?: string;
 }): Promise<void> {
   if (!options.address && !options.inboxId) {
-    console.error(`❌ Either --address or --inbox-id is required`);
+    console.error(`[ERROR] Either --address or --inbox-id is required`);
     process.exit(1);
   }
 
@@ -211,7 +211,7 @@ async function runInboxOperation(options: {
       targetInboxId = options.inboxId;
     } else {
       if (!options.address) {
-        console.error(`❌ Address is required`);
+        console.error(`[ERROR] Address is required`);
         process.exit(1);
       }
       const resolved = await agent.client.getInboxIdByIdentifier({
@@ -220,7 +220,7 @@ async function runInboxOperation(options: {
       });
 
       if (!resolved) {
-        console.error(`❌ No inbox found for address: ${options.address}`);
+        console.error(`[ERROR] No inbox found for address: ${options.address}`);
         process.exit(1);
       }
 
@@ -233,18 +233,18 @@ async function runInboxOperation(options: {
     );
 
     if (inboxState.length === 0) {
-      console.error(`❌ No inbox state found`);
+      console.error(`[ERROR] No inbox state found`);
       process.exit(1);
     }
 
     const state = inboxState[0];
-    console.log(`\n📊 Inbox Information:`);
+    console.log(`\n[INFO] Inbox Information:`);
     console.log(`   Inbox ID: ${targetInboxId}`);
     console.log(`   Installations: ${state.installations.length}`);
     console.log(`   Identifiers: ${state.identifiers.length}`);
 
     if (state.identifiers.length > 0) {
-      console.log(`\n🏷️  Identifiers:`);
+      console.log(`\n[IDENTIFIERS]`);
       state.identifiers.forEach((id, i) => {
         console.log(
           `   ${i + 1}. ${id.identifier} (kind: ${id.identifierKind})`,
@@ -253,7 +253,7 @@ async function runInboxOperation(options: {
     }
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -264,7 +264,7 @@ async function runResolveOperation(options: {
   inboxId?: string;
 }): Promise<void> {
   if (!options.address && !options.inboxId) {
-    console.error(`❌ Either --address or --inbox-id is required`);
+    console.error(`[ERROR] Either --address or --inbox-id is required`);
     process.exit(1);
   }
 
@@ -287,16 +287,16 @@ async function runResolveOperation(options: {
       });
 
       if (!resolved) {
-        console.error(`❌ No inbox found for address: ${options.address}`);
+        console.error(`[ERROR] No inbox found for address: ${options.address}`);
         process.exit(1);
       }
 
-      console.log(`\n📍 Resolution:`);
+      console.log(`\n[RESOLVE] Resolution:`);
       console.log(`   Address: ${options.address}`);
       console.log(`   Inbox ID: ${resolved}`);
     } else {
       if (!options.inboxId) {
-        console.error(`❌ Inbox ID is required`);
+        console.error(`[ERROR] Inbox ID is required`);
         process.exit(1);
       }
       const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
@@ -305,18 +305,18 @@ async function runResolveOperation(options: {
       );
 
       if (inboxState.length === 0) {
-        console.error(`❌ No inbox state found`);
+        console.error(`[ERROR] No inbox state found`);
         process.exit(1);
       }
 
       const address = inboxState[0].identifiers[0]?.identifier;
-      console.log(`\n📍 Resolution:`);
+      console.log(`\n[RESOLVE] Resolution:`);
       console.log(`   Inbox ID: ${options.inboxId}`);
       console.log(`   Address: ${address || "Unknown"}`);
     }
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -338,7 +338,7 @@ async function runInfoOperation(): Promise<void> {
     const conversations = await agent.client.conversations.list();
     const inboxState = await agent.client.preferences.inboxState();
 
-    console.log(`\n📊 General Information:`);
+    console.log(`\n[INFO] General Information:`);
     console.log(`   Inbox ID: ${agent.client.inboxId}`);
     console.log(`   Address: ${agent.client.accountIdentifier?.identifier}`);
     console.log(`   Installation ID: ${agent.client.installationId}`);
@@ -347,7 +347,7 @@ async function runInfoOperation(): Promise<void> {
     console.log(`   Conversations: ${conversations.length}`);
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -358,7 +358,7 @@ async function runInstallationsOperation(options: {
   inboxId?: string;
 }): Promise<void> {
   if (!options.address && !options.inboxId) {
-    console.error(`❌ Either --address or --inbox-id is required`);
+    console.error(`[ERROR] Either --address or --inbox-id is required`);
     process.exit(1);
   }
 
@@ -380,7 +380,7 @@ async function runInstallationsOperation(options: {
       targetInboxId = options.inboxId;
     } else {
       if (!options.address) {
-        console.error(`❌ Address is required`);
+        console.error(`[ERROR] Address is required`);
         process.exit(1);
       }
       const resolved = await agent.client.getInboxIdByIdentifier({
@@ -389,13 +389,13 @@ async function runInstallationsOperation(options: {
       });
 
       if (!resolved) {
-        console.error(`❌ No inbox found for address: ${options.address}`);
+        console.error(`[ERROR] No inbox found for address: ${options.address}`);
         process.exit(1);
       }
 
       targetInboxId = resolved;
       console.log(
-        `📍 Resolved ${options.address} to inbox ID: ${targetInboxId}`,
+        `[RESOLVE] Resolved ${options.address} to inbox ID: ${targetInboxId}`,
       );
     }
 
@@ -405,19 +405,19 @@ async function runInstallationsOperation(options: {
     );
 
     if (inboxState.length === 0) {
-      console.error(`❌ No inbox state found`);
+      console.error(`[ERROR] No inbox state found`);
       process.exit(1);
     }
 
     const installations = inboxState[0].installations;
-    console.log(`\n📱 Installations:`);
+    console.log(`\n[INSTALLATIONS]`);
     console.log(`   Total: ${installations.length}`);
     installations.forEach((inst, i) => {
       console.log(`   ${i + 1}. ${inst.id}`);
     });
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -428,7 +428,7 @@ async function runKeyPackageOperation(options: {
   inboxId?: string;
 }): Promise<void> {
   if (!options.address && !options.inboxId) {
-    console.error(`❌ Either --address or --inbox-id is required`);
+    console.error(`[ERROR] Either --address or --inbox-id is required`);
     process.exit(1);
   }
 
@@ -450,7 +450,7 @@ async function runKeyPackageOperation(options: {
       targetInboxId = options.inboxId;
     } else {
       if (!options.address) {
-        console.error(`❌ Address is required`);
+        console.error(`[ERROR] Address is required`);
         process.exit(1);
       }
       const resolved = await agent.client.getInboxIdByIdentifier({
@@ -459,7 +459,7 @@ async function runKeyPackageOperation(options: {
       });
 
       if (!resolved) {
-        console.error(`❌ No inbox found for address: ${options.address}`);
+        console.error(`[ERROR] No inbox found for address: ${options.address}`);
         process.exit(1);
       }
 
@@ -472,7 +472,7 @@ async function runKeyPackageOperation(options: {
     );
 
     if (inboxState.length === 0) {
-      console.error(`❌ No inbox state found`);
+      console.error(`[ERROR] No inbox state found`);
       process.exit(1);
     }
 
@@ -485,19 +485,21 @@ async function runKeyPackageOperation(options: {
         installationIds,
       );
 
-    console.log(`\n🔑 Key Package Status:`);
+    console.log(`\n[KEY-PACKAGE] Key Package Status:`);
     console.log(`   Total Installations: ${Object.keys(status).length}`);
     Object.entries(status).forEach(([id, stat]: [string, KeyPackageStatus]) => {
       const shortId = id.substring(0, 8) + "...";
       if (stat.lifetime) {
-        console.log(`   ✅ ${shortId}: Valid`);
+        console.log(`   [OK] ${shortId}: Valid`);
       } else {
-        console.log(`   ❌ ${shortId}: ${stat.validationError || "Invalid"}`);
+        console.log(
+          `   [ERROR] ${shortId}: ${stat.validationError || "Invalid"}`,
+        );
       }
     });
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -571,17 +573,17 @@ async function listAllConversations(agent: AgentType): Promise<void> {
     return "name" in conv;
   });
 
-  console.log(`\n📊 Conversation Statistics:`);
+  console.log(`\n[STATS] Conversation Statistics:`);
   console.log(`   Total Conversations: ${totalCount}`);
   console.log(`   DMs: ${dms.length}`);
   console.log(`   Groups: ${groups.length}`);
 
   if (totalCount === 0) {
-    console.log(`\n✓ No conversations found.`);
+    console.log(`\n[INFO] No conversations found.`);
     return;
   }
 
-  console.log(`\n📋 Conversations Details:\n`);
+  console.log(`\n[CONVERSATIONS] Details:\n`);
 
   const conversationStats: ConversationStats[] = [];
 
@@ -624,7 +626,7 @@ async function listAllConversations(agent: AgentType): Promise<void> {
         messageCount: 0,
       });
       console.warn(
-        `⚠️  Warning: Could not get messages for conversation ${conv.id}: ${error instanceof Error ? error.message : String(error)}`,
+        `[WARN] Could not get messages for conversation ${conv.id}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -673,7 +675,7 @@ async function listAllConversations(agent: AgentType): Promise<void> {
   }
 
   console.log("─".repeat(120));
-  console.log(`\n🔗 View conversations at: https://xmtp.chat/conversations`);
+  console.log(`\n[URL] View conversations at: https://xmtp.chat/conversations`);
 }
 
 async function runDmOperation(options: {
@@ -681,7 +683,7 @@ async function runDmOperation(options: {
   dmInboxId?: string;
 }): Promise<void> {
   if (!options.dmAddress && !options.dmInboxId) {
-    console.error(`❌ Either --dm-address or --dm-inbox-id is required`);
+    console.error(`[ERROR] Either --dm-address or --dm-inbox-id is required`);
     console.error(
       "Usage: xmtp debug --dm-address <address> OR xmtp debug --dm-inbox-id <inbox-id>",
     );
@@ -746,7 +748,7 @@ async function runListConversationsOperation(): Promise<void> {
     await listAllConversations(agent);
   } catch (error) {
     console.error(
-      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }

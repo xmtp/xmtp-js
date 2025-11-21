@@ -66,7 +66,7 @@ export function registerSendCommand(yargs: Argv) {
 export async function runSendCommand(options: SendOptions): Promise<void> {
   // Validation
   if (!options.target && !options.groupId) {
-    console.error("❌ Error: Either --target or --group-id is required");
+    console.error("[ERROR] Either --target or --group-id is required");
     process.exit(1);
   }
 
@@ -96,24 +96,24 @@ async function sendGroupMessage(
   wait?: boolean,
   timeout?: number,
 ): Promise<void> {
-  console.log(`📤 Sending message to group ${groupId}`);
+  console.log(`[SEND] Sending message to group ${groupId}`);
 
   const agent = await Agent.createFromEnv({});
-  console.log(`📋 Using agent: ${agent.client.inboxId}`);
+  console.log(`[AGENT] Using agent: ${agent.client.inboxId}`);
 
   try {
-    console.log(`🔄 Syncing conversations...`);
+    console.log(`[SYNC] Syncing conversations...`);
     await agent.client.conversations.sync();
 
     const conversations = await agent.client.conversations.list();
-    console.log(`📋 Found ${conversations.length} conversations`);
+    console.log(`[INFO] Found ${conversations.length} conversations`);
 
     const conversation = conversations.find(
       (conv: { id: string }) => conv.id === groupId,
     );
     if (!conversation) {
-      console.error(`❌ Group with ID ${groupId} not found`);
-      console.log(`📋 Available conversation IDs:`);
+      console.error(`[ERROR] Group with ID ${groupId} not found`);
+      console.log(`[INFO] Available conversation IDs:`);
       conversations.forEach((conv: { id: string }) => {
         console.log(`   - ${conv.id}`);
       });
@@ -123,11 +123,11 @@ async function sendGroupMessage(
 
     const group = conversation as Group;
 
-    console.log(`📋 Found group: ${group.id}`);
+    console.log(`[INFO] Found group: ${group.id}`);
 
     if (wait) {
       console.log(
-        `⏳ Waiting for response (timeout: ${timeout || 30000}ms)...`,
+        `[WAIT] Waiting for response (timeout: ${timeout || 30000}ms)...`,
       );
       const result = await waitForResponse({
         conversation: {
@@ -148,27 +148,33 @@ async function sendGroupMessage(
           typeof result.responseMessage.content === "string"
             ? result.responseMessage.content
             : JSON.stringify(result.responseMessage.content);
-        console.log(`✅ Message sent successfully`);
-        console.log(`💬 Message: "${message}"`);
-        console.log(`📬 Response received in ${result.responseTime}ms`);
-        console.log(`💬 Response: "${responseContent}"`);
-        console.log(`🔗 Group URL: https://xmtp.chat/conversations/${groupId}`);
+        console.log(`[OK] Message sent successfully`);
+        console.log(`[MSG] Message: "${message}"`);
+        console.log(`[RESPONSE] Response received in ${result.responseTime}ms`);
+        console.log(`[MSG] Response: "${responseContent}"`);
+        console.log(
+          `[URL] Group URL: https://xmtp.chat/conversations/${groupId}`,
+        );
       } else {
-        console.log(`✅ Message sent successfully`);
-        console.log(`💬 Message: "${message}"`);
-        console.log(`⏱️  No response received within timeout`);
-        console.log(`🔗 Group URL: https://xmtp.chat/conversations/${groupId}`);
+        console.log(`[OK] Message sent successfully`);
+        console.log(`[MSG] Message: "${message}"`);
+        console.log(`[TIMEOUT] No response received within timeout`);
+        console.log(
+          `[URL] Group URL: https://xmtp.chat/conversations/${groupId}`,
+        );
       }
     } else {
       await group.send(message);
 
-      console.log(`✅ Message sent successfully`);
-      console.log(`💬 Message: "${message}"`);
-      console.log(`🔗 Group URL: https://xmtp.chat/conversations/${groupId}`);
+      console.log(`[OK] Message sent successfully`);
+      console.log(`[MSG] Message: "${message}"`);
+      console.log(
+        `[URL] Group URL: https://xmtp.chat/conversations/${groupId}`,
+      );
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ Failed to send group message: ${errorMessage}`);
+    console.error(`[ERROR] Failed to send group message: ${errorMessage}`);
     process.exit(1);
   }
 }
@@ -179,10 +185,10 @@ async function sendDirectMessage(
   wait?: boolean,
   timeout?: number,
 ): Promise<void> {
-  console.log(`📤 Sending message to ${target}`);
+  console.log(`[SEND] Sending message to ${target}`);
 
   const agent = await Agent.createFromEnv({});
-  console.log(`📋 Using agent: ${agent.client.inboxId}`);
+  console.log(`[AGENT] Using agent: ${agent.client.inboxId}`);
 
   let exitCode = 0;
   try {
@@ -220,18 +226,18 @@ async function sendDirectMessage(
       destinationEthIdentifier?.identifier || "Unknown";
 
     // Log DM information
-    console.log(`📋 DM ID: ${dmId}`);
-    console.log(`🌍 Environment: ${env}`);
+    console.log(`[INFO] DM ID: ${dmId}`);
+    console.log(`[ENV] Environment: ${env}`);
     console.log(
-      `📤 Origin - Inbox ID: ${originInboxId}, Address: ${originAddress}`,
+      `[ORIGIN] Inbox ID: ${originInboxId}, Address: ${originAddress}`,
     );
     console.log(
-      `📥 Destination - Inbox ID: ${destinationInboxId}, Address: ${destinationAddress}`,
+      `[DEST] Inbox ID: ${destinationInboxId}, Address: ${destinationAddress}`,
     );
 
     if (wait) {
       console.log(
-        `⏳ Waiting for response (timeout: ${timeout || 30000}ms)...`,
+        `[WAIT] Waiting for response (timeout: ${timeout || 30000}ms)...`,
       );
       const result = await waitForResponse({
         conversation: {
@@ -252,24 +258,24 @@ async function sendDirectMessage(
           typeof result.responseMessage.content === "string"
             ? result.responseMessage.content
             : JSON.stringify(result.responseMessage.content);
-        console.log(`✅ Message sent successfully`);
-        console.log(`💬 Message: "${message}"`);
-        console.log(`📬 Response received in ${result.responseTime}ms`);
-        console.log(`💬 Response: "${responseContent}"`);
+        console.log(`[OK] Message sent successfully`);
+        console.log(`[MSG] Message: "${message}"`);
+        console.log(`[RESPONSE] Response received in ${result.responseTime}ms`);
+        console.log(`[MSG] Response: "${responseContent}"`);
       } else {
-        console.log(`✅ Message sent successfully`);
-        console.log(`💬 Message: "${message}"`);
-        console.log(`⏱️  No response received within timeout`);
+        console.log(`[OK] Message sent successfully`);
+        console.log(`[MSG] Message: "${message}"`);
+        console.log(`[TIMEOUT] No response received within timeout`);
       }
     } else {
       await conversation.send(message);
 
-      console.log(`✅ Message sent successfully`);
-      console.log(`💬 Message: "${message}"`);
+      console.log(`[OK] Message sent successfully`);
+      console.log(`[MSG] Message: "${message}"`);
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ Failed to send message: ${errorMessage}`);
+    console.error(`[ERROR] Failed to send message: ${errorMessage}`);
     exitCode = 1;
   } finally {
     await agent.stop();
@@ -322,7 +328,7 @@ export async function waitForResponse(
 
   if (workerId !== undefined && attempt !== undefined) {
     console.log(
-      `📩 ${workerId}: Attempt ${attempt}, Message sent in ${sendTime}ms`,
+      `[SEND] ${workerId}: Attempt ${attempt}, Message sent in ${sendTime}ms`,
     );
   }
 
@@ -363,7 +369,7 @@ export async function waitForResponse(
     const totalTime = sendTime + responseTime;
     if (workerId !== undefined && attempt !== undefined) {
       console.log(
-        `✅ ${workerId}: Attempt ${attempt}, Send=${sendTime}ms (${(sendTime / 1000).toFixed(2)}s), Response=${responseTime}ms (${(responseTime / 1000).toFixed(2)}s), Total=${totalTime}ms (${(totalTime / 1000).toFixed(2)}s)`,
+        `[OK] ${workerId}: Attempt ${attempt}, Send=${sendTime}ms (${(sendTime / 1000).toFixed(2)}s), Response=${responseTime}ms (${(responseTime / 1000).toFixed(2)}s), Total=${totalTime}ms (${(totalTime / 1000).toFixed(2)}s)`,
       );
 
       if (receivedMessage) {
@@ -373,7 +379,7 @@ export async function waitForResponse(
             : JSON.stringify(receivedMessage.content);
         const preview = messageContent.substring(0, 100);
         console.log(
-          `   📬 Response: "${preview}${messageContent.length > 100 ? "..." : ""}"`,
+          `   [RESPONSE] "${preview}${messageContent.length > 100 ? "..." : ""}"`,
         );
       }
     }
@@ -387,7 +393,7 @@ export async function waitForResponse(
   } catch (error) {
     if (workerId !== undefined && attempt !== undefined) {
       console.log(
-        `⏱️  ${workerId}: Attempt ${attempt}, Send=${sendTime}ms, Response timeout after ${timeout}ms`,
+        `[TIMEOUT] ${workerId}: Attempt ${attempt}, Send=${sendTime}ms, Response timeout after ${timeout}ms`,
       );
     }
     throw error;
