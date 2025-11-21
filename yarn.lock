@@ -4310,9 +4310,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/cli@workspace:sdks/xmtp-cli":
+"@xmtp/cli@workspace:packages/xmtp-cli":
   version: 0.0.0-use.local
-  resolution: "@xmtp/cli@workspace:sdks/xmtp-cli"
+  resolution: "@xmtp/cli@workspace:packages/xmtp-cli"
   dependencies:
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-typescript": "npm:^12.3.0"
