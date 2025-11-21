@@ -4335,7 +4335,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     yargs: "npm:^17.7.2"
   bin:
-    xmtp: ./dist/index.js
+    xmtp: dist/index.js
   languageName: unknown
   linkType: soft
 
