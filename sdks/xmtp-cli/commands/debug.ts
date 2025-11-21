@@ -17,6 +17,8 @@ import type { Argv } from "yargs";
 export interface DebugOptions {
   address?: string;
   inboxId?: string;
+  dmAddress?: string;
+  dmInboxId?: string;
   listConversations?: boolean;
 }
 
@@ -40,6 +42,15 @@ export function registerDebugCommand(yargs: Argv) {
           type: "string",
           description: "Inbox ID",
         })
+        .option("dm-address", {
+          type: "string",
+          description: "Ethereum address to get DM conversation ID",
+        })
+        .option("dm-inbox-id", {
+          type: "string",
+          alias: "dm-inboxid",
+          description: "Inbox ID to get DM conversation ID",
+        })
         .option("list-conversations", {
           type: "boolean",
           description:
@@ -50,11 +61,20 @@ export function registerDebugCommand(yargs: Argv) {
       operation?: string;
       address?: string;
       "inbox-id"?: string;
+      "dm-address"?: string;
+      "dm-inbox-id"?: string;
       "list-conversations"?: boolean;
     }) => {
-      await runDebugCommand(argv.operation || "info", {
+      // If DM flags are provided, automatically set operation to "dm"
+      const operation =
+        argv["dm-address"] || argv["dm-inbox-id"]
+          ? "dm"
+          : argv.operation || "info";
+      await runDebugCommand(operation, {
         address: argv.address,
         inboxId: argv["inbox-id"],
+        dmAddress: argv["dm-address"],
+        dmInboxId: argv["dm-inbox-id"],
         listConversations: argv["list-conversations"],
       });
     },
@@ -85,7 +105,10 @@ export async function runDebugCommand(
       await runKeyPackageOperation(options);
       break;
     case "dm":
-      await runDmOperation(options);
+      await runDmOperation({
+        dmAddress: options.dmAddress,
+        dmInboxId: options.dmInboxId,
+      });
       break;
     case "list-conversations":
       await runListConversationsOperation();
@@ -201,16 +224,7 @@ async function runInboxOperation(options: {
     process.exit(1);
   }
 
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv({});
 
   try {
     let targetInboxId: string;
@@ -522,8 +536,6 @@ async function getDmByAddress(
     );
   }
 
-  console.log(`Getting DM for address: ${address}`);
-
   // Create or get DM conversation
   const dm = await agent.client.conversations.newDmWithIdentifier({
     identifier: address.toLowerCase() as `0x${string}`,
@@ -543,8 +555,6 @@ async function getDmByInboxId(
       `Invalid inbox ID format. Must be 64 hexadecimal characters.`,
     );
   }
-
-  console.log(`Getting DM for inbox ID: ${inboxId}`);
 
   // Create or get DM conversation
   const dm = await agent.client.conversations.newDm(inboxId);
@@ -689,24 +699,24 @@ async function listAllConversations(agent: AgentType): Promise<void> {
 }
 
 async function runDmOperation(options: {
-  address?: string;
-  inboxId?: string;
+  dmAddress?: string;
+  dmInboxId?: string;
 }): Promise<void> {
-  if (!options.address && !options.inboxId) {
-    console.error(`❌ Either --address or --inbox-id is required`);
+  if (!options.dmAddress && !options.dmInboxId) {
+    console.error(`❌ Either --dm-address or --dm-inbox-id is required`);
     console.error(
-      "Usage: yarn debug dm --address <address> OR yarn debug dm --inbox-id <inbox-id>",
+      "Usage: xmtp debug --dm-address <address> OR xmtp debug --dm-inbox-id <inbox-id>",
     );
     process.exit(1);
   }
 
-  // Validate that both address and inbox-id are not provided
-  if (options.address && options.inboxId) {
+  // Validate that both dm-address and dm-inbox-id are not provided
+  if (options.dmAddress && options.dmInboxId) {
     console.error(
-      "Error: Cannot use both --address and --inbox-id. Choose one.",
+      "Error: Cannot use both --dm-address and --dm-inbox-id. Choose one.",
     );
     console.error(
-      "Usage: yarn debug dm --address <address> OR yarn debug dm --inbox-id <inbox-id>",
+      "Usage: xmtp debug --dm-address <address> OR xmtp debug --dm-inbox-id <inbox-id>",
     );
     process.exit(1);
   }
@@ -725,17 +735,16 @@ async function runDmOperation(options: {
   try {
     let dmId: string;
 
-    if (options.address) {
-      dmId = await getDmByAddress(agent, options.address);
-    } else if (options.inboxId) {
-      dmId = await getDmByInboxId(agent, options.inboxId);
+    if (options.dmAddress) {
+      dmId = await getDmByAddress(agent, options.dmAddress);
+    } else if (options.dmInboxId) {
+      dmId = await getDmByInboxId(agent, options.dmInboxId);
     } else {
-      throw new Error("Either address or inbox-id must be provided");
+      throw new Error("Either dm-address or dm-inbox-id must be provided");
     }
 
-    // Print the DM conversation ID
-    console.log(`\n✓ DM Conversation ID: ${dmId}`);
-    console.log(`\n🔗 DM URL: https://xmtp.chat/conversations/${dmId}`);
+    // Just print the conversation ID
+    console.log(dmId);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error getting DM:", errorMessage);
