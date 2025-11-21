@@ -98,21 +98,25 @@ export async function runRevokeCommand(
     }
   });
 
-  // Use env override if provided, otherwise use .env file value
-  const env = options.env || envVars.XMTP_ENV;
+  // Use env override if provided, otherwise check process.env, then .env file value
+  const env = options.env || process.env.XMTP_ENV || envVars.XMTP_ENV;
   if (!env) {
     console.error(
-      "❌ Error: XMTP_ENV not found in .env file and --env not provided.",
+      "❌ Error: XMTP_ENV not found in environment variables or .env file and --env not provided.",
     );
     console.error("Please run 'xmtp keys' first or provide --env flag.");
     process.exit(1);
   }
 
-  if (!envVars.XMTP_WALLET_KEY || !envVars.XMTP_DB_ENCRYPTION_KEY) {
+  // Check process.env first, then fall back to .env file values
+  const walletKey = process.env.XMTP_WALLET_KEY || envVars.XMTP_WALLET_KEY;
+  const dbEncryptionKey =
+    process.env.XMTP_DB_ENCRYPTION_KEY || envVars.XMTP_DB_ENCRYPTION_KEY;
+
+  if (!walletKey || !dbEncryptionKey) {
     const missingVars: string[] = [];
-    if (!envVars.XMTP_WALLET_KEY) missingVars.push("XMTP_WALLET_KEY");
-    if (!envVars.XMTP_DB_ENCRYPTION_KEY)
-      missingVars.push("XMTP_DB_ENCRYPTION_KEY");
+    if (!walletKey) missingVars.push("XMTP_WALLET_KEY");
+    if (!dbEncryptionKey) missingVars.push("XMTP_DB_ENCRYPTION_KEY");
     console.error(
       `❌ Error: Missing required environment variables: ${missingVars.join(", ")}`,
     );
@@ -132,7 +136,7 @@ export async function runRevokeCommand(
   try {
     // Create signer and encryption key
     const signer = createSigner(
-      createUser(envVars.XMTP_WALLET_KEY as `0x${string}`),
+      createUser((walletKey || envVars.XMTP_WALLET_KEY) as `0x${string}`),
     );
 
     // Get current inbox state

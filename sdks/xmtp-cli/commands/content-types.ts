@@ -277,7 +277,9 @@ async function sendTransactionContent(options: {
     process.exit(1);
   }
 
-  const networkId = process.env.NETWORK_ID || "base-sepolia";
+  const networkId =
+    process.env.NETWORK_ID ||
+    (process.env.XMTP_ENV === "production" ? "base-mainnet" : "base-sepolia");
   const config = {
     tokenAddress:
       networkId === "base-mainnet"

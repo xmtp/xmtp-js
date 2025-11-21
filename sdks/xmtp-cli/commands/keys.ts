@@ -30,7 +30,7 @@ export function registerKeysCommand(program: Command) {
 }
 
 export async function runKeysCommand(options: KeysOptions): Promise<void> {
-  const env = options.env || "dev";
+  const env = options.env || process.env.XMTP_ENV || "dev";
 
   console.log("Generating keys...");
 
