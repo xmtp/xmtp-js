@@ -1,12 +1,4 @@
 import { Agent, type Group, type PermissionUpdateType } from "@xmtp/agent-sdk";
-import { MarkdownCodec } from "@xmtp/content-type-markdown";
-import { ReactionCodec } from "@xmtp/content-type-reaction";
-import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
-} from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec } from "@xmtp/content-type-reply";
-import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import type { Argv } from "yargs";
 
 export interface PermissionsOptions {
@@ -89,16 +81,7 @@ export async function runPermissionsCommand(
 }
 
 async function getGroup(groupId: string): Promise<Group> {
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
   const conversation = await agent.client.conversations.getConversationById(
     groupId as `0x${string}`,
   );
@@ -183,16 +166,7 @@ async function runUpdatePermissionsOperation(config: {
     const group = await getGroup(config.groupId);
     await group.sync();
 
-    const agent = await Agent.createFromEnv({
-      codecs: [
-        new MarkdownCodec(),
-        new ReactionCodec(),
-        new ReplyCodec(),
-        new RemoteAttachmentCodec(),
-        new AttachmentCodec(),
-        new WalletSendCallsCodec(),
-      ],
-    });
+    const agent = await Agent.createFromEnv();
     const isSuperAdmin = group.isSuperAdmin(agent.client.inboxId);
 
     if (!isSuperAdmin) {

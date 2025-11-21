@@ -1,12 +1,4 @@
 import { Agent, filter, IdentifierKind } from "@xmtp/agent-sdk";
-import { MarkdownCodec } from "@xmtp/content-type-markdown";
-import { ReactionCodec } from "@xmtp/content-type-reaction";
-import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
-} from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec } from "@xmtp/content-type-reply";
-import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import type { Argv } from "yargs";
 
 type ConversationType = "dm" | "group";
@@ -159,16 +151,7 @@ async function runCreateOperation(config: {
   memberAddresses?: string[];
   memberInboxIds?: string[];
 }): Promise<void> {
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     if (config.type === "dm") {
@@ -264,16 +247,7 @@ async function runMetadataOperation(config: {
 
   console.log(`[UPDATE] Updating group metadata: ${config.groupId}`);
 
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     const conversation = await agent.client.conversations.getConversationById(

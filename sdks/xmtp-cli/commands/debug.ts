@@ -3,14 +3,6 @@ import {
   type Agent as AgentType,
   type KeyPackageStatus,
 } from "@xmtp/agent-sdk";
-import { MarkdownCodec } from "@xmtp/content-type-markdown";
-import { ReactionCodec } from "@xmtp/content-type-reaction";
-import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
-} from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec } from "@xmtp/content-type-reply";
-import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import type { Argv } from "yargs";
 
@@ -106,16 +98,7 @@ async function runAddressOperation(options: {
     process.exit(1);
   }
 
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     let targetInboxId: string;
@@ -202,7 +185,7 @@ async function runInboxOperation(options: {
     process.exit(1);
   }
 
-  const agent = await Agent.createFromEnv({});
+  const agent = await Agent.createFromEnv();
 
   try {
     let targetInboxId: string;
@@ -268,16 +251,7 @@ async function runResolveOperation(options: {
     process.exit(1);
   }
 
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     if (options.address) {
@@ -323,16 +297,7 @@ async function runResolveOperation(options: {
 }
 
 async function runInfoOperation(): Promise<void> {
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     const conversations = await agent.client.conversations.list();
@@ -362,16 +327,7 @@ async function runInstallationsOperation(options: {
     process.exit(1);
   }
 
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     let targetInboxId: string;
@@ -432,16 +388,7 @@ async function runKeyPackageOperation(options: {
     process.exit(1);
   }
 
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     let targetInboxId: string;
@@ -701,16 +648,7 @@ async function runDmOperation(options: {
     process.exit(1);
   }
 
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     let dmId: string;
@@ -733,16 +671,7 @@ async function runDmOperation(options: {
 }
 
 async function runListConversationsOperation(): Promise<void> {
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   try {
     await listAllConversations(agent);

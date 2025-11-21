@@ -1,25 +1,14 @@
 import { Agent, type Agent as AgentType } from "@xmtp/agent-sdk";
+import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
+import { ContentTypeReaction } from "@xmtp/content-type-reaction";
 import {
-  ContentTypeMarkdown,
-  MarkdownCodec,
-} from "@xmtp/content-type-markdown";
-import {
-  ContentTypeReaction,
-  ReactionCodec,
-} from "@xmtp/content-type-reaction";
-import {
-  AttachmentCodec,
   ContentTypeRemoteAttachment,
-  RemoteAttachmentCodec,
   type RemoteAttachment,
 } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply, ReplyCodec } from "@xmtp/content-type-reply";
+import { ContentTypeReply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { ContentTypeTransactionReference } from "@xmtp/content-type-transaction-reference";
-import {
-  ContentTypeWalletSendCalls,
-  WalletSendCallsCodec,
-} from "@xmtp/content-type-wallet-send-calls";
+import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
 import { toHex } from "viem";
 import type { Argv } from "yargs";
 
@@ -122,16 +111,7 @@ async function sendTextContent(options: {
   groupId?: string;
 }): Promise<void> {
   console.log(`[SEND] Sending text content with reply and reaction...`);
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
     console.error(`[ERROR] Conversation not found`);
@@ -180,16 +160,7 @@ async function sendMarkdownContent(options: {
   groupId?: string;
 }): Promise<void> {
   console.log(`[SEND] Sending markdown content...`);
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
   const conversation = await getOrCreateConversation(options, agent);
 
   if (!conversation) {
@@ -264,16 +235,7 @@ async function sendAttachmentContent(options: {
   groupId?: string;
 }): Promise<void> {
   console.log(`[SEND] Sending attachment content...`);
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
 
   // Log network/environment
   const network = process.env.XMTP_ENV ?? "production";
@@ -334,16 +296,7 @@ async function sendTransactionContent(options: {
   amount?: string;
 }): Promise<void> {
   console.log(`[SEND] Sending transaction content...`);
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
     console.error(`[ERROR] Conversation not found`);
@@ -417,16 +370,7 @@ async function sendDeeplinkContent(options: {
   groupId?: string;
 }): Promise<void> {
   console.log(`[SEND] Sending deeplink content...`);
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
     console.error(`[ERROR] Conversation not found`);
@@ -448,16 +392,7 @@ async function sendMiniAppContent(options: {
   groupId?: string;
 }): Promise<void> {
   console.log(`[SEND] Sending mini app content...`);
-  const agent = await Agent.createFromEnv({
-    codecs: [
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReplyCodec(),
-      new RemoteAttachmentCodec(),
-      new AttachmentCodec(),
-      new WalletSendCallsCodec(),
-    ],
-  });
+  const agent = await Agent.createFromEnv();
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
     console.error(`[ERROR] Conversation not found`);

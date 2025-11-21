@@ -98,7 +98,7 @@ async function sendGroupMessage(
 ): Promise<void> {
   console.log(`[SEND] Sending message to group ${groupId}`);
 
-  const agent = await Agent.createFromEnv({});
+  const agent = await Agent.createFromEnv();
   console.log(`[AGENT] Using agent: ${agent.client.inboxId}`);
 
   try {
@@ -187,7 +187,7 @@ async function sendDirectMessage(
 ): Promise<void> {
   console.log(`[SEND] Sending message to ${target}`);
 
-  const agent = await Agent.createFromEnv({});
+  const agent = await Agent.createFromEnv();
   console.log(`[AGENT] Using agent: ${agent.client.inboxId}`);
 
   let exitCode = 0;
