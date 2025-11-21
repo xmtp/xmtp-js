@@ -5,8 +5,10 @@ import { Command } from "commander";
 import { registerContentTypesCommand } from "./commands/content-types";
 import { registerDebugCommand } from "./commands/debug";
 import { registerGroupsCommand } from "./commands/groups";
+import { registerKeysCommand } from "./commands/keys";
 import { registerListCommand } from "./commands/list";
 import { registerPermissionsCommand } from "./commands/permissions";
+import { registerRevokeCommand } from "./commands/revoke";
 import { registerSendCommand } from "./commands/send";
 
 const program = new Command();
@@ -21,13 +23,15 @@ registerDebugCommand(program);
 registerPermissionsCommand(program);
 registerListCommand(program);
 registerContentTypesCommand(program);
+registerKeysCommand(program);
+registerRevokeCommand(program);
 
 program.hook("preAction", (thisCommand, actionCommand) => {
   if (envLoaded) {
     return;
   }
 
-  if (actionCommand.name() === "help") {
+  if (actionCommand.name() === "help" || actionCommand.name() === "keys") {
     return;
   }
 

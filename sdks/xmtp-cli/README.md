@@ -1,6 +1,34 @@
-# XMTP CLI
+<h2 align="center">
 
-A command-line interface for XMTP.
+    <a href="https://xmtp.org" target="blank_">
+
+        <img height="100" alt="XMTP" src="https://xmtp.org/xmtp-icon.png" />
+
+    </a>
+
+    <br>
+
+    XMTP CLI: command-line interface for XMTP messaging
+
+</h2>
+
+XMTP CLI is a command-line interface for interacting with the XMTP protocol.
+
+Its goal is to make CLI interaction with XMTP messaging as human-friendly as possible.
+
+XMTP CLI is designed for testing, debugging, and generally interacting with XMTP conversations, groups, and messages.
+
+The `xmtp` command allows for managing conversations, sending messages, and debugging your XMTP setup.
+
+It uses simple and natural syntax and provides formatted and colorized output.
+
+## Getting started
+
+- [Installation instructions →](#installation)
+
+- [Usage without installation →](#usage-without-installation)
+
+- [Full documentation →](https://docs.xmtp.org)
 
 ## Installation
 
@@ -12,6 +40,39 @@ pnpm add -g @xmtp/cli
 yarn global add @xmtp/cli
 ```
 
+## Usage Without Installation
+
+You can also run the CLI without installing it globally:
+
+```bash
+# npm
+npx @xmtp/cli <command> <arguments>
+
+# pnpm
+pnpx @xmtp/cli <command> <arguments>
+
+# yarn
+yarn dlx @xmtp/cli <command> <arguments>
+```
+
+## Features
+
+- Manage XMTP groups and direct messages
+
+- Send messages to conversations
+
+- Debug and diagnose XMTP setup
+
+- List conversations, members, and messages
+
+- Manage group permissions
+
+- Support for various content types (text, markdown, attachments, transactions, and more)
+
+- Formatted and colorized output
+
+[See all features →](https://docs.xmtp.org)
+
 ## Environment Variables
 
 Set the following required variables in your `.env` file:
@@ -22,6 +83,41 @@ XMTP_WALLET_KEY=0x1234...      # Private key for Ethereum wallet
 XMTP_DB_ENCRYPTION_KEY=0xabcd... # Database encryption key
 XMTP_DB_DIRECTORY=my/database/dir # Database directory (optional)
 ```
+
+## Examples
+
+Send a message to an address:
+
+```bash
+xmtp send --target 0x1234... --message "Hello!"
+```
+
+Create a group and send a message:
+
+```bash
+xmtp groups create --type group --name "Team" --member-addresses "0x123...,0x456..."
+xmtp send --group-id <group-id> --message "Welcome!"
+```
+
+Get debug information:
+
+```bash
+xmtp debug info
+```
+
+List conversations:
+
+```bash
+xmtp list conversations
+```
+
+Use without installation:
+
+```bash
+npx @xmtp/cli send --target 0x1234... --message "Hello!"
+```
+
+[See more examples →](#commands)
 
 ## Commands
 
@@ -180,22 +276,21 @@ xmtp --help
 xmtp <command> --help
 ```
 
-## Examples
+## Community & Support
 
-```bash
-# Create a group with member addresses and send a message
-xmtp groups create --type group --name "Team" --member-addresses "0x123...,0x456..."
-xmtp send --group-id <group-id> --message "Welcome!"
+- Visit the [XMTP website](https://xmtp.org) for full documentation and useful links.
 
-# Create a group with inbox IDs
-xmtp groups create --type group --name "Team" --member-inbox-ids "inbox1...,inbox2..."
+- Join our [Community Forums](https://community.xmtp.org) to ask questions, discuss features, and for general XMTP chat.
 
-# Debug your setup
-xmtp debug info
+- Check out the [XMTP documentation](https://docs.xmtp.org) for detailed guides and API references.
 
-# List conversations
-xmtp list conversations
-```
+- Create [GitHub Issues](https://github.com/xmtp/xmtp-js/issues) for bug reports and feature requests.
+
+## Contributing
+
+Have a look through existing [Issues](https://github.com/xmtp/xmtp-js/issues) and [Pull Requests](https://github.com/xmtp/xmtp-js/pulls) that you could help with. If you'd like to request a feature or report a bug, please [create a GitHub Issue](https://github.com/xmtp/xmtp-js/issues) using one of the templates provided.
+
+[See contribution guide →](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md)
 
 ## Development
 

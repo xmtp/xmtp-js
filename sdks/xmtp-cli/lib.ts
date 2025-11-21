@@ -16,3 +16,7 @@ export {
   runPermissionsCommand,
   type PermissionsOptions,
 } from "./commands/permissions";
+
+export { runKeysCommand, type KeysOptions } from "./commands/keys";
+
+export { runRevokeCommand, type RevokeOptions } from "./commands/revoke";
