@@ -76,7 +76,7 @@ export const CreateDmModal: React.FC = () => {
         withScrollAreaPadding={false}>
         <Box p="md">
           <TextInput
-            size="md"
+            size="sm"
             label="Address, inbox ID, ENS name, or Base name"
             styles={{
               label: {

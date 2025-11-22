@@ -1,12 +1,5 @@
 # @xmtp/cli
 
-## 0.0.4
-
-### Patch Changes
-
-- Updated dependencies [4dad992]
-  - @xmtp/agent-sdk@1.1.16
-
 ## 0.0.3
 
 ### Patch Changes

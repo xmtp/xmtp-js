@@ -231,7 +231,7 @@ export const InboxTools: React.FC = () => {
                   )}
                 </Group>
                 <TextInput
-                  size="md"
+                  size="sm"
                   error={!!memberIdError}
                   value={memberId}
                   onChange={(event) => {

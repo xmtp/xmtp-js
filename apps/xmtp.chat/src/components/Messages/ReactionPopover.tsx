@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Box,
   Button,
   Group,
   Popover,
@@ -75,9 +76,14 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
           mb="sm"
           size="sm"
         />
-        <Group align="center" h="42px" wrap="nowrap">
+        <Box
+          style={{
+            height: 36,
+            display: "flex",
+            alignItems: "center",
+          }}>
           {schema === "unicode" ? (
-            <Group gap="xxs">
+            <Group gap={4}>
               {EMOJIS.map((emoji) => (
                 <ActionIcon
                   key={emoji}
@@ -89,15 +95,14 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
               ))}
             </Group>
           ) : (
-            <Group gap="sm" w="100%">
+            <Group gap="sm">
               <TextInput
-                flex={1}
                 value={text}
                 onChange={(event) => {
                   setText(event.currentTarget.value);
                 }}
                 placeholder={schema === "shortcode" ? ":xmtp:" : "Enter custom"}
-                size="md"
+                size="sm"
                 style={{ width: 180 }}
                 onKeyDown={(event) => {
                   if (
@@ -110,14 +115,14 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
                 }}
               />
               <ActionIcon
-                size="md"
+                size="sm"
                 variant="filled"
                 onClick={() => void sendReaction(text)}>
                 ➤
               </ActionIcon>
             </Group>
           )}
-        </Group>
+        </Box>
       </Popover.Dropdown>
     </Popover>
   );
