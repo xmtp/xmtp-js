@@ -1,35 +1,30 @@
 {
-  "author": "XMTP Labs <eng@xmtp.com>",
+  "name": "@xmtp/agent-sdk",
+  "version": "1.1.15",
+  "description": "XMTP Agent SDK for interacting with XMTP networks",
+  "keywords": [
+    "agents",
+    "javascript",
+    "js",
+    "messaging",
+    "node",
+    "nodejs",
+    "typescript",
+    "web3",
+    "xmtp"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
   "bugs": {
     "url": "https://github.com/xmtp/xmtp-js/issues"
   },
-  "dependencies": {
-    "@xmtp/content-type-markdown": "^1.0.0",
-    "@xmtp/content-type-reaction": "^2.0.2",
-    "@xmtp/content-type-read-receipt": "^2.0.2",
-    "@xmtp/content-type-remote-attachment": "^2.0.2",
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/content-type-transaction-reference": "^2.0.2",
-    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
-    "@xmtp/node-sdk": "4.3.1",
-    "viem": "^2.37.6"
+  "repository": {
+    "type": "git",
+    "url": "git+https://git@github.com/xmtp/xmtp-js.git",
+    "directory": "sdks/agent-sdk"
   },
-  "description": "XMTP Agent SDK for interacting with XMTP networks",
-  "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
-    "@types/node": "^24.9.1",
-    "@vitest/coverage-v8": "^4.0.3",
-    "tsc-alias": "^1.8.16",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
-    "vite": "^7.1.12",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.3"
-  },
-  "engines": {
-    "node": ">=20"
-  },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "type": "module",
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -48,36 +43,11 @@
       "types": "./dist/user.d.ts"
     }
   },
+  "main": "dist/index.js",
   "files": [
     "dist",
     "!dist/**/*.test.*"
   ],
-  "homepage": "https://github.com/xmtp/xmtp-js",
-  "keywords": [
-    "agents",
-    "javascript",
-    "js",
-    "messaging",
-    "node",
-    "nodejs",
-    "typescript",
-    "web3",
-    "xmtp"
-  ],
-  "license": "MIT",
-  "main": "dist/index.js",
-  "name": "@xmtp/agent-sdk",
-  "packageManager": "yarn@4.5.0",
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
-  },
-  "repository": {
-    "directory": "sdks/agent-sdk",
-    "type": "git",
-    "url": "git+https://git@github.com/xmtp/xmtp-js.git"
-  },
   "scripts": {
     "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack --profile node16 . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
@@ -91,6 +61,36 @@
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
-  "type": "module",
-  "version": "1.1.15"
+  "dependencies": {
+    "@xmtp/content-type-markdown": "^1.0.0",
+    "@xmtp/content-type-reaction": "^2.0.2",
+    "@xmtp/content-type-read-receipt": "^2.0.2",
+    "@xmtp/content-type-remote-attachment": "^2.0.2",
+    "@xmtp/content-type-reply": "^2.0.2",
+    "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/content-type-transaction-reference": "^2.0.2",
+    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
+    "@xmtp/node-sdk": "4.3.1",
+    "viem": "^2.37.6"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@types/node": "^24.9.1",
+    "@vitest/coverage-v8": "^4.0.3",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.3"
+  },
+  "packageManager": "yarn@4.5.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
 }
