@@ -14,8 +14,8 @@
     "dev": "tsx watch --env-file=.env src/index.ts",
     "migrate:deploy": "prisma migrate deploy",
     "migrate:dev": "prisma migrate dev",
-    "prisma:generate": "prisma generate",
     "prisma:dev": "prisma dev",
+    "prisma:generate": "prisma generate",
     "start": "node dist/index.js",
     "typecheck": "tsc"
   },

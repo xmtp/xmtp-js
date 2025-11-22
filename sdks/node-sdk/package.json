@@ -73,9 +73,8 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.0.3"
   },
-  "packageManager": "yarn@4.5.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "publishConfig": {
     "access": "public",
