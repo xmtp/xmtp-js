@@ -108,6 +108,11 @@ export type AgentErrorMiddleware<ContentTypes = unknown> = (
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
+export type AgentStreamingOptions<ContentTypes> = Omit<
+  StreamOptions<Message, DecodedMessage<ContentTypes>>,
+  "onValue" | "onError"
+>;
+
 export type StreamAllMessagesOptions<ContentTypes> = Parameters<
   Client<ContentTypes>["conversations"]["streamAllMessages"]
 >[0];
@@ -294,7 +299,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
   }
 
-  async start(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
+  async start(options?: AgentStreamingOptions<ContentTypes>) {
     if (this.#isLocked || this.#conversationsStream || this.#messageStream)
       return;
 
