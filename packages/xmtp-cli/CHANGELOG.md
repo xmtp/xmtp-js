@@ -1,5 +1,11 @@
 # @xmtp/cli
 
+## 0.0.3
+
+### Patch Changes
+
+- 70952ad: Added repository details to publish CLI
+
 ## 0.0.2
 
 ### Patch Changes
