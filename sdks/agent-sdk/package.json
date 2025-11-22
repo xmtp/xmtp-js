@@ -71,6 +71,7 @@
     "@xmtp/content-type-transaction-reference": "^2.0.2",
     "@xmtp/content-type-wallet-send-calls": "^2.0.0",
     "@xmtp/node-sdk": "4.3.1",
+    "@xmtp/proto": "3.78.0",
     "viem": "^2.37.6"
   },
   "devDependencies": {
