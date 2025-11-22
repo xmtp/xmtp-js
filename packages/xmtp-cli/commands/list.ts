@@ -1,4 +1,10 @@
-import { Agent, type Dm, type Group, type GroupMember } from "@xmtp/agent-sdk";
+import {
+  Agent,
+  filter,
+  type Dm,
+  type Group,
+  type GroupMember,
+} from "@xmtp/agent-sdk";
 import type { Argv } from "yargs";
 
 export interface ListOptions {
@@ -117,12 +123,12 @@ async function runConversationsOperation(config: {
     );
 
     paginated.forEach((conv, i) => {
-      const isGroup = "groupName" in conv;
+      const isGroup = filter.isGroup(conv);
       console.log(
         `\n   ${i + 1 + config.offset}. ${isGroup ? "[GROUP]" : "[DM]"}: ${conv.id}`,
       );
       if (isGroup) {
-        const group = conv as Group;
+        const group = conv;
         console.log(`      Name: ${group.name || "No name"}`);
       }
     });
@@ -150,13 +156,13 @@ async function runMembersOperation(conversationId?: string): Promise<void> {
       process.exit(1);
     }
 
-    const isGroup = "groupName" in conversation;
+    const isGroup = filter.isGroup(conversation);
     if (!isGroup) {
       console.log(`[INFO] This is a Direct Message`);
       return;
     }
 
-    const group = conversation as Group;
+    const group = conversation;
     const members = await group.members();
 
     console.log(`\n[MEMBERS]`);
@@ -269,11 +275,11 @@ async function runFindOperation(config: {
       const conversations = await agent.client.conversations.list();
 
       for (const conv of conversations) {
-        const isGroup = "groupName" in conv;
+        const isGroup = filter.isGroup(conv);
 
         if (isGroup) {
           // For groups, check if the target is a member
-          const group = conv as Group;
+          const group = conv;
           const members = await group.members();
           const isMember = members.some(
             (member: GroupMember) => member.inboxId === targetInboxId,
@@ -309,7 +315,7 @@ async function runFindOperation(config: {
       config.offset + config.limit,
     );
 
-    const isGroup = "groupName" in foundConversation;
+    const isGroup = filter.isGroup(foundConversation);
     const conversationType = isGroup ? "Group" : "Direct Message";
 
     console.log(`\n[OK] Found conversation: ${foundConversation.id}`);

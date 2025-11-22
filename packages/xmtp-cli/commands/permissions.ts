@@ -1,4 +1,9 @@
-import { Agent, type Group, type PermissionUpdateType } from "@xmtp/agent-sdk";
+import {
+  Agent,
+  filter,
+  type Group,
+  type PermissionUpdateType,
+} from "@xmtp/agent-sdk";
 import type { Argv } from "yargs";
 
 export interface PermissionsOptions {
@@ -88,7 +93,10 @@ async function getGroup(groupId: string): Promise<Group> {
   if (!conversation) {
     throw new Error(`Group not found: ${groupId}`);
   }
-  return conversation as Group;
+  if (filter.isGroup(conversation)) {
+    return conversation;
+  }
+  throw new Error(`Conversation is not a group: ${groupId}`);
 }
 
 async function runListOperation(groupId: string): Promise<void> {
