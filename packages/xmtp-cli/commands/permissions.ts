@@ -94,7 +94,7 @@ async function getGroup(groupId: string): Promise<Group> {
     throw new Error(`Group not found: ${groupId}`);
   }
   if (filter.isGroup(conversation)) {
-    return conversation as Group;
+    return conversation;
   }
   throw new Error(`Conversation is not a group: ${groupId}`);
 }
