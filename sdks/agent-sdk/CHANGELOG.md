@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.15
+
+### Patch Changes
+
+- cddbb41: Made streaming options configurable
+
 ## 1.1.14
 
 ### Patch Changes
