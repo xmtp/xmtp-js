@@ -1,57 +1,27 @@
 {
+  "name": "@xmtp/cli",
+  "version": "0.0.3",
+  "description": "A command-line interface for XMTP.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://git@github.com/xmtp/xmtp-js.git",
+    "directory": "packages/xmtp-cli"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "default": "./dist/lib.js"
+    }
+  },
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
   "bin": {
     "xmtp": "dist/index.js"
   },
-  "dependencies": {
-    "@xmtp/agent-sdk": "1.1.15",
-    "@xmtp/content-type-markdown": "^1.0.0",
-    "@xmtp/content-type-reaction": "^2.0.2",
-    "@xmtp/content-type-read-receipt": "^2.0.2",
-    "@xmtp/content-type-remote-attachment": "^2.0.2",
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/content-type-transaction-reference": "^2.0.2",
-    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
-    "yargs": "^17.7.2"
-  },
-  "description": "A command-line interface for XMTP.",
-  "devDependencies": {
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-typescript": "^12.3.0",
-    "@types/node": "^24.9.1",
-    "@types/yargs": "^17.0.33",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.52.5",
-    "rollup-plugin-dts": "^6.2.3",
-    "rollup-plugin-tsconfig-paths": "^1.5.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "exports": {
-    ".": {
-      "default": "./dist/lib.js",
-      "types": "./dist/lib.d.ts"
-    }
-  },
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
-  "main": "dist/lib.js",
-  "name": "@xmtp/cli",
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
-  },
-  "repository": {
-    "directory": "packages/xmtp-cli",
-    "type": "git",
-    "url": "git+https://git@github.com/xmtp/xmtp-js.git"
-  },
   "scripts": {
     "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
     "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
@@ -71,7 +41,36 @@
     "unlink": "yarn unlink",
     "update": "yarn build"
   },
-  "type": "module",
-  "types": "dist/lib.d.ts",
-  "version": "0.0.3"
+  "dependencies": {
+    "@xmtp/agent-sdk": "1.1.15",
+    "@xmtp/content-type-markdown": "^1.0.0",
+    "@xmtp/content-type-reaction": "^2.0.2",
+    "@xmtp/content-type-read-receipt": "^2.0.2",
+    "@xmtp/content-type-remote-attachment": "^2.0.2",
+    "@xmtp/content-type-reply": "^2.0.2",
+    "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/content-type-transaction-reference": "^2.0.2",
+    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^24.9.1",
+    "@types/yargs": "^17.0.33",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.52.5",
+    "rollup-plugin-dts": "^6.2.3",
+    "rollup-plugin-tsconfig-paths": "^1.5.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
 }
