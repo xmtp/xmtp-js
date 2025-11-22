@@ -27,20 +27,20 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./debug": {
-      "import": "./dist/debug.js",
-      "types": "./dist/debug.d.ts"
+      "types": "./dist/debug.d.ts",
+      "import": "./dist/debug.js"
     },
     "./middleware": {
-      "import": "./dist/middleware.js",
-      "types": "./dist/middleware.d.ts"
+      "types": "./dist/middleware.d.ts",
+      "import": "./dist/middleware.js"
     },
     "./user": {
-      "import": "./dist/user.js",
-      "types": "./dist/user.d.ts"
+      "types": "./dist/user.d.ts",
+      "import": "./dist/user.js"
     }
   },
   "main": "dist/index.js",
@@ -84,9 +84,8 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.0.3"
   },
-  "packageManager": "yarn@4.5.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "publishConfig": {
     "access": "public",
