@@ -25,7 +25,6 @@ import {
   type CreateGroupOptions,
   type DecodedMessage,
   type HexString,
-  type Message,
   type StreamOptions,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
@@ -108,10 +107,7 @@ export type AgentErrorMiddleware<ContentTypes = unknown> = (
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
-export type AgentStreamingOptions<ContentTypes> = Omit<
-  StreamOptions<Message, DecodedMessage<ContentTypes>>,
-  "onValue" | "onError"
->;
+export type AgentStreamingOptions = Omit<StreamOptions, "onValue" | "onError">;
 
 export type StreamAllMessagesOptions<ContentTypes> = Parameters<
   Client<ContentTypes>["conversations"]["streamAllMessages"]
@@ -299,7 +295,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
   }
 
-  async start(options?: AgentStreamingOptions<ContentTypes>) {
+  async start(options?: AgentStreamingOptions) {
     if (this.#isLocked || this.#conversationsStream || this.#messageStream)
       return;
 
