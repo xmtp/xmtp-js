@@ -1,41 +1,6 @@
 {
-  "name": "@xmtp/cli",
-  "version": "0.0.2",
-  "description": "A command-line interface for XMTP.",
-  "type": "module",
   "bin": {
     "xmtp": "dist/index.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/lib.d.ts",
-      "default": "./dist/lib.js"
-    }
-  },
-  "main": "dist/lib.js",
-  "types": "dist/lib.d.ts",
-  "files": [
-    "dist",
-    "bin"
-  ],
-  "scripts": {
-    "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
-    "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
-    "clean:dist": "rimraf dist",
-    "dev": "tsx --watch index.ts",
-    "start": "tsx index.ts",
-    "send": "tsx commands/send.ts",
-    "permissions": "tsx commands/permissions.ts",
-    "groups": "tsx commands/groups.ts",
-    "list": "tsx commands/list.ts",
-    "debug": "tsx commands/debug.ts",
-    "content": "tsx commands/content-types.ts",
-    "lint": "cd ../.. && yarn eslint sdks/xmtp-cli",
-    "format": "cd ../.. && yarn build && yarn format sdks/xmtp-cli",
-    "typecheck": "tsc --noEmit",
-    "link": "yarn build && yarn link",
-    "unlink": "yarn unlink",
-    "update": "yarn build"
   },
   "dependencies": {
     "@xmtp/agent-sdk": "1.1.15",
@@ -49,6 +14,7 @@
     "@xmtp/content-type-wallet-send-calls": "^2.0.0",
     "yargs": "^17.7.2"
   },
+  "description": "A command-line interface for XMTP.",
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^12.3.0",
@@ -64,9 +30,48 @@
   "engines": {
     "node": ">=20"
   },
+  "exports": {
+    ".": {
+      "default": "./dist/lib.js",
+      "types": "./dist/lib.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "main": "dist/lib.js",
+  "name": "@xmtp/cli",
   "publishConfig": {
     "access": "public",
     "provenance": true,
     "registry": "https://registry.npmjs.org/"
-  }
+  },
+  "repository": {
+    "directory": "packages/xmtp-cli",
+    "type": "git",
+    "url": "git+https://git@github.com/xmtp/xmtp-js.git"
+  },
+  "scripts": {
+    "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
+    "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
+    "clean:dist": "rimraf dist",
+    "content": "tsx commands/content-types.ts",
+    "debug": "tsx commands/debug.ts",
+    "dev": "tsx --watch index.ts",
+    "format": "cd ../.. && yarn build && yarn format sdks/xmtp-cli",
+    "groups": "tsx commands/groups.ts",
+    "link": "yarn build && yarn link",
+    "lint": "cd ../.. && yarn eslint sdks/xmtp-cli",
+    "list": "tsx commands/list.ts",
+    "permissions": "tsx commands/permissions.ts",
+    "send": "tsx commands/send.ts",
+    "start": "tsx index.ts",
+    "typecheck": "tsc --noEmit",
+    "unlink": "yarn unlink",
+    "update": "yarn build"
+  },
+  "type": "module",
+  "types": "dist/lib.d.ts",
+  "version": "0.0.2"
 }
