@@ -4270,6 +4270,7 @@ __metadata:
     "@xmtp/content-type-transaction-reference": "npm:^2.0.2"
     "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
     "@xmtp/node-sdk": "npm:4.3.1"
+    "@xmtp/proto": "npm:3.78.0"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
@@ -4570,7 +4571,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:^3.78.0":
+"@xmtp/proto@npm:3.78.0, @xmtp/proto@npm:^3.78.0":
   version: 3.78.0
   resolution: "@xmtp/proto@npm:3.78.0"
   dependencies:
