@@ -565,7 +565,7 @@ async function runDmOperation(options: {
   try {
     const dmId = options.dmAddress
       ? await getDmByAddress(agent, options.dmAddress)
-      : await getDmByInboxId(agent, options.dmInboxId!);
+      : await getDmByInboxId(agent, options.dmInboxId ?? "");
 
     console.log(dmId);
   } catch (error: unknown) {

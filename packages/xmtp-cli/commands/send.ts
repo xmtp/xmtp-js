@@ -1,5 +1,4 @@
 import { Agent, type DecodedMessage } from "@xmtp/agent-sdk";
-import { IdentifierKind, type Identifier } from "@xmtp/node-sdk";
 import type { Argv } from "yargs";
 
 export interface SendOptions {
