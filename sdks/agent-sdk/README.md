@@ -1,6 +1,8 @@
 # XMTP Agent SDK
 
-Build event‑driven, middleware‑powered messaging agents on the XMTP network. 🚀
+Build powerful conversational AI agents that can interact with users across web3 apps like [Base](https://www.base.org/).
+
+The XMTP Agent SDK brings familiar Node.js patterns (event listeners, middleware, filters, and more) to web3 messaging, making it easy for developers to create sophisticated chatbots and agenic experiences.
 
 ## Documentation
 
