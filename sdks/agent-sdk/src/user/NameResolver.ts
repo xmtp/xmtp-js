@@ -74,7 +74,6 @@ export const matchShortenedAddress = (
   shortenedAddress: string,
   fullAddresses: string[],
 ): string | null => {
-  // Extract prefix and suffix from shortened address
   const match = shortenedAddress.match(
     /^(0x[a-fA-F0-9]+)(?:…|\.{2,3})([a-fA-F0-9]+)$/,
   );
@@ -83,12 +82,11 @@ export const matchShortenedAddress = (
   const [, prefix, suffix] = match;
   if (!prefix || !suffix) return null;
 
-  // Find a matching full address
   for (const fullAddress of fullAddresses) {
-    const normalizedAddress = fullAddress.toLowerCase();
+    const normalized = fullAddress.toLowerCase();
     if (
-      normalizedAddress.startsWith(prefix.toLowerCase()) &&
-      normalizedAddress.endsWith(suffix.toLowerCase())
+      normalized.startsWith(prefix.toLowerCase()) &&
+      normalized.endsWith(suffix.toLowerCase())
     ) {
       return fullAddress;
     }
@@ -104,17 +102,14 @@ export const matchShortenedAddress = (
  */
 export const extractMemberAddresses = (members: GroupMember[]): string[] => {
   const addresses: string[] = [];
-
   for (const member of members) {
     const ethIdentifier = member.accountIdentifiers.find(
       (id) => id.identifierKind === IdentifierKind.Ethereum,
     );
-
     if (ethIdentifier) {
       addresses.push(ethIdentifier.identifier);
     }
   }
-
   return addresses;
 };
 
@@ -131,36 +126,27 @@ export const resolveIdentifier = async (
   memberAddresses?: string[],
   resolveAddress?: (name: string) => Promise<string | null>,
 ): Promise<string | null> => {
-  // If it's already a full ethereum address, return it
   if (identifier.match(/^0x[a-fA-F0-9]{40}$/)) {
     return identifier;
   }
 
-  // If it's a shortened address, try to match against member addresses
   if (identifier.match(/0x[a-fA-F0-9]+(?:…|\.{2,3})[a-fA-F0-9]+/)) {
-    if (memberAddresses && memberAddresses.length > 0) {
-      return matchShortenedAddress(identifier, memberAddresses);
-    }
+    return memberAddresses?.length
+      ? matchShortenedAddress(identifier, memberAddresses)
+      : null;
+  }
+
+  const nameToResolve = identifier.includes(".")
+    ? identifier
+    : `${identifier}.farcaster.eth`;
+
+  if (!resolveAddress) return null;
+
+  try {
+    return await resolveAddress(nameToResolve);
+  } catch {
     return null;
   }
-
-  // If it's just a username (no dots), append .farcaster.eth
-  let nameToResolve = identifier;
-  if (!nameToResolve.includes(".")) {
-    nameToResolve = `${nameToResolve}.farcaster.eth`;
-  }
-
-  // Otherwise, resolve using provided resolver or return null
-  if (resolveAddress) {
-    try {
-      return await resolveAddress(nameToResolve);
-    } catch (error) {
-      console.error(`Failed to resolve "${nameToResolve}":`, error);
-      return null;
-    }
-  }
-
-  return null;
 };
 
 /**
@@ -172,44 +158,28 @@ export const resolveIdentifier = async (
 export const extractMentions = (message: string): string[] => {
   const mentions: string[] = [];
 
-  // Match full Ethereum addresses @0x followed by 40 hex chars (check this FIRST)
   const fullAddresses = message.match(/(0x[a-fA-F0-9]{40})\b/g);
-  if (fullAddresses) {
-    mentions.push(...fullAddresses); // Remove @
-  }
+  if (fullAddresses) mentions.push(...fullAddresses);
 
-  // Match @0xabc...def (shortened address with ellipsis or dots)
   const shortenedAddresses = message.match(
     /@(0x[a-fA-F0-9]+(?:…|\.{2,3})[a-fA-F0-9]+)/g,
   );
   if (shortenedAddresses) {
-    mentions.push(...shortenedAddresses.map((m) => m.slice(1))); // Remove @
+    mentions.push(...shortenedAddresses.map((m) => m.slice(1)));
   }
 
-  // Match @username.eth or @username (but not if it starts with 0x)
   const atMentions = message.match(/@(?!0x)([\w.-]+\.eth|[\w.-]+)/g);
-  if (atMentions) {
-    mentions.push(...atMentions.map((m) => m.slice(1))); // Remove @
-  }
+  if (atMentions) mentions.push(...atMentions.map((m) => m.slice(1)));
 
-  // Match standalone domain.eth (not preceded by @ and with word boundaries)
-  // Updated to match multi-level domains like byteai.base.eth
   const domains = message.match(/\b(?<!@)([\w-]+(?:\.[\w-]+)*\.eth)\b/g);
-  if (domains) {
-    mentions.push(...domains);
-  }
+  if (domains) mentions.push(...domains);
 
-  // Remove duplicates
   const uniqueMentions = [...new Set(mentions)];
 
-  // Filter out parent domains when subdomains are present
-  // e.g., if "byteai.base.eth" exists, remove "base.eth"
   return uniqueMentions.filter((mention) => {
-    // Check if this mention is a parent domain of any other mention
-    const isParentOfAnother = uniqueMentions.some(
+    return !uniqueMentions.some(
       (other) => other !== mention && other.endsWith(`.${mention}`),
     );
-    return !isParentOfAnother;
   });
 };
 
@@ -225,19 +195,12 @@ export const resolveMentionsInMessage = async (
   members?: GroupMember[],
   resolveAddress?: (name: string) => Promise<string | null>,
 ): Promise<Record<string, string | null>> => {
-  // Extract mentions from message
   const mentions = extractMentions(message);
+  if (mentions.length === 0) return {};
 
-  // If no mentions found, return empty object
-  if (mentions.length === 0) {
-    return {};
-  }
-
-  // Extract member addresses if members provided
   const memberAddresses = members ? extractMemberAddresses(members) : [];
-
-  // Resolve all mentions
   const results: Record<string, string | null> = {};
+
   await Promise.all(
     mentions.map(async (mention) => {
       results[mention] = await resolveIdentifier(
@@ -257,6 +220,15 @@ export const resolveMentionsInMessage = async (
  * @param apiKey - Optional API key for web3.bio
  * @returns Profile information including address, display name, platform, username, fid, and social stats
  */
+const emptyProfile = {
+  address: null,
+  displayName: null,
+  platform: "",
+  username: null,
+  fid: null,
+  social: null,
+};
+
 export const fetchFarcasterProfile = async (
   name: string,
   apiKey?: string,
@@ -288,18 +260,9 @@ export const fetchFarcasterProfile = async (
     });
 
     if (!response.ok) {
-      console.error(
-        `Failed to fetch Farcaster profile for "${name}": ${response.statusText} (${response.status})`,
-      );
-      return {
-        address: null,
-        displayName: null,
-        platform: "",
-        username: null,
-        fid: null,
-        social: null,
-      };
+      return emptyProfile;
     }
+
     const data = (await response.json()) as Array<{
       address: string | null;
       platform: string;
@@ -313,7 +276,6 @@ export const fetchFarcasterProfile = async (
       };
     }> | null;
 
-    // Filter the array to find the Farcaster profile
     const farcasterProfile = data?.find(
       (profile) => profile.platform === "farcaster",
     );
@@ -329,23 +291,8 @@ export const fetchFarcasterProfile = async (
       };
     }
 
-    return {
-      address: null,
-      displayName: null,
-      platform: "",
-      username: null,
-      fid: null,
-      social: null,
-    };
-  } catch (error) {
-    console.error(`Error fetching Farcaster profile for "${name}":`, error);
-    return {
-      address: null,
-      displayName: null,
-      platform: "",
-      username: null,
-      fid: null,
-      social: null,
-    };
+    return emptyProfile;
+  } catch {
+    return emptyProfile;
   }
 };
