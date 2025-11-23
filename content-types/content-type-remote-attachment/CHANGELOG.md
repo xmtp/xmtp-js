@@ -1,10 +1,16 @@
 # @xmtp/content-type-remote-attachment
 
-## 2.0.3
+## 2.0.4
 
 ### Patch Changes
 
 - cf4337e: Added error handling for fetching remote attachments
+
+## 2.0.3
+
+### Patch Changes
+
+- e3779a1: Locked `@xmtp/proto` versions
 
 ## 2.0.2
 
