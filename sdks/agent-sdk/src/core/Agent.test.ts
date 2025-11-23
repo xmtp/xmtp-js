@@ -10,7 +10,15 @@ import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  vi,
+} from "vitest";
 import { filter } from "@/core/filter.js";
 import {
   createMockConversationStreamWithCallbacks,

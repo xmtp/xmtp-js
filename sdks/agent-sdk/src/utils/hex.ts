@@ -33,5 +33,5 @@ export function ensureHexPrefix(value: string): HexString {
     );
   }
 
-  return `0x${trimmedValue}` as HexString;
+  return `0x${trimmedValue}`;
 }

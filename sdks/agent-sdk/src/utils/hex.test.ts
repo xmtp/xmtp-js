@@ -82,6 +82,7 @@ describe("ensureHexPrefix", () => {
 
   describe("invalid inputs", () => {
     it("should throw for non-string input", () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
       expect(() => ensureHexPrefix(123 as any)).toThrow(
         "Value must be a string",
       );
