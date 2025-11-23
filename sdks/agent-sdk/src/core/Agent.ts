@@ -17,7 +17,6 @@ import {
   Dm,
   Group,
   IdentifierKind,
-  isHexString,
   LogLevel,
   type ClientOptions,
   type Conversation,
@@ -31,6 +30,7 @@ import {
 import { filter } from "@/core/filter.js";
 import { getInstallationInfo } from "@/debug.js";
 import { createSigner, createUser } from "@/user/User.js";
+import { ensureHexPrefix } from "@/utils/hex.js";
 import { AgentError, AgentStreamingError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
@@ -216,23 +216,38 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       XMTP_WALLET_KEY,
     } = process.env;
 
-    if (!isHexString(XMTP_WALLET_KEY)) {
+    if (typeof XMTP_WALLET_KEY !== "string") {
+      throw new AgentError(1000, `XMTP_WALLET_KEY env is required.`);
+    }
+
+    let walletKey: HexString;
+    try {
+      walletKey = ensureHexPrefix(XMTP_WALLET_KEY);
+    } catch (error) {
       throw new AgentError(
         1000,
-        `XMTP_WALLET_KEY env is not in hex (0x) format.`,
+        `XMTP_WALLET_KEY env is not a valid hex string.`,
+        error,
       );
     }
 
-    const signer = createSigner(createUser(XMTP_WALLET_KEY));
+    const signer = createSigner(createUser(walletKey));
 
     const initializedOptions = { ...(options ?? {}) };
 
-    initializedOptions.dbEncryptionKey =
-      typeof XMTP_DB_ENCRYPTION_KEY === "string"
-        ? isHexString(XMTP_DB_ENCRYPTION_KEY)
-          ? XMTP_DB_ENCRYPTION_KEY
-          : `0x${XMTP_DB_ENCRYPTION_KEY}`
-        : undefined;
+    if (typeof XMTP_DB_ENCRYPTION_KEY === "string") {
+      try {
+        initializedOptions.dbEncryptionKey = ensureHexPrefix(
+          XMTP_DB_ENCRYPTION_KEY,
+        );
+      } catch (error) {
+        throw new AgentError(
+          1000,
+          `XMTP_DB_ENCRYPTION_KEY env is not a valid hex string.`,
+          error,
+        );
+      }
+    }
 
     if (XMTP_ENV && Object.keys(ApiUrls).includes(XMTP_ENV)) {
       initializedOptions.env = XMTP_ENV as XmtpEnv;

@@ -10,7 +10,7 @@ import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
-import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { filter } from "@/core/filter.js";
 import {
   createMockConversationStreamWithCallbacks,
@@ -967,6 +967,115 @@ describe("Agent", () => {
       await flushMicrotasks();
 
       expect(callOrder).toEqual([errorMessage]);
+    });
+  });
+
+  describe("createFromEnv", () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      // Reset env before each test
+      process.env = { ...originalEnv };
+    });
+
+    afterEach(() => {
+      // Restore original env after each test
+      process.env = originalEnv;
+    });
+
+    it("should accept wallet key with 0x prefix", async () => {
+      process.env.XMTP_WALLET_KEY =
+        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+
+      // Mock Client.create to avoid actual XMTP initialization
+      const createSpy = vi
+        .spyOn(Agent, "create")
+        .mockResolvedValue({} as Agent);
+
+      await Agent.createFromEnv();
+
+      expect(createSpy).toHaveBeenCalled();
+      createSpy.mockRestore();
+    });
+
+    it("should accept wallet key without 0x prefix", async () => {
+      process.env.XMTP_WALLET_KEY =
+        "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+
+      const createSpy = vi
+        .spyOn(Agent, "create")
+        .mockResolvedValue({} as Agent);
+
+      await Agent.createFromEnv();
+
+      expect(createSpy).toHaveBeenCalled();
+      createSpy.mockRestore();
+    });
+
+    it("should accept encryption key with 0x prefix", async () => {
+      process.env.XMTP_WALLET_KEY =
+        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+      process.env.XMTP_DB_ENCRYPTION_KEY =
+        "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
+
+      const createSpy = vi
+        .spyOn(Agent, "create")
+        .mockResolvedValue({} as Agent);
+
+      await Agent.createFromEnv();
+
+      expect(createSpy).toHaveBeenCalled();
+      const options = createSpy.mock.calls[0]?.[1];
+      expect(options?.dbEncryptionKey).toBe(
+        "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      );
+      createSpy.mockRestore();
+    });
+
+    it("should accept encryption key without 0x prefix", async () => {
+      process.env.XMTP_WALLET_KEY =
+        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+      process.env.XMTP_DB_ENCRYPTION_KEY =
+        "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
+
+      const createSpy = vi
+        .spyOn(Agent, "create")
+        .mockResolvedValue({} as Agent);
+
+      await Agent.createFromEnv();
+
+      expect(createSpy).toHaveBeenCalled();
+      const options = createSpy.mock.calls[0]?.[1];
+      expect(options?.dbEncryptionKey).toBe(
+        "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      );
+      createSpy.mockRestore();
+    });
+
+    it("should throw error if wallet key is missing", async () => {
+      delete process.env.XMTP_WALLET_KEY;
+
+      await expect(Agent.createFromEnv()).rejects.toThrow(
+        "XMTP_WALLET_KEY env is required",
+      );
+    });
+
+    it("should throw error if wallet key is invalid hex", async () => {
+      process.env.XMTP_WALLET_KEY = "invalid-hex-string";
+
+      await expect(Agent.createFromEnv()).rejects.toThrow(
+        "XMTP_WALLET_KEY env is not a valid hex string",
+      );
+    });
+
+    it("should throw error if encryption key is invalid hex", async () => {
+      process.env.XMTP_WALLET_KEY =
+        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+      process.env.XMTP_DB_ENCRYPTION_KEY = "invalid-hex";
+
+      await expect(Agent.createFromEnv()).rejects.toThrow(
+        "XMTP_DB_ENCRYPTION_KEY env is not a valid hex string",
+      );
     });
   });
 });
