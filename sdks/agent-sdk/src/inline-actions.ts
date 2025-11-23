@@ -1,1 +1,1 @@
-export * from "./content-types/inline-actions/index.js";
+export * from "./inline-actions/index.js";
