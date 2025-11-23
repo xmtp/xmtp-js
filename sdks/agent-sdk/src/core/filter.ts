@@ -36,6 +36,12 @@ import {
   type Conversation,
   type DecodedMessage,
 } from "@xmtp/node-sdk";
+import {
+  ActionsCodec,
+  ContentTypeActions,
+  ContentTypeIntent,
+  IntentCodec,
+} from "@/inline-actions";
 
 export type DecodedMessageWithContent<ContentTypes = unknown> =
   DecodedMessage<ContentTypes> & {
@@ -154,6 +160,22 @@ const isWalletSendCalls = (
   return !!message.contentType?.sameAs(ContentTypeWalletSendCalls);
 };
 
+const isActions = (
+  message: DecodedMessage,
+): message is DecodedMessage & {
+  content: ReturnType<ActionsCodec["decode"]>;
+} => {
+  return !!message.contentType?.sameAs(ContentTypeActions);
+};
+
+const isIntent = (
+  message: DecodedMessage,
+): message is DecodedMessage & {
+  content: ReturnType<IntentCodec["decode"]>;
+} => {
+  return !!message.contentType?.sameAs(ContentTypeIntent);
+};
+
 const usesCodec = <T extends ContentCodec>(
   message: DecodedMessage,
   codecClass: new () => T,
@@ -180,6 +202,8 @@ export const filter = {
   isTextReply,
   isTransactionReference,
   isWalletSendCalls,
+  isActions,
+  isIntent,
   usesCodec,
 };
 
