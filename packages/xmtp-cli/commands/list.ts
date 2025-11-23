@@ -128,8 +128,7 @@ async function runConversationsOperation(config: {
         `\n   ${i + 1 + config.offset}. ${isGroup ? "[GROUP]" : "[DM]"}: ${conv.id}`,
       );
       if (isGroup) {
-        const group = conv;
-        console.log(`      Name: ${group.name || "No name"}`);
+        console.log(`      Name: ${conv.name || "No name"}`);
       }
     });
   } catch (error) {
@@ -162,8 +161,7 @@ async function runMembersOperation(conversationId?: string): Promise<void> {
       return;
     }
 
-    const group = conversation;
-    const members = await group.members();
+    const members = await conversation.members();
 
     console.log(`\n[MEMBERS]`);
     console.log(`   Total: ${members.length}`);
@@ -278,14 +276,12 @@ async function runFindOperation(config: {
         const isGroup = filter.isGroup(conv);
 
         if (isGroup) {
-          // For groups, check if the target is a member
-          const group = conv;
-          const members = await group.members();
-          const isMember = members.some(
-            (member: GroupMember) => member.inboxId === targetInboxId,
-          );
-
-          if (isMember) {
+          const members = await conv.members();
+          if (
+            members.some(
+              (member: GroupMember) => member.inboxId === targetInboxId,
+            )
+          ) {
             foundConversation = conv;
             break;
           }

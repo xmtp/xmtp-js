@@ -2,8 +2,6 @@ import { Agent, type DecodedMessage } from "@xmtp/agent-sdk";
 import { IdentifierKind, type Identifier } from "@xmtp/node-sdk";
 import type { Argv } from "yargs";
 
-// yarn send --target 0x194c31cae1418d5256e8c58e0d08aee1046c6ed0 --wait
-// Default message is "hello world"
 export interface SendOptions {
   target?: string;
   groupId?: string;
@@ -64,13 +62,11 @@ export function registerSendCommand(yargs: Argv) {
 }
 
 export async function runSendCommand(options: SendOptions): Promise<void> {
-  // Validation
   if (!options.target && !options.groupId) {
     console.error("[ERROR] Either --target or --group-id is required");
     process.exit(1);
   }
 
-  // Default to "hello world" if no message provided
   const message = options.message || "hello world";
 
   if (options.groupId) {
@@ -118,12 +114,9 @@ async function sendGroupMessage(
         console.log(`   - ${conv.id}`);
       });
       process.exit(1);
-      return;
     }
 
-    const group = conversation;
-
-    console.log(`[INFO] Found group: ${group.id}`);
+    console.log(`[INFO] Found group: ${conversation.id}`);
 
     if (wait) {
       console.log(
@@ -132,10 +125,10 @@ async function sendGroupMessage(
       const result = await waitForResponse({
         conversation: {
           stream: async () => {
-            return await group.stream();
+            return await conversation.stream();
           },
           send: async (content: string) => {
-            return await group.send(content);
+            return await conversation.send(content);
           },
         },
         senderInboxId: agent.client.inboxId,
@@ -164,7 +157,7 @@ async function sendGroupMessage(
         );
       }
     } else {
-      await group.send(message);
+      await conversation.send(message);
 
       console.log(`[OK] Message sent successfully`);
       console.log(`[MSG] Message: "${message}"`);
@@ -190,49 +183,9 @@ async function sendDirectMessage(
   const agent = await Agent.createFromEnv();
   console.log(`[AGENT] Using agent: ${agent.client.inboxId}`);
 
-  let exitCode = 0;
   try {
     const conversation = await agent.createDmWithAddress(
       target as `0x${string}`,
-    );
-
-    // Get DM information
-    const dmId = conversation.id;
-    const originInboxId = agent.client.inboxId;
-    const env = process.env.XMTP_ENV || "dev";
-
-    // Get members to extract addresses
-    const members = await conversation.members();
-
-    // Find origin (agent) member
-    const originMember = members.find(
-      (member) => member.inboxId.toLowerCase() === originInboxId.toLowerCase(),
-    );
-    const originEthIdentifier = originMember?.accountIdentifiers.find(
-      (id: Identifier) => id.identifierKind === IdentifierKind.Ethereum,
-    );
-    const originAddress = originEthIdentifier?.identifier || "Unknown";
-
-    // Find destination (peer) member
-    const destinationInboxId = conversation.peerInboxId;
-    const destinationMember = members.find(
-      (member) =>
-        member.inboxId.toLowerCase() === destinationInboxId.toLowerCase(),
-    );
-    const destinationEthIdentifier = destinationMember?.accountIdentifiers.find(
-      (id: Identifier) => id.identifierKind === IdentifierKind.Ethereum,
-    );
-    const destinationAddress =
-      destinationEthIdentifier?.identifier || "Unknown";
-
-    // Log DM information
-    console.log(`[INFO] DM ID: ${dmId}`);
-    console.log(`[ENV] Environment: ${env}`);
-    console.log(
-      `[ORIGIN] Inbox ID: ${originInboxId}, Address: ${originAddress}`,
-    );
-    console.log(
-      `[DEST] Inbox ID: ${destinationInboxId}, Address: ${destinationAddress}`,
     );
 
     if (wait) {
@@ -276,11 +229,10 @@ async function sendDirectMessage(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`[ERROR] Failed to send message: ${errorMessage}`);
-    exitCode = 1;
-  } finally {
     await agent.stop();
-    process.exit(exitCode);
+    process.exit(1);
   }
+  await agent.stop();
 }
 
 export interface WaitForResponseOptions {
@@ -302,9 +254,6 @@ export interface WaitForResponseResult {
   responseMessage: DecodedMessage | null;
 }
 
-/**
- * Send a message and wait for a response from the conversation
- */
 export async function waitForResponse(
   options: WaitForResponseOptions,
 ): Promise<WaitForResponseResult> {
@@ -317,10 +266,8 @@ export async function waitForResponse(
     attempt,
   } = options;
 
-  // Set up message stream before sending
   const stream = await conversation.stream();
 
-  // Send message
   const sendStart = Date.now();
   const textToSend = messageText || `test-${Date.now()}`;
   await conversation.send(textToSend);
@@ -340,14 +287,12 @@ export async function waitForResponse(
   try {
     const responsePromise = (async () => {
       for await (const message of stream) {
-        // Skip if the message is from the sender itself
         if (
           message.senderInboxId.toLowerCase() === senderInboxId.toLowerCase()
         ) {
           continue;
         }
 
-        // Got a response from the destination
         responseTime = Date.now() - responseStartTime;
         responseMessage = message;
         return message;
@@ -357,7 +302,6 @@ export async function waitForResponse(
 
     const receivedMessage = await Promise.race([
       responsePromise,
-      // Timeout
       new Promise<null>((_, reject) => {
         setTimeout(() => {
           reject(new Error("Response timeout"));
@@ -365,7 +309,6 @@ export async function waitForResponse(
       }),
     ]);
 
-    // Log detailed response information
     const totalTime = sendTime + responseTime;
     if (workerId !== undefined && attempt !== undefined) {
       console.log(

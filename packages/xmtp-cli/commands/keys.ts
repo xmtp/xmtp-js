@@ -9,9 +9,7 @@ export interface KeysOptions {
 }
 
 export const generateEncryptionKeyHex = () => {
-  /* Generate a random encryption key */
   const uint8Array = getRandomValues(new Uint8Array(32));
-  /* Convert the encryption key to a hex string */
   return Buffer.from(uint8Array).toString("hex");
 };
 

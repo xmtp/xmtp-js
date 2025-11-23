@@ -107,42 +107,6 @@ export function registerGroupsCommand(yargs: Argv) {
   );
 }
 
-export async function runGroupsCommand(
-  operation: string,
-  options: GroupsOptions,
-): Promise<void> {
-  const memberAddresses = options.memberAddresses
-    ? options.memberAddresses.split(",").map((a: string) => a.trim())
-    : undefined;
-  const memberInboxIds = options.memberInboxIds
-    ? options.memberInboxIds.split(",").map((a: string) => a.trim())
-    : undefined;
-
-  switch (operation) {
-    case "create":
-      await runCreateOperation({
-        type: options.type || "dm",
-        groupName: options.name,
-        groupDescription: options.description,
-        targetAddress: options.target,
-        memberAddresses,
-        memberInboxIds,
-      });
-      break;
-    case "metadata":
-      await runMetadataOperation({
-        groupId: options.groupId,
-        groupName: options.name,
-        groupDescription: options.description,
-        imageUrl: options.imageUrl,
-      });
-      break;
-    default:
-      console.error(`[ERROR] Unknown operation: ${operation}`);
-      process.exit(1);
-  }
-}
-
 async function runCreateOperation(config: {
   type: ConversationType;
   groupName?: string;
@@ -264,24 +228,22 @@ async function runMetadataOperation(config: {
       process.exit(1);
     }
 
-    const group = conversation;
-
     if (config.groupName) {
-      await group.updateName(config.groupName);
+      await conversation.updateName(config.groupName);
       console.log(`[OK] Updated name: ${config.groupName}`);
     }
 
     if (config.groupDescription) {
-      await group.updateDescription(config.groupDescription);
+      await conversation.updateDescription(config.groupDescription);
       console.log(`[OK] Updated description: ${config.groupDescription}`);
     }
 
     if (config.imageUrl) {
-      await group.updateImageUrl(config.imageUrl);
+      await conversation.updateImageUrl(config.imageUrl);
       console.log(`[OK] Updated image URL: ${config.imageUrl}`);
     }
 
-    console.log(`[URL] https://xmtp.chat/conversations/${group.id}`);
+    console.log(`[URL] https://xmtp.chat/conversations/${conversation.id}`);
   } catch (error) {
     console.error(
       `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
