@@ -1,24 +1,28 @@
 import { Modal as MantineModal, type ModalProps } from "@mantine/core";
-import classes from "./Modal.module.css";
+import type { CSSProperties } from "react";
 
 export const Modal: React.FC<ModalProps> = ({ children, ...props }) => {
+  // For fullscreen modals, use dynamic viewport height to handle mobile keyboards
+  const contentStyles: CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  if (props.fullScreen) {
+    // Use dvh (dynamic viewport height) which accounts for mobile keyboard
+    // Fallback to vh for older browsers
+    Object.assign(contentStyles, {
+      height: "100dvh",
+      maxHeight: "100dvh",
+    });
+  }
+
   return (
     <MantineModal
       {...props}
       radius="md"
-      classNames={{
-        content: classes.content,
-        body: classes.body,
-      }}
       styles={{
-        content: {
-          display: "flex",
-          flexDirection: "column",
-          ...(props.fullScreen && {
-            maxHeight: "100dvh",
-            height: "100dvh",
-          }),
-        },
+        content: contentStyles,
         body: {
           display: "flex",
           flexDirection: "column",
