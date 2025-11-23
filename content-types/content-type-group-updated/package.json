@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@xmtp/content-type-primitives": "^2.0.2",
-    "@xmtp/proto": "^3.78.0"
+    "@xmtp/proto": "3.78.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
