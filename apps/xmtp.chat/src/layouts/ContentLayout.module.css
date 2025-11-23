@@ -16,6 +16,8 @@
   position: relative;
   z-index: 20;
   flex-grow: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .header {
