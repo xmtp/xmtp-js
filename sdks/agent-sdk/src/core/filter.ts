@@ -37,10 +37,10 @@ import {
   type DecodedMessage,
 } from "@xmtp/node-sdk";
 import {
-  ActionsCodec,
   ContentTypeActions,
   ContentTypeIntent,
-  IntentCodec,
+  type ActionsCodec,
+  type IntentCodec,
 } from "@/inline-actions.js";
 
 export type DecodedMessageWithContent<ContentTypes = unknown> =
