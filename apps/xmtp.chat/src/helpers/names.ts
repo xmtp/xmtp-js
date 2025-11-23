@@ -6,12 +6,13 @@ import { profilesStore, type Profile } from "@/stores/profiles";
 const utils = new Utils();
 
 export const isValidName = (name: string): name is string =>
-  /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/.test(name);
+  /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/.test(name.toLowerCase());
 
 export const resolveNameQuery = async (name: string) => {
+  const normalizedName = name.toLowerCase();
   return queryClient.fetchQuery({
-    queryKey: ["resolveName", name],
-    queryFn: () => resolveName(name),
+    queryKey: ["resolveName", normalizedName],
+    queryFn: () => resolveName(normalizedName),
     // do not re-query the name for this session
     staleTime: Infinity,
     gcTime: Infinity,
@@ -19,18 +20,22 @@ export const resolveNameQuery = async (name: string) => {
 };
 
 export const resolveName = async (name: string, force: boolean = false) => {
-  if (!isValidName(name)) {
+  const normalizedName = name.toLowerCase();
+
+  if (!isValidName(normalizedName)) {
     return null;
   }
 
   // check cached profiles
-  const cachedProfiles = profilesStore.getState().getProfilesByName(name);
+  const cachedProfiles = profilesStore
+    .getState()
+    .getProfilesByName(normalizedName);
   if (!force && cachedProfiles.length > 0) {
     return cachedProfiles;
   }
 
   const response = await fetch(
-    `${import.meta.env.VITE_API_SERVICE_URL}/api/v2/resolve/name/${window.encodeURIComponent(name)}`,
+    `${import.meta.env.VITE_API_SERVICE_URL}/api/v2/resolve/name/${window.encodeURIComponent(normalizedName)}`,
     {
       method: "GET",
     },
@@ -48,7 +53,7 @@ export const resolveName = async (name: string, force: boolean = false) => {
   }
 
   // return updated cached profiles
-  return profilesStore.getState().getProfilesByName(name);
+  return profilesStore.getState().getProfilesByName(normalizedName);
 };
 
 export const getInboxIdForAddressQuery = async (

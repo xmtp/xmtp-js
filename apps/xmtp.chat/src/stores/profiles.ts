@@ -59,7 +59,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       const existingProfiles = state.profiles.get(profile.address) ?? [];
       newProfiles.set(profile.address, [...existingProfiles, profile]);
       if (profile.identity) {
-        newNames.set(profile.identity, profile.address);
+        // Normalize identity to lowercase for case-insensitive lookups
+        newNames.set(profile.identity.toLowerCase(), profile.address);
       }
       set(() => ({
         profiles: newProfiles,
@@ -77,7 +78,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
         const existingProfiles = state.profiles.get(profile.address) ?? [];
         newProfiles.set(profile.address, [...existingProfiles, profile]);
         if (profile.identity) {
-          newNames.set(profile.identity, profile.address);
+          // Normalize identity to lowercase for case-insensitive lookups
+          newNames.set(profile.identity.toLowerCase(), profile.address);
         }
       }
       set(() => ({
@@ -100,7 +102,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       return get().profiles.has(address);
     },
     getProfilesByName: (name: string) => {
-      const address = get().names.get(name);
+      // Normalize name to lowercase for case-insensitive lookup
+      const address = get().names.get(name.toLowerCase());
       return address ? get().getProfiles(address) : EMPTY_PROFILES;
     },
     reset: () => {
@@ -126,8 +129,10 @@ export const combineProfiles = (
   profiles: Profile[],
   identity?: string,
 ) => {
+  // Normalize identity to lowercase for case-insensitive comparison
+  const normalizedIdentity = identity?.toLowerCase();
   const forcedProfile = profiles.find(
-    (profile) => profile.identity === identity,
+    (profile) => profile.identity?.toLowerCase() === normalizedIdentity,
   );
   return profiles.reduce((profile, value) => {
     return {
