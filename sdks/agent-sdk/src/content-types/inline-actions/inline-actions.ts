@@ -1,5 +1,5 @@
-import type { AgentMiddleware } from "@/core/Agent.js";
 import type { Conversation } from "@xmtp/node-sdk";
+import type { AgentMiddleware } from "@/core/Agent.js";
 import type { MessageContext } from "@/core/MessageContext.js";
 import {
   ContentTypeActions,
