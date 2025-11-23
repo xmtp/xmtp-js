@@ -247,7 +247,25 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       };
     }
 
-    return this.create(signer, initializedOptions);
+    try {
+      return await this.create(signer, initializedOptions);
+    } catch (error) {
+      // Check if this is an encryption key error
+      if (
+        error instanceof Error &&
+        error.message.includes("Failed to create reference from Buffer") &&
+        "code" in error &&
+        error.code === "InvalidArg"
+      ) {
+        throw new AgentError(
+          1005,
+          "Invalid encryption key. Please verify that the XMTP_DB_ENCRYPTION_KEY is correct.",
+          error,
+        );
+      }
+      // Re-throw other errors
+      throw error;
+    }
   }
 
   use(

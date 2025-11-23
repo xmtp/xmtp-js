@@ -9,7 +9,6 @@ import {
 } from "@xmtp/node-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types";
-import { InvalidEncryptionKeyError } from "@/utils/errors";
 import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
 import { isHexString } from "./validation";
 
@@ -52,32 +51,18 @@ export const createClient = async (
     ? Buffer.from(options.dbEncryptionKey.replace(/^0x/, ""), "hex")
     : options?.dbEncryptionKey;
 
-  try {
-    return createNodeClient(
-      host,
-      isSecure,
-      dbPath,
-      inboxId,
-      identifier,
-      dbEncryptionKey,
-      historySyncUrl,
-      deviceSyncWorkerMode,
-      logOptions,
-      undefined,
-      options?.debugEventsEnabled,
-      options?.appVersion,
-    );
-  } catch (error) {
-    // Check if this is an encryption key error
-    if (
-      error instanceof Error &&
-      error.message.includes("Failed to create reference from Buffer") &&
-      "code" in error &&
-      error.code === "InvalidArg"
-    ) {
-      throw new InvalidEncryptionKeyError();
-    }
-    // Re-throw other errors
-    throw error;
-  }
+  return createNodeClient(
+    host,
+    isSecure,
+    dbPath,
+    inboxId,
+    identifier,
+    dbEncryptionKey,
+    historySyncUrl,
+    deviceSyncWorkerMode,
+    logOptions,
+    undefined,
+    options?.debugEventsEnabled,
+    options?.appVersion,
+  );
 };

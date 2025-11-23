@@ -72,11 +72,3 @@ export class StreamInvalidRetryAttemptsError extends Error {
     super("Stream retry attempts must be greater than 0");
   }
 }
-
-export class InvalidEncryptionKeyError extends Error {
-  constructor() {
-    super(
-      "Invalid encryption key. Please verify that the dbEncryptionKey is correct.",
-    );
-  }
-}
