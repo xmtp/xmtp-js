@@ -4381,7 +4381,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
-    "@xmtp/proto": "npm:^3.78.0"
+    "@xmtp/proto": "npm:3.78.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.5"
     rollup-plugin-dts: "npm:^6.2.3"
@@ -4570,7 +4570,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:^3.78.0":
+"@xmtp/proto@npm:3.78.0, @xmtp/proto@npm:^3.78.0":
   version: 3.78.0
   resolution: "@xmtp/proto@npm:3.78.0"
   dependencies:
