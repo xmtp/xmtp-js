@@ -41,7 +41,7 @@ import {
   ContentTypeActions,
   ContentTypeIntent,
   IntentCodec,
-} from "@/inline-actions";
+} from "@/inline-actions.js";
 
 export type DecodedMessageWithContent<ContentTypes = unknown> =
   DecodedMessage<ContentTypes> & {

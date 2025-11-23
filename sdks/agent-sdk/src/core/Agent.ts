@@ -28,9 +28,9 @@ import {
   type StreamOptions,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
-import { ActionsCodec, IntentCodec } from "@/inline-actions";
 import { filter } from "@/core/filter.js";
 import { getInstallationInfo } from "@/debug.js";
+import { ActionsCodec, IntentCodec } from "@/inline-actions.js";
 import { createSigner, createUser } from "@/user/User.js";
 import { AgentError, AgentStreamingError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";

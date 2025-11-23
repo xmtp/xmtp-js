@@ -8,8 +8,7 @@
     "outDir": "dist",
     "paths": {
       "@/*": ["./src/*"],
-      "@test/*": ["./test/*"],
-      "@/inline-actions": ["./src/content-types/inline-actions/index.js"]
+      "@test/*": ["./test/*"]
     },
     "preserveConstEnums": true,
     "skipLibCheck": true,
