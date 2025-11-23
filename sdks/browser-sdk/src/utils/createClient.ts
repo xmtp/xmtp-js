@@ -7,6 +7,7 @@ import {
 } from "@xmtp/wasm-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types/options";
+import { InvalidEncryptionKeyError } from "@/utils/errors";
 
 export const createClient = async (
   identifier: Identifier,
@@ -36,23 +37,37 @@ export const createClient = async (
     ? "disabled"
     : "enabled";
 
-  return createWasmClient(
-    host,
-    inboxId,
-    identifier,
-    dbPath,
-    options?.dbEncryptionKey,
-    historySyncUrl,
-    deviceSyncWorkerMode,
-    isLogging
-      ? new LogOptions(
-          options.structuredLogging ?? false,
-          options.performanceLogging ?? false,
-          options.loggingLevel,
-        )
-      : undefined,
-    undefined,
-    options?.debugEventsEnabled,
-    options?.appVersion,
-  );
+  try {
+    return createWasmClient(
+      host,
+      inboxId,
+      identifier,
+      dbPath,
+      options?.dbEncryptionKey,
+      historySyncUrl,
+      deviceSyncWorkerMode,
+      isLogging
+        ? new LogOptions(
+            options.structuredLogging ?? false,
+            options.performanceLogging ?? false,
+            options.loggingLevel,
+          )
+        : undefined,
+      undefined,
+      options?.debugEventsEnabled,
+      options?.appVersion,
+    );
+  } catch (error) {
+    // Check if this is an encryption key error
+    if (
+      error instanceof Error &&
+      error.message.includes("Failed to create reference from Buffer") &&
+      "code" in error &&
+      error.code === "InvalidArg"
+    ) {
+      throw new InvalidEncryptionKeyError();
+    }
+    // Re-throw other errors
+    throw error;
+  }
 };

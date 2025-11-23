@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
 import {
   ClientNotInitializedError,
+  InvalidEncryptionKeyError,
   SignerUnavailableError,
 } from "@/utils/errors";
 import {
@@ -574,5 +575,28 @@ describe("Client", () => {
     });
 
     expect(client).toBeDefined();
+  });
+
+  it("should throw InvalidEncryptionKeyError when wrong encryption key is provided", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const encryptionKey = new Uint8Array(32).fill(1);
+    const dbPath = `./test-${v4()}.db3`;
+
+    // Create a client with an encryption key
+    const client = await createRegisteredClient(signer, {
+      dbPath,
+      dbEncryptionKey: encryptionKey,
+    });
+    expect(client).toBeDefined();
+
+    // Now try to open the same database with a different encryption key
+    const wrongEncryptionKey = new Uint8Array(32).fill(2);
+    await expect(
+      createRegisteredClient(signer, {
+        dbPath,
+        dbEncryptionKey: wrongEncryptionKey,
+      }),
+    ).rejects.toThrow(InvalidEncryptionKeyError);
   });
 });
