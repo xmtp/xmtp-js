@@ -1,5 +1,4 @@
 import { Modal as MantineModal, type ModalProps } from "@mantine/core";
-import type { CSSProperties } from "react";
 
 export const Modal: React.FC<ModalProps> = ({ children, ...props }) => {
   return (
