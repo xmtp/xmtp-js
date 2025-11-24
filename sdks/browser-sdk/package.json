@@ -77,7 +77,7 @@
     "@vitest/coverage-v8": "^4.0.9",
     "@web/rollup-plugin-copy": "^0.5.1",
     "playwright": "^1.56.1",
-    "rollup": "^4.52.5",
+    "rollup": "^4.53.2",
     "rollup-plugin-dts": "^6.2.3",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.9.3",
