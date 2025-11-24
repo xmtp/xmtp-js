@@ -86,7 +86,7 @@ export const AddMembers: React.FC<AddMembersProps> = ({
       <Group gap="xs" align="flex-start">
         <TextInput
           flex={1}
-          size="sm"
+          size="md"
           label="Address, inbox ID, ENS name, or Base name"
           styles={{
             label: {
@@ -111,7 +111,7 @@ export const AddMembers: React.FC<AddMembersProps> = ({
           }}
         />
         <Button
-          size="sm"
+          size="md"
           mt="32px"
           disabled={
             memberIdError !== null ||

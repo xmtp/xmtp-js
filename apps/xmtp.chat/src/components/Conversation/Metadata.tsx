@@ -49,7 +49,7 @@ export const Metadata: React.FC<MetadataProps> = ({
           Name
         </Text>
         <TextInput
-          size="sm"
+          size="md"
           flex="1 1 65%"
           value={name}
           disabled={
@@ -67,7 +67,7 @@ export const Metadata: React.FC<MetadataProps> = ({
           Description
         </Text>
         <Textarea
-          size="sm"
+          size="md"
           flex="1 1 65%"
           value={description}
           disabled={
@@ -85,7 +85,7 @@ export const Metadata: React.FC<MetadataProps> = ({
           Image URL
         </Text>
         <TextInput
-          size="sm"
+          size="md"
           flex="1 1 65%"
           value={imageUrl}
           disabled={
