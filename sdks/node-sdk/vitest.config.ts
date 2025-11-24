@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { defineConfig, mergeConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig as defineVitestConfig } from "vitest/config";
