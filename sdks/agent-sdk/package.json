@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/agent-sdk",
-  "version": "1.1.16",
+  "version": "1.1.15",
   "description": "XMTP Agent SDK for interacting with XMTP networks",
   "keywords": [
     "agents",
@@ -75,14 +75,14 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
-    "@types/node": "^24.10.1",
-    "@vitest/coverage-v8": "^4.0.9",
+    "@types/node": "^24.9.1",
+    "@vitest/coverage-v8": "^4.0.3",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vite": "^7.2.2",
+    "vite": "^7.1.12",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.9"
+    "vitest": "^4.0.3"
   },
   "engines": {
     "node": ">=22"

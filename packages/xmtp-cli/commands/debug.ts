@@ -89,6 +89,29 @@ export async function runDebugCommand(
   }
 }
 
+async function resolveInboxId(
+  agent: Agent,
+  address?: string,
+  inboxId?: string,
+): Promise<string> {
+  if (inboxId) {
+    return inboxId;
+  }
+  if (!address) {
+    console.error(`[ERROR] Either --address or --inbox-id is required`);
+    process.exit(1);
+  }
+  const resolved = await agent.client.getInboxIdByIdentifier({
+    identifier: address,
+    identifierKind: 0,
+  });
+  if (!resolved) {
+    console.error(`[ERROR] No inbox found for address: ${address}`);
+    process.exit(1);
+  }
+  return resolved;
+}
+
 async function runAddressOperation(options: {
   address?: string;
   inboxId?: string;
@@ -101,29 +124,15 @@ async function runAddressOperation(options: {
   const agent = await Agent.createFromEnv();
 
   try {
-    let targetInboxId: string;
-
+    const targetInboxId = await resolveInboxId(
+      agent,
+      options.address,
+      options.inboxId,
+    );
     if (options.address) {
-      const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address,
-        identifierKind: 0,
-      });
-
-      if (!resolved) {
-        console.error(`[ERROR] No inbox found for address: ${options.address}`);
-        process.exit(1);
-      }
-
-      targetInboxId = resolved;
       console.log(
         `[RESOLVE] Resolved ${options.address} to inbox ID: ${targetInboxId}`,
       );
-    } else {
-      if (!options.inboxId) {
-        console.error(`[ERROR] Inbox ID is required`);
-        process.exit(1);
-      }
-      targetInboxId = options.inboxId;
     }
 
     const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
@@ -142,7 +151,6 @@ async function runAddressOperation(options: {
     console.log(`   Installations: ${state.installations.length}`);
     console.log(`   Identifiers: ${state.identifiers.length}`);
 
-    // Show detailed installation information
     if (state.installations.length > 0) {
       console.log(`\n[INSTALLATIONS]`);
       state.installations.forEach((inst: { id: string }, i: number) => {
@@ -150,7 +158,6 @@ async function runAddressOperation(options: {
       });
     }
 
-    // Show detailed identifier information
     if (state.identifiers.length > 0) {
       console.log(`\n[IDENTIFIERS]`);
       state.identifiers.forEach(
@@ -159,13 +166,6 @@ async function runAddressOperation(options: {
             `   ${i + 1}. ${id.identifier} (kind: ${id.identifierKind})`,
           );
         },
-      );
-    }
-
-    // Show additional details if available
-    if (state.installations.length > 0) {
-      console.log(
-        `\n[INFO] This address is active on the XMTP network with ${state.installations.length} installation(s).`,
       );
     }
   } catch (error) {
@@ -188,27 +188,11 @@ async function runInboxOperation(options: {
   const agent = await Agent.createFromEnv();
 
   try {
-    let targetInboxId: string;
-
-    if (options.inboxId) {
-      targetInboxId = options.inboxId;
-    } else {
-      if (!options.address) {
-        console.error(`[ERROR] Address is required`);
-        process.exit(1);
-      }
-      const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address,
-        identifierKind: 0,
-      });
-
-      if (!resolved) {
-        console.error(`[ERROR] No inbox found for address: ${options.address}`);
-        process.exit(1);
-      }
-
-      targetInboxId = resolved;
-    }
+    const targetInboxId = await resolveInboxId(
+      agent,
+      options.address,
+      options.inboxId,
+    );
 
     const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
       [targetInboxId],
@@ -255,16 +239,7 @@ async function runResolveOperation(options: {
 
   try {
     if (options.address) {
-      const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address,
-        identifierKind: 0,
-      });
-
-      if (!resolved) {
-        console.error(`[ERROR] No inbox found for address: ${options.address}`);
-        process.exit(1);
-      }
-
+      const resolved = await resolveInboxId(agent, options.address);
       console.log(`\n[RESOLVE] Resolution:`);
       console.log(`   Address: ${options.address}`);
       console.log(`   Inbox ID: ${resolved}`);
@@ -330,26 +305,12 @@ async function runInstallationsOperation(options: {
   const agent = await Agent.createFromEnv();
 
   try {
-    let targetInboxId: string;
-
-    if (options.inboxId) {
-      targetInboxId = options.inboxId;
-    } else {
-      if (!options.address) {
-        console.error(`[ERROR] Address is required`);
-        process.exit(1);
-      }
-      const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address,
-        identifierKind: 0,
-      });
-
-      if (!resolved) {
-        console.error(`[ERROR] No inbox found for address: ${options.address}`);
-        process.exit(1);
-      }
-
-      targetInboxId = resolved;
+    const targetInboxId = await resolveInboxId(
+      agent,
+      options.address,
+      options.inboxId,
+    );
+    if (options.address) {
       console.log(
         `[RESOLVE] Resolved ${options.address} to inbox ID: ${targetInboxId}`,
       );
@@ -391,27 +352,11 @@ async function runKeyPackageOperation(options: {
   const agent = await Agent.createFromEnv();
 
   try {
-    let targetInboxId: string;
-
-    if (options.inboxId) {
-      targetInboxId = options.inboxId;
-    } else {
-      if (!options.address) {
-        console.error(`[ERROR] Address is required`);
-        process.exit(1);
-      }
-      const resolved = await agent.client.getInboxIdByIdentifier({
-        identifier: options.address,
-        identifierKind: 0,
-      });
-
-      if (!resolved) {
-        console.error(`[ERROR] No inbox found for address: ${options.address}`);
-        process.exit(1);
-      }
-
-      targetInboxId = resolved;
-    }
+    const targetInboxId = await resolveInboxId(
+      agent,
+      options.address,
+      options.inboxId,
+    );
 
     const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
       [targetInboxId],
@@ -456,14 +401,10 @@ async function getDmByAddress(
   agent: AgentType,
   address: string,
 ): Promise<string> {
-  // Validate address format
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-    throw new Error(
-      `Invalid Ethereum address format. Must be 42 characters starting with 0x.`,
-    );
+    throw new Error("Invalid Ethereum address format");
   }
 
-  // Create or get DM conversation
   const dm = await agent.client.conversations.newDmWithIdentifier({
     identifier: address.toLowerCase() as `0x${string}`,
     identifierKind: IdentifierKind.Ethereum,
@@ -476,14 +417,10 @@ async function getDmByInboxId(
   agent: AgentType,
   inboxId: string,
 ): Promise<string> {
-  // Validate inbox ID format (should be 64 hex characters)
   if (!/^[a-f0-9]{64}$/i.test(inboxId)) {
-    throw new Error(
-      `Invalid inbox ID format. Must be 64 hexadecimal characters.`,
-    );
+    throw new Error("Invalid inbox ID format");
   }
 
-  // Create or get DM conversation
   const dm = await agent.client.conversations.newDm(inboxId);
 
   return dm.id;
@@ -502,23 +439,12 @@ interface ConversationStats {
 
 async function listAllConversations(agent: AgentType): Promise<void> {
   console.log(`Syncing conversations...`);
-
-  // Sync conversations first
   await agent.client.conversations.sync();
 
-  // Get all conversations
   const conversations = await agent.client.conversations.list();
-
-  // Total conversation count
   const totalCount = conversations.length;
-  const dms = conversations.filter((conv) => {
-    // Check if it's a DM (has peerInboxId property)
-    return "peerInboxId" in conv;
-  });
-  const groups = conversations.filter((conv) => {
-    // Check if it's a Group (has name property)
-    return "name" in conv;
-  });
+  const dms = conversations.filter((conv) => "peerInboxId" in conv);
+  const groups = conversations.filter((conv) => "name" in conv);
 
   console.log(`\n[STATS] Conversation Statistics:`);
   console.log(`   Total Conversations: ${totalCount}`);
@@ -534,28 +460,24 @@ async function listAllConversations(agent: AgentType): Promise<void> {
 
   const conversationStats: ConversationStats[] = [];
 
-  // Process each conversation
   for (const conv of conversations) {
     try {
-      // Get messages for this conversation
       const messages = await conv.messages();
       const messageCount = messages.length;
 
-      // Get last message if exists
       let lastMessage: ConversationStats["lastMessage"] | undefined;
       if (messages.length > 0) {
-        const last = messages[0]; // Messages are typically in reverse chronological order
+        const last = messages[0];
         lastMessage = {
           content:
             typeof last.content === "string"
-              ? last.content.substring(0, 100) // Truncate long messages
+              ? last.content.substring(0, 100)
               : JSON.stringify(last.content).substring(0, 100),
           sentAt: last.sentAt,
           senderInboxId: last.senderInboxId,
         };
       }
 
-      // Determine type
       const type = "peerInboxId" in conv ? "DM" : "Group";
 
       conversationStats.push({
@@ -565,7 +487,6 @@ async function listAllConversations(agent: AgentType): Promise<void> {
         lastMessage,
       });
     } catch (error) {
-      // If we can't get messages for a conversation, still include it with 0 count
       const type = "peerInboxId" in conv ? "DM" : "Group";
       conversationStats.push({
         id: conv.id,
@@ -578,7 +499,6 @@ async function listAllConversations(agent: AgentType): Promise<void> {
     }
   }
 
-  // Sort by last message time (most recent first), then by message count
   conversationStats.sort((a, b) => {
     if (a.lastMessage && b.lastMessage) {
       return b.lastMessage.sentAt.getTime() - a.lastMessage.sentAt.getTime();
@@ -588,7 +508,6 @@ async function listAllConversations(agent: AgentType): Promise<void> {
     return b.messageCount - a.messageCount;
   });
 
-  // Print formatted table
   console.log(
     `${"Type".padEnd(8)} ${"Messages".padEnd(10)} ${"Last Message".padEnd(50)} Conversation ID`,
   );
@@ -602,7 +521,7 @@ async function listAllConversations(agent: AgentType): Promise<void> {
     if (stat.lastMessage) {
       const timeAgo = Math.floor(
         (Date.now() - stat.lastMessage.sentAt.getTime()) / 1000 / 60,
-      ); // minutes ago
+      );
       const timeStr =
         timeAgo < 60
           ? `${timeAgo}m ago`
@@ -631,19 +550,12 @@ async function runDmOperation(options: {
 }): Promise<void> {
   if (!options.dmAddress && !options.dmInboxId) {
     console.error(`[ERROR] Either --dm-address or --dm-inbox-id is required`);
-    console.error(
-      "Usage: xmtp debug --dm-address <address> OR xmtp debug --dm-inbox-id <inbox-id>",
-    );
     process.exit(1);
   }
 
-  // Validate that both dm-address and dm-inbox-id are not provided
   if (options.dmAddress && options.dmInboxId) {
     console.error(
       "Error: Cannot use both --dm-address and --dm-inbox-id. Choose one.",
-    );
-    console.error(
-      "Usage: xmtp debug --dm-address <address> OR xmtp debug --dm-inbox-id <inbox-id>",
     );
     process.exit(1);
   }
@@ -651,17 +563,10 @@ async function runDmOperation(options: {
   const agent = await Agent.createFromEnv();
 
   try {
-    let dmId: string;
+    const dmId = options.dmAddress
+      ? await getDmByAddress(agent, options.dmAddress)
+      : await getDmByInboxId(agent, options.dmInboxId ?? "");
 
-    if (options.dmAddress) {
-      dmId = await getDmByAddress(agent, options.dmAddress);
-    } else if (options.dmInboxId) {
-      dmId = await getDmByInboxId(agent, options.dmInboxId);
-    } else {
-      throw new Error("Either dm-address or dm-inbox-id must be provided");
-    }
-
-    // Just print the conversation ID
     console.log(dmId);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);

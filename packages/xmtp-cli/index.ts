@@ -59,7 +59,6 @@ const argv = yargs(hideBin(process.argv))
     }
   }, true);
 
-// Register all commands
 registerGroupsCommand(argv);
 registerSendCommand(argv);
 registerDebugCommand(argv);

@@ -117,7 +117,6 @@ async function sendTextContent(options: {
     console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
-  // Send text message
   await conversation.send(
     "This is a text message that demonstrates basic XMTP messaging!",
   );
@@ -127,7 +126,6 @@ async function sendTextContent(options: {
   const messages = await conversation.messages();
   const lastMessage = messages[messages.length - 1];
 
-  // Send reply
   await conversation.send(
     {
       content: "This is a reply to the text message!",
@@ -139,7 +137,6 @@ async function sendTextContent(options: {
   console.log(`[OK] Sent reply`);
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  // Send reaction
   await conversation.send(
     {
       reference: lastMessage.id,
@@ -237,57 +234,23 @@ async function sendAttachmentContent(options: {
   console.log(`[SEND] Sending attachment content...`);
   const agent = await Agent.createFromEnv();
 
-  // Log network/environment
-  const network = process.env.XMTP_ENV ?? "production";
-  console.log(`[NETWORK]`);
-  console.log(`   Environment: ${network}`);
-
-  // Log sender information
-  const senderAddress = agent.client.accountIdentifier?.identifier || "Unknown";
-  const senderInboxId = agent.client.inboxId;
-  console.log(`[SENDER]`);
-  console.log(`   Address: ${senderAddress}`);
-  console.log(`   Inbox ID: ${senderInboxId}`);
-
-  // Log recipient information
-  if (options.target) {
-    console.log(`[RECIPIENT] Target:`);
-    console.log(`   Address: ${options.target}`);
-  } else if (options.groupId) {
-    console.log(`[RECIPIENT] Group:`);
-    console.log(`   Group ID: ${options.groupId}`);
-  }
-
   const conversation = await getOrCreateConversation(options, agent);
   if (!conversation) {
     console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
-  console.log(`[CONVERSATION]`);
-  console.log(`   Conversation ID: ${conversation.id}`);
 
-  console.log(`[PREPARE] Preparing remote attachment...`);
   await conversation.send("I'll send you an attachment now...");
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const attachment = parseSavedAttachment();
-  console.log(`[SEND] Sending attachment...`);
-  console.log(`   Network: ${network}`);
-  console.log(`   From: ${senderAddress} (${senderInboxId})`);
-  console.log(`   To: ${options.target || options.groupId || "Unknown"}`);
-  console.log(`   Conversation: ${conversation.id}`);
   await conversation.send(attachment, ContentTypeRemoteAttachment);
 
   console.log(`[OK] Remote attachment sent successfully`);
   console.log(`\n[COMPLETE] Attachment content demo complete!`);
-  console.log(`   Network: ${network}`);
   console.log(
     `   Attachment: ${attachment.filename} (${attachment.contentLength} bytes)`,
   );
-  console.log(
-    `   Sent from: ${senderAddress} → ${options.target || options.groupId || "Unknown"}`,
-  );
-  console.log(`   Conversation ID: ${conversation.id}`);
 }
 
 async function sendTransactionContent(options: {
@@ -320,13 +283,11 @@ async function sendTransactionContent(options: {
     console.error(`[ERROR] Invalid amount: ${options.amount}`);
     process.exit(1);
   }
-  const recipientAddress = agent.address; // the agent receives the tx.
-  const senderAddress = options.target; // the target address
-  // sends the tx.
+  const recipientAddress = agent.address;
+  const senderAddress = options.target;
   const amountMultiplier = 10 ** config.decimals;
   const amountInDecimals = BigInt(Math.round(parsedAmount * amountMultiplier));
-  const methodSignature = "0xa9059cbb"; // Function signature for ERC20 'transfer(address,uint256)'
-  // Format the transaction data following ERC20 transfer standard
+  const methodSignature = "0xa9059cbb";
   const recipient = recipientAddress
     ? recipientAddress.replace(/^0x/, "").padStart(64, "0")
     : "".padStart(64, "0");
@@ -352,7 +313,6 @@ async function sendTransactionContent(options: {
       },
     ],
   };
-  console.log(transactionObject);
   await conversation.send(transactionObject, ContentTypeWalletSendCalls);
   await conversation.send(
     {

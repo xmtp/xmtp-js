@@ -1,11 +1,5 @@
 # @xmtp/agent-sdk
 
-## 1.1.16
-
-### Patch Changes
-
-- 4dad992: Added XMTP Agent SDK pitch
-
 ## 1.1.15
 
 ### Patch Changes

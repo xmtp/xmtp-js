@@ -1,11 +1,5 @@
 # @xmtp/content-type-primitives
 
-## 2.0.3
-
-### Patch Changes
-
-- 76679fc: Locked `@xmtp/proto` version
-
 ## 2.0.2
 
 ### Patch Changes

@@ -52,7 +52,6 @@ export async function runRevokeCommand(
       .filter((id) => id.length > 0);
   }
 
-  // Validate inbox ID format (should be 64 hex characters)
   if (!/^[a-f0-9]{64}$/i.test(inboxId)) {
     console.error(
       "[ERROR] Invalid inbox ID format. Must be 64 hexadecimal characters.",
@@ -61,7 +60,6 @@ export async function runRevokeCommand(
     process.exit(1);
   }
 
-  // Validate installation IDs if provided
   if (installationsToKeep.length > 0) {
     const invalidInstallations = installationsToKeep.filter(
       (id) => !/^[a-f0-9]{64}$/i.test(id),
@@ -75,12 +73,10 @@ export async function runRevokeCommand(
     }
   }
 
-  // Get the current working directory
   const exampleDir = process.cwd();
   const exampleName = exampleDir.split("/").pop() || "example";
   const envPath = join(exampleDir, ".env");
 
-  // Check if .env file exists
   if (!existsSync(envPath)) {
     console.error(
       "[ERROR] .env file not found. Please run 'xmtp keys' first to generate keys.",
@@ -88,10 +84,8 @@ export async function runRevokeCommand(
     process.exit(1);
   }
 
-  // Sanitize environment variable value by removing surrounding quotes
   const sanitizeEnvValue = (value: string): string => {
     const trimmed = value.trim();
-    // Remove surrounding quotes (single or double) if present
     if (
       (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
       (trimmed.startsWith("'") && trimmed.endsWith("'"))
@@ -101,7 +95,6 @@ export async function runRevokeCommand(
     return trimmed;
   };
 
-  // Read and parse .env file
   const envContent = await readFile(envPath, "utf-8");
   const envVars: Record<string, string> = {};
 
@@ -112,7 +105,6 @@ export async function runRevokeCommand(
     }
   });
 
-  // Use env override if provided, otherwise check process.env, then .env file value
   const env = options.env || process.env.XMTP_ENV || envVars.XMTP_ENV;
   if (!env) {
     console.error(
@@ -122,7 +114,6 @@ export async function runRevokeCommand(
     process.exit(1);
   }
 
-  // Check process.env first, then fall back to .env file values
   const walletKey = process.env.XMTP_WALLET_KEY || envVars.XMTP_WALLET_KEY;
   const dbEncryptionKey =
     process.env.XMTP_DB_ENCRYPTION_KEY || envVars.XMTP_DB_ENCRYPTION_KEY;
@@ -148,12 +139,10 @@ export async function runRevokeCommand(
   }
 
   try {
-    // Create signer and encryption key
     const signer = createSigner(
       createUser((walletKey || envVars.XMTP_WALLET_KEY) as `0x${string}`),
     );
 
-    // Get current inbox state
     const inboxState = await Client.inboxStateFromInboxIds(
       [inboxId],
       env as unknown as XmtpEnv,
@@ -162,7 +151,6 @@ export async function runRevokeCommand(
     const currentInstallations = inboxState[0].installations;
     console.log(`✓ Current installations: ${currentInstallations.length}`);
 
-    // If there's only 1 installation, it's the current one - don't revoke anything
     if (currentInstallations.length === 1) {
       console.log(
         `✓ Only 1 installation found - this is the current one, nothing to revoke`,
@@ -170,14 +158,11 @@ export async function runRevokeCommand(
       return;
     }
 
-    // Determine which installations to keep
     let installationsToKeepIds: string[];
 
     if (installationsToKeep.length > 0) {
-      // Use provided installation IDs
       installationsToKeepIds = installationsToKeep;
 
-      // Validate that all specified installations actually exist
       const existingInstallationIds = currentInstallations.map(
         (inst) => inst.id,
       );
@@ -195,7 +180,6 @@ export async function runRevokeCommand(
         process.exit(1);
       }
     } else {
-      // No installations specified - ask for confirmation to revoke all except current
       console.log("\n[WARN] No installations specified to keep.");
       console.log("Available installation IDs:");
       currentInstallations.forEach((inst, index) => {
@@ -206,7 +190,6 @@ export async function runRevokeCommand(
         `\nThis will revoke ALL ${currentInstallations.length - 1} installations except one (which will be kept as the current installation).`,
       );
 
-      // Get user confirmation
       process.stdout.write("\nDo you want to proceed? (y/N): ");
 
       const confirmation = await new Promise<string>((resolve) => {
@@ -220,12 +203,10 @@ export async function runRevokeCommand(
         process.exit(0);
       }
 
-      // Keep the first installation (arbitrary choice since user didn't specify)
       installationsToKeepIds = [currentInstallations[0].id];
       console.log(`✓ Keeping installation: ${installationsToKeepIds[0]}`);
     }
 
-    // Find installations to revoke (all except the ones to keep)
     const installationsToRevoke = currentInstallations.filter(
       (installation) => !installationsToKeepIds.includes(installation.id),
     );
@@ -234,7 +215,6 @@ export async function runRevokeCommand(
       `Available for revocation: ${installationsToRevoke.length} (keeping ${installationsToKeepIds.length})`,
     );
 
-    // Safety check: if no installations are available for revocation, don't proceed
     if (installationsToRevoke.length === 0) {
       console.log(
         `✓ No installations to revoke - all specified installations are already kept`,
@@ -242,7 +222,6 @@ export async function runRevokeCommand(
       return;
     }
 
-    // Safety check: ensure at least 1 installation remains after revocation
     const remainingInstallations =
       currentInstallations.length - installationsToRevoke.length;
     if (remainingInstallations === 0) {
@@ -255,7 +234,6 @@ export async function runRevokeCommand(
       process.exit(1);
     }
 
-    // Revoke the installations
     const installationsToRevokeBytes = installationsToRevoke.map(
       (installation) => installation.bytes,
     );
@@ -271,7 +249,6 @@ export async function runRevokeCommand(
 
     console.log(`✓ Revoked ${installationsToRevoke.length} installations`);
 
-    // Get final state to confirm
     const finalInboxState = await Client.inboxStateFromInboxIds(
       [inboxId],
       env as unknown as XmtpEnv,
