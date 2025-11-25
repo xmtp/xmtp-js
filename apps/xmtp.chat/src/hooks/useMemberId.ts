@@ -63,7 +63,9 @@ export const useMemberId = () => {
       } else if (isValidName(memberId)) {
         setLoading(true);
         try {
-          const profiles = await resolveNameQuery(memberId);
+          // normalize name to lowercase for case-insensitive matching
+          const normalizedName = memberId.toLowerCase();
+          const profiles = await resolveNameQuery(normalizedName);
           if (!profiles || profiles.length === 0) {
             setError("Invalid ENS or Base name");
           } else {
@@ -71,7 +73,7 @@ export const useMemberId = () => {
               const profile = combineProfiles(
                 profiles[0].address,
                 profiles,
-                memberId,
+                normalizedName,
               );
               const inboxId = await getInboxIdForAddressQuery(
                 profile.address,
