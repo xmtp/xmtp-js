@@ -171,6 +171,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   ) {
     const initializedOptions = { ...(options ?? {}) };
     initializedOptions.appVersion ??= "agent-sdk/alpha";
+    initializedOptions.disableDeviceSync ??= true;
 
     const upgradedCodecs = [
       ...(initializedOptions.codecs ?? []),
