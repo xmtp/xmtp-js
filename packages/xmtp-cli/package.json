@@ -20,10 +20,11 @@
     "xmtp": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "dist/db-manager"
   ],
   "scripts": {
-    "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
+    "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js && mkdir -p dist/db-manager && (cp db-manager/db-manager-macos dist/db-manager/ 2>/dev/null || true) && (cp db-manager/db-manager-linux dist/db-manager/ 2>/dev/null || true) && chmod +x dist/db-manager/db-manager-* 2>/dev/null || true",
     "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
     "clean:dist": "rimraf dist",
     "content": "tsx commands/content-types.ts",

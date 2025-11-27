@@ -4,6 +4,7 @@ import { loadEnvFile } from "node:process";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { registerContentTypesCommand } from "./commands/content-types";
+import { registerDbManagerCommand } from "./commands/db-manager";
 import { registerDebugCommand } from "./commands/debug";
 import { registerGroupsCommand } from "./commands/groups";
 import { registerKeysCommand } from "./commands/keys";
@@ -18,9 +19,9 @@ const argv = yargs(hideBin(process.argv))
   .scriptName("xmtp")
   .version("0.0.2")
   .middleware((argv: { _: (string | number)[]; [key: string]: unknown }) => {
-    // Skip env loading for help/keys commands
+    // Skip env loading for help/keys/db-manager commands
     const command = argv._[0];
-    if (command === "keys") {
+    if (command === "keys" || command === "db-manager") {
       return;
     }
 
@@ -67,5 +68,6 @@ registerListCommand(argv);
 registerContentTypesCommand(argv);
 registerKeysCommand(argv);
 registerRevokeCommand(argv);
+registerDbManagerCommand(argv);
 
 void argv.parse();
