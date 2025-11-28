@@ -53,6 +53,7 @@ export const createClient = async (
 
   return createNodeClient(
     host,
+    null,
     isSecure,
     dbPath,
     inboxId,
