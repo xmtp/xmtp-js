@@ -209,9 +209,12 @@ describe("Preferences", () => {
     for await (const preferences of stream) {
       count++;
       expect(preferences).toBeDefined();
-      expect(preferences.type).toBeDefined();
-      expect(preferences.HmacKeyUpdate).toBeDefined();
-      expect(preferences.HmacKeyUpdate?.key).toBeDefined();
+      expect(preferences.length).toBe(1);
+      expect(preferences[0].type).toBe("HmacKeyUpdate");
+      // for proper typing
+      if (preferences[0].type === "HmacKeyUpdate") {
+        expect(preferences[0].key).toBeDefined();
+      }
     }
     expect(count).toBe(2);
   });

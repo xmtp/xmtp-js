@@ -3,19 +3,13 @@ import type {
   Consent,
   ConsentEntityType,
   Conversations,
+  UserPreferenceUpdate,
 } from "@xmtp/node-bindings";
 import {
   createStream,
   type StreamCallback,
   type StreamOptions,
 } from "@/utils/streams";
-
-export type PreferenceUpdate = {
-  type: string;
-  HmacKeyUpdate?: {
-    key: Uint8Array;
-  };
-};
 
 /**
  * Manages user preferences and consent states
@@ -124,9 +118,9 @@ export class Preferences {
    * @param options - Optional stream options
    * @returns Stream instance for preference updates
    */
-  streamPreferences(options?: StreamOptions<PreferenceUpdate>) {
+  streamPreferences(options?: StreamOptions<UserPreferenceUpdate[]>) {
     const streamPreferences = async (
-      callback: StreamCallback<PreferenceUpdate>,
+      callback: StreamCallback<UserPreferenceUpdate[]>,
       onFail: () => void,
     ) => {
       if (!options?.disableSync) {
