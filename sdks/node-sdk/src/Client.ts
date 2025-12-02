@@ -38,7 +38,6 @@ import {
 } from "@/utils/errors";
 import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
-import { version } from "@/utils/version";
 
 export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
   [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
@@ -547,6 +546,11 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     const signatureRequest =
       await this.unsafe_revokeAllOtherInstallationsSignatureRequest();
 
+    // no other installations to revoke
+    if (!signatureRequest) {
+      return;
+    }
+
     await this.unsafe_addSignature(signatureRequest);
     await this.unsafe_applySignatureRequest(signatureRequest);
   }
@@ -585,7 +589,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   ) {
     const host = ApiUrls[env ?? "dev"];
     const identifier = await signer.getIdentifier();
-    const signatureRequest = revokeInstallationsSignatureRequest(
+    const signatureRequest = await revokeInstallationsSignatureRequest(
       host,
       gatewayHost,
       identifier,
@@ -932,8 +936,9 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
 
   /**
    * Gets the version of the Node bindings
+   * @deprecated
    */
   static get version() {
-    return version;
+    return "libxmtp@1.6.2";
   }
 }
