@@ -1,5 +1,6 @@
 import {
   Agent,
+  filter,
   type Agent as AgentType,
   type KeyPackageStatus,
 } from "@xmtp/agent-sdk";
@@ -271,11 +272,32 @@ async function runResolveOperation(options: {
   }
 }
 
+interface ConversationBreakdown {
+  total: number;
+  dms: number;
+  groups: number;
+}
+
+async function getConversationBreakdown(
+  agent: AgentType,
+): Promise<ConversationBreakdown> {
+  await agent.client.conversations.sync();
+  const conversations = await agent.client.conversations.list();
+  const dms = conversations.filter(filter.isDM);
+  const groups = conversations.filter(filter.isGroup);
+
+  return {
+    total: conversations.length,
+    dms: dms.length,
+    groups: groups.length,
+  };
+}
+
 async function runInfoOperation(): Promise<void> {
   const agent = await Agent.createFromEnv();
 
   try {
-    const conversations = await agent.client.conversations.list();
+    const breakdown = await getConversationBreakdown(agent);
     const inboxState = await agent.client.preferences.inboxState();
 
     console.log(`\n[INFO] General Information:`);
@@ -284,7 +306,9 @@ async function runInfoOperation(): Promise<void> {
     console.log(`   Installation ID: ${agent.client.installationId}`);
     console.log(`   Environment: ${process.env.XMTP_ENV ?? "production"}`);
     console.log(`   Installations: ${inboxState.installations.length}`);
-    console.log(`   Conversations: ${conversations.length}`);
+    console.log(`   Conversations: ${breakdown.total}`);
+    console.log(`   DMs: ${breakdown.dms}`);
+    console.log(`   Groups: ${breakdown.groups}`);
   } catch (error) {
     console.error(
       `[ERROR] Failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -439,23 +463,19 @@ interface ConversationStats {
 
 async function listAllConversations(agent: AgentType): Promise<void> {
   console.log(`Syncing conversations...`);
-  await agent.client.conversations.sync();
-
-  const conversations = await agent.client.conversations.list();
-  const totalCount = conversations.length;
-  const dms = conversations.filter((conv) => "peerInboxId" in conv);
-  const groups = conversations.filter((conv) => "name" in conv);
+  const breakdown = await getConversationBreakdown(agent);
 
   console.log(`\n[STATS] Conversation Statistics:`);
-  console.log(`   Total Conversations: ${totalCount}`);
-  console.log(`   DMs: ${dms.length}`);
-  console.log(`   Groups: ${groups.length}`);
+  console.log(`   Total Conversations: ${breakdown.total}`);
+  console.log(`   DMs: ${breakdown.dms}`);
+  console.log(`   Groups: ${breakdown.groups}`);
 
-  if (totalCount === 0) {
+  if (breakdown.total === 0) {
     console.log(`\n[INFO] No conversations found.`);
     return;
   }
 
+  const conversations = await agent.client.conversations.list();
   console.log(`\n[CONVERSATIONS] Details:\n`);
 
   const conversationStats: ConversationStats[] = [];
@@ -478,7 +498,7 @@ async function listAllConversations(agent: AgentType): Promise<void> {
         };
       }
 
-      const type = "peerInboxId" in conv ? "DM" : "Group";
+      const type = filter.isDM(conv) ? "DM" : "Group";
 
       conversationStats.push({
         id: conv.id,
@@ -487,7 +507,7 @@ async function listAllConversations(agent: AgentType): Promise<void> {
         lastMessage,
       });
     } catch (error) {
-      const type = "peerInboxId" in conv ? "DM" : "Group";
+      const type = filter.isDM(conv) ? "DM" : "Group";
       conversationStats.push({
         id: conv.id,
         type,

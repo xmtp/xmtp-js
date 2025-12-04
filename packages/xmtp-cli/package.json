@@ -26,22 +26,15 @@
     "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
     "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
     "clean:dist": "rimraf dist",
-    "content": "tsx commands/content-types.ts",
-    "debug": "tsx commands/debug.ts",
     "dev": "tsx --watch index.ts",
     "format": "cd ../.. && yarn build && yarn format packages/xmtp-cli",
-    "groups": "tsx commands/groups.ts",
     "link": "yarn build && yarn link",
     "lint": "cd ../.. && yarn eslint packages/xmtp-cli",
-    "list": "tsx commands/list.ts",
-    "permissions": "tsx commands/permissions.ts",
-    "send": "tsx commands/send.ts",
     "start": "tsx index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "unlink": "yarn unlink",
-    "update": "yarn build"
+    "unlink": "yarn unlink"
   },
   "dependencies": {
     "@xmtp/agent-sdk": "1.1.15",
