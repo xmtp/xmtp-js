@@ -459,6 +459,13 @@ export class Conversations<ContentTypes = unknown> {
     });
   }
 
+  async streamMessageDeletions(options?: StreamOptions<string>) {
+    const stream = async (callback: StreamCallback<string>) => {
+      return this.#conversations.streamMessageDeletions(callback);
+    };
+    return createStream(stream, undefined, options);
+  }
+
   /**
    * Retrieves HMAC keys for all conversations
    *
