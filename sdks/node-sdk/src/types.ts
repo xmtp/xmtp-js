@@ -107,6 +107,11 @@ export type OtherOptions = {
    * (default: false)
    */
   debugEventsEnabled?: boolean;
+  /**
+   * The nonce to use when generating a new inbox ID
+   * (default: undefined = 1)
+   */
+  nonce?: bigint;
 };
 
 export type ClientOptions = NetworkOptions &

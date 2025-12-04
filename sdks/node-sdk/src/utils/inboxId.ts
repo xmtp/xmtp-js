@@ -6,8 +6,11 @@ import {
 import { ApiUrls } from "@/constants";
 import type { XmtpEnv } from "@/types";
 
-export const generateInboxId = (identifier: Identifier): string => {
-  return generateInboxIdBinding(identifier);
+export const generateInboxId = (
+  identifier: Identifier,
+  nonce?: bigint,
+): string => {
+  return generateInboxIdBinding(identifier, nonce);
 };
 
 export const getInboxIdForIdentifier = async (

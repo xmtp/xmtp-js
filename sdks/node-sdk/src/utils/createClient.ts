@@ -22,7 +22,7 @@ export const createClient = async (
   const isSecure = host.startsWith("https");
   const inboxId =
     (await getInboxIdForIdentifier(identifier, env)) ||
-    generateInboxId(identifier);
+    generateInboxId(identifier, options?.nonce);
   let dbPath: string | null;
   if (options?.dbPath === undefined) {
     // Default: auto-generated path
