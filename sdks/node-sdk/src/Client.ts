@@ -148,6 +148,20 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Gets the version of libxmtp used in the bindings
+   */
+  get libxmtpVersion() {
+    return this.#client?.libxmtpVersion();
+  }
+
+  /**
+   * Gets the app version used by the client
+   */
+  get appVersion() {
+    return this.#client?.appVersion();
+  }
+
+  /**
    * Gets the client options
    */
   get options() {
@@ -939,6 +953,9 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @deprecated
    */
   static get version() {
-    return "libxmtp@1.6.2";
+    console.warn(
+      "Client.version is deprecated. Use Client.libxmtpVersion instead.",
+    );
+    return undefined;
   }
 }
