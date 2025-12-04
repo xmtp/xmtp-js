@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.16
+
+### Patch Changes
+
+- f3017b3: Disabled device sync by default
+
 ## 1.1.15
 
 ### Patch Changes
