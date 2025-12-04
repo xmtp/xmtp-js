@@ -4920,6 +4920,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/node-bindings@npm:1.6.1-rc3":
+  version: 1.6.1-rc3
+  resolution: "@xmtp/node-bindings@npm:1.6.1-rc3"
+  checksum: 10/64e72da74c0552758c360a0f4596c04a0e091017fa07471d454bb25da4e36293005c830c1adc09974333e3d073f2fb164c922ce59ced15fce99389848a16e71f
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-bindings@npm:1.6.2":
   version: 1.6.2
   resolution: "@xmtp/node-bindings@npm:1.6.2"
@@ -4927,7 +4934,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:4.5.0-rc1, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:4.5.0-rc1":
+  version: 4.5.0-rc1
+  resolution: "@xmtp/node-sdk@npm:4.5.0-rc1"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^2.0.2"
+    "@xmtp/content-type-primitives": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/node-bindings": "npm:1.6.1-rc3"
+  checksum: 10/3df3027cc189cf2c31a83ad47b0a917081046522e3bca8761672d2850f122f87c5b5ea4dc430a59498c02074183f510b2f599f1a15653788a365c160b1423f67
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:

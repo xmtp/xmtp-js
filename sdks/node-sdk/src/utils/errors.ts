@@ -60,3 +60,13 @@ export class StreamInvalidRetryAttemptsError extends Error {
     super("Stream retry attempts must be greater than 0");
   }
 }
+
+export class XMTPError extends Error {
+  code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+    this.name = "XMTPError";
+  }
+}

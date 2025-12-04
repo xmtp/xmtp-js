@@ -13,6 +13,7 @@ import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
+import { XMTPError } from "@/utils/errors";
 import {
   createStream,
   type StreamCallback,
@@ -54,7 +55,8 @@ export class Conversations<ContentTypes = unknown> {
       return metadata.conversationType() === "group"
         ? new Group(this.#client, group)
         : new Dm(this.#client, group);
-    } catch {
+    } catch (e) {
+      console.error(e);
       return undefined;
     }
   }
@@ -103,7 +105,20 @@ export class Conversations<ContentTypes = unknown> {
       // findMessageById will throw if message is not found
       const message = this.#conversations.findMessageById(id);
       return new DecodedMessage(this.#client, message);
-    } catch {
+    } catch (e) {
+      console.error(e);
+      if (e instanceof Error) {
+        // parse error message in format: [ErrorCode] message
+        const match = e.message.match(/^\[([^\]]+)\]\s+(.+)$/);
+
+        if (match) {
+          const code = match[1];
+          const message = match[2];
+          const err = new XMTPError(code, message);
+          console.error(err);
+        }
+      }
+
       return undefined;
     }
   }

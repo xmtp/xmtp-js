@@ -260,7 +260,7 @@ describe("Conversations", () => {
     expect(dm).toBeDefined();
   });
 
-  it("should get a group by ID", async () => {
+  it.only("should get a group by ID", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const signer1 = createSigner(user1);
@@ -275,9 +275,14 @@ describe("Conversations", () => {
     );
     expect(foundGroup).toBeDefined();
     expect(foundGroup!.id).toBe(group.id);
+
+    const invalidGroup = await client1.conversations.getConversationById(
+      "1234567890abcdef1234567890abcdef",
+    );
+    expect(invalidGroup).toBeUndefined();
   });
 
-  it("should get a message by ID", async () => {
+  it.only("should get a message by ID", async () => {
     const user1 = createUser();
     const user2 = createUser();
     const signer1 = createSigner(user1);
@@ -286,11 +291,17 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(signer2);
     const group = await client1.conversations.newGroup([client2.inboxId]);
     const messageId = await group.send("gm!");
+    console.log("messageId", messageId);
     expect(messageId).toBeDefined();
 
     const message = client1.conversations.getMessageById(messageId);
     expect(message).toBeDefined();
     expect(message!.id).toBe(messageId);
+
+    const invalidMessage = client1.conversations.getMessageById(
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    );
+    expect(invalidMessage).toBeUndefined();
   });
 
   it("should create a group with options", async () => {
