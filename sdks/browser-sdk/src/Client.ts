@@ -675,7 +675,7 @@ export class Client<
       throw new CodecNotFoundError(contentType);
     }
 
-    return this.encodeWithCodec(content, codec);
+    return this.#encodeWithCodec(content, codec);
   }
 
   /**
@@ -693,8 +693,8 @@ export class Client<
     }
 
     return {
-      encodedContent: this.encodeWithCodec(content, codec),
-      sendOptions: this.sendMessageOpts(content, codec),
+      encodedContent: this.#encodeWithCodec(content, codec),
+      sendOptions: this.#sendMessageOpts(content, codec),
     };
   }
 
@@ -705,7 +705,7 @@ export class Client<
    * @param codec - The codec to use for encoding
    * @returns The encoded content with optional fallback
    */
-  private encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
+  #encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
     const encoded = codec.encode(content, this);
     const fallback = codec.fallback(content);
     if (fallback) {
@@ -721,7 +721,7 @@ export class Client<
    * @param codec - The codec used for the content
    * @returns Send options including whether to push notify recipients
    */
-  private sendMessageOpts(
+  #sendMessageOpts(
     content: ContentTypes,
     codec: ContentCodec,
   ): { shouldPush: boolean } {
