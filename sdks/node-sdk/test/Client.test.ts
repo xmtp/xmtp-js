@@ -348,8 +348,13 @@ describe("Client", () => {
     expect(notAuthorized).toBe(false);
   });
 
-  it("should return a version", () => {
-    expect(Client.version).toBeDefined();
+  it("should return a version", async () => {
+    expect(Client.version).toBeUndefined();
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    expect(client.appVersion).toBeDefined();
+    expect(client.libxmtpVersion).toBeDefined();
   });
 
   it("should change the recovery identifier", async () => {
