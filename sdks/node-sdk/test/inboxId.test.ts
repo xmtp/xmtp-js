@@ -12,6 +12,12 @@ describe("generateInboxId", () => {
     const signer = createSigner(user);
     const inboxId = generateInboxId(await signer.getIdentifier());
     expect(inboxId).toBeDefined();
+
+    const inboxId2 = generateInboxId(await signer.getIdentifier(), 1n);
+    expect(inboxId2).toBe(inboxId);
+
+    const inboxId3 = generateInboxId(await signer.getIdentifier(), 2n);
+    expect(inboxId3).not.toBe(inboxId);
   });
 });
 

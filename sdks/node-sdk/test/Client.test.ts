@@ -35,6 +35,17 @@ describe("Client", () => {
     expect(client.installationId).toBeDefined();
     expect(client.options).toBeDefined();
     expect(client.signer).toBe(signer);
+
+    const client2 = await createClient(signer, {
+      nonce: 1n,
+    });
+    expect(client2.inboxId).toBe(client.inboxId);
+
+    await expect(
+      createClient(signer, {
+        nonce: 2n,
+      }),
+    ).rejects.toThrow();
   });
 
   it("should register an identity", async () => {
