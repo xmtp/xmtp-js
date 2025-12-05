@@ -53,6 +53,7 @@
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/content-type-transaction-reference": "^2.0.2",
     "@xmtp/content-type-wallet-send-calls": "^2.0.0",
+    "@xmtp/node-sdk": "4.4.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
