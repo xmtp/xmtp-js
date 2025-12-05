@@ -22,6 +22,15 @@ Call `countMessages` to return a count of messages without retrieving the full m
 
 To learn more, see [Count messages in a conversation](https://docs.xmtp.org/chat-apps/list-stream-sync/list-messages#count-messages-in-a-conversation).
 
+### New version properties on the client
+
+- `libxmtpVersion`: Returns the version of `libxmtp` used in the bindings
+- `appVersion`: Returns the app version configured for the client
+
+The `libxmtpVersion` property can be useful for debugging or ensuring compatibility with the underlying XMTP APIs.
+
+**Note:** The static `Client.version` property is now deprecated, use `libxmtpVersion` instead.
+
 ### `syncAll` performance improvements
 
 The `syncAll` method now performs the same function as before, but with significantly improved performance. It achieves this by syncing only group chat and DM conversations with a consent state of _allowed_ or _unknown_ that contain **unread messages**, rather than syncing all conversations.
