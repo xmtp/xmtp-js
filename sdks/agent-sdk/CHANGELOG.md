@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.17
+
+### Patch Changes
+
+Upgraded `@xmtp/node-sdk` dependency to `4.5.0`
+
 ## 1.1.16
 
 ### Patch Changes
