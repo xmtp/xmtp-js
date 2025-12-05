@@ -459,7 +459,27 @@ export class Conversations<ContentTypes = unknown> {
     });
   }
 
-  async streamMessageDeletions(options?: StreamOptions<string>) {
+  /**
+   * Creates a stream for message deletions
+   *
+   * This is a local stream, does not require network sync, and will not fail
+   * like other streams.
+   *
+   * @param options - Optional stream options
+   * @returns Stream instance for message deletions
+   */
+  async streamMessageDeletions(
+    options?: Omit<
+      StreamOptions<string>,
+      | "disableSync"
+      | "onFail"
+      | "onRetry"
+      | "onRestart"
+      | "retryAttempts"
+      | "retryDelay"
+      | "retryOnFail"
+    >,
+  ) {
     const stream = async (callback: StreamCallback<string>) => {
       return this.#conversations.streamMessageDeletions(callback);
     };

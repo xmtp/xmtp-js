@@ -108,7 +108,7 @@ export type OtherOptions = {
    */
   debugEventsEnabled?: boolean;
   /**
-   * The nonce to use when generating a new inbox ID
+   * The nonce to use when generating an inbox ID
    * (default: undefined = 1)
    */
   nonce?: bigint;
