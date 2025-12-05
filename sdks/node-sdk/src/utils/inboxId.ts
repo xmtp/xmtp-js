@@ -6,15 +6,24 @@ import {
 import { ApiUrls } from "@/constants";
 import type { XmtpEnv } from "@/types";
 
-export const generateInboxId = (identifier: Identifier): string => {
-  return generateInboxIdBinding(identifier);
+export const generateInboxId = (
+  identifier: Identifier,
+  nonce?: bigint,
+): string => {
+  return generateInboxIdBinding(identifier, nonce);
 };
 
 export const getInboxIdForIdentifier = async (
   identifier: Identifier,
   env: XmtpEnv = "dev",
+  gatewayHost?: string,
 ) => {
   const host = ApiUrls[env];
   const isSecure = host.startsWith("https");
-  return getInboxIdForIdentifierBinding(host, isSecure, identifier);
+  return getInboxIdForIdentifierBinding(
+    host,
+    gatewayHost,
+    isSecure,
+    identifier,
+  );
 };

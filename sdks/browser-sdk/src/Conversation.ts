@@ -144,15 +144,16 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const safeEncodedContent =
+    const { encodedContent: safeEncodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
     return this.#client.sendMessage("conversation.sendOptimistic", {
       id: this.#id,
       content: safeEncodedContent,
+      sendOptions,
     });
   }
 
@@ -169,15 +170,16 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const safeEncodedContent =
+    const { encodedContent: safeEncodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
     return this.#client.sendMessage("conversation.send", {
       id: this.#id,
       content: safeEncodedContent,
+      sendOptions,
     });
   }
 
@@ -194,6 +196,22 @@ export class Conversation<ContentTypes = unknown> {
     });
 
     return messages.map((message) => new DecodedMessage(this.#client, message));
+  }
+
+  /**
+   * Counts messages in this conversation
+   *
+   * @param options - Optional filtering options
+   * @returns Promise that resolves with the count of messages
+   */
+  async countMessages(
+    options?: Omit<SafeListMessagesOptions, "limit" | "direction">,
+  ) {
+    const count = await this.#client.sendMessage("conversation.countMessages", {
+      id: this.#id,
+      options,
+    });
+    return count;
   }
 
   /**

@@ -35,6 +35,17 @@ describe("Client", () => {
     expect(client.installationId).toBeDefined();
     expect(client.options).toBeDefined();
     expect(client.signer).toBe(signer);
+
+    const client2 = await createClient(signer, {
+      nonce: 1n,
+    });
+    expect(client2.inboxId).toBe(client.inboxId);
+
+    await expect(
+      createClient(signer, {
+        nonce: 2n,
+      }),
+    ).rejects.toThrow();
   });
 
   it("should register an identity", async () => {
@@ -348,8 +359,13 @@ describe("Client", () => {
     expect(notAuthorized).toBe(false);
   });
 
-  it("should return a version", () => {
-    expect(Client.version).toBeDefined();
+  it("should return a version", async () => {
+    expect(Client.version).toBeUndefined();
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    expect(client.appVersion).toBeDefined();
+    expect(client.libxmtpVersion).toBeDefined();
   });
 
   it("should change the recovery identifier", async () => {
