@@ -321,8 +321,10 @@ export class Conversations<ContentTypes = unknown> {
       onFail: () => void,
     ) => {
       const streamId = v4();
-      // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        // sync the conversation
+        await this.sync();
+      }
       // start the stream
       await this.#client.sendMessage("conversations.stream", {
         streamId,
@@ -394,8 +396,10 @@ export class Conversations<ContentTypes = unknown> {
       onFail: () => void,
     ) => {
       const streamId = v4();
-      // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        // sync the conversation
+        await this.sync();
+      }
       // start the stream
       await this.#client.sendMessage("conversations.streamAllMessages", {
         streamId,
