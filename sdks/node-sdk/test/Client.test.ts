@@ -147,6 +147,21 @@ describe("Client", () => {
     expect(inboxState2.installations[0].id).toBe(client3.installationId);
   });
 
+  it("should not fail when revoking all other installations with only one installation", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const inboxState = await client.preferences.inboxState(true);
+    expect(
+      inboxState.installations.length,
+      "verify only one installation",
+    ).toBe(1);
+    expect(inboxState.installations[0].id).toBe(client.installationId);
+
+    await expect(client.revokeAllOtherInstallations()).resolves.not.toThrow();
+  });
+
   it("should revoke specific installations", async () => {
     const user = createUser();
     const signer = createSigner(user);
