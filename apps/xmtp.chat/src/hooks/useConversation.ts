@@ -1,62 +1,63 @@
-import type {
-  Conversation,
-  DecodedMessage,
-  SafeListMessagesOptions,
-} from "@xmtp/browser-sdk";
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { useState } from "react";
-import { useXMTP, type ContentTypes } from "@/contexts/XMTPContext";
+import { type ContentTypes } from "@/contexts/XMTPContext";
+import {
+  useActions,
+  useConversation as useConversationState,
+  useLastSentAt,
+  useMembers,
+  useMessages,
+  useMetadata,
+  usePermissions,
+} from "@/stores/inbox/hooks";
 
-export const useConversation = (conversation: Conversation<ContentTypes>) => {
-  const { client } = useXMTP();
+export const useConversation = (conversationId: string) => {
+  const { addMessages } = useActions();
+  const conversation = useConversationState(conversationId);
+  const members = useMembers(conversationId);
+  const permissions = usePermissions(conversationId);
+  const { name, description, imageUrl } = useMetadata(conversationId);
+  const messages = useMessages(conversationId);
+  const lastSentAt = useLastSentAt(conversationId);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [sending, setSending] = useState(false);
-  const [messages, setMessages] = useState<DecodedMessage<ContentTypes>[]>([]);
 
-  const getMessages = async (
-    options?: SafeListMessagesOptions,
-    syncFromNetwork: boolean = false,
-  ) => {
-    if (!client) {
-      return;
+  if (!conversation) {
+    throw new Error(
+      `useConversation: Conversation ${conversationId} not found`,
+    );
+  }
+
+  const sync = async (fromNetwork: boolean = false) => {
+    if (fromNetwork) {
+      setSyncing(true);
+
+      try {
+        const isActive = await conversation.isActive();
+        // ensure group is active before syncing
+        if (isActive) {
+          await conversation.sync();
+        }
+      } finally {
+        setSyncing(false);
+      }
     }
 
-    setMessages([]);
     setLoading(true);
 
-    if (syncFromNetwork) {
-      await sync();
-    }
-
     try {
-      const msgs = await conversation.messages(options);
-      setMessages(msgs);
+      const msgs = await conversation.messages({
+        sentAfterNs: lastSentAt,
+      });
+      await addMessages(conversation.id, msgs);
       return msgs;
     } finally {
       setLoading(false);
     }
   };
 
-  const sync = async () => {
-    if (!client) {
-      return;
-    }
-
-    setSyncing(true);
-
-    try {
-      await conversation.sync();
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const send = async (message: ContentTypes, contentType?: ContentTypeId) => {
-    if (!client) {
-      return;
-    }
-
     setSending(true);
 
     try {
@@ -66,30 +67,17 @@ export const useConversation = (conversation: Conversation<ContentTypes>) => {
     }
   };
 
-  const streamMessages = async () => {
-    const noop = () => {};
-    if (!client) {
-      return noop;
-    }
-
-    const onValue = (message: DecodedMessage<ContentTypes>) => {
-      setMessages((prev) => [...prev, message]);
-    };
-
-    const stream = await conversation.stream({
-      onValue,
-    });
-
-    return () => stream.end();
-  };
-
   return {
-    getMessages,
+    conversation,
+    description,
+    imageUrl,
     loading,
+    members,
     messages,
+    name,
+    permissions,
     send,
     sending,
-    streamMessages,
     sync,
     syncing,
   };

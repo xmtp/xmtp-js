@@ -1,36 +1,37 @@
 import { LoadingOverlay } from "@mantine/core";
-import type { Dm, Group } from "@xmtp/browser-sdk";
+import type { Conversation as XmtpConversation } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import type { ContentTypes } from "@/contexts/XMTPContext";
-import { useConversations } from "@/hooks/useConversations";
+import { useSettings } from "@/hooks/useSettings";
 import { CenteredLayout } from "@/layouts/CenteredLayout";
+import { useActions, useLastSyncedAt } from "@/stores/inbox/hooks";
 import { Conversation } from "./Conversation";
 
 export const LoadConversation: React.FC = () => {
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const { conversationId } = useParams();
-  const { getConversationById } = useConversations();
+  const lastSyncedAt = useLastSyncedAt();
+  const { getConversation } = useActions();
   const [conversation, setConversation] = useState<
-    Group<ContentTypes> | Dm<ContentTypes> | undefined
+    XmtpConversation<ContentTypes> | undefined
   >(undefined);
 
   useEffect(() => {
-    const loadConversation = async () => {
-      if (conversationId) {
-        const conversation = await getConversationById(conversationId);
-        if (conversation) {
-          setConversation(conversation);
-        } else {
-          void navigate("/conversations");
-        }
+    // wait for initial sync to complete
+    if (lastSyncedAt && conversationId) {
+      const conversation = getConversation(conversationId);
+      if (conversation) {
+        setConversation(conversation);
+      } else {
+        void navigate(`/${environment}/conversations`);
       }
-    };
-    void loadConversation();
-  }, [conversationId]);
+    }
+  }, [conversationId, lastSyncedAt, environment]);
 
   return conversation ? (
-    <Conversation conversation={conversation} />
+    <Conversation conversationId={conversation.id} />
   ) : (
     <CenteredLayout>
       <LoadingOverlay visible />

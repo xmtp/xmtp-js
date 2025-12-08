@@ -11,6 +11,7 @@ import { useSettings } from "@/hooks/useSettings";
 export const Connect = () => {
   const { isConnected, disconnect, loading } = useConnectWallet();
   const {
+    environment,
     ephemeralAccountEnabled,
     setEphemeralAccountEnabled,
     setAutoConnect,
@@ -27,10 +28,10 @@ export const Connect = () => {
         setRedirectUrl("");
         void navigate(redirectUrl);
       } else {
-        void navigate("/");
+        void navigate(`/${environment}`);
       }
     }
-  }, [client]);
+  }, [client, environment]);
 
   useEffect(() => {
     if (isConnected || ephemeralAccountEnabled) {

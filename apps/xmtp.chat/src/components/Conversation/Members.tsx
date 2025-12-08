@@ -1,305 +1,188 @@
+import { Badge, Group, Stack, Text } from "@mantine/core";
+import { useCallback, useMemo } from "react";
 import {
-  Badge,
-  Button,
-  Divider,
-  Group,
-  SegmentedControl,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
-import {
-  Utils,
-  Group as XmtpGroup,
-  type Conversation,
-  type SafeGroupMember,
-} from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
-import { useSettings } from "@/hooks/useSettings";
-import { BadgeWithCopy } from "../BadgeWithCopy";
+  AddMembers,
+  type AddMembersProps,
+  type PendingMember,
+} from "@/components/Conversation/AddMembers";
+import { Member } from "@/components/Conversation/Member";
+import { RemoveMembers } from "@/components/Conversation/RemoveMembers";
+import { useClient } from "@/contexts/XMTPContext";
+import type { ClientPermissions } from "@/hooks/useClientPermissions";
+import { type MemberProfile } from "@/hooks/useMemberProfiles";
 
 export type MembersProps = {
-  conversation?: Conversation;
-  inboxId: string;
-  onMembersAdded: (members: string[]) => void;
-  onMembersRemoved?: (members: SafeGroupMember[]) => void;
+  addedMembers: PendingMember[];
+  clientPermissions?: ClientPermissions;
+  existingMembers: MemberProfile[];
+  onMembersAdded?: AddMembersProps["onMembersAdded"];
+  onMembersRemoved?: (members: MemberProfile[]) => void;
+  removedMembers: MemberProfile[];
 };
 
-type MemberType = "inboxID" | "address";
-
 export const Members: React.FC<MembersProps> = ({
-  conversation,
-  inboxId,
+  addedMembers,
+  clientPermissions,
+  existingMembers,
   onMembersAdded,
   onMembersRemoved,
+  removedMembers,
 }) => {
-  const [memberId, setMemberId] = useState("");
-  const [memberIdError, setMemberIdError] = useState<string | null>(null);
-  const [members, setMembers] = useState<SafeGroupMember[]>([]);
-  const [addedMembers, setAddedMembers] = useState<string[]>([]);
-  const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
-  const [memberType, setMemberType] = useState<MemberType>("inboxID");
-  const { environment } = useSettings();
-  const utilsRef = useRef<Utils | null>(null);
-
-  const handleAddMember = useCallback(() => {
-    const newAddedMembers = [...addedMembers, memberId.toLowerCase()];
-    setAddedMembers(newAddedMembers);
-    setMemberId("");
-    setMemberIdError(null);
-    onMembersAdded(newAddedMembers);
-  }, [addedMembers, memberId]);
-
-  const handleRemoveAddedMember = useCallback(
-    (member: string) => {
-      const newAddedMembers = addedMembers.filter((m) => m !== member);
-      setAddedMembers(newAddedMembers);
-      onMembersAdded(newAddedMembers);
-    },
-    [addedMembers],
-  );
-
+  const client = useClient();
   const handleRemoveMember = useCallback(
-    (member: SafeGroupMember) => {
-      setMembers(members.filter((m) => m.inboxId !== member.inboxId));
-      const newRemovedMembers = [...removedMembers, member];
-      setRemovedMembers(newRemovedMembers);
-      onMembersRemoved?.(newRemovedMembers);
-    },
-    [members, removedMembers],
-  );
-
-  const handleRestoreRemovedMember = useCallback(
-    (member: SafeGroupMember) => {
-      const newRemovedMembers = removedMembers.filter(
-        (m) => m.inboxId !== member.inboxId,
-      );
-      setRemovedMembers(newRemovedMembers);
-      onMembersRemoved?.(newRemovedMembers);
-      setMembers([...members, member]);
-    },
-    [members, removedMembers],
-  );
-
-  const memberIds = useMemo(() => {
-    return members.reduce<string[]>((ids, member) => {
-      return [
-        ...ids,
-        ...member.accountIdentifiers.map((identifier) =>
-          identifier.identifier.toLowerCase(),
-        ),
-        member.inboxId,
-      ];
-    }, []);
-  }, [members]);
-
-  useEffect(() => {
-    const utils = new Utils();
-    utilsRef.current = utils;
-    return () => {
-      utils.close();
-    };
-  }, []);
-
-  useEffect(() => {
-    const checkMemberId = async () => {
-      if (!memberId) {
-        setMemberIdError(null);
+    (inboxId: string) => {
+      const member = existingMembers.find((m) => m.inboxId === inboxId);
+      if (!member) {
         return;
       }
+      onMembersRemoved?.([...removedMembers, member]);
+    },
+    [existingMembers, removedMembers, onMembersRemoved],
+  );
 
-      if (memberIds.includes(memberId.toLowerCase())) {
-        setMemberIdError("Duplicate address or inbox ID");
-      } else if (
-        !isValidEthereumAddress(memberId) &&
-        !isValidInboxId(memberId)
-      ) {
-        setMemberIdError("Invalid address or inbox ID");
-      } else if (isValidEthereumAddress(memberId) && utilsRef.current) {
-        const inboxId = await utilsRef.current.getInboxIdForIdentifier(
-          {
-            identifier: memberId.toLowerCase(),
-            identifierKind: "Ethereum",
-          },
-          environment,
-        );
-        if (!inboxId) {
-          setMemberIdError("Address not registered on XMTP");
-        } else {
-          setMemberIdError(null);
-        }
-      } else {
-        setMemberIdError(null);
-      }
-    };
+  const showAddMembersSection =
+    !existingMembers.length ||
+    (clientPermissions && clientPermissions.canAddMembers);
+  const showRemovedMembersSection =
+    !existingMembers.length ||
+    (clientPermissions && clientPermissions.canRemoveMembers);
 
-    void checkMemberId();
-  }, [memberIds, memberId]);
+  const finalMembers = useMemo(() => {
+    return existingMembers.filter(
+      (member) => !removedMembers.some((m) => m.inboxId === member.inboxId),
+    );
+  }, [existingMembers, removedMembers]);
 
-  useEffect(() => {
-    if (!conversation || !(conversation instanceof XmtpGroup)) {
-      return;
-    }
+  const superAdmins = useMemo(() => {
+    return finalMembers.filter(
+      // @ts-expect-error - the types are wrong
+      (member) => member.permissionLevel === "SuperAdmin",
+    );
+  }, [finalMembers]);
 
-    const loadMembers = async () => {
-      const members = await conversation.members();
-      setMembers(members);
-    };
+  const admins = useMemo(() => {
+    return finalMembers.filter(
+      // @ts-expect-error - the types are wrong
+      (member) => member.permissionLevel === "Admin",
+    );
+  }, [finalMembers]);
 
-    void loadMembers();
-  }, [conversation?.id]);
+  const members = useMemo(() => {
+    return finalMembers.filter(
+      // @ts-expect-error - the types are wrong
+      (member) => member.permissionLevel === "Member",
+    );
+  }, [finalMembers]);
 
   return (
     <Stack gap="md" p="md">
-      <Group gap="xs" align="flex-start">
-        <TextInput
-          flex={1}
-          size="sm"
-          label="Address or inbox ID"
-          styles={{
-            label: {
-              marginBottom: "var(--mantine-spacing-xxs)",
-            },
-          }}
-          error={memberIdError}
-          value={memberId}
-          onChange={(event) => {
-            setMemberId(event.target.value);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && memberIdError === null) {
-              handleAddMember();
-            }
-          }}
+      {showAddMembersSection && (
+        <AddMembers
+          existingMembers={existingMembers}
+          addedMembers={addedMembers}
+          onMembersAdded={onMembersAdded}
         />
-        <Button
-          size="sm"
-          mt="32px"
-          disabled={memberIdError !== null}
-          onClick={handleAddMember}>
-          Add
-        </Button>
-      </Group>
-      <Stack gap="xs">
-        <Group gap="xs">
-          <Text fw={700}>Added members</Text>
-          <Badge color="gray" size="lg">
-            {addedMembers.length}
-          </Badge>
-        </Group>
-        <Stack gap="4px">
-          {addedMembers.map((member) => (
-            <Group
-              key={member}
-              justify="space-between"
-              align="center"
-              wrap="nowrap">
-              <BadgeWithCopy value={member} />
-              <Button
-                flex="0 0 auto"
-                size="xs"
-                onClick={() => {
-                  handleRemoveAddedMember(member);
-                }}>
-                Remove
-              </Button>
-            </Group>
-          ))}
-        </Stack>
-      </Stack>
-      {conversation && (
+      )}
+      {existingMembers.length > 0 && (
         <>
+          {showRemovedMembersSection && (
+            <RemoveMembers
+              removedMembers={removedMembers}
+              onMembersRemoved={onMembersRemoved}
+            />
+          )}
           <Stack gap="xs">
-            <Group justify="space-between" gap="xs">
-              <Title order={4}>Existing members</Title>
-              <SegmentedControl
-                withItemsBorders={false}
-                value={memberType}
-                onChange={(value) => {
-                  setMemberType(value as MemberType);
-                }}
-                data={[
-                  {
-                    label: "Inbox ID",
-                    value: "inboxID",
-                  },
-                  {
-                    label: "Address",
-                    value: "address",
-                  },
-                ]}
-              />
-            </Group>
-            <Divider mb="md" />
-            <Group gap="xs">
-              <Text fw={700}>Removed members</Text>
-              <Badge color="gray" size="lg">
-                {removedMembers.length}
-              </Badge>
-            </Group>
-            <Stack gap="4px">
-              {removedMembers.map((member) => (
-                <Group
-                  key={`${member.inboxId}-removed`}
-                  justify="space-between"
-                  align="center"
-                  wrap="nowrap">
-                  <BadgeWithCopy
-                    value={
-                      memberType === "inboxID"
-                        ? member.inboxId
-                        : member.accountIdentifiers[0].identifier
-                    }
-                  />
-                  <Button
-                    flex="0 0 auto"
-                    size="xs"
-                    onClick={() => {
-                      handleRestoreRemovedMember(member);
-                    }}>
-                    Restore
-                  </Button>
-                </Group>
-              ))}
-            </Stack>
-          </Stack>
-          <Stack gap="xs">
-            <Group gap="xs">
+            <Group gap="xs" justify="space-between" align="center">
               <Text fw={700}>Members</Text>
               <Badge color="gray" size="lg">
-                {members.length - 1}
+                {finalMembers.length}
               </Badge>
             </Group>
-            <Stack gap="4px">
-              {members.map(
-                (member) =>
-                  inboxId !== member.inboxId && (
-                    <Group
+            {superAdmins.length > 0 && (
+              <>
+                <Group gap="xs">
+                  <Text size="sm" fw={700}>
+                    Super admins
+                  </Text>
+                  <Badge color="gray" size="md">
+                    {superAdmins.length}
+                  </Badge>
+                </Group>
+                <Stack gap="0">
+                  {superAdmins.map((member) => (
+                    <Member
                       key={member.inboxId}
-                      justify="space-between"
-                      align="center"
-                      wrap="nowrap">
-                      <BadgeWithCopy
-                        value={
-                          memberType === "inboxID"
-                            ? member.inboxId
-                            : member.accountIdentifiers[0].identifier
-                        }
-                      />
-                      <Button
-                        flex="0 0 auto"
-                        size="xs"
-                        onClick={() => {
-                          handleRemoveMember(member);
-                        }}>
-                        Remove
-                      </Button>
-                    </Group>
-                  ),
-              )}
-            </Stack>
+                      address={member.address}
+                      displayName={member.displayName}
+                      avatar={member.avatar}
+                      description={member.description}
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+            {admins.length > 0 && (
+              <>
+                <Group gap="xs">
+                  <Text size="sm" fw={700}>
+                    Admins
+                  </Text>
+                  <Badge color="gray" size="md">
+                    {admins.length}
+                  </Badge>
+                </Group>
+                <Stack gap="0">
+                  {admins.map((member) => (
+                    <Member
+                      key={member.inboxId}
+                      address={member.address}
+                      displayName={member.displayName}
+                      avatar={member.avatar}
+                      description={member.description}
+                      onClick={
+                        showRemovedMembersSection &&
+                        member.inboxId !== client.inboxId
+                          ? () => {
+                              handleRemoveMember(member.inboxId);
+                            }
+                          : undefined
+                      }
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+            {members.length > 0 && (
+              <>
+                <Group gap="xs">
+                  <Text size="sm" fw={700}>
+                    Members
+                  </Text>
+                  <Badge color="gray" size="md">
+                    {members.length}
+                  </Badge>
+                </Group>
+                <Stack gap="0">
+                  {members.map((member) => (
+                    <Member
+                      key={member.inboxId}
+                      address={member.address}
+                      displayName={member.displayName}
+                      avatar={member.avatar}
+                      description={member.description}
+                      onClick={
+                        showRemovedMembersSection &&
+                        member.inboxId !== client.inboxId
+                          ? () => {
+                              handleRemoveMember(member.inboxId);
+                            }
+                          : undefined
+                      }
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
           </Stack>
         </>
       )}

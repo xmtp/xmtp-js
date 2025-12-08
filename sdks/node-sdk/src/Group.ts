@@ -1,6 +1,5 @@
 import type {
   Identifier,
-  Message,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
@@ -22,16 +21,14 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    *
    * @param client - The client instance managing this group conversation
    * @param conversation - The underlying conversation object
-   * @param lastMessage - Optional last message in the conversation
    * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     conversation: XmtpConversation,
-    lastMessage?: Message | null,
     isCommitLogForked?: boolean | null,
   ) {
-    super(client, conversation, lastMessage, isCommitLogForked);
+    super(client, conversation, isCommitLogForked);
     this.#conversation = conversation;
   }
 

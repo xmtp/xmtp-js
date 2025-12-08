@@ -5,8 +5,8 @@ import { StreamFailedError, StreamInvalidRetryAttemptsError } from "./errors";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const DEFAULT_RETRY_DELAY = 10000; // milliseconds
-export const DEFAULT_RETRY_ATTEMPTS = 6;
+export const DEFAULT_RETRY_DELAY = 60_000; // milliseconds
+export const DEFAULT_RETRY_ATTEMPTS = 10;
 
 export type StreamOptions<T = unknown, V = T> = {
   /**
@@ -35,12 +35,12 @@ export type StreamOptions<T = unknown, V = T> = {
   onValue?: (value: V) => void;
   /**
    * The number of times to retry the stream
-   * (default: 6)
+   * (default: 10)
    */
   retryAttempts?: number;
   /**
    * The delay between retries (in milliseconds)
-   * (default: 10000)
+   * (default: 60000)
    */
   retryDelay?: number;
   /**
@@ -48,6 +48,11 @@ export type StreamOptions<T = unknown, V = T> = {
    * (default: true)
    */
   retryOnFail?: boolean;
+  /**
+   * Whether to disable network sync before starting the stream
+   * (default: false)
+   */
+  disableSync?: boolean;
 };
 
 export type StreamCallback<T = unknown> = (
@@ -136,10 +141,11 @@ export const createStream = async <T = unknown, V = T>(
   };
   const retry = async (retries: number = retryAttempts) => {
     // if the stream has been retried the maximum number of times without
-    // success, throw an error
+    // success, call onError
     if (retries === 0) {
       void asyncStream.end();
-      throw new StreamFailedError(retryAttempts);
+      onError?.(new StreamFailedError(retryAttempts));
+      return;
     }
 
     // wait for the retry delay before attempting to restart the stream
@@ -173,7 +179,7 @@ export const createStream = async <T = unknown, V = T>(
     } else {
       void asyncStream.end();
       // stream failed and should not be retried, throw an error
-      throw new StreamFailedError(0);
+      onError?.(new StreamFailedError(0));
     }
   };
 

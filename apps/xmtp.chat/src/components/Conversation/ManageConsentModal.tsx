@@ -11,12 +11,16 @@ import {
 import { useNavigate, useOutletContext } from "react-router";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import type { ConversationOutletContext } from "./ConversationOutletContext";
 
 export const ManageConsentModal: React.FC = () => {
-  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation } = useConversation(conversationId);
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
   const initialConsentState = useRef<ConsentState>(ConsentState.Unknown);
@@ -35,8 +39,8 @@ export const ManageConsentModal: React.FC = () => {
   }, [conversation.id]);
 
   const handleClose = useCallback(() => {
-    void navigate(`/conversations/${conversation.id}`);
-  }, [navigate, conversation.id]);
+    void navigate(`/${environment}/conversations/${conversation.id}`);
+  }, [navigate, conversation.id, environment]);
 
   const handleConsentStateChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {

@@ -6,32 +6,42 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "yarn clean:dist && rollup -c",
+    "build": "yarn prisma:generate && yarn clean:dist && rollup -c",
+    "build:vercel": "yarn build && yarn migrate:deploy",
     "clean": "rimraf .turbo && yarn clean:dist && yarn clean:deps",
     "clean:deps": "rimraf node_modules",
     "clean:dist": "rimraf api",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "prisma:dev": "prisma dev",
+    "prisma:generate": "prisma generate",
     "start": "node dist/index.js",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "helmet": "^8.1.0",
-    "pinata": "^2.5.0"
+    "pinata": "^2.5.1",
+    "prisma": "^6.18.0",
+    "web3bio-profile-kit": "^0.1.25",
+    "zod": "^4.1.12",
+    "zod-prisma-types": "^3.3.5"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-typescript": "^12.1.4",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.3.0",
+    "@types/express": "^5.0.4",
+    "@types/node": "^24.9.1",
     "rimraf": "^6.0.1",
-    "rollup": "^4.48.1",
+    "rollup": "^4.52.5",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tslib": "^2.8.1",
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }

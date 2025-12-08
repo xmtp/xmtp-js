@@ -1,6 +1,7 @@
 import "@mantine/core/styles.css";
 import { createTheme, MantineProvider } from "@mantine/core";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as Sentry from "@sentry/react";
+import { QueryClientProvider } from "@tanstack/react-query";
 import pkg from "@xmtp/browser-sdk/package.json";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
@@ -33,8 +34,18 @@ import {
 } from "wagmi/connectors";
 import { App } from "@/components/App/App";
 import { XMTPProvider } from "@/contexts/XMTPContext";
+import { queryClient } from "@/helpers/queries";
 
-const queryClient = new QueryClient();
+Sentry.init({
+  dsn: "https://ba2f58ad2e3d5fd09cd8aa36038b950f@o4504757119680512.ingest.us.sentry.io/4510308912005120",
+  // ensure no data collection except errors
+  enableLogs: false,
+  profilesSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
+  replaysSessionSampleRate: 0,
+  sendDefaultPii: false,
+  tracesSampleRate: 0,
+});
 
 export const config = createConfig({
   connectors: [
@@ -88,6 +99,12 @@ export const config = createConfig({
 });
 
 const theme = createTheme({
+  fontSizes: {
+    xxs: "calc(0.6875rem * var(--mantine-scale))",
+  },
+  lineHeights: {
+    xxs: "1.2",
+  },
   spacing: {
     xxs: "calc(0.5rem * var(--mantine-scale))",
     xxxs: "calc(0.25rem * var(--mantine-scale))",

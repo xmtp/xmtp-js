@@ -1,94 +1,98 @@
-import { Group } from "@mantine/core";
-import {
-  Group as XmtpGroup,
-  type Client,
-  type Conversation as XmtpConversation,
-} from "@xmtp/browser-sdk";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Outlet, useOutletContext } from "react-router";
+import { ActionIcon, Group, Text, Tooltip } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { Group as XmtpGroup } from "@xmtp/browser-sdk";
+import { useCallback, useEffect } from "react";
+import { Outlet } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
+import { MembersList } from "@/components/Conversation/MembersList";
 import { Messages } from "@/components/Messages/Messages";
 import { ConversationProvider } from "@/contexts/ConversationContext";
-import type { ContentTypes } from "@/contexts/XMTPContext";
+import { resolveAddresses } from "@/helpers/profiles";
+import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
+import { IconUsers } from "@/icons/IconUsers";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
 
 export type ConversationProps = {
-  conversation: XmtpConversation<ContentTypes>;
+  conversationId: string;
 };
 
-export const Conversation: React.FC<ConversationProps> = ({ conversation }) => {
-  const { client } = useOutletContext<{ client: Client<ContentTypes> }>();
-  const [title, setTitle] = useState("");
+export const Conversation: React.FC<ConversationProps> = ({
+  conversationId,
+}) => {
+  const [opened, { toggle }] = useDisclosure();
   const {
-    getMessages,
+    conversation,
+    name,
+    sync,
     loading: conversationLoading,
     messages,
-    streamMessages,
+    members,
     syncing: conversationSyncing,
-  } = useConversation(conversation);
-  const stopStreamRef = useRef<(() => void) | null>(null);
-
-  const startStream = useCallback(async () => {
-    stopStreamRef.current = await streamMessages();
-  }, [streamMessages]);
-
-  const stopStream = useCallback(() => {
-    stopStreamRef.current?.();
-    stopStreamRef.current = null;
-  }, []);
+  } = useConversation(conversationId);
 
   useEffect(() => {
     const loadMessages = async () => {
-      stopStream();
-      await getMessages(undefined, true);
-      await startStream();
+      await sync(true);
     };
     void loadMessages();
-    return () => {
-      stopStream();
-    };
-  }, [conversation.id]);
-
-  const handleSync = useCallback(async () => {
-    stopStream();
-    await getMessages(undefined, true);
-    await startStream();
-    if (conversation instanceof XmtpGroup) {
-      setTitle(conversation.name || "Untitled");
-    }
-  }, [getMessages, conversation.id, startStream, stopStream]);
+  }, [conversationId]);
 
   useEffect(() => {
-    if (conversation instanceof XmtpGroup) {
-      setTitle(conversation.name || "Untitled");
-    } else {
-      setTitle("Direct message");
-    }
-  }, [conversation.id]);
+    void resolveAddresses(
+      Array.from(members.values()).map((m) => getMemberAddress(m)),
+    );
+  }, [members]);
+
+  const handleSync = useCallback(async () => {
+    await sync(true);
+  }, [sync, conversationId]);
 
   return (
     <>
-      <ConversationProvider key={conversation.id} conversation={conversation}>
+      <ConversationProvider
+        key={conversationId}
+        conversationId={conversationId}>
         <ContentLayout
-          title={title}
-          loading={conversationLoading}
+          title={name || "Untitled"}
+          loading={messages.length === 0 && conversationLoading}
           headerActions={
-            <Group gap="xs">
+            <Group gap="xxs">
               <ConversationMenu
+                conversationId={conversationId}
                 type={conversation instanceof XmtpGroup ? "group" : "dm"}
                 onSync={() => void handleSync()}
                 disabled={conversationSyncing}
               />
+              <Tooltip
+                label={
+                  opened ? (
+                    <Text size="xs">Hide members</Text>
+                  ) : (
+                    <Text size="xs">Show members</Text>
+                  )
+                }>
+                <ActionIcon
+                  variant="default"
+                  onClick={() => {
+                    toggle();
+                  }}>
+                  <IconUsers />
+                </ActionIcon>
+              </Tooltip>
             </Group>
           }
-          footer={<Composer conversation={conversation} />}
+          aside={
+            <MembersList conversationId={conversationId} toggle={toggle} />
+          }
+          asideOpened={opened}
+          footer={<Composer conversationId={conversationId} />}
           withScrollArea={false}>
           <Messages messages={messages} />
         </ContentLayout>
       </ConversationProvider>
-      <Outlet context={{ conversation, client }} />
+      <Outlet context={{ conversationId }} />
     </>
   );
 };

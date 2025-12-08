@@ -8,11 +8,11 @@ Have a question about how to build with XMTP? Ask your question and learn with t
 
 ## 🐞 Bugs
 
-Report a bug using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues).
+Report a bug using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues/new/choose).
 
 ## ✨ Feature Requests
 
-Request a feature using [GitHub Issues](https://github.com/xmtp/xmtp-js/issues).
+We are not accepting feature requests at this time.
 
 ## 🔀 Pull Requests
 
@@ -65,7 +65,24 @@ This repository uses the [Yarn package manager](https://yarnpkg.com/). To use it
 
 ### Testing
 
-Please add unit tests when appropriate and ensure that all unit tests are passing before submitting a pull request. Note that some unit tests require a backend node to be running locally. The `test:setup` command can be run a single time to start the node in the background using Docker.
+Please add unit tests when appropriate and ensure that all unit tests are passing before submitting a pull request. Note that some unit tests require a local XMTP backend environment.
+
+1. Run `yarn test:setup` from the **root directory** to start the required backend services using Docker:
+   - XMTP node
+   - PostgreSQL databases
+   - MLS validation service
+   - Upload service
+   - History server
+
+2. After setup, run `yarn test` in the **project directory** to execute the desired test suite
+
+3. When finished testing, stop all backend services by running this command from the **root directory**:
+
+```bash
+yarn test:teardown
+```
+
+**Important**: If the backend services are not running, tests will likely fail with `transport error` messages.
 
 ## 🚢 Publishing
 

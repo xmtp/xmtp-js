@@ -1,10 +1,11 @@
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import type {
-  ConsentState,
-  ListMessagesOptions,
-  Message,
-  Conversation as XmtpConversation,
+import {
+  SortDirection,
+  type ConsentState,
+  type ListMessagesOptions,
+  type Message,
+  type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
@@ -24,7 +25,6 @@ import {
 export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
   #conversation: XmtpConversation;
-  #lastMessage?: DecodedMessage<ContentTypes>;
   #isCommitLogForked: boolean | null = null;
 
   /**
@@ -32,20 +32,15 @@ export class Conversation<ContentTypes = unknown> {
    *
    * @param client - The client instance managing the conversation
    * @param conversation - The underlying conversation instance
-   * @param lastMessage - Optional last message in the conversation
    * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     conversation: XmtpConversation,
-    lastMessage?: Message | null,
     isCommitLogForked?: boolean | null,
   ) {
     this.#client = client;
     this.#conversation = conversation;
-    this.#lastMessage = lastMessage
-      ? new DecodedMessage(client, lastMessage)
-      : undefined;
     this.#isCommitLogForked = isCommitLogForked ?? null;
   }
 
@@ -130,7 +125,9 @@ export class Conversation<ContentTypes = unknown> {
       callback: StreamCallback<Message>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversation.stream(callback, onFail);
     };
     const convertMessage = (value: Message) => {
@@ -162,13 +159,13 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const encodedContent =
+    const { encodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
-    return this.#conversation.sendOptimistic(encodedContent);
+    return this.#conversation.sendOptimistic(encodedContent, sendOptions);
   }
 
   /**
@@ -184,13 +181,13 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const encodedContent =
+    const { encodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
-    return this.#conversation.send(encodedContent);
+    return this.#conversation.send(encodedContent, sendOptions);
   }
 
   /**
@@ -205,12 +202,32 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
+   * Counts messages in this conversation
+   *
+   * @param options - Optional filtering options
+   * @returns Promise that resolves with the count of messages
+   */
+  async countMessages(
+    options?: Omit<ListMessagesOptions, "limit" | "direction">,
+  ) {
+    const count = await this.#conversation.countMessages(options);
+    return count;
+  }
+
+  /**
    * Gets the last message in this conversation
    *
    * @returns Promise that resolves with the last message or undefined if none exists
    */
   async lastMessage() {
-    return this.#lastMessage ?? (await this.messages({ limit: 1 }))[0];
+    const messages = await this.messages({
+      limit: 1,
+      direction: SortDirection.Descending,
+    });
+    if (messages.length > 0) {
+      return messages[0];
+    }
+    return undefined;
   }
 
   /**

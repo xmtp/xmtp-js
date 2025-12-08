@@ -1,14 +1,13 @@
-import { Box, Button, List, Space, Text } from "@mantine/core";
-import type { Client } from "@xmtp/browser-sdk";
+import { Box, Button, List, Space, Text, Tooltip } from "@mantine/core";
 import {
   ContentTypeTransactionReference,
   type TransactionReference,
 } from "@xmtp/content-type-transaction-reference";
 import type { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
 import { useCallback } from "react";
-import { useOutletContext } from "react-router";
 import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
-import type { ContentTypes } from "@/contexts/XMTPContext";
+import { useClient } from "@/contexts/XMTPContext";
+import { useSettings } from "@/hooks/useSettings";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCallsParams;
@@ -19,12 +18,11 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   content,
   conversationId,
 }) => {
-  const { client } = useOutletContext<{
-    client: Client<ContentTypes>;
-  }>();
+  const client = useClient();
   const { sendTransactionAsync } = useSendTransaction();
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();
+  const { ephemeralAccountEnabled } = useSettings();
 
   const handleSubmit = useCallback(async () => {
     const chainId = parseInt(content.chainId, 16);
@@ -68,19 +66,24 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
     <Box flex="flex">
       <Text size="sm">Review the following transactions:</Text>
       <List size="sm">
-        {content.calls.map((call) => (
-          <List.Item>{call.metadata?.description}</List.Item>
+        {content.calls.map((call, idx) => (
+          <List.Item key={idx}>{call.metadata?.description}</List.Item>
         ))}
       </List>
       <Space h="md" />
-      <Button
-        fullWidth
-        onClick={(event) => {
-          event.stopPropagation();
-          void handleSubmit();
-        }}>
-        Submit
-      </Button>
+      <Tooltip
+        label="Transactions are not supported for ephemeral wallets"
+        disabled={!ephemeralAccountEnabled}>
+        <Button
+          fullWidth
+          disabled={ephemeralAccountEnabled}
+          onClick={(event) => {
+            event.stopPropagation();
+            void handleSubmit();
+          }}>
+          Submit
+        </Button>
+      </Tooltip>
     </Box>
   );
 };

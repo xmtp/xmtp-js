@@ -1,5 +1,44 @@
 # @xmtp/browser-sdk
 
+## 5.1.0
+
+### Minor Changes
+
+- 7ce84ce: Added `getDmByIdentifier` method to `Conversations`
+
+## 5.0.1
+
+### Patch Changes
+
+- 61c19c9:
+  - Fixed an issue where duplicate welcome errors were fired erroneously
+  - Fixed a bug where building a client did a network request when not needed
+
+## 5.0.0
+
+### BREAKING CHANGES
+
+- 90089b0: Refactored `Conversation.isActive` to async method for more accurate value
+
+## 4.3.0
+
+### Minor Changes
+
+- b7a860e: Added `lastMessage()` method to `Conversation`
+
+## 4.2.1
+
+### Patch Changes
+
+- 0abcb05: Fixed initial group membership validation
+
+## 4.2.0
+
+- Improved performance of syncing new groups
+- Added support for Lens chain Smart Contract Wallet verifier
+- Fixed OpenMLS issue for persistence during message processing
+- Fixed lifetime validation gaps
+
 ## 4.1.0
 
 This release introduces improved fork detection. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this enhancement.

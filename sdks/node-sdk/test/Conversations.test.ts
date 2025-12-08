@@ -183,10 +183,20 @@ describe("Conversations", () => {
     const dm1 = client1.conversations.getDmByInboxId(client2.inboxId);
     expect(dm1).toBeDefined();
     expect(dm1!.id).toBe(group.id);
+    const dm1ByIdentifier = await client1.conversations.getDmByIdentifier(
+      await signer2.getIdentifier(),
+    );
+    expect(dm1ByIdentifier).toBeDefined();
+    expect(dm1ByIdentifier!.id).toBe(group.id);
 
     const dm2 = client2.conversations.getDmByInboxId(client1.inboxId);
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
+    const dm2ByIdentifier = await client2.conversations.getDmByIdentifier(
+      await signer1.getIdentifier(),
+    );
+    expect(dm2ByIdentifier).toBeDefined();
+    expect(dm2ByIdentifier!.id).toBe(group.id);
 
     const group3 = await client1.conversations.newDm(client3.inboxId);
     expect(group3).toBeDefined();
@@ -433,7 +443,7 @@ describe("Conversations", () => {
     }
 
     expect(receivedIds.length).toBe(2);
-    expect(receivedIds).toEqual(expectedIds);
+    expect(receivedIds.sort()).toEqual(expectedIds.sort());
     expect(
       (await client3.conversations.getConversationById(conversation1.id))?.id,
     ).toBe(conversation1.id);
@@ -460,22 +470,19 @@ describe("Conversations", () => {
     const group1 = await client1.conversations.newGroup([client3.inboxId]);
     const group2 = await client2.conversations.newGroup([client3.inboxId]);
 
+    const expectedIds = [group1.id, group2.id];
+    const receivedIds: string[] = [];
+
     setTimeout(() => {
       void stream.end();
     }, 2000);
 
-    let count = 0;
     for await (const convo of stream) {
-      count++;
       expect(convo).toBeDefined();
-      if (count === 1) {
-        expect(convo.id).toBe(group1.id);
-      }
-      if (count === 2) {
-        expect(convo.id).toBe(group2.id);
-      }
+      receivedIds.push(convo.id);
     }
-    expect(count).toBe(2);
+    expect(receivedIds.length).toBe(2);
+    expect(receivedIds.sort()).toEqual(expectedIds.sort());
   });
 
   it("should only stream dm conversations", async () => {

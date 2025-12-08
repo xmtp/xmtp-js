@@ -163,6 +163,16 @@ describe("Conversation", () => {
 
     await conversation.addMembers([client3.inboxId!]);
 
+    await client2.conversations.sync();
+    const conversation2 = await client2.conversations.getConversationById(
+      conversation.id,
+    );
+
+    await client3.conversations.sync();
+    const conversation3 = await client3.conversations.getConversationById(
+      conversation.id,
+    );
+
     const members2 = await conversation.members();
     expect(members2.length).toBe(3);
 
@@ -172,6 +182,13 @@ describe("Conversation", () => {
     expect(memberInboxIds2).toContain(client3.inboxId);
 
     await conversation.removeMembers([client2.inboxId!]);
+
+    await conversation2!.sync();
+    await conversation3!.sync();
+
+    expect(await conversation.isActive()).toBe(true);
+    expect(await conversation2!.isActive()).toBe(false);
+    expect(await conversation3!.isActive()).toBe(true);
 
     const members3 = await conversation.members();
     expect(members3.length).toBe(2);
@@ -193,12 +210,19 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
 
+    expect(await conversation.lastMessage()).toBeDefined();
+
     const text = "gm";
     await conversation.send(text);
 
     const messages = await conversation.messages();
     expect(messages.length).toBe(2);
     expect(messages[1].content).toBe(text);
+
+    const lastMessage = await conversation.lastMessage();
+    expect(lastMessage).toBeDefined();
+    expect(lastMessage?.id).toBe(messages[1].id);
+    expect(lastMessage?.content).toBe(text);
 
     await client2.conversations.sync();
     const conversations = await client2.conversations.list();
@@ -212,6 +236,11 @@ describe("Conversation", () => {
     const messages2 = await conversation2.messages();
     expect(messages2.length).toBe(2);
     expect(messages2[1].content).toBe(text);
+
+    const lastMessage2 = await conversation2.lastMessage();
+    expect(lastMessage2).toBeDefined();
+    expect(lastMessage2?.id).toBe(messages2[1].id);
+    expect(lastMessage2?.content).toBe(text);
   });
 
   it("should require content type when sending non-string content", async () => {
@@ -863,7 +892,6 @@ describe("Conversation", () => {
       client2.inboxId!,
     ]);
     const debugInfo = await conversation.debugInfo();
-    console.log(debugInfo);
     expect(debugInfo).toBeDefined();
     expect(debugInfo.epoch).toBeDefined();
     expect(debugInfo.maybeForked).toBe(false);
@@ -871,7 +899,11 @@ describe("Conversation", () => {
     expect(debugInfo.isCommitLogForked).toBeUndefined();
     expect(debugInfo.localCommitLog).toBeDefined();
     expect(debugInfo.remoteCommitLog).toBeDefined();
-    expect(debugInfo.cursor).toBeGreaterThan(0n);
+    const highestCursor = debugInfo.cursor.reduce(
+      (memo, curr) => (curr.sequenceID > 0 ? curr.sequenceID : memo),
+      0n,
+    );
+    expect(highestCursor).toBeGreaterThan(0n);
   });
 
   it("should filter messages by content type", async () => {
@@ -894,5 +926,68 @@ describe("Conversation", () => {
       contentTypes: [ContentType.Text],
     });
     expect(filteredMessages.length).toBe(1);
+  });
+
+  it("should count messages with various filters", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1, {
+      codecs: [new TestCodec()],
+    });
+    const client2 = await createRegisteredClient(signer2);
+
+    // Setup: create conversation and messages once
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId!,
+    ]);
+    await conversation.send("text 1");
+    await sleep(10);
+    const timestamp1 = BigInt(Date.now() * 1_000_000);
+    await sleep(10);
+    await conversation.send("text 2");
+    await conversation.send({ test: "test content" }, ContentTypeTest);
+    await sleep(10);
+    const timestamp2 = BigInt(Date.now() * 1_000_000);
+    await sleep(10);
+    await conversation.send("text 3");
+
+    // Test different filters against the same message set
+    // Total: 5 messages (1 group creation + 4 sent)
+    expect(await conversation.countMessages()).toBe(5n);
+
+    // Time filters
+    expect(
+      await conversation.countMessages({
+        sentBeforeNs: timestamp1,
+        contentTypes: [ContentType.Text],
+      }),
+    ).toBe(1n);
+    expect(
+      await conversation.countMessages({
+        sentAfterNs: timestamp1,
+        contentTypes: [ContentType.Text],
+      }),
+    ).toBe(2n);
+    expect(
+      await conversation.countMessages({
+        sentAfterNs: timestamp2,
+        contentTypes: [ContentType.Text],
+      }),
+    ).toBe(1n);
+    expect(
+      await conversation.countMessages({
+        sentAfterNs: timestamp1,
+        sentBeforeNs: timestamp2,
+      }),
+    ).toBe(2n);
+
+    // Content type filter
+    expect(
+      await conversation.countMessages({
+        contentTypes: [ContentType.Text],
+      }),
+    ).toBe(3n);
   });
 });

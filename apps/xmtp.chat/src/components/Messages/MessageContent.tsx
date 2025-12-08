@@ -1,4 +1,5 @@
 import { Code } from "@mantine/core";
+import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
 import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { ContentTypeReadReceipt } from "@xmtp/content-type-read-receipt";
 import {
@@ -14,7 +15,9 @@ import {
   ContentTypeWalletSendCalls,
   type WalletSendCallsParams,
 } from "@xmtp/content-type-wallet-send-calls";
+import { ActionsContent } from "@/components/Messages/ActionsContent";
 import { FallbackContent } from "@/components/Messages/FallbackContent";
+import { MarkdownContent } from "@/components/Messages/MarkdownContent";
 import { type MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
 import { ReadReceiptContent } from "@/components/Messages/ReadReceiptContent";
 import { RemoteAttachmentContent } from "@/components/Messages/RemoteAttachmentContent";
@@ -22,6 +25,7 @@ import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
 import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsContent";
+import { ContentTypeActions, type Actions } from "@/content-types/Actions";
 
 export type MessageContentProps = {
   align: MessageContentAlign;
@@ -78,6 +82,14 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         content={content as RemoteAttachment}
       />
     );
+  }
+
+  if (contentType.sameAs(ContentTypeActions)) {
+    return <ActionsContent content={content as Actions} />;
+  }
+
+  if (contentType.sameAs(ContentTypeMarkdown)) {
+    return <MarkdownContent content={content as string} />;
   }
 
   if (typeof content === "string") {

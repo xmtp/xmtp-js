@@ -4,6 +4,7 @@ import {
   type ExtractCodecContentTypes,
   type Signer,
 } from "@xmtp/browser-sdk";
+import { MarkdownCodec } from "@xmtp/content-type-markdown";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
 import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
@@ -18,6 +19,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { ActionsCodec } from "@/content-types/Actions";
+import { IntentCodec } from "@/content-types/Intent";
+import { useActions } from "@/stores/inbox/hooks";
 
 export type ContentTypes = ExtractCodecContentTypes<
   [
@@ -27,6 +31,9 @@ export type ContentTypes = ExtractCodecContentTypes<
     TransactionReferenceCodec,
     WalletSendCallsCodec,
     ReadReceiptCodec,
+    ActionsCodec,
+    IntentCodec,
+    MarkdownCodec,
   ]
 >;
 
@@ -75,6 +82,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
   children,
   client: initialClient,
 }) => {
+  const { reset } = useActions();
   const [client, setClient] = useState<Client<ContentTypes> | undefined>(
     initialClient,
   );
@@ -125,6 +133,9 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
               new TransactionReferenceCodec(),
               new WalletSendCallsCodec(),
               new ReadReceiptCodec(),
+              new ActionsCodec(),
+              new IntentCodec(),
+              new MarkdownCodec(),
             ],
           });
           setClient(xmtpClient);
@@ -149,6 +160,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
     if (client) {
       client.close();
       setClient(undefined);
+      reset();
     }
   }, [client, setClient]);
 
@@ -170,4 +182,12 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
 
 export const useXMTP = () => {
   return useContext(XMTPContext);
+};
+
+export const useClient = () => {
+  const { client } = useXMTP();
+  if (!client) {
+    throw new Error("useClient: XMTP client not initialized");
+  }
+  return client;
 };

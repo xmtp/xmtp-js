@@ -27,7 +27,6 @@ export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
   #createdAtNs?: SafeConversation["createdAtNs"];
   #id: string;
-  #isActive?: SafeConversation["isActive"];
   #metadata?: SafeConversation["metadata"];
   #isCommitLogForked?: SafeConversation["isCommitLogForked"];
 
@@ -49,7 +48,6 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   #syncData(data?: SafeConversation) {
-    this.#isActive = data?.isActive;
     this.#addedByInboxId = data?.addedByInboxId;
     this.#metadata = data?.metadata;
     this.#createdAtNs = data?.createdAtNs;
@@ -58,10 +56,6 @@ export class Conversation<ContentTypes = unknown> {
 
   get id() {
     return this.#id;
-  }
-
-  get isActive() {
-    return this.#isActive;
   }
 
   get isCommitLogForked() {
@@ -82,6 +76,24 @@ export class Conversation<ContentTypes = unknown> {
 
   get metadata() {
     return this.#metadata;
+  }
+
+  async lastMessage() {
+    const lastMessage = await this.#client.sendMessage(
+      "conversation.lastMessage",
+      {
+        id: this.#id,
+      },
+    );
+    return lastMessage
+      ? new DecodedMessage(this.#client, lastMessage)
+      : undefined;
+  }
+
+  async isActive() {
+    return this.#client.sendMessage("conversation.isActive", {
+      id: this.#id,
+    });
   }
 
   /**
@@ -132,15 +144,16 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const safeEncodedContent =
+    const { encodedContent: safeEncodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
     return this.#client.sendMessage("conversation.sendOptimistic", {
       id: this.#id,
       content: safeEncodedContent,
+      sendOptions,
     });
   }
 
@@ -157,15 +170,16 @@ export class Conversation<ContentTypes = unknown> {
       throw new MissingContentTypeError();
     }
 
-    const safeEncodedContent =
+    const { encodedContent: safeEncodedContent, sendOptions } =
       typeof content === "string"
-        ? this.#client.encodeContent(content, contentType ?? ContentTypeText)
+        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
         : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.encodeContent(content, contentType!);
+          this.#client.prepareForSend(content, contentType!);
 
     return this.#client.sendMessage("conversation.send", {
       id: this.#id,
       content: safeEncodedContent,
+      sendOptions,
     });
   }
 
@@ -182,6 +196,22 @@ export class Conversation<ContentTypes = unknown> {
     });
 
     return messages.map((message) => new DecodedMessage(this.#client, message));
+  }
+
+  /**
+   * Counts messages in this conversation
+   *
+   * @param options - Optional filtering options
+   * @returns Promise that resolves with the count of messages
+   */
+  async countMessages(
+    options?: Omit<SafeListMessagesOptions, "limit" | "direction">,
+  ) {
+    const count = await this.#client.sendMessage("conversation.countMessages", {
+      id: this.#id,
+      options,
+    });
+    return count;
   }
 
   /**

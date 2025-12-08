@@ -1,37 +1,7 @@
 {
-  "author": "XMTP Labs <eng@xmtp.com>",
-  "bugs": {
-    "url": "https://github.com/xmtp/xmtp-js/issues"
-  },
-  "dependencies": {
-    "@xmtp/content-type-reaction": "^2.0.2",
-    "@xmtp/content-type-remote-attachment": "^2.0.2",
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/node-sdk": "^4.1.0",
-    "uint8arrays": "^5.1.0",
-    "viem": "^2.31.7"
-  },
+  "name": "@xmtp/agent-sdk",
+  "version": "1.1.16-rc.0",
   "description": "XMTP Agent SDK for interacting with XMTP networks",
-  "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
-    "@types/node": "^22.16.3",
-    "@vitest/coverage-v8": "^3.2.4",
-    "tsc-alias": "^1.8.16",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
-    "vite": "^7.0.4",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "files": [
-    "dist",
-    "!dist/**/*.test.*"
-  ],
-  "homepage": "https://github.com/xmtp/xmtp-js",
   "keywords": [
     "agents",
     "javascript",
@@ -43,32 +13,83 @@
     "web3",
     "xmtp"
   ],
-  "license": "MIT",
-  "main": "dist/index.js",
-  "name": "@xmtp/agent-sdk",
-  "packageManager": "yarn@4.5.0",
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
   },
   "repository": {
-    "directory": "sdks/agent-sdk",
     "type": "git",
-    "url": "git+https://git@github.com/xmtp/xmtp-js.git"
+    "url": "git+https://git@github.com/xmtp/xmtp-js.git",
+    "directory": "sdks/agent-sdk"
   },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./debug": {
+      "types": "./dist/debug.d.ts",
+      "import": "./dist/debug.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware.d.ts",
+      "import": "./dist/middleware.js"
+    },
+    "./user": {
+      "types": "./dist/user.d.ts",
+      "import": "./dist/user.js"
+    }
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "!dist/**/*.test.*"
+  ],
   "scripts": {
-    "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack . --ignore-rules cjs-resolves-to-esm",
+    "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack --profile node16 . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
     "demo": "tsx src/demo.ts",
     "dev": "tsx --watch src/main.ts",
+    "fix": "npx prettier --log-level error -w . && npx eslint . --fix",
     "gen:keys": "tsx src/bin/generateKeys.ts",
     "start": "yarn demo",
     "test": "yarn typecheck && vitest run --typecheck",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
-  "type": "module",
-  "version": "0.0.12"
+  "dependencies": {
+    "@xmtp/content-type-markdown": "^1.0.0",
+    "@xmtp/content-type-reaction": "^2.0.2",
+    "@xmtp/content-type-read-receipt": "^2.0.2",
+    "@xmtp/content-type-remote-attachment": "^2.0.2",
+    "@xmtp/content-type-reply": "^2.0.2",
+    "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/content-type-transaction-reference": "^2.0.2",
+    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
+    "@xmtp/node-sdk": "4.5.0-rc1",
+    "viem": "^2.37.6"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@types/node": "^24.9.1",
+    "@vitest/coverage-v8": "^4.0.3",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": false,
+    "registry": "https://registry.npmjs.org/"
+  }
 }

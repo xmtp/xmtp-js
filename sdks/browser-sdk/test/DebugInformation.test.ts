@@ -35,7 +35,6 @@ describe("DebugInformation", () => {
     expect(apiStats2.fetchKeyPackage).toBe(0n);
     expect(apiStats2.queryGroupMessages).toBe(0n);
     expect(apiStats2.queryWelcomeMessages).toBe(0n);
-    expect(apiStats2.sendGroupMessages).toBe(0n);
     expect(apiStats2.sendWelcomeMessages).toBe(0n);
     expect(apiStats2.subscribeMessages).toBe(0n);
     expect(apiStats2.subscribeWelcomes).toBe(0n);

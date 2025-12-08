@@ -39,7 +39,7 @@ describe("Conversations", () => {
     expect(conversation.id).toBeDefined();
     expect(conversation.createdAtNs).toBeDefined();
     expect(conversation.createdAt).toBeDefined();
-    expect(conversation.isActive).toBe(true);
+    expect(await conversation.isActive()).toBe(true);
     expect(conversation.isCommitLogForked).toBeUndefined();
     expect(conversation.name).toBe("");
     expect(await conversation.messageDisappearingSettings()).toBeUndefined();
@@ -55,7 +55,7 @@ describe("Conversations", () => {
     expect(conversation2.id).toBeDefined();
     expect(conversation2.createdAtNs).toBeDefined();
     expect(conversation2.createdAt).toBeDefined();
-    expect(conversation2.isActive).toBe(true);
+    expect(await conversation2.isActive()).toBe(true);
     expect(conversation2.name).toBe("");
     expect(await conversation2.messageDisappearingSettings()).toBeUndefined();
     expect(await conversation2.isMessageDisappearingEnabled()).toBe(false);
@@ -156,7 +156,7 @@ describe("Conversations", () => {
     expect(group.id).toBeDefined();
     expect(group.createdAtNs).toBeDefined();
     expect(group.createdAt).toBeDefined();
-    expect(group.isActive).toBe(true);
+    expect(await group.isActive()).toBe(true);
     expect(group.isCommitLogForked).toBeUndefined();
     expect(await group.messageDisappearingSettings()).toBeUndefined();
     expect(await group.isMessageDisappearingEnabled()).toBe(false);
@@ -166,7 +166,7 @@ describe("Conversations", () => {
     expect(group2.id).toBeDefined();
     expect(group2.createdAtNs).toBeDefined();
     expect(group2.createdAt).toBeDefined();
-    expect(group2.isActive).toBe(true);
+    expect(await group2.isActive()).toBe(true);
     expect(await group2.messageDisappearingSettings()).toBeUndefined();
     expect(await group2.isMessageDisappearingEnabled()).toBe(false);
 
@@ -222,6 +222,11 @@ describe("Conversations", () => {
     const dm1 = await client1.conversations.getDmByInboxId(client2.inboxId!);
     expect(dm1).toBeDefined();
     expect(dm1!.id).toBe(group.id);
+    const dm1ByIdentifier = await client1.conversations.getDmByIdentifier(
+      await signer2.getIdentifier(),
+    );
+    expect(dm1ByIdentifier).toBeDefined();
+    expect(dm1ByIdentifier!.id).toBe(group.id);
 
     const peerInboxId = await dm1?.peerInboxId();
     expect(peerInboxId).toBeDefined();
@@ -230,6 +235,11 @@ describe("Conversations", () => {
     const dm2 = await client2.conversations.getDmByInboxId(client1.inboxId!);
     expect(dm2).toBeDefined();
     expect(dm2!.id).toBe(group.id);
+    const dm2ByIdentifier = await client2.conversations.getDmByIdentifier(
+      await signer1.getIdentifier(),
+    );
+    expect(dm2ByIdentifier).toBeDefined();
+    expect(dm2ByIdentifier!.id).toBe(group.id);
 
     const peerInboxId2 = await dm2?.peerInboxId();
     expect(peerInboxId2).toBeDefined();
@@ -807,7 +817,7 @@ describe("Streaming", () => {
     expect(group.id).toBeDefined();
     expect(group.createdAtNs).toBeDefined();
     expect(group.createdAt).toBeDefined();
-    expect(group.isActive).toBe(true);
+    expect(await group.isActive()).toBe(true);
     expect(group.name).toBe("");
     const permissions = await group.permissions();
     expect(permissions.policyType).toBe(GroupPermissionsOptions.Default);
@@ -848,7 +858,7 @@ describe("Streaming", () => {
     expect(group2.id).toBeDefined();
     expect(group2.createdAtNs).toBeDefined();
     expect(group2.createdAt).toBeDefined();
-    expect(group2.isActive).toBe(true);
+    expect(await group2.isActive()).toBe(true);
     expect(group2.name).toBe("test");
     expect(group2.description).toBe("test");
     expect(group2.imageUrl).toBe("test");

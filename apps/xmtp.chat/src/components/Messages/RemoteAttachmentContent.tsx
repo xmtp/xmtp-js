@@ -65,9 +65,12 @@ export const RemoteAttachmentContent: React.FC<
             codecFor: () => new AttachmentCodec(),
           });
 
-        const blob = new Blob([decryptedAttachment.data], {
-          type: decryptedAttachment.mimeType,
-        });
+        const blob = new Blob(
+          [decryptedAttachment.data as Uint8Array<ArrayBuffer>],
+          {
+            type: decryptedAttachment.mimeType,
+          },
+        );
         const blobUrl = URL.createObjectURL(blob);
 
         // Cache the blob URL
@@ -192,6 +195,7 @@ export const RemoteAttachmentContent: React.FC<
             src={decryptedUrl}
             controls
             style={{
+              width: "100%",
               height: "auto",
               borderRadius: "var(--mantine-radius-sm)",
               display: "block",
@@ -204,6 +208,7 @@ export const RemoteAttachmentContent: React.FC<
             controls
             style={{
               width: "100%",
+              minWidth: "300px",
               display: "block",
             }}
           />

@@ -24,15 +24,15 @@ jobs:
 
     steps:
       - name: Checkout XMTP-JS SDK
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           path: xmtp-js
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version-file: "xmtp-js/.nvmrc"
+          node-version-file: "xmtp-js/.node-version"
           cache: "yarn"
           cache-dependency-path: "xmtp-js/yarn.lock"
         env:
@@ -42,7 +42,7 @@ jobs:
         run: corepack enable
 
       - name: Checkout Documentation Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ env.DOCS_REPO }}
           token: ${{ secrets.DOCS_SYNC_TOKEN }}

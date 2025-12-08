@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/browser-sdk",
-  "version": "4.1.0",
+  "version": "5.1.0",
   "description": "XMTP client SDK for browsers written in TypeScript",
   "keywords": [
     "xmtp",
@@ -63,30 +63,31 @@
     "@xmtp/content-type-group-updated": "^2.0.2",
     "@xmtp/content-type-primitives": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/wasm-bindings": "1.4.0",
+    "@xmtp/wasm-bindings": "1.6.0-dev.da83377",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.4",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
     "@types/uuid": "^10.0.0",
-    "@vitest/browser": "^3.2.4",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/browser": "^4.0.3",
+    "@vitest/browser-playwright": "^4.0.3",
+    "@vitest/coverage-v8": "^4.0.3",
     "@web/rollup-plugin-copy": "^0.5.1",
-    "playwright": "^1.54.1",
-    "rollup": "^4.45.0",
-    "rollup-plugin-dts": "^6.2.1",
+    "playwright": "^1.56.1",
+    "rollup": "^4.52.5",
+    "rollup-plugin-dts": "^6.2.3",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
-    "typescript": "^5.8.3",
-    "viem": "^2.31.7",
-    "vite": "^7.0.4",
+    "typescript": "^5.9.3",
+    "viem": "^2.38.4",
+    "vite": "^7.1.12",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "publishConfig": {
     "access": "public",

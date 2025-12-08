@@ -4,11 +4,13 @@ import {
   type GroupUpdated,
 } from "@xmtp/content-type-group-updated";
 import { GroupUpdatedContent } from "@/components/Messages/GroupUpdatedContent";
+import { IntentContent } from "@/components/Messages/IntentContent";
 import { MessageContent } from "@/components/Messages/MessageContent";
 import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
+import { ContentTypeIntent, type Intent } from "@/content-types/Intent";
 
 export type MessageContentWithWrapperProps = {
   align: MessageContentAlign;
@@ -25,6 +27,16 @@ export const MessageContentWithWrapper: React.FC<
       <GroupUpdatedContent
         content={message.content as GroupUpdated}
         sentAtNs={message.sentAtNs}
+      />
+    );
+  }
+
+  if (message.contentType.sameAs(ContentTypeIntent)) {
+    return (
+      <IntentContent
+        content={message.content as Intent}
+        sentAtNs={message.sentAtNs}
+        senderInboxId={senderInboxId}
       />
     );
   }

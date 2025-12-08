@@ -1,4 +1,4 @@
 import { webcrypto } from "node:crypto";
 
-const crypto = webcrypto;
-export default crypto;
+export type CryptoKey = webcrypto.CryptoKey;
+export default webcrypto;

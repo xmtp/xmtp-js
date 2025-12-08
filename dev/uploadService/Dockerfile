@@ -1,5 +1,5 @@
 # Fetching the minified node image on apline linux
-FROM node:18.19-slim
+FROM node:lts-slim
 
 WORKDIR /uploadService
 COPY . .

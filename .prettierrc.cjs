@@ -15,12 +15,14 @@ module.exports = {
   tabWidth: 2,
   trailingComma: "all",
   useTabs: false,
-  plugins: ["prettier-plugin-packagejson"],
   overrides: [
     {
       files: "!**/*.md",
       options: {
-        plugins: ["@ianvs/prettier-plugin-sort-imports"],
+        plugins: [
+          "@ianvs/prettier-plugin-sort-imports",
+          "prettier-plugin-packagejson",
+        ],
         importOrder: [
           "<BUILTIN_MODULES>",
           "<THIRD_PARTY_MODULES>",
@@ -29,7 +31,7 @@ module.exports = {
           "^@bench(/.*)$",
           "^[.]",
         ],
-        importOrderTypeScriptVersion: "5.8.3",
+        importOrderTypeScriptVersion: "5.9.3",
       },
     },
   ],

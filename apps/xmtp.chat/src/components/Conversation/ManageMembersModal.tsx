@@ -1,28 +1,41 @@
 import { Button, Group } from "@mantine/core";
-import { Group as XmtpGroup, type SafeGroupMember } from "@xmtp/browser-sdk";
+import { Group as XmtpGroup } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import type { PendingMember } from "@/components/Conversation/AddMembers";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { Members } from "@/components/Conversation/Members";
 import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
+import { useClientPermissions } from "@/hooks/useClientPermissions";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
+import {
+  useMemberProfiles,
+  type MemberProfile,
+} from "@/hooks/useMemberProfiles";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMembersModal: React.FC = () => {
-  const { conversation, client } =
-    useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation, members } = useConversation(conversationId);
+  const existingMembers = useMemberProfiles(Array.from(members.values()));
+  const clientPermissions = useClientPermissions(conversationId);
+  const { addConversation } = useActions();
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
-  const [addedMembers, setAddedMembers] = useState<string[]>([]);
-  const [removedMembers, setRemovedMembers] = useState<SafeGroupMember[]>([]);
+  const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
+  const [removedMembers, setRemovedMembers] = useState<MemberProfile[]>([]);
 
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
 
   const handleClose = useCallback(() => {
-    void navigate(`/conversations/${conversation.id}`);
-  }, [navigate, conversation.id]);
+    void navigate(`/${environment}/conversations/${conversation.id}`);
+  }, [navigate, conversation.id, environment]);
 
   const handleUpdate = useCallback(async () => {
     if (!(conversation instanceof XmtpGroup)) {
@@ -32,23 +45,26 @@ export const ManageMembersModal: React.FC = () => {
     setIsLoading(true);
 
     try {
+      let hasUpdated = false;
       if (addedMembers.length > 0) {
-        const addedMemberInboxIds = addedMembers.filter((member) =>
-          isValidInboxId(member),
-        );
+        const addedMemberInboxIds = addedMembers
+          .filter((member) => isValidInboxId(member.inboxId))
+          .map((member) => member.inboxId);
         if (addedMemberInboxIds.length > 0) {
           await conversation.addMembers(addedMemberInboxIds);
+          hasUpdated = true;
         }
         const addedMemberAddresses = addedMembers.filter((member) =>
-          isValidEthereumAddress(member),
+          isValidEthereumAddress(member.address),
         );
         if (addedMemberAddresses.length > 0) {
           await conversation.addMembersByIdentifiers(
-            addedMemberAddresses.map((address) => ({
-              identifier: address.toLowerCase(),
+            addedMemberAddresses.map((member) => ({
+              identifier: member.address.toLowerCase(),
               identifierKind: "Ethereum",
             })),
           );
+          hasUpdated = true;
         }
       }
 
@@ -56,13 +72,18 @@ export const ManageMembersModal: React.FC = () => {
         await conversation.removeMembers(
           removedMembers.map((member) => member.inboxId),
         );
+        hasUpdated = true;
       }
 
-      void navigate(`/conversations/${conversation.id}`);
+      if (hasUpdated) {
+        void addConversation(conversation);
+      }
+
+      void navigate(`/${environment}/conversations/${conversation.id}`);
     } finally {
       setIsLoading(false);
     }
-  }, [conversation.id, addedMembers, removedMembers, navigate]);
+  }, [conversation.id, addedMembers, removedMembers, navigate, environment]);
 
   const footer = useMemo(() => {
     return (
@@ -99,9 +120,10 @@ export const ManageMembersModal: React.FC = () => {
         loading={isLoading}
         withScrollAreaPadding={false}>
         <Members
-          conversation={conversation}
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          inboxId={client.inboxId!}
+          addedMembers={addedMembers}
+          clientPermissions={clientPermissions}
+          existingMembers={existingMembers}
+          removedMembers={removedMembers}
           onMembersAdded={setAddedMembers}
           onMembersRemoved={setRemovedMembers}
         />

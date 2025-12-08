@@ -1,8 +1,10 @@
 import { Box, Button, Group } from "@mantine/core";
-import type { Client, DecodedMessage } from "@xmtp/browser-sdk";
-import { useNavigate, useOutletContext } from "react-router";
+import type { DecodedMessage } from "@xmtp/browser-sdk";
+import { useNavigate } from "react-router";
 import { useConversationContext } from "@/contexts/ConversationContext";
+import { useClient } from "@/contexts/XMTPContext";
 import { isActionable } from "@/helpers/messages";
+import { useSettings } from "@/hooks/useSettings";
 import classes from "./Message.module.css";
 import { MessageContentWithWrapper } from "./MessageContentWithWrapper";
 import { ReactionPopover } from "./ReactionPopover";
@@ -17,8 +19,9 @@ export const Message: React.FC<MessageProps> = ({
   scrollToMessage,
 }) => {
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const { setReplyTarget } = useConversationContext();
-  const { client } = useOutletContext<{ client: Client }>();
+  const client = useClient();
 
   const isSender = client.inboxId === message.senderInboxId;
   const align = isSender ? "right" : "left";
@@ -31,13 +34,13 @@ export const Message: React.FC<MessageProps> = ({
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             void navigate(
-              `/conversations/${message.conversationId}/message/${message.id}`,
+              `/${environment}/conversations/${message.conversationId}/message/${message.id}`,
             );
           }
         }}
         onClick={() =>
           void navigate(
-            `/conversations/${message.conversationId}/message/${message.id}`,
+            `/${environment}/conversations/${message.conversationId}/message/${message.id}`,
           )
         }>
         <MessageContentWithWrapper

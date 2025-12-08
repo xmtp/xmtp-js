@@ -1,28 +1,83 @@
-import { Group, Text } from "@mantine/core";
+import { Group, Stack, Text } from "@mantine/core";
+import { Dm } from "@xmtp/browser-sdk";
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import { useMemo } from "react";
-import { AddressBadge } from "@/components/AddressBadge";
 import { DateLabel } from "@/components/DateLabel";
+import { Identity } from "@/components/Identity";
+import { IdentityBadge } from "@/components/IdentityBadge";
+import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
+import { MEMBER_NO_LONGER_IN_GROUP, shortAddress } from "@/helpers/strings";
+import { getMemberAddress } from "@/helpers/xmtp";
+import { useConversation } from "@/hooks/useConversation";
+import { combineProfiles, useAllProfiles } from "@/stores/profiles";
 
 type GroupMembersAddedContentProps = {
   type: "added" | "removed";
-  members: string[];
+  updatedMembers: string[];
   initiatedBy: string;
 };
 
 const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
   type,
-  members,
+  updatedMembers,
   initiatedBy,
 }) => {
+  const { conversationId } = useConversationContext();
+  const { members, conversation } = useConversation(conversationId);
+  const profiles = useAllProfiles();
+  const initiatedByMember = members.get(initiatedBy);
   return (
     <Group gap="4" wrap="wrap" justify="center">
-      <AddressBadge address={initiatedBy} size="lg" />
+      {initiatedByMember ? (
+        <Identity
+          {...combineProfiles(
+            getMemberAddress(initiatedByMember),
+            profiles.get(getMemberAddress(initiatedByMember)) ?? [],
+          )}
+          permissionLevel={initiatedByMember.permissionLevel}
+          conversationId={conversationId}
+          inboxId={initiatedBy}
+          showDm={!(conversation instanceof Dm)}
+          position="top"
+        />
+      ) : (
+        <IdentityBadge
+          address=""
+          displayName={shortAddress(initiatedBy)}
+          tooltip={MEMBER_NO_LONGER_IN_GROUP}
+        />
+      )}
       <Text size="sm">{type === "added" ? "added" : "removed"}</Text>
-      {members.map((member) => (
-        <AddressBadge key={member} address={member} size="lg" />
-      ))}
+      {updatedMembers.map((member) => {
+        const memberMember = members.get(member);
+        if (!memberMember) {
+          return (
+            <IdentityBadge
+              key={member}
+              address=""
+              displayName={shortAddress(member)}
+              tooltip={MEMBER_NO_LONGER_IN_GROUP}
+            />
+          );
+        }
+        const address = getMemberAddress(memberMember);
+        const profile = combineProfiles(address, profiles.get(address) ?? []);
+        return (
+          <Identity
+            key={member}
+            address={address}
+            avatar={profile.avatar}
+            description={profile.description}
+            displayName={profile.displayName}
+            conversationId={conversationId}
+            permissionLevel={memberMember.permissionLevel}
+            inboxId={member}
+            showDm={!(conversation instanceof Dm)}
+            position="top"
+          />
+        );
+      })}
       <Text size="sm">{type === "added" ? "to" : "from"} the group</Text>
     </Group>
   );
@@ -36,6 +91,10 @@ type GroupMetadataUpdatedContentProps = {
 const GroupMetadataUpdatedContent: React.FC<
   GroupMetadataUpdatedContentProps
 > = ({ metadataFieldChange, initiatedBy }) => {
+  const { conversationId } = useConversationContext();
+  const { members, conversation } = useConversation(conversationId);
+  const profiles = useAllProfiles();
+  const initiatedByMember = members.get(initiatedBy);
   const field = useMemo(() => {
     switch (metadataFieldChange.fieldName) {
       case "group_name":
@@ -44,12 +103,34 @@ const GroupMetadataUpdatedContent: React.FC<
         return "description";
       case "group_image_url_square":
         return "image URL";
+      case "_commit_log_signer":
+        return "commit log signer";
+      default:
+        return metadataFieldChange.fieldName;
     }
   }, [metadataFieldChange.fieldName]);
 
   return (
     <Group gap="4" wrap="wrap" justify="center">
-      <AddressBadge address={initiatedBy} />
+      {initiatedByMember ? (
+        <Identity
+          {...combineProfiles(
+            getMemberAddress(initiatedByMember),
+            profiles.get(getMemberAddress(initiatedByMember)) ?? [],
+          )}
+          permissionLevel={initiatedByMember.permissionLevel}
+          conversationId={conversationId}
+          inboxId={initiatedBy}
+          showDm={!(conversation instanceof Dm)}
+          position="top"
+        />
+      ) : (
+        <IdentityBadge
+          address=""
+          displayName={shortAddress(initiatedBy)}
+          tooltip={MEMBER_NO_LONGER_IN_GROUP}
+        />
+      )}
       <Text size="sm">
         {metadataFieldChange.newValue ? "changed" : "removed"} the group
       </Text>
@@ -77,33 +158,33 @@ export const GroupUpdatedContent: React.FC<GroupUpdatedContentProps> = ({
 }) => {
   if (content.addedInboxes.length > 0) {
     return (
-      <>
+      <Stack gap="xxxs" align="center">
         <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
         <GroupMembersUpdatedContent
           type="added"
-          members={content.addedInboxes.map((inbox) => inbox.inboxId)}
+          updatedMembers={content.addedInboxes.map((inbox) => inbox.inboxId)}
           initiatedBy={content.initiatedByInboxId}
         />
-      </>
+      </Stack>
     );
   }
 
   if (content.removedInboxes.length > 0) {
     return (
-      <>
+      <Stack gap="xxxs" align="center">
         <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
         <GroupMembersUpdatedContent
           type="removed"
-          members={content.removedInboxes.map((inbox) => inbox.inboxId)}
+          updatedMembers={content.removedInboxes.map((inbox) => inbox.inboxId)}
           initiatedBy={content.initiatedByInboxId}
         />
-      </>
+      </Stack>
     );
   }
 
   if (content.metadataFieldChanges.length > 0) {
     return (
-      <>
+      <Stack gap="xxxs" align="center">
         <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
         {content.metadataFieldChanges.map((change) => (
           <GroupMetadataUpdatedContent
@@ -112,9 +193,14 @@ export const GroupUpdatedContent: React.FC<GroupUpdatedContentProps> = ({
             initiatedBy={content.initiatedByInboxId}
           />
         ))}
-      </>
+      </Stack>
     );
   }
 
-  return null;
+  return (
+    <Stack gap="xxxs" align="center">
+      <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+      <Text>Unknown permissions update</Text>
+    </Stack>
+  );
 };

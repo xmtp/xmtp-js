@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { uint8ArrayToHex } from "uint8array-extras";
 import { v4 } from "uuid";
@@ -32,6 +35,17 @@ describe("Client", () => {
     expect(client.installationId).toBeDefined();
     expect(client.options).toBeDefined();
     expect(client.signer).toBe(signer);
+
+    const client2 = await createClient(signer, {
+      nonce: 1n,
+    });
+    expect(client2.inboxId).toBe(client.inboxId);
+
+    await expect(
+      createClient(signer, {
+        nonce: 2n,
+      }),
+    ).rejects.toThrow();
   });
 
   it("should register an identity", async () => {
@@ -360,8 +374,13 @@ describe("Client", () => {
     expect(notAuthorized).toBe(false);
   });
 
-  it("should return a version", () => {
-    expect(Client.version).toBeDefined();
+  it("should return a version", async () => {
+    expect(Client.version).toBeUndefined();
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    expect(client.appVersion).toBeDefined();
+    expect(client.libxmtpVersion).toBeDefined();
   });
 
   it("should change the recovery identifier", async () => {
@@ -533,5 +552,58 @@ describe("Client", () => {
     expect(inboxStates2[0].identifiers).toEqual([
       await signer2.getIdentifier(),
     ]);
+  });
+
+  it("should support a callback function for dynamic database creation", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const baseDir = os.tmpdir();
+
+    const client = await Client.create(signer, {
+      dbPath: (inboxId: string) => path.join(baseDir, `user-${inboxId}.db3`),
+    });
+    expect(client).toBeDefined();
+
+    const database = path.join(baseDir, `user-${client.inboxId}.db3`);
+    expect(fs.existsSync(database)).toBe(true);
+  });
+
+  it("should create a client without encryption key", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+    });
+
+    expect(client).toBeDefined();
+    expect(client.inboxId).toBeDefined();
+  });
+
+  it("should create a client with Uint8Array encryption key", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const encryptionKey = new Uint8Array(32).fill(1);
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+      dbEncryptionKey: encryptionKey,
+    });
+
+    expect(client).toBeDefined();
+  });
+
+  it("should create a client with hex string encryption key with 0x prefix", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const encryptionKey =
+      "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${v4()}.db3`,
+      dbEncryptionKey: encryptionKey,
+    });
+
+    expect(client).toBeDefined();
   });
 });

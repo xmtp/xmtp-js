@@ -1,0 +1,7 @@
+.member {
+  cursor: pointer;
+}
+
+.member:hover {
+  background-color: var(--mantine-color-default-hover);
+}

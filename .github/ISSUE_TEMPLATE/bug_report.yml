@@ -1,0 +1,48 @@
+name: Report a bug
+description: Report a bug to share an issue you're experiencing.
+labels: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug. Community contributions like yours are key to the development and adoption of XMTP. Review the following guidelines for reporting a bug:
+          - Include 1 bug per issue. Creating 1 issue per bug will make it easier to assign and track progress on bugs.
+          - Check existing issues to see if your issue has already been reported.
+          - Ensure that the bug is not security-related and can safely be disclosed publicly on GitHub. For information about how to report a security issue, see the **Security** tab in this repo.
+          - Follow the [XMTP code of conduct](https://xmtp.org/community/code-of-conduct).
+  - type: dropdown
+    id: source
+    attributes:
+      label: Source
+      multiple: false
+      description: What are you having an issue with?
+      options:
+        - Browser SDK
+        - Node SDK
+        - Agent SDK
+        - xmtp.chat
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: Provide a clear and concise description of the issue. Attach screenshots, if applicable.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce the bug
+      description: Provide a clear and concise description of how to reproduce the bug, including any relevant environment details such as SDK version, browser, OS, and device.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of conduct
+      description: By submitting this issue, you agree to follow the [XMTP code of conduct](https://xmtp.org/community/code-of-conduct).
+      options:
+        - label: I agree to follow the XMTP code of conduct
+          required: true

@@ -1,7 +1,8 @@
 import { Accordion, Badge, Button, Group, Stack, Text } from "@mantine/core";
-import { GroupPermissionsOptions, type Client } from "@xmtp/browser-sdk";
+import { GroupPermissionsOptions } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router";
+import { useNavigate } from "react-router";
+import type { PendingMember } from "@/components/Conversation/AddMembers";
 import { Members } from "@/components/Conversation/Members";
 import { Metadata } from "@/components/Conversation/Metadata";
 import {
@@ -12,7 +13,9 @@ import { Modal } from "@/components/Modal";
 import { isValidEthereumAddress, isValidInboxId } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import { useActions } from "@/stores/inbox/hooks";
 import type { PolicySet } from "@/types";
 
 const permissionsPolicyValue = (policy: GroupPermissionsOptions) => {
@@ -27,17 +30,18 @@ const permissionsPolicyValue = (policy: GroupPermissionsOptions) => {
 };
 
 export const CreateGroupModal: React.FC = () => {
-  const { client } = useOutletContext<{ client: Client }>();
   const { newGroup } = useConversations();
+  const { addConversation } = useActions();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrlSquare, setImageUrlSquare] = useState("");
-  const [addedMembers, setAddedMembers] = useState<string[]>([]);
+  const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
   const [permissionsPolicy, setPermissionsPolicy] =
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
   const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
 
@@ -45,13 +49,13 @@ export const CreateGroupModal: React.FC = () => {
     void navigate(-1);
   }, [navigate]);
 
-  const handleCreate = async () => {
+  const handleCreate = useCallback(async () => {
     setLoading(true);
 
     try {
-      const addedMemberInboxIds = addedMembers.filter((member) =>
-        isValidInboxId(member),
-      );
+      const addedMemberInboxIds = addedMembers
+        .filter((member) => isValidInboxId(member.inboxId))
+        .map((member) => member.inboxId);
       const conversation = await newGroup(addedMemberInboxIds, {
         name,
         description,
@@ -63,9 +67,9 @@ export const CreateGroupModal: React.FC = () => {
             : undefined,
       });
 
-      const addedMemberAddresses = addedMembers.filter((member) =>
-        isValidEthereumAddress(member),
-      );
+      const addedMemberAddresses = addedMembers
+        .filter((member) => isValidEthereumAddress(member.address))
+        .map((member) => member.address);
       if (addedMemberAddresses.length > 0) {
         await conversation.addMembersByIdentifiers(
           addedMemberAddresses.map((address) => ({
@@ -75,11 +79,24 @@ export const CreateGroupModal: React.FC = () => {
         );
       }
 
-      void navigate(`/conversations/${conversation.id}`);
+      // ensure conversation is added to store so navigation works
+      await addConversation(conversation);
+      void navigate(`/${environment}/conversations/${conversation.id}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    newGroup,
+    addConversation,
+    navigate,
+    environment,
+    name,
+    description,
+    imageUrlSquare,
+    permissionsPolicy,
+    policySet,
+    addedMembers,
+  ]);
 
   const footer = useMemo(() => {
     return (
@@ -156,9 +173,10 @@ export const CreateGroupModal: React.FC = () => {
               </Accordion.Control>
               <Accordion.Panel>
                 <Members
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  inboxId={client.inboxId!}
+                  addedMembers={addedMembers}
                   onMembersAdded={setAddedMembers}
+                  existingMembers={[]}
+                  removedMembers={[]}
                 />
               </Accordion.Panel>
             </Accordion.Item>

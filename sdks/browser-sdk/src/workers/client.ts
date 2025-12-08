@@ -21,6 +21,7 @@ import type {
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
+  fromSafeSendMessageOpts,
   toSafeApiStats,
   toSafeConsent,
   toSafeConversation,
@@ -718,6 +719,22 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
+      case "conversation.lastMessage": {
+        const group = getGroup(data.id);
+        const result = await group.lastMessage();
+        postMessage({
+          id,
+          action,
+          result: result ? toSafeMessage(result) : undefined,
+        });
+        break;
+      }
+      case "conversation.isActive": {
+        const group = getGroup(data.id);
+        const result = group.isActive;
+        postMessage({ id, action, result });
+        break;
+      }
       case "conversation.consentState": {
         const group = getGroup(data.id);
         const result = group.consentState;
@@ -752,6 +769,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = await group.send(
           fromEncodedContent(fromSafeEncodedContent(data.content)),
+          fromSafeSendMessageOpts(data.sendOptions),
         );
         postMessage({ id, action, result });
         break;
@@ -760,6 +778,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = group.sendOptimistic(
           fromEncodedContent(fromSafeEncodedContent(data.content)),
+          fromSafeSendMessageOpts(data.sendOptions),
         );
         postMessage({ id, action, result });
         break;
@@ -774,6 +793,12 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const messages = await group.messages(data.options);
         const result = messages.map((message) => toSafeMessage(message));
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.countMessages": {
+        const group = getGroup(data.id);
+        const result = await group.countMessages(data.options);
         postMessage({ id, action, result });
         break;
       }

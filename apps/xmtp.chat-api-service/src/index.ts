@@ -9,12 +9,24 @@ import { rateLimitMiddleware } from "./middleware/rateLimit.js";
 
 const app = express();
 
+const env = process.env.NODE_ENV || "development";
+const allowedOrigins = [
+  "https://xmtp.chat",
+  "https://d14n.xmtp.chat",
+  // vercel preview domains
+  /^https:\/\/(.*)-ephemerahq\.vercel\.app$/,
+];
+
+if (env === "development") {
+  allowedOrigins.push("http://localhost:5173");
+}
+
 app.set("trust proxy", 1);
 app.use(helmet()); // Set security headers
 app.use(
   cors({
-    origin: ["https://xmtp.chat", "https://experimental.xmtp.chat"],
-    methods: ["GET", "OPTIONS"],
+    origin: allowedOrigins,
+    methods: ["GET", "OPTIONS", "POST"],
     allowedHeaders: ["*"],
     credentials: true,
     maxAge: 86400,
@@ -42,7 +54,7 @@ app.use(errorMiddleware);
 const port = process.env.PORT || 4000;
 const server = app.listen(port, () => {
   console.log(`xmtp.chat API service is running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Environment: ${env}`);
 });
 
 process.on("SIGTERM", () => {

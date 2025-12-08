@@ -1,0 +1,27 @@
+name: "Mark stale GitHub Issues"
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v10
+        with:
+          exempt-issue-labels: "wip,important,pinned"
+          # Stale
+          days-before-stale: 3
+          days-before-pr-stale: -1
+          stale-issue-message: >
+            There has been no activity on this issue. It will be closed in 7 days if there is no new activity.
+          # Close
+          days-before-close: 7
+          days-before-pr-close: -1
+          close-issue-message: >
+            Closed due to inactivity. If still interested, please reopen and continue the discussion.

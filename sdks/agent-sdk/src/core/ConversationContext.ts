@@ -1,5 +1,13 @@
+import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
 import { ContentTypeText } from "@xmtp/content-type-text";
-import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
+import {
+  ConsentState,
+  type Client,
+  type Conversation,
+  type Dm,
+  type Group,
+} from "@xmtp/node-sdk";
+import { filter } from "@/core/filter.js";
 import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<
@@ -20,18 +28,35 @@ export class ConversationContext<
   }
 
   isDm(): this is ConversationContext<ContentTypes, Dm<ContentTypes>> {
-    return this.#conversation instanceof Dm;
+    return filter.isDM(this.#conversation);
   }
 
   isGroup(): this is ConversationContext<ContentTypes, Group<ContentTypes>> {
-    return this.#conversation instanceof Group;
+    return filter.isGroup(this.#conversation);
+  }
+
+  // Send methods, which don't need a message context, are in ConversationContext to make them available in both dm and group event handlers
+  async sendMarkdown(markdown: string): Promise<void> {
+    await this.conversation.send(markdown, ContentTypeMarkdown);
   }
 
   async sendText(text: string): Promise<void> {
-    await this.#conversation.send(text, ContentTypeText);
+    await this.conversation.send(text, ContentTypeText);
   }
 
   get conversation() {
     return this.#conversation;
+  }
+
+  get isAllowed() {
+    return this.#conversation.consentState === ConsentState.Allowed;
+  }
+
+  get isDenied() {
+    return this.#conversation.consentState === ConsentState.Denied;
+  }
+
+  get isUnknown() {
+    return this.#conversation.consentState === ConsentState.Unknown;
   }
 }

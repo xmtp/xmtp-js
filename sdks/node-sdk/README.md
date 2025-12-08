@@ -4,16 +4,9 @@ This package provides the XMTP client SDK for Node.
 
 To keep up with the latest SDK developments, see the [Issues tab](https://github.com/xmtp/xmtp-js/issues) in this repo.
 
-> [!CAUTION]
-> This SDK is in beta status and ready for you to build with in production. Software in this status may change based on feedback.
-
 ## Documentation
 
 To learn how to use the XMTP client SDK for Node, see [Get started with the XMTP Node SDK](https://docs.xmtp.org/sdks/node).
-
-## SDK reference
-
-Coming soon
 
 ## Requirements
 
@@ -43,6 +36,10 @@ yarn add @xmtp/node-sdk
 ## Developing
 
 Run `yarn dev` to build the SDK and watch for changes, which will trigger a rebuild.
+
+## Testing
+
+For testing setup instructions, see our [testing guidelines](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md#testing) in the main repository.
 
 ### Useful commands
 

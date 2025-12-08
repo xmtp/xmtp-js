@@ -6,36 +6,47 @@ import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
-  const { list, loading, syncing, conversations, stream, syncAll } =
-    useConversations();
-  const stopStreamRef = useRef<(() => void) | null>(null);
+  const {
+    sync,
+    loading,
+    syncing,
+    conversations,
+    stream,
+    streamAllMessages,
+    syncAll,
+  } = useConversations();
+  const stopConversationStreamRef = useRef<(() => void) | null>(null);
+  const stopAllMessagesStreamRef = useRef<(() => void) | null>(null);
 
-  const startStream = useCallback(async () => {
-    stopStreamRef.current = await stream();
-  }, [stream]);
+  const startStreams = useCallback(async () => {
+    stopConversationStreamRef.current = await stream();
+    stopAllMessagesStreamRef.current = await streamAllMessages();
+  }, [stream, streamAllMessages]);
 
-  const stopStream = useCallback(() => {
-    stopStreamRef.current?.();
-    stopStreamRef.current = null;
+  const stopStreams = useCallback(() => {
+    stopConversationStreamRef.current?.();
+    stopConversationStreamRef.current = null;
+    stopAllMessagesStreamRef.current?.();
+    stopAllMessagesStreamRef.current = null;
   }, []);
 
   const handleSync = useCallback(async () => {
-    stopStream();
-    await list(undefined, true);
-    await startStream();
-  }, [list, startStream, stopStream]);
+    stopStreams();
+    await sync();
+    await startStreams();
+  }, [sync, startStreams, stopStreams]);
 
   const handleSyncAll = useCallback(async () => {
-    stopStream();
+    stopStreams();
     await syncAll();
-    await startStream();
-  }, [syncAll, startStream, stopStream]);
+    await startStreams();
+  }, [syncAll, startStreams, stopStreams]);
 
   // loading conversations on mount, and start streaming
   useEffect(() => {
     const loadConversations = async () => {
-      await list(undefined);
-      await startStream();
+      await sync(true);
+      await startStreams();
     };
     void loadConversations();
   }, []);
@@ -43,12 +54,13 @@ export const ConversationsNavbar: React.FC = () => {
   // stop streaming on unmount
   useEffect(() => {
     return () => {
-      stopStream();
+      stopStreams();
     };
   }, []);
 
   return (
     <ContentLayout
+      withBorders={false}
       title={
         <Group align="center" gap="xs">
           <Text size="md" fw={700}>
@@ -59,9 +71,10 @@ export const ConversationsNavbar: React.FC = () => {
           </Badge>
         </Group>
       }
-      loading={loading}
+      loading={conversations.length === 0 && loading}
       headerActions={
         <ConversationsMenu
+          loading={syncing || loading}
           onSync={() => void handleSync()}
           onSyncAll={() => void handleSyncAll()}
           disabled={syncing}

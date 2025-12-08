@@ -1,14 +1,11 @@
 import { loadEnvFile } from "node:process";
-import { Agent } from "./core/index.js";
+import { TextCodec } from "@xmtp/content-type-text";
+import { Agent, AgentError } from "./core/index.js";
+import { getTestUrl } from "./debug/log.js";
+import { isHexString } from "./index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
-import { getTestUrl } from "./utils/debug.js";
-import {
-  AgentError,
-  createSigner,
-  createUser,
-  f,
-  withFilter,
-} from "./utils/index.js";
+import { createNameResolver } from "./user.js";
+import { createSigner, createUser } from "./user/User.js";
 
 try {
   loadEnvFile(".env");
@@ -29,14 +26,6 @@ router.command("/version", async (ctx) => {
 
 agent.use(router.middleware());
 
-agent.on("dm", (ctx) => {
-  console.log("Got new direct message in:", ctx.conversation.id);
-});
-
-agent.on("group", (ctx) => {
-  console.log("Got new group message in:", ctx.conversation.id);
-});
-
 agent.on("attachment", (ctx) => {
   console.log("Got attachment:", ctx.message.content);
 });
@@ -53,12 +42,30 @@ agent.on("reply", (ctx) => {
   console.log("Got reply:", ctx.message.content);
 });
 
-agent.on(
-  "text",
-  withFilter(f.startsWith("@agent"), async (ctx) => {
+agent.on("text", async (ctx) => {
+  if (ctx.message.content.startsWith("@agent")) {
     await ctx.conversation.send("How can I help you?");
-  }),
-);
+  }
+});
+
+agent.on("transaction-reference", (ctx) => {
+  const { networkId, reference } = ctx.message.content;
+  if (!isHexString(reference)) {
+    console.warn(`Invalid transaction ID: ${reference}`);
+  }
+  console.log(`Transaction "${reference}" on network "${networkId}".`);
+});
+
+agent.on("wallet-send-calls", (ctx) => {
+  const { chainId, calls } = ctx.message.content;
+  console.log(
+    `Wallet request for "${calls.length}" calls on chain "${chainId}".`,
+  );
+});
+
+agent.on("read-receipt", (ctx) => {
+  console.log(`Message ID "${ctx.message.id}" was read.`);
+});
 
 const errorHandler = (error: unknown) => {
   if (error instanceof AgentError) {
@@ -71,8 +78,28 @@ const errorHandler = (error: unknown) => {
 
 agent.on("unhandledError", errorHandler);
 
-agent.on("start", () => {
-  console.log(`We are online: ${getTestUrl(agent)}`);
+agent.on("start", (ctx) => {
+  console.log(`We are online: ${getTestUrl(ctx.client)}`);
 });
 
-void agent.start();
+agent.on("stop", (ctx) => {
+  console.log("Agent stopped", ctx);
+});
+
+agent.on("unknownMessage", (ctx) => {
+  // Narrow down by codec
+  if (ctx.usesCodec(TextCodec)) {
+    const content = ctx.message.content;
+    console.log(`Text content: ${content.toUpperCase()}`);
+  }
+});
+
+agent.on("group", async (ctx) => {
+  await ctx.sendMarkdown("**Hello, World!**");
+});
+
+await agent.start();
+console.log("Agent has started.");
+
+const resolveName = createNameResolver(process.env.WEB3BIO_API_KEY);
+console.log(await resolveName("vitalik.eth"));

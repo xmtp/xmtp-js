@@ -10,14 +10,47 @@ on:
     inputs:
       disable_audit:
         type: boolean
-        description: "Disable audit in the release"
+        description: "Disable NPM audit"
         default: false
+      release_type:
+        description: "Release type"
+        type: choice
+        options:
+          - standard
+          - prerelease
+        default: prerelease
+      # Prerelease-specific inputs
+      prerelease_sdk:
+        description: "SDK you want to release"
+        type: choice
+        options:
+          - node-sdk
+          - browser-sdk
+          - agent-sdk
+        default: node-sdk
+      prerelease_dependency_version:
+        description: "Dependency version (i.e. 1.7.0-dev.b057f23) for @xmtp/node-bindings (when releasing Node SDK) or @xmtp/node-sdk (when releasing Agent SDK)"
+        type: string
+      prerelease_tag:
+        description: "Release tag"
+        type: choice
+        options:
+          - prerelease
+          - dev
+        default: prerelease
+      prerelease_version:
+        description: "Prerelease version (i.e. 4.4.1-dev.b057f23)"
+        type: string
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  SDK_DEPS: '{"node-sdk":"@xmtp/node-bindings","browser-sdk":"@xmtp/wasm-bindings","agent-sdk":"@xmtp/node-sdk"}'
 
 jobs:
   release:
     name: Release
+    if: ${{ github.event_name == 'push' || inputs.release_type == 'standard' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -26,14 +59,14 @@ jobs:
       issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: ".node-version"
           cache: "yarn"
         env:
           SKIP_YARN_COREPACK_CHECK: "1"
@@ -54,4 +87,51 @@ jobs:
           publish: yarn publish
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  prerelease:
+    name: Prerelease
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_type == 'prerelease' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".node-version"
+          cache: "yarn"
+        env:
+          SKIP_YARN_COREPACK_CHECK: "1"
+      - name: Enable corepack
+        run: corepack enable
+      - name: Update npm to latest
+        run: npm install -g npm@latest
+      - name: Update dependency version
+        working-directory: ./sdks/${{ inputs.prerelease_sdk }}
+        run: yarn add ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }}@${{ inputs.prerelease_dependency_version }}
+      - name: Install dependencies
+        run: yarn
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        if: ${{ !inputs.disable_audit }}
+        run: npm audit signatures
+      - name: Build packages and run lint
+        run: yarn lint
+      - name: Run typecheck
+        run: yarn typecheck
+      - name: Test SDK
+        working-directory: ./sdks/${{ inputs.prerelease_sdk }}
+        run: yarn test
+      - name: Update SDK version
+        working-directory: ./sdks/${{ inputs.prerelease_sdk }}
+        run: yarn version ${{ inputs.prerelease_version }}
+      - name: Rebuild SDK
+        working-directory: ./sdks/${{ inputs.prerelease_sdk }}
+        run: yarn build
+      - name: Publish
+        working-directory: ./sdks/${{ inputs.prerelease_sdk }}
+        run: npm publish --tag ${{ inputs.prerelease_tag }}

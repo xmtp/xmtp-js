@@ -10,6 +10,8 @@ import {
 } from "@/components/Conversation/Permissions";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import type { PolicySet } from "@/types";
 
@@ -19,15 +21,16 @@ export const ManagePermissionsModal: React.FC = () => {
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
   const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
 
-  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation } = useConversation(conversationId);
   const navigate = useNavigate();
-
+  const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
   const contentHeight = fullScreen ? "auto" : 500;
 
   const handleClose = useCallback(() => {
-    void navigate(`/conversations/${conversation.id}`);
-  }, [navigate, conversation.id]);
+    void navigate(`/${environment}/conversations/${conversation.id}`);
+  }, [navigate, conversation.id, environment]);
 
   const handleUpdate = useCallback(async () => {
     if (!(conversation instanceof XmtpGroup)) {
@@ -40,11 +43,11 @@ export const ManagePermissionsModal: React.FC = () => {
         permissionsPolicy,
         policySet,
       );
-      void navigate(`/conversations/${conversation.id}`);
+      void navigate(`/${environment}/conversations/${conversation.id}`);
     } finally {
       setIsLoading(false);
     }
-  }, [conversation.id, permissionsPolicy, policySet, navigate]);
+  }, [conversation.id, permissionsPolicy, policySet, navigate, environment]);
 
   const footer = useMemo(() => {
     return (

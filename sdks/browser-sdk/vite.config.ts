@@ -1,3 +1,4 @@
+import { playwright } from "@vitest/browser-playwright";
 import { defineConfig, mergeConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig as defineVitestConfig } from "vitest/config";
@@ -13,7 +14,7 @@ const vitestConfig = defineVitestConfig({
   },
   test: {
     browser: {
-      provider: "playwright",
+      provider: playwright(),
       enabled: true,
       headless: true,
       screenshotFailures: false,

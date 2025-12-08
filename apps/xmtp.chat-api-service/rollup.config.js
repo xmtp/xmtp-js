@@ -3,7 +3,19 @@ import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
 import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
-const external = ["cors", "express", "helmet", "express-rate-limit", "pinata"];
+const external = [
+  "cors",
+  "express",
+  "helmet",
+  "express-rate-limit",
+  "pinata",
+  "web3bio-profile-kit/types",
+  "web3bio-profile-kit/utils",
+  "zod",
+  "date-fns",
+  "@prisma/client",
+  "node:querystring",
+];
 
 const plugins = [
   tsConfigPaths(),

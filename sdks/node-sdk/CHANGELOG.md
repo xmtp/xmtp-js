@@ -1,5 +1,136 @@
 # @xmtp/node-sdk
 
+## 4.5.0
+
+This release introduces new features, performance optimizations, and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Stream message deletions
+
+Call `streamMessageDeletions` to return a stream of message IDs that have been deleted. This new stream works in tandem with disappearing messages so that developers can be notified when messages have been removed. This is a local stream that doesn't require network sync and will not fail like other streams.
+
+To learn more, see [Support disappearing messages](https://docs.xmtp.org/chat-apps/core-messaging/disappearing-messages).
+
+### Paginate the conversation list
+
+For most pagination use cases, use the `createdBeforeNs` parameter for filtering and set `orderBy` to `createdAt`. This enables you to paginate against a stably sorted list. You can then perform a final sort of conversations in your app.
+
+To learn more, see [Paginate the conversation list](https://docs.xmtp.org/chat-apps/list-stream-sync/list#paginate-the-conversation-list).
+
+### Use `countMessages` to build an unread messages badge
+
+Call `countMessages` to return a count of messages without retrieving the full message list. This is more efficient when you only need the number, such as for unread message badges.
+
+To learn more, see [Count messages in a conversation](https://docs.xmtp.org/chat-apps/list-stream-sync/list-messages#count-messages-in-a-conversation).
+
+### New version properties on the client
+
+- `libxmtpVersion`: Returns the version of `libxmtp` used in the bindings
+- `appVersion`: Returns the app version configured for the client
+
+The `libxmtpVersion` property can be useful for debugging or ensuring compatibility with the underlying XMTP APIs.
+
+**Note:** The static `Client.version` property is now deprecated, use `libxmtpVersion` instead.
+
+### `syncAll` performance improvements
+
+The `syncAll` method now performs the same function as before, but with significantly improved performance. It achieves this by syncing only group chat and DM conversations with a consent state of _allowed_ or _unknown_ that contain **unread messages**, rather than syncing all conversations.
+
+The method continues to sync new welcomes and preference updates.
+
+To learn more, see [Sync new welcomes, conversations with unread messages, and preferences](https://docs.xmtp.org/chat-apps/list-stream-sync/sync-and-syncall#sync-new-welcomes-conversations-with-unread-messages-and-preferences).
+
+### Streaming now includes catch-up messages
+
+Streaming messages now includes all messages sent after the last sync, including those missed while the client was offline. To only stream new messages, be sure to sync with the network before starting the stream.
+
+To learn more, see [Stream new group chat and DM messages](https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages).
+
+### Welcome pointers
+
+OpenMLS supports sending welcomes to multiple installations in a single commit. This is currently used, but each welcome is sent individually to each installation. Some of the welcomes can be very large, and the data is duplicated for every installation.
+
+Welcome pointers introduce a new welcome message that provides a pointer to the location where the welcome data can be found. The large welcome pointer data can be sent to the server only once, and each installation can fetch that message. This is achieved using symmetric key encryption for the welcome data, with each installation receiving a message that includes these keys.
+
+This provides a performance and scalability improvement that makes both developer implementations and user experiences smoother and faster, without requiring changes to how developers write client code.
+
+To learn more, see [XIP-74: Welcome pointers](https://community.xmtp.org/t/xip-74-welcome-pointers/1211).
+
+### `revokeAllOtherInstallations` no longer crashes with a single installation
+
+Calling `revokeAllOtherInstallations()` on an inbox with only one active installation no longer crashes with an "Unknown signer" error.
+
+Because the method’s purpose is to keep only the current installation active, having just one installation already meets this condition. The operation now completes successfully without trying to revoke non-existent installations.
+
+To learn more, see [Revoke all other installations](https://docs.xmtp.org/chat-apps/core-messaging/manage-inboxes#revoke-all-other-installations).
+
+## 4.4.0
+
+### Minor Changes
+
+- 7ce84ce: Added `getDmByIdentifier` method to `Conversations`
+
+## 4.3.1
+
+Fixed accidental publishing of `4.3.0`
+
+## 4.2.6
+
+### Patch Changes
+
+- 396767b: Increased default stream retry delay
+
+## 4.2.5
+
+### Patch Changes
+
+- 8bf9ecb: Add "validHex" validation function
+
+## 4.2.4
+
+### Patch Changes
+
+- 9003bb9: Enable hex strings as database encryption keys
+
+## 4.2.3
+
+### Patch Changes
+
+- 61c19c9:
+  - Fixed an issue where duplicate welcome errors were fired erroneously
+  - Fixed a bug where building a client did a network request when not needed
+
+## 4.2.2
+
+### Patch Changes
+
+- b7a860e: Refactored `lastMessage()` method of `Conversation` to always query the database
+
+## 4.2.1
+
+### Patch Changes
+
+- 0abcb05: Fixed initial group membership validation
+
+## 4.2.0
+
+- Improved performance of syncing new groups
+- Added support for Lens chain Smart Contract Wallet verifier
+- Fixed OpenMLS issue for persistence during message processing
+- Fixed lifetime validation gaps
+
+## 4.1.2
+
+### Patch Changes
+
+- bb4163f: - Added `onError` callback when stream reconnection fails
+  - Updated `uuid` dependency to v13
+
+## 4.1.1
+
+### Patch Changes
+
+- 5b0160e: Updated `dbPath` client option to allow callback function
+
 ## 4.1.0
 
 This release introduces improved fork detection. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this enhancement.

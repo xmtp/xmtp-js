@@ -1,7 +1,4 @@
-import type {
-  Message,
-  Conversation as XmtpConversation,
-} from "@xmtp/node-bindings";
+import type { Conversation as XmtpConversation } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
 
@@ -19,16 +16,14 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
    *
    * @param client - The client instance managing this direct message conversation
    * @param conversation - The underlying conversation instance
-   * @param lastMessage - Optional last message in the conversation
    * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     conversation: XmtpConversation,
-    lastMessage?: Message | null,
     isCommitLogForked?: boolean | null,
   ) {
-    super(client, conversation, lastMessage, isCommitLogForked);
+    super(client, conversation, isCommitLogForked);
     this.#client = client;
     this.#conversation = conversation;
   }

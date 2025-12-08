@@ -87,9 +87,12 @@ export const uploadAttachment = async (
   );
 
   // Upload the encrypted payload to Pinata
-  const encryptedBlob = new Blob([encryptedAttachment.payload], {
-    type: "application/octet-stream",
-  });
+  const encryptedBlob = new Blob(
+    [encryptedAttachment.payload as Uint8Array<ArrayBuffer>],
+    {
+      type: "application/octet-stream",
+    },
+  );
   const encryptedFile = new File([encryptedBlob], file.name, {
     type: "application/octet-stream",
   });
@@ -98,7 +101,7 @@ export const uploadAttachment = async (
   const upload = await pinata.upload.public
     .file(encryptedFile)
     .url(presignedUrl);
-  const url = await pinata.gateways.public.convert(upload.cid);
+  const url = `https://${import.meta.env.VITE_PINATA_GATEWAY}/ipfs/${upload.cid}`;
 
   // Return the RemoteAttachment with encryption metadata
   return {

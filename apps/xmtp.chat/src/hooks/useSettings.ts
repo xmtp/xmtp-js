@@ -31,7 +31,7 @@ export const useSettings = () => {
     ClientOptions["loggingLevel"]
   >({
     key: "XMTP_LOGGING_LEVEL",
-    defaultValue: "off",
+    defaultValue: "warn",
     getInitialValueInEffect: false,
   });
   const [forceSCW, setForceSCW] = useLocalStorage<boolean>({
@@ -59,6 +59,11 @@ export const useSettings = () => {
     defaultValue: false,
     getInitialValueInEffect: false,
   });
+  const [showDisclaimer, setShowDisclaimer] = useLocalStorage<boolean>({
+    key: "XMTP_SHOW_DISCLAIMER",
+    defaultValue: true,
+    getInitialValueInEffect: false,
+  });
 
   return {
     autoConnect,
@@ -71,6 +76,7 @@ export const useSettings = () => {
     forceSCW,
     loggingLevel,
     useSCW,
+    showDisclaimer,
     setAutoConnect,
     setBlockchain,
     setConnector,
@@ -81,5 +87,6 @@ export const useSettings = () => {
     setForceSCW,
     setLoggingLevel,
     setUseSCW,
+    setShowDisclaimer,
   };
 };

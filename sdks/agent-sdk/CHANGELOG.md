@@ -1,5 +1,161 @@
 # @xmtp/agent-sdk
 
+## 1.1.16
+
+### Patch Changes
+
+- f3017b3: Disabled device sync by default
+
+## 1.1.15
+
+### Patch Changes
+
+- cddbb41: Made streaming options configurable
+
+## 1.1.14
+
+### Patch Changes
+
+- 8e6c633: Strip the command token in the message context of `CommandRouter`
+- 1fe5810: Pinned Node.js SDK version
+
+## 1.1.13
+
+### Patch Changes
+
+- 24c866e: Exported `usesCodec` in `filter`
+
+## 1.1.12
+
+### Patch Changes
+
+- 13a14ba:
+  - Update xmtp.chat URLs
+  - Updated dependencies
+    - @xmtp/node-sdk@4.2.6
+
+## 1.1.11
+
+### Patch Changes
+
+- e01f21b: Add AgentStreamingError
+
+## 1.1.10
+
+### Patch Changes
+
+- 594dd71: Re-export `isHexString` and discriminating content types in `CommandRouter` handlers
+
+## 1.1.9
+
+### Patch Changes
+
+- bde0bfb: Expose `XMTP_DB_DIRECTORY` for `Agent.createFromEnv`
+
+## 1.1.8
+
+### Patch Changes
+
+- 9003bb9: Enable hex strings as database encryption keys
+- Updated dependencies [9003bb9]
+  - @xmtp/node-sdk@4.2.4
+
+## 1.1.7
+
+### Patch Changes
+
+- 8279497: Added warning about installation limit
+
+## 1.1.6
+
+### Patch Changes
+
+- 932f01d: - Fixed an issue where duplicate welcome errors were fired erroneously
+  - Fixed a bug where building a client did a network request when not needed
+
+## 1.1.5
+
+### Patch Changes
+
+- d0798bc: Updated `@xmtp/node-sdk` dependency to `^4.2.2`
+
+## 1.1.4
+
+### Patch Changes
+
+- 45160dc: Added `MessageContext.useCodec` to identify custom content types
+
+## 1.1.3
+
+### Patch Changes
+
+- 3c28612: Added XMTP_FORCE_DEBUG_LEVEL env variable
+
+## 1.1.2
+
+### Patch Changes
+
+- 9538002: Added ENS name resolution
+
+## 1.1.1
+
+### Patch Changes
+
+- a0b5d11: Updated Node SDK in Agent SDK
+
+## 1.1.0
+
+### Minor Changes
+
+- 70d1a21: Added listening to conversation events
+
+## 1.0.1
+
+### Patch Changes
+
+- 54577da: Added "group-update" events
+
+## 1.0.0
+
+### Major Changes
+
+- 5b0c9f8: Removed Beta label
+
+## 0.0.17
+
+### Patch Changes
+
+- e0b035c: - Added conversation creation
+
+## 0.0.16
+
+### Patch Changes
+
+- 07ea5c3: - Exposed `debug`, `middleware`, and `user` packages
+  - Passed `ClientContext` to `start` and `stop` event listeners
+
+## 0.0.15
+
+### Patch Changes
+
+- 07fa1c3: Implemented message streaming with callbacks
+
+## 0.0.14
+
+### Patch Changes
+
+- 4da121f: Remove listening to `'dm'` and `'group'` events
+
+## 0.0.13
+
+### Patch Changes
+
+- b4f86cc: - Simplified filter usage with parameter-based API
+  - Removed `withFilter`
+  - Changed all interface definitions to type definitions
+  - Updated `ConversationContext` to use new filter methods
+  - Introduced unified context types in `AgentContext`
+
 ## 0.0.12
 
 ### Patch Changes

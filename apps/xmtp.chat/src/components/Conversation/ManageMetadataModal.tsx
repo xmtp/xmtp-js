@@ -5,12 +5,20 @@ import { useNavigate, useOutletContext } from "react-router";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { Metadata } from "@/components/Conversation/Metadata";
 import { Modal } from "@/components/Modal";
+import { useClientPermissions } from "@/hooks/useClientPermissions";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
+import { useConversation } from "@/hooks/useConversation";
+import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
+import { useActions } from "@/stores/inbox/hooks";
 
 export const ManageMetadataModal: React.FC = () => {
-  const { conversation } = useOutletContext<ConversationOutletContext>();
+  const { conversationId } = useOutletContext<ConversationOutletContext>();
+  const { conversation } = useConversation(conversationId);
+  const clientPermissions = useClientPermissions(conversationId);
+  const { addConversation } = useActions();
   const navigate = useNavigate();
+  const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -22,29 +30,37 @@ export const ManageMetadataModal: React.FC = () => {
   const initialImageUrl = useRef("");
 
   const handleClose = useCallback(() => {
-    void navigate(`/conversations/${conversation.id}`);
-  }, [navigate, conversation.id]);
+    void navigate(`/${environment}/conversations/${conversation.id}`);
+  }, [navigate, conversation.id, environment]);
 
   const handleUpdate = useCallback(async () => {
     if (conversation instanceof XmtpGroup) {
       setIsLoading(true);
       try {
+        let hasUpdated = false;
         if (name !== initialName.current) {
           await conversation.updateName(name);
+          hasUpdated = true;
         }
         if (description !== initialDescription.current) {
           await conversation.updateDescription(description);
+          hasUpdated = true;
         }
         if (imageUrl !== initialImageUrl.current) {
           await conversation.updateImageUrl(imageUrl);
+          hasUpdated = true;
         }
 
-        void navigate(`/conversations/${conversation.id}`);
+        if (hasUpdated) {
+          void addConversation(conversation);
+        }
+
+        void navigate(`/${environment}/conversations/${conversation.id}`);
       } finally {
         setIsLoading(false);
       }
     }
-  }, [conversation.id, name, description, imageUrl, navigate]);
+  }, [conversation, name, description, imageUrl, navigate, environment]);
 
   useEffect(() => {
     if (conversation instanceof XmtpGroup) {
@@ -94,6 +110,7 @@ export const ManageMetadataModal: React.FC = () => {
         withScrollAreaPadding={false}>
         <Metadata
           conversation={conversation}
+          clientPermissions={clientPermissions}
           onNameChange={setName}
           onDescriptionChange={setDescription}
           onImageUrlChange={setImageUrl}

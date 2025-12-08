@@ -44,6 +44,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param id - The conversation ID to look up
    * @returns The conversation if found, undefined otherwise
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#conversation-helper-methods
    */
   async getConversationById(id: string) {
     try {
@@ -63,6 +64,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param inboxId - The inbox ID to look up
    * @returns The DM if found, undefined otherwise
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#conversation-helper-methods
    */
   getDmByInboxId(inboxId: string) {
     try {
@@ -75,10 +77,26 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
+   * Retrieves a DM by identifier
+   *
+   * @param identifier - The identifier to look up
+   * @returns Promise that resolves with the DM, if found
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#conversation-helper-methods
+   */
+  async getDmByIdentifier(identifier: Identifier) {
+    const inboxId = await this.#client.getInboxIdByIdentifier(identifier);
+    if (!inboxId) {
+      return undefined;
+    }
+    return this.getDmByInboxId(inboxId);
+  }
+
+  /**
    * Retrieves a message by its ID
    *
    * @param id - The message ID to look up
    * @returns The decoded message if found, undefined otherwise
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#conversation-helper-methods
    */
   getMessageById(id: string) {
     try {
@@ -95,6 +113,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param options - Optional group creation options
    * @returns The new group
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#optimistically-create-a-new-group-chat
    */
   newGroupOptimistic(options?: CreateGroupOptions) {
     const group = this.#conversations.createGroupOptimistic(options);
@@ -107,6 +126,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param identifiers - Array of identifiers for group members
    * @param options - Optional group creation options
    * @returns The new group
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
   async newGroupWithIdentifiers(
     identifiers: Identifier[],
@@ -123,6 +143,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param inboxIds - Array of inbox IDs for group members
    * @param options - Optional group creation options
    * @returns The new group
+   * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
   async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxId(
@@ -139,6 +160,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param identifier - Identifier for the DM recipient
    * @param options - Optional DM creation options
    * @returns The new DM
+   * @see https://docs.xmtp.org/agents/build-agents/create-conversations#by-ethereum-address-1
    */
   async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
     const group = await this.#conversations.createDm(identifier, options);
@@ -152,6 +174,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param inboxId - Inbox ID for the DM recipient
    * @param options - Optional DM creation options
    * @returns The new DM
+   * @see https://docs.xmtp.org/agents/build-agents/create-conversations#by-inbox-id-1
    */
   async newDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
@@ -164,6 +187,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param options - Optional filtering and pagination options
    * @returns Array of conversations
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/list
    */
   async list(options?: ListConversationsOptions) {
     const groups = this.#conversations.list(options);
@@ -176,14 +200,12 @@ export class Conversations<ContentTypes = unknown> {
             return new Dm(
               this.#client,
               item.conversation,
-              item.lastMessage,
               item.isCommitLogForked,
             );
           case "group":
             return new Group(
               this.#client,
               item.conversation,
-              item.lastMessage,
               item.isCommitLogForked,
             );
           default:
@@ -199,6 +221,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param options - Optional filtering and pagination options
    * @returns Array of groups
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/list#list-existing-conversations
    */
   listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.list({
@@ -209,7 +232,6 @@ export class Conversations<ContentTypes = unknown> {
       const conversation = new Group(
         this.#client,
         item.conversation,
-        item.lastMessage,
         item.isCommitLogForked,
       );
       return conversation;
@@ -221,6 +243,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param options - Optional filtering and pagination options
    * @returns Array of DMs
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/list#list-existing-conversations
    */
   listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.list({
@@ -231,7 +254,6 @@ export class Conversations<ContentTypes = unknown> {
       const conversation = new Dm(
         this.#client,
         item.conversation,
-        item.lastMessage,
         item.isCommitLogForked,
       );
       return conversation;
@@ -242,6 +264,7 @@ export class Conversations<ContentTypes = unknown> {
    * Synchronizes conversations for the current client from the network
    *
    * @returns Promise that resolves when sync is complete
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/sync-and-syncall
    */
   async sync() {
     return this.#conversations.sync();
@@ -253,6 +276,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param consentStates - Optional array of consent states to filter by
    * @returns Promise that resolves when sync is complete
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/sync-and-syncall#sync-all-new-welcomes-conversations-messages-and-preferences
    */
   async syncAll(consentStates?: ConsentState[]) {
     return this.#conversations.syncAllConversations(consentStates);
@@ -264,6 +288,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @param options.conversationType - Optional conversation type to filter by
    * @returns Stream instance for new conversations
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-conversations
    */
   async stream(
     options?: StreamOptions<
@@ -277,7 +302,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(
         callback,
         onFail,
@@ -307,6 +334,7 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param options - Optional stream options
    * @returns Stream instance for new group conversations
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-conversations
    */
   async streamGroups(
     options?: StreamOptions<Conversation, Group<ContentTypes>>,
@@ -315,7 +343,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(
         callback,
         onFail,
@@ -334,13 +364,16 @@ export class Conversations<ContentTypes = unknown> {
    *
    * @param options - Optional stream options
    * @returns Stream instance for new DM conversations
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-conversations
    */
   async streamDms(options?: StreamOptions<Conversation, Dm<ContentTypes>>) {
     const stream = async (
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(callback, onFail, ConversationType.Dm);
     };
     const convertConversation = (value: Conversation) => {
@@ -357,6 +390,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options.conversationType - Optional conversation type to filter by
    * @param options.consentStates - Optional array of consent states to filter by
    * @returns Stream instance for new messages
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
@@ -368,7 +402,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Message>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.syncAll(options?.consentStates);
+      }
       return this.#conversations.streamAllMessages(
         callback,
         onFail,
@@ -389,6 +425,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @param options.consentStates - Optional array of consent states to filter by
    * @returns Stream instance for new group messages
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllGroupMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
@@ -408,6 +445,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @param options.consentStates - Optional array of consent states to filter by
    * @returns Stream instance for new DM messages
+   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllDmMessages(
     options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
@@ -422,9 +460,37 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
+   * Creates a stream for message deletions
+   *
+   * This is a local stream, does not require network sync, and will not fail
+   * like other streams.
+   *
+   * @param options - Optional stream options
+   * @returns Stream instance for message deletions
+   */
+  async streamMessageDeletions(
+    options?: Omit<
+      StreamOptions<string>,
+      | "disableSync"
+      | "onFail"
+      | "onRetry"
+      | "onRestart"
+      | "retryAttempts"
+      | "retryDelay"
+      | "retryOnFail"
+    >,
+  ) {
+    const stream = async (callback: StreamCallback<string>) => {
+      return this.#conversations.streamMessageDeletions(callback);
+    };
+    return createStream(stream, undefined, options);
+  }
+
+  /**
    * Retrieves HMAC keys for all conversations
    *
    * @returns The HMAC keys for all conversations
+   * @see https://docs.xmtp.org/chat-apps/push-notifs/push-notifs#get-hmac-keys-for-a-conversation
    */
   hmacKeys() {
     return this.#conversations.getHmacKeys();

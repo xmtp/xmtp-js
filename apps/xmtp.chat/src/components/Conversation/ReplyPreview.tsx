@@ -1,11 +1,14 @@
 import { ActionIcon, Box, Group, Paper, Text } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
-import { AddressBadge } from "@/components/AddressBadge";
+import { IdentityBadge } from "@/components/IdentityBadge";
 import { AttachmentDetails } from "@/components/Messages/AttachmentDetails";
 import { BreakableText } from "@/components/Messages/BreakableText";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { formatFileSize } from "@/helpers/attachment";
 import { isRemoteAttachment, stringify } from "@/helpers/messages";
+import { MEMBER_NO_LONGER_IN_GROUP } from "@/helpers/strings";
+import { getMemberAddress } from "@/helpers/xmtp";
+import { useConversation } from "@/hooks/useConversation";
 import { IconArrowBackUp } from "@/icons/IconArrowBackUp";
 import { IconX } from "@/icons/IconX";
 
@@ -39,9 +42,9 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
   onCancel,
   disabled,
 }) => {
-  const { members } = useConversationContext();
-  const fromAddress =
-    members.get(message.senderInboxId) ?? message.senderInboxId;
+  const { conversationId } = useConversationContext();
+  const { members } = useConversation(conversationId);
+  const fromMember = members.get(message.senderInboxId);
   return (
     <>
       <Box miw="0">
@@ -52,7 +55,11 @@ export const ReplyPreview: React.FC<ReplyPreviewProps> = ({
               Replying to
             </Text>
             <Box>
-              <AddressBadge address={fromAddress} />
+              <IdentityBadge
+                address={fromMember ? getMemberAddress(fromMember) : ""}
+                displayName={message.senderInboxId}
+                tooltip={fromMember ? undefined : MEMBER_NO_LONGER_IN_GROUP}
+              />
             </Box>
           </Group>
           <ReplyPreviewContent message={message} />
