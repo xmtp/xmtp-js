@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useClient } from "@/contexts/XMTPContext";
 import { resolveNameQuery } from "@/helpers/names";
+import { isValidEthereumAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 import { useActions } from "@/stores/inbox/hooks";
 
@@ -37,12 +38,22 @@ export const LoadDM: React.FC = () => {
 
       if (!address.startsWith("0x")) {
         setMessage("Resolving ENS name...");
+
         const profiles = await resolveNameQuery(address);
         if (!profiles || profiles.length === 0) {
           navigateToHome("Could not resolve name, redirecting...");
           return;
         }
-        resolvedAddress = profiles[0].address;
+
+        const ethereumAddress = profiles[0].address;
+        if (!isValidEthereumAddress(ethereumAddress)) {
+          navigateToHome(
+            "ENS name is not a valid Ethereum address, redirecting...",
+          );
+          return;
+        }
+
+        resolvedAddress = ethereumAddress;
       }
 
       try {
