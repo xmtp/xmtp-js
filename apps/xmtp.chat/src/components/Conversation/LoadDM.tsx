@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useClient } from "@/contexts/XMTPContext";
-import { resolveNameQuery } from "@/helpers/names";
+import { isValidName, resolveNameQuery } from "@/helpers/names";
 import { isValidEthereumAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 import { useActions } from "@/stores/inbox/hooks";
@@ -30,27 +30,25 @@ export const LoadDM: React.FC = () => {
     const resolveAddress = async (
       addressOrENS: string,
     ): Promise<string | null> => {
-      if (!addressOrENS.startsWith("0x")) {
+      if (isValidEthereumAddress(addressOrENS)) {
+        return addressOrENS;
+      } else if (isValidName(addressOrENS)) {
         setMessage("Resolving ENS name...");
 
         const profiles = await resolveNameQuery(addressOrENS);
         if (!profiles || profiles.length === 0) {
-          navigateToHome("Could not resolve name, redirecting...");
           return null;
         }
 
         const ethereumAddress = profiles[0].address;
         if (!isValidEthereumAddress(ethereumAddress)) {
-          navigateToHome(
-            "ENS name is not a valid Ethereum address, redirecting...",
-          );
           return null;
         }
 
         return ethereumAddress;
+      } else {
+        return null;
       }
-
-      return addressOrENS;
     };
 
     const loadDm = async () => {
