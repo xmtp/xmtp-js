@@ -18,10 +18,10 @@ on:
         options:
           - standard
           - prerelease
-        default: standard
+        default: prerelease
       # Prerelease-specific inputs
       prerelease_sdk:
-        description: "SDK (prerelease only)"
+        description: "SDK you want to release"
         type: choice
         options:
           - node-sdk
@@ -29,17 +29,17 @@ on:
           - agent-sdk
         default: node-sdk
       prerelease_dependency_version:
-        description: "Dependency version for bindings or node sdk (prerelease only)"
+        description: "Dependency version (i.e. 1.7.0-dev.b057f23) for @xmtp/node-bindings (when releasing Node SDK) or @xmtp/node-sdk (when releasing Agent SDK)"
         type: string
       prerelease_tag:
-        description: "Release tag (prerelease only)"
+        description: "Release tag"
         type: choice
         options:
           - prerelease
           - dev
         default: prerelease
       prerelease_version:
-        description: "Prerelease version (prerelease only)"
+        description: "Prerelease version (i.e. 4.4.1-dev.b057f23)"
         type: string
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
