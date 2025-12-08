@@ -59,7 +59,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       const existingProfiles = state.profiles.get(profile.address) ?? [];
       newProfiles.set(profile.address, [...existingProfiles, profile]);
       if (profile.identity) {
-        newNames.set(profile.identity, profile.address);
+        // normalize identity to lowercase for case-insensitive matching
+        newNames.set(profile.identity.toLowerCase(), profile.address);
       }
       set(() => ({
         profiles: newProfiles,
@@ -77,7 +78,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
         const existingProfiles = state.profiles.get(profile.address) ?? [];
         newProfiles.set(profile.address, [...existingProfiles, profile]);
         if (profile.identity) {
-          newNames.set(profile.identity, profile.address);
+          // normalize identity to lowercase for case-insensitive matching
+          newNames.set(profile.identity.toLowerCase(), profile.address);
         }
       }
       set(() => ({
