@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useClient } from "@/contexts/XMTPContext";
-import { isValidEthereumAddress } from "@/helpers/strings";
+import { resolveNameQuery } from "@/helpers/names";
 import { useSettings } from "@/hooks/useSettings";
 import { useActions } from "@/stores/inbox/hooks";
 
@@ -20,7 +20,7 @@ export const LoadDM: React.FC = () => {
     let timeout: NodeJS.Timeout;
     const loadDm = async () => {
       // no address, redirect to root
-      if (!address || !isValidEthereumAddress(address)) {
+      if (!address) {
         setMessage("Invalid address, redirecting...");
         timeout = setTimeout(() => {
           void navigate(`/${environment}`);
@@ -28,10 +28,25 @@ export const LoadDM: React.FC = () => {
         return;
       }
 
+      let resolvedAddress = address;
+
+      if (!address.startsWith("0x")) {
+        setMessage("Resolving ENS name...");
+        const profiles = await resolveNameQuery(address);
+        if (!profiles || profiles.length === 0) {
+          setMessage("Could not resolve name, redirecting...");
+          timeout = setTimeout(() => {
+            void navigate(`/${environment}`);
+          }, REDIRECT_TIMEOUT);
+          return;
+        }
+        resolvedAddress = profiles[0].address;
+      }
+
       try {
         setMessage("Verifying address...");
         const inboxId = await client.findInboxIdByIdentifier({
-          identifier: address.toLowerCase(),
+          identifier: resolvedAddress.toLowerCase(),
           identifierKind: "Ethereum",
         });
         // no inbox ID, redirect to root
@@ -54,7 +69,7 @@ export const LoadDM: React.FC = () => {
           // no DM group, create it
           setMessage("Creating new DM...");
           const newDm = await client.conversations.newDmWithIdentifier({
-            identifier: address.toLowerCase(),
+            identifier: resolvedAddress.toLowerCase(),
             identifierKind: "Ethereum",
           });
           dmId = newDm.id;
