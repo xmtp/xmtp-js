@@ -23,7 +23,6 @@ export const resolveName = async (name: string, force: boolean = false) => {
     return null;
   }
 
-  // normalize name to lowercase for case-insensitive matching
   const normalizedName = name.toLowerCase();
 
   // check cached profiles
