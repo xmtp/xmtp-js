@@ -204,10 +204,12 @@ self.onmessage = async (
         const signatureRequest =
           await client.revokeAllOtherInstallationsSignatureRequest();
         const result = {
-          signatureText: await signatureRequest.signatureText(),
+          signatureText: await signatureRequest?.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
-        signatureRequests.set(data.signatureRequestId, signatureRequest);
+        if (signatureRequest) {
+          signatureRequests.set(data.signatureRequestId, signatureRequest);
+        }
         postMessage({ id, action, result });
         break;
       }

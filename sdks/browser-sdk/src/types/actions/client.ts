@@ -65,7 +65,7 @@ export type ClientAction =
       action: "client.revokeAllOtherInstallationsSignatureText";
       id: string;
       result: {
-        signatureText: string;
+        signatureText: string | undefined;
         signatureRequestId: string;
       };
       data: {

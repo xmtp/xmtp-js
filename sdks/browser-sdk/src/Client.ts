@@ -488,6 +488,12 @@ export class Client<
 
     const { signatureText, signatureRequestId } =
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
+
+    // no other installations to revoke, nothing to do
+    if (!signatureText) {
+      return;
+    }
+
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
