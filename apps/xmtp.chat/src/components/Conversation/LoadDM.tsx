@@ -27,22 +27,16 @@ export const LoadDM: React.FC = () => {
       }, REDIRECT_TIMEOUT);
     };
 
-    const loadDm = async () => {
-      // no address, redirect to root
-      if (!address) {
-        navigateToHome("Invalid address, redirecting...");
-        return;
-      }
-
-      let resolvedAddress = address;
-
-      if (!address.startsWith("0x")) {
+    const resolveAddress = async (
+      addressOrENS: string,
+    ): Promise<string | null> => {
+      if (!addressOrENS.startsWith("0x")) {
         setMessage("Resolving ENS name...");
 
-        const profiles = await resolveNameQuery(address);
+        const profiles = await resolveNameQuery(addressOrENS);
         if (!profiles || profiles.length === 0) {
           navigateToHome("Could not resolve name, redirecting...");
-          return;
+          return null;
         }
 
         const ethereumAddress = profiles[0].address;
@@ -50,20 +44,37 @@ export const LoadDM: React.FC = () => {
           navigateToHome(
             "ENS name is not a valid Ethereum address, redirecting...",
           );
-          return;
+          return null;
         }
 
-        resolvedAddress = ethereumAddress;
+        return ethereumAddress;
+      }
+
+      return addressOrENS;
+    };
+
+    const loadDm = async () => {
+      // no address, redirect to root
+      if (!address) {
+        navigateToHome("Invalid address, redirecting...");
+        return;
       }
 
       try {
+        const resolvedAddress = await resolveAddress(address);
+
+        if (!resolvedAddress) {
+          navigateToHome("Invalid address, redirecting...");
+          return;
+        }
+
         setMessage("Verifying address...");
         const inboxId = await client.findInboxIdByIdentifier({
           identifier: resolvedAddress.toLowerCase(),
           identifierKind: "Ethereum",
         });
-        // no inbox ID, redirect to root
 
+        // no inbox ID, redirect to root
         if (!inboxId) {
           setMessage(
             "Address not registered on the XMTP network, redirecting...",
