@@ -18,13 +18,18 @@ export const LoadDM: React.FC = () => {
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
+
+    const navigateToHome = (message: string) => {
+      setMessage(message);
+      timeout = setTimeout(() => {
+        void navigate(`/${environment}`);
+      }, REDIRECT_TIMEOUT);
+    };
+
     const loadDm = async () => {
       // no address, redirect to root
       if (!address) {
-        setMessage("Invalid address, redirecting...");
-        timeout = setTimeout(() => {
-          void navigate(`/${environment}`);
-        }, REDIRECT_TIMEOUT);
+        navigateToHome("Invalid address, redirecting...");
         return;
       }
 
@@ -34,10 +39,7 @@ export const LoadDM: React.FC = () => {
         setMessage("Resolving ENS name...");
         const profiles = await resolveNameQuery(address);
         if (!profiles || profiles.length === 0) {
-          setMessage("Could not resolve name, redirecting...");
-          timeout = setTimeout(() => {
-            void navigate(`/${environment}`);
-          }, REDIRECT_TIMEOUT);
+          navigateToHome("Could not resolve name, redirecting...");
           return;
         }
         resolvedAddress = profiles[0].address;
