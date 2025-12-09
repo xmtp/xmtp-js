@@ -8,7 +8,7 @@ This release includes a new property, performance optimizations and bug fixes. I
 
 The `libxmtpVersion` property can be useful for debugging or ensuring compatibility with the underlying XMTP APIs.
 
-For more information on these updates, see the [release notes](https://github.com/xmtp/xmtp-js/releases/tag/%40xmtp%2Fnode-sdk%404.5.0) for the Node SDK.
+For more information on these updates, see these [release notes](https://github.com/xmtp/xmtp-js/releases/tag/%40xmtp%2Fnode-sdk%404.5.0) for the Node SDK.
 
 ## 1.1.16
 
