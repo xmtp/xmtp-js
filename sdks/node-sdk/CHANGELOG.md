@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 4.5.1
+
+### Patch Changes
+
+- fe6a04f: Added `GroupSyncSummary` export
+
 ## 4.5.0
 
 This release introduces new features, performance optimizations, and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
