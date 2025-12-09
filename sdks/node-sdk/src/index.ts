@@ -23,6 +23,7 @@ export type {
   CreateGroupOptions,
   EncodedContent,
   HmacKey,
+  GroupSyncSummary,
   Identifier,
   InboxState,
   Installation,
