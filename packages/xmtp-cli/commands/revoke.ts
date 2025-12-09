@@ -1,25 +1,35 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { createSigner, createUser } from "@xmtp/agent-sdk/user";
-import { Client, type XmtpEnv } from "@xmtp/node-sdk";
+import {
+  createIdentifier,
+  createSigner,
+  createUser,
+} from "@xmtp/agent-sdk/user";
+import { Client, getInboxIdForIdentifier, type XmtpEnv } from "@xmtp/node-sdk";
 import type { Argv } from "yargs";
 
 export interface RevokeOptions {
   keep?: string;
   env?: string;
+  all?: boolean;
 }
 
 export function registerRevokeCommand(yargs: Argv) {
   return yargs.command(
-    "revoke <inbox-id>",
+    "revoke [inbox-id]",
     "Revoke XMTP installations for an inbox",
     (yargs: Argv) => {
       return yargs
         .positional("inbox-id", {
           type: "string",
           description: "64-character hex inbox ID",
-          demandOption: true,
+        })
+        .option("all", {
+          type: "boolean",
+          description:
+            "Revoke all installations for current inbox (gets inboxId automatically)",
+          default: false,
         })
         .option("keep", {
           type: "string",
@@ -28,60 +38,45 @@ export function registerRevokeCommand(yargs: Argv) {
         .option("env", {
           type: "string",
           description: "Override XMTP environment from .env file",
+        })
+        .check((argv) => {
+          if (!argv.all && !argv["inbox-id"]) {
+            throw new Error(
+              "Either provide inbox-id or use --all flag to revoke for current inbox",
+            );
+          }
+          return true;
         });
     },
-    async (argv: { "inbox-id": string; keep?: string; env?: string }) => {
+    async (argv: {
+      "inbox-id"?: string;
+      keep?: string;
+      env?: string;
+      all?: boolean;
+    }) => {
       await runRevokeCommand(argv["inbox-id"], {
         keep: argv.keep,
         env: argv.env,
+        all: argv.all,
       });
     },
   );
 }
 
 export async function runRevokeCommand(
-  inboxId: string,
+  inboxId: string | undefined,
   options: RevokeOptions,
 ): Promise<void> {
-  let installationsToKeep: string[] = [];
-
-  if (options.keep) {
-    installationsToKeep = options.keep
-      .split(",")
-      .map((id) => id.trim())
-      .filter((id) => id.length > 0);
-  }
-
-  if (!/^[a-f0-9]{64}$/i.test(inboxId)) {
-    console.error(
-      "[ERROR] Invalid inbox ID format. Must be 64 hexadecimal characters.",
-    );
-    console.error(`Provided: ${inboxId}`);
-    process.exit(1);
-  }
-
-  if (installationsToKeep.length > 0) {
-    const invalidInstallations = installationsToKeep.filter(
-      (id) => !/^[a-f0-9]{64}$/i.test(id),
-    );
-    if (invalidInstallations.length > 0) {
-      console.error(
-        "[ERROR] Invalid installation ID format(s). Must be 64 hexadecimal characters.",
-      );
-      console.error("Invalid IDs:", invalidInstallations.join(", "));
-      process.exit(1);
-    }
-  }
+  let targetInboxId = inboxId;
 
   const exampleDir = process.cwd();
   const exampleName = exampleDir.split("/").pop() || "example";
   const envPath = join(exampleDir, ".env");
 
   if (!existsSync(envPath)) {
-    console.error(
-      "[ERROR] .env file not found. Please run 'xmtp keys' first to generate keys.",
+    throw new Error(
+      ".env file not found. Please run 'xmtp keys' first to generate keys.",
     );
-    process.exit(1);
   }
 
   const sanitizeEnvValue = (value: string): string => {
@@ -105,13 +100,63 @@ export async function runRevokeCommand(
     }
   });
 
-  const env = options.env || process.env.XMTP_ENV || envVars.XMTP_ENV;
-  if (!env) {
-    console.error(
-      "[ERROR] XMTP_ENV not found in environment variables or .env file and --env not provided.",
+  const env = (options.env ||
+    process.env.XMTP_ENV ||
+    envVars.XMTP_ENV ||
+    "dev") as XmtpEnv;
+
+  // If --all is specified, get inboxId from wallet without creating a client
+  if (options.all) {
+    const walletKey = process.env.XMTP_WALLET_KEY || envVars.XMTP_WALLET_KEY;
+    if (!walletKey) {
+      throw new Error(
+        "XMTP_WALLET_KEY not found. Please run 'xmtp keys' first.",
+      );
+    }
+
+    const user = createUser(walletKey as `0x${string}`);
+    const identifier = createIdentifier(user);
+    targetInboxId =
+      (await getInboxIdForIdentifier(identifier, env)) ||
+      (await getInboxIdForIdentifier(identifier, "dev")) ||
+      (await getInboxIdForIdentifier(identifier, "production")) ||
+      undefined;
+
+    if (!targetInboxId) {
+      throw new Error("Could not resolve inbox ID from wallet");
+    }
+
+    console.log(`[INFO] Using inbox ID: ${targetInboxId}`);
+  }
+
+  if (!targetInboxId) {
+    throw new Error("Inbox ID is required");
+  }
+
+  let installationsToKeep: string[] = [];
+
+  if (options.keep) {
+    installationsToKeep = options.keep
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+  }
+
+  if (!/^[a-f0-9]{64}$/i.test(targetInboxId)) {
+    throw new Error(
+      `Invalid inbox ID format. Must be 64 hexadecimal characters. Provided: ${targetInboxId}`,
     );
-    console.error("Please run 'xmtp keys' first or provide --env flag.");
-    process.exit(1);
+  }
+
+  if (installationsToKeep.length > 0) {
+    const invalidInstallations = installationsToKeep.filter(
+      (id) => !/^[a-f0-9]{64}$/i.test(id),
+    );
+    if (invalidInstallations.length > 0) {
+      throw new Error(
+        `Invalid installation ID format(s). Must be 64 hexadecimal characters. Invalid IDs: ${invalidInstallations.join(", ")}`,
+      );
+    }
   }
 
   const walletKey = process.env.XMTP_WALLET_KEY || envVars.XMTP_WALLET_KEY;
@@ -122,15 +167,13 @@ export async function runRevokeCommand(
     const missingVars: string[] = [];
     if (!walletKey) missingVars.push("XMTP_WALLET_KEY");
     if (!dbEncryptionKey) missingVars.push("XMTP_DB_ENCRYPTION_KEY");
-    console.error(
-      `[ERROR] Missing required environment variables: ${missingVars.join(", ")}`,
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(", ")}. Please run 'xmtp keys' first to generate keys.`,
     );
-    console.error("Please run 'xmtp keys' first to generate keys.");
-    process.exit(1);
   }
 
   console.log(`Revoking installations for ${exampleName}...`);
-  console.log(`Inbox ID: ${inboxId}`);
+  console.log(`Inbox ID: ${targetInboxId}`);
   console.log(`Environment: ${env}`);
   if (installationsToKeep.length > 0) {
     console.log(`Installations to keep: ${installationsToKeep.join(", ")}`);
@@ -144,7 +187,7 @@ export async function runRevokeCommand(
     );
 
     const inboxState = await Client.inboxStateFromInboxIds(
-      [inboxId],
+      [targetInboxId],
       env as unknown as XmtpEnv,
     );
 
@@ -171,13 +214,9 @@ export async function runRevokeCommand(
       );
 
       if (nonExistentInstallations.length > 0) {
-        console.error("Error: Some specified installation IDs do not exist:");
-        console.error("Non-existent IDs:", nonExistentInstallations.join(", "));
-        console.error(
-          "Available installation IDs:",
-          existingInstallationIds.join(", "),
+        throw new Error(
+          `Some specified installation IDs do not exist: ${nonExistentInstallations.join(", ")}. Available: ${existingInstallationIds.join(", ")}`,
         );
-        process.exit(1);
       }
     } else {
       console.log("\n[WARN] No installations specified to keep.");
@@ -200,7 +239,7 @@ export async function runRevokeCommand(
 
       if (confirmation !== "y" && confirmation !== "yes") {
         console.log("Operation cancelled.");
-        process.exit(0);
+        return;
       }
 
       installationsToKeepIds = [currentInstallations[0].id];
@@ -225,13 +264,9 @@ export async function runRevokeCommand(
     const remainingInstallations =
       currentInstallations.length - installationsToRevoke.length;
     if (remainingInstallations === 0) {
-      console.error(
-        "Error: Cannot revoke all installations. At least 1 installation must remain.",
+      throw new Error(
+        "Cannot revoke all installations. At least 1 installation must remain.",
       );
-      console.error("Current installations:", currentInstallations.length);
-      console.error("Installations to revoke:", installationsToRevoke.length);
-      console.error("Please specify at least 1 installation to keep.");
-      process.exit(1);
     }
 
     const installationsToRevokeBytes = installationsToRevoke.map(
@@ -242,7 +277,7 @@ export async function runRevokeCommand(
 
     await Client.revokeInstallations(
       signer,
-      inboxId,
+      targetInboxId,
       installationsToRevokeBytes,
       env as unknown as XmtpEnv,
     );
@@ -250,7 +285,7 @@ export async function runRevokeCommand(
     console.log(`✓ Revoked ${installationsToRevoke.length} installations`);
 
     const finalInboxState = await Client.inboxStateFromInboxIds(
-      [inboxId],
+      [targetInboxId],
       env as unknown as XmtpEnv,
     );
     console.log(
@@ -259,6 +294,6 @@ export async function runRevokeCommand(
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("[ERROR] Error revoking installations:", errorMessage);
-    process.exit(1);
+    throw error;
   }
 }

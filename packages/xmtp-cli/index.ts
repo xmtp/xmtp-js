@@ -68,4 +68,52 @@ registerContentTypesCommand(argv);
 registerKeysCommand(argv);
 registerRevokeCommand(argv);
 
+// Auto-exit after command completion
+argv.fail((msg, err) => {
+  if (err) {
+    console.error(`[ERROR] ${err.message}`);
+  } else if (msg) {
+    console.error(`[ERROR] ${msg}`);
+  }
+  process.exit(1);
+});
+
+// Wrap parse to auto-exit on completion
+const originalParse = argv.parse.bind(argv);
+argv.parse = ((...args: Parameters<typeof originalParse>) => {
+  try {
+    const result = originalParse(...args);
+    // If parse returns a promise (parseAsync), handle it
+    if (result && typeof result.then === "function") {
+      return result
+        .then(() => {
+          // Exit successfully if command completed without explicit exit
+          setTimeout(() => {
+            if (process.exitCode === undefined) {
+              process.exit(0);
+            }
+          }, 0);
+        })
+        .catch((error: unknown) => {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          console.error(`[ERROR] ${errorMessage}`);
+          process.exit(1);
+        });
+    }
+    // For sync parse, schedule exit check
+    setTimeout(() => {
+      if (process.exitCode === undefined) {
+        process.exit(0);
+      }
+    }, 0);
+    return result;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[ERROR] ${errorMessage}`);
+    process.exit(1);
+    throw error;
+  }
+}) as typeof originalParse;
+
 void argv.parse();
