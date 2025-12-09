@@ -251,6 +251,10 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     return this.create(signer, initializedOptions);
   }
 
+  get libxmtpVersion() {
+    return this.#client.libxmtpVersion;
+  }
+
   use(
     ...middleware: Array<
       AgentMiddleware<ContentTypes> | AgentMiddleware<ContentTypes>[]
