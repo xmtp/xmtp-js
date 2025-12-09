@@ -282,9 +282,6 @@ Revoke XMTP installations for an inbox.
 # Revoke all installations for current inbox (gets inboxId automatically)
 xmtp revoke --all
 
-# Revoke all installations with alias
-xmtp revoke -a
-
 # Revoke for specific inbox ID
 xmtp revoke <inbox-id>
 
@@ -294,7 +291,7 @@ xmtp revoke --all --keep <id1>,<id2>
 
 **Options:**
 
-- `--all` / `-a` - Revoke all installations for current inbox (gets inboxId automatically)
+- `--all` - Revoke all installations for current inbox (gets inboxId automatically)
 - `--keep <ids>` - Comma-separated installation IDs to keep (optional)
 - `--env <env>` - Override XMTP environment from .env file
 

@@ -27,7 +27,6 @@ export function registerRevokeCommand(yargs: Argv) {
         })
         .option("all", {
           type: "boolean",
-          alias: "a",
           description:
             "Revoke all installations for current inbox (gets inboxId automatically)",
           default: false,
@@ -234,37 +233,31 @@ export async function runRevokeCommand(
         process.exit(1);
       }
     } else {
-      if (options.all) {
-        // When --all is used, automatically revoke all except the first one
-        installationsToKeepIds = [currentInstallations[0].id];
-        console.log(`✓ Keeping installation: ${installationsToKeepIds[0]}`);
-      } else {
-        console.log("\n[WARN] No installations specified to keep.");
-        console.log("Available installation IDs:");
-        currentInstallations.forEach((inst, index) => {
-          console.log(`  ${index + 1}. ${inst.id}`);
+      console.log("\n[WARN] No installations specified to keep.");
+      console.log("Available installation IDs:");
+      currentInstallations.forEach((inst, index) => {
+        console.log(`  ${index + 1}. ${inst.id}`);
+      });
+
+      console.log(
+        `\nThis will revoke ALL ${currentInstallations.length - 1} installations except one (which will be kept as the current installation).`,
+      );
+
+      process.stdout.write("\nDo you want to proceed? (y/N): ");
+
+      const confirmation = await new Promise<string>((resolve) => {
+        process.stdin.once("data", (data) => {
+          resolve(data.toString().trim().toLowerCase());
         });
+      });
 
-        console.log(
-          `\nThis will revoke ALL ${currentInstallations.length - 1} installations except one (which will be kept as the current installation).`,
-        );
-
-        process.stdout.write("\nDo you want to proceed? (y/N): ");
-
-        const confirmation = await new Promise<string>((resolve) => {
-          process.stdin.once("data", (data) => {
-            resolve(data.toString().trim().toLowerCase());
-          });
-        });
-
-        if (confirmation !== "y" && confirmation !== "yes") {
-          console.log("Operation cancelled.");
-          process.exit(0);
-        }
-
-        installationsToKeepIds = [currentInstallations[0].id];
-        console.log(`✓ Keeping installation: ${installationsToKeepIds[0]}`);
+      if (confirmation !== "y" && confirmation !== "yes") {
+        console.log("Operation cancelled.");
+        process.exit(0);
       }
+
+      installationsToKeepIds = [currentInstallations[0].id];
+      console.log(`✓ Keeping installation: ${installationsToKeepIds[0]}`);
     }
 
     const installationsToRevoke = currentInstallations.filter(
