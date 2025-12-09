@@ -88,6 +88,11 @@ export const CreateDmModal: React.FC = () => {
             onChange={(event) => {
               setMemberId(event.target.value);
             }}
+            onKeyDown={(event) => {
+              if (event.key === " ") {
+                event.preventDefault();
+              }
+            }}
           />
         </Box>
       </ContentLayout>

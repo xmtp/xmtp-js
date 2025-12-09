@@ -20,7 +20,7 @@ export const useMemberId = () => {
   const { environment } = useSettings();
 
   const setMemberId = (value: string) => {
-    setMemberIdState(value.replace(/\s+/g, ""));
+    setMemberIdState(value.trim());
   };
 
   useEffect(() => {
