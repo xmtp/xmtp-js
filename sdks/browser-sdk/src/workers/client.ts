@@ -600,6 +600,23 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
+      case "conversations.streamMessageDeletions": {
+        const streamCallback = (
+          error: Error | null,
+          value: string | undefined,
+        ) => {
+          postStreamMessage({
+            action: "stream.messageDeleted",
+            streamId: data.streamId,
+            result: value,
+          });
+        };
+        const streamCloser =
+          client.conversations.streamMessageDeletions(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "conversations.list": {
         const conversations = client.conversations.list(data.options);
         const result = await Promise.all(

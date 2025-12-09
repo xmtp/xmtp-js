@@ -633,10 +633,12 @@ describe("Conversation", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
+    const stream = await client1.conversations.streamMessageDeletions();
+
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: SafeMessageDisappearingSettings = {
-      fromNs: 5_000_000n,
-      inNs: 5_000_000n,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     };
 
     // create a group with message disappearing settings
@@ -649,14 +651,14 @@ describe("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation.messageDisappearingSettings()).toEqual({
-      fromNs: 5_000_000n,
-      inNs: 5_000_000n,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(await conversation.isMessageDisappearingEnabled()).toBe(true);
 
     // send messages to the group
-    await conversation.send("gm");
-    await conversation.send("gm2");
+    const messageId1 = await conversation.send("gm");
+    const messageId2 = await conversation.send("gm2");
 
     // verify that the messages are sent
     expect((await conversation.messages()).length).toBe(3);
@@ -670,19 +672,34 @@ describe("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation2!.messageDisappearingSettings()).toEqual({
-      fromNs: 5_000_000n,
-      inNs: 5_000_000n,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(await conversation2!.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(5000);
+    await sleep(2000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
 
     // verify that the messages are deleted on the other client
     expect((await conversation2!.messages()).length).toBe(1);
+
+    setTimeout(() => {
+      void stream.end();
+    }, 1000);
+
+    let count = 0;
+    const messageIds: string[] = [];
+    for await (const messageId of stream) {
+      count++;
+      expect(messageId).toBeDefined();
+      messageIds.push(messageId);
+    }
+    expect(count).toBe(2);
+    expect(messageIds).toContain(messageId1);
+    expect(messageIds).toContain(messageId2);
 
     // remove the message disappearing settings
     await conversation.removeMessageDisappearingSettings();
@@ -727,10 +744,12 @@ describe("Conversation", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
+    const stream = await client1.conversations.streamMessageDeletions();
+
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: SafeMessageDisappearingSettings = {
-      fromNs: 5_000_000n,
-      inNs: 5_000_000n,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     };
 
     // create a group with message disappearing settings
@@ -740,14 +759,14 @@ describe("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation.messageDisappearingSettings()).toEqual({
-      fromNs: 5_000_000n,
-      inNs: 5_000_000n,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(await conversation.isMessageDisappearingEnabled()).toBe(true);
 
     // send messages to the group
-    await conversation.send("gm");
-    await conversation.send("gm2");
+    const messageId1 = await conversation.send("gm");
+    const messageId2 = await conversation.send("gm2");
 
     // verify that the messages are sent
     expect((await conversation.messages()).length).toBe(3);
@@ -761,19 +780,34 @@ describe("Conversation", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(await conversation2!.messageDisappearingSettings()).toEqual({
-      fromNs: 5_000_000n,
-      inNs: 5_000_000n,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(await conversation2!.isMessageDisappearingEnabled()).toBe(true);
 
     // wait for the messages to be deleted
-    await sleep(5000);
+    await sleep(2000);
 
     // verify that the messages are deleted
     expect((await conversation.messages()).length).toBe(1);
 
     // verify that the messages are deleted on the other client
     expect((await conversation2!.messages()).length).toBe(1);
+
+    setTimeout(() => {
+      void stream.end();
+    }, 1000);
+
+    let count = 0;
+    const messageIds: string[] = [];
+    for await (const messageId of stream) {
+      count++;
+      expect(messageId).toBeDefined();
+      messageIds.push(messageId);
+    }
+    expect(count).toBe(2);
+    expect(messageIds).toContain(messageId1);
+    expect(messageIds).toContain(messageId2);
 
     // remove the message disappearing settings
     await conversation.removeMessageDisappearingSettings();
