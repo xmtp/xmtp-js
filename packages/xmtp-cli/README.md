@@ -146,6 +146,18 @@ CLI can also recognize the following environment variables for debugging:
 | `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents) | `XMTP_FORCE_DEBUG=true`        |
 | `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"info"`)                     | `XMTP_FORCE_DEBUG_LEVEL=debug` |
 
+### Sync
+
+Sync conversations and groups.
+
+```bash
+# Sync conversations
+xmtp sync
+
+# Sync all conversations and groups
+xmtp syncall
+```
+
 ### Send
 
 Send messages to conversations.
