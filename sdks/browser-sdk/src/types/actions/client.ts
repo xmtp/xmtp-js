@@ -65,7 +65,7 @@ export type ClientAction =
       action: "client.revokeAllOtherInstallationsSignatureText";
       id: string;
       result: {
-        signatureText: string;
+        signatureText: string | undefined;
         signatureRequestId: string;
       };
       data: {
@@ -210,4 +210,16 @@ export type ClientAction =
       data: {
         installationIds: string[];
       };
+    }
+  | {
+      action: "client.libxmtpVersion";
+      id: string;
+      result: string;
+      data: undefined;
+    }
+  | {
+      action: "client.appVersion";
+      id: string;
+      result: string;
+      data: undefined;
     };

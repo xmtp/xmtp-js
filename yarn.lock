@@ -4710,7 +4710,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/wasm-bindings": "npm:1.6.0-dev.da83377"
+    "@xmtp/wasm-bindings": "npm:1.6.6"
     playwright: "npm:^1.56.1"
     rollup: "npm:^4.52.5"
     rollup-plugin-dts: "npm:^6.2.3"
@@ -5049,10 +5049,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.6.0-dev.da83377":
-  version: 1.6.0-dev.da83377
-  resolution: "@xmtp/wasm-bindings@npm:1.6.0-dev.da83377"
-  checksum: 10/e9dfefd973020e3cc1accde7432b041d443602631e885a08e2aff1bb7114abe5a75d081f3f2ac356a99563f68bf2dbd316ef0f4977e4c541f648489869d32b6a
+"@xmtp/wasm-bindings@npm:1.6.6":
+  version: 1.6.6
+  resolution: "@xmtp/wasm-bindings@npm:1.6.6"
+  checksum: 10/01e7072c0619dea79b8014b5517487493425ebc069e618e3b2fd6964662d918261cb0c868caccb2a34ecd36ac9bd026b4ce9527e69fc7e931edcce75c787d348
   languageName: node
   linkType: hard
 

@@ -214,4 +214,17 @@ export class WorkerConversations {
       consentStates,
     );
   }
+
+  streamMessageDeletions(callback: StreamCallback<string>) {
+    const on_message_deleted = (messageId: string) => {
+      callback(null, messageId);
+    };
+    const on_error = (error: Error | null) => {
+      callback(error, undefined);
+    };
+    return this.#conversations.streamMessageDeletions({
+      on_message_deleted,
+      on_error,
+    });
+  }
 }

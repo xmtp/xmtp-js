@@ -143,4 +143,12 @@ export type ConversationsAction =
         conversationType?: ConversationType;
         consentStates?: ConsentState[];
       };
+    }
+  | {
+      action: "conversations.streamMessageDeletions";
+      id: string;
+      result: undefined;
+      data: {
+        streamId: string;
+      };
     };

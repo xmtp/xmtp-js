@@ -34,6 +34,14 @@ export class WorkerClient {
     return new WorkerClient(client, options);
   }
 
+  get libxmtpVersion() {
+    return this.#client.libxmtpVersion;
+  }
+
+  get appVersion() {
+    return this.#client.appVersion;
+  }
+
   get accountIdentifier() {
     return this.#client.accountIdentifier;
   }

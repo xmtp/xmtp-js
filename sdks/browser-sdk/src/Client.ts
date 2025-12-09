@@ -222,6 +222,20 @@ export class Client<
   }
 
   /**
+   * Gets the version of libxmtp used in the bindings
+   */
+  async libxmtpVersion() {
+    return this.sendMessage("client.libxmtpVersion", undefined);
+  }
+
+  /**
+   * Gets the app version used by the client
+   */
+  async appVersion() {
+    return this.sendMessage("client.appVersion", undefined);
+  }
+
+  /**
    * Creates signature text for creating a new inbox
    *
    * WARNING: This function should be used with caution. It is only provided
@@ -488,6 +502,12 @@ export class Client<
 
     const { signatureText, signatureRequestId } =
       await this.unsafe_revokeAllOtherInstallationsSignatureText();
+
+    // no other installations to revoke, nothing to do
+    if (!signatureText) {
+      return;
+    }
+
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 

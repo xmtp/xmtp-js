@@ -29,7 +29,9 @@ import {
   type InboxState,
   type Installation,
   type KeyPackageStatus,
+  type ListConversationsOrderBy,
   type Message,
+  type MessageSortBy,
   type PermissionLevel,
   type PermissionPolicy,
   type SortDirection,
@@ -158,10 +160,13 @@ export type SafeListMessagesOptions = {
   direction?: SortDirection;
   excludeContentTypes?: ContentType[];
   excludeSenderInboxIds?: string[];
+  insertedAfterNs?: bigint;
+  insertedBeforeNs?: bigint;
   kind?: GroupMessageKind;
   limit?: bigint;
   sentAfterNs?: bigint;
   sentBeforeNs?: bigint;
+  sortBy?: MessageSortBy;
 };
 
 export const toSafeListMessagesOptions = (
@@ -172,10 +177,13 @@ export const toSafeListMessagesOptions = (
   direction: options.direction,
   excludeContentTypes: options.excludeContentTypes,
   excludeSenderInboxIds: options.excludeSenderInboxIds,
+  insertedAfterNs: options.insertedAfterNs,
+  insertedBeforeNs: options.insertedBeforeNs,
   kind: options.kind,
   limit: options.limit,
   sentAfterNs: options.sentAfterNs,
   sentBeforeNs: options.sentBeforeNs,
+  sortBy: options.sortBy,
 });
 
 export const fromSafeListMessagesOptions = (
@@ -191,6 +199,9 @@ export const fromSafeListMessagesOptions = (
     options.excludeContentTypes,
     options.kind,
     options.excludeSenderInboxIds,
+    options.sortBy,
+    options.insertedAfterNs,
+    options.insertedBeforeNs,
   );
 
 export type SafeSendMessageOpts = {
@@ -216,6 +227,7 @@ export type SafeListConversationsOptions = {
   createdBeforeNs?: bigint;
   includeDuplicateDms?: boolean;
   limit?: bigint;
+  orderBy?: ListConversationsOrderBy;
 };
 
 export const toSafeListConversationsOptions = (
@@ -227,6 +239,7 @@ export const toSafeListConversationsOptions = (
   createdBeforeNs: options.createdBeforeNs,
   includeDuplicateDms: options.includeDuplicateDms,
   limit: options.limit,
+  orderBy: options.orderBy,
 });
 
 export const fromSafeListConversationsOptions = (
@@ -239,6 +252,7 @@ export const fromSafeListConversationsOptions = (
     options.createdBeforeNs,
     options.includeDuplicateDms ?? false,
     options.limit,
+    options.orderBy,
   );
 
 export type SafePermissionPolicySet = {

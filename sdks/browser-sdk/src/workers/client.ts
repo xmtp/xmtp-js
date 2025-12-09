@@ -204,10 +204,12 @@ self.onmessage = async (
         const signatureRequest =
           await client.revokeAllOtherInstallationsSignatureRequest();
         const result = {
-          signatureText: await signatureRequest.signatureText(),
+          signatureText: await signatureRequest?.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
-        signatureRequests.set(data.signatureRequestId, signatureRequest);
+        if (signatureRequest) {
+          signatureRequests.set(data.signatureRequestId, signatureRequest);
+        }
         postMessage({ id, action, result });
         break;
       }
@@ -349,6 +351,16 @@ self.onmessage = async (
           action,
           result: safeResult,
         });
+        break;
+      }
+      case "client.libxmtpVersion": {
+        const result = client.libxmtpVersion;
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.appVersion": {
+        const result = client.appVersion;
+        postMessage({ id, action, result });
         break;
       }
       /**
@@ -594,6 +606,32 @@ self.onmessage = async (
           data.conversationType,
           data.consentStates,
         );
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "conversations.streamMessageDeletions": {
+        const streamCallback = (
+          error: Error | null,
+          value: string | undefined,
+        ) => {
+          if (error) {
+            streamClosers.delete(data.streamId);
+            postStreamMessageError({
+              action: "stream.messageDeleted",
+              streamId: data.streamId,
+              error,
+            });
+          } else {
+            postStreamMessage({
+              action: "stream.messageDeleted",
+              streamId: data.streamId,
+              result: value,
+            });
+          }
+        };
+        const streamCloser =
+          client.conversations.streamMessageDeletions(streamCallback);
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
         break;

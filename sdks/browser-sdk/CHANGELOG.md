@@ -1,5 +1,94 @@
 # @xmtp/browser-sdk
 
+## 5.2.0
+
+This release introduces new features, performance optimizations, and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Stream message deletions
+
+Call `streamMessageDeletions` to return a stream of message IDs that have been deleted. This new stream works in tandem with disappearing messages so that developers can be notified when messages have been removed. This is a local stream that doesn't require network sync and will not fail like other streams.
+
+To learn more, see [Support disappearing messages](https://docs.xmtp.org/chat-apps/core-messaging/disappearing-messages).
+
+### Paginate the conversation list
+
+For most pagination use cases, use the `createdBeforeNs` parameter for filtering and set `orderBy` to `createdAt`. This enables you to paginate against a stably sorted list. You can then perform a final sort of conversations in your app.
+
+To learn more, see [Paginate the conversation list](https://docs.xmtp.org/chat-apps/list-stream-sync/list#paginate-the-conversation-list).
+
+## Total ordered sort for message pagination
+
+Provides the ability to filter queries for the message list by insertion time rather than by time sent. Filtering by insertion time provides a totally ordered list, which is more reliable for pagination.
+
+To learn more, see [Paginate messages by insertion time](https://docs.xmtp.org/chat-apps/list-stream-sync/list-messages#paginate-by-insertion-time-recommended).
+
+## More details on sync
+
+The return value of `conversations.syncAllConversations` is now an object that includes both the number of conversations, and the number that needed to be synced.
+
+### Use `countMessages` to build an unread messages badge
+
+Call `countMessages` to return a count of messages without retrieving the full message list. This is more efficient when you only need the number, such as for unread message badges.
+
+To learn more, see [Count messages in a conversation](https://docs.xmtp.org/chat-apps/list-stream-sync/list-messages#count-messages-in-a-conversation).
+
+### New version properties on the client
+
+- `libxmtpVersion`: Returns the version of `libxmtp` used in the bindings
+- `appVersion`: Returns the app version configured for the client
+
+The `libxmtpVersion` property can be useful for debugging or ensuring compatibility with the underlying XMTP APIs.
+
+**Note:** The static `Client.version` property is now deprecated, use `libxmtpVersion` instead.
+
+### `syncAll` performance improvements
+
+The `syncAll` method now performs the same function as before, but with significantly improved performance. It achieves this by syncing only group chat and DM conversations with a consent state of _allowed_ or _unknown_ that contain **unread messages**, rather than syncing all conversations.
+
+The method continues to sync new welcomes and preference updates.
+
+To learn more, see [Sync new welcomes, conversations with unread messages, and preferences](https://docs.xmtp.org/chat-apps/list-stream-sync/sync-and-syncall#sync-new-welcomes-conversations-with-unread-messages-and-preferences).
+
+### Streaming now includes catch-up messages
+
+Streaming messages now includes all messages sent after the last sync, including those missed while the client was offline. To only stream new messages, be sure to sync with the network before starting the stream.
+
+To learn more, see [Stream new group chat and DM messages](https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages).
+
+### Welcome pointers
+
+OpenMLS supports sending welcomes to multiple installations in a single commit. This is currently used, but each welcome is sent individually to each installation. Some of the welcomes can be very large, and the data is duplicated for every installation.
+
+Welcome pointers introduce a new welcome message that provides a pointer to the location where the welcome data can be found. The large welcome pointer data can be sent to the server only once, and each installation can fetch that message. This is achieved using symmetric key encryption for the welcome data, with each installation receiving a message that includes these keys.
+
+This provides a performance and scalability improvement that makes both developer implementations and user experiences smoother and faster, without requiring changes to how developers write client code.
+
+To learn more, see [XIP-74: Welcome pointers](https://community.xmtp.org/t/xip-74-welcome-pointers/1211).
+
+### `revokeAllOtherInstallations` no longer crashes with a single installation
+
+Calling `revokeAllOtherInstallations()` on an inbox with only one active installation no longer crashes with an "Unknown signer" error.
+
+Because the method’s purpose is to keep only the current installation active, having just one installation already meets this condition. The operation now completes successfully without trying to revoke non-existent installations.
+
+To learn more, see [Revoke all other installations](https://docs.xmtp.org/chat-apps/core-messaging/manage-inboxes#revoke-all-other-installations).
+
+### Total ordered sort for message pagination
+
+Provides the ability to filter queries for the message list by insertion time rather than by time sent. Filtering by insertion time provides a totally ordered list, which is more reliable for pagination.
+
+To learn more, see [Paginate messages by insertion time](https://docs.xmtp.org/chat-apps/list-stream-sync/list-messages#paginate-by-insertion-time-recommended).
+
+### More details on sync
+
+The return value of `conversations.syncAllConversations` is now an object that includes both the number of conversations, and the number that needed to be synced.
+
+### Updates for disappearing messages
+
+The disappearing messages feature has been updated to exclude expired (already disappeared) messages from queries.
+
+To learn more, see [Support disappearing messages](https://docs.xmtp.org/chat-apps/core-messaging/disappearing-messages).
+
 ## 5.1.0
 
 ### Minor Changes

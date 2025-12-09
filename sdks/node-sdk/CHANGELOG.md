@@ -63,6 +63,22 @@ Because the method’s purpose is to keep only the current installation active, 
 
 To learn more, see [Revoke all other installations](https://docs.xmtp.org/chat-apps/core-messaging/manage-inboxes#revoke-all-other-installations).
 
+### Total ordered sort for message pagination
+
+Provides the ability to filter queries for the message list by insertion time rather than by time sent. Filtering by insertion time provides a totally ordered list, which is more reliable for pagination.
+
+To learn more, see [Paginate messages by insertion time](https://docs.xmtp.org/chat-apps/list-stream-sync/list-messages#paginate-by-insertion-time-recommended).
+
+### More details on sync
+
+The return value of `conversations.syncAllConversations` is now an object that includes both the number of conversations, and the number that needed to be synced.
+
+### Updates for disappearing messages
+
+The disappearing messages feature has been updated to exclude expired (already disappeared) messages from queries.
+
+To learn more, see [Support disappearing messages](https://docs.xmtp.org/chat-apps/core-messaging/disappearing-messages).
+
 ## 4.4.0
 
 ### Minor Changes

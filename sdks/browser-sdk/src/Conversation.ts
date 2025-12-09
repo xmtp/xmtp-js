@@ -312,8 +312,10 @@ export class Conversation<ContentTypes = unknown> {
       onFail: () => void,
     ) => {
       const streamId = v4();
-      // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        // sync the conversation
+        await this.sync();
+      }
       // start the stream
       await this.#client.sendMessage("conversation.stream", {
         groupId: this.#id,

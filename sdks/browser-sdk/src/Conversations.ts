@@ -321,8 +321,10 @@ export class Conversations<ContentTypes = unknown> {
       onFail: () => void,
     ) => {
       const streamId = v4();
-      // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        // sync the conversation
+        await this.sync();
+      }
       // start the stream
       await this.#client.sendMessage("conversations.stream", {
         streamId,
@@ -394,8 +396,10 @@ export class Conversations<ContentTypes = unknown> {
       onFail: () => void,
     ) => {
       const streamId = v4();
-      // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        // sync the conversation
+        await this.sync();
+      }
       // start the stream
       await this.#client.sendMessage("conversations.streamAllMessages", {
         streamId,
@@ -452,5 +456,39 @@ export class Conversations<ContentTypes = unknown> {
       ...options,
       conversationType: ConversationType.Dm,
     });
+  }
+
+  /**
+   * Creates a stream for message deletions
+   *
+   * @param options - Optional stream options
+   * @returns Stream instance for message deletions
+   */
+  async streamMessageDeletions(
+    options?: Omit<
+      StreamOptions<string>,
+      | "disableSync"
+      | "onFail"
+      | "onRetry"
+      | "onRestart"
+      | "retryAttempts"
+      | "retryDelay"
+      | "retryOnFail"
+    >,
+  ) {
+    const stream = async (callback: StreamCallback<string>) => {
+      const streamId = v4();
+      // start the stream
+      await this.#client.sendMessage("conversations.streamMessageDeletions", {
+        streamId,
+      });
+      // handle stream messages
+      return this.#client.handleStreamMessage<string>(
+        streamId,
+        callback,
+        options,
+      );
+    };
+    return createStream(stream, undefined, options);
   }
 }
