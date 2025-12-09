@@ -74,10 +74,9 @@ export async function runRevokeCommand(
   const envPath = join(exampleDir, ".env");
 
   if (!existsSync(envPath)) {
-    console.error(
-      "[ERROR] .env file not found. Please run 'xmtp keys' first to generate keys.",
+    throw new Error(
+      ".env file not found. Please run 'xmtp keys' first to generate keys.",
     );
-    process.exit(1);
   }
 
   const sanitizeEnvValue = (value: string): string => {
@@ -110,10 +109,9 @@ export async function runRevokeCommand(
   if (options.all) {
     const walletKey = process.env.XMTP_WALLET_KEY || envVars.XMTP_WALLET_KEY;
     if (!walletKey) {
-      console.error(
-        "[ERROR] XMTP_WALLET_KEY not found. Please run 'xmtp keys' first.",
+      throw new Error(
+        "XMTP_WALLET_KEY not found. Please run 'xmtp keys' first.",
       );
-      process.exit(1);
     }
 
     const user = createUser(walletKey as `0x${string}`);
@@ -125,16 +123,14 @@ export async function runRevokeCommand(
       undefined;
 
     if (!targetInboxId) {
-      console.error("[ERROR] Could not resolve inbox ID from wallet");
-      process.exit(1);
+      throw new Error("Could not resolve inbox ID from wallet");
     }
 
     console.log(`[INFO] Using inbox ID: ${targetInboxId}`);
   }
 
   if (!targetInboxId) {
-    console.error("[ERROR] Inbox ID is required");
-    process.exit(1);
+    throw new Error("Inbox ID is required");
   }
 
   let installationsToKeep: string[] = [];
@@ -147,11 +143,9 @@ export async function runRevokeCommand(
   }
 
   if (!/^[a-f0-9]{64}$/i.test(targetInboxId)) {
-    console.error(
-      "[ERROR] Invalid inbox ID format. Must be 64 hexadecimal characters.",
+    throw new Error(
+      `Invalid inbox ID format. Must be 64 hexadecimal characters. Provided: ${targetInboxId}`,
     );
-    console.error(`Provided: ${targetInboxId}`);
-    process.exit(1);
   }
 
   if (installationsToKeep.length > 0) {
@@ -159,11 +153,9 @@ export async function runRevokeCommand(
       (id) => !/^[a-f0-9]{64}$/i.test(id),
     );
     if (invalidInstallations.length > 0) {
-      console.error(
-        "[ERROR] Invalid installation ID format(s). Must be 64 hexadecimal characters.",
+      throw new Error(
+        `Invalid installation ID format(s). Must be 64 hexadecimal characters. Invalid IDs: ${invalidInstallations.join(", ")}`,
       );
-      console.error("Invalid IDs:", invalidInstallations.join(", "));
-      process.exit(1);
     }
   }
 
@@ -175,11 +167,9 @@ export async function runRevokeCommand(
     const missingVars: string[] = [];
     if (!walletKey) missingVars.push("XMTP_WALLET_KEY");
     if (!dbEncryptionKey) missingVars.push("XMTP_DB_ENCRYPTION_KEY");
-    console.error(
-      `[ERROR] Missing required environment variables: ${missingVars.join(", ")}`,
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(", ")}. Please run 'xmtp keys' first to generate keys.`,
     );
-    console.error("Please run 'xmtp keys' first to generate keys.");
-    process.exit(1);
   }
 
   console.log(`Revoking installations for ${exampleName}...`);
@@ -224,13 +214,9 @@ export async function runRevokeCommand(
       );
 
       if (nonExistentInstallations.length > 0) {
-        console.error("Error: Some specified installation IDs do not exist:");
-        console.error("Non-existent IDs:", nonExistentInstallations.join(", "));
-        console.error(
-          "Available installation IDs:",
-          existingInstallationIds.join(", "),
+        throw new Error(
+          `Some specified installation IDs do not exist: ${nonExistentInstallations.join(", ")}. Available: ${existingInstallationIds.join(", ")}`,
         );
-        process.exit(1);
       }
     } else {
       console.log("\n[WARN] No installations specified to keep.");
@@ -253,7 +239,7 @@ export async function runRevokeCommand(
 
       if (confirmation !== "y" && confirmation !== "yes") {
         console.log("Operation cancelled.");
-        process.exit(0);
+        return;
       }
 
       installationsToKeepIds = [currentInstallations[0].id];
@@ -278,13 +264,9 @@ export async function runRevokeCommand(
     const remainingInstallations =
       currentInstallations.length - installationsToRevoke.length;
     if (remainingInstallations === 0) {
-      console.error(
-        "Error: Cannot revoke all installations. At least 1 installation must remain.",
+      throw new Error(
+        "Cannot revoke all installations. At least 1 installation must remain.",
       );
-      console.error("Current installations:", currentInstallations.length);
-      console.error("Installations to revoke:", installationsToRevoke.length);
-      console.error("Please specify at least 1 installation to keep.");
-      process.exit(1);
     }
 
     const installationsToRevokeBytes = installationsToRevoke.map(
@@ -312,6 +294,6 @@ export async function runRevokeCommand(
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("[ERROR] Error revoking installations:", errorMessage);
-    process.exit(1);
+    throw error;
   }
 }
