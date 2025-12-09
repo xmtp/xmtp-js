@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.1.17
+
+This release includes performance optimizations and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these optimizations and fixes.
+
+For more information on these updates, see the [release notes](https://github.com/xmtp/xmtp-js/releases/tag/%40xmtp%2Fnode-sdk%404.5.0) for the Node SDK.
+
 ## 1.1.16
 
 ### Patch Changes
