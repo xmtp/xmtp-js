@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getInboxIdForAddressQuery,
   isValidName,
@@ -19,16 +19,9 @@ export const useMemberId = () => {
   const [error, setError] = useState<string | null>(null);
   const { environment } = useSettings();
 
-  const sanitizeMemberId = useCallback((value: string) => {
-    return value.replace(/\s+/g, "");
-  }, []);
-
-  const setMemberId = useCallback(
-    (value: string) => {
-      setMemberIdState(sanitizeMemberId(value));
-    },
-    [sanitizeMemberId],
-  );
+  const setMemberId = (value: string) => {
+    setMemberIdState(value.replace(/\s+/g, ""));
+  };
 
   useEffect(() => {
     const checkMemberId = async () => {
