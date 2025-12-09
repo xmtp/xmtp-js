@@ -14,7 +14,7 @@ const allowedOrigins = [
   "https://xmtp.chat",
   "https://d14n.xmtp.chat",
   // vercel preview domains
-  /^https:\/\/(.*)-ephemerahq\.vercel\.app$/,
+  /^https:\/\/(.*)-xmtplabs\.vercel\.app$/,
 ];
 
 if (env === "development") {
