@@ -615,11 +615,20 @@ self.onmessage = async (
           error: Error | null,
           value: string | undefined,
         ) => {
-          postStreamMessage({
-            action: "stream.messageDeleted",
-            streamId: data.streamId,
-            result: value,
-          });
+          if (error) {
+            streamClosers.delete(data.streamId);
+            postStreamMessageError({
+              action: "stream.messageDeleted",
+              streamId: data.streamId,
+              error,
+            });
+          } else {
+            postStreamMessage({
+              action: "stream.messageDeleted",
+              streamId: data.streamId,
+              result: value,
+            });
+          }
         };
         const streamCloser =
           client.conversations.streamMessageDeletions(streamCallback);
