@@ -1,8 +1,12 @@
 # @xmtp/agent-sdk
 
-## 1.1.17
+## 1.2.0
 
-This release includes performance optimizations and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these optimizations and fixes.
+This release includes a new property, performance optimizations and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these optimizations and fixes.
+
+### New `libxmtpVersion` property
+
+The `libxmtpVersion` property can be useful for debugging or ensuring compatibility with the underlying XMTP APIs.
 
 For more information on these updates, see the [release notes](https://github.com/xmtp/xmtp-js/releases/tag/%40xmtp%2Fnode-sdk%404.5.0) for the Node SDK.
 
