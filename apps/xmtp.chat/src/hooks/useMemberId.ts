@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getInboxIdForAddressQuery,
   isValidName,
@@ -10,7 +10,7 @@ import { combineProfiles } from "@/stores/profiles";
 
 export const useMemberId = () => {
   const [loading, setLoading] = useState(false);
-  const [memberId, setMemberId] = useState("");
+  const [memberId, setMemberIdState] = useState("");
   const [inboxId, setInboxId] = useState("");
   const [address, setAddress] = useState("");
   const [displayName, setDisplayName] = useState<string | null>(null);
@@ -18,6 +18,17 @@ export const useMemberId = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { environment } = useSettings();
+
+  const sanitizeMemberId = useCallback((value: string) => {
+    return value.replace(/\s+/g, "");
+  }, []);
+
+  const setMemberId = useCallback(
+    (value: string) => {
+      setMemberIdState(sanitizeMemberId(value));
+    },
+    [sanitizeMemberId],
+  );
 
   useEffect(() => {
     const checkMemberId = async () => {
