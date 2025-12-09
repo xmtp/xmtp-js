@@ -12,6 +12,7 @@ export type * from "./types/options";
 export * from "./utils/conversions";
 export type { AsyncStreamProxy } from "./AsyncStream";
 export type {
+  GroupSyncSummary,
   Identifier,
   IdentifierKind,
   UserPreference,
