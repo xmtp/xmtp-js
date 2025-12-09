@@ -210,4 +210,16 @@ export type ClientAction =
       data: {
         installationIds: string[];
       };
+    }
+  | {
+      action: "client.libxmtpVersion";
+      id: string;
+      result: string;
+      data: undefined;
+    }
+  | {
+      action: "client.appVersion";
+      id: string;
+      result: string;
+      data: undefined;
     };

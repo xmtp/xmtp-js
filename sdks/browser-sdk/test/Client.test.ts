@@ -25,6 +25,21 @@ describe("Client", () => {
     expect(client.installationId).toBeDefined();
   });
 
+  it("should return a version", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    const appVersion = await client.appVersion();
+    expect(appVersion).toBe("0.0.0");
+    expect(await client.libxmtpVersion()).toBeTypeOf("string");
+
+    const client2 = await createRegisteredClient(signer, {
+      appVersion: "1.0.0",
+    });
+    const appVersion2 = await client2.appVersion();
+    expect(appVersion2).toBe("1.0.0");
+  });
+
   it("should register an identity", async () => {
     const user = createUser();
     const signer = createSigner(user);

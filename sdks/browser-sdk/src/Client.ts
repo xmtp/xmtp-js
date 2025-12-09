@@ -222,6 +222,20 @@ export class Client<
   }
 
   /**
+   * Gets the version of libxmtp used in the bindings
+   */
+  async libxmtpVersion() {
+    return this.sendMessage("client.libxmtpVersion", undefined);
+  }
+
+  /**
+   * Gets the app version used by the client
+   */
+  async appVersion() {
+    return this.sendMessage("client.appVersion", undefined);
+  }
+
+  /**
    * Creates signature text for creating a new inbox
    *
    * WARNING: This function should be used with caution. It is only provided

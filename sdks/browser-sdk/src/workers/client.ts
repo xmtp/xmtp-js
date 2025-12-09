@@ -353,6 +353,16 @@ self.onmessage = async (
         });
         break;
       }
+      case "client.libxmtpVersion": {
+        const result = client.libxmtpVersion;
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.appVersion": {
+        const result = client.appVersion;
+        postMessage({ id, action, result });
+        break;
+      }
       /**
        * Debug information actions
        */
