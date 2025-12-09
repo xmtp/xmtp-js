@@ -301,7 +301,7 @@ if (f.isText(ctx.message)) {
 
 **Available Filters:**
 
-You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/utils/filter.ts).
+You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/core/filter.ts).
 
 ### 4. Rich Context
 
