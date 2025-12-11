@@ -100,7 +100,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       return get().profiles.has(address);
     },
     getProfilesByName: (name: string) => {
-      const address = get().names.get(name);
+      const normalizedName = name.toLowerCase();
+      const address = get().names.get(normalizedName);
       return address ? get().getProfiles(address) : EMPTY_PROFILES;
     },
     reset: () => {

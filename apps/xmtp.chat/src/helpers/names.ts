@@ -23,15 +23,13 @@ export const resolveName = async (name: string, force: boolean = false) => {
     return null;
   }
 
-  const normalizedName = name.toLowerCase();
-
   // check cached profiles
-  const cachedProfiles = profilesStore
-    .getState()
-    .getProfilesByName(normalizedName);
+  const cachedProfiles = profilesStore.getState().getProfilesByName(name);
   if (!force && cachedProfiles.length > 0) {
     return cachedProfiles;
   }
+
+  const normalizedName = name.toLowerCase();
 
   const response = await fetch(
     `${import.meta.env.VITE_API_SERVICE_URL}/api/v2/resolve/name/${window.encodeURIComponent(normalizedName)}`,
