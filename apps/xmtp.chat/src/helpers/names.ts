@@ -29,10 +29,8 @@ export const resolveName = async (name: string, force: boolean = false) => {
     return cachedProfiles;
   }
 
-  const normalizedName = name.toLowerCase();
-
   const response = await fetch(
-    `${import.meta.env.VITE_API_SERVICE_URL}/api/v2/resolve/name/${window.encodeURIComponent(normalizedName)}`,
+    `${import.meta.env.VITE_API_SERVICE_URL}/api/v2/resolve/name/${window.encodeURIComponent(name)}`,
     {
       method: "GET",
     },
@@ -50,7 +48,7 @@ export const resolveName = async (name: string, force: boolean = false) => {
   }
 
   // return updated cached profiles
-  return profilesStore.getState().getProfilesByName(normalizedName);
+  return profilesStore.getState().getProfilesByName(name);
 };
 
 export const getInboxIdForAddressQuery = async (
