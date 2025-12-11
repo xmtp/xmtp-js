@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.2.1
+
+### Patch Changes
+
+- 1f737c5: Fixed LibXMTP version reporting
+
 ## 1.2.0
 
 This release includes a new property, performance optimizations and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these optimizations and fixes.
