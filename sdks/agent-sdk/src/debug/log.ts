@@ -38,7 +38,7 @@ export const logDetails = async <ContentTypes>(
     
     ✓ XMTP Client:
     • InboxId: ${inboxId}
-    • Version: ${Client.version}
+    • LibXMTP Version: ${Client.libxmtpVersion}
     • Address: ${clientsByAddress}
     • Conversations: ${conversations.length}
     • Installations: ${inboxState.installations.length}
