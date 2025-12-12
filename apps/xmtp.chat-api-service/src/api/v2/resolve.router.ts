@@ -7,7 +7,8 @@ export const resolveNameSchema = z.string().endsWith(".eth");
 export async function resolveName(req: Request, res: Response) {
   try {
     const { name } = req.params;
-    const validName = resolveNameSchema.parse(name);
+    const normalizedName = name.toLowerCase();
+    const validName = resolveNameSchema.parse(normalizedName);
     const profiles = await fetchProfilesFromName(validName);
     if (!profiles || profiles.length === 0) {
       res.status(404).json({ error: "No profiles found" });

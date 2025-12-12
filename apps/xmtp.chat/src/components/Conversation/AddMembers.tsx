@@ -99,6 +99,10 @@ export const AddMembers: React.FC<AddMembersProps> = ({
             setMemberId(event.target.value);
           }}
           onKeyDown={(event) => {
+            if (event.key === " ") {
+              event.preventDefault();
+              return;
+            }
             if (
               event.key === "Enter" &&
               memberIdError === null &&
