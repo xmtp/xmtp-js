@@ -1,5 +1,22 @@
 # @xmtp/browser-sdk
 
+## 5.3.0
+
+### Self-removal from group chats
+
+This feature enables a member to leave a group chat on their own. Previously, a member could be removed only by other members with appropriate permissions. This update addresses user privacy concerns and reduces the need for manual member removal by admins.
+
+To see if a user has requested removal, check the new `isPendingRemoval` property.
+
+```ts
+// request removal from group
+await group.requestRemoval();
+
+console.log(group.isPendingRemoval); // true
+```
+
+To learn more, see [Leave a group](https://docs.xmtp.org/chat-apps/core-messaging/group-permissions#leave-a-group) and [XIP-75: Self-removal support for XMTP/MLS groups](https://community.xmtp.org/t/xip-75-self-removal-support-for-xmtp-mls-groups/1659).
+
 ## 5.2.0
 
 This release introduces new features, performance optimizations, and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
