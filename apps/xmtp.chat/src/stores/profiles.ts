@@ -64,7 +64,6 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
         const existingProfiles = state.profiles.get(profile.address) ?? [];
         newProfiles.set(profile.address, [...existingProfiles, profile]);
         if (profile.identity) {
-          // normalize identity for case-insensitive lookups
           newNames.set(normalizeName(profile.identity), profile.address);
         }
       }
@@ -88,7 +87,6 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       return get().profiles.has(address);
     },
     getProfilesByName: (name: string) => {
-      // normalize name for case-insensitive lookup
       const address = get().names.get(normalizeName(name));
       return address ? get().getProfiles(address) : EMPTY_PROFILES;
     },
