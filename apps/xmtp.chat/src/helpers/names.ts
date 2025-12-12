@@ -6,7 +6,7 @@ import { profilesStore, type Profile } from "@/stores/profiles";
 const utils = new Utils();
 
 export const isValidName = (name: string): name is string =>
-  /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/.test(name);
+  /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/i.test(name);
 
 export const resolveNameQuery = async (name: string) => {
   return queryClient.fetchQuery({

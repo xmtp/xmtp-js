@@ -1,11 +1,17 @@
-import { describe, expect, it, vi, beforeAll } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { isValidName } from "./names";
 
-// Mock the Utils class to avoid Worker initialization issues in tests
 vi.mock("@xmtp/browser-sdk", () => ({
-  Utils: vi.fn().mockImplementation(() => ({})),
+  Utils: class MockUtils {},
 }));
 
-import { isValidName } from "./names";
+vi.mock("@/helpers/queries", () => ({
+  queryClient: {},
+}));
+
+vi.mock("@/stores/profiles", () => ({
+  profilesStore: {},
+}));
 
 describe("isValidName", () => {
   it("accepts valid ETH names", () => {
@@ -23,18 +29,20 @@ describe("isValidName", () => {
     expect(isValidName("_test.base.eth")).toBe(true);
   });
 
-  it("accepts alphanumeric and hyphens", () => {
+  it("accepts numbers and hyphens in names", () => {
     expect(isValidName("test-123-abc.eth")).toBe(true);
     expect(isValidName("abc123xyz.base.eth")).toBe(true);
   });
 
-  it("rejects names with uppercase letters", () => {
-    expect(isValidName("VITALIK.eth")).toBe(false);
-    expect(isValidName("example.BASE.eth")).toBe(false);
+  it("accepts case-insensitive names", () => {
+    expect(isValidName("eXaMPle.EtH")).toBe(true);
+    expect(isValidName("Example.Eth")).toBe(true);
+    expect(isValidName("example.BaSE.eth")).toBe(true);
+    expect(isValidName("test.BasE.Eth")).toBe(true);
   });
 
-  it("rejects names without extension", () => {
-    expect(isValidName("vitalik")).toBe(false);
+  it("rejects names without ETH or Base extension", () => {
+    expect(isValidName("example")).toBe(false);
     expect(isValidName("example.com")).toBe(false);
     expect(isValidName("test.ens")).toBe(false);
   });
@@ -49,7 +57,7 @@ describe("isValidName", () => {
   it("rejects names with special characters", () => {
     expect(isValidName("test@example.eth")).toBe(false);
     expect(isValidName("test$name.eth")).toBe(false);
-    expect(isValidName("test.name.eth")).toBe(false); // dots in the name part
-    expect(isValidName("test_name.eth")).toBe(false); // underscore not at start
+    expect(isValidName("test.name.eth"), "dots in the name part").toBe(false);
+    expect(isValidName("test_name.eth"), "underscore not at start").toBe(false);
   });
 });
