@@ -1,9 +1,10 @@
-import type {
-  Identifier,
-  MetadataField,
-  PermissionPolicy,
-  PermissionUpdateType,
-  Conversation as XmtpConversation,
+import {
+  GroupMembershipState,
+  type Identifier,
+  type MetadataField,
+  type PermissionPolicy,
+  type PermissionUpdateType,
+  type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import { Conversation } from "@/Conversation";
@@ -214,5 +215,24 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    */
   async removeSuperAdmin(inboxId: string) {
     return this.#conversation.removeSuperAdmin(inboxId);
+  }
+
+  /**
+   * Request to leave the group
+   */
+  async requestRemoval() {
+    return this.#conversation.leaveGroup();
+  }
+
+  /**
+   * Checks if the current user has requested to leave the group
+   *
+   * @returns Boolean
+   */
+  get isPendingRemoval() {
+    return (
+      this.#conversation.membershipState() ===
+      GroupMembershipState.PendingRemove
+    );
   }
 }

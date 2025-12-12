@@ -941,6 +941,18 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
+      case "group.requestRemoval": {
+        const group = getGroup(data.id);
+        await group.requestRemoval();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "group.isPendingRemoval": {
+        const group = getGroup(data.id);
+        const result = group.isPendingRemoval;
+        postMessage({ id, action, result });
+        break;
+      }
       case "conversation.messageDisappearingSettings": {
         const group = getGroup(data.id);
         const settings = group.messageDisappearingSettings();

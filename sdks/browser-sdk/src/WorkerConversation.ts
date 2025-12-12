@@ -1,4 +1,5 @@
 import {
+  GroupMembershipState,
   MessageDisappearingSettings,
   SortDirection,
   type ConsentState,
@@ -260,5 +261,13 @@ export class WorkerConversation {
   async getDuplicateDms() {
     const dms = await this.#group.findDuplicateDms();
     return dms.map((dm) => new WorkerConversation(this.#client, dm));
+  }
+
+  async requestRemoval() {
+    return this.#group.leaveGroup();
+  }
+
+  get isPendingRemoval() {
+    return this.#group.membershipState() === GroupMembershipState.PendingRemove;
   }
 }

@@ -310,4 +310,24 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
       inboxId,
     });
   }
+
+  /**
+   * Request to leave the group
+   */
+  async requestRemoval() {
+    return this.#client.sendMessage("group.requestRemoval", {
+      id: this.#id,
+    });
+  }
+
+  /**
+   * Checks if the current user has requested to leave the group
+   *
+   * @returns Boolean
+   */
+  async isPendingRemoval() {
+    return this.#client.sendMessage("group.isPendingRemoval", {
+      id: this.#id,
+    });
+  }
 }
