@@ -7,6 +7,7 @@ import {
   type MessageDisappearingSettings,
 } from "@xmtp/node-bindings";
 import { describe, expect, it, vi } from "vitest";
+import type { Group } from "@/Group";
 import { StreamFailedError } from "@/utils/errors";
 import { createStream } from "@/utils/streams";
 import {
@@ -999,5 +1000,59 @@ describe("Conversation", () => {
     // Verify count matches messages().length for sanity check
     const allMessages = await conversation.messages();
     expect(allMessages.length).toBe(await conversation.countMessages());
+  });
+
+  it("should have pending removal state after requesting removal from the group", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId,
+    ]);
+    await client2.conversations.sync();
+    const conversation2 = (await client2.conversations.getConversationById(
+      conversation.id,
+    )) as Group;
+
+    expect(conversation2.isPendingRemoval).toBe(false);
+    await conversation2.requestRemoval();
+    expect(conversation2.isPendingRemoval).toBe(true);
+    expect(conversation2.isActive).toBe(true);
+  });
+
+  it("should remove a member after processing their removal request", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId,
+    ]);
+    await client2.conversations.sync();
+    const conversation2 = (await client2.conversations.getConversationById(
+      conversation.id,
+    )) as Group;
+
+    await conversation2.requestRemoval();
+
+    // messages and welcomes must be synced
+    await client2.conversations.syncAll();
+    await client1.conversations.syncAll();
+
+    // wait for worker to process the removal request
+    await sleep(2000);
+
+    await conversation2.sync();
+
+    expect(conversation2.isActive).toBe(false);
+    expect(conversation2.isPendingRemoval).toBe(true);
+
+    expect(await conversation.members()).toHaveLength(1);
+    expect(await conversation2.members()).toHaveLength(1);
   });
 });

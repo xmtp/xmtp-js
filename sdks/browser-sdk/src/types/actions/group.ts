@@ -158,4 +158,20 @@ export type GroupAction =
       data: {
         id: string;
       };
+    }
+  | {
+      action: "group.requestRemoval";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "group.isPendingRemoval";
+      id: string;
+      result: boolean;
+      data: {
+        id: string;
+      };
     };
