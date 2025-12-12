@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { isValidName } from "./names";
+import { isValidName, normalizeName } from "./names";
 
 vi.mock("@xmtp/browser-sdk", () => ({
   Utils: class MockUtils {},
@@ -59,5 +59,17 @@ describe("isValidName", () => {
     expect(isValidName("test$name.eth")).toBe(false);
     expect(isValidName("test.name.eth"), "dots in the name part").toBe(false);
     expect(isValidName("test_name.eth"), "underscore not at start").toBe(false);
+  });
+});
+
+describe("normalizeName", () => {
+  it("converts names to lowercase", () => {
+    expect(normalizeName("TEST.BASE.ETH")).toBe("test.base.eth");
+    expect(normalizeName(" example.eth")).toBe("example.eth");
+    expect(normalizeName("example.eth ")).toBe("example.eth");
+    expect(normalizeName("  example.eth  ")).toBe("example.eth");
+    expect(normalizeName("_test.eth")).toBe("_test.eth");
+    expect(normalizeName("my-name.eth")).toBe("my-name.eth");
+    expect(normalizeName("TeSt.BaSE.ETh")).toBe("test.base.eth");
   });
 });

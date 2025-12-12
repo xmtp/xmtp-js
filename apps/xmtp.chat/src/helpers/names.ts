@@ -8,6 +8,10 @@ const utils = new Utils();
 export const isValidName = (name: string): name is string =>
   /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/i.test(name);
 
+export const normalizeName = (name: string) => {
+  return name.toLowerCase().trim();
+};
+
 export const resolveNameQuery = async (name: string) => {
   return queryClient.fetchQuery({
     queryKey: ["resolveName", name],
@@ -23,14 +27,18 @@ export const resolveName = async (name: string, force: boolean = false) => {
     return null;
   }
 
+  const normalizedName = normalizeName(name);
+
   // check cached profiles
-  const cachedProfiles = profilesStore.getState().getProfilesByName(name);
+  const cachedProfiles = profilesStore
+    .getState()
+    .getProfilesByName(normalizedName);
   if (!force && cachedProfiles.length > 0) {
     return cachedProfiles;
   }
 
   const response = await fetch(
-    `${import.meta.env.VITE_API_SERVICE_URL}/api/v2/resolve/name/${window.encodeURIComponent(name)}`,
+    `${import.meta.env.VITE_API_SERVICE_URL}/api/v2/resolve/name/${window.encodeURIComponent(normalizedName)}`,
     {
       method: "GET",
     },
@@ -48,7 +56,7 @@ export const resolveName = async (name: string, force: boolean = false) => {
   }
 
   // return updated cached profiles
-  return profilesStore.getState().getProfilesByName(name);
+  return profilesStore.getState().getProfilesByName(normalizedName);
 };
 
 export const getInboxIdForAddressQuery = async (

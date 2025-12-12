@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
+import { normalizeName } from "@/helpers/names";
 
 export type Platform = "unknown" | "ens" | "basenames";
 
@@ -50,21 +51,7 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
     profiles: new Map(),
     names: new Map(),
     addProfile: (profile: Profile) => {
-      if (!profile.platform || !VALID_PLATFORMS.includes(profile.platform)) {
-        return;
-      }
-      const state = get();
-      const newNames = new Map(state.names);
-      const newProfiles = new Map(state.profiles);
-      const existingProfiles = state.profiles.get(profile.address) ?? [];
-      newProfiles.set(profile.address, [...existingProfiles, profile]);
-      if (profile.identity) {
-        newNames.set(profile.identity, profile.address);
-      }
-      set(() => ({
-        profiles: newProfiles,
-        names: newNames,
-      }));
+      get().addProfiles([profile]);
     },
     addProfiles: (profiles: Profile[]) => {
       const state = get();
@@ -77,7 +64,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
         const existingProfiles = state.profiles.get(profile.address) ?? [];
         newProfiles.set(profile.address, [...existingProfiles, profile]);
         if (profile.identity) {
-          newNames.set(profile.identity, profile.address);
+          // normalize identity for case-insensitive lookups
+          newNames.set(normalizeName(profile.identity), profile.address);
         }
       }
       set(() => ({
@@ -100,7 +88,8 @@ export const profilesStore = createStore<ProfilesState & ProfilesActions>()(
       return get().profiles.has(address);
     },
     getProfilesByName: (name: string) => {
-      const address = get().names.get(name);
+      // normalize name for case-insensitive lookup
+      const address = get().names.get(normalizeName(name));
       return address ? get().getProfiles(address) : EMPTY_PROFILES;
     },
     reset: () => {
