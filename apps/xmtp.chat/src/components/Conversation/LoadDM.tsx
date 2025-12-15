@@ -46,7 +46,8 @@ export const LoadDM: React.FC = () => {
 
     const loadDm = async () => {
       if (!address) {
-        return navigateToHome("No address, redirecting...");
+        navigateToHome("No address, redirecting...");
+        return;
       }
 
       try {
@@ -54,7 +55,8 @@ export const LoadDM: React.FC = () => {
         const resolvedAddress = await resolveAddress(address);
 
         if (!resolvedAddress) {
-          return navigateToHome("Invalid address, redirecting...");
+          navigateToHome("Invalid address, redirecting...");
+          return;
         }
 
         setMessage("Verifying address...");
@@ -64,9 +66,10 @@ export const LoadDM: React.FC = () => {
         });
 
         if (!inboxId) {
-          return navigateToHome(
+          navigateToHome(
             "Address not registered on the XMTP network, redirecting...",
           );
+          return;
         }
 
         const dm = await client.conversations.getDmByInboxId(inboxId);
