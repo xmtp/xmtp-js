@@ -154,7 +154,7 @@ Sync conversations and groups.
 # Sync conversations
 xmtp sync
 
-# Sync all conversations and groups
+# Sync all conversations and messages
 xmtp syncall
 ```
 

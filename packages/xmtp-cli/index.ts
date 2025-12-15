@@ -12,12 +12,13 @@ import { registerPermissionsCommand } from "./commands/permissions";
 import { registerRevokeCommand } from "./commands/revoke";
 import { registerSendCommand } from "./commands/send";
 import { registerSyncAllCommand, registerSyncCommand } from "./commands/sync";
+import pkg from "./package.json";
 
 let envLoaded = false;
 
 const argv = yargs(hideBin(process.argv))
   .scriptName("xmtp")
-  .version("0.0.5")
+  .version(pkg.version)
   .middleware((argv: { _: (string | number)[]; [key: string]: unknown }) => {
     // Skip env loading for help/keys commands
     const command = argv._[0];
