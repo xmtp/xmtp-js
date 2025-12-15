@@ -45,35 +45,32 @@ export const LoadDM: React.FC = () => {
     };
 
     const loadDm = async () => {
-      // no address, redirect to root
-      if (!address || !isValidEthereumAddress(address)) {
-        setMessage("Invalid address, redirecting...");
-        timeout = setTimeout(() => {
-          void navigate(`/${environment}`);
-        }, REDIRECT_TIMEOUT);
+      if (!address) {
+        navigateToHome("No address, redirecting...");
         return;
       }
 
       try {
+        setMessage("Resolving address...");
+        const resolvedAddress = await resolveAddress(address);
+
+        if (!resolvedAddress) {
+          navigateToHome("Invalid address, redirecting...");
+          return;
+        }
+
         setMessage("Verifying address...");
         const inboxId = await client.findInboxIdByIdentifier({
           identifier: address.toLowerCase(),
           identifierKind: "Ethereum",
         });
-        // no inbox ID, redirect to root
 
         if (!inboxId) {
-          setMessage(
+          return navigateToHome(
             "Address not registered on the XMTP network, redirecting...",
           );
-          timeout = setTimeout(() => {
-            void navigate(`/${environment}`);
-          }, REDIRECT_TIMEOUT);
-          return;
         }
 
-        // look for existing DM group
-        setMessage("Looking for existing DM...");
         const dm = await client.conversations.getDmByInboxId(inboxId);
         let dmId = dm?.id;
         if (!dmId) {
@@ -91,11 +88,8 @@ export const LoadDM: React.FC = () => {
         void navigate(`/${environment}/conversations/${dmId}`);
       } catch (e) {
         console.error(e);
-        setMessage("Error loading DM, redirecting...");
-        // if any errors occur during this process, redirect to root
-        timeout = setTimeout(() => {
-          void navigate(`/${environment}`);
-        }, REDIRECT_TIMEOUT);
+
+        navigateToHome("Error loading DM, redirecting...");
 
         // rethrow error for error modal
         throw e;
