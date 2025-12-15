@@ -46,8 +46,7 @@ export const LoadDM: React.FC = () => {
 
     const loadDm = async () => {
       if (!address) {
-        navigateToHome("No address, redirecting...");
-        return;
+        return navigateToHome("No address, redirecting...");
       }
 
       try {
@@ -55,8 +54,7 @@ export const LoadDM: React.FC = () => {
         const resolvedAddress = await resolveAddress(address);
 
         if (!resolvedAddress) {
-          navigateToHome("Invalid address, redirecting...");
-          return;
+          return navigateToHome("Invalid address, redirecting...");
         }
 
         setMessage("Verifying address...");
