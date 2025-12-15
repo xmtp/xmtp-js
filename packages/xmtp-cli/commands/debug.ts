@@ -1,5 +1,6 @@
 import {
   Agent,
+  ConversationType,
   filter,
   type Agent as AgentType,
   type KeyPackageStatus,
@@ -282,12 +283,15 @@ async function getConversationBreakdown(
   agent: AgentType,
 ): Promise<ConversationBreakdown> {
   await agent.client.conversations.sync();
-  const conversations = await agent.client.conversations.list();
-  const dms = conversations.filter(filter.isDM);
-  const groups = conversations.filter(filter.isGroup);
+  const dms = await agent.client.conversations.list({
+    conversationType: ConversationType.Dm,
+  });
+  const groups = await agent.client.conversations.list({
+    conversationType: ConversationType.Group,
+  });
 
   return {
-    total: conversations.length,
+    total: dms.length + groups.length,
     dms: dms.length,
     groups: groups.length,
   };
