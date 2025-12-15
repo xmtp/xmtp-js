@@ -55,7 +55,7 @@ export const LoadDM: React.FC = () => {
         const resolvedAddress = await resolveAddress(address);
 
         if (!resolvedAddress) {
-          navigateToHome("Invalid address, redirecting...");
+          navigateToHome("Invalid identifier, redirecting...");
           return;
         }
 
