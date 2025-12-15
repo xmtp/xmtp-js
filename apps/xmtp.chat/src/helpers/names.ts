@@ -75,9 +75,9 @@ export const getInboxIdForAddressQuery = async (
 export const getInboxIdForAddress = async (
   address: string,
   environment: XmtpEnv,
-): Promise<string | undefined> => {
+): Promise<string | null> => {
   if (!isValidEthereumAddress(address)) {
-    return undefined;
+    return null;
   }
 
   const inboxId = await utils.getInboxIdForIdentifier(
@@ -88,5 +88,5 @@ export const getInboxIdForAddress = async (
     environment,
   );
 
-  return inboxId;
+  return inboxId ?? null;
 };
