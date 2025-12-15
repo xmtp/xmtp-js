@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useClient } from "@/contexts/XMTPContext";
+import { isValidName, resolveNameQuery } from "@/helpers/names";
 import { isValidEthereumAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 import { useActions } from "@/stores/inbox/hooks";
@@ -18,6 +19,31 @@ export const LoadDM: React.FC = () => {
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
+
+    const navigateToHome = (message: string) => {
+      setMessage(message);
+      timeout = setTimeout(() => {
+        void navigate(`/${environment}`);
+      }, REDIRECT_TIMEOUT);
+    };
+
+    const resolveAddress = async (addressOrENS: string) => {
+      if (isValidEthereumAddress(addressOrENS)) {
+        return addressOrENS;
+      } else if (isValidName(addressOrENS)) {
+        setMessage("Resolving ENS name...");
+
+        const profiles = await resolveNameQuery(addressOrENS);
+        if (!profiles || profiles.length === 0) {
+          return null;
+        }
+
+        return profiles[0].address;
+      } else {
+        return null;
+      }
+    };
+
     const loadDm = async () => {
       // no address, redirect to root
       if (!address || !isValidEthereumAddress(address)) {
@@ -75,6 +101,7 @@ export const LoadDM: React.FC = () => {
         throw e;
       }
     };
+
     void loadDm();
 
     return () => {
