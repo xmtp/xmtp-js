@@ -301,7 +301,7 @@ if (f.isText(ctx.message)) {
 
 **Available Filters:**
 
-You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/utils/filter.ts).
+You can find all available prebuilt filters [here](https://github.com/xmtp/xmtp-js/blob/main/sdks/agent-sdk/src/core/filter.ts).
 
 ### 4. Rich Context
 
@@ -385,13 +385,13 @@ const agent = await Agent.create(signer, {
 
 ## LibXMTP Version
 
-[LibXMTP](https://github.com/xmtp/libxmtp/) is a shared library encapsulating the core functionality of the XMTP messaging protocol, such as cryptography, networking, and language bindings. This version of the Agent SDK uses:
+[LibXMTP](https://github.com/xmtp/libxmtp/) is a shared library encapsulating the core functionality of the XMTP messaging protocol, such as cryptography, networking, and language bindings.
 
-| XMTP Node SDK Version | LibXMTP Version |
-| --------------------- | --------------- |
-| 4.3.1                 | 1.5.4           |
+The LibXMTP version used in the Agent SDK can be accessed with the `libxmtpVersion` property of an agent instance.
 
-To verify which LibXMTP version is installed, run `npm why @xmtp/node-bindings` after installing the Agent SDK.
+```ts
+console.log(agent.libxmtpVersion);
+```
 
 ## Debugging
 

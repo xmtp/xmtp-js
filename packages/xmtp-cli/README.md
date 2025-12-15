@@ -1,14 +1,6 @@
 # XMTP CLI
 
-XMTP CLI is a command-line interface for interacting with the XMTP protocol.
-
-Its goal is to make CLI interaction with XMTP messaging as human-friendly as possible.
-
-XMTP CLI is designed for testing, debugging, and generally interacting with XMTP conversations, groups, and messages.
-
-The `xmtp` command allows for managing conversations, sending messages, and debugging your XMTP setup.
-
-It uses simple and natural syntax and provides formatted and colorized output.
+XMTP CLI is designed for testing, debugging, and generally interacting with XMTP conversations, groups, and messages. The `xmtp` command allows for managing conversations, sending messages, and debugging your XMTP setup.
 
 ## Getting started
 
@@ -153,6 +145,18 @@ CLI can also recognize the following environment variables for debugging:
 | ------------------------ | -------------------------------------------------------------------- | ------------------------------ |
 | `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents) | `XMTP_FORCE_DEBUG=true`        |
 | `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"info"`)                     | `XMTP_FORCE_DEBUG_LEVEL=debug` |
+
+### Sync
+
+Sync conversations and groups.
+
+```bash
+# Sync conversations
+xmtp sync
+
+# Sync all conversations and messages
+xmtp syncall
+```
 
 ### Send
 

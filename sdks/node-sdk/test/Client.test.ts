@@ -35,6 +35,17 @@ describe("Client", () => {
     expect(client.installationId).toBeDefined();
     expect(client.options).toBeDefined();
     expect(client.signer).toBe(signer);
+
+    const client2 = await createClient(signer, {
+      nonce: 1n,
+    });
+    expect(client2.inboxId).toBe(client.inboxId);
+
+    await expect(
+      createClient(signer, {
+        nonce: 2n,
+      }),
+    ).rejects.toThrow();
   });
 
   it("should register an identity", async () => {
@@ -134,6 +145,21 @@ describe("Client", () => {
 
     expect(inboxState2.installations.length).toBe(1);
     expect(inboxState2.installations[0].id).toBe(client3.installationId);
+  });
+
+  it("should not fail when revoking all other installations with only one installation", async () => {
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+
+    const inboxState = await client.preferences.inboxState(true);
+    expect(
+      inboxState.installations.length,
+      "verify only one installation",
+    ).toBe(1);
+    expect(inboxState.installations[0].id).toBe(client.installationId);
+
+    await expect(client.revokeAllOtherInstallations()).resolves.not.toThrow();
   });
 
   it("should revoke specific installations", async () => {
@@ -348,8 +374,13 @@ describe("Client", () => {
     expect(notAuthorized).toBe(false);
   });
 
-  it("should return a version", () => {
-    expect(Client.version).toBeDefined();
+  it("should return a version", async () => {
+    expect(Client.version).toBeUndefined();
+    const user = createUser();
+    const signer = createSigner(user);
+    const client = await createRegisteredClient(signer);
+    expect(client.appVersion).toBeDefined();
+    expect(client.libxmtpVersion).toBeDefined();
   });
 
   it("should change the recovery identifier", async () => {

@@ -12,7 +12,6 @@ export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
 export { Dm } from "./Dm";
 export { Group } from "./Group";
-export type { PreferenceUpdate } from "./Preferences";
 export { DecodedMessage } from "./DecodedMessage";
 export type { AsyncStreamProxy } from "./AsyncStream";
 export type {
@@ -24,6 +23,7 @@ export type {
   CreateGroupOptions,
   EncodedContent,
   HmacKey,
+  GroupSyncSummary,
   Identifier,
   InboxState,
   Installation,
@@ -35,6 +35,7 @@ export type {
   Message,
   MessageDisappearingSettings,
   PermissionPolicySet,
+  UserPreferenceUpdate,
 } from "@xmtp/node-bindings";
 export {
   ConsentEntityType,

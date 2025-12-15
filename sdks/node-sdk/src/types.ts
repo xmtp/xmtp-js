@@ -30,6 +30,14 @@ export type NetworkOptions = {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync
    */
   historySyncUrl?: string | null;
+  /**
+   * The host of the XMTP Gateway for your application
+   *
+   * Only valid for `testnet` and `mainnet` environments
+   *
+   * @see:https://docs.xmtp.org/fund-agents-apps/run-gateway
+   */
+  gatewayHost?: string;
 };
 
 /**
@@ -99,6 +107,11 @@ export type OtherOptions = {
    * (default: false)
    */
   debugEventsEnabled?: boolean;
+  /**
+   * The nonce to use when generating an inbox ID
+   * (default: undefined = 1)
+   */
+  nonce?: bigint;
 };
 
 export type ClientOptions = NetworkOptions &

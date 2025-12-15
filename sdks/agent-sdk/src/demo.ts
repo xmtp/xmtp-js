@@ -1,7 +1,7 @@
 import { loadEnvFile } from "node:process";
 import { TextCodec } from "@xmtp/content-type-text";
 import { Agent, AgentError } from "./core/index.js";
-import { getTestUrl } from "./debug/log.js";
+import { getTestUrl, logDetails } from "./debug/log.js";
 import { isHexString } from "./index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { createNameResolver } from "./user.js";
@@ -100,6 +100,7 @@ agent.on("group", async (ctx) => {
 
 await agent.start();
 console.log("Agent has started.");
+await logDetails(agent);
 
 const resolveName = createNameResolver(process.env.WEB3BIO_API_KEY);
 console.log(await resolveName("vitalik.eth"));

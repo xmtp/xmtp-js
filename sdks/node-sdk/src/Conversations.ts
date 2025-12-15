@@ -302,7 +302,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(
         callback,
         onFail,
@@ -341,7 +343,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(
         callback,
         onFail,
@@ -367,7 +371,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Conversation>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       return this.#conversations.stream(callback, onFail, ConversationType.Dm);
     };
     const convertConversation = (value: Conversation) => {
@@ -396,7 +402,9 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<Message>,
       onFail: () => void,
     ) => {
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.syncAll(options?.consentStates);
+      }
       return this.#conversations.streamAllMessages(
         callback,
         onFail,
@@ -449,6 +457,33 @@ export class Conversations<ContentTypes = unknown> {
       conversationType: ConversationType.Dm,
       consentStates: options?.consentStates,
     });
+  }
+
+  /**
+   * Creates a stream for message deletions
+   *
+   * This is a local stream, does not require network sync, and will not fail
+   * like other streams.
+   *
+   * @param options - Optional stream options
+   * @returns Stream instance for message deletions
+   */
+  async streamMessageDeletions(
+    options?: Omit<
+      StreamOptions<string>,
+      | "disableSync"
+      | "onFail"
+      | "onRetry"
+      | "onRestart"
+      | "retryAttempts"
+      | "retryDelay"
+      | "retryOnFail"
+    >,
+  ) {
+    const stream = async (callback: StreamCallback<string>) => {
+      return this.#conversations.streamMessageDeletions(callback);
+    };
+    return createStream(stream, undefined, options);
   }
 
   /**

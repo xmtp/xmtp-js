@@ -12,6 +12,7 @@ import {
   ListMessagesOptions,
   MessageDisappearingSettings,
   PermissionPolicySet,
+  SendMessageOpts,
   ContentTypeId as WasmContentTypeId,
   EncodedContent as WasmEncodedContent,
   type ApiStats,
@@ -28,7 +29,9 @@ import {
   type InboxState,
   type Installation,
   type KeyPackageStatus,
+  type ListConversationsOrderBy,
   type Message,
+  type MessageSortBy,
   type PermissionLevel,
   type PermissionPolicy,
   type SortDirection,
@@ -155,9 +158,15 @@ export type SafeListMessagesOptions = {
   contentTypes?: ContentType[];
   deliveryStatus?: DeliveryStatus;
   direction?: SortDirection;
+  excludeContentTypes?: ContentType[];
+  excludeSenderInboxIds?: string[];
+  insertedAfterNs?: bigint;
+  insertedBeforeNs?: bigint;
+  kind?: GroupMessageKind;
   limit?: bigint;
   sentAfterNs?: bigint;
   sentBeforeNs?: bigint;
+  sortBy?: MessageSortBy;
 };
 
 export const toSafeListMessagesOptions = (
@@ -166,9 +175,15 @@ export const toSafeListMessagesOptions = (
   contentTypes: options.contentTypes,
   deliveryStatus: options.deliveryStatus,
   direction: options.direction,
+  excludeContentTypes: options.excludeContentTypes,
+  excludeSenderInboxIds: options.excludeSenderInboxIds,
+  insertedAfterNs: options.insertedAfterNs,
+  insertedBeforeNs: options.insertedBeforeNs,
+  kind: options.kind,
   limit: options.limit,
   sentAfterNs: options.sentAfterNs,
   sentBeforeNs: options.sentBeforeNs,
+  sortBy: options.sortBy,
 });
 
 export const fromSafeListMessagesOptions = (
@@ -181,7 +196,29 @@ export const fromSafeListMessagesOptions = (
     options.deliveryStatus,
     options.direction,
     options.contentTypes,
+    options.excludeContentTypes,
+    options.kind,
+    options.excludeSenderInboxIds,
+    options.sortBy,
+    options.insertedAfterNs,
+    options.insertedBeforeNs,
   );
+
+export type SafeSendMessageOpts = {
+  shouldPush: boolean;
+};
+
+export const toSafeSendMessageOpts = (
+  opts: SendMessageOpts,
+): SafeSendMessageOpts => ({
+  shouldPush: opts.shouldPush,
+});
+
+export const fromSafeSendMessageOpts = (
+  opts: SafeSendMessageOpts,
+): SendMessageOpts => {
+  return new SendMessageOpts(opts.shouldPush);
+};
 
 export type SafeListConversationsOptions = {
   consentStates?: ConsentState[];
@@ -190,6 +227,7 @@ export type SafeListConversationsOptions = {
   createdBeforeNs?: bigint;
   includeDuplicateDms?: boolean;
   limit?: bigint;
+  orderBy?: ListConversationsOrderBy;
 };
 
 export const toSafeListConversationsOptions = (
@@ -201,6 +239,7 @@ export const toSafeListConversationsOptions = (
   createdBeforeNs: options.createdBeforeNs,
   includeDuplicateDms: options.includeDuplicateDms,
   limit: options.limit,
+  orderBy: options.orderBy,
 });
 
 export const fromSafeListConversationsOptions = (
@@ -213,6 +252,7 @@ export const fromSafeListConversationsOptions = (
     options.createdBeforeNs,
     options.includeDuplicateDms ?? false,
     options.limit,
+    options.orderBy,
   );
 
 export type SafePermissionPolicySet = {
@@ -506,6 +546,11 @@ export const toSafeKeyPackageStatus = (
   validationError: status.validationError,
 });
 
+export type SafeXMTPCursor = {
+  originatorID: number;
+  sequenceID: bigint;
+};
+
 export type SafeConversationDebugInfo = {
   epoch: bigint;
   maybeForked: boolean;
@@ -513,7 +558,7 @@ export type SafeConversationDebugInfo = {
   isCommitLogForked?: boolean;
   localCommitLog: string;
   remoteCommitLog: string;
-  cursor: bigint;
+  cursor: SafeXMTPCursor[];
 };
 
 export const toSafeConversationDebugInfo = (
@@ -525,7 +570,10 @@ export const toSafeConversationDebugInfo = (
   isCommitLogForked: debugInfo.isCommitLogForked,
   localCommitLog: debugInfo.localCommitLog,
   remoteCommitLog: debugInfo.remoteCommitLog,
-  cursor: debugInfo.cursor,
+  cursor: debugInfo.cursor.map((cursor) => ({
+    originatorID: cursor.originator_id,
+    sequenceID: cursor.sequence_id,
+  })),
 });
 
 export type SafeApiStats = {

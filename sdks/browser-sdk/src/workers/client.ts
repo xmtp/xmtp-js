@@ -21,6 +21,7 @@ import type {
 import {
   fromEncodedContent,
   fromSafeEncodedContent,
+  fromSafeSendMessageOpts,
   toSafeApiStats,
   toSafeConsent,
   toSafeConversation,
@@ -203,10 +204,12 @@ self.onmessage = async (
         const signatureRequest =
           await client.revokeAllOtherInstallationsSignatureRequest();
         const result = {
-          signatureText: await signatureRequest.signatureText(),
+          signatureText: await signatureRequest?.signatureText(),
           signatureRequestId: data.signatureRequestId,
         };
-        signatureRequests.set(data.signatureRequestId, signatureRequest);
+        if (signatureRequest) {
+          signatureRequests.set(data.signatureRequestId, signatureRequest);
+        }
         postMessage({ id, action, result });
         break;
       }
@@ -348,6 +351,16 @@ self.onmessage = async (
           action,
           result: safeResult,
         });
+        break;
+      }
+      case "client.libxmtpVersion": {
+        const result = client.libxmtpVersion;
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.appVersion": {
+        const result = client.appVersion;
+        postMessage({ id, action, result });
         break;
       }
       /**
@@ -597,6 +610,32 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
+      case "conversations.streamMessageDeletions": {
+        const streamCallback = (
+          error: Error | null,
+          value: string | undefined,
+        ) => {
+          if (error) {
+            streamClosers.delete(data.streamId);
+            postStreamMessageError({
+              action: "stream.messageDeleted",
+              streamId: data.streamId,
+              error,
+            });
+          } else {
+            postStreamMessage({
+              action: "stream.messageDeleted",
+              streamId: data.streamId,
+              result: value,
+            });
+          }
+        };
+        const streamCloser =
+          client.conversations.streamMessageDeletions(streamCallback);
+        streamClosers.set(data.streamId, streamCloser);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "conversations.list": {
         const conversations = client.conversations.list(data.options);
         const result = await Promise.all(
@@ -768,6 +807,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = await group.send(
           fromEncodedContent(fromSafeEncodedContent(data.content)),
+          fromSafeSendMessageOpts(data.sendOptions),
         );
         postMessage({ id, action, result });
         break;
@@ -776,6 +816,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = group.sendOptimistic(
           fromEncodedContent(fromSafeEncodedContent(data.content)),
+          fromSafeSendMessageOpts(data.sendOptions),
         );
         postMessage({ id, action, result });
         break;
@@ -790,6 +831,12 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const messages = await group.messages(data.options);
         const result = messages.map((message) => toSafeMessage(message));
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.countMessages": {
+        const group = getGroup(data.id);
+        const result = await group.countMessages(data.options);
         postMessage({ id, action, result });
         break;
       }

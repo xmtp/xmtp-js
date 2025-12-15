@@ -1,8 +1,7 @@
 import { Client } from "@xmtp/node-sdk";
+import type { Agent } from "@/core/Agent.js";
 
-export const logDetails = async <ContentTypes>(
-  client: Client<ContentTypes>,
-) => {
+export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
   const xmtp = `\x1b[38;2;252;76;52m
     ██╗  ██╗███╗   ███╗████████╗██████╗ 
     ╚██╗██╔╝████╗ ████║╚══██╔══╝██╔══██╗
@@ -12,6 +11,7 @@ export const logDetails = async <ContentTypes>(
     ╚═╝  ╚═╝╚═╝     ╚═╝   ╚═╝   ╚═╝     
   \x1b[0m`;
 
+  const client = agent.client;
   const clientsByAddress = client.accountIdentifier?.identifier;
   const inboxId = client.inboxId;
   const installationId = client.installationId;
@@ -38,7 +38,7 @@ export const logDetails = async <ContentTypes>(
     
     ✓ XMTP Client:
     • InboxId: ${inboxId}
-    • Version: ${Client.version}
+    • LibXMTP Version: ${agent.libxmtpVersion}
     • Address: ${clientsByAddress}
     • Conversations: ${conversations.length}
     • Installations: ${inboxState.installations.length}

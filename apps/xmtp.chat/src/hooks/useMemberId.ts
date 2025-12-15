@@ -78,7 +78,9 @@ export const useMemberId = () => {
                 environment,
               );
               if (!inboxId) {
-                setError("Address not registered on XMTP");
+                setError(
+                  `Address not registered on the "${environment}" XMTP network`,
+                );
               } else {
                 setInboxId(inboxId);
                 setAddress(profile.address);

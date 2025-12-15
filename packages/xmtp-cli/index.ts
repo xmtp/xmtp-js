@@ -11,12 +11,14 @@ import { registerListCommand } from "./commands/list";
 import { registerPermissionsCommand } from "./commands/permissions";
 import { registerRevokeCommand } from "./commands/revoke";
 import { registerSendCommand } from "./commands/send";
+import { registerSyncAllCommand, registerSyncCommand } from "./commands/sync";
+import pkg from "./package.json";
 
 let envLoaded = false;
 
 const argv = yargs(hideBin(process.argv))
   .scriptName("xmtp")
-  .version("0.0.2")
+  .version(pkg.version)
   .middleware((argv: { _: (string | number)[]; [key: string]: unknown }) => {
     // Skip env loading for help/keys commands
     const command = argv._[0];
@@ -59,7 +61,6 @@ const argv = yargs(hideBin(process.argv))
     }
   }, true);
 
-// Register all commands
 registerGroupsCommand(argv);
 registerSendCommand(argv);
 registerDebugCommand(argv);
@@ -68,5 +69,7 @@ registerListCommand(argv);
 registerContentTypesCommand(argv);
 registerKeysCommand(argv);
 registerRevokeCommand(argv);
+registerSyncCommand(argv);
+registerSyncAllCommand(argv);
 
 void argv.parse();

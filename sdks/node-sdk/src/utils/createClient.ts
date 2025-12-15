@@ -18,10 +18,11 @@ export const createClient = async (
 ) => {
   const env = options?.env || "dev";
   const host = options?.apiUrl || ApiUrls[env];
+  const gatewayHost = options?.gatewayHost;
   const isSecure = host.startsWith("https");
   const inboxId =
-    (await getInboxIdForIdentifier(identifier, env)) ||
-    generateInboxId(identifier);
+    (await getInboxIdForIdentifier(identifier, env, gatewayHost)) ||
+    generateInboxId(identifier, options?.nonce);
   let dbPath: string | null;
   if (options?.dbPath === undefined) {
     // Default: auto-generated path
@@ -53,6 +54,7 @@ export const createClient = async (
 
   return createNodeClient(
     host,
+    gatewayHost,
     isSecure,
     dbPath,
     inboxId,

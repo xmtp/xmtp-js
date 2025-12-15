@@ -1,5 +1,27 @@
 # @xmtp/agent-sdk
 
+## 1.2.1
+
+### Patch Changes
+
+- 1f737c5: Fixed LibXMTP version reporting
+
+## 1.2.0
+
+This release includes a new property, performance optimizations and bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these optimizations and fixes.
+
+### New `libxmtpVersion` property
+
+The `libxmtpVersion` property can be useful for debugging or ensuring compatibility with the underlying XMTP APIs.
+
+For more information on these updates, see these [release notes](https://github.com/xmtp/xmtp-js/releases/tag/%40xmtp%2Fnode-sdk%404.5.0) for the Node SDK.
+
+## 1.1.16
+
+### Patch Changes
+
+- f3017b3: Disabled device sync by default
+
 ## 1.1.15
 
 ### Patch Changes

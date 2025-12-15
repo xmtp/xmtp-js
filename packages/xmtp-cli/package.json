@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A command-line interface for XMTP.",
   "repository": {
     "type": "git",
@@ -26,23 +26,18 @@
     "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
     "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
     "clean:dist": "rimraf dist",
-    "content": "tsx commands/content-types.ts",
-    "debug": "tsx commands/debug.ts",
     "dev": "tsx --watch index.ts",
-    "format": "cd ../.. && yarn build && yarn format sdks/xmtp-cli",
-    "groups": "tsx commands/groups.ts",
+    "format": "cd ../.. && yarn build && yarn format packages/xmtp-cli",
     "link": "yarn build && yarn link",
-    "lint": "cd ../.. && yarn eslint sdks/xmtp-cli",
-    "list": "tsx commands/list.ts",
-    "permissions": "tsx commands/permissions.ts",
-    "send": "tsx commands/send.ts",
+    "lint": "cd ../.. && yarn eslint packages/xmtp-cli",
     "start": "tsx index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "unlink": "yarn unlink",
-    "update": "yarn build"
+    "unlink": "yarn unlink"
   },
   "dependencies": {
-    "@xmtp/agent-sdk": "1.1.15",
+    "@xmtp/agent-sdk": "1.1.16",
     "@xmtp/content-type-markdown": "^1.0.0",
     "@xmtp/content-type-reaction": "^2.0.2",
     "@xmtp/content-type-read-receipt": "^2.0.2",
@@ -51,6 +46,7 @@
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/content-type-transaction-reference": "^2.0.2",
     "@xmtp/content-type-wallet-send-calls": "^2.0.0",
+    "@xmtp/node-sdk": "4.4.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
@@ -63,7 +59,8 @@
     "rollup-plugin-dts": "^6.2.3",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=22"

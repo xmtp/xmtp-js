@@ -7,9 +7,9 @@
  * @property {string} production - The production URL for the XMTP network
  */
 export const ApiUrls = {
-  local: "http://localhost:5555",
-  dev: "https://dev.xmtp.network",
-  production: "https://production.xmtp.network",
+  local: "http://localhost:5557",
+  dev: "https://api.dev.xmtp.network:5558",
+  production: "https://api.production.xmtp.network:5558",
 } as const;
 
 /**

@@ -8,9 +8,24 @@ To keep up with the latest React app developments, see the [Issues tab](https://
 
 To learn more about XMTP and get answers to frequently asked questions, see the [XMTP documentation](https://xmtp.org/docs).
 
-### Limitations
+## Run xmtp.chat locally
 
-This React app isn't a complete solution. For example, the list of conversations doesn't update when new messages arrive in existing conversations.
+### Setup environment
+
+Copy `.env.example` to `.env` and fill in the proper values.
+
+### API service
+
+Refer to the [README](../xmtp.chat-api-service/README.md) in the API service for instructions on running it locally.
+
+### Start the app
+
+Make sure the API service is up before running this command.
+
+```bash
+# Start the app in dev mode
+yarn dev
+```
 
 ## Useful commands
 

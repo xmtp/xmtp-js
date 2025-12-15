@@ -15,6 +15,14 @@ Copy `.env.example` to `.env` and fill in the proper values.
 yarn dev
 ```
 
+#### Run the database server locally
+
+```bash
+yarn prisma dev
+```
+
+Running this command will provide a way to get the `DATABASE_URL` for use in the `.env` file.
+
 #### Run the app locally with Docker
 
 ```bash
