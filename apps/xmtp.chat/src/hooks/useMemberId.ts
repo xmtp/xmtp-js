@@ -88,8 +88,7 @@ export const useMemberId = () => {
                 setDescription(profile.description);
                 setAvatar(profile.avatar);
               }
-            } catch (error) {
-              console.log(error);
+            } catch {
               setError("Unable to get inbox ID for address. Try again.");
             } finally {
               setLoading(false);
