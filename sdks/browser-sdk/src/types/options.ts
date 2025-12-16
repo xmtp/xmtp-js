@@ -1,5 +1,5 @@
 import type { ContentCodec } from "@xmtp/content-type-primitives";
-import { AuthCallback, AuthHandle } from "@/Auth";
+import type { AuthCallback, AuthHandle } from "@/Auth";
 import type { ApiUrls } from "@/constants";
 
 export type XmtpEnv = keyof typeof ApiUrls;
@@ -26,7 +26,8 @@ export type NetworkOptions = {
   /**
    * Auth handle for the client. Can be used to set credentials for the client.
    * If using multiple clients, this can be used to share the same auth between them.
-   * If that is the case
+   * If that is the case then all `AuthCallback`s tied to the same `AuthHandle` must
+   * generate valid credentials for all gateways.
    */
   authHandle?: AuthHandle;
 
