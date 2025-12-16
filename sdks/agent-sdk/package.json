@@ -41,6 +41,10 @@
     "./user": {
       "types": "./dist/user.d.ts",
       "import": "./dist/user.js"
+    },
+    "./inline-actions": {
+      "types": "./dist/inline-actions.d.ts",
+      "import": "./dist/inline-actions.js"
     }
   },
   "main": "dist/index.js",

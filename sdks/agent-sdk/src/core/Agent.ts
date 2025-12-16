@@ -30,6 +30,7 @@ import {
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
 import { getInstallationInfo } from "@/debug.js";
+import { ActionsCodec, IntentCodec } from "@/inline-actions.js";
 import { createSigner, createUser } from "@/user/User.js";
 import { AgentError, AgentStreamingError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
@@ -45,6 +46,7 @@ type MessageStream<ContentTypes> = Awaited<
 >;
 
 type EventHandlerMap<ContentTypes> = {
+  actions: [ctx: MessageContext<ReturnType<ActionsCodec["decode"]>>];
   attachment: [
     ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
   ];
@@ -54,6 +56,7 @@ type EventHandlerMap<ContentTypes> = {
   ];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
+  intent: [ctx: MessageContext<ReturnType<IntentCodec["decode"]>>];
   markdown: [ctx: MessageContext<ReturnType<MarkdownCodec["decode"]>>];
   message: [ctx: MessageContext<ContentTypes>];
   reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
@@ -182,6 +185,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       new RemoteAttachmentCodec(),
       new TransactionReferenceCodec(),
       new WalletSendCallsCodec(),
+      new ActionsCodec(),
+      new IntentCodec(),
     ];
 
     if (process.env.XMTP_FORCE_DEBUG) {
@@ -396,6 +401,12 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
                 break;
               case filter.isText(message):
                 await this.#processMessage(message, "text");
+                break;
+              case filter.isActions(message):
+                await this.#processMessage(message, "actions");
+                break;
+              case filter.isIntent(message):
+                await this.#processMessage(message, "intent");
                 break;
               default:
                 await this.#processMessage(message);
