@@ -7,6 +7,7 @@ import {
   type Identifier,
   type LogOptions,
 } from "@xmtp/node-bindings";
+import { createAuthCallback } from "@/Auth";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types";
 import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
@@ -65,5 +66,8 @@ export const createClient = async (
     undefined,
     options?.debugEventsEnabled,
     options?.appVersion,
+    null,
+    options?.authCallback ? createAuthCallback(options.authCallback) : null,
+    options?.authHandle?.handle ?? null,
   );
 };
