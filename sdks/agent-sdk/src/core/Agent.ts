@@ -6,7 +6,10 @@ import { MarkdownCodec } from "@xmtp/content-type-markdown";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import { ReactionCodec } from "@xmtp/content-type-reaction";
 import { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
-import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
+import {
+  AttachmentCodec,
+  RemoteAttachmentCodec,
+} from "@xmtp/content-type-remote-attachment";
 import { ReplyCodec } from "@xmtp/content-type-reply";
 import type { TextCodec } from "@xmtp/content-type-text";
 import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
@@ -175,11 +178,12 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     const upgradedCodecs = [
       ...(initializedOptions.codecs ?? []),
+      new AttachmentCodec(),
       new MarkdownCodec(),
       new ReactionCodec(),
       new ReadReceiptCodec(),
-      new ReplyCodec(),
       new RemoteAttachmentCodec(),
+      new ReplyCodec(),
       new TransactionReferenceCodec(),
       new WalletSendCallsCodec(),
     ];
