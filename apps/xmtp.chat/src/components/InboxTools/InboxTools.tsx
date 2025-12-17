@@ -25,7 +25,6 @@ import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const InboxTools: React.FC = () => {
   const {
-    account,
     address,
     isConnected,
     disconnect,
@@ -46,6 +45,7 @@ export const InboxTools: React.FC = () => {
   >([]);
   const [loading, setLoading] = useState(false);
   const {
+    blockchain,
     environment,
     useSCW,
     ephemeralAccountEnabled,
@@ -92,7 +92,7 @@ export const InboxTools: React.FC = () => {
           console.error("Wallet not connected");
           return;
         }
-        if (useSCW && !account.chainId) {
+        if (useSCW && blockchain <= 0) {
           console.error("Smart contract wallet chain ID not set");
           return;
         }
@@ -100,7 +100,7 @@ export const InboxTools: React.FC = () => {
           ? createSCWSigner(
               address,
               (message: string) => signMessageAsync({ message }),
-              account.chainId,
+              blockchain,
             )
           : createEOASigner(address, (message: string) =>
               signMessageAsync({ message }),
@@ -122,7 +122,7 @@ export const InboxTools: React.FC = () => {
     [
       environment,
       address,
-      account.chainId,
+      blockchain,
       useSCW,
       signMessageAsync,
       inboxId,

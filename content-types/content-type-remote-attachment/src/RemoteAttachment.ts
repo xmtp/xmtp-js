@@ -52,6 +52,11 @@ export class RemoteAttachmentCodec
     codecRegistry: CodecRegistry,
   ): Promise<T> {
     const response = await fetch(remoteAttachment.url);
+    if (!response.ok) {
+      throw new Error(
+        `unable to fetch remote attachment at ${remoteAttachment.url}: ${response.status} ${response.statusText}`,
+      );
+    }
     const payload = new Uint8Array(await response.arrayBuffer());
 
     if (payload.length === 0) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useClient } from "@/contexts/XMTPContext";
+import { isValidName, resolveNameQuery } from "@/helpers/names";
 import { isValidEthereumAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 import { useActions } from "@/stores/inbox/hooks";
@@ -18,36 +19,59 @@ export const LoadDM: React.FC = () => {
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
+
+    const navigateToHome = (message: string) => {
+      setMessage(message);
+      timeout = setTimeout(() => {
+        void navigate(`/${environment}`);
+      }, REDIRECT_TIMEOUT);
+    };
+
+    const resolveAddress = async (addressOrENS: string) => {
+      if (isValidEthereumAddress(addressOrENS)) {
+        return addressOrENS;
+      } else if (isValidName(addressOrENS)) {
+        setMessage("Resolving ENS name...");
+
+        const profiles = await resolveNameQuery(addressOrENS);
+        if (!profiles || profiles.length === 0) {
+          return null;
+        }
+
+        return profiles[0].address;
+      } else {
+        return null;
+      }
+    };
+
     const loadDm = async () => {
-      // no address, redirect to root
-      if (!address || !isValidEthereumAddress(address)) {
-        setMessage("Invalid address, redirecting...");
-        timeout = setTimeout(() => {
-          void navigate(`/${environment}`);
-        }, REDIRECT_TIMEOUT);
+      if (!address) {
+        navigateToHome("No address, redirecting...");
         return;
       }
 
       try {
+        setMessage("Resolving address...");
+        const resolvedAddress = await resolveAddress(address);
+
+        if (!resolvedAddress) {
+          navigateToHome("Invalid identifier, redirecting...");
+          return;
+        }
+
         setMessage("Verifying address...");
         const inboxId = await client.findInboxIdByIdentifier({
           identifier: address.toLowerCase(),
           identifierKind: "Ethereum",
         });
-        // no inbox ID, redirect to root
 
         if (!inboxId) {
-          setMessage(
+          navigateToHome(
             "Address not registered on the XMTP network, redirecting...",
           );
-          timeout = setTimeout(() => {
-            void navigate(`/${environment}`);
-          }, REDIRECT_TIMEOUT);
           return;
         }
 
-        // look for existing DM group
-        setMessage("Looking for existing DM...");
         const dm = await client.conversations.getDmByInboxId(inboxId);
         let dmId = dm?.id;
         if (!dmId) {
@@ -65,16 +89,14 @@ export const LoadDM: React.FC = () => {
         void navigate(`/${environment}/conversations/${dmId}`);
       } catch (e) {
         console.error(e);
-        setMessage("Error loading DM, redirecting...");
-        // if any errors occur during this process, redirect to root
-        timeout = setTimeout(() => {
-          void navigate(`/${environment}`);
-        }, REDIRECT_TIMEOUT);
+
+        navigateToHome("Error loading DM, redirecting...");
 
         // rethrow error for error modal
         throw e;
       }
     };
+
     void loadDm();
 
     return () => {
