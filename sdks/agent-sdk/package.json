@@ -41,10 +41,6 @@
     "./user": {
       "types": "./dist/user.d.ts",
       "import": "./dist/user.js"
-    },
-    "./attachment": {
-      "types": "./dist/utils/attachment.d.ts",
-      "import": "./dist/utils/attachment.js"
     }
   },
   "main": "dist/index.js",
