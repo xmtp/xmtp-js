@@ -1,5 +1,8 @@
 import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
-import { ContentTypeRemoteAttachment } from "@xmtp/content-type-remote-attachment";
+import {
+  ContentTypeRemoteAttachment,
+  type Attachment,
+} from "@xmtp/content-type-remote-attachment";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   ConsentState,
@@ -50,15 +53,20 @@ export class ConversationContext<
     await this.conversation.send(text, ContentTypeText);
   }
 
-  async sendFile(
+  async sendRemoteAttachment(
     unencryptedFile: File,
     uploadCallback: AttachmentUploadCallback,
   ): Promise<void> {
-    const encryptedAttachment = await encryptAttachment({
-      data: await unencryptedFile.arrayBuffer(),
-      fileName: unencryptedFile.name,
+    const arrayBuffer = await unencryptedFile.arrayBuffer();
+    const attachment = new Uint8Array(arrayBuffer);
+
+    const attachmentData: Attachment = {
+      data: attachment,
+      filename: unencryptedFile.name,
       mimeType: unencryptedFile.type,
-    });
+    };
+
+    const encryptedAttachment = await encryptAttachment(attachmentData);
 
     const fileUrl = await uploadCallback(encryptedAttachment);
 

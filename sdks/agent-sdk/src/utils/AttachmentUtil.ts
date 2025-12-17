@@ -8,7 +8,7 @@ import type { Client } from "@xmtp/node-sdk";
 
 export type EncryptedAttachment = {
   content: Awaited<ReturnType<typeof RemoteAttachmentCodec.encodeEncrypted>>;
-  fileName: string;
+  filename: string;
   mimeType: string;
 };
 
@@ -23,25 +23,19 @@ export async function loadRemoteAttachment<ContentTypes>(
   return RemoteAttachmentCodec.load<Attachment>(remoteAttachment, client);
 }
 
-export async function encryptAttachment({
-  data,
-  fileName,
-  mimeType,
-}: {
-  data: ArrayBuffer | Uint8Array;
-  fileName: string;
-  mimeType: string;
-}): Promise<EncryptedAttachment> {
-  const content = await RemoteAttachmentCodec.encodeEncrypted(
-    {
-      filename: fileName,
-      mimeType,
-      data: data instanceof Uint8Array ? data : new Uint8Array(data),
-    },
+export async function encryptAttachment(
+  attachmentData: Attachment,
+): Promise<EncryptedAttachment> {
+  const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
+    attachmentData,
     new AttachmentCodec(),
   );
 
-  return { content, fileName, mimeType };
+  return {
+    content: encryptedAttachment,
+    filename: attachmentData.filename,
+    mimeType: attachmentData.filename,
+  };
 }
 
 export function createRemoteAttachment(
@@ -58,6 +52,6 @@ export function createRemoteAttachment(
     secret: encryptedAttachment.content.secret,
     scheme: url.protocol,
     contentLength: encryptedAttachment.content.payload.length,
-    filename: encryptedAttachment.fileName,
+    filename: encryptedAttachment.filename,
   };
 }
