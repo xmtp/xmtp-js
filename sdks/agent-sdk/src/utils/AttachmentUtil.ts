@@ -16,13 +16,26 @@ export type AttachmentUploadCallback = (
   attachment: EncryptedAttachment,
 ) => Promise<string>;
 
-export async function loadRemoteAttachment<ContentTypes>(
+/**
+ * Downloads and decrypts a remote attachment.
+ *
+ * @param remoteAttachment - The remote attachment metadata containing the downloadd URL and encryption keys
+ * @param client - The XMTP client instance used to lookup the necessary decoding codec
+ * @returns A promise that resolves with the decrypted attachment
+ */
+export function downloadRemoteAttachment<ContentTypes>(
   remoteAttachment: RemoteAttachment,
   client: Client<ContentTypes>,
 ) {
   return RemoteAttachmentCodec.load<Attachment>(remoteAttachment, client);
 }
 
+/**
+ * Encrypts an attachment for secure remote storage.
+ *
+ * @param attachmentData - The attachment to encrypt, including its data, filename, and MIME type
+ * @returns A promise that resolves with the encrypted attachment containing the encrypted content and metadata
+ */
 export async function encryptAttachment(
   attachmentData: Attachment,
 ): Promise<EncryptedAttachment> {
@@ -38,6 +51,13 @@ export async function encryptAttachment(
   };
 }
 
+/**
+ * Creates a remote attachment object from an encrypted attachment and file URL.
+ *
+ * @param encryptedAttachment - The encrypted attachment containing encryption keys and metadata
+ * @param fileUrl - The URL where the encrypted attachment can be downloaded
+ * @returns A remote attachment object with all necessary metadata for retrieval and decryption
+ */
 export function createRemoteAttachment(
   encryptedAttachment: EncryptedAttachment,
   fileUrl: string,

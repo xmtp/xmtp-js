@@ -1,6 +1,6 @@
 import { loadEnvFile } from "node:process";
 import { TextCodec } from "@xmtp/content-type-text";
-import { loadRemoteAttachment } from "@/utils/AttachmentUtil.js";
+import { downloadRemoteAttachment } from "@/utils/AttachmentUtil.js";
 import { Agent, AgentError } from "./core/index.js";
 import { getTestUrl, logDetails } from "./debug/log.js";
 import { isHexString } from "./index.js";
@@ -28,7 +28,7 @@ router.command("/version", async (ctx) => {
 agent.use(router.middleware());
 
 agent.on("attachment", async (ctx) => {
-  const receivedAttachment = await loadRemoteAttachment(
+  const receivedAttachment = await downloadRemoteAttachment(
     ctx.message.content,
     agent.client,
   );
