@@ -1089,7 +1089,7 @@ describe("Conversation", () => {
     await client1.conversations.syncAll();
 
     // wait for worker to process the removal request
-    await sleep(2000);
+    await sleep(4000);
 
     await conversation2.sync();
 
