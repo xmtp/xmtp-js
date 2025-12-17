@@ -36,3 +36,13 @@ pnpm i @xmtp/content-type-remote-attachment
 Run `yarn dev` to build the content type and watch for changes, which will trigger a rebuild.
 
 For more information on contributing to this repository, see our [contributing guidelines](../../CONTRIBUTING.md).
+
+## Common Errors
+
+**Error:**
+
+> content digest does not match
+
+A digest is a cryptographic fingerprint (hash) of the attachment.
+
+The "content digest error" occurs when the hash of the downloaded content doesn't match the expected hash reported in the message. The most common cause is uploading an unencrypted file to remote storage while including the digest of the encrypted version in your `RemoteAttachment` message. In this case, the digest of the unencrypted file won't match the digest of the encrypted file.
