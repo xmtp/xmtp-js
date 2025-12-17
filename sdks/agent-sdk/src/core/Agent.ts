@@ -621,6 +621,18 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     return group.addMembersByIdentifiers(identifiers);
   }
 
+  async getConversationContext(conversationId: string) {
+    const conversation =
+      await this.client.conversations.getConversationById(conversationId);
+    if (conversation) {
+      const context = new ConversationContext({
+        conversation,
+        client: this.#client,
+      });
+      return context;
+    }
+  }
+
   get address() {
     return this.#client.accountIdentifier?.identifier;
   }
