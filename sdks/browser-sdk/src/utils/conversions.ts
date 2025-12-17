@@ -359,6 +359,7 @@ export type SafeConversation = {
   name: string;
   imageUrl: string;
   description: string;
+  appData: string;
   permissions: {
     policyType: GroupPermissionsOptions;
     policySet: {
@@ -390,6 +391,7 @@ export const toSafeConversation = async (
   const name = conversation.name;
   const imageUrl = conversation.imageUrl;
   const description = conversation.description;
+  const appData = conversation.appData;
   const permissions = conversation.permissions;
   const addedByInboxId = conversation.addedByInboxId;
   const metadata = await conversation.metadata();
@@ -404,6 +406,7 @@ export const toSafeConversation = async (
     name,
     imageUrl,
     description,
+    appData,
     permissions: {
       policyType,
       policySet: {

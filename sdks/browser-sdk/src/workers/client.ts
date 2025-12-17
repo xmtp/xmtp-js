@@ -803,6 +803,12 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
+      case "group.updateAppData": {
+        const group = getGroup(data.id);
+        await group.updateAppData(data.appData);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "conversation.send": {
         const group = getGroup(data.id);
         const result = await group.send(
@@ -938,6 +944,18 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const safeConversation = await toSafeConversation(group);
         const result = safeConversation.permissions;
+        postMessage({ id, action, result });
+        break;
+      }
+      case "group.requestRemoval": {
+        const group = getGroup(data.id);
+        await group.requestRemoval();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "group.isPendingRemoval": {
+        const group = getGroup(data.id);
+        const result = group.isPendingRemoval;
         postMessage({ id, action, result });
         break;
       }

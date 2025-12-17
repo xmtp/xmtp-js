@@ -1,3 +1,4 @@
+import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import {
   ConsentState,
   ContentType,
@@ -7,6 +8,8 @@ import {
   PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
+import type { DecodedMessage } from "@/DecodedMessage";
+import type { Group } from "@/Group";
 import type { SafeMessageDisappearingSettings } from "@/utils/conversions";
 import {
   ContentTypeTest,
@@ -97,6 +100,48 @@ describe("Conversation", () => {
     await conversation2.sync();
     expect(conversation2.id).toBe(conversation.id);
     expect(conversation2.description).toBe(newDescription);
+  });
+
+  it("should update conversation app data", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId!,
+    ]);
+    const appData = "foo";
+    await conversation.updateAppData(appData);
+    expect(conversation.appData).toBe(appData);
+    const messages = await conversation.messages();
+    expect(messages.length).toBe(2);
+
+    // verify GroupUpdated message contains metadata field change
+    const groupUpdatedMessages = messages.filter(
+      (m) => m.contentType.typeId === "group_updated",
+    ) as DecodedMessage<GroupUpdated>[];
+    expect(groupUpdatedMessages.length).toBe(2);
+    const appDataMessage = groupUpdatedMessages.find(
+      (m) => m.content!.metadataFieldChanges.length > 0,
+    ) as DecodedMessage<GroupUpdated>;
+    expect(appDataMessage).toBeDefined();
+    expect(appDataMessage.content!.metadataFieldChanges).toHaveLength(1);
+    expect(appDataMessage.content!.metadataFieldChanges[0].fieldName).toBe(
+      "app_data",
+    );
+    expect(appDataMessage.content!.metadataFieldChanges[0].newValue).toBe(
+      appData,
+    );
+
+    await client2.conversations.sync();
+    const conversation2 = (await client2.conversations.getConversationById(
+      conversation.id,
+    )) as Group;
+    expect(conversation2).toBeDefined();
+    await conversation2.sync();
+    expect(conversation2.appData).toBe(appData);
   });
 
   it("should add and remove members", async () => {
@@ -1023,5 +1068,59 @@ describe("Conversation", () => {
         contentTypes: [ContentType.Text],
       }),
     ).toBe(3n);
+  });
+
+  it("should have pending removal state after requesting removal from the group", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId!,
+    ]);
+    await client2.conversations.sync();
+    const conversation2 = (await client2.conversations.getConversationById(
+      conversation.id,
+    )) as Group;
+
+    expect(await conversation2.isPendingRemoval()).toBe(false);
+    await conversation2.requestRemoval();
+    expect(await conversation2.isPendingRemoval()).toBe(true);
+    expect(await conversation2.isActive()).toBe(true);
+  });
+
+  it("should remove a member after processing their removal request", async () => {
+    const user1 = createUser();
+    const user2 = createUser();
+    const signer1 = createSigner(user1);
+    const signer2 = createSigner(user2);
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const conversation = await client1.conversations.newGroup([
+      client2.inboxId!,
+    ]);
+    await client2.conversations.sync();
+    const conversation2 = (await client2.conversations.getConversationById(
+      conversation.id,
+    )) as Group;
+
+    await conversation2.requestRemoval();
+
+    // messages and welcomes must be synced
+    await client2.conversations.syncAll();
+    await client1.conversations.syncAll();
+
+    // wait for worker to process the removal request
+    await sleep(2000);
+
+    await conversation2.sync();
+
+    expect(await conversation2.isActive()).toBe(false);
+    expect(await conversation2.isPendingRemoval()).toBe(true);
+
+    expect(await conversation.members()).toHaveLength(1);
+    expect(await conversation2.members()).toHaveLength(1);
   });
 });
