@@ -141,6 +141,15 @@ export type GroupAction =
       };
     }
   | {
+      action: "group.updateAppData";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+        appData: string;
+      };
+    }
+  | {
       action: "group.updatePermission";
       id: string;
       result: undefined;

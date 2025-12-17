@@ -803,6 +803,12 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
+      case "group.updateAppData": {
+        const group = getGroup(data.id);
+        await group.updateAppData(data.appData);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       case "conversation.send": {
         const group = getGroup(data.id);
         const result = await group.send(

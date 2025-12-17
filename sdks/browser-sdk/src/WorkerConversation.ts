@@ -66,6 +66,19 @@ export class WorkerConversation {
     return this.#group.updateGroupDescription(description);
   }
 
+  get appData() {
+    try {
+      return this.#group.appData();
+    } catch {
+      // DM groups don't support appData
+      return "";
+    }
+  }
+
+  async updateAppData(appData: string) {
+    return this.#group.updateAppData(appData);
+  }
+
   get isActive() {
     return this.#group.isActive();
   }

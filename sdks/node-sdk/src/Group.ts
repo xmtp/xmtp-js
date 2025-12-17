@@ -82,6 +82,22 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   }
 
   /**
+   * The app data of the group
+   */
+  get appData() {
+    return this.#conversation.appData();
+  }
+
+  /**
+   * Updates the group's app data (max 8192 bytes)
+   *
+   * @param appData The new app data for the group
+   */
+  async updateAppData(appData: string) {
+    return this.#conversation.updateAppData(appData);
+  }
+
+  /**
    * The permissions of the group
    */
   get permissions() {
