@@ -14,6 +14,7 @@ export const useConnectXmtp = () => {
   const account = useAccount();
   const { signMessageAsync } = useSignMessage();
   const {
+    blockchain,
     encryptionKey,
     environment,
     ephemeralAccountEnabled,
@@ -46,7 +47,7 @@ export const useConnectXmtp = () => {
     }
 
     // if wallet is not connected or SCW is enabled but chain is not set, return
-    if (!account.address || (useSCW && !account.chainId)) {
+    if (!account.address || (useSCW && blockchain <= 0)) {
       return;
     }
 
@@ -60,7 +61,7 @@ export const useConnectXmtp = () => {
         ? createSCWSigner(
             account.address,
             (message: string) => signMessageAsync({ message }),
-            account.chainId,
+            blockchain,
           )
         : createEOASigner(account.address, (message: string) =>
             signMessageAsync({ message }),
