@@ -1,5 +1,9 @@
 # @xmtp/agent-sdk
 
+## 1.2.2
+
+Upgraded Node SDK to `4.6.0`
+
 ## 1.2.1
 
 ### Patch Changes
