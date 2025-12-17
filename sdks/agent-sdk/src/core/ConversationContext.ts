@@ -10,9 +10,10 @@ import {
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
 import {
-  AttachmentUploadCallback,
-  AttachmentUtil,
-} from "../utils/AttachmentUtil.js";
+  createRemoteAttachment,
+  encryptAttachment,
+  type AttachmentUploadCallback,
+} from "@/utils/AttachmentUtil.js";
 import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<
@@ -53,7 +54,7 @@ export class ConversationContext<
     unencryptedFile: File,
     uploadCallback: AttachmentUploadCallback,
   ): Promise<void> {
-    const encryptedAttachment = await AttachmentUtil.encryptAttachment({
+    const encryptedAttachment = await encryptAttachment({
       data: await unencryptedFile.arrayBuffer(),
       fileName: unencryptedFile.name,
       mimeType: unencryptedFile.type,
@@ -61,7 +62,7 @@ export class ConversationContext<
 
     const fileUrl = await uploadCallback(encryptedAttachment);
 
-    const remoteAttachment = AttachmentUtil.createRemoteAttachment(
+    const remoteAttachment = createRemoteAttachment(
       encryptedAttachment,
       fileUrl,
     );
