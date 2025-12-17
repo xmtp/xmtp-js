@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-reply",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "An XMTP content type to support replying to a message",
   "keywords": [
     "xmtp",
@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "@xmtp/content-type-primitives": "^2.0.2",
-    "@xmtp/proto": "^3.78.0"
+    "@xmtp/proto": "3.78.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
