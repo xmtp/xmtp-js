@@ -34,7 +34,7 @@ export async function encryptAttachment(
   return {
     content: encryptedAttachment,
     filename: attachmentData.filename,
-    mimeType: attachmentData.filename,
+    mimeType: attachmentData.mimeType,
   };
 }
 
