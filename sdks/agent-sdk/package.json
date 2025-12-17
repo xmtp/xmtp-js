@@ -41,6 +41,10 @@
     "./user": {
       "types": "./dist/user.d.ts",
       "import": "./dist/user.js"
+    },
+    "./util": {
+      "types": "./dist/util.d.ts",
+      "import": "./dist/util.js"
     }
   },
   "main": "dist/index.js",

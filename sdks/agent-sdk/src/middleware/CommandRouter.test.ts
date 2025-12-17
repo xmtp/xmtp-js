@@ -6,7 +6,7 @@ import {
   createMockMessage,
   expectMessage,
   mockClient,
-} from "@/utils/TestUtil.js";
+} from "@/util/TestUtil.js";
 import { CommandRouter } from "./CommandRouter.js";
 
 describe("CommandRouter", () => {

@@ -21,7 +21,7 @@ import {
   makeAgent,
   mockClient,
   type CurrentClientTypes,
-} from "@/utils/TestUtil.js";
+} from "@/util/TestUtil.js";
 import {
   Agent,
   type AgentErrorMiddleware,

@@ -10,7 +10,7 @@ import {
   createMockMessage,
   mockClient,
   type CurrentClientTypes,
-} from "@/utils/TestUtil.js";
+} from "@/util/TestUtil.js";
 import { MessageContext } from "./MessageContext.js";
 
 describe("MessageContext", () => {

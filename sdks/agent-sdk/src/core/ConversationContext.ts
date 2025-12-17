@@ -16,7 +16,7 @@ import {
   createRemoteAttachment,
   encryptAttachment,
   type AttachmentUploadCallback,
-} from "@/utils/AttachmentUtil.js";
+} from "@/util/AttachmentUtil.js";
 import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<

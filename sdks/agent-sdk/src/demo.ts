@@ -1,6 +1,6 @@
 import { loadEnvFile } from "node:process";
 import { TextCodec } from "@xmtp/content-type-text";
-import { downloadRemoteAttachment } from "@/utils/AttachmentUtil.js";
+import { downloadRemoteAttachment } from "@/util/AttachmentUtil.js";
 import { Agent, AgentError } from "./core/index.js";
 import { getTestUrl, logDetails } from "./debug/log.js";
 import { isHexString } from "./index.js";
