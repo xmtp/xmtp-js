@@ -2,6 +2,8 @@
 
 ## 5.3.0
 
+This release introduces new features. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements.
+
 ### Self-removal from group chats
 
 This feature enables a member to leave a group chat on their own. Previously, a member could be removed only by other members with appropriate permissions. This update addresses user privacy concerns and reduces the need for manual member removal by admins.
@@ -16,6 +18,29 @@ console.log(group.isPendingRemoval); // true
 ```
 
 To learn more, see [Leave a group](https://docs.xmtp.org/chat-apps/core-messaging/group-permissions#leave-a-group) and [XIP-75: Self-removal support for XMTP/MLS groups](https://community.xmtp.org/t/xip-75-self-removal-support-for-xmtp-mls-groups/1659).
+
+### New `appData` metadata for groups
+
+Groups now support an `appData` metadata field for storing custom application-specific data. This field enables developers to attach arbitrary data to groups, such as configuration settings.
+
+The `appData` field can store up to 8,192 bytes of string data.
+
+```ts
+// access app data
+const appData = group.appData;
+
+// update app data with custom JSON
+await group.updateAppData(
+  JSON.stringify({
+    muted: false,
+    pinned: true,
+  }),
+);
+
+// retrieve and parse the updated data
+const appData = JSON.parse(group.appData);
+console.log(appData.pinned); // true
+```
 
 ## 5.2.0
 
