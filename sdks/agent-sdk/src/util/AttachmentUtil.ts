@@ -4,7 +4,7 @@ import {
   type Attachment,
   type RemoteAttachment,
 } from "@xmtp/content-type-remote-attachment";
-import type { Client } from "@xmtp/node-sdk";
+import type { Agent } from "@/core/Agent.js";
 
 export type EncryptedAttachment = {
   content: Awaited<ReturnType<typeof RemoteAttachmentCodec.encodeEncrypted>>;
@@ -20,14 +20,14 @@ export type AttachmentUploadCallback = (
  * Downloads and decrypts a remote attachment.
  *
  * @param remoteAttachment - The remote attachment metadata containing the downloadd URL and encryption keys
- * @param client - The XMTP client instance used to lookup the necessary decoding codec
+ * @param agent - The agent instance used to lookup the necessary decoding codec
  * @returns A promise that resolves with the decrypted attachment
  */
 export function downloadRemoteAttachment<ContentTypes>(
   remoteAttachment: RemoteAttachment,
-  client: Client<ContentTypes>,
+  agent: Agent<ContentTypes>,
 ) {
-  return RemoteAttachmentCodec.load<Attachment>(remoteAttachment, client);
+  return RemoteAttachmentCodec.load<Attachment>(remoteAttachment, agent.client);
 }
 
 /**
