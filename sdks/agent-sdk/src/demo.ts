@@ -30,7 +30,7 @@ agent.use(router.middleware());
 agent.on("attachment", async (ctx) => {
   const receivedAttachment = await downloadRemoteAttachment(
     ctx.message.content,
-    agent.client,
+    agent,
   );
   console.log(`Received attachment: ${receivedAttachment.filename}`);
 });
