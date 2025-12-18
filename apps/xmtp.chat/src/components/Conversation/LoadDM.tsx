@@ -61,7 +61,7 @@ export const LoadDM: React.FC = () => {
 
         setMessage("Verifying address...");
         const inboxId = await client.findInboxIdByIdentifier({
-          identifier: resolvedAddress.toLowerCase(),
+          identifier: resolvedAddress,
           identifierKind: "Ethereum",
         });
 
@@ -78,7 +78,7 @@ export const LoadDM: React.FC = () => {
           // no DM group, create it
           setMessage("Creating new DM...");
           const newDm = await client.conversations.newDmWithIdentifier({
-            identifier: resolvedAddress.toLowerCase(),
+            identifier: resolvedAddress,
             identifierKind: "Ethereum",
           });
           dmId = newDm.id;
