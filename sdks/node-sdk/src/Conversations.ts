@@ -52,8 +52,8 @@ export class Conversations<ContentTypes = unknown> {
       const group = this.#conversations.findGroupById(id);
       const metadata = await group.groupMetadata();
       return metadata.conversationType() === "group"
-        ? new Group(this.#client, group)
-        : new Dm(this.#client, group);
+        ? new Group<ContentTypes>(this.#client, group)
+        : new Dm<ContentTypes>(this.#client, group);
     } catch {
       return undefined;
     }
@@ -70,7 +70,7 @@ export class Conversations<ContentTypes = unknown> {
     try {
       // findDmByTargetInboxId will throw if group is not found
       const group = this.#conversations.findDmByTargetInboxId(inboxId);
-      return new Dm(this.#client, group);
+      return new Dm<ContentTypes>(this.#client, group);
     } catch {
       return undefined;
     }
@@ -100,9 +100,9 @@ export class Conversations<ContentTypes = unknown> {
    */
   getMessageById(id: string) {
     try {
-      // findMessageById will throw if message is not found
-      const message = this.#conversations.findMessageById(id);
-      return new DecodedMessage(this.#client, message);
+      // findEnrichedMessageById will throw if message is not found
+      const message = this.#conversations.findEnrichedMessageById(id);
+      return new DecodedMessage<ContentTypes>(this.#client, message);
     } catch {
       return undefined;
     }
@@ -117,7 +117,7 @@ export class Conversations<ContentTypes = unknown> {
    */
   newGroupOptimistic(options?: CreateGroupOptions) {
     const group = this.#conversations.createGroupOptimistic(options);
-    return new Group(this.#client, group);
+    return new Group<ContentTypes>(this.#client, group);
   }
 
   /**
@@ -133,7 +133,7 @@ export class Conversations<ContentTypes = unknown> {
     options?: CreateGroupOptions,
   ) {
     const group = await this.#conversations.createGroup(identifiers, options);
-    const conversation = new Group(this.#client, group);
+    const conversation = new Group<ContentTypes>(this.#client, group);
     return conversation;
   }
 
@@ -150,7 +150,7 @@ export class Conversations<ContentTypes = unknown> {
       inboxIds,
       options,
     );
-    const conversation = new Group(this.#client, group);
+    const conversation = new Group<ContentTypes>(this.#client, group);
     return conversation;
   }
 
@@ -164,7 +164,7 @@ export class Conversations<ContentTypes = unknown> {
    */
   async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
     const group = await this.#conversations.createDm(identifier, options);
-    const conversation = new Dm(this.#client, group);
+    const conversation = new Dm<ContentTypes>(this.#client, group);
     return conversation;
   }
 
@@ -178,7 +178,7 @@ export class Conversations<ContentTypes = unknown> {
    */
   async newDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
-    const conversation = new Dm(this.#client, group);
+    const conversation = new Dm<ContentTypes>(this.#client, group);
     return conversation;
   }
 
@@ -197,13 +197,13 @@ export class Conversations<ContentTypes = unknown> {
         const conversationType = metadata.conversationType();
         switch (conversationType) {
           case "dm":
-            return new Dm(
+            return new Dm<ContentTypes>(
               this.#client,
               item.conversation,
               item.isCommitLogForked,
             );
           case "group":
-            return new Group(
+            return new Group<ContentTypes>(
               this.#client,
               item.conversation,
               item.isCommitLogForked,
@@ -229,7 +229,7 @@ export class Conversations<ContentTypes = unknown> {
       conversationType: ConversationType.Group,
     });
     return groups.map((item) => {
-      const conversation = new Group(
+      const conversation = new Group<ContentTypes>(
         this.#client,
         item.conversation,
         item.isCommitLogForked,
@@ -251,7 +251,7 @@ export class Conversations<ContentTypes = unknown> {
       conversationType: ConversationType.Dm,
     });
     return groups.map((item) => {
-      const conversation = new Dm(
+      const conversation = new Dm<ContentTypes>(
         this.#client,
         item.conversation,
         item.isCommitLogForked,
@@ -317,10 +317,10 @@ export class Conversations<ContentTypes = unknown> {
       let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
       switch (conversationType) {
         case "dm":
-          conversation = new Dm(this.#client, value);
+          conversation = new Dm<ContentTypes>(this.#client, value);
           break;
         case "group":
-          conversation = new Group(this.#client, value);
+          conversation = new Group<ContentTypes>(this.#client, value);
           break;
       }
       return conversation;
@@ -353,7 +353,7 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertConversation = (value: Conversation) => {
-      return new Group(this.#client, value);
+      return new Group<ContentTypes>(this.#client, value);
     };
 
     return createStream(stream, convertConversation, options);
@@ -377,7 +377,7 @@ export class Conversations<ContentTypes = unknown> {
       return this.#conversations.stream(callback, onFail, ConversationType.Dm);
     };
     const convertConversation = (value: Conversation) => {
-      return new Dm(this.#client, value);
+      return new Dm<ContentTypes>(this.#client, value);
     };
 
     return createStream(stream, convertConversation, options);
@@ -393,7 +393,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
       conversationType?: ConversationType;
       consentStates?: ConsentState[];
     },
@@ -413,7 +413,8 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertMessage = (value: Message) => {
-      return new DecodedMessage(this.#client, value);
+      const enrichedMessage = this.getMessageById(value.id);
+      return enrichedMessage ?? value;
     };
 
     return createStream(streamAllMessages, convertMessage, options);
@@ -428,7 +429,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllGroupMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -448,7 +449,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllDmMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
       consentStates?: ConsentState[];
     },
   ) {

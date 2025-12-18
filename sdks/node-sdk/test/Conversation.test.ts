@@ -18,7 +18,6 @@ import {
   createSigner,
   createUser,
   sleep,
-  TestCodec,
 } from "@test/helpers";
 
 describe("Conversation", () => {
@@ -121,7 +120,7 @@ describe("Conversation", () => {
 
     // verify GroupUpdated message contains metadata field change
     const groupUpdatedMessages = messages.filter(
-      (m) => m.contentType?.typeId === "group_updated",
+      (m) => m.contentType.typeId === "group_updated",
     ) as DecodedMessage<GroupUpdated>[];
     expect(groupUpdatedMessages.length).toBe(2);
     const appDataMessage = groupUpdatedMessages.find(
@@ -242,7 +241,7 @@ describe("Conversation", () => {
     expect(await conversation.lastMessage()).toBeDefined();
 
     const text = "gm";
-    await conversation.send(text);
+    await conversation.sendText(text);
 
     const messages = await conversation.messages();
     expect(messages.length).toBe(2);
@@ -272,27 +271,6 @@ describe("Conversation", () => {
     expect(lastMessage2?.content).toBe(text);
   });
 
-  it("should require content type when sending non-string content", async () => {
-    const user1 = createUser();
-    const user2 = createUser();
-    const signer1 = createSigner(user1);
-    const signer2 = createSigner(user2);
-    const client1 = await createRegisteredClient(signer1, {
-      codecs: [new TestCodec()],
-    });
-    const client2 = await createRegisteredClient(signer2);
-    const conversation = await client1.conversations.newGroup([
-      client2.inboxId,
-    ]);
-
-    // @ts-expect-error - testing invalid content type
-    await expect(() => conversation.send(1)).rejects.toThrow();
-    await expect(() => conversation.send({ foo: "bar" })).rejects.toThrow();
-    await expect(
-      conversation.send({ foo: "bar" }, ContentTypeTest),
-    ).resolves.not.toThrow();
-  });
-
   it("should optimistically send and list messages", async () => {
     const user1 = createUser();
     const user2 = createUser();
@@ -305,7 +283,7 @@ describe("Conversation", () => {
     ]);
 
     const text = "gm";
-    conversation.sendOptimistic(text);
+    await conversation.sendText(text, true);
 
     const messages = await conversation.messages();
     expect(messages.length).toBe(2);
@@ -332,27 +310,6 @@ describe("Conversation", () => {
     expect(messages4[1].content).toBe(text);
   });
 
-  it("should require content type when optimistically sending non-string content", async () => {
-    const user1 = createUser();
-    const user2 = createUser();
-    const signer1 = createSigner(user1);
-    const signer2 = createSigner(user2);
-    const client1 = await createRegisteredClient(signer1, {
-      codecs: [new TestCodec()],
-    });
-    const client2 = await createRegisteredClient(signer2);
-    const conversation = await client1.conversations.newGroup([
-      client2.inboxId,
-    ]);
-
-    // @ts-expect-error - testing invalid content type
-    expect(() => conversation.sendOptimistic(1)).toThrow();
-    expect(() => conversation.sendOptimistic({ foo: "bar" })).toThrow();
-    expect(() =>
-      conversation.sendOptimistic({ foo: "bar" }, ContentTypeTest),
-    ).not.toThrow();
-  });
-
   it("should optimistically create a group", async () => {
     const user1 = createUser();
     const signer1 = createSigner(user1);
@@ -369,7 +326,7 @@ describe("Conversation", () => {
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
 
     const text = "gm";
-    conversation.sendOptimistic(text);
+    await conversation.sendText(text, true);
 
     const messages = await conversation.messages();
     expect(messages.length).toBe(1);
@@ -403,7 +360,7 @@ describe("Conversation", () => {
     expect(conversation.addedByInboxId).toBe(client1.inboxId);
 
     const text = "gm";
-    conversation.sendOptimistic(text);
+    await conversation.sendText(text, true);
 
     const messages = await conversation.messages();
     expect(messages.length).toBe(1);
@@ -465,8 +422,8 @@ describe("Conversation", () => {
       },
     });
 
-    await conversation.send("gm");
-    await conversation.send("gm2");
+    await conversation.sendText("gm");
+    await conversation.sendText("gm2");
 
     setTimeout(() => {
       void stream.end();
@@ -595,7 +552,7 @@ describe("Conversation", () => {
     const group2 = await client2.conversations.getConversationById(group.id);
     expect(group2).toBeDefined();
     expect(group2!.consentState).toBe(ConsentState.Unknown);
-    await group2!.send("gm!");
+    await group2!.sendText("gm!");
     expect(group2!.consentState).toBe(ConsentState.Allowed);
 
     await client3.conversations.sync();
@@ -604,7 +561,7 @@ describe("Conversation", () => {
     );
     expect(dmGroup2).toBeDefined();
     expect(dmGroup2?.consentState).toBe(ConsentState.Unknown);
-    await dmGroup2?.send("gm!");
+    await dmGroup2?.sendText("gm!");
     expect(dmGroup2?.consentState).toBe(ConsentState.Allowed);
   });
 
@@ -712,8 +669,8 @@ describe("Conversation", () => {
     expect(conversation.isMessageDisappearingEnabled()).toBe(true);
 
     // send messages to the group
-    const messageId1 = await conversation.send("gm");
-    const messageId2 = await conversation.send("gm2");
+    const messageId1 = await conversation.sendText("gm");
+    const messageId2 = await conversation.sendText("gm2");
 
     // verify that the messages are sent
     expect((await conversation.messages()).length).toBe(3);
@@ -778,8 +735,8 @@ describe("Conversation", () => {
     expect(conversation2?.isMessageDisappearingEnabled()).toBe(false);
 
     // send messages to the group
-    await conversation2?.send("gm");
-    await conversation2?.send("gm2");
+    await conversation2?.sendText("gm");
+    await conversation2?.sendText("gm2");
 
     // verify that the messages are sent
     expect((await conversation2?.messages())?.length).toBe(5);
@@ -820,8 +777,8 @@ describe("Conversation", () => {
     expect(conversation.isMessageDisappearingEnabled()).toBe(true);
 
     // send messages to the group
-    const messageId1 = await conversation.send("gm");
-    const messageId2 = await conversation.send("gm2");
+    const messageId1 = await conversation.sendText("gm");
+    const messageId2 = await conversation.sendText("gm2");
 
     // verify that the messages are sent
     expect((await conversation.messages()).length).toBe(3);
@@ -886,8 +843,8 @@ describe("Conversation", () => {
     expect(conversation2?.isMessageDisappearingEnabled()).toBe(false);
 
     // send messages to the group
-    await conversation2?.send("gm");
-    await conversation2?.send("gm2");
+    await conversation2?.sendText("gm");
+    await conversation2?.sendText("gm2");
 
     // verify that the messages are sent
     expect((await conversation2?.messages())?.length).toBe(3);
@@ -968,7 +925,7 @@ describe("Conversation", () => {
       client2.inboxId,
     ]);
 
-    await conversation.send("gm");
+    await conversation.sendText("gm");
 
     const messages = await conversation.messages();
     expect(messages.length).toBe(2);
@@ -984,9 +941,7 @@ describe("Conversation", () => {
     const user2 = createUser();
     const signer1 = createSigner(user1);
     const signer2 = createSigner(user2);
-    const client1 = await createRegisteredClient(signer1, {
-      codecs: [new TestCodec()],
-    });
+    const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
     // Setup: create conversation and messages once
@@ -994,20 +949,19 @@ describe("Conversation", () => {
       client2.inboxId,
     ]);
 
-    await conversation.send("text 1");
+    await conversation.sendText("text 1");
     await sleep(10);
     const timestamp1 = Date.now() * 1_000_000;
     await sleep(10);
-    await conversation.send("text 2");
-    await conversation.send({ test: "test content" }, ContentTypeTest);
+    await conversation.sendText("text 2");
     await sleep(10);
     const timestamp2 = Date.now() * 1_000_000;
     await sleep(10);
-    await conversation.send("text 3");
+    await conversation.sendText("text 3");
 
     // Test different filters against the same message set
     // Total: 5 messages (1 group creation + 4 sent)
-    expect(await conversation.countMessages()).toBe(5);
+    expect(await conversation.countMessages()).toBe(4);
 
     // Time filters
     expect(
@@ -1020,7 +974,7 @@ describe("Conversation", () => {
       await conversation.countMessages({
         sentAfterNs: timestamp1,
       }),
-    ).toBe(3);
+    ).toBe(2);
     expect(
       await conversation.countMessages({
         sentAfterNs: timestamp2,
@@ -1032,7 +986,7 @@ describe("Conversation", () => {
         sentAfterNs: timestamp1,
         sentBeforeNs: timestamp2,
       }),
-    ).toBe(2);
+    ).toBe(1);
 
     // Content type filter
     expect(
