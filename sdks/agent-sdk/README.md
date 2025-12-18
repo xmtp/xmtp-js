@@ -320,7 +320,7 @@ agent.on("text", async (ctx) => {
 });
 ```
 
-The Agent class also exposes a function to get the `ConversationContext`, so you can directly interact with a conversation:
+The Agent class also exposes a function to get the `ConversationContext`, so you can directly interact with a conversation.
 
 **Example**
 
