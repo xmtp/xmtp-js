@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-primitives",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "Primitives for building custom XMTP content types",
   "keywords": [
     "xmtp",
@@ -62,7 +62,7 @@
     ]
   },
   "dependencies": {
-    "@xmtp/proto": "^3.78.0"
+    "@xmtp/node-bindings": "1.8.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",

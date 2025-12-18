@@ -4790,14 +4790,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:^2.0.2, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:2.0.3, @xmtp/content-type-primitives@npm:^2.0.2":
+  version: 2.0.3
+  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
+  dependencies:
+    "@xmtp/proto": "npm:3.78.0"
+  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
-    "@xmtp/proto": "npm:^3.78.0"
+    "@xmtp/node-bindings": "npm:1.8.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.5"
     rollup-plugin-dts: "npm:^6.2.3"
@@ -4953,6 +4962,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/node-bindings@npm:1.8.0":
+  version: 1.8.0
+  resolution: "@xmtp/node-bindings@npm:1.8.0"
+  checksum: 10/bd9678d21f5e2ab12350ad12f500d2e7d9b4b7c479e38d4ddc45c5691d226460b2aa024c1eed21934d63ea600103dd0e267d04a4b25972b6c7cb68bc2045a892
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-sdk@npm:4.3.1":
   version: 4.3.1
   resolution: "@xmtp/node-sdk@npm:4.3.1"
@@ -4977,7 +4993,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:4.6.0, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@xmtp/node-sdk@npm:4.6.0"
+  dependencies:
+    "@xmtp/content-type-group-updated": "npm:^2.0.2"
+    "@xmtp/content-type-primitives": "npm:^2.0.2"
+    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/node-bindings": "npm:1.6.8"
+  checksum: 10/f8b5e8d74bd0f505a893ce5a3f570b588629b40a76c5693fb66608692ec869d3db7e19eb7d81202eeffec1217be1f195a5949d53b5f06a14567c2f878ada5dc0
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
@@ -5005,7 +5033,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:3.78.0, @xmtp/proto@npm:^3.78.0":
+"@xmtp/proto@npm:3.78.0":
   version: 3.78.0
   resolution: "@xmtp/proto@npm:3.78.0"
   dependencies:
@@ -5054,7 +5082,7 @@ __metadata:
     "@xmtp/browser-sdk": "workspace:^"
     "@xmtp/content-type-group-updated": "workspace:^"
     "@xmtp/content-type-markdown": "workspace:^"
-    "@xmtp/content-type-primitives": "workspace:^"
+    "@xmtp/content-type-primitives": "npm:2.0.3"
     "@xmtp/content-type-reaction": "workspace:^"
     "@xmtp/content-type-read-receipt": "workspace:^"
     "@xmtp/content-type-remote-attachment": "workspace:^"
