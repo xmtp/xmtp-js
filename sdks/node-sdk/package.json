@@ -49,9 +49,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@xmtp/content-type-group-updated": "^2.0.2",
-    "@xmtp/content-type-primitives": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
+    "@xmtp/content-type-primitives": "3.0.0-rc1",
     "@xmtp/node-bindings": "1.7.0-rc2"
   },
   "devDependencies": {
