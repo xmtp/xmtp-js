@@ -1,4 +1,5 @@
 import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
+import { ContentTypeRemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   ConsentState,
@@ -8,6 +9,10 @@ import {
   type Group,
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
+import {
+  createRemoteAttachmentFromFile,
+  type AttachmentUploadCallback,
+} from "@/util/AttachmentUtil.js";
 import { ClientContext } from "./ClientContext.js";
 
 export class ConversationContext<
@@ -42,6 +47,17 @@ export class ConversationContext<
 
   async sendText(text: string): Promise<void> {
     await this.conversation.send(text, ContentTypeText);
+  }
+
+  async sendRemoteAttachment(
+    unencryptedFile: File,
+    uploadCallback: AttachmentUploadCallback,
+  ): Promise<void> {
+    const remoteAttachment = await createRemoteAttachmentFromFile(
+      unencryptedFile,
+      uploadCallback,
+    );
+    await this.conversation.send(remoteAttachment, ContentTypeRemoteAttachment);
   }
 
   get conversation() {

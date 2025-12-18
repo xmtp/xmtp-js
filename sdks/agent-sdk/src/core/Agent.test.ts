@@ -19,9 +19,9 @@ import {
   expectMessage,
   flushMicrotasks,
   makeAgent,
-  mockClient,
+  makeClient,
   type CurrentClientTypes,
-} from "@/utils/TestUtil.js";
+} from "@/util/TestUtil.js";
 import {
   Agent,
   type AgentErrorMiddleware,
@@ -32,6 +32,8 @@ import type { ClientContext } from "./ClientContext.js";
 import { MessageContext } from "./MessageContext.js";
 
 describe("Agent", () => {
+  const mockClient = makeClient();
+
   const mockMessage = createMockMessage({
     id: "message-id-1",
     senderInboxId: "sender-inbox-id",

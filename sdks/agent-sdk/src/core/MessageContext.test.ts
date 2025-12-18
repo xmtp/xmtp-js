@@ -8,12 +8,14 @@ import { Dm } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   createMockMessage,
-  mockClient,
+  makeClient,
   type CurrentClientTypes,
-} from "@/utils/TestUtil.js";
+} from "@/util/TestUtil.js";
 import { MessageContext } from "./MessageContext.js";
 
 describe("MessageContext", () => {
+  const mockClient = makeClient();
+
   describe("usesCodec", () => {
     const mockDm = Object.create(Dm.prototype) as Dm;
 

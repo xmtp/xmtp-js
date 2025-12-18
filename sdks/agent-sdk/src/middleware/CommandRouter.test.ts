@@ -5,11 +5,13 @@ import { MessageContext } from "@/core/MessageContext.js";
 import {
   createMockMessage,
   expectMessage,
-  mockClient,
-} from "@/utils/TestUtil.js";
+  makeClient,
+} from "@/util/TestUtil.js";
 import { CommandRouter } from "./CommandRouter.js";
 
 describe("CommandRouter", () => {
+  const mockClient = makeClient();
+
   describe("types", () => {
     it("types the message content as string in command handlers", () => {
       const router = new CommandRouter();

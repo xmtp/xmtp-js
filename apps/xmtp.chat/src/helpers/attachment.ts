@@ -111,7 +111,7 @@ export const uploadAttachment = async (
     nonce: encryptedAttachment.nonce,
     secret: encryptedAttachment.secret,
     scheme: "https://",
-    contentLength: file.size,
+    contentLength: encryptedAttachment.payload.length,
     filename: file.name,
   };
 };

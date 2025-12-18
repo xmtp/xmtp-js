@@ -41,19 +41,24 @@
     "./user": {
       "types": "./dist/user.d.ts",
       "import": "./dist/user.js"
+    },
+    "./util": {
+      "types": "./dist/util.d.ts",
+      "import": "./dist/util.js"
     }
   },
   "main": "dist/index.js",
   "files": [
     "dist",
-    "!dist/**/*.test.*"
+    "!dist/**/*.test.*",
+    "!dist/demo.*"
   ],
   "scripts": {
     "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack --profile node16 . --ignore-rules cjs-resolves-to-esm",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
     "demo": "tsx src/demo.ts",
-    "dev": "tsx --watch src/main.ts",
+    "dev": "tsx --watch src/demo.ts",
     "fix": "npx prettier --log-level error -w . && npx eslint . --fix",
     "gen:keys": "tsx src/bin/generateKeys.ts",
     "start": "yarn demo",
@@ -65,7 +70,7 @@
     "@xmtp/content-type-markdown": "^1.0.0",
     "@xmtp/content-type-reaction": "^2.0.2",
     "@xmtp/content-type-read-receipt": "^2.0.2",
-    "@xmtp/content-type-remote-attachment": "^2.0.2",
+    "@xmtp/content-type-remote-attachment": "^2.0.4",
     "@xmtp/content-type-reply": "^2.0.2",
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/content-type-transaction-reference": "^2.0.2",
