@@ -64,7 +64,6 @@ export const createClient = async (
     deviceSyncWorkerMode,
     logOptions,
     undefined,
-    options?.debugEventsEnabled,
     options?.appVersion,
   );
 };
