@@ -103,11 +103,6 @@ export type OtherOptions = {
    */
   appVersion?: string;
   /**
-   * Should debug events be tracked
-   * (default: false)
-   */
-  debugEventsEnabled?: boolean;
-  /**
    * The nonce to use when generating an inbox ID
    * (default: undefined = 1)
    */
