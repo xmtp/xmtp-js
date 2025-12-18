@@ -47,13 +47,4 @@ describe("DebugInformation", () => {
     const apiAggregateStats = client.debugInformation.apiAggregateStatistics();
     expect(apiAggregateStats).toBeDefined();
   });
-
-  it("should upload a debug archive", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createRegisteredClient(signer);
-
-    const result = await client.debugInformation.uploadDebugArchive();
-    expect(result).toBeDefined();
-  });
 });

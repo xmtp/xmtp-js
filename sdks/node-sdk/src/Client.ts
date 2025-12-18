@@ -94,7 +94,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     this.#client = await createClient(identifier, this.#options);
     const conversations = this.#client.conversations();
     this.#conversations = new Conversations(this, conversations);
-    this.#debugInformation = new DebugInformation(this.#client, this.#options);
+    this.#debugInformation = new DebugInformation(this.#client);
     this.#preferences = new Preferences(this.#client, conversations);
   }
 
