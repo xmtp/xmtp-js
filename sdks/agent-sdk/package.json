@@ -58,7 +58,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
     "demo": "tsx src/demo.ts",
-    "dev": "tsx --watch src/main.ts",
+    "dev": "tsx --watch src/demo.ts",
     "fix": "npx prettier --log-level error -w . && npx eslint . --fix",
     "gen:keys": "tsx src/bin/generateKeys.ts",
     "start": "yarn demo",
