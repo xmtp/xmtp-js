@@ -14,6 +14,7 @@ import {
 import { filter } from "@/core/filter.js";
 import {
   createRemoteAttachment,
+  createRemoteAttachmentFromFile,
   encryptAttachment,
   type AttachmentUploadCallback,
 } from "@/util/AttachmentUtil.js";
@@ -57,24 +58,10 @@ export class ConversationContext<
     unencryptedFile: File,
     uploadCallback: AttachmentUploadCallback,
   ): Promise<void> {
-    const arrayBuffer = await unencryptedFile.arrayBuffer();
-    const attachment = new Uint8Array(arrayBuffer);
-
-    const attachmentData: Attachment = {
-      data: attachment,
-      filename: unencryptedFile.name,
-      mimeType: unencryptedFile.type,
-    };
-
-    const encryptedAttachment = await encryptAttachment(attachmentData);
-
-    const fileUrl = await uploadCallback(encryptedAttachment);
-
-    const remoteAttachment = createRemoteAttachment(
-      encryptedAttachment,
-      fileUrl,
+    const remoteAttachment = createRemoteAttachmentFromFile(
+      unencryptedFile,
+      uploadCallback,
     );
-
     await this.conversation.send(remoteAttachment, ContentTypeRemoteAttachment);
   }
 

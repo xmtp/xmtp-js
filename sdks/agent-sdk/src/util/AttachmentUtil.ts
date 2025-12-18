@@ -75,3 +75,23 @@ export function createRemoteAttachment(
     filename: encryptedAttachment.filename,
   };
 }
+
+export async function createRemoteAttachmentFromFile(
+  unencryptedFile: File,
+  uploadCallback: AttachmentUploadCallback,
+) {
+  const arrayBuffer = await unencryptedFile.arrayBuffer();
+  const attachment = new Uint8Array(arrayBuffer);
+
+  const attachmentData: Attachment = {
+    data: attachment,
+    filename: unencryptedFile.name,
+    mimeType: unencryptedFile.type,
+  };
+
+  const encryptedAttachment = await encryptAttachment(attachmentData);
+
+  const fileUrl = await uploadCallback(encryptedAttachment);
+
+  return createRemoteAttachment(encryptedAttachment, fileUrl);
+}
