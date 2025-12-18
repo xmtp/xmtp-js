@@ -4683,7 +4683,7 @@ __metadata:
     "@xmtp/content-type-text": "npm:^2.0.2"
     "@xmtp/content-type-transaction-reference": "npm:^2.0.2"
     "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
-    "@xmtp/node-sdk": "npm:4.5.1"
+    "@xmtp/node-sdk": "npm:4.6.0"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.20.6"
     typescript: "npm:^5.9.3"
@@ -4710,7 +4710,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/wasm-bindings": "npm:1.6.6"
+    "@xmtp/wasm-bindings": "npm:1.6.8"
     playwright: "npm:^1.56.1"
     rollup: "npm:^4.52.5"
     rollup-plugin-dts: "npm:^6.2.3"
@@ -4946,10 +4946,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-bindings@npm:1.6.6":
-  version: 1.6.6
-  resolution: "@xmtp/node-bindings@npm:1.6.6"
-  checksum: 10/314f2c8c53a8af7bd67e4a32c66d48472674c0ec7a24dc4d695a89131645c1fb4f9513dc6c8f98dc9b2ff87a3e0f59bf30912cd84d83c1fa6f0ffa13fcae1f5b
+"@xmtp/node-bindings@npm:1.6.8":
+  version: 1.6.8
+  resolution: "@xmtp/node-bindings@npm:1.6.8"
+  checksum: 10/5391dc987e63cc0fac5b114f743c955689822fef0df44ed038f54aa19e673624cfb7a72dcf9abd2e7afaca9710bf37d5793698956912fe5cb678c50b211b6ca2
   languageName: node
   linkType: hard
 
@@ -4977,7 +4977,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:4.5.1, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:4.6.0, @xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
@@ -4988,7 +4988,7 @@ __metadata:
     "@xmtp/content-type-group-updated": "npm:^2.0.2"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/node-bindings": "npm:1.6.6"
+    "@xmtp/node-bindings": "npm:1.6.8"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.5"
@@ -5030,10 +5030,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.6.6":
-  version: 1.6.6
-  resolution: "@xmtp/wasm-bindings@npm:1.6.6"
-  checksum: 10/01e7072c0619dea79b8014b5517487493425ebc069e618e3b2fd6964662d918261cb0c868caccb2a34ecd36ac9bd026b4ce9527e69fc7e931edcce75c787d348
+"@xmtp/wasm-bindings@npm:1.6.8":
+  version: 1.6.8
+  resolution: "@xmtp/wasm-bindings@npm:1.6.8"
+  checksum: 10/7eaf331943b2e51b58bc715011c2568d08a317f3ada972c12a826e5b2cc4c5e9612d3d5746e724f87ca61b669a3a89a4c20806717f025a66ab8bd1cd92e4a8c5
   languageName: node
   linkType: hard
 

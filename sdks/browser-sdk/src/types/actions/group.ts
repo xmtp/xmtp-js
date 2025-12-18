@@ -141,6 +141,15 @@ export type GroupAction =
       };
     }
   | {
+      action: "group.updateAppData";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+        appData: string;
+      };
+    }
+  | {
       action: "group.updatePermission";
       id: string;
       result: undefined;
@@ -155,6 +164,22 @@ export type GroupAction =
       action: "group.permissions";
       id: string;
       result: SafeConversation["permissions"];
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "group.requestRemoval";
+      id: string;
+      result: undefined;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "group.isPendingRemoval";
+      id: string;
+      result: boolean;
       data: {
         id: string;
       };

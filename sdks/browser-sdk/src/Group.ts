@@ -15,6 +15,7 @@ import type { SafeConversation } from "@/utils/conversions";
  */
 export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   #admins: SafeConversation["admins"] = [];
+  #appData?: SafeConversation["appData"];
   #client: Client<ContentTypes>;
   #description?: SafeConversation["description"];
   #id: string;
@@ -26,6 +27,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
     this.#name = data?.name ?? "";
     this.#imageUrl = data?.imageUrl ?? "";
     this.#description = data?.description ?? "";
+    this.#appData = data?.appData ?? "";
     this.#admins = data?.admins ?? [];
     this.#superAdmins = data?.superAdmins ?? [];
   }
@@ -117,6 +119,26 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
       description,
     });
     this.#description = description;
+  }
+
+  /**
+   * The app data of the group
+   */
+  get appData() {
+    return this.#appData;
+  }
+
+  /**
+   * Updates the group's app data (max 8192 bytes)
+   *
+   * @param appData The new app data for the group
+   */
+  async updateAppData(appData: string) {
+    await this.#client.sendMessage("group.updateAppData", {
+      id: this.#id,
+      appData,
+    });
+    this.#appData = appData;
   }
 
   /**
@@ -308,6 +330,26 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
     return this.#client.sendMessage("group.removeSuperAdmin", {
       id: this.#id,
       inboxId,
+    });
+  }
+
+  /**
+   * Request to leave the group
+   */
+  async requestRemoval() {
+    return this.#client.sendMessage("group.requestRemoval", {
+      id: this.#id,
+    });
+  }
+
+  /**
+   * Checks if the current user has requested to leave the group
+   *
+   * @returns Boolean
+   */
+  async isPendingRemoval() {
+    return this.#client.sendMessage("group.isPendingRemoval", {
+      id: this.#id,
     });
   }
 }
