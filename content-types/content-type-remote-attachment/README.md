@@ -46,3 +46,7 @@ For more information on contributing to this repository, see our [contributing g
 A digest is a cryptographic fingerprint (hash) of the attachment.
 
 The "content digest error" occurs when the hash of the downloaded content doesn't match the expected hash reported in the message. The most common cause is uploading an unencrypted file to remote storage while including the digest of the encrypted version in your `RemoteAttachment` message. In this case, the digest of the unencrypted file won't match the digest of the encrypted file.
+
+> unable to fetch remote attachment
+
+The `RemoteAttachmentCodec.load` function downloads an attachment from a remote location. In decentralized environments, content may not be immediately available, causing fetches to fail if you attempt to download before the file has fully distributed. Implementing a retry mechanism can help handle these cases.
