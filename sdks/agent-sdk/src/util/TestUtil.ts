@@ -1,7 +1,11 @@
 import type { GroupUpdated } from "@xmtp/content-type-group-updated";
+import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import type { Reaction } from "@xmtp/content-type-reaction";
 import type { ReadReceipt } from "@xmtp/content-type-read-receipt";
-import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
+import {
+  AttachmentCodec,
+  type RemoteAttachment,
+} from "@xmtp/content-type-remote-attachment";
 import type { Reply } from "@xmtp/content-type-reply";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import type { TransactionReference } from "@xmtp/content-type-transaction-reference";
@@ -37,26 +41,35 @@ export const createMockMessage = <ContentType>(
 };
 
 export const makeAgent = () => {
+  const mockClient = makeClient();
   return { agent: new Agent({ client: mockClient }), mockClient };
 };
 
-export const mockClient = {
-  inboxId: "test-inbox-id",
-  conversations: {
-    sync: vi.fn().mockResolvedValue(undefined),
-    stream: vi.fn().mockResolvedValue(undefined),
-    streamAllMessages: vi.fn(),
-    getConversationById: vi.fn().mockResolvedValue({
-      send: vi.fn().mockResolvedValue(undefined),
-    }),
-  },
-  preferences: {
-    inboxStateFromInboxIds: vi.fn(),
-  },
-} as unknown as Client & {
-  conversations: {
-    stream: Mock;
-    streamAllMessages: Mock;
+export const makeClient = () => {
+  const attachmentCodec = new AttachmentCodec();
+  return {
+    inboxId: "test-inbox-id",
+    codecFor: (contentType: ContentTypeId) => {
+      if (contentType.sameAs(attachmentCodec.contentType)) {
+        return attachmentCodec;
+      }
+    },
+    conversations: {
+      sync: vi.fn().mockResolvedValue(undefined),
+      stream: vi.fn().mockResolvedValue(undefined),
+      streamAllMessages: vi.fn(),
+      getConversationById: vi.fn().mockResolvedValue({
+        send: vi.fn().mockResolvedValue(undefined),
+      }),
+    },
+    preferences: {
+      inboxStateFromInboxIds: vi.fn(),
+    },
+  } as unknown as Client & {
+    conversations: {
+      stream: Mock;
+      streamAllMessages: Mock;
+    };
   };
 };
 
