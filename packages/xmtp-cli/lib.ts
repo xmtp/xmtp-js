@@ -18,4 +18,7 @@ export {
 
 export { runKeysCommand, type KeysOptions } from "./commands/keys";
 
-export { runRevokeCommand, type RevokeOptions } from "./commands/revoke";
+export {
+  runInstallationsCommand,
+  type InstallationsOptions,
+} from "./commands/installations";

@@ -286,6 +286,26 @@ xmtp content attachment --target 0x1234...
 - `--group-id <id>` - Group ID
 - `--amount <amount>` - Amount for transactions (default: 0.1)
 
+### Installations
+
+Manage XMTP installations for the current inbox.
+
+```bash
+# List all installations
+xmtp installations
+
+# Revoke all installations (keeps one)
+xmtp installations --revoke=all
+
+# Revoke specific installations
+xmtp installations --revoke=<id1>,<id2>
+```
+
+**Options:**
+
+- `--revoke <value>` - Revoke installations: 'all' to revoke all except one, or comma-separated installation IDs to revoke specific ones
+- `--env <env>` - Override XMTP environment from .env file
+
 ## Getting Help
 
 ```bash
