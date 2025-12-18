@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/agent-sdk",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "XMTP Agent SDK for interacting with XMTP networks",
   "keywords": [
     "agents",

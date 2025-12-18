@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.2.3
+
+### Patch Changes
+
+- d655457: Added support for encrypted file attachments
+
 ## 1.2.2
 
 Upgraded Node SDK to `4.6.0`
