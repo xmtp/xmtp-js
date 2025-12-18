@@ -285,7 +285,7 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const group = await client1.conversations.newGroup([client2.inboxId]);
-    const messageId = await group.send("gm!");
+    const messageId = await group.sendText("gm!");
     expect(messageId).toBeDefined();
 
     const message = client1.conversations.getMessageById(messageId);
@@ -541,8 +541,8 @@ describe("Conversations", () => {
     await client3.conversations.sync();
     const groups3 = client3.conversations.listGroups();
 
-    await groups2[0].send("gm!");
-    await groups3[0].send("gm2!");
+    await groups2[0].sendText("gm!");
+    await groups3[0].sendText("gm2!");
 
     setTimeout(() => {
       void stream.end();
@@ -595,9 +595,9 @@ describe("Conversations", () => {
     await groups4.sync();
     const groupsList4 = await groups4.list();
 
-    await groupsList4[0].send("gm3!");
-    await groupsList2[0].send("gm!");
-    await groupsList3[0].send("gm2!");
+    await groupsList4[0].sendText("gm3!");
+    await groupsList2[0].sendText("gm!");
+    await groupsList3[0].sendText("gm2!");
 
     setTimeout(() => {
       void stream.end();
@@ -650,9 +650,9 @@ describe("Conversations", () => {
     await groups4.sync();
     const groupsList4 = await groups4.list();
 
-    await groupsList2[0].send("gm!");
-    await groupsList3[0].send("gm2!");
-    await groupsList4[0].send("gm3!");
+    await groupsList2[0].sendText("gm!");
+    await groupsList3[0].sendText("gm2!");
+    await groupsList4[0].sendText("gm3!");
 
     setTimeout(() => {
       void stream.end();
@@ -731,10 +731,10 @@ describe("Conversations", () => {
     const dm1 = await client1.conversations.newDm(client2.inboxId);
     const dm2 = await client2.conversations.newDm(client1.inboxId);
 
-    await dm1.send("hi");
+    await dm1.sendText("hi");
     // since this is the last message sent, the stitched group ID will be
     // this group ID
-    await dm2.send("hi");
+    await dm2.sendText("hi");
 
     await client1.conversations.sync();
     await client2.conversations.sync();
