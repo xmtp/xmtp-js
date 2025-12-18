@@ -1,8 +1,5 @@
 import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
-import {
-  ContentTypeRemoteAttachment,
-  type Attachment,
-} from "@xmtp/content-type-remote-attachment";
+import { ContentTypeRemoteAttachment } from "@xmtp/content-type-remote-attachment";
 import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   ConsentState,
@@ -13,9 +10,7 @@ import {
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
 import {
-  createRemoteAttachment,
   createRemoteAttachmentFromFile,
-  encryptAttachment,
   type AttachmentUploadCallback,
 } from "@/util/AttachmentUtil.js";
 import { ClientContext } from "./ClientContext.js";

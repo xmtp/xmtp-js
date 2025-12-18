@@ -1,25 +1,46 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createRemoteAttachment,
+  createRemoteAttachmentFromFile,
   downloadRemoteAttachment,
   encryptAttachment,
 } from "./AttachmentUtil.js";
 import { makeAgent } from "./TestUtil.js";
 
 describe("AttachmentUtil", () => {
+  const testUrl = "https://localhost/test_file";
+  let mockFetch: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    mockFetch = vi.fn();
+    global.fetch = mockFetch;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe("createRemoteAttachmentFromFile", () => {
+    it("creates a remote attachment", async () => {
+      const fileContent = "createRemoteAttachmentFromFile";
+      const fileName = "hello.txt";
+      const mimeType = "text/plain";
+      const unencryptedFile = new File([fileContent], fileName, {
+        type: mimeType,
+      });
+      const uploadCallback = () => {
+        return Promise.resolve(testUrl);
+      };
+      const remoteAttachment = await createRemoteAttachmentFromFile(
+        unencryptedFile,
+        uploadCallback,
+      );
+      expect(remoteAttachment.url).toBe(testUrl);
+      expect(remoteAttachment.filename).toBe(fileName);
+    });
+  });
+
   describe("Round-trip test", () => {
-    const testUrl = "https://localhost/test_file";
-    let mockFetch: ReturnType<typeof vi.fn>;
-
-    beforeEach(() => {
-      mockFetch = vi.fn();
-      global.fetch = mockFetch;
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
     it("encrypts and decrypts a file", async () => {
       const fileContent = "Hello, World!";
       const fileName = "hello.txt";
@@ -48,7 +69,6 @@ describe("AttachmentUtil", () => {
         testUrl,
       );
 
-      expect(remoteAttachment).not.toBeUndefined();
       expect(remoteAttachment.url).toBe(testUrl);
       expect(remoteAttachment.filename).toBe(fileName);
 
