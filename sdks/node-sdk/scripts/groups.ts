@@ -59,7 +59,7 @@ console.log(`Created ${groups.length} groups`);
 console.log(`Sending "gm" message into each group...`);
 
 for (const group of groups) {
-  await group.send("gm");
+  await group.sendText("gm");
 }
 
 console.log("Creating DM groups...");
@@ -79,7 +79,7 @@ console.log(`Created ${dmGroups.length} DM groups`);
 console.log("Sending 'gm' message into each DM group...");
 
 for (const dmGroup of dmGroups) {
-  await dmGroup.send("gm");
+  await dmGroup.sendText("gm");
 }
 
 console.log("Syncing all conversations...");

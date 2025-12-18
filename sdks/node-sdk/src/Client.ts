@@ -1,26 +1,35 @@
 import {
-  ContentTypeGroupUpdated,
-  GroupUpdatedCodec,
-} from "@xmtp/content-type-group-updated";
-import type {
-  ContentCodec,
-  ContentTypeId,
-  EncodedContent,
+  contentTypesAreEqual,
+  contentTypeToString,
+  type ContentCodec,
+  type ContentTypeId,
 } from "@xmtp/content-type-primitives";
-import { TextCodec } from "@xmtp/content-type-text";
 import {
   applySignatureRequest,
   GroupMessageKind,
+  groupUpdatedContentType,
   inboxStateFromInboxIds,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
+  type Actions,
+  type Attachment,
+  type GroupUpdated,
   type Identifier,
+  type Intent,
+  type LeaveRequest,
   type Message,
+  type MultiRemoteAttachment,
   type Client as NodeClient,
+  type Reaction,
+  type ReadReceipt,
+  type RemoteAttachment,
+  type Reply,
   type SendMessageOpts,
   type SignatureRequestHandle,
+  type TransactionReference,
+  type WalletSendCalls,
 } from "@xmtp/node-bindings";
 import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
@@ -39,10 +48,27 @@ import {
 import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
 
+export type BuiltInContentTypes =
+  | string // text, markdown
+  | LeaveRequest
+  | Reaction
+  | ReadReceipt
+  | Attachment
+  | RemoteAttachment
+  | Reply
+  | TransactionReference
+  | WalletSendCalls
+  | Actions
+  | Intent
+  | MultiRemoteAttachment
+  | GroupUpdated;
+
 export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
-  [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
-    ? T
-    : never;
+  C extends readonly []
+    ? BuiltInContentTypes
+    : [...C][number] extends ContentCodec<infer T>
+      ? T | BuiltInContentTypes
+      : BuiltInContentTypes;
 
 /**
  * Client for interacting with the XMTP network
@@ -67,13 +93,9 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   constructor(options?: ClientOptions) {
     this.#options = options;
-    const codecs = [
-      new GroupUpdatedCodec(),
-      new TextCodec(),
-      ...(options?.codecs ?? []),
-    ];
+    const codecs = [...(options?.codecs ?? [])];
     this.#codecs = new Map(
-      codecs.map((codec) => [codec.contentType.toString(), codec]),
+      codecs.map((codec) => [contentTypeToString(codec.contentType), codec]),
     );
   }
 
@@ -719,7 +741,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The codec, if found
    */
   codecFor<ContentType = unknown>(contentType: ContentTypeId) {
-    return this.#codecs.get(contentType.toString()) as
+    return this.#codecs.get(contentTypeToString(contentType)) as
       | ContentCodec<ContentType>
       | undefined;
   }
@@ -769,7 +791,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns The encoded content with optional fallback
    */
   #encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
-    const encoded = codec.encode(content, this);
+    const encoded = codec.encode(content);
     const fallback = codec.fallback(content);
     if (fallback) {
       encoded.fallback = fallback;
@@ -811,13 +833,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
 
     // throw an error if there's an invalid group membership change message
     if (
-      contentType.sameAs(ContentTypeGroupUpdated) &&
+      contentTypesAreEqual(contentType, groupUpdatedContentType()) &&
       message.kind !== GroupMessageKind.MembershipChange
     ) {
       throw new InvalidGroupMembershipChangeError(message.id);
     }
 
-    return codec.decode(message.content as EncodedContent, this);
+    return codec.decode(message.content);
   }
 
   /**
@@ -946,16 +968,5 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       inboxId,
       installation,
     );
-  }
-
-  /**
-   * Gets the version of the Node bindings
-   * @deprecated
-   */
-  static get version() {
-    console.warn(
-      "Client.version is deprecated. Use Client.libxmtpVersion instead.",
-    );
-    return undefined;
   }
 }

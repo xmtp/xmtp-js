@@ -375,7 +375,6 @@ describe("Client", () => {
   });
 
   it("should return a version", async () => {
-    expect(Client.version).toBeUndefined();
     const user = createUser();
     const signer = createSigner(user);
     const client = await createRegisteredClient(signer);

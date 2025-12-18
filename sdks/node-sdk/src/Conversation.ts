@@ -1,10 +1,19 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
-import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   SortDirection,
+  type Actions,
+  type Attachment,
   type ConsentState,
+  type EncodedContent,
+  type Intent,
   type ListMessagesOptions,
   type Message,
+  type MultiRemoteAttachment,
+  type Reaction,
+  type RemoteAttachment,
+  type Reply,
+  type SendMessageOpts,
+  type TransactionReference,
+  type WalletSendCalls,
   type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
@@ -120,7 +129,9 @@ export class Conversation<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for new messages
    */
-  async stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
+  async stream(
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message>,
+  ) {
     const stream = async (
       callback: StreamCallback<Message>,
       onFail: () => void,
@@ -131,7 +142,10 @@ export class Conversation<ContentTypes = unknown> {
       return this.#conversation.stream(callback, onFail);
     };
     const convertMessage = (value: Message) => {
-      return new DecodedMessage(this.#client, value);
+      const enrichedMessage = this.#client.conversations.getMessageById(
+        value.id,
+      );
+      return enrichedMessage ?? value;
     };
 
     return createStream(stream, convertMessage, options);
@@ -147,47 +161,177 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
-   * Prepares a message to be published
+   * Sends a message with configurable delivery behavior
    *
-   * @param content - The content to send
-   * @param contentType - Optional content type of the message content
-   * @returns Promise that resolves with the message ID
-   * @throws {MissingContentTypeError} if content type is required but not provided
+   * @param encodedContent - The encoded content to send
+   * @param sendOptions - Options for sending the message
+   * @param sendOptions.shouldPush - Indicates whether this message should be
+   * included in push notifications
+   * @param sendOptions.optimistic - Indicates whether this message should be
+   * sent optimistically and published later via `publishMessages`
+   * @returns Promise that resolves with the message ID after it has been sent
    */
-  sendOptimistic(content: ContentTypes, contentType?: ContentTypeId) {
-    if (typeof content !== "string" && !contentType) {
+  async send(encodedContent: EncodedContent, sendOptions?: SendMessageOpts) {
+    if (!encodedContent.type) {
       throw new MissingContentTypeError();
     }
-
-    const { encodedContent, sendOptions } =
-      typeof content === "string"
-        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.prepareForSend(content, contentType!);
-
-    return this.#conversation.sendOptimistic(encodedContent, sendOptions);
+    return this.#conversation.send(
+      encodedContent,
+      sendOptions ?? { shouldPush: false },
+    );
   }
 
   /**
-   * Publishes a new message
+   * Sends a text message
    *
-   * @param content - The content to send
-   * @param contentType - Optional content type of the message content
+   * @param text - The text to send
+   * @param optimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
-   * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async send(content: ContentTypes, contentType?: ContentTypeId) {
-    if (typeof content !== "string" && !contentType) {
-      throw new MissingContentTypeError();
-    }
+  async sendText(text: string, optimistic?: boolean) {
+    return this.#conversation.sendText(text, optimistic);
+  }
 
-    const { encodedContent, sendOptions } =
-      typeof content === "string"
-        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.prepareForSend(content, contentType!);
+  /**
+   * Sends a markdown message
+   *
+   * @param markdown - The markdown to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendMarkdown(markdown: string, optimistic?: boolean) {
+    return this.#conversation.sendMarkdown(markdown, optimistic);
+  }
 
-    return this.#conversation.send(encodedContent, sendOptions);
+  /**
+   * Sends a reaction message
+   *
+   * @param reaction - The reaction to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReaction(reaction: Reaction, optimistic?: boolean) {
+    return this.#conversation.sendReaction(reaction, optimistic);
+  }
+
+  /**
+   * Sends a read receipt message
+   *
+   * @param readReceipt - The read receipt to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReadReceipt(optimistic?: boolean) {
+    return this.#conversation.sendReadReceipt(optimistic);
+  }
+
+  /**
+   * Sends a reply message
+   *
+   * @param reply - The reply to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReply(reply: Reply, optimistic?: boolean) {
+    return this.#conversation.sendReply(reply, optimistic);
+  }
+
+  /**
+   * Sends a transaction reference message
+   *
+   * @param transactionReference - The transaction reference to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendTransactionReference(
+    transactionReference: TransactionReference,
+    optimistic?: boolean,
+  ) {
+    return this.#conversation.sendTransactionReference(
+      transactionReference,
+      optimistic,
+    );
+  }
+
+  /**
+   * Sends a wallet send calls message
+   *
+   * @param walletSendCalls - The wallet send calls to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendWalletSendCalls(
+    walletSendCalls: WalletSendCalls,
+    optimistic?: boolean,
+  ) {
+    return this.#conversation.sendWalletSendCalls(walletSendCalls, optimistic);
+  }
+
+  /**
+   * Sends a actions message
+   *
+   * @param actions - The actions to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendActions(actions: Actions, optimistic?: boolean) {
+    return this.#conversation.sendActions(actions, optimistic);
+  }
+
+  /**
+   * Sends a intent message
+   *
+   * @param intent - The intent to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendIntent(intent: Intent, optimistic?: boolean) {
+    return this.#conversation.sendIntent(intent, optimistic);
+  }
+
+  /**
+   * Sends an attachment message
+   *
+   * @param attachment - The attachment to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendAttachment(attachment: Attachment, optimistic?: boolean) {
+    return this.#conversation.sendAttachment(attachment, optimistic);
+  }
+
+  /**
+   * Sends a multi remote attachment message
+   *
+   * @param multiRemoteAttachment - The multi remote attachment to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendMultiRemoteAttachment(
+    multiRemoteAttachment: MultiRemoteAttachment,
+    optimistic?: boolean,
+  ) {
+    return this.#conversation.sendMultiRemoteAttachment(
+      multiRemoteAttachment,
+      optimistic,
+    );
+  }
+
+  /**
+   * Sends a remote attachment message
+   *
+   * @param remoteAttachment - The remote attachment to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendRemoteAttachment(
+    remoteAttachment: RemoteAttachment,
+    optimistic?: boolean,
+  ) {
+    return this.#conversation.sendRemoteAttachment(
+      remoteAttachment,
+      optimistic,
+    );
   }
 
   /**
@@ -197,8 +341,10 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of decoded messages
    */
   async messages(options?: ListMessagesOptions) {
-    const messages = await this.#conversation.findMessages(options);
-    return messages.map((message) => new DecodedMessage(this.#client, message));
+    const messages = await this.#conversation.findEnrichedMessages(options);
+    return messages.map(
+      (message) => new DecodedMessage<ContentTypes>(this.#client, message),
+    );
   }
 
   /**

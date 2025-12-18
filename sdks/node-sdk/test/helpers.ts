@@ -1,8 +1,8 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ContentTypeId,
   type ContentCodec,
+  type ContentTypeId,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
 import {
@@ -130,23 +130,17 @@ export const createRegisteredClient = async <
   });
 };
 
-export const ContentTypeTest = new ContentTypeId({
+export const ContentTypeTest: ContentTypeId = {
   authorityId: "xmtp.org",
   typeId: "test",
   versionMajor: 1,
   versionMinor: 0,
-});
+};
 
-export class TestCodec
-  implements ContentCodec<Record<string, string>, Record<string, never>>
-{
-  get contentType(): ContentTypeId {
-    return ContentTypeTest;
-  }
+export class TestCodec implements ContentCodec {
+  contentType = ContentTypeTest;
 
-  encode(
-    content: Record<string, string>,
-  ): EncodedContent<Record<string, never>> {
+  encode(content: Record<string, string>): EncodedContent {
     return {
       type: this.contentType,
       parameters: {},
@@ -154,9 +148,7 @@ export class TestCodec
     };
   }
 
-  decode(
-    content: EncodedContent<Record<string, never>>,
-  ): Record<string, string> {
+  decode(content: EncodedContent): Record<string, string> {
     const decoded = new TextDecoder().decode(content.content);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(decoded);
