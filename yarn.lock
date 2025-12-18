@@ -4790,14 +4790,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:^2.0.2, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:3.0.0-rc1, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
-    "@xmtp/proto": "npm:^3.78.0"
+    "@xmtp/node-bindings": "npm:1.7.0-rc2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.5"
     rollup-plugin-dts: "npm:^6.2.3"
@@ -4806,6 +4806,15 @@ __metadata:
     vitest: "npm:^4.0.3"
   languageName: unknown
   linkType: soft
+
+"@xmtp/content-type-primitives@npm:^2.0.2":
+  version: 2.0.3
+  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
+  dependencies:
+    "@xmtp/proto": "npm:3.78.0"
+  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
+  languageName: node
+  linkType: hard
 
 "@xmtp/content-type-reaction@npm:^2.0.2, @xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
@@ -4985,9 +4994,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@vitest/coverage-v8": "npm:^4.0.3"
-    "@xmtp/content-type-group-updated": "npm:^2.0.2"
-    "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/content-type-text": "npm:^2.0.2"
+    "@xmtp/content-type-primitives": "npm:3.0.0-rc1"
     "@xmtp/node-bindings": "npm:1.7.0-rc2"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
@@ -5005,7 +5012,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/proto@npm:3.78.0, @xmtp/proto@npm:^3.78.0":
+"@xmtp/proto@npm:3.78.0":
   version: 3.78.0
   resolution: "@xmtp/proto@npm:3.78.0"
   dependencies:
