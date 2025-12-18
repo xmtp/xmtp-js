@@ -76,6 +76,15 @@ export function createRemoteAttachment(
   };
 }
 
+/**
+ * Creates a remote attachment from a file by encrypting it and uploading it to a remote storage.
+ * This is a convenience function that combines file processing, encryption, uploading, and
+ * remote attachment creation into a single operation.
+ *
+ * @param unencryptedFile - The unencrypted file to process and upload
+ * @param uploadCallback - A callback function that receives the encrypted attachment and returns the URL where it was uploaded
+ * @returns A promise that resolves with a remote attachment containing all necessary metadata for retrieval and decryption
+ */
 export async function createRemoteAttachmentFromFile(
   unencryptedFile: File,
   uploadCallback: AttachmentUploadCallback,
