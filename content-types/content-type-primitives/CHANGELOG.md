@@ -1,5 +1,22 @@
 # @xmtp/content-type-primitives
 
+## 3.0.0-rc1
+
+This release introduces breaking changes and new features. If you've been building on a previous release, this one may require an update to your existing code.
+
+**BREAKING CHANGES**
+
+- Updated `ContentTypeId` export
+- Updated `EncodedContent` export
+- Updated `ContentCodec` export
+- Removed `CodecMap` and `CodecRegistry` exports
+
+### New features
+
+- Added `contentTypesAreEqual` to replace `ContentTypeId.sameAs`
+- Added `contentTypeToString` to replace `ContentTypeId.toString`
+- Added `contentTypeFromString` to replace `ContentTypeId.fromString`
+
 ## 2.0.2
 
 ### Patch Changes
