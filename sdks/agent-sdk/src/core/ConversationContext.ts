@@ -53,7 +53,7 @@ export class ConversationContext<
     unencryptedFile: File,
     uploadCallback: AttachmentUploadCallback,
   ): Promise<void> {
-    const remoteAttachment = createRemoteAttachmentFromFile(
+    const remoteAttachment = await createRemoteAttachmentFromFile(
       unencryptedFile,
       uploadCallback,
     );

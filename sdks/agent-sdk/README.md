@@ -411,7 +411,7 @@ agent.on("text", async (ctx) => {
           type: mimeType,
         },
       );
-      const encryptedFile = new File([encryptedBlob], attachment.fileName, {
+      const encryptedFile = new File([encryptedBlob], attachment.filename, {
         type: mimeType,
       });
       const upload = await pinata.upload.public.file(encryptedFile);
