@@ -454,4 +454,14 @@ export class Conversation<ContentTypes = unknown> {
   async debugInfo() {
     return this.#conversation.debugInfo();
   }
+
+  /**
+   * Retrieves the last read times for this conversation
+   *
+   * @returns A map keyed by inbox ID with the last read timestamp
+   * (nanoseconds since epoch)
+   */
+  async lastReadTimes() {
+    return this.#conversation.getLastReadTimes();
+  }
 }
