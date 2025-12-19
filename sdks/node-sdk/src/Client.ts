@@ -13,29 +13,17 @@ import {
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
-  type Actions,
-  type Attachment,
-  type GroupUpdated,
   type Identifier,
-  type Intent,
-  type LeaveRequest,
   type Message,
-  type MultiRemoteAttachment,
   type Client as NodeClient,
-  type Reaction,
-  type ReadReceipt,
-  type RemoteAttachment,
-  type Reply,
   type SendMessageOpts,
   type SignatureRequestHandle,
-  type TransactionReference,
-  type WalletSendCalls,
 } from "@xmtp/node-bindings";
 import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
-import type { ClientOptions, XmtpEnv } from "@/types";
+import type { ClientOptions, ExtractCodecContentTypes, XmtpEnv } from "@/types";
 import { createClient } from "@/utils/createClient";
 import {
   AccountAlreadyAssociatedError,
@@ -47,28 +35,6 @@ import {
 } from "@/utils/errors";
 import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
-
-export type BuiltInContentTypes =
-  | string // text, markdown
-  | LeaveRequest
-  | Reaction
-  | ReadReceipt
-  | Attachment
-  | RemoteAttachment
-  | Reply
-  | TransactionReference
-  | WalletSendCalls
-  | Actions
-  | Intent
-  | MultiRemoteAttachment
-  | GroupUpdated;
-
-export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
-  C extends readonly []
-    ? BuiltInContentTypes
-    : [...C][number] extends ContentCodec<infer T>
-      ? T | BuiltInContentTypes
-      : BuiltInContentTypes;
 
 /**
  * Client for interacting with the XMTP network

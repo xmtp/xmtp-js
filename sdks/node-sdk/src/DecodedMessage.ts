@@ -3,6 +3,9 @@ import {
   DeliveryStatus,
   GroupMessageKind,
   type ContentTypeId,
+  type DecodedMessageContent,
+  type EnrichedReply,
+  type Reaction,
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
@@ -10,6 +13,59 @@ import { nsToDate } from "@/utils/date";
 
 export type MessageKind = "application" | "membership_change";
 export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
+
+const getContentFromDecodedMessageContent = <T = unknown>(
+  content: DecodedMessageContent,
+): T => {
+  switch (content.type) {
+    case DecodedMessageContentType.Text: {
+      return content.text as T;
+    }
+    case DecodedMessageContentType.Markdown: {
+      return content.markdown as T;
+    }
+    case DecodedMessageContentType.Reply: {
+      return content.reply as T;
+    }
+    case DecodedMessageContentType.Reaction: {
+      return content.reaction as T;
+    }
+    case DecodedMessageContentType.Attachment: {
+      return content.attachment as T;
+    }
+    case DecodedMessageContentType.RemoteAttachment: {
+      return content.remoteAttachment as T;
+    }
+    case DecodedMessageContentType.MultiRemoteAttachment: {
+      return content.multiRemoteAttachment as T;
+    }
+    case DecodedMessageContentType.TransactionReference: {
+      return content.transactionReference as T;
+    }
+    case DecodedMessageContentType.GroupUpdated: {
+      return content.groupUpdated as T;
+    }
+    case DecodedMessageContentType.ReadReceipt: {
+      return content.readReceipt as T;
+    }
+    case DecodedMessageContentType.LeaveRequest: {
+      return content.leaveRequest as T;
+    }
+    case DecodedMessageContentType.WalletSendCalls: {
+      return content.walletSendCalls as T;
+    }
+    case DecodedMessageContentType.Actions: {
+      return content.actions as T;
+    }
+    case DecodedMessageContentType.Intent: {
+      return content.intent as T;
+    }
+    case DecodedMessageContentType.Custom: {
+      return content.custom as T;
+    }
+  }
+  return null as T;
+};
 
 /**
  * Represents a decoded XMTP message
@@ -19,9 +75,13 @@ export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
  * @property {ContentTypeId} contentType - The content type of the message content
  * @property {string} conversationId - Unique identifier for the conversation
  * @property {MessageDeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
+ * @property {number} expiresAtNs - Timestamp when the message will expire (in nanoseconds)
+ * @property {Date} expiresAt - Timestamp when the message will expire
  * @property {string} [fallback] - Optional fallback text for the message
  * @property {string} id - Unique identifier for the message
  * @property {MessageKind} kind - Type of message ("application" | "membership_change")
+ * @property {number} numReplies - Number of replies to the message
+ * @property {DecodedMessage<Reaction>[]} reactions - Reactions to the message
  * @property {string} senderInboxId - Identifier for the sender's inbox
  * @property {Date} sentAt - Timestamp when the message was sent
  * @property {number} sentAtNs - Timestamp when the message was sent (in nanoseconds)
@@ -32,9 +92,13 @@ export class DecodedMessage<ContentTypes = unknown> {
   contentType: ContentTypeId;
   conversationId: string;
   deliveryStatus: MessageDeliveryStatus;
+  expiresAtNs?: number;
+  expiresAt?: Date;
   fallback?: string;
   id: string;
   kind: MessageKind;
+  numReplies: number;
+  reactions: DecodedMessage<Reaction>[];
   senderInboxId: string;
   sentAt: Date;
   sentAtNs: number;
@@ -42,12 +106,16 @@ export class DecodedMessage<ContentTypes = unknown> {
   constructor(client: Client<ContentTypes>, message: XmtpDecodedMessage) {
     this.#client = client;
     this.id = message.id;
+    this.expiresAtNs = message.expiresAtNs;
+    this.expiresAt = message.expiresAtNs
+      ? nsToDate(message.expiresAtNs)
+      : undefined;
     this.sentAtNs = message.sentAtNs;
     this.sentAt = nsToDate(message.sentAtNs);
     this.conversationId = message.conversationId;
     this.senderInboxId = message.senderInboxId;
     this.contentType = message.contentType;
-    this.fallback = message.fallback;
+    this.fallback = message.fallback ?? undefined;
 
     switch (message.kind) {
       case GroupMessageKind.Application:
@@ -72,51 +140,31 @@ export class DecodedMessage<ContentTypes = unknown> {
       // no default
     }
 
-    this.content = undefined;
+    this.numReplies = message.numReplies;
+    this.reactions = message.reactions.map(
+      (reaction) =>
+        new DecodedMessage<Reaction>(
+          this.#client as Client<Reaction>,
+          reaction,
+        ),
+    );
+
+    this.content =
+      getContentFromDecodedMessageContent<ContentTypes>(message.content) ??
+      undefined;
 
     switch (message.content.type) {
-      case DecodedMessageContentType.Text: {
-        this.content = message.content.text as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.Markdown: {
-        this.content = message.content.markdown as ContentTypes;
-        break;
-      }
       case DecodedMessageContentType.Reply: {
-        this.content = message.content.reply as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.Reaction: {
-        this.content = message.content.reaction as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.Attachment: {
-        this.content = message.content.attachment as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.RemoteAttachment: {
-        this.content = message.content.remoteAttachment as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.MultiRemoteAttachment: {
-        this.content = message.content.multiRemoteAttachment as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.TransactionReference: {
-        this.content = message.content.transactionReference as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.GroupUpdated: {
-        this.content = message.content.groupUpdated as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.ReadReceipt: {
-        this.content = message.content.readReceipt as ContentTypes;
-        break;
-      }
-      case DecodedMessageContentType.LeaveRequest: {
-        this.content = message.content.leaveRequest as ContentTypes;
+        const reply = message.content.reply as EnrichedReply;
+        this.content = {
+          referenceId: reply.referenceId,
+          content: getContentFromDecodedMessageContent<ContentTypes>(
+            reply.content,
+          ),
+          inReplyTo: reply.inReplyTo
+            ? new DecodedMessage<ContentTypes>(this.#client, reply.inReplyTo)
+            : null,
+        } as ContentTypes;
         break;
       }
       case DecodedMessageContentType.Custom: {
