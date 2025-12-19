@@ -1,6 +1,21 @@
 import type { ContentCodec } from "@xmtp/content-type-primitives";
-import type { LogLevel } from "@xmtp/node-bindings";
+import {
+  type Actions,
+  type Attachment,
+  type EnrichedReply,
+  type GroupUpdated,
+  type Intent,
+  type LeaveRequest,
+  type LogLevel,
+  type MultiRemoteAttachment,
+  type Reaction,
+  type ReadReceipt,
+  type RemoteAttachment,
+  type TransactionReference,
+  type WalletSendCalls,
+} from "@xmtp/node-bindings";
 import type { ApiUrls } from "@/constants";
+import type { DecodedMessage } from "@/DecodedMessage";
 import type { HexString } from "./utils/validation";
 
 /**
@@ -113,3 +128,30 @@ export type ClientOptions = NetworkOptions &
   StorageOptions &
   ContentOptions &
   OtherOptions;
+
+export type Reply<T = unknown> = {
+  referenceId: EnrichedReply["referenceId"];
+  content: T;
+  inReplyTo: DecodedMessage<T> | null;
+};
+
+export type BuiltInContentTypes =
+  | string // text, markdown
+  | LeaveRequest
+  | Reaction
+  | ReadReceipt
+  | Attachment
+  | RemoteAttachment
+  | TransactionReference
+  | WalletSendCalls
+  | Actions
+  | Intent
+  | MultiRemoteAttachment
+  | GroupUpdated;
+
+export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
+  C extends readonly []
+    ? BuiltInContentTypes
+    : [...C][number] extends ContentCodec<infer T>
+      ? T | BuiltInContentTypes | Reply<T | BuiltInContentTypes>
+      : BuiltInContentTypes;
