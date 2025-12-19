@@ -1,14 +1,9 @@
 import { describe, expect, it } from "vitest";
-import {
-  createRegisteredClient,
-  createSigner,
-  createUser,
-} from "@test/helpers";
+import { createRegisteredClient, createSigner } from "@test/helpers";
 
 describe("DebugInformation", () => {
   it("should return network API statistics", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
 
     const apiStats = client.debugInformation.apiStatistics();
