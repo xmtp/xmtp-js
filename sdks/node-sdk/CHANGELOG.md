@@ -29,6 +29,7 @@ This release introduces breaking changes and new features. If you've been buildi
 - Added `Conversation.sendAttachment` for sending attachments
 - Added `Conversation.sendRemoteAttachment` for sending remote attachments
 - Added `Conversation.sendMultiRemoteAttachment` for sending multi remote attachments
+- Added `Conversation.lastReadTimes`
 
 ## 4.6.0
 
