@@ -2,6 +2,7 @@ import { Badge, Button, Group, Stack, Text, TextInput } from "@mantine/core";
 import { useCallback, useEffect, useState } from "react";
 import { Member } from "@/components/Conversation/Member";
 import type { Member as MemberCardMember } from "@/components/Conversation/MemberCard";
+import { normalizeName } from "@/helpers/names";
 import { useMemberId } from "@/hooks/useMemberId";
 import type { MemberProfile } from "@/hooks/useMemberProfiles";
 
@@ -96,7 +97,7 @@ export const AddMembers: React.FC<AddMembersProps> = ({
           error={memberIdError || error}
           value={memberId}
           onChange={(event) => {
-            setMemberId(event.target.value.replace(/\s/g, ""));
+            setMemberId(normalizeName(event.target.value));
           }}
           onKeyDown={(event) => {
             if (event.key === " ") {

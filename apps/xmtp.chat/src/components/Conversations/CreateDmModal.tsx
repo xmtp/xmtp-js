@@ -2,6 +2,7 @@ import { Box, Button, Group, TextInput } from "@mantine/core";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Modal } from "@/components/Modal";
+import { normalizeName } from "@/helpers/names";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversations } from "@/hooks/useConversations";
 import { useMemberId } from "@/hooks/useMemberId";
@@ -86,7 +87,7 @@ export const CreateDmModal: React.FC = () => {
             error={memberIdError}
             value={memberId}
             onChange={(event) => {
-              setMemberId(event.target.value.replace(/\s/g, ""));
+              setMemberId(normalizeName(event.target.value));
             }}
             onKeyDown={(event) => {
               if (event.key === " ") {
