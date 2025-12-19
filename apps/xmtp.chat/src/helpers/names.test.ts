@@ -72,4 +72,9 @@ describe("normalizeName", () => {
     expect(normalizeName("my-name.eth")).toBe("my-name.eth");
     expect(normalizeName("TeSt.BaSE.ETh")).toBe("test.base.eth");
   });
+
+  it("removes all whitespace from names", () => {
+    expect(normalizeName("my name.eth")).toBe("myname.eth");
+    expect(normalizeName("The General Store.eth")).toBe("thegeneralstore.eth");
+  });
 });
