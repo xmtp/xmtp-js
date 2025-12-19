@@ -9,7 +9,7 @@ export const isValidName = (name: string): name is string =>
   /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/i.test(name);
 
 export const normalizeName = (name: string) => {
-  return name.toLowerCase().trim();
+  return name.toLowerCase().replace(/\s/g, "");
 };
 
 export const resolveNameQuery = async (name: string) => {
