@@ -42,9 +42,10 @@ export const createIdentifier = (user: User): Identifier => ({
   identifierKind: IdentifierKind.Ethereum,
 });
 
-export const createSigner = (user: User): Signer => {
+export const createSigner = () => {
+  const user = createUser();
   const identifier = createIdentifier(user);
-  return {
+  const signer: Signer = {
     type: "EOA",
     getIdentifier: () => identifier,
     signMessage: async (message: string) => {
@@ -53,6 +54,12 @@ export const createSigner = (user: User): Signer => {
       });
       return toBytes(signature);
     },
+  };
+  return {
+    address: user.account.address.toLowerCase(),
+    identifier,
+    signer,
+    user,
   };
 };
 

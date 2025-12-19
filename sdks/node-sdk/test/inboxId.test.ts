@@ -1,15 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
-import {
-  createRegisteredClient,
-  createSigner,
-  createUser,
-} from "@test/helpers";
+import { createRegisteredClient, createSigner } from "@test/helpers";
 
 describe("generateInboxId", () => {
   it("should generate an inbox id", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const inboxId = generateInboxId(await signer.getIdentifier());
     expect(inboxId).toBeDefined();
 
@@ -23,8 +18,7 @@ describe("generateInboxId", () => {
 
 describe("getInboxIdForAddress", () => {
   it("should return `null` inbox ID for unregistered address", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const inboxId = await getInboxIdForIdentifier(
       await signer.getIdentifier(),
       "local",
@@ -33,8 +27,7 @@ describe("getInboxIdForAddress", () => {
   });
 
   it("should return inbox ID for registered address", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const inboxId = await getInboxIdForIdentifier(
       await signer.getIdentifier(),
