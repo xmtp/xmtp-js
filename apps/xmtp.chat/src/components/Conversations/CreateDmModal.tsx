@@ -86,7 +86,7 @@ export const CreateDmModal: React.FC = () => {
             error={memberIdError}
             value={memberId}
             onChange={(event) => {
-              setMemberId(event.target.value);
+              setMemberId(event.target.value.replace(/\s/g, ""));
             }}
             onKeyDown={(event) => {
               if (event.key === " ") {
