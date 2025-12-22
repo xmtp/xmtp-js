@@ -16,7 +16,6 @@ import type {
 } from "@/types/actions";
 import type { UtilsWorkerAction } from "@/types/actions/utils";
 import type { XmtpEnv } from "@/types/options";
-import { toSafeInboxState } from "@/utils/conversions";
 
 const signatureRequests = new Map<string, SignatureRequestHandle>();
 
@@ -67,7 +66,7 @@ self.onmessage = async (
         break;
       }
       case "utils.generateInboxId": {
-        const result = generateInboxId(data.identifier);
+        const result = generateInboxId(data.identifier, data.nonce);
         postMessage({
           id,
           action,
@@ -134,13 +133,10 @@ self.onmessage = async (
       case "utils.inboxStateFromInboxIds": {
         const host = ApiUrls[data.env ?? "dev"];
         try {
-          const inboxStates = await inboxStateFromInboxIds(
+          const result = await inboxStateFromInboxIds(
             host,
             data.gatewayHost ?? null,
             data.inboxIds,
-          );
-          const result = inboxStates.map((inboxState) =>
-            toSafeInboxState(inboxState),
           );
           postMessage({ id, action, result });
         } catch (e) {

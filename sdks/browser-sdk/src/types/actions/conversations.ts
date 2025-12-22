@@ -1,16 +1,13 @@
 import type {
   ConsentState,
   ConversationType,
+  CreateDMOptions,
+  CreateGroupOptions,
+  DecodedMessage,
   Identifier,
+  ListConversationsOptions,
 } from "@xmtp/wasm-bindings";
-import type {
-  SafeConversation,
-  SafeCreateDmOptions,
-  SafeCreateGroupOptions,
-  SafeHmacKeys,
-  SafeListConversationsOptions,
-  SafeMessage,
-} from "@/utils/conversions";
+import type { HmacKeys, SafeConversation } from "@/utils/conversions";
 
 export type ConversationsAction =
   | {
@@ -24,7 +21,7 @@ export type ConversationsAction =
   | {
       action: "conversations.getMessageById";
       id: string;
-      result: SafeMessage | undefined;
+      result: DecodedMessage | undefined;
       data: {
         id: string;
       };
@@ -42,7 +39,7 @@ export type ConversationsAction =
       id: string;
       result: SafeConversation[];
       data: {
-        options?: SafeListConversationsOptions;
+        options?: ListConversationsOptions;
       };
     }
   | {
@@ -50,7 +47,7 @@ export type ConversationsAction =
       id: string;
       result: SafeConversation[];
       data: {
-        options?: Omit<SafeListConversationsOptions, "conversation_type">;
+        options?: Omit<ListConversationsOptions, "conversationType">;
       };
     }
   | {
@@ -58,7 +55,7 @@ export type ConversationsAction =
       id: string;
       result: SafeConversation[];
       data: {
-        options?: Omit<SafeListConversationsOptions, "conversation_type">;
+        options?: Omit<ListConversationsOptions, "conversationType">;
       };
     }
   | {
@@ -66,7 +63,7 @@ export type ConversationsAction =
       id: string;
       result: SafeConversation;
       data: {
-        options?: SafeCreateGroupOptions;
+        options?: CreateGroupOptions;
       };
     }
   | {
@@ -75,7 +72,7 @@ export type ConversationsAction =
       result: SafeConversation;
       data: {
         identifiers: Identifier[];
-        options?: SafeCreateGroupOptions;
+        options?: CreateGroupOptions;
       };
     }
   | {
@@ -84,7 +81,7 @@ export type ConversationsAction =
       result: SafeConversation;
       data: {
         inboxIds: string[];
-        options?: SafeCreateGroupOptions;
+        options?: CreateGroupOptions;
       };
     }
   | {
@@ -93,7 +90,7 @@ export type ConversationsAction =
       result: SafeConversation;
       data: {
         identifier: Identifier;
-        options?: SafeCreateDmOptions;
+        options?: CreateDMOptions;
       };
     }
   | {
@@ -102,7 +99,7 @@ export type ConversationsAction =
       result: SafeConversation;
       data: {
         inboxId: string;
-        options?: SafeCreateDmOptions;
+        options?: CreateDMOptions;
       };
     }
   | {
@@ -122,7 +119,7 @@ export type ConversationsAction =
   | {
       action: "conversations.getHmacKeys";
       id: string;
-      result: SafeHmacKeys;
+      result: HmacKeys;
       data: undefined;
     }
   | {

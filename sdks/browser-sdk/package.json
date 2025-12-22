@@ -60,10 +60,8 @@
     ]
   },
   "dependencies": {
-    "@xmtp/content-type-group-updated": "^2.0.2",
-    "@xmtp/content-type-primitives": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/wasm-bindings": "1.6.8",
+    "@xmtp/content-type-primitives": "^3.0.0-rc1",
+    "@xmtp/wasm-bindings": "1.7.0-rc3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

@@ -39,10 +39,4 @@ export class DebugInformation<ContentTypes = unknown> {
       undefined,
     );
   }
-
-  uploadDebugArchive(serverUrl?: string) {
-    return this.#client.sendMessage("debugInformation.uploadDebugArchive", {
-      serverUrl,
-    });
-  }
 }

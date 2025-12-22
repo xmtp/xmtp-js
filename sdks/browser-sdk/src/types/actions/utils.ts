@@ -1,6 +1,5 @@
-import type { Identifier } from "@xmtp/wasm-bindings";
+import type { Identifier, InboxState } from "@xmtp/wasm-bindings";
 import type { XmtpEnv } from "@/types/options";
-import type { SafeInboxState } from "@/utils/conversions";
 import type { SafeSigner } from "@/utils/signer";
 
 export type UtilsWorkerAction =
@@ -18,6 +17,7 @@ export type UtilsWorkerAction =
       result: string;
       data: {
         identifier: Identifier;
+        nonce?: bigint;
       };
     }
   | {
@@ -60,7 +60,7 @@ export type UtilsWorkerAction =
   | {
       action: "utils.inboxStateFromInboxIds";
       id: string;
-      result: SafeInboxState[];
+      result: InboxState[];
       data: {
         inboxIds: string[];
         env?: XmtpEnv;

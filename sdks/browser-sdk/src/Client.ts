@@ -1,25 +1,26 @@
 import {
-  ContentTypeGroupUpdated,
-  GroupUpdatedCodec,
-} from "@xmtp/content-type-group-updated";
-import type {
-  ContentCodec,
-  ContentTypeId,
+  contentTypesAreEqual,
+  contentTypeToString,
+  type ContentCodec,
+  type EncodedContent as PrimitivesEncodedContent,
 } from "@xmtp/content-type-primitives";
-import { TextCodec } from "@xmtp/content-type-text";
-import { GroupMessageKind, type Identifier } from "@xmtp/wasm-bindings";
+import {
+  groupUpdatedContentType,
+  type ContentTypeId,
+  type Identifier,
+  type Message,
+} from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
-import type { ClientOptions, XmtpEnv } from "@/types/options";
+import type {
+  ClientOptions,
+  ExtractCodecContentTypes,
+  XmtpEnv,
+} from "@/types/options";
 import { Utils } from "@/Utils";
-import {
-  fromSafeEncodedContent,
-  toSafeEncodedContent,
-  type SafeMessage,
-} from "@/utils/conversions";
 import {
   AccountAlreadyAssociatedError,
   CodecNotFoundError,
@@ -29,25 +30,22 @@ import {
 } from "@/utils/errors";
 import { toSafeSigner, type SafeSigner, type Signer } from "@/utils/signer";
 
-export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
-  [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
-    ? T
-    : never;
-
 /**
  * Client for interacting with the XMTP network
  */
 export class Client<
   ContentTypes = ExtractCodecContentTypes,
 > extends ClientWorkerClass {
+  #appVersion?: string;
   #codecs: Map<string, ContentCodec>;
   #conversations: Conversations<ContentTypes>;
   #debugInformation: DebugInformation<ContentTypes>;
   #identifier?: Identifier;
-  #inboxId: string | undefined;
-  #installationId: string | undefined;
-  #installationIdBytes: Uint8Array | undefined;
+  #inboxId?: string;
+  #installationId?: string;
+  #installationIdBytes?: Uint8Array;
   #isReady = false;
+  #libxmtpVersion?: string;
   #preferences: Preferences<ContentTypes>;
   #signer?: Signer;
   #options?: ClientOptions;
@@ -72,13 +70,9 @@ export class Client<
     this.#conversations = new Conversations(this);
     this.#debugInformation = new DebugInformation(this);
     this.#preferences = new Preferences(this);
-    const codecs = [
-      new GroupUpdatedCodec(),
-      new TextCodec(),
-      ...(options?.codecs ?? []),
-    ];
+    const codecs = [...(options?.codecs ?? [])];
     this.#codecs = new Map(
-      codecs.map((codec) => [codec.contentType.toString(), codec]),
+      codecs.map((codec) => [contentTypeToString(codec.contentType), codec]),
     );
   }
 
@@ -95,10 +89,12 @@ export class Client<
       identifier,
       options: this.#options,
     });
+    this.#appVersion = result.appVersion;
     this.#identifier = identifier;
     this.#inboxId = result.inboxId;
     this.#installationId = result.installationId;
     this.#installationIdBytes = result.installationIdBytes;
+    this.#libxmtpVersion = result.libxmtpVersion;
     this.#isReady = true;
   }
 
@@ -224,15 +220,15 @@ export class Client<
   /**
    * Gets the version of libxmtp used in the bindings
    */
-  async libxmtpVersion() {
-    return this.sendMessage("client.libxmtpVersion", undefined);
+  get libxmtpVersion() {
+    return this.#libxmtpVersion;
   }
 
   /**
    * Gets the app version used by the client
    */
-  async appVersion() {
-    return this.sendMessage("client.appVersion", undefined);
+  get appVersion() {
+    return this.#appVersion;
   }
 
   /**
@@ -676,7 +672,7 @@ export class Client<
    * @returns The codec, if found
    */
   codecFor<ContentType = unknown>(contentType: ContentTypeId) {
-    return this.#codecs.get(contentType.toString()) as
+    return this.#codecs.get(contentTypeToString(contentType)) as
       | ContentCodec<ContentType>
       | undefined;
   }
@@ -726,12 +722,12 @@ export class Client<
    * @returns The encoded content with optional fallback
    */
   #encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
-    const encoded = codec.encode(content, this);
+    const encoded = codec.encode(content);
     const fallback = codec.fallback(content);
     if (fallback) {
       encoded.fallback = fallback;
     }
-    return toSafeEncodedContent(encoded);
+    return encoded;
   }
 
   /**
@@ -758,7 +754,7 @@ export class Client<
    * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
    */
   decodeContent<ContentType = unknown>(
-    message: SafeMessage,
+    message: Message,
     contentType: ContentTypeId,
   ) {
     const codec = this.codecFor<ContentType>(contentType);
@@ -768,15 +764,13 @@ export class Client<
 
     // throw an error if there's an invalid group membership change message
     if (
-      contentType.sameAs(ContentTypeGroupUpdated) &&
-      message.kind !== GroupMessageKind.MembershipChange
+      contentTypesAreEqual(contentType, groupUpdatedContentType()) &&
+      message.kind !== "membershipchange"
     ) {
       throw new InvalidGroupMembershipChangeError(message.id);
     }
 
-    const encodedContent = fromSafeEncodedContent(message.content);
-
-    return codec.decode(encodedContent, this);
+    return codec.decode(message.content as PrimitivesEncodedContent);
   }
 
   /**

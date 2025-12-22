@@ -1,25 +1,31 @@
-import {
-  GroupMembershipState,
+import type {
+  Actions,
+  Attachment,
+  ConsentState,
+  Conversation,
+  ConversationDebugInfo,
+  DecodedMessage,
+  EncodedContent,
+  GroupMember,
+  HmacKey,
+  Identifier,
+  Intent,
+  ListMessagesOptions,
+  Message,
   MessageDisappearingSettings,
+  MetadataField,
+  MultiRemoteAttachment,
+  PermissionPolicy,
+  PermissionUpdateType,
+  Reaction,
+  RemoteAttachment,
+  Reply,
+  SendMessageOpts,
   SortDirection,
-  type ConsentState,
-  type Conversation,
-  type ConversationDebugInfo,
-  type EncodedContent,
-  type GroupMember,
-  type HmacKey,
-  type Identifier,
-  type Message,
-  type MetadataField,
-  type PermissionPolicy,
-  type PermissionUpdateType,
-  type SendMessageOpts,
+  TransactionReference,
+  WalletSendCalls,
 } from "@xmtp/wasm-bindings";
-import {
-  fromSafeListMessagesOptions,
-  toSafeGroupMember,
-  type SafeListMessagesOptions,
-} from "@/utils/conversions";
+import type { LastReadTimes } from "@/utils/conversions";
 import type { StreamCallback } from "@/utils/streams";
 import type { WorkerClient } from "@/WorkerClient";
 
@@ -95,10 +101,10 @@ export class WorkerConversation {
     return this.#group.createdAtNs();
   }
 
-  async lastMessage() {
+  async lastMessage(): Promise<DecodedMessage | undefined> {
     const messages = await this.messages({
       limit: 1n,
-      direction: SortDirection.Descending,
+      direction: "descending" as SortDirection,
     });
     if (messages.length > 0) {
       return messages[0];
@@ -109,14 +115,14 @@ export class WorkerConversation {
   async metadata() {
     const metadata = await this.#group.groupMetadata();
     return {
-      creatorInboxId: metadata.creatorInboxId(),
-      conversationType: metadata.conversationType(),
+      creatorInboxId: metadata.creatorInboxId,
+      conversationType: metadata.conversationType,
     };
   }
 
   async members() {
     const members = (await this.#group.listMembers()) as GroupMember[];
-    return members.map((member) => toSafeGroupMember(member));
+    return members;
   }
 
   get admins() {
@@ -130,8 +136,8 @@ export class WorkerConversation {
   get permissions() {
     const permissions = this.#group.groupPermissions();
     return {
-      policyType: permissions.policyType(),
-      policySet: permissions.policySet(),
+      policyType: permissions.policyType,
+      policySet: permissions.policySet,
     };
   }
 
@@ -195,26 +201,82 @@ export class WorkerConversation {
     return this.#group.publishMessages();
   }
 
-  sendOptimistic(encodedContent: EncodedContent, opts: SendMessageOpts) {
-    // Pass through to underlying implementation - it will handle undefined opts
-    return this.#group.sendOptimistic(encodedContent, opts);
+  async send(encodedContent: EncodedContent, opts?: SendMessageOpts) {
+    return this.#group.send(encodedContent, opts ?? { shouldPush: true });
   }
 
-  async send(encodedContent: EncodedContent, opts: SendMessageOpts) {
-    // Pass through to underlying implementation - it will handle undefined opts
-    return this.#group.send(encodedContent, opts);
+  async sendText(text: string, optimistic?: boolean) {
+    return this.#group.sendText(text, optimistic);
   }
 
-  async messages(options?: SafeListMessagesOptions) {
-    return this.#group.findMessages(
-      options ? fromSafeListMessagesOptions(options) : undefined,
+  async sendMarkdown(markdown: string, optimistic?: boolean) {
+    return this.#group.sendMarkdown(markdown, optimistic);
+  }
+
+  async sendReaction(reaction: Reaction, optimistic?: boolean) {
+    return this.#group.sendReaction(reaction, optimistic);
+  }
+
+  async sendReadReceipt(optimistic?: boolean) {
+    return this.#group.sendReadReceipt(optimistic);
+  }
+
+  async sendReply(reply: Reply, optimistic?: boolean) {
+    return this.#group.sendReply(reply, optimistic);
+  }
+
+  async sendTransactionReference(
+    transactionReference: TransactionReference,
+    optimistic?: boolean,
+  ) {
+    return this.#group.sendTransactionReference(
+      transactionReference,
+      optimistic,
     );
   }
 
-  async countMessages(options?: SafeListMessagesOptions) {
-    return this.#group.countMessages(
-      options ? fromSafeListMessagesOptions(options) : undefined,
+  async sendWalletSendCalls(
+    walletSendCalls: WalletSendCalls,
+    optimistic?: boolean,
+  ) {
+    return this.#group.sendWalletSendCalls(walletSendCalls, optimistic);
+  }
+
+  async sendActions(actions: Actions, optimistic?: boolean) {
+    return this.#group.sendActions(actions, optimistic);
+  }
+
+  async sendIntent(intent: Intent, optimistic?: boolean) {
+    return this.#group.sendIntent(intent, optimistic);
+  }
+
+  async sendAttachment(attachment: Attachment, optimistic?: boolean) {
+    return this.#group.sendAttachment(attachment, optimistic);
+  }
+
+  async sendMultiRemoteAttachment(
+    multiRemoteAttachment: MultiRemoteAttachment,
+    optimistic?: boolean,
+  ) {
+    return this.#group.sendMultiRemoteAttachment(
+      multiRemoteAttachment,
+      optimistic,
     );
+  }
+
+  async sendRemoteAttachment(
+    remoteAttachment: RemoteAttachment,
+    optimistic?: boolean,
+  ) {
+    return this.#group.sendRemoteAttachment(remoteAttachment, optimistic);
+  }
+
+  async messages(options?: ListMessagesOptions): Promise<DecodedMessage[]> {
+    return this.#group.findEnrichedMessages(options);
+  }
+
+  async countMessages(options?: ListMessagesOptions) {
+    return this.#group.countMessages(options);
   }
 
   get consentState() {
@@ -234,7 +296,7 @@ export class WorkerConversation {
   }
 
   async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
-    const settings = new MessageDisappearingSettings(fromNs, inNs);
+    const settings: MessageDisappearingSettings = { fromNs, inNs };
     return this.#group.updateMessageDisappearingSettings(settings);
   }
 
@@ -281,6 +343,10 @@ export class WorkerConversation {
   }
 
   get isPendingRemoval() {
-    return this.#group.membershipState() === GroupMembershipState.PendingRemove;
+    return this.#group.membershipState() === "pendingRemove";
+  }
+
+  async lastReadTimes() {
+    return this.#group.getLastReadTimes() as Promise<LastReadTimes>;
   }
 }

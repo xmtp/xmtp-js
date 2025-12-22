@@ -1,4 +1,5 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
+import { contentTypeToString } from "@xmtp/content-type-primitives";
+import type { ContentTypeId } from "@xmtp/wasm-bindings";
 
 export class ClientNotInitializedError extends Error {
   constructor() {
@@ -18,7 +19,9 @@ export class SignerUnavailableError extends Error {
 
 export class CodecNotFoundError extends Error {
   constructor(contentType: ContentTypeId) {
-    super(`Codec not found for "${contentType.toString()}" content type`);
+    super(
+      `Codec not found for "${contentTypeToString(contentType)}" content type`,
+    );
   }
 }
 

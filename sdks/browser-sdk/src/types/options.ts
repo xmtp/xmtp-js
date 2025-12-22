@@ -1,5 +1,20 @@
 import type { ContentCodec } from "@xmtp/content-type-primitives";
+import type {
+  Actions,
+  Attachment,
+  EnrichedReply,
+  GroupUpdated,
+  Intent,
+  LeaveRequest,
+  MultiRemoteAttachment,
+  Reaction,
+  ReadReceipt,
+  RemoteAttachment,
+  TransactionReference,
+  WalletSendCalls,
+} from "@xmtp/wasm-bindings";
 import type { ApiUrls } from "@/constants";
+import type { DecodedMessage } from "@/DecodedMessage";
 
 export type XmtpEnv = keyof typeof ApiUrls;
 
@@ -87,14 +102,36 @@ export type OtherOptions = {
    * Custom app version
    */
   appVersion?: string;
-  /**
-   * Should debug events be tracked
-   * (default: false)
-   */
-  debugEventsEnabled?: boolean;
 };
 
 export type ClientOptions = NetworkOptions &
   ContentOptions &
   StorageOptions &
   OtherOptions;
+
+export type Reply<T = unknown> = {
+  referenceId: EnrichedReply["referenceId"];
+  content: T;
+  inReplyTo: DecodedMessage<T> | null;
+};
+
+export type BuiltInContentTypes =
+  | string // text, markdown
+  | LeaveRequest
+  | Reaction
+  | ReadReceipt
+  | Attachment
+  | RemoteAttachment
+  | TransactionReference
+  | WalletSendCalls
+  | Actions
+  | Intent
+  | MultiRemoteAttachment
+  | GroupUpdated;
+
+export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
+  C extends readonly []
+    ? BuiltInContentTypes
+    : [...C][number] extends ContentCodec<infer T>
+      ? T | BuiltInContentTypes | Reply<T | BuiltInContentTypes>
+      : BuiltInContentTypes;
