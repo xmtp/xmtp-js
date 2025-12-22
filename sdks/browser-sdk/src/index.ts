@@ -6,21 +6,11 @@ export { Group } from "./Group";
 export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
 export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
-export {
-  revokeInstallations,
-  revokeInstallationsSignatureText,
-} from "./utils/installations";
-export { inboxStateFromInboxIds } from "./utils/inboxState";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types/options";
 export * from "./utils/conversions";
+export * from "./utils/contentTypes";
 export type { AsyncStreamProxy } from "./AsyncStream";
-export type {
-  GroupSyncSummary,
-  Identifier,
-  IdentifierKind,
-  UserPreference,
-} from "@xmtp/wasm-bindings";
 export type {
   Consent,
   ConsentEntityType,
@@ -38,7 +28,10 @@ export type {
   GroupMetadata,
   GroupPermissions,
   GroupPermissionsOptions,
+  GroupSyncSummary,
   HmacKey,
+  Identifier,
+  IdentifierKind,
   InboxState,
   Installation,
   ListConversationsOptions,
@@ -52,6 +45,7 @@ export type {
   PermissionPolicySet,
   PermissionUpdateType,
   SortDirection,
+  UserPreference,
 } from "@xmtp/wasm-bindings";
 export {
   ConversationListItem,
